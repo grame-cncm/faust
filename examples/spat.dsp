@@ -27,11 +27,11 @@ scaler(i,n,a,d) = sqrt(fmax(0.0, 1.0 - fabs( fmod(a+0.5+float(n-i)/n, 1.0) - 0.5
 //	a = angle de la source (entre 0 et 1)
 // 	d = distance de la source (entre 0 et 1)
 //
-// utilise le nouveau constructeur parametrique : par(i,n,E(i))
+// utilise le constructeur parametrique : par(i,n,E(i))
 // qui met en parallele n expressions E(0), E(1), ...E(n-1)
 //------------------------------------------------------
-
-spat(n,a,d)	= _ <: par(i,n,*(scaler(i, n, a, d)));
+smooth(c)	= *(1-c) : +~*(c);
+spat(n,a,d)	= _ <: par(i, n, *( scaler(i, n, a, d) : smooth(0.9999) ));
 
 
 
@@ -43,6 +43,6 @@ spat(n,a,d)	= _ <: par(i,n,*(scaler(i, n, a, d)));
 angle 			= hslider("angle",    0.0, 0, 1, 0.01);
 distance 		= hslider("distance", 0.5, 0, 1, 0.01);
 
-process 		= spat(8, angle, distance);
+process 		= vgroup("Spatializer 1x8", spat(8, angle, distance));
 
  											
