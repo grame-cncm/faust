@@ -22,16 +22,32 @@ del 		= vslider("delay (sec)", 0, 0, 5, 0.01) * SR;
 // bus, mixer and matrix
 //-----------------------------------------------------------
 
-bus(n) 				= par(i,n,_);
-mixer(taps,lines) 	= par(i,taps,*(tap(i))), par(i,lines,*(in(i))) :>  *(gain);
-matrix(taps,lines) 	= ( bus(lines+taps) <: tgroup("",  par(i, taps, hgroup("Tap %i", mixer(taps,lines) : delay(dsize,del)))) ) ~ bus(taps);
+bus(n) 				= 	par(i,n,_);
+
+mixer(taps,lines) 	= 	par(i,taps,*(tap(i))), 
+						par(i,lines,*(in(i))) 
+						:>  *(gain);
+						
+						
+matrix(taps,lines) 	= ( bus(lines+taps) 
+						<: tgroup("",  
+								par(i, taps, 
+									hgroup("Tap %i", 
+										mixer(taps,lines) : delay(dsize,del)))) 
+					  ) ~ bus(taps);
 
 
 // tapiir
 //--------
 				  				  
-tapiir(taps,lines) = bus(lines) <: (matrix(taps,lines), bus(lines)) <: vgroup( "outputs", par( i, lines, hgroup("output %i", mixer(taps,lines)) ) );
+tapiir(taps,lines) 	= 	vgroup("Tapiir",
+							bus(lines) 
+							<: (matrix(taps,lines), bus(lines)) 
+							<: vgroup( "outputs", par( i, lines, hgroup("output %i", mixer(taps,lines)) ) )
+						);
 
-process 	=  tapiir(6,2);
+
+
+process 			=  tapiir(6,2);
 
 
