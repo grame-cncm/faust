@@ -240,6 +240,8 @@ static Type infereSigType(Tree sig, Tree env)
 		
 	else if (isSigDelay1(sig, s1)) 				return sampCast(T(s1,env));
 	
+	else if (isSigPrefix(sig, s1, s2)) 			{ checkInit(T(s1,env)); return sampCast(T(s1,env)|T(s2,env)); }
+	
 	else if (isSigFixDelay(sig, s1, s2)) 		{ checkIntParam(T(s2,env)); return sampCast(T(s1,env)); }
 /*		
 	else if (isSigBinOp(sig, &i, s1, s2)) 		        { 

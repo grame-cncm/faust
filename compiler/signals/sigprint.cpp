@@ -99,6 +99,7 @@ void printSignal(Tree sig, FILE* out, int prec)
 		if (prec > binopprec[i]) fputs(")", out); 	
 	}
 	else if ( isSigDelay1(sig, x) ) 		{ fputs("mem(", out); printSignal(x,out,0); fputs(")", out);		}
+	else if ( isSigPrefix(sig, x, y) ) 		{ fputs("prefix(", out); printSignal(x,out,0); fputs(",", out);	 printSignal(y,out,0); fputs(")", out);		}
 	else if ( isSigFixDelay(sig, x, y) ) 	{ 
 		if (prec > 4) fputs("(", out); 
 		printSignal(x,out,4); fputs("@", out); printSignal(y, out, 4); 

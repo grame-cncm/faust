@@ -18,6 +18,12 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+
+ 
+/*****************************************************************************
+	HISTORY
+	22/01/05 : added int cast in se"lect2 and select3 selection signal
+*****************************************************************************/
  
  
  
@@ -53,6 +59,10 @@ Sym SIGFIXDELAY = symbol ("sigFixDelay");
 Tree  sigFixDelay(Tree t0, Tree t1)					{ return tree(SIGFIXDELAY, t0, t1); 		}
 bool  isSigFixDelay(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGFIXDELAY, t0, t1); 	}
 
+Sym SIGPREFIX = symbol ("sigPrefix");
+Tree  sigPrefix(Tree t0, Tree t1)					{ return tree(SIGPREFIX, t0, t1); 		}
+bool  isSigPrefix(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGPREFIX, t0, t1); 	}
+
 Sym SIGIOTA = symbol ("sigIota");
 Tree  sigIota(Tree t0)								{ return tree(SIGIOTA, t0); 		}
 bool  isSigIota(Tree t, Tree& t0)					{ return isTree(t, SIGIOTA, t0); 	}
@@ -75,10 +85,10 @@ bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig)	{ return isTree(t, SIGTAB
 Sym SIGSELECT2 = symbol ("SigSelect2");
 Sym SIGSELECT3 = symbol ("SigSelect3");
 
-Tree sigSelect2 (Tree selector, Tree s1, Tree s2)							{ return tree(SIGSELECT2, selector, s1, s2); }
+Tree sigSelect2 (Tree selector, Tree s1, Tree s2)							{ return tree(SIGSELECT2, sigIntCast(selector), s1, s2); }
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)				{ return isTree(t, SIGSELECT2, selector, s1, s2); }
 
-Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIGSELECT3, selector, s1, s2, s3); }
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIGSELECT3, sigIntCast(selector), s1, s2, s3); }
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
 
 
