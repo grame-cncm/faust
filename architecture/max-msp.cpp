@@ -380,6 +380,8 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 		if (a == 0) {
 			if (x->dsp->getNumInputs() == 0) 
 				std::sprintf(dst, "(signal) : Unused Input");
+			else
+				std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 		} else if (a < x->dsp->getNumInputs()) {
 			std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 		} else {
