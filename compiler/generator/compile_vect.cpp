@@ -127,7 +127,7 @@ void VectorCompiler::compileMultiSignal (Tree L)
  
     fClass->addExecCode(subst("store_a_vec(&output$0[i], vec_output$0);",T(i)));
   }
-  generateUserInterfaceTree(fUIRoot);
+  generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 }
 
 
@@ -153,7 +153,7 @@ void VectorCompiler::compileSingleSignal (Tree sig)
   fClass->addExecCode("store_a_vec(&output[i], vec_output);");
 
 
-  generateUserInterfaceTree(fUIRoot);
+  generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 }
 
 /*****************************************************************************

@@ -115,7 +115,7 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 		Tree sig = hd(L);
 		fClass->addExecCode(subst("output$0[i] = $1;", T(i), CS(NULLENV, sig)));
 	}
-	generateUserInterfaceTree(fUIRoot);
+	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 }
 
 
@@ -127,7 +127,7 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 {	
 	sig = prepare2(sig);		// optimize and annotate expression
 	fClass->addExecCode(subst("output[i] = $0;", CS(NULLENV, sig)));
-	generateUserInterfaceTree(fUIRoot);
+	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 }
 
 

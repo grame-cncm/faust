@@ -122,6 +122,7 @@ protected:
 	void 		generateWidgetCode(Tree label, Tree varname, Tree sig);
 	void 		generateUserInterfaceTree(Tree t);
 	void 		generateUserInterfaceElements(Tree elements);
+	Tree 		prepareUserInterfaceTree(Tree t);
 
 };
 #define generateEquivRecGroup generateRecGroup

@@ -104,7 +104,8 @@ Compiler::Compiler(const string& name, const string& super, int numInputs, int n
 		: fClass(new Klass(name, super, numInputs, numOutputs, vec)),
 		//fNumInputs(numInputs), fNumOutputs(numOutputs), 
 		//fSharingKey(nil), 
-		fUIRoot(uiFolder(cons(tree(0), tree("\"\""))))
+		//fUIRoot(uiFolder(cons(tree(0), tree("\"\""))))
+		fUIRoot(uiFolder(cons(tree(0), tree("\"faust\""))))
 {}
 
 Compiler::Compiler(Klass* k)  
@@ -408,6 +409,46 @@ void Compiler::generateWidgetCode(Tree label, Tree varname, Tree sig)
 	}
 }
 
+#if 0 
+Tree Compiler::prepareUserInterfaceTree(Tree t)
+{
+	Tree root, elems;
+	cout << "prepare" << endl;
+	if (isUiFolder(t, root, elems)) {
+		cout << "is UI folder : ";
+		print(t);
+		cout << endl;
+		if ( isList (elems) ) {
+			cout << "is list : ";
+			print(hd(elems)); cout << endl;
+			print(tl(elems)); cout << endl;
+			if (isNil(tl(elems)) ) {
+				Tree folder, subelems;
+				if (isUiFolder(right(hd(elems)), folder, subelems)) {
+					cout << "simplified to : ";
+					print(right(hd(elems))); cout << endl;
+					return right(hd(elems));
+				}
+			}
+		}
+	}
+	return t;
+}
+ 
+#endif
+
+
+// Remove fake root folder if not needed (that is if the UI
+// is completely enclosed in one folder
+Tree Compiler::prepareUserInterfaceTree(Tree t)
+{
+	Tree root, elems;
+	if (isUiFolder(t, root, elems) && isList(elems) && isNil(tl(elems)) ) {
+		Tree folder = right(hd(elems));
+		return (isUiFolder(folder)) ? folder : t;
+	}
+	return t;
+}
  
 void Compiler::generateUserInterfaceTree(Tree t)
 {
