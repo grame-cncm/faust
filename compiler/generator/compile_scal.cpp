@@ -19,7 +19,11 @@
  ************************************************************************
  ************************************************************************/
  
- 
+/*****************************************************************************
+	HISTORY
+	22/01/05 : corrected bug on bool signals cached in float variables
+*****************************************************************************/
+
  
 #include "compile_scal.hh"
 
@@ -217,6 +221,7 @@ string	ScalarCompiler::generateCode (Tree env, Tree sig)
 	else if ( isSigDelay1(sig, x) ) 				{ return generateDelay1 	(env, sig, x); 				}
 	
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(env, sig, x, y); 			}
+	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix 	(env, sig, x, y); 			}
 	else if ( isSigIota(sig, x) ) 					{ return generateIota 		(env, sig, x); 				}
 
 	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp 		(env, sig, i, x, y); 		}
@@ -327,11 +332,11 @@ string ScalarCompiler::generateCacheCode(Tree tEnv, Tree sig, const string& exp)
 			case kKonst :
 
 				if (t->nature() == kInt) {
-					vname = getFreshID("idata");
-					ctype = "int";
+					ctype = "int"; vname = getFreshID("idata");
+					
 				} else {
-					vname = getFreshID("fdata");
-					ctype = "float";
+					ctype = "float"; vname = getFreshID("fdata");
+					
 				}
 
 				fClass->addDeclCode(subst("$0 \t$1;", ctype, vname)); 
@@ -341,11 +346,11 @@ string ScalarCompiler::generateCacheCode(Tree tEnv, Tree sig, const string& exp)
 			case kBlock :
 				
 				if (t->nature() == kInt) {
-					vname = getFreshID("itemp");
-					ctype = "int";
+					ctype = "int"; vname = getFreshID("itemp");
+					
 				} else {
-					vname = getFreshID("ftemp");
-					ctype = "float";
+					ctype = "float"; vname = getFreshID("ftemp");
+					
 				}
 
 				fClass->addSlowCode(subst("$0 $1 = $2;", ctype, vname, exp)); 
@@ -354,11 +359,11 @@ string ScalarCompiler::generateCacheCode(Tree tEnv, Tree sig, const string& exp)
 			case kSamp :
 
 				if (t->nature() == kInt) {
-					vname = getFreshID("itemp");
-					ctype = "int";
+					ctype = "int"; vname = getFreshID("itemp");
+					
 				} else {
-					vname = getFreshID("ftemp");
-					ctype = "float";
+					ctype = "float"; vname = getFreshID("ftemp");
+					
 				}
 
 				fClass->addExecCode(subst("$0 $1 = $2;", ctype, vname, exp)); 
@@ -677,6 +682,28 @@ string ScalarCompiler::generateFixDelay (Tree tEnv, Tree sig, Tree e, Tree n)
 
 
 /*****************************************************************************
+							   PREFIX, DELAY A PREFIX VALUE
+*****************************************************************************/
+
+string ScalarCompiler::generatePrefix (Tree tEnv, Tree sig, Tree x, Tree e)
+{
+	Type te = getSigType(sig, tEnv);
+
+	string vperm = getFreshID("M");
+	string vtemp = getFreshID("T");
+	
+	string type = cType(te);
+	
+	fClass->addDeclCode(subst("$0 \t$1;", type, vperm));
+	fClass->addInitCode(subst("$0 = $1;", vperm, CS(tEnv, x)));
+	
+	fClass->addExecCode(subst("$0 $1 = $2;", type, vtemp, vperm));		
+	fClass->addExecCode(subst("$0 = $1;", vperm, CS(tEnv, e)));
+	return vtemp;		
+} 
+
+
+/*****************************************************************************
 							   IOTA(n)
 *****************************************************************************/
 
@@ -706,8 +733,8 @@ string ScalarCompiler::generateIota (Tree tEnv, Tree sig, Tree n)
 string ScalarCompiler::generateSelect2 (Tree tEnv, Tree sig, Tree sel, Tree s1, Tree s2)
 {
 	Type t   = getSigType(sig, tEnv);
-	Type u1  = getSigType(s1, tEnv);
-	Type u2  = getSigType(s2, tEnv);
+	//Type u1  = getSigType(s1, tEnv);
+	//Type u2  = getSigType(s2, tEnv);
 	
 	string type = cType(t);
 	string var  = getFreshID("S");
@@ -726,7 +753,6 @@ string ScalarCompiler::generateSelect2 (Tree tEnv, Tree sig, Tree sel, Tree s1, 
 			fClass->addSlowCode(subst("$0[0] = $1;", var, CS(tEnv, s1)));
 			fClass->addSlowCode(subst("$0[1] = $1;", var, CS(tEnv, s2)));
 			return generateCacheCode(tEnv, sig, subst("$0[$1]", var, CS(tEnv, sel)));
-//	return generateCacheCode(tEnv, sig, subst("int($0)", CS(tEnv, x)));
 			
 		case kSamp :
 			fClass->addExecCode(subst("$0 \t$1[2];", type, var));

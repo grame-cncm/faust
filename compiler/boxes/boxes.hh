@@ -154,9 +154,21 @@ bool isBoxAppl	(Tree t, Tree& x, Tree& y);
 
 Tree closure (Tree abstr, Tree genv, Tree vis, Tree lenv);
 
-bool isClosure	(Tree t, Tree& abstr, Tree& genv, Tree& vis, Tree& lenv);	
+bool isClosure	(Tree t, Tree& abstr, Tree& genv, Tree& vis, Tree& lenv);
 
-// pour gerer les erreurs d'évaluations
+
+/*****************************************************************************
+						Boxes with local definitions
+*****************************************************************************/
+
+Tree boxWithLocalDef (Tree body, Tree ldef);
+bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef);	
+
+
+/*****************************************************************************
+							 Error Boxe
+*****************************************************************************/
+
 Tree boxError();
 bool isBoxError(Tree t);
 

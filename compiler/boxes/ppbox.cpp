@@ -64,6 +64,7 @@ char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 	if (ptr == sigNE) return "!=";
 
 	if (ptr == sigFixDelay) return "@";
+	if (ptr == sigPrefix) 	return "prefix";
 	
 	return "prim2???";
 }
@@ -111,7 +112,7 @@ ostream& boxpp::print (ostream& fout) const
 	prim5	p5;
 
 	Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, 
-			body, fun, args, abstr, genv, vis, lenv;
+			body, fun, args, abstr, genv, vis, lenv, ldef;
 	
 	const char* str;
 	
@@ -131,6 +132,8 @@ ostream& boxpp::print (ostream& fout) const
 	
 	else if (isBoxAbstr(box, arg,body))	fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")"; 
 	else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << boxpp(args) ; 
+	
+	else if (isBoxWithLocalDef(box, body, ldef))	fout << boxpp(fun) << " with { " << boxpp(args) << " }"; 
 	
 	// foreign elements 
 	else if (isBoxFFun(box, ff))		fout << "ffunction(" << ffname(ff) << ')'; 

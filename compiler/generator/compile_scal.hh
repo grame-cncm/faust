@@ -74,6 +74,7 @@ private:
 	
   string 		generateDelay1		(Tree tEnv, Tree sig, Tree arg);
   string 		generateFixDelay	(Tree tEnv, Tree sig, Tree arg, Tree size);
+  string 		generatePrefix 		(Tree tEnv, Tree sig, Tree x, Tree e);
   string 		generateIota		(Tree tEnv, Tree sig, Tree arg);
   string 		generateBinOp 		(Tree tEnv, Tree sig, int opcode, Tree arg1, Tree arg2);
 	

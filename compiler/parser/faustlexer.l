@@ -67,7 +67,11 @@ LETTER   [a-zA-Z]
 "{"			return LBRAQ;
 "}"			return RBRAQ;
 
+"with"		return WITH;
+
 "mem"		return MEM;
+"prefix"	return PREFIX;
+
 "int"		return INTCAST;
 "float"		return FLOATCAST;
 

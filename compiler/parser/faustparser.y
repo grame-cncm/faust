@@ -47,6 +47,8 @@ int yylex();
 
 
 %token MEM
+%token PREFIX
+
 %token INTCAST
 %token FLOATCAST
 %token FFUNCTION
@@ -79,6 +81,7 @@ int yylex();
 %token RPAR
 %token LBRAQ
 %token RBRAQ
+%token WITH
 %token DEF
 
 %token IPAR
@@ -98,6 +101,7 @@ int yylex();
 
 %type <exp> params
 
+%type <exp> superdiagram
 %type <exp> diagram
 %type <exp> eqname
 %type <exp> expression
@@ -148,8 +152,8 @@ eqlist			: /*empty*/						{$$ = nil; }
 				| eqlist equation 				{$$ = cons ($2,$1); } 
                 ;
 				
-equation		: eqname LPAR params RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); } 
-				| eqname DEF diagram ENDDEF		{$$ = cons($1,$3); } 
+equation		: eqname LPAR params RPAR DEF superdiagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); } 
+				| eqname DEF superdiagram ENDDEF		{$$ = cons($1,$3); } 
 				| error ENDDEF					{$$ = nil; yyerr++;}
                	;
 				
@@ -159,7 +163,9 @@ eqname			: ident 						{$$=$1; setDefProp($1, yyfilename, yylineno); }
 params			: ident							{$$ = cons($1,nil); }
 				| params PAR ident				{$$ = cons($3,$1); } 
                 ;
-				
+	
+superdiagram	: diagram							{$$ = $1; }
+				| diagram WITH LBRAQ eqlist RBRAQ	{$$ = boxWithLocalDef($1,$4); }		
 				
 diagram			: diagram PAR diagram  			{$$ = boxPar($1,$3);}
 				| diagram SEQ diagram  			{$$ = boxSeq($1,$3);}
@@ -219,6 +225,8 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| CUT   						{$$ = boxCut();}
 				
 				| MEM   						{$$ = boxPrim1(sigDelay1);}
+				| PREFIX   						{$$ = boxPrim2(sigPrefix);}
+
 				| INTCAST   					{$$ = boxPrim1(sigIntCast);}
 				| FLOATCAST   					{$$ = boxPrim1(sigFloatCast);}
 

@@ -117,7 +117,7 @@ static Tree eval (Tree exp, Tree globalDefEnv, Tree visited, Tree localValEnv)
 	Tree 	def;
 	Tree 	fun;
 	Tree 	arg;
-	Tree	var, num, body;
+	Tree	var, num, body, ldef;
 	Tree 	label;
 	Tree	cur, lo, hi, step;
 	
@@ -131,7 +131,8 @@ static Tree eval (Tree exp, Tree globalDefEnv, Tree visited, Tree localValEnv)
 			return boxError();
 			
 		} if (searchEnv(exp, def, globalDefEnv)) {
-			return eval(def, globalDefEnv, cons(exp,visited), nil);
+			//return eval(def, globalDefEnv, cons(exp,visited), nil);
+			return eval(def, globalDefEnv, cons(exp,visited), localValEnv);
 			
 		} else {
 			if (isNil(visited)) {
@@ -142,6 +143,9 @@ static Tree eval (Tree exp, Tree globalDefEnv, Tree visited, Tree localValEnv)
 			return boxError();
 		}
 	
+	} else if (isBoxWithLocalDef(exp, body, ldef)) {
+		return eval(body, concat(ldef, globalDefEnv), visited, localValEnv);
+		
 	} else if (isBoxFFun(exp)) {
 		return exp;
 		
@@ -457,14 +461,16 @@ static Tree applyList (Tree fun, Tree larg)
 	Tree id;
 	Tree body;
 	
+	prim2	p2;
+	
 	if (isNil(larg)) return fun;
 	
-	if (isBoxError(fun) || isBoxError(larg)) {
+	if (isBoxError(fun) || isBoxError(larg)) { 
 		return boxError();
 	}
 	
 	if (!isClosure(fun, abstr, globalDefEnv, visited, localValEnv)) {
-		if (isNil(tl(larg)) && isBoxPrim2(fun)) {
+		if (isNil(tl(larg)) && isBoxPrim2(fun, &p2) && (p2 != sigPrefix)) {
 			return boxSeq(boxPar(boxWire(), hd(larg)), fun);
 		}
 		return boxSeq(larg2par(larg), fun);

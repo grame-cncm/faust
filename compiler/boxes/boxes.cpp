@@ -225,6 +225,16 @@ bool isBoxError(Tree t)
 }		
 
 
+
+/*****************************************************************************
+						Boxes with local definitions
+*****************************************************************************/
+Sym BOXWITHLOCALDEF 	= symbol ("BoxWithLocalDef");
+
+Tree boxWithLocalDef (Tree body, Tree ldef)					{ return tree(BOXWITHLOCALDEF, body, ldef); } 
+bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXWITHLOCALDEF, body, ldef); }	
+
+
 /*****************************************************************************
 							External Primitive Boxes (n -> 1)
 *****************************************************************************/
