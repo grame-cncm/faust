@@ -1,4 +1,4 @@
-	 		FAUST : a programming language for 
+	 		FAUST : a programming language for
 	 		  audio applications and plugins
 					==============	
 	 Grame, Centre National de Creation Musicale
@@ -8,12 +8,14 @@
 	 
 0/ Introduction
 ----------------
-Faust is a functional programming language specifically designed for realtime audio applications and plugins. The syntax of the language is block diagram oriented The faust compiler translate signal processing specifications into optimized C++ code for signal processing applications. 
+Faust is a functional programming language specifically designed for realtime audio applications and plugins. The syntax of the language is block diagram oriented. The faust compiler translate signal processing specifications into optimized C++ code for signal processing applications.
+
+The generated code can be wrapped into an 'architecture file' in order to create for example a standalone jack/gtk application. Several architecture file are provided and additional contributions are welcome.
 
 
 1/ Compilation and installation
 --------------------------------
-There is no configuration phase. To compile and install the faust compiler do :
+There is no configuration phase. To compile and install the Faust compiler do :
 
 	make
 	su
@@ -43,6 +45,8 @@ This a preliminary version of Faust.
 - The documentation doesn't mention the use of abstractions for symbolic routing of signals. For example it is possible to define "foo(x,y) = y,x;" and to use it *unapplied* such as in "process = foo;" to invert the two channels. (previously one had to define "foo = _,_ <: !,_,_,!;" to do the same operation)  
 
 - The @ operator is not yet implemented in the SIMD code generator
+
+- The ' operator can be used instead of mem. It is such that " E' " is equivalent to " E:mem "
 
 - The generation of SVG block diagrams from faust code is still experimental
 
