@@ -129,6 +129,18 @@ siglist listLift(const siglist& l)
 	return r;
 }
 
+
+
+/**
+ * Propagate computes the outputs signals of a block-diagram according to a list of input signals.
+ *
+ *\param slotenv input signals associated with symbolic slots
+ *\param path stack of user interface groups : (type,label)*
+ *\param box block-diagram where we propagate the signals
+ *\param lsig list of signals to be propagated into box
+ *\return list of resulting signals
+ */
+
 siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 {
 	int		i;
