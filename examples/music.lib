@@ -1,0 +1,94 @@
+//-----------------------------------------------
+// 					DELAY LINE
+//-----------------------------------------------
+
+index(n) 	= _ & (n-1) ~ +(1);		// n = 2**i
+delay(n,d) 	= rwtable(n, 0.0, index(n), _, (index(n)-int(d)) & (n-1));
+
+
+delay1s(d)	= delay(65536,d);
+delay2s(d)	= delay(131072,d);
+delay5s(d)	= delay(262144,d);
+delay10s(d)	= delay(524288,d);
+delay21s(d)	= delay(1048576,d);
+delay43s(d)	= delay(2097152,d);
+
+millisec = SR/1000.0;
+
+time1s 	= hslider("time", 0, 0,  1000, 0.1)*millisec;
+time2s 	= hslider("time", 0, 0,  2000, 0.1)*millisec;
+time5s 	= hslider("time", 0, 0,  5000, 0.1)*millisec;
+time10s = hslider("time", 0, 0, 10000, 0.1)*millisec;
+time21s = hslider("time", 0, 0, 21000, 0.1)*millisec;
+time43s = hslider("time", 0, 0, 43000, 0.1)*millisec;
+
+
+echo1s  = vgroup("echo  1000", +~(delay(65536,   int(hslider("millisecond", 0, 0,	1000, 0.10)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo2s  = vgroup("echo  2000", +~(delay(131072,  int(hslider("millisecond", 0, 0,	2000, 0.25)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo5s  = vgroup("echo  5000", +~(delay(262144,  int(hslider("millisecond", 0, 0,	5000, 0.50)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo10s = vgroup("echo 10000", +~(delay(524288,  int(hslider("millisecond", 0, 0,  10000, 1.00)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo21s = vgroup("echo 21000", +~(delay(1048576, int(hslider("millisecond", 0, 0,  21000, 1.00)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo43s = vgroup("echo 43000", +~(delay(2097152, int(hslider("millisecond", 0, 0,  43000, 1.00)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+
+
+
+//-----------------------------------------------
+// 			Tempo, beats and pulses
+//-----------------------------------------------
+
+tempo(t) 	= (60*SR)/t;			// tempo(t) -> samples
+
+period(p) 	= %(int(p))~+(1);		// signal en dent de scie de periode p
+pulse(t) 	= period(t)==0;			// pulse (10000...) de periode p
+beat(t) 	= pulse(tempo(t));		// pulse au tempo t
+
+
+
+//-----------------------------------------------
+// 			noise : Noise generator
+//-----------------------------------------------
+
+random 		= +(12345) ~ *(1103515245);
+RANDMAX		= 2147483647.0;
+
+noise 		= random / RANDMAX;
+
+
+
+//-----------------------------------------------
+// 			osc(freq) : Sinusoidal Oscillator
+//-----------------------------------------------
+
+tablesize 		= 1 << 12;
+samplingfreq	= SR;
+
+time 			= (+(1)~_ ) - 1; 			// O,1,2,3,...
+sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
+
+decimal			= _ <: -(floor);
+phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize)) : int ;
+osc(freq)		= phase(freq) : rdtable(tablesize,sinwaveform);
+
+
+//-----------------------------------------------
+// 			Spatialisation
+//-----------------------------------------------
+
+pan(c) = _ <: *(c), *(1-c);
+
+bus2 = _,_;
+bus3 = _,_,_;
+bus4 = _,_,_,_;
+bus5 = _,_,_,_,_;
+bus6 = _,_,_,_,_,_;
+bus7 = _,_,_,_,_,_,_;
+bus8 = _,_,_,_,_,_,_,_;
+
+gain2(g) = *(g),*(g);
+gain3(g) = *(g),*(g),*(g);
+gain4(g) = *(g),*(g),*(g),*(g);
+gain5(g) = *(g),*(g),*(g),*(g),*(g);
+gain6(g) = *(g),*(g),*(g),*(g),*(g),*(g);
+gain7(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g);
+gain8(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g),*(g);
+

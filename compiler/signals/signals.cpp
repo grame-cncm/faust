@@ -1,0 +1,209 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+ 
+ 
+ 
+#include "signals.hh"
+
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * Les Signaux.
+ * Les différents constructeurs et deconstructeurs de signaux 
+ */
+///////////////////////////////////////////////////////////////////////
+
+Tree  sigInt(int i) 								{ return tree(i); 					}
+bool  isSigInt(Tree t, int* i) 						{ return isInt(t->node(), i); 		}
+
+Tree  sigReal(double r) 							{ return tree(r); 					}
+bool  isSigReal(Tree t, float* r) 					{ return isFloat(t->node(), r); 	}
+
+Sym SIGINPUT = symbol ("sigInput");
+Tree  sigInput(int i)								{ return tree(SIGINPUT, tree(i));	}
+bool  isSigInput(Tree t, int* i) 					{ Tree x; return isTree(t, SIGINPUT, x) && isInt(x->node(),i); 	}
+
+Sym SIGOUTPUT = symbol ("sigOutput");
+Tree  sigOutput(int i, Tree t0)						{ return tree(SIGOUTPUT, tree(i), t0); 	}
+bool  isSigOutput(Tree t, int* i, Tree& t0)			{ Tree x; return isTree(t, SIGOUTPUT, x, t0) && isInt(x->node(),i); 	}
+
+Sym SIGDELAY1 = symbol ("sigDelay1");
+Tree  sigDelay1(Tree t0)							{ return tree(SIGDELAY1, t0); 		}
+bool  isSigDelay1(Tree t, Tree& t0)					{ return isTree(t, SIGDELAY1, t0); 	}
+
+Sym SIGFIXDELAY = symbol ("sigFixDelay");
+Tree  sigFixDelay(Tree t0, Tree t1)					{ return tree(SIGFIXDELAY, t0, t1); 		}
+bool  isSigFixDelay(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGFIXDELAY, t0, t1); 	}
+
+Sym SIGIOTA = symbol ("sigIota");
+Tree  sigIota(Tree t0)								{ return tree(SIGIOTA, t0); 		}
+bool  isSigIota(Tree t, Tree& t0)					{ return isTree(t, SIGIOTA, t0); 	}
+
+
+Sym SIGRDTBL = symbol ("SigRDTbl");
+Tree sigRDTbl (Tree t, Tree i)						{ return tree(SIGRDTBL, t, i); 	}
+bool isSigRDTbl (Tree s, Tree& t, Tree& i)			{ return isTree(s, SIGRDTBL, t, i); 	}
+
+Sym SIGWRTBL = symbol ("SigWRTbl");
+Tree sigWRTbl (Tree id, Tree t, Tree i, Tree s)					{ return tree(SIGWRTBL, id, t, i, s); 	}
+bool isSigWRTbl (Tree u, Tree& id, Tree& t, Tree& i, Tree& s)	{ return isTree(u, SIGWRTBL, id, t, i, s); 	}
+
+Sym SIGTABLE = symbol ("SigTable");
+Tree sigTable (Tree id, Tree n, Tree sig)				{ return tree(SIGTABLE, id, n, sig); 		}
+bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig)	{ return isTree(t, SIGTABLE, id, n, sig); 	}
+
+// selection d'un signal parmis plusieurs
+
+Sym SIGSELECT2 = symbol ("SigSelect2");
+Sym SIGSELECT3 = symbol ("SigSelect3");
+
+Tree sigSelect2 (Tree selector, Tree s1, Tree s2)							{ return tree(SIGSELECT2, selector, s1, s2); }
+bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)				{ return isTree(t, SIGSELECT2, selector, s1, s2); }
+
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIGSELECT3, selector, s1, s2, s3); }
+bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
+
+
+// operations arithmétiques
+
+Sym SIGBINOP = symbol ("SigBinOp");
+Tree sigBinOp(int op, Tree x, Tree y) 					{ return tree(SIGBINOP, tree(op), x, y); }
+bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y) 		{ Tree t; return isTree(s, SIGBINOP, t, x, y) && isInt(t->node(),op); }
+
+
+// Foreign Functions
+
+Sym SIGFFUN = symbol ("SigFFun");
+Tree sigFFun (Tree ff, Tree largs)						{ return tree(SIGFFUN, ff, largs); 			}
+bool isSigFFun	(Tree s, Tree& ff, Tree& largs)			{ return isTree(s, SIGFFUN, ff, largs);		}
+
+
+Sym SIGFCONST = symbol ("SigFConst");
+Tree sigFConst 		(Tree type, Tree name, Tree file)				{ return tree(SIGFCONST, type, name, file); 			}
+bool isSigFConst	(Tree s)										{ Tree t,n,f; return isTree(s, SIGFCONST, t, n, f);	}
+bool isSigFConst	(Tree s, Tree& type, Tree& name, Tree& file)	{ return isTree(s, SIGFCONST,type, name, file);		}
+
+// Generateur de signal (compilé en tant que classe C++)
+
+Sym SIGGEN = symbol ("SigGen");
+Tree sigGen (Tree s)							{ return tree(SIGGEN, s); 		}
+bool isSigGen (Tree t, Tree& x)					{ return isTree(t, SIGGEN, x); 	}
+bool isSigGen (Tree t)							{ return t->node()== Node(SIGGEN); 	}
+
+// nouvelle version utilisant rec et ref
+
+Sym SIGPROJ = symbol ("SigProj");
+Tree sigProj (int i, Tree rgroup)				{ return tree(SIGPROJ, tree(i), rgroup); 	}
+bool isProj (Tree t, int* i, Tree& rgroup)		{ Tree x; return isTree(t, SIGPROJ, x, rgroup) && isInt(x->node(), i); 	}
+
+
+// Int and Float casting
+
+Sym SIGINTCAST = symbol ("sigIntCast");
+Sym SIGFLOATCAST = symbol ("sigFloatCast");
+
+Tree  sigIntCast(Tree t)						{ return tree(SIGINTCAST, t); 			}				
+Tree  sigFloatCast(Tree t)						{ return tree(SIGFLOATCAST, t); 		}
+			
+bool  isSigIntCast(Tree t, Tree& x)				{ return isTree(t, SIGINTCAST, x); 		}
+bool  isSigFloatCast(Tree t, Tree& x)			{ return isTree(t, SIGFLOATCAST, x); 	}
+
+
+
+
+/*****************************************************************************
+							 User Interface Elements
+*****************************************************************************/
+
+Sym SIGBUTTON = symbol ("SigButton");
+Tree sigButton 	 (Tree lbl)					{ return tree(SIGBUTTON, lbl); 					}
+bool isSigButton (Tree s)					{ Tree lbl; return isTree(s, SIGBUTTON, lbl);	}
+bool isSigButton (Tree s, Tree& lbl)		{ return isTree(s, SIGBUTTON, lbl);				}
+
+
+Sym SIGCHECKBOX = symbol ("SigCheckbox");
+Tree sigCheckbox   (Tree lbl)				{ return tree(SIGCHECKBOX, lbl); 					}
+bool isSigCheckbox (Tree s)					{ Tree lbl; return isTree(s, SIGCHECKBOX, lbl);	}
+bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, SIGCHECKBOX, lbl);				}
+
+
+Sym SIGHSLIDER = symbol ("SigHSlider");
+Tree sigHSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)				
+											{ return tree(SIGHSLIDER, lbl, list4(cur,min,max,step));		}
+bool isSigHSlider (Tree s)					{ Tree lbl, params; return isTree(s, SIGHSLIDER, lbl, params);	}
+
+bool isSigHSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)		
+{ 
+	Tree params; 
+	if (isTree(s, SIGHSLIDER, lbl, params)) {
+		cur = nth(params, 0);
+		min = nth(params, 1);
+		max = nth(params, 2);
+		step= nth(params, 3);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+Sym SIGVSLIDER = symbol ("SigVSlider");
+Tree sigVSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)				
+											{ return tree(SIGVSLIDER, lbl, list4(cur,min,max,step));		}
+bool isSigVSlider (Tree s)					{ Tree lbl, params; return isTree(s, SIGVSLIDER, lbl, params);	}
+
+bool isSigVSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)		
+{ 
+	Tree params; 
+	if (isTree(s, SIGVSLIDER, lbl, params)) {
+		cur = nth(params, 0);
+		min = nth(params, 1);
+		max = nth(params, 2);
+		step= nth(params, 3);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+Sym SIGNUMENTRY = symbol ("SigNumEntry");
+Tree sigNumEntry   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)				
+											{ return tree(SIGNUMENTRY, lbl, list4(cur,min,max,step));		}
+bool isSigNumEntry (Tree s)					{ Tree lbl, params; return isTree(s, SIGNUMENTRY, lbl, params);	}
+
+bool isSigNumEntry (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)		
+{ 
+	Tree params; 
+	if (isTree(s, SIGNUMENTRY, lbl, params)) {
+		cur = nth(params, 0);
+		min = nth(params, 1);
+		max = nth(params, 2);
+		step= nth(params, 3);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+
+

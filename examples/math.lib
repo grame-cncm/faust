@@ -1,0 +1,81 @@
+//-----------------------------------------------
+// 			Mathematic library for Faust
+//-----------------------------------------------
+
+//-----------------------------------------------
+// Utilities and constants
+//-----------------------------------------------
+
+SR 			= fconstant(int fSamplingFreq, <math.h>);
+
+PI 			= 3.1415926535897932385;
+
+// -- Trigonometric Functions
+
+acos		= ffunction(float acos (float), <math.h>, "");
+asin		= ffunction(float asin (float), <math.h>, "");
+atan		= ffunction(float atan (float), <math.h>, "");
+atan2		= ffunction(float atan2 (float, float), <math.h>, "");
+
+sin			= ffunction(float sin (float), <math.h>, "");
+cos			= ffunction(float cos (float), <math.h>, "");
+tan			= ffunction(float tan (float), <math.h>,"");
+
+// -- Exponential Functions
+
+exp 		= ffunction(float exp (float), <math.h>,"");
+log 		= ffunction(float log (float), <math.h>,"");
+log10 		= ffunction(float log10 (float), <math.h>,"");
+pow 		= ffunction(float pow (float), <math.h>,"");
+sqrt 		= ffunction(float sqrt (float), <math.h>,"");
+cbrt 		= ffunction(float cbrt (float), <math.h>,"");
+hypot 		= ffunction(float hypot (float, float), <math.h>,"");
+ldexp 		= ffunction(float ldexp (float, int), <math.h>,"");
+scalb 		= ffunction(float scalb (float, float), <math.h>,"");
+log1p 		= ffunction(float log1p (float), <math.h>,"");
+logb 		= ffunction(float logb (float), <math.h>,"");
+ilogb 		= ffunction(int ilogb (float), <math.h>,"");
+expm1 		= ffunction(float expm1 (float), <math.h>,"");
+
+// -- Hyperbolic Functions
+
+acosh		= ffunction(float acosh (float), <math.h>, "");
+asinh		= ffunction(float asinh (float), <math.h>, "");
+atanh		= ffunction(float atanh (float), <math.h>, "");
+
+sinh		= ffunction(float sinh (float), <math.h>, "");
+cosh		= ffunction(float cosh (float), <math.h>, "");
+tanh		= ffunction(float tanh (float), <math.h>,"");
+
+// -- Remainder Functions
+fmod 		= ffunction(float fmod (float, float),<math.h>,"");
+remainder 	= ffunction(float remainder (float, float),<math.h>,"");
+
+// -- Nearest Integer Functions
+floor 		= ffunction(float floor (float), <math.h>,"");
+ceil 		= ffunction(float ceil (float), <math.h>,"");
+rint 		= ffunction(float rint (float), <math.h>,"");
+modf 		= ffunction(float modf (float, float),<math.h>,"");
+
+// -- Special Functions
+erf			= ffunction(float erf(float), <math.h>,"");
+erfc		= ffunction(float erfc(float), <math.h>,"");
+gamma		= ffunction(float gamma(float), <math.h>,"");
+J0			= ffunction(float j0(float), <math.h>,"");
+J1			= ffunction(float j1(float), <math.h>,"");
+Jn			= ffunction(float jn(int, float), <math.h>,"");
+lgamma		= ffunction(float lgamma(float), <math.h>,"");
+Y0			= ffunction(float y0(float), <math.h>,"");
+Y1			= ffunction(float y1(float), <math.h>,"");
+Yn			= ffunction(float yn(int, float), <math.h>,"");
+
+
+// -- Miscellaneous Functions
+
+fabs 		= ffunction(float fabs (float), <math.h>,"");
+fmax 		= ffunction(float max (float, float),<math.h>,"");
+fmin 		= ffunction(float min (float, float),<math.h>,"");
+isnan 		= ffunction(int isnan (float),<math.h>,"");
+nextafter	= ffunction(float nextafter(float, float),<math.h>,"");
+
+

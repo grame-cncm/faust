@@ -1,0 +1,176 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+ 
+ 
+ 
+#ifndef _SIGNALS_
+#define _SIGNALS_
+
+#include "tlib.hh"
+#include "binop.hh"
+
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * Les Signaux.
+ * Les différents constructeurs de signaux 
+ */
+///////////////////////////////////////////////////////////////////////
+
+// les constantes
+Tree sigInt(int n); 					
+Tree sigReal(double n); 		
+		
+bool  isSigInt(Tree t, int* i);
+bool  isSigReal(Tree t, float* r);
+
+
+// les entrées sorties
+Tree sigInput(int i);					
+Tree sigOutput(int i, Tree t);			
+
+bool  isSigInput(Tree t, int* i);
+bool  isSigOutput(Tree t, int* i, Tree& t0);
+
+// delay
+Tree  sigDelay1(Tree t);				
+bool  isSigDelay1(Tree t, Tree& t0);
+
+Tree  sigFixDelay(Tree t0, Tree t1);  		   
+bool  isSigFixDelay(Tree t, Tree& t0, Tree& t1); 
+
+Tree  sigIota(Tree t0);  		   
+bool  isSigIota(Tree t, Tree& t0); 
+				
+// Int and Float casting
+Tree  sigIntCast(Tree t);				
+Tree  sigFloatCast(Tree t);	
+			
+bool  isSigIntCast(Tree t, Tree& x);
+bool  isSigFloatCast(Tree t, Tree& x);
+
+
+// tables
+Tree sigRDTbl (Tree t, Tree i);		
+Tree sigWRTbl (Tree id, Tree t, Tree i, Tree s);
+Tree sigTable (Tree id, Tree n, Tree sig);		
+Tree sigGen   (Tree content);
+
+bool isSigRDTbl (Tree s, Tree& t, Tree& i);
+bool isSigWRTbl (Tree u, Tree& id, Tree& t, Tree& i, Tree& s);
+bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig);
+bool isSigGen   (Tree t, Tree& content);
+bool isSigGen   (Tree t);
+
+inline Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+{
+	return sigRDTbl(sigWRTbl(nil, sigTable(nil, n, sigGen(init)), widx, wsig), ridx);
+}
+
+inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
+{
+	return sigRDTbl(sigTable(nil, n, sigGen(init)), ridx);
+}
+
+// selectors
+
+Tree sigSelect2 (Tree selector, Tree s1, Tree s2);
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3);
+
+bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
+bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
+
+// operations numériques
+Tree sigBinOp	(int op, Tree x, Tree y);
+bool isSigBinOp	(Tree s, int* op, Tree& x, Tree& y);
+
+// Foreign Functions
+Tree sigFFun (Tree ff, Tree largs);
+bool isSigFFun	(Tree s, Tree& ff, Tree& largs);
+
+// Foreign Constants
+
+Tree sigFConst 		(Tree type, Tree name, Tree file); 
+bool isSigFConst	(Tree s);
+bool isSigFConst	(Tree s, Tree& type, Tree& name, Tree& file);
+
+// emulation des anciennes fonctions
+inline Tree sigAdd(Tree x, Tree y)	{ return sigBinOp(kAdd, x, y); }		
+inline Tree sigSub(Tree x, Tree y)	{ return sigBinOp(kSub, x, y); }			
+inline Tree sigMul(Tree x, Tree y)	{ return sigBinOp(kMul, x, y); } 			
+inline Tree sigDiv(Tree x, Tree y)	{ return sigBinOp(kDiv, x, y); } 			
+inline Tree sigRem(Tree x, Tree y)	{ return sigBinOp(kRem, x, y); } 
+
+inline Tree sigAND(Tree x, Tree y)	{ return sigBinOp(kAND, x, y); } 			
+inline Tree sigOR(Tree x, Tree y)	{ return sigBinOp(kOR, x, y); } 			
+inline Tree sigXOR(Tree x, Tree y)	{ return sigBinOp(kXOR, x, y); } 
+
+inline Tree sigLeftShift(Tree x, Tree y)	{ return sigBinOp(kLsh, x, y); }		
+inline Tree sigRightShift(Tree x, Tree y)	{ return sigBinOp(kRsh, x, y); }
+		
+inline Tree sigGT(Tree x, Tree y)	{ return sigBinOp(kGT, x, y); }			
+inline Tree sigLT(Tree x, Tree y)	{ return sigBinOp(kLT, x, y); } 			
+inline Tree sigGE(Tree x, Tree y)	{ return sigBinOp(kGE, x, y); } 			
+inline Tree sigLE(Tree x, Tree y)	{ return sigBinOp(kLE, x, y); } 
+inline Tree sigEQ(Tree x, Tree y)	{ return sigBinOp(kEQ, x, y); } 			
+inline Tree sigNE(Tree x, Tree y)	{ return sigBinOp(kNE, x, y); } 
+
+
+//projection pour les groupes récursifs
+Tree sigProj (int i, Tree rgroup);	
+bool isProj (Tree t, int* i, Tree& rgroup);
+
+inline bool isNum(Tree& t, num& n)
+{
+	float 		f;
+	int 		i;
+	
+	if (isFloat(t->node(), &f)) { n = f; return true;  }
+	if (isInt(t->node(), &i)) { n = i; return true;  }
+	return false;
+}
+
+
+/*****************************************************************************
+							 User Interface Elements
+*****************************************************************************/
+
+Tree sigButton 	 (Tree label);
+bool isSigButton (Tree s);
+bool isSigButton (Tree s, Tree& label);
+
+Tree sigCheckbox   (Tree label);
+bool isSigCheckbox (Tree s);
+bool isSigCheckbox (Tree s, Tree& label);
+
+Tree sigVSlider   (Tree label, Tree cur, Tree min, Tree max, Tree step);
+bool isSigVSlider (Tree s);
+bool isSigVSlider (Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+
+Tree sigHSlider   (Tree label, Tree cur, Tree min, Tree max, Tree step);
+bool isSigHSlider (Tree s);
+bool isSigHSlider (Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+
+Tree sigNumEntry   (Tree label, Tree cur, Tree min, Tree max, Tree step);
+bool isSigNumEntry (Tree s);
+bool isSigNumEntry (Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+
+#endif

@@ -1,0 +1,69 @@
+	 		FAUST : a programming language for 
+	 		  audio applications and plugins
+					==============	
+	 Grame, Centre National de Creation Musicale
+	 			 http://www.grame.fr
+	 
+	 
+	 
+0/ Introduction
+----------------
+Faust is a functional programming language specifically designed for realtime audio applications and plugins. The syntax of the language is block diagram oriented The faust compiler translate signal processing specifications into optimized C++ code for signal processing applications. 
+
+
+1/ Compilation and installation
+--------------------------------
+There is no configuration phase. To compile and install the faust compiler do :
+
+	make
+	su
+	make install
+	
+You will need bison and flex
+
+
+2/ Compilation of the examples 
+-------------------------------
+Several faust examples are provided in the example folder. To compile and test the examples with Jack do :
+
+	cd examples
+	make jackgtk
+	
+This will create a subfolder jackgtkdir with all the jack applications. You can also create alsa applications (make alsagtk) as well as other formats.
+
+
+3/ Limitations
+--------------
+This a preliminary version of Faust. 
+
+- The source code is released under the GPL Licence, but the licence notice is not inserted in the source files.
+
+- The most up to date architecture file are the jack-gtk.cpp and alsa-gtk.cpp. The others may work but have not been tested recently
+
+- The documentation doesn't mention new important additions to the language allowing to build parametric block diagrams: par(i,n,E(i)), seq(i,n,E(i)), sum(i,n,E(i)), prod(i,n,E(i)) as well as the fix delay operator '@'.
+
+- The @ operator is not yet implemented in the SIMD code generator
+
+- The generation of SVG block diagrams from faust code is still experimental
+
+
+4/ Acknowledgments
+------------------
+
+- Thomas Charbonnel for the Jack interface
+- Etienne Gaudrin for the manual
+- Mathieu Leroi for SVG diagrams
+- Nicolas Scaringella for the SIMD code generator,
+
+My colleagues Dominique Fober and Stephane Letz
+
+
+5/ Questions and suggestions
+----------------------------
+
+If you have questions suggestions and comments, or if you want to contribute to the project, you can contact me by email : orlarey@grame.fr
+
+
+
+Yann Orlarey
+

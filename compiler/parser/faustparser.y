@@ -1,0 +1,370 @@
+
+/* Parser for the Faust language */
+
+%{
+
+#include "boxes.hh"
+#include "prim2.hh"
+#include "signals.hh"
+#include "errormsg.hh"
+
+#define YYDEBUG 1
+#define YYERROR_VERBOSE 1
+#define YYMAXDEPTH	100000
+
+extern char* 		yytext;
+extern const char* 	yyfilename;
+extern int 			yylineno;
+extern int 			yyerr;
+extern Tree 		gResult;
+
+int yylex();
+
+
+%}
+
+
+%union {
+	CTree* 	exp;
+}
+
+%start program
+		
+/* Constructors */
+%left SEQ SPLIT MIX
+%left PAR
+%left REC
+
+/* Primitive boxes */	
+			
+%left LT LE EQ GT GE NE
+
+%left ADD SUB OR
+%left MUL DIV MOD AND XOR LSH RSH
+%left FDELAY
+%left APPL
+
+
+%token MEM
+%token INTCAST
+%token FLOATCAST
+%token FFUNCTION
+%token FCONSTANT
+
+%token BUTTON
+%token CHECKBOX
+%token VSLIDER
+%token HSLIDER
+%token NENTRY
+%token VGROUP
+%token HGROUP
+%token TGROUP
+	   
+%token RDTBL
+%token RWTBL
+	   
+%token SELECT2
+%token SELECT3
+		
+%token INT
+%token FLOAT
+
+
+%token WIRE
+%token CUT
+%token ENDDEF
+%token VIRG
+%token LPAR
+%token RPAR
+%token LBRAQ
+%token RBRAQ
+%token DEF
+
+%token IPAR
+%token ISEQ
+%token ISUM
+%token IPROD
+
+%token STRING   
+%token FSTRING   
+%token IDENT
+%token EXTRA   
+
+%type <exp> program
+
+%type <exp> eqlist
+%type <exp> equation
+
+%type <exp> params
+
+%type <exp> diagram
+%type <exp> eqname
+%type <exp> expression
+%type <exp> primitive
+%type <exp> argument
+%type <exp> arglist
+
+%type <exp> ident
+%type <exp> name
+
+%type <exp> ffunction
+%type <exp> fconst
+%type <exp> signature
+%type <exp> string
+%type <exp> fstring
+%type <exp> type
+%type <exp> typelist
+%type <exp> fun
+%type <exp> num
+
+%type <exp> fpar
+%type <exp> fseq
+%type <exp> fsum
+%type <exp> fprod
+
+%type <exp> button	
+%type <exp> checkbox
+%type <exp> vslider	
+%type <exp> hslider	
+%type <exp> nentry	
+%type <exp> vgroup	
+%type <exp> hgroup	
+%type <exp> tgroup	
+
+
+		
+		
+		
+		
+
+
+%% /* grammar rules and actions follow */
+
+program         : eqlist 						{$$ = $1; gResult = $$; }
+				;
+
+eqlist			: /*empty*/						{$$ = nil; }
+				| eqlist equation 				{$$ = cons ($2,$1); } 
+                ;
+				
+equation		: eqname LPAR params RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); } 
+				| eqname DEF diagram ENDDEF		{$$ = cons($1,$3); } 
+				| error ENDDEF					{$$ = nil; yyerr++;}
+               	;
+				
+eqname			: ident 						{$$=$1; setDefProp($1, yyfilename, yylineno); }
+				;
+				
+params			: ident							{$$ = cons($1,nil); }
+				| params PAR ident				{$$ = cons($3,$1); } 
+                ;
+				
+				
+diagram			: diagram PAR diagram  			{$$ = boxPar($1,$3);}
+				| diagram SEQ diagram  			{$$ = boxSeq($1,$3);}
+				| diagram SPLIT  diagram 		{$$ = boxSplit($1,$3);}
+				| diagram MIX diagram 			{$$ = boxMerge($1,$3);}
+				| diagram REC diagram  			{$$ = boxRec($1,$3);}
+				| expression					{$$ = $1; }
+				;
+				
+expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd)); }
+				| expression SUB expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigSub)); }
+				| expression MUL expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigMul)); }
+				| expression DIV expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
+				| expression MOD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
+				| expression FDELAY expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
+
+				| expression AND expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
+				| expression OR expression 		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
+				| expression XOR expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigXOR)); }
+
+				| expression LSH expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLeftShift)); }
+				| expression RSH expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRightShift)); }
+				
+				| expression LT expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLT)); }
+				| expression LE expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLE)); }
+				| expression GT expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGT)); }
+				| expression GE expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGE)); }
+				| expression EQ expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
+				| expression NE expression		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
+								
+				| primitive LPAR arglist RPAR %prec APPL	{$$ = buildBoxAppl($1,$3); }
+					
+				| primitive						{$$ = $1;}
+				;
+					
+num				: INT   						{$$ = tree(atoi(yytext));}
+				| FLOAT 						{$$ = tree(atof(yytext));}
+				
+				| ADD INT   					{$$ = tree(atoi(yytext));}
+				| ADD FLOAT 					{$$ = tree(atof(yytext));}
+				
+				| SUB INT   					{$$ = tree(0 - atoi(yytext));}
+				| SUB FLOAT 					{$$ = tree(0.0 - atof(yytext));}
+				;
+				
+primitive		: INT   						{$$ = boxInt(atoi(yytext));}
+				| FLOAT 						{$$ = boxReal(atof(yytext));}
+				
+				| ADD INT   					{$$ = boxInt(atoi(yytext));}
+				| ADD FLOAT 					{$$ = boxReal(atof(yytext));}
+				
+				| SUB INT   					{$$ = boxInt(0 - atoi(yytext));}
+				| SUB FLOAT 					{$$ = boxReal(0.0 - atof(yytext));}
+				
+				| WIRE   						{$$ = boxWire();}
+				| CUT   						{$$ = boxCut();}
+				
+				| MEM   						{$$ = boxPrim1(sigDelay1);}
+				| INTCAST   					{$$ = boxPrim1(sigIntCast);}
+				| FLOATCAST   					{$$ = boxPrim1(sigFloatCast);}
+
+				| ADD							{$$ = boxPrim2(sigAdd);}
+				| SUB 							{$$ = boxPrim2(sigSub);}
+				| MUL  							{$$ = boxPrim2(sigMul);}
+				| DIV							{$$ = boxPrim2(sigDiv);}
+				| MOD							{$$ = boxPrim2(sigRem);}
+				| FDELAY						{$$ = boxPrim2(sigFixDelay);}
+
+				| AND							{$$ = boxPrim2(sigAND);}
+				| OR 							{$$ = boxPrim2(sigOR);}
+				| XOR  							{$$ = boxPrim2(sigXOR);}
+
+				| LSH							{$$ = boxPrim2(sigLeftShift);}
+				| RSH 							{$$ = boxPrim2(sigRightShift);}
+				
+				| LT							{$$ = boxPrim2(sigLT);}
+				| LE							{$$ = boxPrim2(sigLE);}
+				| GT							{$$ = boxPrim2(sigGT);}
+				| GE							{$$ = boxPrim2(sigGE);}
+				| EQ							{$$ = boxPrim2(sigEQ);}
+				| NE							{$$ = boxPrim2(sigNE);}
+				
+				| RDTBL 						{$$ = boxPrim3(sigReadOnlyTable);}
+				| RWTBL							{$$ = boxPrim5(sigWriteReadTable);}
+				
+				| SELECT2 						{$$ = boxPrim3(sigSelect2);}
+				| SELECT3						{$$ = boxPrim4(sigSelect3);}
+				
+				| ident 						{$$ = $1;}
+				
+				| LPAR diagram RPAR				{$$ = $2;}
+				| ffunction						{$$ = boxFFun($1); }
+				| fconst						{$$ = $1;}
+				
+				| button						{$$ = $1;}
+				| checkbox						{$$ = $1;}
+				| vslider						{$$ = $1;}
+				| hslider						{$$ = $1;}
+				| nentry						{$$ = $1;}
+				| vgroup						{$$ = $1;}
+				| hgroup						{$$ = $1;}
+				| tgroup						{$$ = $1;}
+
+				| fpar							{$$ = $1;}
+				| fseq							{$$ = $1;}
+				| fsum							{$$ = $1;}
+				| fprod							{$$ = $1;}
+				;
+				
+				
+ident			: IDENT							{$$ = boxIdent(yytext);}
+				;
+				        
+name			: IDENT							{$$ = tree(yytext);}
+				;
+				        
+
+	
+arglist			: argument						{$$ = cons($1,nil); }
+				| arglist PAR argument			{$$ = cons($3,$1); } 
+				;
+				
+argument		: argument SEQ argument  		{$$ = boxSeq($1,$3);}
+				| argument SPLIT argument 		{$$ = boxSplit($1,$3);}
+				| argument MIX argument 		{$$ = boxMerge($1,$3);}
+				| argument REC argument  		{$$ = boxRec($1,$3);}
+				| expression					{$$ = $1;}
+				;
+
+string			: STRING						{$$ = tree(yytext); }
+				;
+
+fstring			: STRING						{$$ = tree(yytext); }
+				| FSTRING						{$$ = tree(yytext); }
+				;
+
+/* description of iterative expressions */
+
+fpar			: IPAR LPAR ident PAR argument PAR diagram RPAR
+												{$$ = boxIPar($3,$5,$7);}
+				;
+
+fseq			: ISEQ LPAR ident PAR argument PAR diagram RPAR
+												{$$ = boxISeq($3,$5,$7);}
+				;
+
+fsum			: ISUM LPAR ident PAR argument PAR diagram RPAR
+												{$$ = boxISum($3,$5,$7);}
+				;
+
+fprod			: IPROD LPAR ident PAR argument PAR diagram RPAR
+												{$$ = boxIProd($3,$5,$7);}
+				;
+	
+
+/* description of foreign functions */
+	
+ffunction		: FFUNCTION LPAR signature PAR fstring PAR string RPAR 
+												{$$ = ffunction($3,$5,$7);}
+				;
+												
+fconst			: FCONSTANT LPAR type name PAR fstring RPAR 
+												{$$ = boxFConst($3,$4,$6);}
+				;
+												
+/* Description of user interface building blocks */
+button			: BUTTON LPAR string RPAR		{$$ = boxButton($3); }
+				;
+
+checkbox		: CHECKBOX LPAR string RPAR		{$$ = boxCheckbox($3); }
+				;
+
+vslider			: VSLIDER LPAR string PAR num PAR num PAR num PAR num RPAR		
+												{$$ = boxVSlider($3,$5,$7,$9,$11); }
+				;
+hslider			: HSLIDER LPAR string PAR num PAR num PAR num PAR num RPAR		
+												{$$ = boxHSlider($3,$5,$7,$9,$11); }
+				;
+nentry			: NENTRY LPAR string PAR num PAR num PAR num PAR num RPAR		
+												{$$ = boxNumEntry($3,$5,$7,$9,$11); }
+				;
+vgroup			: VGROUP LPAR string PAR diagram RPAR
+												{$$ = boxVGroup($3, $5); }
+				;
+hgroup			: HGROUP LPAR string PAR diagram RPAR
+												{$$ = boxHGroup($3, $5); }
+				;
+tgroup			: TGROUP LPAR string PAR diagram RPAR
+												{$$ = boxTGroup($3, $5); }
+				;
+
+
+signature		: type fun LPAR typelist RPAR	{$$ = cons($1, cons($2, $4)); }
+				| type fun LPAR RPAR			{$$ = cons($1, cons($2, nil)); }
+				;
+
+fun				: IDENT							{$$ = tree(yytext);}
+				;
+				        
+typelist		: type							{$$ = cons($1,nil); }
+				| typelist PAR type				{$$ = cons($3,$1); } 
+                ;
+				
+type			: INTCAST						{$$ = tree(0); }
+				| FLOATCAST						{$$ = tree(1); }
+				;
+
+%%         
+

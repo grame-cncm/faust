@@ -1,0 +1,24 @@
+Level 0 : tree library
+	tlib/
+
+level 1 : outils
+
+	binop.cpp; klass.cpp; Text.cpp
+
+Level 2 : le langage des signaux
+
+	signals.cpp 
+
+Level 3 : typage des expressions
+
+	sigtype.cpp;  
+	sigtyperules.cpp <-> sigprint.cpp  
+	
+Level 3 : le compilateur
+	simplify.cpp; privatize.cpp
+	compile.cpp    
+
+Level 4 : les tests
+	main.cpp   
+	
+	

@@ -1,0 +1,196 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+ 
+ 
+ 
+/*****************************************************************************
+\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+******************************************************************************
+	
+							  Box Type System
+	
+******************************************************************************
+\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+*****************************************************************************/
+
+
+/**\file boxtype.cpp
+ * \author Yann Orlarey
+ * \version 1.0
+ * \date 2003
+ * \brief A simple type system for block diagram expressions.
+ *  The type of a block diagram is defined by a number of inputs and outputs.
+ */
+
+
+#include <stdio.h>
+#include <string.h>
+#include "boxes.hh"
+#include "ppbox.hh"
+#include "prim2.hh"
+
+
+Tree BOXTYPEPROP = tree(symbol("boxTypeProp"));
+static void infereBoxType (Tree box, int* inum, int* onum);
+
+
+
+/**
+ * Return the type (number of inputs and outputs) of a box.
+ * \param box the box we want to know the type
+ * \param inum the place to return the number of inputs
+ * \param onum the place to return the number of outputs
+ */
+
+void getBoxType (Tree box, int* inum, int* onum)
+{
+	Tree t;
+	if (getProperty(box, BOXTYPEPROP, t)) {
+		
+		*inum = hd(t)->node().getInt();
+		*onum = tl(t)->node().getInt();
+		
+	} else {
+		
+		infereBoxType(box, inum, onum);
+		setProperty(box, BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
+	}
+}
+
+
+
+/**
+ * Infere the type (number of inputs and outputs) of a box.
+ * \param box the box we want to know the type
+ * \param inum the place to return the number of inputs
+ * \param onum the place to return the number of outputs
+ */
+
+static void infereBoxType (Tree t, int* inum, int* onum)
+{
+	Tree a, b, ff, l;
+	Tree abstr, genv, vis, lenv;
+
+	if (isBoxInt(t)) 			{ *inum = 0; *onum = 1; } 
+	else if (isBoxReal(t)) 		{ *inum = 0; *onum = 1; } 
+	else if (isBoxWire(t)) 		{ *inum = 1; *onum = 1; }
+	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; } 
+	
+	else if (isBoxPrim0(t)) 	{ *inum = 0; *onum = 1; } 
+	else if (isBoxPrim1(t)) 	{ *inum = 1; *onum = 1; } 
+	else if (isBoxPrim2(t)) 	{ *inum = 2; *onum = 1; } 
+	else if (isBoxPrim3(t)) 	{ *inum = 3; *onum = 1; } 
+	else if (isBoxPrim4(t)) 	{ *inum = 4; *onum = 1; } 
+	else if (isBoxPrim5(t)) 	{ *inum = 5; *onum = 1; } 
+		
+	else if (isBoxFFun(t,ff)) 	{ *inum = ffarity(ff); *onum = 1; } 
+	else if (isBoxFConst(t)) 	{ *inum = 0; *onum = 1; } 
+	
+	else if (isBoxButton(t)) 	{ *inum = 0; *onum = 1; } 
+	else if (isBoxCheckbox(t)) 	{ *inum = 0; *onum = 1; } 
+	else if (isBoxVSlider(t)) 	{ *inum = 0; *onum = 1; } 
+	else if (isBoxHSlider(t)) 	{ *inum = 0; *onum = 1; } 
+	else if (isBoxNumEntry(t)) 	{ *inum = 0; *onum = 1; } 
+	else if (isBoxVGroup(t,l,a)){ getBoxType(a, inum, onum); } 
+	else if (isBoxHGroup(t,l,a)){ getBoxType(a, inum, onum); } 
+	else if (isBoxTGroup(t,l,a)){ getBoxType(a, inum, onum); } 
+
+	else if (isBoxSeq(t, a, b)) {
+		
+		int u,v,x,y;
+		getBoxType(a, &u, &v);
+		getBoxType(b, &x, &y);
+
+		if (v >= x) {
+			*inum = u; *onum = y+v-x;
+		} else {
+			*inum = u+x-v; *onum = y;
+		}
+
+	} else if (isBoxPar(t, a, b)) {
+		
+		int u,v,x,y;
+		getBoxType(a, &u, &v);
+		getBoxType(b, &x, &y);
+
+		*inum = u+x; *onum = v+y;
+
+	} else if (isBoxSplit(t, a, b)) {
+		
+		int u,v,x,y;
+		getBoxType(a, &u, &v);
+		getBoxType(b, &x, &y);
+		
+		if (x % v != 0) {
+			cerr 	<< "Connection error in : " << boxpp(t) << endl
+					<< "The number of outputs " << v
+					<< " of the first expression should be a divisor of the number of inputs " << x
+					<< " of the second expression" << endl;
+			exit(1);
+		}
+		
+		*inum = u; *onum = y;
+
+	} else if (isBoxMerge(t, a, b)) {
+		
+		int u,v,x,y;
+		getBoxType(a, &u, &v);
+		getBoxType(b, &x, &y);
+		
+		if (v % x != 0) { 
+			cerr 	<< "Connection error in : " << boxpp(t) << endl
+					<< "The number of outputs " << v
+					<< " of the first expression should be a multiple of the number of inputs " << x
+					<< " of the second expression" << endl;
+			exit(1);
+		}
+
+		*inum = u; *onum = y;
+
+	} else if (isBoxRec(t, a, b)) {
+		
+		int u,v,x,y;
+		getBoxType(a, &u, &v);
+		getBoxType(b, &x, &y);
+		if ( (x > v) | (y > u) ) { 
+			cerr 	<< "Connection error in : " << boxpp(t) << endl;
+			if (x > v) cerr << "The number of outputs " << v 
+							<< " of the first expression should be greater or equal \n  to the number of inputs " << x 
+							<< " of the second exepression" << endl;
+			if (y > u) cerr	<< "The number of inputs " << u
+							<< " of the first expression should be greater or equal \n  to the number of outputs " << y
+							<< " of the second exepression" << endl;
+			exit(1);
+		}
+		*inum = max(0,u-y); *onum = v;
+		
+	} else {
+
+		cerr << "Internal Error, box expression not recognized : " << boxpp(t) << endl; 
+		exit(1);
+
+	}
+}	
+		
+		
+	

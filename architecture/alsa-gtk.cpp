@@ -1,0 +1,1360 @@
+/* link with : "" */
+#include <stdlib.h>
+#include <libgen.h>
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+#include <math.h>
+#include <errno.h>
+#include <time.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <alsa/asoundlib.h>
+#include <pwd.h>
+#include <sys/types.h>
+#include <assert.h>
+#include <gtk/gtk.h>
+#include <pthread.h> 
+#include <sys/wait.h>
+#include <list>
+
+#include <iostream>
+#include <fstream>
+
+
+
+
+
+
+
+// g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
+
+
+
+#define check_error(err) if (err) { printf("%s:%d, alsa error %d : %s\n", __FILE__, __LINE__, err, snd_strerror(err)); exit(1); }
+#define check_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); exit(1); }
+#define display_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); }
+
+
+// Generic min and max (didn't found any better way using templates)
+// assuming int < long < float < double
+//-------------------------------------------------------------------
+
+inline int 		max (unsigned int a, unsigned int b) 			{ return (a>b) ? a : b; }
+inline int 		max (int a, int b) 			{ return (a>b) ? a : b; }
+
+inline long 	max (long a, long b) 		{ return (a>b) ? a : b; }
+inline long 	max (int a, long b) 		{ return (a>b) ? a : b; }
+inline long 	max (long a, int b) 		{ return (a>b) ? a : b; }
+
+inline float 	max (float a, float b) 		{ return (a>b) ? a : b; }
+inline float 	max (int a, float b) 		{ return (a>b) ? a : b; }
+inline float 	max (float a, int b) 		{ return (a>b) ? a : b; }
+inline float 	max (long a, float b) 		{ return (a>b) ? a : b; }
+inline float 	max (float a, long b) 		{ return (a>b) ? a : b; }
+
+inline double 	max (double a, double b) 	{ return (a>b) ? a : b; }
+inline double 	max (int a, double b) 		{ return (a>b) ? a : b; }
+inline double 	max (double a, int b) 		{ return (a>b) ? a : b; }
+inline double 	max (long a, double b) 		{ return (a>b) ? a : b; }
+inline double 	max (double a, long b) 		{ return (a>b) ? a : b; }
+inline double 	max (float a, double b) 	{ return (a>b) ? a : b; }
+inline double 	max (double a, float b) 	{ return (a>b) ? a : b; }
+
+
+inline int 		min (int a, int b) 			{ return (a<b) ? a : b; }
+
+inline long 	min (long a, long b) 		{ return (a<b) ? a : b; }
+inline long 	min (int a, long b) 		{ return (a<b) ? a : b; }
+inline long 	min (long a, int b) 		{ return (a<b) ? a : b; }
+
+inline float 	min (float a, float b) 		{ return (a<b) ? a : b; }
+inline float 	min (int a, float b) 		{ return (a<b) ? a : b; }
+inline float 	min (float a, int b) 		{ return (a<b) ? a : b; }
+inline float 	min (long a, float b) 		{ return (a<b) ? a : b; }
+inline float 	min (float a, long b) 		{ return (a<b) ? a : b; }
+
+inline double 	min (double a, double b) 	{ return (a<b) ? a : b; }
+inline double 	min (int a, double b) 		{ return (a<b) ? a : b; }
+inline double 	min (double a, int b) 		{ return (a<b) ? a : b; }
+inline double 	min (long a, double b) 		{ return (a<b) ? a : b; }
+inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
+inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
+inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
+
+inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
+		
+template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
+
+
+inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
+
+
+bool setRealtimePriority ()
+{
+    struct passwd *         pw;
+    int                     err;
+    uid_t                   uid;
+    struct sched_param      param;  
+
+    uid = getuid ();
+    pw = getpwnam ("root");
+    setuid (pw->pw_uid); 
+    param.sched_priority = 50; /* 0 to 99  */
+    err = sched_setscheduler(0, SCHED_RR, &param); 
+    setuid (uid);
+    return (err != -1);
+}
+
+
+/******************************************************************************
+*******************************************************************************
+
+							       VECTOR INTRINSICS
+
+*******************************************************************************
+*******************************************************************************/
+
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+
+
+<<includeIntrinsic>>
+
+
+
+/******************************************************************************
+*******************************************************************************
+
+								AUDIO INTERFACE
+
+*******************************************************************************
+*******************************************************************************/
+
+enum { kRead = 1, kWrite = 2, kReadWrite = 3 };
+
+// AudioParam : a convenient class to pass parameters to the AudioInterface
+class AudioParam
+{
+  public:
+			
+	const char*		fCardName;					
+	unsigned int	fFrequency;
+	int				fBuffering; 
+	
+	unsigned int	fSoftInputs;
+	unsigned int	fSoftOutputs;
+	
+  public :
+	AudioParam() : 
+		fCardName("hw:0"),
+		fFrequency(44100),
+		fBuffering(512),
+		fSoftInputs(2),
+		fSoftOutputs(2)
+	{}
+	
+	AudioParam&	cardName(const char* n)	{ fCardName = n; 		return *this; }
+	AudioParam&	frequency(int f)		{ fFrequency = f; 		return *this; }
+	AudioParam&	buffering(int fpb)		{ fBuffering = fpb; 	return *this; }
+	AudioParam&	inputs(int n)			{ fSoftInputs = n; 		return *this; }
+	AudioParam&	outputs(int n)			{ fSoftOutputs = n; 	return *this; }
+};
+
+class AudioInterface : public AudioParam
+{
+ public :
+	snd_pcm_t*				fOutputDevice ;		
+	snd_pcm_t*				fInputDevice ;			
+	snd_pcm_hw_params_t* 	fInputParams;
+	snd_pcm_hw_params_t* 	fOutputParams;
+	
+	snd_pcm_format_t 		fSampleFormat;
+	
+	unsigned int			fCardInputs;
+	unsigned int			fCardOutputs;
+	
+	unsigned int			fChanInputs;
+	unsigned int			fChanOutputs;
+	
+	void*		fInputCardBuffer;
+	void*		fOutputCardBuffer;
+	
+	float*		fInputSoftChannels[256];
+	float*		fOutputSoftChannels[256];
+
+ public :
+ 
+	const char*	cardName()				{ return fCardName;  	}
+ 	int			frequency()				{ return fFrequency; 	}
+	int			buffering()				{ return fBuffering;  	}
+	
+	float**		inputSoftChannels()		{ return fInputSoftChannels;	}
+	float**		outputSoftChannels()	{ return fOutputSoftChannels;	}
+
+	
+	AudioInterface(const AudioParam& ap = AudioParam()) : AudioParam(ap)
+	{
+		
+		fInputDevice 			= 0;
+		fOutputDevice 			= 0;
+		fInputParams			= 0;
+		fOutputParams			= 0;
+	}
+	
+	void open()
+	{
+		int err;
+		
+		// allocation d'un stream d'entree et d'un stream de sortie
+		err = snd_pcm_open( &fInputDevice,  fCardName, SND_PCM_STREAM_CAPTURE, 0 ); 	check_error(err)
+		err = snd_pcm_open( &fOutputDevice, fCardName, SND_PCM_STREAM_PLAYBACK, 0 ); 	check_error(err)
+
+		// recherche des parametres d'entree
+		err = snd_pcm_hw_params_malloc	( &fInputParams ); 	check_error(err);
+		setAudioParams(fInputDevice, fInputParams);
+		snd_pcm_hw_params_get_channels(fInputParams, &fCardInputs);
+
+		// recherche des parametres de sortie
+		err = snd_pcm_hw_params_malloc	( &fOutputParams ); 		check_error(err)
+		setAudioParams(fOutputDevice, fOutputParams);
+		snd_pcm_hw_params_get_channels(fOutputParams, &fCardOutputs);
+
+		//printf("inputs : %d, outputs : %d\n", fCardInputs, fCardOutputs);
+
+		// enregistrement des parametres d'entree-sortie
+		
+		err = snd_pcm_hw_params (fInputDevice,  fInputParams );	 	check_error (err);
+		err = snd_pcm_hw_params (fOutputDevice, fOutputParams );	check_error (err);
+
+		//assert(snd_pcm_hw_params_get_period_size(fInputParams,NULL) == snd_pcm_hw_params_get_period_size(fOutputParams,NULL));
+
+		fInputCardBuffer = aligned_calloc(bufferSize(fInputParams), 1);
+	 	fOutputCardBuffer = aligned_calloc(bufferSize(fOutputParams), 1);
+		
+		// allocation des canaux intermediares
+		
+		fChanInputs = max(fSoftInputs, fCardInputs);		assert (fChanInputs < 256);
+		fChanOutputs = max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
+
+		for (int i = 0; i < fChanInputs; i++) {
+			fInputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
+			for (int j = 0; j < fBuffering; j++) {
+				fInputSoftChannels[i][j] = 0.0;
+			}
+		}
+
+		for (int i = 0; i < fChanOutputs; i++) {
+			fOutputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
+			for (int j = 0; j < fBuffering; j++) {
+				fOutputSoftChannels[i][j] = 0.0;
+			}
+		}
+
+
+	}
+	
+	
+	
+	void setAudioParams(snd_pcm_t* stream, snd_pcm_hw_params_t* params)
+	{	
+		int	err;
+
+		// set params record with initial values
+		err = snd_pcm_hw_params_any	( stream, params ); 	
+		check_error_msg(err, "unable to init parameters")
+
+		// set access mode to interleaved
+		err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_INTERLEAVED );
+		check_error_msg(err, "unable to set access mode to interleaved");
+
+		// search for 32-bits or 16-bits format
+		err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S32);
+		if (err) {
+			err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S16);
+		 	check_error_msg(err, "unable to set format to either 32-bits or 16-bits");
+		}
+		snd_pcm_hw_params_get_format(params, &fSampleFormat);
+		// set sample frequency
+		snd_pcm_hw_params_set_rate_near (stream, params, &fFrequency, 0); 
+
+		// set period and period size (buffering)
+		err = snd_pcm_hw_params_set_period_size	(stream, params, fBuffering, 0); 	
+		check_error_msg(err, "period size not available");
+		
+		err = snd_pcm_hw_params_set_periods (stream, params, 2, 0); 			
+		check_error_msg(err, "number of periods not available");
+
+	}
+
+
+	ssize_t bufferSize (snd_pcm_hw_params_t* params)
+	{
+		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
+		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
+		unsigned int 		channels; 	snd_pcm_hw_params_get_channels(params, &channels);
+		ssize_t bsize = snd_pcm_format_size (format, psize * channels);
+		return bsize;
+	}
+
+
+	void close()
+	{
+	}
+
+
+
+	//----------------------------------------------------------------
+	//  read() : read on buffer from the audio card
+	//----------------------------------------------------------------
+
+	void read()
+	{
+		int count = snd_pcm_readi(fInputDevice, fInputCardBuffer, fBuffering); 	
+		if (count<0) { 
+			display_error_msg(count, "reading samples");
+			 int err = snd_pcm_prepare(fInputDevice);	
+			 check_error_msg(err, "preparing input stream");
+		}
+		
+		if (fSampleFormat == SND_PCM_FORMAT_S16) {
+
+			short* 	buffer16b = (short*) fInputCardBuffer;
+			for (int s = 0; s < fBuffering; s++) {
+				for (int c = 0; c < fCardInputs; c++) {
+					fInputSoftChannels[c][s] = float(buffer16b[c + s*fCardInputs])*(1.0/float(SHRT_MAX));
+				}
+			}
+
+		} else { // SND_PCM_FORMAT_S32
+
+			long* 	buffer32b = (long*) fInputCardBuffer;
+			for (int s = 0; s < fBuffering; s++) {
+				for (int c = 0; c < fCardInputs; c++) {
+					fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(LONG_MAX));
+				}
+			}
+		}
+
+	}
+
+
+	//----------------------------------------------------------------
+	//  write() : write the output soft channels to the audio card 
+	//			  via the interleaved output card buffer
+	//----------------------------------------------------------------
+	
+
+	void write()
+	{
+		recovery :
+				
+		if (fSampleFormat == SND_PCM_FORMAT_S16) {
+
+			short* buffer16b = (short*) fOutputCardBuffer;
+			for (int f = 0; f < fBuffering; f++) {
+				for (int c = 0; c < fCardOutputs; c++) {
+					float x = fOutputSoftChannels[c][f];
+					buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
+				}
+			}
+
+		} else { // SND_PCM_FORMAT_S32
+
+			long* buffer32b = (long*) fOutputCardBuffer;
+			for (int f = 0; f < fBuffering; f++) {
+				for (int c = 0; c < fCardOutputs; c++) {
+					float x = fOutputSoftChannels[c][f];
+					buffer32b[c + f*fCardOutputs] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+				}
+			}
+		}
+		
+		int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering); 	
+		if (count<0) { 
+			display_error_msg(count, "w3"); 
+			int err = snd_pcm_prepare(fOutputDevice);	
+			check_error_msg(err, "preparing output stream");
+			goto recovery;
+		}
+	}
+
+
+	
+	//----------------------------------------------------------------
+	//  info() : print information on the audio device
+	//----------------------------------------------------------------
+
+	void shortinfo()
+	{
+		int						err;
+		snd_ctl_card_info_t*	card_info;
+    	snd_ctl_t*				ctl_handle;
+		err = snd_ctl_open (&ctl_handle, fCardName, 0);		check_error(err);
+		snd_ctl_card_info_alloca (&card_info);
+		err = snd_ctl_card_info(ctl_handle, card_info);		check_error(err);
+		printf("%s|%d|%d|%d|%d|%s\n", 
+				snd_ctl_card_info_get_driver(card_info),
+				fCardInputs, fCardOutputs,
+				fFrequency, fBuffering,
+				snd_pcm_format_name((_snd_pcm_format)fSampleFormat));
+	}
+					
+	void longinfo()
+	{
+		int						err;
+		snd_ctl_card_info_t*	card_info;
+    	snd_ctl_t*				ctl_handle;
+
+		printf("Audio Interface Description :\n");
+		printf("Sampling Frequency : %d, Sample Format : %s, buffering : %d\n", 
+				fFrequency, snd_pcm_format_name((_snd_pcm_format)fSampleFormat), fBuffering);
+		printf("Software inputs : %2d, Software outputs : %2d\n", fSoftInputs, fSoftOutputs);
+		printf("Hardware inputs : %2d, Hardware outputs : %2d\n", fCardInputs, fCardOutputs);
+		printf("Channel inputs  : %2d, Channel outputs  : %2d\n", fChanInputs, fChanOutputs);
+		
+		// affichage des infos de la carte
+		err = snd_ctl_open (&ctl_handle, fCardName, 0);		check_error(err);
+		snd_ctl_card_info_alloca (&card_info);
+		err = snd_ctl_card_info(ctl_handle, card_info);		check_error(err);
+		printCardInfo(card_info);
+
+		// affichage des infos liees aux streams d'entree-sortie
+		if (fSoftInputs > 0)	printHWParams(fInputParams);
+		if (fSoftOutputs > 0)	printHWParams(fOutputParams);
+	}
+	
+	void printCardInfo(snd_ctl_card_info_t*	ci)
+	{
+		printf("Card info (address : %p)\n", ci);
+		printf("\tID         = %s\n", snd_ctl_card_info_get_id(ci));
+		printf("\tDriver     = %s\n", snd_ctl_card_info_get_driver(ci));
+		printf("\tName       = %s\n", snd_ctl_card_info_get_name(ci));
+		printf("\tLongName   = %s\n", snd_ctl_card_info_get_longname(ci));
+		printf("\tMixerName  = %s\n", snd_ctl_card_info_get_mixername(ci));
+		printf("\tComponents = %s\n", snd_ctl_card_info_get_components(ci));
+		printf("--------------\n");
+	}
+
+	void printHWParams( snd_pcm_hw_params_t* params )
+	{
+		printf("HW Params info (address : %p)\n", params);
+#if 0
+		printf("\tChannels    = %d\n", snd_pcm_hw_params_get_channels(params));
+		printf("\tFormat      = %s\n", snd_pcm_format_name((_snd_pcm_format)snd_pcm_hw_params_get_format(params)));
+		printf("\tAccess      = %s\n", snd_pcm_access_name((_snd_pcm_access)snd_pcm_hw_params_get_access(params)));
+		printf("\tRate        = %d\n", snd_pcm_hw_params_get_rate(params, NULL));
+		printf("\tPeriods     = %d\n", snd_pcm_hw_params_get_periods(params, NULL));
+		printf("\tPeriod size = %d\n", (int)snd_pcm_hw_params_get_period_size(params, NULL));
+		printf("\tPeriod time = %d\n", snd_pcm_hw_params_get_period_time(params, NULL));
+		printf("\tBuffer size = %d\n", (int)snd_pcm_hw_params_get_buffer_size(params));
+		printf("\tBuffer time = %d\n", snd_pcm_hw_params_get_buffer_time(params, NULL));
+#endif
+		printf("--------------\n");
+	}
+
+	
+};
+
+
+
+
+
+/******************************************************************************
+*******************************************************************************
+
+								GRAPHIC USER INTERFACE (v2)
+								  abstract interfaces
+
+*******************************************************************************
+*******************************************************************************/
+
+#include <map>
+#include <list>
+
+using namespace std;
+
+
+struct uiItem;
+typedef void (*uiCallback)(float val, void* data);
+
+/**
+ * Graphic User Interface : abstract definition
+ */
+
+class UI 
+{
+	typedef list<uiItem*> clist;
+	typedef map<float*, clist*> zmap;
+	
+ private:
+ 	static list<UI*>	fGuiList;
+	zmap				fZoneMap;
+	bool				fStopped;
+	
+ public:
+		
+	UI() : fStopped(false) {	
+		fGuiList.push_back(this);
+	}
+	
+	virtual ~UI() {
+		// suppression de this dans fGuiList
+	}
+
+	// -- zone management
+	
+	void registerZone(float* z, uiItem* c)
+	{
+		if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
+		fZoneMap[z]->push_back(c);
+	} 	
+
+	// -- saveState(filename) : save the value of every zone to a file
+	
+	void saveState(char* filename)	
+	{
+		ofstream f(filename);
+		
+		for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
+			f << *(i->first) << ' ';
+		} 
+		
+		f << endl;
+		f.close();
+	}
+
+	// -- recallState(filename) : load the value of every zone from a file
+	
+	void recallState(char* filename)	
+	{
+		ifstream f(filename);
+		if (f.good()) {
+			for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
+				f >> *(i->first);
+			} 
+		}
+		f.close();
+	}
+	
+	void updateAllZones();
+	
+	void updateZone(float* z);
+	
+	static void updateAllGuis()
+	{
+		list<UI*>::iterator g;
+		for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
+			(*g)->updateAllZones();
+		}
+	}
+	
+	// -- active widgets
+	
+	virtual void addButton(char* label, float* zone) = 0;
+	virtual void addToggleButton(char* label, float* zone) = 0;
+	virtual void addCheckButton(char* label, float* zone) = 0;
+	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	
+	// -- passive widgets
+	
+	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	
+	void addCallback(float* zone, uiCallback foo, void* data);
+	
+	// -- widget's layouts
+	
+	virtual void openFrameBox(char* label) = 0;
+	virtual void openTabBox(char* label) = 0;
+	virtual void openHorizontalBox(char* label) = 0;
+	virtual void openVerticalBox(char* label) = 0;
+	virtual void closeBox() = 0;
+	
+	virtual void show() = 0;
+	virtual void run() = 0;
+	
+	void stop()		{ fStopped = true; }
+	bool stopped() 	{ return fStopped; }
+};
+
+
+/**
+ * User Interface Item: abstract definition
+ */
+
+class uiItem
+{
+  protected :
+		  
+	UI*		fGUI;
+	float*		fZone;
+	float		fCache;
+	
+	uiItem (UI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
+	{ 
+		ui->registerZone(zone, this); 
+	}
+	
+	
+  public :
+	
+	void modifyZone(float v) 	
+	{ 
+		fCache = v;
+		if (*fZone != v) {
+			*fZone = v;
+			fGUI->updateZone(fZone);
+		}
+	}
+		  	
+	float			cache()			{ return fCache; }
+	virtual void 	reflectZone() 	= 0;	
+};
+
+
+/**
+ * Callback Item
+ */
+
+struct uiCallbackItem : public uiItem
+{
+	uiCallback	fCallback;
+	void*		fData;
+	
+	uiCallbackItem(UI* ui, float* zone, uiCallback foo, void* data) 
+			: uiItem(ui, zone), fCallback(foo), fData(data) {}
+	
+	virtual void 	reflectZone() {		
+		float 	v = *fZone;
+		fCache = v; 
+		fCallback(v, fData);	
+	}
+};
+
+/**
+ * Update all user items reflecting zone z
+ */
+
+inline void UI::updateZone(float* z)
+{
+	float 	v = *z;
+	clist* 	l = fZoneMap[z];
+	for (clist::iterator c = l->begin(); c != l->end(); c++) {
+		if ((*c)->cache() != v) (*c)->reflectZone();
+	}
+}
+
+
+/**
+ * Update all user items not up to date
+ */
+
+inline void UI::updateAllZones()
+{
+	for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
+		float* 	z = m->first;
+		clist*	l = m->second;
+		float	v = *z;
+		for (clist::iterator c = l->begin(); c != l->end(); c++) {
+			if ((*c)->cache() != v) (*c)->reflectZone();
+		}
+	}
+}
+
+inline void UI::addCallback(float* zone, uiCallback foo, void* data) 
+{ 
+	new uiCallbackItem(this, zone, foo, data); 
+};
+
+
+/******************************************************************************
+*******************************************************************************
+
+								GRAPHIC USER INTERFACE
+								  gtk interface
+
+*******************************************************************************
+*******************************************************************************/
+
+#include <gtk/gtk.h>
+
+#define stackSize 256
+
+// Insertion modes
+
+#define kSingleMode 0
+#define kBoxMode 1
+#define kTabMode 2
+
+
+class GTKUI : public UI
+{
+ private :
+ 	static bool			fInitialized;
+ 	static list<UI*>	fGuiList;
+	
+ protected :
+	GtkWidget* 	fWindow;
+	int			fTop;
+	GtkWidget* 	fBox[stackSize];
+	int 		fMode[stackSize];
+	bool		fStopped;
+
+	GtkWidget* addWidget(char* label, GtkWidget* w);
+	virtual void pushBox(int mode, GtkWidget* w);
+
+		
+ public :
+	
+ 	static const gboolean expand = TRUE;
+	static const gboolean fill = TRUE;
+	static const gboolean homogene = FALSE;
+		 
+	GTKUI(char * name, int* pargc, char*** pargv);
+	
+	// -- layout groups
+	
+	virtual void openFrameBox(char* label);	
+	virtual void openTabBox(char* label = "");
+	virtual void openHorizontalBox(char* label = "");
+	virtual void openVerticalBox(char* label = "");
+	
+	virtual void closeBox();
+	
+	// -- active widgets
+	
+	virtual void addButton(char* label, float* zone);
+	virtual void addToggleButton(char* label, float* zone);
+	virtual void addCheckButton(char* label, float* zone);
+	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step);	
+	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step);	
+	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step);
+	
+	// -- passive display widgets
+	
+	virtual void addNumDisplay(char* label, float* zone, int precision);
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max);
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max);
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max);
+	
+	virtual void show();
+	virtual void run();
+		
+};
+
+
+
+/******************************************************************************
+*******************************************************************************
+
+								GRAPHIC USER INTERFACE (v2)
+								  gtk implementation
+
+*******************************************************************************
+*******************************************************************************/
+
+// global static fields
+
+bool		GTKUI::fInitialized = false;
+list<UI*>	UI::fGuiList;
+
+
+
+static gint delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
+{
+    return FALSE; 
+}
+
+static void destroy_event( GtkWidget *widget, gpointer data )
+{
+    gtk_main_quit ();
+}
+
+		 
+GTKUI::GTKUI(char * name, int* pargc, char*** pargv) 
+{
+	if (!fInitialized) {
+		gtk_init(pargc, pargv);
+		fInitialized = true;
+	}
+	
+	fWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	//gtk_container_set_border_width (GTK_CONTAINER (fWindow), 10);
+	gtk_window_set_title (GTK_WINDOW (fWindow), name);
+	gtk_signal_connect (GTK_OBJECT (fWindow), "delete_event", GTK_SIGNAL_FUNC (delete_event), NULL);
+	gtk_signal_connect (GTK_OBJECT (fWindow), "destroy", GTK_SIGNAL_FUNC (destroy_event), NULL);
+
+	fTop = 0;
+	fBox[fTop] = gtk_vbox_new (homogene, 4);
+	fMode[fTop] = kBoxMode;
+	gtk_container_add (GTK_CONTAINER (fWindow), fBox[fTop]);
+	fStopped = false;
+}
+
+// empilement des boites
+
+void GTKUI::pushBox(int mode, GtkWidget* w)
+{
+	assert(++fTop < stackSize);
+	fMode[fTop] 	= mode;
+	fBox[fTop] 		= w;
+}
+
+void GTKUI::closeBox()
+{
+	assert(--fTop >= 0);
+}
+
+
+// les differentes boites
+
+void GTKUI::openFrameBox(char* label)
+{
+	GtkWidget * box = gtk_frame_new (label);
+	//gtk_container_set_border_width (GTK_CONTAINER (box), 10);
+			
+	pushBox(kSingleMode, addWidget(label, box));
+}
+
+void GTKUI::openTabBox(char* label)
+{
+	pushBox(kTabMode, addWidget(label, gtk_notebook_new ()));
+}
+
+void GTKUI::openHorizontalBox(char* label)
+{	
+	GtkWidget * box = gtk_hbox_new (homogene, 4);
+	gtk_container_set_border_width (GTK_CONTAINER (box), 10);
+			
+	if (fMode[fTop] != kTabMode && label[0] != 0) {
+		GtkWidget * frame = addWidget(label, gtk_frame_new (label));
+		gtk_container_add (GTK_CONTAINER(frame), box);
+		gtk_widget_show(box);
+		pushBox(kBoxMode, box);
+	} else {
+		pushBox(kBoxMode, addWidget(label, box));
+	}
+}
+
+void GTKUI::openVerticalBox(char* label)
+{
+	GtkWidget * box = gtk_vbox_new (homogene, 4);
+	gtk_container_set_border_width (GTK_CONTAINER (box), 10);
+			
+	if (fMode[fTop] != kTabMode && label[0] != 0) {
+		GtkWidget * frame = addWidget(label, gtk_frame_new (label));
+		gtk_container_add (GTK_CONTAINER(frame), box);
+		gtk_widget_show(box);
+		pushBox(kBoxMode, box);
+	} else {
+		pushBox(kBoxMode, addWidget(label, box));
+	}
+}
+	
+GtkWidget* GTKUI::addWidget(char* label, GtkWidget* w)
+{ 
+	switch (fMode[fTop]) {
+		case kSingleMode	: gtk_container_add (GTK_CONTAINER(fBox[fTop]), w); 							break;
+		case kBoxMode 		: gtk_box_pack_start (GTK_BOX(fBox[fTop]), w, expand, fill, 0); 				break;
+		case kTabMode 		: gtk_notebook_append_page (GTK_NOTEBOOK(fBox[fTop]), w, gtk_label_new(label)); break;
+	}
+	gtk_widget_show (w);
+	return w;
+}
+
+// --------------------------- Press button ---------------------------
+
+struct uiButton : public uiItem
+{
+	GtkButton* 	fButton;
+	
+	uiButton (UI* ui, float* zone, GtkButton* b) : uiItem(ui, zone), fButton(b) {}
+	
+	static void pressed( GtkWidget *widget, gpointer   data )
+	{
+		uiItem* c = (uiItem*) data;
+		c->modifyZone(1.0);
+	}
+
+	static void released( GtkWidget *widget, gpointer   data )
+	{
+		uiItem* c = (uiItem*) data;
+		c->modifyZone(0.0);
+	}
+
+	virtual void reflectZone() 	
+	{ 
+		float 	v = *fZone;
+		fCache = v; 
+		if (v > 0.0) gtk_button_pressed(fButton); else gtk_button_released(fButton);
+	}
+};
+
+void GTKUI::addButton(char* label, float* zone)
+{
+	*zone = 0.0;
+	GtkWidget* 	button = gtk_button_new_with_label (label);
+	addWidget(label, button);
+	
+	uiButton* c = new uiButton(this, zone, GTK_BUTTON(button));
+	
+	gtk_signal_connect (GTK_OBJECT (button), "pressed", GTK_SIGNAL_FUNC (uiButton::pressed), (gpointer) c);
+	gtk_signal_connect (GTK_OBJECT (button), "released", GTK_SIGNAL_FUNC (uiButton::released), (gpointer) c);
+
+}
+
+// ---------------------------	Toggle Buttons ---------------------------
+
+struct uiToggleButton : public uiItem
+{
+	GtkToggleButton* fButton;
+	
+	uiToggleButton(UI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
+	
+	static void toggled (GtkWidget *widget, gpointer data)
+	{
+    	float	v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0; 
+    	((uiItem*)data)->modifyZone(v);
+	}
+
+	virtual void reflectZone() 	
+	{ 
+		float 	v = *fZone;
+		fCache = v; 
+		gtk_toggle_button_set_active(fButton, v > 0.0);	
+	}
+};
+
+void GTKUI::addToggleButton(char* label, float* zone)
+{
+	*zone = 0.0;
+	GtkWidget* 	button = gtk_toggle_button_new_with_label (label);
+	addWidget(label, button);
+	
+	uiToggleButton* c = new uiToggleButton(this, zone, GTK_TOGGLE_BUTTON(button));
+	gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC (uiToggleButton::toggled), (gpointer) c);
+}
+
+
+// ---------------------------	Check Button ---------------------------
+
+struct uiCheckButton : public uiItem
+{
+	GtkToggleButton* fButton;
+	
+	uiCheckButton(UI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
+	
+	static void toggled (GtkWidget *widget, gpointer data)
+	{
+    	float	v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0; 
+    	((uiItem*)data)->modifyZone(v);
+	}
+
+	virtual void reflectZone() 	
+	{ 
+		float 	v = *fZone;
+		fCache = v; 
+		gtk_toggle_button_set_active(fButton, v > 0.0);	
+	}
+};
+
+void GTKUI::addCheckButton(char* label, float* zone)
+{
+	*zone = 0.0;
+	GtkWidget* 	button = gtk_check_button_new_with_label (label);
+	addWidget(label, button);
+	
+	uiCheckButton* c = new uiCheckButton(this, zone, GTK_TOGGLE_BUTTON(button));
+	gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC(uiCheckButton::toggled), (gpointer) c);
+}
+
+
+// ---------------------------	Adjustmenty based widgets ---------------------------
+
+struct uiAdjustment : public uiItem
+{
+	GtkAdjustment* fAdj;
+	
+	uiAdjustment(UI* ui, float* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
+	
+	static void changed (GtkWidget *widget, gpointer data)
+	{
+    	float	v = GTK_ADJUSTMENT (widget)->value; 
+    	((uiItem*)data)->modifyZone(v);
+	}
+
+	virtual void reflectZone() 	
+	{ 
+		float 	v = *fZone;
+		fCache = v; 
+		gtk_adjustment_set_value(fAdj, v);	
+	}
+};
+
+static int precision(double n)
+{
+	if (n < 0.009999) return 3;
+	else if (n < 0.099999) return 2;
+	else if (n < 0.999999) return 1;
+	else return 0;
+}
+
+// -------------------------- Vertical Slider -----------------------------------
+
+void GTKUI::addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
+{
+	*zone = init;
+	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
+	
+	uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
+
+	gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
+	
+	GtkWidget* slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
+	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
+	gtk_widget_set_usize(slider, -1, 160);
+	
+	openFrameBox(label);
+	addWidget(label, slider);
+	closeBox();
+}
+
+// -------------------------- Horizontal Slider -----------------------------------
+
+void GTKUI::addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step)
+{
+	*zone = init;
+	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
+	
+	uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
+
+	gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
+	
+	GtkWidget* slider = gtk_hscale_new (GTK_ADJUSTMENT(adj));
+	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
+	gtk_widget_set_usize(slider, 160, -1);
+	
+	openFrameBox(label);
+	addWidget(label, slider);
+	closeBox();
+}
+
+
+// ------------------------------ Num Entry -----------------------------------
+
+void GTKUI::addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+{
+	*zone = init;
+	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, step);
+	
+	uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
+
+	gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
+	
+	GtkWidget* spinner = gtk_spin_button_new (GTK_ADJUSTMENT(adj), 0.005, precision(step));
+
+	//gtk_widget_set_usize(slider, 160, -1);
+	openFrameBox(label);
+	addWidget(label, spinner);
+	closeBox();
+}
+
+
+// ==========================	passive widgets ===============================
+
+
+// ------------------------------ Progress Bar -----------------------------------
+
+struct uiBargraph : public uiItem
+{
+	GtkProgressBar*		fProgressBar;
+	float				fMin;
+	float				fMax;
+	
+	uiBargraph(UI* ui, float* zone, GtkProgressBar* pbar, float lo, float hi) 
+			: uiItem(ui, zone), fProgressBar(pbar), fMin(lo), fMax(hi) {}
+
+	float scale(float v) 		{ return (v-fMin)/(fMax-fMin); }
+	
+	virtual void reflectZone() 	
+	{ 
+		float 	v = *fZone;
+		fCache = v; 
+		gtk_progress_bar_set_fraction(fProgressBar, scale(v));	
+	}
+};
+
+	
+
+void GTKUI::addVerticalBargraph(char* label, float* zone, float lo, float hi)
+{
+	GtkWidget* pb = gtk_progress_bar_new();
+	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_BOTTOM_TO_TOP);
+	new uiBargraph(this, zone, GTK_PROGRESS_BAR(pb), lo, hi);
+	openFrameBox(label);
+	addWidget(label, pb);
+	closeBox();
+}
+	
+
+void GTKUI::addHorizontalBargraph(char* label, float* zone, float lo, float hi)
+{
+	GtkWidget* pb = gtk_progress_bar_new();
+	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_LEFT_TO_RIGHT);
+	new uiBargraph(this, zone, GTK_PROGRESS_BAR(pb), lo, hi);
+	openFrameBox(label);
+	addWidget(label, pb);
+	closeBox();
+}
+
+
+// ------------------------------ Num Display -----------------------------------
+
+struct uiNumDisplay : public uiItem
+{
+	GtkLabel* fLabel;
+	int	fPrecision;
+	
+	uiNumDisplay(UI* ui, float* zone, GtkLabel* label, int precision) 
+			: uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
+
+	virtual void reflectZone() 	
+	{ 
+		float 	v = *fZone;
+		fCache = v;
+		char s[64]; 
+		if (fPrecision <= 0) { 
+			snprintf(s, 63, "%d", int(v)); 
+		} else if (fPrecision>3) {
+			snprintf(s, 63, "%f", v);
+		} else {
+			char* format[] = {"%.1f", "%.2f", "%.3f"};
+			snprintf(s, 63, format[fPrecision-1], v);
+		}
+		gtk_label_set_text(fLabel, s);
+	}
+};
+	
+
+void GTKUI::addNumDisplay(char* label, float* zone, int precision )
+{
+	GtkWidget* lw = gtk_label_new("");
+	new uiNumDisplay(this, zone, GTK_LABEL(lw), precision);
+	openFrameBox(label);
+	addWidget(label, lw);
+	closeBox();
+}
+
+
+// ------------------------------ Text Display -----------------------------------
+
+struct uiTextDisplay : public uiItem
+{
+	GtkLabel* 	fLabel;
+	char**		fNames;
+	float		fMin;
+	float		fMax;
+	int			fNum;
+	
+	
+	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, char* names[], float lo, float hi) 
+			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)  
+	{
+		fNum = 0;
+		while (fNames[fNum] != 0) fNum++;
+	}
+
+	virtual void reflectZone() 	
+	{ 
+		float 	v = *fZone;
+		fCache = v;
+		
+		int idx = int(fNum*(v-fMin)/(fMax-fMin));
+		
+		if 		(idx < 0) 		idx = 0; 
+		else if (idx >= fNum) 	idx = fNum-1;
+				
+		gtk_label_set_text(fLabel, fNames[idx]); 
+	}
+};
+	
+
+void GTKUI::addTextDisplay(char* label, float* zone, char* names[], float lo, float hi )
+{
+	GtkWidget* lw = gtk_label_new("");
+	new uiTextDisplay (this, zone, GTK_LABEL(lw), names, lo, hi);
+	openFrameBox(label);
+	addWidget(label, lw);
+	closeBox();
+}
+
+
+
+void GTKUI::show() 
+{
+	assert(fTop == 0);
+	gtk_widget_show  (fBox[0]);
+	gtk_widget_show  (fWindow);
+}
+
+
+/**
+ * Update all user items reflecting zone z
+ */
+	
+static gboolean callUpdateAllGuis(gpointer)
+{ 
+	UI::updateAllGuis(); 
+	return TRUE;
+}
+
+
+void GTKUI::run() 
+{
+	assert(fTop == 0);
+	gtk_widget_show  (fBox[0]);
+	gtk_widget_show  (fWindow);
+	gtk_timeout_add(50, callUpdateAllGuis, 0);
+	gtk_main ();
+	stop();
+}
+
+
+/******************************************************************************
+*******************************************************************************
+
+								DSP
+
+*******************************************************************************
+*******************************************************************************/
+
+
+//----------------------------------------------------------------
+//  définition du processeur de signal
+//----------------------------------------------------------------
+			
+class dsp {
+ protected:
+	int fSamplingFreq;
+ public:
+	dsp() {}
+	virtual ~dsp() {}
+	
+	virtual int getNumInputs() 										= 0;
+	virtual int getNumOutputs() 									= 0;
+	virtual void buildUserInterface(UI* interface) 					= 0;
+	virtual void init(int samplingRate) 							= 0;
+ 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
+ 	virtual void conclude() 										{}
+};
+		
+		
+<<includeclass>>
+
+						
+mydsp	DSP;
+
+
+
+
+/******************************************************************************
+*******************************************************************************
+
+								MAIN PLAY THREAD
+
+*******************************************************************************
+*******************************************************************************/
+	
+// lopt : Scan Command Line long int Arguments
+
+long lopt (int argc, char *argv[], char* longname, char* shortname, long def) 
+{
+	for (int i=2; i<argc; i++) 
+		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
+			return atoi(argv[i]);
+	return def;
+}
+	
+// sopt : Scan Command Line string Arguments
+
+char* sopt (int argc, char *argv[], char* longname, char* shortname, char* def) 
+{
+	for (int i=2; i<argc; i++) 
+		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
+			return argv[i];
+	return def;
+}
+	
+// fopt : Scan Command Line flag option (without argument), return true if the flag
+
+bool fopt (int argc, char *argv[], char* longname, char* shortname) 
+{
+	for (int i=1; i<argc; i++) 
+		if ( strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0 ) 
+			return true;
+	return false;
+}
+	
+
+//-------------------------------------------------------------------------
+// 									MAIN
+//-------------------------------------------------------------------------
+
+pthread_t	guithread;
+	
+void* run_ui(void* ptr)
+{
+	UI* interface = (UI*) ptr;
+	interface->run();
+	pthread_exit(0);
+	return 0;
+}
+
+int main(int argc, char *argv[] )
+{
+	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
+	
+	// compute rcfilename to (re)store application state
+	char	rcfilename[256];
+	char* 	home = getenv("HOME");
+	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+	
+	AudioInterface	audio (
+		AudioParam().cardName( sopt(argc, argv, "--device", "-d", "hw:0") ) 
+					.frequency( lopt(argc, argv, "--frequency", "-f", 44100) ) 
+					.buffering( lopt(argc, argv, "--buffer", "-b", 128) )
+					.inputs(DSP.getNumInputs())
+					.outputs(DSP.getNumOutputs())
+	);
+
+	
+	audio.open();
+	
+	DSP.init(audio.frequency());
+	DSP.buildUserInterface(interface);
+	
+	interface->recallState(rcfilename);
+
+	pthread_create(&guithread, NULL, run_ui, interface);
+	
+	bool rt = setRealtimePriority();
+	printf(rt?"RT : ":"NRT: "); audio.shortinfo();
+	if (fopt(argc, argv, "--verbose", "-v")) audio.longinfo();
+	
+	audio.write();
+	audio.write();
+	while(!interface->stopped()) {
+		audio.read();
+		DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
+		audio.write();
+	} 
+	
+	interface->saveState(rcfilename);
+
+  	return 0;
+}
