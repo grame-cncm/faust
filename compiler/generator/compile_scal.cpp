@@ -626,19 +626,6 @@ string ScalarCompiler::generateRecProj(Tree tEnv, Tree sig, const string& ID, in
 }
 
 
-//--------------a supprimer
-// Variable : référence au ième signal d'un groupe recursif englobant
-string ScalarCompiler::generateRecRef(Tree tEnv, Tree sig, Tree var) 
-{ 
-	Tree code;
-	if (!getProperty(var, fCompileKey, code)) {
-		fprintf(stderr, "ERROR in generateRecRef\n");
-		exit(1);
-	}
-	return name(code->node().getSym());
-}
-
-
 /*****************************************************************************
 							   1-SAMPLE DELAY
 *****************************************************************************/

@@ -23,6 +23,13 @@
  
 #include "uitree.hh"
 
+
+
+Tree makeSubFolderChain(Tree path, Tree elem);
+Tree putFolder(Tree folder, Tree item);
+Tree getFolder (Tree folder, Tree ilabel);
+
+
 static void error(const char * s, Tree t)
 {
 	fprintf(stderr, "ERROR : %s (%p)\n", s, t);
@@ -35,7 +42,7 @@ static void error(const char * s, Tree t)
 // Property list
 //------------------------------------------------------------------------------
 
-#if 1
+#if 0
 // version normale, qui marche, mais qui ne range pas en ordre alphabetique
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
@@ -64,7 +71,11 @@ static Tree removeKey (Tree pl, Tree key)
 
 static bool inf(Tree k1, Tree k2) 
 { 
-	fprintf(stderr, "inf("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n"); 
+	// before comparing replace (type . label) by label
+	if (isList(k1)) { k1 = tl(k1); }
+	if (isList(k2)) { k2 = tl(k2); }
+	
+	//fprintf(stderr, "inf("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n"); 
 	Sym s1, s2;
 	if (!isSym(k1->node(), &s1)) {
 		ERROR("the node of the tree is not a symbol", k1);
@@ -73,14 +84,15 @@ static bool inf(Tree k1, Tree k2)
 		ERROR("the node of the tree is not a symbol", k2);
 	}
 	
-	return strcmp(s1->name(), s2->name()) < 0;
+	//fprintf (stderr, "strcmp(\"%s\", \"%s\") = %d\n", name(s1), name(s2), strcmp(name(s1), name(s2)));
+	return strcmp(name(s1), name(s2)) < 0;
 }
 
 
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 				return false;
-	if (left(hd(pl)) == key) 	{ val= right(hd(pl)); return true; }
+	if (left(hd(pl)) == key) 	{ val = right(hd(pl)); return true; }
 	if (inf(left(hd(pl)), key))	return findKey (tl(pl), key, val); 
 	return false;
 }
@@ -166,8 +178,11 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
 	
 /*
 Fonctionnement des dossiers. 
-Dossier à 1 niveau : Un dossier contient une liste de choses reperées par un nom. On peut donc ajouter une
-chose à un dossier : Ajouter(Dossier, Chose) -> Dossier
+Dossier à 1 niveau : Un dossier contient une liste de choses reperées par un nom  :
+	Dossier[(l1,d1)...(ln,dn)] 
+ou (lx,dx) est une chose dx repérée par un nom lx. On suppose les lx tous différents
+
+On peut ajouter une chose à un dossier : Ajouter(Dossier, Chose) -> Dossier
 
 Si le dossier contient deja qq chose de meme nom, cette chose est remplacée par la nouvelle.
 
