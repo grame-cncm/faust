@@ -170,6 +170,7 @@ class AudioInterface : public AudioParam
 	snd_pcm_hw_params_t* 	fOutputParams;
 	
 	snd_pcm_format_t 		fSampleFormat;
+	snd_pcm_access_t 		fSampleAccess;
 	
 	unsigned int			fCardInputs;
 	unsigned int			fCardOutputs;
@@ -177,9 +178,15 @@ class AudioInterface : public AudioParam
 	unsigned int			fChanInputs;
 	unsigned int			fChanOutputs;
 	
+	// interleaved mode audiocard buffers
 	void*		fInputCardBuffer;
 	void*		fOutputCardBuffer;
 	
+	// non interleaved mode audiocard buffers
+	void*		fInputCardChannels[256];
+	void*		fOutputCardChannels[256];
+	
+	// non interleaved mod, floating point software buffers
 	float*		fInputSoftChannels[256];
 	float*		fOutputSoftChannels[256];
 
@@ -229,10 +236,22 @@ class AudioInterface : public AudioParam
 
 		//assert(snd_pcm_hw_params_get_period_size(fInputParams,NULL) == snd_pcm_hw_params_get_period_size(fOutputParams,NULL));
 
-		fInputCardBuffer = aligned_calloc(bufferSize(fInputParams), 1);
-	 	fOutputCardBuffer = aligned_calloc(bufferSize(fOutputParams), 1);
+		// allocation of alsa buffers
+		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
+			fInputCardBuffer = aligned_calloc(interleavedBufferSize(fInputParams), 1);
+	 		fOutputCardBuffer = aligned_calloc(interleavedBufferSize(fOutputParams), 1);
+			
+		} else {
+			for (int i = 0; i < fCardInputs; i++) {
+				fInputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fInputParams), 1);
+			}
+			for (int i = 0; i < fCardOutputs; i++) {
+				fOutputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fOutputParams), 1);
+			}
+			
+		}
 		
-		// allocation des canaux intermediares
+		// allocation of floating point buffers needed by the dsp code
 		
 		fChanInputs = max(fSoftInputs, fCardInputs);		assert (fChanInputs < 256);
 		fChanOutputs = max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
@@ -255,7 +274,6 @@ class AudioInterface : public AudioParam
 	}
 	
 	
-	
 	void setAudioParams(snd_pcm_t* stream, snd_pcm_hw_params_t* params)
 	{	
 		int	err;
@@ -264,9 +282,15 @@ class AudioInterface : public AudioParam
 		err = snd_pcm_hw_params_any	( stream, params ); 	
 		check_error_msg(err, "unable to init parameters")
 
-		// set access mode to interleaved
-		err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_INTERLEAVED );
-		check_error_msg(err, "unable to set access mode to interleaved");
+		// set alsa access mode (and fSampleAccess field) either to non interleaved or interleaved
+				
+		err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_NONINTERLEAVED );
+		if (err) {
+			err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_INTERLEAVED );
+			check_error_msg(err, "unable to set access mode neither to non-interleaved or to interleaved");
+		}
+		snd_pcm_hw_params_get_access(params, &fSampleAccess);
+		
 
 		// search for 32-bits or 16-bits format
 		err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S32);
@@ -288,12 +312,21 @@ class AudioInterface : public AudioParam
 	}
 
 
-	ssize_t bufferSize (snd_pcm_hw_params_t* params)
+	ssize_t interleavedBufferSize (snd_pcm_hw_params_t* params)
 	{
 		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
 		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
 		unsigned int 		channels; 	snd_pcm_hw_params_get_channels(params, &channels);
 		ssize_t bsize = snd_pcm_format_size (format, psize * channels);
+		return bsize;
+	}
+
+
+	ssize_t noninterleavedBufferSize (snd_pcm_hw_params_t* params)
+	{
+		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
+		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
+		ssize_t bsize = snd_pcm_format_size (format, psize);
 		return bsize;
 	}
 
@@ -310,31 +343,67 @@ class AudioInterface : public AudioParam
 
 	void read()
 	{
-		int count = snd_pcm_readi(fInputDevice, fInputCardBuffer, fBuffering); 	
-		if (count<0) { 
-			display_error_msg(count, "reading samples");
-			 int err = snd_pcm_prepare(fInputDevice);	
-			 check_error_msg(err, "preparing input stream");
-		}
 		
-		if (fSampleFormat == SND_PCM_FORMAT_S16) {
+		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
+			
+			int count = snd_pcm_readi(fInputDevice, fInputCardBuffer, fBuffering); 	
+			if (count<0) { 
+				display_error_msg(count, "reading samples");
+				 int err = snd_pcm_prepare(fInputDevice);	
+				 check_error_msg(err, "preparing input stream");
+			}
+			
+			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-			short* 	buffer16b = (short*) fInputCardBuffer;
-			for (int s = 0; s < fBuffering; s++) {
-				for (int c = 0; c < fCardInputs; c++) {
-					fInputSoftChannels[c][s] = float(buffer16b[c + s*fCardInputs])*(1.0/float(SHRT_MAX));
+				short* 	buffer16b = (short*) fInputCardBuffer;
+				for (int s = 0; s < fBuffering; s++) {
+					for (int c = 0; c < fCardInputs; c++) {
+						fInputSoftChannels[c][s] = float(buffer16b[c + s*fCardInputs])*(1.0/float(SHRT_MAX));
+					}
+				}
+
+			} else { // SND_PCM_FORMAT_S32
+
+				long* 	buffer32b = (long*) fInputCardBuffer;
+				for (int s = 0; s < fBuffering; s++) {
+					for (int c = 0; c < fCardInputs; c++) {
+						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(LONG_MAX));
+					}
 				}
 			}
+			
+		} else if (fSampleAccess == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
+			
+			int count = snd_pcm_readn(fInputDevice, fInputCardChannels, fBuffering); 	
+			if (count<0) { 
+				display_error_msg(count, "reading samples");
+				 int err = snd_pcm_prepare(fInputDevice);	
+				 check_error_msg(err, "preparing input stream");
+			}
+			
+			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-		} else { // SND_PCM_FORMAT_S32
-
-			long* 	buffer32b = (long*) fInputCardBuffer;
-			for (int s = 0; s < fBuffering; s++) {
 				for (int c = 0; c < fCardInputs; c++) {
-					fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(LONG_MAX));
+					short* 	chan16b = (short*) fInputCardChannels[c];
+					for (int s = 0; s < fBuffering; s++) {
+						fInputSoftChannels[c][s] = float(chan16b[s])*(1.0/float(SHRT_MAX));
+					}
+				}
+
+			} else { // SND_PCM_FORMAT_S32
+
+				for (int c = 0; c < fCardInputs; c++) {
+					long* 	chan32b = (long*) fInputCardChannels[c];
+					for (int s = 0; s < fBuffering; s++) {
+						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(LONG_MAX));
+					}
 				}
 			}
+			
+		} else {
+			check_error_msg(-10000, "unknow access mode");
 		}
+
 
 	}
 
@@ -349,33 +418,71 @@ class AudioInterface : public AudioParam
 	{
 		recovery :
 				
-		if (fSampleFormat == SND_PCM_FORMAT_S16) {
+		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
+			
+			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-			short* buffer16b = (short*) fOutputCardBuffer;
-			for (int f = 0; f < fBuffering; f++) {
-				for (int c = 0; c < fCardOutputs; c++) {
-					float x = fOutputSoftChannels[c][f];
-					buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
+				short* buffer16b = (short*) fOutputCardBuffer;
+				for (int f = 0; f < fBuffering; f++) {
+					for (int c = 0; c < fCardOutputs; c++) {
+						float x = fOutputSoftChannels[c][f];
+						buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
+					}
+				}
+
+			} else { // SND_PCM_FORMAT_S32
+
+				long* buffer32b = (long*) fOutputCardBuffer;
+				for (int f = 0; f < fBuffering; f++) {
+					for (int c = 0; c < fCardOutputs; c++) {
+						float x = fOutputSoftChannels[c][f];
+						buffer32b[c + f*fCardOutputs] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+					}
 				}
 			}
 
-		} else { // SND_PCM_FORMAT_S32
+			int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering); 	
+			if (count<0) { 
+				display_error_msg(count, "w3"); 
+				int err = snd_pcm_prepare(fOutputDevice);	
+				check_error_msg(err, "preparing output stream");
+				goto recovery;
+			}
+			
+			
+		} else if (fSampleAccess == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
+			
+			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-			long* buffer32b = (long*) fOutputCardBuffer;
-			for (int f = 0; f < fBuffering; f++) {
 				for (int c = 0; c < fCardOutputs; c++) {
-					float x = fOutputSoftChannels[c][f];
-					buffer32b[c + f*fCardOutputs] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+					short* chan16b = (short*) fOutputCardChannels[c];
+					for (int f = 0; f < fBuffering; f++) {
+						float x = fOutputSoftChannels[c][f];
+						chan16b[f] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
+					}
+				}
+
+			} else { // SND_PCM_FORMAT_S32
+
+				for (int c = 0; c < fCardOutputs; c++) {
+					long* chan32b = (long*) fOutputCardChannels[c];
+					for (int f = 0; f < fBuffering; f++) {
+						float x = fOutputSoftChannels[c][f];
+						chan32b[f] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+					}
 				}
 			}
-		}
-		
-		int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering); 	
-		if (count<0) { 
-			display_error_msg(count, "w3"); 
-			int err = snd_pcm_prepare(fOutputDevice);	
-			check_error_msg(err, "preparing output stream");
-			goto recovery;
+
+			int count = snd_pcm_writen(fOutputDevice, fOutputCardChannels, fBuffering); 	
+			if (count<0) { 
+				display_error_msg(count, "w3"); 
+				int err = snd_pcm_prepare(fOutputDevice);	
+				check_error_msg(err, "preparing output stream");
+				goto recovery;
+			}
+			
+		} else {
+			check_error_msg(-10000, "unknow access mode");
 		}
 	}
 
@@ -1327,7 +1434,7 @@ int main(int argc, char *argv[] )
 	AudioInterface	audio (
 		AudioParam().cardName( sopt(argc, argv, "--device", "-d", "hw:0") ) 
 					.frequency( lopt(argc, argv, "--frequency", "-f", 44100) ) 
-					.buffering( lopt(argc, argv, "--buffer", "-b", 128) )
+					.buffering( lopt(argc, argv, "--buffer", "-b", 1024) )
 					.inputs(DSP.getNumInputs())
 					.outputs(DSP.getNumOutputs())
 	);
