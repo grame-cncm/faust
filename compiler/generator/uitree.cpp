@@ -69,13 +69,13 @@ static Tree removeKey (Tree pl, Tree key)
 
 // verion experimentale qui range en ordre alphabetique
 
-static bool inf(Tree k1, Tree k2) 
+static bool isBefore(Tree k1, Tree k2) 
 { 
 	// before comparing replace (type . label) by label
 	if (isList(k1)) { k1 = tl(k1); }
 	if (isList(k2)) { k2 = tl(k2); }
 	
-	//fprintf(stderr, "inf("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n"); 
+	//fprintf(stderr, "isBefore("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n"); 
 	Sym s1, s2;
 	if (!isSym(k1->node(), &s1)) {
 		ERROR("the node of the tree is not a symbol", k1);
@@ -91,25 +91,25 @@ static bool inf(Tree k1, Tree k2)
 
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
-	if (isNil(pl)) 				return false;
-	if (left(hd(pl)) == key) 	{ val = right(hd(pl)); return true; }
-	if (inf(left(hd(pl)), key))	return findKey (tl(pl), key, val); 
+	if (isNil(pl)) 					return false;
+	if (left(hd(pl)) == key) 		{ val = right(hd(pl)); return true; }
+	if (isBefore(left(hd(pl)),key))	return findKey (tl(pl), key, val); 
 	return false;
 }
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
 {
-	if (isNil(pl)) 				return cons ( cons(key,val), nil );
-	if (left(hd(pl)) == key) 	return cons ( cons(key,val), tl(pl) );
-	if (inf(left(hd(pl)), key))	return cons ( hd(pl), updateKey( tl(pl), key, val ));
+	if (isNil(pl)) 					return cons ( cons(key,val), nil );
+	if (left(hd(pl)) == key) 		return cons ( cons(key,val), tl(pl) );
+	if (isBefore(left(hd(pl)),key))	return cons ( hd(pl), updateKey( tl(pl), key, val ));
 	return cons(cons(key,val), pl);
 }
 
 static Tree removeKey (Tree pl, Tree key)
 {
-	if (isNil(pl)) 				return nil;
-	if (left(hd(pl)) == key) 	return tl(pl);
-	if (inf(left(hd(pl)), key))	return cons (hd(pl), removeKey(tl(pl), key));
+	if (isNil(pl)) 					return nil;
+	if (left(hd(pl)) == key) 		return tl(pl);
+	if (isBefore(left(hd(pl)),key))	return cons (hd(pl), removeKey(tl(pl), key));
 	return pl;
 }
 #endif
