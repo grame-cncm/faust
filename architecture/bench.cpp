@@ -34,10 +34,24 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigne
 
 // g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
 
-// Generic min and max (didn't found any better way using templates)
-// assuming int < long < float < double
+#ifdef __GNUC__
+
+//-------------------------------------------------------------------
+// Generic min and max using gcc extensions
 //-------------------------------------------------------------------
 
+#define max(x,y) ((x)>?(y))
+#define min(x,y) ((x)<?(y))
+
+//abs(x) should be already predefined
+
+#else
+
+//-------------------------------------------------------------------
+// Generic min and max using c++ inline
+//-------------------------------------------------------------------
+
+inline int 		max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
 inline int 		max (int a, int b) 			{ return (a>b) ? a : b; }
 
 inline long 	max (long a, long b) 		{ return (a>b) ? a : b; }
@@ -79,7 +93,13 @@ inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
 inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
 		
-template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
+#endif
+
+// abs is now predefined
+//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
+
+
+inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 
 
@@ -214,7 +234,7 @@ mydsp	DSP;
 
 //#include "bench.h"
 /*
- * $Id: bench.cpp,v 1.1 2004/04/27 15:20:08 orlarey Exp $
+ * $Id: bench.cpp,v 1.2 2005/02/10 09:15:06 orlarey Exp $
  */
 #ifndef _BENCH_H
 #define _BENCH_H
@@ -279,7 +299,7 @@ typedef long long int64;
 //#include	"stats.h"
 //#include	"timing.h"
 /*
- * $Id: bench.cpp,v 1.1 2004/04/27 15:20:08 orlarey Exp $
+ * $Id: bench.cpp,v 1.2 2005/02/10 09:15:06 orlarey Exp $
  */
 #ifndef _TIMING_H
 #define _TIMING_H

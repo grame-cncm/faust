@@ -37,11 +37,24 @@
 #define display_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); }
 
 
-// Generic min and max (didn't found any better way using templates)
-// assuming int < long < float < double
+#ifdef __GNUC__
+
+//-------------------------------------------------------------------
+// Generic min and max using gcc extensions
 //-------------------------------------------------------------------
 
-inline int 		max (unsigned int a, unsigned int b) 			{ return (a>b) ? a : b; }
+#define max(x,y) ((x)>?(y))
+#define min(x,y) ((x)<?(y))
+
+//abs(x) should be already predefined
+
+#else
+
+//-------------------------------------------------------------------
+// Generic min and max using c++ inline
+//-------------------------------------------------------------------
+
+inline int 		max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
 inline int 		max (int a, int b) 			{ return (a>b) ? a : b; }
 
 inline long 	max (long a, long b) 		{ return (a>b) ? a : b; }
@@ -82,10 +95,14 @@ inline double 	min (long a, double b) 		{ return (a<b) ? a : b; }
 inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
 inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
+		
+#endif
+
+// abs is now predefined
+//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
+
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
-		
-template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 
 
 inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
