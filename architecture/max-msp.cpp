@@ -88,7 +88,7 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigne
 
 class UI
 {
-		bool	fStopped;
+		bool fStopped;
 		
 	public:
 			
@@ -174,7 +174,6 @@ typedef struct faust
 
 void *faust_class;
 
-
 /*--------------------------------------------------------------------------*/
 class mspUIObject {
 
@@ -184,8 +183,7 @@ class mspUIObject {
 		float* fZone;
 		
 		float range(float min, float max, float val) {return (val < min) ? min : (val > max) ? max : val;}
-	 
-
+	
 	public:
 			
 		mspUIObject(char* label, float* zone):fLabel(label),fZone(zone) {}
@@ -237,7 +235,6 @@ class mspButton : public mspUIObject {
 		}	
 };
 
-
 /*--------------------------------------------------------------------------*/
 class mspSlider : public mspUIObject{
 
@@ -251,7 +248,7 @@ class mspSlider : public mspUIObject{
 	public:	
 	
 		mspSlider(char* label, float* zone, float init, float min, float max, float step)
-			:mspUIObject(label,zone), fInit(init), fMin(min), fMax(max),fStep(step) {}
+			:mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
 		virtual ~mspSlider() {}	
 		
 		void toString(char* buffer)
@@ -260,9 +257,7 @@ class mspSlider : public mspUIObject{
 		}
 		
 		void SetValue(double f) {*fZone = range(fMin,fMax,f);}
-
 };
-
 
 /*--------------------------------------------------------------------------*/
 class mspUI : public UI
@@ -276,7 +271,8 @@ class mspUI : public UI
 		mspUI(){}
 		virtual ~mspUI() 
 		{
-			for (vector<mspUIObject*>::iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) delete *iter;
+			for (vector<mspUIObject*>::iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) 
+				delete *iter;
    		}
 		
 		void addButton(char* label, float* zone) {fUITable.push_back(new mspButton(label, zone));}
@@ -303,16 +299,24 @@ class mspUI : public UI
 		void openVerticalBox(char* label) {}
 		void closeBox() {}
 		
-		void SetValue(int slider, double f) {assert(slider<fUITable.size()); fUITable[slider]->SetValue(f);}
+		void SetValue(int slider, double f) 
+		{
+			assert(slider<fUITable.size()); 
+			fUITable[slider]->SetValue(f);
+		}
 		
 		void UIObject2String(char* buffer,int slider) 
 		{
-			if (fUITable[slider]) fUITable[slider]->toString(buffer);
+			if (fUITable[slider]) 
+				fUITable[slider]->toString(buffer);
 		}
 		
-		void AddInlets(t_faust *x) {for (int i = fUITable.size(); i>0 ; i--) floatin((t_pxobject *)x,i);}
+		void AddInlets(t_faust *x) 
+		{
+			for (int i = fUITable.size(); i>0 ; i--) 
+				floatin((t_pxobject *)x,i);
+		}
 };
-
 
 /*--------------------------------------------------------------------------*/
 void faust_ft1(t_faust* obj, double f) {obj->dspUI->SetValue(0,f);}
@@ -324,7 +328,6 @@ void faust_ft6(t_faust* obj, double f) {obj->dspUI->SetValue(5,f);}
 void faust_ft7(t_faust* obj, double f) {obj->dspUI->SetValue(6,f);}
 void faust_ft8(t_faust* obj, double f) {obj->dspUI->SetValue(7,f);}
 void faust_ft9(t_faust* obj, double f) {obj->dspUI->SetValue(8,f);}
-
 
 /*--------------------------------------------------------------------------*/
 void *faust_new(t_symbol *s, short ac, t_atom *av)
@@ -344,23 +347,26 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	dsp_setup((t_pxobject *)x, x->dsp->getNumInputs());
 	
 	/* Multi out */
-	for (int i = 0; i< x->dsp->getNumOutputs(); i++) outlet_new((t_pxobject *)x, "signal");
+	for (int i = 0; i< x->dsp->getNumOutputs(); i++) 
+		outlet_new((t_pxobject *)x, "signal");
 	
 	return x;
 }			
 
-
 /*--------------------------------------------------------------------------*/
 void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 {
-	if (msg == ASSIST_INLET){
-		if (a < x->dsp->getNumInputs()) {
+	if (msg == ASSIST_INLET) {
+		if (a == 0) {
+			if (x->dsp->getNumInputs() == 0) 
+				std::sprintf(dst, "(signal) : Unused Input");
+		} else if (a < x->dsp->getNumInputs()) {
 			std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-		}else {
+		} else {
 			x->dspUI->UIObject2String(dst,a - max(1,x->dsp->getNumInputs()));
 		}
-	}else if (msg == ASSIST_OUTLET) {
-		std::sprintf (dst, "(signal) : Audio Output %ld", (a+1));
+	} else if (msg == ASSIST_OUTLET) {
+		std::sprintf(dst, "(signal) : Audio Output %ld", (a+1));
 	}
 }
 
@@ -379,9 +385,7 @@ t_int *faust_perform(t_int *w)
 	t_faust* x = (t_faust*) (w[1]);
 	long n = w[2];
 	int offset = 3;
-			
 	x->dsp->compute(n, ((float**)&w[offset]), ((float**)&w[offset+x->dsp->getNumInputs()]));
-
 	return (w + (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2+1);
 }
 
@@ -390,7 +394,8 @@ void  faust_dsp(t_faust *x, t_signal **sp, short *count)
 {
 	x->args[0] = x;
 	x->args[1] = (void*)sp[0]->s_n;
-	for (int i = 0; i<(x->dsp->getNumInputs()+x->dsp->getNumOutputs()); i++) x->args[i+2] = sp[i]->s_vec;
+	for (int i = 0; i<(x->dsp->getNumInputs()+x->dsp->getNumOutputs()); i++) 
+		x->args[i+2] = sp[i]->s_vec;
 	dsp_addv(faust_perform, (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, x->args);
 }
 
