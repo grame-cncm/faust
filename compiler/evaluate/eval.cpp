@@ -38,6 +38,7 @@
 
 // Private Declarations
 //--------------
+static Tree a2sb(int deep, Tree exp);
 static Tree eval (Tree exp, Tree globalDefEnv, Tree visited, Tree localValEnv);
 static Tree revEvalList (Tree lexp, Tree globalDefEnv, Tree visited, Tree localValEnv);
 static Tree applyList (Tree fun, Tree larg);
@@ -53,15 +54,52 @@ static const char * evalLabel (const char* l, Tree globalDefEnv, Tree visited, T
 // Public Definitions
 //----------------------
 
+
+/**
+ * Eval "process" from a list of definitions.
+ * 
+ * Strict evaluation of a block diagram expression by applying beta reduction.
+ * @param eqlist a list of faust defintions forming the the global environment
+ * @return the process block diagram in normal form
+ */
 Tree evalprocess (Tree eqlist)
 {
-	return eval(boxIdent("process"), eqlist, nil, nil);
+	return a2sb(0, eval(boxIdent("process"), eqlist, nil, nil));
 }
 	
 
 // Private Definitions
 //--------------------
 
+/**
+ * Transform unused (unapplied) closures into symbolic boxes
+ * 
+ * @param exp the expression to transform
+ * @return an expression where abstractions have been replaced by symbolic boxes
+ */
+
+static Tree a2sb(int deep, Tree exp)
+{
+	Tree abstr, globalDefEnv, visited, localValEnv, id, body;
+	
+	if (isClosure(exp, abstr, globalDefEnv, visited, localValEnv)) {
+		if (!isBoxAbstr(abstr, id, body)) {
+			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure ", exp);
+			exit(1);
+		}
+		Tree slot = boxSlot(deep);
+		return boxSymbolic(slot, a2sb(deep+1, eval(body, globalDefEnv, visited, pushEnv(id, slot, localValEnv))));
+		
+	} else {
+		// it is a constructor : transform each branches
+		Tree B[4]; 
+		for (int i = 0; i < exp->arity(); i++) {
+			B[i] = a2sb(deep, exp->branch(i));
+		}
+		
+		return CTree::make(exp->node(), exp->arity(), B);
+	}
+}
 
 /**
  * Eval a block diagram expression.
