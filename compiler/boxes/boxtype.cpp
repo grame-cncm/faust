@@ -88,13 +88,16 @@ void getBoxType (Tree box, int* inum, int* onum)
 
 static void infereBoxType (Tree t, int* inum, int* onum)
 {
-	Tree a, b, ff, l;
+	Tree a, b, ff, l, s;
 	Tree abstr, genv, vis, lenv;
 
 	if (isBoxInt(t)) 			{ *inum = 0; *onum = 1; } 
 	else if (isBoxReal(t)) 		{ *inum = 0; *onum = 1; } 
 	else if (isBoxWire(t)) 		{ *inum = 1; *onum = 1; }
 	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; } 
+
+	else if (isBoxSlot(t)) 		{ *inum = 0; *onum = 1; } 
+	else if (isBoxSymbolic(t,s,b)) 	{ getBoxType(b, inum, onum); *inum += 1; } 
 	
 	else if (isBoxPrim0(t)) 	{ *inum = 0; *onum = 1; } 
 	else if (isBoxPrim1(t)) 	{ *inum = 1; *onum = 1; } 

@@ -30,7 +30,7 @@
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 box ::= i | f | p0 | p1 | p3 
-	  | _ | ! | a:b | a<:b | a,b | a+>b | a~b
+	  | _ | ! | a:b | a<:b | a,b | a:>b | a~b
 
  History :
  ---------
@@ -89,6 +89,20 @@ Tree boxCut();
 
 bool isBoxWire(Tree t);			
 bool isBoxCut(Tree t);			
+
+
+/*****************************************************************************
+						Symbolic Boxes with symbolic slots
+*****************************************************************************/
+
+Tree boxSlot(int id);					
+Tree boxSymbolic(Tree slot, Tree body);					
+
+bool isBoxSlot(Tree t);			
+bool isBoxSymbolic(Tree t);	
+
+bool isBoxSlot(Tree t, int* id);			
+bool isBoxSymbolic(Tree t, Tree& slot, Tree& body);	
 
 
 /*****************************************************************************

@@ -99,6 +99,24 @@ bool isBoxWire(Tree t)				{ return isTree(t, BOXWIRE); }
 
 
 /*****************************************************************************
+						Symbolic Boxes with symbolic slots
+*****************************************************************************/
+
+Sym BOXSLOT = symbol ("BoxSlot");
+
+Tree boxSlot(int id)				{ return tree(BOXSLOT,tree(id)); }
+bool isBoxSlot(Tree t)				{ Tree w; return isTree(t, BOXSLOT,w); }			
+bool isBoxSlot(Tree t, int* id)		{ Tree w; return isTree(t, BOXSLOT,w) && isInt(w->node(),id); }			
+
+
+Sym BOXSYMBOLIC = symbol ("BoxSymbolic");
+					
+Tree boxSymbolic(Tree slot, Tree body)				{ return tree(BOXSYMBOLIC,slot, body); }				
+bool isBoxSymbolic(Tree t)							{ Tree slot, body; return isTree(t, BOXSYMBOLIC, slot, body); }
+bool isBoxSymbolic(Tree t, Tree& slot, Tree& body)	{ return isTree(t, BOXSYMBOLIC, slot, body); }
+
+
+/*****************************************************************************
 							  Composition of Boxes
 *****************************************************************************/
 
