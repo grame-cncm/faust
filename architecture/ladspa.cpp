@@ -5,6 +5,7 @@
 
 #include <stack>
 #include <string>
+#include <iostream>
 
 #include "ladspa.h"
 
@@ -206,6 +207,7 @@ class portCollector : public UI
 	const char* 			fPortNames[MAXPORT];		// table of port names to be used in a LADSPA_Descriptor
 	LADSPA_PortRangeHint 	fPortHints[MAXPORT];		// table of port hints to be used in a LADSPA_Descriptor
 	
+	string					fPluginName;				// toplevel prefix used as plugin name
 	stack<string>			fPrefix;					// current prefix for controls name
 
 	
@@ -213,9 +215,9 @@ class portCollector : public UI
 
 	void addPortDescr(int type, char* label, int hint, float min=0.0, float max=0.0) 
 	{
-		string fullname = fPrefix.top() + "/" + label;
+		string fullname = fPrefix.top() + "-" + label;
 		char * str = strdup(fullname.c_str());
-		printf("->fullname %s\n", str);
+		
 		fPortDescs[fInsCount + fOutsCount + fCtrlCount] = type; 
 		fPortNames[fInsCount + fOutsCount + fCtrlCount] = str; 
 		fPortHints[fInsCount + fOutsCount + fCtrlCount].HintDescriptor = hint;
@@ -226,14 +228,21 @@ class portCollector : public UI
 	
 	void openAnyBox(char* label)
 	{
-		string s;
-		
-		if (label && label[0]) {
-			s = fPrefix.top() + "/" + label;
+		if (fPrefix.size() == 0) {
+			// top level label is used as plugin name
+			fPluginName = label;
+			fPrefix.push(fPluginName);
+			
 		} else {
-			s = fPrefix.top();
+			string s;
+			if (label && label[0]) {
+				s = fPrefix.top() + "-" + label;
+			} else {
+				s = fPrefix.top();
+			}
+			fPrefix.push(s);
 		}
-		fPrefix.push(s);
+		
 	}
 	
 
@@ -255,7 +264,6 @@ class portCollector : public UI
 			fPortNames[ins + j] = onames[j]; 
 			fPortHints[ins + j].HintDescriptor = 0;
 		}
-		fPrefix.push("");
 	};
 
 	virtual ~portCollector() {}
@@ -301,13 +309,29 @@ class portCollector : public UI
 	
 	
 	//---------------------------------Fill the LADSPA descriptor---------------------------
+	
+	// generate an ID from a plugin name
+	int makeID (const char* s) {
+		int h = 0;
+		for (int i = 0; s[i]; i++) {
+			h = (h << 3) + (s[i] & 7);
+		}
+		return 1+h%1000;
+	}
 
+	// fill a ladspa descriptor with the information collected on ports
 	void fillPortDescription (LADSPA_Descriptor * descriptor) {
 		descriptor->PortCount 			= fCtrlCount+fInsCount+fOutsCount;
 		descriptor->PortDescriptors 	= fPortDescs;
 		descriptor->PortNames 			= fPortNames;
 		descriptor->PortRangeHints 		= fPortHints;
 		
+		descriptor->Label = strdup(fPluginName.c_str());
+		descriptor->UniqueID = makeID(fPluginName.c_str());
+		descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
+		descriptor->Name = strdup(fPluginName.c_str());
+		descriptor->Maker = "undefined";
+		descriptor->Copyright = "undefined";
 	}
 };
 
@@ -418,28 +442,23 @@ struct PLUGIN
 	
 LADSPA_Handle instantiate_method (const struct _LADSPA_Descriptor * Descriptor, unsigned long SampleRate) 
 {
-	printf("begin instanciate\n");
 	dsp*		p = new mydsp();
 	portData* 	d = new portData(p->getNumInputs(), p->getNumOutputs());
 	
 	p->buildUserInterface(d);	
-	printf("end instanciate\n");
 	return new PLUGIN (SampleRate, d, p);
 }
 
 void connect_method (LADSPA_Handle Instance, unsigned long Port, LADSPA_Data * DataLocation) 
 {
-	printf("connect instance %p port %d with data %p\n", Instance, (int)Port, DataLocation);
 	PLUGIN* p = (PLUGIN*) Instance;
 	p->fPortData->setPortData(Port, DataLocation);
 }
 
 void activate_method (LADSPA_Handle Instance)
 {
-	printf("begin activate instance %p\n", Instance);
 	PLUGIN* p = (PLUGIN*) Instance;
 	p->fDsp->init(p->fSampleRate);
-	printf("end activate instance %p\n", Instance);
 }
 
 void run_method (LADSPA_Handle Instance, unsigned long SampleCount)
@@ -467,10 +486,10 @@ void cleanup_method (LADSPA_Handle Instance)
 void init_descriptor(LADSPA_Descriptor* descriptor) 
 {
 	descriptor->UniqueID = 123456;
-	descriptor->Label = "Reverberator";
+	descriptor->Label = "none";
 	descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-	descriptor->Name = "FaustFreeverb";
-	descriptor->Maker = "Grame";
+	descriptor->Name = "none";
+	descriptor->Maker = "none";
 	descriptor->Copyright = "none";
 	
 	descriptor->ImplementationData = 0;
@@ -495,25 +514,16 @@ const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index)
     if (Index == 0) {
 		if (gDescriptor == 0) 
 		{
-			// allocate temporaries dsp  and portCollector to build the port description
+			// allocate temporaries dsp and portCollector to build the plugin description
 			mydsp* p = new mydsp();
 			if (p) {
 				portCollector	c(p->getNumInputs(), p->getNumOutputs());
-			
-				printf("A\n");
-				// collect the port descriptions of p
 				p->buildUserInterface(&c);
-				printf("B\n");
-			
-				// create and fill the LDSPA descriptor with the help of c
 				gDescriptor = new LADSPA_Descriptor;
-				printf("C\n");
 				init_descriptor(gDescriptor);
-				printf("D\n");
 				c.fillPortDescription(gDescriptor);
-				printf("E\n");
 			} else {
-				printf("Error : unable to allocate mydsp\n");
+				printf("Memory Error : unable to allocate the dsp object\n");
 			}
 		}
 		return gDescriptor;
