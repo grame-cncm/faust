@@ -4,21 +4,17 @@
 //-------------------------------------------------
 
 
-
-//----------------------
-// signaux de capture
-//----------------------
-
-B = button("Capture");	// Capture button
-R = (B-mem(B)) > 0;		// Reset signal
-D = (+(B):*(1-R))~_;	// Capture duration : 0..NNNN0..MMM
-
-smooth(c) = *(1-c): + ~ *(c);
-
-C = B : smooth(0.99);	// A little bit of crossfade
-
-capture = *(C): (+ : delay(8*65536, D-1)) ~ *(1-B) : *(hslider("Playback level", 0.5, 0, 1, 0.01));
+B = button("Capture");	// Capture sound while pressed
+I = int(B);				// convert button signal from float to integer
+R = (I-I') <= 0;		// Reset capture when button is pressed
+D = (+(I):*(R))~_;		// Compute capture duration while button is pressed: 0..NNNN0..MMM
 
 
-process = _ <: par(i, 4, hgroup("Memory %i", capture) ) :> _ ;
+capture = *(B) : (+ : delay(8*65536, D-1)) ~ *(1.0-B) ;
+
+
+smooth(c)	= *(1-c) : +~*(c);
+level		= hslider("level (db)", 0, -96, 4, 0.1) : db2linear : smooth(0.999);
+
+process = vgroup( "Audio Capture", capture : *(level) ) ;
 
