@@ -15,6 +15,10 @@ vecalsagtk :
 vecjackgtk :
 	install -d vecjackgtkdir
 	$(MAKE) VEC='-vec' DEST='vecjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-ljack  `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
+
+ladspa :
+	install -d ladspadir
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
 	
 jackwx :
 	install -d jackwxdir
