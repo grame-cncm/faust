@@ -379,3 +379,14 @@ Tree boxTGroup   (Tree lbl, Tree x)				{ return tree(BOXTGROUP, lbl, x); 				}
 bool isBoxTGroup (Tree s)						{ Tree lbl, x; return isTree(s, BOXTGROUP, lbl, x);	}
 bool isBoxTGroup (Tree s, Tree& lbl, Tree& x)	{ return isTree(s, BOXTGROUP, lbl, x);				}
 
+
+Sym BOXHBARGRAPH = symbol ("BoxHBargraph");
+Tree boxHBargraph(Tree lbl, Tree min, Tree max)					{ return tree(BOXHBARGRAPH, lbl, min, max);		}
+bool isBoxHBargraph (Tree s)									{ Tree lbl, min, max; return isTree(s, BOXHBARGRAPH, lbl, min, max);	}
+bool isBoxHBargraph (Tree s, Tree& lbl, Tree& min, Tree& max)	{ return isTree(s, BOXHBARGRAPH, lbl, min, max); }
+
+
+Sym BOXVBARGRAPH = symbol ("BoxVBargraph");
+Tree boxVBargraph(Tree lbl, Tree min, Tree max)					{ return tree(BOXVBARGRAPH, lbl, min, max);		}
+bool isBoxVBargraph (Tree s)									{ Tree lbl, min, max; return isTree(s, BOXVBARGRAPH, lbl, min, max);	}
+bool isBoxVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max)	{ return isTree(s, BOXVBARGRAPH, lbl, min, max); }

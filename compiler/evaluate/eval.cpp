@@ -199,6 +199,18 @@ static Tree eval (Tree exp, Tree globalDefEnv, Tree visited, Tree localValEnv)
 		const char* l2= evalLabel(l1, globalDefEnv, visited, localValEnv);
 		//cout << "tgroup label : " << l1 << " become " << l2 << endl;
 		return boxTGroup(tree(l2),	eval(arg, globalDefEnv, visited, localValEnv) );
+		
+	} else if (isBoxHBargraph(exp, label, lo, hi)) {
+		const char* l1 = tree2str(label);
+		const char* l2= evalLabel(l1, globalDefEnv, visited, localValEnv);
+		//cout << "vslider label : " << l1 << " become " << l2 << endl;
+		return (l1 == l2) ? exp : boxHBargraph(tree(l2), lo, hi);
+		
+	} else if (isBoxVBargraph(exp, label, lo, hi)) {
+		const char* l1 = tree2str(label);
+		const char* l2= evalLabel(l1, globalDefEnv, visited, localValEnv);
+		//cout << "vslider label : " << l1 << " become " << l2 << endl;
+		return (l1 == l2) ? exp : boxVBargraph(tree(l2), lo, hi);
 
 	} else if (isBoxAppl(exp, fun, arg)) {
 		// it is an application : do a strict evaluation

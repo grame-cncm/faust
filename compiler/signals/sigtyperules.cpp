@@ -228,7 +228,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
 	int 		i;
 	float 		r;
-	Tree		sel, s1, s2, s3, ff, id, ls, var, body, type, name, file;
+	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
 	
 	if (isSigInt(sig, &i))					return TINT;
 		
@@ -260,17 +260,23 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigFFun(sig, ff, ls)) 			return infereFFType(ff,ls,env);
 
-	else if (isSigFConst(sig,type,name,file))return infereFConstType(type);
+	else if (isSigFConst(sig,type,name,file))	return infereFConstType(type);
 		
-	else if (isSigButton(sig)) 				return /*INT_*/TGUI; //return TGUI;
+	else if (isSigButton(sig)) 					return /*INT_*/TGUI; //return TGUI;
 	
 	else if (isSigCheckbox(sig))				return /*INT_*/TGUI; //return TGUI;
 	
-	else if (isSigVSlider(sig))				return TGUI;
+	else if (isSigVSlider(sig))					return TGUI;
 	 
-	else if (isSigHSlider(sig))				return TGUI;
+	else if (isSigHSlider(sig))					return TGUI;
 	
 	else if (isSigNumEntry(sig))				return TGUI;
+		
+	else if (isSigHBargraph(sig, l, x, y, s1)) 	return T(s1,env);
+		
+	else if (isSigVBargraph(sig, l, x, y, s1)) 	return T(s1,env);
+		
+	else if (isSigAttach(sig, s1, s2)) 			return T(s1,env);
 				
 	else if (isRec(sig, var, body))				return infereRecType(var, body, env);
 				

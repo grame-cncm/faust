@@ -250,6 +250,10 @@ string	ScalarCompiler::generateCode (Tree env, Tree sig)
 	else if ( isSigHSlider(sig, label,c,x,y,z) )	{ return generateHSlider 	(env, sig, label, c,x,y,z); }
 	else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return generateNumEntry 	(env, sig, label, c,x,y,z); }
 	
+	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(env, sig, label, x, y, CS(env,z)); }
+	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(env, sig, label, x, y, CS(env,z)); }
+	else if ( isSigAttach(sig, x, y) )				{ CS(env,y); return CS(env,x); }
+	
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
 		print(sig);
@@ -446,6 +450,58 @@ string ScalarCompiler::generateNumEntry(Tree tEnv, Tree sig, Tree path, Tree cur
 	fClass->addInitCode(subst("$0 = $1;", varname, T(tree2float(cur))));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig)); 
 	return generateCacheCode(tEnv, sig, varname);
+}
+
+
+string ScalarCompiler::generateVBargraph(Tree tEnv, Tree sig, Tree path, Tree min, Tree max, const string& exp)
+{
+	string varname = getFreshID("fbargraph");
+	fClass->addDeclCode(subst("float \t$0;", varname));
+	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig)); 
+	
+	Type t = getSigType(sig, tEnv);
+	switch (t->variability()) {
+			
+		case kKonst :
+			fClass->addInitCode(subst("$0 = $1;", varname, exp)); 
+			break;
+
+		case kBlock :
+			fClass->addSlowCode(subst("$0 = $1;", varname, exp)); 
+			break;
+
+		case kSamp :
+			fClass->addExecCode(subst("$0 = $1;", varname, exp)); 
+			break;
+	}		
+
+	return varname;
+}
+
+
+string ScalarCompiler::generateHBargraph(Tree tEnv, Tree sig, Tree path, Tree min, Tree max, const string& exp)
+{
+	string varname = getFreshID("fbargraph");
+	fClass->addDeclCode(subst("float \t$0;", varname));
+	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig)); 
+	
+	Type t = getSigType(sig, tEnv);
+	switch (t->variability()) {
+			
+		case kKonst :
+			fClass->addInitCode(subst("$0 = $1;", varname, exp)); 
+			break;
+
+		case kBlock :
+			fClass->addSlowCode(subst("$0 = $1;", varname, exp)); 
+			break;
+
+		case kSamp :
+			fClass->addExecCode(subst("$0 = $1;", varname, exp)); 
+			break;
+	}		
+
+	return varname;
 }
 		
 

@@ -92,6 +92,9 @@ LETTER   [a-zA-Z]
 "vgroup"	return VGROUP;
 "hgroup"	return HGROUP;
 "tgroup"	return TGROUP;
+"vbargraph"	return VBARGRAPH;
+"hbargraph"	return HBARGRAPH;
+"attach"	return ATTACH;
 
 "seq"		return ISEQ;
 "par"		return IPAR;

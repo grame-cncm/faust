@@ -62,6 +62,10 @@ int yylex();
 %token VGROUP
 %token HGROUP
 %token TGROUP
+
+%token HBARGRAPH
+%token VBARGRAPH
+%token ATTACH
 	   
 %token RDTBL
 %token RWTBL
@@ -135,6 +139,9 @@ int yylex();
 %type <exp> vgroup	
 %type <exp> hgroup	
 %type <exp> tgroup	
+
+%type <exp> vbargraph	
+%type <exp> hbargraph	
 
 
 		
@@ -251,6 +258,8 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| EQ							{$$ = boxPrim2(sigEQ);}
 				| NE							{$$ = boxPrim2(sigNE);}
 				
+				| ATTACH						{$$ = boxPrim2(sigAttach);}
+				
 				| RDTBL 						{$$ = boxPrim3(sigReadOnlyTable);}
 				| RWTBL							{$$ = boxPrim5(sigWriteReadTable);}
 				
@@ -271,6 +280,8 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| vgroup						{$$ = $1;}
 				| hgroup						{$$ = $1;}
 				| tgroup						{$$ = $1;}
+				| vbargraph						{$$ = $1;}
+				| hbargraph						{$$ = $1;}
 
 				| fpar							{$$ = $1;}
 				| fseq							{$$ = $1;}
@@ -358,6 +369,13 @@ hgroup			: HGROUP LPAR string PAR diagram RPAR
 				;
 tgroup			: TGROUP LPAR string PAR diagram RPAR
 												{$$ = boxTGroup($3, $5); }
+				;
+
+vbargraph		: VBARGRAPH LPAR string PAR num PAR num RPAR		
+												{$$ = boxVBargraph($3,$5,$7); }
+				;
+hbargraph		: HBARGRAPH LPAR string PAR num PAR num RPAR		
+												{$$ = boxHBargraph($3,$5,$7); }
 				;
 
 

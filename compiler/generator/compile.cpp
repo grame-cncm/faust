@@ -402,40 +402,26 @@ void Compiler::generateWidgetCode(Tree label, Tree varname, Tree sig)
 				T(tree2float(x)),
 				T(tree2float(y)), 
 				T(tree2float(z)))); 
+			
+	} else if ( isSigVBargraph(sig, path,x,y,z) )	{ 
+		fClass->addUICode(subst("interface->addVerticalBargraph($0, &$1, $2, $3);", 
+				tree2str(label), 
+				tree2str(varname), 
+				T(tree2float(x)), 
+				T(tree2float(y)))); 
+		
+	} else if ( isSigHBargraph(sig, path,x,y,z) )	{ 
+		fClass->addUICode(subst("interface->addHorizontalBargraph($0, &$1, $2, $3);", 
+				tree2str(label), 
+				tree2str(varname), 
+				T(tree2float(x)), 
+				T(tree2float(y)))); 
 		
 	} else {
 		fprintf(stderr, "Error in generating widget code\n");
 		exit(1);
 	}
 }
-
-#if 0 
-Tree Compiler::prepareUserInterfaceTree(Tree t)
-{
-	Tree root, elems;
-	cout << "prepare" << endl;
-	if (isUiFolder(t, root, elems)) {
-		cout << "is UI folder : ";
-		print(t);
-		cout << endl;
-		if ( isList (elems) ) {
-			cout << "is list : ";
-			print(hd(elems)); cout << endl;
-			print(tl(elems)); cout << endl;
-			if (isNil(tl(elems)) ) {
-				Tree folder, subelems;
-				if (isUiFolder(right(hd(elems)), folder, subelems)) {
-					cout << "simplified to : ";
-					print(right(hd(elems))); cout << endl;
-					return right(hd(elems));
-				}
-			}
-		}
-	}
-	return t;
-}
- 
-#endif
 
 
 // Remove fake root folder if not needed (that is if the UI

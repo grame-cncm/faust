@@ -255,6 +255,15 @@ Tree boxTGroup   (Tree label, Tree x);
 bool isBoxTGroup (Tree s);
 bool isBoxTGroup (Tree s, Tree& label, Tree& x);
 
+// GUI outputs
+Tree boxVBargraph   (Tree label, Tree min, Tree max);
+bool isBoxVBargraph (Tree s);
+bool isBoxVBargraph (Tree s, Tree& label, Tree& min, Tree& max);
+
+Tree boxHBargraph   (Tree label, Tree min, Tree max);
+bool isBoxHBargraph (Tree s);
+bool isBoxHBargraph (Tree s, Tree& label, Tree& min, Tree& max);
+
 
 /*****************************************************************************
 ******************************************************************************

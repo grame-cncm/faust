@@ -181,6 +181,18 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxTGroup(box, label, t1)) {
 		fout << "tgroup(" << tree2str(label) << ", " << boxpp(t1, 0) << ')';
 	}
+	else if (isBoxHBargraph(box, label, min, max)) 	{ 
+		fout << "hbargraph(" 
+			 << tree2str(label) << ", "
+			 << tree2float(min) << ", "
+			 << tree2float(max) << ')';  
+	}
+	else if (isBoxVBargraph(box, label, min, max)) 	{ 
+		fout << "vbargraph(" 
+			 << tree2str(label) << ", "
+			 << tree2float(min) << ", "
+			 << tree2float(max) << ')';  
+	}
 	else if (isList(box)) {
 		
 		Tree l = box;

@@ -176,4 +176,17 @@ Tree sigNumEntry   (Tree label, Tree cur, Tree min, Tree max, Tree step);
 bool isSigNumEntry (Tree s);
 bool isSigNumEntry (Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
+// output elements
+Tree sigVBargraph   (Tree label, Tree min, Tree max, Tree t0);
+bool isSigVBargraph (Tree s);
+bool isSigVBargraph (Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
+
+Tree sigHBargraph   (Tree label, Tree min, Tree max, Tree t0);
+bool isSigHBargraph (Tree s);
+bool isSigHBargraph (Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
+
+Tree sigAttach   (Tree x, Tree y);
+bool isSigAttach (Tree s);
+bool isSigAttach (Tree s, Tree& x, Tree& y);
+
 #endif

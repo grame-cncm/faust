@@ -214,6 +214,24 @@ bool isSigNumEntry (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& st
 	}
 }
 
+// output elements
 
+
+
+Sym SIGHBARGRAPH = symbol ("SigHBargraph");
+Tree sigHBargraph   (Tree lbl, Tree min, Tree max, Tree x)				{ return tree(SIGHBARGRAPH, lbl, min, max, x);		}
+bool isSigHBargraph (Tree s)											{ Tree lbl, min, max, x; return isTree(s, SIGHBARGRAPH, lbl, min, max, x);	}
+bool isSigHBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return isTree(s, SIGHBARGRAPH, lbl, min, max, x);	}
+
+
+Sym SIGVBARGRAPH = symbol ("SigVBargraph");
+Tree sigVBargraph   (Tree lbl, Tree min, Tree max, Tree x)				{ return tree(SIGVBARGRAPH, lbl, min, max, x);		}
+bool isSigVBargraph (Tree s)											{ Tree lbl, min, max, x; return isTree(s, SIGVBARGRAPH, lbl, min, max, x);	}
+bool isSigVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return isTree(s, SIGVBARGRAPH, lbl, min, max, x);	}
+
+
+Sym SIGATTACH = symbol ("sigAttach");
+Tree  sigAttach(Tree t0, Tree t1)					{ return tree(SIGATTACH, t0, t1); 		}
+bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGATTACH, t0, t1); 	}
 
 

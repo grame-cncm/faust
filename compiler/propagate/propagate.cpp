@@ -274,6 +274,16 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		return propagate(slotenv, cons(cons(tree(2),label), path), t1, lsig); 
 	}
 	
+	else if (isBoxVBargraph(box, label, min, max)) 	{ 
+		assert(lsig.size()==1); 
+		return makeList(sigVBargraph(cons(label, path), min, max, lsig[0])); 
+	}
+	
+	else if (isBoxHBargraph(box, label, min, max)) 	{ 
+		assert(lsig.size()==1); 
+		return makeList(sigHBargraph(cons(label, path), min, max, lsig[0])); 
+	}
+	
 	// propagation dans les constructeurs
 	else if (isBoxSeq(box, t1, t2)) 	{ 
 		int in1, out1, in2, out2;

@@ -67,30 +67,33 @@
      VGROUP = 293,
      HGROUP = 294,
      TGROUP = 295,
-     RDTBL = 296,
-     RWTBL = 297,
-     SELECT2 = 298,
-     SELECT3 = 299,
-     INT = 300,
-     FLOAT = 301,
-     WIRE = 302,
-     CUT = 303,
-     ENDDEF = 304,
-     VIRG = 305,
-     LPAR = 306,
-     RPAR = 307,
-     LBRAQ = 308,
-     RBRAQ = 309,
-     WITH = 310,
-     DEF = 311,
-     IPAR = 312,
-     ISEQ = 313,
-     ISUM = 314,
-     IPROD = 315,
-     STRING = 316,
-     FSTRING = 317,
-     IDENT = 318,
-     EXTRA = 319
+     HBARGRAPH = 296,
+     VBARGRAPH = 297,
+     ATTACH = 298,
+     RDTBL = 299,
+     RWTBL = 300,
+     SELECT2 = 301,
+     SELECT3 = 302,
+     INT = 303,
+     FLOAT = 304,
+     WIRE = 305,
+     CUT = 306,
+     ENDDEF = 307,
+     VIRG = 308,
+     LPAR = 309,
+     RPAR = 310,
+     LBRAQ = 311,
+     RBRAQ = 312,
+     WITH = 313,
+     DEF = 314,
+     IPAR = 315,
+     ISEQ = 316,
+     ISUM = 317,
+     IPROD = 318,
+     STRING = 319,
+     FSTRING = 320,
+     IDENT = 321,
+     EXTRA = 322
    };
 #endif
 #define MIX 258
@@ -131,30 +134,33 @@
 #define VGROUP 293
 #define HGROUP 294
 #define TGROUP 295
-#define RDTBL 296
-#define RWTBL 297
-#define SELECT2 298
-#define SELECT3 299
-#define INT 300
-#define FLOAT 301
-#define WIRE 302
-#define CUT 303
-#define ENDDEF 304
-#define VIRG 305
-#define LPAR 306
-#define RPAR 307
-#define LBRAQ 308
-#define RBRAQ 309
-#define WITH 310
-#define DEF 311
-#define IPAR 312
-#define ISEQ 313
-#define ISUM 314
-#define IPROD 315
-#define STRING 316
-#define FSTRING 317
-#define IDENT 318
-#define EXTRA 319
+#define HBARGRAPH 296
+#define VBARGRAPH 297
+#define ATTACH 298
+#define RDTBL 299
+#define RWTBL 300
+#define SELECT2 301
+#define SELECT3 302
+#define INT 303
+#define FLOAT 304
+#define WIRE 305
+#define CUT 306
+#define ENDDEF 307
+#define VIRG 308
+#define LPAR 309
+#define RPAR 310
+#define LBRAQ 311
+#define RBRAQ 312
+#define WITH 313
+#define DEF 314
+#define IPAR 315
+#define ISEQ 316
+#define ISUM 317
+#define IPROD 318
+#define STRING 319
+#define FSTRING 320
+#define IDENT 321
+#define EXTRA 322
 
 
 
@@ -165,7 +171,7 @@ typedef union YYSTYPE {
 	CTree* 	exp;
 } YYSTYPE;
 /* Line 1285 of yacc.c.  */
-#line 169 "parser/faustparser.hpp"
+#line 175 "parser/faustparser.hpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

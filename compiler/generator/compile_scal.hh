@@ -103,6 +103,9 @@ private:
   string 		generateVSlider 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
   string 		generateHSlider	 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
   string 		generateNumEntry 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+  
+  string 		generateVBargraph 	(Tree tEnv, Tree sig, Tree label, Tree min, Tree max, const string& exp);
+  string 		generateHBargraph	(Tree tEnv, Tree sig, Tree label, Tree min, Tree max, const string& exp);
 };
 
 /*****************************************************************************

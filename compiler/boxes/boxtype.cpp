@@ -117,6 +117,9 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxVGroup(t,l,a)){ getBoxType(a, inum, onum); } 
 	else if (isBoxHGroup(t,l,a)){ getBoxType(a, inum, onum); } 
 	else if (isBoxTGroup(t,l,a)){ getBoxType(a, inum, onum); } 
+	
+	else if (isBoxVBargraph(t)) 	{ *inum = 1; *onum = 1; } 
+	else if (isBoxHBargraph(t)) 	{ *inum = 1; *onum = 1; } 
 
 	else if (isBoxSeq(t, a, b)) {
 		
