@@ -41,6 +41,7 @@ LETTER   [a-zA-Z]
 "/"   		return DIV;
 "%"   		return MOD;
 "@"			return FDELAY;
+"'"			return DELAY1;
 
 "&"   		return AND;
 "|"   		return OR;

@@ -42,6 +42,7 @@ int yylex();
 %left ADD SUB OR
 %left MUL DIV MOD AND XOR LSH RSH
 %left FDELAY
+%left DELAY1
 %left APPL
 
 
@@ -174,6 +175,7 @@ expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sig
 				| expression DIV expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
 				| expression MOD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
 				| expression FDELAY expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
+				| expression DELAY1  			{$$ = boxSeq($1,boxPrim1(sigDelay1)); }
 
 				| expression AND expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
 				| expression OR expression 		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
