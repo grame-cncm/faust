@@ -129,7 +129,7 @@ siglist listLift(const siglist& l)
 	return r;
 }
 
-siglist propagate (Tree path, Tree box, const siglist&  lsig)
+siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 {
 	int		i;
 	float	r;
@@ -140,8 +140,9 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 	prim4	p4;
 	prim5	p5;
 	
-	Tree	t1, t2, ff, label, cur, min, max, step, type, name, file;
+	Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body;
 	
+	// numbers and constants
 	if (isBoxInt(box, &i)) 	{ 
 		assert(lsig.size()==0); 
 		return makeList(sigInt(i)); 
@@ -156,6 +157,7 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		return makeList(sigFConst(type, name, file)); 
 	}
 	
+	// wire and cut
 	else if (isBoxCut(box)) 				{ 
 		assert(lsig.size()==1); 
 		return siglist(); 
@@ -166,6 +168,25 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		return lsig;  
 	}
 	
+	// slots and symbolic boxes
+	else if (isBoxSlot(box)) 				{ 
+		Tree sig;
+		assert(lsig.size()==0); 
+		if (!searchEnv(box,sig,slotenv)) {
+			fprintf(stderr, "propagate : internal error (slot undefined)\n");
+			exit(1);
+		}
+		return makeList(sig);
+	}
+	
+	// slots and symbolic boxes
+	else if (isBoxSymbolic(box, slot, body)) 				{ 
+		Tree sig;
+		assert(lsig.size()>0); 
+		return propagate(pushEnv(slot,lsig[0],slotenv), path, body, listRange(lsig, 1, lsig.size()));
+	}
+	
+	// primitives
 	else if (isBoxPrim0(box, &p0)) 			{ 
 		assert(lsig.size()==0); 
 		return makeList( p0() );  
@@ -203,7 +224,7 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		return makeList(sigFFun(ff, listConvert(lsig)));  
 	}
 	
-	// propagation dans l'interface utilisateur
+	// user interface
 	else if (isBoxButton(box, label)) 	{ 
 		assert(lsig.size()==0); 
 		return makeList(sigButton(cons(label, path))); 
@@ -230,15 +251,15 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 	}
 	
 	else if (isBoxVGroup(box, label, t1)) 	{ 
-		return propagate(cons(cons(tree(0),label), path), t1, lsig); 
+		return propagate(slotenv,cons(cons(tree(0),label), path), t1, lsig); 
 	}
 	
 	else if (isBoxHGroup(box, label, t1)) 	{ 
-		return propagate(cons(cons(tree(1),label), path), t1, lsig); 
+		return propagate(slotenv, cons(cons(tree(1),label), path), t1, lsig); 
 	}
 	
 	else if (isBoxTGroup(box, label, t1)) 	{ 
-		return propagate(cons(cons(tree(2),label), path), t1, lsig); 
+		return propagate(slotenv, cons(cons(tree(2),label), path), t1, lsig); 
 	}
 	
 	// propagation dans les constructeurs
@@ -248,12 +269,12 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t2, &in2, &out2);
 			
 		if (out1 == in2) {
-			return propagate(path, t2, propagate(path,t1,lsig));
+			return propagate(slotenv, path, t2, propagate(slotenv, path,t1,lsig));
 		} else if (out1 > in2) {
-			siglist lr = propagate(path, t1,lsig);
-			return listConcat(propagate(path, t2, listRange(lr, 0, in2)), listRange(lr, in2, out1));
+			siglist lr = propagate(slotenv, path, t1,lsig);
+			return listConcat(propagate(slotenv, path, t2, listRange(lr, 0, in2)), listRange(lr, in2, out1));
 		} else {
-			return propagate ( path, t2, listConcat( propagate(path, t1, listRange(lsig,0,in1)), listRange(lsig,in1,in1+in2-out1) ) );
+			return propagate(slotenv, path, t2, listConcat( propagate(slotenv, path, t1, listRange(lsig,0,in1)), listRange(lsig,in1,in1+in2-out1) ) );
 		}
 	}
 	
@@ -262,8 +283,8 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t1, &in1, &out1);
 		getBoxType(t2, &in2, &out2);
 			
-		return listConcat(	propagate(path, t1, listRange(lsig, 0,  in1)), 
-							propagate(path, t2, listRange(lsig, in1, in1+in2)) );
+		return listConcat(	propagate(slotenv, path, t1, listRange(lsig, 0,  in1)), 
+							propagate(slotenv, path, t2, listRange(lsig, in1, in1+in2)) );
 	}
 	
 	else if (isBoxSplit(box, t1, t2)) 	{ 
@@ -271,9 +292,9 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t1, &in1, &out1);
 		getBoxType(t2, &in2, &out2);
 		
-		siglist l1 = propagate(path, t1, lsig);
+		siglist l1 = propagate(slotenv, path, t1, lsig);
 		siglist l2 = split(l1, in2);
-		return propagate(path, t2, l2);
+		return propagate(slotenv, path, t2, l2);
 	}
 	
 	else if (isBoxMerge(box, t1, t2)) 	{ 
@@ -281,9 +302,9 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t1, &in1, &out1);
 		getBoxType(t2, &in2, &out2);
 		
-		siglist l1 = propagate(path, t1, lsig);
+		siglist l1 = propagate(slotenv, path, t1, lsig);
 		siglist l2 = mix(l1, in2);
-		return propagate(path, t2, l2);
+		return propagate(slotenv, path, t2, l2);
 	}
 	
 	else if (isBoxRec(box, t1, t2)) 	{ 
@@ -292,8 +313,8 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t2, &in2, &out2);
 		
 		siglist l0 = makeSigProjList(ref(1), in2);
-		siglist l1 = propagate(path, t2, l0);
-		siglist l2 = propagate(path, t1, listConcat(l1,listLift(lsig)));
+		siglist l1 = propagate(slotenv, path, t2, l0);
+		siglist l2 = propagate(slotenv, path, t1, listConcat(l1,listLift(lsig)));
 		Tree g = rec(listConvert(l2));
 		return makeSigProjList(g, out1);
 	}
@@ -306,6 +327,6 @@ siglist propagate (Tree path, Tree box, const siglist&  lsig)
 	
 Tree boxPropagateSig (Tree path, Tree box, const siglist& lsig)
 {
-	return listConvert(propagate(path, box, lsig));
+	return listConvert(propagate(nil, path, box, lsig));
 }
 
