@@ -45,6 +45,13 @@ beat(t) 	= pulse(tempo(t));		// pulse au tempo t
 
 
 //-----------------------------------------------
+// 	convertions between db and linear values
+//-----------------------------------------------
+
+db2linear(x)= pow(2.0, x/6.0); 
+
+
+//-----------------------------------------------
 // 			noise : Noise generator
 //-----------------------------------------------
 
@@ -65,7 +72,7 @@ samplingfreq	= SR;
 time 			= (+(1)~_ ) - 1; 			// O,1,2,3,...
 sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
 
-decimal			= _ <: -(floor);
+decimal(x)		= x - floor(x);
 phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize)) : int ;
 osc(freq)		= phase(freq) : rdtable(tablesize,sinwaveform);
 
