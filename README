@@ -36,11 +36,11 @@ This will create a subfolder jackgtkdir with all the jack applications. You can 
 --------------
 This a preliminary version of Faust. 
 
-- The source code is released under the GPL Licence, but the licence notice is not inserted in the source files.
-
 - The most up to date architecture file are the jack-gtk.cpp and alsa-gtk.cpp. The others may work but have not been tested recently
 
 - The documentation doesn't mention new important additions to the language allowing to build parametric block diagrams: par(i,n,E(i)), seq(i,n,E(i)), sum(i,n,E(i)), prod(i,n,E(i)) as well as the fix delay operator '@'.
+
+- The documentation doesn't mention the use of abstractions for symbolic routing of signals. For example it is possible to define "foo(x,y) = y,x;" and to use it *unapplied* such as in "process = foo;" to invert the two channels. (previously one had to define "foo = _,_ <: !,_,_,!;" to do the same operation)  
 
 - The @ operator is not yet implemented in the SIMD code generator
 
