@@ -81,9 +81,9 @@ time 			= (+(1)~_ ) - 1; 			// O,1,2,3,...
 sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
 
 decimal(x)		= x - floor(x);
-phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize)) : int ;
-osc(freq)		= rdtable( tablesize, sinwaveform, int(phase(freq)) );
-osci(freq)		= rdtable(tablesize,sinwaveform,i)*(1-d) + rdtable(tablesize,sinwaveform,i+1)*d
+phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize));
+osc(freq)		= rdtable(tablesize, sinwaveform, int(phase(freq)) );
+osci(freq)		= rdtable(tablesize+1,sinwaveform,i)*(1-d) + rdtable(tablesize+1,sinwaveform,i+1)*d
 				  with { i = int(phase(freq)); d = decimal(phase(freq)); };
 
 
