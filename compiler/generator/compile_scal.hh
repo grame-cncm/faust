@@ -112,7 +112,7 @@ private:
 							   	utilities
 *****************************************************************************/
 
-
+#if 0
 static Klass* signal2klass (const string& name, Tree sig)
 {
 	Type t = getSigType(sig, NULLENV);
@@ -130,5 +130,6 @@ static Klass* signal2klass (const string& name, Tree sig)
 
 	}		
 }
+#endif
 
 #endif

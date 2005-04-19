@@ -22,8 +22,6 @@
  
  
 /*****************************************************************************
-\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 ******************************************************************************
 							FAUST SIGNAL COMPILER 
 						Y. Orlarey, (c) Grame 2002
@@ -35,8 +33,6 @@ Compile a list of FAUST signals into a C++ class .
  	2002-02-08 : First version
 	
 ******************************************************************************
-\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 *****************************************************************************/
 
 
@@ -52,6 +48,7 @@ Compile a list of FAUST signals into a C++ class .
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "privatise.hh"
+//#include "factorize.hh"
 
 
 
@@ -161,7 +158,13 @@ Tree Compiler::prepare (Tree L0)
 {	
 //	fprintf(stderr, "L0 = "); printSignal(L0, stderr); fputs("\n", stderr);
 	Tree L1 = simplify(L0);			// simplify by executing every computable operation 
-	Tree L2 = deBruijn2Sym(L1);
+	//fprintf(stderr, "L1 = "); printSignal(L1, stderr); fputs("\n", stderr);	
+	Tree L2a = deBruijn2Sym(L1);
+	Tree L2 = simplify(L2a);			// simplify by executing every computable operation 
+	//Tree L2	= 
+	//factorizeAddTerms(L2);
+	
+	//fprintf(stderr, "L2 = "); printSignal(L2, stderr); fputs("\n", stderr);	
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 	updateAperture(L3);
 	typeAnnotation(L3);

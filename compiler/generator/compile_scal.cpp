@@ -42,6 +42,23 @@
 #include "privatise.hh"
 #include "prim2.hh"
 
+static Klass* signal2klass (const string& name, Tree sig)
+{
+	Type t = getSigType(sig, NULLENV);
+	if (t->nature() == kInt) {
+
+		ScalarCompiler C( new SigIntGenKlass(name) );
+		C.compileSingleSignal(sig);
+		return C.getClass();
+
+	} else {
+
+		ScalarCompiler C( new SigFloatGenKlass(name) );
+		C.compileSingleSignal(sig);
+		return C.getClass();
+
+	}		
+}
 
 
 /*****************************************************************************
