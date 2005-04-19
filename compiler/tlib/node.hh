@@ -21,10 +21,8 @@
  
  
  
-/*****************************************************************************
-\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-******************************************************************************/
+/***************************************************************************** 
+******************************************************************************/ 
 
 /** \file node.hh
  * A Node is a tagged unions of int, float, symbol and void* used in the implementation of CTrees. 
@@ -49,8 +47,6 @@
  */
  	
 /******************************************************************************
-\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 *****************************************************************************/
 
 
@@ -154,6 +150,18 @@ inline bool isZero (const Node& n)
 		|| (n.type() == kIntNode) && (n.getInt() == 0);
 }
 
+inline bool isGEZero (const Node& n) 
+{ 
+	return (n.type() == kFloatNode) && (n.getFloat() >= 0.0)
+		|| (n.type() == kIntNode) && (n.getInt() >= 0);
+}
+
+inline bool isGTZero (const Node& n) 
+{ 
+	return (n.type() == kFloatNode) && (n.getFloat() > 0.0)
+		|| (n.type() == kIntNode) && (n.getInt() > 0);
+}
+
 inline bool isOne (const Node& n) 
 { 
 	return (n.type() == kFloatNode) && (n.getFloat() == 1.0)
@@ -229,8 +237,20 @@ inline const Node mulNode (const Node& x, const Node& y)
 inline const Node divNode (const Node& x, const Node& y)	
 	{ return (isFloat(x)|isFloat(y)) ? Node(float(x)/float(y)) : Node(int(x)/int(y)); }
 
+inline const Node divExtendedNode (const Node& x, const Node& y)	
+	{ return  (isFloat(x)|isFloat(y)) ? Node(float(x)/float(y)) 
+			: (float(int(x)/int(y))==float(x)/float(y)) ? Node(int(x)/int(y))
+			: Node(float(x)/float(y)); }
+
 inline const Node remNode (const Node& x, const Node& y)	
 	{ return Node(int(x)%int(y)); }
+
+// nouvelles fonctions
+inline const Node minusNode (const Node& x)	
+	{ return subNode(0, x); }
+
+inline const Node inverseNode (const Node& x)	
+	{ return divNode(1.0, x); }
 
 
 // operations de décalage sur les bits
