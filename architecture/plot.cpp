@@ -307,7 +307,7 @@ class channels
 	{
 		// free separate input channels
 		for (int i = 0; i < fNumChannels; i++) {
-			free(fBuffers[i]);
+		//	free(fBuffers[i]);
 		}		
 	}
 	
@@ -358,4 +358,5 @@ int main(int argc, char *argv[] )
 		}
 		cout << endl;
 	}
+	return 0;
 } 
