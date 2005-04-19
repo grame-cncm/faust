@@ -348,12 +348,9 @@ static const char * evalLabel (const char* label, Tree globalDefEnv, Tree visite
  */
 static Tree iteratePar (Tree id, int num, Tree body, Tree globalDefEnv, Tree visited, Tree localValEnv)
 {
-	Tree 	res;
-	int 	i = 0;
+	assert (num>0);
 	 
-	if (i < num) {
-		res = eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv));
-	}
+	Tree res = eval(body, globalDefEnv, visited, pushEnv(id, tree(0), localValEnv));
 	for (int i = 1; i < num; i++) {
 		res = boxPar(res, eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv)));
 	}
@@ -377,12 +374,10 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree globalDefEnv, Tree vis
  */
 static Tree iterateSeq (Tree id, int num, Tree body, Tree globalDefEnv, Tree visited, Tree localValEnv)
 {
-	Tree 	res;
-	int 	i = 0;
+	assert (num>0);
 	 
-	if (i < num) {
-		res = eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv));
-	}
+	Tree res = eval(body, globalDefEnv, visited, pushEnv(id, tree(0), localValEnv));
+	
 	for (int i = 1; i < num; i++) {
 		res = boxSeq(res, eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv)));
 	}
@@ -407,12 +402,10 @@ static Tree iterateSeq (Tree id, int num, Tree body, Tree globalDefEnv, Tree vis
  */
 static Tree iterateSum (Tree id, int num, Tree body, Tree globalDefEnv, Tree visited, Tree localValEnv)
 {
-	Tree 	res;
-	int 	i = 0;
+	assert (num>0);
 	 
-	if (i < num) {
-		res = eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv));
-	}
+	Tree res = eval(body, globalDefEnv, visited, pushEnv(id, tree(0), localValEnv));
+	
 	for (int i = 1; i < num; i++) {
 		res = boxSeq(boxPar(res, eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv))),boxPrim2(sigAdd)) ;
 	}
@@ -437,12 +430,10 @@ static Tree iterateSum (Tree id, int num, Tree body, Tree globalDefEnv, Tree vis
  */
 static Tree iterateProd (Tree id, int num, Tree body, Tree globalDefEnv, Tree visited, Tree localValEnv)
 {
-	Tree 	res;
-	int 	i = 0;
+	assert (num>0);
 	 
-	if (i < num) {
-		res = eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv));
-	}
+	Tree res = eval(body, globalDefEnv, visited, pushEnv(id, tree(0), localValEnv));
+	
 	for (int i = 1; i < num; i++) {
 		res = boxSeq(boxPar(res, eval(body, globalDefEnv, visited, pushEnv(id, tree(i), localValEnv))),boxPrim2(sigMul)) ;
 	}
