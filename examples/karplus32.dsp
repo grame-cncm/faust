@@ -25,12 +25,18 @@ dur 		= hslider("duration (samples)", 128, 2, 512, 1);
 att 		= hslider("attenuation", 0.1, 0, 1, 0.01);
 average(x)	= (x+x')/2;
 
+resonator(d, a) = (+ : delay(4096, d)) ~ (average : *(1.0-a)) ;
+
+
+// Polyphony
+//-----------------
+
 detune 		= hslider("detune", 32, 0, 512, 1);
 polyphony 	= hslider("polyphony", 1, 0, 32, 1);
 
-output 		= hslider("output volume", 0.5, 0, 1, 0.1);
 
-resonator(d, a) = (+ : delay(4096, d)) ~ (average : *(1.0-a)) ;
+
+output 		= hslider("output volume", 0.5, 0, 1, 0.1);
 
 
 process =  vgroup("karplus32", 

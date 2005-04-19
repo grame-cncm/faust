@@ -1,6 +1,7 @@
 //======================================================
 //
 //						Freeverb
+//		  Faster version using fixed delays (20% gain)
 //
 //======================================================
 
@@ -58,19 +59,14 @@ combfeed 		= roomsizeSlider;
 
 
 
-// delay lines
-//---------------------
-
-index(n) 		= _ & (n-1) ~ +(1);		// n = 2**i
-delay(n,d) 		= n, 0.0, index(n), _, (index(n)-int(d)) & (n-1) : rwtable ;
 
 
 // Comb and Allpass filters
 //-------------------------
 
-allpass(dt,fb) = (_,_ <: (*(fb):+:delay(8192, dt)), -) ~ _ : (!,_);
+allpass(dt,fb) = (_,_ <: (*(fb):+:@(dt)), -) ~ _ : (!,_);
 
-comb(dt, fb, damp) = (+:delay(8192, dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 
 
 // Reverb components
@@ -106,6 +102,6 @@ fxctrl(g,w,Fx) =  _,_ <: (*(g),*(g) : Fx : *(w),*(w)), *(1-w), *(1-w) +> _,_;
 // Freeverb 
 //---------
 
-freeverb = fxctrl(fixedgain, wetSlider, stereoReverb(combfeed, allpassfeed, dampSlider, stereospread));
+freeverb = vgroup("Freeverb", fxctrl(fixedgain, wetSlider, stereoReverb(combfeed, allpassfeed, dampSlider, stereospread)));
 
 process = freeverb;

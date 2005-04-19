@@ -26,7 +26,6 @@ average(x)	= (x+x')/2;
 
 resonator(d, a) = (+ : delay(4096, d)) ~ (average : *(1.0-a)) ;
 
-process =  
-	  vgroup("noise generator", noise * hslider("level", 0.5, 0, 1, 0.1))
-	: vgroup("excitator", *(button("play"): trigger(size)))
-	: vgroup("resonator", resonator(dur, att));
+process = noise * hslider("level", 0.5, 0, 1, 0.1)
+		: vgroup("excitator", *(button("play"): trigger(size)))
+		: vgroup("resonator", resonator(dur, att));

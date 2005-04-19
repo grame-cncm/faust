@@ -16,5 +16,5 @@ capture = *(B) : (+ : delay(8*65536, D-1)) ~ *(1.0-B) ;
 smooth(c)	= *(1-c) : +~*(c);
 level		= hslider("level (db)", 0, -96, 4, 0.1) : db2linear : smooth(0.999);
 
-process = vgroup( "Audio Capture", capture : *(level) ) ;
+process 	= vgroup( "Audio Capture", capture : *(level) ) ;
 
