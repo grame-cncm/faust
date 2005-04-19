@@ -234,4 +234,65 @@ Sym SIGATTACH = symbol ("sigAttach");
 Tree  sigAttach(Tree t0, Tree t1)					{ return tree(SIGATTACH, t0, t1); 		}
 bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGATTACH, t0, t1); 	}
 
+	 
+
+Tree addNums(Tree a, Tree b)
+{
+	return tree(addNode(a->node(),b->node()));
+}
+
+Tree subNums(Tree a, Tree b)
+{
+	return tree(subNode(a->node(),b->node()));
+}
+
+Tree mulNums(Tree a, Tree b)
+{
+	return tree(mulNode(a->node(),b->node()));
+}
+
+Tree divNums(Tree a, Tree b)
+{
+	return tree(divNode(a->node(),b->node()));
+}
+
+Tree divExtendedNums(Tree a, Tree b)
+{
+	return tree(divExtendedNode(a->node(),b->node()));
+}
+
+Tree minusNum(Tree a)
+{ 
+	return tree(minusNode(a->node())); 
+}
+
+Tree inverseNum(Tree a)
+{ 
+	return tree(inverseNode(a->node())); 
+}
+
+bool isSigAdd(Tree a, Tree& x, Tree& y)
+{
+	int	op;
+	return isSigBinOp(a, &op, x, y) && (op == kAdd);
+}
+
+bool isSigMul(Tree a, Tree& x, Tree& y)
+{
+	int	op;
+	return isSigBinOp(a, &op, x, y) && (op == kMul);
+}
+
+bool isSigSub(Tree a, Tree& x, Tree& y)
+{
+	int	op;
+	return isSigBinOp(a, &op, x, y) && (op == kSub);
+}
+
+bool isSigDiv(Tree a, Tree& x, Tree& y)
+{
+	int	op;
+	return isSigBinOp(a, &op, x, y) && (op == kDiv);
+}
+
 

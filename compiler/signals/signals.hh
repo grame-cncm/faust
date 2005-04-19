@@ -136,6 +136,28 @@ inline Tree sigLE(Tree x, Tree y)	{ return sigBinOp(kLE, x, y); }
 inline Tree sigEQ(Tree x, Tree y)	{ return sigBinOp(kEQ, x, y); } 			
 inline Tree sigNE(Tree x, Tree y)	{ return sigBinOp(kNE, x, y); } 
 
+// pattern matching pour les anciennes fonctions
+bool isSigAdd	(Tree a, Tree&x, Tree&y);
+bool isSigMul	(Tree a, Tree&x, Tree&y);
+bool isSigSub	(Tree a, Tree&x, Tree&y);
+bool isSigDiv	(Tree a, Tree&x, Tree&y);
+
+// operations pratiques sur des arbres dont on sait qu'ils sont des nombres
+Tree addNums 	(Tree a, Tree b);
+Tree subNums 	(Tree a, Tree b);
+Tree mulNums 	(Tree a, Tree b);
+Tree divNums 	(Tree a, Tree b);
+Tree divExtendedNums 	(Tree a, Tree b);
+Tree minusNum	(Tree a); 
+Tree inverseNum	(Tree a); 
+
+// tests sur les signaux constants
+inline bool isNum		(Tree a)	{ assert(a); return isNum(a->node()); }
+inline bool isZero		(Tree a)	{ assert(a); return isZero(a->node()); }
+inline bool isGTZero	(Tree a)	{ assert(a); return isGTZero(a->node()); }
+inline bool isGEZero	(Tree a)	{ assert(a); return isGEZero(a->node()); }
+inline bool isOne		(Tree a)	{ assert(a); return isOne(a->node()); }
+inline bool isMinusOne	(Tree a)	{ assert(a); return isMinusOne(a->node()); }
 
 //projection pour les groupes récursifs
 Tree sigProj (int i, Tree rgroup);	
