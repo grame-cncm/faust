@@ -27,7 +27,6 @@
 #include <vector>
 #include "boxes.hh"
 #include "signals.hh"
-#include <assert.h>
 
 ////////////////////////////////////////////////////////////////////////
 /**

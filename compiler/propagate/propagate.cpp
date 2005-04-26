@@ -23,6 +23,7 @@
  
 #include "propagate.hh"
 #include "prim2.hh"
+#include <assert.h>
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -193,7 +194,6 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 	// slots and symbolic boxes
 	else if (isBoxSymbolic(box, slot, body)) 				{ 
-		Tree sig;
 		assert(lsig.size()>0); 
 		return propagate(pushEnv(slot,lsig[0],slotenv), path, body, listRange(lsig, 1, lsig.size()));
 	}

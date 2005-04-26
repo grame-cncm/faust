@@ -35,6 +35,8 @@
 #include "simplify.hh"
 #include "propagate.hh"
 
+#include <assert.h>
+
 
 // Private Declarations
 //--------------
