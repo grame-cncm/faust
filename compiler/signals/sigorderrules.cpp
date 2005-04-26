@@ -38,10 +38,8 @@
  
  
 #include <stdio.h>
-#include <assert.h>
 #include "sigtype.hh"
 #include "sigprint.hh"
-//#include "prim.hh"
 #include "prim2.hh"
 #include "tlib.hh"
 #include "sigorderrules.hh"

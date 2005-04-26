@@ -307,7 +307,9 @@ static Type infereSigType(Tree sig, Tree env)
 
 		  Vectorisation = true;
 
-		} else { fprintf(stderr,"Bizarre\n"); t = T(s1,env); }
+		} else { 
+			fprintf(stderr,"Bizarre\n"); t = T(s1,env); 
+		}
 
 
 		//fprintf(stderr,"rec_being_defined: %p\n", rec_being_defined);
@@ -529,7 +531,14 @@ static Type infereFFType (Tree ff, Tree ls, Tree env)
 		// arguments (OR of all arg types)
 		Type t = new SimpleType(kInt,kKonst,kInit,kVect,kNum); 
 		while (isList(ls)) { t = t|T(hd(ls),env); ls=tl(ls); }
-		return t;
+		// but the result type is defined by the function
+		
+		//return t;
+		return new SimpleType(	ffrestype(ff),
+								t->variability(),
+								t->computability(),
+								t->vectorability(),
+								t->boolean() );
 	}
 }
 
