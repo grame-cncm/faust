@@ -37,8 +37,6 @@ Compile a list of FAUST signals into a C++ class .
 
 
 
-#include <assert.h>
-
 #include <stdio.h>
 
 #include "compile_vect.hh"

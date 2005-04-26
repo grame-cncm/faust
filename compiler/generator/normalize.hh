@@ -4,6 +4,9 @@
 Tree normalizeAddTerm(Tree t);
 Tree normalizeMulTerm(Tree t);
 
+Tree normalizeDelay1Term(Tree s);
+Tree normalizeFixedDelayTerm(Tree s, Tree d);
+
 void collectAddTerms (Tree& coef, map<Tree,Tree>& M, Tree t, bool invflag);
 void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag);
 

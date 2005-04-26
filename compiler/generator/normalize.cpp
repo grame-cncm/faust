@@ -7,6 +7,7 @@
 #include "normalize.hh"
 #include "sigorderrules.hh"
 #include <map>
+#include <list>
 
 static void countAddTerm (map<Tree,Tree>& M, Tree t, bool invflag);
 static void incTermCount (map<Tree,int>& M, Tree t, bool invflag);
@@ -15,6 +16,7 @@ static Tree simplifyingAdd (Tree t1, Tree t2);
 static Tree simplifyingMul (Tree t1, Tree t2);
 static Tree simplifyingReorganizingMul(Tree t1, Tree t2);
 static Tree reorganizingMul(Tree k, Tree t);
+static void factorizeAddTerm(map<Tree,Tree>& M);
 
 #undef TRACE
 
@@ -29,6 +31,7 @@ Tree normalizeAddTerm(Tree t)
 	map<Tree,Tree>	M;
 	Tree			coef = tree(0);
 	collectAddTerms(coef, M, t, false);
+	factorizeAddTerm(M);
 	Tree result = buildAddTerm(coef, M);
 	//fprintf(stderr, "ADD Normalize -> "); printSignal(result, stderr); fputs("\n", stderr);
 	return result;
@@ -254,6 +257,7 @@ static Tree simplifyingAdd(Tree t1, Tree t2)
 {
 	assert(t1!=0);
 	assert(t2!=0);
+	
 	if (isNum(t1) && isNum(t2)) {
 		return addNums(t1,t2);
 		
@@ -263,8 +267,11 @@ static Tree simplifyingAdd(Tree t1, Tree t2)
 	} else if (isZero(t2)) {
 		return t1;
 		
-	} else {
+	} else if (t1 <= t2) {
 		return sigAdd(t1, t2);
+		
+	} else {
+		return sigAdd(t2, t1);
 	}
 }
 
@@ -292,10 +299,12 @@ static Tree simplifyingReorganizingMul(Tree t1, Tree t2)
 	fprintf(stderr, " -> ");	
 	#endif
 	
-	Tree result;
+	Tree result,x,y;
 	
 	if (isNum(t1) && isNum(t2)) {
-		//fprintf(stderr, " [1] ");	
+		#ifdef TRACE
+		fprintf(stderr, " [1] ");	
+		#endif
 		result = mulNums(t1,t2);
 		
 	} else {
@@ -306,22 +315,41 @@ static Tree simplifyingReorganizingMul(Tree t1, Tree t2)
 		
 		if (isNum(t1)) {
 			if (isZero(t1)) {
+				#ifdef TRACE
+				fprintf(stderr, " [2] ");	
+				#endif
 				result = t1;
 
 			} else if (isOne(t1)) {
+				#ifdef TRACE
+				fprintf(stderr, " [3] ");	
+				#endif
 				result = t2;
 		
+			} else if (isSigDiv(t2,x,y) && isNum(x)){
+				#ifdef TRACE
+				fprintf(stderr, " [4a] ");	
+				#endif
+				result = sigDiv(simplifyingReorganizingMul(t1,x),y);
+				
 			} else {
+				#ifdef TRACE
+				fprintf(stderr, " [4b] ");	
+				#endif
 				result = reorganizingMul(t1,t2);
 			}
 
 		} else {
-			//fprintf(stderr, " [5] ");	
+			#ifdef TRACE
+			fprintf(stderr, " [5] ");	
+			#endif
 			result = sigMul(t1, t2);
 		}
 	}
-	//printSignal(result, stderr); 
-	//fprintf(stderr, " \n ");
+	#ifdef TRACE
+	printSignal(result, stderr); 
+	fprintf(stderr, " \n ");
+	#endif
 	return result;	
 }
 
@@ -365,3 +393,273 @@ static Tree simplifyingMul(Tree t1, Tree t2)
 	//fprintf(stderr, " \n ");
 	return result;	
 }
+
+
+typedef map<Tree,int> MT;
+
+
+static int intersectMapTerm(MT& M1, MT& M2, MT& R) 
+{
+	int count = 0;
+	for (MT::const_iterator e = M1.begin(); e != M1.end(); e++) {
+		Tree t = e->first;
+		if (M2.find(t) != M2.end() && !isOne(t) && !isMinusOne(t)) {
+			int v1 = M1[t];
+			int v2 = M2[t];
+			if (v1*v2 > 0) {
+				int c = min(v1,v2);
+				count += c;
+				R[t] = c;
+			}
+		}
+	}
+	return count;
+}
+
+
+static void divideMapTerm(MT& M1, MT& M2, MT& R)
+{
+	for (MT::const_iterator e = M2.begin(); e != M2.end(); e++) {
+		Tree t = e->first;
+		if (M1[t] > M2[t]) {
+			R[t] = M1[t] - M2[t];
+		}
+	}
+}
+
+
+static int maxIntersect(list<MT>& LM, MT& E1, MT& E2, MT& I)
+{
+	int	Cmax = 0;
+	for (list<MT>::iterator P1 = LM.begin(); P1 != LM.end(); P1++) {
+		for (list<MT>::iterator P2 = P1; P2 != LM.end(); P2++) {
+			if (P1 != P2) {
+				MT 	J;
+				int	c = intersectMapTerm(*P1, *P2, J);
+				if (c > Cmax) {
+					I = J;
+					E1 = *P1;
+					E2 = *P2;
+					Cmax = c;
+				}
+			}
+		}	
+	}
+	
+	return Cmax;
+}
+
+
+/**
+ * Factorize add terms : k1.k2.k4 + k2.k3.k4 -> (k1+k3).k2.k4
+ * This is a very simple algorithm that factorise only common constants
+ */
+
+static void factorizeAddTerm(map<Tree,Tree>& MAT)
+{	
+	map<Tree,Tree> 	INV;
+	bool 			run;
+	int				factorCount = 0;
+	
+	do {
+		run = false;
+		
+		// clear INV and copy MAT inverted into INV
+		INV.clear();
+		for (map<Tree,Tree>::iterator i = MAT.begin(); i != MAT.end(); i++) 
+		{
+			Tree f = i->first;
+			Tree q = i->second;
+
+			if (INV.find(q) == INV.end()) {
+				INV[q] = f;
+			} else {
+				INV[q] 	= simplifyingAdd(INV[q], f);
+				factorCount++;
+			}
+		}
+		
+		// clear MAT and copy INV into MAT inverted
+		MAT.clear();
+
+		for (map<Tree,Tree>::iterator i = INV.begin(); i != INV.end(); i++) 
+		{
+			Tree f = i->first;
+			Tree q = i->second;
+
+			if (MAT.find(q) == MAT.end()) {
+				MAT[q] = f;
+			} else {
+				MAT[q] 	= simplifyingAdd(MAT[q], f);
+				factorCount++;
+				run 	= true;
+			}
+		}
+		
+	} while (run);
+// 	
+// 	if (factorCount > 0) {
+// 		fprintf(stderr, "Factorisations achieved : %d\n", factorCount);
+// 	}
+}
+
+
+
+static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
+{
+	list<MT>	L;
+	MT			E1;
+	MT			E2;
+	MT			I;
+	
+	//Cree la liste des facteurs [q.f]
+	for (map<Tree,Tree>::iterator F = MAT.begin(); F != MAT.end(); F++) {
+		Tree f = F->first;
+		Tree q = F->second;
+		map<Tree,int> M;
+		collectMulTerms(q, M, f, false);
+// YO (21/04/05) : verification supprimée car les différences relevés portaient
+// essentiellement sur le type (1.000 != 1)
+// 		if (q != F->second) {
+// 			fprintf(stderr, "WARNING q!=F->second : ");
+// 			printSignal(q, stderr); fprintf(stderr, " != ");
+// 			printSignal(F->second, stderr); fprintf(stderr, "\n");
+// 		}
+//			
+//		//assert(q==F->second);
+		
+		if (!isOne(q)) {
+			M[q] = 1;				// ajoute q aux facteurs
+		}
+		L.push_back(M);
+	}
+	
+	// calcul l'intersection la plus grande
+	int cmax = maxIntersect(L, E1, E2, I);
+	if (cmax > 0) {
+		//il y a une intersection
+		fprintf(stderr, "Found intersection of size %d\n", cmax);
+#if 0		
+		fprintf(stderr, " between : ");
+		printSignal ( buildMulTerm(tree(1), E1), stderr );
+		fprintf(stderr, "\n     and : ");
+		printSignal ( buildMulTerm(tree(1), E2), stderr );
+		fprintf(stderr, "\n     is  : ");
+		printSignal ( buildMulTerm(tree(1), I), stderr );
+		fprintf(stderr, "\n");
+#endif
+#if 0		
+		MT R1, R2;
+		divideMapTerm(E1,I,R1);
+		divideMapTerm(E2,I,R2);
+		
+		fprintf(stderr, "factorize 1 : ");
+		printSignal ( buildMulTerm(tree(1), E1), stderr );
+		fprintf(stderr, "\n");
+		
+		fprintf(stderr, "      as : ");
+		printSignal ( buildMulTerm(tree(1), R1), stderr  );
+		fprintf(stderr, " <times> ");
+		printSignal ( buildMulTerm(tree(1), I), stderr  );
+		fprintf(stderr, "\n\n");
+		
+		fprintf(stderr, "and factorize 2 : ");
+		printSignal ( buildMulTerm(tree(1), E2), stderr  );
+		fprintf(stderr, "\n");
+		
+		fprintf(stderr, "      as : ");
+		printSignal ( buildMulTerm(tree(1), R2), stderr  );
+		fprintf(stderr, " <times> ");
+		printSignal ( buildMulTerm(tree(1), I), stderr  );
+		fprintf(stderr, "\n");
+#endif
+	}
+	
+}	
+
+
+/**
+ * Compute the normal form of a fixed delay term (s@d).
+ * The normalisation rules are :
+ *		s@0 -> s
+ *     	0@d -> 0
+ *     	(k*s)@d -> k*(s@d)
+ *		(s/k)@d -> (s@d)/k
+ * Note that the same rules can't be applied to
+ * + et - becaue the value of the first d samples
+ * would be wrong. Would could also add delays such that
+ * 		(s@d)@d' -> s@(d+d')
+ * \param sig the whole term
+ * \param s the term to be delayed
+ * \param d the value of the delay
+ * \return the normalized term
+ */
+Tree normalizeDelay1Term(Tree s)
+{
+	Tree x, y;
+	
+	if (isZero(s)) {
+		
+		return s;
+	
+	} else if (isSigMul(s, x, y)) {
+		
+		if (getSigOrder(x) < 2) {
+			return simplify(sigMul(x,normalizeDelay1Term(y)));
+		} else if (getSigOrder(y) < 2) {
+			return simplify(sigMul(y,normalizeDelay1Term(x)));
+		} else {
+			return sigDelay1(s);
+		}
+		
+	} else if (isSigDiv(s, x, y)) {
+		
+		if (getSigOrder(y) < 2) {
+			return simplify(sigDiv(normalizeDelay1Term(x),y));
+		} else {
+			return sigDelay1(s);
+		}
+		
+	} else {
+		
+		return sigDelay1(s);
+	}
+}
+
+Tree normalizeFixedDelayTerm(Tree s, Tree d)
+{
+	Tree x, y;
+	
+	if (isZero(d)) {
+		
+		return s;
+		
+	} else if (isZero(s)) {
+		
+		return s;
+	
+	} else if (isSigMul(s, x, y)) {
+		
+		if (getSigOrder(x) < 2) {
+			return simplify(sigMul(x,normalizeFixedDelayTerm(y,d)));
+		} else if (getSigOrder(y) < 2) {
+			return simplify(sigMul(y,normalizeFixedDelayTerm(x,d)));
+		} else {
+			return sigFixDelay(s,d);
+		}
+		
+	} else if (isSigDiv(s, x, y)) {
+		
+		if (getSigOrder(y) < 2) {
+			return simplify(sigDiv(normalizeFixedDelayTerm(x,d),y));
+		} else {
+			return sigFixDelay(s,d);
+		}
+		
+	} else {
+		
+		return sigFixDelay(s,d);
+	}
+}
+
+

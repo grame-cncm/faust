@@ -28,7 +28,6 @@
 #include "compile_scal.hh"
 
 
-#include <assert.h>
 #include "compile.hh"
 #include "sigtype.hh"
 
@@ -599,7 +598,10 @@ string ScalarCompiler::generateWRTbl(Tree tEnv, Tree sig, Tree tbl, Tree idx, Tr
 
 string ScalarCompiler::generateRDTbl(Tree tEnv, Tree sig, Tree tbl, Tree idx)
 { 
-	return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
+	// YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
+	// et donc le code était dupliqué (dans tester.dsp par exemple)
+	//return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
+	return generateCacheCode(tEnv, sig, subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx)));
 }
 
 

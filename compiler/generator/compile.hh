@@ -29,7 +29,6 @@
 #include "klass.hh"
 #include "Text.hh"
 #include "uitree.hh"
-#include <assert.h>
 #include <string>
 #include <list>
 #include <stack>

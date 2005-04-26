@@ -90,11 +90,15 @@ static Tree simplification (Tree sig)
 	} else if (isSigDelay1(sig, t1)) {
 		// delay1(0) = 0
 		//Node n1 = t1->node();
-		return (isZero(t1)) ? t1 : sig;
+		
+		//return (isZero(t1)) ? t1 : sig;
+		return normalizeDelay1Term (t1);
 		
 		
 	} else if (isSigFixDelay(sig, t1, t2)) {
-		return (isZero(t2)) ? t1 : sig;
+		
+		//return (isZero(t2)) ? t1 : sig;
+		return normalizeFixedDelayTerm (t1, t2);
 		
 		
 	} else if (isSigIntCast(sig, t1)) {
@@ -120,7 +124,3 @@ static Tree simplification (Tree sig)
 		return sig;
 	}
 }
-
-
-
-

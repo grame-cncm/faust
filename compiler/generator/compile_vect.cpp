@@ -24,7 +24,6 @@
 #include "compile_vect.hh"
 
 
-#include <assert.h>
 #include "compile.hh"
 #include "compile_scal.hh"
 #include "sigtype.hh"

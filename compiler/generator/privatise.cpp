@@ -21,7 +21,6 @@
  
  
  
-#include <assert.h>
 #include "sigtype.hh"
 
 #include <stdio.h>
