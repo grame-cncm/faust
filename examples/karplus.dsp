@@ -8,7 +8,7 @@
 //--------
 
 upfront(x) 	= (x-x') > 0.0; 
-decay(n,x)	= x - (x>0)/n;
+decay(n,x)	= x - (x>0.0)/n;
 release(n)	= + ~ decay(n);
 trigger(n) 	= upfront : release(n) : >(0.0);
 
