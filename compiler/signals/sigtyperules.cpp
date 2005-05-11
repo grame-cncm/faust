@@ -251,7 +251,8 @@ static Type infereSigType(Tree sig, Tree env)
 */		
 	else if (isSigBinOp(sig, &i, s1, s2)) { 
 		Type t = T(s1,env)|T(s2,env);
-	  	return ((i>=7) && (i<=12)) ?  boolCast(t) : t; // for comparaison operation the result is boolean
+	  	//return ((i>=7) && (i<=12)) ?  boolCast(t) : t; // for comparaison operation the result is boolean
+	  	return ((i>=kGT) && (i<=kNE)) ?  intCast(t) : t; // for comparaison operation the result is int
 	} 
 		
 	else if (isSigIntCast(sig, s1))				return intCast(T(s1,env));
