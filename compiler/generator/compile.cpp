@@ -49,6 +49,9 @@ Compile a list of FAUST signals into a C++ class .
 #include "privatise.hh"
 //#include "factorize.hh"
 
+#include "grouper.hh"
+#include "sigvisitor.hh"
+
 
 
 
@@ -167,6 +170,16 @@ Tree Compiler::prepare (Tree L0)
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 	updateAperture(L3);
 	typeAnnotation(L3);
+	
+	// calcul du parallelisme
+	//fullvisitor fv;
+	//fv.visit(L3);
+	
+	//grouper mygrouper;
+	//mygrouper.visit(L3);
+	//for (Tree zz= L3; !isNil(zz); zz = tl(zz)) 	mygrouper.dispatchInGroups(hd(zz));
+	//cerr << mygrouper << endl;
+	
 	//sharingAnalysis(L3);			// annotate L3 with sharing count
 //	fprintf(stderr, "L3 = "); printSignal(L3, stderr); fputs("\n", stderr);	
 	
