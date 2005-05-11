@@ -107,7 +107,8 @@ generator/codegeneration.o: signals/sigprint.hh signals/sigtyperules.hh signals/
 generator/compile.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 generator/compile.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh
 generator/compile.o: tlib/smartpointer.hh generator/uitree.hh generator/Text.hh signals/sigprint.hh
-generator/compile.o: signals/sigtyperules.hh generator/simplify.hh generator/privatise.hh
+generator/compile.o: signals/sigtyperules.hh generator/simplify.hh generator/privatise.hh generator/grouper.hh
+generator/compile.o: signals/sigvisitor.hh
 generator/compile_scal.o: generator/compile_scal.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/compile_scal.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/compile_scal.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh generator/uitree.hh
@@ -119,6 +120,9 @@ generator/compile_vect.o: generator/klass.hh signals/sigtype.hh tlib/smartpointe
 generator/compile_vect.o: generator/Text.hh generator/compile_scal.hh signals/sigtyperules.hh signals/sigprint.hh
 generator/compile_vect.o: generator/simplify.hh generator/privatise.hh signals/prim2.hh
 generator/enrobage.o: generator/enrobage.hh
+generator/grouper.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+generator/grouper.o: tlib/shlysis.hh signals/binop.hh signals/sigprint.hh signals/sigorderrules.hh generator/grouper.hh
+generator/grouper.o: signals/sigvisitor.hh
 generator/klass.o: tlib/smartpointer.hh generator/klass.hh signals/sigtype.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/klass.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh generator/uitree.hh generator/Text.hh
 generator/klass.o: signals/signals.hh signals/binop.hh
@@ -156,6 +160,8 @@ signals/sigtype.o: signals/sigtype.hh tlib/smartpointer.hh
 signals/sigtyperules.o: signals/sigtype.hh tlib/smartpointer.hh signals/sigprint.hh signals/signals.hh tlib/tlib.hh
 signals/sigtyperules.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 signals/sigtyperules.o: signals/binop.hh signals/prim2.hh signals/sigtyperules.hh
+signals/sigvisitor.o: signals/sigvisitor.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
+signals/sigvisitor.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 tlib/list.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh
 tlib/recursive-tree.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 tlib/shlysis.o: tlib/shlysis.hh tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh

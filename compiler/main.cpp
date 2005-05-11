@@ -164,7 +164,7 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.0\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.1\n";
 	cout << "Copyright (C) 2002-2004, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }	
 
