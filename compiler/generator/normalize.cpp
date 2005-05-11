@@ -120,6 +120,56 @@ void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag)
 	}
 }
 
+/**
+ * make a flat list (in a vector) of all the added terms of t
+ */
+static void flatListTerms(int op, vector<Tree>& v, Tree t)
+{
+	Tree	x, y;
+	int		opcode;
+	
+	
+	assert(t);
+	
+	if (isSigBinOp(t, &opcode, x, y) && opcode==op) {
+		flatListTerms(op,v,x); flatListTerms(op,v,y);
+	} else {
+		v.push_back(t);
+	}
+}
+
+
+/**
+ * recursive build of a balanced tree of terms for operation op
+ */
+static Tree buildBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
+{
+	int q = hi-lo; 
+	assert(q>0);
+	if (q == 1) {
+		assert(lo < v.size());
+		return v[lo];
+	} else {
+		int mi = (hi+lo)/2;
+		return sigBinOp( op, buildBalancedTerm(op,v,lo,mi), buildBalancedTerm(op,v,mi,hi) );
+	} 
+}
+
+
+/**
+ * create a balanced term for a certain binary operation op
+ */
+static Tree balanceTerm(int op, Tree t)
+{
+	vector<Tree> v;
+	
+	flatListTerms(op, v, t);
+	if (v.size() == 0) {
+		return t;
+	} else {
+		return buildBalancedTerm(op, v, 0, v.size());
+	}
+}
 
 /**
  * Build an additive term in normal form : (k+f1+f2+..fn) - (g1+g2+...)
@@ -154,9 +204,9 @@ Tree buildAddTerm(Tree k, map<Tree,Tree>& M)
 	}
 		
 	if (isZero(nt)) {
-		return pt;
+		return balanceTerm(kAdd, pt);
 	} else {
-		return sigSub(pt,nt);
+		return sigSub(balanceTerm(kAdd, pt),balanceTerm(kAdd, nt));
 	}
 }	
 
@@ -189,7 +239,8 @@ Tree buildMulTerm(Tree k, map<Tree,int>& M)
 		}
 	}
 		
-	return simplifyingMul(k, t);
+//	return simplifyingMul(k, t);
+	return simplifyingMul(k, balanceTerm(kMul,t));
 }
 
 	
