@@ -311,7 +311,10 @@ class mspUI : public UI
 			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
 		}
 		
-		void addNumEntry(char* label, float* zone, float init, float min, float max, float step) {}
+		void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+		{
+			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
+		}
 		
 		void openFrameBox(char* label) {}
 		void openTabBox(char* label) {}
