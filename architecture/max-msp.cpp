@@ -357,6 +357,8 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 {
 	t_faust *x = (t_faust *)newobject(faust_class);
 	
+	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
+	
 	x->dsp = new mydsp();
 	x->dspUI= new mspUI();
 	
