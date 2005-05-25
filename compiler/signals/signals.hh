@@ -212,4 +212,25 @@ Tree sigAttach   (Tree x, Tree y);
 bool isSigAttach (Tree s);
 bool isSigAttach (Tree s, Tree& x, Tree& y);
 
+
+/*****************************************************************************
+							 matrix extension
+*****************************************************************************/
+
+// a tuple of signals is basically a list of signals.
+// mode = 0 means normal, mode = 1 means blocked
+Tree sigTuple (int mode, Tree ls);
+bool isSigTuple (Tree s, int* mode, Tree& ls);
+
+// Access the components of a tuple. 
+// ts is tuple of signals, idx is a scalar signal between 0..n
+Tree sigTupleAccess(Tree ts, Tree idx);
+bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
+
+// create a tuple of signals
+Tree sigCartesianProd (Tree s1, Tree s2);
+
+
+
+
 #endif

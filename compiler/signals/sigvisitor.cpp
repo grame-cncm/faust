@@ -94,7 +94,17 @@ void sigvisitor::visit(Tree sig)
 	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	visitSelect3(sig,sel,s1,s2,s3); 		
 	
 	else if (isList(sig)) 						visitList(sig);
+		
 	
+	//----------------------------                                               
+				
+	else if (isSigTuple(sig,&i,ls)) 			visitTuple(sig,i,ls); 
+		
+	else if (isSigTupleAccess(sig,s1,s2)) 		visitTupleAccess(sig,s1,s2); 		
+		
+	
+	//----------------------------                                               
+				
 	else 										visitError(sig);
 }
 

@@ -296,3 +296,43 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
 }
 
 
+
+
+/*****************************************************************************
+							 matrix extension
+*****************************************************************************/
+Sym SIGTUPLE 		= symbol ("SigTuple");
+Sym SIGTUPLEACCESS 	= symbol ("SigTupleAccess");
+
+// a tuple of signals is basically a list of signals.
+// mode = 0 means normal, mode = 1 means blocked
+Tree sigTuple (int mode, Tree ls)					{ return tree(SIGTUPLE, tree(mode), ls); }
+bool isSigTuple (Tree s, int* mode, Tree& ls)		{ Tree m; return isTree(s, SIGTUPLE, m, ls) && isInt(m->node(), mode); }
+
+// Access the components of a tuple. 
+// ts is tuple of signals, idx is a scalar signal between 0..n
+Tree sigTupleAccess(Tree ts, Tree idx)				{ return tree(SIGTUPLEACCESS, ts, idx); }
+bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx)	{ return isTree(s, SIGTUPLEACCESS, ts, idx); }
+
+// create a tuple of signals
+Tree sigCartesianProd (Tree s1, Tree s2)
+{
+	Tree 	l1, l2;
+	int		m1, m2;
+	
+	if (isSigTuple(s1, &m1, l1) && (m1 == 0)) {
+		// nothing to do
+	} else {
+		l1 = list1(s1);
+	}
+	
+	if (isSigTuple(s2, &m2, l2) && (m2 == 0)) {
+		// nothing to do
+	} else {
+		l2 = list1(s2);
+	}
+	
+	
+	return sigTuple(0, concat(l1,l2));
+}
+
