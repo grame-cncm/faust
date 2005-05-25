@@ -172,8 +172,8 @@ Tree Compiler::prepare (Tree L0)
 	typeAnnotation(L3);
 	
 	// calcul du parallelisme
-	//fullvisitor fv;
-	//fv.visit(L3);
+	fullvisitor fv;
+	fv.visit(L3);
 	
 	//grouper mygrouper;
 	//mygrouper.visit(L3);
