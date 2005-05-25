@@ -287,7 +287,7 @@ string	ScalarCompiler::generateCode (Tree env, Tree sig)
 
 string ScalarCompiler::generateInput (Tree tEnv, Tree sig, const string& idx) 
 { 
-	return subst("input$0[i]", idx);
+	return generateCacheCode(tEnv, sig, subst("input$0[i]", idx));
 }
 
 
