@@ -31,11 +31,17 @@ extern int 			yylineno;
 extern const char * yyfilename;
 extern int 			gErrorCount;
 
-
+// associate and retrieve file and line properties to a symbol
 void 		setDefProp(Tree sym, const char* filename, int lineno);
 const char* getDefFileProp(Tree sym);
 int 		getDefLineProp(Tree sym);
+
+// Parsing error
 void 		yyerror(char* msg);
+
+// three levels or errors, warnings and remarks are provided during evaluation
 void 		evalerror(const char* filename, int linenum, const char* msg, Tree exp);
+void 		evalwarning(const char* filename, int linenum, const char* msg, Tree exp);
+void 		evalremark(const char* filename, int linenum, const char* msg, Tree exp);
 
 #endif

@@ -38,24 +38,26 @@ void yyerror(char* msg)
 
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
-	fprintf(stderr, "%s:%d: %s ", filename, linenum, msg); 
+	fprintf(stderr, "%s:%d: ERROR: %s ", filename, linenum, msg); 
 	print(exp,stderr); fprintf(stderr, "\n");
 	gErrorCount++;
+}
+
+void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
+{
+	fprintf(stderr, "%s:%d: WARNING: %s ", filename, linenum, msg); 
+	print(exp,stderr); fprintf(stderr, "\n");
+}
+
+void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
+{
+	fprintf(stderr, "%s:%d: REMARK: %s ", filename, linenum, msg); 
+	print(exp,stderr); fprintf(stderr, "\n");
 }
 
 
 void setDefProp(Tree sym, const char* filename, int lineno)
 {
-	Tree loc;
-	if (getProperty(sym, DEFLINEPROP, loc)) {
-		const char* name;
-		isBoxIdent(sym, &name);
-		cerr 	<< filename << ':' << lineno << ": "
-				<< "WARNING : redefinition of symbol '" << name
-				<< "' previously defined in file : "
-				<< tree2str(hd(loc)) << ':' << tree2int(tl(loc))
-				<< endl;
-	}
 	setProperty(sym, DEFLINEPROP, cons(tree(filename), tree(lineno)));
 }
 
