@@ -93,29 +93,34 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigne
 
 class UI
 {
-	bool	fStopped;
+  bool	fStopped;
 public:
 		
-	UI() : fStopped(false) {}
-	virtual ~UI() {}
+  UI() : fStopped(false) {}
+  virtual ~UI() {}
 	
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addToggleButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+  virtual void addButton(char* label, float* zone) = 0;
+  virtual void addToggleButton(char* label, float* zone) = 0;
+  virtual void addCheckButton(char* label, float* zone) = 0;
+  virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
+  virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
+  virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+
+  virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+  virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+  virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+  virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
 	
-	virtual void openFrameBox(char* label) = 0;
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
-	virtual void closeBox() = 0;
+  virtual void openFrameBox(char* label) = 0;
+  virtual void openTabBox(char* label) = 0;
+  virtual void openHorizontalBox(char* label) = 0;
+  virtual void openVerticalBox(char* label) = 0;
+  virtual void closeBox() = 0;
 	
-	virtual void run() = 0;
+  virtual void run() = 0;
 	
-	void stop()	{ fStopped = true; }
-	bool stopped() 	{ return fStopped; }
+  void stop()	{ fStopped = true; }
+  bool stopped() 	{ return fStopped; }
 };
 
 /***************************************************************************
@@ -124,8 +129,9 @@ public:
 
 enum ui_elem_type_t {
   UI_BUTTON, UI_TOGGLE_BUTTON, UI_CHECK_BUTTON,
-  UI_V_SLIDER, UI_H_SLIDER,
-  UI_NUM_ENTRY
+  UI_V_SLIDER, UI_H_SLIDER, UI_NUM_ENTRY,
+  UI_V_BARGRAPH, UI_H_BARGRAPH,
+  UI_END_GROUP, UI_V_GROUP, UI_H_GROUP, UI_T_GROUP
 };
 
 struct ui_elem_t {
@@ -146,9 +152,12 @@ public:
   virtual ~QUI();
 
 protected:
+  void add_elem(ui_elem_type_t type, char *label = NULL);
   void add_elem(ui_elem_type_t type, char *label, float *zone);
   void add_elem(ui_elem_type_t type, char *label, float *zone,
 		float init, float min, float max, float step);
+  void add_elem(ui_elem_type_t type, char *label, float *zone,
+		float min, float max);
 
 public:
   virtual void addButton(char* label, float* zone);
@@ -157,7 +166,12 @@ public:
   virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step);
   virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step);
   virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step);
-	
+
+  virtual void addNumDisplay(char* label, float* zone, int precision);
+  virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max);
+  virtual void addHorizontalBargraph(char* label, float* zone, float min, float max);
+  virtual void addVerticalBargraph(char* label, float* zone, float min, float max);
+  
   virtual void openFrameBox(char* label);
   virtual void openTabBox(char* label);
   virtual void openHorizontalBox(char* label);
@@ -176,6 +190,24 @@ QUI::QUI()
 QUI::~QUI()
 {
   if (elems) free(elems);
+}
+
+inline void QUI::add_elem(ui_elem_type_t type, char *label)
+{
+  ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
+  if (elems1)
+    elems = elems1;
+  else
+    return;
+  elems[nelems].type = type;
+  elems[nelems].label = label;
+  elems[nelems].zone = NULL;
+  elems[nelems].ref = NULL;
+  elems[nelems].init = 0.0;
+  elems[nelems].min = 0.0;
+  elems[nelems].max = 0.0;
+  elems[nelems].step = 0.0;
+  nelems++;
 }
 
 inline void QUI::add_elem(ui_elem_type_t type, char *label, float *zone)
@@ -215,6 +247,25 @@ inline void QUI::add_elem(ui_elem_type_t type, char *label, float *zone,
   nelems++;
 }
 
+inline void QUI::add_elem(ui_elem_type_t type, char *label, float *zone,
+			  float min, float max)
+{
+  ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
+  if (elems1)
+    elems = elems1;
+  else
+    return;
+  elems[nelems].type = type;
+  elems[nelems].label = label;
+  elems[nelems].zone = zone;
+  elems[nelems].ref = NULL;
+  elems[nelems].init = 0.0;
+  elems[nelems].min = min;
+  elems[nelems].max = max;
+  elems[nelems].step = 0.0;
+  nelems++;
+}
+
 void QUI::addButton(char* label, float* zone)
 { add_elem(UI_BUTTON, label, zone); }
 void QUI::addToggleButton(char* label, float* zone)
@@ -227,12 +278,24 @@ void QUI::addHorizontalSlider(char* label, float* zone, float init, float min, f
 { add_elem(UI_H_SLIDER, label, zone, init, min, max, step); }
 void QUI::addNumEntry(char* label, float* zone, float init, float min, float max, float step)
 { add_elem(UI_NUM_ENTRY, label, zone, init, min, max, step); }
-	
+
+// FIXME: addNumDisplay and addTextDisplay not implemented in Faust yet?
+void QUI::addNumDisplay(char* label, float* zone, int precision) {}
+void QUI::addTextDisplay(char* label, float* zone, char* names[], float min, float max) {}
+void QUI::addHorizontalBargraph(char* label, float* zone, float min, float max)
+{ add_elem(UI_H_BARGRAPH, label, zone, min, max); }
+void QUI::addVerticalBargraph(char* label, float* zone, float min, float max)
+{ add_elem(UI_V_BARGRAPH, label, zone, min, max); }
+
 void QUI::openFrameBox(char* label) {}
-void QUI::openTabBox(char* label) {}
-void QUI::openHorizontalBox(char* label) {}
-void QUI::openVerticalBox(char* label) {}
-void QUI::closeBox() {}
+void QUI::openTabBox(char* label)
+{ add_elem(UI_T_GROUP, label); }
+void QUI::openHorizontalBox(char* label)
+{ add_elem(UI_H_GROUP, label); }
+void QUI::openVerticalBox(char* label)
+{ add_elem(UI_V_GROUP, label); }
+void QUI::closeBox()
+{ add_elem(UI_END_GROUP); }
 
 void QUI::run() {}
 
