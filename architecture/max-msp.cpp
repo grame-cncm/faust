@@ -356,9 +356,7 @@ void faust_ft9(t_faust* obj, double f) {obj->dspUI->SetValue(8,f);}
 void *faust_new(t_symbol *s, short ac, t_atom *av)
 {
 	t_faust *x = (t_faust *)newobject(faust_class);
-	
-	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
-	
+		
 	x->dsp = new mydsp();
 	x->dspUI= new mspUI();
 	
@@ -375,6 +373,7 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	for (int i = 0; i< x->dsp->getNumOutputs(); i++) 
 		outlet_new((t_pxobject *)x, "signal");
 	
+	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
 	return x;
 }			
 
@@ -400,10 +399,10 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 /*--------------------------------------------------------------------------*/
 void faust_free(t_faust *x)
 {
+	dsp_free((t_pxobject *)x);
 	if (x->dsp) delete x->dsp;
 	if (x->dspUI) delete x->dspUI;
 	if (x->args)free(x->args);
-	dsp_free((t_pxobject *)x);
 }
 
 /*--------------------------------------------------------------------------*/
