@@ -246,7 +246,9 @@ public:
     virtual void  GetDisplay(char *text){std::sprintf(text,"%f",*fZone);}
     virtual long  GetID() 
 		{	/* returns the sum of all the ASCII characters  contained in the parameter's label */
-			for(int i=0,long acc = 0;i<fLabel.length();i++) acc += (fLabel.c_str())[i];
+			int i;
+			long acc;
+			for(i=0,acc = 0;i<fLabel.length();i++) acc += (fLabel.c_str())[i];
 			return acc;
 		}
 };
