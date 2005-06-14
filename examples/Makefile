@@ -6,7 +6,7 @@ alsagtk :
 	
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='-ljack  `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config jack  --cflags --libs`  `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
 	
 vecalsagtk :
 	install -d vecalsagtkdir
@@ -14,7 +14,7 @@ vecalsagtk :
 	
 vecjackgtk :
 	install -d vecjackgtkdir
-	$(MAKE) VEC='-vec' DEST='vecjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-ljack  `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
+	$(MAKE) VEC='-vec' DEST='vecjackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config jack  --cflags --libs`  -faltivec -D__ALTIVEC__ `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
 
 ladspa :
 	install -d ladspadir
@@ -22,7 +22,7 @@ ladspa :
 	
 jackwx :
 	install -d jackwxdir
-	$(MAKE) DEST='jackwxdir/' ARCH='jack-wx.cpp' LIB='-ljack `wx-config --cflags --libs`' -f Makefile.compile
+	$(MAKE) DEST='jackwxdir/' ARCH='jack-wx.cpp' LIB='`pkg-config jack  --cflags --libs` `wx-config --cflags --libs`' -f Makefile.compile
 
 ossgtk :
 	install -d ossgtkdir
@@ -43,6 +43,11 @@ pawx :
 module :
 	install -d moduledir
 	$(MAKE) DEST='moduledir/' ARCH='module.cpp' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
+
+bundle :
+	install -d moduledir
+	$(MAKE) DEST='moduledir/' ARCH='module.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.compile
+
 
 sndfile :
 	install -d sndfiledir
