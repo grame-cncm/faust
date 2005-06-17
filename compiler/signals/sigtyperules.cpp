@@ -230,7 +230,7 @@ static Type infereSigType(Tree sig, Tree env)
 	float 		r;
 	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
 	
-	if (isSigInt(sig, &i))					return TINT;
+	if (isSigInt(sig, &i))						return TINT;
 		
 	else if (isSigReal(sig, &r)) 				return TREAL;
 		
@@ -243,16 +243,10 @@ static Type infereSigType(Tree sig, Tree env)
 	else if (isSigPrefix(sig, s1, s2)) 			{ checkInit(T(s1,env)); return sampCast(T(s1,env)|T(s2,env)); }
 	
 	else if (isSigFixDelay(sig, s1, s2)) 		{ checkIntParam(T(s2,env)); return sampCast(T(s1,env)); }
-/*		
-	else if (isSigBinOp(sig, &i, s1, s2)) 		        { 
-	  if((i>=7) && (i<=12))  return boolCast(T(s1,env)|T(s2,env)); //comparaison operation the result is boolean
-	  else return T(s1,env)|T(s2,env) ;
-	  //return T(s1,env)|T(s2,env) ;
-*/		
+		
 	else if (isSigBinOp(sig, &i, s1, s2)) { 
 		Type t = T(s1,env)|T(s2,env);
-	  	//return ((i>=7) && (i<=12)) ?  boolCast(t) : t; // for comparaison operation the result is boolean
-	  	return ((i>=kGT) && (i<=kNE)) ?  intCast(t) : t; // for comparaison operation the result is int
+	  	return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t) : t; // for comparaison operation the result is int
 	} 
 		
 	else if (isSigIntCast(sig, s1))				return intCast(T(s1,env));

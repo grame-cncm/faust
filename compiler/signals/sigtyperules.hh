@@ -32,6 +32,7 @@
 // NULLENV : empty type environment (also property key for closed term type)
 
 extern Tree NULLENV;
+extern bool gVectorSwitch;
 
 
 //--------------------------------------------------------------------------

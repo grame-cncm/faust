@@ -219,15 +219,15 @@ class TableType : public AudioType
   public :
 	TableType(const Type& t) : 
 		  AudioType(t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean()), 
-		  fContent(t) {}											///< construct a TableType with a content of a type t
+		  fContent(t) {}		///< construct a TableType with a content of a type t
 
 	TableType(const Type& t, int v, int c) : 
 		  AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()), 
-		  fContent(t) {}											///< construct a TableType with a content of a type t, promoting variability and computability
+		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting variability and computability
 
 	TableType(const Type& t, int n, int v, int c) : 
 		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()), 
-		  fContent(t) {}											///< construct a TableType with a content of a type t, promoting nature, variability and computability
+		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability and computability
 
 	TableType(const Type& t, int n, int v, int c, int vec) :
 		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()),
