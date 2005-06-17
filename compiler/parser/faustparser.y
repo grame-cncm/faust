@@ -124,7 +124,6 @@ int yylex();
 %type <exp> type
 %type <exp> typelist
 %type <exp> fun
-%type <exp> num
 
 %type <exp> fpar
 %type <exp> fseq
@@ -209,16 +208,6 @@ expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sig
 				| primitive						{$$ = $1;}
 				;
 					
-num				: INT   						{$$ = tree(atoi(yytext));}
-				| FLOAT 						{$$ = tree(atof(yytext));}
-				
-				| ADD INT   					{$$ = tree(atoi(yytext));}
-				| ADD FLOAT 					{$$ = tree(atof(yytext));}
-				
-				| SUB INT   					{$$ = tree(0 - atoi(yytext));}
-				| SUB FLOAT 					{$$ = tree(0.0 - atof(yytext));}
-				;
-				
 primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| FLOAT 						{$$ = boxReal(atof(yytext));}
 				
@@ -308,7 +297,7 @@ argument		: argument SEQ argument  		{$$ = boxSeq($1,$3);}
 				| argument REC argument  		{$$ = boxRec($1,$3);}
 				| expression					{$$ = $1;}
 				;
-
+				
 string			: STRING						{$$ = tree(yytext); }
 				;
 
@@ -352,13 +341,13 @@ button			: BUTTON LPAR string RPAR		{$$ = boxButton($3); }
 checkbox		: CHECKBOX LPAR string RPAR		{$$ = boxCheckbox($3); }
 				;
 
-vslider			: VSLIDER LPAR string PAR num PAR num PAR num PAR num RPAR		
+vslider			: VSLIDER LPAR string PAR argument PAR argument PAR argument PAR argument RPAR		
 												{$$ = boxVSlider($3,$5,$7,$9,$11); }
 				;
-hslider			: HSLIDER LPAR string PAR num PAR num PAR num PAR num RPAR		
+hslider			: HSLIDER LPAR string PAR argument PAR argument PAR argument PAR argument RPAR		
 												{$$ = boxHSlider($3,$5,$7,$9,$11); }
 				;
-nentry			: NENTRY LPAR string PAR num PAR num PAR num PAR num RPAR		
+nentry			: NENTRY LPAR string PAR argument PAR argument PAR argument PAR argument RPAR		
 												{$$ = boxNumEntry($3,$5,$7,$9,$11); }
 				;
 vgroup			: VGROUP LPAR string PAR diagram RPAR
@@ -371,10 +360,10 @@ tgroup			: TGROUP LPAR string PAR diagram RPAR
 												{$$ = boxTGroup($3, $5); }
 				;
 
-vbargraph		: VBARGRAPH LPAR string PAR num PAR num RPAR		
+vbargraph		: VBARGRAPH LPAR string PAR argument PAR argument RPAR		
 												{$$ = boxVBargraph($3,$5,$7); }
 				;
-hbargraph		: HBARGRAPH LPAR string PAR num PAR num RPAR		
+hbargraph		: HBARGRAPH LPAR string PAR argument PAR argument RPAR		
 												{$$ = boxHBargraph($3,$5,$7); }
 				;
 
