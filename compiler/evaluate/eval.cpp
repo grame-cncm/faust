@@ -43,16 +43,17 @@
 
 
 //-------------- prototypes ---------------------------------------------------------
-static Tree a2sb(int deep, Tree exp);
-static Tree eval (Tree exp, Tree visited, Tree localValEnv);
-static Tree revEvalList (Tree lexp, Tree visited, Tree localValEnv);
-static Tree applyList (Tree fun, Tree larg);
-static Tree iteratePar (Tree var, int num, Tree body, Tree visited, Tree localValEnv);
-static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localValEnv);
-static Tree iterateSum (Tree id, int num, Tree body, Tree visited, Tree localValEnv);
-static Tree iterateProd (Tree id, int num, Tree body, Tree visited, Tree localValEnv);
-static Tree larg2par (Tree larg);
-static int 	eval2int (Tree exp, Tree visited, Tree localValEnv);
+static Tree 	a2sb(int deep, Tree exp);
+static Tree 	eval (Tree exp, Tree visited, Tree localValEnv);
+static Tree 	revEvalList (Tree lexp, Tree visited, Tree localValEnv);
+static Tree 	applyList (Tree fun, Tree larg);
+static Tree 	iteratePar (Tree var, int num, Tree body, Tree visited, Tree localValEnv);
+static Tree 	iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localValEnv);
+static Tree 	iterateSum (Tree id, int num, Tree body, Tree visited, Tree localValEnv);
+static Tree 	iterateProd (Tree id, int num, Tree body, Tree visited, Tree localValEnv);
+static Tree 	larg2par (Tree larg);
+static int 		eval2int (Tree exp, Tree visited, Tree localValEnv);
+static float	eval2float (Tree exp, Tree visited, Tree localValEnv);
 static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
 
 static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
@@ -178,19 +179,30 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		//cout << "vslider label : " << l1 << " become " << l2 << endl;
-		return (l1 == l2) ? exp : boxVSlider(tree(l2), cur, lo, hi, step);
+		//return (l1 == l2) ? exp : boxVSlider(tree(l2), cur, lo, hi, step);
+		return boxVSlider(tree(l2), 
+					tree(eval2float(cur, visited, localValEnv)), 
+					tree(eval2float(lo, visited, localValEnv)), 
+					tree(eval2float(hi, visited, localValEnv)), 
+					tree(eval2float(step, visited, localValEnv)));
 		
 	} else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "hslider label : " << l1 << " become " << l2 << endl;
-		return (l1 == l2) ? exp : boxHSlider(tree(l2), cur, lo, hi, step);
+		return boxHSlider(tree(l2), 
+					tree(eval2float(cur, visited, localValEnv)), 
+					tree(eval2float(lo, visited, localValEnv)), 
+					tree(eval2float(hi, visited, localValEnv)), 
+					tree(eval2float(step, visited, localValEnv)));
 		
 	} else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "num entry label : " << l1 << " become " << l2 << endl;
-		return (l1 == l2) ? exp : boxNumEntry(tree(l2), cur, lo, hi, step);
+		return boxNumEntry(tree(l2), 
+					tree(eval2float(cur, visited, localValEnv)), 
+					tree(eval2float(lo, visited, localValEnv)), 
+					tree(eval2float(hi, visited, localValEnv)), 
+					tree(eval2float(step, visited, localValEnv)));
 		
 	} else if (isBoxVGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
@@ -213,14 +225,16 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxHBargraph(exp, label, lo, hi)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "vslider label : " << l1 << " become " << l2 << endl;
-		return (l1 == l2) ? exp : boxHBargraph(tree(l2), lo, hi);
+		return boxHBargraph(tree(l2), 
+					tree(eval2float(lo, visited, localValEnv)), 
+					tree(eval2float(hi, visited, localValEnv)));
 		
 	} else if (isBoxVBargraph(exp, label, lo, hi)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "vslider label : " << l1 << " become " << l2 << endl;
-		return (l1 == l2) ? exp : boxVBargraph(tree(l2), lo, hi);
+		return boxVBargraph(tree(l2), 
+					tree(eval2float(lo, visited, localValEnv)), 
+					tree(eval2float(hi, visited, localValEnv)));
 
 	} else if (isBoxAppl(exp, fun, arg)) {
 		// it is an application : do a strict evaluation
@@ -267,6 +281,35 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 		}
 		
 		return (errflag) ? boxError() : CTree::make(exp->node(), exp->arity(), B);
+	}
+}
+
+
+/**
+ * Eval a block diagram to a float.
+ *
+ * Eval a block diagram that represent a float constant. This function first eval 
+ * a block diagram to its normal form, then check it represent a numerical value (a 
+ * block diagram of type : 0->1) then do a symbolic propagation and try to convert the 
+ * resulting signal to a float.
+ * @param exp the expression to evaluate
+ * @param globalDefEnv the global environment
+ * @param visited list of visited definition to detect recursive definitions
+ * @param localValEnv the local environment
+ * @return a block diagram in normal form
+ */
+static float eval2float (Tree exp, Tree visited, Tree localValEnv)
+{
+	Tree diagram = eval(exp, visited, localValEnv);
+	int numInputs, numOutputs;
+	getBoxType(diagram, &numInputs, &numOutputs);
+	if ( (numInputs > 0) || (numOutputs != 1) ) {
+		evalerror (yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
+		return 1;
+	} else {
+		Tree lsignals = boxPropagateSig(nil, diagram , makeSigInputList(numInputs) );
+		Tree val = simplify(hd(lsignals));
+		return tree2float(val);
 	}
 }
 
