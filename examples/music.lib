@@ -56,7 +56,7 @@ beat(t) 	= pulse(tempo(t));		// pulse au tempo t
 // 	convertions between db and linear values
 //-----------------------------------------------
 
-db2linear(x)= pow(2.0, x/6.0); 
+db2linear(x)= pow(10.0, x/20.0);
 
 
 //-----------------------------------------------
