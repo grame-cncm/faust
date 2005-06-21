@@ -26,7 +26,7 @@ dur 		= hslider("duration (samples)", 128, 2, 512, 1);
 att 		= hslider("attenuation", 0.1, 0, 1, 0.01);
 average(x)	= (x+x')/2;
 
-resonator(d, a) = (+ : delay(4096, d)) ~ (average : *(1.0-a)) ;
+resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
 
 
 // Polyphony
