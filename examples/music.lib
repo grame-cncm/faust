@@ -1,8 +1,8 @@
 //-----------------------------------------------
 // 					DELAY LINE
 //-----------------------------------------------
-frac(n)			= n-int(n);
-index(n) 		= &(n-1) ~ +(1);		// n = 2**i
+frac(n)		= n-int(n);
+index(n)	= &(n-1) ~ +(1);		// n = 2**i
 delay(n,d,x) 	= rwtable(n, 0.0, index(n), x, (index(n)-int(d)) & (n-1));
 fdelay(n,d,x) 	= delay(n,int(d),x)*(1 - frac(d)) + delay(n,int(d)+1,x)*frac(d);
 
@@ -17,11 +17,11 @@ delay43s(d)	= delay(2097152,d);
 fdelay1s(d)	= fdelay(65536,d);
 fdelay2s(d)	= fdelay(131072,d);
 fdelay5s(d)	= fdelay(262144,d);
-fdelay10s(d)= fdelay(524288,d);
-fdelay21s(d)= fdelay(1048576,d);
-fdelay43s(d)= fdelay(2097152,d);
+fdelay10s(d)	= fdelay(524288,d);
+fdelay21s(d)	= fdelay(1048576,d);
+fdelay43s(d)	= fdelay(2097152,d);
 
-millisec = SR/1000.0;
+millisec	= SR/1000.0;
 
 time1s 	= hslider("time", 0, 0,  1000, 0.1)*millisec;
 time2s 	= hslider("time", 0, 0,  2000, 0.1)*millisec;
@@ -53,10 +53,10 @@ beat(t) 	= pulse(tempo(t));		// pulse au tempo t
 
 
 //-----------------------------------------------
-// 	convertions between db and linear values
+// 	conversions between db and linear values
 //-----------------------------------------------
 
-db2linear(x)= pow(10.0, x/20.0);
+db2linear(x)	= pow(10.0, x/20.0);
 
 
 //-----------------------------------------------
@@ -74,17 +74,17 @@ noise 		= random / RANDMAX;
 // 			osc(freq) : Sinusoidal Oscillator
 //-----------------------------------------------
 
-tablesize 		= 1 << 16;
+tablesize 	= 1 << 16;
 samplingfreq	= SR;
 
-time 			= (+(1)~_ ) - 1; 			// O,1,2,3,...
+time 		= (+(1)~_ ) - 1; 			// 0,1,2,3,...
 sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
 
-decimal(x)		= x - floor(x);
+decimal(x)	= x - floor(x);
 phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize));
-osc(freq)		= rdtable(tablesize, sinwaveform, int(phase(freq)) );
-osci(freq)		= rdtable(tablesize+1,sinwaveform,i)*(1-d) + rdtable(tablesize+1,sinwaveform,i+1)*d
-				  with { i = int(phase(freq)); d = decimal(phase(freq)); };
+osc(freq)	= rdtable(tablesize, sinwaveform, int(phase(freq)) );
+osci(freq)	= rdtable(tablesize+1,sinwaveform,i)*(1-d) + rdtable(tablesize+1,sinwaveform,i+1)*d
+		  with { i = int(phase(freq)); d = decimal(phase(freq)); };
 
 
 //-----------------------------------------------
