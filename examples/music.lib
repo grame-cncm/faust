@@ -91,7 +91,7 @@ osci(freq)		= rdtable(tablesize+1,sinwaveform,i)*(1-d) + rdtable(tablesize+1,sin
 // 			Spatialisation
 //-----------------------------------------------
 
-pan(c) = _ <: *(c), *(1-c);
+panner(c) = _ <: *(1-c), *(c);
 
 bus2 = _,_;
 bus3 = _,_,_;
