@@ -426,7 +426,7 @@ void  faust_dsp(t_faust *x, t_signal **sp, short *count)
 }
 
 /*--------------------------------------------------------------------------*/
-void main()
+int main()
 {
 	int i;
 	setup((t_messlist **)&faust_class, (method)faust_new, (method)faust_free, 
