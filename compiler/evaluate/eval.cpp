@@ -58,7 +58,7 @@ static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
 
 static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
 static Tree pushValueDef(Tree id, Tree def, Tree env);
-static bool searchValueDef(Tree id, Tree& def, Tree env);
+static Tree evalIdDef(Tree id, Tree visited, Tree env);
 
 
 // Public Interface
@@ -131,28 +131,9 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	Tree	cur, lo, hi, step;
 	Tree	exp2, notused, visited2, lenv2;
 	
-
+	//cerr << "EVAL " << *exp << " (visited : " << *visited << ")" << endl;
 	if (isBoxIdent(exp)) {
-				
-		if (searchValueDef(exp, def, localValEnv)) {
-			//the symbol is defined, prevent endless recursive evaluations
-			Tree p = cons(exp,def);
-			if (isElement(p, visited)) {
-				evalerror(getDefFileProp(exp), getDefLineProp(exp), "recursive definition of", exp);
-				exit(1);
-			}
-			return eval(def, addElement(p,visited), localValEnv);
-			
-		} else {
-			// Error, the symbol is undefined
-			if (isNil(visited)) {
-				evalerror(yyfilename, -1, "undefined symbol ", exp);
-			} else {
-				evalerror(getDefFileProp(hd(visited)), getDefLineProp(hd(visited)), "undefined symbol ", exp);
-			}
-			exit(1);
-		}
-	
+		return evalIdDef(exp, visited, localValEnv);
 		
 	} else if (isBoxWithLocalDef(exp, body, ldef)) {
 		return eval(body, visited, pushMultiClosureDefs(ldef, visited, localValEnv));
@@ -178,8 +159,6 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxVSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "vslider label : " << l1 << " become " << l2 << endl;
-		//return (l1 == l2) ? exp : boxVSlider(tree(l2), cur, lo, hi, step);
 		return boxVSlider(tree(l2), 
 					tree(eval2float(cur, visited, localValEnv)), 
 					tree(eval2float(lo, visited, localValEnv)), 
@@ -207,19 +186,16 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxVGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "vgroup label : " << l1 << " become " << l2 << endl;
 		return boxVGroup(tree(l2),	eval(arg, visited, localValEnv) );
 		
 	} else if (isBoxHGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "hgroup label : " << l1 << " become " << l2 << endl;
 		return boxHGroup(tree(l2),	eval(arg, visited, localValEnv) );
 		
 	} else if (isBoxTGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		//cout << "tgroup label : " << l1 << " become " << l2 << endl;
 		return boxTGroup(tree(l2),	eval(arg, visited, localValEnv) );
 		
 	} else if (isBoxHBargraph(exp, label, lo, hi)) {
@@ -237,7 +213,6 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 					tree(eval2float(hi, visited, localValEnv)));
 
 	} else if (isBoxAppl(exp, fun, arg)) {
-		// it is an application : do a strict evaluation
 		return applyList(	eval(fun, visited, localValEnv),
 							revEvalList(arg, visited, localValEnv) );
 		
@@ -249,11 +224,10 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	
 		if (isBoxAbstr(exp2)) {
 			// a 'real' closure
-			return exp;
+			return closure(exp2, nil, setUnion(visited,visited2), lenv2);
 		} else {
 			// it was a suspended evaluation
-			//return eval(exp2, visited2, lenv2);
-			return eval(exp2, visited, lenv2);
+			return eval(exp2, setUnion(visited,visited2), lenv2);
 		}
 		
 	} else if (isBoxIPar(exp, var, num, body)) {
@@ -611,8 +585,11 @@ static Tree larg2par (Tree larg)
 
 
 /**
- * Push a new empty layer
- */
+ * Push a new (unique) empty layer (where multiple definitions can be stored)
+ * on top of an existing environment.
+ * @param lenv the old environment 
+ * @return the new environment 
+*/
 static Tree pushNewLayer(Tree lenv) 
 {
 	return tree(unique("ENV_LAYER"), lenv);
@@ -620,17 +597,21 @@ static Tree pushNewLayer(Tree lenv)
 
 
 /**
- * Add a definition to the current top level layer
- */
+ * Add a definition (as a property) to the current top level layer. Check
+ * and warn for multiple definitions.
+ * @param id the symbol id to be defined 
+ * @param def the definition to be binded to the symbol id
+ * @param lenv the environment where to add this new definition
+*/
 static void addLayerDef(Tree id, Tree def, Tree lenv)
 {
 	// check for multiple definitions of a symbol in the same layer
 	Tree olddef;
 	if (getProperty(lenv, id, olddef)) {
 		if (def == olddef) {
-			evalwarning(getDefFileProp(id), getDefLineProp(id), "multiple definitions of", id);
+			evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
 		} else {
-			evalwarning(getDefFileProp(id), getDefLineProp(id), "redefinition of", id);
+			evalwarning(getDefFileProp(id), getDefLineProp(id), "non-equivalent re-definition of", id);
 		}
 	}
 	setProperty(lenv, id, def);
@@ -638,19 +619,27 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
 
 
 /**
- * Push a new layer with a single definition that is already a value
+ * Push a new layer and add a single definition.
+ * @param id the symbol id to be defined 
+ * @param def the definition to be binded to the symbol id
+ * @param lenv the environment where to push the layer and add the definition
+ * @return the new environment
  */
-static Tree pushValueDef(Tree id, Tree val, Tree lenv)
+static Tree pushValueDef(Tree id, Tree def, Tree lenv)
 {
 	Tree lenv2 = pushNewLayer(lenv);
-	addLayerDef(id, val, lenv2);
+	addLayerDef(id, def, lenv2);
 	return lenv2;
 }
 
 
 /**
  * Push a new layer with multiple definitions creating the appropriate closures
- */
+ * @param ldefs list of pairs (symbol id x definition) to be binded to the symbol id
+ * @param visited set of visited symbols (used for recursive definition detection)
+ * @param lenv the environment where to push the layer and add all the definitions
+ * @return the new environment
+*/
 static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
 {
 	Tree lenv2 = pushNewLayer(lenv);
@@ -663,20 +652,40 @@ static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
 }
 
 
+
 /**
  * Search the environment for the definition of a symbol
+ * ID and evaluate it. Detects recursive definitions using
+ * a set of visited IDxENV.
+ * @param id the symbol ID t-o search
+ * @param visited set of visited symbols (used for recursive definition detection)
+ * @param lenv the environment where to search
+ * @return the evaluated definition of ID
  */
-static bool searchValueDef(Tree id, Tree& def, Tree lenv)
+static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 {
-	while (!isNil(lenv)) {
-		if (getProperty(lenv, id, def)) return true;
+	Tree def;
+	
+	// search the environment env for a definition of symbol id
+	while (!isNil(lenv) && !getProperty(lenv, id, def)) {
 		lenv = lenv->branch(0);
 	}
-	return false;
+	
+	// check that the definition exists
+	if (isNil(lenv)) {
+		evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol ", id);
+		exit(1);
+	}
+		
+	// check that it is not a recursive definition
+	Tree p = cons(id,lenv);
+	if (isElement(p, visited)) {
+		evalerror(getDefFileProp(id), getDefLineProp(id), "recursive definition of", id);
+		exit(1);
+	}
+	
+	// return the evaluated definition
+	return eval(def, addElement(p,visited), nil);
 }
-
-
-
-
 
 
