@@ -30,7 +30,10 @@ int yylex();
 
 %start program
 		
-/* Constructors */
+/* With local environment (lowest priority)*/
+%left WITH
+
+/* Block Diagram Algebra */
 %left SEQ SPLIT MIX
 %left PAR
 %left REC
@@ -77,6 +80,9 @@ int yylex();
 %token FLOAT
 
 
+%token LAMBDA
+%token DOT
+
 %token WIRE
 %token CUT
 %token ENDDEF
@@ -105,7 +111,6 @@ int yylex();
 
 %type <exp> params
 
-%type <exp> superdiagram
 %type <exp> diagram
 %type <exp> eqname
 %type <exp> expression
@@ -158,8 +163,8 @@ eqlist			: /*empty*/						{$$ = nil; }
 				| eqlist equation 				{$$ = cons ($2,$1); } 
                 ;
 				
-equation		: eqname LPAR params RPAR DEF superdiagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); } 
-				| eqname DEF superdiagram ENDDEF		{$$ = cons($1,$3); } 
+equation		: eqname LPAR params RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); } 
+				| eqname DEF diagram ENDDEF		{$$ = cons($1,$3); } 
 				| error ENDDEF					{$$ = nil; yyerr++;}
                	;
 				
@@ -169,11 +174,9 @@ eqname			: ident 						{$$=$1; setDefProp($1, yyfilename, yylineno); }
 params			: ident							{$$ = cons($1,nil); }
 				| params PAR ident				{$$ = cons($3,$1); } 
                 ;
-	
-superdiagram	: diagram							{$$ = $1; }
-				| diagram WITH LBRAQ eqlist RBRAQ	{$$ = boxWithLocalDef($1,$4); }		
-				
-diagram			: diagram PAR diagram  			{$$ = boxPar($1,$3);}
+					
+diagram			: diagram WITH LBRAQ eqlist RBRAQ	{$$ = boxWithLocalDef($1,$4); }	
+				| diagram PAR diagram  			{$$ = boxPar($1,$3);}
 				| diagram SEQ diagram  			{$$ = boxSeq($1,$3);}
 				| diagram SPLIT  diagram 		{$$ = boxSplit($1,$3);}
 				| diagram MIX diagram 			{$$ = boxMerge($1,$3);}
@@ -258,6 +261,8 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| ident 						{$$ = $1;}
 				
 				| LPAR diagram RPAR				{$$ = $2;}
+				| LAMBDA LPAR params RPAR DOT LPAR diagram RPAR				
+												{$$ = buildBoxAbstr($3,$7);}
 				| ffunction						{$$ = boxFFun($1); }
 				| fconst						{$$ = $1;}
 				

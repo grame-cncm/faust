@@ -67,6 +67,8 @@ LETTER   [a-zA-Z]
 "{"			return LBRAQ;
 "}"			return RBRAQ;
 
+"\\"		return LAMBDA;
+"."			return DOT;
 "with"		return WITH;
 
 "mem"		return MEM;
