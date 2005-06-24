@@ -342,14 +342,21 @@ static const char * evalLabel (const char* label, Tree visited, Tree localValEnv
 	
 	while ((c=*src++)) {
 		if (state == 0) {
+			// outside ident mode
 			if (c == '%') {
-				state = 1;
-				parametric = true;
-				id  = &ident[0];
+				// look ahead for next char
+				if (*src == '%') {
+					*dst++ = *src++; 		// copy escape char and skip one char
+				} else { 
+					state = 1;				// prepare ident mode
+					parametric = true;
+					id  = &ident[0];
+				}
 			} else {
-				*dst++ = c;
+				*dst++ = c;					// copy char
 			}
 		} else {
+			// within ident mode
 			if (isIdentChar(c)) {
 				*id++ = c;
 			} else {
