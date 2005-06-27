@@ -158,6 +158,13 @@ public:
 	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
 	
+	// -- passive widgets
+	
+	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	
 	virtual void openFrameBox(char* label) = 0;
 	virtual void openTabBox(char* label) = 0;
 	virtual void openHorizontalBox(char* label) = 0;
@@ -234,7 +241,7 @@ mydsp	DSP;
 
 //#include "bench.h"
 /*
- * $Id: bench.cpp,v 1.2 2005/02/10 09:15:06 orlarey Exp $
+ * $Id: bench.cpp,v 1.3 2005/06/27 12:47:39 orlarey Exp $
  */
 #ifndef _BENCH_H
 #define _BENCH_H
@@ -299,7 +306,7 @@ typedef long long int64;
 //#include	"stats.h"
 //#include	"timing.h"
 /*
- * $Id: bench.cpp,v 1.2 2005/02/10 09:15:06 orlarey Exp $
+ * $Id: bench.cpp,v 1.3 2005/06/27 12:47:39 orlarey Exp $
  */
 #ifndef _TIMING_H
 #define _TIMING_H

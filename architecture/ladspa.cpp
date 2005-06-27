@@ -124,6 +124,15 @@ public:
 	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+		
+	// -- passive widgets
+	
+	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+
+	// -- frames and labels
 	
 	virtual void openFrameBox(char* label) = 0;
 	virtual void openTabBox(char* label) = 0;
@@ -183,6 +192,7 @@ class dsp {
 
 #define MAXPORT 1024
 static const int ICONTROL 	= LADSPA_PORT_INPUT|LADSPA_PORT_CONTROL;
+static const int OCONTROL 	= LADSPA_PORT_OUTPUT|LADSPA_PORT_CONTROL;
 static const int RANGE 		= LADSPA_PORT_INPUT|LADSPA_PORT_CONTROL;
 
 static const char* inames[] = {
@@ -311,7 +321,22 @@ class portCollector : public UI
 	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) { 
 		addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
 	}
+		
+	// -- passive widgets
 	
+	virtual void addNumDisplay(char* label, float* zone, int precision) {
+		addPortDescr(OCONTROL, label, 0, -10000, +10000); 
+	}
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) {
+		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
+	}
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) {
+		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
+	}
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max){
+		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
+	}
+
 	virtual void openFrameBox(char* label)		{ openAnyBox(label); }
 	virtual void openTabBox(char* label)		{ openAnyBox(label); }
 	virtual void openHorizontalBox(char* label)	{ openAnyBox(label); }
@@ -406,6 +431,13 @@ class portData : public UI
 	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) 		{ addZone(zone); }
 	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) 	{ addZone(zone); }
 	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step)  			{ addZone(zone); }
+		
+	// -- passive widgets
+	
+	virtual void addNumDisplay(char* label, float* zone, int precision) 						{ addZone(zone); }
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) 	{ addZone(zone); }
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) 			{ addZone(zone); }
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max)			{ addZone(zone); }
 	
 	virtual void openFrameBox(char* label)		{ }
 	virtual void openTabBox(char* label)		{ }

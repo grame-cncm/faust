@@ -118,12 +118,23 @@ public:
 	UI() : fStopped(false) {}
 	virtual ~UI() {}
 	
+	// -- active widgets
+	
 	virtual void addButton(char* label, float* zone) = 0;
 	virtual void addToggleButton(char* label, float* zone) = 0;
 	virtual void addCheckButton(char* label, float* zone) = 0;
 	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	
+	// -- passive widgets
+	
+	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	
+	// -- frames and labels
 	
 	virtual void openFrameBox(char* label) = 0;
 	virtual void openTabBox(char* label) = 0;
@@ -193,7 +204,14 @@ public:
 	{
 		addOption(label,zone,min,max);
 	}
+		
+	// -- passive widgets
 	
+	virtual void addNumDisplay(char* label, float* zone, int precision) 						{}
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) 	{}
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) 			{}
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) 			{}
+
 	virtual void openFrameBox(char* label)		{ openAnyBox(label); }
 	virtual void openTabBox(char* label)		{ openAnyBox(label); }
 	virtual void openHorizontalBox(char* label)	{ openAnyBox(label); }
@@ -223,6 +241,7 @@ public:
 				p = fKeyParam.find(fArgv[i]); 
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+					print();
 					exit(1);
 				}
 				char*	end;
