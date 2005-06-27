@@ -28,19 +28,49 @@
 #include <emmintrin.h>
 //#include <sse2mmx.h>
 
-#define vec_float  __m128  // 4 float ( 32 bits floating point number )
-#define vec_int    __m128i // 4 int ( 32 bits signed integer )
-
-typedef union{
-  float s[4];
-  __m128 v;
-} __vec_float;
 
 
-typedef union{ 
-  int s[4];
-  __m128i v;
-} __vec_int;
+struct vec_int 
+{ 
+	__m128i vec;
+	
+	vec_int()										{}
+	
+	vec_int(int a)									{ vec = _mm_set_epi32(a,a,a,a); }
+	
+	vec_int(int a, int b, int c, int d)				{ vec = _mm_set_epi32(d,c,b,a); }
+								
+	vec_int(__m128i m)								{ vec = m; }
+	
+	operator  __m128i() const						{ return vec; }	
+		
+	const int& operator[](int i)const				{ int* ip = (int*)&vec; return *(ip+i); } 
+
+	int& operator[](int i)							{ int* ip = (int*)&vec; return *(ip+i); } 
+
+};
+
+struct vec_float 
+{ 
+	__m128 vec;
+	
+	vec_float()										{}
+	
+	vec_float(float a)								{ vec = _mm_set_ps1(a); }
+	
+	vec_float(float a, float b, float c, float d)	{ vec = _mm_set_ps(d,c,b,a); }
+								
+	vec_float(__m128 m)								{ vec = m; }
+	
+	//vec_float(vec_int vi)   						{ vec = _mm_cvtepi32_ps(vi); } 
+	
+	operator  __m128() const						{ return vec; }		
+		
+	const float& operator[](int i)const				{ float* fp = (float*)&vec; return *(fp+i); } 
+
+	float& operator[](int i)						{ float* fp = (float*)&vec; return *(fp+i); } 
+
+};
 
 
 // Flush to zero mode: during underflow zero result is returned when the result is true
@@ -83,13 +113,24 @@ typedef union{
 
 
 
+// conversions entre vecteurs d'ints et de floats
+inline vec_int   float2int( vec_float a)   { return _mm_cvtps_epi32(a); }
+inline int       float2int( float a )      { return int(a); }
+
+inline vec_float int2float( vec_int a)   { return _mm_cvtepi32_ps(a); } 
+inline float     int2float( int a )      { return float(a); }
 
 
 
 
 // arithmetic
-inline vec_float add_vec( vec_float a, vec_float b)   { return _mm_add_ps(a,b); }
+inline vec_float add_vec( vec_float a, vec_float b)   	{ return _mm_add_ps(a,b); }
+inline vec_float add_vec( vec_int a, vec_float b)   	{ return _mm_add_ps(int2float(a),b); }
+inline vec_float add_vec( vec_float a, vec_int b)   	{ return _mm_add_ps(a,int2float(b)); }
+
 inline vec_int   add_vec( vec_int a, vec_int b)       { return _mm_add_epi32(a,b); }
+
+
 inline vec_float add_scal( vec_float a, vec_float b)  { return _mm_add_ss(a,b); }
 inline vec_int   add_scal( vec_int a, vec_int b)      { return _mm_add_epi32(a,b); } // _mm_add_pi32 en MMX
 //inline scal_int  add_scal( scal_int a, scal_int b) { return _mm_add_pi32(a,b); }
@@ -102,8 +143,11 @@ inline vec_int   sub_scal( vec_int a, vec_int b)      { return _mm_sub_epi32(a,b
 //inline scal_int  sub_scal( scal_int a, scal_int b) { return _mm_sub_pi32(a,b); }
 
 
-inline vec_float mul_vec( vec_float a, vec_float b)   { return _mm_mul_ps(a,b); }
-inline vec_float mul_scal( vec_float a, vec_float b)  { return _mm_mul_ss(a,b); }
+inline vec_float mul_vec( vec_float a, vec_float b)   	{ return _mm_mul_ps(a,b); }
+inline vec_float mul_vec( vec_int a, vec_float b)   	{ return _mm_mul_ps(int2float(a),b); }
+inline vec_float mul_vec( vec_float a, vec_int b)   	{ return _mm_mul_ps(a,int2float(b)); }
+
+inline vec_float mul_scal( vec_float a, vec_float b)  	{ return _mm_mul_ss(a,b); }
 
 // INTEGER MULTIPLICATION 
 // low 32 bits of a 32 * 32 bit multiplication: each double-word X and Y is broken down into two words, A & B and C & D:
@@ -172,10 +216,12 @@ inline vec_int   mod_scal( vec_int a, vec_int N) {
 
 
 // simulation of  a*b + c 
-inline vec_float madd_vec( vec_float a, vec_float b, vec_float c)  { return _mm_add_ps(_mm_mul_ps(a,b),c); }
-inline vec_float madd_scal( vec_float a, vec_float b, vec_float c) { return _mm_add_ss(_mm_mul_ss(a,b),c); }
-inline vec_int madd_vec( vec_int a, vec_int b, vec_int c)  { return add_vec(mul_vec(a,b),c); }
-inline vec_int madd_scal( vec_int a, vec_int b, vec_int c) { return add_scal(mul_scal(a,b),c); }
+#define madd_vec(a,b,c)  add_vec(mul_vec(a,b),c)
+#define madd_scal(a,b,c)  add_scal(mul_scal(a,b),c)
+
+//inline vec_float madd_scal( vec_float a, vec_float b, vec_float c) { return _mm_add_ss(_mm_mul_ss(a,b),c); }
+//inline vec_int madd_vec( vec_int a, vec_int b, vec_int c)  { return add_vec(mul_vec(a,b),c); }
+//inline vec_int madd_scal( vec_int a, vec_int b, vec_int c) { return add_scal(mul_scal(a,b),c); }
 
 
 // simulation of  - ( a*b - c )
@@ -217,7 +263,11 @@ inline vec_int   shift_right_scal_logical( vec_int a, int num)         { return 
 //inline scal_int shift_right_scal_logical( scal_int a, int num) { return _mm_srli_pi32(a,num); }
 
 
-// logic
+// Logic
+// Ajouts YO;; supprime
+//inline vec_float and_vec( vec_float a, vec_int b)   { return _mm_and_ps(a,b); }
+//inline vec_float and_vec( vec_int a, vec_float b)   { return _mm_and_ps(a,b); }
+
 inline vec_float and_vec( vec_float a, vec_float b)   { return _mm_and_ps(a,b); }
 inline vec_int   and_vec( vec_int a, vec_int b)       { return _mm_and_si128(a,b); }
 inline vec_float and_scal( vec_float a, vec_float b)  { return _mm_and_ps(a,b); }
@@ -238,66 +288,122 @@ inline vec_float xor_scal( vec_float a, vec_float b)  { return _mm_xor_ps(a,b); 
 inline vec_int   xor_scal( vec_int a, vec_int b)      { return _mm_xor_si128(a,b); } // _mm_xor_si64(a,b) en MMX
 //inline scal_int xor_scal( scal_int a, scal_int b) { return _mm_xor_si64(a,b); }
 
+//------------------------------------------------------------------------------------------------------------
+// YO : remplacement de inline vec_float par inline vec_int dans les operations de comparaison entre vec_float
+// pour une meilleur compatibilité avec la compilation vectorielle
+//------------------------------------------------------------------------------------------------------------
 
+// cast (without conversion)
+inline vec_float cast2vec_float(vec_int x)				{ return _mm_castsi128_ps(x); }
+inline vec_int cast2vec_int(vec_float x)				{ return _mm_castps_si128(x); }
+
+// convertions 
+inline vec_float conv2vec_float(vec_int x)				{ return _mm_cvtepi32_ps(x); }
+inline vec_int conv2vec_int(vec_float x)				{ return _mm_cvtps_epi32(x); }
 
 
 // comparaison
-inline vec_float gt_vec( vec_float a, vec_float b)    { return _mm_cmpgt_ps(a,b); }
-inline vec_int   gt_vec( vec_int a, vec_int b)        { return _mm_cmpgt_epi32(a,b); }
-inline vec_float gt_scal( vec_float a, vec_float b)   { return _mm_cmpgt_ss(a,b); }
-inline vec_int   gt_scal( vec_int a, vec_int b)       { return _mm_cmpgt_epi32(a,b); } // _mm_cmpgt_pi32(a,b) en MMX
-//inline scal_int gt_scal( scal_int a, scal_int b) { return _mm_cmpgt_pi32(a,b); }
+//inline vec_float int2float( vec_int a)   { return _mm_cvtepi32_ps(a); } 
 
 
 
-inline vec_float lt_vec( vec_float a, vec_float b)    { return _mm_cmplt_ps(a,b); }
+inline vec_float gt_vec( vec_float a, vec_float b)    	{ return _mm_cmpgt_ps(a,b); }
+inline vec_float gt_vec( vec_int a, vec_float b)    	{ return _mm_cmpgt_ps(_mm_cvtepi32_ps(a),b); }
+inline vec_float gt_vec( vec_float a, vec_int b)    	{ return _mm_cmpgt_ps(a,_mm_cvtepi32_ps(b)); }
+inline vec_int   gt_vec( vec_int a, vec_int b)      	{ return _mm_cmpgt_epi32(a,b); }
+
+inline vec_float gt_scal( vec_float a, vec_float b)    	{ return _mm_cmpgt_ps(a,b); }
+inline vec_float gt_scal( vec_int a, vec_float b)    	{ return _mm_cmpgt_ps(_mm_cvtepi32_ps(a),b); }
+inline vec_float gt_scal( vec_float a, vec_int b)    	{ return _mm_cmpgt_ps(a,_mm_cvtepi32_ps(b)); }
+inline vec_int   gt_scal( vec_int a, vec_int b)      	{ return _mm_cmpgt_epi32(a,b); }
+
+// choose between two values choose(c,u,v) = c?u:v
+// the type of the result depends of the types of u and v, not of the type of c
+
+inline vec_float choose(vec_float c, vec_float u, vec_float v)	{ return _mm_or_ps(_mm_and_ps(c,u), _mm_andnot_ps(c,v)); }
+inline vec_float choose(vec_float c, vec_int u, vec_float v)	{ return _mm_or_ps(_mm_and_ps(c,_mm_cvtepi32_ps(u)), _mm_andnot_ps(c,v)); }
+inline vec_float choose(vec_float c, vec_float u, vec_int v)	{ return _mm_or_ps(_mm_and_ps(c,u), _mm_andnot_ps(c,_mm_cvtepi32_ps(v))); }
+
+inline vec_float choose(vec_int c, vec_float u, vec_float v)	{ return choose(cast2vec_float(c), u, v); }	
+inline vec_float choose(vec_int c, vec_int u, vec_float v)		{ return choose(cast2vec_float(c), u, v); }	
+inline vec_float choose(vec_int c, vec_float u, vec_int v)		{ return choose(cast2vec_float(c), u, v); }	
+
+inline vec_int choose(vec_int c, vec_int u, vec_int v)			{ return _mm_or_si128(_mm_and_si128(c,u), _mm_andnot_si128(c,v)); }	
+inline vec_int choose(vec_float c, vec_int u, vec_int v)		{ return choose(cast2vec_int(c), u, v); }
+
+// choose between two values choosezero(c,u) = c?u:0
+inline vec_float choosezero(vec_float c, vec_float u)			{ return _mm_and_ps(c,u); }
+inline vec_float choosezero(vec_int c, vec_float u)				{ return choosezero(cast2vec_float(c), u); }
+
+inline vec_int choosezero(vec_int c, vec_int u)					{ return _mm_and_si128(c,u); }
+inline vec_int choosezero(vec_float c, vec_int u)				{ return choosezero(cast2vec_int(c), u); }
+														
+
+//inline vec_int gt_vec( vec_float a, vec_float b)    { return _mm_srli_epi32(_mm_cmpgt_ps(a,b),31); }
+//inline vec_int gt_vec( vec_float a, vec_float b)    { vec_univ v; v.f4 = _mm_cmpgt_ps(a,b); return _mm_srli_epi32(v.i4,31); }
+//inline vec_int   gt_vec( vec_int a, vec_int b)        { return _mm_cmpgt_epi32(a,b); }
+//inline vec_int gt_scal( vec_float a, vec_float b)   { return _mm_srli_epi32(_mm_cmpgt_ss(a,b),31); }
+//inline vec_int gt_scal( vec_float a, vec_float b)   { vec_univ v; v.f4 = _mm_cmpgt_ss(a,b); return _mm_srli_epi32(v.i4,31); }
+//inline vec_int gt_scal( vec_float a, vec_float b)   	{ return _mm_srli_epi32(_mm_cmpgt_ss(a,b),31); }
+//inline vec_int gt_scal( vec_int a, vec_float b)   	{ return _mm_srli_epi32(_mm_cmpgt_ss(a,b),31); }
+//inline vec_int   gt_scal( vec_int a, vec_int b)       { return _mm_cmpgt_epi32(a,b); } // _mm_cmpgt_pi32(a,b) en MMX
+
+//inline scal_int gt_scal( scal_int a, scal_int b) { return (__m128i) _mm_cmpgt_pi32(a,b); }
+
+#if 0
+
+inline vec_int lt_vec( vec_float a, vec_float b)    { return _mm_cmplt_ps(a,b); }
 inline vec_int   lt_vec( vec_int a, vec_int b)        { return _mm_cmpgt_epi32(b,a); }
-inline vec_float lt_scal( vec_float a, vec_float b)   { return _mm_cmplt_ss(a,b); }
+inline vec_int lt_scal( vec_float a, vec_float b)   { return _mm_cmplt_ss(a,b); }
 inline vec_int   lt_scal( vec_int a, vec_int b)       { return _mm_cmpgt_epi32(b,a); } // _mm_cmpgt_pi32(b,a) en MMX
 //inline scal_int lt_scal( scal_int a, scal_int b) { return _mm_cmpgt_pi32(b,a); }
 
 
 
-inline vec_float ge_vec( vec_float a, vec_float b)    { return _mm_cmpge_ps(a,b); }
+inline vec_int ge_vec( vec_float a, vec_float b)    { return _mm_cmpge_ps(a,b); }
 inline vec_int   ge_vec( vec_int a, vec_int b)        { return _mm_xor_si128( _mm_cmpgt_epi32(a,b), _mm_cmpeq_epi32(a,b)); }
-inline vec_float ge_scal( vec_float a, vec_float b)   { return _mm_cmpge_ss(a,b); }
+inline vec_int ge_scal( vec_float a, vec_float b)   { return _mm_cmpge_ss(a,b); }
 inline vec_int   ge_scal( vec_int a, vec_int b)       { return _mm_xor_si128( _mm_cmpgt_epi32(a,b), _mm_cmpeq_epi32(a,b)); } // _mm_xor_si64,_mm_cmpgt_pi32,_mm_cmpeq_pi32 MMX 
 //inline scal_int ge_scal( scal_int a, scal_int b) { return _mm_xor_si64( _mm_cmpgt_pi32(a,b),_mm_cmpeq_pi32(a,b)); }
 
 
-inline vec_float le_vec( vec_float a, vec_float b)    { return _mm_cmple_ps(a,b); }
+inline vec_int le_vec( vec_float a, vec_float b)    { return _mm_cmple_ps(a,b); }
 inline vec_int   le_vec( vec_int a, vec_int b)        { return _mm_xor_si128( _mm_cmpgt_epi32(b,a), _mm_cmpeq_epi32(b,a)); }
-inline vec_float le_scal( vec_float a, vec_float b)   { return _mm_cmple_ss(a,b); }
+inline vec_int le_scal( vec_float a, vec_float b)   { return _mm_cmple_ss(a,b); }
 inline vec_int   le_scal( vec_int a, vec_int b)       { return _mm_xor_si128( _mm_cmpgt_epi32(b,a), _mm_cmpeq_epi32(b,a)); } // _mm_xor_si64,_mm_cmpgt_pi32,_mm_cmpeq_pi32 MMX 
 //inline scal_int le_scal( scal_int a, scal_int b) { return _mm_xor_si64( _mm_cmpgt_pi32(b,a),_mm_cmpeq_pi32(b,a)); }
 
 
-inline vec_float eq_vec( vec_float a, vec_float b)    { return _mm_cmpeq_ps(a,b); }
+inline vec_int eq_vec( vec_float a, vec_float b)    { return _mm_cmpeq_ps(a,b); }
 inline vec_int   eq_vec( vec_int a, vec_int b)        { return _mm_cmpeq_epi32(a,b); }
-inline vec_float eq_scal( vec_float a, vec_float b)   { return _mm_cmpeq_ss(a,b); }
+inline vec_int eq_scal( vec_float a, vec_float b)   { return _mm_cmpeq_ss(a,b); }
 inline vec_int   eq_scal( vec_int a, vec_int b)       { return _mm_cmpeq_epi32(a,b); } // _mm_cmpeq_pi32(a,b) en MMX
 //inline scal_int eq_scal( scal_int a, scal_int b) { return _mm_cmpeq_pi32(a,b); }
 
 
-inline vec_float neq_vec( vec_float a, vec_float b)   { return _mm_cmpneq_ps(a,b); }
+inline vec_int neq_vec( vec_float a, vec_float b)   { return _mm_cmpneq_ps(a,b); }
 inline vec_int   neq_vec( vec_int a, vec_int b)       { return _mm_andnot_si128(_mm_cmpeq_epi32(a,b), _mm_cmpeq_epi32(a,a)); }
-inline vec_float neq_scal( vec_float a, vec_float b)  { return _mm_cmpneq_ss(a,b); }
+inline vec_int neq_scal( vec_float a, vec_float b)  { return _mm_cmpneq_ss(a,b); }
 inline vec_int   neq_scal( vec_int a, vec_int b)      { return _mm_andnot_si128(_mm_cmpeq_epi32(a,b), _mm_cmpeq_epi32(a,a)); } // _mm_andnot_si64,_mm_cmpeq_pi32 MMX
 //inline scal_int neq_scal( scal_int a, scal_int b) { return _mm_andnot_si64(_mm_cmpeq_pi32(a,b),SCAL_INT_ALL_ONE); }
 
+#endif
 
 
 // memory
-inline vec_float set_vec( double a)                   { float val = float(a); vec_float temp = _mm_load_ss(&val); return _mm_shuffle_ps(temp,temp,0x00); }
-inline vec_float set_vec( float a)                    { float val = a; vec_float temp = _mm_load_ss(&val); return _mm_shuffle_ps(temp,temp,0x00); }
-inline vec_int   set_vec( long int a)                 { vec_int temp = _mm_cvtsi32_si128(int(a)); temp = _mm_unpacklo_epi32(temp,temp); return _mm_unpacklo_epi32(temp,temp); }
-inline vec_int   set_vec( int a)                      { vec_int temp = _mm_cvtsi32_si128(a); temp = _mm_unpacklo_epi32(temp,temp); return _mm_unpacklo_epi32(temp,temp);}
-inline vec_int   set_vec( short a)                    { vec_int temp = _mm_cvtsi32_si128(int(a)); temp = _mm_unpacklo_epi32(temp,temp); return _mm_unpacklo_epi32(temp,temp); }
+
+#if 0
+inline vec_float set_vec( double a)       	{ float val = float(a); vec_float temp = _mm_load_ss(&val); return _mm_shuffle_ps(temp,temp,0x00); }
+inline vec_float set_vec( float a)         	{ float val = a; vec_float temp = _mm_load_ss(&val); return _mm_shuffle_ps(temp,temp,0x00); }
+inline vec_int   set_vec( long int a)    	{ vec_int temp = _mm_cvtsi32_si128(int(a)); temp = _mm_unpacklo_epi32(temp,temp); return _mm_unpacklo_epi32(temp,temp); }
+inline vec_int   set_vec( int a)          	{ vec_int temp = _mm_cvtsi32_si128(a); temp = _mm_unpacklo_epi32(temp,temp); return _mm_unpacklo_epi32(temp,temp);}
+inline vec_int   set_vec( short a)      	{ vec_int temp = _mm_cvtsi32_si128(int(a)); temp = _mm_unpacklo_epi32(temp,temp); return _mm_unpacklo_epi32(temp,temp); }
 //inline scal_int  set_vec( long int a) { _mm_cvtsi32_si64(int(a)); }
 //inline scal_int  set_vec( int a) { _mm_cvtsi32_si64(a); }
 //inline scal_int  set_vec( short a) { _mm_cvtsi32_si64(int(a)); }
+#endif
 
-
+#if 0
 
 inline vec_float set_vec( double a, double b, double c, double d)         { __vec_float temp; temp.s[0]=float(a); temp.s[1]=float(b); temp.s[2]=float(c); temp.s[3]=float(d); return temp.v; }
 inline vec_float set_vec( float a, float b, float c, float d)             { __vec_float temp; temp.s[0]=a; temp.s[1]=b; temp.s[2]=c; temp.s[3]=d; return temp.v; }
@@ -305,16 +411,28 @@ inline vec_int   set_vec( int a, int b, int c, int d)                     { __ve
 inline vec_int   set_vec( long int a, long int b, long int c, long int d) { __vec_int temp; temp.s[0]=int(a); temp.s[1]=int(b); temp.s[2]=int(c); temp.s[3]=int(d); return temp.v; } 
 inline vec_int   set_vec( short a, short b, short c, short d)             { __vec_int temp; temp.s[0]=short(a); temp.s[1]=short(b); temp.s[2]=short(c); temp.s[3]=short(d); return temp.v; }
 
+#endif
 
+inline vec_float set_vec( float a, float b, float c, float d)         	{ return vec_float(a,b,c,d); } 
+inline vec_int   set_vec( int a, int b, int c, int d)             		{ return vec_int(a,b,c,d); } 
+
+inline vec_float set_vec( float a)                                		{ return vec_float(a); }
+inline vec_int   set_vec( int a)                                  		{ return vec_int(a); }    
 
 inline vec_float load_a_vec( float* a)                                { return _mm_load_ps(a); }
+inline vec_int   load_a_vec( int* a)                                  { return _mm_load_si128((__m128i*)a); }    
+                 
 inline vec_float load_u_vec( float* a)                                { return _mm_loadu_ps(a); }
-inline vec_int   load_a_vec( int* a)                                  { return _mm_load_si128((__m128i*)a); }                     
 inline vec_int   load_u_vec( int* a)                                  { return _mm_loadu_si128((__m128i*)a); }  
+   
+// nouvelles fonctions d'écriture sans polluer le cache                                   
+inline void store_stream( float* a, vec_float b)                       { return _mm_stream_ps(a,b); }
+inline void store_stream( int* a, vec_int b)                           { return _mm_stream_si128((__m128i*)a,b); }
                                      
 inline void store_a_vec( float* a, vec_float b)                       { return _mm_store_ps(a,b); }
-inline void store_u_vec( float* a, vec_float b)                       { return _mm_storeu_ps(a,b); }
 inline void store_a_vec( int* a, vec_int b)                           { return _mm_store_si128((__m128i*)a,b); }
+
+inline void store_u_vec( float* a, vec_float b)                       { return _mm_storeu_ps(a,b); }
 inline void store_u_vec( int* a, vec_int b)                           { return _mm_storeu_si128((__m128i*)a,b); }
       
                                                              
@@ -421,20 +539,14 @@ inline vec_int   mem3_vec( vec_int a, vec_int b)           {
 
 
 // conversion
-inline vec_float bool2float( vec_float a )  { return _mm_and_ps(a,set_vec(1.0)); }
+inline vec_float bool2float( vec_float a )  { return _mm_and_ps(a,set_vec(1.0f)); }
 inline vec_float bool2float( vec_int a )    { return _mm_cvtepi32_ps(_mm_and_si128(a,_mm_sub_epi32(_mm_xor_si128(a,a),_mm_cmpeq_epi32(a,a)))); }
 
 inline vec_int   bool2int( vec_int   a)     { return _mm_and_si128(a,_mm_sub_epi32(_mm_xor_si128(a,a),_mm_cmpeq_epi32(a,a))); }
-inline vec_int   bool2int( vec_float a )    { return _mm_cvtps_epi32(_mm_and_ps(a,set_vec(1.0))); }
+inline vec_int   bool2int( vec_float a )    { return _mm_cvtps_epi32(_mm_and_ps(a,set_vec(1.0f))); }
 
 inline vec_int   boolfloat2boolint( vec_float a ) { vec_int   temp; asm volatile("" : "=xmm" (temp) : "0" (a)); return temp; }
 inline vec_float boolint2boolfloat( vec_int   a ) { vec_float temp; asm volatile("" : "=xmm" (temp) : "0" (a)); return temp; }
-
-inline vec_int   float2int( vec_float a)   { return _mm_cvtps_epi32(a); }
-inline int       float2int( float a )      { return int(a); }
-
-inline vec_float int2float( vec_int a)   { return _mm_cvtepi32_ps(a); } 
-inline float     int2float( int a )      { return float(a); }
 
 
 
@@ -452,9 +564,29 @@ inline float     int2float( int a )      { return float(a); }
 /****************************************************/
 
 
-#define vec_float vector float
-#define vec_int vector signed int
+//#define vec_float vector float
+//#define vec_int vector signed int
 //#define vec_bool vector bool int
+
+struct vec_int 
+{ 
+	vector signed int vec;
+	vec_int()								{}
+	vec_int(vector signed int m)			{ vec = m; }
+//	operator  __m128i() const				{ return vec; }		
+
+};
+
+struct vec_float 
+{ 
+//	union { __m128 vec; __m128i i4; };
+	vector float vec;
+	vec_float()							{}
+	vec_float(vector float m)			{ vec = m; }
+	//vec_float(vec_int a)   		{ vec = _mm_cvtepi32_ps(a); } 
+	
+	//operator  __m128() const	{ return vec; }		
+};
 
 typedef union{
   float s[4];
