@@ -2,11 +2,11 @@ all : jackgtk
 
 alsagtk :
 	install -d alsagtkdir
-	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config gtk+-2.0 --cflags --libs`' -f Makefile.compile
+	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' -f Makefile.compile
 	
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config jack  --cflags --libs`  `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 	
 vecalsagtk :
 	install -d vecalsagtkdir
@@ -14,7 +14,7 @@ vecalsagtk :
 	
 vecjackgtk :
 	install -d vecjackgtkdir
-	$(MAKE) VEC='-vec' DEST='vecjackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config jack  --cflags --libs`  -faltivec -D__ALTIVEC__ `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
+	$(MAKE) VEC='-vec' DEST='vecjackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
 ladspa :
 	install -d ladspadir
