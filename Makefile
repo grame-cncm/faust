@@ -1,3 +1,4 @@
+version := 0.9.2
 prefix := /usr/local
 arch := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
@@ -6,32 +7,41 @@ all :
 	$(MAKE) -C compiler
 
 
-.PHONY: clean depend install
+.PHONY: clean depend install ininstall dist
 
 clean :
 	$(MAKE) -C compiler clean
-	
+
 depend :
 	$(MAKE) -C compiler depend
+
 	
 doc :
 	$(MAKE) -C compiler doc
+
 	
 install :
 	mkdir -p $(prefix)/lib/faust/
 	install compiler/faust $(prefix)/bin
 	install $(arch) $(prefix)/lib/faust/
 	install $(mfiles) $(prefix)/lib/faust/
+
 	
-distribution :
+uninstall :
+	rm -rf $(prefix)/lib/faust/
+	rm -f $(prefix)/bin/faust
+
+dist :
 	$(MAKE) -C compiler clean
 	$(MAKE) -C examples clean
-	mkdir -p faust
-	cp README faust
-	cp -r architecture faust
-	cp -r compiler faust
-	cp -r examples faust
-	cp Makefile faust
-	cp faust_tutorial.pdf faust
-	tar czf faust.tgz faust
-	rm -r faust
+	mkdir -p faust-$(version)
+	cp README COPYING faust-$(version)
+	cp -r architecture faust-$(version)
+	cp -r compiler faust-$(version)
+	cp -r examples faust-$(version)
+	find faust-$(version) -name CVS | xargs rm -rf
+	cp Makefile faust-$(version)
+	cp faust_tutorial.pdf faust-$(version)
+	rm -f faust-$(version).tar.gz
+	tar czf faust-$(version).tar.gz faust-$(version)
+	rm -rf faust-$(version)
