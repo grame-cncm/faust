@@ -20,6 +20,29 @@ extern Tree 		gResult;
 
 int yylex();
 
+Tree unquote(char* str)
+{
+	//-----------copy unquoted filename-------------
+	char buf[512]; 
+	int j=0;
+	 
+	if (str[0] == '"') {
+		//it is a quoted string, we remove the quotes
+		for (int i=1; j<511 && str[i];) {
+			buf[j++] = str[i++];
+		}
+		// remove last quote
+		if (j>0) buf[j-1] = 0;
+	} else {
+		for (int i=0; j<511 && str[i];) {
+			buf[j++] = str[i++];
+		}
+	}
+	buf[j] = 0;
+	
+	return tree(buf);
+	//----------------------------------------------
+}
 
 %}
 
@@ -46,7 +69,7 @@ int yylex();
 %left MUL DIV MOD AND XOR LSH RSH
 %left FDELAY
 %left DELAY1
-%left APPL
+%left APPL DOT
 
 
 %token MEM
@@ -94,6 +117,9 @@ int yylex();
 %token WITH
 %token DEF
 
+%token IMPORT
+%token COMPONENT
+
 %token IPAR
 %token ISEQ
 %token ISUM
@@ -125,6 +151,7 @@ int yylex();
 %type <exp> fconst
 %type <exp> signature
 %type <exp> string
+%type <exp> uqstring
 %type <exp> fstring
 %type <exp> type
 %type <exp> typelist
@@ -164,8 +191,9 @@ eqlist			: /*empty*/						{$$ = nil; }
                 ;
 				
 equation		: eqname LPAR params RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); } 
-				| eqname DEF diagram ENDDEF		{$$ = cons($1,$3); } 
-				| error ENDDEF					{$$ = nil; yyerr++;}
+				| eqname DEF diagram ENDDEF						{$$ = cons($1,$3); } 
+				| IMPORT LPAR uqstring RPAR ENDDEF				{$$ = importFile($3); }
+				| error ENDDEF									{$$ = nil; yyerr++;}
                	;
 				
 eqname			: ident 						{$$=$1; setDefProp($1, yyfilename, yylineno); }
@@ -191,6 +219,7 @@ expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sig
 				| expression MOD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
 				| expression FDELAY expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
 				| expression DELAY1  			{$$ = boxSeq($1,boxPrim1(sigDelay1)); }
+				| expression DOT ident  		{$$ = boxAccess($1,$3); }
 
 				| expression AND expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
 				| expression OR expression 		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
@@ -265,6 +294,7 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 												{$$ = buildBoxAbstr($3,$7);}
 				| ffunction						{$$ = boxFFun($1); }
 				| fconst						{$$ = $1;}
+				| COMPONENT LPAR uqstring RPAR	{$$ = boxComponent($3); }
 				
 				| button						{$$ = $1;}
 				| checkbox						{$$ = $1;}
@@ -304,6 +334,9 @@ argument		: argument SEQ argument  		{$$ = boxSeq($1,$3);}
 				;
 				
 string			: STRING						{$$ = tree(yytext); }
+				;
+				
+uqstring		: STRING						{$$ = unquote(yytext); }
 				;
 
 fstring			: STRING						{$$ = tree(yytext); }

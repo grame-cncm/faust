@@ -103,6 +103,9 @@ LETTER   [a-zA-Z]
 "sum"		return ISUM;
 "prod"		return IPROD;
 
+"import"	return IMPORT;
+"component"	return COMPONENT;
+
 _{ID}   	return IDENT;
 {ID}   		return IDENT;
 
