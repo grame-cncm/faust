@@ -158,9 +158,8 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxComponent(exp, label)) {
 		string 	fname 	= tree2str(label);
 		Tree 	eqlst 	= gReader.expandlist(gReader.getlist(fname));
-		//Tree	res = eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlst, nil, nil));
 		Tree	res = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
-		cerr << "component is " << boxpp(res) << endl;
+		//cerr << "component is " << boxpp(res) << endl;
 		return res;
 		
 	} else if (isBoxFFun(exp)) {
