@@ -125,3 +125,46 @@ bool check_file(char* filename)
 	return f != NULL;
 }
 		
+
+/**
+ * Try to open a file.
+ */
+FILE* fopensearch(const char* filename)
+{	
+	FILE* f = fopen(filename, "r");
+	
+	if (f) {
+		return f;
+	} else {
+		const char* p1 = getenv("FAUST_PATH");
+		const char* p2 = (p1 != 0) ? p1 : "/usr/local/lib/faust/:/usr/lib/faust/";
+		return fopenpath(p2, filename);
+	}
+}
+
+	
+FILE* fopenpath(const char* lofdir, const char* filename)
+{
+	char		old[PATH_MAX];
+	char* 		lod = strdup(lofdir);
+	char* 		dir = strtok(lod, ":");
+	
+	getcwd (old, PATH_MAX);
+	while (dir) {
+		if (chdir(dir) == 0) {
+			
+			FILE* f = fopen(filename, "r");
+			chdir(old);
+			if (f) {
+				free(lod);
+				return f;
+			}
+		} else  {
+		}
+		dir = strtok(NULL, ":");
+	}
+	cerr << "file " << filename << " not found in path " << lofdir << endl;
+	free (lod);
+	return 0;
+}
+
