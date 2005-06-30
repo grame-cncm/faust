@@ -36,6 +36,7 @@
  
 
 #include "boxes.hh"
+#include "sourcereader.hh"
 
 
 /**

@@ -37,6 +37,7 @@
 #include "propagate.hh"
 
 #include <assert.h>
+extern SourceReader	gReader;
 
 // History
 // 23/05/2005 : New environment management
@@ -138,6 +139,23 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxWithLocalDef(exp, body, ldef)) {
 		return eval(body, visited, pushMultiClosureDefs(ldef, visited, localValEnv));
 		
+	} else if (isBoxAccess(exp, body, var)) {
+		Tree val = eval(body, visited, localValEnv);
+		if (isClosure(val, exp2, notused, visited2, lenv2)) {
+			// it is a closure, we have an environment to access
+			return eval(closure(var,notused,visited2,lenv2), visited, localValEnv);
+		} else {
+			evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
+			exit(1);
+		}
+		
+	} else if (isBoxComponent(exp, label)) {
+		string 	fname 	= tree2str(label);
+		Tree 	eqlst 	= gReader.expandlist(gReader.getlist(fname));
+		Tree	res = eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlst, nil, nil));
+		cerr << "component is " << boxpp(res) << endl;
+		return res;
+		
 	} else if (isBoxFFun(exp)) {
 		return exp;
 		
@@ -215,6 +233,10 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxAppl(exp, fun, arg)) {
 		return applyList(	eval(fun, visited, localValEnv),
 							revEvalList(arg, visited, localValEnv) );
+		
+	} else if (isBoxAbstr(exp)) {
+		// it is an abstraction : return a closure
+		return closure(exp, nil, visited, localValEnv);
 		
 	} else if (isBoxAbstr(exp)) {
 		// it is an abstraction : return a closure
