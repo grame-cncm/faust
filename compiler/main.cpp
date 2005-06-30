@@ -47,6 +47,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "sourcereader.hh"
+
 
 // construction des representations graphiques
 #include "drawblock.hh"
@@ -68,6 +70,7 @@ extern FILE*	yyin;
 Tree 			gResult;
 Tree 			gResult2;
 
+SourceReader	gReader;
 
 
 /****************************************************************
@@ -225,15 +228,7 @@ int main (int argc, char* argv[])
 	gResult2 = nil;
 	yyerr = 0;
 	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-		yyfilename = s->c_str();
-		yyin = fopen(yyfilename, "r");
-		yylineno = 1;
-		int r = yyparse();
-		if (r) { 
-			fprintf(stderr, "Parse error : code = %d \n", r); 
-		} else {
-			gResult2 = concat(gResult, gResult2);
-		}
+		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
 	}
 	if (yyerr > 0) {
 		//fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr); 
@@ -245,7 +240,7 @@ int main (int argc, char* argv[])
 	 3 - evaluate 'process' definition
 	*****************************************************************/
 
-	Tree process = evalprocess(gResult2);
+	Tree process = evalprocess(gReader.expandlist(gResult2));
 	if (gErrorCount > 0) {
 		cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n"; 
 		exit(1);
