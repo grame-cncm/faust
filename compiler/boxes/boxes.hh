@@ -152,6 +152,10 @@ Tree closure (Tree abstr, Tree genv, Tree vis, Tree lenv);
 
 bool isClosure	(Tree t, Tree& abstr, Tree& genv, Tree& vis, Tree& lenv);
 
+// for foo(x,y).faa expressions
+Tree boxAccess (Tree exp, Tree id);
+bool isBoxAccess(Tree t, Tree& exp, Tree& id);
+
 
 /*****************************************************************************
 						Boxes with local definitions
@@ -213,6 +217,17 @@ bool isBoxFFun	(Tree s, Tree& ff);
 Tree boxFConst 		(Tree type, Tree name, Tree file); 
 bool isBoxFConst	(Tree s);
 bool isBoxFConst	(Tree s, Tree& type, Tree& name, Tree& file);
+
+
+/*****************************************************************************
+							 Modules
+*****************************************************************************/
+
+Tree boxComponent (Tree filename);
+bool isBoxComponent	(Tree s, Tree& filename);
+
+Tree importFile(Tree filename);
+bool isImportFile(Tree s, Tree& filename);
 
 
 /*****************************************************************************

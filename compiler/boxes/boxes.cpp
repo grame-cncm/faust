@@ -165,6 +165,7 @@ Sym BOXABSTR 	= symbol ("BoxAbstr");
 Sym BOXAPPL 	= symbol ("BoxAppl");
 Sym CLOSURE 	= symbol ("Closure");
 Sym BOXERROR 	= symbol ("BoxError");
+Sym BOXACCESS 	= symbol ("BoxAccess");
 
 Tree boxAbstr	(Tree x, Tree y)			{ return tree(BOXABSTR, x, y); }  				
 Tree boxAppl 	(Tree x, Tree y)			{ return tree(BOXAPPL, x, y); } 
@@ -221,6 +222,9 @@ bool isBoxError(Tree t)
 }		
 
 
+Tree boxAccess (Tree exp, Tree id)				{ return tree(BOXACCESS, exp, id); } 	
+bool isBoxAccess(Tree t, Tree& exp, Tree& id)	{ return isTree(t, BOXACCESS, exp, id); }
+
 
 /*****************************************************************************
 						Boxes with local definitions
@@ -229,6 +233,20 @@ Sym BOXWITHLOCALDEF 	= symbol ("BoxWithLocalDef");
 
 Tree boxWithLocalDef (Tree body, Tree ldef)					{ return tree(BOXWITHLOCALDEF, body, ldef); } 
 bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXWITHLOCALDEF, body, ldef); }	
+
+
+/*****************************************************************************
+							 Modules
+*****************************************************************************/
+Sym BOXCOMPONENT 	= symbol ("BoxComponent");
+
+Tree boxComponent (Tree filename)							{ return tree(BOXCOMPONENT, filename); } 
+bool isBoxComponent	(Tree s, Tree& filename)				{ return isTree(s, BOXCOMPONENT, filename); }
+
+
+Sym IMPORTFILE		= symbol ("ImportFile");
+Tree importFile(Tree filename)								{ return tree(IMPORTFILE, filename); }
+bool isImportFile(Tree s, Tree& filename)					{ return isTree(s, IMPORTFILE, filename); }
 
 
 /*****************************************************************************

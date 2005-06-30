@@ -213,6 +213,14 @@ ostream& boxpp::print (ostream& fout) const
 			<< ", lenv = " << envpp(lenv)
 			<< "]";
 	}
+	else if (isBoxComponent(box, label)) {
+		fout << "component("
+			<< tree2str(label) << ')';
+	}
+	else if (isImportFile(box, label)) {
+		fout << "import("
+			<< tree2str(label) << ')';
+	}
 	//a completer
 	else {
 		//fout << tree2str(box);
