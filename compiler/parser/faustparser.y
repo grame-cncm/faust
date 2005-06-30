@@ -235,7 +235,7 @@ expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sig
 				| expression EQ expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
 				| expression NE expression		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
 								
-				| primitive LPAR arglist RPAR %prec APPL	{$$ = buildBoxAppl($1,$3); }
+				| expression LPAR arglist RPAR %prec APPL	{$$ = buildBoxAppl($1,$3); }
 					
 				| primitive						{$$ = $1;}
 				;
