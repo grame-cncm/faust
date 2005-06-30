@@ -75,7 +75,6 @@ static Tree evalIdDef(Tree id, Tree visited, Tree env);
  */
 Tree evalprocess (Tree eqlist)
 {
-	//return a2sb(0, eval(boxIdent("process"), eqlist, nil, nil));
 	return a2sb(0, eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlist, nil, nil)));
 }
 	
@@ -95,7 +94,11 @@ static Tree a2sb(int deep, Tree exp)
 	Tree abstr, visited, unusedEnv, localValEnv, id, body;
 	
 	if (isClosure(exp, abstr, unusedEnv, visited, localValEnv)) {
-		if (!isBoxAbstr(abstr, id, body)) {
+		if (isBoxIdent(abstr)) {
+			// special case introduced with access and components
+			return a2sb(deep, eval(abstr, visited, localValEnv));
+			
+		} else if (!isBoxAbstr(abstr, id, body)) {
 			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure ", exp);
 			exit(1);
 		}
@@ -122,9 +125,12 @@ static Tree a2sb(int deep, Tree exp)
  * @param localValEnv the local environment
  * @return a block diagram in normal form
  */
+ 
+//Tree gBoxIdAbstr = boxAbstr(boxIdent("x"), boxIdent("x"));
+
 static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 {
-	Tree 	def;
+	//Tree 	def;
 	Tree 	fun;
 	Tree 	arg;
 	Tree	var, num, body, ldef;
@@ -152,7 +158,8 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxComponent(exp, label)) {
 		string 	fname 	= tree2str(label);
 		Tree 	eqlst 	= gReader.expandlist(gReader.getlist(fname));
-		Tree	res = eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlst, nil, nil));
+		//Tree	res = eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlst, nil, nil));
+		Tree	res = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
 		cerr << "component is " << boxpp(res) << endl;
 		return res;
 		
