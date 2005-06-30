@@ -49,7 +49,8 @@ main.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 main.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/sigtyperules.hh
 main.o: signals/sigprint.hh generator/simplify.hh generator/privatise.hh generator/compile_scal.hh generator/compile.hh
 main.o: generator/klass.hh generator/uitree.hh generator/Text.hh generator/compile_vect.hh propagate/propagate.hh
-main.o: boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh draw/drawblock.hh
+main.o: boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
+main.o: draw/drawblock.hh
 boxes/boxes.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxes.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
 boxes/boxes.o: tlib/smartpointer.hh
@@ -98,8 +99,8 @@ draw/wire.o: draw/wire.h draw/device.h
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 errors/errormsg.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh errors/errormsg.hh boxes/ppbox.hh
-evaluate/eval.o: generator/simplify.hh propagate/propagate.hh
+evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
+evaluate/eval.o: errors/errormsg.hh boxes/ppbox.hh generator/simplify.hh propagate/propagate.hh
 generator/codegeneration.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/codegeneration.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh
 generator/codegeneration.o: signals/sigtype.hh tlib/smartpointer.hh generator/uitree.hh generator/Text.hh
@@ -143,6 +144,9 @@ generator/simplify.o: generator/normalize.hh
 generator/Text.o: generator/Text.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
+parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
+parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
+parser/sourcereader.o: generator/enrobage.hh
 propagate/propagate.o: propagate/propagate.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 propagate/propagate.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
 propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh
