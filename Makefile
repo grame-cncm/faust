@@ -1,4 +1,4 @@
-version := 0.9.3
+version := 0.9.4a
 prefix := /usr/local
 arch := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
@@ -23,8 +23,8 @@ doc :
 install :
 	mkdir -p $(prefix)/lib/faust/
 	install compiler/faust $(prefix)/bin
-	install $(arch) $(prefix)/lib/faust/
-	install $(mfiles) $(prefix)/lib/faust/
+	install -m 0644 $(arch) $(prefix)/lib/faust/
+	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 
 	
 uninstall :
