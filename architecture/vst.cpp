@@ -133,6 +133,11 @@ public:
     virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
     virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
     virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	
+	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
 		
     virtual void openFrameBox(char* label) = 0;
     virtual void openTabBox(char* label) = 0;
@@ -366,7 +371,12 @@ public:
 			for(int i=0;i<fUITable.size();i++) id += fUITable[i]->GetID();
 			return baseid + id % maxNumberOfId;
 		}
-
+		
+	// To be implemented
+	void addNumDisplay(char* label, float* zone, int precision){}
+	void addTextDisplay(char* label, float* zone, char* names[], float min, float max){}
+	void addHorizontalBargraph(char* label, float* zone, float min, float max){}
+	void addVerticalBargraph(char* label, float* zone, float min, float max){}
 };
 
 //-----------------------------------------------------------------------------

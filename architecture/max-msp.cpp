@@ -122,6 +122,11 @@ class UI
 		virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
 		virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
 		
+		virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+		virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+		virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+		virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+		
 		virtual void openFrameBox(char* label) = 0;
 		virtual void openTabBox(char* label) = 0;
 		virtual void openHorizontalBox(char* label) = 0;
@@ -339,6 +344,12 @@ class mspUI : public UI
 			for (int i = fUITable.size(); i>0 ; i--) 
 				floatin((t_pxobject *)x,i);
 		}
+		
+		// To be implemented
+		void addNumDisplay(char* label, float* zone, int precision){}
+		void addTextDisplay(char* label, float* zone, char* names[], float min, float max){}
+		void addHorizontalBargraph(char* label, float* zone, float min, float max){}
+		void addVerticalBargraph(char* label, float* zone, float min, float max){}
 };
 
 /*--------------------------------------------------------------------------*/
