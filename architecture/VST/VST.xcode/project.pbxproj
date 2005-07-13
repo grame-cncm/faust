@@ -595,23 +595,23 @@
 	<key>CFBundleExecutable</key>
 	<string>FaustVST</string>
 	<key>CFBundleGetInfoString</key>
-	<string>© 03-05, Johnny Petrantoni.</string>
+	<string>© 2005, Grame.</string>
 	<key>CFBundleIconFile</key>
 	<string></string>
 	<key>CFBundleIdentifier</key>
-	<string>gpl.jackosx.com.JACK-insert.vst</string>
+	<string>grame.com.Faust</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>JACK-insert</string>
+	<string>Faust</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.6</string>
+	<string>1.0</string>
 	<key>CFBundleSignature</key>
-	<string>ElCa</string>
+	<string>Grme</string>
 	<key>CFBundleVersion</key>
-	<string>1.6</string>
+	<string>1.0</string>
 </dict>
 </plist>
 ";
