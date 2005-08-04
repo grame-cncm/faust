@@ -1,4 +1,4 @@
-version := 0.9.4a
+version := 0.9.4c
 prefix := /usr/local
 arch := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
@@ -41,7 +41,7 @@ dist :
 	cp -r examples faust-$(version)
 	find faust-$(version) -name CVS | xargs rm -rf
 	cp Makefile faust-$(version)
-	cp faust_tutorial.pdf faust-$(version)
+	cp *.pdf faust-$(version)
 	rm -f faust-$(version).tar.gz
 	tar czf faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
