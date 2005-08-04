@@ -86,8 +86,10 @@ public:
     fRDTblGenerate = nil;
   }
 
-  void 		compileMultiSignal  (Tree lsig);
-  void		compileSingleSignal (Tree lsig);
+  	virtual void 		compileMultiSignal  (Tree lsig);
+  	virtual void		compileSingleSignal (Tree lsig);
+	virtual string		CS (Tree tEnv, Tree sig, int ctxt);
+  	virtual string 		generateCacheCode(Tree tEnv,Tree sig, const string& exp, int context) ;
 
 private:
   string 	getFreshID (const char* prefix);
@@ -103,7 +105,7 @@ private:
 
 
 
-  string	CS (Tree tEnv, Tree sig, int context);
+ // string	CS (Tree tEnv, Tree sig, int context);
 
   bool          DynamicCasting(Tree env, int nature_sig, int nature_arg1, int nature_arg2, Tree arg1, Tree arg2, string* cast_arg1, string* cast_arg2);
   bool          TrinaryOperationAccVec(Tree env, Tree arg1,Tree arg2,string* result);
@@ -122,7 +124,6 @@ private:
   string                generateScalarVec(Tree tEnv,Tree sig);
   string                generateScal(Tree tEnv,Tree sig);
 
-  string 		generateCacheCode(Tree tEnv,Tree sig, const string& exp, int context) ;
 
   string 		generateInput (Tree tEnv,Tree sig, const string& idx, int context) ;
   string 		generateOutput(Tree tEnv,Tree sig, const string& idx, Tree arg, int context) ;

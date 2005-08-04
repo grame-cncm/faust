@@ -124,7 +124,7 @@ Tree VectorCompiler::prepare(Tree L0)
 /*****************************************************************************
 						    compileMultiSignal
 *****************************************************************************/
-
+#if 0
 void VectorCompiler::compileMultiSignal (Tree L)
 {	
   L = prepare(L);		// optimize and annotate expression
@@ -144,6 +144,28 @@ void VectorCompiler::compileMultiSignal (Tree L)
     else fClass->addExecCode(subst("vec_output$0 = $1;", T(i), CS(NULLENV,sig,kVect)));
  
     fClass->addExecCode(subst("store_a_vec(&output$0[i], vec_output$0);",T(i)));
+  }
+  generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+}
+#endif
+
+void VectorCompiler::compileMultiSignal (Tree L)
+{	
+  L = prepare(L);		// optimize and annotate expression
+  for (int i = 0; i < fClass->inputs(); i++) {
+    fClass->addSlowCode(subst("float* input$0 __attribute__ ((aligned(16))); input$0 = input[$0];", T(i)));    
+  }
+  for (int i = 0; i < fClass->outputs(); i++) {
+    fClass->addSlowCode(subst("float* output$0 __attribute__ ((aligned(16))); output$0 = output[$0];", T(i)));    
+  }
+  for (int i = 0; isList(L); L = tl(L), i++) {
+    Tree sig = hd(L);
+
+    Type t = getSigType(sig, NULLENV);
+
+    if(t->boolean()==kBool) 	fClass->addExecCode(subst("store_stream(&output$0[i], bool2float($1));", T(i), CS(NULLENV,sig,kVect)));
+    else if(t->nature()==kInt) 	fClass->addExecCode(subst("store_stream(&output$0[i], int2float($1));", T(i), CS(NULLENV,sig,kVect)));
+    else fClass->addExecCode(subst("store_stream(&output$0[i], $1);", T(i), CS(NULLENV,sig,kVect)));
   }
   generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 }
@@ -231,25 +253,27 @@ string	VectorCompiler::CS (Tree env, Tree sig, int context)
   } else if((varia==kSamp)&&(context==kTrueScal)&&(getProperty(sig,fCompileVecKey,prop))) { // node already compiled as a vector and used as a true scalar
 
     string vname = getFreshID("vec_tempScal");
-    if (t->nature() == kInt) fClass->addExecCode(subst("__vec_int $0; $0.v = $1;", vname, tree2str(prop)));
-    else fClass->addExecCode(subst("__vec_float $0; $0.v = $1;", vname, tree2str(prop)));
+//    if (t->nature() == kInt) fClass->addExecCode(subst("__vec_int $0; $0.v = $1;", vname, tree2str(prop)));
+//    else fClass->addExecCode(subst("__vec_float $0; $0.v = $1;", vname, tree2str(prop)));
+    if (t->nature() == kInt) fClass->addExecCode(subst("vec_int $0($1);", vname, tree2str(prop)));
+    else fClass->addExecCode(subst("vec_float $0($1);", vname, tree2str(prop)));
 
     string temp;
     if(shcount(fSharingKeyTrueScal,sig)>1) {
 
-      temp = generateCacheCode(env,sig,subst("$0.s[0]",vname),kTrueScal);
+      temp = generateCacheCode(env,sig,subst("$0[0]",vname),kTrueScal);
       setProperty(sig,fCompileScalKey[0],tree(temp));
-      setProperty(sig,fCompileScalKey[1],tree(generateCacheCode(env,sig,subst("$0.s[1]",vname),kTrueScal)));
-      setProperty(sig,fCompileScalKey[2],tree(generateCacheCode(env,sig,subst("$0.s[2]",vname),kTrueScal)));
-      setProperty(sig,fCompileScalKey[3],tree(generateCacheCode(env,sig,subst("$0.s[3]",vname),kTrueScal)));
+      setProperty(sig,fCompileScalKey[1],tree(generateCacheCode(env,sig,subst("$0[1]",vname),kTrueScal)));
+      setProperty(sig,fCompileScalKey[2],tree(generateCacheCode(env,sig,subst("$0[2]",vname),kTrueScal)));
+      setProperty(sig,fCompileScalKey[3],tree(generateCacheCode(env,sig,subst("$0[3]",vname),kTrueScal)));
 
     } else {
    
-      temp = subst("$0.s[0]",vname);
+      temp = subst("$0[0]",vname);
       setProperty(sig,fCompileScalKey[0],tree(temp));
-      setProperty(sig,fCompileScalKey[1],tree(subst("$0.s[1]",vname)));
-      setProperty(sig,fCompileScalKey[2],tree(subst("$0.s[2]",vname)));
-      setProperty(sig,fCompileScalKey[3],tree(subst("$0.s[3]",vname)));
+      setProperty(sig,fCompileScalKey[1],tree(subst("$0[1]",vname)));
+      setProperty(sig,fCompileScalKey[2],tree(subst("$0[2]",vname)));
+      setProperty(sig,fCompileScalKey[3],tree(subst("$0[3]",vname)));
 
     }
 		
@@ -391,30 +415,34 @@ string	VectorCompiler::CS (Tree env, Tree sig, int context)
 		code = CS(env,sig,kVect);
 
 		string vname = getFreshID("vec_tempScal");
-		if (t->nature() == kInt) fClass->addExecCode(subst("__vec_int $0; $0.v = $1;", vname, code));
-		else fClass->addExecCode(subst("__vec_float $0; $0.v = $1;", vname, code));
+//		if (t->nature() == kInt) fClass->addExecCode(subst("__vec_int $0; $0.v = $1;", vname, code));
+//		else fClass->addExecCode(subst("__vec_float $0; $0.v = $1;", vname, code));
+		if (t->nature() == kInt) fClass->addExecCode(subst("vec_int $0($1);", vname, code));
+		else fClass->addExecCode(subst("vec_float $0($1);", vname, code));
 
-		setProperty(sig,fCompileScalKey[0],tree(subst("$0.s[0]",vname)));
-		setProperty(sig,fCompileScalKey[1],tree(subst("$0.s[1]",vname)));
-		setProperty(sig,fCompileScalKey[2],tree(subst("$0.s[2]",vname)));
-		setProperty(sig,fCompileScalKey[3],tree(subst("$0.s[3]",vname)));
+		setProperty(sig,fCompileScalKey[0],tree(subst("$0[0]",vname)));
+		setProperty(sig,fCompileScalKey[1],tree(subst("$0[1]",vname)));
+		setProperty(sig,fCompileScalKey[2],tree(subst("$0[2]",vname)));
+		setProperty(sig,fCompileScalKey[3],tree(subst("$0[3]",vname)));
 
-		code = subst("$0.s[0]",vname);
+		code = subst("$0[0]",vname);
 
 	  } else {
 
 	    string temp = CS(env,sig,kVect);
   
 	    string vname = getFreshID("vec_tempScal");
-	    if (t->nature() == kInt) fClass->addExecCode(subst("__vec_int $0; $0.v = $1;", vname, temp));
-	    else fClass->addExecCode(subst("__vec_float $0; $0.v = $1;", vname, temp));
+//	    if (t->nature() == kInt) fClass->addExecCode(subst("__vec_int $0; $0.v = $1;", vname, temp));
+//	    else fClass->addExecCode(subst("__vec_float $0; $0.v = $1;", vname, temp));
+	    if (t->nature() == kInt) fClass->addExecCode(subst("vec_int $0($1);", vname, temp));
+	    else fClass->addExecCode(subst("vec_float $0($1);", vname, temp));
 	    
-	    setProperty(sig,fCompileScalKey[0],tree(subst("$0.s[0]",vname)));
-	    setProperty(sig,fCompileScalKey[1],tree(subst("$0.s[1]",vname)));
-	    setProperty(sig,fCompileScalKey[2],tree(subst("$0.s[2]",vname)));
-	    setProperty(sig,fCompileScalKey[3],tree(subst("$0.s[3]",vname)));
+	    setProperty(sig,fCompileScalKey[0],tree(subst("$0[0]",vname)));
+	    setProperty(sig,fCompileScalKey[1],tree(subst("$0[1]",vname)));
+	    setProperty(sig,fCompileScalKey[2],tree(subst("$0[2]",vname)));
+	    setProperty(sig,fCompileScalKey[3],tree(subst("$0[3]",vname)));
 
-	    code = subst("$0.s[0]",vname);
+	    code = subst("$0[0]",vname);
 
 	  }
 
@@ -690,7 +718,7 @@ string VectorCompiler::generateCacheCode(Tree env, Tree sig, const string& exp, 
 	    fClass->addDeclCode(subst("int \t$0;", vname));
 	    fClass->addInitCode(subst("$0 = $1;", vname, exp));
 	  } else {
-	    fClass->addExecCode(subst("float \t$0;", vname));
+	    fClass->addDeclCode(subst("float \t$0;", vname));
 	    fClass->addInitCode(subst("$0 = $1;", vname, exp));
 	  }
 
@@ -1231,7 +1259,7 @@ string VectorCompiler::generateDelay1 (Tree env, Tree sig, Tree arg, int context
 		vname = getFreshID("vec_fmem");
 		tname = getFreshID("vec_fpre");
 		ctype = "vec_float";
-		zero = "set_vec(0.0)";
+		zero = "set_vec(0.0f)";
       } else {
 		Tree prop; getProperty(sig,fCompileScalarVecKey[0],prop);
 		tname = tree2str(prop);
@@ -1344,7 +1372,7 @@ string VectorCompiler::generateSelect2(Tree env, Tree sig, Tree selector, Tree s
 
 	if((t->nature()==kInt)&&(tsel->nature()==kInt)) fClass->addExecCode(subst("vec_int $0 = gt_vec($1, set_vec(0) );",selidx,CS(env,selector,kVect)));
 	else if((t->nature()==kReal)&&(tsel->nature()==kReal)) fClass->addExecCode(subst("vec_float $0 = gt_vec($1, set_vec(0) );",selidx,CS(env,selector,kVect)));
-	else if((t->nature()==kReal)&&(tsel->nature()==kInt)) fClass->addExecCode(subst("vec_float $0 = gt_vec(int2float($1), set_vec(0.0) );",selidx,CS(env,selector,kVect)));
+	else if((t->nature()==kReal)&&(tsel->nature()==kInt)) fClass->addExecCode(subst("vec_float $0 = gt_vec(int2float($1), set_vec(0.0f) );",selidx,CS(env,selector,kVect)));
 	else fClass->addExecCode(subst("vec_int $0 = gt_vec(float2int($1), set_vec(0) );",selidx,CS(env,selector,kVect)));
       }
       
@@ -1379,8 +1407,8 @@ string VectorCompiler::generateSelect2(Tree env, Tree sig, Tree selector, Tree s
     } else {
 
       if((t->nature()==kInt)&&(tsel->nature()==kInt)) fClass->addExecCode(subst("vec_int $0 = gt_scal($1, set_vec(0));",selidx,CS(env,selector,kScal)));
-      else if((t->nature()==kReal)&&(tsel->nature()==kReal)) fClass->addExecCode(subst("vec_float $0 = gt_scal($1,set_vec(0.0));",selidx,CS(env,selector,kScal)));
-      else if((t->nature()==kReal)&&(tsel->nature()==kInt)) fClass->addExecCode(subst("vec_float $0 = gt_scal(int2float($1),set_vec(0.0));",selidx,CS(env,selector,kScal)));
+      else if((t->nature()==kReal)&&(tsel->nature()==kReal)) fClass->addExecCode(subst("vec_float $0 = gt_scal($1,set_vec(0.0f));",selidx,CS(env,selector,kScal)));
+      else if((t->nature()==kReal)&&(tsel->nature()==kInt)) fClass->addExecCode(subst("vec_float $0 = gt_scal(int2float($1),set_vec(0.0f));",selidx,CS(env,selector,kScal)));
       else fClass->addExecCode(subst("vec_int $0 = gt_scal(float2int($1), set_vec(0));",selidx,CS(env,selector,kScal)));
     }
 
@@ -1459,7 +1487,7 @@ string  VectorCompiler::generateButton 		(Tree env, Tree sig, Tree path)
     else {
       varname = getFreshID("fbutton");
       fClass->addDeclCode(subst("float \t$0;", varname));
-      fClass->addInitCode(subst("$0 = 0.0;", varname));
+      fClass->addInitCode(subst("$0 = 0.0f;", varname));
       addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
     }
 
@@ -1480,7 +1508,7 @@ string  VectorCompiler::generateCheckbox 	(Tree env, Tree sig, Tree path)
     else {
       varname = getFreshID("fcheckbox");
       fClass->addDeclCode(subst("float \t$0;", varname));
-      fClass->addInitCode(subst("$0 = 0.0;", varname));
+      fClass->addInitCode(subst("$0 = 0.0f;", varname));
       addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
     }
 
@@ -1813,7 +1841,7 @@ static string cType (Type t)
 // Donne le nom zero correspondant ÂŽà la nature d'un signal
 static string cZero (Type t) 
 { 
-	return (t->nature() == kInt) ? "0" : "0.0";
+	return (t->nature() == kInt) ? "0" : "0.0f";
 }
 
 // Clef de proprietÂŽé associant un nom au label d'un groupe recursif
@@ -1862,7 +1890,7 @@ string  VectorCompiler::generateRecGroup (Tree env, Tree sig, Tree label, Tree l
 	fClass->addInitCode(subst("$0 = set_vec(0);", vperm)); 
       } else {
 	fClass->addDeclCode(subst("vec_float \t$0;", vperm));
-	fClass->addInitCode(subst("$0 = set_vec(0.0);", vperm)); 
+	fClass->addInitCode(subst("$0 = set_vec(0.0f);", vperm)); 
       }
 
       //fClass->addExecScalCode(subst("\t$0 = $1;", vperm, CS(tEnv2,e,kScal)),loop_unroll);
@@ -1915,7 +1943,7 @@ string  VectorCompiler::generateRecGroup (Tree env, Tree sig, Tree label, Tree l
 	  fClass->addInitCode(subst("$0 = set_vec(0);", vperm)); 
 	} else {
 	  fClass->addDeclCode(subst("vec_float \t$0;", vperm));
-	  fClass->addInitCode(subst("$0 = set_vec(0.0);", vperm));
+	  fClass->addInitCode(subst("$0 = set_vec(0.0f);", vperm));
 	}
       }
 

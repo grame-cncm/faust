@@ -140,9 +140,10 @@ static void flatListTerms(int op, vector<Tree>& v, Tree t)
 
 
 /**
- * recursive build of a balanced tree of terms for operation op
+ * recursive build of a mid balanced tree of terms for operation op
+ * between [lo..hi[ (hi excluded)
  */
-static Tree buildBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
+static Tree buildMidBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
 {
 	int q = hi-lo; 
 	assert(q>0);
@@ -151,7 +152,39 @@ static Tree buildBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
 		return v[lo];
 	} else {
 		int mi = (hi+lo)/2;
-		return sigBinOp( op, buildBalancedTerm(op,v,lo,mi), buildBalancedTerm(op,v,mi,hi) );
+		return sigBinOp( op, buildMidBalancedTerm(op,v,lo,mi), buildMidBalancedTerm(op,v,mi,hi) );
+	} 
+}
+
+/**
+ * recursive build of a right balanced tree of terms for operation op
+ * between [lo..hi[ (hi excluded)
+ */
+static Tree buildRightBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
+{
+	int q = hi-lo; 
+	assert(q>0);
+	if (q == 1) {
+		assert(lo < v.size());
+		return v[lo];
+	} else {
+		return sigBinOp( op, v[lo], buildRightBalancedTerm(op,v,lo+1,hi));
+	} 
+}
+
+/**
+ * recursive build of a left balanced tree of terms for operation op
+ * between [lo..hi[ (hi excluded)
+ */
+static Tree buildLeftBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
+{
+	int q = hi-lo; 
+	assert(q>0);
+	if (q == 1) {
+		assert(lo < v.size());
+		return v[lo];
+	} else {
+		return sigBinOp( op, buildLeftBalancedTerm(op,v,lo,hi-1), v[hi-1]);
 	} 
 }
 
@@ -159,16 +192,23 @@ static Tree buildBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
 /**
  * create a balanced term for a certain binary operation op
  */
+extern bool gBalancedSwitch;
+
 static Tree balanceTerm(int op, Tree t)
 {
+	
 	vector<Tree> v;
 	
 	flatListTerms(op, v, t);
 	if (v.size() == 0) {
 		return t;
 	} else {
-		return buildBalancedTerm(op, v, 0, v.size());
-	}
+		switch (gBalancedSwitch) {
+			case 0 : return buildLeftBalancedTerm(op, v, 0, v.size());
+			case 1 : return buildMidBalancedTerm(op, v, 0, v.size());
+			case 2 : return buildRightBalancedTerm(op, v, 0, v.size());
+		}
+	}		
 }
 
 /**
@@ -329,11 +369,27 @@ static Tree simplifyingAdd(Tree t1, Tree t2)
 static Tree reorganizingMul(Tree k, Tree t)
 {
 	Tree	x,y;
-	if (isSigMul(t,x,y)) {
+	
+	if (isNum(k) && isNum(t)) {
+	#ifdef TRACE
+		cerr << *k << " [[0]] " << *t << endl;
+	#endif
+		return mulNums(k,t);
+		
+	} else if (isSigMul(t,x,y)) {
+	#ifdef TRACE
+		cerr << " [[1]] " << endl;
+	#endif
 		return sigMul(reorganizingMul(k,x),y);
 	} else if (isSigDiv(t,x,y)) {
+	#ifdef TRACE
+		cerr << *k << " [[2]] " << *t << endl;
+	#endif
 		return sigDiv(reorganizingMul(k,x),y);
 	} else {
+	#ifdef TRACE
+		cerr << " [[end]] " << endl;
+	#endif
 		return sigMul(k,t);
 	}
 }
@@ -424,7 +480,7 @@ static Tree simplifyingMul(Tree t1, Tree t2)
 		//fprintf(stderr, " [1] ");	
 		result = mulNums(t1,t2);
 		
-	} else if (isZero(t1) || isZero(t1)) {
+	} else if (isZero(t1) || isZero(t2)) {
 		//fprintf(stderr, " [2] ");	
 		result = tree(0);
 		
@@ -444,7 +500,6 @@ static Tree simplifyingMul(Tree t1, Tree t2)
 	//fprintf(stderr, " \n ");
 	return result;	
 }
-
 
 typedef map<Tree,int> MT;
 

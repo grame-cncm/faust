@@ -29,6 +29,7 @@
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "num.hh"
+#include "xtended.hh"
 #include <map>
 
 #include "normalize.hh"
@@ -44,17 +45,23 @@ static Tree traced_simplification(Tree sig)
 {
 	assert(sig);
 #ifdef TRACE
+	cerr << ++TABBER << "Start simplification of : " << *sig << endl;
+	/*
 	fprintf(stderr, "\nStart simplification of : "); 
 	printSignal(sig, stderr); 
 	fprintf(stderr, "\n");	
+	*/
 #endif
 	Tree r = simplification(sig);
 #ifdef TRACE
+	cerr << --TABBER << "Simplification of : " << *sig << " Returns : " << *r << endl;
+	/*
 	fprintf(stderr, "Simplification of : "); 
 	printSignal(sig, stderr); 
 	fprintf(stderr, " -> ");
 	printSignal(r, stderr);	
 	fprintf(stderr, "\n");	
+	*/
 #endif
 	return r;
 }
@@ -72,8 +79,18 @@ static Tree simplification (Tree sig)
 	assert(sig);
 	int		opnum;
 	Tree	t1, t2;
+
+	xtended* xt = (xtended*) getUserData(sig);
+	// primitive elements
+	if (xt) 								
+	{
+		//return 3;
+		vector<Tree> args;
+		for (int i=0; i<sig->arity(); i++) { args.push_back( sig->branch(i) ); }
+		return xt->computeSigOutput(args);
 		
-	if (isSigBinOp(sig, &opnum, t1, t2)) {
+	} else if (isSigBinOp(sig, &opnum, t1, t2)) {
+	
 		BinOp* op = gBinOpTable[opnum];
 		
 		Node n1 = t1->node();

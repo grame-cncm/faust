@@ -50,13 +50,14 @@ public:
   ScalarCompiler ( Klass* k) : Compiler(k),fCompileKey(nil),fSharingKey(nil)
   {}
 
-  void 		compileMultiSignal  (Tree lsig);
-  void		compileSingleSignal (Tree lsig);
+  virtual void 		compileMultiSignal  (Tree lsig);
+  virtual void		compileSingleSignal (Tree lsig);
+  virtual string	CS (Tree tEnv, Tree sig, int ctx=0);
+  virtual string 	generateCacheCode(Tree tEnv,Tree sig, const string& exp, int context=0) ;
 
 
 private:
   string 	getFreshID (const char* prefix);
-  string	CS (Tree tEnv, Tree sig);
   Tree 		makeCompileKey(Tree t);
   void 		compilePreparedSignalList (Tree lsig);
   Tree          prepare(Tree L0);
@@ -70,8 +71,7 @@ private:
   // generation du code 
   string		generateCode (Tree tEnv, Tree sig);
 	
-  string 		generateCacheCode	(Tree tEnv, Tree sig, const string& exp);
-	
+  string 		generateXtended		(Tree tEnv, Tree sig);
   string 		generateDelay1		(Tree tEnv, Tree sig, Tree arg);
   string 		generateFixDelay	(Tree tEnv, Tree sig, Tree arg, Tree size);
   string 		generatePrefix 		(Tree tEnv, Tree sig, Tree x, Tree e);
@@ -107,29 +107,5 @@ private:
   string 		generateVBargraph 	(Tree tEnv, Tree sig, Tree label, Tree min, Tree max, const string& exp);
   string 		generateHBargraph	(Tree tEnv, Tree sig, Tree label, Tree min, Tree max, const string& exp);
 };
-
-/*****************************************************************************
-							   	utilities
-*****************************************************************************/
-
-#if 0
-static Klass* signal2klass (const string& name, Tree sig)
-{
-	Type t = getSigType(sig, NULLENV);
-	if (t->nature() == kInt) {
-
-		ScalarCompiler C( new SigIntGenKlass(name) );
-		C.compileSingleSignal(sig);
-		return C.getClass();
-
-	} else {
-
-		ScalarCompiler C( new SigFloatGenKlass(name) );
-		C.compileSingleSignal(sig);
-		return C.getClass();
-
-	}		
-}
-#endif
 
 #endif

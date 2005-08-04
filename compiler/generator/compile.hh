@@ -61,11 +61,13 @@ public:
 
 	virtual void		compileMultiSignal  (Tree lsig) = 0;
 	virtual void		compileSingleSignal (Tree lsig) = 0;
-	Klass*		getClass() { return (Klass*)fClass; }	
+  	virtual string		CS (Tree tEnv, Tree sig, int ctx = 0) = 0;
+	virtual string 		generateCacheCode(Tree tEnv, Tree sig, const string& exp, int context=0)=0;
+	
+	Klass*				getClass() { return (Klass*)fClass; }	
 		
 protected:
   //string 		getFreshID (const char* prefix);
-  //string		CS (Tree tEnv, Tree sig);
   //Tree 		makeCompileKey(Tree t); 
   virtual Tree 		prepare (Tree L0);
   virtual Tree 		prepare2 (Tree L0);

@@ -34,12 +34,14 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "privatise.hh"
 #include "prim2.hh"
+#include "xtended.hh"
 
 static Klass* signal2klass (const string& name, Tree sig)
 {
@@ -126,10 +128,10 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 {	
 	L = prepare(L);		// optimize, share and annotate expression
 	for (int i = 0; i < fClass->inputs(); i++) {
-		fClass->addSlowCode(subst("float* input$0 = input[$0];", T(i)));
+		fClass->addSlowCode(subst("float* input$0 __attribute__ ((aligned(16))); input$0 = input[$0];", T(i)));
 	}
 	for (int i = 0; i < fClass->outputs(); i++) {
-		fClass->addSlowCode(subst("float* output$0 = output[$0];", T(i)));
+		fClass->addSlowCode(subst("float* output$0 __attribute__ ((aligned(16))); output$0 = output[$0];", T(i)));
 	}
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
@@ -161,15 +163,11 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
  * @return the C code translation of sig as a string
  */
 
-string	ScalarCompiler::CS (Tree env, Tree sig)
+string	ScalarCompiler::CS (Tree env, Tree sig, int ctxt)
 {
 	Tree t; 
 #if 0	
-	fprintf(stderr, "CALL CS("); 
-		print(env, stderr);  
-		fprintf(stderr, ", ");
-		printSignal(sig, stderr); 
-	fprintf(stderr, ")\n");
+	cerr << "ScalarCompiler::CS (" << *sig << ") with env " << *env << endl;
 #endif
 	
 	if (getProperty(sig, fCompileKey, t)) {
@@ -191,11 +189,7 @@ string	ScalarCompiler::CS (Tree env, Tree sig)
 		setProperty(sig, fCompileKey, tree(r));
 		
 #if 0
-		fprintf(stderr, "RETURN of CS("); 
-			print(env, stderr);  
-			fprintf(stderr, ", ");
-			printSignal(sig, stderr); 
-		fprintf(stderr, ") -computed-> %s \n", r);
+		cerr << "ScalarCompiler::CS (" << *sig << ") with env " << *env << " -computed-> " << *r << endl;
 #endif
 		return s;
 	}
@@ -228,8 +222,9 @@ string	ScalarCompiler::generateCode (Tree env, Tree sig)
 	Tree 	c, sel, x, y, z, var, le, label, id, ff, largs, type, name, file;
 		
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");  
-	    
-		 if ( isSigInt(sig, &i) ) 					{ return T(i); }
+	
+		 if ( getUserData(sig) ) 					{ return generateXtended(env, sig); }
+	else if ( isSigInt(sig, &i) ) 					{ return T(i); }
 	else if ( isSigReal(sig, &r) ) 					{ return T(r); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput 		(env, sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(env, sig, T(i), CS(env,x));}
@@ -332,7 +327,7 @@ string ScalarCompiler::generateFFun(Tree tEnv, Tree sig, Tree ff, Tree largs)
 							   CACHE CODE
 *****************************************************************************/
 
-string ScalarCompiler::generateCacheCode(Tree tEnv, Tree sig, const string& exp)
+string ScalarCompiler::generateCacheCode(Tree tEnv, Tree sig, const string& exp, int context)
 {
 	string 		vname, ctype;
 	int 		sharing = shcount(fSharingKey, sig);
@@ -851,5 +846,44 @@ string ScalarCompiler::generateSelect3 	(Tree tEnv, Tree sig, Tree sel, Tree s1,
 	fClass->addExecCode(subst("$0[1] = $2;", var, CS(tEnv, s2)));
 	fClass->addExecCode(subst("$0[2] = $3;", var, CS(tEnv, s3)));
 	return subst("$0[$1]", var, CS(tEnv, sel));
+}
+
+/**
+ * retrieve the type annotation of sig
+ * @param sig the signal we want to know the type
+ */
+ 
+/*
+void auditSigType(Tree sig)
+{
+	Tree tt;
+	if (!getProperty(sig, NULLENV, tt)) {
+		cerr << "AUDIT SIG TYPE : No type info for : " << *sig << endl;
+	} else {
+		AudioType* type = (AudioType*)tree2ptr(tt);
+		cerr << "AUDIT SIG TYPE : Signal " << *sig << " has type " << *type << endl;
+	}
+}		
+*/
+
+string ScalarCompiler::generateXtended 	(Tree tEnv, Tree sig)
+{
+	xtended* 		p = (xtended*) getUserData(sig);
+	vector<string> 	args;
+	vector<Type> 	types;
+	
+	for (int i=0; i<sig->arity(); i++) {
+		args.push_back(CS(tEnv, sig->branch(i)));
+		types.push_back(getSigType(sig->branch(i), tEnv));
+		//auditSigType(sig->branch(i));
+		//types.push_back(TINPUT);
+	}
+	
+	if (p->needCache()) {
+		return generateCacheCode(tEnv, sig, p->generateCode(fClass, args, types)); 
+	} else {
+		return p->generateCode(fClass, args, types);
+	}
+		
 }
 
