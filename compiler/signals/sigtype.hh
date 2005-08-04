@@ -110,6 +110,8 @@ class AudioType
 	virtual ostream& print(ostream& dst) const		= 0;			///< print nicely a type
 };
 
+//printing
+inline ostream& operator << (ostream& s, const AudioType& n) { return n.print(s); }
 
 
 /**

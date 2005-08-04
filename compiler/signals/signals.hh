@@ -164,7 +164,7 @@ inline bool isMinusOne	(Tree a)	{ assert(a); return isMinusOne(a->node()); }
 Tree sigProj (int i, Tree rgroup);	
 bool isProj (Tree t, int* i, Tree& rgroup);
 
-inline bool isNum(Tree& t, num& n)
+inline bool isNum(const Tree& t, num& n)
 {
 	float 		f;
 	int 		i;

@@ -43,6 +43,7 @@
 #include "prim2.hh"
 #include "tlib.hh"
 #include "sigorderrules.hh"
+#include "xtended.hh"
 
 Tree ORDERPROP = tree(symbol("OrderProp"));
 
@@ -85,8 +86,19 @@ static int infereSigOrder(Tree sig)
 	int 		i;
 	float 		r;
 	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
+
+	xtended* xt = (xtended*) getUserData(sig);
+	// primitive elements
+	if (xt) 								
+	{
+		//return 3;
+		vector<int> args;
+		for (int i=0; i<sig->arity(); i++) { args.push_back( O(sig->branch(i)) ); }
+		return xt->infereSigOrder(args);
+	}
+
 	
-	if (isSigInt(sig, &i))						return 0;
+	else if (isSigInt(sig, &i))					return 0;
 		
 	else if (isSigReal(sig, &r)) 				return 0;
 		

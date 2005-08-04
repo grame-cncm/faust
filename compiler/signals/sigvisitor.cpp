@@ -1,6 +1,8 @@
 #include "sigvisitor.hh"
 #include <iostream>
 #include <assert.h>
+#include "xtended.hh"
+
 
 using namespace std;
 
@@ -20,7 +22,7 @@ void sigvisitor::visit(Tree sig)
 	
 	assert(sig);
 	
-	if (isSigInt(sig, &i))						visitInt (sig, i);
+		 if (isSigInt(sig, &i))					visitInt (sig, i);
 		
 	else if (isSigReal(sig, &r)) 				visitReal (sig, r);
 	

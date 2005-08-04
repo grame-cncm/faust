@@ -24,6 +24,7 @@
 #include "propagate.hh"
 #include "prim2.hh"
 #include <assert.h>
+#include "xtended.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -155,8 +156,16 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 	Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body;
 	
+	
+	xtended* xt = (xtended*)getUserData(box);
+	
+	if (xt)	{
+		assert(lsig.size() == xt->arity());
+		return makeList(xt->computeSigOutput(lsig));
+	}
+		
 	// numbers and constants
-	if (isBoxInt(box, &i)) 	{ 
+	else if (isBoxInt(box, &i)) 	{ 
 		assert(lsig.size()==0); 
 		return makeList(sigInt(i)); 
 	}
