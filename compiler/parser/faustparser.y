@@ -3,6 +3,7 @@
 
 %{
 
+#include "xtended.hh"
 #include "boxes.hh"
 #include "prim2.hh"
 #include "signals.hh"
@@ -57,7 +58,9 @@ Tree unquote(char* str)
 %left WITH
 
 /* Block Diagram Algebra */
-%left SEQ SPLIT MIX
+/*%left SEQ SPLIT MIX*/
+%left SPLIT MIX
+%left SEQ
 %left PAR
 %left REC
 
@@ -92,6 +95,34 @@ Tree unquote(char* str)
 %token HBARGRAPH
 %token VBARGRAPH
 %token ATTACH
+
+
+%token ACOS
+%token ASIN
+%token ATAN
+%token ATAN2
+%token COS
+%token SIN
+%token TAN
+
+%token EXP
+%token LOG
+%token LOG10
+%token POW
+%token SQRT
+
+%token ABS
+%token MIN
+%token MAX
+
+%token FMOD
+%token REMAINDER
+
+%token FLOOR
+%token CEIL
+%token RINT
+
+
 	   
 %token RDTBL
 %token RWTBL
@@ -173,6 +204,7 @@ Tree unquote(char* str)
 
 %type <exp> vbargraph	
 %type <exp> hbargraph	
+	
 
 
 		
@@ -281,6 +313,32 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				
 				| ATTACH						{$$ = boxPrim2(sigAttach);}
 				
+				| ACOS							{$$ = gAcosPrim->box(); }
+				| ASIN							{$$ = gAsinPrim->box(); }
+				| ATAN							{$$ = gAtanPrim->box(); }
+				| ATAN2							{$$ = gAtan2Prim->box(); }
+				| COS							{$$ = gCosPrim->box(); }
+				| SIN							{$$ = gSinPrim->box(); }
+				| TAN							{$$ = gTanPrim->box(); }
+
+				| EXP							{$$ = gExpPrim->box(); }
+				| LOG							{$$ = gLogPrim->box(); }
+				| LOG10							{$$ = gLog10Prim->box(); }
+				| POW							{$$ = gPowPrim->box(); }
+				| SQRT							{$$ = gSqrtPrim->box(); }
+
+				| ABS							{$$ = gAbsPrim->box(); }
+				| MIN							{$$ = gMinPrim->box(); }
+				| MAX							{$$ = gMaxPrim->box(); }
+
+				| FMOD							{$$ = gFmodPrim->box(); }
+				| REMAINDER						{$$ = gRemainderPrim->box(); }
+
+				| FLOOR							{$$ = gFloorPrim->box(); }
+				| CEIL							{$$ = gCeilPrim->box(); }
+				| RINT							{$$ = gRintPrim->box(); }
+				
+								
 				| RDTBL 						{$$ = boxPrim3(sigReadOnlyTable);}
 				| RWTBL							{$$ = boxPrim5(sigWriteReadTable);}
 				

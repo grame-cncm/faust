@@ -98,6 +98,32 @@ LETTER   [a-zA-Z]
 "hbargraph"	return HBARGRAPH;
 "attach"	return ATTACH;
 
+"acos"		return ACOS;
+"asin"		return ASIN;
+"atan"		return ATAN;
+"atan2"		return ATAN2;
+
+"cos"		return COS;
+"sin"		return SIN;
+"tan"		return TAN;
+
+"exp"		return EXP;
+"log"		return LOG;
+"log10"		return LOG10;
+"pow"		return POW;
+"sqrt"		return SQRT;
+
+"abs"		return ABS;
+"min"		return MIN;
+"max"		return MAX;
+
+"fmod"		return FMOD;
+"remainder"	return REMAINDER;
+
+"floor"		return FLOOR;
+"ceil"		return CEIL;
+"rint"		return RINT;
+
 "seq"		return ISEQ;
 "par"		return IPAR;
 "sum"		return ISUM;
