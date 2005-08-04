@@ -80,6 +80,10 @@ storage of trees.
 #include "tree.hh"
 #include <fstream>
 
+Tabber TABBER(1);	
+extern Tabber TABBER;
+
+
 static void error(const char * s, Tree t)
 {
 	fprintf(stderr, "ERROR : %s (%p)\n", s, t);
@@ -170,6 +174,7 @@ ostream& CTree::print (ostream& fout) const
 		// print the adresse of the tree
 		fout << "<" << this << ">@"; 
 	}
+	/*
 	switch (node().type()) {
 		case kIntNode : 
 			fout << node().getInt(); 
@@ -184,6 +189,8 @@ ostream& CTree::print (ostream& fout) const
 			fout << node().getPointer(); 
 			break;
 	}
+	*/
+	fout << node();
 	int a = arity();
 	if (a > 0) {
 		int i; char sep;
@@ -326,3 +333,16 @@ bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d)
 		return false;
 	}
 }
+
+// July 2005, support for symbol user data
+
+void* getUserData(Tree t)
+{
+	Sym s;
+	if (isSym(t->node(), &s)) {
+		return getUserData(s);
+	} else {
+		return 0;
+	}
+}
+

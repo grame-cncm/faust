@@ -63,10 +63,11 @@ class Symbol
  // Fields
     char*			fName;										///< Name of the symbol
     uint			fHash;										///< Hash key computed from the name and used to determine the hash table entry
-    const Symbol*	fNext;										///< Next symbol in the hash table entry
+    Symbol*			fNext;										///< Next symbol in the hash table entry
+	void*			fData;										///< Field to user disposal to store additional data
 	
  // Constructors & destructors
-    Symbol (const char *str, uint hsh, const Symbol *nxt); 		///< Constructs a new symbol ready to be placed in the hash table
+    Symbol (const char* str, uint hsh, Symbol* nxt); 			///< Constructs a new symbol ready to be placed in the hash table
    ~Symbol () {}												///< The Destructor is never used
 	
  // Others
@@ -74,21 +75,27 @@ class Symbol
 	static uint 	calcHashKey (const char* str);				///< Compute the 32-bits hash key of string \p str
 
  // Static methods
-	static const Symbol*	get (const string& str);			///< Get the symbol of name \p str
-	static const Symbol* 	get (const char* str);				///< Get the symbol of name \p str
-	static const Symbol* 	prefix (const char* str);			///< Creates a new symbol of name prefixed by \p str
-	static bool 			isnew (const char* str);			///< Returns \b true if no symbol of name \p str exists
+	static Symbol*		get (const string& str);				///< Get the symbol of name \p str
+	static Symbol* 		get (const char* str);					///< Get the symbol of name \p str
+	static Symbol* 		prefix (const char* str);				///< Creates a new symbol of name prefixed by \p str
+	static bool 		isnew (const char* str);				///< Returns \b true if no symbol of name \p str exists
 	
  public:
+	ostream& 				print (ostream& fout) const; 								///< print a symbol on a stream
 
-	friend const Symbol*	symbol (const char* str) 	{ return Symbol::get(str); } 	///< Returns (and creates if new) the symbol of name \p str
-	friend const Symbol*	symbol (const string& str) 	{ return Symbol::get(str); }	///< Returns (and creates if new) the symbol of name \p str
-	friend const Symbol*	unique (const char* str) 	{ return Symbol::prefix(str);}	///< Returns a new unique symbol of name strxxx
-	friend const char* 		name (const Symbol* sym) 	{ return sym->fName; }			///< Returns the name of a symbol
+	friend Symbol*			symbol (const char* str) 	{ return Symbol::get(str); } 	///< Returns (and creates if new) the symbol of name \p str
+	friend Symbol*			symbol (const string& str) 	{ return Symbol::get(str); }	///< Returns (and creates if new) the symbol of name \p str
+	friend Symbol*			unique (const char* str) 	{ return Symbol::prefix(str);}	///< Returns a new unique symbol of name strxxx
+	friend const char* 		name (Symbol* sym) 			{ return sym->fName; }			///< Returns the name of a symbol
+	
+	friend void* 			getUserData (Symbol* sym) 			{ return sym->fData; }		///< Returns user data
+	friend void 			setUserData (Symbol* sym, void* d) 	{ sym->fData=d; }			///< Set user data
 		
 };
 
+inline ostream& operator << (ostream& s, const Symbol& n) { return n.print(s); }
 
-typedef const Symbol* Sym;
+
+typedef Symbol* Sym;
 
 #endif    

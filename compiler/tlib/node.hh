@@ -53,8 +53,10 @@
 #ifndef     __NODE__
 #define     __NODE__
 
+#include <iostream>
 #include "symbol.hh"
 
+using namespace std;
 
 /**
  * Tags used to define the type of a Node
@@ -102,7 +104,12 @@ class Node
 	operator int() 	 const 	{ return (fType == kIntNode) ? fData.i : (fType == kFloatNode) ? int(fData.f) : 0 ; }
 	operator float() const 	{ return (fType == kIntNode) ? float(fData.i) : (fType == kFloatNode) ? fData.f : 0.0 ; }
 	
+	ostream& 	print (ostream& fout) const; 					///< print a node on a stream
 };
+
+//printing
+inline ostream& operator << (ostream& s, const Node& n) { return n.print(s); }
+
 
 
 //-------------------------------------------------------------------------
@@ -294,5 +301,7 @@ inline const Node eqNode (const Node& x, const Node& y)
 inline const Node neNode (const Node& x, const Node& y)	
 	{ return (isFloat(x)|isFloat(y)) ? Node(float(x)!=float(y)) : Node(int(x)!=int(y)); }
 #endif
+
+
 
 #endif    

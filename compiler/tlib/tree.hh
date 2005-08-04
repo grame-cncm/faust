@@ -174,6 +174,7 @@ int 		tree2int (Tree t);		///< if t has a node of type int, return it otherwise 
 float 		tree2float (Tree t);	///< if t has a node of type float, return it otherwise error
 const char* tree2str (Tree t);		///< if t has a node of type symbol, return its name otherwise error
 void* 		tree2ptr (Tree t);		///< if t has a node of type ptr, return it otherwise error
+void*		getUserData(Tree t);	///< if t has a node of type symbol, return the associated user data
 
 // pattern matching
 bool isTree (const Tree& t, const Node& n); 
@@ -221,4 +222,23 @@ void updateAperture (Tree t);				////< update aperture field of a tree in symbol
 
 //---------------------------------------------------------------------------
 
+class Tabber
+{
+	int fIndent;
+	int fReserve;
+  public:
+	Tabber(int n=0)			{ fIndent = n; }
+	Tabber& operator++() 	{ fIndent++; return *this;}
+	Tabber& operator--() 	{ assert(fIndent > 0); fIndent--; return *this; }
+	
+	ostream& print (ostream& fout) 
+						{ fIndent += fReserve; fReserve = 0; for (int i=0; i<fIndent; i++) fout << '\t'; return fout; }
+};
+
+//printing
+inline ostream& operator << (ostream& s, Tabber& t) { return t.print(s); }
+
+extern Tabber TABBER;
+
+	 
 #endif    

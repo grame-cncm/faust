@@ -20,6 +20,9 @@
  ************************************************************************/
 
 #include    "symbol.hh"
+#include 	<iostream>
+
+using namespace std;
 
 /**
  * Hash table used to store the symbols
@@ -34,7 +37,7 @@ Symbol*	Symbol::gSymbolTable[kHashTableSize];
  * \return a symbol of name str
  */
   
-const Symbol* Symbol::get(const string& str)
+Symbol* Symbol::get(const string& str)
 {
 	char 	buf[1024];
 	int		i;
@@ -55,14 +58,14 @@ const Symbol* Symbol::get(const string& str)
  * \return a symbol of name str
  */ 
 
-const Symbol* Symbol::get(const char* str)
+Symbol* Symbol::get(const char* str)
 {
     uint 			hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
-	const Symbol*	item = gSymbolTable[bckt];
+	Symbol*			item = gSymbolTable[bckt];
 
     while ( item && !item->equiv(hsh,str) ) item = item->fNext;
-	const Symbol* r = item ? item : gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]);
+	Symbol* r = item ? item : gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]);
 	return r;
 }
 
@@ -77,7 +80,7 @@ bool Symbol::isnew(const char* str)
 {
     uint 			hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
-	const Symbol*	item = gSymbolTable[bckt];
+	Symbol*			item = gSymbolTable[bckt];
 	
     while ( item && !item->equiv(hsh,str) ) item = item->fNext;
 	return item == 0;
@@ -90,7 +93,7 @@ bool Symbol::isnew(const char* str)
  * \return a symbol of name \p prefix++n 
  */
 
-const Symbol* Symbol::prefix (const char* str)
+Symbol* Symbol::prefix (const char* str)
 {
 	char 	name[256];
 	
@@ -143,7 +146,7 @@ uint Symbol::calcHashKey (const char* str)
  * \param nxt a pointer to the next symbol in the hash table entry
  */
 
-Symbol::Symbol(const char* str, uint hsh, const Symbol* nxt)
+Symbol::Symbol(const char* str, uint hsh, Symbol* nxt)
 {
 	int len = strlen(str);
 	
@@ -151,5 +154,12 @@ Symbol::Symbol(const char* str, uint hsh, const Symbol* nxt)
     memcpy(fName, str, len+1);
     fHash = hsh;
     fNext = nxt;
+	fData = 0;
 }
 
+
+
+ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a stream
+{
+	return fout << fName;
+}

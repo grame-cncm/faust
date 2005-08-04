@@ -111,7 +111,7 @@ inline const num operator>> (const num& x, const num& y)
 	{ return num(int(x)>>int(y)); }
 
 
-// operations bolléennes sur les bits
+// operations booléennes sur les bits
 inline const num operator& (const num& x, const num& y)	
 	{ return num(int(x)&int(y)); }
 
