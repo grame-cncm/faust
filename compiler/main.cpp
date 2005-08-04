@@ -85,6 +85,7 @@ bool			gDetailsSwitch 	= false;
 bool            gVectorSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
+int            	gBalancedSwitch = 1;
 
 string			gArchFile;
 string			gOutputFile;
@@ -141,6 +142,18 @@ bool process_cmdline(int argc, char* argv[])
 			gDrawSVGSwitch = true;
 			i += 1;
 			
+		} else if (isCmd(argv[i], "-lb", "--left-balanced")) {
+			gBalancedSwitch = 0;
+			i += 1;
+			
+		} else if (isCmd(argv[i], "-mb", "--mid-balanced")) {
+			gBalancedSwitch = 1;
+			i += 1;
+			
+		} else if (isCmd(argv[i], "-rb", "--right-balanced")) {
+			gBalancedSwitch = 2;
+			i += 1;
+			
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -167,7 +180,7 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.3\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.4c\n";
 	cout << "Copyright (C) 2002-2005, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }	
 
@@ -181,11 +194,14 @@ void printhelp()
 	cout << "\noptions :\n";
 	cout << "---------\n";
 	
-	cout << "-h \t\tprint this help message\n";
-	cout << "-v \t\tprint compiler version information\n";
-	cout << "-d \t\tprint compilation details\n";
-	cout << "-ps \t\tprint block-diagram postscript file\n";
-	cout << "-svg \t\tprint block-diagram svg file\n";
+	cout << "-h \t\tprint this --help message\n";
+	cout << "-v \t\tprint compiler --version information\n";
+	cout << "-d \t\tprint compilation --details\n";
+	cout << "-ps \t\tprint block-diagram --postscript file\n";
+	cout << "-svg \t\tprint block-diagram --svg file\n";
+	cout << "-lb \t\tgenerate --left-balanced expressions\n";
+	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
+	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-a <file> \tC++ wrapper file\n";
 	cout << "-o <file> \tC++ output file\n";
 	
