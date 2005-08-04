@@ -44,6 +44,7 @@
 #include "boxes.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
+#include "xtended.hh"
 
 
 Tree BOXTYPEPROP = tree(symbol("boxTypeProp"));
@@ -86,8 +87,11 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 {
 	Tree a, b, ff, l, s;
 	//Tree abstr, genv, vis, lenv;
+	
+	xtended* p = (xtended*) getUserData(t);
 
-	if (isBoxInt(t)) 			{ *inum = 0; *onum = 1; } 
+	if (p) 						{ *inum = p->arity(); *onum = 1; }
+	else if (isBoxInt(t)) 		{ *inum = 0; *onum = 1; } 
 	else if (isBoxReal(t)) 		{ *inum = 0; *onum = 1; } 
 	else if (isBoxWire(t)) 		{ *inum = 1; *onum = 1; }
 	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; } 

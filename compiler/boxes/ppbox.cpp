@@ -26,6 +26,7 @@
 #include "ppbox.hh"
 #include "signals.hh"
 #include "prim2.hh"
+#include "xtended.hh"
 
 
 char * prim0name(CTree *(*ptr) ())
@@ -116,9 +117,12 @@ ostream& boxpp::print (ostream& fout) const
 	
 	const char* str;
 	
+	xtended* xt = (xtended*) getUserData(box);
+
 	
 	// primitive elements
-	     if (isBoxInt(box, &i))			fout << i; 
+		 if (xt) 						fout << xt->name();
+	else if (isBoxInt(box, &i))			fout << i; 
 	else if (isBoxReal(box, &r))		fout << r; 
 	else if (isBoxCut(box))				fout << '!'; 
 	else if (isBoxWire(box))			fout << '_'; 
@@ -224,7 +228,7 @@ ostream& boxpp::print (ostream& fout) const
 	//a completer
 	else {
 		//fout << tree2str(box);
-		fout << "not_a_box[[  " << *box << " ]]";
+		fout << "box::print : not_a_box[[  " << *box << " ]]";
 	}
 
 	return fout;
