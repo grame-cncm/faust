@@ -263,7 +263,7 @@ int main (int argc, char* argv[])
 	}
 
 	
-	if (gDetailsSwitch) { cout << "process = " << boxpp(process) << ";\n"; }
+	if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 	
 	
 	if (gDrawPSSwitch) { drawBlockDiagram(process, "PS"); }
@@ -273,7 +273,7 @@ int main (int argc, char* argv[])
 	int numInputs, numOutputs;
 	getBoxType(process, &numInputs, &numOutputs);
 	
-	if (gDetailsSwitch) { cout <<"process has " <<numInputs <<" inputs, and " <<numOutputs <<" outputs" <<endl; }
+	if (gDetailsSwitch) { cerr <<"process has " <<numInputs <<" inputs, and " <<numOutputs <<" outputs" <<endl; }
 	
 	
 	/****************************************************************
@@ -281,6 +281,7 @@ int main (int argc, char* argv[])
 	*****************************************************************/
 
 	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
+	if (gDetailsSwitch) { cerr << "output signals are : " << endl;  printSignal(lsignals, stderr); }
 	
 	
 	/****************************************************************
