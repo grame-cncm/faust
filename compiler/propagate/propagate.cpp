@@ -24,6 +24,7 @@
 #include "propagate.hh"
 #include "prim2.hh"
 #include <assert.h>
+#include "ppbox.hh"
 #include "xtended.hh"
 
 ////////////////////////////////////////////////////////////////////////
@@ -142,6 +143,19 @@ siglist listLift(const siglist& l)
  *\param lsig list of signals to be propagated into box
  *\return list of resulting signals
  */
+/*
+// for debugging purposes
+
+siglist realpropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
+
+siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
+{
+	cerr << "propagate in " << boxpp(box) << endl; 
+	for (int i=0; i<lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
+	cerr << endl;
+	return realpropagate (slotenv, path, box, lsig);
+}
+*/
 
 siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 {
@@ -337,7 +351,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		siglist l2 = mix(l1, in2);
 		return propagate(slotenv, path, t2, l2);
 	}
-	
+/*	
 	else if (isBoxRec(box, t1, t2)) 	{ 
 		int in1, out1, in2, out2;
 		getBoxType(t1, &in1, &out1);
@@ -346,6 +360,21 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		siglist l0 = makeSigProjList(ref(1), in2);
 		siglist l1 = propagate(slotenv, path, t2, l0);
 		siglist l2 = propagate(slotenv, path, t1, listConcat(l1,listLift(lsig)));
+		Tree g = rec(listConvert(l2));
+		return makeSigProjList(g, out1);
+	}
+*/	
+	else if (isBoxRec(box, t1, t2)) 	{ 
+		// Bug Corrected
+		int in1, out1, in2, out2;
+		getBoxType(t1, &in1, &out1);
+		getBoxType(t2, &in2, &out2);
+		
+		Tree slotenv2 = lift(slotenv); // the environment must also be lifted
+		
+		siglist l0 = makeSigProjList(ref(1), in2);
+		siglist l1 = propagate(slotenv2, path, t2, l0);
+		siglist l2 = propagate(slotenv2, path, t1, listConcat(l1,listLift(lsig)));
 		Tree g = rec(listConvert(l2));
 		return makeSigProjList(g, out1);
 	}
