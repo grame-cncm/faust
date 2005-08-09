@@ -150,6 +150,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
 	tab(n,fout); fout << "class " << fKlassName << " {";
 	
 	tab(n,fout); fout << "  private:";
+		tab(n+1,fout); fout << "int \tfSamplingFreq;";
 	
 		for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->println(n+1, fout);
 	
