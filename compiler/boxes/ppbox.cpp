@@ -103,7 +103,7 @@ static void streambinop(ostream& fout, Tree t1, char* op, Tree t2, int curPriori
 
 ostream& boxpp::print (ostream& fout) const
 {
-	int		i;
+	int		i, id;
 	float	r;
 	prim0	p0;
 	prim1	p1;
@@ -113,7 +113,7 @@ ostream& boxpp::print (ostream& fout) const
 	prim5	p5;
 
 	Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, 
-			body, fun, args, abstr, genv, vis, lenv, ldef;
+			body, fun, args, abstr, genv, vis, lenv, ldef, slot;
 	
 	const char* str;
 	
@@ -224,6 +224,12 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isImportFile(box, label)) {
 		fout << "import("
 			<< tree2str(label) << ')';
+	}
+	else if (isBoxSlot(box, &id)) {
+		fout << "#" << id;
+	}
+	else if (isBoxSymbolic(box, slot, body)) {
+		fout << "[" << boxpp(slot) << ">" << boxpp(body) << "]";
 	}
 	//a completer
 	else {
