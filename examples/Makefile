@@ -48,6 +48,13 @@ bundle :
 	install -d moduledir
 	$(MAKE) DEST='moduledir/' ARCH='module.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.compile
 
+msp :
+	install -d mspdir
+	$(MAKE) DEST='mspdir/' ARCH='max-msp.cpp' LIB='' -f Makefile.mspcompile
+
+vst :
+	install -d vstdir
+	$(MAKE) DEST='vstdir/' ARCH='vst.cpp' LIB='' -f Makefile.vstcompile
 
 sndfile :
 	install -d sndfiledir
