@@ -1,0 +1,28 @@
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+
+# Setup this variable to access the MAX/MSP SDK headers
+cycling := "/Volumes/MacOSX Panther/Applications/MaxMSP 4.5/MaxMSP-SDK/4.5 headers/c74support"
+
+# Setup this variable with the location for the compiled MAX/MSP externals
+install_plug_ins := $(addprefix $(HOME), /Faust_MSP)
+
+all :  $(appl)
+
+
+$(DEST)% : %.dsp
+	install -d $@
+	cp -r $(cycling) $@
+	/Developer/Tools/CpMac -r /usr/local/lib/faust/MSP/* $@
+	faust $(VEC) -a $(ARCH) *.lib $< -o $@/max-msp-output.cpp
+	xcodebuild -project $@/Faust~.xcode clean
+	xcodebuild -project $@/Faust~.xcode
+	mv $@/build/Faust~.mxo $@/build/$(<:.dsp=~.mxo)
+	rm -r $@/build/Faust~.build
+	install -d $(install_plug_ins)
+	cp -r $@/build/$(<:.dsp=~.mxo) $(install_plug_ins)
+	
+
+clean :
+	rm -f $(DEST)
