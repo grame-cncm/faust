@@ -2,7 +2,7 @@ Compilation on OSX With Xcode
 ==============================
 
 
-¥ The VSTSDK folder from the VST SDK has to be copied in the at the same level of the VST.xcode project.
+¥ The VSTSDK folder from the VST SDK has to be copied at the same level of the VST.xcode project (either manually or using the makefile)
 
 ¥ To compile a Faust VST plug-in:
 
