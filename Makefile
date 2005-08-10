@@ -1,7 +1,7 @@
 version := 0.9.4d
 prefix := /usr/local
 arch := $(wildcard architecture/*.*)
-mfiles := $(wildcard examples/Makefile.*)
+mfiles := $(wildcard examples/Makefile.*) 
 
 all : 
 	$(MAKE) -C compiler
@@ -24,6 +24,9 @@ install :
 	mkdir -p $(prefix)/lib/faust/
 	install compiler/faust $(prefix)/bin
 	install -m 0644 $(arch) $(prefix)/lib/faust/
+	cp -r architecture/MSP $(prefix)/lib/faust/
+	cp -r architecture/VST $(prefix)/lib/faust/
+	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 
 	
