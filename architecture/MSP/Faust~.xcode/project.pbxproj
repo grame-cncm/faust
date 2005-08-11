@@ -53,14 +53,14 @@
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "\"$(LOCAL_LIBRARY_DIR)/Frameworks\"";
-				HEADER_SEARCH_PATHS = "../c74support/msp-includes ../c74support/max-includes";
+				HEADER_SEARCH_PATHS = "c74support/msp-includes c74support/max-includes";
 				LIBRARY_SEARCH_PATHS = "";
 				OPTIMIZATION_CFLAGS = "-O3";
 				OTHER_CFLAGS = "-mcpu=G4 -funroll-loops";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PRECOMPILE_PREFIX_HEADER = YES;
-				PREFIX_HEADER = "../c74support/max-includes/ext_carbon_prefix.h";
+				PREFIX_HEADER = "c74support/max-includes/ext_carbon_prefix.h";
 				PRODUCT_NAME = "Faust~";
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
