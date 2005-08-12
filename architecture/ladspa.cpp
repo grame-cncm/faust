@@ -537,8 +537,8 @@ void init_descriptor(LADSPA_Descriptor* descriptor)
 	descriptor->Label = "none";
 	descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
 	descriptor->Name = "none";
-	descriptor->Maker = "none";
-	descriptor->Copyright = "none";
+	descriptor->Maker = "Yann Orlarey";
+	descriptor->Copyright = "GPL";
 	
 	descriptor->ImplementationData = 0;
 	
@@ -565,11 +565,12 @@ const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index)
 			// allocate temporaries dsp and portCollector to build the plugin description
 			mydsp* p = new mydsp();
 			if (p) {
-				portCollector	c(p->getNumInputs(), p->getNumOutputs());
-				p->buildUserInterface(&c);
+				portCollector*	c=new portCollector(p->getNumInputs(), p->getNumOutputs());
+				p->buildUserInterface(c);
 				gDescriptor = new LADSPA_Descriptor;
 				init_descriptor(gDescriptor);
-				c.fillPortDescription(gDescriptor);
+				c->fillPortDescription(gDescriptor);
+				delete p;
 			} else {
 				printf("Memory Error : unable to allocate the dsp object\n");
 			}
