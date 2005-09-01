@@ -2,7 +2,7 @@ dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
 
-# Setup this variable to access the MAX/MSP SDK headers
+# Setup this variable to access the VST SDK files
 vst_sdk := "/Volumes/Document1/Developpement/ProjectsCVS/JackCVS/JackOSX/jackosx/jackplugins/JACK-ASinsert/VST/VSTSDK"
 
 # Setup this variable with the location for the compiled VST plug-ins
