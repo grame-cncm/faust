@@ -2,6 +2,7 @@
  // real time pitch shifter
  //---------------------------- 
  
+import("music.lib");
  
 transpose (w, x, s, sig)  =
 	fdelay1s(d,sig)*fmin(d/x,1) + fdelay1s(d+w,sig)*(1-fmin(d/x,1)) 

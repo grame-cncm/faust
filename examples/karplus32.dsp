@@ -3,6 +3,7 @@
 //		with 32 resonators in parallel
 //-----------------------------------------------
 
+import("music.lib");
 
 
 // Excitator

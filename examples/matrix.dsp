@@ -2,6 +2,7 @@
 // Audio Matrix : N inputs x M outputs
 //-----------------------------------------------
 
+import("music.lib");
 
 Fader(in)		= db2linear(vslider("Input %in", -10, -96, 4, 0.1));
 Mixer(N,out) 	= hgroup("Output %out", par(in, N, *(Fader(in)) ) :> _ );							

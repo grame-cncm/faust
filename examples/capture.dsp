@@ -3,6 +3,7 @@
 //		playback the recorded sound in loop
 //-------------------------------------------------
 
+import("music.lib");
 
 B = button("Capture");	// Capture sound while pressed
 I = int(B);				// convert button signal from float to integer

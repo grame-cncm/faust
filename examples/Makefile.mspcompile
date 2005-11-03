@@ -15,7 +15,7 @@ $(DEST)% : %.dsp
 	install -d $@
 	cp -r $(cycling) $@
 	/Developer/Tools/CpMac -r /usr/local/lib/faust/MSP/* $@
-	faust $(VEC) -a $(ARCH) *.lib $< -o $@/max-msp-output.cpp
+	faust $(VEC) -a $(ARCH) $< -o $@/max-msp-output.cpp
 	xcodebuild -project $@/Faust~.xcode clean
 	xcodebuild -project $@/Faust~.xcode
 	mv $@/build/Faust~.mxo $@/build/$(<:.dsp=~.mxo)

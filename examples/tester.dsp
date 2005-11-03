@@ -2,6 +2,9 @@
 // Audio tester : send a sinus to a loudspeaker
 //-----------------------------------------------
 
+import("music.lib");
+
+
 
 // User interface
 //----------------

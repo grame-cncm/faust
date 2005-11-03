@@ -17,7 +17,7 @@
 // 	d = distance de la source (entre 0 et 1)
 //------------------------------------------------------
 
-scaler(i,n,a,d) = sqrt(fmax(0.0, 1.0 - fabs( fmod(a+0.5+float(n-i)/n, 1.0) - 0.5 ) * (n*d))) * (d/2.0+0.5);
+scaler(i,n,a,d) = sqrt(max(0.0, 1.0 - abs( fmod(a+0.5+float(n-i)/n, 1.0) - 0.5 ) * (n*d))) * (d/2.0+0.5);
 
 
 

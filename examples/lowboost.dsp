@@ -5,6 +5,7 @@
 //	page 53 	: second order shelving filter design
 //------------------------------------------------------------------
 
+import("music.lib");
 
 //--------------- Second Order Generic Transfert Function -------------------------
 

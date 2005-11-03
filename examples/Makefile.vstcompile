@@ -15,7 +15,7 @@ $(DEST)% : %.dsp
 	install -d $@
 	cp -r $(vst_sdk) $@
 	cp -r /usr/local/lib/faust/VST/* $@
-	faust $(VEC) -a $(ARCH) *.lib $< -o $@/vst-output.cpp
+	faust $(VEC) -a $(ARCH) $< -o $@/vst-output.cpp
 	xcodebuild -project $@/VST.xcode clean
 	xcodebuild -project $@/VST.xcode
 	mv $@/build/FaustVST.vst $@/build/$(<:.dsp=.vst)

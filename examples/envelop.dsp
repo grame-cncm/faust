@@ -1,4 +1,4 @@
-
+import("music.lib");
 
 //-------------------------------------------------
 // 		ADSR Envelop Generator 
