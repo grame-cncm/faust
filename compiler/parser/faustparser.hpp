@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 1.875d.  */
+/* A Bison parser, made by GNU Bison 2.0.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
    Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
@@ -29,149 +29,197 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     MIX = 258,
-     SPLIT = 259,
-     SEQ = 260,
-     PAR = 261,
-     REC = 262,
-     NE = 263,
-     GE = 264,
-     GT = 265,
-     EQ = 266,
-     LE = 267,
-     LT = 268,
-     OR = 269,
-     SUB = 270,
-     ADD = 271,
-     RSH = 272,
-     LSH = 273,
-     XOR = 274,
-     AND = 275,
-     MOD = 276,
-     DIV = 277,
-     MUL = 278,
-     FDELAY = 279,
-     DELAY1 = 280,
-     APPL = 281,
-     MEM = 282,
-     PREFIX = 283,
-     INTCAST = 284,
-     FLOATCAST = 285,
-     FFUNCTION = 286,
-     FCONSTANT = 287,
-     BUTTON = 288,
-     CHECKBOX = 289,
-     VSLIDER = 290,
-     HSLIDER = 291,
-     NENTRY = 292,
-     VGROUP = 293,
-     HGROUP = 294,
-     TGROUP = 295,
-     HBARGRAPH = 296,
-     VBARGRAPH = 297,
-     ATTACH = 298,
-     RDTBL = 299,
-     RWTBL = 300,
-     SELECT2 = 301,
-     SELECT3 = 302,
-     INT = 303,
-     FLOAT = 304,
-     WIRE = 305,
-     CUT = 306,
-     ENDDEF = 307,
-     VIRG = 308,
-     LPAR = 309,
-     RPAR = 310,
-     LBRAQ = 311,
-     RBRAQ = 312,
-     WITH = 313,
-     DEF = 314,
-     IPAR = 315,
-     ISEQ = 316,
-     ISUM = 317,
-     IPROD = 318,
-     STRING = 319,
-     FSTRING = 320,
-     IDENT = 321,
-     EXTRA = 322
+     WITH = 258,
+     MIX = 259,
+     SPLIT = 260,
+     SEQ = 261,
+     PAR = 262,
+     REC = 263,
+     NE = 264,
+     GE = 265,
+     GT = 266,
+     EQ = 267,
+     LE = 268,
+     LT = 269,
+     OR = 270,
+     SUB = 271,
+     ADD = 272,
+     RSH = 273,
+     LSH = 274,
+     XOR = 275,
+     AND = 276,
+     MOD = 277,
+     DIV = 278,
+     MUL = 279,
+     FDELAY = 280,
+     DELAY1 = 281,
+     DOT = 282,
+     APPL = 283,
+     MEM = 284,
+     PREFIX = 285,
+     INTCAST = 286,
+     FLOATCAST = 287,
+     FFUNCTION = 288,
+     FCONSTANT = 289,
+     BUTTON = 290,
+     CHECKBOX = 291,
+     VSLIDER = 292,
+     HSLIDER = 293,
+     NENTRY = 294,
+     VGROUP = 295,
+     HGROUP = 296,
+     TGROUP = 297,
+     HBARGRAPH = 298,
+     VBARGRAPH = 299,
+     ATTACH = 300,
+     ACOS = 301,
+     ASIN = 302,
+     ATAN = 303,
+     ATAN2 = 304,
+     COS = 305,
+     SIN = 306,
+     TAN = 307,
+     EXP = 308,
+     LOG = 309,
+     LOG10 = 310,
+     POW = 311,
+     SQRT = 312,
+     ABS = 313,
+     MIN = 314,
+     MAX = 315,
+     FMOD = 316,
+     REMAINDER = 317,
+     FLOOR = 318,
+     CEIL = 319,
+     RINT = 320,
+     RDTBL = 321,
+     RWTBL = 322,
+     SELECT2 = 323,
+     SELECT3 = 324,
+     INT = 325,
+     FLOAT = 326,
+     LAMBDA = 327,
+     WIRE = 328,
+     CUT = 329,
+     ENDDEF = 330,
+     VIRG = 331,
+     LPAR = 332,
+     RPAR = 333,
+     LBRAQ = 334,
+     RBRAQ = 335,
+     DEF = 336,
+     IMPORT = 337,
+     COMPONENT = 338,
+     IPAR = 339,
+     ISEQ = 340,
+     ISUM = 341,
+     IPROD = 342,
+     STRING = 343,
+     FSTRING = 344,
+     IDENT = 345,
+     EXTRA = 346
    };
 #endif
-#define MIX 258
-#define SPLIT 259
-#define SEQ 260
-#define PAR 261
-#define REC 262
-#define NE 263
-#define GE 264
-#define GT 265
-#define EQ 266
-#define LE 267
-#define LT 268
-#define OR 269
-#define SUB 270
-#define ADD 271
-#define RSH 272
-#define LSH 273
-#define XOR 274
-#define AND 275
-#define MOD 276
-#define DIV 277
-#define MUL 278
-#define FDELAY 279
-#define DELAY1 280
-#define APPL 281
-#define MEM 282
-#define PREFIX 283
-#define INTCAST 284
-#define FLOATCAST 285
-#define FFUNCTION 286
-#define FCONSTANT 287
-#define BUTTON 288
-#define CHECKBOX 289
-#define VSLIDER 290
-#define HSLIDER 291
-#define NENTRY 292
-#define VGROUP 293
-#define HGROUP 294
-#define TGROUP 295
-#define HBARGRAPH 296
-#define VBARGRAPH 297
-#define ATTACH 298
-#define RDTBL 299
-#define RWTBL 300
-#define SELECT2 301
-#define SELECT3 302
-#define INT 303
-#define FLOAT 304
-#define WIRE 305
-#define CUT 306
-#define ENDDEF 307
-#define VIRG 308
-#define LPAR 309
-#define RPAR 310
-#define LBRAQ 311
-#define RBRAQ 312
-#define WITH 313
-#define DEF 314
-#define IPAR 315
-#define ISEQ 316
-#define ISUM 317
-#define IPROD 318
-#define STRING 319
-#define FSTRING 320
-#define IDENT 321
-#define EXTRA 322
+#define WITH 258
+#define MIX 259
+#define SPLIT 260
+#define SEQ 261
+#define PAR 262
+#define REC 263
+#define NE 264
+#define GE 265
+#define GT 266
+#define EQ 267
+#define LE 268
+#define LT 269
+#define OR 270
+#define SUB 271
+#define ADD 272
+#define RSH 273
+#define LSH 274
+#define XOR 275
+#define AND 276
+#define MOD 277
+#define DIV 278
+#define MUL 279
+#define FDELAY 280
+#define DELAY1 281
+#define DOT 282
+#define APPL 283
+#define MEM 284
+#define PREFIX 285
+#define INTCAST 286
+#define FLOATCAST 287
+#define FFUNCTION 288
+#define FCONSTANT 289
+#define BUTTON 290
+#define CHECKBOX 291
+#define VSLIDER 292
+#define HSLIDER 293
+#define NENTRY 294
+#define VGROUP 295
+#define HGROUP 296
+#define TGROUP 297
+#define HBARGRAPH 298
+#define VBARGRAPH 299
+#define ATTACH 300
+#define ACOS 301
+#define ASIN 302
+#define ATAN 303
+#define ATAN2 304
+#define COS 305
+#define SIN 306
+#define TAN 307
+#define EXP 308
+#define LOG 309
+#define LOG10 310
+#define POW 311
+#define SQRT 312
+#define ABS 313
+#define MIN 314
+#define MAX 315
+#define FMOD 316
+#define REMAINDER 317
+#define FLOOR 318
+#define CEIL 319
+#define RINT 320
+#define RDTBL 321
+#define RWTBL 322
+#define SELECT2 323
+#define SELECT3 324
+#define INT 325
+#define FLOAT 326
+#define LAMBDA 327
+#define WIRE 328
+#define CUT 329
+#define ENDDEF 330
+#define VIRG 331
+#define LPAR 332
+#define RPAR 333
+#define LBRAQ 334
+#define RBRAQ 335
+#define DEF 336
+#define IMPORT 337
+#define COMPONENT 338
+#define IPAR 339
+#define ISEQ 340
+#define ISUM 341
+#define IPROD 342
+#define STRING 343
+#define FSTRING 344
+#define IDENT 345
+#define EXTRA 346
 
 
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 27 "parser/faustparser.y"
+#line 52 "parser/faustparser.y"
 typedef union YYSTYPE {
 	CTree* 	exp;
 } YYSTYPE;
-/* Line 1285 of yacc.c.  */
-#line 175 "parser/faustparser.hpp"
+/* Line 1318 of yacc.c.  */
+#line 223 "parser/faustparser.hpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

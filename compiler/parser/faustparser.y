@@ -3,6 +3,7 @@
 
 %{
 
+#include "tree.hh"
 #include "xtended.hh"
 #include "boxes.hh"
 #include "prim2.hh"
