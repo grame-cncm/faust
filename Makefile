@@ -1,4 +1,4 @@
-version := 0.9.4d
+version := 0.9.5
 prefix := /usr/local
 arch := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*) 
@@ -7,7 +7,10 @@ all :
 	$(MAKE) -C compiler
 
 
-.PHONY: clean depend install ininstall dist
+.PHONY: clean depend install ininstall dist parser
+
+parser :
+	$(MAKE) -C compiler parser
 
 clean :
 	$(MAKE) -C compiler clean
