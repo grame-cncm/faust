@@ -47,7 +47,8 @@ PSDev::PSDev(const char* ficName,float largeur, float hauteur)
 	fprintf(fic_repr,"0.6 unit setlinewidth\n");	// lines' width
 
 	fprintf(fic_repr,"/Times-Roman findfont   %% Get the basic font for text\n");
-	fprintf(fic_repr,"15 unit scalefont       %% Scale the font to 15 units\n");
+	//fprintf(fic_repr,"15 unit scalefont       %% Scale the font to 15 units\n");
+	fprintf(fic_repr,"10 unit scalefont       %% Scale the font to 10 units\n");
 	fprintf(fic_repr,"setfont                 %% Make it the current font\n\n");
 }
 
@@ -61,7 +62,8 @@ void PSDev::rect(float x,float y,float l,float h)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
-	fprintf(fic_repr,"1.5 unit setlinewidth\n");
+	//fprintf(fic_repr,"1.5 unit setlinewidth\n");
+	fprintf(fic_repr,"1.0 unit setlinewidth\n");
 	fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);    
 	fprintf(fic_repr,"0 unit %f unit rlineto\n",h);
 	fprintf(fic_repr,"%f unit 0 unit rlineto\n",l);
@@ -156,7 +158,8 @@ void PSDev::dasharray(float x1,float y1,float x2,float y2)
 void PSDev::text(float x,float y,const char* nom)
 {
 	fprintf(fic_repr,"newpath\n");
-    fprintf(fic_repr,"%f unit %f unit moveto\n",(x-4)-(strlen(nom)-1)*3.8,y+2);
+    //fprintf(fic_repr,"%f unit %f unit moveto\n",(x-4)-(strlen(nom)-1)*3.8,y+2);
+   fprintf(fic_repr,"%f unit %f unit moveto\n",(x-0)-(strlen(nom)-1)*3.8,y+2);
     fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"1 -1 scale\n\n");
 	fprintf(fic_repr,"(%s) show\n",nom);
