@@ -79,7 +79,6 @@
 #include "node.hh"
 #include <vector>
 #include <map>
-#include <assert.h>
 
 //---------------------------------API---------------------------------------
 
@@ -135,6 +134,7 @@ class CTree
 	~CTree (); 
  	
 	static Tree make (const Node& n, int ar, Tree br[]);		///< return a new tree or an existing equivalent one
+	static Tree make(const Node& n, const tvec& br);			///< return a new tree or an existing equivalent one
 
  	// Accessors
  	const Node& node() const		{ return fNode; 		}	///< return the content of the tree

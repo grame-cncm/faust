@@ -168,6 +168,18 @@ Tree CTree::make(const Node& n, int ar, Tree* tbl)
 	return (t) ? t : new CTree(hk, n, br);
 }
 
+
+Tree CTree::make(const Node& n, const tvec& br)
+{
+	uint 	hk  = calcTreeHash(n, br);
+	Tree	t = gHashTable[hk % kHashTableSize];
+	
+	while (t && !t->equiv(n, br)) {
+		t = t->fNext;
+	}
+	return (t) ? t : new CTree(hk, n, br);
+}
+
 ostream& CTree::print (ostream& fout) const
 {
 	if (gDetails) {

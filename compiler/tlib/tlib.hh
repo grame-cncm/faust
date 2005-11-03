@@ -166,7 +166,7 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 #include "tree.hh"
 #include "num.hh"
 #include "list.hh"
-//#include "recursive.hh"
 #include "shlysis.hh"
+#include "recness.hh"
 
 #endif

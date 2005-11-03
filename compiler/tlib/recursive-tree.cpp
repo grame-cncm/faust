@@ -175,11 +175,13 @@ static Tree liftn(Tree t, int threshold)
 		
 	} else {
 		int n = t->arity();
-		Tree	br[4];
+		//Tree	br[4];
+		tvec	br(n);
 		for (int i = 0; i < n; i++) {
 			br[i] = liftn(t->branch(i), threshold);
 		}
-		return CTree::make(t->node(), n, br);
+		//return CTree::make(t->node(), n, br);
+		return CTree::make(t->node(), br);
 	}
 		
 }
@@ -225,13 +227,15 @@ static Tree calcDeBruijn2Sym (Tree t)
 		
 	} else {
 		
-		Tree	br[4];
+		//Tree	br[4];
 		int 	a = t->arity();
+		tvec	br(a);
 		
 		for (int i = 0; i < a; i++) {
 			br[i] = deBruijn2Sym(t->branch(i));
 		}
-		return CTree::make(t->node(), a, br);
+		//return CTree::make(t->node(), a, br);
+		return CTree::make(t->node(), br);
 	}
 }
 
@@ -248,11 +252,13 @@ static Tree substitute(Tree t, int level, Tree id)
 	if (isRec(t,body)) 		 return rec(substitute(body, level+1, id));
 	
 	int 	ar = t->arity();
-	Tree	br[4];
+	//Tree	br[4];
+	tvec	br(ar);
 	for (int i = 0; i < ar; i++) {
 		br[i] = substitute(t->branch(i), level, id);
 	}
-	return CTree::make(t->node(), ar, br);
+	//return CTree::make(t->node(), ar, br);
+	return CTree::make(t->node(), br);
 }
 
 
