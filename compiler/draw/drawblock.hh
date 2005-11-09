@@ -23,4 +23,4 @@
  
 #include "boxes.hh"
 
-void drawBlockDiagram(Tree bd,char* dev);
+void drawBlockDiagram(Tree bd, const char* dev);

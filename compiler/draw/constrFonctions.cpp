@@ -23,7 +23,7 @@
  
 #include "constrFonctions.h"
 #include <typeinfo>
-#include "string.h"
+#include <string.h>
 
 using namespace std;
 
@@ -122,31 +122,48 @@ bool find_config_param(treeRepr* END)
 	return OKtoRepr;
 }
 
+static bool isSVGFile(const char* fname)
+{
+	int i = strlen(fname);
+	return (i>4) && (strcmp(&fname[i-4], ".svg") == 0);
+}
+
+static bool isPSFile(const char* fname)
+{
+	int i = strlen(fname);
+	return (i>3) && (strcmp(&fname[i-3], ".ps") == 0);
+}
+
+ 
 
 /*********************************************************/
 /* draw_All: draws the final representation (SVG or PS). */
 /*********************************************************/
-void draw_All(representation* END,char* devName) //Draws the final representation
+void draw_All(representation* END, const char* devName) //Draws the final representation
 {
 	int marge = 5;
 	int i;
 	vector<wire*> allWires,tmp;
 
-	if(strcmp(devName,"SVG")==0)
+//	if(strcmp(devName,"SVG")==0)
+	if (isSVGFile(devName))
 	{
-		SVGDev mydev("reprSVG.svg",END->getLargeur()+2*marge, END->getHauteur()+2*marge);
+		SVGDev mydev(devName,END->getLargeur()+2*marge, END->getHauteur()+2*marge);
 		END->draw(mydev,allWires,marge,marge,tmp,tmp,1);
 		for(i=0;i<(int)allWires.size();i++)
 			allWires[i]->draw(mydev);
-		cout<<"Representation terminee dans reprSVG.svg"<<endl;
+		//cout<<"Representation terminee dans reprSVG.svg"<<endl;
 	}
-	else if(strcmp(devName,"PS")==0)
+//	else if(strcmp(devName,"PS")==0)
+	else if (isPSFile(devName))
 	{
-		PSDev mydev("reprPS.ps",END->getLargeur()+2*marge, END->getHauteur()+2*marge);
+		PSDev mydev(devName,END->getLargeur()+2*marge, END->getHauteur()+2*marge);
 		END->draw(mydev,allWires,marge,marge,tmp,tmp,1);
 		for(i=0;i<(int)allWires.size();i++)
 			allWires[i]->draw(mydev);
-		cout<<"Representation terminee dans reprPS.ps"<<endl;
+		//cout<<"Representation terminee dans reprPS.ps"<<endl;
+	} else {
+		cout << "ERROR, unrecognized graphic file format : " << devName << endl;
 	}
 }
 

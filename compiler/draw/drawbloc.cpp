@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include "boxes.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
@@ -38,6 +39,7 @@
 #include "drawblock.hh"
 #include "constrFonctions.h"
 #include "ppbox.hh"
+#include "xtended.hh"
 #include <ostream>
 #include <sstream>
 
@@ -49,13 +51,13 @@ treeRepr* graphicPrim (float f);
 treeRepr* graphicPrim (const char* name, int ins, int outs);
 
 
-void drawBlockDiagram(Tree bd,char* dev)
+void drawBlockDiagram(Tree bd, const char* dev)
 {
 	treeRepr* tR = graphicBlockDiagram(bd);
 	if(find_config_param(tR))
 	{
 		representation* ENDrepr = tR->treeToRepr();
-		draw_All(ENDrepr,dev);  // dev doit etre "PS" ou "SVG"
+		draw_All(ENDrepr, dev);  // dev doit etre "PS" ou "SVG"
 	}
 	else
 	{
@@ -72,6 +74,14 @@ treeRepr* graphicUI(Tree t)
 	return graphicPrim(strdup(s.str().c_str()), 0, 1);
 }
 
+treeRepr* bargraph(Tree t)
+{
+	stringstream 	s;
+	s << boxpp(t);
+	
+	return graphicPrim(strdup(s.str().c_str()), 1, 1);
+}
+
 
 treeRepr* graphicBlockDiagram(Tree t)
 {
@@ -85,7 +95,28 @@ treeRepr* graphicBlockDiagram(Tree t)
 	prim4	p4;
 	prim5	p5;
 	
-	if (isBoxInt(t, &i))		 	{ return graphicPrim(i); }
+	
+	xtended* xt = (xtended*)getUserData(t);
+	
+	if (xt)	{
+		return graphicPrim(xt->name(), xt->arity(), 1);
+	}
+		
+	else if (isBoxSlot(t, &i))		{ 
+		char c[64]; snprintf(c, 63, "slot(%d)",i);
+		return graphicPrim(strdup(c), 0, 1); 
+	}
+	else if (isBoxSymbolic(t,a,b))	{ 
+		assert(isBoxSlot(a,&i));
+		char c[64]; snprintf(c, 63, "slot(%d)",i);
+		return new treeNormal("Serie", graphicPrim(strdup(c), 1, 0), graphicBlockDiagram(b)); 
+	}
+		
+	else if (isBoxVBargraph(t))		{return bargraph(t); }
+	else if (isBoxHBargraph(t))		{return bargraph(t); }
+	
+	//--------------------------------------------------------
+	else if (isBoxInt(t, &i))		{ return graphicPrim(i); }
 	else if (isBoxReal(t, &r)) 		{ return graphicPrim(r); } 
 	else if (isBoxWire(t)) 			{ return graphicPrim("_", 1, 1); }
 	else if (isBoxCut(t)) 			{ return graphicPrim("!", 1, 0);  } 
@@ -154,10 +185,10 @@ static int length (const char* s)
 
 treeRepr* graphicPrim (const char* name, int ins, int outs)
 {
-	int Hsize = 7;
+	int Hsize = 5;
 	const int MARGE = 8;
 	int m = (ins>outs) ? ins : outs;
-	int c = 2*MARGE*m;
+	int c = MARGE*(m+1);
 	int	i;
 			
 	vector<float> ipos(ins);
@@ -175,7 +206,7 @@ treeRepr* graphicPrim (const char* name, int ins, int outs)
 	for (i = 0; i < ins; i++) 	ipos[i] = c/ins * (i+0.5);
 	for (i = 0; i < outs; i++) 	opos[i] = c/outs * (i+0.5);
 	
-	return new treeBloc(name, Hsize*(1+length(name)), c, ipos, opos);
+	return new treeBloc(name, max(24,MARGE+Hsize*length(name)), c, ipos, opos);
 }
 	
 

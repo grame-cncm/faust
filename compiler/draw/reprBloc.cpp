@@ -84,10 +84,11 @@ void reprBloc::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<w
 				}
 			}
 			
-		}
-		else if (nom[0]=='!' && nom[1]==0) { wi[0]->setBlockEndCut(true); }
-		else
-		{
+		} else if (nom[0]=='!' && nom[1]==0) { 
+		
+			if ((int)wo.size()>0) wi[0]->setBlockEndCut(true); 
+			
+		} else {
 			dev.rect(x,y,largeur,hauteur);
 				
 			//disks and arrows for ins and outs:

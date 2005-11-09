@@ -33,7 +33,7 @@
 using namespace std;
 
 bool find_config_param(treeRepr*);
-void draw_All(representation*,char*);
+void draw_All(representation*, const char*);
 void combinaisons(treeParam*,vector<treeParam*>&,treeRepr*);
 representation* treeToRepr(treeRepr*);
 

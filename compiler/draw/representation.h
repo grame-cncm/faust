@@ -39,8 +39,8 @@ using namespace std;
 // constant values linked to the geometric construction:
 
 const float delta_hb = 5;       // height between two blocks
-const float delta_hf = 5;       // height between two wires
-const float delta_lf = 5;	    // width between two wires
+const float delta_hf = 8; //5;       // height between two wires
+const float delta_lf = 8; //5;	    // width between two wires
 const float delta_lb = 5;		// width between two blocks
 const float delta_lbSM = 7;	    // width between two blocks for split ans merge
 const float cote_carre = 2.5;   // square for the recursion

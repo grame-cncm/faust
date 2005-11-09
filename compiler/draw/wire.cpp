@@ -64,9 +64,17 @@ void wire::draw(device& dev)
 	}
 }
 
+static void checkjoint(const segment& a, const segment& b)
+{
+	if (a.x2 == b.x1 && a.y2 == b.y1) {
+	} else {
+		fprintf(stderr, "join [%f,%f : %f,%f] [%f,%f : %f,%f]\n", a.x1, a.y1, a.x2, a.y2, b.x1, b.y1, b.x2, b.y2);
+	} 
+}
 void wire::addSeg(float x1,float y1,float x2,float y2)
 {
 	segment s(x1,y1,x2,y2);
+	if (lSeg.size() > 0) { checkjoint(lSeg[lSeg.size()-1], s); }
 	lSeg.push_back(s);
 }
 
@@ -78,6 +86,7 @@ void wire::addSeg(float x2,float y2)
 
 void wire::addSeg(segment seg)
 {
+	if (lSeg.size() > 0) { checkjoint(lSeg[lSeg.size()-1], seg); }
 	lSeg.push_back(seg);
 }
 
