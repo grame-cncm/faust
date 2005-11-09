@@ -79,6 +79,7 @@
 #include "node.hh"
 #include <vector>
 #include <map>
+#include <assert.h>
 
 //---------------------------------API---------------------------------------
 
