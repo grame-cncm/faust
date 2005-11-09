@@ -3,6 +3,7 @@
    which is then loaded dynamically by Q's faust module. */
 
 #include <stdlib.h>
+#include <math.h>
 
 #ifdef __GNUC__
 
