@@ -66,6 +66,7 @@ char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 
 	if (ptr == sigFixDelay) return "@";
 	if (ptr == sigPrefix) 	return "prefix";
+	if (ptr == sigAttach) 	return "attach";
 	
 	return "prim2???";
 }
@@ -196,6 +197,14 @@ ostream& boxpp::print (ostream& fout) const
 			 << tree2str(label) << ", "
 			 << tree2float(min) << ", "
 			 << tree2float(max) << ')';  
+	}
+	else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{ 
+		fout << "nentry(" 
+			 << tree2str(label) << ", "
+			 << tree2float(cur) << ", "
+			 << tree2float(min) << ", "
+			 << tree2float(max) << ", "
+			 << tree2float(step)<< ')';  
 	}
 	else if (isList(box)) {
 		
