@@ -243,7 +243,9 @@ int main (int argc, char* argv[])
 	list<string>::iterator s;
 	gResult2 = nil;
 	yyerr = 0;
+	string masterFilename = "unknow";
 	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
+		if (s == gInputFiles.begin()) masterFilename = *s;
 		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
 	}
 	if (yyerr > 0) {
@@ -266,8 +268,8 @@ int main (int argc, char* argv[])
 	if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 	
 	
-	if (gDrawPSSwitch) { drawBlockDiagram(process, "PS"); }
-	if (gDrawSVGSwitch) { drawBlockDiagram(process, "SVG"); }
+	if (gDrawPSSwitch) 	{ drawBlockDiagram( process, subst("$0.ps",  masterFilename).c_str() ); }
+	if (gDrawSVGSwitch) { drawBlockDiagram( process, subst("$0.svg", masterFilename).c_str() ); }
 	
 			
 	int numInputs, numOutputs;
