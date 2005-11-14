@@ -3,15 +3,15 @@ all : jackgtk
 alsagtk :
 	install -d alsagtkdir
 	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' -f Makefile.compile
-	
+
 jackgtk :
 	install -d jackgtkdir
 	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
-	
+
 vecalsagtk :
 	install -d vecalsagtkdir
 	$(MAKE) VEC='-vec' DEST='vecalsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config gtk+-2.0 --cflags --libs`' -f Makefile.compile
-	
+
 vecjackgtk :
 	install -d vecjackgtkdir
 	$(MAKE) VEC='-vec' DEST='vecjackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
@@ -19,7 +19,7 @@ vecjackgtk :
 ladspa :
 	install -d ladspadir
 	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
-	
+
 jackwx :
 	install -d jackwxdir
 	$(MAKE) DEST='jackwxdir/' ARCH='jack-wx.cpp' LIB='`pkg-config jack  --cflags --libs` `wx-config --cflags --libs`' -f Makefile.compile
@@ -64,6 +64,10 @@ plot :
 	install -d plotdir
 	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' LIB='' -f Makefile.compile
 
+supercollider :
+	install -d supercolliderdir
+	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
+
 clean :
-	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir sndfiledir plotdir
-	
+	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir sndfiledir plotdir supercolliderdir
+
