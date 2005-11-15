@@ -39,6 +39,7 @@
 #include "ppbox.hh"	
 #include "enrobage.hh"	
 #include "eval.hh"	
+#include "description.hh"	
 			
 #include <map>
 #include <string>
@@ -85,6 +86,7 @@ bool			gDetailsSwitch 	= false;
 bool            gVectorSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
+bool            gPrintXMLSwitch = false;
 int            	gBalancedSwitch = 1;
 
 string			gArchFile;
@@ -136,6 +138,10 @@ bool process_cmdline(int argc, char* argv[])
 
 		} else if (isCmd(argv[i], "-ps", "--postscript")) {
 			gDrawPSSwitch = true;
+			i += 1;
+			
+		} else if (isCmd(argv[i], "-xml", "--xml")) {
+			gPrintXMLSwitch = true;
 			i += 1;
 			
 		} else if (isCmd(argv[i], "-svg", "--svg")) {
@@ -199,6 +205,7 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
 	cout << "-svg \t\tprint block-diagram --svg file\n";
+	cout << "-xml \t\tgenerate an --xml description file\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
@@ -244,6 +251,7 @@ int main (int argc, char* argv[])
 	gResult2 = nil;
 	yyerr = 0;
 	string masterFilename = "unknow";
+	
 	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
 		if (s == gInputFiles.begin()) masterFilename = *s;
 		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
@@ -294,6 +302,8 @@ int main (int argc, char* argv[])
 	if (gVectorSwitch) 	C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
 	else 				C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
 	
+	if (gPrintXMLSwitch) C->setDescription(new Description());
+	
 	C->compileMultiSignal(lsignals); 
 	
 	
@@ -335,6 +345,15 @@ int main (int argc, char* argv[])
 		C->getClass()->printIncludeFile(*dst);
 		C->getClass()->println(0,*dst);
 	}
-	
+
+	if (gPrintXMLSwitch) {
+		Description* 	D = C->getDescription(); assert(D);
+		ostream* 		xout = new ofstream(subst("$0.xml", masterFilename).c_str());
+
+		D->inputs(C->getClass()->inputs());
+		D->outputs(C->getClass()->outputs());
+		D->print(0, *xout);
+	}
+
 	return 0;
 }

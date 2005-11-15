@@ -39,8 +39,8 @@ main.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 main.o: tlib/shlysis.hh tlib/recness.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh
 main.o: signals/sigtyperules.hh signals/sigprint.hh generator/simplify.hh generator/privatise.hh
 main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh generator/Text.hh
-main.o: generator/compile_vect.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh
-main.o: generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh draw/drawblock.hh
+main.o: generator/description.hh generator/compile_vect.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh
+main.o: boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh draw/drawblock.hh
 boxes/boxes.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxes.o: tlib/shlysis.hh tlib/recness.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
 boxes/boxes.o: signals/sigtype.hh tlib/smartpointer.hh
@@ -63,7 +63,8 @@ draw/drawbloc.o: signals/sigtype.hh tlib/smartpointer.hh draw/reprLib.h draw/rep
 draw/drawbloc.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h draw/reprMerge.h
 draw/drawbloc.o: draw/reprGroup.h draw/reprParam.h draw/devLib.h draw/SVGDev.h draw/PSDev.h draw/treeLib.h
 draw/drawbloc.o: draw/treeRepr.h draw/treeBloc.h draw/treeNormal.h draw/treeGroup.h draw/treeParam.h draw/drawblock.hh
-draw/drawbloc.o: draw/constrFonctions.h
+draw/drawbloc.o: draw/constrFonctions.h extended/xtended.hh generator/klass.hh generator/uitree.hh
+draw/drawbloc.o: signals/sigvisitor.hh
 draw/PSDev.o: draw/PSDev.h draw/device.h
 draw/reprBloc.o: draw/reprBloc.h draw/representation.h draw/device.h draw/wire.h
 draw/representation.o: draw/representation.h draw/device.h draw/wire.h
@@ -163,23 +164,28 @@ extended/tanprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh
 generator/codegeneration.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/codegeneration.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh signals/binop.hh
 generator/codegeneration.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh generator/uitree.hh
-generator/codegeneration.o: generator/Text.hh signals/sigprint.hh signals/sigtyperules.hh signals/prim2.hh
+generator/codegeneration.o: generator/Text.hh generator/description.hh signals/sigprint.hh signals/sigtyperules.hh
+generator/codegeneration.o: signals/prim2.hh
 generator/compile.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 generator/compile.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh signals/binop.hh generator/klass.hh
-generator/compile.o: signals/sigtype.hh tlib/smartpointer.hh generator/uitree.hh generator/Text.hh signals/sigprint.hh
-generator/compile.o: signals/sigtyperules.hh generator/simplify.hh generator/privatise.hh generator/grouper.hh
-generator/compile.o: signals/sigvisitor.hh
+generator/compile.o: signals/sigtype.hh tlib/smartpointer.hh generator/uitree.hh generator/Text.hh
+generator/compile.o: generator/description.hh signals/sigprint.hh signals/sigtyperules.hh generator/simplify.hh
+generator/compile.o: generator/privatise.hh generator/grouper.hh signals/sigvisitor.hh
 generator/compile_scal.o: generator/compile_scal.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/compile_scal.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh
 generator/compile_scal.o: signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh
-generator/compile_scal.o: generator/uitree.hh generator/Text.hh signals/sigtyperules.hh signals/sigprint.hh
-generator/compile_scal.o: generator/simplify.hh generator/privatise.hh signals/prim2.hh extended/xtended.hh
-generator/compile_scal.o: signals/sigvisitor.hh
+generator/compile_scal.o: generator/uitree.hh generator/Text.hh generator/description.hh signals/sigtyperules.hh
+generator/compile_scal.o: signals/sigprint.hh generator/simplify.hh generator/privatise.hh signals/prim2.hh
+generator/compile_scal.o: extended/xtended.hh signals/sigvisitor.hh
 generator/compile_vect.o: generator/compile_vect.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/compile_vect.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh
 generator/compile_vect.o: signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh
-generator/compile_vect.o: generator/uitree.hh generator/Text.hh generator/compile_scal.hh signals/sigtyperules.hh
-generator/compile_vect.o: signals/sigprint.hh generator/simplify.hh generator/privatise.hh signals/prim2.hh
+generator/compile_vect.o: generator/uitree.hh generator/Text.hh generator/description.hh generator/compile_scal.hh
+generator/compile_vect.o: signals/sigtyperules.hh signals/sigprint.hh generator/simplify.hh generator/privatise.hh
+generator/compile_vect.o: signals/prim2.hh
+generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
+generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh signals/binop.hh
+generator/description.o: tlib/smartpointer.hh generator/uitree.hh generator/Text.hh
 generator/enrobage.o: generator/enrobage.hh
 generator/grouper.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/grouper.o: tlib/shlysis.hh tlib/recness.hh signals/binop.hh signals/sigprint.hh signals/sigorderrules.hh
@@ -196,7 +202,8 @@ generator/privatise.o: tlib/recness.hh signals/binop.hh signals/sigtyperules.hh 
 generator/sharing.o: generator/compile_vect.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/sharing.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh
 generator/sharing.o: signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh generator/uitree.hh
-generator/sharing.o: generator/Text.hh generator/compile_scal.hh signals/sigtyperules.hh signals/sigprint.hh
+generator/sharing.o: generator/Text.hh generator/description.hh generator/compile_scal.hh signals/sigtyperules.hh
+generator/sharing.o: signals/sigprint.hh
 generator/simplify.o: signals/sigtype.hh tlib/smartpointer.hh signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh
 generator/simplify.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh
 generator/simplify.o: signals/binop.hh signals/sigorderrules.hh signals/sigprint.hh generator/simplify.hh
