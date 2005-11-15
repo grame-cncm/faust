@@ -28,24 +28,6 @@
 #include <string.h>
 #include <SC_PlugIn.h>
 
-#define MAX_NUM_CONTROLS 16
-
-static InterfaceTable *ft;
-static char gUnitName[PATH_MAX];
-
-#ifdef __GNUC__
-
-//-------------------------------------------------------------------
-// Generic min and max using gcc extensions
-//-------------------------------------------------------------------
-
-#define max(x,y) ((x)>?(y))
-#define min(x,y) ((x)<?(y))
-
-//abs(x) should be already predefined
-
-#else
-
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
 //-------------------------------------------------------------------
@@ -92,14 +74,7 @@ inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
 inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
 		
-#endif
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
-
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
-
 inline int 		int2pow2 (int x)			{ int r=0; while ((1<<r)<x) r++; return r; }
 
 
@@ -127,79 +102,170 @@ inline void *aligned_calloc(size_t nmemb, size_t size)
 *******************************************************************************
 *******************************************************************************/
 
-struct UI
+//----------------------------------------------------------------------------
+// Abstract user interface
+//----------------------------------------------------------------------------
+		
+class UI 
 {
 public:
-	struct Control
-	{
-		float*	zone;
-		float	min;
-		float	max;
-		float	step;
+	virtual ~UI() { }
 
-		void update(float value)
-		{
-			*zone = sc_round(sc_clip(value, min, max), step);
-		}
-	};
+	// active widgets
+	virtual void addButton(char* label, float* zone) = 0;
+	virtual void addToggleButton(char* label, float* zone) = 0;
+	virtual void addCheckButton(char* label, float* zone) = 0;
+	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	
+	// passive widgets
+	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	
+	// layout widgets
+	virtual void openFrameBox(char* label) = 0;
+	virtual void openTabBox(char* label) = 0;
+	virtual void openHorizontalBox(char* label) = 0;
+	virtual void openVerticalBox(char* label) = 0;
+	virtual void closeBox() = 0;
+};
 
-	void init()
-	{
-		mNumControls = 0;
-	}
+//----------------------------------------------------------------------------
+// Control counter
+//----------------------------------------------------------------------------
+		
+class ControlCounter : public UI
+{
+public:
+	ControlCounter()
+		: mNumControls(0)
+	{ }
 
-	void addControl(float* zone, float min, float max, float step)
-	{
-		if (mNumControls < MAX_NUM_CONTROLS) {
-			Control* ctrl = &mControls[mNumControls++];
-			ctrl->zone = zone;
-			ctrl->min = min;
-			ctrl->max = max;
-			ctrl->step = step;
-		} else {
-			scprintf("Faust[%s]: control zone storage exceeded\n"
-					 "           increase MAX_NUM_CONTROLS in %s\n",
-					 gUnitName, __FILE__);
-		}
-	}
-
-	Control* getControls() { return mControls; }
 	size_t getNumControls() const { return mNumControls; }
 
-	// -- active widgets
+	// active widgets
+	virtual void addButton(char* label, float* zone)
+	{ addControl(); }
+	virtual void addToggleButton(char* label, float* zone)
+	{ addControl(); }
+	virtual void addCheckButton(char* label, float* zone)
+	{ addControl(); }
+	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
+	{ addControl(); }
+	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step)
+	{ addControl(); }
+	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+	{ addControl(); }
 	
-	void addButton(char*, float* zone)
-	{ addControl(zone, 0.f, 1.f, 0.f); }
-	void addToggleButton(char*, float* zone)
-	{ addControl(zone, 0.f, 1.f, 0.f); }
-	void addCheckButton(char*, float* zone)
-	{ addControl(zone, 0.f, 1.f, 0.f); }
-	void addVerticalSlider(char*, float* zone, float init, float min, float max, float step)
-	{ addControl(zone, min, max, step); }
-	void addHorizontalSlider(char*, float* zone, float init, float min, float max, float step)
-	{ addControl(zone, min, max, step); }
-	void addNumEntry(char*, float* zone, float init, float min, float max, float step)
-	{ addControl(zone, min, max, step); }
+	// passive widgets
+	virtual void addNumDisplay(char* label, float* zone, int precision) { }
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) { }
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) { }
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) { }
 	
-	// -- passive widgets (unused)
-	
-	// TODO: might add these as outputs
-	void addNumDisplay(char* label, float* zone, int precision) { }
-	void addTextDisplay(char* label, float* zone, char* names[], float min, float max) { }
-	void addHorizontalBargraph(char* label, float* zone, float min, float max) { }
-	void addVerticalBargraph(char* label, float* zone, float min, float max) { }
-	
-	// -- widget's layouts (unused)
-	
-	void openFrameBox(char* label) { }
-	void openTabBox(char* label) { }
-	void openHorizontalBox(char* label) { }
-	void openVerticalBox(char* label) { }
-	void closeBox() { }
+	// layout widgets
+	virtual void openFrameBox(char* label) { }
+	virtual void openTabBox(char* label) { }
+	virtual void openHorizontalBox(char* label) { }
+	virtual void openVerticalBox(char* label) { }
+	virtual void closeBox() { }
+
+protected:
+	void addControl() { mNumControls++; }
 
 private:
-	Control		mControls[MAX_NUM_CONTROLS];
-	size_t		mNumControls;
+	size_t mNumControls;
+};
+
+//----------------------------------------------------------------------------
+// UI control
+//----------------------------------------------------------------------------
+		
+struct Control
+{
+	typedef void (*UpdateFunction)(Control* self, float value);
+	
+	UpdateFunction updateFunction;
+	float min, max, step;
+	float* zone;
+	
+	inline void update(float value)
+	{
+		(*updateFunction)(this, value);
+	}
+	
+	static void simpleUpdate(Control* self, float value)
+	{
+		*self->zone = value;
+	}
+	static void boundedUpdate(Control* self, float value)
+	{
+		*self->zone = sc_round(sc_clip(value, self->min, self->max), self->step);
+	}
+};
+
+//----------------------------------------------------------------------------
+// Control allocator
+//----------------------------------------------------------------------------
+		
+class ControlAllocator : public UI
+{
+public:
+	ControlAllocator(Control* controls)
+		: mControls(controls)
+	{ }
+
+	// active widgets
+	virtual void addButton(char* label, float* zone)
+	{ addSimpleControl(zone); }
+	virtual void addToggleButton(char* label, float* zone)
+	{ addSimpleControl(zone); }
+	virtual void addCheckButton(char* label, float* zone)
+	{ addSimpleControl(zone); }
+	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
+	{ addBoundedControl(zone, min, max, step); }
+	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step)
+	{ addBoundedControl(zone, min, max, step); }
+	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+	{ addBoundedControl(zone, min, max, step); }
+
+	// passive widgets
+	virtual void addNumDisplay(char* label, float* zone, int precision) { }
+	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) { }
+	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) { }
+	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) { }
+	
+	// layout widgets
+	virtual void openFrameBox(char* label) { }
+	virtual void openTabBox(char* label) { }
+	virtual void openHorizontalBox(char* label) { }
+	virtual void openVerticalBox(char* label) { }
+	virtual void closeBox() { }
+
+private:
+	void addControl(Control::UpdateFunction updateFunction, float* zone, float min, float max, float step)
+	{
+		Control* ctrl = mControls++;
+		ctrl->updateFunction = updateFunction;
+		ctrl->min = min;
+		ctrl->max = max;
+		ctrl->step = step;
+		ctrl->zone = zone;
+	}
+	void addSimpleControl(float* zone)
+	{
+		addControl(Control::simpleUpdate, zone, 0.f, 0.f, 0.f);
+	}
+	void addBoundedControl(float* zone, float min, float max, float step)
+	{
+		addControl(Control::boundedUpdate, zone, min, max, step);
+	}
+
+private:
+	Control* mControls;
 };
 
 
@@ -211,10 +277,14 @@ private:
 *******************************************************************************
 *******************************************************************************/
 
+//----------------------------------------------------------------------------
+// Abstract DSP interface
+//----------------------------------------------------------------------------
+		
 class dsp
 {
 public:
-	virtual ~dsp() = 0;
+	virtual ~dsp();
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
 	virtual void buildUserInterface(UI* interface) 					= 0;
@@ -224,13 +294,15 @@ public:
 protected:
 	int fSamplingFreq;
 };
-		
+
+dsp::~dsp() { }
 
 //----------------------------------------------------------------------------
-// 	FAUST generated code
+// FAUST generated code
 //----------------------------------------------------------------------------
 		
 <<includeclass>>
+
 
 /******************************************************************************
 *******************************************************************************
@@ -242,11 +314,15 @@ protected:
 
 struct Faust : public Unit
 {
-	mydsp	mDSP;
-	UI		mUI;
-	int		mFirstControlIndex;
-	int		mNumControls;
+	mydsp		mDSP;
+	size_t		mNumControls;
+	Control		mControls[0];
 };
+
+// globals
+static char gUnitName[PATH_MAX];
+static size_t gNumControls;
+static InterfaceTable *ft;
 
 extern "C"
 {
@@ -259,11 +335,11 @@ extern "C"
 void Faust_next(Faust* unit, int inNumSamples)
 {
 	// update controls
-	UI::Control* ctrls = unit->mUI.getControls();
-	int firstControl = unit->mFirstControlIndex;
+	Control* controls = unit->mControls;
 	int numControls = unit->mNumControls;
-	for (int i = 0; i < numControls; ++i) {
-		ctrls[i].update(IN0(firstControl + i));
+	int curControl = unit->mDSP.getNumInputs();
+	while (numControls--) {
+		(controls++)->update(IN0(curControl++));
 	}
 	// dsp computation
 	unit->mDSP.compute(inNumSamples, unit->mInBuf, unit->mOutBuf);
@@ -279,10 +355,16 @@ void Faust_Ctor(Faust* unit)
 	// init dsp
 	unit->mDSP.init((int)SAMPLERATE);
 
-	// check input/output channels
-	bool valid = true;
-	valid = ((unit->mNumInputs >= unit->mDSP.getNumInputs()) &&
-			 (unit->mNumOutputs >= unit->mDSP.getNumOutputs()));
+	// allocate controls
+	ControlAllocator ca(unit->mControls);
+	unit->mDSP.buildUserInterface(&ca);
+	unit->mNumControls = gNumControls;
+
+	// check input/output channel configuration
+	bool valid =
+		((unit->mNumInputs == (unit->mDSP.getNumInputs() + unit->mNumControls)) &&
+		 (unit->mNumOutputs == unit->mDSP.getNumOutputs()));
+
 	if (valid) {
 		for (int i = 0; i < unit->mDSP.getNumInputs(); ++i) {
 			if (INRATE(i) != calc_FullRate) {
@@ -295,23 +377,10 @@ void Faust_Ctor(Faust* unit)
 	if (valid) {
 		SETCALC(Faust_next);
 	} else {
-		scprintf("Faust[%s]: input/output channel mismatch, generating silence ...\n",
+		scprintf("Faust[%s]: input/output channel/rate mismatch\n"
+				 "           generating silence ...\n",
 				 gUnitName);
 		SETCALC(Faust_next_clear);
-	}
-
-	// init ui
-	unit->mUI.init();
-	unit->mDSP.buildUserInterface(&unit->mUI);
-
-	// init control zone bounds
-	unit->mFirstControlIndex = unit->mDSP.getNumInputs();
-	if (unit->mFirstControlIndex > unit->mNumInputs) {
-		unit->mFirstControlIndex = unit->mNumInputs;
-	}
-	unit->mNumControls = unit->mUI.getNumControls();
-	if ((unit->mFirstControlIndex + unit->mNumControls) > unit->mNumInputs) {
-		unit->mNumControls = unit->mNumInputs - unit->mFirstControlIndex;
 	}
 }
 
@@ -333,20 +402,35 @@ void load(InterfaceTable* inTable)
 	char* ext = strchr(name, '.');
 	if (ext) *ext = 0;
 
-	if (name[0]) {
-		// upcase name
-		name[0] = toupper(name[0]);
-	} else {	
+	if (!name[0]) {
 		// catch empty name
-		snprintf(name, PATH_MAX, "Faust");
+		scprintf("Faust: empty unit generator name\n"
+				 "       bailing out ...\n");
+		return;
 	}
 
-	(*ft->fDefineUnit)(name, sizeof(Faust),
-					   (UnitCtorFunc)&Faust_Ctor, 0,
-					   // FIXME: necessary?
-					   kUnitDef_CantAliasInputsToOutputs);
+	// get number of controls and compute resulting unit size
+	mydsp* dsp = new mydsp; // avoid stack overflow!
+	ControlCounter cc;
+	dsp->init(0);
+	dsp->buildUserInterface(&cc);
+	size_t numInputs = dsp->getNumInputs();
+	size_t numOutputs = dsp->getNumOutputs();
+	size_t numControls = gNumControls = cc.getNumControls();
+	size_t sizeofFaust = sizeof(Faust) + numControls * sizeof(Control);
+	delete dsp;
 
-	scprintf("Faust[%s]: loaded\n", name);
+	// register ugen
+	(*ft->fDefineUnit)(
+		name, sizeofFaust,
+		(UnitCtorFunc)&Faust_Ctor, 0,
+		kUnitDef_CantAliasInputsToOutputs
+		);
+
+	scprintf(
+		"Faust[%s]: inputs: %d outputs: %d controls: %d size: %d\n",
+		name, numInputs, numOutputs, numControls, sizeofFaust
+		);
 }
 
 // EOF
