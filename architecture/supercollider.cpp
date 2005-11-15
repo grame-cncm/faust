@@ -377,9 +377,9 @@ void Faust_Ctor(Faust* unit)
 	if (valid) {
 		SETCALC(Faust_next);
 	} else {
-		scprintf("Faust[%s]: input/output channel/rate mismatch\n"
-				 "           generating silence ...\n",
-				 gUnitName);
+		Print("Faust[%s]: input/output channel/rate mismatch\n"
+			  "           generating silence ...\n",
+			  gUnitName);
 		SETCALC(Faust_next_clear);
 	}
 }
@@ -404,8 +404,8 @@ void load(InterfaceTable* inTable)
 
 	if (!name[0]) {
 		// catch empty name
-		scprintf("Faust: empty unit generator name\n"
-				 "       bailing out ...\n");
+		Print("Faust: empty unit generator name\n"
+			  "       bailing out ...\n");
 		return;
 	}
 
@@ -427,7 +427,7 @@ void load(InterfaceTable* inTable)
 		kUnitDef_CantAliasInputsToOutputs
 		);
 
-	scprintf(
+	Print(
 		"Faust[%s]: inputs: %d outputs: %d controls: %d size: %d\n",
 		name, numInputs, numOutputs, numControls, sizeofFaust
 		);
