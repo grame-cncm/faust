@@ -34,6 +34,8 @@
 #include <stack>
 #include <map>
 
+#include "description.hh"
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * compileSignals : listOfSignal -> klass
@@ -48,10 +50,8 @@ class Compiler
 {
 protected:
 	Klass*			fClass;
-  //Tree				fSharingKey;
-  //Tree				fCompileKey;
-  //static map<string, int>	fIDCounters;
-	Tree				fUIRoot;
+	Tree			fUIRoot;
+	Description*	fDescription;
 
 public:
 	Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec);
@@ -65,6 +65,9 @@ public:
 	virtual string 		generateCacheCode(Tree tEnv, Tree sig, const string& exp, int context=0)=0;
 	
 	Klass*				getClass() { return (Klass*)fClass; }	
+	
+	void				setDescription(Description* descr)	{ fDescription= descr; }
+	Description*		getDescription()					{ return fDescription; }
 		
 protected:
   //string 		getFreshID (const char* prefix);

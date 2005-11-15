@@ -168,6 +168,9 @@ void VectorCompiler::compileMultiSignal (Tree L)
     else fClass->addExecCode(subst("store_stream(&output$0[i], $1);", T(i), CS(NULLENV,sig,kVect)));
   }
   generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	if (fDescription) {
+		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+	}
 }
 
 
@@ -194,6 +197,9 @@ void VectorCompiler::compileSingleSignal (Tree sig)
 
 
   generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	if (fDescription) {
+		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+	}
 }
 
 /*****************************************************************************

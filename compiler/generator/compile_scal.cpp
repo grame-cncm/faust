@@ -138,6 +138,9 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 		fClass->addExecCode(subst("output$0[i] = $1;", T(i), CS(NULLENV, sig)));
 	}
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	if (fDescription) {
+		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+	}
 }
 
 
@@ -150,6 +153,9 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 	sig = prepare2(sig);		// optimize and annotate expression
 	fClass->addExecCode(subst("output[i] = $0;", CS(NULLENV, sig)));
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	if (fDescription) {
+		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+	}
 }
 
 

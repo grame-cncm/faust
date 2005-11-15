@@ -104,14 +104,16 @@ Compiler::Compiler(const string& name, const string& super, int numInputs, int n
 		//fNumInputs(numInputs), fNumOutputs(numOutputs), 
 		//fSharingKey(nil), 
 		//fUIRoot(uiFolder(cons(tree(0), tree("\"\""))))
-		fUIRoot(uiFolder(cons(tree(0), tree("\"faust\""))))
+		fUIRoot(uiFolder(cons(tree(0), tree("\"faust\"")))),
+		fDescription(0)
 {}
 
 Compiler::Compiler(Klass* k)  
 		: fClass(k), 
 		//fNumInputs(1), fNumOutputs(1), 
 		//fSharingKey(nil),
-		  fUIRoot(uiFolder(cons(tree(0), tree("\"faust\"")))) 
+		  fUIRoot(uiFolder(cons(tree(0), tree("\"faust\"")))),
+		fDescription(0) 
 {}
 
 
