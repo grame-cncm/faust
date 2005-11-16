@@ -23,6 +23,8 @@ class Description
 	string 			fAuthor;
 	string 			fCopyright;
 	string 			fLicense;
+	string 			fVersion;
+	
 	int				fInputs;
 	int				fOutputs;
 	int				fWidgetID;
@@ -38,8 +40,10 @@ class Description
   
 	Description():	fName("Unknow"), 
 					fAuthor("Unknow"), 
-					fCopyright("Copyright (c)"),
-					fLicense("GPL"), 
+					fCopyright("Unknow"),
+					fLicense("Unknow"), 
+					fVersion("Unknow"),
+					
 					fInputs(0),
 					fOutputs(0),
 					fWidgetID(0),
@@ -51,6 +55,8 @@ class Description
 	Description*	author(const string& s) 		{ fAuthor = s; 	return this; }
 	Description*	copyright(const string& s) 		{ fCopyright = s; return this; }
 	Description*	license(const string& s) 		{ fLicense = s; return this; }
+	Description*	version(const string& s) 		{ fVersion = s; return this; }
+	
 	Description*	inputs(int n) 					{ fInputs = n; 	return this; }
 	Description*	outputs(int n) 					{ fOutputs = n; return this; }
 	

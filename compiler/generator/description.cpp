@@ -13,31 +13,37 @@ void Description::print(int n, ostream& fout)
 	
 	tab(n,fout); fout << "<faust>";
 		
-		tab(n+1,fout);	fout << "<name> " 		<< fName 		<< "</name>";
-		tab(n+1,fout);	fout << "<author> " 	<< fAuthor 		<< "</author>";
-		tab(n+1,fout);	fout << "<copyright> " 	<< fCopyright 	<< "</copyright>";
-		tab(n+1,fout);	fout << "<license> " 	<< fLicense 	<< "</license>";
-		tab(n+1,fout);	fout << "<inputs> " 	<< fInputs 		<< "</inputs>";
-		tab(n+1,fout);	fout << "<outputs> " 	<< fOutputs 	<< "</outputs>";
+		tab(n+1,fout);	fout << "<name> " 		<< fName 		<< " </name>";
+		tab(n+1,fout);	fout << "<author> " 	<< fAuthor 		<< " </author>";
+		tab(n+1,fout);	fout << "<copyright> " 	<< fCopyright 	<< " </copyright>";
+		tab(n+1,fout);	fout << "<license> " 	<< fLicense 	<< " </license>";
+		tab(n+1,fout);	fout << "<version> " 	<< fVersion 	<< " </version>";
+		tab(n+1,fout);	fout << "<inputs> " 	<< fInputs 		<< " </inputs>";
+		tab(n+1,fout);	fout << "<outputs> " 	<< fOutputs 	<< " </outputs>";
 	
 		tab(n+1,fout);	fout << "<ui> ";
 
 			// active widget list
 			tab(n+2,fout);	fout << "<activewidgets>";
-				tab(n+3,fout);	fout << "<count> " << fActiveWidgetCount << "</count>";
+				tab(n+3,fout);	fout << "<count> " << fActiveWidgetCount << " </count>";
 				for (s = fActiveLines.begin(); s != fActiveLines.end(); s++) {
 					tab(n+3, fout); fout << *s;
 				}
 			tab(n+2,fout);	fout << "</activewidgets>";
-	
+
+			tab(n+2,fout);
+			
 			// passive widget list
 			tab(n+2,fout);	fout << "<passivewidgets>";
-				tab(n+3,fout);	fout << "<count> " << fPassiveWidgetCount << "</count>";
+				tab(n+3,fout);	fout << "<count> " << fPassiveWidgetCount << " </count>";
 				for (s = fPassiveLines.begin(); s != fPassiveLines.end(); s++) {
 					tab(n+3, fout); fout << *s;
 				}
 			tab(n+2,fout);	fout << "</passivewidgets>";
 	
+			
+			tab(n+2,fout);
+			
 			// widget layout 
 			tab(n+2,fout);	fout << "<layout>";
 				for (	t = fLayoutTabs.begin(), s = fLayoutLines.begin();
@@ -107,8 +113,8 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fWidgetID++;
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"button\" id=\"$0\">", T(fWidgetID)));
-			addActiveLine(subst("\t<label>$0</label>", tree2str(label)));
-			addActiveLine(subst("\t<var>$0</var>", tree2str(varname)));
+			addActiveLine(subst("\t<label> $0 </label>", tree2str(label)));
+			addActiveLine(subst("\t<var> $0 </var>", tree2str(varname)));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigCheckbox(sig, path) ) 			{
@@ -116,8 +122,8 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fWidgetID++;
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"checkbox\" id=\"$0\">", T(fWidgetID)));
-			addActiveLine(subst("\t<label>$0</label>", tree2str(label)));
-			addActiveLine(subst("\t<var>$0</var>", tree2str(varname)));
+			addActiveLine(subst("\t<label> $0 </label>", tree2str(label)));
+			addActiveLine(subst("\t<var> $0 </var>", tree2str(varname)));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
@@ -125,12 +131,12 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fWidgetID++;
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"vslider\" id=\"$0\">", T(fWidgetID)));
-			addActiveLine(subst("\t<label>$0</label>", 		tree2str(label)));
-			addActiveLine(subst("\t<varname>$0</varname>", 	tree2str(varname)));
-			addActiveLine(subst("\t<init>$0</init>", 		T(tree2float(c))));
-			addActiveLine(subst("\t<min>$0</min>", 			T(tree2float(x))));
-			addActiveLine(subst("\t<max>$0</max>", 			T(tree2float(y))));
-			addActiveLine(subst("\t<step>$0</step>", 		T(tree2float(z))));
+			addActiveLine(subst("\t<label> $0 </label>", 		tree2str(label)));
+			addActiveLine(subst("\t<varname> $0 </varname>", 	tree2str(varname)));
+			addActiveLine(subst("\t<init> $0 </init>", 		T(tree2float(c))));
+			addActiveLine(subst("\t<min> $0 </min>", 			T(tree2float(x))));
+			addActiveLine(subst("\t<max> $0 </max>", 			T(tree2float(y))));
+			addActiveLine(subst("\t<step> $0 </step>", 		T(tree2float(z))));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
@@ -138,12 +144,12 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fWidgetID++;
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"hslider\" id=\"$0\">", T(fWidgetID)));
-			addActiveLine(subst("\t<label>$0</label>", 		tree2str(label)));
-			addActiveLine(subst("\t<varname>$0</varname>", 	tree2str(varname)));
-			addActiveLine(subst("\t<init>$0</init>", 		T(tree2float(c))));
-			addActiveLine(subst("\t<min>$0</min>", 			T(tree2float(x))));
-			addActiveLine(subst("\t<max>$0</max>", 			T(tree2float(y))));
-			addActiveLine(subst("\t<step>$0</step>", 		T(tree2float(z))));
+			addActiveLine(subst("\t<label> $0 </label>", 		tree2str(label)));
+			addActiveLine(subst("\t<varname> $0 </varname>", 	tree2str(varname)));
+			addActiveLine(subst("\t<init> $0 </init>", 		T(tree2float(c))));
+			addActiveLine(subst("\t<min> $0 </min>", 			T(tree2float(x))));
+			addActiveLine(subst("\t<max> $0 </max>", 			T(tree2float(y))));
+			addActiveLine(subst("\t<step> $0 </step>", 		T(tree2float(z))));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
@@ -151,12 +157,12 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fWidgetID++;
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"nentry\" id=\"$0\">", T(fWidgetID)));
-			addActiveLine(subst("\t<label>$0</label>", 		tree2str(label)));
-			addActiveLine(subst("\t<varname>$0</varname>", 	tree2str(varname)));
-			addActiveLine(subst("\t<init>$0</init>", 		T(tree2float(c))));
-			addActiveLine(subst("\t<min>$0</min>", 			T(tree2float(x))));
-			addActiveLine(subst("\t<max>$0</max>", 			T(tree2float(y))));
-			addActiveLine(subst("\t<step>$0</step>", 		T(tree2float(z))));
+			addActiveLine(subst("\t<label> $0 </label>", 		tree2str(label)));
+			addActiveLine(subst("\t<varname> $0 </varname>", 	tree2str(varname)));
+			addActiveLine(subst("\t<init> $0 </init>", 		T(tree2float(c))));
+			addActiveLine(subst("\t<min> $0 </min>", 			T(tree2float(x))));
+			addActiveLine(subst("\t<max> $0 </max>", 			T(tree2float(y))));
+			addActiveLine(subst("\t<step> $0 </step>", 		T(tree2float(z))));
 		addActiveLine("</widget>");
 
 			
@@ -167,10 +173,10 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fWidgetID++;
 		fPassiveWidgetCount++;
 		addPassiveLine(subst("<widget type=\"vbargraph\" id=\"$0\">", T(fWidgetID)));
-			addPassiveLine(subst("\t<label>$0</label>", 	tree2str(label)));
-			addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
-			addPassiveLine(subst("\t<min>$0</min>", 		T(tree2float(x))));
-			addPassiveLine(subst("\t<max>$0</max>", 		T(tree2float(y))));
+			addPassiveLine(subst("\t<label> $0 </label>", 	tree2str(label)));
+			addPassiveLine(subst("\t<varname> $0 </varname>", tree2str(varname)));
+			addPassiveLine(subst("\t<min> $0 </min>", 		T(tree2float(x))));
+			addPassiveLine(subst("\t<max> $0 </max>", 		T(tree2float(y))));
 		addPassiveLine("</widget>");
 		
 	} else if ( isSigHBargraph(sig,path,x,y,z) )	{
@@ -178,10 +184,10 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fWidgetID++;
 		fPassiveWidgetCount++;
 		addPassiveLine(subst("<widget type=\"hbargraph\" id=\"$0\">", T(fWidgetID)));
-			addPassiveLine(subst("\t<label>$0</label>", 	tree2str(label)));
-			addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
-			addPassiveLine(subst("\t<min>$0</min>", 		T(tree2float(x))));
-			addPassiveLine(subst("\t<max>$0</max>", 		T(tree2float(y))));
+			addPassiveLine(subst("\t<label> $0 </label>", 	tree2str(label)));
+			addPassiveLine(subst("\t<varname> $0 </varname>", tree2str(varname)));
+			addPassiveLine(subst("\t<min> $0 </min>", 		T(tree2float(x))));
+			addPassiveLine(subst("\t<max> $0 </max>", 		T(tree2float(y))));
 		addPassiveLine("</widget>");
 		
 	} else {

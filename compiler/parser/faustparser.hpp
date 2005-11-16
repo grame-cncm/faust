@@ -117,7 +117,13 @@
      STRING = 343,
      FSTRING = 344,
      IDENT = 345,
-     EXTRA = 346
+     EXTRA = 346,
+     DECLARE = 347,
+     NAMEPROP = 348,
+     AUTHORPROP = 349,
+     COPYRIGHTPROP = 350,
+     VERSIONPROP = 351,
+     LICENSEPROP = 352
    };
 #endif
 #define WITH 258
@@ -209,17 +215,23 @@
 #define FSTRING 344
 #define IDENT 345
 #define EXTRA 346
+#define DECLARE 347
+#define NAMEPROP 348
+#define AUTHORPROP 349
+#define COPYRIGHTPROP 350
+#define VERSIONPROP 351
+#define LICENSEPROP 352
 
 
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 52 "parser/faustparser.y"
+#line 61 "parser/faustparser.y"
 typedef union YYSTYPE {
 	CTree* 	exp;
 } YYSTYPE;
 /* Line 1318 of yacc.c.  */
-#line 223 "parser/faustparser.hpp"
+#line 235 "parser/faustparser.hpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

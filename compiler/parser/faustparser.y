@@ -10,6 +10,9 @@
 #include "signals.hh"
 #include "errormsg.hh"
 
+#include <string>
+#include <list>
+
 #define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 #define YYMAXDEPTH	100000
@@ -19,6 +22,12 @@ extern const char* 	yyfilename;
 extern int 			yylineno;
 extern int 			yyerr;
 extern Tree 		gResult;
+
+extern list<string>	gNameProperty;
+extern list<string>	gAuthorProperty;
+extern list<string>	gCopyrightProperty;
+extern list<string>	gVersionProperty;
+extern list<string>	gLicenseProperty;
 
 int yylex();
 
@@ -162,6 +171,16 @@ Tree unquote(char* str)
 %token IDENT
 %token EXTRA   
 
+%token DECLARE 
+
+%token NAMEPROP
+%token AUTHORPROP
+%token COPYRIGHTPROP
+%token VERSIONPROP 
+%token LICENSEPROP	
+
+
+
 %type <exp> program
 
 %type <exp> eqlist
@@ -226,6 +245,11 @@ eqlist			: /*empty*/						{$$ = nil; }
 equation		: eqname LPAR params RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); } 
 				| eqname DEF diagram ENDDEF						{$$ = cons($1,$3); } 
 				| IMPORT LPAR uqstring RPAR ENDDEF				{$$ = importFile($3); }
+				| DECLARE NAMEPROP 		STRING {gNameProperty.push_back(yytext); } 		ENDDEF				{$$ = nil; }
+				| DECLARE AUTHORPROP 	STRING {gAuthorProperty.push_back(yytext); } 	ENDDEF				{$$ = nil; }
+				| DECLARE COPYRIGHTPROP STRING {gCopyrightProperty.push_back(yytext); } ENDDEF				{$$ = nil; }
+				| DECLARE VERSIONPROP 	STRING {gVersionProperty.push_back(yytext); } 	ENDDEF				{$$ = nil; }
+				| DECLARE LICENSEPROP 	STRING {gLicenseProperty.push_back(yytext); } 	ENDDEF				{$$ = nil; }
 				| error ENDDEF									{$$ = nil; yyerr++;}
                	;
 				

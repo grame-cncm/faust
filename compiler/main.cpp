@@ -73,6 +73,12 @@ Tree 			gResult2;
 
 SourceReader	gReader;
 
+list<string>	gNameProperty;
+list<string>	gAuthorProperty;
+list<string>	gCopyrightProperty;
+list<string>	gVersionProperty;
+list<string>	gLicenseProperty;
+
 
 /****************************************************************
  				Command line tools and arguments
@@ -186,7 +192,7 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.5b\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.5c\n";
 	cout << "Copyright (C) 2002-2005, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }	
 
@@ -345,13 +351,25 @@ int main (int argc, char* argv[])
 		C->getClass()->printIncludeFile(*dst);
 		C->getClass()->println(0,*dst);
 	}
+	
+	
+	/****************************************************************
+	 7 - generate XML description (if required)
+	*****************************************************************/
 
 	if (gPrintXMLSwitch) {
 		Description* 	D = C->getDescription(); assert(D);
 		ostream* 		xout = new ofstream(subst("$0.xml", masterFilename).c_str());
 
+		if(gNameProperty.size()) 		D->name(*gNameProperty.begin());
+		if(gAuthorProperty.size()) 		D->author(*gAuthorProperty.begin());
+		if(gCopyrightProperty.size()) 	D->copyright(*gCopyrightProperty.begin());
+		if(gLicenseProperty.size()) 	D->license(*gLicenseProperty.begin());
+		if(gVersionProperty.size()) 	D->version(*gVersionProperty.begin());
+		
 		D->inputs(C->getClass()->inputs());
 		D->outputs(C->getClass()->outputs());
+		
 		D->print(0, *xout);
 	}
 

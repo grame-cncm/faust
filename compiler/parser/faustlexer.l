@@ -132,6 +132,14 @@ LETTER   [a-zA-Z]
 "import"	return IMPORT;
 "component"	return COMPONENT;
 
+"declare"	return DECLARE;
+"name"		return NAMEPROP;
+"author"	return AUTHORPROP;
+"version"	return VERSIONPROP;
+"copyright" return COPYRIGHTPROP;
+"license"	return LICENSEPROP;
+
+
 _{ID}   	return IDENT;
 {ID}   		return IDENT;
 

@@ -108,8 +108,9 @@ Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)
 	for (;!isNil(ldef); ldef = tl(ldef)) {
 		Tree d = hd(ldef); 
 		Tree fname;
-		
-		if (isImportFile(d,fname)) {
+		if (isNil(d)) {
+			// skill null definitions produced by declarations
+		} else if (isImportFile(d,fname)) {
 			string f = tree2str(fname);
 			//cerr << "import(" << f << ")" << endl;
 			
