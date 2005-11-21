@@ -722,27 +722,36 @@ class MyApp : public wxApp
 		physicalOutPorts = (char **)jack_get_ports(client, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
 
 		if (jack_activate(client)) {
-	    		fprintf(stderr, "cannot activate client");
-	    		return 1;
+			fprintf(stderr, "cannot activate client");
+			return 1;
 		}
 
-                if (physicalOutPorts != NULL) {
-                    for (int i = 0; i < gNumInChans && physicalOutPorts[i]; i++) {
-                            jack_connect(client, physicalOutPorts[i], jack_port_name(input_ports[i]));
-                    }
-                }
-                
-                if (physicalInPorts != NULL) {
-                    for (int i = 0; i < gNumOutChans && physicalInPorts[i]; i++) {
-                            jack_connect(client, jack_port_name(output_ports[i]), physicalInPorts[i]);
-                    } 		
-                }
+		if (physicalOutPorts != NULL) {
+			for (int i = 0; i < gNumInChans && physicalOutPorts[i]; i++) {
+				jack_connect(client, physicalOutPorts[i], jack_port_name(input_ports[i]));
+			}
+		}
+		
+		if (physicalInPorts != NULL) {
+			for (int i = 0; i < gNumOutChans && physicalInPorts[i]; i++) {
+				jack_connect(client, jack_port_name(output_ports[i]), physicalInPorts[i]);
+			} 		
+		}
 	
 		return TRUE;
 	}
 
 	virtual int OnExit()
 	{
+		jack_deactivate(client);
+		
+		for (int i = 0; i < gNumInChans; i++) {
+			jack_port_unregister(input_ports[i]);
+		}
+		for (int i = 0; i < gNumOutChans; i++) {
+			jack_port_unregister(output_ports[i]);
+		}
+	
 		jack_client_close(client);	
 		return 0;
 	}

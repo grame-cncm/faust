@@ -1072,6 +1072,16 @@ int main(int argc, char *argv[] )
         }
 	
 	interface->run();
+	
+	jack_deactivate(client);
+	
+	for (int i = 0; i < gNumInChans; i++) {
+	    jack_port_unregister(input_ports[i]);
+	}
+	for (int i = 0; i < gNumOutChans; i++) {
+	    jack_port_unregister(output_ports[i]);
+	}
+	
 	jack_client_close(client);
 	interface->saveState(rcfilename);
 		
