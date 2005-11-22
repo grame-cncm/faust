@@ -1076,10 +1076,10 @@ int main(int argc, char *argv[] )
 	jack_deactivate(client);
 	
 	for (int i = 0; i < gNumInChans; i++) {
-	    jack_port_unregister(input_ports[i]);
+	    jack_port_unregister(client, input_ports[i]);
 	}
 	for (int i = 0; i < gNumOutChans; i++) {
-	    jack_port_unregister(output_ports[i]);
+	    jack_port_unregister(client, output_ports[i]);
 	}
 	
 	jack_client_close(client);
