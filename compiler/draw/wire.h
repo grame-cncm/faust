@@ -43,6 +43,14 @@ class segment //(a wire is made of segments)
 		};
 		~segment(){};
 
+		bool operator < (const segment& s) { return x1 < s.x1 || (x1 == s.x1 && ( x2 < s.x2 || (x2 == s.x2 && ( y1 < s.y1 || ( y1 == s.y1 && y2 < s.y2))))); }
+		bool operator == (const segment& s) { return x1 == s.x1 & x2 == s.x2 & y1 == s.y1 & y2 == s.y2; }
+		bool operator <= (const segment& s) { return *this < s || *this == s; }
+
+		bool operator != (const segment& s) { return ! (*this == s); }
+		bool operator >= (const segment& s) { return ! (*this < s); }
+		bool operator > (const segment& s) { return ! (*this <= s ); }
+
 		float x1;
 		float y1;
 		float x2;
