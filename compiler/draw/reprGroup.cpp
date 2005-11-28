@@ -52,7 +52,8 @@ void reprGroup::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<
 	vector <wire*> iA,oA;
 	wire *w;
 	float marge_label=(float)3;
-	float l_letter=(float)3.5;
+	//float l_letter=(float)3.5;
+	float l_letter=(float)3.75;
 
 	if(sens==1)
 	{
