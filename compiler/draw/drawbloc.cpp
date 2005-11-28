@@ -53,7 +53,7 @@ treeRepr* graphicPrim (const char* name, int ins, int outs);
 
 void drawBlockDiagram(Tree bd, const char* dev)
 {
-	treeRepr* tR = graphicBlockDiagram(bd);
+	treeRepr* tR = new treeGroup(graphicBlockDiagram(bd), "process");
 	if(find_config_param(tR))
 	{
 		representation* ENDrepr = tR->treeToRepr();
@@ -82,6 +82,25 @@ treeRepr* bargraph(Tree t)
 	return graphicPrim(strdup(s.str().c_str()), 1, 1);
 }
 
+treeRepr* graphicInputSlot(Tree a)
+{
+	int i;
+	char c[64];
+	assert(isBoxSlot(a,&i));
+	snprintf(c, 63, "slot(%d)",i);
+	return graphicPrim(strdup(c), 1, 0);
+}
+
+treeRepr* graphicAbstraction(treeRepr* x, Tree t)
+{
+	Tree 	a,b;
+	while (isBoxSymbolic(t,a,b)) {
+		x = new treeNormal("Para", x, graphicInputSlot(a));
+		t = b;
+	}
+		
+	return new treeGroup(new treeNormal("Serie", x, graphicBlockDiagram(t)), "abstraction"); 
+}
 
 treeRepr* graphicBlockDiagram(Tree t)
 {
@@ -106,10 +125,14 @@ treeRepr* graphicBlockDiagram(Tree t)
 		char c[64]; snprintf(c, 63, "slot(%d)",i);
 		return graphicPrim(strdup(c), 0, 1); 
 	}
-	else if (isBoxSymbolic(t,a,b))	{ 
+	else if (isBoxSymbolic(t,a,b))	{
+		return graphicAbstraction(graphicInputSlot(a), b); 
+#if 0
 		assert(isBoxSlot(a,&i));
 		char c[64]; snprintf(c, 63, "slot(%d)",i);
-		return new treeNormal("Serie", graphicPrim(strdup(c), 1, 0), graphicBlockDiagram(b)); 
+//		return new treeNormal("Serie", graphicPrim(strdup(c), 1, 0), graphicBlockDiagram(b)); 
+		return new treeGroup(new treeNormal("Serie", graphicPrim(strdup(c), 1, 0), graphicBlockDiagram(b)), "abstraction"); 
+#endif
 	}
 		
 	else if (isBoxVBargraph(t))		{return bargraph(t); }
