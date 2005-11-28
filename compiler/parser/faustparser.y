@@ -180,7 +180,6 @@ Tree unquote(char* str)
 %token LICENSEPROP	
 
 
-
 %type <exp> program
 
 %type <exp> eqlist

@@ -1,7 +1,7 @@
-/* A Bison parser, made by GNU Bison 2.0.  */
+/* A Bison parser, made by GNU Bison 1.875.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -325,8 +325,8 @@ Tree unquote(char* str)
 typedef union YYSTYPE {
 	CTree* 	exp;
 } YYSTYPE;
-/* Line 190 of yacc.c.  */
-#line 330 "parser/faustparser.cpp"
+/* Line 191 of yacc.c.  */
+#line 329 "parser/faustparser.cpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -337,26 +337,23 @@ typedef union YYSTYPE {
 /* Copy the second part of user declarations.  */
 
 
-/* Line 213 of yacc.c.  */
-#line 342 "parser/faustparser.cpp"
+/* Line 214 of yacc.c.  */
+#line 341 "parser/faustparser.cpp"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
-# ifndef YYFREE
-#  define YYFREE free
-# endif
-# ifndef YYMALLOC
-#  define YYMALLOC malloc
-# endif
-
 /* The parser invokes alloca or malloc; define the necessary symbols.  */
 
-# ifdef YYSTACK_USE_ALLOCA
-#  if YYSTACK_USE_ALLOCA
-#   ifdef __GNUC__
-#    define YYSTACK_ALLOC __builtin_alloca
-#   else
+# if YYSTACK_USE_ALLOCA
+#  define YYSTACK_ALLOC alloca
+# else
+#  ifndef YYSTACK_USE_ALLOCA
+#   if defined (alloca) || defined (_ALLOCA_H)
 #    define YYSTACK_ALLOC alloca
+#   else
+#    ifdef __GNUC__
+#     define YYSTACK_ALLOC __builtin_alloca
+#    endif
 #   endif
 #  endif
 # endif
@@ -369,20 +366,20 @@ typedef union YYSTYPE {
 #   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
 #   define YYSIZE_T size_t
 #  endif
-#  define YYSTACK_ALLOC YYMALLOC
-#  define YYSTACK_FREE YYFREE
+#  define YYSTACK_ALLOC malloc
+#  define YYSTACK_FREE free
 # endif
 #endif /* ! defined (yyoverflow) || YYERROR_VERBOSE */
 
 
 #if (! defined (yyoverflow) \
      && (! defined (__cplusplus) \
-	 || (defined (YYSTYPE_IS_TRIVIAL) && YYSTYPE_IS_TRIVIAL)))
+	 || (YYSTYPE_IS_TRIVIAL)))
 
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  short int yyss;
+  short yyss;
   YYSTYPE yyvs;
   };
 
@@ -392,13 +389,13 @@ union yyalloc
 /* The size of an array large to enough to hold all stacks, each with
    N elements.  */
 # define YYSTACK_BYTES(N) \
-     ((N) * (sizeof (short int) + sizeof (YYSTYPE))			\
+     ((N) * (sizeof (short) + sizeof (YYSTYPE))				\
       + YYSTACK_GAP_MAXIMUM)
 
 /* Copy COUNT objects from FROM to TO.  The source and destination do
    not overlap.  */
 # ifndef YYCOPY
-#  if defined (__GNUC__) && 1 < __GNUC__
+#  if 1 < __GNUC__
 #   define YYCOPY(To, From, Count) \
       __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
 #  else
@@ -434,7 +431,7 @@ union yyalloc
 #if defined (__STDC__) || defined (__cplusplus)
    typedef signed char yysigned_char;
 #else
-   typedef short int yysigned_char;
+   typedef short yysigned_char;
 #endif
 
 /* YYFINAL -- State number of the termination state. */
@@ -502,7 +499,7 @@ static const unsigned char yytranslate[] =
 #if YYDEBUG
 /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
    YYRHS.  */
-static const unsigned short int yyprhs[] =
+static const unsigned short yyprhs[] =
 {
        0,     0,     3,     5,     6,     9,    17,    22,    28,    29,
       35,    36,    42,    43,    49,    50,    56,    57,    63,    66,
@@ -523,7 +520,7 @@ static const unsigned short int yyprhs[] =
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS. */
-static const short int yyrhs[] =
+static const short yyrhs[] =
 {
       99,     0,    -1,   100,    -1,    -1,   100,   101,    -1,   107,
       77,   108,    78,    81,   109,    75,    -1,   107,    81,   109,
@@ -583,24 +580,24 @@ static const short int yyrhs[] =
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const unsigned short int yyrline[] =
+static const unsigned short yyrline[] =
 {
-       0,   238,   238,   241,   242,   245,   246,   247,   248,   248,
-     249,   249,   250,   250,   251,   251,   252,   252,   253,   256,
-     259,   260,   263,   264,   265,   266,   267,   268,   269,   272,
-     273,   274,   275,   276,   277,   278,   279,   281,   282,   283,
-     285,   286,   288,   289,   290,   291,   292,   293,   295,   297,
-     300,   301,   303,   304,   306,   307,   309,   310,   312,   313,
-     315,   316,   318,   319,   320,   321,   322,   323,   325,   326,
-     327,   329,   330,   332,   333,   334,   335,   336,   337,   339,
-     341,   342,   343,   344,   345,   346,   347,   349,   350,   351,
-     352,   353,   355,   356,   357,   359,   360,   362,   363,   364,
-     367,   368,   370,   371,   373,   375,   376,   378,   379,   380,
-     382,   383,   384,   385,   386,   387,   388,   389,   390,   391,
-     393,   394,   395,   396,   400,   403,   408,   409,   412,   413,
-     414,   415,   416,   419,   422,   425,   426,   431,   435,   439,
-     443,   450,   454,   459,   462,   465,   468,   471,   474,   477,
-     480,   484,   487,   492,   493,   496,   499,   500,   503,   504
+       0,   237,   237,   240,   241,   244,   245,   246,   247,   247,
+     248,   248,   249,   249,   250,   250,   251,   251,   252,   255,
+     258,   259,   262,   263,   264,   265,   266,   267,   268,   271,
+     272,   273,   274,   275,   276,   277,   278,   280,   281,   282,
+     284,   285,   287,   288,   289,   290,   291,   292,   294,   296,
+     299,   300,   302,   303,   305,   306,   308,   309,   311,   312,
+     314,   315,   317,   318,   319,   320,   321,   322,   324,   325,
+     326,   328,   329,   331,   332,   333,   334,   335,   336,   338,
+     340,   341,   342,   343,   344,   345,   346,   348,   349,   350,
+     351,   352,   354,   355,   356,   358,   359,   361,   362,   363,
+     366,   367,   369,   370,   372,   374,   375,   377,   378,   379,
+     381,   382,   383,   384,   385,   386,   387,   388,   389,   390,
+     392,   393,   394,   395,   399,   402,   407,   408,   411,   412,
+     413,   414,   415,   418,   421,   424,   425,   430,   434,   438,
+     442,   449,   453,   458,   461,   464,   467,   470,   473,   476,
+     479,   483,   486,   491,   492,   495,   498,   499,   502,   503
 };
 #endif
 
@@ -609,24 +606,24 @@ static const unsigned short int yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals. */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "WITH", "MIX", "SPLIT", "SEQ", "PAR",
-  "REC", "NE", "GE", "GT", "EQ", "LE", "LT", "OR", "SUB", "ADD", "RSH",
-  "LSH", "XOR", "AND", "MOD", "DIV", "MUL", "FDELAY", "DELAY1", "DOT",
-  "APPL", "MEM", "PREFIX", "INTCAST", "FLOATCAST", "FFUNCTION",
-  "FCONSTANT", "BUTTON", "CHECKBOX", "VSLIDER", "HSLIDER", "NENTRY",
-  "VGROUP", "HGROUP", "TGROUP", "HBARGRAPH", "VBARGRAPH", "ATTACH", "ACOS",
-  "ASIN", "ATAN", "ATAN2", "COS", "SIN", "TAN", "EXP", "LOG", "LOG10",
-  "POW", "SQRT", "ABS", "MIN", "MAX", "FMOD", "REMAINDER", "FLOOR", "CEIL",
-  "RINT", "RDTBL", "RWTBL", "SELECT2", "SELECT3", "INT", "FLOAT", "LAMBDA",
-  "WIRE", "CUT", "ENDDEF", "VIRG", "LPAR", "RPAR", "LBRAQ", "RBRAQ", "DEF",
-  "IMPORT", "COMPONENT", "IPAR", "ISEQ", "ISUM", "IPROD", "STRING",
-  "FSTRING", "IDENT", "EXTRA", "DECLARE", "NAMEPROP", "AUTHORPROP",
-  "COPYRIGHTPROP", "VERSIONPROP", "LICENSEPROP", "$accept", "program",
-  "eqlist", "equation", "@1", "@2", "@3", "@4", "@5", "eqname", "params",
-  "diagram", "expression", "primitive", "ident", "name", "arglist",
-  "argument", "string", "uqstring", "fstring", "fpar", "fseq", "fsum",
-  "fprod", "ffunction", "fconst", "button", "checkbox", "vslider",
-  "hslider", "nentry", "vgroup", "hgroup", "tgroup", "vbargraph",
+  "$end", "error", "$undefined", "WITH", "MIX", "SPLIT", "SEQ", "PAR", 
+  "REC", "NE", "GE", "GT", "EQ", "LE", "LT", "OR", "SUB", "ADD", "RSH", 
+  "LSH", "XOR", "AND", "MOD", "DIV", "MUL", "FDELAY", "DELAY1", "DOT", 
+  "APPL", "MEM", "PREFIX", "INTCAST", "FLOATCAST", "FFUNCTION", 
+  "FCONSTANT", "BUTTON", "CHECKBOX", "VSLIDER", "HSLIDER", "NENTRY", 
+  "VGROUP", "HGROUP", "TGROUP", "HBARGRAPH", "VBARGRAPH", "ATTACH", 
+  "ACOS", "ASIN", "ATAN", "ATAN2", "COS", "SIN", "TAN", "EXP", "LOG", 
+  "LOG10", "POW", "SQRT", "ABS", "MIN", "MAX", "FMOD", "REMAINDER", 
+  "FLOOR", "CEIL", "RINT", "RDTBL", "RWTBL", "SELECT2", "SELECT3", "INT", 
+  "FLOAT", "LAMBDA", "WIRE", "CUT", "ENDDEF", "VIRG", "LPAR", "RPAR", 
+  "LBRAQ", "RBRAQ", "DEF", "IMPORT", "COMPONENT", "IPAR", "ISEQ", "ISUM", 
+  "IPROD", "STRING", "FSTRING", "IDENT", "EXTRA", "DECLARE", "NAMEPROP", 
+  "AUTHORPROP", "COPYRIGHTPROP", "VERSIONPROP", "LICENSEPROP", "$accept", 
+  "program", "eqlist", "equation", "@1", "@2", "@3", "@4", "@5", "eqname", 
+  "params", "diagram", "expression", "primitive", "ident", "name", 
+  "arglist", "argument", "string", "uqstring", "fstring", "fpar", "fseq", 
+  "fsum", "fprod", "ffunction", "fconst", "button", "checkbox", "vslider", 
+  "hslider", "nentry", "vgroup", "hgroup", "tgroup", "vbargraph", 
   "hbargraph", "signature", "fun", "typelist", "type", 0
 };
 #endif
@@ -634,7 +631,7 @@ static const char *const yytname[] =
 # ifdef YYPRINT
 /* YYTOKNUM[YYLEX-NUM] -- Internal token number corresponding to
    token YYLEX-NUM.  */
-static const unsigned short int yytoknum[] =
+static const unsigned short yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
@@ -734,7 +731,7 @@ static const unsigned char yydefact[] =
 };
 
 /* YYDEFGOTO[NTERM-NUM]. */
-static const short int yydefgoto[] =
+static const short yydefgoto[] =
 {
       -1,     1,     2,     8,   119,   120,   121,   122,   123,     9,
       27,    98,   231,   100,   101,   239,   232,   233,   190,    21,
@@ -746,7 +743,7 @@ static const short int yydefgoto[] =
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
 #define YYPACT_NINF -212
-static const short int yypact[] =
+static const short yypact[] =
 {
     -212,     2,     3,  -212,   -62,   -48,  -212,   142,  -212,   -41,
     -212,  -212,   -43,   -23,   -17,     6,    13,    21,    39,   278,
@@ -786,7 +783,7 @@ static const short int yypact[] =
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const short int yypgoto[] =
+static const short yypgoto[] =
 {
     -212,  -212,   298,  -212,  -212,  -212,  -212,  -212,  -212,  -212,
      367,   -84,   -19,  -212,    12,  -212,  -212,  -211,  -113,   364,
@@ -800,7 +797,7 @@ static const short int yypgoto[] =
    number is the opposite.  If zero, do what YYDEFACT says.
    If YYTABLE_NINF, syntax error.  */
 #define YYTABLE_NINF -3
-static const short int yytable[] =
+static const short yytable[] =
 {
       99,   124,     3,    -2,     4,   259,   260,   261,   143,   262,
      261,     4,   262,    11,    10,   124,   257,   184,   185,   188,
@@ -856,7 +853,7 @@ static const short int yytable[] =
      292
 };
 
-static const unsigned short int yycheck[] =
+static const unsigned short yycheck[] =
 {
       19,     7,     0,     0,     1,     4,     5,     6,    92,     8,
        6,     1,     8,    75,     2,     7,     7,    31,    32,   131,
@@ -976,8 +973,7 @@ static const unsigned char yystos[] =
 
 #define YYACCEPT	goto yyacceptlab
 #define YYABORT		goto yyabortlab
-#define YYERROR		goto yyerrorlab
-
+#define YYERROR		goto yyerrlab1
 
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
@@ -1004,52 +1000,19 @@ do								\
     }								\
 while (0)
 
-
 #define YYTERROR	1
 #define YYERRCODE	256
 
+/* YYLLOC_DEFAULT -- Compute the default location (before the actions
+   are run).  */
 
-/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
-   If N is 0, then set CURRENT to the empty location which ends
-   the previous symbol: RHS[0] (always defined).  */
-
-#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)				\
-    do									\
-      if (N)								\
-	{								\
-	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
-	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
-	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
-	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
-	}								\
-      else								\
-	{								\
-	  (Current).first_line   = (Current).last_line   =		\
-	    YYRHSLOC (Rhs, 0).last_line;				\
-	  (Current).first_column = (Current).last_column =		\
-	    YYRHSLOC (Rhs, 0).last_column;				\
-	}								\
-    while (0)
+# define YYLLOC_DEFAULT(Current, Rhs, N)         \
+  Current.first_line   = Rhs[1].first_line;      \
+  Current.first_column = Rhs[1].first_column;    \
+  Current.last_line    = Rhs[N].last_line;       \
+  Current.last_column  = Rhs[N].last_column;
 #endif
-
-
-/* YY_LOCATION_PRINT -- Print the location on the stream.
-   This macro was not mandated originally: define only if we know
-   we won't break user code: when these are the locations we know.  */
-
-#ifndef YY_LOCATION_PRINT
-# if YYLTYPE_IS_TRIVIAL
-#  define YY_LOCATION_PRINT(File, Loc)			\
-     fprintf (File, "%d.%d-%d.%d",			\
-              (Loc).first_line, (Loc).first_column,	\
-              (Loc).last_line,  (Loc).last_column)
-# else
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
-#endif
-
 
 /* YYLEX -- calling `yylex' with the right arguments.  */
 
@@ -1073,30 +1036,36 @@ do {						\
     YYFPRINTF Args;				\
 } while (0)
 
-# define YY_SYMBOL_PRINT(Title, Type, Value, Location)		\
+# define YYDSYMPRINT(Args)			\
+do {						\
+  if (yydebug)					\
+    yysymprint Args;				\
+} while (0)
+
+# define YYDSYMPRINTF(Title, Token, Value, Location)		\
 do {								\
   if (yydebug)							\
     {								\
       YYFPRINTF (stderr, "%s ", Title);				\
       yysymprint (stderr, 					\
-                  Type, Value);	\
+                  Token, Value);	\
       YYFPRINTF (stderr, "\n");					\
     }								\
 } while (0)
 
 /*------------------------------------------------------------------.
 | yy_stack_print -- Print the state stack from its BOTTOM up to its |
-| TOP (included).                                                   |
+| TOP (cinluded).                                                   |
 `------------------------------------------------------------------*/
 
 #if defined (__STDC__) || defined (__cplusplus)
 static void
-yy_stack_print (short int *bottom, short int *top)
+yy_stack_print (short *bottom, short *top)
 #else
 static void
 yy_stack_print (bottom, top)
-    short int *bottom;
-    short int *top;
+    short *bottom;
+    short *top;
 #endif
 {
   YYFPRINTF (stderr, "Stack now");
@@ -1126,9 +1095,9 @@ yy_reduce_print (yyrule)
 #endif
 {
   int yyi;
-  unsigned int yylno = yyrline[yyrule];
+  unsigned int yylineno = yyrline[yyrule];
   YYFPRINTF (stderr, "Reducing stack by rule %d (line %u), ",
-             yyrule - 1, yylno);
+             yyrule - 1, yylineno);
   /* Print the symbols being reduced, and their result.  */
   for (yyi = yyprhs[yyrule]; 0 <= yyrhs[yyi]; yyi++)
     YYFPRINTF (stderr, "%s ", yytname [yyrhs[yyi]]);
@@ -1146,7 +1115,8 @@ do {					\
 int yydebug;
 #else /* !YYDEBUG */
 # define YYDPRINTF(Args)
-# define YY_SYMBOL_PRINT(Title, Type, Value, Location)
+# define YYDSYMPRINT(Args)
+# define YYDSYMPRINTF(Title, Token, Value, Location)
 # define YY_STACK_PRINT(Bottom, Top)
 # define YY_REDUCE_PRINT(Rule)
 #endif /* !YYDEBUG */
@@ -1163,6 +1133,10 @@ int yydebug;
    Do not make this value too large; the results are undefined if
    SIZE_MAX < YYSTACK_BYTES (YYMAXDEPTH)
    evaluated with infinite-precision integer arithmetic.  */
+
+#if YYMAXDEPTH == 0
+# undef YYMAXDEPTH
+#endif
 
 #ifndef YYMAXDEPTH
 # define YYMAXDEPTH 10000
@@ -1245,15 +1219,15 @@ yysymprint (yyoutput, yytype, yyvaluep)
   (void) yyvaluep;
 
   if (yytype < YYNTOKENS)
-    YYFPRINTF (yyoutput, "token %s (", yytname[yytype]);
+    {
+      YYFPRINTF (yyoutput, "token %s (", yytname[yytype]);
+# ifdef YYPRINT
+      YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
+# endif
+    }
   else
     YYFPRINTF (yyoutput, "nterm %s (", yytname[yytype]);
 
-
-# ifdef YYPRINT
-  if (yytype < YYNTOKENS)
-    YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
-# endif
   switch (yytype)
     {
       default:
@@ -1269,21 +1243,16 @@ yysymprint (yyoutput, yytype, yyvaluep)
 
 #if defined (__STDC__) || defined (__cplusplus)
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep)
+yydestruct (int yytype, YYSTYPE *yyvaluep)
 #else
 static void
-yydestruct (yymsg, yytype, yyvaluep)
-    const char *yymsg;
+yydestruct (yytype, yyvaluep)
     int yytype;
     YYSTYPE *yyvaluep;
 #endif
 {
   /* Pacify ``unused variable'' warnings.  */
   (void) yyvaluep;
-
-  if (!yymsg)
-    yymsg = "Deleting";
-  YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
   switch (yytype)
     {
@@ -1312,10 +1281,10 @@ int yyparse ();
 
 
 
-/* The look-ahead symbol.  */
+/* The lookahead symbol.  */
 int yychar;
 
-/* The semantic value of the look-ahead symbol.  */
+/* The semantic value of the lookahead symbol.  */
 YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
@@ -1351,7 +1320,7 @@ yyparse ()
   int yyresult;
   /* Number of tokens to shift before error messages enabled.  */
   int yyerrstatus;
-  /* Look-ahead token as an internal (translated) token number.  */
+  /* Lookahead token as an internal (translated) token number.  */
   int yytoken = 0;
 
   /* Three stacks and their tools:
@@ -1363,9 +1332,9 @@ yyparse ()
      to reallocate them elsewhere.  */
 
   /* The state stack.  */
-  short int yyssa[YYINITDEPTH];
-  short int *yyss = yyssa;
-  register short int *yyssp;
+  short	yyssa[YYINITDEPTH];
+  short *yyss = yyssa;
+  register short *yyssp;
 
   /* The semantic value stack.  */
   YYSTYPE yyvsa[YYINITDEPTH];
@@ -1402,9 +1371,6 @@ yyparse ()
   yyssp = yyss;
   yyvsp = yyvs;
 
-
-  yyvsp[0] = yylval;
-
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -1430,7 +1396,7 @@ yyparse ()
 	   these so that the &'s don't force the real ones into
 	   memory.  */
 	YYSTYPE *yyvs1 = yyvs;
-	short int *yyss1 = yyss;
+	short *yyss1 = yyss;
 
 
 	/* Each stack pointer address is followed by the size of the
@@ -1458,7 +1424,7 @@ yyparse ()
 	yystacksize = YYMAXDEPTH;
 
       {
-	short int *yyss1 = yyss;
+	short *yyss1 = yyss;
 	union yyalloc *yyptr =
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
@@ -1494,18 +1460,18 @@ yyparse ()
 yybackup:
 
 /* Do appropriate processing given the current state.  */
-/* Read a look-ahead token if we need one and don't already have one.  */
+/* Read a lookahead token if we need one and don't already have one.  */
 /* yyresume: */
 
-  /* First try to decide what to do without reference to look-ahead token.  */
+  /* First try to decide what to do without reference to lookahead token.  */
 
   yyn = yypact[yystate];
   if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a look-ahead token if don't already have one.  */
+  /* Not known => get a lookahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
@@ -1520,7 +1486,7 @@ yybackup:
   else
     {
       yytoken = YYTRANSLATE (yychar);
-      YY_SYMBOL_PRINT ("Next token is", yytoken, &yylval, &yylloc);
+      YYDSYMPRINTF ("Next token is", yytoken, &yylval, &yylloc);
     }
 
   /* If the proper action on seeing token YYTOKEN is to reduce or to
@@ -1540,8 +1506,8 @@ yybackup:
   if (yyn == YYFINAL)
     YYACCEPT;
 
-  /* Shift the look-ahead token.  */
-  YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
+  /* Shift the lookahead token.  */
+  YYDPRINTF ((stderr, "Shifting token %s, ", yytname[yytoken]));
 
   /* Discard the token being shifted unless it is eof.  */
   if (yychar != YYEOF)
@@ -1591,800 +1557,800 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 238 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp); gResult = (yyval.exp); ;}
+#line 237 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp; gResult = yyval.exp; ;}
     break;
 
   case 3:
-#line 241 "parser/faustparser.y"
-    {(yyval.exp) = nil; ;}
+#line 240 "parser/faustparser.y"
+    {yyval.exp = nil; ;}
     break;
 
   case 4:
-#line 242 "parser/faustparser.y"
-    {(yyval.exp) = cons ((yyvsp[0].exp),(yyvsp[-1].exp)); ;}
+#line 241 "parser/faustparser.y"
+    {yyval.exp = cons (yyvsp[0].exp,yyvsp[-1].exp); ;}
     break;
 
   case 5:
-#line 245 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[-6].exp),buildBoxAbstr((yyvsp[-4].exp),(yyvsp[-1].exp))); ;}
+#line 244 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[-6].exp,buildBoxAbstr(yyvsp[-4].exp,yyvsp[-1].exp)); ;}
     break;
 
   case 6:
-#line 246 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[-3].exp),(yyvsp[-1].exp)); ;}
+#line 245 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[-3].exp,yyvsp[-1].exp); ;}
     break;
 
   case 7:
-#line 247 "parser/faustparser.y"
-    {(yyval.exp) = importFile((yyvsp[-2].exp)); ;}
+#line 246 "parser/faustparser.y"
+    {yyval.exp = importFile(yyvsp[-2].exp); ;}
     break;
 
   case 8:
-#line 248 "parser/faustparser.y"
+#line 247 "parser/faustparser.y"
     {gNameProperty.push_back(yytext); ;}
     break;
 
   case 9:
-#line 248 "parser/faustparser.y"
-    {(yyval.exp) = nil; ;}
+#line 247 "parser/faustparser.y"
+    {yyval.exp = nil; ;}
     break;
 
   case 10:
-#line 249 "parser/faustparser.y"
+#line 248 "parser/faustparser.y"
     {gAuthorProperty.push_back(yytext); ;}
     break;
 
   case 11:
-#line 249 "parser/faustparser.y"
-    {(yyval.exp) = nil; ;}
+#line 248 "parser/faustparser.y"
+    {yyval.exp = nil; ;}
     break;
 
   case 12:
-#line 250 "parser/faustparser.y"
+#line 249 "parser/faustparser.y"
     {gCopyrightProperty.push_back(yytext); ;}
     break;
 
   case 13:
-#line 250 "parser/faustparser.y"
-    {(yyval.exp) = nil; ;}
+#line 249 "parser/faustparser.y"
+    {yyval.exp = nil; ;}
     break;
 
   case 14:
-#line 251 "parser/faustparser.y"
+#line 250 "parser/faustparser.y"
     {gVersionProperty.push_back(yytext); ;}
     break;
 
   case 15:
-#line 251 "parser/faustparser.y"
-    {(yyval.exp) = nil; ;}
+#line 250 "parser/faustparser.y"
+    {yyval.exp = nil; ;}
     break;
 
   case 16:
-#line 252 "parser/faustparser.y"
+#line 251 "parser/faustparser.y"
     {gLicenseProperty.push_back(yytext); ;}
     break;
 
   case 17:
-#line 252 "parser/faustparser.y"
-    {(yyval.exp) = nil; ;}
+#line 251 "parser/faustparser.y"
+    {yyval.exp = nil; ;}
     break;
 
   case 18:
-#line 253 "parser/faustparser.y"
-    {(yyval.exp) = nil; yyerr++;;}
+#line 252 "parser/faustparser.y"
+    {yyval.exp = nil; yyerr++;;}
     break;
 
   case 19:
-#line 256 "parser/faustparser.y"
-    {(yyval.exp)=(yyvsp[0].exp); setDefProp((yyvsp[0].exp), yyfilename, yylineno); ;}
+#line 255 "parser/faustparser.y"
+    {yyval.exp=yyvsp[0].exp; setDefProp(yyvsp[0].exp, yyfilename, yylineno); ;}
     break;
 
   case 20:
-#line 259 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[0].exp),nil); ;}
+#line 258 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[0].exp,nil); ;}
     break;
 
   case 21:
-#line 260 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[0].exp),(yyvsp[-2].exp)); ;}
+#line 259 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[0].exp,yyvsp[-2].exp); ;}
     break;
 
   case 22:
-#line 263 "parser/faustparser.y"
-    {(yyval.exp) = boxWithLocalDef((yyvsp[-4].exp),(yyvsp[-1].exp)); ;}
+#line 262 "parser/faustparser.y"
+    {yyval.exp = boxWithLocalDef(yyvsp[-4].exp,yyvsp[-1].exp); ;}
     break;
 
   case 23:
-#line 264 "parser/faustparser.y"
-    {(yyval.exp) = boxPar((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 263 "parser/faustparser.y"
+    {yyval.exp = boxPar(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 24:
-#line 265 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 264 "parser/faustparser.y"
+    {yyval.exp = boxSeq(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 25:
-#line 266 "parser/faustparser.y"
-    {(yyval.exp) = boxSplit((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 265 "parser/faustparser.y"
+    {yyval.exp = boxSplit(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 26:
-#line 267 "parser/faustparser.y"
-    {(yyval.exp) = boxMerge((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 266 "parser/faustparser.y"
+    {yyval.exp = boxMerge(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 27:
-#line 268 "parser/faustparser.y"
-    {(yyval.exp) = boxRec((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 267 "parser/faustparser.y"
+    {yyval.exp = boxRec(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 28:
-#line 269 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp); ;}
+#line 268 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp; ;}
     break;
 
   case 29:
-#line 272 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigAdd)); ;}
+#line 271 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigAdd)); ;}
     break;
 
   case 30:
-#line 273 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigSub)); ;}
+#line 272 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigSub)); ;}
     break;
 
   case 31:
-#line 274 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigMul)); ;}
+#line 273 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigMul)); ;}
     break;
 
   case 32:
-#line 275 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigDiv)); ;}
+#line 274 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigDiv)); ;}
     break;
 
   case 33:
-#line 276 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigRem)); ;}
+#line 275 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigRem)); ;}
     break;
 
   case 34:
-#line 277 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigFixDelay)); ;}
+#line 276 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigFixDelay)); ;}
     break;
 
   case 35:
-#line 278 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq((yyvsp[-1].exp),boxPrim1(sigDelay1)); ;}
+#line 277 "parser/faustparser.y"
+    {yyval.exp = boxSeq(yyvsp[-1].exp,boxPrim1(sigDelay1)); ;}
     break;
 
   case 36:
-#line 279 "parser/faustparser.y"
-    {(yyval.exp) = boxAccess((yyvsp[-2].exp),(yyvsp[0].exp)); ;}
+#line 278 "parser/faustparser.y"
+    {yyval.exp = boxAccess(yyvsp[-2].exp,yyvsp[0].exp); ;}
     break;
 
   case 37:
-#line 281 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigAND)); ;}
+#line 280 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigAND)); ;}
     break;
 
   case 38:
-#line 282 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigOR)); ;}
+#line 281 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigOR)); ;}
     break;
 
   case 39:
-#line 283 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigXOR)); ;}
+#line 282 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigXOR)); ;}
     break;
 
   case 40:
-#line 285 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigLeftShift)); ;}
+#line 284 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigLeftShift)); ;}
     break;
 
   case 41:
-#line 286 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigRightShift)); ;}
+#line 285 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigRightShift)); ;}
     break;
 
   case 42:
-#line 288 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigLT)); ;}
+#line 287 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigLT)); ;}
     break;
 
   case 43:
-#line 289 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigLE)); ;}
+#line 288 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigLE)); ;}
     break;
 
   case 44:
-#line 290 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigGT)); ;}
+#line 289 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigGT)); ;}
     break;
 
   case 45:
-#line 291 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigGE)); ;}
+#line 290 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigGE)); ;}
     break;
 
   case 46:
-#line 292 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigEQ)); ;}
+#line 291 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigEQ)); ;}
     break;
 
   case 47:
-#line 293 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigNE)); ;}
+#line 292 "parser/faustparser.y"
+    {yyval.exp = boxSeq(boxPar(yyvsp[-2].exp,yyvsp[0].exp),boxPrim2(sigNE)); ;}
     break;
 
   case 48:
-#line 295 "parser/faustparser.y"
-    {(yyval.exp) = buildBoxAppl((yyvsp[-3].exp),(yyvsp[-1].exp)); ;}
+#line 294 "parser/faustparser.y"
+    {yyval.exp = buildBoxAppl(yyvsp[-3].exp,yyvsp[-1].exp); ;}
     break;
 
   case 49:
-#line 297 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 296 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 50:
-#line 300 "parser/faustparser.y"
-    {(yyval.exp) = boxInt(atoi(yytext));;}
+#line 299 "parser/faustparser.y"
+    {yyval.exp = boxInt(atoi(yytext));;}
     break;
 
   case 51:
-#line 301 "parser/faustparser.y"
-    {(yyval.exp) = boxReal(atof(yytext));;}
+#line 300 "parser/faustparser.y"
+    {yyval.exp = boxReal(atof(yytext));;}
     break;
 
   case 52:
-#line 303 "parser/faustparser.y"
-    {(yyval.exp) = boxInt(atoi(yytext));;}
+#line 302 "parser/faustparser.y"
+    {yyval.exp = boxInt(atoi(yytext));;}
     break;
 
   case 53:
-#line 304 "parser/faustparser.y"
-    {(yyval.exp) = boxReal(atof(yytext));;}
+#line 303 "parser/faustparser.y"
+    {yyval.exp = boxReal(atof(yytext));;}
     break;
 
   case 54:
-#line 306 "parser/faustparser.y"
-    {(yyval.exp) = boxInt(0 - atoi(yytext));;}
+#line 305 "parser/faustparser.y"
+    {yyval.exp = boxInt(0 - atoi(yytext));;}
     break;
 
   case 55:
-#line 307 "parser/faustparser.y"
-    {(yyval.exp) = boxReal(0.0 - atof(yytext));;}
+#line 306 "parser/faustparser.y"
+    {yyval.exp = boxReal(0.0 - atof(yytext));;}
     break;
 
   case 56:
-#line 309 "parser/faustparser.y"
-    {(yyval.exp) = boxWire();;}
+#line 308 "parser/faustparser.y"
+    {yyval.exp = boxWire();;}
     break;
 
   case 57:
-#line 310 "parser/faustparser.y"
-    {(yyval.exp) = boxCut();;}
+#line 309 "parser/faustparser.y"
+    {yyval.exp = boxCut();;}
     break;
 
   case 58:
-#line 312 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim1(sigDelay1);;}
+#line 311 "parser/faustparser.y"
+    {yyval.exp = boxPrim1(sigDelay1);;}
     break;
 
   case 59:
-#line 313 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigPrefix);;}
+#line 312 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigPrefix);;}
     break;
 
   case 60:
-#line 315 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim1(sigIntCast);;}
+#line 314 "parser/faustparser.y"
+    {yyval.exp = boxPrim1(sigIntCast);;}
     break;
 
   case 61:
-#line 316 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim1(sigFloatCast);;}
+#line 315 "parser/faustparser.y"
+    {yyval.exp = boxPrim1(sigFloatCast);;}
     break;
 
   case 62:
-#line 318 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigAdd);;}
+#line 317 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigAdd);;}
     break;
 
   case 63:
-#line 319 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigSub);;}
+#line 318 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigSub);;}
     break;
 
   case 64:
-#line 320 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigMul);;}
+#line 319 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigMul);;}
     break;
 
   case 65:
-#line 321 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigDiv);;}
+#line 320 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigDiv);;}
     break;
 
   case 66:
-#line 322 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigRem);;}
+#line 321 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigRem);;}
     break;
 
   case 67:
-#line 323 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigFixDelay);;}
+#line 322 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigFixDelay);;}
     break;
 
   case 68:
-#line 325 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigAND);;}
+#line 324 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigAND);;}
     break;
 
   case 69:
-#line 326 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigOR);;}
+#line 325 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigOR);;}
     break;
 
   case 70:
-#line 327 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigXOR);;}
+#line 326 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigXOR);;}
     break;
 
   case 71:
-#line 329 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigLeftShift);;}
+#line 328 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigLeftShift);;}
     break;
 
   case 72:
-#line 330 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigRightShift);;}
+#line 329 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigRightShift);;}
     break;
 
   case 73:
-#line 332 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigLT);;}
+#line 331 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigLT);;}
     break;
 
   case 74:
-#line 333 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigLE);;}
+#line 332 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigLE);;}
     break;
 
   case 75:
-#line 334 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigGT);;}
+#line 333 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigGT);;}
     break;
 
   case 76:
-#line 335 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigGE);;}
+#line 334 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigGE);;}
     break;
 
   case 77:
-#line 336 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigEQ);;}
+#line 335 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigEQ);;}
     break;
 
   case 78:
-#line 337 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigNE);;}
+#line 336 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigNE);;}
     break;
 
   case 79:
-#line 339 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim2(sigAttach);;}
+#line 338 "parser/faustparser.y"
+    {yyval.exp = boxPrim2(sigAttach);;}
     break;
 
   case 80:
-#line 341 "parser/faustparser.y"
-    {(yyval.exp) = gAcosPrim->box(); ;}
+#line 340 "parser/faustparser.y"
+    {yyval.exp = gAcosPrim->box(); ;}
     break;
 
   case 81:
-#line 342 "parser/faustparser.y"
-    {(yyval.exp) = gAsinPrim->box(); ;}
+#line 341 "parser/faustparser.y"
+    {yyval.exp = gAsinPrim->box(); ;}
     break;
 
   case 82:
-#line 343 "parser/faustparser.y"
-    {(yyval.exp) = gAtanPrim->box(); ;}
+#line 342 "parser/faustparser.y"
+    {yyval.exp = gAtanPrim->box(); ;}
     break;
 
   case 83:
-#line 344 "parser/faustparser.y"
-    {(yyval.exp) = gAtan2Prim->box(); ;}
+#line 343 "parser/faustparser.y"
+    {yyval.exp = gAtan2Prim->box(); ;}
     break;
 
   case 84:
-#line 345 "parser/faustparser.y"
-    {(yyval.exp) = gCosPrim->box(); ;}
+#line 344 "parser/faustparser.y"
+    {yyval.exp = gCosPrim->box(); ;}
     break;
 
   case 85:
-#line 346 "parser/faustparser.y"
-    {(yyval.exp) = gSinPrim->box(); ;}
+#line 345 "parser/faustparser.y"
+    {yyval.exp = gSinPrim->box(); ;}
     break;
 
   case 86:
-#line 347 "parser/faustparser.y"
-    {(yyval.exp) = gTanPrim->box(); ;}
+#line 346 "parser/faustparser.y"
+    {yyval.exp = gTanPrim->box(); ;}
     break;
 
   case 87:
-#line 349 "parser/faustparser.y"
-    {(yyval.exp) = gExpPrim->box(); ;}
+#line 348 "parser/faustparser.y"
+    {yyval.exp = gExpPrim->box(); ;}
     break;
 
   case 88:
-#line 350 "parser/faustparser.y"
-    {(yyval.exp) = gLogPrim->box(); ;}
+#line 349 "parser/faustparser.y"
+    {yyval.exp = gLogPrim->box(); ;}
     break;
 
   case 89:
-#line 351 "parser/faustparser.y"
-    {(yyval.exp) = gLog10Prim->box(); ;}
+#line 350 "parser/faustparser.y"
+    {yyval.exp = gLog10Prim->box(); ;}
     break;
 
   case 90:
-#line 352 "parser/faustparser.y"
-    {(yyval.exp) = gPowPrim->box(); ;}
+#line 351 "parser/faustparser.y"
+    {yyval.exp = gPowPrim->box(); ;}
     break;
 
   case 91:
-#line 353 "parser/faustparser.y"
-    {(yyval.exp) = gSqrtPrim->box(); ;}
+#line 352 "parser/faustparser.y"
+    {yyval.exp = gSqrtPrim->box(); ;}
     break;
 
   case 92:
-#line 355 "parser/faustparser.y"
-    {(yyval.exp) = gAbsPrim->box(); ;}
+#line 354 "parser/faustparser.y"
+    {yyval.exp = gAbsPrim->box(); ;}
     break;
 
   case 93:
-#line 356 "parser/faustparser.y"
-    {(yyval.exp) = gMinPrim->box(); ;}
+#line 355 "parser/faustparser.y"
+    {yyval.exp = gMinPrim->box(); ;}
     break;
 
   case 94:
-#line 357 "parser/faustparser.y"
-    {(yyval.exp) = gMaxPrim->box(); ;}
+#line 356 "parser/faustparser.y"
+    {yyval.exp = gMaxPrim->box(); ;}
     break;
 
   case 95:
-#line 359 "parser/faustparser.y"
-    {(yyval.exp) = gFmodPrim->box(); ;}
+#line 358 "parser/faustparser.y"
+    {yyval.exp = gFmodPrim->box(); ;}
     break;
 
   case 96:
-#line 360 "parser/faustparser.y"
-    {(yyval.exp) = gRemainderPrim->box(); ;}
+#line 359 "parser/faustparser.y"
+    {yyval.exp = gRemainderPrim->box(); ;}
     break;
 
   case 97:
-#line 362 "parser/faustparser.y"
-    {(yyval.exp) = gFloorPrim->box(); ;}
+#line 361 "parser/faustparser.y"
+    {yyval.exp = gFloorPrim->box(); ;}
     break;
 
   case 98:
-#line 363 "parser/faustparser.y"
-    {(yyval.exp) = gCeilPrim->box(); ;}
+#line 362 "parser/faustparser.y"
+    {yyval.exp = gCeilPrim->box(); ;}
     break;
 
   case 99:
-#line 364 "parser/faustparser.y"
-    {(yyval.exp) = gRintPrim->box(); ;}
+#line 363 "parser/faustparser.y"
+    {yyval.exp = gRintPrim->box(); ;}
     break;
 
   case 100:
-#line 367 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim3(sigReadOnlyTable);;}
+#line 366 "parser/faustparser.y"
+    {yyval.exp = boxPrim3(sigReadOnlyTable);;}
     break;
 
   case 101:
-#line 368 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim5(sigWriteReadTable);;}
+#line 367 "parser/faustparser.y"
+    {yyval.exp = boxPrim5(sigWriteReadTable);;}
     break;
 
   case 102:
-#line 370 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim3(sigSelect2);;}
+#line 369 "parser/faustparser.y"
+    {yyval.exp = boxPrim3(sigSelect2);;}
     break;
 
   case 103:
-#line 371 "parser/faustparser.y"
-    {(yyval.exp) = boxPrim4(sigSelect3);;}
+#line 370 "parser/faustparser.y"
+    {yyval.exp = boxPrim4(sigSelect3);;}
     break;
 
   case 104:
-#line 373 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 372 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 105:
-#line 375 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[-1].exp);;}
+#line 374 "parser/faustparser.y"
+    {yyval.exp = yyvsp[-1].exp;;}
     break;
 
   case 106:
-#line 377 "parser/faustparser.y"
-    {(yyval.exp) = buildBoxAbstr((yyvsp[-5].exp),(yyvsp[-1].exp));;}
+#line 376 "parser/faustparser.y"
+    {yyval.exp = buildBoxAbstr(yyvsp[-5].exp,yyvsp[-1].exp);;}
     break;
 
   case 107:
-#line 378 "parser/faustparser.y"
-    {(yyval.exp) = boxFFun((yyvsp[0].exp)); ;}
+#line 377 "parser/faustparser.y"
+    {yyval.exp = boxFFun(yyvsp[0].exp); ;}
     break;
 
   case 108:
-#line 379 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 378 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 109:
-#line 380 "parser/faustparser.y"
-    {(yyval.exp) = boxComponent((yyvsp[-1].exp)); ;}
+#line 379 "parser/faustparser.y"
+    {yyval.exp = boxComponent(yyvsp[-1].exp); ;}
     break;
 
   case 110:
-#line 382 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 381 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 111:
-#line 383 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 382 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 112:
-#line 384 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 383 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 113:
-#line 385 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 384 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 114:
-#line 386 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 385 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 115:
-#line 387 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 386 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 116:
-#line 388 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 387 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 117:
-#line 389 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 388 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 118:
-#line 390 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 389 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 119:
-#line 391 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 390 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 120:
-#line 393 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 392 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 121:
-#line 394 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 393 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 122:
-#line 395 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 394 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 123:
-#line 396 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 395 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 124:
-#line 400 "parser/faustparser.y"
-    {(yyval.exp) = boxIdent(yytext);;}
+#line 399 "parser/faustparser.y"
+    {yyval.exp = boxIdent(yytext);;}
     break;
 
   case 125:
-#line 403 "parser/faustparser.y"
-    {(yyval.exp) = tree(yytext);;}
+#line 402 "parser/faustparser.y"
+    {yyval.exp = tree(yytext);;}
     break;
 
   case 126:
-#line 408 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[0].exp),nil); ;}
+#line 407 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[0].exp,nil); ;}
     break;
 
   case 127:
-#line 409 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[0].exp),(yyvsp[-2].exp)); ;}
+#line 408 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[0].exp,yyvsp[-2].exp); ;}
     break;
 
   case 128:
-#line 412 "parser/faustparser.y"
-    {(yyval.exp) = boxSeq((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 411 "parser/faustparser.y"
+    {yyval.exp = boxSeq(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 129:
-#line 413 "parser/faustparser.y"
-    {(yyval.exp) = boxSplit((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 412 "parser/faustparser.y"
+    {yyval.exp = boxSplit(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 130:
-#line 414 "parser/faustparser.y"
-    {(yyval.exp) = boxMerge((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 413 "parser/faustparser.y"
+    {yyval.exp = boxMerge(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 131:
-#line 415 "parser/faustparser.y"
-    {(yyval.exp) = boxRec((yyvsp[-2].exp),(yyvsp[0].exp));;}
+#line 414 "parser/faustparser.y"
+    {yyval.exp = boxRec(yyvsp[-2].exp,yyvsp[0].exp);;}
     break;
 
   case 132:
-#line 416 "parser/faustparser.y"
-    {(yyval.exp) = (yyvsp[0].exp);;}
+#line 415 "parser/faustparser.y"
+    {yyval.exp = yyvsp[0].exp;;}
     break;
 
   case 133:
-#line 419 "parser/faustparser.y"
-    {(yyval.exp) = tree(yytext); ;}
+#line 418 "parser/faustparser.y"
+    {yyval.exp = tree(yytext); ;}
     break;
 
   case 134:
-#line 422 "parser/faustparser.y"
-    {(yyval.exp) = unquote(yytext); ;}
+#line 421 "parser/faustparser.y"
+    {yyval.exp = unquote(yytext); ;}
     break;
 
   case 135:
-#line 425 "parser/faustparser.y"
-    {(yyval.exp) = tree(yytext); ;}
+#line 424 "parser/faustparser.y"
+    {yyval.exp = tree(yytext); ;}
     break;
 
   case 136:
-#line 426 "parser/faustparser.y"
-    {(yyval.exp) = tree(yytext); ;}
+#line 425 "parser/faustparser.y"
+    {yyval.exp = tree(yytext); ;}
     break;
 
   case 137:
-#line 432 "parser/faustparser.y"
-    {(yyval.exp) = boxIPar((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp));;}
+#line 431 "parser/faustparser.y"
+    {yyval.exp = boxIPar(yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp);;}
     break;
 
   case 138:
-#line 436 "parser/faustparser.y"
-    {(yyval.exp) = boxISeq((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp));;}
+#line 435 "parser/faustparser.y"
+    {yyval.exp = boxISeq(yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp);;}
     break;
 
   case 139:
-#line 440 "parser/faustparser.y"
-    {(yyval.exp) = boxISum((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp));;}
+#line 439 "parser/faustparser.y"
+    {yyval.exp = boxISum(yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp);;}
     break;
 
   case 140:
-#line 444 "parser/faustparser.y"
-    {(yyval.exp) = boxIProd((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp));;}
+#line 443 "parser/faustparser.y"
+    {yyval.exp = boxIProd(yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp);;}
     break;
 
   case 141:
-#line 451 "parser/faustparser.y"
-    {(yyval.exp) = ffunction((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp));;}
+#line 450 "parser/faustparser.y"
+    {yyval.exp = ffunction(yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp);;}
     break;
 
   case 142:
-#line 455 "parser/faustparser.y"
-    {(yyval.exp) = boxFConst((yyvsp[-4].exp),(yyvsp[-3].exp),(yyvsp[-1].exp));;}
+#line 454 "parser/faustparser.y"
+    {yyval.exp = boxFConst(yyvsp[-4].exp,yyvsp[-3].exp,yyvsp[-1].exp);;}
     break;
 
   case 143:
-#line 459 "parser/faustparser.y"
-    {(yyval.exp) = boxButton((yyvsp[-1].exp)); ;}
+#line 458 "parser/faustparser.y"
+    {yyval.exp = boxButton(yyvsp[-1].exp); ;}
     break;
 
   case 144:
-#line 462 "parser/faustparser.y"
-    {(yyval.exp) = boxCheckbox((yyvsp[-1].exp)); ;}
+#line 461 "parser/faustparser.y"
+    {yyval.exp = boxCheckbox(yyvsp[-1].exp); ;}
     break;
 
   case 145:
-#line 466 "parser/faustparser.y"
-    {(yyval.exp) = boxVSlider((yyvsp[-9].exp),(yyvsp[-7].exp),(yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); ;}
+#line 465 "parser/faustparser.y"
+    {yyval.exp = boxVSlider(yyvsp[-9].exp,yyvsp[-7].exp,yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp); ;}
     break;
 
   case 146:
-#line 469 "parser/faustparser.y"
-    {(yyval.exp) = boxHSlider((yyvsp[-9].exp),(yyvsp[-7].exp),(yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); ;}
+#line 468 "parser/faustparser.y"
+    {yyval.exp = boxHSlider(yyvsp[-9].exp,yyvsp[-7].exp,yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp); ;}
     break;
 
   case 147:
-#line 472 "parser/faustparser.y"
-    {(yyval.exp) = boxNumEntry((yyvsp[-9].exp),(yyvsp[-7].exp),(yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); ;}
+#line 471 "parser/faustparser.y"
+    {yyval.exp = boxNumEntry(yyvsp[-9].exp,yyvsp[-7].exp,yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp); ;}
     break;
 
   case 148:
-#line 475 "parser/faustparser.y"
-    {(yyval.exp) = boxVGroup((yyvsp[-3].exp), (yyvsp[-1].exp)); ;}
+#line 474 "parser/faustparser.y"
+    {yyval.exp = boxVGroup(yyvsp[-3].exp, yyvsp[-1].exp); ;}
     break;
 
   case 149:
-#line 478 "parser/faustparser.y"
-    {(yyval.exp) = boxHGroup((yyvsp[-3].exp), (yyvsp[-1].exp)); ;}
+#line 477 "parser/faustparser.y"
+    {yyval.exp = boxHGroup(yyvsp[-3].exp, yyvsp[-1].exp); ;}
     break;
 
   case 150:
-#line 481 "parser/faustparser.y"
-    {(yyval.exp) = boxTGroup((yyvsp[-3].exp), (yyvsp[-1].exp)); ;}
+#line 480 "parser/faustparser.y"
+    {yyval.exp = boxTGroup(yyvsp[-3].exp, yyvsp[-1].exp); ;}
     break;
 
   case 151:
-#line 485 "parser/faustparser.y"
-    {(yyval.exp) = boxVBargraph((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); ;}
+#line 484 "parser/faustparser.y"
+    {yyval.exp = boxVBargraph(yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp); ;}
     break;
 
   case 152:
-#line 488 "parser/faustparser.y"
-    {(yyval.exp) = boxHBargraph((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); ;}
+#line 487 "parser/faustparser.y"
+    {yyval.exp = boxHBargraph(yyvsp[-5].exp,yyvsp[-3].exp,yyvsp[-1].exp); ;}
     break;
 
   case 153:
-#line 492 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[-4].exp), cons((yyvsp[-3].exp), (yyvsp[-1].exp))); ;}
+#line 491 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[-4].exp, cons(yyvsp[-3].exp, yyvsp[-1].exp)); ;}
     break;
 
   case 154:
-#line 493 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[-3].exp), cons((yyvsp[-2].exp), nil)); ;}
+#line 492 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[-3].exp, cons(yyvsp[-2].exp, nil)); ;}
     break;
 
   case 155:
-#line 496 "parser/faustparser.y"
-    {(yyval.exp) = tree(yytext);;}
+#line 495 "parser/faustparser.y"
+    {yyval.exp = tree(yytext);;}
     break;
 
   case 156:
-#line 499 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[0].exp),nil); ;}
+#line 498 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[0].exp,nil); ;}
     break;
 
   case 157:
-#line 500 "parser/faustparser.y"
-    {(yyval.exp) = cons((yyvsp[0].exp),(yyvsp[-2].exp)); ;}
+#line 499 "parser/faustparser.y"
+    {yyval.exp = cons(yyvsp[0].exp,yyvsp[-2].exp); ;}
     break;
 
   case 158:
-#line 503 "parser/faustparser.y"
-    {(yyval.exp) = tree(0); ;}
+#line 502 "parser/faustparser.y"
+    {yyval.exp = tree(0); ;}
     break;
 
   case 159:
-#line 504 "parser/faustparser.y"
-    {(yyval.exp) = tree(1); ;}
+#line 503 "parser/faustparser.y"
+    {yyval.exp = tree(1); ;}
     break;
 
 
     }
 
-/* Line 1037 of yacc.c.  */
-#line 2388 "parser/faustparser.cpp"
+/* Line 991 of yacc.c.  */
+#line 2353 "parser/faustparser.cpp"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2425,33 +2391,18 @@ yyerrlab:
 	{
 	  YYSIZE_T yysize = 0;
 	  int yytype = YYTRANSLATE (yychar);
-	  const char* yyprefix;
 	  char *yymsg;
-	  int yyx;
+	  int yyx, yycount;
 
+	  yycount = 0;
 	  /* Start YYX at -YYN if negative to avoid negative indexes in
 	     YYCHECK.  */
-	  int yyxbegin = yyn < 0 ? -yyn : 0;
-
-	  /* Stay within bounds of both yycheck and yytname.  */
-	  int yychecklim = YYLAST - yyn;
-	  int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
-	  int yycount = 0;
-
-	  yyprefix = ", expecting ";
-	  for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+	  for (yyx = yyn < 0 ? -yyn : 0;
+	       yyx < (int) (sizeof (yytname) / sizeof (char *)); yyx++)
 	    if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
-	      {
-		yysize += yystrlen (yyprefix) + yystrlen (yytname [yyx]);
-		yycount += 1;
-		if (yycount == 5)
-		  {
-		    yysize = 0;
-		    break;
-		  }
-	      }
-	  yysize += (sizeof ("syntax error, unexpected ")
-		     + yystrlen (yytname[yytype]));
+	      yysize += yystrlen (yytname[yyx]) + 15, yycount++;
+	  yysize += yystrlen ("syntax error, unexpected ") + 1;
+	  yysize += yystrlen (yytname[yytype]);
 	  yymsg = (char *) YYSTACK_ALLOC (yysize);
 	  if (yymsg != 0)
 	    {
@@ -2460,13 +2411,16 @@ yyerrlab:
 
 	      if (yycount < 5)
 		{
-		  yyprefix = ", expecting ";
-		  for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+		  yycount = 0;
+		  for (yyx = yyn < 0 ? -yyn : 0;
+		       yyx < (int) (sizeof (yytname) / sizeof (char *));
+		       yyx++)
 		    if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
 		      {
-			yyp = yystpcpy (yyp, yyprefix);
+			const char *yyq = ! yycount ? ", expecting " : " or ";
+			yyp = yystpcpy (yyp, yyq);
 			yyp = yystpcpy (yyp, yytname[yyx]);
-			yyprefix = " or ";
+			yycount++;
 		      }
 		}
 	      yyerror (yymsg);
@@ -2484,58 +2438,55 @@ yyerrlab:
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse look-ahead token after an
+      /* If just tried and failed to reuse lookahead token after an
 	 error, discard it.  */
 
-      if (yychar <= YYEOF)
+      /* Return failure if at end of input.  */
+      if (yychar == YYEOF)
         {
-          /* If at end of input, pop the error token,
-	     then the rest of the stack, then return failure.  */
-	  if (yychar == YYEOF)
-	     for (;;)
-	       {
-
-		 YYPOPSTACK;
-		 if (yyssp == yyss)
-		   YYABORT;
-		 yydestruct ("Error: popping",
-                             yystos[*yyssp], yyvsp);
-	       }
+	  /* Pop the error token.  */
+          YYPOPSTACK;
+	  /* Pop the rest of the stack.  */
+	  while (yyss < yyssp)
+	    {
+	      YYDSYMPRINTF ("Error: popping", yystos[*yyssp], yyvsp, yylsp);
+	      yydestruct (yystos[*yyssp], yyvsp);
+	      YYPOPSTACK;
+	    }
+	  YYABORT;
         }
-      else
-	{
-	  yydestruct ("Error: discarding", yytoken, &yylval);
-	  yychar = YYEMPTY;
-	}
+
+      YYDSYMPRINTF ("Error: discarding", yytoken, &yylval, &yylloc);
+      yydestruct (yytoken, &yylval);
+      yychar = YYEMPTY;
+
     }
 
-  /* Else will try to reuse look-ahead token after shifting the error
+  /* Else will try to reuse lookahead token after shifting the error
      token.  */
-  goto yyerrlab1;
+  goto yyerrlab2;
 
 
-/*---------------------------------------------------.
-| yyerrorlab -- error raised explicitly by YYERROR.  |
-`---------------------------------------------------*/
-yyerrorlab:
+/*----------------------------------------------------.
+| yyerrlab1 -- error raised explicitly by an action.  |
+`----------------------------------------------------*/
+yyerrlab1:
 
-#ifdef __GNUC__
-  /* Pacify GCC when the user code never invokes YYERROR and the label
-     yyerrorlab therefore never appears in user code.  */
-  if (0)
-     goto yyerrorlab;
+  /* Suppress GCC warning that yyerrlab1 is unused when no action
+     invokes YYERROR.  */
+#if defined (__GNUC_MINOR__) && 2093 <= (__GNUC__ * 1000 + __GNUC_MINOR__) \
+    && !defined __cplusplus
+  __attribute__ ((__unused__))
 #endif
 
-yyvsp -= yylen;
-  yyssp -= yylen;
-  yystate = *yyssp;
-  goto yyerrlab1;
+
+  goto yyerrlab2;
 
 
-/*-------------------------------------------------------------.
-| yyerrlab1 -- common code for both syntax error and YYERROR.  |
-`-------------------------------------------------------------*/
-yyerrlab1:
+/*---------------------------------------------------------------.
+| yyerrlab2 -- pop states until the error token can be shifted.  |
+`---------------------------------------------------------------*/
+yyerrlab2:
   yyerrstatus = 3;	/* Each real token shifted decrements this.  */
 
   for (;;)
@@ -2556,21 +2507,21 @@ yyerrlab1:
       if (yyssp == yyss)
 	YYABORT;
 
+      YYDSYMPRINTF ("Error: popping", yystos[*yyssp], yyvsp, yylsp);
+      yydestruct (yystos[yystate], yyvsp);
+      yyvsp--;
+      yystate = *--yyssp;
 
-      yydestruct ("Error: popping", yystos[yystate], yyvsp);
-      YYPOPSTACK;
-      yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
     }
 
   if (yyn == YYFINAL)
     YYACCEPT;
 
+  YYDPRINTF ((stderr, "Shifting error token, "));
+
   *++yyvsp = yylval;
 
-
-  /* Shift the error token. */
-  YY_SYMBOL_PRINT ("Shifting", yystos[yyn], yyvsp, yylsp);
 
   yystate = yyn;
   goto yynewstate;
@@ -2587,9 +2538,6 @@ yyacceptlab:
 | yyabortlab -- YYABORT comes here.  |
 `-----------------------------------*/
 yyabortlab:
-  yydestruct ("Error: discarding lookahead",
-              yytoken, &yylval);
-  yychar = YYEMPTY;
   yyresult = 1;
   goto yyreturn;
 
@@ -2612,7 +2560,7 @@ yyreturn:
 }
 
 
-#line 507 "parser/faustparser.y"
+#line 506 "parser/faustparser.y"
          
 
 
