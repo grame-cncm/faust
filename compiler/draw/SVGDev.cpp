@@ -90,7 +90,7 @@ void SVGDev::trait(float x1,float y1,float x2,float y2)
 
 void SVGDev::dasharray(float x1,float y1,float x2,float y2)
 {
-	fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke: black; stroke-linecap:round; stroke-width:1; stroke-dasharray:3,3;\"/>\n",x1,y1,x2,y2);
+	fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke: black; stroke-linecap:round; stroke-width:0.25; stroke-dasharray:3,3;\"/>\n",x1,y1,x2,y2);
 }
 
 void SVGDev::text(float x,float y,const char* name)
