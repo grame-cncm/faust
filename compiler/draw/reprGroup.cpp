@@ -50,20 +50,27 @@ void reprGroup::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<
 {
 	int i;
 	vector <wire*> iA,oA;
-	wire *w;
-	float marge_label=(float)3;
+	wire*	w;
+	float 	marge_label = 3.0;
 	//float l_letter=(float)3.5;
-	float l_letter=(float)3.75;
+	float 	wletter = 3.75;
+	float	wlabel = strlen(nom) * wletter;
 
 	if(sens==1)
 	{
 		dev.dasharray(x,y+delta_hlabel,x,y+hauteur);
 		dev.dasharray(x,y+hauteur,x+largeur,y+hauteur);
 		dev.dasharray(x+largeur,y+delta_hlabel,x+largeur,y+hauteur);
+		// redefinition du positionnement du label
+		dev.dasharray(x, y+delta_hlabel, x+delta_lb, y+delta_hlabel);
+		dev.label(x+delta_lb, y+delta_hlabel, nom);
+		dev.dasharray(min(x + delta_lb + wlabel + marge_label, x + largeur), y + delta_hlabel,
+					 x + largeur, y + delta_hlabel);
+#if 0
 		dev.dasharray(x,y+delta_hlabel,x+largeur/8-marge_label,y+delta_hlabel);
 		dev.label(x+largeur/8,y+delta_hlabel,nom);
 		dev.dasharray(x+largeur/8+strlen(nom)*l_letter+marge_label,y+delta_hlabel,x+largeur,y+delta_hlabel);
-
+#endif
 		if(wi.size() != 0)
 			for(i=0;i<(int)ins.size();i++) // i:ins
 			{
@@ -105,10 +112,20 @@ void reprGroup::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<
 		dev.dasharray(x,y-delta_hlabel,x,y-hauteur);
 		dev.dasharray(x,y-hauteur,x-largeur,y-hauteur);
 		dev.dasharray(x-largeur,y-delta_hlabel,x-largeur,y-hauteur);
-		dev.dasharray(x,y-delta_hlabel,x-largeur/8+marge_label,y-delta_hlabel);
-		dev.label(x-largeur/8-strlen(nom)*l_letter,y-delta_hlabel,nom);
-		dev.dasharray(x-largeur/8-strlen(nom)*l_letter-marge_label,y-delta_hlabel,x-largeur,y-delta_hlabel);
 
+		dev.dasharray(x, y - delta_hlabel, x - delta_lb, y - delta_hlabel);
+		dev.label(x -  delta_lb - wlabel - marge_label, y - delta_hlabel, nom);
+		dev.dasharray(x - largeur, y - delta_hlabel, x - delta_lb - wlabel, y - delta_hlabel);
+#if 0
+		dev.dasharray(x, y+delta_hlabel, x+delta_lb, y+delta_hlabel);
+		dev.label(x+delta_lb, y+delta_hlabel, nom);
+		dev.dasharray(min(x + delta_lb + wlabel + marge_label, x + largeur), y + delta_hlabel,
+					 x + largeur, y + delta_hlabel);
+
+		dev.dasharray(x,y-delta_hlabel,x-largeur/8+marge_label,y-delta_hlabel);
+		dev.label(x-largeur/8-strlen(nom)*l_letter, y-delta_hlabel, nom);
+		dev.dasharray(x-largeur/8-strlen(nom)*l_letter-marge_label,y-delta_hlabel,x-largeur,y-delta_hlabel);
+#endif
 		if(wi.size() != 0)
 			for(i=0;i<(int)ins.size();i++) // i:ins
 			{

@@ -40,6 +40,8 @@
 #include "constrFonctions.h"
 #include "ppbox.hh"
 #include "xtended.hh"
+#include "eval.hh"
+
 #include <ostream>
 #include <sstream>
 
@@ -53,7 +55,8 @@ treeRepr* graphicPrim (const char* name, int ins, int outs);
 
 void drawBlockDiagram(Tree bd, const char* dev)
 {
-	treeRepr* tR = new treeGroup(graphicBlockDiagram(bd), "process");
+	Tree		id;
+	treeRepr* 	tR =  (getDefNameProperty(bd, id)) ? graphicBlockDiagram(bd) : new treeGroup(graphicBlockDiagram(bd), "process");
 	if(find_config_param(tR))
 	{
 		representation* ENDrepr = tR->treeToRepr();
@@ -64,7 +67,6 @@ void drawBlockDiagram(Tree bd, const char* dev)
 		cout<<endl<<"Representation impossible."<<endl<<endl;
 	}
 }
-
 
 treeRepr* graphicUI(Tree t)
 {
@@ -84,25 +86,52 @@ treeRepr* bargraph(Tree t)
 
 treeRepr* graphicInputSlot(Tree a)
 {
-	int i;
-	char c[64];
-	assert(isBoxSlot(a,&i));
-	snprintf(c, 63, "slot(%d)",i);
-	return graphicPrim(strdup(c), 1, 0);
+	Tree id; assert(getDefNameProperty(a, id));
+	stringstream s; s << boxpp(id);
+	return graphicPrim(strdup(s.str().c_str()), 1, 0);
+}
+
+treeRepr* graphicOutputSlot(Tree a)
+{
+	Tree id; assert(getDefNameProperty(a, id));
+	stringstream s; s << boxpp(id);
+	return graphicPrim(strdup(s.str().c_str()), 0, 1);
 }
 
 treeRepr* graphicAbstraction(treeRepr* x, Tree t)
 {
 	Tree 	a,b;
+	//Tree 	id;
+	//bool	isnamed = getDefNameProperty(t, id);
+
 	while (isBoxSymbolic(t,a,b)) {
 		x = new treeNormal("Para", x, graphicInputSlot(a));
 		t = b;
 	}
-		
-	return new treeGroup(new treeNormal("Serie", x, graphicBlockDiagram(t)), "abstraction"); 
+
+	//if (isnamed) {
+		return new treeNormal("Serie", x, graphicBlockDiagram(t));
+	//} else {
+	//	return new treeGroup(new treeNormal("Serie", x, graphicBlockDiagram(t)), "abstraction");
+	//} 
 }
 
+static treeRepr* realGraphicBlockDiagram(Tree t);
+
 treeRepr* graphicBlockDiagram(Tree t)
+{
+	
+	Tree	id;
+	if (getDefNameProperty(t, id) && ! isBoxSlot(t)) {
+		stringstream 	s; s << boxpp(id);
+		return new treeGroup(realGraphicBlockDiagram(t), strdup(s.str().c_str()));
+	} else {
+		return realGraphicBlockDiagram(t);
+	}		
+}
+
+
+static treeRepr* realGraphicBlockDiagram(Tree t)
 {
 	Tree a, b, ff, l, type,name,file;
 	int		i;
@@ -122,11 +151,17 @@ treeRepr* graphicBlockDiagram(Tree t)
 	}
 		
 	else if (isBoxSlot(t, &i))		{ 
-		char c[64]; snprintf(c, 63, "slot(%d)",i);
-		return graphicPrim(strdup(c), 0, 1); 
+		return graphicOutputSlot(t);
+		//char c[64]; snprintf(c, 63, "slot(%d)",i);
+		//return graphicPrim(strdup(c), 0, 1); 
 	}
 	else if (isBoxSymbolic(t,a,b))	{
-		return graphicAbstraction(graphicInputSlot(a), b); 
+		Tree 	id;
+		if (getDefNameProperty(t, id)) {
+			return graphicAbstraction(graphicInputSlot(a), b); 
+		} else {
+			return new treeGroup(graphicAbstraction(graphicInputSlot(a), b), "Abstraction"); 
+		}
 #if 0
 		assert(isBoxSlot(a,&i));
 		char c[64]; snprintf(c, 63, "slot(%d)",i);
@@ -208,28 +243,45 @@ static int length (const char* s)
 
 treeRepr* graphicPrim (const char* name, int ins, int outs)
 {
-	int Hsize = 5;
-	const int MARGE = 8;
-	int m = (ins>outs) ? ins : outs;
-	int c = MARGE*(m+1);
-	int	i;
-			
-	vector<float> ipos(ins);
-	vector<float> opos(outs);
-	
-	/*
-	char* name2 = strdup(name);
+	if ( (name[0]=='_' || name[0]=='_') && name[1]==0 ) { 
+		// Special case for cut and wire which have a width of 0
+		int MARGE = 8;
+		int m = (ins>outs) ? ins : outs;
+		int c = MARGE*(m+1);
+		int	i;
+				
+		vector<float> ipos(ins);
+		vector<float> opos(outs);
 
-	if(name2[0]=='!' && name2[1]==0)  // Wire
-	{
-		c=0;
-		Hsize=0;
-	}
-	*/
-	for (i = 0; i < ins; i++) 	ipos[i] = c/ins * (i+0.5);
-	for (i = 0; i < outs; i++) 	opos[i] = c/outs * (i+0.5);
+		for (i = 0; i < ins; i++) 	ipos[i] = c/ins * (i+0.5);
+		for (i = 0; i < outs; i++) 	opos[i] = c/outs * (i+0.5);
+		
+		return new treeBloc(name, 0, c, ipos, opos);
+		
+	} else {
+		int Hsize = 5;
+		const int MARGE = 8;
+		int m = (ins>outs) ? ins : outs;
+		int c = MARGE*(m+1);
+		int	i;
+				
+		vector<float> ipos(ins);
+		vector<float> opos(outs);
+		
+		/*
+		char* name2 = strdup(name);
 	
-	return new treeBloc(name, max(24,MARGE+Hsize*length(name)), c, ipos, opos);
+		if(name2[0]=='!' && name2[1]==0)  // Wire
+		{
+			c=0;
+			Hsize=0;
+		}
+		*/
+		for (i = 0; i < ins; i++) 	ipos[i] = c/ins * (i+0.5);
+		for (i = 0; i < outs; i++) 	opos[i] = c/outs * (i+0.5);
+		
+		return new treeBloc(name, max(24,MARGE+Hsize*length(name)), c, ipos, opos);
+	}
 }
 	
 
