@@ -22,7 +22,7 @@
  
  
  /**********************************************************************
-			- klass.cpp : class C++ à remplir (projet FAUST) -
+			- klass.cpp : class C++ Ã  remplir (projet FAUST) -
 					
 
 		Historique :
@@ -158,9 +158,9 @@ void SigIntGenKlass::println(int n, ostream& fout)
 	
 	tab(n,fout); fout << "  public:";
 	
-		tab(n+1,fout); fout 	<< "virtual int getNumInputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumInputs() \t{ "
 						<< "return " << fNumInputs << "; }";
-		tab(n+1,fout); fout 	<< "virtual int getNumOutputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumOutputs() \t{ "
 						<< "return " << fNumOutputs << "; }";
 	
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";
@@ -195,9 +195,9 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 	
 	tab(n,fout); fout << "  public:";
 	
-		tab(n+1,fout); fout 	<< "virtual int getNumInputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumInputs() \t{ "
 						<< "return " << fNumInputs << "; }";
-		tab(n+1,fout); fout 	<< "virtual int getNumOutputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumOutputs() \t{ "
 						<< "return " << fNumOutputs << "; }";
 	
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";
