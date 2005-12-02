@@ -191,7 +191,7 @@ public:
 
 
 //----------------------------------------------------------------
-//  d�finition du processeur de signal
+//  d�inition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {
@@ -199,6 +199,7 @@ class dsp {
 	int fSamplingFreq;
  public:
 	dsp() {}
+	virtual ~dsp() {}
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
 	virtual void buildUserInterface(UI* interface) 					= 0;
@@ -241,7 +242,7 @@ mydsp	DSP;
 
 //#include "bench.h"
 /*
- * $Id: bench.cpp,v 1.3 2005/06/27 12:47:39 orlarey Exp $
+ * $Id: bench.cpp,v 1.4 2005/12/02 15:32:04 orlarey Exp $
  */
 #ifndef _BENCH_H
 #define _BENCH_H
@@ -306,7 +307,7 @@ typedef long long int64;
 //#include	"stats.h"
 //#include	"timing.h"
 /*
- * $Id: bench.cpp,v 1.3 2005/06/27 12:47:39 orlarey Exp $
+ * $Id: bench.cpp,v 1.4 2005/12/02 15:32:04 orlarey Exp $
  */
 #ifndef _TIMING_H
 #define _TIMING_H

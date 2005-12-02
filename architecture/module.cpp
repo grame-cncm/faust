@@ -207,6 +207,8 @@ class uiItem
 	
 	
   public :
+
+	virtual ~uiItem() {}
 	
 	void modifyZone(float v) 	
 	{ 
@@ -281,7 +283,7 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 		
 
 //----------------------------------------------------------------
-//  définition du processeur de signal
+//  dï¿½inition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {

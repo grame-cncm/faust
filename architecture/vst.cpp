@@ -1,7 +1,7 @@
 
 /********************************************************************
  * VST wrapper for the FAUST language. 
- * Author: rémy muller remy.muller@ircam.fr           
+ * Author: rï¿½y muller remy.muller@ircam.fr           
  * http://www.smartelectronix.com/~mdsp/            
  *
  * FAUST 
@@ -175,6 +175,7 @@ protected:
 public:
 	 
     dsp() {}
+	virtual ~dsp() {}
     virtual int getNumInputs() 										= 0;
     virtual int getNumOutputs() 									= 0;
     virtual void buildUserInterface(UI* interface) 					= 0;

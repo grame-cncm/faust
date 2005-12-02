@@ -727,6 +727,8 @@ class uiItem
 	
   public :
 	
+	virtual ~uiItem() {}
+
 	void modifyZone(float v) 	
 	{ 
 		fCache = v;
@@ -1359,7 +1361,7 @@ void GTKUI::run()
 
 
 //----------------------------------------------------------------
-//  définition du processeur de signal
+//  dï¿½inition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {

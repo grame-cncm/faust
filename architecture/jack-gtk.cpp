@@ -265,6 +265,7 @@ class uiItem
 	
 	
   public :
+	virtual ~uiItem() {}
 	
 	void modifyZone(float v) 	
 	{ 
@@ -911,6 +912,8 @@ class dsp {
 	int fSamplingFreq;
  public:
 	dsp() {}
+	virtual ~dsp() {}
+	
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
 	virtual void buildUserInterface(UI* interface) 					= 0;
