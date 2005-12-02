@@ -259,10 +259,10 @@ class AudioInterface : public AudioParam
 	 		fOutputCardBuffer = aligned_calloc(interleavedBufferSize(fOutputParams), 1);
 			
 		} else {
-			for (int i = 0; i < fCardInputs; i++) {
+			for (unsigned int i = 0; i < fCardInputs; i++) {
 				fInputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fInputParams), 1);
 			}
-			for (int i = 0; i < fCardOutputs; i++) {
+			for (unsigned int i = 0; i < fCardOutputs; i++) {
 				fOutputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fOutputParams), 1);
 			}
 			
@@ -273,14 +273,14 @@ class AudioInterface : public AudioParam
 		fChanInputs = max(fSoftInputs, fCardInputs);		assert (fChanInputs < 256);
 		fChanOutputs = max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
 
-		for (int i = 0; i < fChanInputs; i++) {
+		for (unsigned int i = 0; i < fChanInputs; i++) {
 			fInputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
 			for (int j = 0; j < fBuffering; j++) {
 				fInputSoftChannels[i][j] = 0.0;
 			}
 		}
 
-		for (int i = 0; i < fChanOutputs; i++) {
+		for (unsigned int i = 0; i < fChanOutputs; i++) {
 			fOutputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
 			for (int j = 0; j < fBuffering; j++) {
 				fOutputSoftChannels[i][j] = 0.0;
@@ -374,7 +374,7 @@ class AudioInterface : public AudioParam
 
 				short* 	buffer16b = (short*) fInputCardBuffer;
 				for (int s = 0; s < fBuffering; s++) {
-					for (int c = 0; c < fCardInputs; c++) {
+					for (unsigned int c = 0; c < fCardInputs; c++) {
 						fInputSoftChannels[c][s] = float(buffer16b[c + s*fCardInputs])*(1.0/float(SHRT_MAX));
 					}
 				}
@@ -383,7 +383,7 @@ class AudioInterface : public AudioParam
 
 				long* 	buffer32b = (long*) fInputCardBuffer;
 				for (int s = 0; s < fBuffering; s++) {
-					for (int c = 0; c < fCardInputs; c++) {
+					for (unsigned int c = 0; c < fCardInputs; c++) {
 						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(LONG_MAX));
 					}
 				}
@@ -400,7 +400,7 @@ class AudioInterface : public AudioParam
 			
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-				for (int c = 0; c < fCardInputs; c++) {
+				for (unsigned int c = 0; c < fCardInputs; c++) {
 					short* 	chan16b = (short*) fInputCardChannels[c];
 					for (int s = 0; s < fBuffering; s++) {
 						fInputSoftChannels[c][s] = float(chan16b[s])*(1.0/float(SHRT_MAX));
@@ -409,7 +409,7 @@ class AudioInterface : public AudioParam
 
 			} else { // SND_PCM_FORMAT_S32
 
-				for (int c = 0; c < fCardInputs; c++) {
+				for (unsigned int c = 0; c < fCardInputs; c++) {
 					long* 	chan32b = (long*) fInputCardChannels[c];
 					for (int s = 0; s < fBuffering; s++) {
 						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(LONG_MAX));
@@ -441,7 +441,7 @@ class AudioInterface : public AudioParam
 
 				short* buffer16b = (short*) fOutputCardBuffer;
 				for (int f = 0; f < fBuffering; f++) {
-					for (int c = 0; c < fCardOutputs; c++) {
+					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
 						buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
 					}
@@ -451,7 +451,7 @@ class AudioInterface : public AudioParam
 
 				long* buffer32b = (long*) fOutputCardBuffer;
 				for (int f = 0; f < fBuffering; f++) {
-					for (int c = 0; c < fCardOutputs; c++) {
+					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
 						buffer32b[c + f*fCardOutputs] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
 					}
@@ -471,7 +471,7 @@ class AudioInterface : public AudioParam
 			
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
 
-				for (int c = 0; c < fCardOutputs; c++) {
+				for (unsigned int c = 0; c < fCardOutputs; c++) {
 					short* chan16b = (short*) fOutputCardChannels[c];
 					for (int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
@@ -481,7 +481,7 @@ class AudioInterface : public AudioParam
 
 			} else { // SND_PCM_FORMAT_S32
 
-				for (int c = 0; c < fCardOutputs; c++) {
+				for (unsigned int c = 0; c < fCardOutputs; c++) {
 					long* chan32b = (long*) fOutputCardChannels[c];
 					for (int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];

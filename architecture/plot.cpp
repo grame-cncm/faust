@@ -273,7 +273,7 @@ public:
 };
 
 //----------------------------------------------------------------
-//  définition du processeur de signal
+//  dï¿½inition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {
@@ -338,12 +338,12 @@ class channels
 	
 int main(int argc, char *argv[] )
 {
-	float			nbsamples;
+	float			fnbsamples;
 	
 
 	CMDUI* interface = new CMDUI(argc, argv);
 	DSP.buildUserInterface(interface);
-	interface->addHorizontalSlider("n", &nbsamples, 16.0, 0.0, 100000000.0, 0.01); nbsamples = 16.0;
+	interface->addHorizontalSlider("n", &fnbsamples, 16.0, 0.0, 100000000.0, 0.01); fnbsamples = 16.0;
 	interface->process_command();
 	
 	if (DSP.getNumInputs() > 0) {
@@ -357,7 +357,8 @@ int main(int argc, char *argv[] )
 	
 	int nouts = DSP.getNumOutputs();
 	channels chan (kFrames, nouts );
-	
+
+	int nbsamples = int(fnbsamples);
 	while (nbsamples > kFrames) {
 		DSP.compute(kFrames, 0, chan.buffers());
 		for (int i = 0; i < kFrames; i++) {
