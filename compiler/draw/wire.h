@@ -19,16 +19,21 @@
  ************************************************************************
  ************************************************************************/
  
+#ifndef __WIRE_H
+#define __WIRE_H
  
  
 // wire.h
 
 #include "device.h"
+#include <math.h>
 #include <vector>
 using namespace std;
 
-#if !defined WIRE_H
-#define WIRE_H
+
+#define gfsmall 2.0
+inline bool fless (float x, float y) { return x < y - gfsmall; }
+inline bool fequal(float x, float y) { return fabs(x-y) <= gfsmall; }
 
 class segment //(a wire is made of segments)
 {
@@ -43,13 +48,15 @@ class segment //(a wire is made of segments)
 		};
 		~segment(){};
 
-		bool operator < (const segment& s) { return x1 < s.x1 || (x1 == s.x1 && ( x2 < s.x2 || (x2 == s.x2 && ( y1 < s.y1 || ( y1 == s.y1 && y2 < s.y2))))); }
-		bool operator == (const segment& s) { return x1 == s.x1 & x2 == s.x2 & y1 == s.y1 & y2 == s.y2; }
-		bool operator <= (const segment& s) { return *this < s || *this == s; }
+//		bool operator <  (const segment& s) const { return x1 < s.x1 || (x1 == s.x1 && ( x2 < s.x2 || (x2 == s.x2 && ( y1 < s.y1 || ( y1 == s.y1 && y2 < s.y2))))); }
+//		bool operator == (const segment& s) const { return x1 == s.x1 & x2 == s.x2 & y1 == s.y1 & y2 == s.y2; }
+		bool operator <  (const segment& s) const { return fless(x1,s.x1) || (fequal(x1,s.x1) && ( fless(x2,s.x2) || (fequal(x2,s.x2) && ( fless(y1,s.y1) || ( fequal(y1,s.y1) && fless(y2,s.y2)))))); }
+		bool operator == (const segment& s) const { return fequal(x1,s.x1) & fequal(x2,s.x2) & fequal(y1,s.y1) & fequal(y2,s.y2); }
+		bool operator <= (const segment& s) const { return *this < s || *this == s; }
 
-		bool operator != (const segment& s) { return ! (*this == s); }
-		bool operator >= (const segment& s) { return ! (*this < s); }
-		bool operator > (const segment& s) { return ! (*this <= s ); }
+		bool operator != (const segment& s) const { return !(*this == s); }
+		bool operator >= (const segment& s) const { return !(*this <  s); }
+		bool operator >  (const segment& s) const { return !(*this <= s); }
 
 		float x1;
 		float y1;
