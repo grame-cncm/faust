@@ -64,7 +64,7 @@ draw/drawbloc.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecur
 draw/drawbloc.o: draw/reprGroup.h draw/reprParam.h draw/devLib.h draw/SVGDev.h draw/PSDev.h draw/treeLib.h
 draw/drawbloc.o: draw/treeRepr.h draw/treeBloc.h draw/treeNormal.h draw/treeGroup.h draw/treeParam.h draw/drawblock.hh
 draw/drawbloc.o: draw/constrFonctions.h extended/xtended.hh generator/klass.hh generator/uitree.hh
-draw/drawbloc.o: signals/sigvisitor.hh
+draw/drawbloc.o: signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh
 draw/PSDev.o: draw/PSDev.h draw/device.h
 draw/reprBloc.o: draw/reprBloc.h draw/representation.h draw/device.h draw/wire.h
 draw/representation.o: draw/representation.h draw/device.h draw/wire.h
