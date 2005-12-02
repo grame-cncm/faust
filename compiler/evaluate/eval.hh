@@ -50,5 +50,17 @@
 Tree evalprocess (Tree eqlist);
 
 
+/**
+ * Indicates the identifier (if any) the expression was a definition of.
+ * 
+ * Eval the definition of 'process' in the environment passed as argument
+ * @param t the expression 
+ * @param id reference to the identifier 
+ * @return true if the expression t was a definition of id
+ **/
+ 
+bool 	getDefNameProperty(Tree t, Tree& id);
+
+
 
 #endif

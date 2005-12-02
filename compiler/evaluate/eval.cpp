@@ -46,6 +46,7 @@ extern SourceReader	gReader;
 //-------------- prototypes ---------------------------------------------------------
 static Tree 	a2sb(int deep, Tree exp);
 static Tree 	eval (Tree exp, Tree visited, Tree localValEnv);
+static Tree 	realeval (Tree exp, Tree visited, Tree localValEnv);
 static Tree 	revEvalList (Tree lexp, Tree visited, Tree localValEnv);
 static Tree 	applyList (Tree fun, Tree larg);
 static Tree 	iteratePar (Tree var, int num, Tree body, Tree visited, Tree localValEnv);
@@ -57,9 +58,12 @@ static int 		eval2int (Tree exp, Tree visited, Tree localValEnv);
 static float	eval2float (Tree exp, Tree visited, Tree localValEnv);
 static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
 
-static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
-static Tree pushValueDef(Tree id, Tree def, Tree env);
-static Tree evalIdDef(Tree id, Tree visited, Tree env);
+static Tree 	pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
+static Tree 	pushValueDef(Tree id, Tree def, Tree env);
+static Tree		evalIdDef(Tree id, Tree visited, Tree env);
+
+
+static void 	setDefNameProperty(Tree t, Tree id); 
 
 
 // Public Interface
@@ -85,6 +89,7 @@ Tree evalprocess (Tree eqlist)
 /**
  * Transform unused (unapplied) closures into symbolic boxes
  * 
+ * @param deep lambda deepness : used to give a unique number to slots
  * @param exp the expression to transform
  * @return an expression where abstractions have been replaced by symbolic boxes
  */
@@ -103,7 +108,13 @@ static Tree a2sb(int deep, Tree exp)
 			exit(1);
 		}
 		Tree slot = boxSlot(deep);
-		return boxSymbolic(slot, a2sb(deep+1, eval(body, visited, pushValueDef(id, slot, localValEnv))));
+		//return boxSymbolic(slot, a2sb(deep+1, eval(body, visited, pushValueDef(id, slot, localValEnv))));
+		Tree result = boxSymbolic(slot, a2sb(deep+1, eval(body, visited, pushValueDef(id, slot, localValEnv))));
+		Tree id;
+		if (getDefNameProperty(exp, id)) {
+			setDefNameProperty(result, id);		// propagate definition name property when needed
+		}
+		return result;	
 		
 	} else {
 		// it is a constructor : transform each branches
@@ -116,6 +127,48 @@ static Tree a2sb(int deep, Tree exp)
 	}
 }
 
+
+/**
+ * Definition name property : a property to keep track of the definition name 
+ * of an expression. Whenever an identifier is evaluated, it is attached as a 
+ * property of its definitionObviously there is no perfect solution since a same 
+ * definition quand be given to different names. 
+ */
+Tree DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
+
+void setDefNameProperty(Tree t, Tree id) 
+{
+	setProperty(t, DEFNAMEPROPERTY, id);
+}
+
+bool getDefNameProperty(Tree t, Tree& id)
+{
+	return getProperty(t, DEFNAMEPROPERTY, id);
+}
+
+
+
+/**
+ * Eval a block diagram expression.
+ * 
+ * Wrap the realeval function in order to propagate the name property
+ * @param exp the expression to evaluate
+ * @param visited list of visited definition to detect recursive definitions
+ * @param localValEnv the local environment
+ * @return a block diagram in normal form
+ */
+ 
+static Tree eval (Tree exp, Tree visited, Tree localValEnv)
+{
+	Tree	id;
+	Tree 	result = realeval(exp, visited, localValEnv);
+	if (getDefNameProperty(exp, id)) {
+		setDefNameProperty(result, id);		// propagate definition name property when needed
+	}
+	return result;
+}
+
+
 /**
  * Eval a block diagram expression.
  * 
@@ -126,9 +179,7 @@ static Tree a2sb(int deep, Tree exp)
  * @return a block diagram in normal form
  */
  
-//Tree gBoxIdAbstr = boxAbstr(boxIdent("x"), boxIdent("x"));
-
-static Tree eval (Tree exp, Tree visited, Tree localValEnv)
+static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 {
 	//Tree 	def;
 	Tree 	fun;
@@ -691,7 +742,8 @@ static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
 /**
  * Search the environment for the definition of a symbol
  * ID and evaluate it. Detects recursive definitions using
- * a set of visited IDxENV.
+ * a set of visited IDxENV. Associates the symbol as a definition name
+ * property of the definition.
  * @param id the symbol ID t-o search
  * @param visited set of visited symbols (used for recursive definition detection)
  * @param lenv the environment where to search
@@ -719,8 +771,9 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 		exit(1);
 	}
 	
+	// set the definition name property
+	setDefNameProperty(def, id);
+
 	// return the evaluated definition
 	return eval(def, addElement(p,visited), nil);
 }
-
-
