@@ -222,7 +222,7 @@ void printhelp()
 	cout << "\nexample :\n";
 	cout << "---------\n";
 	
-	cout << "faust -a architecture/oss-gtk.cpp -o reverb.cpp reverb.dsp\n";
+	cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp\n";
 }
 
 
