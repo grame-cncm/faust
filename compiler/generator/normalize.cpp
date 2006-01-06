@@ -27,13 +27,18 @@ static void factorizeAddTerm(map<Tree,Tree>& M);
  */	
 Tree normalizeAddTerm(Tree t)
 {
+#ifdef TRACE
+	fprintf(stderr, "START ADD Normalize of : "); printSignal(t, stderr); fputs("\n", stderr);
+#endif
 	assert(t!=0);
 	map<Tree,Tree>	M;
 	Tree			coef = tree(0);
 	collectAddTerms(coef, M, t, false);
 	factorizeAddTerm(M);
 	Tree result = buildAddTerm(coef, M);
-	//fprintf(stderr, "ADD Normalize -> "); printSignal(result, stderr); fputs("\n", stderr);
+#ifdef TRACE
+	fprintf(stderr, "END ADD Normalize -> "); printSignal(result, stderr); fputs("\n", stderr);
+#endif
 	return result;
 }	
 
@@ -46,12 +51,17 @@ Tree normalizeAddTerm(Tree t)
 Tree normalizeMulTerm(Tree t)
 {
 	assert(t!=0);
+#ifdef TRACE
+	fprintf(stderr, "START MUL Normalize of : "); printSignal(t, stderr); fputs("\n", stderr);
+#endif
 	
 	map<Tree,int>	M;
 	Tree			coef = tree(1);
 	collectMulTerms(coef, M, t, false);
 	Tree result = buildMulTerm(coef, M);
-	//fprintf(stderr, "MUL Normalize -> "); printSignal(result, stderr); fputs("\n", stderr);
+#ifdef TRACE
+	fprintf(stderr, "END MUL Normalize -> "); printSignal(result, stderr); fputs("\n", stderr);
+#endif
 	return result;
 }	
 	
@@ -100,7 +110,7 @@ void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag)
 		
 		
 	} else if (isSigBinOp(t, &op, x, y) && (op == kSub) && isZero(x)) {
-		// 0-x est equivalent -1*x est est traité de cette manière
+		// 0-x est equivalent -1*x est est traitï¿½de cette maniï¿½e
 		coef = minusNum(coef);
 		collectMulTerms(coef, M, y, invflag);
 		
@@ -581,6 +591,13 @@ static void factorizeAddTerm(map<Tree,Tree>& MAT)
 				INV[q] = f;
 			} else {
 				INV[q] 	= simplifyingAdd(INV[q], f);
+#ifdef TRACE
+				fprintf(stderr, "factor of : "); 
+				printSignal(q, stderr); 
+				fprintf(stderr, " is now : "); 
+				printSignal(INV[q], stderr); 
+				fputs("\n", stderr);
+#endif
 				factorCount++;
 			}
 		}
@@ -624,7 +641,7 @@ static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
 		Tree q = F->second;
 		map<Tree,int> M;
 		collectMulTerms(q, M, f, false);
-// YO (21/04/05) : verification supprimée car les différences relevés portaient
+// YO (21/04/05) : verification supprimï¿½ car les diffï¿½ences relevï¿½ portaient
 // essentiellement sur le type (1.000 != 1)
 // 		if (q != F->second) {
 // 			fprintf(stderr, "WARNING q!=F->second : ");

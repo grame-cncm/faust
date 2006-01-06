@@ -6,7 +6,7 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS := -O3 -g $(addprefix -I, $(subprojects)) $(CXXFLAGS)
+CXXFLAGS := -g $(addprefix -I, $(subprojects)) $(CXXFLAGS)
 
 
 all : faust
@@ -22,7 +22,7 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) faust *.il *.dpi *.spi */*.il */*.dpi */*.spi
+	rm -f $(objects) faust *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	
 depend :
 	makedepend -w120 -Y -- $(CXXFLAGS) -- $(sources)
@@ -30,7 +30,7 @@ depend :
 ctags:
 	ctags main.cpp boxes/* errors/* evaluate/* generator/* parser/* propagate/* signals/* tlib/* draw/* extended/*
 
-dox:
+doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)  
 	doxygen	
 	
 # DO NOT DELETE
@@ -52,6 +52,10 @@ boxes/ppbox.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh boxes/boxes
 boxes/ppbox.o: tlib/shlysis.hh tlib/recness.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
 boxes/ppbox.o: signals/sigtype.hh tlib/smartpointer.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
 boxes/ppbox.o: signals/sigvisitor.hh
+draw/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+draw/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh tlib/recness.hh signals/sigtype.hh tlib/smartpointer.hh
+draw/boxcomplexity.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+draw/boxcomplexity.o: draw/boxcomplexity.h boxes/boxes.hh
 draw/constrFonctions.o: draw/constrFonctions.h draw/reprLib.h draw/representation.h draw/device.h draw/wire.h
 draw/constrFonctions.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h
 draw/constrFonctions.o: draw/reprMerge.h draw/reprGroup.h draw/reprParam.h draw/devLib.h draw/SVGDev.h draw/PSDev.h
@@ -64,7 +68,9 @@ draw/drawbloc.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecur
 draw/drawbloc.o: draw/reprGroup.h draw/reprParam.h draw/devLib.h draw/SVGDev.h draw/PSDev.h draw/treeLib.h
 draw/drawbloc.o: draw/treeRepr.h draw/treeBloc.h draw/treeNormal.h draw/treeGroup.h draw/treeParam.h draw/drawblock.hh
 draw/drawbloc.o: draw/constrFonctions.h extended/xtended.hh generator/klass.hh generator/uitree.hh
-draw/drawbloc.o: signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh
+draw/drawbloc.o: signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh draw/occurrences.hh draw/boxcomplexity.h
+draw/occurrences.o: draw/occurrences.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+draw/occurrences.o: tlib/shlysis.hh tlib/recness.hh
 draw/PSDev.o: draw/PSDev.h draw/device.h
 draw/reprBloc.o: draw/reprBloc.h draw/representation.h draw/device.h draw/wire.h
 draw/representation.o: draw/representation.h draw/device.h draw/wire.h
