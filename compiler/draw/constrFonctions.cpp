@@ -102,7 +102,7 @@ bool find_config_param(treeRepr* END)
 
 	if(listParam.empty()) 
 	{
-		cout<<"Pas de bloc parametrable."<<endl<<endl;
+		//cout<<"Pas de bloc parametrable."<<endl<<endl;
 		OKtoRepr=true;
 	}
 	else

@@ -18,7 +18,12 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+ /**
+ * @file drawbloc.cpp
+ * Implement block-diagram generation in svg or postscript format.
+ */
  
+
  
  
 
@@ -44,6 +49,12 @@
 
 #include <ostream>
 #include <sstream>
+#include <set>
+#include <stack>
+
+#include "occurrences.hh"
+
+#include "boxcomplexity.h"
 
 using namespace std;
 
@@ -52,9 +63,58 @@ treeRepr* graphicPrim (int i);
 treeRepr* graphicPrim (float f);
 treeRepr* graphicPrim (const char* name, int ins, int outs);
 
+static Occurrences* gOccurrences;
+static bool	sFoldingFlag;
+extern int gFoldThreshold;
+
+// to keep track of multiple files drawing
+static stack<Tree>	gPendingExp;		// Expressions that need to be drawn
+static set<Tree>	gDrawnExp;			// Expressions drawn or scheduled so far
+
+
+// we have 
+/**
+ * Return next block diagram that must be drawn
+ */
+static bool pendingDrawing(Tree& t) 
+{
+	if (gPendingExp.empty()) return false;
+	t = gPendingExp.top();
+	gPendingExp.pop();
+	return true;
+}
+
+static void scheduleDrawing(Tree t)
+{
+	if (gDrawnExp.find(t) == gDrawnExp.end()) {
+		gDrawnExp.insert(t);
+		gPendingExp.push(t);
+	}
+}
+
+static void drawOneBlockDiagram(Tree bd, const char* dev);
 
 void drawBlockDiagram(Tree bd, const char* dev)
 {
+	//gPendingExp.clear();
+	//gDrawnExp.clear();
+	scheduleDrawing(bd);
+	sFoldingFlag = boxComplexity(bd) > gFoldThreshold; // esssai
+	
+	Tree t; while (pendingDrawing(t)) drawOneBlockDiagram(t, dev);
+	//drawOneBlockDiagram(bd, dev);
+}
+void drawOneBlockDiagram(Tree bd, const char* dev)
+{
+	{	// step 1 : annotate boxes with complexity information
+		//int			c = boxComplexity(bd);
+		//sFoldingFlag = c > gFoldThreshold;
+		//cerr << "Box Complexity is : " << c << endl;
+	}
+	{	// STEP 2 : count subtrees occurences
+		gOccurrences = new Occurrences(bd);
+		//cerr << "Occurences of root : " << gOccurrences->getCount(bd) << endl;
+	}
 	Tree		id;
 	treeRepr* 	tR =  (getDefNameProperty(bd, id)) ? graphicBlockDiagram(bd) : new treeGroup(graphicBlockDiagram(bd), "process");
 	if(find_config_param(tR))
@@ -64,7 +124,7 @@ void drawBlockDiagram(Tree bd, const char* dev)
 	}
 	else
 	{
-		cout<<endl<<"Representation impossible."<<endl<<endl;
+		cerr << endl << "Representation impossible." << endl << endl;
 	}
 }
 
@@ -120,12 +180,35 @@ static treeRepr* realGraphicBlockDiagram(Tree t);
 
 treeRepr* graphicBlockDiagram(Tree t)
 {
-	
 	Tree	id;
-	if (getDefNameProperty(t, id) && ! isBoxSlot(t)) {
+	int		ins, outs;
+	
+
+	if ( sFoldingFlag && (gOccurrences->getCount(t) > 0) && (boxComplexity(t) > 2) && getDefNameProperty(t, id)) {
+		getBoxType(t, &ins, &outs);
+		stringstream s;
+		if (getDefNameProperty(t, id)) {
+			// cerr << "Fold diagram " << &(*t) << " with name " << *id << endl;
+			// folding case : shared , complex, with a name
+			// draw a simple box and remember to draw the full expression in a new file
+			 s << boxpp(id);
+		} else {
+			// cerr << "TUTUTT2" << endl;
+			// folding case : shared , complex, with no name
+			// draw a simple box and remember to draw the full expression in a new file
+			s << "ID(" << long(&(*t)) << ")";
+		}
+		scheduleDrawing(t);
+		return graphicPrim(strdup(s.str().c_str()), ins, outs);
+	
+	} else  if (getDefNameProperty(t, id) && ! isBoxSlot(t)) {
+		// named case : not a slot, with a name
+		// draw a lien around the object with its name
 		stringstream 	s; s << boxpp(id);
 		return new treeGroup(realGraphicBlockDiagram(t), strdup(s.str().c_str()));
+
 	} else {
+		// normal case
 		return realGraphicBlockDiagram(t);
 	}		
 }
@@ -181,10 +264,10 @@ static treeRepr* realGraphicBlockDiagram(Tree t)
 	
 	else if (isBoxPrim0(t, &p0)) 	{ return graphicPrim(prim0name(p0), 0, 1); } 
 	else if (isBoxPrim1(t, &p1)) 	{ return graphicPrim(prim1name(p1), 1, 1); } 
-	else if (isBoxPrim2(t, &p2)) 	{ return graphicPrim(prim2name(p2), 2, 1);  } 
-	else if (isBoxPrim3(t, &p3)) 	{ return graphicPrim(prim3name(p3), 3, 1);  } 
-	else if (isBoxPrim4(t, &p4)) 	{ return graphicPrim(prim4name(p4), 4, 1);  } 
-	else if (isBoxPrim5(t, &p5)) 	{ return graphicPrim(prim5name(p5), 5, 1);  } 
+	else if (isBoxPrim2(t, &p2)) 	{ return graphicPrim(prim2name(p2), 2, 1); } 
+	else if (isBoxPrim3(t, &p3)) 	{ return graphicPrim(prim3name(p3), 3, 1); } 
+	else if (isBoxPrim4(t, &p4)) 	{ return graphicPrim(prim4name(p4), 4, 1); } 
+	else if (isBoxPrim5(t, &p5)) 	{ return graphicPrim(prim5name(p5), 5, 1); } 
 		
 	else if (isBoxFFun(t, ff)) 					{ return graphicPrim(ffname(ff), ffarity(ff), 1); } 
 	else if (isBoxFConst(t, type,name,file)) 	{ return graphicPrim(tree2str(name), 0, 1); } 
@@ -195,9 +278,10 @@ static treeRepr* realGraphicBlockDiagram(Tree t)
 	else if (isBoxHSlider(t)) 		{ return graphicUI(t); } 
 	else if (isBoxNumEntry(t)) 		{ return graphicUI(t); } 
 	
-	else if (isBoxVGroup(t,l,a))	{ return new treeGroup(graphicBlockDiagram(a), tree2str(l)); }
-	else if (isBoxHGroup(t,l,a))	{ return new treeGroup(graphicBlockDiagram(a), tree2str(l)); }
-	else if (isBoxTGroup(t,l,a))	{ return new treeGroup(graphicBlockDiagram(a), tree2str(l)); }
+	// don't draw group rectangle when labels are empty (ie "")
+	else if (isBoxVGroup(t,l,a))	{ const char* s=tree2str(l); treeRepr* r=graphicBlockDiagram(a); return (s[2]==0) ? r : new treeGroup(r, s); }
+	else if (isBoxHGroup(t,l,a))	{ const char* s=tree2str(l); treeRepr* r=graphicBlockDiagram(a); return (s[2]==0) ? r : new treeGroup(r, s); }
+	else if (isBoxTGroup(t,l,a))	{ const char* s=tree2str(l); treeRepr* r=graphicBlockDiagram(a); return (s[2]==0) ? r : new treeGroup(r, s); }
 
 	else if (isBoxSeq(t, a, b)) 	{ return new treeNormal("Serie",graphicBlockDiagram(a), graphicBlockDiagram(b)); }
 	else if (isBoxPar(t, a, b)) 	{ return new treeNormal("Para",graphicBlockDiagram(a), graphicBlockDiagram(b)); }

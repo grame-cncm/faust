@@ -211,7 +211,7 @@ void reprBloc::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<w
 		}
 	}
 
-	cout<<"Bloc dessine"<<endl;
+	//cout<<"Bloc dessine"<<endl;
 }
 
 

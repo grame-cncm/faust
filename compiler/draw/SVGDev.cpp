@@ -28,15 +28,38 @@
 #include <iostream>
 using namespace std;
 
+static int gFileNum = 0;
+
+static char * addFileNum(const char* fname)
+{
+	char 	f[256];
+	char 	s[256]; 
+	int 	i;
+
+ 	// remove suffixes (.xxx.yyy)
+	for (i=0; (fname[i] != 0) && (fname[i] != '.'); i++) {
+		f[i] = fname[i];
+	}
+	f[i] = 0;
+
+	// add number and .svg suffix
+	snprintf(s, 255, "%s-%d.svg", f, ++gFileNum);
+	//cerr << "file name " << s << endl;
+	return strdup(s);
+}
+
 SVGDev::SVGDev(const char* ficName,float largeur, float hauteur)
 {
-	if((fic_repr = fopen(ficName,"w+")) == NULL) { cout<<"Impossible de creer ou d'ouvrir "<<ficName<<endl; }
+	if ((fic_repr = fopen(addFileNum(ficName),"w+")) == NULL) {
+	//if((fic_repr = fopen(ficName,"w+")) == NULL) { 
+		cout<<"Impossible de creer ou d'ouvrir "<<ficName<<endl; 
+	}
 
 	// representation file:
 	fprintf(fic_repr,"<?xml version=\"1.0\"?>\n");
 	// + DTD ...
 	// viewBox:
-	fprintf(fic_repr,"<svg preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 %f %f\" width=\"200mm\" height=\"150mm\" >\n",largeur,hauteur);
+	fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 %f %f\" width=\"200mm\" height=\"150mm\" >\n",largeur,hauteur);
 }
 
 SVGDev::~SVGDev()
@@ -112,7 +135,7 @@ void SVGDev::text(float x,float y,const char* name)
 	}
 	name2[j] = 0;
 	
-	cout << "text : " << name << " -> " << name2 << endl;;
+	//cout << "text : " << name << " -> " << name2 << endl;;
 	
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" style=\"font-family:Courier;font-weight:normal;font-style:normal;font-size:8;text-anchor:middle\">%s</text>\n",x,y+3,name2);
 }
@@ -136,7 +159,7 @@ void SVGDev::label(float x,float y,const char* name)
 	}
 	name2[j] = 0;
 	
-	cout << "label : " << name << " -> " << name2 << endl;
+	//cout << "label : " << name << " -> " << name2 << endl;
 	
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" style=\"font-family:Courier;font-weight:normal;font-style:normal;font-size:7\">%s</text>\n",x,y+2,name2);
 }

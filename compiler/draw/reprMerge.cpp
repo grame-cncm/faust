@@ -153,7 +153,7 @@ void reprMerge::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<
 		B->draw(dev,allWires,x-A->getLargeur()-((int)A->getOuts().size()/(int)B->getIns().size()+1)*delta_lbSM,y-0.5*(hauteur-B->getHauteur()),iB,wo,sens);
 	}
 
-	cout<<"Merge dessine"<<endl;
+	//cout<<"Merge dessine"<<endl;
 }
 
 

@@ -32,7 +32,8 @@ reprGroup::reprGroup(representation* bA,const char* label)
 {
 	A=bA;
 	nom="";
-	hauteur=A->getHauteur()+2*delta_hb+delta_hlabel;
+	//hauteur=A->getHauteur()+2*delta_hb+delta_hlabel;
+	hauteur=A->getHauteur()+2*(delta_hb+delta_hlabel); // pour avoir un dessin plus centré
 	largeur=A->getLargeur()+2*delta_lb;
 	
 	int i;
@@ -162,7 +163,7 @@ void reprGroup::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<
 		A->draw(dev,allWires,x-delta_lb,y-delta_hb-delta_hlabel,iA,oA,sens);
 	}
 
-	cout<<"Groupe dessine"<<endl;
+	//cout<<"Groupe dessine"<<endl;
 }
 reprGroup::~reprGroup()
 {

@@ -281,7 +281,7 @@ void reprRecurs::draw(device& dev,vector<wire*>& allWires,float x,float y,vector
 		B->draw(dev,allWires,x-((int)B->getOuts().size()+1)*delta_lf-0.5*(max(A->getLargeur(),B->getLargeur())+B->getLargeur()),y-B->getHauteur(),iB,oB,1-sens);
 	}
 
-	cout<<"Recursion dessinee"<<endl;
+	//cout<<"Recursion dessinee"<<endl;
 }
 
 reprRecurs::~reprRecurs()

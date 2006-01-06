@@ -381,7 +381,7 @@ void reprSerie::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<
 		}
 
 	}
-	cout<<"Serie dessine"<<endl;
+	//cout<<"Serie dessine"<<endl;
 	delete Xa;
 };
 

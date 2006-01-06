@@ -30,9 +30,32 @@
 
 using namespace std;
 
-PSDev::PSDev(const char* ficName,float largeur, float hauteur)
+static int gFileNum = 0;
+
+static char * addFileNum(const char* fname)
 {
-	if((fic_repr = fopen(ficName,"w+")) == NULL) { cout<<"Impossible de creer ou d'ouvrir "<<ficName<<endl; }
+	char 	f[256];
+	char 	s[256]; 
+	int 	i;
+
+ 	// remove suffixes (.xxx.yyy)
+	for (i=0; (fname[i] != 0) && (fname[i] != '.'); i++) {
+		f[i] = fname[i];
+	}
+	f[i] = 0;
+
+	// add number and .ps suffix
+	snprintf(s, 255, "%s-%d.ps", f, ++gFileNum);
+	//cerr << "file name " << s << endl;
+	return strdup(s);
+}
+
+PSDev::PSDev(const char* ficName, float largeur, float hauteur)
+{
+	if ((fic_repr = fopen(addFileNum(ficName),"w+")) == NULL) { 
+	//if ((fic_repr = fopen(ficName,"w+")) == NULL) { 
+		cout<<"Impossible de creer ou d'ouvrir "<<ficName<<endl; 
+	}
 
 	if(largeur<hauteur)
 		largeur=hauteur;

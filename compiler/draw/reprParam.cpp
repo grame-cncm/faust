@@ -112,6 +112,6 @@ void reprParam::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<
 	       	dev.text(x-largeur/2,y-hauteur/2,nom);     
 	}
 
-	cout<<"Param dessine"<<endl;
+	//cout<<"Param dessine"<<endl;
 }
 

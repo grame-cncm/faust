@@ -334,7 +334,7 @@ void reprPara::draw(device& dev,vector<wire*>& allWires,float x,float y,vector<w
 		A->draw(dev,allWires,x-0.5*(largeur-A->getLargeur()),y,iA,oA,sens);
 		B->draw(dev,allWires,x-0.5*(largeur-B->getLargeur()),y-A->getHauteur()-delta_hb*(1-cut),iB,oB,sens);
 	 }
-		cout<<"Para dessine"<<endl;
+		//cout<<"Para dessine"<<endl;
 }
 
 
