@@ -96,25 +96,33 @@ Tree evalprocess (Tree eqlist)
 
 static Tree a2sb(int deep, Tree exp)
 {
-	Tree abstr, visited, unusedEnv, localValEnv, id, body;
+	Tree abstr, visited, unusedEnv, localValEnv, var, name, body;
 	
 	if (isClosure(exp, abstr, unusedEnv, visited, localValEnv)) {
+
 		if (isBoxIdent(abstr)) {
 			// special case introduced with access and components
-			return a2sb(deep, eval(abstr, visited, localValEnv));
+			Tree result = a2sb(deep, eval(abstr, visited, localValEnv));
+
+			// propagate definition name property when needed
+			if (getDefNameProperty(exp, name))	setDefNameProperty(result, name);		
+			return result;
 			
-		} else if (!isBoxAbstr(abstr, id, body)) {
+		} else if (isBoxAbstr(abstr, var, body)) {
+
+			Tree slot = boxSlot(deep);
+	
+			//return boxSymbolic(slot, a2sb(deep+1, eval(body, visited, pushValueDef(id, slot, localValEnv))));
+			Tree result = boxSymbolic(slot, a2sb(deep+1, eval(body, visited, pushValueDef(var, slot, localValEnv))));
+	
+			// propagate definition name property when needed
+			if (getDefNameProperty(exp, name)) setDefNameProperty(result, name);
+			return result;	
+
+		} else {
 			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure ", exp);
 			exit(1);
 		}
-		Tree slot = boxSlot(deep);
-		//return boxSymbolic(slot, a2sb(deep+1, eval(body, visited, pushValueDef(id, slot, localValEnv))));
-		Tree result = boxSymbolic(slot, a2sb(deep+1, eval(body, visited, pushValueDef(id, slot, localValEnv))));
-		Tree id;
-		if (getDefNameProperty(exp, id)) {
-			setDefNameProperty(result, id);		// propagate definition name property when needed
-		}
-		return result;	
 		
 	} else {
 		// it is a constructor : transform each branches
@@ -138,6 +146,7 @@ Tree DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
 
 void setDefNameProperty(Tree t, Tree id) 
 {
+	//cerr << "setDefNameProperty " << *id << " at " << &(*t) << endl;
 	setProperty(t, DEFNAMEPROPERTY, id);
 }
 
@@ -209,7 +218,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxComponent(exp, label)) {
 		string 	fname 	= tree2str(label);
 		Tree 	eqlst 	= gReader.expandlist(gReader.getlist(fname));
-		Tree	res = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+		Tree	res 	= closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+		setDefNameProperty(res, label);
 		//cerr << "component is " << boxpp(res) << endl;
 		return res;
 		
