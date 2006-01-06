@@ -94,6 +94,7 @@ bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
 int            	gBalancedSwitch = 1;
+int            	gFoldThreshold 	= 50;
 
 string			gArchFile;
 string			gOutputFile;
@@ -154,6 +155,10 @@ bool process_cmdline(int argc, char* argv[])
 			gDrawSVGSwitch = true;
 			i += 1;
 			
+		} else if (isCmd(argv[i], "-f", "--fold")) {
+			gFoldThreshold = atoi(argv[i+1]);
+			i += 2;
+			
 		} else if (isCmd(argv[i], "-lb", "--left-balanced")) {
 			gBalancedSwitch = 0;
 			i += 1;
@@ -192,8 +197,8 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.6\n";
-	cout << "Copyright (C) 2002-2005, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.6d\n";
+	cout << "Copyright (C) 2002-2006, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }	
 
 
@@ -211,6 +216,7 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
 	cout << "-svg \t\tprint block-diagram --svg file\n";
+	cout << "-f \t\t--fold threshold during block-diagram generation\n";
 	cout << "-xml \t\tgenerate an --xml description file\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
@@ -314,7 +320,31 @@ int main (int argc, char* argv[])
 	
 	
 	/****************************************************************
-	 6 - generate output file
+	 6 - generate XML description (if required)
+	*****************************************************************/
+
+	//cerr << "gPrintXMLSwitch " << gPrintXMLSwitch << endl;
+
+	if (gPrintXMLSwitch) {
+		//cerr << "masterfilename " << masterFilename << endl;
+		Description* 	D = C->getDescription(); assert(D);
+		ostream* 		xout = new ofstream(subst("$0.xml", masterFilename).c_str());
+
+		if(gNameProperty.size()) 		D->name(*gNameProperty.begin());
+		if(gAuthorProperty.size()) 		D->author(*gAuthorProperty.begin());
+		if(gCopyrightProperty.size()) 	D->copyright(*gCopyrightProperty.begin());
+		if(gLicenseProperty.size()) 	D->license(*gLicenseProperty.begin());
+		if(gVersionProperty.size()) 	D->version(*gVersionProperty.begin());
+		
+		D->inputs(C->getClass()->inputs());
+		D->outputs(C->getClass()->outputs());
+		
+		D->print(0, *xout);
+	}
+	
+	
+	/****************************************************************
+	 7 - generate output file
 	*****************************************************************/
 
 	ostream* dst;
@@ -350,27 +380,6 @@ int main (int argc, char* argv[])
 		C->getClass()->printLibrary(*dst);
 		C->getClass()->printIncludeFile(*dst);
 		C->getClass()->println(0,*dst);
-	}
-	
-	
-	/****************************************************************
-	 7 - generate XML description (if required)
-	*****************************************************************/
-
-	if (gPrintXMLSwitch) {
-		Description* 	D = C->getDescription(); assert(D);
-		ostream* 		xout = new ofstream(subst("$0.xml", masterFilename).c_str());
-
-		if(gNameProperty.size()) 		D->name(*gNameProperty.begin());
-		if(gAuthorProperty.size()) 		D->author(*gAuthorProperty.begin());
-		if(gCopyrightProperty.size()) 	D->copyright(*gCopyrightProperty.begin());
-		if(gLicenseProperty.size()) 	D->license(*gLicenseProperty.begin());
-		if(gVersionProperty.size()) 	D->version(*gVersionProperty.begin());
-		
-		D->inputs(C->getClass()->inputs());
-		D->outputs(C->getClass()->outputs());
-		
-		D->print(0, *xout);
 	}
 
 	return 0;
