@@ -74,7 +74,7 @@ void Description::addGroup(int level, Tree t)
 	
 		const int		orient = tree2int(left(label));
 		const char * 	str = tree2str(right(label));
-		const char*		group = groupnames[orient];
+
 		addLayoutLine(level, subst("<group type=\"$0\">", groupnames[orient]));
 		addLayoutLine(level+1, subst("<label> $0 </label>", str));
 		while (!isNil(elements)) {

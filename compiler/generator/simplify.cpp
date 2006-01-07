@@ -38,7 +38,7 @@
 
 // declarations 
 Tree SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
-static Tree binequiv (Tree sig, int opnum, Tree a, Tree b);
+//static Tree binequiv (Tree sig, int opnum, Tree a, Tree b);
 static Tree simplification (Tree sig);
 
 static Tree traced_simplification(Tree sig)

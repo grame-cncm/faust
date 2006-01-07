@@ -158,7 +158,7 @@ static Tree buildMidBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
 	int q = hi-lo; 
 	assert(q>0);
 	if (q == 1) {
-		assert(lo < v.size());
+		assert(lo < int(v.size()));
 		return v[lo];
 	} else {
 		int mi = (hi+lo)/2;
@@ -175,7 +175,7 @@ static Tree buildRightBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
 	int q = hi-lo; 
 	assert(q>0);
 	if (q == 1) {
-		assert(lo < v.size());
+		assert(lo < int(v.size()));
 		return v[lo];
 	} else {
 		return sigBinOp( op, v[lo], buildRightBalancedTerm(op,v,lo+1,hi));
@@ -191,7 +191,7 @@ static Tree buildLeftBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
 	int q = hi-lo; 
 	assert(q>0);
 	if (q == 1) {
-		assert(lo < v.size());
+		assert(lo < int(v.size()));
 		return v[lo];
 	} else {
 		return sigBinOp( op, buildLeftBalancedTerm(op,v,lo,hi-1), v[hi-1]);
@@ -217,6 +217,8 @@ static Tree balanceTerm(int op, Tree t)
 			case 0 : return buildLeftBalancedTerm(op, v, 0, v.size());
 			case 1 : return buildMidBalancedTerm(op, v, 0, v.size());
 			case 2 : return buildRightBalancedTerm(op, v, 0, v.size());
+
+			default: return buildLeftBalancedTerm(op, v, 0, v.size());
 		}
 	}		
 }
@@ -513,7 +515,7 @@ static Tree simplifyingMul(Tree t1, Tree t2)
 
 typedef map<Tree,int> MT;
 
-
+/*
 static int intersectMapTerm(MT& M1, MT& M2, MT& R) 
 {
 	int count = 0;
@@ -531,8 +533,9 @@ static int intersectMapTerm(MT& M1, MT& M2, MT& R)
 	}
 	return count;
 }
+*/
 
-
+/*
 static void divideMapTerm(MT& M1, MT& M2, MT& R)
 {
 	for (MT::const_iterator e = M2.begin(); e != M2.end(); e++) {
@@ -542,8 +545,9 @@ static void divideMapTerm(MT& M1, MT& M2, MT& R)
 		}
 	}
 }
+*/
 
-
+/*
 static int maxIntersect(list<MT>& LM, MT& E1, MT& E2, MT& I)
 {
 	int	Cmax = 0;
@@ -564,7 +568,7 @@ static int maxIntersect(list<MT>& LM, MT& E1, MT& E2, MT& I)
 	
 	return Cmax;
 }
-
+*/
 
 /**
  * Factorize add terms : k1.k2.k4 + k2.k3.k4 -> (k1+k3).k2.k4
@@ -627,7 +631,7 @@ static void factorizeAddTerm(map<Tree,Tree>& MAT)
 }
 
 
-
+/*
 static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
 {
 	list<MT>	L;
@@ -699,7 +703,7 @@ static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
 	}
 	
 }	
-
+*/
 
 /**
  * Compute the normal form of a fixed delay term (s@d).

@@ -215,9 +215,8 @@ void VectorCompiler::compileSingleSignal (Tree sig)
 
 string	VectorCompiler::CS (Tree env, Tree sig, int context)
 {
-  // Changement � faire:
-  // quel que soit le contexte dans lequel on cherche � compiler, il faut v�rifier si le signal a d�j� �t�
-  // compil� dans n'importe quel contexte, dans ce cas il doit avoir une variable de cache,
+  // Changement �faire:
+  // quel que soit le contexte dans lequel on cherche �compiler, il faut v�ifier si le signal a d����  // compil�dans n'importe quel contexte, dans ce cas il doit avoir une variable de cache,
   // sinon on compile
 
 
@@ -673,11 +672,11 @@ string VectorCompiler::generateCacheCode(Tree env, Tree sig, const string& exp, 
 
       vname = getFreshID("vec_data");
 
-      // seul variables qu'on autorise dans de le DeclCode et InitCode sont variables m�moires
-      // qui doivent persister d'un appel � l'autre ( variables r�cursives, mem, table lecture/ecriture,
+      // seul variables qu'on autorise dans de le DeclCode et InitCode sont variables m�oires
+      // qui doivent persister d'un appel �l'autre ( variables r�ursives, mem, table lecture/ecriture,
       // variables de l'interface graphique ) et les tables constantes ( table en lecture seule,
-      // trop longue � initialiser )
-      // dor�navant toutes les constantes num�riques sont d�clarer dans SlowCode
+      // trop longue �initialiser )
+      // dor�avant toutes les constantes num�iques sont d�larer dans SlowCode
 
       /*
       if((context==kVect)||(context==kScal)) {
@@ -991,7 +990,7 @@ bool VectorCompiler::TrinaryOperationAccVec(Tree env,Tree arg1,Tree arg2,string*
       tri_arg2 = CS(env,z,kVect);
       tri_arg3 = CS(env,arg2,kVect);
 
-      // type op�ration
+      // type op�ation
       //if(sig->nature==kReal) {      
 	
 	// tri_arg1
@@ -1838,19 +1837,20 @@ static string makeRecVarTempName_vect(const string& groupID, int i)
   return subst("$0temp$1", groupID, T(i));
 }
 
-// Donne le nom du type C correspondant � la nature d'un signal
+// Donne le nom du type C correspondant �la nature d'un signal
 static string cType (Type t) 
 { 
 	return (t->nature() == kInt) ? "int" : "float";
 }
 
-// Donne le nom zero correspondant � la nature d'un signal
+/*
+// Donne le nom zero correspondant �la nature d'un signal
 static string cZero (Type t) 
 { 
 	return (t->nature() == kInt) ? "0" : "0.0f";
 }
-
-// Clef de propriet� associant un nom au label d'un groupe recursif
+*/
+// Clef de propriet�associant un nom au label d'un groupe recursif
 Tree RECNAMEPROP = tree(symbol("sigRecNameProp"));
 
 

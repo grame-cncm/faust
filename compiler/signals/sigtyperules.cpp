@@ -44,7 +44,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd);
 static Type infereProjType(Type t, int i, int vec);
 static Type infereXType(Tree sig, Tree env);
 
-static Tree addEnv(Tree var, Tree tt, Tree env);
+//static Tree addEnv(Tree var, Tree tt, Tree env);
 //static void markSigType(Tree sig, Tree env);
 
 
@@ -80,6 +80,7 @@ Tree addEnv(Tree var, Type tp, Tree env)
 	return r;
 }
 
+/*
 static Tree addEnv(Tree var, Tree tt, Tree env)
 {
 	//cerr << "ADD ENV 2 " << *var << " with type " << *tt << " -> ";
@@ -87,7 +88,7 @@ static Tree addEnv(Tree var, Tree tt, Tree env)
 	//cerr << *r << endl;
 	return r;
 }
-
+*/
 
 
 /*
@@ -430,7 +431,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 	//cerr<<"Write table content: "<<temp<<endl;
 	
 	//Type tempbis = new TableType(/*tt->content()*/temp, v, c);
-	//cerr<<"Write table apès promotion: "<<tempbis<<endl;
+	//cerr<<"Write table apï¿½ promotion: "<<tempbis<<endl;
 
 	//return tempbis;
 
