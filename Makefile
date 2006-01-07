@@ -1,4 +1,4 @@
-version := 0.9.6d
+version := 0.9.6e
 prefix := /usr/local
 arch := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*) 
@@ -58,5 +58,5 @@ dist :
 	cp Makefile faust-$(version)
 	cp *.pdf faust-$(version)
 	rm -f faust-$(version).tar.gz
-	tar czf faust-$(version).tar.gz faust-$(version)
+	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
