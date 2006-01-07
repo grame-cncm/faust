@@ -1,4 +1,4 @@
-version := 0.9.6
+version := 0.9.6d
 prefix := /usr/local
 arch := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*) 
@@ -7,7 +7,16 @@ all :
 	$(MAKE) -C compiler
 
 
-.PHONY: clean depend install ininstall dist parser
+.PHONY: clean depend install ininstall dist parser help
+
+help :
+	@echo "make or make all : compiler the faust compiler"
+	@echo "make parser : generate the parser from the lex and yacc files"
+	@echo "make clean : remove all object files"
+	@echo "make doc : generate the documentation using doxygen"
+	@echo "make install : install the compiler and the architecture files in $(prefix)/bin $(prefix)/lib/faust"
+	@echo "make uninstall : undo what install did"
+	@echo "make dist : make a tar.gz file ready for distribution"
 
 parser :
 	$(MAKE) -C compiler parser
