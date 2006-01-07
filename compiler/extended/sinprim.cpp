@@ -9,7 +9,7 @@ class SinPrim : public xtended
  
  	SinPrim() : xtended("sin") {}
 	
-	virtual int 	arity () { return 1; }
+	virtual unsigned int arity () { return 1; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

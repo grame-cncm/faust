@@ -30,7 +30,7 @@ class xtended
 					}
 	
 	// virtual method to be implemented by subclasses
-	virtual int 	arity () = 0;
+	virtual unsigned int 	arity () = 0;
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types) = 0;
 	virtual int 	infereSigOrder (const vector<int>& args) = 0;
 	virtual Type 	infereSigType (const vector<Type>& args) = 0;

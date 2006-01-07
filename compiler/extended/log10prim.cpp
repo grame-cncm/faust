@@ -10,7 +10,7 @@ class Log10Prim : public xtended
  
  	Log10Prim() : xtended("log10f") {}
 	
-	virtual int 	arity () { return 1; }
+	virtual unsigned int arity () { return 1; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

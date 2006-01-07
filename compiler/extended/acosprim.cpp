@@ -9,7 +9,7 @@ class AcosPrim : public xtended
  
  	AcosPrim() : xtended("acos") {}
 	
-	virtual int 	arity () { return 1; }
+	virtual unsigned int 	arity () { return 1; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

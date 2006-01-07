@@ -10,7 +10,7 @@ class MinPrim : public xtended
  
  	MinPrim() : xtended("min") {}
 	
-	virtual int 	arity () { return 2; }
+	virtual unsigned int arity () { return 2; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

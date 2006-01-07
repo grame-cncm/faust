@@ -9,7 +9,7 @@ class AtanPrim : public xtended
  
  	AtanPrim() : xtended("atan") {}
 	
-	virtual int 	arity () { return 1; }
+	virtual unsigned int 	arity () { return 1; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

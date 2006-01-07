@@ -10,7 +10,7 @@ class MaxPrim : public xtended
  
  	MaxPrim() : xtended("max") {}
 	
-	virtual int 	arity () { return 2; }
+	virtual unsigned int arity () { return 2; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

@@ -9,7 +9,7 @@ class RintPrim : public xtended
  
  	RintPrim() : xtended("rint") {}
 	
-	virtual int 	arity () { return 1; }
+	virtual unsigned int arity () { return 1; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

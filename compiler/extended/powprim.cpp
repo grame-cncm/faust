@@ -9,7 +9,7 @@ class PowPrim : public xtended
  
  	PowPrim() : xtended("powf") {}
 	
-	virtual int 	arity () { return 2; }
+	virtual unsigned int arity () { return 2; }
 	
 	virtual bool	needCache ()	{ return true; }
 	

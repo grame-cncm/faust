@@ -9,7 +9,7 @@ class FmodPrim : public xtended
  
  	FmodPrim() : xtended("fmodf") {}
 	
-	virtual int 	arity () { return 2; }
+	virtual unsigned int 	arity () { return 2; }
 	
 	virtual bool	needCache ()	{ return true; }
 	
