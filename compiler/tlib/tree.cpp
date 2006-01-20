@@ -86,7 +86,8 @@ extern Tabber TABBER;
 
 static void error(const char * s, Tree t)
 {
-	fprintf(stderr, "ERROR : %s (%p)\n", s, t);
+	//fprintf(stderr, "ERROR : %s (%p)\n", s, t);
+	cerr << "ERROR : " << s << " : " << *t << endl;
 }
 
 #define ERROR(s,t) { error(s,t); exit(1); }
@@ -294,7 +295,7 @@ bool isTree (const Tree& t, const Node& n)
 }
 */
 
-// Si ca ne pose pas de problèmes, c'est plus pratique	
+// Si ca ne pose pas de problï¿½es, c'est plus pratique	
 bool isTree (const Tree& t, const Node& n) 
 { 
 	return (t->node() == n);
