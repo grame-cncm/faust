@@ -3,7 +3,7 @@ cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
 
 # Setup this variable to access the MAX/MSP SDK headers
-cycling := "/Volumes/MacOSX Panther/Applications/MaxMSP 4.5/MaxMSP-SDK/4.5 headers/c74support"
+cycling := "/Applications/MaxMSP 4.5/MaxMSP-MacSDK/c74support"
 
 # Setup this variable with the location for the compiled MAX/MSP externals
 install_plug_ins := $(addprefix $(HOME), /Faust_MSP)
@@ -12,6 +12,7 @@ all :  $(appl)
 
 
 $(DEST)% : %.dsp
+	@test -d $(cycling) || (echo "Error: cannot find MaxMSP-SDK ! please set the 'cycling' variable in Makefile.mspcompile"; exit 1)
 	install -d $@
 	cp -r $(cycling) $@
 	/Developer/Tools/CpMac -r /usr/local/lib/faust/MSP/* $@
