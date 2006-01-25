@@ -138,14 +138,13 @@
 		089C1679FE841209C02AAC07 = {
 			buildActionMask = 2147483647;
 			files = (
-				4B74B142086861EF0089EF5B,
+				4B53F3E50987D6AB0004EAFF,
 			);
 			isa = PBXRezBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		089C167CFE841241C02AAC07 = {
 			children = (
-				4B74B141086861EF0089EF5B,
 				089C167DFE841241C02AAC07,
 			);
 			isa = PBXGroup;
@@ -194,6 +193,7 @@
 		08FB77ADFE841716C02AAC07 = {
 			children = (
 				4B74B148086862360089EF5B,
+				4B53F3E40987D6AB0004EAFF,
 			);
 			isa = PBXGroup;
 			name = Source;
@@ -229,15 +229,16 @@
 //4B2
 //4B3
 //4B4
-		4B74B141086861EF0089EF5B = {
+		4B53F3E40987D6AB0004EAFF = {
+			fileEncoding = 30;
 			isa = PBXFileReference;
-			lastKnownFileType = archive.rsrc;
-			path = "Faust~.rsrc";
+			lastKnownFileType = sourcecode.rez;
+			path = "Faust~.r";
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
 		};
-		4B74B142086861EF0089EF5B = {
-			fileRef = 4B74B141086861EF0089EF5B;
+		4B53F3E50987D6AB0004EAFF = {
+			fileRef = 4B53F3E40987D6AB0004EAFF;
 			isa = PBXBuildFile;
 			settings = {
 			};
