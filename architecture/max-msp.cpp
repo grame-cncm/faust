@@ -339,10 +339,12 @@ class mspUI : public UI
 				fUITable[slider]->toString(buffer);
 		}
 		
-		void AddInlets(t_faust *x) 
+		bool AddInlets(t_faust *x) 
 		{
+			if (fUITable.size() > 9) return false;
 			for (int i = fUITable.size(); i>0 ; i--) 
 				floatin((t_pxobject *)x,i);
+			return true;
 		}
 		
 		// To be implemented
@@ -373,7 +375,11 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	
 	x->dsp->init(long(sys_getsr()));
 	x->dsp->buildUserInterface(x->dspUI);
-	x->dspUI->AddInlets(x);
+	if (!x->dspUI->AddInlets(x)) {
+		post("Error : Faust DSP object cannot be allocated: max inlets is 9");
+//		faust_free(x); should be freed but Max crashes 
+		return 0;
+	}
 	
 	x->args = (void**)aligned_calloc((x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, sizeof(void*));
 	
@@ -439,7 +445,6 @@ void  faust_dsp(t_faust *x, t_signal **sp, short *count)
 /*--------------------------------------------------------------------------*/
 int main()
 {
-	int i;
 	setup((t_messlist **)&faust_class, (method)faust_new, (method)faust_free, 
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
