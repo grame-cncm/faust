@@ -38,6 +38,7 @@
 
 #include <assert.h>
 extern SourceReader	gReader;
+extern int gMaxNameSize;
 
 // History
 // 23/05/2005 : New environment management
@@ -64,6 +65,7 @@ static Tree		evalIdDef(Tree id, Tree visited, Tree env);
 
 
 static void 	setDefNameProperty(Tree t, Tree id); 
+static void 	setDefNameProperty(Tree t, const string& name); 
 
 
 // Public Interface
@@ -94,7 +96,19 @@ Tree evalprocess (Tree eqlist)
  * @return an expression where abstractions have been replaced by symbolic boxes
  */
 
+static Tree real_a2sb(int deep, Tree exp);
+
 static Tree a2sb(int deep, Tree exp)
+{
+	Tree	id;
+	Tree 	result = real_a2sb(deep, exp);
+	if (result != exp && getDefNameProperty(exp, id)) {
+		setDefNameProperty(result, id);		// propagate definition name property when needed
+	}
+	return result;
+}
+
+static Tree real_a2sb(int deep, Tree exp)
 {
 	Tree abstr, visited, unusedEnv, localValEnv, var, name, body;
 	
@@ -150,9 +164,46 @@ void setDefNameProperty(Tree t, Tree id)
 	setProperty(t, DEFNAMEPROPERTY, id);
 }
 
+void setDefNameProperty(Tree t, const string& name) 
+{
+	char 	buf[1024];
+	int		n = name.size();
+	int 	m = (gMaxNameSize>1023) ? 1023 : gMaxNameSize;
+	if (n > m) {
+		// the name is too long we reduce it to 2/3 of maxsize
+		int i = 0;
+		// copy first third
+		for (; i < m/3; i++) { buf[i] = name[i]; }
+		// add ...
+		buf[i++] = '.';
+		buf[i++] = '.';
+		buf[i++] = '.';
+		// copy last third
+		for (int c = n-m/3; c<n; c++, i++) { buf[i] = name[c]; }
+		buf[i] = 0;
+		setProperty(t, DEFNAMEPROPERTY, tree(buf));
+	} else {
+		setProperty(t, DEFNAMEPROPERTY, tree(name.c_str()));
+	}
+}
+
 bool getDefNameProperty(Tree t, Tree& id)
 {
 	return getProperty(t, DEFNAMEPROPERTY, id);
+}
+
+static bool autoName(Tree exp , Tree& id)
+{
+	stringstream s; s << boxpp(exp);
+	id = tree(s.str().c_str());	
+	return true;
+}
+
+bool getArgName(Tree t, Tree& id)
+{
+	//return getDefNameProperty(t, id) || autoName(t, id) ;
+	return autoName(t, id) ;
+	//return getDefNameProperty(t, id);
 }
 
 
@@ -177,7 +228,6 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	return result;
 }
 
-
 /**
  * Eval a block diagram expression.
  * 
@@ -199,6 +249,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	Tree	exp2, notused, visited2, lenv2;
 	
 	//cerr << "EVAL " << *exp << " (visited : " << *visited << ")" << endl;
+	//cerr << "REALEVAL of " << exp << endl;
 	if (isBoxIdent(exp)) {
 		return evalIdDef(exp, visited, localValEnv);
 		
@@ -233,40 +284,40 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		//cout << "button label : " << l1 << " become " << l2 << endl;
-		return (l1 == l2) ? exp : boxButton(tree(l2));
+		return ((l1 == l2) ? exp : boxButton(tree(l2)));
 		
 	} else if (isBoxCheckbox(exp, label)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		//cout << "check box label : " << l1 << " become " << l2 << endl;
-		return (l1 == l2) ? exp : boxCheckbox(tree(l2));
+		return ((l1 == l2) ? exp : boxCheckbox(tree(l2)));
 		
 	} else if (isBoxVSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		return boxVSlider(tree(l2), 
+		return ( boxVSlider(tree(l2), 
 					tree(eval2float(cur, visited, localValEnv)), 
 					tree(eval2float(lo, visited, localValEnv)), 
 					tree(eval2float(hi, visited, localValEnv)), 
-					tree(eval2float(step, visited, localValEnv)));
+					tree(eval2float(step, visited, localValEnv))));
 		
 	} else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		return boxHSlider(tree(l2), 
+		return ( boxHSlider(tree(l2), 
 					tree(eval2float(cur, visited, localValEnv)), 
 					tree(eval2float(lo, visited, localValEnv)), 
 					tree(eval2float(hi, visited, localValEnv)), 
-					tree(eval2float(step, visited, localValEnv)));
+					tree(eval2float(step, visited, localValEnv))));
 		
 	} else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
-		return boxNumEntry(tree(l2), 
+		return (boxNumEntry(tree(l2), 
 					tree(eval2float(cur, visited, localValEnv)), 
 					tree(eval2float(lo, visited, localValEnv)), 
 					tree(eval2float(hi, visited, localValEnv)), 
-					tree(eval2float(step, visited, localValEnv)));
+					tree(eval2float(step, visited, localValEnv))));
 		
 	} else if (isBoxVGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
@@ -298,12 +349,9 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 					tree(eval2float(hi, visited, localValEnv)));
 
 	} else if (isBoxAppl(exp, fun, arg)) {
+		//cerr << "TRACE perte nom 1 " << exp << endl;
 		return applyList(	eval(fun, visited, localValEnv),
 							revEvalList(arg, visited, localValEnv) );
-		
-	} else if (isBoxAbstr(exp)) {
-		// it is an abstraction : return a closure
-		return closure(exp, nil, visited, localValEnv);
 		
 	} else if (isBoxAbstr(exp)) {
 		// it is an abstraction : return a closure
@@ -313,9 +361,11 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	
 		if (isBoxAbstr(exp2)) {
 			// a 'real' closure
+			//cerr << "TRACE perte nom 2 " << exp << endl;
 			return closure(exp2, nil, setUnion(visited,visited2), lenv2);
 		} else {
 			// it was a suspended evaluation
+			//cerr << "TRACE perte nom 3 " << exp << endl;
 			return eval(exp2, setUnion(visited,visited2), lenv2);
 		}
 		
@@ -618,9 +668,18 @@ static Tree applyList (Tree fun, Tree larg)
 		exit(1);
 	}
 	
-	//return applyList(eval(body, visited, pushValueDef(id, hd(larg), localValEnv)), tl(larg));
-	return applyList(eval(body, visited, pushValueDef(id, eval(hd(larg), visited, localValEnv), localValEnv)), tl(larg));
-		
+	// try to synthetise a  name from the function name and the argument name
+	{
+		Tree arg = eval(hd(larg), visited, localValEnv);
+		Tree f = eval(body, visited, pushValueDef(id, arg, localValEnv));
+
+		Tree	fname;
+		if (getDefNameProperty(fun, fname)) {
+			stringstream s; s << tree2str(fname) << "(" << boxpp(arg) << ")";
+			setDefNameProperty(f, s.str());
+		}
+		return applyList(f, tl(larg));
+	}		
 }
 
 
@@ -761,7 +820,7 @@ static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
  */
 static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 {
-	Tree def;
+	Tree def, name;
 	
 	// search the environment env for a definition of symbol id
 	while (!isNil(lenv) && !getProperty(lenv, id, def)) {
@@ -782,7 +841,11 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 	}
 	
 	// set the definition name property
-	setDefNameProperty(def, id);
+	if (!getDefNameProperty(def, name)) {
+		// if the definition has no name use the identifier
+		stringstream s; s << boxpp(id);
+		setDefNameProperty(def, s.str());
+	}
 
 	// return the evaluated definition
 	return eval(def, addElement(p,visited), nil);
