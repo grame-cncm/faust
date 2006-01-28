@@ -1,12 +1,13 @@
-subprojects := boxes errors evaluate generator parser propagate signals tlib draw extended
+subprojects := boxes errors evaluate generator parser propagate signals tlib draw draw/device draw/schema extended
 
-sources = $(wildcard *.cpp) $(wildcard */*.cpp)
+sources = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard draw/*/*.cpp)
 
-objects = $(sources:.cpp=.o) 
+objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS := -g $(addprefix -I, $(subprojects)) $(CXXFLAGS)
+CXXFLAGS := $(addprefix -I, $(subprojects)) $(CXXFLAGS)
+###CXXFLAGS := -g -O0 -Wall $(addprefix -I, $(subprojects))
 
 
 all : faust
@@ -17,22 +18,22 @@ faust : $(objects)
 
 .PHONY: clean depend ctags parser
 
-parser : 
+parser :
 	bison -d -o parser/faustparser.cpp parser/faustparser.y
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
 	rm -f $(objects) faust *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
-	
+
 depend :
 	makedepend -w120 -Y -- $(CXXFLAGS) -- $(sources)
-	
+
 ctags:
 	ctags main.cpp boxes/* errors/* evaluate/* generator/* parser/* propagate/* signals/* tlib/* draw/* extended/*
 
-doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)  
-	doxygen	
-	
+doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
+	doxygen
+
 # DO NOT DELETE
 
 main.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
@@ -40,7 +41,12 @@ main.o: tlib/shlysis.hh tlib/recness.hh signals/binop.hh signals/sigtype.hh tlib
 main.o: signals/sigtyperules.hh signals/sigprint.hh generator/simplify.hh generator/privatise.hh
 main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh generator/Text.hh
 main.o: generator/description.hh generator/compile_vect.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh
-main.o: boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh draw/drawblock.hh
+main.o: boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh draw/device/SVGDev.h
+main.o: draw/device/device.h draw/schema/schema.h draw/drawschema.hh
+boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh tlib/recness.hh signals/sigtype.hh tlib/smartpointer.hh
+boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+boxes/boxcomplexity.o: boxes/boxcomplexity.h boxes/boxes.hh
 boxes/boxes.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxes.o: tlib/shlysis.hh tlib/recness.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
 boxes/boxes.o: signals/sigtype.hh tlib/smartpointer.hh
@@ -52,49 +58,12 @@ boxes/ppbox.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh boxes/boxes
 boxes/ppbox.o: tlib/shlysis.hh tlib/recness.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
 boxes/ppbox.o: signals/sigtype.hh tlib/smartpointer.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
 boxes/ppbox.o: signals/sigvisitor.hh
-draw/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-draw/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh tlib/recness.hh signals/sigtype.hh tlib/smartpointer.hh
-draw/boxcomplexity.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-draw/boxcomplexity.o: draw/boxcomplexity.h boxes/boxes.hh
-draw/constrFonctions.o: draw/constrFonctions.h draw/reprLib.h draw/representation.h draw/device.h draw/wire.h
-draw/constrFonctions.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h
-draw/constrFonctions.o: draw/reprMerge.h draw/reprGroup.h draw/reprParam.h draw/devLib.h draw/SVGDev.h draw/PSDev.h
-draw/constrFonctions.o: draw/treeLib.h draw/treeRepr.h draw/treeBloc.h draw/treeNormal.h draw/treeGroup.h
-draw/constrFonctions.o: draw/treeParam.h
-draw/drawbloc.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-draw/drawbloc.o: tlib/shlysis.hh tlib/recness.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
-draw/drawbloc.o: signals/sigtype.hh tlib/smartpointer.hh draw/reprLib.h draw/representation.h draw/device.h draw/wire.h
-draw/drawbloc.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h draw/reprMerge.h
-draw/drawbloc.o: draw/reprGroup.h draw/reprParam.h draw/devLib.h draw/SVGDev.h draw/PSDev.h draw/treeLib.h
-draw/drawbloc.o: draw/treeRepr.h draw/treeBloc.h draw/treeNormal.h draw/treeGroup.h draw/treeParam.h draw/drawblock.hh
-draw/drawbloc.o: draw/constrFonctions.h extended/xtended.hh generator/klass.hh generator/uitree.hh
-draw/drawbloc.o: signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh draw/occurrences.hh draw/boxcomplexity.h
-draw/occurrences.o: draw/occurrences.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-draw/occurrences.o: tlib/shlysis.hh tlib/recness.hh
-draw/PSDev.o: draw/PSDev.h draw/device.h
-draw/reprBloc.o: draw/reprBloc.h draw/representation.h draw/device.h draw/wire.h
-draw/representation.o: draw/representation.h draw/device.h draw/wire.h
-draw/reprGroup.o: draw/reprGroup.h draw/representation.h draw/device.h draw/wire.h
-draw/reprMerge.o: draw/reprMerge.h draw/representation.h draw/device.h draw/wire.h
-draw/reprPara.o: draw/reprPara.h draw/representation.h draw/device.h draw/wire.h
-draw/reprParam.o: draw/reprParam.h draw/representation.h draw/device.h draw/wire.h
-draw/reprRecurs.o: draw/reprRecurs.h draw/representation.h draw/device.h draw/wire.h
-draw/reprSerie.o: draw/reprSerie.h draw/representation.h draw/device.h draw/wire.h
-draw/reprSplit.o: draw/reprSplit.h draw/representation.h draw/device.h draw/wire.h
-draw/SVGDev.o: draw/SVGDev.h draw/device.h
-draw/treeBloc.o: draw/treeBloc.h draw/treeRepr.h draw/representation.h draw/device.h draw/wire.h draw/reprLib.h
-draw/treeBloc.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h draw/reprMerge.h
-draw/treeBloc.o: draw/reprGroup.h draw/reprParam.h
-draw/treeGroup.o: draw/treeGroup.h draw/treeRepr.h draw/representation.h draw/device.h draw/wire.h draw/reprLib.h
-draw/treeGroup.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h draw/reprMerge.h
-draw/treeGroup.o: draw/reprGroup.h draw/reprParam.h
-draw/treeNormal.o: draw/treeNormal.h draw/treeRepr.h draw/representation.h draw/device.h draw/wire.h draw/reprLib.h
-draw/treeNormal.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h draw/reprMerge.h
-draw/treeNormal.o: draw/reprGroup.h draw/reprParam.h
-draw/treeParam.o: draw/treeParam.h draw/treeRepr.h draw/representation.h draw/device.h draw/wire.h draw/reprLib.h
-draw/treeParam.o: draw/reprBloc.h draw/reprPara.h draw/reprSerie.h draw/reprRecurs.h draw/reprSplit.h draw/reprMerge.h
-draw/treeParam.o: draw/reprGroup.h draw/reprParam.h
-draw/wire.o: draw/wire.h draw/device.h
+draw/drawschema.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+draw/drawschema.o: tlib/shlysis.hh tlib/recness.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
+draw/drawschema.o: signals/sigtype.hh tlib/smartpointer.hh draw/device/devLib.h draw/device/SVGDev.h
+draw/drawschema.o: draw/device/device.h draw/device/PSDev.h extended/xtended.hh generator/klass.hh generator/uitree.hh
+draw/drawschema.o: signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh tlib/occurrences.hh
+draw/drawschema.o: boxes/boxcomplexity.h draw/schema/schema.h draw/drawschema.hh
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 errors/errormsg.o: tlib/shlysis.hh tlib/recness.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
@@ -252,9 +221,24 @@ signals/sigvisitor.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh tlib/recness.hh s
 signals/sigvisitor.o: signals/sigtype.hh tlib/smartpointer.hh generator/klass.hh generator/uitree.hh
 tlib/list.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh
 tlib/node.o: tlib/node.hh tlib/symbol.hh
+tlib/occurrences.o: tlib/occurrences.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+tlib/occurrences.o: tlib/shlysis.hh tlib/recness.hh
 tlib/recness.o: tlib/recness.hh tlib/tree.hh tlib/symbol.hh tlib/node.hh tlib/list.hh
 tlib/recursive-tree.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 tlib/recursive-tree.o: tlib/recness.hh
 tlib/shlysis.o: tlib/shlysis.hh tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh
 tlib/symbol.o: tlib/symbol.hh
 tlib/tree.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh
+draw/device/PSDev.o: draw/device/PSDev.h draw/device/device.h
+draw/device/SVGDev.o: draw/device/SVGDev.h draw/device/device.h
+draw/schema/blockSchema.o: draw/schema/blockSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/cableSchema.o: draw/schema/cableSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/cutSchema.o: draw/schema/cutSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/decorateSchema.o: draw/schema/decorateSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/enlargedSchema.o: draw/schema/enlargedSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/mergeSchema.o: draw/schema/mergeSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/parSchema.o: draw/schema/parSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/recSchema.o: draw/schema/recSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/seqSchema.o: draw/schema/seqSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/splitSchema.o: draw/schema/splitSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/topSchema.o: draw/schema/topSchema.h draw/schema/schema.h draw/device/device.h
