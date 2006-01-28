@@ -86,7 +86,7 @@ char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
 
 char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
 {
-	if (ptr == sigWriteReadTable) 			return "wrtable";	
+	if (ptr == sigWriteReadTable) 	return "wrtable";	
 	return "prim5???";
 }
 
@@ -99,11 +99,12 @@ static void streambinop(ostream& fout, Tree t1, char* op, Tree t2, int curPriori
 }
 
 /*****************************************************************************
-	 affichage d'une expression box comme en entrée
+	 affichage d'une expression box comme en entrï¿½
 *****************************************************************************/
 
 ostream& boxpp::print (ostream& fout) const
 {
+	//cerr << "TRAC";
 	int		i, id;
 	float	r;
 	prim0	p0;
@@ -138,12 +139,12 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxAbstr(box, arg,body))	fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")"; 
 	else if (isBoxAppl(box, fun, args))	fout << boxpp(fun) << boxpp(args) ; 
 	
-	else if (isBoxWithLocalDef(box, body, ldef))	fout << boxpp(fun) << " with { " << boxpp(args) << " }"; 
+	else if (isBoxWithLocalDef(box, body, ldef))	fout << boxpp(body) << " with { " << boxpp(args) << " }"; 
 	
 	// foreign elements 
 	else if (isBoxFFun(box, ff))		fout << "ffunction(" << ffname(ff) << ')'; 
 	else if (isBoxFConst(box, type, name, file))		
-										fout << "fconstant(" << tree2str(type) << tree2str(name) << ')'; 
+										fout << "fconstant(" /*<< tree2str(type) */<< tree2str(name) << ')'; 
 	
 	// block diagram binary operator 
 	else if (isBoxSeq(box, t1, t2))		streambinop(fout, t1, ":", t2, 1, priority);
@@ -245,7 +246,7 @@ ostream& boxpp::print (ostream& fout) const
 		//fout << tree2str(box);
 		fout << "box::print : not_a_box[[  " << *box << " ]]";
 	}
-
+	//cerr << "E BUG" << endl;
 	return fout;
 }
 
