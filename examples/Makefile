@@ -1,4 +1,4 @@
-all : jackgtk 
+all : jackgtk
 
 alsagtk :
 	install -d alsagtkdir
@@ -69,5 +69,6 @@ supercollider :
 	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
 
 clean :
-	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir supercolliderdir
+	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir supercolliderdir *-ps *-svg
+
 
