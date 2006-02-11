@@ -25,6 +25,11 @@
 
 using namespace std;
 
+static double quantize(int n)
+{
+	int q = 4;
+	return dLetter * (q *((n+q-1)/q));
+}
 
 /**
  * Build a simple colored blockSchema with a certain number of
@@ -40,7 +45,8 @@ schema* makeBlockSchema (	unsigned int inputs,
 {
 	// determine the optimal size of the box
 	double minimal = 3*dWire;
-	double w = 2*dHorz + max( minimal, (2+text.size())*dLetter );
+	//double w = 2*dHorz + max( minimal, (2+text.size())*dLetter );
+	double w = 2*dHorz + max( minimal, quantize(text.size()) );
 	double h = 2*dVert + max( minimal, max(inputs, outputs) * dWire );
 
 	return new blockSchema(inputs, outputs, w, h, text, color, link);
