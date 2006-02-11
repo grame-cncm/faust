@@ -26,7 +26,10 @@
 
 using namespace std;
 
+enum {kHorDir, kUpDir, kDownDir}; ///< directions of connections
+
 static double computeHorzGap(schema* a, schema* b);
+static int direction(const point& a, const point& b);
 
 
 //----------------------------INTERFACE--------------------------------
@@ -131,90 +134,186 @@ void seqSchema::draw(device& dev)
  * Draw the internal wires aligning the vertical segments in
  * a symetric way when possible.
  */
+// void seqSchema::drawInternalWires(device& dev)
+// {
+// 	double 	dUp = 0;
+// 	double 	dDw = 0;
+//
+// 	if (orientation() == kLeftRight) {
+//
+// 		for (unsigned int i=0; i<fSchema1->outputs(); i++) {
+//
+// 			point src = fSchema1->outputPoint(i);
+// 			point dst = fSchema2->inputPoint(i);
+//
+// 			if (src.y > dst.y) 			{
+// 				// draw an upward cable
+// 				dev.trait(src.x, src.y, src.x+dUp, src.y);
+// 				dev.trait(src.x+dUp, src.y, src.x+dUp, dst.y);
+// 				dev.trait(src.x+dUp, dst.y, dst.x, dst.y);
+// 				dUp += dWire;
+// 			} else if (src.y < dst.y) 	{
+// 				// draw an downward cable
+// 				dev.trait(src.x, src.y, src.x+dDw, src.y);
+// 				dev.trait(src.x+dDw, src.y, src.x+dDw, dst.y);
+// 				dev.trait(src.x+dDw, dst.y, dst.x, dst.y);
+// 				dDw += dWire;
+// 			} else {
+// 				dev.trait(src.x, src.y, dst.x, dst.y);
+// 			}
+// 		}
+//
+// 	} else {
+//
+// 		// draw connections starting from the end
+// 		for (int i = int(fSchema1->outputs())-1; i >= 0; i--) {
+//
+// 			point src = fSchema1->outputPoint(i);
+// 			point dst = fSchema2->inputPoint(i);
+//
+// 			if (src.y > dst.y) 			{
+// 				// draw an upward cable
+// 				dev.trait(src.x, src.y, src.x-dUp, src.y);
+// 				dev.trait(src.x-dUp, src.y, src.x-dUp, dst.y);
+// 				dev.trait(src.x-dUp, dst.y, dst.x, dst.y);
+// 				dUp += dWire;
+// 			} else if (src.y < dst.y) 	{
+// 				// draw an downward cable
+// 				dev.trait(src.x, src.y, src.x-dDw, src.y);
+// 				dev.trait(src.x-dDw, src.y, src.x-dDw, dst.y);
+// 				dev.trait(src.x-dDw, dst.y, dst.x, dst.y);
+// 				dDw += dWire;
+// 			} else {
+// 				dev.trait(src.x, src.y, dst.x, dst.y);
+// 			}
+// 		}
+// 	}
+// }
+//
+
 void seqSchema::drawInternalWires(device& dev)
 {
-	double 	dUp = 0;
-	double 	dDw = 0;
+	assert (fSchema1->outputs() == fSchema2->inputs());
+
+	const int 	N 	= fSchema1->outputs();
+	double 		dx 	= 0;
+	double		mx 	= 0;
+	int			dir	=-1;
 
 	if (orientation() == kLeftRight) {
-
-		for (unsigned int i=0; i<fSchema1->outputs(); i++) {
-
+		// draw left right cables
+		for (int i=0; i<N; i++) {
 			point src = fSchema1->outputPoint(i);
 			point dst = fSchema2->inputPoint(i);
-
-			if (src.y > dst.y) 			{
-				// draw an upward cable
-				dev.trait(src.x, src.y, src.x+dUp, src.y);
-				dev.trait(src.x+dUp, src.y, src.x+dUp, dst.y);
-				dev.trait(src.x+dUp, dst.y, dst.x, dst.y);
-				dUp += dWire;
-			} else if (src.y < dst.y) 	{
-				// draw an downward cable
-				dev.trait(src.x, src.y, src.x+dDw, src.y);
-				dev.trait(src.x+dDw, src.y, src.x+dDw, dst.y);
-				dev.trait(src.x+dDw, dst.y, dst.x, dst.y);
-				dDw += dWire;
+			int d = direction(src,dst);
+			if (d != dir) {
+				// compute attributes of new direction
+				switch (d) {
+					case kUpDir 	: mx = 0; dx = dWire; break;
+					case kDownDir	: mx = fHorzGap; dx = -dWire; break;
+					default			: mx = 0; dx = 0; break;
+				}
+				dir = d;
 			} else {
+				// move in same direction
+				mx = mx +dx;
+			}
+			if (src.y == dst.y) {
+				// draw straight cable
 				dev.trait(src.x, src.y, dst.x, dst.y);
+			} else {
+				// draw zizag cable
+				dev.trait(src.x, src.y, src.x+mx, src.y);
+				dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
+				dev.trait(src.x+mx, dst.y, dst.x, dst.y);
 			}
 		}
-
 	} else {
-
-		// draw connections starting from the end
-		for (int i = int(fSchema1->outputs())-1; i >= 0; i--) {
-
+		// draw right left cables
+		for (int i=0; i<N; i++) {
 			point src = fSchema1->outputPoint(i);
 			point dst = fSchema2->inputPoint(i);
-
-			if (src.y > dst.y) 			{
-				// draw an upward cable
-				dev.trait(src.x, src.y, src.x-dUp, src.y);
-				dev.trait(src.x-dUp, src.y, src.x-dUp, dst.y);
-				dev.trait(src.x-dUp, dst.y, dst.x, dst.y);
-				dUp += dWire;
-			} else if (src.y < dst.y) 	{
-				// draw an downward cable
-				dev.trait(src.x, src.y, src.x-dDw, src.y);
-				dev.trait(src.x-dDw, src.y, src.x-dDw, dst.y);
-				dev.trait(src.x-dDw, dst.y, dst.x, dst.y);
-				dDw += dWire;
+			int d = direction(src,dst);
+			if (d != dir) {
+				// compute attributes of new direction
+				switch (d) {
+					case kUpDir 	: mx = -fHorzGap; dx = dWire; break;
+					case kDownDir	: mx = 0; dx = -dWire; break;
+					default			: mx = 0; dx = 0; break;
+				}
+				dir = d;
 			} else {
+				// move in same direction
+				mx = mx +dx;
+			}
+			if (src.y == dst.y) {
+				// draw straight cable
 				dev.trait(src.x, src.y, dst.x, dst.y);
+			} else {
+				// draw zizag cable
+				dev.trait(src.x, src.y, src.x+mx, src.y);
+				dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
+				dev.trait(src.x+mx, dst.y, dst.x, dst.y);
 			}
 		}
 	}
 }
 
 
-
 //--------------------------helpers------------------------------
 
 
+
+/**
+ * Compute the direction of a connection. Note that
+ * Y axis goes from top to bottom
+ */
+static int direction(const point& a, const point& b)
+{
+	if (a.y > b.y) return kUpDir; 		// upward connections
+	if (a.y < b.y) return kDownDir; 	// downward connection
+	return kHorDir;						// horizontal connections
+}
+
 /**
  * Compute the horizontal gap needed to draw the internal wires.
+ * It depends on the largest group of connections that go in the same
+ * direction.
  */
 static double computeHorzGap(schema* a, schema* b)
 {
 	assert(a->outputs() == b->inputs());
 
-	// place a and b to have valid connection points
-	a->place(0,0,kLeftRight);
-	b->place(0,0,kLeftRight);
+	if (a->outputs() == 0) {
+		return 0;
+	} else {
+		// store here the size of the largest group for each direction
+		int	MaxGroupSize[3]; for(int i=0; i<3; i++) MaxGroupSize[i]=0;
 
-	// count the connection types according to the vertical differences
-	int		up	=0;
-	int 	down=0;
-	for (unsigned int i=0; i<a->outputs(); i++) {
+		// place a and b to have valid connection points
+		a->place(0,0,kLeftRight);
+		b->place(0,0,kLeftRight);
 
-		point src = a->outputPoint(i);
-		point dst = b->inputPoint(i);
+		// init current group direction and size
+		int	gdir 	= direction(a->outputPoint(0), b->inputPoint(0));
+		int	gsize 	= 1;
 
-		if (src.y > dst.y) 			{ up++;		}
-		else if (src.y < dst.y) 	{ down++;	}
+		// analyze direction of remaining points
+		for (unsigned int i=1; i<a->outputs(); i++) {
+			int d = direction(a->outputPoint(i), b->inputPoint(i));
+			if (d == gdir) {
+				gsize++;
+			} else {
+				if (gsize > MaxGroupSize[gdir])  MaxGroupSize[gdir]=gsize;
+				gsize = 1;
+				gdir = d;
+			}
+		}
+
+		// update for last group
+		if (gsize > MaxGroupSize[gdir])  MaxGroupSize[gdir]=gsize;
+
+		// the gap required for the connections
+		return dWire * max(MaxGroupSize[kUpDir],MaxGroupSize[kDownDir]);
 	}
-
-	// the gap required for the connections
-	return dWire * max(up,down);
 }
