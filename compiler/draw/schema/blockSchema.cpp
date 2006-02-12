@@ -27,8 +27,8 @@ using namespace std;
 
 static double quantize(int n)
 {
-	int q = 4;
-	return dLetter * (q *((n+q-1)/q));
+	int q = 3;
+	return dLetter * (q *((n+1)/q));
 }
 
 /**
