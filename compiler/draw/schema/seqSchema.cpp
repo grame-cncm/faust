@@ -83,12 +83,15 @@ void seqSchema::place(double ox, double oy, int orientation)
 {
 	beginPlace(ox, oy, orientation);
 
+	double y1 = max(0.0, 0.5*(fSchema2->height() - fSchema1->height()));
+	double y2 = max(0.0, 0.5*(fSchema1->height() - fSchema2->height()));
+
 	if (orientation == kLeftRight) {
-		fSchema1->place(ox, oy, orientation);
-		fSchema2->place(ox+fSchema1->width()+fHorzGap, oy, orientation);
+		fSchema1->place(ox, oy+y1, orientation);
+		fSchema2->place(ox+fSchema1->width()+fHorzGap, oy+y2, orientation);
 	} else {
-		fSchema2->place(ox, oy, orientation);
-		fSchema1->place(ox+fSchema2->width()+fHorzGap, oy, orientation);
+		fSchema2->place(ox, oy+y2, orientation);
+		fSchema1->place(ox+fSchema2->width()+fHorzGap, oy+y1, orientation);
 	}
 	endPlace();
 }
@@ -134,62 +137,6 @@ void seqSchema::draw(device& dev)
  * Draw the internal wires aligning the vertical segments in
  * a symetric way when possible.
  */
-// void seqSchema::drawInternalWires(device& dev)
-// {
-// 	double 	dUp = 0;
-// 	double 	dDw = 0;
-//
-// 	if (orientation() == kLeftRight) {
-//
-// 		for (unsigned int i=0; i<fSchema1->outputs(); i++) {
-//
-// 			point src = fSchema1->outputPoint(i);
-// 			point dst = fSchema2->inputPoint(i);
-//
-// 			if (src.y > dst.y) 			{
-// 				// draw an upward cable
-// 				dev.trait(src.x, src.y, src.x+dUp, src.y);
-// 				dev.trait(src.x+dUp, src.y, src.x+dUp, dst.y);
-// 				dev.trait(src.x+dUp, dst.y, dst.x, dst.y);
-// 				dUp += dWire;
-// 			} else if (src.y < dst.y) 	{
-// 				// draw an downward cable
-// 				dev.trait(src.x, src.y, src.x+dDw, src.y);
-// 				dev.trait(src.x+dDw, src.y, src.x+dDw, dst.y);
-// 				dev.trait(src.x+dDw, dst.y, dst.x, dst.y);
-// 				dDw += dWire;
-// 			} else {
-// 				dev.trait(src.x, src.y, dst.x, dst.y);
-// 			}
-// 		}
-//
-// 	} else {
-//
-// 		// draw connections starting from the end
-// 		for (int i = int(fSchema1->outputs())-1; i >= 0; i--) {
-//
-// 			point src = fSchema1->outputPoint(i);
-// 			point dst = fSchema2->inputPoint(i);
-//
-// 			if (src.y > dst.y) 			{
-// 				// draw an upward cable
-// 				dev.trait(src.x, src.y, src.x-dUp, src.y);
-// 				dev.trait(src.x-dUp, src.y, src.x-dUp, dst.y);
-// 				dev.trait(src.x-dUp, dst.y, dst.x, dst.y);
-// 				dUp += dWire;
-// 			} else if (src.y < dst.y) 	{
-// 				// draw an downward cable
-// 				dev.trait(src.x, src.y, src.x-dDw, src.y);
-// 				dev.trait(src.x-dDw, src.y, src.x-dDw, dst.y);
-// 				dev.trait(src.x-dDw, dst.y, dst.x, dst.y);
-// 				dDw += dWire;
-// 			} else {
-// 				dev.trait(src.x, src.y, dst.x, dst.y);
-// 			}
-// 		}
-// 	}
-// }
-//
 
 void seqSchema::drawInternalWires(device& dev)
 {
@@ -291,8 +238,10 @@ static double computeHorzGap(schema* a, schema* b)
 		int	MaxGroupSize[3]; for(int i=0; i<3; i++) MaxGroupSize[i]=0;
 
 		// place a and b to have valid connection points
-		a->place(0,0,kLeftRight);
-		b->place(0,0,kLeftRight);
+		double ya = max(0.0, 0.5*(b->height() - a->height()));
+		double yb = max(0.0, 0.5*(a->height() - b->height()));
+		a->place(0,ya,kLeftRight);
+		b->place(0,yb,kLeftRight);
 
 		// init current group direction and size
 		int	gdir 	= direction(a->outputPoint(0), b->inputPoint(0));
