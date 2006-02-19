@@ -1,0 +1,7 @@
+Faust Syntax Highlighting Files
+-------------------------------
+
+This folder contains syntax highlighting files for various editors. The editors currently supported are : KDE Kate/Kwrite.
+
+1) KDE Kate/Kwrite
+install the file 'faust.xml' into Kate syntax folder ('/opt/kde3/share/apps/katepart/syntax' on suse 10.0)
