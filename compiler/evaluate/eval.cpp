@@ -166,8 +166,8 @@ void setDefNameProperty(Tree t, const string& name)
 	int		n = name.size();
 	int 	m = (gMaxNameSize>1023) ? 1023 : gMaxNameSize;
 	if (n > m) {
-		char 	buf[1024];
 		// the name is too long we reduce it to 2/3 of maxsize
+		char 	buf[1024];
 		int i = 0;
 		// copy first third
 		for (; i < m/3; i++) { buf[i] = name[i]; }
@@ -182,6 +182,7 @@ void setDefNameProperty(Tree t, const string& name)
 	} else {
 		setProperty(t, DEFNAMEPROPERTY, tree(name.c_str()));
 	}
+
 }
 
 bool getDefNameProperty(Tree t, Tree& id)
@@ -191,10 +192,8 @@ bool getDefNameProperty(Tree t, Tree& id)
 
 static bool autoName(Tree exp , Tree& id)
 {
-	//cerr << "ENTER autoName " << endl;
 	stringstream s; s << boxpp(exp);
 	id = tree(s.str().c_str());
-	//cerr << "EXIT autoName " << endl;
 	return true;
 }
 
@@ -202,7 +201,6 @@ bool getArgName(Tree t, Tree& id)
 {
 	//return getDefNameProperty(t, id) || autoName(t, id) ;
 	return autoName(t, id) ;
-	//return getDefNameProperty(t, id);
 }
 
 
