@@ -53,15 +53,13 @@ dist :
 	$(MAKE) -C compiler clean
 	$(MAKE) -C examples clean
 	mkdir -p faust-$(version)
-	cp README COPYING faust-$(version)
+	cp README COPYING Makefile faust-$(version)
 	cp -r architecture faust-$(version)
 	cp -r compiler faust-$(version)
 	cp -r examples faust-$(version)
 	cp -r documentation faust-$(version)
 	cp -r syntax-highlighting faust-$(version)
 	find faust-$(version) -name CVS | xargs rm -rf
-	cp Makefile faust-$(version)
-	cp *.pdf faust-$(version)
 	rm -f faust-$(version).tar.gz
 	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)

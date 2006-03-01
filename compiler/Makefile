@@ -24,6 +24,7 @@ parser :
 
 clean :
 	rm -f $(objects) faust *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -rf doc
 
 depend :
 	makedepend -w120 -Y -- $(CXXFLAGS) -- $(sources)
