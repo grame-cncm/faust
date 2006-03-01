@@ -41,8 +41,8 @@ main.o: tlib/shlysis.hh tlib/recness.hh signals/binop.hh signals/sigtype.hh tlib
 main.o: signals/sigtyperules.hh signals/sigprint.hh generator/simplify.hh generator/privatise.hh
 main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh generator/Text.hh
 main.o: generator/description.hh generator/compile_vect.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh
-main.o: boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh draw/device/SVGDev.h
-main.o: draw/device/device.h draw/schema/schema.h draw/drawschema.hh
+main.o: boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh draw/schema/schema.h
+main.o: draw/device/device.h draw/drawschema.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh tlib/recness.hh signals/sigtype.hh tlib/smartpointer.hh
 boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
