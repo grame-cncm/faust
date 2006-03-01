@@ -57,6 +57,8 @@ dist :
 	cp -r architecture faust-$(version)
 	cp -r compiler faust-$(version)
 	cp -r examples faust-$(version)
+	cp -r documentation faust-$(version)
+	cp -r syntax-highlighting faust-$(version)
 	find faust-$(version) -name CVS | xargs rm -rf
 	cp Makefile faust-$(version)
 	cp *.pdf faust-$(version)
