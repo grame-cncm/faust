@@ -18,24 +18,24 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _KLASS_H
 #define _KLASS_H
 
 /**********************************************************************
 			- klass.h : class C++ à remplir (projet FAUST) -
-					
+
 
 		Historique :
 		-----------
 		17-10-2001 : implementation initiale (yo)
 		18-10-2001 : Ajout de getFreshID (yo)
 		02-11-2001 : Ajout de sous classes (yo)
-		
+
 ***********************************************************************/
-using namespace std; 
+using namespace std;
 
 #include <string>
 #include <list>
@@ -48,66 +48,72 @@ using namespace std;
 
 #define kMaxCategory 32
 
-class Klass //: public Target 
+class Klass //: public Target
 {
-	
+
  protected:
 	string			fKlassName;
 	string			fSuperKlassName;
 	int				fNumInputs;
 	int				fNumOutputs;
-  
-        
-	
+
+
+
 	set<string>			fIncludeFileSet;
 	set<string>			fLibrarySet;
-	
-	list<Klass* >		fSubClassList;		
+
+	list<Klass* >		fSubClassList;
 
 	list<string>		fDeclCode;
+	list<string>		fStaticInitCode;		///< static init code for class constant tables
+	list<string>		fStaticFields;			///< static fields after class
 	list<string>		fInitCode;
 	list<string>		fUICode;
 	list<string>		fSlowCode;
-	list<string>		fExecCode;        
+	list<string>		fExecCode;
   //list<string>		fExecVecCode;
-  //list<string>		fExecScalCode[4];  
+  //list<string>		fExecScalCode[4];
 	list<string>		fPostCode;
-    list<string>		fEndCode;
+    //list<string>		fEndCode;
 
     bool                 vec;
-        
-	
+
+
  public:
-		 
+
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
 	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs), vec(__vec)
 	{}
-	
+
 	virtual ~Klass() 						{}
-	
+
 	void addIncludeFile (const string& str) { fIncludeFileSet.insert(str); }
-	
+
 	void addLibrary (const string& str) 	{ fLibrarySet.insert(str); }
-	
+
 	void collectIncludeFile(set<string>& S);
-	
+
 	void collectLibrary(set<string>& S);
-	
+
 	void addSubKlass (Klass* son)			{ fSubClassList.push_back(son); }
-		
-	void addDeclCode (const string& str) 	{ fDeclCode.push_back(str); }	
-	
-	void addInitCode (const string& str)	{ fInitCode.push_back(str); } 
-		
-	void addUICode (const string& str)		{ fUICode.push_back(str); } 
-		
-	
-	void addSlowCode (const string& str)	{ fSlowCode.push_back(str); }	
-	
+
+	void addDeclCode (const string& str) 	{ fDeclCode.push_back(str); }
+
+	void addInitCode (const string& str)	{ fInitCode.push_back(str); }
+
+	void addStaticInitCode (const string& str)	{ fStaticInitCode.push_back(str); }
+
+	void addStaticFields (const string& str)	{ fStaticFields.push_back(str); }
+
+	void addUICode (const string& str)		{ fUICode.push_back(str); }
+
+
+	void addSlowCode (const string& str)	{ fSlowCode.push_back(str); }
+
   //void addExecCode (const string& str)	{ fExecCode.push_back(str); }
 
     void addExecCode ( const string& str) { fExecCode.push_back(str); }
-  
+
   //void addExecCode (int codeType) {  // compilation avec vectorisation automatique
   //                                      if(codeType==kScal) {
   //				    fExecCode.splice(fExecCode.end(),fExecScalCode[0]);
@@ -120,36 +126,36 @@ class Klass //: public Target
   //    void addExecVecCode (const string& str) { fExecVecCode.push_back(str); }
 
   //    void addExecScalCode (const string& str, int loop_unroll) { fExecScalCode[loop_unroll].push_back(str); }
-	
-	void addPostCode (const string& str)	{ fPostCode.push_front(str); }	
 
-    void addEndCode (const string& str)	{ fEndCode.push_front(str); }	
-	
+	void addPostCode (const string& str)	{ fPostCode.push_front(str); }
+
+   // void addEndCode (const string& str)	{ fEndCode.push_front(str); }
+
 	virtual void println(int n, ostream& fout);
-	
+
 	virtual void printIncludeFile(ostream& fout);
-	
+
   	virtual void printLibrary(ostream& fout);
-	
+
 	int	inputs() 	{ return fNumInputs; }
 	int outputs()	{ return fNumOutputs; }
 };
 
 class SigIntGenKlass : public Klass {
  public:
-		 
+
 	SigIntGenKlass (const string& name) : Klass(name, "", 0, 1, false)	{}
-		
+
 	virtual void println(int n, ostream& fout);
 };
 
 class SigFloatGenKlass : public Klass {
  public:
-		 
+
 	SigFloatGenKlass (const string& name) : Klass(name, "", 0, 1, false)	{}
-		
+
 	virtual void println(int n, ostream& fout);
 };
 
-	
+
 #endif
