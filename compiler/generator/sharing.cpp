@@ -18,12 +18,12 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 /*****************************************************************************
 ******************************************************************************
-							FAUST SIGNAL COMPILER 
+							FAUST SIGNAL COMPILER
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 Compile a list of FAUST signals into a C++ class .
@@ -31,7 +31,7 @@ Compile a list of FAUST signals into a C++ class .
  History :
  ---------
  	2002-02-08 : First version
-	
+
 ******************************************************************************
 *****************************************************************************/
 
@@ -51,7 +51,7 @@ Compile a list of FAUST signals into a C++ class .
 ******************************************************************************
 
 						   		SHARING ANALYSIS
-	
+
 ******************************************************************************
 *****************************************************************************/
 
@@ -59,14 +59,23 @@ Compile a list of FAUST signals into a C++ class .
 // Create a specific property key for the sharing count of subtrees of t
 //------------------------------------------------------------------------------
 
-int ScalarCompiler::getSharingCount(Tree t)
+int ScalarCompiler::getSharingCount(Tree sig)
 {
+	//cerr << "getSharingCount of : " << *sig << " = ";
 	Tree c;
-	if (getProperty(t, fSharingKey, c)) {
+	if (getProperty(sig, fSharingKey, c)) {
+		//cerr << c->node().getInt() << endl;
 		return c->node().getInt();
 	} else {
+		//cerr << 0 << endl;
 		return 0;
 	}
+}
+
+void ScalarCompiler::setSharingCount(Tree sig, int count)
+{
+	//cerr << "setSharingCount of : " << *sig << " <- " << count << endl;
+	setProperty(sig, fSharingKey, tree(count));
 }
 
 
@@ -76,7 +85,7 @@ int VectorCompiler::getSharingCount(Tree t, int ctxt)
 	Tree c;
 
 	if(ctxt==kVect) {
-	  
+
 	  if (getProperty(t, fSharingKeyVec, c)) {
 	    return c->node().getInt();
 	  } else {
@@ -92,7 +101,7 @@ int VectorCompiler::getSharingCount(Tree t, int ctxt)
 	  }
 
 	} else {
-	  
+
 	  if (getProperty(t, fSharingKeyTrueScal, c)) {
 	    return c->node().getInt();
 	  } else {
@@ -100,7 +109,7 @@ int VectorCompiler::getSharingCount(Tree t, int ctxt)
 	  }
 
 	}
-}	
+}
 
 
 
@@ -142,33 +151,34 @@ void VectorCompiler::sharingAnalysis(Tree t)
 //------------------------------------------------------------------------------
 // Create a specific property key for the sharing count of subtrees of t
 //------------------------------------------------------------------------------
-void ScalarCompiler::sharingAnnotation(int vctxt, Tree t)
+void ScalarCompiler::sharingAnnotation(int vctxt, Tree sig)
 {
-	Tree	tt;
-// 	fprintf (stderr, "Start sharing annotation of ");
-// 	printSignal (t, stderr);
-// 	cerr << "in context " << vctxt << endl;
-	
-	int c = getSharingCount(t);
-	if (c==0) {
-		if (getProperty(t, NULLENV, tt)) {
-			Type ty((AudioType*)tree2ptr(tt));
-			int v = ty->variability();
-			if (v < vctxt) {
-				c = 1;
-				vctxt = v;
-			}
+	//cerr << "START sharing annotation of " << *sig << endl;
+	int count = getSharingCount(sig);
+
+	if (count > 0) {
+		// it is not our first visit
+		setSharingCount(sig, count+1);
+
+	} else {
+		// it is our first visit,
+		int v = getSigType(sig)->variability();
+
+		// check "time sharing" cases
+		if (v < vctxt) {
+			setSharingCount(sig, 2); 	// time sharing occurence : slower expression in faster context
+		} else {
+			setSharingCount(sig, 1);	// regular occurence
 		}
-		int n = t->arity();
-		if (n>0 && ! isSigGen(t)) {
-			for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i));
+
+		// Annotate the sub signals
+		vector<Tree> subsig;
+		int n = getSubSignals(sig, subsig);
+		if (n>0 && ! isSigGen(sig)) {
+			for (int i=0; i<n; i++) sharingAnnotation(v, subsig[i]);
 		}
 	}
-	setProperty(t, fSharingKey, tree(c+1));
- 	//fprintf (stderr, "Result of sharing annotation is %d ", c+1);
- 	//fprintf (stderr, "for signal ");
- 	//printSignal (t, stderr);
- 	//cerr << endl;
+	//cerr << "END sharing annotation of " << *sig << endl;
 }
 
 
@@ -180,23 +190,23 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 // 	fprintf (stderr, "Start sharing annotation of ");
 // 	printSignal (t, stderr);
 // 	cerr << "in context " << vctxt << endl;
-	
+
 	int cVect = getSharingCount(t,kVect);
 	int cScal = getSharingCount(t,kScal);
 	int cTrueScal = getSharingCount(t,kTrueScal);
 
 
 	int type;
-	
+
 	if ((cVect==0)&&(cScal==0)&&(cTrueScal==0)) {
 
 	  if (getProperty(t, NULLENV, tt)) {
 
-		  
+
 	    Type ty((AudioType*)tree2ptr(tt));
 
 	  //Type ty = getSigType(t,NULLENV);
-			
+
 	    int v = ty->variability();
 	    if (v < vctxt) {
 
@@ -204,7 +214,7 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	      cScal = 1;
 	      if(ctxt==kVect) setProperty(t, fSharingKeyScal, tree(cScal+1));
 	      else if(ctxt==kScal) setProperty(t, fSharingKeyVec, tree(cVect+1));
-	      
+
 	      //c = 1;
 	      vctxt = v;
 	    }
@@ -214,7 +224,7 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	    if (n>0 && ! isSigGen(t)) {
 
 	      Tree x,y,ff,largs,id,z,label,le;
-		  
+
 	      //int type;
 	      if (getProperty(t, NULLENV, tt)) {
 		Type ty = ((AudioType*)tree2ptr(tt));
@@ -224,12 +234,12 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	      if(vctxt<kSamp) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),kTrueScal);
 	      else if(isSigRDTbl(t,x,y)||isSigFFun(t,ff,largs)) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),kTrueScal);
 	      else if(isSigWRTbl(t,id,x,y,z)) { sharingAnnotation(vctxt, t->branch(0),kTrueScal); sharingAnnotation(vctxt, t->branch(1),kTrueScal); sharingAnnotation(vctxt, t->branch(2),kTrueScal); sharingAnnotation(vctxt, t->branch(3),kScal); }
-	      else if(isRec(t,label,le)||isRef(t,label)) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),kScal);     
+	      else if(isRec(t,label,le)||isRef(t,label)) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),kScal);
 
 	      else if(ctxt==kTrueScal) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),type); // et forcément vctxt == kSamp
 	      else for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),ctxt|type);
-	      
-	      
+
+
 
 	      //for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),ctxt); // ATTENTION CHANGER ctxt SUIVANT LE SIGNAL
 
@@ -237,10 +247,10 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 
 
 
-		
+
 	}
 
-	
+
 
 	if((!getProperty(t, NULLENV, tt))||(ctxt==type)) {
 	  if(ctxt==kVect) setProperty(t, fSharingKeyVec, tree(cVect+1));
@@ -255,7 +265,7 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	  else if(type==kScal) setProperty(t, fSharingKeyScal, tree(cScal+1));
 	  //else setProperty(t, fSharingKeyTrueScal, tree(cTrueScal+1));
 	}
-	
+
 
 	//if((!getProperty(t, NULLENV, tt))||(ctxt==type)) {
 	//  if(ctxt==kVect) fprintf(stderr,"Sharing annotation: %d %d %d\n", cVect+1, cScal, cTrueScal );
@@ -268,7 +278,7 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	//  else fprintf(stderr,"Sharing annotation: %d %d %d\n", cVect, cScal, cTrueScal+1 );
 	//  fprintf(stderr,"for signal: "); printSignal(t,stderr); fprintf(stderr,"\n\n");
 	//}
-} 
+}
 
 
 
