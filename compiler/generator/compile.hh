@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _COMPILE_
 #define _COMPILE_
 
@@ -40,7 +40,7 @@
 /**
  * compileSignals : listOfSignal -> klass
  *
- * Compile a list of FAUST signals into a C++ class 
+ * Compile a list of FAUST signals into a C++ class
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -56,42 +56,42 @@ protected:
 public:
 	Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec);
 	Compiler (Klass* k);
-	
+
         virtual ~Compiler();
 
 	virtual void		compileMultiSignal  (Tree lsig) = 0;
 	virtual void		compileSingleSignal (Tree lsig) = 0;
-  	virtual string		CS (Tree tEnv, Tree sig, int ctx = 0) = 0;
-	virtual string 		generateCacheCode(Tree tEnv, Tree sig, const string& exp, int context=0)=0;
-	
-	Klass*				getClass() { return (Klass*)fClass; }	
-	
+  	//virtual string		CS (Tree tEnv, Tree sig, int ctx = 0) = 0;
+	//virtual string 		generateCacheCode(Tree tEnv, Tree sig, const string& exp, int context=0)=0;
+
+	Klass*				getClass() { return (Klass*)fClass; }
+
 	void				setDescription(Description* descr)	{ fDescription= descr; }
 	Description*		getDescription()					{ return fDescription; }
-		
+
 protected:
   //string 		getFreshID (const char* prefix);
-  //Tree 		makeCompileKey(Tree t); 
+  //Tree 		makeCompileKey(Tree t);
   virtual Tree 		prepare (Tree L0);
   virtual Tree 		prepare2 (Tree L0);
   //void 		compilePreparedSignalList (Tree lsig);
-	
+
  // analyse du partage des expressions
   //virtual int 		getSharingCount(Tree t) = 0;
   //virtual void 		sharingAnalysis(Tree t) = 0;
   //virtual void 		sharingAnnotation(int vctxt, Tree t) = 0;
-  
 
- // generation du code 
+
+ // generation du code
   //string		generateCode (Tree tEnv, Tree sig);
-	
+
   //string 		generateCacheCode	(Tree tEnv, Tree sig, const string& exp);
-	
+
   //string 		generateDelay1		(Tree tEnv, Tree sig, Tree arg);
   //string 		generateBinOp 		(Tree tEnv, Tree sig, int opcode, Tree arg1, Tree arg2);
-	
+
   //string 		generateFFun  		(Tree tEnv, Tree sig, Tree ff, Tree largs);
-	
+
   //string 		generateInput 		(Tree tEnv, Tree sig, const string& idx);
   //string 		generateOutput		(Tree tEnv, Tree sig, const string& idx, const string& arg1);
 
@@ -102,11 +102,11 @@ protected:
 
   //string 		generateSelect2 	(Tree tEnv, Tree sig, Tree sel, Tree s1, Tree s2);
   //string 		generateSelect3 	(Tree tEnv, Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
-	
+
   //string 		generateRecProj 	(Tree tEnv, Tree sig, const string& vname, int i);
   //string 		generateRecRef 		(Tree tEnv, Tree sig, Tree var);
   //string 		generateRecGroup 	(Tree tEnv, Tree sig, Tree var, Tree le);
-	
+
   //string 		generateIntCast   	(Tree tEnv, Tree sig, Tree x);
   //string 		generateFloatCast 	(Tree tEnv, Tree sig, Tree x);
 
@@ -115,8 +115,8 @@ protected:
   //string 		generateVSlider 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
   //string 		generateHSlider	 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
   //string 		generateNumEntry 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-	
-	
+
+
 // gestion des includes et librairies
 	void 		addIncludeFile (const string& str) 	{ fClass->addIncludeFile(str); 	}
 	void 		addLibrary (const string& str) 		{ fClass->addLibrary(str); 		}
