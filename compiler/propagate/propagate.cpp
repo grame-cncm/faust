@@ -74,6 +74,14 @@ siglist makeSigProjList (Tree t, int n)
 	return l;
 }
 
+//! Fabrique une liste de n mem projections d'un groupe récursif
+siglist makeMemSigProjList (Tree t, int n)
+{
+	siglist l(n);
+	for (int i = 0; i < n; i++) l[i] = sigDelay1(sigProj(i, t));
+	return l;
+}
+
 
 //! Fabrique une liste de n entrées
 siglist makeSigInputList (int n)
@@ -372,7 +380,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		
 		Tree slotenv2 = lift(slotenv); // the environment must also be lifted
 		
-		siglist l0 = makeSigProjList(ref(1), in2);
+		siglist l0 = makeMemSigProjList(ref(1), in2);
 		siglist l1 = propagate(slotenv2, path, t2, l0);
 		siglist l2 = propagate(slotenv2, path, t1, listConcat(l1,listLift(lsig)));
 		Tree g = rec(listConvert(l2));
