@@ -18,16 +18,16 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 /*****************************************************************************
 ******************************************************************************
 
 
 							    The Box Language
-	
-	
+
+
 ******************************************************************************
 *****************************************************************************/
 
@@ -53,10 +53,10 @@
 *****************************************************************************/
 Sym BOXIDENT = symbol ("BoxIdent");
 
-Tree boxIdent(const char* name)		{ return tree(BOXIDENT, tree(symbol(name)) ); } 
+Tree boxIdent(const char* name)		{ return tree(BOXIDENT, tree(symbol(name)) ); }
 bool isBoxIdent(Tree t)				{ return t->node() == Node(BOXIDENT); }
 bool isBoxIdent(Tree t0, const char** str)
-{ 
+{
 	Tree t1; Sym s;
 	if ( isTree(t0, BOXIDENT, t1) && isSym(t1->node(), &s) ) {
 		*str = name(s);
@@ -72,7 +72,7 @@ bool isBoxIdent(Tree t0, const char** str)
 *****************************************************************************/
 
 Tree boxInt(int n) 					{ return tree(n); 	}
-Tree boxReal(double n) 				{ return tree(n); 	}
+Tree boxReal(float n) 				{ return tree(n); 	}
 
 bool isBoxInt(Tree t)				{ return isInt(t->node());	}
 bool isBoxReal(Tree t)				{ return isFloat(t->node()); }
@@ -101,13 +101,13 @@ bool isBoxWire(Tree t)				{ return isTree(t, BOXWIRE); }
 Sym BOXSLOT = symbol ("BoxSlot");
 
 Tree boxSlot(int id)				{ return tree(BOXSLOT,tree(id)); }
-bool isBoxSlot(Tree t)				{ Tree w; return isTree(t, BOXSLOT,w); }			
-bool isBoxSlot(Tree t, int* id)		{ Tree w; return isTree(t, BOXSLOT,w) && isInt(w->node(),id); }			
+bool isBoxSlot(Tree t)				{ Tree w; return isTree(t, BOXSLOT,w); }
+bool isBoxSlot(Tree t, int* id)		{ Tree w; return isTree(t, BOXSLOT,w) && isInt(w->node(),id); }
 
 
 Sym BOXSYMBOLIC = symbol ("BoxSymbolic");
-					
-Tree boxSymbolic(Tree slot, Tree body)				{ return tree(BOXSYMBOLIC,slot, body); }				
+
+Tree boxSymbolic(Tree slot, Tree body)				{ return tree(BOXSYMBOLIC,slot, body); }
 bool isBoxSymbolic(Tree t)							{ Tree slot, body; return isTree(t, BOXSYMBOLIC, slot, body); }
 bool isBoxSymbolic(Tree t, Tree& slot, Tree& body)	{ return isTree(t, BOXSYMBOLIC, slot, body); }
 
@@ -167,16 +167,16 @@ Sym CLOSURE 	= symbol ("Closure");
 Sym BOXERROR 	= symbol ("BoxError");
 Sym BOXACCESS 	= symbol ("BoxAccess");
 
-Tree boxAbstr	(Tree x, Tree y)			{ return tree(BOXABSTR, x, y); }  				
-Tree boxAppl 	(Tree x, Tree y)			{ return tree(BOXAPPL, x, y); } 
+Tree boxAbstr	(Tree x, Tree y)			{ return tree(BOXABSTR, x, y); }
+Tree boxAppl 	(Tree x, Tree y)			{ return tree(BOXAPPL, x, y); }
 
-bool isBoxAbstr	(Tree t)					{ return t->node() == Node(BOXABSTR); } 	
-bool isBoxAppl	(Tree t)					{ return t->node() == Node(BOXAPPL); } 
-	
-bool isBoxAbstr	(Tree t, Tree& x, Tree& y)	{ return isTree(t, BOXABSTR, x, y); } 	
-bool isBoxAppl	(Tree t, Tree& x, Tree& y)	{ return isTree(t, BOXAPPL, x, y); }		
+bool isBoxAbstr	(Tree t)					{ return t->node() == Node(BOXABSTR); }
+bool isBoxAppl	(Tree t)					{ return t->node() == Node(BOXAPPL); }
 
-Tree buildBoxAbstr	(Tree largs, Tree body)		
+bool isBoxAbstr	(Tree t, Tree& x, Tree& y)	{ return isTree(t, BOXABSTR, x, y); }
+bool isBoxAppl	(Tree t, Tree& x, Tree& y)	{ return isTree(t, BOXAPPL, x, y); }
+
+Tree buildBoxAbstr	(Tree largs, Tree body)
 {
 	if (isNil(largs)) {
 		return body;
@@ -184,8 +184,8 @@ Tree buildBoxAbstr	(Tree largs, Tree body)
 		return buildBoxAbstr(tl(largs), boxAbstr(hd(largs), body));
 	}
 }
-#if 0					
-Tree buildBoxAppl 	(Tree fun, Tree revarglist) 				
+#if 0
+Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 {
 	if (isNil(revarglist)) {
 		return fun;
@@ -193,8 +193,8 @@ Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 		return  boxAppl(buildBoxAppl(fun, tl(revarglist)), hd(revarglist));
 	}
 }
-#else					
-Tree buildBoxAppl 	(Tree fun, Tree revarglist) 				
+#else
+Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 {
 	if (isNil (revarglist)) exit(1); // a revoir !!!!!!
 	return  boxAppl(fun, revarglist);
@@ -204,25 +204,25 @@ Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 Tree closure (Tree abstr, Tree genv, Tree vis, Tree lenv)
 {
 	return 	tree(CLOSURE, abstr, genv, vis, lenv);
-}	
+}
 
-bool isClosure	(Tree t, Tree& abstr, Tree& genv, Tree& vis, Tree& lenv)	
-{ 
-	return isTree(t, CLOSURE, abstr, genv, vis, lenv); 
-}		
+bool isClosure	(Tree t, Tree& abstr, Tree& genv, Tree& vis, Tree& lenv)
+{
+	return isTree(t, CLOSURE, abstr, genv, vis, lenv);
+}
 
 Tree boxError()
 {
 	return 	tree(BOXERROR);
-}	
+}
 
-bool isBoxError(Tree t)	
-{ 
-	return isTree(t, BOXERROR); 
-}		
+bool isBoxError(Tree t)
+{
+	return isTree(t, BOXERROR);
+}
 
 
-Tree boxAccess (Tree exp, Tree id)				{ return tree(BOXACCESS, exp, id); } 	
+Tree boxAccess (Tree exp, Tree id)				{ return tree(BOXACCESS, exp, id); }
 bool isBoxAccess(Tree t, Tree& exp, Tree& id)	{ return isTree(t, BOXACCESS, exp, id); }
 
 
@@ -231,8 +231,8 @@ bool isBoxAccess(Tree t, Tree& exp, Tree& id)	{ return isTree(t, BOXACCESS, exp,
 *****************************************************************************/
 Sym BOXWITHLOCALDEF 	= symbol ("BoxWithLocalDef");
 
-Tree boxWithLocalDef (Tree body, Tree ldef)					{ return tree(BOXWITHLOCALDEF, body, ldef); } 
-bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXWITHLOCALDEF, body, ldef); }	
+Tree boxWithLocalDef (Tree body, Tree ldef)					{ return tree(BOXWITHLOCALDEF, body, ldef); }
+bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXWITHLOCALDEF, body, ldef); }
 
 
 /*****************************************************************************
@@ -240,7 +240,7 @@ bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXW
 *****************************************************************************/
 Sym BOXCOMPONENT 	= symbol ("BoxComponent");
 
-Tree boxComponent (Tree filename)							{ return tree(BOXCOMPONENT, filename); } 
+Tree boxComponent (Tree filename)							{ return tree(BOXCOMPONENT, filename); }
 bool isBoxComponent	(Tree s, Tree& filename)				{ return isTree(s, BOXCOMPONENT, filename); }
 
 
@@ -316,13 +316,13 @@ bool isBoxCheckbox (Tree s, Tree& lbl)		{ return isTree(s, BOXCHECKBOX, lbl);			
 
 
 Sym BOXHSLIDER = symbol ("BoxHSlider");
-Tree boxHSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)				
+Tree boxHSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 											{ return tree(BOXHSLIDER, lbl, list4(cur,min,max,step));		}
 bool isBoxHSlider (Tree s)					{ Tree lbl, params; return isTree(s, BOXHSLIDER, lbl, params);	}
 
-bool isBoxHSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)		
-{ 
-	Tree params; 
+bool isBoxHSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+{
+	Tree params;
 	if (isTree(s, BOXHSLIDER, lbl, params)) {
 		cur = nth(params, 0);
 		min = nth(params, 1);
@@ -336,13 +336,13 @@ bool isBoxHSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& ste
 
 
 Sym BOXVSLIDER = symbol ("BoxVSlider");
-Tree boxVSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)				
+Tree boxVSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 											{ return tree(BOXVSLIDER, lbl, list4(cur,min,max,step));		}
 bool isBoxVSlider (Tree s)					{ Tree lbl, params; return isTree(s, BOXVSLIDER, lbl, params);	}
 
-bool isBoxVSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)		
-{ 
-	Tree params; 
+bool isBoxVSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+{
+	Tree params;
 	if (isTree(s, BOXVSLIDER, lbl, params)) {
 		cur = nth(params, 0);
 		min = nth(params, 1);
@@ -357,13 +357,13 @@ bool isBoxVSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& ste
 
 
 Sym BOXNUMENTRY = symbol ("BoxNumEntry");
-Tree boxNumEntry   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)				
+Tree boxNumEntry   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 											{ return tree(BOXNUMENTRY, lbl, list4(cur,min,max,step));		}
 bool isBoxNumEntry (Tree s)					{ Tree lbl, params; return isTree(s, BOXNUMENTRY, lbl, params);	}
 
-bool isBoxNumEntry (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)		
-{ 
-	Tree params; 
+bool isBoxNumEntry (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+{
+	Tree params;
 	if (isTree(s, BOXNUMENTRY, lbl, params)) {
 		cur = nth(params, 0);
 		min = nth(params, 1);

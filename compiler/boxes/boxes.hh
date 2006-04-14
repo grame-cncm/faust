@@ -21,21 +21,21 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 /*****************************************************************************
 ******************************************************************************
-							FAUST BOX ALGEBRA 
+							FAUST BOX ALGEBRA
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
-box ::= i | f | p0 | p1 | p3 
+box ::= i | f | p0 | p1 | p3
 	  | _ | ! | a:b | a<:b | a,b | a:>b | a~b
 
  History :
  ---------
  	2002-06-06 : First version
-	
+
 ******************************************************************************
 *****************************************************************************/
 
@@ -48,7 +48,7 @@ box ::= i | f | p0 | p1 | p3
 ******************************************************************************
 
 							    The Box Language
-	
+
 ******************************************************************************
 *****************************************************************************/
 
@@ -57,7 +57,7 @@ box ::= i | f | p0 | p1 | p3
 							    	Identifiers
 *****************************************************************************/
 
-Tree boxIdent(const char* name); 
+Tree boxIdent(const char* name);
 bool isBoxIdent(Tree t);
 bool isBoxIdent(Tree t, const char** name);
 
@@ -66,56 +66,56 @@ bool isBoxIdent(Tree t, const char** name);
 							    	Numbers
 *****************************************************************************/
 
-Tree boxInt(int n); 						
-Tree boxReal(double n); 
-					
-bool  isBoxInt(Tree t);		
-bool  isBoxReal(Tree t);	
-					
-bool  isBoxInt(Tree t, int* i);		
-bool  isBoxReal(Tree t, float* r);	
+Tree boxInt(int n);
+Tree boxReal(float n);
+
+bool  isBoxInt(Tree t);
+bool  isBoxReal(Tree t);
+
+bool  isBoxInt(Tree t, int* i);
+bool  isBoxReal(Tree t, float* r);
 
 
 /*****************************************************************************
 							   	Wire and Cut
 *****************************************************************************/
 
-Tree boxWire();					
-Tree boxCut();					
+Tree boxWire();
+Tree boxCut();
 
-bool isBoxWire(Tree t);			
-bool isBoxCut(Tree t);			
+bool isBoxWire(Tree t);
+bool isBoxCut(Tree t);
 
 
 /*****************************************************************************
 						Symbolic Boxes with symbolic slots
 *****************************************************************************/
 
-Tree boxSlot(int id);					
-Tree boxSymbolic(Tree slot, Tree body);					
+Tree boxSlot(int id);
+Tree boxSymbolic(Tree slot, Tree body);
 
-bool isBoxSlot(Tree t);			
-bool isBoxSymbolic(Tree t);	
+bool isBoxSlot(Tree t);
+bool isBoxSymbolic(Tree t);
 
-bool isBoxSlot(Tree t, int* id);			
-bool isBoxSymbolic(Tree t, Tree& slot, Tree& body);	
+bool isBoxSlot(Tree t, int* id);
+bool isBoxSymbolic(Tree t, Tree& slot, Tree& body);
 
 
 /*****************************************************************************
 							  Composition of Boxes
 *****************************************************************************/
 
-Tree boxSeq   (Tree x, Tree y); 				
-Tree boxPar   (Tree x, Tree y); 				
-Tree boxRec	  (Tree x, Tree y); 				
-Tree boxSplit (Tree x, Tree y); 			
-Tree boxMerge (Tree x, Tree y); 			
+Tree boxSeq   (Tree x, Tree y);
+Tree boxPar   (Tree x, Tree y);
+Tree boxRec	  (Tree x, Tree y);
+Tree boxSplit (Tree x, Tree y);
+Tree boxMerge (Tree x, Tree y);
 
-bool isBoxSeq	(Tree t, Tree& x, Tree& y); 	
-bool isBoxPar	(Tree t, Tree& x, Tree& y);		
-bool isBoxRec	(Tree t, Tree& x, Tree& y);		
-bool isBoxSplit	(Tree t, Tree& x, Tree& y);	
-bool isBoxMerge	(Tree t, Tree& x, Tree& y);	
+bool isBoxSeq	(Tree t, Tree& x, Tree& y);
+bool isBoxPar	(Tree t, Tree& x, Tree& y);
+bool isBoxRec	(Tree t, Tree& x, Tree& y);
+bool isBoxSplit	(Tree t, Tree& x, Tree& y);
+bool isBoxMerge	(Tree t, Tree& x, Tree& y);
 
 /*****************************************************************************
 						Algorithmic Composition of Boxes
@@ -136,17 +136,17 @@ bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z);
 							  Lambda-Calculus of Boxes
 *****************************************************************************/
 
-Tree buildBoxAbstr	(Tree x, Tree y); 				
-Tree buildBoxAppl 	(Tree x, Tree y); 				
+Tree buildBoxAbstr	(Tree x, Tree y);
+Tree buildBoxAppl 	(Tree x, Tree y);
 
-Tree boxAbstr	(Tree x, Tree y); 				
-Tree boxAppl 	(Tree x, Tree y); 				
+Tree boxAbstr	(Tree x, Tree y);
+Tree boxAppl 	(Tree x, Tree y);
 
-bool isBoxAbstr	(Tree t); 	
-bool isBoxAppl	(Tree t);		
+bool isBoxAbstr	(Tree t);
+bool isBoxAppl	(Tree t);
 
-bool isBoxAbstr	(Tree t, Tree& x, Tree& y); 	
-bool isBoxAppl	(Tree t, Tree& x, Tree& y);		
+bool isBoxAbstr	(Tree t, Tree& x, Tree& y);
+bool isBoxAppl	(Tree t, Tree& x, Tree& y);
 
 Tree closure (Tree abstr, Tree genv, Tree vis, Tree lenv);
 
@@ -162,7 +162,7 @@ bool isBoxAccess(Tree t, Tree& exp, Tree& id);
 *****************************************************************************/
 
 Tree boxWithLocalDef (Tree body, Tree ldef);
-bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef);	
+bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef);
 
 
 /*****************************************************************************
@@ -214,7 +214,7 @@ bool isBoxFFun	(Tree s);
 bool isBoxFFun	(Tree s, Tree& ff);
 
 
-Tree boxFConst 		(Tree type, Tree name, Tree file); 
+Tree boxFConst 		(Tree type, Tree name, Tree file);
 bool isBoxFConst	(Tree s);
 bool isBoxFConst	(Tree s, Tree& type, Tree& name, Tree& file);
 
@@ -280,7 +280,7 @@ bool isBoxHBargraph (Tree s, Tree& label, Tree& min, Tree& max);
 ******************************************************************************
 
 							    Box Algorithms
-	
+
 ******************************************************************************
 *****************************************************************************/
 
