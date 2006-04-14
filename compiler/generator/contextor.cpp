@@ -18,13 +18,21 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
-#ifndef _SIMPLIFY_
-#define _SIMPLIFY_
 
-Tree simplify (Tree sig);
+/*****************************************************************************
+	HISTORY
+	22/01/05 : corrected bug on bool signals cached in float variables
+*****************************************************************************/
 
 
-#endif
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include "contextor.hh"
+
+// define the static members of context
+
+int contextor::top=0;
+
+int	contextor::pile[1024];

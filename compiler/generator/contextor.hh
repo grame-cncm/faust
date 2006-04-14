@@ -18,12 +18,40 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
-#ifndef _PRIVATISE_
-#define _PRIVATISE_
 
-Tree privatise (const Tree& t);
+/*****************************************************************************
+	HISTORY
+	22/01/05 : corrected bug on bool signals cached in float variables
+*****************************************************************************/
+
+
+#include <stdio.h>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <assert.h>
+
+#ifndef __CONTEXTOR__
+#define __CONTEXTOR__
+
+/**
+ *	An automatic stack of contexts
+ *
+ */
+class contextor
+{
+	static int 	top;
+	static int	pile[1024];
+
+ public:
+	contextor(int n)	{ top=0; pile[top]=n; }	// contructor to be called only once at the
+												// top level to initialize the stack
+
+	contextor() 		{ assert(top >= 0 && top < 1023); int n = pile[top++]; pile[top] = n;}
+	~contextor() 		{top--; }
+
+	void set(int n)	{ pile[top] = n; }
+	int get()	{ return pile[top]; }
+};
 
 #endif
