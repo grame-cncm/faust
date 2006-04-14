@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -95,7 +94,7 @@ bool            gVectorSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
-int            	gBalancedSwitch = 1;
+int            	gBalancedSwitch = 0;
 int            	gFoldThreshold 	= 25;
 int            	gMaxNameSize 	= 40;
 
@@ -204,7 +203,7 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.7.1\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.7.6\n";
 	cout << "Copyright (C) 2002-2006, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
