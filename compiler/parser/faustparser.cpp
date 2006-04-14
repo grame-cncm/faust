@@ -284,9 +284,9 @@ int yylex();
 Tree unquote(char* str)
 {
 	//-----------copy unquoted filename-------------
-	char buf[512]; 
+	char buf[512];
 	int j=0;
-	 
+
 	if (str[0] == '"') {
 		//it is a quoted string, we remove the quotes
 		for (int i=1; j<511 && str[i];) {
@@ -300,7 +300,7 @@ Tree unquote(char* str)
 		}
 	}
 	buf[j] = 0;
-	
+
 	return tree(buf);
 	//----------------------------------------------
 }
@@ -1803,7 +1803,7 @@ yyreduce:
 
   case 51:
 #line 300 "parser/faustparser.y"
-    {yyval.exp = boxReal(atof(yytext));;}
+    {yyval.exp = boxReal(float(atof(yytext)));;}
     break;
 
   case 52:
@@ -1813,7 +1813,7 @@ yyreduce:
 
   case 53:
 #line 303 "parser/faustparser.y"
-    {yyval.exp = boxReal(atof(yytext));;}
+    {yyval.exp = boxReal(float(atof(yytext)));;}
     break;
 
   case 54:
@@ -1823,7 +1823,7 @@ yyreduce:
 
   case 55:
 #line 306 "parser/faustparser.y"
-    {yyval.exp = boxReal(0.0 - atof(yytext));;}
+    {yyval.exp = boxReal(0.0f - float(atof(yytext)));;}
     break;
 
   case 56:
@@ -2561,6 +2561,6 @@ yyreturn:
 
 
 #line 506 "parser/faustparser.y"
-         
+
 
 
