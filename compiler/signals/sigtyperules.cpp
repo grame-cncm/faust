@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #include <stdio.h>
 #include <assert.h>
 #include "sigtype.hh"
@@ -35,6 +35,7 @@
 //--------------------------------------------------------------------------
 // prototypes
 
+static Type getInferredType(Tree term, Tree env);
 static Type infereSigType(Tree term, Tree env);
 static Type infereFFType (Tree ff, Tree ls, Tree env);
 static Type infereFConstType (Tree type);
@@ -47,6 +48,42 @@ static Type infereXType(Tree sig, Tree env);
 //static Tree addEnv(Tree var, Tree tt, Tree env);
 //static void markSigType(Tree sig, Tree env);
 
+/***********************************************
+ * Set and get the type property of a signal
+ * (we suppose the signal have been previously
+ * annotated with type information)
+ ***********************************************/
+
+Tree TYPEPROPERTY = tree(symbol("TypeProperty"));
+
+/**
+ * set the type annotation of sig
+ * @param sig the signal we want to type
+ * @param t the type of the signal
+ */
+void setSigType(Tree sig, Type t)
+{
+	//cerr << "setSigType(" << *sig << ", " << t << ")" << endl;
+	setProperty(sig, TYPEPROPERTY, tree((void*)t));
+}
+
+
+/**
+ * retrieve the type annotation of sig
+ * @param sig the signal we want to know the type
+ */
+Type getSigType(Tree sig)
+{
+	//cerr << "getSigType(" << *sig << ")" ;
+	Tree tt;
+	if (!getProperty(sig, TYPEPROPERTY, tt)) {
+		cerr << "ERROR in getSigType : no type information available for signal :" << *sig << endl;
+		exit(1);
+	}
+	//cerr << " -> " << *((AudioType*)tree2ptr(tt)) << endl;
+	return (AudioType*)tree2ptr(tt);
+}
+
 
 
 
@@ -56,7 +93,7 @@ static Type infereXType(Tree sig, Tree env);
 	to an enclosing term. Type environments are also used as a property
 	key to store already computed types
 ***************************************************************************/
- 
+
 
 /**
  * The empty type environment (also property key for closed term type)
@@ -65,7 +102,7 @@ Tree NULLENV = tree(symbol("NullEnv"));
 
 
 
-/*
+/**
  * add a new binding to a type environment
  * @param var the variable
  * @param type the type of the variable
@@ -80,18 +117,8 @@ Tree addEnv(Tree var, Type tp, Tree env)
 	return r;
 }
 
-/*
-static Tree addEnv(Tree var, Tree tt, Tree env)
-{
-	//cerr << "ADD ENV 2 " << *var << " with type " << *tt << " -> ";
-	Tree r = cons(cons(var,tt),env);
-	//cerr << *r << endl;
-	return r;
-}
-*/
 
-
-/*
+/**
  * search for the type associated to a variable
  * @param env the type environment
  * @param var the variable to search
@@ -101,22 +128,36 @@ Type searchEnv(Tree env, Tree var)
 {
 	while ( (env != NULLENV) && (hd(hd(env)) != var) ) { env = tl(env); }
 	if (env == NULLENV) {
-		cerr << "Problem in searchEnv "; print(var, stderr); 
+		cerr << "Problem in searchEnv "; print(var, stderr);
 		cerr << " was not found" << endl;
 		assert(env != NULLENV);	// we should have found the data
 	}
-	
-// 	fprintf(stderr, "search env for "); printSignal(var, stderr); 
-// 	cerr <<  " got " << Type((AudioType*)tree2ptr(tl(hd(env)))) << endl;
-	
+
 	return Type((AudioType*)tree2ptr(tl(hd(env))));
+}
+
+
+
+/**
+ * search for the type associated to a variable
+ * @param env the type environment (a list of pair(var,type))
+ * @param var the variable to search
+ * @param val where to put his type
+ * @result true when var has an associated type in env
+ */
+static bool isInEnv(Tree env, Tree var, Type& val)
+{
+	while ( (env != NULLENV) && (hd(hd(env)) != var) ) { env = tl(env); }
+	if (env == NULLENV) return false;
+	val = Type((AudioType*)tree2ptr(tl(hd(env))));
+	return true;
 }
 
 
 /**************************************************************************
 
  						Type Inference System
-						
+
 ***************************************************************************/
 
 
@@ -126,64 +167,15 @@ Type searchEnv(Tree env, Tree var)
  */
 void typeAnnotation(Tree sig)
 {
+	//cerr << "Start Type annotation of " << *sig << endl;
 //	fprintf(stderr, "debut typeannotation\n");
-	getSigType(sig, NULLENV);
+	getInferredType(sig, NULLENV);
 //	fprintf(stderr, "millieu typeannotation\n");
 //	markSigType(sig, NULLENV);
 //	fprintf(stderr, "fin typeannotation\n");
+	//cerr << "End Type annotation of " << *sig << endl;
 }
 
-
-/**
- * retrieve the type annotation of sig
- * @param sig the signal we want to know the type
- */
-Type sigType(Tree sig)
-{
-	Tree tt;
-	if (!getProperty(sig, NULLENV, tt)) {
-		fprintf(stderr, "ERROR in sigType : no type information avaliable for signal :");
-		printSignal(sig, stderr);
-		fprintf(stderr, "\n");
-		exit(1);
-	}
-	return (AudioType*)tree2ptr(tt);
-}		
-
-#if 0
-/**
- * Mark every subtree with type information with key NULLENV instead of full env
- * @param sig the tree to mark
- * @param env the type environment
- */
-static void markSigType(Tree sig, Tree env)
-{
-	Tree tt, var, body;
-
-	cerr << "MARK SIG TYPE : " << *sig; 
-	
-	if (getProperty(sig, NULLENV, tt)) {
-		cerr << " already typed : " << *((AudioType*) tree2ptr(tt)) << endl;
-		return;
-	}
-	if (!getProperty(sig, env, tt)) { 
-		fprintf(stderr, "internal error 2\n");
-		exit(1);
-	}
-	setProperty(sig, NULLENV, tt);
-	cerr << " with type : " << *((AudioType*) tree2ptr(tt)) << endl;
-	
-	if (isRef(sig, var)) {
-		// nothing to do here but avoid going through var
-	} else if (isRec(sig, var, body)) {
-		markSigType(body, addEnv(var,tt,env));
-	} else 	{
-		int n = sig->arity();
-		for (int i=0; i<n; i++) markSigType(sig->branch(i), env);
-	}
-}
-		
-#endif	 
 
 
 /**
@@ -192,26 +184,40 @@ static void markSigType(Tree sig, Tree env)
  * @param env the type environment
  * @return the type of sig according to environment env
  */
-Type getSigType(Tree term, Tree env)
+Type getInferredType(Tree term, Tree env)
 {
 #if 0
-	cerr << "CALL getSigType(" << *term << ", " << *env << ")" << endl;
+	cerr << "CALL getInferredType(" << *term << ", " << *env << ")" << endl;
 #endif
-	
-	Tree 	tt;
-	//cerr << "toto1\n";
-	if (isClosed(term)) env = NULLENV;
 
-	if (!getProperty(term, env, tt)) 
+	Tree 	tt;
+//	cerr << "toto1\n";
+// 	if (isClosed(term)) {
+// 		cerr << *term << " is a closed term !!! " << endl;
+// 		env = NULLENV;
+// 	}
+	if (!getProperty(term, TYPEPROPERTY, tt))
 	{
-		//cerr << " INFERE TYPE :" << endl;
-		Type t = infereSigType(term, env);
-		setProperty(term, env, tree((void*)t));
-		//cerr << "-> TYPE RETURNED : " << *t << endl;;
-		return t;
+		if (!getProperty(term, env, tt))
+		{
+			Type tp;
+			if (!isInEnv(env, term, tp)) {
+				Type t = infereSigType(term, env);
+				if (env == NULLENV) {
+					setSigType(term, t);					// the result is sure
+				} else {
+					setProperty(term, env, tree((void*)t));	// the result depends of hypothesis
+				}
+				//cerr << "-> TYPE RETURNED (1) : " << *t << endl;;
+				return t;
+			} else {
+				//cerr << "-> TYPE RETURNED (2) : " << *tp << endl;;
+				return tp;
+			}
+		}
 	}
 	Type rt((AudioType*)tree2ptr(tt));
-	//cerr << "-> EXISTING TYPE RETURNED : " << *rt << "\n";
+	//cerr << "-> TYPE RETURNED (3) : " << *rt << "\n";
 	return rt;
 }
 
@@ -223,9 +229,9 @@ Type getSigType(Tree term, Tree env)
  * @return the type of sig according to environment env
  * @see getSigType
  */
-Type T(Tree term, Tree env) 
-{ 
-	Type t = getSigType(term, env); 
+Type T(Tree term, Tree env)
+{
+	Type t = getInferredType(term, env);
 	return t;
 }
 
@@ -243,118 +249,74 @@ static Type infereSigType(Tree sig, Tree env)
 	int 		i;
 	float 		r;
 	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
-	
-	
+
+
 
 		 if ( getUserData(sig) ) 				return infereXType(sig, env);
-		 
+
 	else if (isSigInt(sig, &i))					return TINT;
-		
+
 	else if (isSigReal(sig, &r)) 				return TREAL;
-		
+
 	else if (isSigInput(sig, &i))				return TINPUT;
-		
+
 	else if (isSigOutput(sig, &i, s1)) 			return T(s1,env);
-		
+
 	else if (isSigDelay1(sig, s1)) 				return sampCast(T(s1,env));
-	
+
 	else if (isSigPrefix(sig, s1, s2)) 			{ checkInit(T(s1,env)); return sampCast(T(s1,env)|T(s2,env)); }
-	
+
 	else if (isSigFixDelay(sig, s1, s2)) 		{ checkIntParam(T(s2,env)); return sampCast(T(s1,env)); }
-		
-	else if (isSigBinOp(sig, &i, s1, s2)) { 
+
+	else if (isSigBinOp(sig, &i, s1, s2)) {
 		Type t = T(s1,env)|T(s2,env);
 	  	return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t) : t; // for comparaison operation the result is int
-	} 
-		
+	}
+
 	else if (isSigIntCast(sig, s1))				return intCast(T(s1,env));
-	
+
 	else if (isSigFloatCast(sig, s1)) 			return floatCast(T(s1,env));
 
 	else if (isSigFFun(sig, ff, ls)) 			return infereFFType(ff,ls,env);
 
 	else if (isSigFConst(sig,type,name,file))	return infereFConstType(type);
-		
+
 	else if (isSigButton(sig)) 					return /*INT_*/TGUI; //return TGUI;
-	
+
 	else if (isSigCheckbox(sig))				return /*INT_*/TGUI; //return TGUI;
-	
+
 	else if (isSigVSlider(sig))					return TGUI;
-	 
+
 	else if (isSigHSlider(sig))					return TGUI;
-	
+
 	else if (isSigNumEntry(sig))				return TGUI;
-		
+
 	else if (isSigHBargraph(sig, l, x, y, s1)) 	return T(s1,env);
-		
+
 	else if (isSigVBargraph(sig, l, x, y, s1)) 	return T(s1,env);
-		
-	else if (isSigAttach(sig, s1, s2)) 			return T(s1,env);
-				
-	else if (isRec(sig, var, body))				return infereRecType(var, body, env);
-				
-	else if (isRef(sig, var))					{ Type t =  searchEnv(env, var); return t->promoteVectorability(kScal); } 
 
-	else if (isProj(sig, &i, s1))	{ 
-	
-		// a revoir 
-		static Tree rec_being_defined;
-		static bool Vectorisation = true;
-		Type t;
-		int vec;
+	else if (isSigAttach(sig, s1, s2)) 			{ T(s2,env); return T(s1,env); }
 
-		if(isRef(s1,var)) {
-			if(rec_being_defined!=var) Vectorisation = false;
-			t = T(s1,env);
-			vec = kScal;
-		} else if (isRec(s1,var,body)) {
+	else if (isRec(sig, var, body))				return infereRecType(sig, body, env);
 
-		  Tree temp_rec_being_defined = rec_being_defined;
-		  rec_being_defined = var;
+	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i,kScal);
 
-		  t = T(s1,env);
-
-		  rec_being_defined = temp_rec_being_defined;
-
-		  if(Vectorisation) vec = kVect;
-		  else vec = kScal;
-
-		  Vectorisation = true;
-
-		} else { 
-		
-			fprintf(stderr,"Bizarre\n"); t = T(s1,env); 
-			
-		}
-
-
-		//fprintf(stderr,"rec_being_defined: %p\n", rec_being_defined);
-		//fprintf(stderr,"var: %p\n", var);
-
-		//fprintf(stderr,"projection arg vec: %d\n", vec);
-
-		return infereProjType(t,i,vec);
-
-		//return infereProjType(T(s1,env),i,kScal);
-	}   
-	                                                
-				
 	else if (isSigTable(sig, id, s1, s2)) 		{ checkInt(checkInit(T(s1,env))); return new TableType(checkInit(T(s2,env))); }
-		
-	else if (isSigWRTbl(sig, id, s1, s2, s3)) 	return infereWriteTableType(T(s1,env), T(s2,env), T(s3,env)); 
-			
-	else if (isSigRDTbl(sig, s1, s2)) 			return infereReadTableType(T(s1,env), T(s2,env));  
-		
+
+	else if (isSigWRTbl(sig, id, s1, s2, s3)) 	return infereWriteTableType(T(s1,env), T(s2,env), T(s3,env));
+
+	else if (isSigRDTbl(sig, s1, s2)) 			return infereReadTableType(T(s1,env), T(s2,env));
+
 	else if (isSigGen(sig, s1)) 				return T(s1,NULLENV);
-		
-	else if (isSigSelect2(sig,sel,s1,s2)) 		{ 
+
+	else if (isSigSelect2(sig,sel,s1,s2)) 		{
 
 	  SimpleType *st1, *st2, *stsel;
 
 	  st1 = isSimpleType(T(s1,env));
 	  st2 = isSimpleType(T(s2,env));
-	  stsel = isSimpleType(T(sel,env)); 
-	  
+	  stsel = isSimpleType(T(sel,env));
+
 	  return new SimpleType( st1->nature()|st2->nature(),
 				 st1->variability()|st2->variability()|stsel->variability(),
 				 st1->computability()|st2->computability()|stsel->computability(),
@@ -365,16 +327,16 @@ static Type infereSigType(Tree sig, Tree env)
 	  //return T(sel,env)|T(s1,env)|T(s2,env);
 
 	}
-		
-	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	{ /*checkInt(T(sel,env));*/ return T(sel,env)|T(s1,env)|T(s2,env)|T(s3,env); }		
-	
-	else if (isList(sig)) 
+
+	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	{ return T(sel,env)|T(s1,env)|T(s2,env)|T(s3,env); }
+
+	else if (isList(sig))
 	{
 		vector<Type> v;
 		while (isList(sig)) { v.push_back(T(hd(sig),env)); sig = tl(sig); }
 		return new TupletType(v);
 	}
-	
+
 	// unrecognized signal here
 	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);
@@ -396,13 +358,13 @@ static Type infereProjType(Type t, int i, int vec)
 	//return (*tt)[i]	->promoteVariability(t->variability())
 	//		->promoteComputability(t->computability());
 	Type temp = (*tt)[i]	->promoteVariability(t->variability())
-	  ->promoteComputability(t->computability())	
+	  ->promoteComputability(t->computability())
 	  ->promoteVectorability(vec/*t->vectorability()*/);
 	//->promoteBooleanity(t->boolean());
 
 	if(vec==kVect) return vecCast(temp);
-	else return temp;	
-}	
+	else return temp;
+}
 
 
 
@@ -429,7 +391,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 
 	//Type temp = tt->content();
 	//cerr<<"Write table content: "<<temp<<endl;
-	
+
 	//Type tempbis = new TableType(/*tt->content()*/temp, v, c);
 	//cerr<<"Write table ap� promotion: "<<tempbis<<endl;
 
@@ -438,7 +400,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 	//return new TableType(/*tt->content()*/temp, v, c);
 
 	return new TableType(tt->content(), n, v, c, vec);
-	  
+
 }
 
 
@@ -464,7 +426,7 @@ static Type infereReadTableType(Type tbl, Type ri)
 
 	//Type temp =  tt->content()->promoteVariability(ri->variability()|tt->variability())
 	//  ->promoteComputability(ri->computability()|tt->computability());
-	
+
 	//cerr<<"Read Table type: "<<temp<<endl;
 
 	//return temp;
@@ -476,7 +438,7 @@ static Type infereReadTableType(Type tbl, Type ri)
 	  ;
 
 	//cerr<<"Read Table type: "<<temp<<endl;
-	
+
 
 	return temp;
 
@@ -485,7 +447,7 @@ static Type infereReadTableType(Type tbl, Type ri)
 	//         	->promoteComputability(ri->computability())
 	  //->promoteVectorability(ri->vectorability())
 	  //           ->promoteBoolean(ri->boolean())
-	  //             ; 
+	  //             ;
 }
 
 
@@ -501,7 +463,7 @@ static Type initialRecType(Tree t)
 		return new TupletType(v);
 	} else {
 		return TREC;
-	}	
+	}
 }
 
 
@@ -513,19 +475,22 @@ static Type initialRecType(Tree t)
 static Type infereRecType (Tree var, Tree body, Tree env)
 {
 	Type t0, t1;
-	
+
 	t1 = initialRecType(body);
-//	cerr << "try first : " << t1 << endl;
+	//cerr << "infereRecType : try first : " << t1 << endl;
 	do {
 		t0 = t1;
+		setProperty(var, env, tree((void*)t0));
 		t1 = T(body, addEnv(var, t0, env));
-		if (t1 < t0)  { 
-			cerr << "situation anormale : t1 = " << t1 << " alors que t0 = " << t0 << endl;
-			fprintf(stderr, "dans le typage de "); printSignal(body, stderr); fputc('\n', stderr);
-		}
-//		if (t1 != t0) cerr << "try then : " << t1 << endl;
+		assert(t0 <= t1);
+		//cerr << "            then try  : " << t1 << endl;
 	} while (t1 != t0);
-//	cerr << "converge : " << t1 << endl;
+	//cerr << "infereRecType : converge : " << t1 << endl;
+	if (env == NULLENV) {
+		//cerr << "HERE MARK THE VAR AND THE BODY " << *var << *body << endl;
+		setSigType(var, t1);
+		T(body, NULLENV);
+	}
 	return t1;
 }
 
@@ -538,17 +503,17 @@ static Type infereFFType (Tree ff, Tree ls, Tree env)
 	// une primitive externe ne peut pas se calculer au plus tot qu'a
 	// l'initialisation. Sa variabilite depend de celle de ses arguments
 	// sauf si elle n'en pas, auquel cas on considere que c'est comme
-	// rand() c'est a dire que le resultat varie a chaque appel. 
+	// rand() c'est a dire que le resultat varie a chaque appel.
 	if (ffarity(ff)==0) {
 		// case of functions like rand()
 		return new SimpleType(ffrestype(ff),kSamp,kInit,kVect,kNum);
 	} else {
-		// otherwise variability and computability depends 
+		// otherwise variability and computability depends
 		// arguments (OR of all arg types)
-		Type t = new SimpleType(kInt,kKonst,kInit,kVect,kNum); 
+		Type t = new SimpleType(kInt,kKonst,kInit,kVect,kNum);
 		while (isList(ls)) { t = t|T(hd(ls),env); ls=tl(ls); }
 		// but the result type is defined by the function
-		
+
 		//return t;
 		return new SimpleType(	ffrestype(ff),
 								t->variability(),
@@ -565,11 +530,11 @@ static Type infereFConstType (Tree type)
 {
 	// une constante externe ne peut pas se calculer au plus tot qu'a
 	// l'initialisation. Elle est constante, auquel cas on considere que c'est comme
-	// rand() c'est a dire que le resultat varie a chaque appel. 
+	// rand() c'est a dire que le resultat varie a chaque appel.
 	return new SimpleType(tree2int(type),kKonst,kInit,kVect,kNum);
 }
 
- 
+
 
 
 /**
@@ -581,7 +546,7 @@ static Type infereXType(Tree sig, Tree env)
 	//cerr << "infereXType of " << *sig << endl;
 	xtended* p = (xtended*) getUserData(sig);
 	vector<Type> vt;
-	
+
 	for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));
 	return p->infereSigType(vt);
 }

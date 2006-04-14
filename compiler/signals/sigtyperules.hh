@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _SIGTYPERULES_
 #define _SIGTYPERULES_
 
@@ -50,7 +50,7 @@ Type searchEnv(Tree env, Tree var);
 //--------------------------------------------------------------------------
 //	getSigType : return or infere the type of a term
 
-Type getSigType(Tree term, Tree env = NULLENV);
+Type getSigType(Tree term);
 
 
 //--------------------------------------------------------------------------
@@ -62,7 +62,7 @@ void typeAnnotation(Tree term);
 //--------------------------------------------------------------------------
 //	sigType : return the type information of a term
 
-Type sigType(Tree term);
+//Type sigType(Tree term);
 
 #endif
 
