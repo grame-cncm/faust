@@ -18,15 +18,15 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include "tlib.hh"
- 
+
 // Declaration of implementation
 static Tree calcDeBruijn2Sym (Tree t);
 static Tree substitute(Tree t, int n, Tree id);
@@ -34,10 +34,14 @@ static Tree liftn(Tree t, int threshold);
 
 // recursive trees
 
-Sym 	REFTREE 	= symbol ("REF");
-Sym 	RECTREE 	= symbol ("REC");
-Tree	NOVAR		= tree("NOVAR");
-	
+Sym 	DEBRUIJN 	= symbol ("DEBRUIJN");
+Sym 	DEBRUIJNREF = symbol ("DEBRUIJNREF");
+
+Sym 	SYMREC 		= symbol ("SYMREC");
+Sym 	SYMRECREF 	= symbol ("SYMRECREF");
+
+//Tree	NOVAR		= tree("NOVAR");
+
 //-----------------------------------------------------------------------------------------
 // rec, isRec : declare recursive trees
 //-----------------------------------------------------------------------------------------
@@ -45,79 +49,86 @@ Tree	NOVAR		= tree("NOVAR");
 // de Bruijn declaration of a recursive tree
 Tree rec(Tree body)
 {
-	return tree(RECTREE, NOVAR, body);
+	return tree(DEBRUIJN, body);
 }
-
-// declaration of a recursive tree using a symbolic variable
-Tree rec(Tree var, Tree body)
-{
-	return tree(RECTREE, var, body);
-}
-
 
 bool isRec(Tree t, Tree& body)
 {
-	Tree var;
-	return isTree(t, RECTREE, var, body) && (var == NOVAR);
+	return isTree(t, DEBRUIJN, body);
 }
 
-bool isRec(Tree t, Tree& var, Tree& body)
-{
-	return isTree(t, RECTREE, var, body) && (var != NOVAR);
-}
-
-//-----------------------------------------------------------------------------------------
-// ref, isRef : references to an enclosing recursive tree
-//-----------------------------------------------------------------------------------------
-
-
-Tree ref(int level)		
+Tree ref(int level)
 {
 	assert(level > 0);
-	return tree(REFTREE, tree(level));	// reference to enclosing recursive tree starting from 1
-}
-
-Tree ref(Tree id)		
-{
-	return tree(REFTREE, id);			// reference to a symbolic id
+	return tree(DEBRUIJNREF, tree(level));	// reference to enclosing recursive tree starting from 1
 }
 
 bool isRef(Tree t, int& level)
 {
 	Tree	u;
-	
-	if (isTree(t, REFTREE, u)) {
+
+	if (isTree(t, DEBRUIJNREF, u)) {
 		return isInt(u->node(), &level);
 	} else {
 		return false;
 	}
 }
 
+
+//-----------------------------------------------------------------------------------------
+// Recursive tree in symbolic notation (using a recursive definition property)
+//-----------------------------------------------------------------------------------------
+Tree RECDEF = tree(symbol("RECDEF"));
+
+// declaration of a recursive tree using a symbolic variable
+Tree rec(Tree var, Tree body)
+{
+    Tree t = tree(SYMREC, var);
+    t->setProperty(RECDEF, body);
+    return t;
+}
+
+bool isRec(Tree t, Tree& var, Tree& body)
+{
+    if (isTree(t, SYMREC, var)) {
+        body = t->getProperty(RECDEF);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+Tree ref(Tree id)
+{
+	return tree(SYMREC, id);			// reference to a symbolic id
+}
+
 bool isRef(Tree t, Tree& v)
 {
-	return isTree(t, REFTREE, v);
+	return isTree(t, SYMREC, v);
 }
 
 //-----------------------------------------------------------------------------------------
-// L'aperture d'un arbre est la plus profonde reference de Bruijn qu'il contienne. 
+// L'aperture d'un arbre est la plus profonde reference de Bruijn qu'il contienne.
 // Les references symboliques compte pour zero ce qui veut dire qu'un arbre d'aperture
 // 0 ne compte aucun reference de bruijn libres.
 
 int CTree::calcTreeAperture( const Node& n, const tvec& br  )
 {
 	int x;
-	if (n == REFTREE) {
-		
+	if (n == DEBRUIJNREF) {
+
 		if (isInt(br[0]->node(), &x)) {
 			return x;
 		} else {
 			return 0;
 		}
-		
-	} else if (n == RECTREE) {
-		
-		return br[1]->fAperture - 1;
-		
+
+	} else if (n == DEBRUIJN) {
+
+		return br[0]->fAperture - 1;
+
 	} else {
 		// return max aperture of branches
 		int rc = 0;
@@ -154,25 +165,25 @@ static Tree liftn(Tree t, int threshold)
 {
 	int		n;
 	Tree	u;
-	
+
 	if (isClosed(t)) {
-		
+
 		return t;
-		
+
 	} else if (isRef(t,n)) {
-		
+
 		if (n < threshold) {
 			// it is a bounded reference
-			return t; 
+			return t;
 		} else {
 			// it is a free reference
 			return ref(n+1);
 		}
-		
+
 	} else if (isRec(t,u)) {
-		
+
 		return rec(liftn(u, threshold+1));
-		
+
 	} else {
 		int n = t->arity();
 		//Tree	br[4];
@@ -183,7 +194,7 @@ static Tree liftn(Tree t, int threshold)
 		//return CTree::make(t->node(), n, br);
 		return CTree::make(t->node(), br);
 	}
-		
+
 }
 
 //-----------------------------------------------------------
@@ -195,7 +206,7 @@ Tree deBruijn2Sym (Tree t)
 {
 	assert(isClosed(t));
 	Tree t2 = t->getProperty(DEBRUIJN2SYM);
-	
+
 	if (!t2) {
 		t2 = calcDeBruijn2Sym(t);
 		t->setProperty(DEBRUIJN2SYM, t2);
@@ -207,30 +218,30 @@ static Tree calcDeBruijn2Sym (Tree t)
 {
 	Tree 	body, var;
 	int		i;
-	
+
 	if (isRec(t,body)) {
-		
+
 		var = tree(unique("W"));
 		return rec(var, deBruijn2Sym(substitute(body,1,ref(var))));
-		
+
 	} else if (isRef(t,var)) {
-		
+
 		return t;
-		
+
 	} else if (isRef(t,i)) {
-		
-		fprintf(stderr, "ERREUR, une reference de Bruijn touvee ! : "); 
-		printSignal(t, stderr); 
+
+		fprintf(stderr, "ERREUR, une reference de Bruijn touvee ! : ");
+		printSignal(t, stderr);
 		fprintf(stderr, ")\n");
 		exit(1);
 		return t;
-		
+
 	} else {
-		
+
 		//Tree	br[4];
 		int 	a = t->arity();
 		tvec	br(a);
-		
+
 		for (int i = 0; i < a; i++) {
 			br[i] = deBruijn2Sym(t->branch(i));
 		}
@@ -243,14 +254,14 @@ static Tree substitute(Tree t, int level, Tree id)
 {
 	int 	l;
 	Tree	body;
-	
+
 	if (t->aperture()<level) {
 //		fprintf(stderr, "aperture %d < level %d !!\n", t->aperture(), level);
 		return t;
 	}
 	if (isRef(t,l)) 		 return (l == level) ? id : t;
 	if (isRec(t,body)) 		 return rec(substitute(body, level+1, id));
-	
+
 	int 	ar = t->arity();
 	//Tree	br[4];
 	tvec	br(ar);
@@ -266,9 +277,9 @@ static Tree substitute(Tree t, int level, Tree id)
 // UpdateAperture (t) : recursively mark open and closed terms.
 // closed term : fAperture == 0,  open term fAperture == -1
 
-struct Env { 
-	Tree fTree; Env* fNext; 
-	Env(Tree t, Env* nxt) : fTree(t), fNext(nxt) {} 
+struct Env {
+	Tree fTree; Env* fNext;
+	Env(Tree t, Env* nxt) : fTree(t), fNext(nxt) {}
 };
 
 static void markOpen(Tree t);
@@ -291,25 +302,25 @@ static void markOpen(Tree t)
 	for (int i = 0; i < ar; i++) {
 		markOpen(t->branch(i));
 	}
-}	
+}
 
 static int recomputeAperture(Tree t, Env* env)
 {
 	Tree 	var, body;
-	
+
 	if (t->aperture() == 0) return 0;
-	
+
 	if (isRef(t, var)) {
-		
+
 		return orderof(var, env);
-		
+
 	} else if (isRec(t, var, body)) {
-		
+
 		Env e(var,env);
 		int a = recomputeAperture(body, &e) - 1;
 		if (a<=0) { /*print(t, stderr);*/ t->setAperture(0); }
 		return a;
-		
+
 	} else {
 		// return max aperture of branches
 		int ma = 0;
@@ -323,12 +334,12 @@ static int recomputeAperture(Tree t, Env* env)
 	}
 }
 
-		
+
 static int orderof (Tree t, Env* p)
 {
 	if (p == NULL) return 0;
 	if (t == p->fTree) return 1;
-	
+
 	int pos = 1;
 	while (p != NULL) {
 		if (t == p->fTree) return pos;
@@ -336,4 +347,4 @@ static int orderof (Tree t, Env* p)
 		pos++;
 	}
 	return 0;
-} 
+}
