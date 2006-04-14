@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _COMPILE_SCAL_
 #define _COMPILE_SCAL_
 
@@ -52,8 +52,8 @@ public:
 
   virtual void 		compileMultiSignal  (Tree lsig);
   virtual void		compileSingleSignal (Tree lsig);
-  virtual string	CS (Tree tEnv, Tree sig, int ctx=0);
-  virtual string 	generateCacheCode(Tree tEnv,Tree sig, const string& exp, int context=0) ;
+  virtual string	CS (Tree sig);
+  virtual string 	generateCacheCode(Tree sig, const string& exp) ;
 
 
 private:
@@ -63,49 +63,56 @@ private:
   Tree          prepare(Tree L0);
   Tree 		prepare2 (Tree L0);
 
+
+  bool 		getCompiledExpression(Tree sig, string& name);
+  string	setCompiledExpression(Tree sig, const string& name);
+
   int 		getSharingCount(Tree t);
+  void 		setSharingCount(Tree t, int count);
   void 		sharingAnalysis(Tree t);
   void 		sharingAnnotation(int vctxt, Tree t);
-  
 
-  // generation du code 
-  string		generateCode (Tree tEnv, Tree sig);
-	
-  string 		generateXtended		(Tree tEnv, Tree sig);
-  string 		generateDelay1		(Tree tEnv, Tree sig, Tree arg);
-  string 		generateFixDelay	(Tree tEnv, Tree sig, Tree arg, Tree size);
-  string 		generatePrefix 		(Tree tEnv, Tree sig, Tree x, Tree e);
-  string 		generateIota		(Tree tEnv, Tree sig, Tree arg);
-  string 		generateBinOp 		(Tree tEnv, Tree sig, int opcode, Tree arg1, Tree arg2);
-	
-  string 		generateFFun  		(Tree tEnv, Tree sig, Tree ff, Tree largs);
 
-  string 		generateInput 		(Tree tEnv, Tree sig, const string& idx);
-  string 		generateOutput		(Tree tEnv, Tree sig, const string& idx, const string& arg1);
+  // generation du code
+  string		generateCode (Tree sig);
 
-  string 		generateTable 		(Tree tEnv, Tree sig, Tree tsize, Tree content);
-  string 		generateWRTbl 		(Tree tEnv, Tree sig, Tree tbl, Tree idx, Tree data);
-  string 		generateRDTbl 		(Tree tEnv, Tree sig, Tree tbl, Tree idx);
-  string 		generateSigGen		(Tree tEnv, Tree sig, Tree content);
+  string 		generateXtended		(Tree sig);
+  string 		generateDelay1		(Tree sig, Tree arg);
+  string 		generateFixDelay	(Tree sig, Tree arg, Tree size);
+  string 		generatePrefix 		(Tree sig, Tree x, Tree e);
+  string 		generateIota		(Tree sig, Tree arg);
+  string 		generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
 
-  string 		generateSelect2 	(Tree tEnv, Tree sig, Tree sel, Tree s1, Tree s2);
-  string 		generateSelect3 	(Tree tEnv, Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
+  string 		generateFFun  		(Tree sig, Tree ff, Tree largs);
 
-  string 		generateRecProj 	(Tree tEnv, Tree sig, const string& vname, int i);
-  string 		generateRecRef 		(Tree tEnv, Tree sig, Tree var);
-  string 		generateRecGroup 	(Tree tEnv, Tree sig, Tree var, Tree le);
-	
-  string 		generateIntCast   	(Tree tEnv, Tree sig, Tree x);
-  string 		generateFloatCast 	(Tree tEnv, Tree sig, Tree x);
+  string 		generateInput 		(Tree sig, const string& idx);
+  string 		generateOutput		(Tree sig, const string& idx, const string& arg1);
 
-  string 		generateButton 		(Tree tEnv, Tree sig, Tree label);
-  string 		generateCheckbox 	(Tree tEnv, Tree sig, Tree label);
-  string 		generateVSlider 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-  string 		generateHSlider	 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-  string 		generateNumEntry 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-  
-  string 		generateVBargraph 	(Tree tEnv, Tree sig, Tree label, Tree min, Tree max, const string& exp);
-  string 		generateHBargraph	(Tree tEnv, Tree sig, Tree label, Tree min, Tree max, const string& exp);
+  string 		generateTable 		(Tree sig, Tree tsize, Tree content);
+  string 		generateStaticTable	(Tree sig, Tree tsize, Tree content);
+  string 		generateWRTbl 		(Tree sig, Tree tbl, Tree idx, Tree data);
+  string 		generateRDTbl 		(Tree sig, Tree tbl, Tree idx);
+  string 		generateSigGen		(Tree sig, Tree content);
+  string		generateStaticSigGen(Tree sig, Tree content);
+
+  string 		generateSelect2 	(Tree sig, Tree sel, Tree s1, Tree s2);
+  string 		generateSelect3 	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
+
+  string 		generateRecProj 	(Tree sig, const string& vname, int i);
+  string 		generateRecRef 		(Tree sig, Tree var);
+  string 		generateRecGroup 	(Tree sig, Tree var, Tree le);
+
+  string 		generateIntCast   	(Tree sig, Tree x);
+  string 		generateFloatCast 	(Tree sig, Tree x);
+
+  string 		generateButton 		(Tree sig, Tree label);
+  string 		generateCheckbox 	(Tree sig, Tree label);
+  string 		generateVSlider 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+  string 		generateHSlider	 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+  string 		generateNumEntry 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+
+  string 		generateVBargraph 	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
+  string 		generateHBargraph	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
 };
 
 #endif
