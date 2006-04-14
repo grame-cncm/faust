@@ -3,22 +3,22 @@ import("math.lib");
 //-----------------------------------------------
 // 					DELAY LINE
 //-----------------------------------------------
-frac(n)		= n-int(n);
-index(n)	= &(n-1) ~ +(1);		// n = 2**i
+frac(n)			= n-int(n);
+index(n)		= &(n-1) ~ +(1);		// n = 2**i
 delay(n,d,x) 	= rwtable(n, 0.0, index(n), x, (index(n)-int(d)) & (n-1));
 fdelay(n,d,x) 	= delay(n,int(d),x)*(1 - frac(d)) + delay(n,int(d)+1,x)*frac(d);
 
 
-delay1s(d)	= delay(65536,d);
-delay2s(d)	= delay(131072,d);
-delay5s(d)	= delay(262144,d);
-delay10s(d)	= delay(524288,d);
-delay21s(d)	= delay(1048576,d);
-delay43s(d)	= delay(2097152,d);
+delay1s(d)		= delay(65536,d);
+delay2s(d)		= delay(131072,d);
+delay5s(d)		= delay(262144,d);
+delay10s(d)		= delay(524288,d);
+delay21s(d)		= delay(1048576,d);
+delay43s(d)		= delay(2097152,d);
 
-fdelay1s(d)	= fdelay(65536,d);
-fdelay2s(d)	= fdelay(131072,d);
-fdelay5s(d)	= fdelay(262144,d);
+fdelay1s(d)		= fdelay(65536,d);
+fdelay2s(d)		= fdelay(131072,d);
+fdelay5s(d)		= fdelay(262144,d);
 fdelay10s(d)	= fdelay(524288,d);
 fdelay21s(d)	= fdelay(1048576,d);
 fdelay43s(d)	= fdelay(2097152,d);
@@ -88,9 +88,9 @@ phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize)
 osc(freq)	= rdtable(tablesize, sinwaveform, int(phase(freq)) );
 osci(freq)	= s1 + d * (s2 - s1)
 		with {
-			i = int(phase(freq)); 
-			d = decimal(phase(freq)); 
-			s1 = rdtable(tablesize+1,sinwaveform,i); 
+			i = int(phase(freq));
+			d = decimal(phase(freq));
+			s1 = rdtable(tablesize+1,sinwaveform,i);
 			s2 = rdtable(tablesize+1,sinwaveform,i+1);};
 
 
@@ -148,13 +148,14 @@ gain8(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g),*(g);
 //
 //---------------------------------------------------------------------------------
 
-TF2(b0,b1,b2,a1,a2) = conv3(b0,b1,b2) : sub ~ conv2(a1,a2)
+//TF2(b0,b1,b2,a1,a2) = conv3(b0,b1,b2) : sub ~ conv2(a1,a2)
+TF2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
 	with {
 		conv3(k0,k1,k2,x) 	= k0*x + k1*x' + k2*x'';
 		conv2(k0,k1,x) 		= k0*x + k1*x';
 		sub(x,y)			= y-x;
 	};
-	 
-						 
-					 
+
+
+
 
