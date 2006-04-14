@@ -68,7 +68,7 @@ Tree shprkey(Tree t);
 
 int shcount(Tree key, Tree t);
 
-
+#if 0
 
 //------------------------------------------------------------------------------
 // shlysis : create a specific property key for the sharing count of subtrees of t
@@ -76,5 +76,5 @@ int shcount(Tree key, Tree t);
 Tree shlysis(Tree t);
 
 Tree shlysis(Tree t, barrier foo);
-
+#endif
 #endif
