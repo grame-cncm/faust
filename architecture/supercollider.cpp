@@ -353,7 +353,7 @@ void Faust_next_clear(Faust* unit, int inNumSamples)
 void Faust_Ctor(Faust* unit)
 {
 	// init dsp
-	unit->mDSP.init((int)SAMPLERATE);
+	unit->mDSP.instanceInit((int)SAMPLERATE);
 
 	// allocate controls
 	ControlAllocator ca(unit->mControls);
@@ -377,8 +377,9 @@ void Faust_Ctor(Faust* unit)
 	if (valid) {
 		SETCALC(Faust_next);
 	} else {
-		Print("Faust[%s]: input/output channel/rate mismatch\n"
-			  "           generating silence ...\n",
+		Print("Faust[%s]: Input/Output channel/rate mismatch\n"
+			  "           Generating silence ...\n",
+			  "           Did you recompile the class library?\n",
 			  gUnitName);
 		SETCALC(Faust_next_clear);
 	}
@@ -388,8 +389,10 @@ void load(InterfaceTable* inTable)
 {
     ft = inTable;
 
-	// use file name as ugen name
+	// initialize unit name
 	char* name = gUnitName;
+
+	// use file name as ugen name
 	const char* fileName = strrchr(__FILE__, '/');
 	if (fileName) {
 		fileName++;
@@ -412,7 +415,7 @@ void load(InterfaceTable* inTable)
 	// get number of controls and compute resulting unit size
 	mydsp* dsp = new mydsp; // avoid stack overflow!
 	ControlCounter cc;
-	dsp->init(0);
+	dsp->classInit(48000); // TODO: use real sample rate
 	dsp->buildUserInterface(&cc);
 	size_t numInputs = dsp->getNumInputs();
 	size_t numOutputs = dsp->getNumOutputs();
@@ -427,10 +430,12 @@ void load(InterfaceTable* inTable)
 		kUnitDef_CantAliasInputsToOutputs
 		);
 
+#if 0
 	Print(
 		"Faust[%s]: inputs: %d outputs: %d controls: %d size: %d\n",
 		name, numInputs, numOutputs, numControls, sizeofFaust
 		);
+#endif
 }
 
 // EOF
