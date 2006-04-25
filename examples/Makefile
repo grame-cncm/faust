@@ -56,6 +56,10 @@ vst :
 	install -d vstdir
 	$(MAKE) DEST='vstdir/' ARCH='vst.cpp' LIB='' -f Makefile.vstcompile
 
+bench :
+	install -d benchdir
+	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' LIB='' -f Makefile.compile
+
 sndfile :
 	install -d sndfiledir
 	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-lsndfile' -f Makefile.compile
@@ -69,6 +73,6 @@ supercollider :
 	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
 
 clean :
-	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir supercolliderdir *-ps *-svg
+	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir benchdir supercolliderdir *-ps *-svg
 
 
