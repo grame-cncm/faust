@@ -1,10 +1,16 @@
+declare name 		"panpot";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //-------------------------------------------------
 // Stereo panpot
 //-------------------------------------------------
 
-panpot(x) 	= (1-c)*x, c*x 
-			with { 
-				c=(nentry("pan",0,-8,8,1)-8)/-16; 
+panpot(x) 	= (1-c)*x, c*x
+			with {
+				c=(nentry("pan",0,-8,8,1)-8)/-16;
 			};
 
 process		= panpot;

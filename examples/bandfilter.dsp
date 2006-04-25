@@ -1,3 +1,9 @@
+declare name 		"bandfilter";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 import("math.lib");
 import("music.lib");
 
@@ -7,7 +13,7 @@ import("music.lib");
 //				F :	frequency (Hz)
 //				G : gain [0..1]
 //------------------------------------------------------------------
- 
+
 filter(Q,F,G)	= TF2(  (1 +  K/Q + K*K) 	/ D,
 						 2 * (K*K - 1) 		/ D,
 						(1 - K/Q + K*K) 	/ D,
@@ -19,7 +25,7 @@ filter(Q,F,G)	= TF2(  (1 +  K/Q + K*K) 	/ D,
 				K = tan(PI*F/SR);
 				D = 1 + V*K/Q + K*K;
 		};
-			
+
 
 
 //--------------- Band Filter with user interface ------------------
@@ -27,14 +33,14 @@ filter(Q,F,G)	= TF2(  (1 +  K/Q + K*K) 	/ D,
 //  			F :	default frequency (Hz)
 //
 //------------------------------------------------------------------
-		
+
 bandfilter(F)	= filter(	nentry("Q factor",50,0.1,100,0.1),
 							nentry("freq (Hz)", F, 20, 20000, 1),
 							0 - vslider("gain (dB)", 0, -50, 50, 0.1)
 						);
 
-						
-						
+
+
 //------------------------- Process --------------------------------
 
 process 		= bandfilter(1000);

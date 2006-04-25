@@ -1,5 +1,11 @@
+declare name 		"capture";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //-------------------------------------------------
-// 		Capture : record up to 8s of sound and 
+// 		Capture : record up to 8s of sound and
 //		playback the recorded sound in loop
 //-------------------------------------------------
 

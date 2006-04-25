@@ -1,3 +1,9 @@
+declare name 		"freeverb";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //======================================================
 //
 //						Freeverb
@@ -72,7 +78,7 @@ comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 // Reverb components
 //------------------
 
-monoReverb(fb1, fb2, damp, spread)  
+monoReverb(fb1, fb2, damp, spread)
 	= _ <:	comb(combtuningL1+spread, fb1, damp),
 			comb(combtuningL2+spread, fb1, damp),
 			comb(combtuningL3+spread, fb1, damp),
@@ -80,26 +86,26 @@ monoReverb(fb1, fb2, damp, spread)
 			comb(combtuningL5+spread, fb1, damp),
 			comb(combtuningL6+spread, fb1, damp),
 			comb(combtuningL7+spread, fb1, damp),
-			comb(combtuningL8+spread, fb1, damp) 
-		+>	
+			comb(combtuningL8+spread, fb1, damp)
+		+>
 		 	allpass (allpasstuningL1+spread, fb2)
 		:	allpass (allpasstuningL2+spread, fb2)
 		:	allpass (allpasstuningL3+spread, fb2)
-		:	allpass (allpasstuningL4+spread, fb2) 
+		:	allpass (allpasstuningL4+spread, fb2)
 		;
 
 stereoReverb(fb1, fb2, damp, spread)
 	= + <: 	monoReverb(fb1, fb2, damp, 0), monoReverb(fb1, fb2, damp, spread);
-			
-	
+
+
 // fxctrl : add an input gain and a wet-dry control to a stereo FX
 //----------------------------------------------------------------
 
 fxctrl(g,w,Fx) =  _,_ <: (*(g),*(g) : Fx : *(w),*(w)), *(1-w), *(1-w) +> _,_;
 
 
-	
-// Freeverb 
+
+// Freeverb
 //---------
 
 freeverb = vgroup("Freeverb", fxctrl(fixedgain, wetSlider, stereoReverb(combfeed, allpassfeed, dampSlider, stereospread)));

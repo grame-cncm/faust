@@ -1,3 +1,9 @@
+declare name 		"noise";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 // noise generator
 
 random 	= +(12345)~*(1103515245);

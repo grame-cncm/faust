@@ -1,5 +1,11 @@
+declare name 		"osci";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //-----------------------------------------------
-// 			Sinusoidal Oscillator 
+// 			Sinusoidal Oscillator
 //		(with linear interpolation)
 //-----------------------------------------------
 

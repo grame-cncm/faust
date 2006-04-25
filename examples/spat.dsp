@@ -1,3 +1,9 @@
+declare name 		"spat";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //==========================================================
 //
 // 					    GMEM SPAT
@@ -45,4 +51,4 @@ distance 		= hslider("distance", 0.5, 0, 1, 0.01);
 
 process 		= vgroup("Spatializer 1x8", spat(8, angle, distance));
 
- 											
+

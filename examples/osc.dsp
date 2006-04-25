@@ -1,3 +1,9 @@
+declare name 		"osc";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //-----------------------------------------------
 // 			Sinusoidal Oscillator
 //-----------------------------------------------
@@ -10,4 +16,4 @@ freq 			= hslider("freq", 1000, 0, 24000, 0.1);
 
 
 process 		= vgroup("Oscillator", osc(freq) * vol);
-  
+

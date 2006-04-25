@@ -1,6 +1,12 @@
+declare name 		"tapiir";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //======================================================
 //
-// 					TAPIIR 
+// 					TAPIIR
 //	  (from Maarten de Boer's Tapiir)
 //
 //======================================================
@@ -27,25 +33,25 @@ del 		= vslider("delay (sec)", 0, 0, 5, 0.01) * SR;
 
 bus(n) 				= 	par(i,n,_);
 
-mixer(taps,lines) 	= 	par(i,taps,*(tap(i))), 
-						par(i,lines,*(in(i))) 
+mixer(taps,lines) 	= 	par(i,taps,*(tap(i))),
+						par(i,lines,*(in(i)))
 						:>  *(gain);
-						
-						
-matrix(taps,lines) 	= ( bus(lines+taps) 
-						<: tgroup("",  
-								par(i, taps, 
-									hgroup("Tap %i", 
-										mixer(taps,lines) : delay(dsize,del)))) 
+
+
+matrix(taps,lines) 	= ( bus(lines+taps)
+						<: tgroup("",
+								par(i, taps,
+									hgroup("Tap %i",
+										mixer(taps,lines) : delay(dsize,del))))
 					  ) ~ bus(taps);
 
 
 // tapiir
 //--------
-				  				  
+
 tapiir(taps,lines) 	= 	vgroup("Tapiir",
-							bus(lines) 
-							<: (matrix(taps,lines), bus(lines)) 
+							bus(lines)
+							<: (matrix(taps,lines), bus(lines))
 							<: vgroup( "outputs", par( i, lines, hgroup("output %i", mixer(taps,lines)) ) )
 						);
 

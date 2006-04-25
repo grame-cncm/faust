@@ -1,3 +1,9 @@
+declare name 		"dbmeter";
+declare version 	"1.0";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"¢ GRAME 2006";
+
 //-------------------------------------------------
 // A dB Vumeter
 //-------------------------------------------------
