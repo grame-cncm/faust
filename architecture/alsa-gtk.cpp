@@ -177,7 +177,7 @@ class AudioInterface : public AudioParam
 		setAudioParams(fOutputDevice, fOutputParams);
 		snd_pcm_hw_params_get_channels(fOutputParams, &fCardOutputs);
 
-		//printf("inputs : %d, outputs : %d\n", fCardInputs, fCardOutputs);
+		printf("inputs : %ud, outputs : %ud\n", fCardInputs, fCardOutputs);
 
 		// enregistrement des parametres d'entree-sortie
 		
