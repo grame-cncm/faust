@@ -16,6 +16,9 @@ $(DEST)% : %.dsp
 	cp -r $(vst_sdk) $@
 	cp -r /usr/local/lib/faust/VST/* $@
 	faust $(VEC) -a $(ARCH) $< -o $@/vst-output.cpp
+	mv  $@/vst-output.cpp  $@/$(<:.dsp=.cpp)
+	sed -e 's/vst-output.cpp/$(<:.dsp=.cpp)/'  $@/VST.xcode/project.pbxproj > $@/VST.xcode/new_project.pbxproj &&  mv $@/VST.xcode/new_project.pbxproj $@/VST.xcode/project.pbxproj
+	sed -e 's/XXXX/$(<:.dsp=)/'  $@/Info.plist  >  $@/new_Info.plist  &&  mv $@/new_Info.plist $@/Info.plist
 	xcodebuild -project $@/VST.xcode clean
 	xcodebuild -project $@/VST.xcode
 	mv $@/build/FaustVST.vst $@/build/$(<:.dsp=.vst)

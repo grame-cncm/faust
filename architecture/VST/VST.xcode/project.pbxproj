@@ -49,7 +49,7 @@
 			mainGroup = 089C166AFE841209C02AAC07;
 			projectDirPath = "";
 			targets = (
-				B2FF4EC00529FBA9001F90A7,
+				4B42590209FF7690003FF67A,
 			);
 		};
 		089C166AFE841209C02AAC07 = {
@@ -59,6 +59,7 @@
 				08FB77AFFE84173DC02AAC07,
 				089C1671FE841209C02AAC07,
 				19C28FB8FE9D52D311CA2CBB,
+				4B42594A09FF7AA2003FF67A,
 			);
 			isa = PBXGroup;
 			name = bundle_test;
@@ -99,7 +100,7 @@
 //194
 		19C28FB8FE9D52D311CA2CBB = {
 			children = (
-				B2FF4EC10529FBA9001F90A7,
+				4B42592409FF7690003FF67A,
 			);
 			isa = PBXGroup;
 			name = Products;
@@ -277,108 +278,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		33372AB908587677008D8015 = {
-			fileRef = 33372AA808587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372ABA08587677008D8015 = {
-			fileRef = 33372AA908587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372ABB08587677008D8015 = {
-			fileRef = 33372AAA08587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372ABC08587677008D8015 = {
-			fileRef = 33372AAB08587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372ABD08587677008D8015 = {
-			fileRef = 33372AAC08587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372ABE08587677008D8015 = {
-			fileRef = 33372AAD08587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372ABF08587677008D8015 = {
-			fileRef = 33372AAE08587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC008587677008D8015 = {
-			fileRef = 33372AAF08587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC108587677008D8015 = {
-			fileRef = 33372AB008587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC208587677008D8015 = {
-			fileRef = 33372AB108587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC308587677008D8015 = {
-			fileRef = 33372AB208587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC408587677008D8015 = {
-			fileRef = 33372AB308587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC508587677008D8015 = {
-			fileRef = 33372AB408587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC608587677008D8015 = {
-			fileRef = 33372AB508587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC708587677008D8015 = {
-			fileRef = 33372AB608587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC808587677008D8015 = {
-			fileRef = 33372AB708587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		33372AC908587677008D8015 = {
-			fileRef = 33372AB808587677008D8015;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 //330
 //331
 //332
@@ -389,6 +288,293 @@
 //4B2
 //4B3
 //4B4
+		4B42590209FF7690003FF67A = {
+			buildPhases = (
+				4B42590309FF7690003FF67A,
+				4B42591009FF7690003FF67A,
+				4B42591209FF7690003FF67A,
+				4B42591909FF7690003FF67A,
+				4B42591E09FF7690003FF67A,
+				4B42591F09FF7690003FF67A,
+				4B42592109FF7690003FF67A,
+			);
+			buildRules = (
+			);
+			buildSettings = {
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREFIX_HEADER = VSTSDK/vstplugsmacho.h;
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				HEADER_SEARCH_PATHS = "";
+				INFOPLIST_FILE = Info.plist;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = FaustVST;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = vst;
+			};
+			dependencies = (
+			);
+			isa = PBXNativeTarget;
+			name = "mach-0";
+			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
+			productName = "mach-0";
+			productReference = 4B42592409FF7690003FF67A;
+			productType = "com.apple.product-type.bundle";
+		};
+		4B42590309FF7690003FF67A = {
+			buildActionMask = 2147483647;
+			files = (
+				4B42590409FF7690003FF67A,
+				4B42590509FF7690003FF67A,
+				4B42590609FF7690003FF67A,
+				4B42590709FF7690003FF67A,
+				4B42590809FF7690003FF67A,
+				4B42590909FF7690003FF67A,
+				4B42590A09FF7690003FF67A,
+				4B42590B09FF7690003FF67A,
+				4B42590C09FF7690003FF67A,
+				4B42590D09FF7690003FF67A,
+				4B42590E09FF7690003FF67A,
+				4B42590F09FF7690003FF67A,
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B42590409FF7690003FF67A = {
+			fileRef = 33372AA808587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590509FF7690003FF67A = {
+			fileRef = 33372AA908587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590609FF7690003FF67A = {
+			fileRef = 33372AAA08587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590709FF7690003FF67A = {
+			fileRef = 33372AAC08587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590809FF7690003FF67A = {
+			fileRef = 33372AAE08587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590909FF7690003FF67A = {
+			fileRef = 33372AB008587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590A09FF7690003FF67A = {
+			fileRef = 33372AB208587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590B09FF7690003FF67A = {
+			fileRef = 33372AB308587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590C09FF7690003FF67A = {
+			fileRef = 33372AB508587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590D09FF7690003FF67A = {
+			fileRef = 33372AB608587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590E09FF7690003FF67A = {
+			fileRef = 33372AB708587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42590F09FF7690003FF67A = {
+			fileRef = 33372AB808587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591009FF7690003FF67A = {
+			buildActionMask = 2147483647;
+			files = (
+				4B42591109FF7690003FF67A,
+				4B42594B09FF7AA2003FF67A,
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B42591109FF7690003FF67A = {
+			fileRef = B2FF4ECD0529FC02001F90A7;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591209FF7690003FF67A = {
+			buildActionMask = 2147483647;
+			files = (
+				4B42591309FF7690003FF67A,
+				4B42591409FF7690003FF67A,
+				4B42591509FF7690003FF67A,
+				4B42591609FF7690003FF67A,
+				4B42591709FF7690003FF67A,
+				4B42591809FF7690003FF67A,
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B42591309FF7690003FF67A = {
+			fileRef = 33372AAB08587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591409FF7690003FF67A = {
+			fileRef = 33372AAD08587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591509FF7690003FF67A = {
+			fileRef = 33372AAF08587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591609FF7690003FF67A = {
+			fileRef = 33372AB108587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591709FF7690003FF67A = {
+			fileRef = 33372AB408587677008D8015;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591809FF7690003FF67A = {
+			fileRef = 4BE06BB908608F2C00B6C3EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591909FF7690003FF67A = {
+			buildActionMask = 2147483647;
+			files = (
+				4B42591A09FF7690003FF67A,
+				4B42591B09FF7690003FF67A,
+				4B42591C09FF7690003FF67A,
+				4B42591D09FF7690003FF67A,
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B42591A09FF7690003FF67A = {
+			fileRef = B22EE371052900E3008EDF11;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591B09FF7690003FF67A = {
+			fileRef = B282F7CF04CB1F3900ECBF7F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591C09FF7690003FF67A = {
+			fileRef = B2CE54B805CA517B00667293;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591D09FF7690003FF67A = {
+			fileRef = B2F0252306F4C83200E9C25F;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42591E09FF7690003FF67A = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXRezBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B42591F09FF7690003FF67A = {
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				4B42592009FF7690003FF67A,
+			);
+			isa = PBXCopyFilesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B42592009FF7690003FF67A = {
+			fileRef = B2FF4ECD0529FC02001F90A7;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42592109FF7690003FF67A = {
+			buildActionMask = 2147483647;
+			dstPath = ..;
+			dstSubfolderSpec = 7;
+			files = (
+				4B42592209FF7690003FF67A,
+			);
+			isa = PBXCopyFilesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B42592209FF7690003FF67A = {
+			fileRef = B2FF4ECD0529FC02001F90A7;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4B42592409FF7690003FF67A = {
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			isa = PBXFileReference;
+			path = FaustVST.vst;
+			refType = 3;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		4B42594A09FF7AA2003FF67A = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			path = Info.plist;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4B42594B09FF7AA2003FF67A = {
+			fileRef = 4B42594A09FF7AA2003FF67A;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		4BE06BB908608F2C00B6C3EC = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -396,12 +582,6 @@
 			path = "vst-output.cpp";
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
-		};
-		4BE06BBA08608F2C00B6C3EC = {
-			fileRef = 4BE06BB908608F2C00B6C3EC;
-			isa = PBXBuildFile;
-			settings = {
-			};
 		};
 //4B0
 //4B1
@@ -437,38 +617,6 @@
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
-		B2CE543105CA4ECD00667293 = {
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 7;
-			files = (
-				B2CE543605CA4EE400667293,
-			);
-			isa = PBXCopyFilesBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B2CE543605CA4EE400667293 = {
-			fileRef = B2FF4ECD0529FC02001F90A7;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		B2CE543905CA4EEB00667293 = {
-			buildActionMask = 2147483647;
-			dstPath = ..;
-			dstSubfolderSpec = 7;
-			files = (
-				B2CE543C05CA4EF600667293,
-			);
-			isa = PBXCopyFilesBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B2CE543C05CA4EF600667293 = {
-			fileRef = B2FF4ECD0529FC02001F90A7;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		B2CE54B805CA517B00667293 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -477,12 +625,6 @@
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
-		B2CE54B905CA517B00667293 = {
-			fileRef = B2CE54B805CA517B00667293;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		B2F0252306F4C83200E9C25F = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -490,137 +632,6 @@
 			path = /System/Library/Frameworks/CoreFoundation.framework;
 			refType = 0;
 			sourceTree = "<absolute>";
-		};
-		B2F0252406F4C83200E9C25F = {
-			fileRef = B2F0252306F4C83200E9C25F;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		B2FF4EBB0529FBA9001F90A7 = {
-			buildActionMask = 2147483647;
-			files = (
-				33372AB908587677008D8015,
-				33372ABA08587677008D8015,
-				33372ABB08587677008D8015,
-				33372ABD08587677008D8015,
-				33372ABF08587677008D8015,
-				33372AC108587677008D8015,
-				33372AC308587677008D8015,
-				33372AC408587677008D8015,
-				33372AC608587677008D8015,
-				33372AC708587677008D8015,
-				33372AC808587677008D8015,
-				33372AC908587677008D8015,
-			);
-			isa = PBXHeadersBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B2FF4EBC0529FBA9001F90A7 = {
-			buildActionMask = 2147483647;
-			files = (
-				B2FF4ECE0529FC02001F90A7,
-			);
-			isa = PBXResourcesBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B2FF4EBD0529FBA9001F90A7 = {
-			buildActionMask = 2147483647;
-			files = (
-				33372ABC08587677008D8015,
-				33372ABE08587677008D8015,
-				33372AC008587677008D8015,
-				33372AC208587677008D8015,
-				33372AC508587677008D8015,
-				4BE06BBA08608F2C00B6C3EC,
-			);
-			isa = PBXSourcesBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B2FF4EBE0529FBA9001F90A7 = {
-			buildActionMask = 2147483647;
-			files = (
-				B2FF4ECF0529FCE3001F90A7,
-				B2FF4ED00529FCE3001F90A7,
-				B2CE54B905CA517B00667293,
-				B2F0252406F4C83200E9C25F,
-			);
-			isa = PBXFrameworksBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B2FF4EBF0529FBA9001F90A7 = {
-			buildActionMask = 2147483647;
-			files = (
-			);
-			isa = PBXRezBuildPhase;
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B2FF4EC00529FBA9001F90A7 = {
-			buildPhases = (
-				B2FF4EBB0529FBA9001F90A7,
-				B2FF4EBC0529FBA9001F90A7,
-				B2FF4EBD0529FBA9001F90A7,
-				B2FF4EBE0529FBA9001F90A7,
-				B2FF4EBF0529FBA9001F90A7,
-				B2CE543105CA4ECD00667293,
-				B2CE543905CA4EEB00667293,
-			);
-			buildSettings = {
-				DEBUGGING_SYMBOLS = NO;
-				HEADER_SEARCH_PATHS = "../VST-VST_CFM/VSTSDK";
-				OPTIMIZATION_CFLAGS = "-O3";
-				OTHER_CFLAGS = "-DDEBUG=1 ";
-				OTHER_LDFLAGS = "";
-				OTHER_REZFLAGS = "";
-				PREFIX_HEADER = vstplugsmacho.h;
-				PRODUCT_NAME = FaustVST;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
-				WRAPPER_EXTENSION = vst;
-			};
-			dependencies = (
-			);
-			isa = PBXBundleTarget;
-			name = "mach-0";
-			productInstallPath = "$(USER_LIBRARY_DIR)/Bundles";
-			productName = "mach-0";
-			productReference = B2FF4EC10529FBA9001F90A7;
-			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-<plist version=\"1.0\">
-<dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>FaustVST</string>
-	<key>CFBundleGetInfoString</key>
-	<string>© 2005, Grame.</string>
-	<key>CFBundleIconFile</key>
-	<string></string>
-	<key>CFBundleIdentifier</key>
-	<string>grame.com.Faust</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>Faust</string>
-	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
-	<key>CFBundleSignature</key>
-	<string>Grme</string>
-	<key>CFBundleVersion</key>
-	<string>1.0</string>
-</dict>
-</plist>
-";
-		};
-		B2FF4EC10529FBA9001F90A7 = {
-			explicitFileType = wrapper.cfbundle;
-			isa = PBXFileReference;
-			path = FaustVST.vst;
-			refType = 3;
-			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		B2FF4ECC0529FBBF001F90A7 = {
 			children = (
@@ -638,24 +649,6 @@
 			path = PkgInfo;
 			refType = 4;
 			sourceTree = "<group>";
-		};
-		B2FF4ECE0529FC02001F90A7 = {
-			fileRef = B2FF4ECD0529FC02001F90A7;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		B2FF4ECF0529FCE3001F90A7 = {
-			fileRef = B22EE371052900E3008EDF11;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		B2FF4ED00529FCE3001F90A7 = {
-			fileRef = B282F7CF04CB1F3900ECBF7F;
-			isa = PBXBuildFile;
-			settings = {
-			};
 		};
 	};
 	rootObject = 089C1669FE841209C02AAC07;
