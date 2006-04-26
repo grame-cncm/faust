@@ -16,4 +16,4 @@ hmeter(x)		= attach(x, envelop(x) : hbargraph("meter", 0, 1));
 
 envelop			= abs : min(0.99) : max ~ -(1.0/SR);
 
-process 		= vmeter;
+process 		= vgroup("vu meter", vmeter);

@@ -43,5 +43,5 @@ bandfilter(F)	= filter(	nentry("Q factor",50,0.1,100,0.1),
 
 //------------------------- Process --------------------------------
 
-process 		= bandfilter(1000);
+process 		= vgroup("Bandfilter", bandfilter(1000));
 

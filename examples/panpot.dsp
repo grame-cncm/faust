@@ -10,8 +10,8 @@ declare copyright 	"¢ GRAME 2006";
 
 panpot(x) 	= (1-c)*x, c*x
 			with {
-				c=(nentry("pan",0,-8,8,1)-8)/-16;
+				c=(nentry("",0,-8,8,1)-8)/-16;
 			};
 
-process		= panpot;
+process		= vgroup("panpot", panpot);
 

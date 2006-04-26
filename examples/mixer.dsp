@@ -10,7 +10,7 @@ declare copyright 	"¢ GRAME 2006";
 
 vol 		= component("volume.dsp");
 pan 		= component("panpot.dsp");
-vumeter 	= component("vumeter.dsp");
+vumeter 	= component("vumeter.dsp").vmeter;
 mute		= *(1 - checkbox("mute"));
 
 voice(v) 	= vgroup("voice %v",  mute : hgroup("", vol : vumeter) : pan);
