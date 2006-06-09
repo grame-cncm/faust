@@ -19,7 +19,7 @@ vecjackgtk :
 ladspa :
 	install -d ladspadir
 	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
-
+	
 jackwx :
 	install -d jackwxdir
 	$(MAKE) DEST='jackwxdir/' ARCH='jack-wx.cpp' LIB='`pkg-config jack  --cflags --libs` `wx-config --cflags --libs`' -f Makefile.compile
@@ -71,6 +71,11 @@ plot :
 supercollider :
 	install -d supercolliderdir
 	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
+
+jackconsole :
+	install -d jackconsole
+	$(MAKE) DEST='jackconsole/' ARCH='jack-console.cpp' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
+
 
 clean :
 	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir benchdir supercolliderdir *-ps *-svg
