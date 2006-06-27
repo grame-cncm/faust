@@ -239,7 +239,7 @@ static __inline__ unsigned long long int rdtsc(void)
 
 
 
-#define BSIZE 1024
+#define BSIZE 128
 
 
 void bench()
@@ -271,8 +271,34 @@ void bench()
 	DSP.init(48000);
 
 	// compute one block of BSIZE samples
-	CHRONO("Faust generated code ", DSP.compute(BSIZE,inChannel,outChannel));
+	//CHRONO("Faust generated code ", DSP.compute(BSIZE,inChannel,outChannel));
 
+	
+	// search minimal execution time stable for at least 20 runs
+	int	stab = 0;
+	unsigned long long int tmin, t, t1, t2;
+										
+	t1 = rdtsc ();						
+	DSP.compute(BSIZE,inChannel,outChannel);		
+	t2 = rdtsc ();
+	
+	tmin = t2-t1;
+	
+	do {
+		t1 = rdtsc ();						
+		DSP.compute(BSIZE,inChannel,outChannel);		
+		t2 = rdtsc ();
+	
+		t = t2-t1;
+		if (tmin <= t) {
+			stab++;
+		} else {
+			tmin = t;
+			stab = 0;
+		}
+	} while (stab < 100);
+
+	printf("\t%ld cycles\n", long(tmin));	\
 }
 
 
