@@ -706,22 +706,20 @@ static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
 */
 
 /**
- * Compute the normal form of a fixed delay term (s@d).
+ * Compute the normal form of a 1-sample delay term s'.
  * The normalisation rules are :
- *		s@0 -> s
- *     	0@d -> 0
- *     	(k*s)@d -> k*(s@d)
- *		(s/k)@d -> (s@d)/k
- * Note that the same rules can't be applied to
- * + et - becaue the value of the first d samples
- * would be wrong. Would could also add delays such that
- * 		(s@d)@d' -> s@(d+d')
- * \param sig the whole term
- * \param s the term to be delayed
- * \param d the value of the delay
+ *     	0' -> 0
+ *     	(k*s)' -> k*s'
+ *		(s/k)' -> s'/k
+ * \param s the term to be delayed by 1 sample
  * \return the normalized term
  */
 Tree normalizeDelay1Term(Tree s)
+{
+	return normalizeFixedDelayTerm(s, tree(1));
+}
+
+Tree XXXnormalizeDelay1Term(Tree s)
 {
 	Tree x, y;
 
@@ -753,6 +751,22 @@ Tree normalizeDelay1Term(Tree s)
 	}
 }
 
+/**
+ * Compute the normal form of a fixed delay term (s@d).
+ * The normalisation rules are :
+ *		s@0 -> s
+ *     	0@d -> 0
+ *     	(k*s)@d -> k*(s@d)
+ *		(s/k)@d -> (s@d)/k
+ * 		(s@n)@m -> s@(n+m)
+ * Note that the same rules can't be applied to
+ * + et - becaue the value of the first d samples
+ * would be wrong. We could also add delays such that
+ * \param s the term to be delayed
+ * \param d the value of the delay
+ * \return the normalized term
+ */
+
 Tree normalizeFixedDelayTerm(Tree s, Tree d)
 {
 	Tree x, y;
@@ -783,10 +797,13 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 			return sigFixDelay(s,d);
 		}
 
+	} else if (isSigFixDelay(s, x, y)) {
+		// (x@n)@m = x@(n+m)
+		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
+
 	} else {
 
 		return sigFixDelay(s,d);
 	}
 }
-
 
