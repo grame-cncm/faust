@@ -67,7 +67,7 @@ using namespace std ;
 int yyparse();
 
 int 			yyerr;
-extern int 		yydebug;
+extern int 	yydebug;
 extern FILE*	yyin;
 Tree 			gResult;
 Tree 			gResult2;
@@ -97,6 +97,8 @@ bool            gPrintXMLSwitch = false;
 int            	gBalancedSwitch = 0;
 int            	gFoldThreshold 	= 25;
 int            	gMaxNameSize 	= 40;
+bool			gLessTempSwitch = false;
+int				gMaxCopyDelay	= 16;
 
 string			gArchFile;
 string			gOutputFile;
@@ -177,6 +179,14 @@ bool process_cmdline(int argc, char* argv[])
 			gBalancedSwitch = 2;
 			i += 1;
 
+		} else if (isCmd(argv[i], "-lt", "--less-temporaries")) {
+			gLessTempSwitch = true;
+			i += 1;
+
+		} else if (isCmd(argv[i], "-mcd", "--max-copy-delay")) {
+			gMaxCopyDelay = atoi(argv[i+1]);
+			i += 2;
+
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -203,7 +213,7 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.8\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.8.5\n";
 	cout << "Copyright (C) 2002-2006, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
@@ -222,12 +232,14 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
 	cout << "-svg \t\tprint block-diagram --svg file\n";
-	cout << "-f \t\t--fold threshold during block-diagram generation\n";
-	cout << "-mns \t\t--max-name-size threshold during block-diagram generation\n";
+	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
+	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
 	cout << "-xml \t\tgenerate an --xml description file\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
+	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
+	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ wrapper file\n";
 	cout << "-o <file> \tC++ output file\n";
 
@@ -271,6 +283,10 @@ int main (int argc, char* argv[])
 	yyerr = 0;
 	string masterFilename = "unknow";
 
+	if (gInputFiles.begin() == gInputFiles.end()) {
+		cerr << "ERROR: no files specified; for help type \"faust --help\"" << endl;
+		exit(1);
+	}
 	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
 		if (s == gInputFiles.begin()) masterFilename = *s;
 		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
