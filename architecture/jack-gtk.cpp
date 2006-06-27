@@ -827,7 +827,7 @@ void GTKUI::run()
 	assert(fTop == 0);
 	gtk_widget_show  (fBox[0]);
 	gtk_widget_show  (fWindow);
-	gtk_timeout_add(5, callUpdateAllGuis, 0);
+	gtk_timeout_add(100, callUpdateAllGuis, 0);
 	gtk_main ();
 	stop();
 }
