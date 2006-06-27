@@ -137,13 +137,15 @@ void Klass::println(int n, ostream& fout)
 
 			if(vec) {
 
-			  tab(n+2,fout); fout << "for (int i=0; i<count; i+=4) {";
-			            printlines (n+3, fExecCode, fout);
-				    printlines (n+3, fPostCode, fout);
+				tab(n+2,fout); fout << "for (int i=0; i<count; i+=4) {";
+			    	printlines (n+3, fExecCode, fout);
+					tab(n+3,fout); fout << "// post processing";
+					printlines (n+3, fPostCode, fout);
 			} else {
-			  tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
-			            printlines (n+3, fExecCode, fout);
-				    printlines (n+3, fPostCode, fout);
+			  	tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
+			    	printlines (n+3, fExecCode, fout);
+					tab(n+3,fout); fout << "// post processing";
+					printlines (n+3, fPostCode, fout);
 			}
 
 
@@ -187,6 +189,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
 			printlines (n+2, fSlowCode, fout);
 			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
 				printlines (n+3, fExecCode, fout);
+				tab(n+3,fout); fout << "// post processing";
 				printlines (n+3, fPostCode, fout);
 			tab(n+2,fout); fout << "}";
 		tab(n+1,fout); fout << "}";
@@ -224,6 +227,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 			printlines (n+2, fSlowCode, fout);
 			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
 				printlines (n+3, fExecCode, fout);
+				tab(n+3,fout); fout << "// post processing";
 				printlines (n+3, fPostCode, fout);
 			tab(n+2,fout); fout << "}";
 			//printlines (n+2, fEndCode, fout);
