@@ -83,15 +83,23 @@ class Symbol
  public:
 	ostream& 				print (ostream& fout) const; 								///< print a symbol on a stream
 
-	friend Symbol*			symbol (const char* str) 	{ return Symbol::get(str); } 	///< Returns (and creates if new) the symbol of name \p str
-	friend Symbol*			symbol (const string& str) 	{ return Symbol::get(str); }	///< Returns (and creates if new) the symbol of name \p str
-	friend Symbol*			unique (const char* str) 	{ return Symbol::prefix(str);}	///< Returns a new unique symbol of name strxxx
-	friend const char* 		name (Symbol* sym) 			{ return sym->fName; }			///< Returns the name of a symbol
+	friend Symbol*			symbol (const char* str);
+	friend Symbol*			symbol (const string& str);
+	friend Symbol*			unique (const char* str);
+	friend const char* 	name (Symbol* sym);
 	
-	friend void* 			getUserData (Symbol* sym) 			{ return sym->fData; }		///< Returns user data
-	friend void 			setUserData (Symbol* sym, void* d) 	{ sym->fData=d; }			///< Set user data
+	friend void* 			getUserData (Symbol* sym);
+	friend void 			setUserData (Symbol* sym, void* d);
 		
 };
+
+inline Symbol*			symbol (const char* str) 	{ return Symbol::get(str); } 	///< Returns (and creates if new) the symbol of name \p str
+inline Symbol*			symbol (const string& str) 	{ return Symbol::get(str); }	///< Returns (and creates if new) the symbol of name \p str
+inline Symbol*			unique (const char* str) 	{ return Symbol::prefix(str);}	///< Returns a new unique symbol of name strxxx
+inline const char* 	name (Symbol* sym) 			{ return sym->fName; }			///< Returns the name of a symbol
+	
+inline void* 			getUserData (Symbol* sym) 			{ return sym->fData; }		///< Returns user data
+inline void 			setUserData (Symbol* sym, void* d) 	{ sym->fData=d; }			///< Set user data
 
 inline ostream& operator << (ostream& s, const Symbol& n) { return n.print(s); }
 
