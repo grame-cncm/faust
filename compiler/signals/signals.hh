@@ -35,7 +35,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////
 /**
  * Les Signaux.
- * Les différents constructeurs de signaux
+ * Les diffï¿½ents constructeurs de signaux
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -47,7 +47,7 @@ bool  isSigInt(Tree t, int* i);
 bool  isSigReal(Tree t, float* r);
 
 
-// les entrées sorties
+// les entrï¿½s sorties
 Tree sigInput(int i);
 Tree sigOutput(int i, Tree t);
 
@@ -105,7 +105,7 @@ Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3);
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
-// operations numériques
+// operations numï¿½iques
 Tree sigBinOp	(int op, Tree x, Tree y);
 bool isSigBinOp	(Tree s, int* op, Tree& x, Tree& y);
 
@@ -163,7 +163,7 @@ inline bool isGEZero	(Tree a)	{ assert(a); return isGEZero(a->node()); }
 inline bool isOne		(Tree a)	{ assert(a); return isOne(a->node()); }
 inline bool isMinusOne	(Tree a)	{ assert(a); return isMinusOne(a->node()); }
 
-//projection pour les groupes récursifs
+//projection pour les groupes rï¿½ursifs
 Tree sigProj (int i, Tree rgroup);
 bool isProj (Tree t, int* i, Tree& rgroup);
 
@@ -239,7 +239,7 @@ Tree sigCartesianProd (Tree s1, Tree s2);
 							 access to sub signals of a signal
 *****************************************************************************/
 
-int	getSubSignals (Tree sig, vector<Tree>& vsigs);
+int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen=true);
 
 
 

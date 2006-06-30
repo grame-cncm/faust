@@ -7,7 +7,7 @@
  * @return the number of subsignals
  */
 
-int	getSubSignals (Tree sig, vector<Tree>& vsigs)
+int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 {
 	vsigs.clear();
 
@@ -25,7 +25,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs)
 	else if ( isSigDelay1(sig, x) ) 				{ vsigs.push_back(x); return 1;	}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
-	else if ( isSigPrefix(sig, x, y) ) 				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
+	else if ( isSigPrefix(sig, x, y) ) 			{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
 	else if ( isSigIota(sig, x) ) 					{ vsigs.push_back(x); return 1; }
 
 	else if ( isSigBinOp(sig, &i, x, y) )			{ vsigs.push_back(x); vsigs.push_back(y); return 2; }
@@ -39,10 +39,10 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs)
 	else if ( isSigSelect2(sig, sel, x, y) ) 		{ vsigs.push_back(sel); vsigs.push_back(x); vsigs.push_back(y); return 3; }
 	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ vsigs.push_back(sel); vsigs.push_back(x); vsigs.push_back(y); vsigs.push_back(z); return 4; }
 
-	else if ( isSigGen(sig, x) ) 					{ vsigs.push_back(x); return 1; }
+	else if ( isSigGen(sig, x) ) 					{ if (visitgen) { vsigs.push_back(x); return 1;} else { return 0; } }
 
-	else if ( isProj(sig, &i, x) ) 					{ vsigs.push_back(x); return 1;	}
-	else if ( isRec(sig, var, le) )					{ vsigs.push_back(le); return 1; }
+	else if ( isProj(sig, &i, x) ) 				{ vsigs.push_back(x); return 1;	}
+	else if ( isRec(sig, var, le) )				{ vsigs.push_back(le); return 1; }
 
 	else if ( isSigIntCast(sig, x) ) 				{ vsigs.push_back(x); return 1; }
 	else if ( isSigFloatCast(sig, x) ) 				{ vsigs.push_back(x); return 1; }
@@ -56,7 +56,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigAttach(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
-	else if ( isList(sig) )							{ int n = 0; while (!isNil(sig)) { vsigs.push_back(hd(sig)); sig = tl(sig); n++; } return n; }
+	else if ( isList(sig) )						{ int n = 0; while (!isNil(sig)) { vsigs.push_back(hd(sig)); sig = tl(sig); n++; } return n; }
 
 	else {
 		cerr << "ERROR, unrecognized signal : " << *sig << endl;
