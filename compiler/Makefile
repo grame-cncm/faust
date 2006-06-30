@@ -1,4 +1,4 @@
-subprojects := boxes errors evaluate generator normalize parser propagate signals tlib draw draw/device draw/schema extended
+subprojects := boxes errors evaluate generator normalize parser propagate signals tlib draw draw/device draw/schema extended parallelize
 
 sources = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard draw/*/*.cpp)
 
@@ -6,7 +6,8 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS := -g -O0 -ffriend-injection $(addprefix -I, $(subprojects))
+#CXXFLAGS := -g -O0 -ffriend-injection $(addprefix -I, $(subprojects))
+CXXFLAGS := -g -O0 $(addprefix -I, $(subprojects))
 
 
 all : faust
