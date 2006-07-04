@@ -255,7 +255,7 @@ void bench()
 	float* 	outChannel[256];
 
 	// allocate input buffers (initialized with white noise)
-	float R0_0 = 0;
+	int R0_0 = 0;
 	for (int i = 0; i < numInChan; i++) {
 		inChannel[i] = (float*) aligned_calloc (BSIZE, sizeof(float));
 		for (int j = 0; j < BSIZE; j++) {
@@ -321,7 +321,7 @@ long lopt (int argc, char *argv[], char* longname, char* shortname, long def)
 int main(int argc, char *argv[] )
 {
   bool rt = setRealtimePriority();
-  printf(rt?"RealTime Set\n":"RealTime Not Set\n");
+  //printf(rt?"RealTime Set\n":"RealTime Not Set\n");
 
   bench();
   return 0;
