@@ -192,6 +192,10 @@ propagate/propagate.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.
 propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh boxes/ppbox.hh extended/xtended.hh generator/klass.hh
 propagate/propagate.o: generator/uitree.hh signals/sigvisitor.hh
 signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
+signals/ppsig.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+signals/ppsig.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigtype.hh tlib/smartpointer.hh
+signals/ppsig.o: extended/xtended.hh generator/klass.hh generator/uitree.hh signals/sigvisitor.hh
+signals/ppsig.o: signals/recursivness.hh
 signals/prim2.o: signals/prim2.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/prim2.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh
 signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
