@@ -71,7 +71,7 @@ int getRecursivness(Tree sig)
 	return tree2int(tr);
 }
 
-
+//-------------------------------------- IMPLEMENTATION ------------------------------------
 /**
  * Annotate a signal with recursivness
  * @param env the current environment
