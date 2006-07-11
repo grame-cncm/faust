@@ -744,7 +744,7 @@ static string cType (Type t)
 }
 
 
-// Projection : selection du i�e signal d'un groupe recursif
+// Projection : selection du iem signal d'un groupe recursif
 string ScalarCompiler::generateRecProj(Tree sig, Tree x, int i)
 {
 	//cerr << "generateRecProj : " << *sig << endl;
