@@ -270,8 +270,6 @@ int main (int argc, char* argv[])
 
 	process_cmdline(argc, argv);
 
-	gInputFiles.push_back("C:\\test.fsp");
-
 	if (gHelpSwitch) 		{ printhelp(); exit(0); }
 	if (gVersionSwitch) 	{ printversion(); exit(0); }
 
