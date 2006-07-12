@@ -56,6 +56,7 @@
 
 #include "schema.h"
 #include "drawschema.hh"
+#include "compatibility.hh"
 
 #define linkcolor "#b3d1dc"
 #define normalcolor "#ffeaa2"

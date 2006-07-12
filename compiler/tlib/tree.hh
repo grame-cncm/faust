@@ -165,7 +165,7 @@ class CTree
 //---------------------------------API---------------------------------------
 
 // to build trees
-inline Tree tree (const Node& n) { Tree br[]= {}; return CTree::make(n, 0, br); }
+inline Tree tree (const Node& n) { Tree br[1]; return CTree::make(n, 0, br); }
 inline Tree tree (const Node& n, const Tree& a) { Tree br[]= {a}; return CTree::make(n, 1, br); }
 inline Tree tree (const Node& n, const Tree& a, const Tree& b) { Tree br[]= {a,b}; return CTree::make(n, 2, br); }
 inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c) { Tree br[]= {a,b,c}; return CTree::make(n, 3, br); }

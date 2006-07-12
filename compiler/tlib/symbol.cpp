@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include    "symbol.hh"
+#include    "compatibility.hh"
 #include 	<iostream>
 
 using namespace std;
@@ -128,9 +129,9 @@ bool Symbol::equiv (uint hash, const char *str) const
  * \return a 32-bits hash key
  */
 
-uint Symbol::calcHashKey (const char* str)
+unsigned int Symbol::calcHashKey (const char* str)
 {
-    uint h = 0;
+    unsigned int h = 0;
 
     while (*str) h = (h << 1) ^ (h >> 20) ^ (*str++);
     return h;

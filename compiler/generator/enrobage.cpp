@@ -23,7 +23,7 @@
  
 #include "enrobage.hh"
 #include <string>
-#include <unistd.h>
+#include "compatibility.hh"
 
 
 //----------------------------------------------------------------

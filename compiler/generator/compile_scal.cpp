@@ -26,7 +26,7 @@
 
 
 #include "compile_scal.hh"
-
+#include "compile_scal.hh"
 
 #include "compile.hh"
 #include "sigtype.hh"
@@ -45,9 +45,10 @@
 #include "prim2.hh"
 #include "xtended.hh"
 #include "contextor.hh"
+#include "compatibility.hh"
 
 extern bool	gLessTempSwitch;
-extern int		gMaxCopyDelay;
+extern int	gMaxCopyDelay;
 
 static void setVectorNameProperty(Tree sig, const string& vecname);
 static bool getVectorNameProperty(Tree sig, string& vecname);
@@ -803,8 +804,7 @@ string ScalarCompiler::generatePrefix (Tree sig, Tree x, Tree e)
 *****************************************************************************/
 static bool isPowerOf2(int n)
 {
-	int p = int(log2(n));
-	return int(pow(2,p)) == n;
+	return !(n & (n - 1));
 }
 
 string ScalarCompiler::generateIota (Tree sig, Tree n)

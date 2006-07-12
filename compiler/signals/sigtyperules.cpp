@@ -269,7 +269,10 @@ static Type infereSigType(Tree sig, Tree env)
 	else if (isSigFixDelay(sig, s1, s2)) 		{ checkIntParam(T(s2,env)); return sampCast(T(s1,env)); }
 
 	else if (isSigBinOp(sig, &i, s1, s2)) {
-		Type t = T(s1,env)|T(s2,env);
+		//Type t = T(s1,env)|T(s2,env);
+		Type t1 = T(s1,env);
+		Type t2 = T(s2,env);
+		Type t = t1 | t2;
 	  	return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t) : t; // for comparaison operation the result is int
 	}
 

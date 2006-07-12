@@ -49,9 +49,9 @@ static char* xmlcode(const char* name, char* name2)
 	return name2;
 }
 
-SVGDev::SVGDev(const char* ficName,float largeur, float hauteur)
+SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 {
-	float gScale = 0.5;
+	double gScale = 0.5;
 //	if ((fic_repr = fopen(addFileNum(ficName),"w+")) == NULL) {
 	if ((fic_repr = fopen(ficName,"w+")) == NULL) {
 	//if((fic_repr = fopen(ficName,"w+")) == NULL) {
@@ -72,7 +72,7 @@ SVGDev::~SVGDev()
 	fclose(fic_repr);
 }
 
-void SVGDev::rect(float x,float y,float l,float h, const char* color, const char* link)
+void SVGDev::rect(double x,double y,double l,double h, const char* color, const char* link)
 {
 	char buf[512];
 	if (link != 0) {
@@ -91,15 +91,15 @@ void SVGDev::rect(float x,float y,float l,float h, const char* color, const char
 
 }
 
-void SVGDev::rond(float x,float y,float rayon)
+void SVGDev::rond(double x,double y,double rayon)
 {
 	fprintf(fic_repr,"<circle cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n",x,y,rayon);
 }
 
-void SVGDev::fleche(float x,float y,float rotation,int sens)
+void SVGDev::fleche(double x,double y,double rotation,int sens)
 {
-	float dx = 3;
-	float dy = 1;
+	double dx = 3;
+	double dy = 1;
 
 	if(sens == 1)
 	{
@@ -113,41 +113,41 @@ void SVGDev::fleche(float x,float y,float rotation,int sens)
 	}
 }
 
-void SVGDev::carre(float x,float y,float cote)
+void SVGDev::carre(double x,double y,double cote)
 {
 	fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" style=\"stroke: black;stroke-width:0.5;fill:none;\"/>\n",x-0.5*cote,y-cote,cote,cote);
 }
 
-void SVGDev::trait(float x1,float y1,float x2,float y2)
+void SVGDev::trait(double x1,double y1,double x2,double y2)
 {
 	fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"shape-rendering: crispEdges; stroke:black; stroke-linecap:round; stroke-width:0.25;\"/>\n",x1,y1,x2,y2);
 }
 
-void SVGDev::dasharray(float x1,float y1,float x2,float y2)
+void SVGDev::dasharray(double x1,double y1,double x2,double y2)
 {
 	fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke: black; stroke-linecap:round; stroke-width:0.25; stroke-dasharray:3,3;\"/>\n",x1,y1,x2,y2);
 }
 
-void SVGDev::text(float x,float y,const char* name)
+void SVGDev::text(double x,double y,const char* name)
 {
 	char name2[256];
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"8\" text-anchor=\"middle\">%s</text>\n",x,y+3,xmlcode(name,name2));
 }
 
-void SVGDev::label(float x,float y,const char* name)
+void SVGDev::label(double x,double y,const char* name)
 {
 	char name2[256];
 //	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" style=\"font-family:Courier;font-weight:normal;font-style:normal;font-size:7\">%s</text>\n",x,y+2,xmlcode(name,name2));
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"7\">%s</text>\n",x,y+2,xmlcode(name,name2));
 }
 
-void SVGDev::markSens(float x,float y,int sens)
+void SVGDev::markSens(double x,double y,int sens)
 {
 	int offset = (sens == 1) ? 2 : -2;
 	fprintf(fic_repr,"<circle cx=\"%f\" cy=\"%f\" r=\"1\"/>\n", x+offset, y+offset);
 }
 
-void SVGDev::Error(const char* message, const char* reason,int nb_error,float x,float y,float largeur)
+void SVGDev::Error(const char* message, const char* reason,int nb_error,double x,double y,double largeur)
 {
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\"  textLength=\"%f\" lengthAdjust=\"spacingAndGlyphs\" style=\"stroke: red; stroke-width:0.3; fill:red; text-anchor:middle;\">%d : %s</text>\n",x,y-7,largeur,nb_error,message);
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\"  textLength=\"%f\" lengthAdjust=\"spacingAndGlyphs\" style=\"stroke: red; stroke-width:0.3; fill:none; text-anchor:middle;\">%s</text>\n",x,y+7,largeur,reason);

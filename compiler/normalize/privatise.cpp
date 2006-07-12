@@ -22,7 +22,7 @@
 
 
 #include "sigtype.hh"
-
+#include "compatibility.hh"
 #include <stdio.h>
 
 #include "sigprint.hh"

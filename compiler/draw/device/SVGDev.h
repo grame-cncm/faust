@@ -31,18 +31,18 @@
 class SVGDev : public device
 {
 	public:
-		SVGDev(const char*,float,float);
+		SVGDev(const char*,double,double);
 		~SVGDev();
-		void rect(float,float,float,float, const char*, const char*);
-		void rond(float,float,float);
-		void carre(float,float,float);
-		void fleche(float,float,float,int);
-		void trait(float,float,float,float);
-		void dasharray(float,float,float,float);
-		void text(float,float,const char*);
-		void label(float,float,const char*);
-		void markSens(float,float,int);
-		void Error(const char*,const char*,int,float,float,float);
+		void rect(double,double,double,double, const char*, const char*);
+		void rond(double,double,double);
+		void carre(double,double,double);
+		void fleche(double,double,double,int);
+		void trait(double,double,double,double);
+		void dasharray(double,double,double,double);
+		void text(double,double,const char*);
+		void label(double,double,const char*);
+		void markSens(double,double,int);
+		void Error(const char*,const char*,int,double,double,double);
 
 };
 

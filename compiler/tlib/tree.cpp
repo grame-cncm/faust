@@ -140,7 +140,7 @@ Sym PROCESS = symbol("process");
 		
 
 
-uint CTree::calcTreeHash( const Node& n, const tvec& br )
+unsigned int CTree::calcTreeHash( const Node& n, const tvec& br )
 {
 	uint 			hk = n.type() ^ n.getInt();
 	tvec::const_iterator  b = br.begin();

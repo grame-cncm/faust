@@ -1,4 +1,5 @@
 #include "xtended.hh"
+#include "compatibility.hh"
 #include "Text.hh"
 #include <math.h>
 

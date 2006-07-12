@@ -60,7 +60,7 @@ unique to each sharing analysis must be generated.
 #include    <stdio.h>
 
 #include 	"shlysis.hh"
-
+#include "compatibility.hh"
 
 /**
  * Create a specific property key for the sharing count of subtrees of t

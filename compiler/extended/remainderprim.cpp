@@ -1,4 +1,5 @@
 #include "xtended.hh"
+#include "compatibility.hh"
 #include "Text.hh"
 #include <math.h>
 
@@ -31,7 +32,7 @@ class RemainderPrim : public xtended
 		num n,m;
 		assert (args.size() == arity());
 		if (isNum(args[0],n) & isNum(args[1],m)) {
-			return tree(remainderf(float(n), float(m)));
+			return tree(fmodf(float(n), float(m)));
 		} else {
 			return tree(symbol(), args[0], args[1]);
 		}

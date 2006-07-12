@@ -202,7 +202,7 @@ static Tree buildLeftBalancedTerm(int op, vector<Tree>& v, int lo, int hi)
 /**
  * create a balanced term for a certain binary operation op
  */
-extern bool gBalancedSwitch;
+extern int gBalancedSwitch;
 
 static Tree balanceTerm(int op, Tree t)
 {

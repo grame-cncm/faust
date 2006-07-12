@@ -30,7 +30,7 @@
 
 
 #include "occurrences.hh"
-
+#include    "compatibility.hh"
 
 /**
  * Count the number of occurrences of each subtree of root

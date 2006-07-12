@@ -103,6 +103,7 @@ This file contains several extensions to the tree library :
 *****************************************************************************/
 
 #include "list.hh"
+#include "compatibility.hh"
 #include <map>
 
 // predefined symbols CONS and NIL

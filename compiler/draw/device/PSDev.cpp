@@ -26,6 +26,7 @@
 #include "PSDev.h"
 #include "string.h"
 #include "math.h"
+#include "compatibility.hh"
 #include <iostream>
 
 using namespace std;
@@ -50,7 +51,7 @@ static char * addFileNum(const char* fname)
 	return strdup(s);
 }
 
-PSDev::PSDev(const char* ficName, float largeur, float hauteur)
+PSDev::PSDev(const char* ficName, double largeur, double hauteur)
 {
 	if ((fic_repr = fopen(addFileNum(ficName),"w+")) == NULL) { 
 	//if ((fic_repr = fopen(ficName,"w+")) == NULL) { 
@@ -81,7 +82,7 @@ PSDev::~PSDev()
 	fclose(fic_repr);
 }
 
-void PSDev::rect(float x,float y,float l,float h, const char*, const char*)
+void PSDev::rect(double x,double y,double l,double h, const char*, const char*)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -96,7 +97,7 @@ void PSDev::rect(float x,float y,float l,float h, const char*, const char*)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::rond(float x,float y,float rayon)
+void PSDev::rond(double x,double y,double rayon)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -105,7 +106,7 @@ void PSDev::rond(float x,float y,float rayon)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::fleche(float x,float y,float rotation,int sens)
+void PSDev::fleche(double x,double y,double rotation,int sens)
 {
 	if(sens == 1)
 	{	
@@ -114,11 +115,11 @@ void PSDev::fleche(float x,float y,float rotation,int sens)
 		fprintf(fic_repr,"0.3 setgray\n");
 		fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);
 		fprintf(fic_repr,"%f rotate\n",rotation);
-		fprintf(fic_repr,"%f unit %f unit rlineto\n",(float)-4,(float)-2);
-		fprintf(fic_repr,"%f rotate\n",(float)-rotation);
+		fprintf(fic_repr,"%f unit %f unit rlineto\n",(double)-4,(double)-2);
+		fprintf(fic_repr,"%f rotate\n",(double)-rotation);
 		fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);  
 		fprintf(fic_repr,"%f rotate\n",rotation); 
-		fprintf(fic_repr,"%f unit %f unit rlineto\n",(float)-4,(float)+2);
+		fprintf(fic_repr,"%f unit %f unit rlineto\n",(double)-4,(double)+2);
 		fprintf(fic_repr,"closepath\n");  
 		fprintf(fic_repr,"stroke\n");
 		fprintf(fic_repr,"grestore\n");
@@ -130,18 +131,18 @@ void PSDev::fleche(float x,float y,float rotation,int sens)
 		fprintf(fic_repr,"0.3 setgray\n");
 		fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);
 		fprintf(fic_repr,"%f rotate\n",rotation);
-		fprintf(fic_repr,"%f unit %f unit rlineto\n",(float)4,(float)-2);
-		fprintf(fic_repr,"%f rotate\n",(float)-rotation);
+		fprintf(fic_repr,"%f unit %f unit rlineto\n",(double)4,(double)-2);
+		fprintf(fic_repr,"%f rotate\n",(double)-rotation);
 		fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);  
 		fprintf(fic_repr,"%f rotate\n",rotation); 
-		fprintf(fic_repr,"%f unit %f unit rlineto\n",(float)4,(float)+2);
+		fprintf(fic_repr,"%f unit %f unit rlineto\n",(double)4,(double)+2);
 		fprintf(fic_repr,"closepath\n");  
 		fprintf(fic_repr,"stroke\n");
 		fprintf(fic_repr,"grestore\n");
 	}
 }
 
-void PSDev::carre(float x,float y,float cote)
+void PSDev::carre(double x,double y,double cote)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -155,7 +156,7 @@ void PSDev::carre(float x,float y,float cote)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::trait(float x1,float y1,float x2,float y2)
+void PSDev::trait(double x1,double y1,double x2,double y2)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"0.3 setgray\n");
@@ -166,7 +167,7 @@ void PSDev::trait(float x1,float y1,float x2,float y2)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::dasharray(float x1,float y1,float x2,float y2)
+void PSDev::dasharray(double x1,double y1,double x2,double y2)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -178,7 +179,7 @@ void PSDev::dasharray(float x1,float y1,float x2,float y2)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::text(float x,float y,const char* nom)
+void PSDev::text(double x,double y,const char* nom)
 {
 	fprintf(fic_repr,"newpath\n");
     //fprintf(fic_repr,"%f unit %f unit moveto\n",(x-4)-(strlen(nom)-1)*3.8,y+2);
@@ -189,7 +190,7 @@ void PSDev::text(float x,float y,const char* nom)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::label(float x,float y,const char* label)
+void PSDev::label(double x,double y,const char* label)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"/Times-Roman findfont   %% Get the basic font for text\n");
@@ -202,26 +203,26 @@ void PSDev::label(float x,float y,const char* label)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::markSens(float x,float y,int sens)
+void PSDev::markSens(double x,double y,int sens)
 {
 	if (sens==1)
 	{
 		fprintf(fic_repr,"newpath\n");
 		fprintf(fic_repr,"%f unit %f unit moveto\n",x,y+4);    
-		fprintf(fic_repr,"%f unit %f unit rlineto\n",(float)4,(float)-4);
+		fprintf(fic_repr,"%f unit %f unit rlineto\n",(double)4,(double)-4);
 		fprintf(fic_repr,"closepath\n");
 	}
 	else //for the recursion
 	{
 		fprintf(fic_repr,"newpath\n");
 		fprintf(fic_repr,"%f unit %f unit moveto\n",x,y-4);    
-		fprintf(fic_repr,"%f unit %f unit rlineto\n",(float)-4,(float)4);
+		fprintf(fic_repr,"%f unit %f unit rlineto\n",(double)-4,(double)4);
 		fprintf(fic_repr,"closepath\n");      
 	}
 	fprintf(fic_repr,"stroke\n");
 }
 
-void PSDev::Error(const char* message, const char* reason,int nb_error,float x,float y,float largeur)
+void PSDev::Error(const char* message, const char* reason,int nb_error,double x,double y,double largeur)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"/Times-Roman findfont   %% Get the basic font for text\n");

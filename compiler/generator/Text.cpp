@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "Text.hh"
+#include "compatibility.hh"
 #include <string>
 #include <vector>
 

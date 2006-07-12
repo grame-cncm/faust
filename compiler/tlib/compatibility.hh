@@ -19,36 +19,24 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
-// device.h
 
+#ifndef     __COMPATIBILITY__
+#define     __COMPATIBILITY__
 
-#if !defined DEVICE_H
-#define DEVICE_H
+#ifdef WIN32
+#include <windows.h>
+#define snprintf _snprintf
+#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
+#define PATH_MAX 1024
+#define getcwd(buffer,len) GetCurrentDirectory(len,buffer)
+#define chdir(path) SetCurrentDirectory(path)
+#define mkdir(path,attribute) CreateDirectory(path,NULL)
+#define S_IRWXU 0
+#define S_IRWXG 0
+#define S_IROTH 0
+#define S_IXOTH 0
+#else
+#include <unistd.h>
+#endif
 
-#include "stdio.h"
-
-class device  
-{
-	public:
-        virtual ~device() {}
-        virtual void rect(double,double,double,double, const char*, const char*)=0;
-		virtual void rond(double,double,double)=0;
-		virtual void carre(double,double,double)=0;
-		virtual void fleche(double,double,double,int)=0;
-		virtual void trait(double,double,double,double)=0;
-		virtual void dasharray(double,double,double,double)=0;
-		virtual void text(double,double,const char*)=0;
-		virtual void label(double,double,const char*)=0;
-		virtual void markSens(double,double,int)=0;
-		virtual void Error(const char*,const char*,int,double,double,double)=0;
-	
-	protected:
-		FILE* fic_repr;
-
-};
-
-#endif 
-
-
+#endif

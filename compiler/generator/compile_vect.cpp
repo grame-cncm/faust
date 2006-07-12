@@ -22,7 +22,7 @@
 
 
 #include "compile_vect.hh"
-
+#include "compatibility.hh"
 
 #include "compile.hh"
 #include "compile_scal.hh"
