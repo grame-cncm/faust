@@ -244,20 +244,13 @@ class dsp {
 		
 <<includeclass>>
 
-#ifdef WIN32
-#define EXPORT __declspec(dllexport)
-#else 
-#define EXPORT
-#endif		
-			
-//mydsp	DSP;
 
-extern "C" dsp* EXPORT newDsp() 									{ return new mydsp(); }
-extern "C" void EXPORT deleteDsp(dsp* self) 						{ delete self; }
+extern "C" dsp* newDsp() 									{ return new mydsp(); }
+extern "C" void deleteDsp(dsp* self) 						{ delete self; }
 
-extern "C" int EXPORT getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
-extern "C" int EXPORT getNumOutputs(dsp* self) 						{ return self->getNumOutputs(); }
-extern "C" void EXPORT buildUserInterface(dsp* self,UI* interface) 	{ self->buildUserInterface(interface); }
-extern "C" void EXPORT init(dsp* self, int freq) 					{ self->init(freq); }
-extern "C" void EXPORT compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
-extern "C" void EXPORT conclude(dsp* self)							{ self->conclude(); }
+extern "C" int getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
+extern "C" int getNumOutputs(dsp* self) 					{ return self->getNumOutputs(); }
+extern "C" void buildUserInterface(dsp* self,UI* interface) { self->buildUserInterface(interface); }
+extern "C" void init(dsp* self, int freq) 					{ self->init(freq); }
+extern "C" void compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
+extern "C" void conclude(dsp* self)							{ self->conclude(); }
