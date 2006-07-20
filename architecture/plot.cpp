@@ -162,7 +162,7 @@ class CMDUI : public UI
 	
 	void addOption(const char* label, float* zone, float min, float max)
 	{
-		string fullname = fPrefix.top() + label;
+		string fullname = fPrefix.top() + "-" + label;
 		fKeyParam.insert(make_pair(fullname, param(zone, min, max)));
 	}
 	
@@ -181,12 +181,21 @@ class CMDUI : public UI
 	
 public:
 		
-	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("--"); }
+	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("-"); }
 	virtual ~CMDUI() {}
 	
-	virtual void addButton(const char* label, float* zone) 			{};
-	virtual void addToggleButton(const char* label, float* zone) 	{};
-	virtual void addCheckButton(const char* label, float* zone) 	{};
+	virtual void addButton(const char* label, float* zone)
+	{
+		addOption(label,zone,0,1);
+	}
+	virtual void addToggleButton(const char* label, float* zone)
+	{
+		addOption(label,zone,0,1);
+	}
+	virtual void addCheckButton(const char* label, float* zone)
+	{
+		addOption(label,zone,0,1);
+	}
 		
 	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 	{
@@ -239,6 +248,7 @@ public:
 				p = fKeyParam.find(fArgv[i]); 
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
+					print();
 					exit(1);
 				}
 				char*	end;
