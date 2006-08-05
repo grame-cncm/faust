@@ -243,4 +243,14 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen=true);
 
 
 
+/**
+ * Test if exp is very simple that is it
+ * can't be considered a real component
+ * @param exp the signal we want to test
+ * @return true if it a very simple signal
+ */
+bool verySimple(Tree exp);
+
+
+
 #endif

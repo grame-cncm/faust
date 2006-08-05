@@ -33,7 +33,7 @@
 ////////////////////////////////////////////////////////////////////////
 /**
  * Les Signaux.
- * Les différents constructeurs et deconstructeurs de signaux
+ * Les diffï¿½ents constructeurs et deconstructeurs de signaux
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -92,7 +92,7 @@ Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIG
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
 
 
-// operations arithmétiques
+// operations arithmï¿½iques
 
 Sym SIGBINOP = symbol ("SigBinOp");
 Tree sigBinOp(int op, Tree x, Tree y) 					{ return tree(SIGBINOP, tree(op), x, y); }
@@ -111,7 +111,7 @@ Tree sigFConst 		(Tree type, Tree name, Tree file)				{ return tree(SIGFCONST, t
 bool isSigFConst	(Tree s)										{ Tree t,n,f; return isTree(s, SIGFCONST, t, n, f);	}
 bool isSigFConst	(Tree s, Tree& type, Tree& name, Tree& file)	{ return isTree(s, SIGFCONST,type, name, file);		}
 
-// Generateur de signal (compilé en tant que classe C++)
+// Generateur de signal (compilï¿½en tant que classe C++)
 
 Sym SIGGEN = symbol ("SigGen");
 Tree sigGen (Tree s)							{ return tree(SIGGEN, s); 		}
@@ -336,3 +336,22 @@ Tree sigCartesianProd (Tree s1, Tree s2)
 	return sigTuple(0, concat(l1,l2));
 }
 
+
+
+/**
+ * Test if exp is very simple that is it
+ * can't be considered a real component
+ * @param exp the signal we want to test
+ * @return true if it a very simple signal
+ */
+bool verySimple(Tree exp)
+{
+	int		i;
+	float	r;
+	Tree 	type, name, file;
+	
+	return 	isSigInt(exp, &i) 
+			|| 	isSigReal(exp, &r)
+			||	isSigInput(exp, &i)
+			||	isSigFConst(exp, type, name, file);
+}
