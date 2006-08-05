@@ -254,17 +254,17 @@ static Type infereSigType(Tree sig, Tree env)
 
 		 if ( getUserData(sig) ) 				return infereXType(sig, env);
 
-	else if (isSigInt(sig, &i))					return TINT;
+	else if (isSigInt(sig, &i))				return TINT;
 
 	else if (isSigReal(sig, &r)) 				return TREAL;
 
 	else if (isSigInput(sig, &i))				return TINPUT;
 
-	else if (isSigOutput(sig, &i, s1)) 			return T(s1,env);
+	else if (isSigOutput(sig, &i, s1)) 		return sampCast(T(s1,env));
 
-	else if (isSigDelay1(sig, s1)) 				return sampCast(T(s1,env));
+	else if (isSigDelay1(sig, s1)) 			return sampCast(T(s1,env));
 
-	else if (isSigPrefix(sig, s1, s2)) 			{ checkInit(T(s1,env)); return sampCast(T(s1,env)|T(s2,env)); }
+	else if (isSigPrefix(sig, s1, s2)) 		{ checkInit(T(s1,env)); return sampCast(T(s1,env)|T(s2,env)); }
 
 	else if (isSigFixDelay(sig, s1, s2)) 		{ checkIntParam(T(s2,env)); return sampCast(T(s1,env)); }
 
@@ -276,7 +276,7 @@ static Type infereSigType(Tree sig, Tree env)
 	  	return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t) : t; // for comparaison operation the result is int
 	}
 
-	else if (isSigIntCast(sig, s1))				return intCast(T(s1,env));
+	else if (isSigIntCast(sig, s1))			return intCast(T(s1,env));
 
 	else if (isSigFloatCast(sig, s1)) 			return floatCast(T(s1,env));
 
@@ -284,23 +284,23 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigFConst(sig,type,name,file))	return infereFConstType(type);
 
-	else if (isSigButton(sig)) 					return /*INT_*/TGUI; //return TGUI;
+	else if (isSigButton(sig)) 				return /*INT_*/TGUI; //return TGUI;
 
 	else if (isSigCheckbox(sig))				return /*INT_*/TGUI; //return TGUI;
 
-	else if (isSigVSlider(sig))					return TGUI;
+	else if (isSigVSlider(sig))				return TGUI;
 
-	else if (isSigHSlider(sig))					return TGUI;
+	else if (isSigHSlider(sig))				return TGUI;
 
 	else if (isSigNumEntry(sig))				return TGUI;
 
-	else if (isSigHBargraph(sig, l, x, y, s1)) 	return T(s1,env);
+	else if (isSigHBargraph(sig, l, x, y, s1)) return T(s1,env);
 
-	else if (isSigVBargraph(sig, l, x, y, s1)) 	return T(s1,env);
+	else if (isSigVBargraph(sig, l, x, y, s1)) return T(s1,env);
 
-	else if (isSigAttach(sig, s1, s2)) 			{ T(s2,env); return T(s1,env); }
+	else if (isSigAttach(sig, s1, s2)) 		{ T(s2,env); return T(s1,env); }
 
-	else if (isRec(sig, var, body))				return infereRecType(sig, body, env);
+	else if (isRec(sig, var, body))			return infereRecType(sig, body, env);
 
 	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i,kScal);
 
