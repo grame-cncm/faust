@@ -40,7 +40,7 @@ struct BinOp
 	int			fPriority;
 	//
 	BinOp (const char* name, const char* namevec, const char* namescal, comp f, pred ln, pred rn, int priority) 
-			: fName(name), fNameVec(namevec), fNameScal(namescal), fCompute(f), fLeftNeutral(ln), fRightNeutral(rn) {  }
+			: fName(name), fNameVec(namevec), fNameScal(namescal), fCompute(f), fLeftNeutral(ln), fRightNeutral(rn), fPriority(priority) {  }
 	//
 	Node compute(const Node& a, const Node& b) { return fCompute(a,b); 	}
 	//
