@@ -28,6 +28,7 @@
 #include <string>
 #include <iostream>
 #include "smartpointer.hh"
+#include "interval.hh"
 
 
 /*********************************************************************
@@ -80,24 +81,30 @@ typedef P<AudioType> Type;
 class AudioType
 {
   protected:
-	int   fNature;  		  ///< the kind of data represented
-	int   fVariability; 	  ///< how fast values change
-  	int   fComputability;	  ///< when are values available
-    int   fVectorability;     ///< when a signal can be vectorized
-    int   fBoolean;           ///< when a signal stands for a boolean value
+	int   		fNature;  		  	///< the kind of data represented
+	int   		fVariability; 	  	///< how fast values change
+  	int   		fComputability;	  	///< when are values available
+    int   		fVectorability;     ///< when a signal can be vectorized
+    int   		fBoolean;           ///< when a signal stands for a boolean value
+    
+    interval	fInterval;			///< Minimal and maximal values the signal can take
 
 	
   public :		  
 	AudioType(int n, int v, int c, int vec = kVect, int b = kNum) 
-		  : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b) {}	///< constructs an abstract audio type	
+		  : fNature(n), fVariability(v), fComputability(c), 
+		    fVectorability(vec), fBoolean(b), 
+		    fInterval() {}									///< constructs an abstract audio type	
   	virtual ~AudioType() 									{} 	///< not really useful here, but make compiler happier
 	
-	int nature() const				{ return fNature; 		}	///< returns the kind of values (integre or floating point)
-	int variability() 	const		{ return fVariability; 	}	///< returns how fast values change (constant, by blocks, by samples)
-	int computability() const		{ return fComputability;}	///< returns when values are available (compilation, initialisation, execution)
-	int vectorability() const 		{ return fVectorability; } 	///< returns when a signal can be vectorized
-	int boolean() 		const		{ return fBoolean; } 		///< returns when a signal stands for a boolean value
-
+	int 	nature() 		const	{ return fNature; 		}	///< returns the kind of values (integre or floating point)
+	int 	variability() 	const	{ return fVariability; }	///< returns how fast values change (constant, by blocks, by samples)
+	int 	computability() const	{ return fComputability;}	///< returns when values are available (compilation, initialisation, execution)
+	int 	vectorability() const 	{ return fVectorability;} 	///< returns when a signal can be vectorized
+	int 	boolean() 		const	{ return fBoolean; } 		///< returns when a signal stands for a boolean value
+	
+	interval 	getInterval() 					{ return fInterval; }
+	void		setInterval(const interval& r)	{ fInterval = r;}
 
 	
 	virtual AudioType* promoteNature(int n)			= 0;			///< promote the nature of a type
@@ -372,5 +379,11 @@ Type checkInit(Type t);		// verifie que t est connu a l'initialisation
 Type checkIntParam(Type t);	// verifie que t est connu a l'initialisation, constant et entier
 
 Type checkWRTbl(Type tbl, Type wr);		// verifie que wr est compatible avec le contenu de tbl
+
+//--------------------------------------------------
+// conversion de type
+
+string cType (Type t);
+
 
 #endif

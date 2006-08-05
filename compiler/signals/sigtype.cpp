@@ -265,3 +265,10 @@ Type checkWRTbl(Type tbl, Type wr)
 	}
 	return tbl;
 }		
+
+
+// Donne le nom du type C correspondant �la nature d'un signal
+string cType (Type t)
+{
+	return (t->nature() == kInt) ? "int" : "float";
+}
