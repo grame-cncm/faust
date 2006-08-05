@@ -58,21 +58,19 @@ class Symbol
     static Symbol*		gSymbolTable[kHashTableSize];			///< Hash table used to store the symbols
 	
 	
- 	typedef unsigned int uint;						
-	
  // Fields
     char*			fName;										///< Name of the symbol
-    uint			fHash;										///< Hash key computed from the name and used to determine the hash table entry
+    unsigned int			fHash;										///< Hash key computed from the name and used to determine the hash table entry
     Symbol*			fNext;										///< Next symbol in the hash table entry
 	void*			fData;										///< Field to user disposal to store additional data
 	
  // Constructors & destructors
-    Symbol (const char* str, uint hsh, Symbol* nxt); 			///< Constructs a new symbol ready to be placed in the hash table
+    Symbol (const char* str, unsigned int hsh, Symbol* nxt); 			///< Constructs a new symbol ready to be placed in the hash table
    ~Symbol () {}												///< The Destructor is never used
 	
  // Others
-	bool			equiv (uint hash, const char* str) const ;	///< Check if the name of the symbol is equal to string \p str
-	static uint 	calcHashKey (const char* str);				///< Compute the 32-bits hash key of string \p str
+	bool			equiv (unsigned int hash, const char* str) const ;	///< Check if the name of the symbol is equal to string \p str
+	static unsigned int 	calcHashKey (const char* str);				///< Compute the 32-bits hash key of string \p str
 
  // Static methods
 	static Symbol*		get (const string& str);				///< Get the symbol of name \p str

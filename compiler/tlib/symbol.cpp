@@ -61,7 +61,7 @@ Symbol* Symbol::get(const string& str)
 
 Symbol* Symbol::get(const char* str)
 {
-    uint 			hsh  = calcHashKey(str);
+    unsigned int 			hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
 
@@ -79,7 +79,7 @@ Symbol* Symbol::get(const char* str)
 
 bool Symbol::isnew(const char* str)
 {
-    uint 			hsh  = calcHashKey(str);
+    unsigned int 			hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
 	
@@ -116,7 +116,7 @@ Symbol* Symbol::prefix (const char* str)
  * \return \p true if the name of the symbol and \p str are the same
  */
  
-bool Symbol::equiv (uint hash, const char *str) const
+bool Symbol::equiv (unsigned int hash, const char *str) const
 {
 	return (fHash == hash) && (strcmp(fName,str) == 0);
 }
@@ -147,7 +147,7 @@ unsigned int Symbol::calcHashKey (const char* str)
  * \param nxt a pointer to the next symbol in the hash table entry
  */
 
-Symbol::Symbol(const char* str, uint hsh, Symbol* nxt)
+Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 {
 	int len = strlen(str);
 	
