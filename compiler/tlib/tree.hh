@@ -109,7 +109,6 @@ typedef vector<Tree>	tvec;
 class CTree
 {
  private:
-	typedef unsigned int uint;
 	static const int 	kHashTableSize = 510511;	///< size of the hash table used for "hash consing"
 	static Tree			gHashTable[kHashTableSize];	///< hash table used for "hash consing"
 
@@ -121,14 +120,14 @@ class CTree
 	Tree		fNext;				///< next tree in the same hashtable entry
 	Node		fNode;				///< the node content of the tree
 	plist		fProperties;		///< the properties list attached to the tree
-	uint		fHashKey;			///< the hashtable key
+	unsigned int		fHashKey;			///< the hashtable key
 	int			fAperture;			///< how "open" is a tree (synthezised field)
 	tvec		fBranch;			///< the subtrees
 
-	CTree (uint hk, const Node& n, const tvec& br); 						///< construction is private, uses tree::make instead
+	CTree (unsigned int hk, const Node& n, const tvec& br); 						///< construction is private, uses tree::make instead
 
 	bool 		equiv 				(const Node& n, const tvec& br) const;	///< used to check if an equivalent tree already exists
-	static uint	calcTreeHash 		(const Node& n, const tvec& br);		///< compute the hash key of a tree according to its node and branches
+	static unsigned int	calcTreeHash 		(const Node& n, const tvec& br);		///< compute the hash key of a tree according to its node and branches
 	static int	calcTreeAperture 	(const Node& n, const tvec& br);		///< compute how open is a tree
 
  public:
@@ -141,7 +140,7 @@ class CTree
  	const Node& node() const		{ return fNode; 		}	///< return the content of the tree
  	int 		arity() const		{ return fBranch.size();}	///< return the number of branches (subtrees) of a tree
 	Tree 		branch(int i) const	{ return fBranch[i];	}	///< return the ith branch (subtree) of a tree
- 	uint 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
+ 	unsigned int 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
  	int 		aperture() const	{ return fAperture; 	}	///< return how "open" is a tree in terms of free variables
  	void 		setAperture(int a) 	{ fAperture=a; 			}	///< modify the aperture of a tree
 
@@ -152,6 +151,7 @@ class CTree
 
 	// Property list of a tree
 	void		setProperty(Tree key, Tree value) { fProperties[key] = value; }
+	void		clearProperty(Tree key) { fProperties.erase(key); }
 	Tree		getProperty(Tree key) {
 		plist::iterator i = fProperties.find(key);
 		if (i==fProperties.end()) {

@@ -97,7 +97,7 @@ Tree CTree::gHashTable[kHashTableSize];
 bool CTree::gDetails = false;
 
 // Constructor : add the tree to the hash table
-CTree::CTree (uint hk, const Node& n, const tvec& br) 
+CTree::CTree (unsigned int hk, const Node& n, const tvec& br) 
 	:	fNode(n), 
 		fHashKey(hk), 
 	 	fAperture(calcTreeAperture(n,br)), 
@@ -142,7 +142,7 @@ Sym PROCESS = symbol("process");
 
 unsigned int CTree::calcTreeHash( const Node& n, const tvec& br )
 {
-	uint 			hk = n.type() ^ n.getInt();
+	unsigned int 			hk = n.type() ^ n.getInt();
 	tvec::const_iterator  b = br.begin();
 	tvec::const_iterator  z = br.end();
 	
@@ -160,7 +160,7 @@ Tree CTree::make(const Node& n, int ar, Tree* tbl)
 	
 	for (int i=0; i<ar; i++)  br[i] = tbl[i];
 	
-	uint 	hk  = calcTreeHash(n, br);
+	unsigned int 	hk  = calcTreeHash(n, br);
 	Tree	t = gHashTable[hk % kHashTableSize];
 	
 	while (t && !t->equiv(n, br)) {
@@ -172,7 +172,7 @@ Tree CTree::make(const Node& n, int ar, Tree* tbl)
 
 Tree CTree::make(const Node& n, const tvec& br)
 {
-	uint 	hk  = calcTreeHash(n, br);
+	unsigned int 	hk  = calcTreeHash(n, br);
 	Tree	t = gHashTable[hk % kHashTableSize];
 	
 	while (t && !t->equiv(n, br)) {
