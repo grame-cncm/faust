@@ -137,14 +137,13 @@ class uiItem
   protected :
 		  
 	UI*		fGUI;
-	float*		fZone;
-	float		fCache;
+	float*	fZone;
+	float	fCache;
 	
 	uiItem (UI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
 		ui->registerZone(zone, this); 
-	}
-	
+	}	
 	
   public :
 
@@ -183,7 +182,6 @@ struct uiCallbackItem : public uiItem
 	}
 };
 
-
 /**
  * Update all user items reflecting zone z
  */
@@ -196,7 +194,6 @@ inline void UI::updateZone(float* z)
 		if ((*c)->cache() != v) (*c)->reflectZone();
 	}
 }
-
 
 /**
  * Update all user items not up to date
@@ -217,10 +214,7 @@ inline void UI::updateAllZones()
 inline void UI::addCallback(float* zone, uiCallback foo, void* data) 
 { 
 	new uiCallbackItem(this, zone, foo, data); 
-};
-
-
-		
+};		
 
 //----------------------------------------------------------------
 //  d�inition du processeur de signal
@@ -240,8 +234,7 @@ class dsp {
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
  	virtual void conclude() 										{}
 };
-		
-		
+				
 <<includeclass>>
 
 #define EXPORT __declspec(dllexport)
