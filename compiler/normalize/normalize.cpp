@@ -799,7 +799,8 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 
 	} else if (isSigFixDelay(s, x, y)) {
 		// (x@n)@m = x@(n+m)
-		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
+//		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
+		return normalizeFixedDelayTerm(x,simplify(sigAdd(d,y))); 
 
 	} else {
 
