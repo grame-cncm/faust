@@ -46,9 +46,10 @@
 #include "xtended.hh"
 #include "contextor.hh"
 #include "compatibility.hh"
+#include "ppsig.hh"
 
 extern bool	gLessTempSwitch;
-extern int	gMaxCopyDelay;
+extern int		gMaxCopyDelay;
 
 static void setVectorNameProperty(Tree sig, const string& vecname);
 static bool getVectorNameProperty(Tree sig, string& vecname);
@@ -218,7 +219,7 @@ string	ScalarCompiler::CS (Tree sig)
 	contextor	contextRecursivness;
 	Tree t;
 #if 0
-	cerr << "ScalarCompiler::CS (" << *sig << ")" << endl;
+	cerr << "ScalarCompiler::CS (" << *getSigType(sig) << ':' << ppsig(sig) << ")" << endl;
 #endif
 
 	if (getProperty(sig, fCompileKey, t)) {
@@ -285,8 +286,8 @@ string	ScalarCompiler::generateCode (Tree sig)
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
 
 		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
-	else if ( isSigInt(sig, &i) ) 					{ return T(i); }
-	else if ( isSigReal(sig, &r) ) 				{ return T(r); }
+	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
+	else if ( isSigReal(sig, &r) ) 				{ return generateNumber(sig, T(r)); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
@@ -331,6 +332,28 @@ string	ScalarCompiler::generateCode (Tree sig)
 		exit(1);
 	}
 	return "error in generate code";
+}
+
+
+/*****************************************************************************
+							   NUMBERS
+*****************************************************************************/
+
+
+string ScalarCompiler::generateNumber (Tree sig, const string& exp)
+{
+	string		ctype, vname;
+	Occurences* o = fOccMarkup.retrieve(sig);
+	
+	// check for number occuring in delays
+	if (o->getMaxDelay()>0) {
+		//cerr << "generate number with delay" << endl;
+		getTypedNames(getSigType(sig), "Vec", ctype, vname);
+		return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+	} else {
+		//cerr << "generate number without delay" << endl;
+		return exp;
+	}
 }
 
 
@@ -738,12 +761,6 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 							fonctions auxilliaires
 ----------------------------------------------------------------------------*/
 
-// Donne le nom du type C correspondant �la nature d'un signal
-static string cType (Type t)
-{
-	return (t->nature() == kInt) ? "int" : "float";
-}
-
 
 // Projection : selection du iem signal d'un groupe recursif
 string ScalarCompiler::generateRecProj(Tree sig, Tree x, int i)
@@ -992,6 +1009,30 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
 	mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
+	assert(getVectorNameProperty(exp, vecname));
+
+	if (mxd < gMaxCopyDelay) {
+
+		return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+
+	} else {
+
+		// long delay : we use a ring buffer of size 2^x
+		int 	N 	= pow2limit( mxd+1 );
+		return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N-1))); 
+	}
+}
+
+#if 0
+string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
+{
+	int 	mxd, d; 
+	string 	vecname;
+ 
+	CS(exp); // ensure exp is compiled to have a vector name
+
+	mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+
 	assert(isSigInt(delay, &d));
 	assert(getVectorNameProperty(exp, vecname));
 	assert(d > 0);
@@ -1023,6 +1064,7 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 		return subst("$0[(IOTA-$1)&$2]", vecname, T(d), T(N-1)); 
 	}
 }
+#endif
 
 
 
@@ -1033,12 +1075,19 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
 string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
+	return generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
+}
+
+#if 0
+string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
+{
 	if (gLessTempSwitch) {
 		return generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
 	} else {
 		return generateDelayVecWithTemp(sig, exp, ctype, vname, mxd);
 	}
 }
+#endif
 
 
 

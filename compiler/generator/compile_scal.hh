@@ -116,6 +116,8 @@ class ScalarCompiler : public Compiler
 	string 		generateVBargraph 	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
 	string 		generateHBargraph	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
 
+	string		generateNumber(Tree sig, const string& exp);
+	
 	string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	string		generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
