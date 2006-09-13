@@ -17,7 +17,13 @@ class SqrtPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == 1);
-		return floatCast(args[0]);
+		Type 		t = args[0];
+		interval 	i = t->getInterval();
+		if (i.valid && i.lo >=0) {
+			return castInterval(floatCast(t), interval(sqrt(i.lo), sqrt(i.hi)));
+		} else {
+			return castInterval(floatCast(t), interval());
+		}
 	}
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

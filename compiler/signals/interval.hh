@@ -25,6 +25,7 @@
 #define __signals_intervals__
 
 #include <math.h>
+#include <iostream>
 
 
 
@@ -42,10 +43,28 @@ struct interval
 	interval (const interval& r)	: valid(r.valid), lo(r.lo), hi(r.hi) { }
 };
 
+inline ostream& operator<<(ostream& dst, const interval& i) 	
+{ 
+	if (i.valid) {
+		return  dst << "interval(" << i.lo << ", " << i.hi << ")";
+	} else {
+		return  dst << "interval()";
+	}
+}
+
 inline double min(double x, double y) { return (x<y) ? x:y; }
 inline double max(double x, double y) { return (x>y) ? x:y; }
 inline double min4(double a, double b, double c, double d)	{ return min(min(a,b),min(c,d)); }
 inline double max4(double a, double b, double c, double d)	{ return max(max(a,b),max(c,d)); }
+
+inline interval reunion(const interval& x, const interval& y)
+{
+	if (x.valid & y.valid) {
+		return interval(min(x.lo,y.lo), max(x.hi,y.hi));
+	} else {
+		return interval();
+	}
+}
 
 
 inline interval operator+(const interval& x, const interval& y) 	

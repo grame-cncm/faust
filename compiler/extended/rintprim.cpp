@@ -17,7 +17,12 @@ class RintPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == arity());
-		return floatCast(args[0]);
+		interval i = args[0]->getInterval();
+		if (i.valid) {
+			return castInterval(floatCast(args[0]), interval(rint(i.lo), rint(i.hi)));
+		} else {
+			return floatCast(args[0]);
+		}
 	}
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

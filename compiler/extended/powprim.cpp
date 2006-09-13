@@ -16,7 +16,7 @@ class PowPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == arity());
-		return floatCast(args[0]|args[1]);
+		return castInterval(floatCast(args[0]|args[1]), interval()); // temporary !!!
 	}
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

@@ -16,7 +16,7 @@ class SinPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == 1);
-		return floatCast(args[0]);
+		return castInterval(floatCast(args[0]), interval(-1,1));
 	}
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

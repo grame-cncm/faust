@@ -56,7 +56,8 @@ ostream& SimpleType::print(ostream& dst) const
 		    << "KB?S"[variability()]
 		    << "CI?E"[computability()]
 		    << "VS?TS"[vectorability()]
-		    << "N?B"[boolean()]; 
+		    << "N?B"[boolean()] 
+			<< " " << fInterval; 
 }
 
 
@@ -66,7 +67,8 @@ ostream& SimpleType::print(ostream& dst) const
 ostream& TableType::print(ostream& dst) const
 {
 	dst << "KB?S"[variability()]
-		<< "CI?E"[computability()] 
+		<< "CI?E"[computability()]
+		<< " " << fInterval 
 		<< ":Table(";
 	fContent->print(dst);
 	return dst << ')'; 
@@ -81,7 +83,8 @@ ostream& TupletType::print(ostream& dst) const
 {
 	dst << "KB?S"[variability()]
 		<< "CI?E"[computability()] 
-		<< ":{"; 
+		<< " " << fInterval
+		<< " : {"; 
 	string sep = "";
 	for (unsigned int i = 0; i < fComponents.size(); i++, sep="*") {
 		dst << sep;
@@ -101,23 +104,23 @@ ostream& TupletType::print(ostream& dst) const
 
 // Essential predefined types
 
-Type TINT 	= new SimpleType(kInt, kKonst, kComp, kVect, kNum);
-Type TREAL 	= new SimpleType(kReal, kKonst, kComp, kVect, kNum);
+Type TINT 	= new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+Type TREAL 	= new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
 
-Type TKONST = new SimpleType(kInt, kKonst, kComp, kVect, kNum);
-Type TBLOCK = new SimpleType(kInt, kBlock, kComp, kVect, kNum);
-Type TSAMP 	= new SimpleType(kInt, kSamp, kComp, kVect, kNum);
+Type TKONST = new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+Type TBLOCK = new SimpleType(kInt, kBlock, kComp, kVect, kNum, interval());
+Type TSAMP 	= new SimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
 
-Type TCOMP 	= new SimpleType(kInt, kKonst, kComp, kVect, kNum);
-Type TINIT 	= new SimpleType(kInt, kKonst, kInit, kVect, kNum);
-Type TEXEC 	= new SimpleType(kInt, kKonst, kExec, kVect, kNum);
+Type TCOMP 	= new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+Type TINIT 	= new SimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
+Type TEXEC 	= new SimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
 
 // more predefined types
 
-Type TINPUT	= new SimpleType(kReal, kSamp, kExec, kVect, kNum);
-Type TGUI	= new SimpleType(kReal, kBlock,kExec, kVect, kNum);
-Type INT_TGUI   = new SimpleType(kInt,  kBlock,kExec, kVect, kNum);
-Type TREC	= new SimpleType(kInt,  kSamp, kInit, kVect, kNum); // kVect ou kScal ?
+Type TINPUT	= new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
+Type TGUI	= new SimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
+Type INT_TGUI   = new SimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
+Type TREC	= new SimpleType(kInt,  kSamp, kInit, kVect, kNum, interval()); // kVect ou kScal ?
 		
 
 Type operator| ( const Type& t1, const Type& t2)
@@ -132,7 +135,8 @@ Type operator| ( const Type& t1, const Type& t2)
 					st1->variability()|st2->variability(),
 					st1->computability()|st2->computability(),
 					st1->vectorability()|st2->vectorability(),
-					st1->boolean()|st2->boolean()
+					st1->boolean()|st2->boolean(),
+					interval() /// achanger
 					);
 		
 	} else if ( (tt1 = isTableType(t1)) && (tt2 = isTableType(t2)) ) {
@@ -266,6 +270,22 @@ Type checkWRTbl(Type tbl, Type wr)
 	return tbl;
 }		
 
+/**
+	\brief Check is a type is appropriate for a delay.
+	@return -1 if not appropriate, mxd (max delay) if appropriate
+	
+ */
+int checkDelayInterval(Type t)
+{
+	interval i = t->getInterval();
+	if (i.valid && i.lo >= 0) {
+		return int(i.hi+0.5);
+	} else {
+		cerr << "checkDelayInterval failed for : " << i << endl;
+		return -1;
+	}
+}		
+	
 
 // Donne le nom du type C correspondant �la nature d'un signal
 string cType (Type t)

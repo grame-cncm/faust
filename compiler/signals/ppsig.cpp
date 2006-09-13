@@ -125,8 +125,9 @@ ostream& ppsig::printff (ostream& fout, Tree ff, Tree largs) const
 
 ostream& ppsig::printFixDelay (ostream& fout, Tree exp, Tree delay) const
 {
-	int d = tree2int(delay);
-	if (d==1) {
+	int 	d;
+	
+	if (isSigInt(delay, &d) && (d==1)) {
 		fout << ppsig(exp,fEnv,8) << "'";
 	} else {
 		printinfix(fout, "@", 8, exp, delay); 

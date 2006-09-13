@@ -17,7 +17,9 @@ class MaxPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& types)
 	{
 		assert (types.size() == arity());
-		return types[0]|types[1];
+		interval i = types[0]->getInterval();
+		interval j = types[1]->getInterval();
+		return castInterval(types[0]|types[1], max(i,j));
 	}
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

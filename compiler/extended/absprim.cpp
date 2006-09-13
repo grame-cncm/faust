@@ -17,7 +17,9 @@ class AbsPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& types)
 	{
 		assert (types.size() == arity());
-		return types[0];
+		Type t = types[0];
+		return castInterval(t, abs(t->getInterval()));
+		return t;
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}

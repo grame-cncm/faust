@@ -25,6 +25,7 @@
 #include <assert.h>
 #include "sigtype.hh"
 #include "sigprint.hh"
+#include "ppsig.hh"
 //#include "prim.hh"
 #include "prim2.hh"
 #include "tlib.hh"
@@ -238,6 +239,49 @@ Type T(Tree term, Tree env)
 
 
 /**
+ * Compute the resulting interval of an arithmetic operation
+ * @param op code of the operation
+ * @param s1 interval of the left operand
+ * @param s2 interval of the right operand
+ * @return the resulting interval
+ */
+
+static interval __arithmetic (int opcode, const interval& x, const interval& y)
+{
+	switch (opcode) {
+		case kAdd: return x+y;
+		case kSub: return x-y;
+		case kMul:	return x*y;
+		case kDiv: return x/y;
+		case kRem: return x%y;
+		case kLsh: return x<<y;
+		case kRsh: return x>>y;
+		case kGT:  return x>y;
+		case kLT:  return x<y;
+		case kGE:  return x>=y;
+		case kLE:  return x<=y;
+		case kEQ:  return x==y;
+		case kNE:	return x!=y;
+		case kAND:	return x&y;
+		case kOR:  return x|y;
+		case kXOR: return x^y;
+		default:
+			cerr << "Unrecognized opcode : " << opcode << endl;
+			exit(1);
+	}
+		
+	return interval();
+}
+
+static interval arithmetic (int opcode, const interval& x, const interval& y)
+{
+	interval r = __arithmetic(opcode,x,y);
+	//cerr << "arithmetic(" << opcode << ',' << x << ',' << y << ") -> " << r << endl;
+	return r;
+}
+
+
+/**
  * Infere the type of a term according to its surrounding type environment
  * @param sig the signal to aanlyze
  * @param env the type environment
@@ -249,31 +293,48 @@ static Type infereSigType(Tree sig, Tree env)
 	int 		i;
 	float 		r;
 	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
+	Tree		label, cur, min, max, step;
 
 
+		 if ( getUserData(sig) ) 			return infereXType(sig, env);
 
-		 if ( getUserData(sig) ) 				return infereXType(sig, env);
+	else if (isSigInt(sig, &i))			return new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
 
-	else if (isSigInt(sig, &i))				return TINT;
+	else if (isSigReal(sig, &r)) 			return new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
 
-	else if (isSigReal(sig, &r)) 				return TREAL;
+	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1,1));
 
-	else if (isSigInput(sig, &i))				return TINPUT;
+	else if (isSigOutput(sig, &i, s1)) 	return sampCast(T(s1,env));
 
-	else if (isSigOutput(sig, &i, s1)) 		return sampCast(T(s1,env));
+	else if (isSigDelay1(sig, s1)) 			{ 
+		Type t = T(s1,env); 
+		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0))); 
+	}
 
-	else if (isSigDelay1(sig, s1)) 			return sampCast(T(s1,env));
+	else if (isSigPrefix(sig, s1, s2)) 		{ 
+		Type t1 = T(s1,env); 
+		Type t2 = T(s2,env); 
+		checkInit(t1); 
+		return castInterval(sampCast(t1|t2), reunion(t1->getInterval(), t2->getInterval())); 
+	}
 
-	else if (isSigPrefix(sig, s1, s2)) 		{ checkInit(T(s1,env)); return sampCast(T(s1,env)|T(s2,env)); }
-
-	else if (isSigFixDelay(sig, s1, s2)) 		{ checkIntParam(T(s2,env)); return sampCast(T(s1,env)); }
+	else if (isSigFixDelay(sig, s1, s2)) 		{ 
+		Type t1 = T(s1,env); 
+		Type t2 = T(s2,env); 
+/*		cerr << "for sig fix delay : s1 = " 
+				<< t1 << ':' << ppsig(s1) << ", s2 = " 
+				<< t2 << ':' << ppsig(s2) << endl; */
+		//assert(checkDelayInterval(t2)>=0); 
+		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0))); 
+	}
 
 	else if (isSigBinOp(sig, &i, s1, s2)) {
 		//Type t = T(s1,env)|T(s2,env);
 		Type t1 = T(s1,env);
 		Type t2 = T(s2,env);
-		Type t = t1 | t2;
-	  	return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t) : t; // for comparaison operation the result is int
+		Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
+		//cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
+	  	return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
 	}
 
 	else if (isSigIntCast(sig, s1))			return intCast(T(s1,env));
@@ -284,15 +345,18 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigFConst(sig,type,name,file))	return infereFConstType(type);
 
-	else if (isSigButton(sig)) 				return /*INT_*/TGUI; //return TGUI;
+	else if (isSigButton(sig)) 				return castInterval(TGUI,interval(0,1)); 
 
-	else if (isSigCheckbox(sig))				return /*INT_*/TGUI; //return TGUI;
+	else if (isSigCheckbox(sig))				return castInterval(TGUI,interval(0,1));
 
-	else if (isSigVSlider(sig))				return TGUI;
+	else if (isSigVSlider(sig,label,cur,min,max,step))		
+												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
-	else if (isSigHSlider(sig))				return TGUI;
+	else if (isSigHSlider(sig,label,cur,min,max,step))				
+												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
-	else if (isSigNumEntry(sig))				return TGUI;
+	else if (isSigNumEntry(sig,label,cur,min,max,step))				
+												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
 	else if (isSigHBargraph(sig, l, x, y, s1)) return T(s1,env);
 
@@ -324,7 +388,8 @@ static Type infereSigType(Tree sig, Tree env)
 				 st1->variability()|st2->variability()|stsel->variability(),
 				 st1->computability()|st2->computability()|stsel->computability(),
 				 st1->vectorability()|st2->vectorability()|stsel->vectorability(),
-				 st1->boolean()|st2->boolean()
+				 st1->boolean()|st2->boolean(),
+				 reunion(st1->getInterval(), st2->getInterval())
 				 );
 
 	  //return T(sel,env)|T(s1,env)|T(s2,env);
@@ -509,11 +574,11 @@ static Type infereFFType (Tree ff, Tree ls, Tree env)
 	// rand() c'est a dire que le resultat varie a chaque appel.
 	if (ffarity(ff)==0) {
 		// case of functions like rand()
-		return new SimpleType(ffrestype(ff),kSamp,kInit,kVect,kNum);
+		return new SimpleType(ffrestype(ff),kSamp,kInit,kVect,kNum, interval());
 	} else {
 		// otherwise variability and computability depends
 		// arguments (OR of all arg types)
-		Type t = new SimpleType(kInt,kKonst,kInit,kVect,kNum);
+		Type t = new SimpleType(kInt,kKonst,kInit,kVect,kNum, interval());
 		while (isList(ls)) { t = t|T(hd(ls),env); ls=tl(ls); }
 		// but the result type is defined by the function
 
@@ -522,7 +587,8 @@ static Type infereFFType (Tree ff, Tree ls, Tree env)
 								t->variability(),
 								t->computability(),
 								t->vectorability(),
-								t->boolean() );
+								t->boolean(),
+								interval() );
 	}
 }
 
@@ -534,7 +600,7 @@ static Type infereFConstType (Tree type)
 	// une constante externe ne peut pas se calculer au plus tot qu'a
 	// l'initialisation. Elle est constante, auquel cas on considere que c'est comme
 	// rand() c'est a dire que le resultat varie a chaque appel.
-	return new SimpleType(tree2int(type),kKonst,kInit,kVect,kNum);
+	return new SimpleType(tree2int(type),kKonst,kInit,kVect,kNum, interval());
 }
 
 
