@@ -111,7 +111,11 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 		// We mark the subtrees of t
 		Tree x, y;
 		if (isSigFixDelay(t,x,y)) {
-			incOcc(env, v0, r0, tree2int(y), x);
+			Type g2 = getSigType(y);
+			int d2 = checkDelayInterval(g2);
+			assert(d2>=0);
+			incOcc(env, v0, r0, d2, x);
+			incOcc(env, v0, r0, 0, y);
 		} else {
 			vector<Tree> br;
 			int n = getSubSignals(t, br);

@@ -1837,12 +1837,6 @@ static string makeRecVarTempName_vect(const string& groupID, int i)
   return subst("$0temp$1", groupID, T(i));
 }
 
-// Donne le nom du type C correspondant �la nature d'un signal
-static string cType (Type t)
-{
-	return (t->nature() == kInt) ? "int" : "float";
-}
-
 /*
 // Donne le nom zero correspondant �la nature d'un signal
 static string cZero (Type t)
