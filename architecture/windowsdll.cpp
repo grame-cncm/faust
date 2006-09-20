@@ -239,12 +239,12 @@ class dsp {
 
 #define EXPORT __declspec(dllexport)
 
-extern "C" dsp* EXPORT newDsp() 									{ return new mydsp(); }
-extern "C" void EXPORT deleteDsp(dsp* self) 						{ delete self; }
+extern "C" EXPORT dsp*  newDsp() 									{ return new mydsp(); }
+extern "C" EXPORT void EXPORT deleteDsp(dsp* self) 						{ delete self; }
 
-extern "C" int EXPORT getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
-extern "C" int EXPORT getNumOutputs(dsp* self) 						{ return self->getNumOutputs(); }
-extern "C" void EXPORT buildUserInterface(dsp* self,UI* interface) 	{ self->buildUserInterface(interface); }
-extern "C" void EXPORT init(dsp* self, int freq) 					{ self->init(freq); }
-extern "C" void EXPORT compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
-extern "C" void EXPORT conclude(dsp* self)							{ self->conclude(); }
+extern "C" EXPORT int getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
+extern "C" EXPORT int getNumOutputs(dsp* self) 						{ return self->getNumOutputs(); }
+extern "C" EXPORT void buildUserInterface(dsp* self,UI* interface) 	{ self->buildUserInterface(interface); }
+extern "C" EXPORT void init(dsp* self, int freq) 					{ self->init(freq); }
+extern "C" EXPORT void compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
+extern "C" EXPORT void conclude(dsp* self)							{ self->conclude(); }
