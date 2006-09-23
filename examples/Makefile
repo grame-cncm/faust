@@ -1,5 +1,10 @@
 all : jackgtk
 
+puredata :
+	install -d puredatadir
+	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='' -f Makefile.pdcompile
+
+
 alsagtk :
 	install -d alsagtkdir
 	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' -f Makefile.compile

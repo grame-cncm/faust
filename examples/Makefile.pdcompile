@@ -1,0 +1,23 @@
+DEST	:= pddir/
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+modules	:= $(addprefix $(DEST),  $(dspsrc:%.dsp=%~.pd_linux))
+libs    := $(wildcard *.lib)
+
+LINUXCFLAGS = -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC \
+    -Wall -W -Wshadow -Wno-unused -Wno-parentheses -Wno-switch $(CFLAGS)
+
+LINUXINCLUDE =
+
+###allcpp: $(cppsrc)
+
+allmodules: $(modules)
+
+$(DEST)%~.pd_linux: $(DEST)%.cpp
+	$(CXX) $(LINUXCFLAGS) $(LINUXINCLUDE) -shared -Dmydsp=$(patsubst %~.pd_linux,%,$(notdir $@)) $< -o $@
+
+$(DEST)%.cpp: %.dsp *.lib
+	faust $(VEC) -a puredata.cpp $< -o $@
+
+clean:
+	rm -rf $(DEST)
