@@ -16,6 +16,10 @@ using namespace std;
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
 
+#define sym(name) xsym(name)
+#define xsym(name) #name
+
+
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 
@@ -179,10 +183,74 @@ class portCollector : public UI
 
 	
 	//--------------------------------------------------------------------------------------
+	string simplify(const string& src)
+	{
+		int		i=0;
+		int		level=2;
+		string	dst;
+		
+		while (src[i] ) {
+		
+			switch (level) {
+			
+				case 0 : 	
+				case 1 : 			
+				case 2 : 	
+					// Skip the begin of the label "--foo-"
+					// until 3 '-' have been read
+					if (src[i]=='-') { level++; }
+					break;
+							
+				case 3 :	
+					// copy the content, but skip non alphnum
+					// and content in parenthesis
+					switch (src[i]) {
+						case '(' : 	
+						case '[' : 	
+							level++;
+							break;
+							
+						case '-' : 	
+							dst += '-';
+							break;
+									
+						default :
+							if (isalnum(src[i])) {
+								dst+= tolower(src[i]); 
+							}
+							
+					}
+					break;
+					
+				default :	
+					// here we are inside parenthesis and 
+					// we skip the content until we are back to
+					// level 3
+					switch (src[i]) {
+		
+						case '(' : 	
+						case '[' : 
+							level++;
+							break;
+									
+						case ')' : 	
+						case ']' : 
+							level--;
+							break;
+							
+						default :
+							break;
+					}
+						
+			}
+			i++;
+		}
+		return (dst.size() > 0) ? dst :src;
+	}
 
 	void addPortDescr(int type, char* label, int hint, float min=0.0, float max=0.0) 
 	{
-		string fullname = fPrefix.top() + "-" + label;
+		string fullname = simplify(fPrefix.top() + "-" + label);
 		char * str = strdup(fullname.c_str());
 		
 		fPortDescs[fInsCount + fOutsCount + fCtrlCount] = type; 
@@ -198,7 +266,7 @@ class portCollector : public UI
 		if (fPrefix.size() == 0) {
 			// top level label is used as plugin name
 			fPluginName = label;
-			fPrefix.push(fPluginName);
+			fPrefix.push(label);
 			
 		} else {
 			string s;
@@ -303,15 +371,19 @@ class portCollector : public UI
 
 	// fill a ladspa descriptor with the information collected on ports
 	void fillPortDescription (LADSPA_Descriptor * descriptor) {
+		char* name = sym(mydsp);
 		descriptor->PortCount 			= fCtrlCount+fInsCount+fOutsCount;
 		descriptor->PortDescriptors 	= fPortDescs;
 		descriptor->PortNames 			= fPortNames;
 		descriptor->PortRangeHints 		= fPortHints;
 		
-		descriptor->Label = strdup(fPluginName.c_str());
-		descriptor->UniqueID = makeID(fPluginName.c_str());
+		descriptor->Label = strdup(name);
+		descriptor->UniqueID = makeID(name);
+//		descriptor->Label = strdup(fPluginName.c_str());
+//		descriptor->UniqueID = makeID(fPluginName.c_str());
 		descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-		descriptor->Name = strdup(fPluginName.c_str());
+		descriptor->Name = name;
+//		descriptor->Name = strdup(fPluginName.c_str());
 		descriptor->Maker = "undefined";
 		descriptor->Copyright = "undefined";
 	}
