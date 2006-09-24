@@ -2,12 +2,12 @@ declare name 		"spat";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
-declare copyright 	"¢ GRAME 2006";
+declare copyright 	"(c)GRAME 2006";
 
 //==========================================================
 //
 // 					    GMEM SPAT
-//	implementation du spatialisateur de L. Pottier en faust
+//	implementation of L. Pottier Spatializer
 //
 //==========================================================
 
@@ -43,7 +43,7 @@ spat(n,a,d)	= _ <: par(i, n, *( scaler(i, n, a, d) : smooth(0.9999) ));
 
 
 //------------------------------------------------------
-// EXEMPLE : une entrée mono spatialisée sur 8 sorties
+// EXEMPLE : une entree mono spatialisee sur 8 sorties
 //------------------------------------------------------
 
 angle 			= hslider("angle",    0.0, 0, 1, 0.01);

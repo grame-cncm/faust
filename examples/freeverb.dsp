@@ -2,7 +2,7 @@ declare name 		"freeverb";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
-declare copyright 	"¢ GRAME 2006";
+declare copyright 	"(c)GRAME 2006";
 
 //======================================================
 //
@@ -55,7 +55,7 @@ allpasstuningL4	= 225;
 // Damp : filtrage des aigus des echos (surtout actif pour des grandes valeurs de RoomSize)
 // RoomSize : taille de la piece
 // Dry : signal original
-// Wet : signal avec reverbération
+// Wet : signal avec reverbration
 
 dampSlider 		= hslider("Damp",0.5, 0, 1, 0.025)*scaledamp;
 roomsizeSlider 	= hslider("RoomSize", 0.5, 0, 1, 0.025)*scaleroom + offsetroom;

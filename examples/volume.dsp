@@ -2,7 +2,7 @@ declare name 		"volume";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
-declare copyright 	"¢ GRAME 2006";
+declare copyright 	"(c)GRAME 2006";
 
 //-----------------------------------------------
 // 			Volume control in dB

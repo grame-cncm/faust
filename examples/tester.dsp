@@ -2,7 +2,7 @@ declare name 		"tester";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
-declare copyright 	" GRAME 2006";
+declare copyright 	"(c)GRAME 2006";
 
 //-----------------------------------------------
 // Tester : tests louspeakers
@@ -21,9 +21,9 @@ pink	= f : (+ ~ g) with {
 // User interface
 //----------------
 smooth(c)		= *(1-c) : +~*(c);
-vol 			= hslider("2-volume", -96, -96, 0, 0.1): db2linear : smooth(0.999);
-freq 			= hslider("1-freq", 1000, 0, 24000, 0.1);
-dest 			= hslider("3-destination", 0, 0, 8, 1);
+vol 			= hslider("(2)volume", -96, -96, 0, 0.1): db2linear : smooth(0.999);
+freq 			= hslider("(1) freq", 1000, 0, 24000, 0.1);
+dest 			= hslider("(3) destination", 0, 0, 8, 1);
 
 testsignal		= osci(freq)*checkbox("sine wave")
 				+ noise * checkbox("white noise")
