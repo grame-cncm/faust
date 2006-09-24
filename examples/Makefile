@@ -73,6 +73,10 @@ plot :
 	install -d plotdir
 	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' LIB='' -f Makefile.compile
 
+q :
+	install -d qdir
+	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='' -f Makefile.qcompile
+
 supercollider :
 	install -d supercolliderdir
 	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
@@ -83,6 +87,6 @@ jackconsole :
 
 
 clean :
-	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir benchdir supercolliderdir *-ps *-svg
+	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir *-ps *-svg
 
 
