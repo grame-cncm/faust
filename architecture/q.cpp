@@ -5,19 +5,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#ifdef __GNUC__
-
-//-------------------------------------------------------------------
-// Generic min and max using gcc extensions
-//-------------------------------------------------------------------
-
-#define max(x,y) ((x)>?(y))
-#define min(x,y) ((x)<?(y))
-
-//abs(x) should be already predefined
-
-#else
-
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
 //-------------------------------------------------------------------
@@ -63,8 +50,6 @@ inline double 	min (long a, double b) 		{ return (a<b) ? a : b; }
 inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
 inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
-		
-#endif
 
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
