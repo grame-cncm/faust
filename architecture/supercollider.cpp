@@ -417,8 +417,6 @@ void load(InterfaceTable* inTable)
 	ControlCounter cc;
 	dsp->classInit(48000); // TODO: use real sample rate
 	dsp->buildUserInterface(&cc);
-	size_t numInputs = dsp->getNumInputs();
-	size_t numOutputs = dsp->getNumOutputs();
 	size_t numControls = gNumControls = cc.getNumControls();
 	size_t sizeofFaust = sizeof(Faust) + numControls * sizeof(Control);
 	delete dsp;
