@@ -4,7 +4,6 @@ puredata :
 	install -d puredatadir
 	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='' -f Makefile.pdcompile
 
-
 alsagtk :
 	install -d alsagtkdir
 	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' -f Makefile.compile
@@ -12,14 +11,6 @@ alsagtk :
 jackgtk :
 	install -d jackgtkdir
 	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
-
-vecalsagtk :
-	install -d vecalsagtkdir
-	$(MAKE) VEC='-vec' DEST='vecalsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config gtk+-2.0 --cflags --libs`' -f Makefile.compile
-
-vecjackgtk :
-	install -d vecjackgtkdir
-	$(MAKE) VEC='-vec' DEST='vecjackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
 ladspa :
 	install -d ladspadir
@@ -79,7 +70,7 @@ q :
 
 supercollider :
 	install -d supercolliderdir
-	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
+	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.sccompile
 
 jackconsole :
 	install -d jackconsole
