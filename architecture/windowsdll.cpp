@@ -119,12 +119,7 @@ class UI
 	virtual void openHorizontalBox(char* label) = 0;
 	virtual void openVerticalBox(char* label) = 0;
 	virtual void closeBox() = 0;
-	
-	virtual void show() = 0;
-	virtual void run() = 0;
-	
-	void stop()		{ fStopped = true; }
-	bool stopped() 	{ return fStopped; }
+
 };
 
 
