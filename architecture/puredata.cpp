@@ -187,12 +187,24 @@ static string mangle(const char *s)
   return t;
 }
 
+static string normpath(string path)
+{
+  int pos = path.find("//");
+  while (pos >= 0) {
+    path.erase(pos, 1);
+    pos = path.find("//");
+  }
+  return path;
+}
+
 static string pathcat(string path, string label)
 {
   if (path.empty())
     return label;
+  else if (label.empty())
+    return path;
   else
-    return path+"/"+label;
+    return normpath(path+"/"+label);
 }
 
 PdUI::PdUI()
