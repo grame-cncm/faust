@@ -189,6 +189,7 @@ static string mangle(const char *s)
 
 static string normpath(string path)
 {
+  path = string("/")+path;
   int pos = path.find("//");
   while (pos >= 0) {
     path.erase(pos, 1);
@@ -200,9 +201,9 @@ static string normpath(string path)
 static string pathcat(string path, string label)
 {
   if (path.empty())
-    return label;
+    return normpath(label);
   else if (label.empty())
-    return path;
+    return normpath(path);
   else
     return normpath(path+"/"+label);
 }
@@ -398,6 +399,9 @@ class dsp {
 #define sym(name) xsym(name)
 #define xsym(name) #name
 
+// time for "active" toggle xfades in secs
+#define XFADE_TIME 0.1f
+
 static t_class *faust_class;
 
 struct t_faust {
@@ -405,7 +409,7 @@ struct t_faust {
   mydsp *dsp;
   PdUI *ui;
   string *label;
-  int rate, n_in, n_out;
+  int active, xfade, n_xfade, rate, n_in, n_out;
   t_sample **inputs, **outputs, **buf;
   t_outlet *out;
   t_sample f;
@@ -414,26 +418,98 @@ struct t_faust {
 static t_symbol *s_button, *s_checkbox, *s_vslider, *s_hslider, *s_nentry,
   *s_vbargraph, *s_hbargraph;
 
+static inline void zero_samples(int k, int n, t_sample **out)
+{
+  for (int i = 0; i < k; i++)
+#ifdef __STDC_IEC_559__
+    /* IEC 559 a.k.a. IEEE 754 floats can be initialized faster like this */
+    memset(out[i], 0, n*sizeof(t_sample));
+#else
+    for (int j = 0; j < n; j++)
+      out[i][j] = 0.0f;
+#endif
+}
+
+static inline void copy_samples(int k, int n, t_sample **out, t_sample **in)
+{
+  for (int i = 0; i < k; i++)
+    memcpy(out[i], in[i], n*sizeof(t_sample));
+}
+
 static t_int *faust_perform(t_int *w)
 {
   t_faust *x = (t_faust *)(w[1]);
   int n = (int)(w[2]);
-  if (x->dsp && x->buf) {
+  if (!x->dsp || !x->buf) return (w+3);
+  if (x->xfade > 0) {
+    float d = 1.0f/x->n_xfade, f = (x->xfade--)*d;
+    d = d/n;
     x->dsp->compute(n, x->inputs, x->buf);
-    for (int i = 0; i < x->n_out; i++)
-      memcpy(x->outputs[i], x->buf[i], n*sizeof(t_sample));
-  }
+    if (x->active)
+      if (x->n_in == x->n_out)
+	/* xfade inputs -> buf */
+	for (int j = 0; j < n; j++, f -= d)
+	  for (int i = 0; i < x->n_out; i++)
+	    x->outputs[i][j] = f*x->inputs[i][j]+(1.0f-f)*x->buf[i][j];
+      else
+	/* xfade 0 -> buf */
+	for (int j = 0; j < n; j++, f -= d)
+	  for (int i = 0; i < x->n_out; i++)
+	    x->outputs[i][j] = (1.0f-f)*x->buf[i][j];
+    else
+      if (x->n_in == x->n_out)
+	/* xfade buf -> inputs */
+	for (int j = 0; j < n; j++, f -= d)
+	  for (int i = 0; i < x->n_out; i++)
+	    x->outputs[i][j] = f*x->buf[i][j]+(1.0f-f)*x->inputs[i][j];
+      else
+	/* xfade buf -> 0 */
+	for (int j = 0; j < n; j++, f -= d)
+	  for (int i = 0; i < x->n_out; i++)
+	    x->outputs[i][j] = f*x->buf[i][j];
+  } else if (x->active) {
+    x->dsp->compute(n, x->inputs, x->buf);
+    copy_samples(x->n_out, n, x->outputs, x->buf);
+  } else if (x->n_in == x->n_out) {
+    copy_samples(x->n_out, n, x->buf, x->inputs);
+    copy_samples(x->n_out, n, x->outputs, x->buf);
+  } else
+    zero_samples(x->n_out, n, x->outputs);
   return (w+3);
 }
 
 static void faust_dsp(t_faust *x, t_signal **sp)
 {
-  int n = sp[0]->s_n;
+  int n = sp[0]->s_n, sr = (int)sp[0]->s_sr;
+  if (x->rate <= 0) {
+    /* default sample rate is whatever Pd tells us */
+    PdUI *ui = x->ui;
+    float *z = NULL;
+    if (ui->nelems > 0 &&
+	(z = (float*)malloc(ui->nelems*sizeof(float)))) {
+      /* save the current control values */
+      for (int i = 0; i < ui->nelems; i++)
+	if (ui->elems[i].zone)
+	  z[i] = *ui->elems[i].zone;
+    }
+    /* set the proper sample rate; this requires reinitializing the dsp */
+    x->rate = sr;
+    x->dsp->init(sr);
+    if (z) {
+      /* restore previous control values */
+      for (int i = 0; i < ui->nelems; i++)
+	if (ui->elems[i].zone)
+	  *ui->elems[i].zone = z[i];
+      free(z);
+    }
+  }
+  if (n > 0)
+    x->n_xfade = (int)(x->rate*XFADE_TIME/n);
   dsp_add(faust_perform, 2, x, n);
   for (int i = 0; i < x->n_in; i++)
-    x->inputs[i] = sp[i]->s_vec;
+    x->inputs[i] = sp[i+1]->s_vec;
   for (int i = 0; i < x->n_out; i++)
-    x->outputs[i] = sp[x->n_in+i]->s_vec;
+    x->outputs[i] = sp[x->n_in+i+1]->s_vec;
   if (x->buf != NULL)
     for (int i = 0; i < x->n_out; i++) {
       x->buf[i] = (t_sample*)malloc(n*sizeof(t_sample));
@@ -450,8 +526,12 @@ static void faust_dsp(t_faust *x, t_signal **sp)
 static int pathcmp(const char *s, const char *t)
 {
   int n = strlen(s), m = strlen(t);
-  if (n <= m || s[n-m-1] != '/')
+  if (n == 0 || m == 0)
+    return 0;
+  else if (t[0] == '/')
     return strcmp(s, t);
+  else if (n <= m || s[n-m-1] != '/')
+    return strcmp(s+1, t);
   else
     return strcmp(s+n-m, t);
 }
@@ -501,6 +581,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
       }
   } else {
     const char *label = s->s_name;
+    int count = 0;
     for (int i = 0; i < ui->nelems; i++)
       if (ui->elems[i].label &&
 	  pathcmp(ui->elems[i].label, label) == 0) {
@@ -510,15 +591,29 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
 	    SETFLOAT(&arg, *ui->elems[i].zone);
 	    outlet_anything(x->out, gensym(ui->elems[i].label), 1, &arg);
 	  }
+	  ++count;
 	} else if (argc == 1 &&
 		   (argv[0].a_type == A_FLOAT ||
 		    argv[0].a_type == A_DEFFLOAT) &&
 		   ui->elems[i].zone) {
 	  float f = atom_getfloat(argv);
 	  *ui->elems[i].zone = f;
+	  ++count;
 	} else
 	  pd_error(x, "[faust] %s: bad control argument: %s",
 		   x->label->c_str(), label);
+      }
+    if (count == 0 && strcmp(label, "active") == 0)
+      if (argc == 0) {
+	t_atom arg;
+	SETFLOAT(&arg, (float)x->active);
+	outlet_anything(x->out, gensym("active"), 1, &arg);
+      } else if (argc == 1 &&
+		 (argv[0].a_type == A_FLOAT ||
+		  argv[0].a_type == A_DEFFLOAT)) {
+	float f = atom_getfloat(argv);
+	x->active = (int)f;
+	x->xfade = x->n_xfade;
       }
   }
 }
@@ -540,15 +635,18 @@ static void faust_free(t_faust *x)
 static void *faust_new(t_symbol *s, int argc, t_atom *argv)
 {
   t_faust *x = (t_faust*)pd_new(faust_class);
-  x->rate = 44100;
+  int sr = -1;
   t_symbol *id = NULL;
+  x->active = 1;
   for (int i = 0; i < argc; i++)
     if (argv[i].a_type == A_FLOAT || argv[i].a_type == A_DEFFLOAT)
-      x->rate = (int)argv[i].a_w.w_float;
+      sr = (int)argv[i].a_w.w_float;
     else if (argv[i].a_type == A_SYMBOL || argv[i].a_type == A_DEFSYMBOL)
       id = argv[i].a_w.w_symbol;
+  x->rate = sr;
+  if (sr <= 0) sr = 44100;
+  x->xfade = 0; x->n_xfade = (int)(sr*XFADE_TIME/64);
   x->inputs = x->outputs = x->buf = NULL;
-  if (x->rate <= 0) x->rate = 44100;
   x->label = new string(sym(mydsp) "~");
   x->dsp = new mydsp();
   x->ui = new PdUI(id?id->s_name:NULL);
@@ -570,9 +668,9 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     goto error;
   for (int i = 0; i < x->n_out; i++)
     x->buf[i] = NULL;
-  x->dsp->init(x->rate);
+  x->dsp->init(sr);
   x->dsp->buildUserInterface(x->ui);
-  for (int i = 1; i < x->n_in; i++)
+  for (int i = 0; i < x->n_in; i++)
     inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
   x->out = outlet_new(&x->x_obj, 0);
   for (int i = 0; i < x->n_out; i++)
@@ -592,10 +690,9 @@ extern "C" void faust_setup(mydsp)
     class_new(s, (t_newmethod)faust_new, (t_method)faust_free,
 	      sizeof(t_faust), CLASS_DEFAULT,
 	      A_GIMME, A_NULL);
+  class_addmethod(faust_class, (t_method)faust_dsp, gensym("dsp"), A_NULL);
   class_addanything(faust_class, faust_any);
-  class_addmethod(faust_class,
-		  (t_method)faust_dsp, gensym("dsp"),
-		  A_NULL);
+  class_addmethod(faust_class, nullfn, &s_signal, A_NULL);
   s_button = gensym("button");
   s_checkbox = gensym("checkbox");
   s_vslider = gensym("vslider");
@@ -603,12 +700,8 @@ extern "C" void faust_setup(mydsp)
   s_nentry = gensym("nentry");
   s_vbargraph = gensym("vbargraph");
   s_hbargraph = gensym("hbargrap");
-  /* check number of inputs (we need this to decide whether to create the main
-     signal input) */
-  mydsp dsp = mydsp();
-  if (dsp.getNumInputs() > 0)
-    CLASS_MAINSIGNALIN(faust_class, t_faust, f);
   /* give some indication that we're loaded and ready to go */
+  mydsp dsp = mydsp();
   post("[faust] %s: %d inputs, %d outputs", sym(mydsp) "~",
        dsp.getNumInputs(), dsp.getNumOutputs());
 }
