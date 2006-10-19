@@ -105,7 +105,8 @@ adsr(a,d,s,r,t) = env ~ (_,_) : ! // the 2 'state' signals are fed back
 with {
     env (p2,y) =
         (t>0) & (p2|(y>=1)),          // p2 = decay-sustain phase
-        y + p1*u - (p2&(y>s))*v*y - p3*w*y	// y  = envelop signal
+        (y + p1*u - (p2&(y>s))*v*y - p3*w*y)	// y  = envelop signal
+	*((p3==0)|(y>=eps)) // cut off tails to prevent denormals
     with {
 	p1 = (p2==0) & (t>0) & (y<1);         // p1 = attack phase
 	p3 = (t<=0) & (y>0);                  // p3 = release phase
@@ -115,6 +116,8 @@ with {
 	z = s+(s==0.0)*db2linear(-60);
 	// attack, decay and (-60dB) release rates
 	u = 1/na; v = 1-pow(z, 1/nd); w = 1-1/pow(z*db2linear(60), 1/nr);
+	// values below this threshold are considered zero in the release phase
+	eps = db2linear(-120);
     };
 };
 
