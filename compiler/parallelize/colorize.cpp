@@ -58,7 +58,13 @@ static void clearColors(Tree exp);							///< remove the color property of exp
  */
 int allocateColor(Tree exp)
 {
-	return int(exp); 
+//	return int(exp); 
+	static map<Tree,int> colorMap;
+	static int nextFreeColor = 1;
+	int& color = colorMap[exp];
+	if (!color)
+		color = nextFreeColor++;
+	return color;
 }
 
 /**
