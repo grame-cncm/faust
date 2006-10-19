@@ -5,6 +5,8 @@
 #include <math.h>
 #include <errno.h>
 #include <time.h>
+#include <ctype.h>
+
 #include <vector>
 #include <stack>
 #include <string>
@@ -149,9 +151,10 @@ public:
 
 struct param {
 	float* fZone; float fMin; float fMax;
-	param(float* z, float a, float b) : fZone(z), fMin(a), fMax(b) {}
+	param(float* z, float init, float a, float b) : fZone(z), fMin(a), fMax(b) { *z = init; }
 };
-	
+
+
 class CMDUI : public UI
 {
 	int					fArgc;
@@ -159,12 +162,6 @@ class CMDUI : public UI
 	vector<char*>		fFiles;
 	stack<string>		fPrefix;
 	map<string, param>	fKeyParam;
-	
-	void addOption(const char* label, float* zone, float min, float max)
-	{
-		string fullname = fPrefix.top() + "-" + label;
-		fKeyParam.insert(make_pair(fullname, param(zone, min, max)));
-	}
 	
 	void openAnyBox(const char* label)
 	{
@@ -177,6 +174,71 @@ class CMDUI : public UI
 		}
 		fPrefix.push(prefix);
 	}
+
+	string simplify(const string& src)
+	{
+		int		i=0;
+		int		level=0;
+		string	dst;
+		
+		while (src[i] ) {
+		
+			switch (level) {
+			
+				case 0 : 	
+				case 1 : 			
+				case 2 : 	
+					// Skip the begin of the label "--foo-"
+					// until 3 '-' have been read
+					if (src[i]=='-') { level++; }
+					break;
+							
+				case 3 :	
+					// copy the content, but skip non alphnum
+					// and content in parenthesis
+					switch (src[i]) {
+						case '(' : 	
+						case '[' : 	
+							level++;
+							break;
+							
+						case '-' : 	
+							dst += '-';
+							break;
+									
+						default :
+							if (isalnum(src[i])) {
+								dst+= tolower(src[i]); 
+							}
+							
+					}
+					break;
+					
+				default :	
+					// here we are inside parenthesis and 
+					// we skip the content until we are back to
+					// level 3
+					switch (src[i]) {
+		
+						case '(' : 	
+						case '[' : 
+							level++;
+							break;
+									
+						case ')' : 	
+						case ']' : 
+							level--;
+							break;
+							
+						default :
+							break;
+					}
+						
+			}
+			i++;
+		}
+		return dst;
+	}
 	
 	
 public:
@@ -184,32 +246,42 @@ public:
 	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("-"); }
 	virtual ~CMDUI() {}
 	
+		
+	void addOption(const char* label, float* zone, float init, float min, float max)
+	{
+		string fullname = "-" + simplify(fPrefix.top() + "-" + label);
+		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
+	}
+
+	
 	virtual void addButton(const char* label, float* zone)
 	{
-		addOption(label,zone,0,1);
+		addOption(label,zone,0,0,1);
 	}
+	
 	virtual void addToggleButton(const char* label, float* zone)
 	{
-		addOption(label,zone,0,1);
+		addOption(label,zone,0,0,1);
 	}
+	
 	virtual void addCheckButton(const char* label, float* zone)
 	{
-		addOption(label,zone,0,1);
+		addOption(label,zone,0,0,1);
 	}
 		
 	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 	{
-		addOption(label,zone,min,max);
+		addOption(label,zone,init,min,max);
 	}
 		
 	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 	{
-		addOption(label,zone,min,max);
+		addOption(label,zone,init,min,max);
 	}
 
 	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 	{
-		addOption(label,zone,min,max);
+		addOption(label,zone,init,min,max);
 	}
 		
 	// -- passive widgets
@@ -229,7 +301,7 @@ public:
 	virtual void show() {}
 	virtual void run() 	{}
 	
-	void print() 
+	void printhelp() 
 	{
 		map<string, param>::iterator i;
 		cout << fArgc << "\n";
@@ -245,10 +317,16 @@ public:
 		map<string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
+				if (	(strcmp(fArgv[i], "-help") == 0) 
+					 || (strcmp(fArgv[i], "-h") == 0)
+					 || (strcmp(fArgv[i], "--help") == 0) ) 	{
+					printhelp();
+					exit(1);
+				}
 				p = fKeyParam.find(fArgv[i]); 
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-					print();
+					printhelp();
 					exit(1);
 				}
 				char*	end;
@@ -259,24 +337,7 @@ public:
 			}
 		}
 	}
-		
-	void process_init()
-	{
-		map<string, param>::iterator p;
-		for (int i = 1; i < fArgc; i++) {
-			if (fArgv[i][0] == '-') {
-				p = fKeyParam.find(fArgv[i]); 
-				if (p == fKeyParam.end()) {
-					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-					exit(1);
-				}
-				char*	end;
-				*(p->second.fZone) = float(strtod(fArgv[i+1], &end));
-				i++;
-			}
-		}
-	}
-	
+			
 	int 	files()			{ return fFiles.size(); }
 	char* 	file (int n)	{ return fFiles[n]; }
 		
@@ -353,7 +414,7 @@ int main(int argc, char *argv[] )
 
 	CMDUI* interface = new CMDUI(argc, argv);
 	DSP.buildUserInterface(interface);
-	interface->addHorizontalSlider("n", &fnbsamples, 16.0, 0.0, 100000000.0, 0.01); fnbsamples = 16.0;
+	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
 	interface->process_command();
 	
 	if (DSP.getNumInputs() > 0) {
@@ -363,10 +424,9 @@ int main(int argc, char *argv[] )
 	
 	// init signal processor
 	DSP.init(44100);
-	interface->process_init();
 	
 	int nouts = DSP.getNumOutputs();
-	channels chan (kFrames, nouts );
+	channels chan (kFrames, nouts);
 
 	int nbsamples = int(fnbsamples);
 	while (nbsamples > kFrames) {
