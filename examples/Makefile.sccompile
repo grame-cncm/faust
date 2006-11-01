@@ -8,7 +8,24 @@ sofiles		:= $(addprefix $(DEST), $(dspsrc:.dsp=.so))
 CXXFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
 LIB 		:= -shared
 
-all : $(scfiles) $(sofiles)
+
+###--------------------------------------------
+### Will use faust2sc to create the class file
+### only if it is installed
+
+helper:=$(shell whereis faust2sc)
+
+ifeq ($(helper),faust2sc:)
+	todo:=$(sofiles)
+else
+	todo:=$(sofiles) $(scfiles)
+endif
+
+
+###--------------------------------------------
+
+
+all : $(todo)
 
 $(DEST)%.cpp: %.dsp
 	faust -a $(ARCH) $< -o $@
@@ -17,7 +34,7 @@ $(DEST)%.so: $(DEST)%.cpp
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(LIB) $< -o $@
 
 $(DEST)%.sc : %.dsp.xml
-	./faust2sc --prefix=Faust $< --output=$@
+	faust2sc --prefix=Faust $< --output=$@
 
 %.dsp.xml: %.dsp
 	faust --xml -o /dev/null $<
