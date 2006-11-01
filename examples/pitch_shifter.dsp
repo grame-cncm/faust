@@ -25,5 +25,4 @@ pitchshifter = vgroup("Pitch Shifter", transpose(
 				);
 
 
-//process = _ <: select2(checkbox("activate"), _, pitchshifter) <: _,_;
 process = pitchshifter;
