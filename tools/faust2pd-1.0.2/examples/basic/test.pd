@@ -1,0 +1,126 @@
+#N canvas 283 179 627 567 10;
+#X obj 160 958 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X obj 220 1044 print;
+#X obj 258 973 karplus~;
+#X msg 88 918 gate 1;
+#X msg 148 918 gate 0;
+#X obj 283 1044 dac~;
+#X obj 467 640 tone~;
+#X obj 467 189 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X obj 467 705 print;
+#X msg 467 376 vol;
+#X obj 481 675 dac~;
+#X msg 467 409 pitch 220;
+#X msg 467 431 pitch 440;
+#X msg 467 319 vol 0.3;
+#X msg 467 604 vol 0;
+#X msg 258 915 freq \$1;
+#X text 24 374 5 Sending just the control name reports the current
+value of the control on the first outlet.;
+#X text 24 417 6 Use these to change the pitch (frequency) of the tone.
+;
+#X text 23 9 1 This is a simple test patch which demonstrates how you
+work with Faust DSPs in Pd. As with any other Pd external \, you need
+to compile the Faust DSPs before you can use them in Pd. The accompanying
+GNU Makefile has the rules to do this. So if you haven't done this
+already \, use "make" now to compile the plugins using the faust compiler
+and gcc \, which will make all the "can't create" messages go away.
+;
+#X obj 498 587 loadbang;
+#X obj 469 27 loadbang;
+#X obj 88 866 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X obj 148 892 del 100;
+#X text 110 864 <-- bang to play a note;
+#X text 333 892 <-- change the pitch here;
+#X text 29 1139 Albert Graef \, Sep 2006;
+#X obj 253 1008 freeverb~;
+#X text 23 958 print controls -->;
+#X text 24 186 3 You can bang the leftmost \, "control" inlet to get
+the control parameters of the DSP. The descriptions of the controls
+are then sent to the first outlet to which we have connected a print
+object below so that the results are printed in Pd's main window. For
+each control the description contains the type of control (as defined
+by the Faust source) \, the (fully qualified) name of the control \,
+its current value \, its initial value \, its range (from..to) and
+step size.;
+#X msg 356 972 active \$1;
+#X obj 356 950 tgl 15 0 empty active empty 0 -6 0 8 -262144 -1 -1 1
+1;
+#X msg 467 483 active \$1;
+#X obj 467 461 tgl 15 0 empty active empty 0 -6 0 8 -262144 -1 -1 1
+1;
+#X text 375 950 <-- enable/disable freeverb here;
+#X text 25 584 8 Hit the "vol 0" message when you've heard enough.
+(We've also attached a loadbang to this message so that the unit is
+silent initially.);
+#X text 25 740 10 Our final example is a slightly improved version
+of the Karplus-Strong synth from the Faust distribution (karplus.dsp).
+It can be played by changing the pitch with the number box and sending
+gate 1/gate 0 messages to start and end a note \, respectively. In
+this patch we've added a bang and a delay to automate this process.
+We've also attached a little freeverb~ unit (freeverb.dsp) to illustrate
+how you can build a simple synth/effect chain.;
+#X text 489 461 <-- enable/disable;
+#X obj 258 893 nbx 5 14 20 20000 0 0 empty freq empty 0 -6 0 10 -262144
+-1 -1 220 256;
+#X msg 469 60 \; pd dsp 1 \; active 1 \; freq 440;
+#X text 23 120 2 Ok \, if you've successfully compiled the DSPs then
+this patch should load without errors now. So let's take a look at
+our first example \, a simple sine tone generator. You can find the
+Faust source for this unit in tone.dsp.;
+#X text 25 314 4 You can change a control value by sending a message
+with the control name and value to the first inlet. E.g. \, let's hit
+the "vol 0.3" message to crank up the volume so that we can listen
+to the unit.;
+#X text 24 456 7 There's also a special control named "active" which
+lets you turn a Faust DSP on and off. This control is added automatically
+for your convenience so that you do not have to define it yourself.
+The default behaviour of the control \, when the value is 0 \, is to
+pass through the input signal if the number of audio inputs and outputs
+match \, and to generate silence otherwise. (You can also give your
+own custom definition of the active control in the Faust source if
+the default behaviour is not appropriate.);
+#X text 28 1077 More examples of useful Faust DSPs can be found in
+the other examples subdirectories. In particular \, take a look at
+examples/synth/synth.pd which contains a full-blown polyphonic synth
+based on different Faust units. Enjoy! :);
+#X text 24 634 9 Here's the object itself \, with a print attached
+so that the results of control messages sent to the leftmost inlet
+are printed in Pd's main window. The remaining outlets are the audio
+outputs which can be routed to a dac~. In general Faust DSPs may also
+have audio inputs \, of course \, these will then be available as additional
+audio inlets (see \, e.g. \, the freeverb~ object below as an example).
+;
+#X connect 0 0 2 0;
+#X connect 0 0 26 0;
+#X connect 2 0 1 0;
+#X connect 2 1 26 1;
+#X connect 2 2 26 2;
+#X connect 3 0 2 0;
+#X connect 4 0 2 0;
+#X connect 6 0 8 0;
+#X connect 6 1 10 0;
+#X connect 6 2 10 1;
+#X connect 7 0 6 0;
+#X connect 9 0 6 0;
+#X connect 11 0 6 0;
+#X connect 12 0 6 0;
+#X connect 13 0 6 0;
+#X connect 14 0 6 0;
+#X connect 15 0 2 0;
+#X connect 19 0 14 0;
+#X connect 20 0 38 0;
+#X connect 21 0 3 0;
+#X connect 21 0 22 0;
+#X connect 22 0 4 0;
+#X connect 26 0 1 0;
+#X connect 26 1 5 0;
+#X connect 26 2 5 1;
+#X connect 29 0 26 0;
+#X connect 30 0 29 0;
+#X connect 31 0 6 0;
+#X connect 32 0 31 0;
+#X connect 37 0 15 0;
