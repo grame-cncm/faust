@@ -61,26 +61,26 @@ public:
 	
 	// -- active widgets
 	
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addToggleButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addButton(const char* label, float* zone) = 0;
+	virtual void addToggleButton(const char* label, float* zone) = 0;
+	virtual void addCheckButton(const char* label, float* zone) = 0;
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
 	// -- frames and labels
 	
-	virtual void openFrameBox(char* label) = 0;
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
+	virtual void openFrameBox(const char* label) = 0;
+	virtual void openTabBox(const char* label) = 0;
+	virtual void openHorizontalBox(const char* label) = 0;
+	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void show() = 0;
@@ -92,9 +92,10 @@ public:
 
 struct param {
 	float* fZone; float fMin; float fMax;
-	param(float* z, float a, float b) : fZone(z), fMin(a), fMax(b) {}
+	param(float* z, float init, float a, float b) : fZone(z), fMin(a), fMax(b) { *z = init; }
 };
-	
+
+
 class CMDUI : public UI
 {
 	int					fArgc;
@@ -103,13 +104,7 @@ class CMDUI : public UI
 	stack<string>		fPrefix;
 	map<string, param>	fKeyParam;
 	
-	void addOption(char* label, float* zone, float min, float max)
-	{
-		string fullname = fPrefix.top() + label;
-		fKeyParam.insert(make_pair(fullname, param(zone, min, max)));
-	}
-	
-	void openAnyBox(char* label)
+	void openAnyBox(const char* label)
 	{
 		string prefix;
 		
@@ -120,50 +115,134 @@ class CMDUI : public UI
 		}
 		fPrefix.push(prefix);
 	}
+
+	string simplify(const string& src)
+	{
+		int		i=0;
+		int		level=0;
+		string	dst;
+		
+		while (src[i] ) {
+		
+			switch (level) {
+			
+				case 0 : 	
+				case 1 : 			
+				case 2 : 	
+					// Skip the begin of the label "--foo-"
+					// until 3 '-' have been read
+					if (src[i]=='-') { level++; }
+					break;
+							
+				case 3 :	
+					// copy the content, but skip non alphnum
+					// and content in parenthesis
+					switch (src[i]) {
+						case '(' : 	
+						case '[' : 	
+							level++;
+							break;
+							
+						case '-' : 	
+							dst += '-';
+							break;
+									
+						default :
+							if (isalnum(src[i])) {
+								dst+= tolower(src[i]); 
+							}
+							
+					}
+					break;
+					
+				default :	
+					// here we are inside parenthesis and 
+					// we skip the content until we are back to
+					// level 3
+					switch (src[i]) {
+		
+						case '(' : 	
+						case '[' : 
+							level++;
+							break;
+									
+						case ')' : 	
+						case ']' : 
+							level--;
+							break;
+							
+						default :
+							break;
+					}
+						
+			}
+			i++;
+		}
+		return dst;
+	}
 	
 	
 public:
 		
-	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("--"); }
+	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("-"); }
 	virtual ~CMDUI() {}
 	
-	virtual void addButton(char* label, float* zone) 		{};
-	virtual void addToggleButton(char* label, float* zone) 	{};
-	virtual void addCheckButton(char* label, float* zone) 	{};
 		
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
+	void addOption(const char* label, float* zone, float init, float min, float max)
 	{
-		addOption(label,zone,min,max);
-	}
-		
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step)
-	{
-		addOption(label,zone,min,max);
+		string fullname = "-" + simplify(fPrefix.top() + "-" + label);
+		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
 	}
 
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+	
+	virtual void addButton(const char* label, float* zone)
 	{
-		addOption(label,zone,min,max);
+		addOption(label,zone,0,0,1);
+	}
+	
+	virtual void addToggleButton(const char* label, float* zone)
+	{
+		addOption(label,zone,0,0,1);
+	}
+	
+	virtual void addCheckButton(const char* label, float* zone)
+	{
+		addOption(label,zone,0,0,1);
+	}
+		
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+	{
+		addOption(label,zone,init,min,max);
+	}
+		
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+	{
+		addOption(label,zone,init,min,max);
+	}
+
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+	{
+		addOption(label,zone,init,min,max);
 	}
 		
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) 	{}
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) 			{}
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) 			{}
-
-	virtual void openFrameBox(char* label)		{ openAnyBox(label); }
-	virtual void openTabBox(char* label)		{ openAnyBox(label); }
-	virtual void openHorizontalBox(char* label)	{ openAnyBox(label); }
-	virtual void openVerticalBox(char* label)	{ openAnyBox(label); }
+	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) 	{}
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
 	
-	virtual void closeBox() 					{ fPrefix.pop(); }
+	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
+	virtual void openTabBox(const char* label)			{ openAnyBox(label); }
+	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
+	virtual void openVerticalBox(const char* label)		{ openAnyBox(label); }
+	
+	virtual void closeBox() 							{ fPrefix.pop(); }
 	
 	virtual void show() {}
 	virtual void run() 	{}
 	
-	void print() 
+	void printhelp() 
 	{
 		map<string, param>::iterator i;
 		cout << fArgc << "\n";
@@ -179,10 +258,16 @@ public:
 		map<string, param>::iterator p;
 		for (int i = 1; i < fArgc; i++) {
 			if (fArgv[i][0] == '-') {
+				if (	(strcmp(fArgv[i], "-help") == 0) 
+					 || (strcmp(fArgv[i], "-h") == 0)
+					 || (strcmp(fArgv[i], "--help") == 0) ) 	{
+					printhelp();
+					exit(1);
+				}
 				p = fKeyParam.find(fArgv[i]); 
 				if (p == fKeyParam.end()) {
 					cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-					print();
+					printhelp();
 					exit(1);
 				}
 				char*	end;
@@ -192,12 +277,13 @@ public:
 				fFiles.push_back(fArgv[i]);
 			}
 		}
-		if (fFiles.size() != 2) {
-			cout << fArgv[0] << " : wrong number of files arguments, " << fFiles.size() << "\n";
-			exit(1);
-		}
-			
 	}
+			
+	int 	files()		{ return fFiles.size(); }
+	char* 	file (int n)	{ return fFiles[n]; }
+	
+	char* input_file ()	{ cout << "input file " << fFiles[0]; return fFiles[0]; }
+	char* output_file() 	{  cout << "output file " << fFiles[1]; return fFiles[1]; }
 		
 	void process_init()
 	{
@@ -214,12 +300,9 @@ public:
 				i++;
 			}
 		}
-	}
-	
-	char* input_file ()	{ cout << "input file " << fFiles[0]; return fFiles[0]; }
-	char* output_file() {  cout << "output file " << fFiles[1]; return fFiles[1]; }
-		
+	}		
 };
+
 
 //----------------------------------------------------------------
 //  d�inition du processeur de signal
