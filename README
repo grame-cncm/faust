@@ -20,6 +20,8 @@ compiler			: sources of the Faust compiler
 examples			: examples of Faust programs
 syntax-highlighting	: support for syntax highlighting for several editors
 documentation 		: Faust developer's documentation
+tools				: Additional tools for pd and sc plugins
+windows				: Visual C++ project
 
 
 3/ Compilation and installation
