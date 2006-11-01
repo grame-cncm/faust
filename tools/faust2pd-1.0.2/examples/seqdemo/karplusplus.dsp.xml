@@ -1,0 +1,141 @@
+
+<faust>
+	<name> "karplusplus -- Karplus-Strong + Fuzz" </name>
+	<author> "Yann Orlarey, Albert Graef" </author>
+	<copyright> Unknow </copyright>
+	<license> Unknow </license>
+	<version> "1.0" </version>
+	<inputs> 0 </inputs>
+	<outputs> 2 </outputs>
+	<ui> 
+		<activewidgets>
+			<count> 12 </count>
+			<widget type="nentry" id="1">
+				<label> "gain" </label>
+				<varname> fentry2 </varname>
+				<init> 1.000000f </init>
+				<min> 0.000000f </min>
+				<max> 10.000000f </max>
+				<step> 1.000000e-02f </step>
+			</widget>
+			<widget type="button" id="2">
+				<label> "gate" </label>
+				<var> fbutton0 </var>
+			</widget>
+			<widget type="hslider" id="3">
+				<label> "samples" </label>
+				<varname> fslider3 </varname>
+				<init> 512.000000f </init>
+				<min> 1.000000f </min>
+				<max> 1024.000000f </max>
+				<step> 1.000000f </step>
+			</widget>
+			<widget type="hslider" id="4">
+				<label> "decay time" </label>
+				<varname> fslider2 </varname>
+				<init> 4.000000f </init>
+				<min> 0.000000f </min>
+				<max> 10.000000f </max>
+				<step> 1.000000e-02f </step>
+			</widget>
+			<widget type="nentry" id="5">
+				<label> "freq" </label>
+				<varname> fentry1 </varname>
+				<init> 440.000000f </init>
+				<min> 20.000000f </min>
+				<max> 20000.000000f </max>
+				<step> 1.000000f </step>
+			</widget>
+			<widget type="hslider" id="6">
+				<label> "drive" </label>
+				<varname> fslider4 </varname>
+				<init> 0.000000f </init>
+				<min> 0.000000f </min>
+				<max> 50.000000f </max>
+				<step> 0.100000f </step>
+			</widget>
+			<widget type="nentry" id="7">
+				<label> "freq" </label>
+				<varname> fentry0 </varname>
+				<init> 440.000000f </init>
+				<min> 20.000000f </min>
+				<max> 20000.000000f </max>
+				<step> 1.000000f </step>
+			</widget>
+			<widget type="hslider" id="8">
+				<label> "level" </label>
+				<varname> fslider7 </varname>
+				<init> 1.000000f </init>
+				<min> 0.000000f </min>
+				<max> 10.000000f </max>
+				<step> 1.000000e-02f </step>
+			</widget>
+			<widget type="hslider" id="9">
+				<label> "res" </label>
+				<varname> fslider1 </varname>
+				<init> 0.000000f </init>
+				<min> 0.000000f </min>
+				<max> 20.000000f </max>
+				<step> 0.100000f </step>
+			</widget>
+			<widget type="hslider" id="10">
+				<label> "tone" </label>
+				<varname> fslider0 </varname>
+				<init> 20.000000f </init>
+				<min> 1.000000f </min>
+				<max> 20.000000f </max>
+				<step> 0.100000f </step>
+			</widget>
+			<widget type="hslider" id="11">
+				<label> "pan" </label>
+				<varname> fslider5 </varname>
+				<init> 0.500000f </init>
+				<min> 0.000000f </min>
+				<max> 1.000000f </max>
+				<step> 1.000000e-02f </step>
+			</widget>
+			<widget type="hslider" id="12">
+				<label> "vol" </label>
+				<varname> fslider6 </varname>
+				<init> 0.300000f </init>
+				<min> 0.000000f </min>
+				<max> 10.000000f </max>
+				<step> 1.000000e-02f </step>
+			</widget>
+		</activewidgets>
+		
+		<passivewidgets>
+			<count> 0 </count>
+		</passivewidgets>
+		
+		<layout>
+			<group type="vgroup">
+				<label> "faust" </label>
+				<group type="vgroup">
+					<label> "1-excitator" </label>
+					<widgetref id="1" />
+					<widgetref id="2" />
+					<widgetref id="3" />
+				</group>
+				<group type="vgroup">
+					<label> "2-resonator" </label>
+					<widgetref id="4" />
+					<widgetref id="5" />
+				</group>
+				<group type="vgroup">
+					<label> "3-fuzz" </label>
+					<widgetref id="6" />
+					<widgetref id="7" />
+					<widgetref id="8" />
+					<widgetref id="9" />
+					<widgetref id="10" />
+				</group>
+				<group type="vgroup">
+					<label> "4-master" </label>
+					<widgetref id="11" />
+					<widgetref id="12" />
+				</group>
+			</group>
+		</layout>
+	</ui> 
+</faust>

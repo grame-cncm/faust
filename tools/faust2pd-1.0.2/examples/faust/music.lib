@@ -1,0 +1,163 @@
+import("math.lib");
+
+//-----------------------------------------------
+// 					DELAY LINE
+//-----------------------------------------------
+frac(n)			= n-int(n);
+index(n)		= &(n-1) ~ +(1);		// n = 2**i
+delay(n,d,x) 	= rwtable(n, 0.0, index(n), x, (index(n)-int(d)) & (n-1));
+fdelay(n,d,x) 	= delay(n,int(d),x)*(1 - frac(d)) + delay(n,int(d)+1,x)*frac(d);
+
+
+delay1s(d)		= delay(65536,d);
+delay2s(d)		= delay(131072,d);
+delay5s(d)		= delay(262144,d);
+delay10s(d)		= delay(524288,d);
+delay21s(d)		= delay(1048576,d);
+delay43s(d)		= delay(2097152,d);
+
+fdelay1s(d)		= fdelay(65536,d);
+fdelay2s(d)		= fdelay(131072,d);
+fdelay5s(d)		= fdelay(262144,d);
+fdelay10s(d)	= fdelay(524288,d);
+fdelay21s(d)	= fdelay(1048576,d);
+fdelay43s(d)	= fdelay(2097152,d);
+
+millisec	= SR/1000.0;
+
+time1s 	= hslider("time", 0, 0,  1000, 0.1)*millisec;
+time2s 	= hslider("time", 0, 0,  2000, 0.1)*millisec;
+time5s 	= hslider("time", 0, 0,  5000, 0.1)*millisec;
+time10s = hslider("time", 0, 0, 10000, 0.1)*millisec;
+time21s = hslider("time", 0, 0, 21000, 0.1)*millisec;
+time43s = hslider("time", 0, 0, 43000, 0.1)*millisec;
+
+
+echo1s  = vgroup("echo  1000", +~(delay(65536,   int(hslider("millisecond", 0, 0,	1000, 0.10)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo2s  = vgroup("echo  2000", +~(delay(131072,  int(hslider("millisecond", 0, 0,	2000, 0.25)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo5s  = vgroup("echo  5000", +~(delay(262144,  int(hslider("millisecond", 0, 0,	5000, 0.50)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo10s = vgroup("echo 10000", +~(delay(524288,  int(hslider("millisecond", 0, 0,  10000, 1.00)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo21s = vgroup("echo 21000", +~(delay(1048576, int(hslider("millisecond", 0, 0,  21000, 1.00)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo43s = vgroup("echo 43000", +~(delay(2097152, int(hslider("millisecond", 0, 0,  43000, 1.00)*millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+
+
+
+//-----------------------------------------------
+// 			Tempo, beats and pulses
+//-----------------------------------------------
+
+tempo(t) 	= (60*SR)/t;			// tempo(t) -> samples
+
+period(p) 	= %(int(p))~+(1);		// signal en dent de scie de periode p
+pulse(t) 	= period(t)==0;			// pulse (10000...) de periode p
+beat(t) 	= pulse(tempo(t));		// pulse au tempo t
+
+
+
+//-----------------------------------------------
+// 	conversions between db and linear values
+//-----------------------------------------------
+
+db2linear(x)	= pow(10, x/20.0);
+linear2db(x)	= 20*log10(x);
+
+
+//-----------------------------------------------
+// 			noise : Noise generator
+//-----------------------------------------------
+
+random 		= +(12345) ~ *(1103515245);
+RANDMAX		= 2147483647.0;
+
+noise 		= random / RANDMAX;
+
+
+
+//-----------------------------------------------
+// 			osc(freq) : Sinusoidal Oscillator
+//-----------------------------------------------
+
+tablesize 	= 1 << 16;
+samplingfreq	= SR;
+
+time 		= (+(1)~_ ) - 1; 			// 0,1,2,3,...
+sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
+
+decimal(x)	= x - floor(x);
+phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize));
+osc(freq)	= rdtable(tablesize, sinwaveform, int(phase(freq)) );
+osci(freq)	= s1 + d * (s2 - s1)
+		with {
+			i = int(phase(freq));
+			d = decimal(phase(freq));
+			s1 = rdtable(tablesize+1,sinwaveform,i);
+			s2 = rdtable(tablesize+1,sinwaveform,i+1);};
+
+
+//-----------------------------------------------
+// 			ADSR envelop
+//-----------------------------------------------
+
+// a,d,s,r = attack (#samples), decay (sec), sustain (percentage), release (sec)
+// t       = trigger signal
+
+adsr(a,d,s,r,t) = env ~ (_,_) : ! // the 2 'state' signals are fed back
+with {
+    env (p2,y) =
+        (t>0) & (p2|(y>=1)),          // p2 = decay-sustain phase
+        (y + p1*u - (p2&(y>s))*v*y - p3*w*y)	// y  = envelop signal
+	*((p3==0)|(y>=eps)) // cut off tails to prevent denormals
+    with {
+	p1 = (p2==0) & (t>0) & (y<1);         // p1 = attack phase
+	p3 = (t<=0) & (y>0);                  // p3 = release phase
+	// #samples in attack, decay, release, must be >0
+	na = SR*a+(a==0.0); nd = SR*d+(d==0.0); nr = SR*r+(r==0.0);
+	// correct zero sustain level
+	z = s+(s==0.0)*db2linear(-60);
+	// attack, decay and (-60dB) release rates
+	u = 1/na; v = 1-pow(z, 1/nd); w = 1-1/pow(z*db2linear(60), 1/nr);
+	// values below this threshold are considered zero in the release phase
+	eps = db2linear(-120);
+    };
+};
+
+
+//-----------------------------------------------
+// 			Spatialisation
+//-----------------------------------------------
+
+panner(c) = _ <: *(1-c), *(c);
+
+bus2 = _,_;
+bus3 = _,_,_;
+bus4 = _,_,_,_;
+bus5 = _,_,_,_,_;
+bus6 = _,_,_,_,_,_;
+bus7 = _,_,_,_,_,_,_;
+bus8 = _,_,_,_,_,_,_,_;
+
+gain2(g) = *(g),*(g);
+gain3(g) = *(g),*(g),*(g);
+gain4(g) = *(g),*(g),*(g),*(g);
+gain5(g) = *(g),*(g),*(g),*(g),*(g);
+gain6(g) = *(g),*(g),*(g),*(g),*(g),*(g);
+gain7(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g);
+gain8(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g),*(g);
+
+
+
+//--------------- Second Order Generic Transfert Function -------------------------
+// TF2(b0,b1,b2,a1,a2)
+//
+//---------------------------------------------------------------------------------
+
+TF2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
+	with {
+		conv3(k0,k1,k2,x) 	= k0*x + k1*x' + k2*x'';
+		conv2(k0,k1,x) 		= k0*x + k1*x';
+		sub(x,y)			= y-x;
+	};
+
+
+
+

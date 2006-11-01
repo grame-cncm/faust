@@ -1,0 +1,11 @@
+#N canvas 504 432 439 260 10;
+#X obj 17 124 s \$1;
+#X obj 17 29 inlet;
+#X obj 17 88 sel 1;
+#X text 12 150 Special control logic for bang messages. Creation argument
+is the receiver symbol of the target control. 0/1 values are translated
+to bangs (this is used for button controls).;
+#X obj 17 59 != 0;
+#X connect 1 0 4 0;
+#X connect 2 0 0 0;
+#X connect 4 0 2 0;

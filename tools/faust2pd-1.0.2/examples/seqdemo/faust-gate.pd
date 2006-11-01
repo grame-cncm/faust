@@ -1,0 +1,47 @@
+#N canvas 660 322 450 404 10;
+#X obj 176 203 > 0;
+#X obj 139 231 spigot;
+#X obj 139 315 outlet;
+#X msg 212 282 gate \$1;
+#X msg 139 281 gain \$1;
+#X obj 51 13 inlet;
+#X obj 74 232 spigot;
+#X msg 74 282 freq \$1;
+#X obj 74 256 mtof;
+#X obj 51 48 unpack f f f;
+#X obj 51 117 spigot;
+#X obj 74 170 f;
+#X obj 114 170 f;
+#X obj 88 90 ==;
+#X obj 51 74 t b f;
+#X text 21 338 Gate logic. Translates incoming note messages (voice/
+note/vel) to the corresponding freq/gain/gate messages understood by
+the Faust synths in this folder. The creation argument specifies the
+voice number.;
+#X obj 168 12 loadbang;
+#X obj 168 46 f \$1;
+#X obj 51 142 t b b;
+#X connect 0 0 1 1;
+#X connect 0 0 3 0;
+#X connect 0 0 6 1;
+#X connect 1 0 4 0;
+#X connect 3 0 2 0;
+#X connect 4 0 2 0;
+#X connect 5 0 9 0;
+#X connect 6 0 8 0;
+#X connect 7 0 2 0;
+#X connect 8 0 7 0;
+#X connect 9 0 14 0;
+#X connect 9 1 11 1;
+#X connect 9 2 12 1;
+#X connect 10 0 18 0;
+#X connect 11 0 6 0;
+#X connect 12 0 0 0;
+#X connect 12 0 1 0;
+#X connect 13 0 10 1;
+#X connect 14 0 10 0;
+#X connect 14 1 13 0;
+#X connect 16 0 17 0;
+#X connect 17 0 13 1;
+#X connect 18 0 11 0;
+#X connect 18 1 12 0;

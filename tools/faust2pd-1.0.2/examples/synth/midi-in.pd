@@ -1,0 +1,106 @@
+#N canvas 558 196 650 564 10;
+#X obj 331 8 notein;
+#X obj 336 353 pack f f f;
+#X obj 394 292 / 127;
+#X obj 336 384 outlet;
+#X obj 16 92 ctlin 123;
+#X obj 154 92 inlet;
+#X obj 204 200 list split 3;
+#X obj 204 242 makenote;
+#X obj 204 269 pack f f;
+#X obj 336 322 poly \$1 1;
+#X obj 50 27 tgl 15 0 \$0-led-1 \$0-led-1 empty 0 -6 0 8 -262144 -1
+-1 0 1;
+#X obj 67 27 tgl 15 0 \$0-led-2 \$0-led-2 empty 0 -6 0 8 -262144 -1
+-1 1 1;
+#X obj 84 27 tgl 15 0 \$0-led-3 \$0-led-3 empty 0 -6 0 8 -262144 -1
+-1 1 1;
+#X obj 101 27 tgl 15 0 \$0-led-4 \$0-led-4 empty 0 -6 0 8 -262144 -1
+-1 0 1;
+#X obj 260 385 s \$0-leds;
+#X obj 471 291 unpack f f f;
+#X obj 550 323 > 0;
+#X obj 471 262 r \$0-leds;
+#X obj 471 358 makefilename \$0-led-%d;
+#X obj 471 385 pack s f;
+#X msg 471 413 \; \$1 \$2;
+#X text 470 234 LED logic;
+#X obj 118 27 tgl 15 0 \$0-led-5 \$0-led-5 empty 0 -6 0 8 -262144 -1
+-1 0 1;
+#X obj 135 27 tgl 15 0 \$0-led-6 \$0-led-6 empty 0 -6 0 8 -262144 -1
+-1 0 1;
+#X obj 152 27 tgl 15 0 \$0-led-7 \$0-led-7 empty 0 -6 0 8 -262144 -1
+-1 1 1;
+#X obj 169 27 tgl 15 0 \$0-led-8 \$0-led-8 empty 0 -6 0 8 -262144 -1
+-1 0 1;
+#X obj 217 3 tgl 15 0 \$0-toggle \$0-toggle empty 0 -6 0 8 -262144
+-1 -1 1 1;
+#X obj 154 124 spigot;
+#X obj 244 8 r \$0-toggle;
+#X obj 336 190 spigot;
+#X msg 400 83 stop;
+#X obj 540 456 loadbang;
+#X obj 244 56 sel 0;
+#X obj 197 3 bng 15 250 50 0 \$0-notes-off \$0-notes-off empty 0 -6
+0 8 -262144 -1 -1;
+#X obj 540 503 s \$0-toggle;
+#X msg 540 479 1;
+#X obj 16 265 s \$0-notes-off;
+#X obj 400 9 r \$0-notes-off;
+#X msg 244 85 bang;
+#X obj 401 384 outlet;
+#X obj 161 3 nbx 2 14 0 16 0 0 \$0-chan \$0-chan empty -15 6 0 10 -262144
+-1 -1 0 256;
+#X obj 521 9 r \$0-chan;
+#X obj 274 134 expr $f1 && (($f2==$f3) || ($f3==0));
+#X obj 318 83 t f b;
+#X obj 154 164 route stop note;
+#X text 18 420 MIDI input logic. Handles MIDI note-on/off messages
+and the all-notes off controller. Velocity values are normalized to
+the 0-1 range. MIDI input can be restricted to one MIDI channel. Through
+the inlet \, you can also pass in MIDI style messages \, either note/velocity
+or note/velocity/duration (use a "stop" message to emulate all-notes-off).
+Other (control) messages are simply passed through to the second outlet.
+The creation argument sets the number of voices (8 voices max).;
+#X connect 0 0 43 0;
+#X connect 0 1 2 0;
+#X connect 0 2 42 1;
+#X connect 1 0 3 0;
+#X connect 1 0 14 0;
+#X connect 2 0 9 1;
+#X connect 4 0 36 0;
+#X connect 5 0 27 0;
+#X connect 6 0 7 0;
+#X connect 6 2 9 0;
+#X connect 7 0 8 0;
+#X connect 7 1 8 1;
+#X connect 8 0 9 0;
+#X connect 9 0 1 0;
+#X connect 9 1 1 1;
+#X connect 9 2 1 2;
+#X connect 15 0 18 0;
+#X connect 15 2 16 0;
+#X connect 16 0 19 1;
+#X connect 17 0 15 0;
+#X connect 18 0 19 0;
+#X connect 19 0 20 0;
+#X connect 27 0 44 0;
+#X connect 28 0 27 1;
+#X connect 28 0 32 0;
+#X connect 28 0 42 0;
+#X connect 29 0 9 0;
+#X connect 30 0 9 0;
+#X connect 31 0 35 0;
+#X connect 32 0 38 0;
+#X connect 35 0 34 0;
+#X connect 37 0 30 0;
+#X connect 38 0 36 0;
+#X connect 41 0 42 2;
+#X connect 41 0 30 0;
+#X connect 42 0 29 1;
+#X connect 43 0 29 0;
+#X connect 43 1 42 0;
+#X connect 44 0 36 0;
+#X connect 44 1 6 0;
+#X connect 44 2 39 0;
+#X coords 0 -1 1 1 235 45 1 0 0;

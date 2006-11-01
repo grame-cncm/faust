@@ -1,0 +1,23 @@
+#N canvas 88 181 566 264 10;
+#X obj 23 47 t b b;
+#X obj 53 76 delay 250;
+#X msg 53 106 0;
+#X msg 23 106 1;
+#X obj 23 12 inlet;
+#X obj 23 149 list prepend \$1;
+#X obj 23 185 list trim;
+#X obj 23 216 outlet;
+#X text 158 107 Special control logic for bang messages. Creation argument
+is the selector of the message to send. Takes bangs and translates
+them to a sequence of 1/0 messages. The delay between the 1 and the
+0 can be set with the global faust-button-delay receiver.;
+#X obj 111 47 r faust-button-delay;
+#X connect 0 0 3 0;
+#X connect 0 1 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 5 0;
+#X connect 3 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 6 0;
+#X connect 6 0 7 0;
+#X connect 9 0 1 1;

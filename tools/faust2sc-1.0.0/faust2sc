@@ -1,0 +1,301 @@
+#!/usr/bin/env ruby
+# ======================================================================
+# faust2sc.rb
+# Generate SuperCollider UGen classes from Faust XML
+# Copyright (C) 2005 stefan kersten
+# ======================================================================
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+# USA
+# ======================================================================
+
+# TODO:
+#  rexml is dog slow, maybe use libxml?
+
+require 'getoptlong'
+require 'rexml/document'
+
+PROGRAM = File.basename($0)
+
+module REXML
+  class Element
+    def to_i
+      self.text.to_i
+    end
+    def to_f
+      self.text.to_f
+    end
+  end
+end
+
+class String
+  def decapitalize
+    self[0..0].downcase + self[1..-1]
+  end
+end
+
+def print_error(str)
+  $stderr.print("#{PROGRAM}[ERROR] #{str}")
+end
+
+def print_info(str)
+  $stderr.print("#{PROGRAM}[INFO]  #{str}")
+end
+
+module Faust
+  class Widget
+    attr_reader :type, :id, :label, :init, :min, :max, :step
+    def initialize(node)
+      @type = node.attributes["type"]
+      @id   = node.attributes["id"]
+      @label = node.elements["label"].text.strip
+      dict = node.elements
+      @init = dict["init"].to_f
+      @min  = dict["min"].to_f
+      @max  = dict["max"].to_f
+      @step = dict["step"].to_f
+    end
+  end
+
+  class UI
+    attr_reader :active_widgets, :passive_widgets
+    def initialize(node)
+      @active_widgets  = node.get_elements("//activewidgets/widget").collect  { |x| Widget.new(x) }
+      @passive_widgets = node.get_elements("//passivewidgets/widget").collect { |x| Widget.new(x) }
+    end
+  end
+
+  class Plugin
+    attr_reader :path, :name, :author, :copyright, :license, :inputs, :outputs, :ui
+    def initialize(path, node)
+      @path = path
+      %w(name author copyright license).each { |name|
+        instance_variable_set("@#{name}", node.elements["/faust/#{name}"].text.strip)
+      }
+      %w(inputs outputs).each { |name|
+        instance_variable_set("@#{name}", node.elements["/faust/#{name}"].text.to_i)
+      }
+      @ui = UI.new(node.elements["/faust/ui"])
+    end
+    def Plugin::from_file(path)
+      self.new(path, REXML::Document.new(File.open(path) { |io| io.read }))
+    end
+  end
+
+  module SC3
+    CLASS_REGEXP = /^[A-Z][a-zA-Z0-9_]*[a-zA-Z0-9]?$/
+    IDENTIFIER_REGEXP = /^[a-z][a-zA-Z0-9_]*[a-zA-Z0-9]?$/
+
+    def path_to_unitname(path)
+      name = File.basename(path)
+      if ext_index = name.index(".")
+        name = name[0..ext_index-1]
+      end
+      name
+    end
+    def make_class_name(unit_name, prefix)
+      name = prefix + unit_name.capitalize.sub("-", "_")
+      unless name =~ CLASS_REGEXP
+        raise "invalid class name: \"#{name}\""
+      end
+      name
+    end
+    def make_identifier(name)
+      # gentle identifier massage
+      # remove quotes
+      name = name.sub(/^"([^"]*)"/, "\\1")
+      # replace invalid chars with underscores
+      name = name.downcase.gsub(/[^a-zA-Z0-9_]/, "_")
+      # reduce multiple underscores to one
+      name = name.gsub(/__+/, "_")
+      # remove leading/terminating underscores
+      name = name.sub(/(^_|_$)/, "")
+      # move leading digits to the end
+      name = name.sub(/^([0-9]+)_/, "") + ("_#{$1}" if $1).to_s
+      unless name =~ IDENTIFIER_REGEXP
+        raise "invalid identifier: \"#{name}\""
+      end
+      name
+    end
+    def make_unique(list)
+      # bad, bad, bad
+      list = list.clone
+      res = []
+      ids = {}
+      while hd = list.shift
+        if ids.has_key?(hd)
+          ids[hd] = id = ids[hd] + 1
+        else
+          if list.include?(hd)
+            ids[hd] = id = 0
+          end
+        end
+        res << (id ? "#{hd}_#{id}" : hd)
+      end
+      res
+    end
+    module_function :path_to_unitname, :make_class_name, :make_identifier, :make_unique
+
+    class Faust::Widget
+      def sc3_identifier
+        SC3::make_identifier(self.label)
+      end
+      def sc3_arg_string
+        "#{self.sc3_identifier}(#{self.init})"
+      end
+      def sc3_default
+        "(#{self.init})"
+      end
+    end
+
+    class UGenGen
+      attr_reader :unit_name, :class_name
+      def initialize(plugin, prefix)
+        @plugin = plugin
+        @unit_name = SC3::path_to_unitname(plugin.path)
+        @class_name = SC3::make_class_name(@unit_name, prefix)
+      end
+      def inputs
+        @plugin.inputs
+      end
+      def outputs
+        @plugin.outputs
+      end
+      def superclass_name
+        @plugin.outputs > 1 ? "MultiOutUGen" : "UGen"
+      end
+      def input_names
+        (1..self.inputs).collect { |i| "in#{i}" }
+      end
+      def control_names
+        SC3::make_unique(@plugin.ui.active_widgets.collect { |x| x.sc3_identifier })
+      end
+      def decl_args
+        cnames = self.control_names
+        cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default }
+        (self.input_names + cnames.zip(cdefaults).collect { |ary| ary[0] + ary[1] }).join(", ")
+      end
+      def new_args(rate)
+        ["'%s'" % rate] + self.input_names + self.control_names
+      end
+      def validate
+        args = self.input_names + self.control_names
+        unless args.uniq == args
+          raise "argument list not unique"
+        end
+        self
+      end
+      def generate(io)
+        self.validate
+        generate_decl(io)
+        generate_body(io)
+      end
+      def generate_decl(io)
+        io.print("#{@class_name} : #{self.superclass_name}\n")
+      end
+      def generate_body(io)
+        io.print("{\n")
+        io.print <<EOF
+\t*ar { | #{self.decl_args} |
+\t\t^this.multiNew(#{self.new_args(:audio).join(", ")})
+\t}
+\t*kr { | #{self.decl_args} |
+\t\t^this.multiNew(#{self.new_args(:control).join(", ")})
+\t}
+\tname { ^\"#{@unit_name}\" }
+EOF
+        generate_outputs(io)
+        io.print("}\n")
+      end
+      def generate_outputs(io)
+        if self.outputs > 1
+          io.print <<EOF
+\tinit { | ... theInputs |
+\t\tinputs = theInputs
+\t\t^this.initOutputs(#{self.outputs}, rate)
+\t}
+EOF
+        end
+      end
+    end
+  end # module SC3
+end # module Faust
+
+def usage
+  $stdout.print <<EOF
+Usage: #{File.basename($0)} [OPTION]... INPUT_FILE...\n
+Generate a SuperCollider class file from FAUST generated XML.
+
+Options:
+ -h, --help     display this help
+ -o, --output   set output file name
+ -p, --prefix   set SC class prefix
+EOF
+end
+
+opts = GetoptLong.new(
+  [ "--help", "-h",     GetoptLong::NO_ARGUMENT ],
+  [ "--output", "-o",   GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--prefix", "-p",   GetoptLong::REQUIRED_ARGUMENT ]
+)
+
+output_file = nil
+prefix = ""
+
+opts.each { | opt, arg |
+  case opt
+  when "--help"
+    usage
+    exit(0)
+  when "--output"
+    output_file = arg
+  when "--prefix"
+    prefix = arg
+  end
+}
+
+if output_file
+  output = File.open(output_file, "w")
+else
+  output = $stdout
+end
+
+plugins = ARGV.collect { |file|
+  begin
+    print_info("parsing #{file} ...\n")
+    Faust::Plugin.from_file(file)
+  rescue
+    print_error("#{$!}\n")
+    print_error("omitting #{file}\n")
+  end
+}
+
+begin
+  plugins.each { |plugin|
+    begin
+      gen = Faust::SC3::UGenGen.new(plugin, prefix)
+      print_info("generating #{gen.class_name}\n")
+      gen.generate(output)
+      output.print("\n\n")
+    rescue
+      print_error("#{$!}\n")
+      print_error("omitting #{plugin.path}\n")
+    end
+  }
+  output.print("\n")
+ensure
+  output.close unless output === $stdout
+end
+
+# EOF

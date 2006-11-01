@@ -1,0 +1,59 @@
+#N canvas 206 113 724 712 10;
+#X obj 21 76 karplus;
+#X obj 96 466 panpot;
+#X obj 96 258 dbmeter;
+#X obj 136 659 dac~;
+#X msg 21 12 play 1;
+#X obj 21 530 freeverb;
+#X text 194 475 Another Faust unit which allows you to change the panning
+of the mono input \, giving you stereo output.;
+#X text 25 679 Send the final output into Pd's dac~ object.;
+#X msg 344 635 \; pd dsp 1;
+#X obj 344 596 loadbang;
+#X text 365 616 Turn on audio output when this patch is loaded.;
+#X msg 77 6 attenuation 0.01;
+#X text 279 537 This is the Faust implementation of the popular Freeverb
+effect. It takes stereo input and produces stereo output.;
+#X msg 87 27 panpot 4;
+#X msg 99 50 Wet 0.5;
+#X text 288 12 (Open each subpatch to see what's going on inside.)
+;
+#X text 278 51 This unit is the Faust version of the Karplus-Strong
+synthesizer. All faust2pd-generated patches have a number of signal
+inlets and outlets corresponding to the number of audio inputs and
+outputs of the DSP. In this case there is no audio input and just one
+audio output. The generated patch also has a number of GUI elements
+for operating the controls of the Faust unit \, including the two special
+buttons in the upper-right corner for reverting all controls to their
+defaults and turning the unit on and off.;
+#X text 277 184 The leftmost inlet is for control messages which allow
+you to change the control values of the unit. E.g. \, passing a "play
+1" message will operate the "play" button of this unit \, and passing
+"attenuation 0.01" will set the attenuation control. This allows you
+to apply presets or automate the operation of the unit. All units also
+pass through control messages from the leftmost inlet to the leftmost
+outlet so that control can flow along with the audio signal through
+an entire chain of Faust modules. This allows the "panpot" and "Wet"
+messages at the top of this patch to be routed through "karplus" and
+"dbmeter" to the "panpot" and "freeverb" units below.;
+#X text 195 358 Here we pass the audio output of the karplus unit to
+a dB meter written in Faust \, which simply passes through the audio
+signal to its signal outlet. This unit has only one "passive" control
+which just shows a value computed by the unit. Values of passive controls
+are updated every 40 ms by default. You can change this by sending
+a value to the global "faust-timer" receiver.;
+#X msg 495 440 \; faust-timer 10;
+#X connect 0 0 2 0;
+#X connect 0 1 2 1;
+#X connect 1 0 5 0;
+#X connect 1 1 5 1;
+#X connect 1 2 5 2;
+#X connect 2 0 1 0;
+#X connect 2 1 1 1;
+#X connect 4 0 0 0;
+#X connect 5 1 3 0;
+#X connect 5 2 3 1;
+#X connect 9 0 8 0;
+#X connect 11 0 0 0;
+#X connect 13 0 0 0;
+#X connect 14 0 0 0;

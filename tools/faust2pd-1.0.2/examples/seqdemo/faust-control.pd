@@ -1,0 +1,54 @@
+#N canvas 284 268 574 422 10;
+#X obj 29 62 unpack s f;
+#X obj 29 123 list trim;
+#X obj 29 223 list append;
+#X obj 29 197 list prepend;
+#X obj 29 90 t s b;
+#X obj 108 91 t s b;
+#X obj 108 62 unpack s;
+#X msg 108 123 w;
+#X msg 138 123 r;
+#X obj 29 33 list split 2;
+#X obj 29 276 route w r;
+#X obj 29 250 list trim;
+#X obj 29 306 unpack s f f;
+#X obj 125 306 unpack s f f;
+#X obj 29 332 pack s f;
+#X obj 125 332 pack s f;
+#X obj 29 366 list trim;
+#X obj 29 6 inlet;
+#X obj 29 394 outlet;
+#X text 153 175 Control decoding logic. Normalizes the control name
+and retrieves the current value. The inlet is the incoming message
+\, the outlet returns the decoded message. The creation argument must
+be the \$0 of the parent patch. In the parent patch \, the receiver
+\$0-in and the sender \$0-out must be connected to the first inlet
+and the first outlet of the target Faust DSP \, respectively.;
+#X obj 29 147 s \$1-in;
+#X obj 29 172 r \$1-out;
+#X connect 0 0 4 0;
+#X connect 0 1 2 1;
+#X connect 1 0 20 0;
+#X connect 2 0 11 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 4 1 7 0;
+#X connect 5 0 1 0;
+#X connect 5 1 8 0;
+#X connect 6 0 5 0;
+#X connect 7 0 3 1;
+#X connect 8 0 3 1;
+#X connect 9 0 0 0;
+#X connect 9 2 6 0;
+#X connect 10 0 12 0;
+#X connect 10 1 13 0;
+#X connect 11 0 10 0;
+#X connect 12 0 14 0;
+#X connect 12 2 14 1;
+#X connect 13 0 15 0;
+#X connect 13 1 15 1;
+#X connect 14 0 16 0;
+#X connect 15 0 16 0;
+#X connect 16 0 18 0;
+#X connect 17 0 9 0;
+#X connect 21 0 3 0;

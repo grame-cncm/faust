@@ -1,0 +1,43 @@
+
+<faust>
+	<name> "lfboost" </name>
+	<author> "Grame" </author>
+	<copyright> "(c)GRAME 2006" </copyright>
+	<license> "BSD" </license>
+	<version> "1.0" </version>
+	<inputs> 1 </inputs>
+	<outputs> 1 </outputs>
+	<ui> 
+		<activewidgets>
+			<count> 2 </count>
+			<widget type="nentry" id="1">
+				<label> "freq (Hz)" </label>
+				<varname> fentry0 </varname>
+				<init> 100.000000f </init>
+				<min> 20.000000f </min>
+				<max> 150.000000f </max>
+				<step> 1.000000f </step>
+			</widget>
+			<widget type="vslider" id="2">
+				<label> "gain (dB)" </label>
+				<varname> fslider0 </varname>
+				<init> 0.000000f </init>
+				<min> -20.000000f </min>
+				<max> 20.000000f </max>
+				<step> 0.100000f </step>
+			</widget>
+		</activewidgets>
+		
+		<passivewidgets>
+			<count> 0 </count>
+		</passivewidgets>
+		
+		<layout>
+			<group type="vgroup">
+				<label> "lowboost" </label>
+				<widgetref id="1" />
+				<widgetref id="2" />
+			</group>
+		</layout>
+	</ui> 
+</faust>
