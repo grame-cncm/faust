@@ -579,7 +579,7 @@ print_version	= printf
 "faust2pd version %s, Copyright (c) 2006 by Albert Graef\n" VERSION ||
 		  exit 0;
 
-main		= catch mainerr mainprog || exit 0;
+main		= setlocale LC_ALL "C" || catch mainerr mainprog || exit 0;
 mainerr MSG:String
 		= fprintf ERROR "%s: %s\n" (PROG,MSG) || exit 1;
 mainerr _	= fprintf ERROR "%s: unknown error\n" PROG || exit 1;
