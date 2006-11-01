@@ -1,0 +1,19 @@
+	 		Additional tools for Faust
+			==========================
+	 Grame, Centre National de Creation Musicale
+	 			 http://www.grame.fr
+
+
+
+
+These additional tools are provided by various contributors to help 
+the building process of applications and plugins with Faust. 
+
+Currently two tools are available :
+
+- faust2sc is a Ruby program used to generate a SuperCollider class 
+  file, which can be compiled and subsequently used from within sclang. 
+
+- faust2pd is a Q program used to generate a user interface patch to
+  use in conjuction with a Faust generated pd plugin.
+
