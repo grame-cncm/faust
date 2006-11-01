@@ -12,9 +12,23 @@ LINUXCFLAGS = -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC \
 
 LINUXINCLUDE =
 
-###allcpp: $(cppsrc)
 
-allmodules: $(modules) $(patches)
+###--------------------------------------------
+### Will use faust2pd to create the GUI patches
+### only if it is installed
+
+helper:=$(shell whereis faust2pd)
+
+ifeq ($(helper),faust2pd:)
+	todo:=$(modules)
+else
+	todo:=$(modules) $(patches)
+endif
+
+###--------------------------------------------
+
+
+allmodules: $(todo)
 
 $(DEST)%~.pd_linux: $(DEST)%.cpp
 	$(CXX) $(LINUXCFLAGS) $(LINUXINCLUDE) -shared -Dmydsp=$(patsubst %~.pd_linux,%,$(notdir $@)) $< -o $@
