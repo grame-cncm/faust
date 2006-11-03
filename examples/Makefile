@@ -73,11 +73,11 @@ supercollider :
 	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.sccompile
 
 jackconsole :
-	install -d jackconsole
-	$(MAKE) DEST='jackconsole/' ARCH='jack-console.cpp' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
+	install -d jackconsoledir
+	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
 
 
 clean :
-	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir *-ps *-svg
+	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir vstdir benchdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir plotdir jackconsoledir *-ps *-svg
 
 
