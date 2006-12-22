@@ -1,29 +1,39 @@
 dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
-appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=~.mxo))
 
-# Setup this variable to access the MAX/MSP SDK headers
-cycling := "/Applications/MaxMSP 4.5/MaxMSP-MacSDK/c74support"
 
-# Setup this variable with the location for the compiled MAX/MSP externals
-install_plug_ins := $(addprefix $(HOME), /Faust_MSP)
+INC	:= -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes
 
 all :  $(appl)
 
-
-$(DEST)% : %.dsp
-	@test -d $(cycling) || (echo "Error: cannot find MaxMSP-SDK ! please set the 'cycling' variable in Makefile.mspcompile"; exit 1)
+$(DEST)%~.mxo : %.dsp Info.plist.template
 	install -d $@
-	cp -r $(cycling) $@
-	/Developer/Tools/CpMac -r /usr/local/lib/faust/MSP/* $@
-	faust $(VEC) -a $(ARCH) $< -o $@/max-msp-output.cpp
-	xcodebuild -project $@/Faust~.xcode clean
-	xcodebuild -project $@/Faust~.xcode
-	mv $@/build/Faust~.mxo $@/build/$(<:.dsp=~.mxo)
-	rm -r $@/build/Faust~.build
-	install -d $(install_plug_ins)
-	cp -r $@/build/$(<:.dsp=~.mxo) $(install_plug_ins)
-	
+	install -d $@/Contents
+	install -d $@/Contents/MacOS
+	faust $(VEC) -a $(ARCH) $< -o $@/$(<:.dsp=.cpp)
+	g++ -arch i386 -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.i386.o)
+	g++ -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle $@/$(<:.dsp=.i386.o) -o $@/$(<:.dsp=.i386~)
+	g++ -arch ppc -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.ppc.o)
+	g++ -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle $@/$(<:.dsp=.ppc.o) -o $@/$(<:.dsp=.ppc~)
+	sed s/FOO/$(<:.dsp=~)/ <Info.plist.template >$@/Contents/Info.plist
+	lipo -create $@/$(<:.dsp=.i386~) $@/$(<:.dsp=.ppc~) -output $@/Contents/MacOS/$(<:.dsp=~)
+	rm -f $@/$(<:.dsp=.ppc~) $@/$(<:.dsp=.ppc.o) $@/$(<:.dsp=.i386.o) $@/$(<:.dsp=.i386~)
+
+
+Info.plist.template :
+	echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist.template
+	echo '<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'  >> Info.plist.template
+	echo '<plist version="1.0">'  		>> Info.plist.template
+	echo '<dict>'  				>> Info.plist.template
+	echo '	<key>CFBundleExecutable</key>'  >> Info.plist.template
+	echo '	<string>FOO</string>'  		>> Info.plist.template
+	echo '	<key>CFBundleName</key>'  	>> Info.plist.template
+	echo '	<string>FOO</string>'  		>> Info.plist.template
+	echo '	<key>CFBundlePackageType</key>'  >> Info.plist.template
+	echo '	<string>iLaX</string>'  	>> Info.plist.template
+	echo '</dict>'  			>> Info.plist.template
+	echo '</plist>'  			>> Info.plist.template
 
 clean :
 	rm -f $(DEST)
