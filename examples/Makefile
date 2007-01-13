@@ -12,6 +12,10 @@ jackgtk :
 	install -d jackgtkdir
 	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
+jackqt :
+	install -d jackqtdir
+	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' -f Makefile.qtcompile
+
 ladspa :
 	install -d ladspadir
 	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -shared' EXT='.so' -f Makefile.ladspacompile
