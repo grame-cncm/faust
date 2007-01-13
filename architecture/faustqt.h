@@ -269,6 +269,12 @@ class uiSlider : public uiItem
 
 	int		faust2qt(float x) 	{ return int(0.5 + (x-fMin)/fStep); }
 	float	qt2faust (int v)	{ return fMin + v*fStep; }
+	int		optimalTick()		{ 
+				float x=fStep; 
+				while((fMax-fMin)/x > 50) x*=10; 
+				while((fMax-fMin)/x < 10) x/=2; 
+				return faust2qt(fMin+x); 
+			}
 			
  public :
 	QSlider* 	fSlider;
@@ -283,6 +289,7 @@ class uiSlider : public uiItem
 		fSlider->setMinimum(0);
 		fSlider->setMaximum(faust2qt(fMax)); 
 		fSlider->setValue(faust2qt(fCur));
+		fSlider->setTickInterval(optimalTick());
 		*fZone = fCur;
 	}
 	
@@ -390,7 +397,7 @@ class QTGUI : public UI
 
 	bool isTabContext()
 	{
-		return (!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0);
+		return fGroupStack.empty() || (!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0);
 	}
 
 	void insert(char* label, QWidget* widget)
@@ -410,13 +417,18 @@ class QTGUI : public UI
 
 	void openBox(char* label, QLayout* layout) 
 	{
+		layout->setMargin(5);
 		QWidget* box;
 		if (isTabContext()) {
 			box = new QWidget();
-		} else {
+		} else  if (label && label[0]) {
 			QGroupBox* group = new QGroupBox();
-			if (label && label[0]) group->setTitle(label);
+			group->setTitle(label);
 			box = group;
+		} else {
+			// no label here we use simple widget
+			layout->setMargin(0);
+			box = new QWidget();
 		}
 		box->setLayout(layout);
 			
@@ -507,12 +519,13 @@ class QTGUI : public UI
 	virtual void addVerticalSlider(char* label , float* zone, float init, float min, float max, float step)
 	{
 		openVerticalBox(label);
-		addNumEntry(0, zone, init, min, max, step);
+//		addNumEntry(0, zone, init, min, max, step);
 		QSlider* 	w = new QSlider(Qt::Vertical);
 		w->setTickPosition(QSlider::TicksBothSides);
 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+		addNumEntry(0, zone, init, min, max, step);
 		closeBox();
 	}
 
@@ -527,29 +540,16 @@ class QTGUI : public UI
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
 		closeBox();
 	}
-#if 0
-	virtual void addVerticalSlider(char* label , float* zone, float init, float min, float max, float step)
-	{
-		QSlider* 	w = new QSlider(Qt::Vertical);
-		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
-		insert(label, w);
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-	}
 
-	virtual void addHorizontalSlider(char* label , float* zone, float init, float min, float max, float step)
-	{
-		QSlider* 	w = new QSlider(Qt::Horizontal);
-		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
-		insert(label, w);
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-	}
-#endif
+
 	// ------------------------- passive widgets -----------------------------------
 
 	virtual void addHorizontalBargraph(char* label , float* zone, float min, float max)
 	{
 		openHorizontalBox(label);
 		QProgressBar* bargraph = new QProgressBar();
+		bargraph->setMinimumSize(64,8);
+		bargraph->setTextVisible(false);
 		bargraph->setOrientation(Qt::Horizontal);
 		new uiBargraph(this, zone, bargraph, min, max);
 		insert(label, bargraph);
@@ -561,6 +561,8 @@ class QTGUI : public UI
 		openVerticalBox(label);
 		QProgressBar* bargraph = new QProgressBar();
 		bargraph->setOrientation(Qt::Vertical);
+		bargraph->setMinimumSize(8,64);
+		bargraph->setTextVisible(false);
 		new uiBargraph(this, zone, bargraph, min, max);
 		insert(label, bargraph);
 		closeBox();
