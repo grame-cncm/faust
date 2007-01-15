@@ -41,6 +41,9 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
 
+/**
+ * Used to set the priority and scheduling of the audio thread 
+ */
 bool setRealtimePriority ()
 {
     struct passwd *         pw;
@@ -83,7 +86,10 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigne
 
 enum { kRead = 1, kWrite = 2, kReadWrite = 3 };
 
-// AudioParam : a convenient class to pass parameters to the AudioInterface
+
+/**
+ * A convenient class to pass parameters to AudioInterface
+ */
 class AudioParam
 {
   public:
@@ -111,6 +117,11 @@ class AudioParam
 	AudioParam&	outputs(int n)			{ fSoftOutputs = n; 	return *this; }
 };
 
+
+
+/**
+ * An ALSA audio interface
+ */
 class AudioInterface : public AudioParam
 {
  public :
@@ -159,6 +170,10 @@ class AudioInterface : public AudioParam
 		fOutputParams			= 0;
 	}
 	
+	
+	/**
+	 * Open the audio interface
+	 */
 	void open()
 	{
 		int err;
@@ -287,10 +302,10 @@ class AudioInterface : public AudioParam
 
 
 
-	//----------------------------------------------------------------
-	//  read() : read on buffer from the audio card
-	//----------------------------------------------------------------
-
+	/**
+	 * Read audio samples from the audio card. Convert samples to floats and take 
+	 * care of interleaved buffers
+	 */
 	void read()
 	{
 		
@@ -358,12 +373,10 @@ class AudioInterface : public AudioParam
 	}
 
 
-	//----------------------------------------------------------------
-	//  write() : write the output soft channels to the audio card 
-	//			  via the interleaved output card buffer
-	//----------------------------------------------------------------
-	
-
+	/**
+	 * write the output soft channels to the audio card. Convert sample 
+	 * format and interleaves buffers when needed
+	 */
 	void write()
 	{
 		recovery :
@@ -438,10 +451,9 @@ class AudioInterface : public AudioParam
 
 
 	
-	//----------------------------------------------------------------
-	//  info() : print information on the audio device
-	//----------------------------------------------------------------
-
+	/**
+	 *  print short information on the audio device
+	 */
 	void shortinfo()
 	{
 		int						err;
@@ -457,6 +469,9 @@ class AudioInterface : public AudioParam
 				snd_pcm_format_name((_snd_pcm_format)fSampleFormat));
 	}
 					
+	/**
+	 *  print more detailled information on the audio device
+	 */
 	void longinfo()
 	{
 		int						err;
