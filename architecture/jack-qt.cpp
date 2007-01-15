@@ -145,18 +145,18 @@ float* 	gOutChannel[256];
 // Jack Callbacks 
 //----------------------------------------------------------------------------
 
-int srate(jack_nframes_t nframes, void *arg)
+int srate(jack_nframes_t nframes, void *)
 {
 	printf("the sample rate is now %u/sec\n", nframes);
 	return 0;
 }
 
-void jack_shutdown(void *arg)
+void jack_shutdown(void *)
 {
 	exit(1);
 }
 
-int process (jack_nframes_t nframes, void *arg)
+int process (jack_nframes_t nframes, void *)
 {
 	for (int i = 0; i < gNumInChans; i++) {
 	    gInChannel[i] = (float *)jack_port_get_buffer(input_ports[i], nframes);
