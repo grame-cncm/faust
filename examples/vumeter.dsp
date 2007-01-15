@@ -11,9 +11,12 @@ declare copyright 	"(c)GRAME 2006";
 import("math.lib");
 
 
-vmeter(x)		= attach(x, envelop(x) : vbargraph("meter", 0, 1));
-hmeter(x)		= attach(x, envelop(x) : hbargraph("meter", 0, 1));
+vmeter(x)		= attach(x, envelop(x) : vbargraph("", 0, 1));
+hmeter(x)		= attach(x, envelop(x) : hbargraph("", 0, 1));
 
 envelop			= abs : min(0.99) : max ~ -(1.0/SR);
 
-process 		= vgroup("vu meter", vmeter);
+//process 		= vgroup("vu meter", vmeter);
+process 		= vmeter;
+
+
