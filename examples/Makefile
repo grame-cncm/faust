@@ -14,7 +14,11 @@ jackgtk :
 
 jackqt :
 	install -d jackqtdir
-	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' -f Makefile.qtcompile
+	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack' -f Makefile.qtcompile
+
+alsaqt :
+	install -d alsaqtdir
+	$(MAKE) DEST='alsaqtdir/' ARCH='alsa-qt.cpp' LIB='-lpthread -lasound' -f Makefile.qtcompile
 
 ladspa :
 	install -d ladspadir
