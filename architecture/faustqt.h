@@ -532,12 +532,12 @@ class QTGUI : public UI
 	virtual void addHorizontalSlider(char* label , float* zone, float init, float min, float max, float step)
 	{
 		openHorizontalBox(label);
-		addNumEntry(0, zone, init, min, max, step);
 		QSlider* 	w = new QSlider(Qt::Horizontal);
 		w->setTickPosition(QSlider::TicksBothSides);
 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+		addNumEntry(0, zone, init, min, max, step);
 		closeBox();
 	}
 
