@@ -12,32 +12,15 @@ TMP 	:= /var/tmp/faust
 
 all : $(appls)
 
-# $(DEST)%.cpp : %.dsp
-# 	faust -a $(ARCH) $< -o $@
-# 
-# $(DEST)%.pro : $(DEST)%.cpp 
-# 	qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-ljack" "HEADERS+=/usr/local/lib/faust/faustqt.h" $< -o $@
-# 	
-# 
-# $(DEST)%.makefile : $(DEST)%.pro
-# 	qmake $< -o $@
-# 
-# 
-# 
-# $(DEST)% : $(DEST)%.makefile
-# 	make -C $(DEST) -f $(notdir $<)
-
 
 $(DEST)% : %.dsp
 	rm -rf $(TMP)
 	install -d $(TMP)
 	faust -a $(ARCH) $< -o $(TMP)/$<.cpp
-	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-ljack" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
+	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
 	cd $(TMP); qmake 
 	make -C $(TMP)
 	mv $(TMP)/faust $@
-
-#	rm -rf $(TMP)
 
 clean:
 	rm -rf $(DEST)
