@@ -5,14 +5,16 @@
 #include <math.h>
 #include <errno.h>
 #include <time.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <string>
 #include <vector>
 #include <math.h>
 
+#ifdef __APPLE__
 #include <Carbon/Carbon.h>
+#include <unistd.h>
+#endif
 
 using namespace std ;
 	
@@ -213,7 +215,11 @@ class mspToggleButton : public mspUIObject {
 				
 		void toString(char* buffer)
 		{
+		#ifdef WIN32
+            sprintf(buffer, "ToggleButton(float): %s", fLabel.c_str());
+		#else
 			std::sprintf(buffer, "ToggleButton(float): %s", fLabel.c_str());
+		#endif	
 		}
 };
 
@@ -227,7 +233,11 @@ class mspCheckButton : public mspUIObject {
 		
 		void toString(char* buffer)
 		{
+		#ifdef WIN32
+            sprintf(buffer, "CheckButton(float): %s", fLabel.c_str());
+		#else
 			std::sprintf(buffer, "CheckButton(float): %s", fLabel.c_str());
+		#endif
 		}
 };
 
@@ -241,7 +251,11 @@ class mspButton : public mspUIObject {
 		
 		void toString(char* buffer)
 		{
+		#ifdef WIN32
+            sprintf(buffer, "Button(float): %s", fLabel.c_str());
+		#else
 			std::sprintf(buffer, "Button(float): %s", fLabel.c_str());
+		#endif
 		}	
 };
 
@@ -263,7 +277,11 @@ class mspSlider : public mspUIObject{
 		
 		void toString(char* buffer)
 		{
+		#ifdef WIN32
+            sprintf(buffer, "Slider(float): %s [%.1f:%.1f:%.1f]", fLabel.c_str(), fMin, fInit, fMax);
+		#else
 			std::sprintf(buffer, "Slider(float): %s [%.1f:%.1f:%.1f]", fLabel.c_str(), fMin, fInit, fMax);
+		#endif
 		}
 		
 		void SetValue(double f) {*fZone = range(fMin,fMax,f);}
@@ -382,20 +400,37 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 /*--------------------------------------------------------------------------*/
 void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 {
-	if (msg == ASSIST_INLET) {
-		if (a == 0) {
-			if (x->dsp->getNumInputs() == 0) 
+    if (msg == ASSIST_INLET) {
+        if (a == 0) {
+            if (x->dsp->getNumInputs() == 0) {
+			#ifdef WIN32
+                sprintf(dst, "(signal) : Unused Input");
+			#else
 				std::sprintf(dst, "(signal) : Unused Input");
-			else
+			#endif
+            } else {
+			#ifdef WIN32
+                sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+			#else
 				std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-		} else if (a < x->dsp->getNumInputs()) {
+			#endif
+			}
+        } else if (a < x->dsp->getNumInputs()) {
+		#ifdef WIN32
+            sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+		#else
 			std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-		} else {
-			x->dspUI->UIObject2String(dst,a - max(1,x->dsp->getNumInputs()));
-		}
-	} else if (msg == ASSIST_OUTLET) {
+		#endif
+        } else {
+            x->dspUI->UIObject2String(dst,a - max(1,x->dsp->getNumInputs()));
+        }
+    } else if (msg == ASSIST_OUTLET) {
+	#ifdef WIN32
+        sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+	#else
 		std::sprintf(dst, "(signal) : Audio Output %ld", (a+1));
-	}
+	#endif
+    }
 }
 
 /*--------------------------------------------------------------------------*/
@@ -448,6 +483,7 @@ int main()
 	addmess((method)faust_assist, "assist", A_CANT, 0);
 	dsp_initclass();
 	post("Faust DSP object");
+	return 0;
 }
 
 
