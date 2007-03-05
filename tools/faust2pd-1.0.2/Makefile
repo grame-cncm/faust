@@ -1,7 +1,7 @@
 
 # make sure you set the proper prefix where the Q interpreter lives
-prefix=/usr
-#prefix=/usr/local
+#prefix=/usr
+prefix=/usr/local
 
 bindir=$(prefix)/bin
 libdir=$(prefix)/lib/q
