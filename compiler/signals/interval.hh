@@ -27,7 +27,9 @@
 #include <math.h>
 #include <iostream>
 
-
+#ifdef WIN32
+inline double log2(double e) { return log(e)/log(double(2)); }
+#endif
 
 using namespace std;
 
@@ -103,6 +105,7 @@ inline interval operator%(const interval& x, const interval& y)
 			? interval(0,y.hi)
 			: interval();
 }
+
 inline int bitmask (double x)	{ return (1 << (int(log2(x))+1)) - 1; }
 
 //----------------------booleans --------------------------------------------
