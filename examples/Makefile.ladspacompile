@@ -3,13 +3,18 @@ dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 modules	:= $(addprefix $(DEST),  $(dspsrc:%.dsp=%.so))
 libs    := $(wildcard *.lib)
+os 	:= $(shell uname)
 
 ###allcpp: $(cppsrc)
 
 allmodules: $(modules)
 
 $(DEST)%.so: $(DEST)%.cpp
+ifeq ($(os), Darwin)
+	$(CXX) -fPIC -bundle -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+else
 	$(CXX) -fPIC -shared -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+endif
 
 $(DEST)%.cpp: %.dsp *.lib
 	faust $(VEC) -a ladspa.cpp $< -o $@
