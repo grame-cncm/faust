@@ -915,6 +915,7 @@ void GTKUI::addVerticalSlider(char* label, float* zone, float init, float min, f
 	gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
 	
 	GtkWidget* slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
+	gtk_range_set_inverted (GTK_RANGE(slider), TRUE);
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
 	gtk_widget_set_usize(slider, -1, 160);
 	
@@ -994,6 +995,7 @@ void GTKUI::addVerticalBargraph(char* label, float* zone, float lo, float hi)
 {
 	GtkWidget* pb = gtk_progress_bar_new();
 	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_BOTTOM_TO_TOP);
+	gtk_widget_set_size_request(pb, 8, -1);
 	new uiBargraph(this, zone, GTK_PROGRESS_BAR(pb), lo, hi);
 	openFrameBox(label);
 	addWidget(label, pb);
@@ -1005,6 +1007,7 @@ void GTKUI::addHorizontalBargraph(char* label, float* zone, float lo, float hi)
 {
 	GtkWidget* pb = gtk_progress_bar_new();
 	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_LEFT_TO_RIGHT);
+	gtk_widget_set_size_request(pb, -1, 8);
 	new uiBargraph(this, zone, GTK_PROGRESS_BAR(pb), lo, hi);
 	openFrameBox(label);
 	addWidget(label, pb);
@@ -1118,7 +1121,7 @@ void GTKUI::run()
 	assert(fTop == 0);
 	gtk_widget_show  (fBox[0]);
 	gtk_widget_show  (fWindow);
-	gtk_timeout_add(100, callUpdateAllGuis, 0);
+	gtk_timeout_add(40, callUpdateAllGuis, 0);
 	gtk_main ();
 	stop();
 }
