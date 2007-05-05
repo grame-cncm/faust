@@ -50,6 +50,7 @@ tempo(t) 	= (60*SR)/t;			// tempo(t) -> samples
 
 period(p) 	= %(int(p))~+(1);		// signal en dent de scie de periode p
 pulse(t) 	= period(t)==0;			// pulse (10000...) de periode p
+pulsen(n,t) = period(t)<n;			// pulse (1110000...) de taille n et de periode p
 beat(t) 	= pulse(tempo(t));		// pulse au tempo t
 
 
