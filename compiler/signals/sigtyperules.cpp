@@ -65,7 +65,8 @@ Tree TYPEPROPERTY = tree(symbol("TypeProperty"));
 void setSigType(Tree sig, Type t)
 {
 	//cerr << "setSigType(" << *sig << ", " << t << ")" << endl;
-	setProperty(sig, TYPEPROPERTY, tree((void*)t));
+	//setProperty(sig, TYPEPROPERTY, tree((void*)t));
+	sig->setType(t);
 }
 
 
@@ -75,7 +76,7 @@ void setSigType(Tree sig, Type t)
  */
 Type getSigType(Tree sig)
 {
-	//cerr << "getSigType(" << *sig << ")" ;
+#if 0	//cerr << "getSigType(" << *sig << ")" ;
 	Tree tt;
 	if (!getProperty(sig, TYPEPROPERTY, tt)) {
 		cerr << "ERROR in getSigType : no type information available for signal :" << *sig << endl;
@@ -83,6 +84,14 @@ Type getSigType(Tree sig)
 	}
 	//cerr << " -> " << *((AudioType*)tree2ptr(tt)) << endl;
 	return (AudioType*)tree2ptr(tt);
+#else
+	AudioType* t = (AudioType*) sig->getType();
+	if (t==0) {
+		cerr << "ERROR in getSigType : no type information available for signal :" << *sig << endl;
+		exit(1);
+	}
+	return t;	
+#endif
 }
 
 
