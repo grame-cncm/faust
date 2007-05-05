@@ -45,7 +45,9 @@ This will create a subfolder jackgtkdir with all the jack applications. You can 
 The supported architectures are the following :
 
 	jack-gtk.cpp
+	jack-qt.cpp
 	alsa-gtk.cpp
+	alsa-qt.cpp
 	q.cpp
 	vst.cpp
 	ladspa.cpp
