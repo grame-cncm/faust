@@ -119,6 +119,7 @@ class CTree
 	// fields
 	Tree		fNext;				///< next tree in the same hashtable entry
 	Node		fNode;				///< the node content of the tree
+	void*		fType;				///< the type of a tree 
 	plist		fProperties;		///< the properties list attached to the tree
 	unsigned int		fHashKey;			///< the hashtable key
 	int			fAperture;			///< how "open" is a tree (synthezised field)
@@ -149,6 +150,10 @@ class CTree
 	ostream& 	print (ostream& fout) const; 					///< print recursively the content of a tree on a stream
 	static void control ();										///< print the hash table content (for debug purpose)
 
+	// type information
+	void		setType(void* t) 	{ fType = t; }
+	void*		getType() 			{ return fType; }
+	
 	// Property list of a tree
 	void		setProperty(Tree key, Tree value) { fProperties[key] = value; }
 	void		clearProperty(Tree key) { fProperties.erase(key); }

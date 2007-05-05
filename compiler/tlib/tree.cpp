@@ -99,6 +99,7 @@ bool CTree::gDetails = false;
 // Constructor : add the tree to the hash table
 CTree::CTree (unsigned int hk, const Node& n, const tvec& br) 
 	:	fNode(n), 
+		fType(0),
 		fHashKey(hk), 
 	 	fAperture(calcTreeAperture(n,br)), 
 		fBranch(br) 
