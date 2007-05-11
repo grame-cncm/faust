@@ -104,6 +104,7 @@ string			gArchFile;
 string			gOutputFile;
 list<string>	gInputFiles;
 
+bool			gPatternEvalMode = false;
 
 //-- command line tools
 
@@ -213,7 +214,7 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.8.7\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.9.1\n";
 	cout << "Copyright (C) 2002-2007, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
@@ -315,7 +316,11 @@ int main (int argc, char* argv[])
 
 
 	int numInputs, numOutputs;
-	getBoxType(process, &numInputs, &numOutputs);
+	if (!getBoxType(process, &numInputs, &numOutputs)) {
+		cerr << "ERROR during the evaluation of  process : "
+			 << boxpp(process) << endl;
+		exit(1);
+	}
 
 	if (gDetailsSwitch) { cerr <<"process has " <<numInputs <<" inputs, and " <<numOutputs <<" outputs" <<endl; }
 

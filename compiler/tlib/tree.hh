@@ -176,6 +176,8 @@ inline Tree tree (const Node& n, const Tree& a, const Tree& b) { Tree br[]= {a,b
 inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c) { Tree br[]= {a,b,c}; return CTree::make(n, 3, br); }
 inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d) { Tree br[]= {a,b,c,d}; return CTree::make(n, 4, br); }
 
+inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e) { Tree br[]= {a,b,c,d,e}; return CTree::make(n, 5, br); }
+
 // useful conversions
 int 		tree2int (Tree t);		///< if t has a node of type int, return it otherwise error
 float 		tree2float (Tree t);	///< if t has a node of type float, return it otherwise error
@@ -189,6 +191,7 @@ bool isTree (const Tree& t, const Node& n, Tree& a);
 bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b);
 bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c);
 bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
+bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 
 //printing
 inline ostream& operator << (ostream& s, const CTree& t) { return t.print(s); }

@@ -139,6 +139,9 @@ LETTER   [a-zA-Z]
 "copyright" return COPYRIGHTPROP;
 "license"	return LICENSEPROP;
 
+"case"		return CASE;
+"=>"		return ARROW;
+
 
 _{ID}   	return IDENT;
 {ID}   		return IDENT;

@@ -31,8 +31,8 @@
 /**
  * propagate : box listOfSignal-> listOfSignal'
  *
- * Propage une liste de signaux de l'entrée vers la sortie d'une boite
- * La boite à été annotée aec son type 
+ * Propage une liste de signaux de l'entrï¿½e vers la sortie d'une boite
+ * La boite ï¿½ ï¿½tï¿½ annotï¿½e aec son type 
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -66,7 +66,7 @@ siglist split(const siglist& inputs, int nbus)
 	return outputs;
 }			
 
-//! Fabrique une liste de n projections d'un groupe récursif
+//! Fabrique une liste de n projections d'un groupe rï¿½cursif
 siglist makeSigProjList (Tree t, int n)
 {
 	siglist l(n);
@@ -74,7 +74,7 @@ siglist makeSigProjList (Tree t, int n)
 	return l;
 }
 
-//! Fabrique une liste de n mem projections d'un groupe récursif
+//! Fabrique une liste de n mem projections d'un groupe rï¿½cursif
 siglist makeMemSigProjList (Tree t, int n)
 {
 	siglist l(n);
@@ -83,7 +83,7 @@ siglist makeMemSigProjList (Tree t, int n)
 }
 
 
-//! Fabrique une liste de n entrées
+//! Fabrique une liste de n entrï¿½es
 siglist makeSigInputList (int n)
 {
 	siglist l(n);
@@ -140,7 +140,7 @@ siglist listLift(const siglist& l)
 	return r;
 }
 
-
+static int	gDummyInput = 10000;
 
 /**
  * Propagate computes the outputs signals of a block-diagram according to a list of input signals.
@@ -217,8 +217,10 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		Tree sig;
 		assert(lsig.size()==0); 
 		if (!searchEnv(box,sig,slotenv)) {
-			fprintf(stderr, "propagate : internal error (slot undefined)\n");
-			exit(1);
+			// test YO simplification des diagrames
+			//fprintf(stderr, "propagate : internal error (slot undefined)\n");
+			//exit(1);
+			sig = sigInput(++gDummyInput);
 		}
 		return makeList(sig);
 	}
@@ -387,7 +389,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		return makeSigProjList(g, out1);
 	}
 
-	fprintf(stderr, "propagation error\n");
+	cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
 	exit(1);
 	return siglist();
 }

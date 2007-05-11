@@ -1,4 +1,4 @@
-subprojects := boxes errors evaluate generator normalize parser propagate signals tlib draw draw/device draw/schema extended
+subprojects := boxes errors evaluate generator normalize parser propagate signals tlib draw draw/device draw/schema extended patternmatcher
 
 sources = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard draw/*/*.cpp)
 
@@ -6,8 +6,7 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-#CXXFLAGS := -g -O0 -ffriend-injection $(addprefix -I, $(subprojects))
-CXXFLAGS := -g -O0 $(addprefix -I, $(subprojects))
+CXXFLAGS := -g -O3 -Wall -Wuninitialized $(addprefix -I, $(subprojects))
 
 
 all : faust
@@ -71,6 +70,12 @@ errors/errormsg.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/bin
 evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
 evaluate/eval.o: errors/errormsg.hh boxes/ppbox.hh normalize/simplify.hh propagate/propagate.hh
+evaluate/eval.o: patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh tlib/smartpointer.hh
+evaluate/eval.o: signals/interval.hh generator/klass.hh generator/uitree.hh signals/sigvisitor.hh
+evaluate/eval.o: evaluate/loopDetector.hh
+evaluate/loopDetector.o: evaluate/loopDetector.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
+evaluate/loopDetector.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
+evaluate/loopDetector.o: parser/sourcereader.hh boxes/ppbox.hh
 extended/absprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/absprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
 extended/absprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
@@ -199,10 +204,13 @@ parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh parser/faustparser
 parser/faustparser.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh tlib/num.hh
 parser/faustparser.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 parser/faustparser.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-parser/faustparser.o: boxes/boxes.hh signals/prim2.hh errors/errormsg.hh
+parser/faustparser.o: boxes/boxes.hh signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-parser/sourcereader.o: generator/enrobage.hh
+parser/sourcereader.o: generator/enrobage.hh boxes/ppbox.hh
+patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+patternmatcher/patternmatcher.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
+patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh patternmatcher/patternmatcher.hh
 propagate/propagate.o: propagate/propagate.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 propagate/propagate.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
 propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh boxes/ppbox.hh extended/xtended.hh

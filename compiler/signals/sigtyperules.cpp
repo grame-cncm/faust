@@ -554,17 +554,12 @@ static Type infereRecType (Tree var, Tree body, Tree env)
 	Type t0, t1;
 
 	t1 = initialRecType(body);
-	//cerr << "infereRecType : try first : " << t1 << endl;
 	do {
 		t0 = t1;
 		setProperty(var, env, tree((void*)t0));
 		t1 = T(body, addEnv(var, t0, env));
-		assert(t0 <= t1);
-		//cerr << "            then try  : " << t1 << endl;
-	} while (t1 != t0);
-	//cerr << "infereRecType : converge : " << t1 << endl;
+	} while (t1 > t0);
 	if (env == NULLENV) {
-		//cerr << "HERE MARK THE VAR AND THE BODY " << *var << *body << endl;
 		setSigType(var, t1);
 		T(body, NULLENV);
 	}

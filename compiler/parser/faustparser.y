@@ -9,6 +9,7 @@
 #include "prim2.hh"
 #include "signals.hh"
 #include "errormsg.hh"
+#include "sourcereader.hh"
 
 #include <string>
 #include <list>
@@ -179,6 +180,9 @@ Tree unquote(char* str)
 %token VERSIONPROP
 %token LICENSEPROP
 
+%token CASE
+%token ARROW
+
 
 %type <exp> program
 
@@ -224,6 +228,9 @@ Tree unquote(char* str)
 %type <exp> vbargraph
 %type <exp> hbargraph
 
+%type <exp> rule
+%type <exp> rulelist
+
 
 
 
@@ -234,15 +241,18 @@ Tree unquote(char* str)
 
 %% /* grammar rules and actions follow */
 
-program         : eqlist 						{$$ = $1; gResult = $$; }
+program         : eqlist 						{$$ = $1; gResult = formatDefinitions($$); }
 				;
 
 eqlist			: /*empty*/						{$$ = nil; }
 				| eqlist equation 				{$$ = cons ($2,$1); }
                 ;
-
-equation		: eqname LPAR params RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); }
+/*
+equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); }
 				| eqname DEF diagram ENDDEF						{$$ = cons($1,$3); }
+*/
+equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,cons($3,$6)); }
+				| eqname DEF diagram ENDDEF						{$$ = cons($1,cons(nil,$3)); }
 				| IMPORT LPAR uqstring RPAR ENDDEF				{$$ = importFile($3); }
 				| DECLARE NAMEPROP 		STRING {gNameProperty.push_back(yytext); } 		ENDDEF				{$$ = nil; }
 				| DECLARE AUTHORPROP 	STRING {gAuthorProperty.push_back(yytext); } 	ENDDEF				{$$ = nil; }
@@ -259,7 +269,7 @@ params			: ident							{$$ = cons($1,nil); }
 				| params PAR ident				{$$ = cons($3,$1); }
                 ;
 
-diagram			: diagram WITH LBRAQ eqlist RBRAQ	{$$ = boxWithLocalDef($1,$4); }
+diagram			: diagram WITH LBRAQ eqlist RBRAQ	{$$ = boxWithLocalDef($1,formatDefinitions($4)); }
 				| diagram PAR diagram  			{$$ = boxPar($1,$3);}
 				| diagram SEQ diagram  			{$$ = boxSeq($1,$3);}
 				| diagram SPLIT  diagram 		{$$ = boxSplit($1,$3);}
@@ -292,7 +302,7 @@ expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sig
 				| expression NE expression		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
 
 				| expression LPAR arglist RPAR %prec APPL	{$$ = buildBoxAppl($1,$3); }
-
+				
 				| primitive						{$$ = $1;}
 				;
 
@@ -374,6 +384,9 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| LPAR diagram RPAR				{$$ = $2;}
 				| LAMBDA LPAR params RPAR DOT LPAR diagram RPAR
 												{$$ = buildBoxAbstr($3,$7);}
+
+				| CASE LBRAQ rulelist RBRAQ		{$$ = boxCase(checkRulelist($3));}
+				
 				| ffunction						{$$ = boxFFun($1); }
 				| fconst						{$$ = $1;}
 				| COMPONENT LPAR uqstring RPAR	{$$ = boxComponent($3); }
@@ -498,6 +511,14 @@ fun				: IDENT							{$$ = tree(yytext);}
 typelist		: type							{$$ = cons($1,nil); }
 				| typelist PAR type				{$$ = cons($3,$1); }
                 ;
+
+rulelist		: rule							{$$ = cons($1,nil); }
+				| rulelist rule					{$$ = cons($2,$1); }
+				;
+
+rule			: LPAR arglist RPAR ARROW diagram ENDDEF
+												{$$ = cons($2,$5); }
+				;
 
 type			: INTCAST						{$$ = tree(0); }
 				| FLOATCAST						{$$ = tree(1); }

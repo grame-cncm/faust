@@ -133,7 +133,9 @@
      AUTHORPROP = 349,
      COPYRIGHTPROP = 350,
      VERSIONPROP = 351,
-     LICENSEPROP = 352
+     LICENSEPROP = 352,
+     CASE = 353,
+     ARROW = 354
    };
 #endif
 /* Tokens.  */
@@ -232,18 +234,20 @@
 #define COPYRIGHTPROP 350
 #define VERSIONPROP 351
 #define LICENSEPROP 352
+#define CASE 353
+#define ARROW 354
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 61 "parser/faustparser.y"
+#line 62 "parser/faustparser.y"
 {
 	CTree* 	exp;
 }
 /* Line 1529 of yacc.c.  */
-#line 247 "parser/faustparser.hpp"
+#line 251 "parser/faustparser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -193,7 +193,7 @@ inline interval mergeinterval(const vector<Type>& v)
 	if (v.size()==0) {
 		return interval();
 	} else {
-		double lo, hi;
+		double lo=0, hi=0;
 		for (unsigned int i = 0; i < v.size(); i++) {
 			interval r = v[i]->getInterval();
 			if (!r.valid) return r;

@@ -6,9 +6,14 @@
 	
 */
 #include <iostream>
+#include <map>
+#include <list>
+
 
 #include "sourcereader.hh"
 #include "enrobage.hh"
+#include "ppbox.hh"
+
 using namespace std;
 
 /****************************************************************
@@ -28,6 +33,142 @@ extern Tree 	gResult;
 extern Tree 	gResult2;
 
  
+
+
+/**
+ * Checks an argument list for containing only 
+ * standard identifiers, no patterns and
+ * is linear.
+ * @param args the argument list to check
+ * @return true if it contains only identifiers 
+ */
+ 
+static bool standardArgList(Tree args)
+{
+	map<Tree,int>	L;
+	while (isList(args)) {
+		if (!isBoxIdent(hd(args))) return false;
+		if (++L[hd(args)] > 1) return false;
+		args = tl(args);
+	}
+	return true;
+}
+
+
+static void printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
+{
+	cerr 	<< "ERROR : inconsistent number of parameters in pattern-matching rule: "
+			<< boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+			<< " previous rule was: " 
+			<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+			<< endl;
+}
+
+Tree checkRulelist (Tree lr)
+{
+	Tree lrules = lr;
+	if (isNil(lrules)) { cerr << "ERROR : a case expression can't be empty" << endl; exit(1); }
+	// first pattern used as a reference
+	Tree lhs1 = hd(hd(lrules));
+	Tree rhs1 = tl(hd(lrules));
+	int npat = len(lhs1); 
+	lrules = tl(lrules);
+	while (! isNil(lrules)) {
+		Tree lhs2 = hd(hd(lrules));
+		Tree rhs2 = tl(hd(lrules));
+		if (npat != len(lhs2)) {
+			printPatternError(lhs1,rhs1,lhs2,rhs2);
+			exit(1);
+		}
+		
+		lhs1 = lhs2;
+		rhs1 = rhs2;
+		lrules = tl(lrules);
+	}	
+	return lr;
+}
+
+
+/**
+ * Transforms a list of variants (arglist.body) 
+ * into an abstraction or a boxCase.
+ * @param variants list of variants (arglist.body)
+ * @return the corresponding box expression 
+ */
+static Tree makeDefinition(list<Tree>& variants)
+{
+	if (variants.size() == 1) {
+		Tree rhs = *(variants.begin());
+		Tree args= hd(rhs);
+		Tree body= tl(rhs);
+		
+		if (isNil(args)) {
+			return body;
+		} else if (standardArgList(args)) {
+			return buildBoxAbstr(args, body);
+		} else {
+			return boxCase(cons(rhs,nil));
+		}
+	} else {
+		list<Tree>::iterator p;
+		Tree	l = nil;
+		Tree	prev = *variants.begin();
+		int 	npat = len(hd(prev));
+		for (p=variants.begin(); p!=variants.end(); p++) {
+			Tree cur = *p;
+			if (npat != len(hd(cur))) {
+				printPatternError(hd(prev), tl(prev), hd(cur), tl(cur));
+				exit(1);
+			}
+			prev = cur;
+			l = cons(*p,l);
+		}
+		return boxCase(l);
+	}
+}
+
+
+
+/**
+ * Formats a list of raw definitions represented by triplets
+ * <name,arglit,body> into abstractions or pattern 
+ * matching rules when appropriate.
+ * 
+ * @param rldef list of raw definitions in reverse order
+ * @return the list of formatted definitions
+ */
+Tree formatDefinitions(Tree rldef)
+{
+	map<Tree,list<Tree> > dic;
+	map<Tree,list<Tree> >::iterator p;
+	Tree ldef2 = nil;
+	Tree file;
+	
+	//cout << "Format definitions " << *rldef << endl;
+	// collects the definitions in a dictionnary
+	while (!isNil(rldef)) {
+		Tree def = hd(rldef);		
+		rldef = tl(rldef);
+		if (isImportFile(def, file)) {
+			ldef2 = cons(def,ldef2);
+		} else if (!isNil(def)) { 
+			//cout << " def : " << *def << endl; 
+			dic[hd(def)].push_front(tl(def)); 
+		}
+	}
+	
+	// produce the definitions
+	
+	for (p=dic.begin(); p!=dic.end(); p++) {
+		ldef2 = cons (cons(p->first, makeDefinition(p->second)), ldef2);
+	}
+	
+	//cout << "list of definitions : " << *ldef2 << endl;
+	return ldef2;
+		
+}
+
+
 /**
  * Parse a single faust source file. returns the list of
  * definitions it contains.

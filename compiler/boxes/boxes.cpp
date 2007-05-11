@@ -404,3 +404,45 @@ Sym BOXVBARGRAPH = symbol ("BoxVBargraph");
 Tree boxVBargraph(Tree lbl, Tree min, Tree max)					{ return tree(BOXVBARGRAPH, lbl, min, max);		}
 bool isBoxVBargraph (Tree s)									{ Tree lbl, min, max; return isTree(s, BOXVBARGRAPH, lbl, min, max);	}
 bool isBoxVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max)	{ return isTree(s, BOXVBARGRAPH, lbl, min, max); }
+
+
+/*****************************************************************************
+							 pattern lmatching case
+*****************************************************************************/
+
+Sym BOXCASE 		= symbol ("BoxCase");
+Sym BOXPATMATCHER 	= symbol ("BoxPatMatcher");
+Sym BOXPATVAR 		= symbol ("BoxPatVar");
+
+Tree boxCase 	 (Tree rules)				{ return tree(BOXCASE, rules); 					}
+bool isBoxCase (Tree s)						{ Tree rules; return isTree(s, BOXCASE, rules);	}
+bool isBoxCase (Tree s, Tree& rules)		{ return isTree(s, BOXCASE, rules);				}
+
+Tree boxPatternVar	(Tree id)				{ return tree(BOXPATVAR, id); 					}
+bool isBoxPatternVar(Tree s, Tree& id)		{ return isTree(s, BOXPATVAR, id);				}
+
+
+Tree boxPatternMatcher		(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)	
+{ 
+	return tree(BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList); 
+} 					
+
+bool isBoxPatternMatcher	(Tree s)
+{
+	Tree ta, ts, env, orig, rpl;
+	return isTree(s, BOXPATMATCHER, ta, ts, env, orig, rpl);
+}
+
+bool isBoxPatternMatcher	(Tree s, Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList)
+{
+	Tree ta, ts;
+	if (isTree(s, BOXPATMATCHER, ta, ts, env, origRules, revParamList)) {
+		a = (Automaton*)tree2ptr(ta);
+		state = tree2int(ts);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+

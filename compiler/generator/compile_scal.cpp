@@ -1002,7 +1002,7 @@ static int pow2limit(int x)
 
 string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 {
-	int 	mxd, d; 
+	int 	mxd; 
 	string 	vecname;
  
 	CS(exp); // ensure exp is compiled to have a vector name
@@ -1182,7 +1182,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 {
 	assert(mxd > 0);
 
-	bool odocc = fOccMarkup.retrieve(sig)->hasOutDelayOccurences();
+	//bool odocc = fOccMarkup.retrieve(sig)->hasOutDelayOccurences();
 
 	if (mxd < gMaxCopyDelay) {
 

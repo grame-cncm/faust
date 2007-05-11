@@ -48,29 +48,40 @@
 
 
 Tree BOXTYPEPROP = tree(symbol("boxTypeProp"));
-static void infereBoxType (Tree box, int* inum, int* onum);
+static bool infereBoxType (Tree box, int* inum, int* onum);
 
 
 
 /**
- * Return the type (number of inputs and outputs) of a box.
+ * Return the type (number of inputs and outputs) of a box or false if undefined
  * \param box the box we want to know the type
  * \param inum the place to return the number of inputs
  * \param onum the place to return the number of outputs
+ * \return true if type is defined, false if undefined
  */
 
-void getBoxType (Tree box, int* inum, int* onum)
+bool getBoxType (Tree box, int* inum, int* onum)
 {
 	Tree t;
 	if (getProperty(box, BOXTYPEPROP, t)) {
 		
-		*inum = hd(t)->node().getInt();
-		*onum = tl(t)->node().getInt();
+		if (isNil(t)) {
+			return false;
+		} else {
+			*inum = hd(t)->node().getInt();
+			*onum = tl(t)->node().getInt();
+			return true;
+		}
 		
 	} else {
-		
-		infereBoxType(box, inum, onum);
-		setProperty(box, BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
+	
+		if (infereBoxType(box, inum, onum)) {
+			setProperty(box, BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
+			return true;
+		} else {
+			setProperty(box, BOXTYPEPROP, nil);
+			return false;
+		}
 	}
 }
 
@@ -83,7 +94,7 @@ void getBoxType (Tree box, int* inum, int* onum)
  * \param onum the place to return the number of outputs
  */
 
-static void infereBoxType (Tree t, int* inum, int* onum)
+static bool infereBoxType (Tree t, int* inum, int* onum)
 {
 	Tree a, b, ff, l, s;
 	//Tree abstr, genv, vis, lenv;
@@ -97,7 +108,7 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; } 
 
 	else if (isBoxSlot(t)) 		{ *inum = 0; *onum = 1; } 
-	else if (isBoxSymbolic(t,s,b)) 	{ getBoxType(b, inum, onum); *inum += 1; } 
+	else if (isBoxSymbolic(t,s,b)) 	{ if (!getBoxType(b, inum, onum)) return false; *inum += 1; } 
 	
 	else if (isBoxPrim0(t)) 	{ *inum = 0; *onum = 1; } 
 	else if (isBoxPrim1(t)) 	{ *inum = 1; *onum = 1; } 
@@ -114,9 +125,9 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxVSlider(t)) 	{ *inum = 0; *onum = 1; } 
 	else if (isBoxHSlider(t)) 	{ *inum = 0; *onum = 1; } 
 	else if (isBoxNumEntry(t)) 	{ *inum = 0; *onum = 1; } 
-	else if (isBoxVGroup(t,l,a)){ getBoxType(a, inum, onum); } 
-	else if (isBoxHGroup(t,l,a)){ getBoxType(a, inum, onum); } 
-	else if (isBoxTGroup(t,l,a)){ getBoxType(a, inum, onum); } 
+	else if (isBoxVGroup(t,l,a)){ if (!getBoxType(a, inum, onum)) return false; } 
+	else if (isBoxHGroup(t,l,a)){ if (!getBoxType(a, inum, onum)) return false; } 
+	else if (isBoxTGroup(t,l,a)){ if (!getBoxType(a, inum, onum)) return false; } 
 	
 	else if (isBoxVBargraph(t)) 	{ *inum = 1; *onum = 1; } 
 	else if (isBoxHBargraph(t)) 	{ *inum = 1; *onum = 1; } 
@@ -124,8 +135,8 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxSeq(t, a, b)) {
 		
 		int u,v,x,y;
-		getBoxType(a, &u, &v);
-		getBoxType(b, &x, &y);
+		if (!getBoxType(a, &u, &v)) return false;
+		if (!getBoxType(b, &x, &y)) return false;
 
 		if (v >= x) {
 			*inum = u; *onum = y+v-x;
@@ -136,16 +147,16 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 	} else if (isBoxPar(t, a, b)) {
 		
 		int u,v,x,y;
-		getBoxType(a, &u, &v);
-		getBoxType(b, &x, &y);
+		if (!getBoxType(a, &u, &v)) return false;
+		if (!getBoxType(b, &x, &y)) return false;
 
 		*inum = u+x; *onum = v+y;
 
 	} else if (isBoxSplit(t, a, b)) {
 		
 		int u,v,x,y;
-		getBoxType(a, &u, &v);
-		getBoxType(b, &x, &y);
+		if (!getBoxType(a, &u, &v)) return false;
+		if (!getBoxType(b, &x, &y)) return false;
 		
 		if (x % v != 0) {
 			cerr 	<< "Connection error in : " << boxpp(t) << endl
@@ -160,8 +171,8 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 	} else if (isBoxMerge(t, a, b)) {
 		
 		int u,v,x,y;
-		getBoxType(a, &u, &v);
-		getBoxType(b, &x, &y);
+		if (!getBoxType(a, &u, &v)) return false;
+		if (!getBoxType(b, &x, &y)) return false;
 		
 		if (v % x != 0) { 
 			cerr 	<< "Connection error in : " << boxpp(t) << endl
@@ -176,8 +187,8 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 	} else if (isBoxRec(t, a, b)) {
 		
 		int u,v,x,y;
-		getBoxType(a, &u, &v);
-		getBoxType(b, &x, &y);
+		if (!getBoxType(a, &u, &v)) return false;
+		if (!getBoxType(b, &x, &y)) return false;
 		if ( (x > v) | (y > u) ) { 
 			cerr 	<< "Connection error in : " << boxpp(t) << endl;
 			if (x > v) cerr << "The number of outputs " << v 
@@ -191,11 +202,9 @@ static void infereBoxType (Tree t, int* inum, int* onum)
 		*inum = max(0,u-y); *onum = v;
 		
 	} else {
-
-		cerr << "Internal Error, box expression not recognized : " << boxpp(t) << endl; 
-		exit(1);
-
+	  return false;
 	}
+	return true;
 }	
 		
 		

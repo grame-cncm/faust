@@ -79,18 +79,18 @@ class Node
 
  public:
 	// constructeurs
-	Node (int x) 				: fType(kIntNode) 		{ fData.i = x; }
-	Node (float x) 				: fType(kFloatNode) 	{ fData.f = (float)x; }
+	Node (int x) 				: fType(kIntNode) 		{ fData.p = 0; fData.i = x; }
+	Node (float x) 				: fType(kFloatNode) 	{ fData.p = 0; fData.f = (float)x; }
 	Node (const char* name)		: fType(kSymNode) 		{ fData.s = symbol(name); }
 	Node (const string& name)	: fType(kSymNode) 		{ fData.s = symbol(name); }
 	Node (Sym x) 				: fType(kSymNode) 		{ fData.s = x; }
 	Node (void* x) 				: fType(kPointerNode) 	{ fData.p = x; }
 
-	Node (const Node& n) 		: fType(n.fType) 		{ fData.i = n.fData.i; }
+	Node (const Node& n) 		: fType(n.fType) 		{ fData.p = n.fData.p; }
 
 	// predicats
-	bool operator == (const Node& n) const { return fType == n.fType && fData.i == n.fData.i; }
-	bool operator != (const Node& n) const { return fType != n.fType || fData.i != n.fData.i; }
+	bool operator == (const Node& n) const { return fType == n.fType && fData.p == n.fData.p; }
+	bool operator != (const Node& n) const { return fType != n.fType || fData.p != n.fData.p; }
 
 	// accessors
 	int		type() 		const 	{ return fType; }
@@ -252,7 +252,8 @@ inline const Node divExtendedNode (const Node& x, const Node& y)
 inline const Node remNode (const Node& x, const Node& y)
 	{ return Node(int(x)%int(y)); }
 
-// nouvelles fonctions
+// inverse functions
+
 inline const Node minusNode (const Node& x)
 	{ return subNode(0, x); }
 
@@ -260,7 +261,7 @@ inline const Node inverseNode (const Node& x)
 	{ return divNode(1.0f, x); }
 
 
-// operations de décalage sur les bits
+// bit shifting operations
 
 inline const Node lshNode (const Node& x, const Node& y)
 	{ return Node(int(x)<<int(y)); }
@@ -269,7 +270,7 @@ inline const Node rshNode (const Node& x, const Node& y)
 	{ return Node(int(x)>>int(y)); }
 
 
-// operations booléennes sur les bits
+// boolean operations on bits
 
 inline const Node andNode (const Node& x, const Node& y)
 	{ return Node(int(x)&int(y)); }
@@ -281,7 +282,7 @@ inline const Node xorNode (const Node& x, const Node& y)
 	{ return Node(int(x)^int(y)); }
 
 
-// operations de comparaison
+// compare operations
 
 inline const Node gtNode (const Node& x, const Node& y)
 	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)>float(y)) : Node(int(x)>int(y)); }

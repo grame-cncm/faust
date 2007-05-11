@@ -62,5 +62,30 @@ Tree evalprocess (Tree eqlist);
 bool 	getDefNameProperty(Tree t, Tree& id);
 
 
+void 	setDefNameProperty(Tree t, Tree id);
+void 	setDefNameProperty(Tree t, const string& name);
+
+/**
+ * Search the environment for the definition of a symbol
+ * ID and return it. 
+ * @param id the symbol ID to search
+ * @param def where to store the definition if any
+ * @param lenv the environment
+ * @return true if a definition was found
+ */
+bool searchIdDef(Tree id, Tree& def, Tree lenv);
+
+
+/**
+ * Push a new layer and add a single definition.
+ * @param id the symbol id to be defined
+ * @param def the definition to be binded to the symbol id
+ * @param lenv the environment where to push the layer and add the definition
+ * @return the new environment
+ */
+Tree pushValueDef(Tree id, Tree def, Tree lenv);
+
+/* numeric simplification of pattern arguments */
+Tree simplifyPattern (Tree pattern);
 
 #endif

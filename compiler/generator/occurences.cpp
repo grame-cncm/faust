@@ -47,11 +47,11 @@ Occurences* Occurences::incOccurences(int v, int r, int d) {
 	return this;
 }
 
-bool Occurences::hasMultiOccurences()		{ return fMultiOcc; }
+bool Occurences::hasMultiOccurences()	const	{ return fMultiOcc; }
 
-bool Occurences::hasOutDelayOccurences()	{ return fOutDelayOcc; }
+bool Occurences::hasOutDelayOccurences() const	{ return fOutDelayOcc; }
 
-int Occurences::getMaxDelay()
+int Occurences::getMaxDelay() const
 {
 	return fMaxDelay;
 }

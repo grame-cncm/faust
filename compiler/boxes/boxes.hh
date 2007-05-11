@@ -42,7 +42,7 @@ box ::= i | f | p0 | p1 | p3
 #include "tlib.hh"
 #include "signals.hh"
 
-
+struct Automaton;
 
 /*****************************************************************************
 ******************************************************************************
@@ -277,6 +277,22 @@ bool isBoxHBargraph (Tree s, Tree& label, Tree& min, Tree& max);
 
 
 /*****************************************************************************
+							 case (pattern matching)
+*****************************************************************************/
+Tree boxCase		(Tree rules);
+bool isBoxCase		(Tree s);
+bool isBoxCase		(Tree s, Tree& rules);
+
+Tree boxPatternMatcher		(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList);
+bool isBoxPatternMatcher	(Tree s);
+bool isBoxPatternMatcher	(Tree s, Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList);
+
+// wrap an id into a pattern variable
+Tree boxPatternVar	(Tree id);
+bool isBoxPatternVar(Tree s, Tree& id);
+
+
+/*****************************************************************************
 ******************************************************************************
 
 							    Box Algorithms
@@ -285,7 +301,7 @@ bool isBoxHBargraph (Tree s, Tree& label, Tree& min, Tree& max);
 *****************************************************************************/
 
 // return the number of input
-void getBoxType (Tree box, int* inum, int* onum);
+bool getBoxType (Tree box, int* inum, int* onum);
 
 
 #endif

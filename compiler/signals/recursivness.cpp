@@ -90,7 +90,7 @@ static int annotate(Tree env, Tree sig)
 			return p;	// we are inside \x.(...)
 		} else {
 			int r = annotate(cons(sig, env), body) - 1;
-			assert (r >= 0);
+			if (r<0) r=0;
 			setProperty(sig, RECURSIVNESS, tree(r));
 			return r;
 		}

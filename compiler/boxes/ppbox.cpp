@@ -98,8 +98,16 @@ static void streambinop(ostream& fout, Tree t1, char* op, Tree t2, int curPriori
 	if (upPriority > curPriority) fout << ')';
 }
 
+static void printRule(ostream& fout, Tree rule)
+{
+	Tree lhs = left(rule);
+	Tree rhs = right(rule);
+	char sep = '('; while (!isNil(lhs)) { fout << sep << boxpp(hd(lhs)); sep=','; lhs=tl(lhs); }
+	fout << ") => " << boxpp(rhs) << "; ";
+}
+
 /*****************************************************************************
-	 affichage d'une expression box comme en entr�
+	 affichage d'une expression box comme en entree
 *****************************************************************************/
 
 ostream& boxpp::print (ostream& fout) const
@@ -114,7 +122,8 @@ ostream& boxpp::print (ostream& fout) const
 	prim5	p5;
 
 	Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg,
-			body, fun, args, abstr, genv, vis, lenv, ldef, slot;
+			body, fun, args, abstr, genv, vis, lenv, ldef, slot,
+			ident, rules;
 
 	const char* str;
 
@@ -164,18 +173,18 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxVSlider(box, label, cur, min, max, step)) 	{
 		fout << "vslider("
 			 << tree2str(label) << ", "
-			 << tree2float(cur) << ", "
-			 << tree2float(min) << ", "
-			 << tree2float(max) << ", "
-			 << tree2float(step)<< ')';
+			 << boxpp(cur) << ", "
+			 << boxpp(min) << ", "
+			 << boxpp(max) << ", "
+			 << boxpp(step)<< ')';
 	}
 	else if (isBoxHSlider(box, label, cur, min, max, step)) 	{
 		fout << "hslider("
 			 << tree2str(label) << ", "
-			 << tree2float(cur) << ", "
-			 << tree2float(min) << ", "
-			 << tree2float(max) << ", "
-			 << tree2float(step)<< ')';
+			 << boxpp(cur) << ", "
+			 << boxpp(min) << ", "
+			 << boxpp(max) << ", "
+			 << boxpp(step)<< ')';
 	}
 	else if (isBoxVGroup(box, label, t1)) {
 		fout << "vgroup(" << tree2str(label) << ", " << boxpp(t1, 0) << ')';
@@ -189,22 +198,25 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxHBargraph(box, label, min, max)) 	{
 		fout << "hbargraph("
 			 << tree2str(label) << ", "
-			 << tree2float(min) << ", "
-			 << tree2float(max) << ')';
+			 << boxpp(min) << ", "
+			 << boxpp(max) << ')';
 	}
 	else if (isBoxVBargraph(box, label, min, max)) 	{
 		fout << "vbargraph("
 			 << tree2str(label) << ", "
-			 << tree2float(min) << ", "
-			 << tree2float(max) << ')';
+			 << boxpp(min) << ", "
+			 << boxpp(max) << ')';
 	}
 	else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{
 		fout << "nentry("
 			 << tree2str(label) << ", "
-			 << tree2float(cur) << ", "
-			 << tree2float(min) << ", "
-			 << tree2float(max) << ", "
-			 << tree2float(step)<< ')';
+			 << boxpp(cur) << ", "
+			 << boxpp(min) << ", "
+			 << boxpp(max) << ", "
+			 << boxpp(step)<< ')';
+	}
+	else if (isNil(box)) {
+		fout << "()" ;
 	}
 	else if (isList(box)) {
 
@@ -230,6 +242,9 @@ ostream& boxpp::print (ostream& fout) const
 		fout << "component("
 			<< tree2str(label) << ')';
 	}
+	else if (isBoxAccess(box, t1, t2)) {
+		fout << boxpp(t1) << '.' << boxpp(t2);
+	}
 	else if (isImportFile(box, label)) {
 		fout << "import("
 			<< tree2str(label) << ')';
@@ -240,10 +255,37 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxSymbolic(box, slot, body)) {
 		fout << "[" << boxpp(slot) << ">" << boxpp(body) << "]";
 	}
+	
+	// Pattern Matching Extensions
+	else if (isBoxCase(box, rules)) {
+		fout << "case {";
+		while (!isNil(rules)) { printRule(fout, hd(rules)); rules = tl(rules); }
+		fout << "}";	 
+	}
+#if 0
+	// more useful for debugging output
+	else if (isBoxPatternVar(box, ident)) {
+		fout << "<" << boxpp(ident) << ">";	
+	}
+#else
+	// beautify messages involving lhs patterns
+	else if (isBoxPatternVar(box, ident)) {
+		fout << boxpp(ident);	
+	}
+#endif
 
+	else if (isBoxPatternMatcher(box)) {
+		fout << "PM[" << box << "]";	
+	}
+
+	else if (isBoxError(box)) {
+		fout << "ERROR";	
+	}
+
+	
 	// None of the previous tests succeded, then it is not a valid box
 	else {
-		cerr << "Error in box::print() : " << box << " is not the address of a valid box" << endl;
+		cerr << "Error in box::print() : " << *box << " is not the address of a valid box" << endl;
 		exit(1);
 	}
 
