@@ -1,5 +1,8 @@
 all : jackgtk
 
+svg:
+	$(MAKE) -f Makefile.svg
+	
 puredata :
 	install -d puredatadir
 	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='' -f Makefile.pdcompile
