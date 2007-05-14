@@ -26,7 +26,7 @@
 #ifdef WIN32
 #define isatty(desc) 0
 #else
-#include <unistd.h>
+#include "/usr/include/unistd.h"
 #endif
 
 #endif
