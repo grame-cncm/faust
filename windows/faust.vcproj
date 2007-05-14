@@ -79,7 +79,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compiler/boxes,../compiler/errors,../compiler/extended,../compiler/generator,../compiler/normalize,../compiler/parallelize,../compiler/parser,../compiler/propagate,../compiler/signals,../compiler/tlib,../compiler/draw/device,../compiler/draw/schema,../compiler/draw,../compiler/evaluate"
+				AdditionalIncludeDirectories="../compiler/boxes;../compiler/errors;../compiler/extended;../compiler/generator;../compiler/normalize;../compiler/parallelize;../compiler/parser;../compiler/propagate;../compiler/signals;../compiler/tlib;../compiler/draw/device;../compiler/draw/schema;../compiler/draw;../compiler/patternmatcher;../compiler/evaluate"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -824,6 +824,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\compiler\evaluate\loopDetector.cpp">
+			</File>
+			<File
 				RelativePath="..\compiler\main.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -993,6 +996,9 @@
 						PreprocessorDefinitions=""
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\compiler\patternmatcher\patternmatcher.cpp">
 			</File>
 			<File
 				RelativePath="..\compiler\extended\powprim.cpp">

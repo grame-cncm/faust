@@ -140,7 +140,9 @@ struct State {
 
   State& operator = (const State& state)
   { s = state.s; match_num = state.match_num;
-    rules = state.rules; trans = state.trans; }
+    rules = state.rules; trans = state.trans; 
+	return *this;
+  }
 
 #ifdef DEBUG
   ostream& print(ostream& fout) const;
@@ -174,6 +176,7 @@ Trans& Trans::operator = (const Trans& trans)
 {
   x = trans.x; n = trans.n; arity = trans.arity;
   state = new State(*trans.state);
+  return *this;
 }
 
 /* the automaton */
