@@ -39,6 +39,9 @@ static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
             isBoxSeq(box, t1, t2) ||
             isBoxSplit(box, t1, t2) ||
             isBoxMerge(box, t1, t2) ||
+            isBoxHGroup(box, t1, t2) ||
+            isBoxVGroup(box, t1, t2) ||
+            isBoxTGroup(box, t1, t2) ||
             isBoxRec(box, t1, t2)    )
     {
         n = box->node();
