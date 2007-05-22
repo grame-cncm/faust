@@ -28,24 +28,13 @@
 
 
 
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 
 
 // g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
 
-#ifdef __GNUC__
-
-//-------------------------------------------------------------------
-// Generic min and max using gcc extensions
-//-------------------------------------------------------------------
-
-#define max(x,y) ((x)>?(y))
-#define min(x,y) ((x)<?(y))
-
-//abs(x) should be already predefined
-
-#else
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -92,11 +81,6 @@ inline double 	min (long a, double b) 		{ return (a<b) ? a : b; }
 inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
 inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
-
-#endif
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }

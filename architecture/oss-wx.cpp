@@ -128,7 +128,8 @@ void setRealtimePriority ()
 *******************************************************************************
 *******************************************************************************/
 
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -428,7 +429,7 @@ public:
 
 
 //---------------------------------------------------
-// tableaux de buffers initialisés par allocChannels
+// tableaux de buffers initialisï¿½s par allocChannels
 //---------------------------------------------------
 
 float* 	gInChannel[256];
@@ -459,7 +460,7 @@ void allocChannels (int size, int numInChan, int numOutChan)
 
 
 //----------------------------------------------------------------
-//  définition du processeur de signal
+//  dï¿½finition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {

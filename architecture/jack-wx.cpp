@@ -111,7 +111,8 @@ inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 *******************************************************************************
 *******************************************************************************/
 
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -237,7 +238,7 @@ void jack_shutdown(void *arg)
 
 int process (jack_nframes_t nframes, void *arg)
 {
-  // ATTENTION: en vectoriel il faut s'assurer que gInChannel et gOutChannel soit alignés sur une frontière de 128 bits
+  // ATTENTION: en vectoriel il faut s'assurer que gInChannel et gOutChannel soit alignï¿½s sur une frontiï¿½re de 128 bits
 
 	for (int i = 0; i < gNumInChans; i++) {
 	    gInChannel[i] = (float *)jack_port_get_buffer(input_ports[i], nframes);

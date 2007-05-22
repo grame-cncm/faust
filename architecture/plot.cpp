@@ -17,18 +17,6 @@
 
 using namespace std;
 
-#ifdef __GNUC__
-
-//-------------------------------------------------------------------
-// Generic min and max using gcc extensions
-//-------------------------------------------------------------------
-
-#define max(x,y) ((x)>?(y))
-#define min(x,y) ((x)<?(y))
-
-//abs(x) should be already predefined
-
-#else
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -76,10 +64,6 @@ inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
 inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
 		
-#endif
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
@@ -95,7 +79,8 @@ template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 *******************************************************************************
 *******************************************************************************/
 
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -415,15 +400,17 @@ int main(int argc, char *argv[] )
 	CMDUI* interface = new CMDUI(argc, argv);
 	DSP.buildUserInterface(interface);
 	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
-	interface->process_command();
 	
 	if (DSP.getNumInputs() > 0) {
 		fprintf(stderr, "no inputs allowed\n");
 		exit(1);
 	}
 	
-	// init signal processor
+	// init signal processor and the user interface values
 	DSP.init(44100);
+	
+	// modifie the UI valuez according to the command line options
+	interface->process_command();
 	
 	int nouts = DSP.getNumOutputs();
 	channels chan (kFrames, nouts);

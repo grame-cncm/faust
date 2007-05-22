@@ -99,7 +99,8 @@ inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 *******************************************************************************
 *******************************************************************************/
 
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -174,7 +175,7 @@ static void destroy_event( GtkWidget *widget, gpointer data )
 }
 
 
-// callback pour les différents widgets
+// callback pour les diffï¿½rents widgets
 //-------------------------------------
 
 void pressed( GtkWidget *widget, gpointer   data )
@@ -433,7 +434,7 @@ void* run_ui(void* ptr)
 
 
 //----------------------------------------------------------------
-//  définition du processeur de signal
+//  dï¿½finition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {
