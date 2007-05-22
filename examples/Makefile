@@ -1,5 +1,7 @@
 all : jackgtk
 
+test: jackgtk alsagtk jackqt alsaqt ladspa ossgtk bench plot sndfile jackconsole
+
 svg:
 	$(MAKE) -f Makefile.svg
 	
@@ -89,6 +91,6 @@ jackconsole :
 
 
 clean :
-	rm -rf alsagtkdir jackgtkdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir vstdir benchdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir plotdir jackconsoledir *-ps *-svg
+	rm -rf alsagtkdir jackgtkdir alsaqtdir jackqtdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir vstdir benchdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir plotdir jackconsoledir *-ps *-svg
 
 
