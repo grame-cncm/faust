@@ -82,7 +82,7 @@ struct Rule {
   Rule(const Rule& rule) : r(rule.r), id(rule.id), p(rule.p) {}
 
   Rule& operator = (const Rule& rule)
-  { r = rule.r; id = rule.id; p = rule.p; }
+  { r = rule.r; id = rule.id; p = rule.p; return *this; }
 
   bool operator == (const Rule& rule) const
   { return r == rule.r; }
@@ -543,13 +543,16 @@ Automaton *make_pattern_matcher(Tree R)
 	    /* Lhs of rule #r matched a higher-priority rule, so rule #r may
 	       be shadowed. */
 	    Tree lhs1, rhs1, lhs2, rhs2;
-	    isCons(rules[ru->r], lhs1, rhs1);
-	    isCons(rules[r], lhs2, rhs2);
-	    cerr 	<< "WARNING : shadowed pattern-matching rule: "
-			<< boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
-			<< " previous rule was: " 
-			<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
-			<< endl;
+	    if (isCons(rules[ru->r], lhs1, rhs1) &&  isCons(rules[r], lhs2, rhs2)) {
+			cerr 	<< "WARNING : shadowed pattern-matching rule: "
+				<< boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+				<< " previous rule was: " 
+				<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+				<< endl;
+		} else {
+			cerr << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;
+			exit(1);
+		}
 	  } else if (ru->r >= r)
 	    break;
     }
