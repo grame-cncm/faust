@@ -60,6 +60,8 @@ dist :
 	cp -r tools faust-$(version)
 	cp -r windows faust-$(version)
 	find faust-$(version) -name CVS | xargs rm -rf
+	find faust-$(version) -name "*~" | xargs rm -rf
+	find faust-$(version) -name ".#*" | xargs rm -rf
 	rm -f faust-$(version).tar.gz
 	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
