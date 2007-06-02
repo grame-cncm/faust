@@ -43,6 +43,8 @@ struct interval
 	interval (double n) 			: valid(true), lo(n), hi(n) { }
 	interval (double n, double m) 	: valid(true), lo(min(n,m)), hi(max(n,m)) {}
 	interval (const interval& r)	: valid(r.valid), lo(r.lo), hi(r.hi) { }
+	
+	bool isconst() { return valid & (lo == hi); }
 };
 
 inline ostream& operator<<(ostream& dst, const interval& i) 	
@@ -108,7 +110,7 @@ inline interval operator%(const interval& x, const interval& y)
 
 inline int bitmask (double x)	{ return (1 << (int(log2(x))+1)) - 1; }
 
-//----------------------booleans --------------------------------------------
+//----------------------booleans&bits--------------------------------------
 
 inline interval operator&(const interval& x, const interval& y)
 {
@@ -122,6 +124,10 @@ inline interval operator&(const interval& x, const interval& y)
 		} else {
 			return interval();
 		}
+	} else if (x.valid & x.lo >= 0) {
+		return interval(0, bitmask(x.hi));
+	} else if (y.valid & y.lo >= 0) {
+		return interval(0, bitmask(y.hi));
 	} else {
 		return interval();
 	}

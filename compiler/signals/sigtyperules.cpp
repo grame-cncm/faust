@@ -333,7 +333,7 @@ static Type infereSigType(Tree sig, Tree env)
 /*		cerr << "for sig fix delay : s1 = " 
 				<< t1 << ':' << ppsig(s1) << ", s2 = " 
 				<< t2 << ':' << ppsig(s2) << endl; */
-		//assert(checkDelayInterval(t2)>=0); 
+		assert(checkDelayInterval(t2)>=0); 
 		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0))); 
 	}
 
