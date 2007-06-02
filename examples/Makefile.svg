@@ -4,7 +4,7 @@ target 	:= $(src:.dsp=.dsp-svg)
 all :  $(target)
 
 
-%.dsp-svg : %.dsp *.lib
+%.dsp-svg : %.dsp
 	faust -svg $< > /dev/null
 	
 

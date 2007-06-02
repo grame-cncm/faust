@@ -3,7 +3,6 @@ dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 modules	:= $(addprefix $(DEST),  $(dspsrc:.dsp=~.pd_linux))
 patches	:= $(addprefix $(DEST),  $(dspsrc:.dsp=.pd))
-libs    := $(wildcard *.lib)
 FAUST2PD := faust2pd
 F2PDFLAGS := -r 10 -s
 
