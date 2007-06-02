@@ -281,7 +281,7 @@ int checkDelayInterval(Type t)
 	if (i.valid && i.lo >= 0) {
 		return int(i.hi+0.5);
 	} else {
-		cerr << "checkDelayInterval failed for : " << i << endl;
+		//cerr << "checkDelayInterval failed for : " << i << endl;
 		return -1;
 	}
 }		

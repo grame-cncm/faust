@@ -329,11 +329,24 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigFixDelay(sig, s1, s2)) 		{ 
 		Type t1 = T(s1,env); 
-		Type t2 = T(s2,env); 
+		Type t2 = T(s2,env);
+		interval i = t2->getInterval();
+ 
 /*		cerr << "for sig fix delay : s1 = " 
 				<< t1 << ':' << ppsig(s1) << ", s2 = " 
 				<< t2 << ':' << ppsig(s2) << endl; */
-		assert(checkDelayInterval(t2)>=0); 
+		if (!i.valid) {
+			cerr << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl;
+			cerr << "        used in delay expression : " << ppsig(sig) << endl;
+			cerr << "        (probably a recursive signal)" << endl;
+			exit(1);
+		} else if (i.lo < 0) {
+			cerr << "ERROR : possible negative values of : " << ppsig(s2) << endl;
+			cerr << "        used in delay expression : " << ppsig(sig) << endl;
+			cerr << "        " << i << endl;
+			exit(1);
+		}
+			
 		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0))); 
 	}
 
