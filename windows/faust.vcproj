@@ -22,6 +22,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="../compiler/boxes;../compiler/errors;../compiler/extended;../compiler/generator;../compiler/normalize;../compiler/parallelize;../compiler/parser;../compiler/propagate;../compiler/signals;../compiler/tlib;../compiler/draw/device;../compiler/draw/schema;../compiler/draw;../compiler/patternmatcher;../compiler/evaluate"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -1210,6 +1211,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\resource.rc">
+			</File>
+			<File
 				RelativePath="..\compiler\extended\rintprim.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -1664,6 +1668,9 @@
 			</File>
 			<File
 				RelativePath="..\compiler\draw\device\PSDev.h">
+			</File>
+			<File
+				RelativePath=".\resource.h">
 			</File>
 			<File
 				RelativePath="..\compiler\draw\device\SVGDev.h">
