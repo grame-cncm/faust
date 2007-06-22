@@ -42,7 +42,8 @@ $(DEST)% : %.dsp
 	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
 	cd $(TMP); qmake 
 	make -C $(TMP)
-	mv $(TMP)/faust $@
+	mv $(TMP)/$(<:.dsp=) $@
+	rm -rf $(TMP)
 
 clean:
 	rm -rf $(DEST)
