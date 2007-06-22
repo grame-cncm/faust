@@ -2,17 +2,39 @@
 ### DEST : directory where to put binaries
 ### ARCH : faust architecture file
 
+system	:= $(shell uname -s)
 dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
-appls	:= $(addprefix $(DEST),  $(dspsrc:.dsp=))
 
-TMP 	:= /var/tmp/faust
+
+### check what type of applications to build (MacOSX Darwin or Linux)
+ifeq ($(system), Darwin)
+appls	:= $(addprefix $(DEST),  $(dspsrc:.dsp=.app))
+else
+appls	:= $(addprefix $(DEST),  $(dspsrc:.dsp=))
+endif
+
+
+TMP = /var/tmp/$(<:.dsp=)
 ###--------------------------------------------
 
 
 all : $(appls)
 
 
+### Darwin 
+$(DEST)%.app : %.dsp
+	rm -rf $(TMP)
+	install -d $(TMP)
+	faust -a $(ARCH) $< -o $(TMP)/$<.cpp
+	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
+	cd $(TMP); qmake
+	cd $(TMP); xcodebuild -project $(<:.dsp=).xcodeproj
+	mv $(TMP)/build/Default/$(<:.dsp=.app) $@
+	rm -rf $(TMP)
+
+
+### Linux
 $(DEST)% : %.dsp
 	rm -rf $(TMP)
 	install -d $(TMP)
