@@ -106,36 +106,38 @@ static Tree simplification (Tree sig)
 		else 								return normalizeAddTerm(sig);
 
 	} else if (isSigDelay1(sig, t1)) {
-		// delay1(0) = 0
-		//Node n1 = t1->node();
-
-		//return (isZero(t1)) ? t1 : sig;
+		
 		return normalizeDelay1Term (t1);
-
 
 	} else if (isSigFixDelay(sig, t1, t2)) {
 
-		//return (isZero(t2)) ? t1 : sig;
 		return normalizeFixedDelayTerm (t1, t2);
-
 
 	} else if (isSigIntCast(sig, t1)) {
 
-		Node n1 = t1->node();
-		if (isNum(n1)) {
-			return tree(int(n1));
-		} else {
-			return sig;
-		}
+		Tree 	tx;
+		int		i;
+		float 	x;
+		Node 	n1 = t1->node();
+
+		if (isInt(n1, &i)) 			return t1; 
+		if (isFloat(n1, &x)) 		return tree(int(x));
+		if (isSigIntCast(t1, tx)) 	return t1;
+		
+		return sig;
 
 	} else if (isSigFloatCast(sig, t1)) {
 
-		Node n1 = t1->node();
-		if (isNum(n1)) {
-			return tree(float(n1));
-		} else {
-			return sig;
-		}
+		Tree 	tx;
+		int		i;
+		float 	x;
+		Node 	n1 = t1->node();
+
+		if (isInt(n1, &i)) 				return tree(float(x));
+		if (isFloat(n1, &x)) 			return t1;
+		if (isSigFloatCast(t1, tx)) 	return t1;
+		
+		return sig;
 
 	} else {
 
