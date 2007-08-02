@@ -56,7 +56,7 @@ Tree  sigDelay1(Tree t0)							{ return tree(SIGDELAY1, t0); 		}
 bool  isSigDelay1(Tree t, Tree& t0)					{ return isTree(t, SIGDELAY1, t0); 	}
 
 Sym SIGFIXDELAY = symbol ("sigFixDelay");
-Tree  sigFixDelay(Tree t0, Tree t1)					{ return tree(SIGFIXDELAY, t0, t1); 		}
+Tree  sigFixDelay(Tree t0, Tree t1)					{ return tree(SIGFIXDELAY, t0, sigIntCast(t1)); 		}
 bool  isSigFixDelay(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGFIXDELAY, t0, t1); 	}
 
 Sym SIGPREFIX = symbol ("sigPrefix");
@@ -130,11 +130,35 @@ bool isProj (Tree t, int* i, Tree& rgroup)		{ Tree x; return isTree(t, SIGPROJ, 
 Sym SIGINTCAST = symbol ("sigIntCast");
 Sym SIGFLOATCAST = symbol ("sigFloatCast");
 
-Tree  sigIntCast(Tree t)						{ return tree(SIGINTCAST, t); 			}
-Tree  sigFloatCast(Tree t)						{ return tree(SIGFLOATCAST, t); 		}
+Tree  sigIntCast(Tree t)						
+{ 
+	Node n = t->node();
+	
+	int i; 		if (isInt(n, &i)) 			return t; 
+	float x;	if (isFloat(n, &x)) 		return tree(int(x));
+				if (isSigIntCast(t))		return t;
+	 
+	return tree(SIGINTCAST, t);   
+}
 
-bool  isSigIntCast(Tree t, Tree& x)				{ return isTree(t, SIGINTCAST, x); 		}
-bool  isSigFloatCast(Tree t, Tree& x)			{ return isTree(t, SIGFLOATCAST, x); 	}
+Tree  sigFloatCast(Tree t)						
+{ 
+	Node n = t->node();
+	
+	int i; 		if (isInt(n, &i)) 			return tree(float(i)); 
+	float x;	if (isFloat(n, &x)) 		return t;
+				if (isSigFloatCast(t))		return t;
+	 
+	return tree(SIGFLOATCAST, t);   
+}
+
+//Tree  sigFloatCast(Tree t)						{ return isSigFloatCast(t)? t : tree(SIGFLOATCAST, t); }
+
+bool  isSigIntCast(Tree t)						{ Tree x; return isTree(t, SIGINTCAST, x); 	}
+bool  isSigIntCast(Tree t, Tree& x)				{ return isTree(t, SIGINTCAST, x); 			}
+
+bool  isSigFloatCast(Tree t)					{ Tree x; return isTree(t, SIGFLOATCAST, x);}
+bool  isSigFloatCast(Tree t, Tree& x)			{ return isTree(t, SIGFLOATCAST, x); 		}
 
 
 

@@ -71,6 +71,9 @@ bool  isSigIota(Tree t, Tree& t0);
 Tree  sigIntCast(Tree t);
 Tree  sigFloatCast(Tree t);
 
+bool  isSigIntCast(Tree t);
+bool  isSigFloatCast(Tree t);
+
 bool  isSigIntCast(Tree t, Tree& x);
 bool  isSigFloatCast(Tree t, Tree& x);
 
