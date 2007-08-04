@@ -287,19 +287,20 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
 	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
-	else if ( isSigReal(sig, &r) ) 				{ return generateNumber(sig, T(r)); }
+	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
 	//else if ( isSigDelay1(sig, x) ) 				{ return generateDelay1 	(sig, x); 				}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(sig, x, y); 			}
-	else if ( isSigPrefix(sig, x, y) ) 			{ return generatePrefix 	(sig, x, y); 			}
+	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix 	(sig, x, y); 			}
 	else if ( isSigIota(sig, x) ) 					{ return generateIota 		(sig, x); 				}
 
 	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp 	(sig, i, x, y); 		}
 	else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun 		(sig, ff, largs); 		}
-	else if ( isSigFConst(sig, type, name, file) )	{ addIncludeFile(tree2str(file));	return tree2str(name); 	}
+	//else if ( isSigFConst(sig, type, name, file) )	{ addIncludeFile(tree2str(file));	return tree2str(name); 	}
+	else if ( isSigFConst(sig, type, name, file) )	{ return generateFConst(sig, tree2str(file), tree2str(name)); }
 
 	else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable 	(sig, x, y); 			}
 	else if ( isSigWRTbl(sig, id, x, y, z) )		{ return generateWRTbl 	(sig, x, y, z); 		}
@@ -310,10 +311,10 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	else if ( isSigGen(sig, x) ) 					{ return generateSigGen 	(sig, x); 				}
 
-	else if ( isProj(sig, &i, x) ) 				{ return generateRecProj 	(sig, x, i); 	}
+	else if ( isProj(sig, &i, x) ) 					{ return generateRecProj 	(sig, x, i); 	}
 
 	else if ( isSigIntCast(sig, x) ) 				{ return generateIntCast   (sig, x); 				}
-	else if ( isSigFloatCast(sig, x) ) 			{ return generateFloatCast (sig, x); 				}
+	else if ( isSigFloatCast(sig, x) ) 				{ return generateFloatCast (sig, x); 				}
 
 	else if ( isSigButton(sig, label) ) 			{ return generateButton   	(sig, label); 			}
 	else if ( isSigCheckbox(sig, label) ) 			{ return generateCheckbox 	(sig, label); 			}
@@ -349,13 +350,29 @@ string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 	if (o->getMaxDelay()>0) {
 		//cerr << "generate number with delay" << endl;
 		getTypedNames(getSigType(sig), "Vec", ctype, vname);
-		return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-	} else {
-		//cerr << "generate number without delay" << endl;
-		return exp;
-	}
+		generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+	} 
+	return exp;
 }
 
+/*****************************************************************************
+							   FOREIGN CONSTANTS
+*****************************************************************************/
+
+
+string ScalarCompiler::generateFConst (Tree sig, const string& file, const string& exp)
+{
+	string		ctype, vname;
+	Occurences* o = fOccMarkup.retrieve(sig);
+
+	addIncludeFile(file);	
+
+	if (o->getMaxDelay()>0) {
+		getTypedNames(getSigType(sig), "Vec", ctype, vname);
+		generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+	} 
+	return exp; 	
+}
 
 /*****************************************************************************
 							   INPUTS - OUTPUTS
@@ -1075,7 +1092,12 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
 string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
-	return generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
+	string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
+	if (getSigType(sig)->variability() < kSamp) {
+		return exp;
+	} else {
+		return s;
+	}
 }
 
 #if 0
