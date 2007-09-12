@@ -84,7 +84,8 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
 
 	// draw the rectangle
 	//fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"shape-rendering: crispEdges; stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
-	fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
+	//fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
+	fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:%s;\"/>\n", x, y, l, h, color);
 	if (link != 0) {
 		// close the optional link tag
 		fprintf(fic_repr,"</a>\n");
@@ -133,14 +134,16 @@ void SVGDev::dasharray(double x1,double y1,double x2,double y2)
 void SVGDev::text(double x,double y,const char* name)
 {
 	char name2[256];
-	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"8\" text-anchor=\"middle\">%s</text>\n",x,y+3,xmlcode(name,name2));
+	//fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"8\" text-anchor=\"middle\">%s</text>\n",x,y+3,xmlcode(name,name2));
+	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\" text-anchor=\"middle\" fill=\"#FFFFFF\">%s</text>\n",x,y+2,xmlcode(name,name2));
 }
 
 void SVGDev::label(double x,double y,const char* name)
 {
 	char name2[256];
 //	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" style=\"font-family:Courier;font-weight:normal;font-style:normal;font-size:7\">%s</text>\n",x,y+2,xmlcode(name,name2));
-	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"7\">%s</text>\n",x,y+2,xmlcode(name,name2));
+	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\">%s</text>\n",x,y+2,xmlcode(name,name2));
+//	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"7\" fill=\"#000000\">%s</text>\n",x,y+2,xmlcode(name,name2));
 }
 
 void SVGDev::markSens(double x,double y,int sens)
