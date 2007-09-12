@@ -115,12 +115,14 @@ static int infereSigOrder(Tree sig)
 	else if (isSigBinOp(sig, &i, s1, s2)) 		return max(O(s1),O(s2));
 	
 	else if (isSigIntCast(sig, s1))				return O(s1);
-	
-	else if (isSigFloatCast(sig, s1)) 			return O(s1);
+        
+        else if (isSigFloatCast(sig, s1))                       return O(s1);
 
-	else if (isSigFFun(sig, ff, ls)) 			return O(ls);
+        else if (isSigFFun(sig,ff,ls) && isNil(ls)) return 1;
 
-	else if (isSigFConst(sig,type,name,file))	return 1;
+        else if (isSigFFun(sig, ff, ls))                        return O(ls);
+
+        else if (isSigFConst(sig,type,name,file))       return 1;
 		
 	else if (isSigButton(sig)) 					return 2;
 	
@@ -159,12 +161,12 @@ static int infereSigOrder(Tree sig)
 	else if (isList(sig)) 
 	{
 		int r = 0;
-		while (isList(sig)) { int x = O(hd(sig)); if (x > r) r = x; sig = tl(sig); }
-		return r;
-	}
-	
-	// unrecognized signal here
-	fprintf(stderr, "ERROR infering signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
+                while (isList(sig)) { int x = O(hd(sig)); if (x > r) r = x; sig = tl(sig); }
+                return r;
+        }
+        
+        // unrecognized signal here
+        fprintf(stderr, "ERROR infering signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);
 	return 0;
 }
