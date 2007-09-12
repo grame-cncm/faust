@@ -58,11 +58,62 @@
 #include "drawschema.hh"
 #include "compatibility.hh"
 
+#if 0
 #define linkcolor "#b3d1dc"
 #define normalcolor "#ffeaa2"
 #define uicolor "#F1CFA1"
 #define slotcolor "#ffffd7"
 #define numcolor "#ffffff"
+#endif
+
+#if 0
+#define linkcolor "#F57900" 
+#define normalcolor "#4B71A1"
+#define uicolor "#47945E"
+#define slotcolor "#EDD400"
+#define numcolor "#4B71A1"
+#endif
+
+#if 0
+#define linkcolor "#47945E" 
+#define normalcolor "#4B71A1"
+#define uicolor "#f44800"
+#define slotcolor "#EDD400"
+#define numcolor "#f44800"
+#endif
+
+#if 0
+#define linkcolor "#47945E" 
+#define normalcolor "#4B71A1"
+#define uicolor "#816647"
+#define slotcolor "#EDD400"
+#define numcolor "#f44800"
+#endif
+
+#if 0
+#define linkcolor "#003366" 
+#define normalcolor "#4B71A1"
+#define uicolor "#816647"
+#define slotcolor "#EDD400"
+#define numcolor "#f44800"
+#endif
+
+#if 0
+#define linkcolor "#003366" 
+#define normalcolor "#4B71A1"
+#define uicolor "#477881"
+#define slotcolor "#816647"
+#define numcolor "#f44800"
+#endif
+
+
+#if 1
+#define linkcolor "#003366" 
+#define normalcolor "#4B71A1"
+#define uicolor "#477881"
+#define slotcolor "#47945E"
+#define numcolor "#f44800"
+#endif
 
 using namespace std;
 
