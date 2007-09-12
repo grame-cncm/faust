@@ -29,7 +29,7 @@ depend :
 	makedepend -w120 -Y -- $(CXXFLAGS) -- $(sources)
 
 ctags:
-	ctags main.cpp boxes/* errors/* evaluate/* generator/* normalize/* parser/* propagate/* signals/* tlib/* draw/* extended/*
+	ctags -R main.cpp $(subprojects)
 
 doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
 	doxygen
@@ -41,7 +41,7 @@ main.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh
 main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
 main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh generator/Text.hh
 main.o: generator/description.hh generator/occurences.hh generator/compile_vect.hh propagate/propagate.hh
-main.o: boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh generator/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
+main.o: boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
 main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
@@ -174,7 +174,6 @@ generator/contextor.o: generator/contextor.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/smartpointer.hh
 generator/description.o: generator/uitree.hh generator/Text.hh
-generator/enrobage.o: generator/enrobage.hh tlib/compatibility.hh parser/unistd.h /usr/include/unistd.h
 generator/klass.o: tlib/smartpointer.hh generator/klass.hh signals/sigtype.hh signals/interval.hh tlib/tlib.hh
 generator/klass.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/klass.o: generator/uitree.hh generator/Text.hh signals/signals.hh signals/binop.hh
@@ -203,6 +202,7 @@ normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.
 normalize/simplify.o: signals/sigvisitor.hh normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
+parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh parser/unistd.h /usr/include/unistd.h
 parser/faustlexer.o: parser/unistd.h /usr/include/unistd.h tlib/tree.hh tlib/symbol.hh tlib/node.hh
 parser/faustlexer.o: parser/faustparser.hpp
 parser/faustparser.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh tlib/num.hh
@@ -210,8 +210,8 @@ parser/faustparser.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smart
 parser/faustparser.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
 parser/faustparser.o: boxes/boxes.hh signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
-parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-parser/sourcereader.o: generator/enrobage.hh boxes/ppbox.hh
+parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/enrobage.hh
+parser/sourcereader.o: boxes/ppbox.hh
 patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 patternmatcher/patternmatcher.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
 patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh patternmatcher/patternmatcher.hh
