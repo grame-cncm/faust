@@ -264,7 +264,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	}
 	
 	else if (isBoxFFun(box, ff)) 				{ 
-		//printf("propagate en boxFFun of arity %d\n", ffarity(ff));
+		//cerr << "propagate en boxFFun of arity " << ffarity(ff) << endl;
 		assert(int(lsig.size())==ffarity(ff)); 
 		return makeList(sigFFun(ff, listConvert(lsig)));  
 	}
