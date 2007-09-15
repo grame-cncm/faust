@@ -75,7 +75,7 @@ SVGDev::~SVGDev()
 void SVGDev::rect(double x,double y,double l,double h, const char* color, const char* link)
 {
 	char buf[512];
-	if (link != 0) {
+	if (link != 0 && link[0]!=0) {
 		// open the optional link tag
 		fprintf(fic_repr,"<a xlink:href=\"%s\">\n", xmlcode(link, buf));
 	}
@@ -86,7 +86,7 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
 	//fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"shape-rendering: crispEdges; stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
 	//fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
 	fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:%s;\"/>\n", x, y, l, h, color);
-	if (link != 0) {
+	if (link != 0 && link[0]!=0) {
 		// close the optional link tag
 		fprintf(fic_repr,"</a>\n");
 	}
