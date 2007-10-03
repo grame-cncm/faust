@@ -1,4 +1,4 @@
-version := 0.9.9.2a1
+version := 0.9.9.2
 prefix := /usr/local
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
@@ -18,6 +18,7 @@ help :
 	@echo "make install : install the compiler and the architecture files in $(prefix)/bin $(prefix)/lib/faust"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a tar.gz file ready for distribution"
+	@echo "make log : make a changelog file"
 
 parser :
 	$(MAKE) -C compiler parser
@@ -65,3 +66,6 @@ dist :
 	rm -f faust-$(version).tar.gz
 	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
+
+log :
+	cvs2cl --fsf
