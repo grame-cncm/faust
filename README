@@ -58,7 +58,8 @@ The supported architectures are the following :
 Other architecture files are also available :
 
 	oss-gtk.cpp
-	plot.cpp
+    plot.cpp
+    matlabplot.cpp
 	bench.cpp
 	oss-wx.cpp
 	minimal.cpp
