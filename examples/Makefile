@@ -77,6 +77,10 @@ plot :
 	install -d plotdir
 	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' LIB='' -f Makefile.compile
 
+matlabplot :
+	install -d matlabplotdir
+	$(MAKE) DEST='matlabplotdir/' ARCH='matlabplot.cpp' LIB='' -f Makefile.compile
+
 q :
 	install -d qdir
 	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='' -f Makefile.qcompile
@@ -91,6 +95,6 @@ jackconsole :
 
 
 clean :
-	rm -rf alsagtkdir jackgtkdir alsaqtdir jackqtdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir vstdir benchdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir plotdir jackconsoledir *-ps *-svg
+	rm -rf alsagtkdir jackgtkdir alsaqtdir jackqtdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir vstdir benchdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir plotdir jackconsoledir matlabplotdir *-ps *-svg
 
 
