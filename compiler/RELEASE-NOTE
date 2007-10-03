@@ -1,6 +1,0 @@
-FAUST 0.9.8.7 RELEASE NOTES 
----------------------------
-
-- Two new architecture files, based on QT 4.3, are available : 'alsa-qt.cpp' and 'jack-qt.cpp'. Uses 'make alsaqt' and 'make jackqt' to build the corresponding examples. 
-
-- Improved MaxMSP support and building process on MacOSX
