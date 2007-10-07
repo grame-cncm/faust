@@ -1,3 +1,23 @@
+2007-10-07  Albert Graef  <ag@muwiinfa.geschichte.uni-mainz.de>
+
+	* Makefile: various changes to the make install/uninstall goals
+
+	- add missing rm command for installed link in <prefix>/bin
+
+	- make sure that missing install directories are created; this is
+	necessary to make 'make install' work with a staging directory
+	
+	- install faust2pd into <prefix>/share/q/apps, where application
+	scripts should go as of Q 7.8, to keep the main library directory
+	clean
+
+	- install faust2pd README into <prefix>/share/q/etc
+
+	- it's bad to have a hardcoded pddatadir, use a second prefix
+	variable 'pdprefix' instead
+
+	* faust2pd/faust2pd.q, faust2pd/faustxml.q: updated to Q 7.8
+
 2006-10-05  Albert Graef  <ag@>
 
 	+++ Release 1.0 +++

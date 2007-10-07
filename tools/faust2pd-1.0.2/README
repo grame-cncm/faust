@@ -2,10 +2,10 @@
 FAUST2PD
 ========
 
-This package, which is available as a separate tarball from the Faust website,
-contains software which makes it easier to use Faust DSPs with Pd. It also
-includes a bunch of examples. This software is distributed under the GPL; see
-the COPYING file for details.
+This package, which now comes bundled with the Faust distribution, contains
+software which makes it easier to use Faust DSPs with Pd. It also includes a
+bunch of examples. This software is distributed under the GPL; see the COPYING
+file for details.
 
 This software has only been tested on Linux so far, but there shouldn't be any
 major roadblocks preventing it to work on other systems, as all required
@@ -17,9 +17,11 @@ Recent Faust versions (>0.9.8) should already include the puredata
 architecture, otherwise you should copy the faust/puredata.cpp file into the
 /usr/lib/faust directory where Faust's other architecture files are. If you
 want to use the faust2pd program or try the Q sequencer example you'll also
-need the Q interpreter available from http://q-lang.sf.net. NB: On this site
-you can also find source and SUSE 10.1 RPMs for Faust and Pd (see the
-Dependencies section on the Download page).
+need the Q interpreter (version 7.8 or later) available from
+http://q-lang.sf.net. NB: On this site you can also find source and SUSE 10.1
+RPMs for Faust and Pd (see the Dependencies section on the Download page).
+Also, if you get a recent version of the "all-in-one" Q package then faust2pd
+should already be included so that you do not have to install it separately.
 
 QUICKSTART
 ==========
@@ -192,7 +194,8 @@ generates Pd patches from the dsp.xml files created by Faust when run with the
 want to use this, you'll also need the Q interpreter available from
 http://q-lang.sf.net. (If you're compiling Q from source then you should make
 sure that it is configured to include Q's XML module; this is required by
-faust2pd to parse the XML files created by Faust.)
+faust2pd to parse the XML files created by Faust.) Please note that Q 7.8 or
+later is required.
 
 If you want, you can run "make install" to install the faust2pd script under
 /usr/local, or "make prefix=/your/path" to install it elsewhere. The prefix
@@ -321,5 +324,5 @@ DSP algorithms so much more easy and fun.
 
 
 Enjoy! :)
-October 2006
+October 2007
 Albert Graef

@@ -18,7 +18,7 @@
 
 var const VERSION = "1.0";
 
-import faustxml;
+import dict, faustxml, getopt, system;
 private pcontrols X;
 
 /* Needed Pd messages and objects. */
@@ -504,8 +504,6 @@ controls2 PATH X:Control
 		      LBL = mangle LBL;
 
 /* main program */
-
-import getopt;
 
 def OPTS        = [("--help", "-h", NOARG),
 		   ("--version", "-V", NOARG),

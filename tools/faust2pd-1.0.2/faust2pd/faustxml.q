@@ -1,7 +1,7 @@
 
 /* faustxml.q: Determine the description of a Faust DSP from its XML file. */
 
-import xml;
+import dict, system, xml;
 
 /* The Control type is used to represent the UI controls of Faust DSPs. The
    elements are the same as for the Control type in the Q-Faust module, minus
