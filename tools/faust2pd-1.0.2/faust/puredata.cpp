@@ -1,6 +1,7 @@
-/* Pd architecture file. Derived from minimal.cpp included in the Faust
-   distribution. Please note that this is to be compiled as a shared library,
-   which is then loaded dynamically by Pd as an external. */
+/* Pd architecture file, written by Albert Graef <Dr.Graef@t-online.de>.
+   This was derived from minimal.cpp included in the Faust distribution.
+   Please note that this is to be compiled as a shared library, which is
+   then loaded dynamically by Pd as an external. */
 
 #include <stdlib.h>
 #include <math.h>
@@ -68,7 +69,8 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 *******************************************************************************
 *******************************************************************************/
 
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
