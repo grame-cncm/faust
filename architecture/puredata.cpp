@@ -1,6 +1,7 @@
-/* Pd architecture file. Derived from minimal.cpp included in the Faust
-   distribution. Please note that this is to be compiled as a shared library,
-   which is then loaded dynamically by Pd as an external. */
+/* Pd architecture file, written by Albert Graef <Dr.Graef@t-online.de>.
+   This was derived from minimal.cpp included in the Faust distribution.
+   Please note that this is to be compiled as a shared library, which is
+   then loaded dynamically by Pd as an external. */
 
 #include <stdlib.h>
 #include <math.h>
