@@ -44,6 +44,7 @@
 extern SourceReader	gReader;
 extern int gMaxNameSize;
 extern bool gPatternEvalMode;
+extern bool	gSimpleNames;
 
 // History
 // 23/05/2005 : New environment management
@@ -964,7 +965,8 @@ static Tree applyList (Tree fun, Tree larg)
 
 		Tree	fname;
 		if (getDefNameProperty(fun, fname)) {
-			stringstream s; s << tree2str(fname) << "(" << boxpp(arg) << ")";
+			//stringstream s; s << tree2str(fname) << "(" << boxpp(arg) << ")";
+			stringstream s; s << tree2str(fname); if (!gSimpleNames) s << "(" << boxpp(arg) << ")";
 			setDefNameProperty(f, s.str());
 		}
 		return applyList(f, tl(larg));

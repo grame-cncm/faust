@@ -31,7 +31,7 @@ using namespace std;
 
 const double dWire = 8; 			///< distance between two wires
 //const double dLetter = 6;			///< width of a letter
-const double dLetter = 4;			///< width of a letter
+const double dLetter = 4.3;			///< width of a letter
 const double dHorz = 4;       		///< marge horizontale
 const double dVert = 4;				///< marge verticale
 

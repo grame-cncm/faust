@@ -97,6 +97,7 @@ bool            gPrintXMLSwitch = false;
 int            	gBalancedSwitch = 0;
 int            	gFoldThreshold 	= 25;
 int            	gMaxNameSize 	= 40;
+bool			gSimpleNames 	= false;
 bool			gLessTempSwitch = false;
 int				gMaxCopyDelay	= 16;
 
@@ -168,6 +169,10 @@ bool process_cmdline(int argc, char* argv[])
 			gMaxNameSize = atoi(argv[i+1]);
 			i += 2;
 
+		} else if (isCmd(argv[i], "-sn", "--simple-names")) {
+			gSimpleNames = true;
+			i += 1;
+
 		} else if (isCmd(argv[i], "-lb", "--left-balanced")) {
 			gBalancedSwitch = 0;
 			i += 1;
@@ -214,7 +219,7 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.9.2\n";
+	cout << "FAUST, DSP to C++ compiler, Version 0.9.9.2b\n";
 	cout << "Copyright (C) 2002-2007, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
@@ -235,6 +240,7 @@ void printhelp()
 	cout << "-svg \t\tprint block-diagram --svg file\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
+	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
 	cout << "-xml \t\tgenerate an --xml description file\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
