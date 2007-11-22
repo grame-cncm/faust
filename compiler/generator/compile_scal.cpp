@@ -51,12 +51,13 @@
 extern bool	gLessTempSwitch;
 extern int		gMaxCopyDelay;
 
-static void setVectorNameProperty(Tree sig, const string& vecname);
-static bool getVectorNameProperty(Tree sig, string& vecname);
+//static void setVectorNameProperty(Tree sig, const string& vecname);
+//static bool getVectorNameProperty(Tree sig, string& vecname);
 static int pow2limit(int x);
 
 static Klass* signal2klass (const string& name, Tree sig)
 {
+	//cerr << "signal2klass : " << name << ", " << ppsig(sig) << endl;
 	Type t = getSigType(sig); //, NULLENV);
 	if (t->nature() == kInt) {
 
@@ -100,7 +101,18 @@ Tree ScalarCompiler::makeCompileKey(Tree t)
 {
 	char 	name[256];
 	snprintf(name, 256, "COMPILED IN %p : ", (CTree*)t);
-	return tree(unique(name));
+	Tree u = tree(unique(name));
+	//cerr << this << "::makeCompileKey -> " << *u << endl;
+	return u;
+}
+
+Tree ScalarCompiler::makeVectorKey(Tree t)
+{
+	char 	name[256];
+	snprintf(name, 256, "VECTORNAME IN %p : ", (CTree*)t);
+	Tree u = tree(unique(name));
+	//cerr << this << "::makeVectorKey -> " << *u << endl;
+	return u;
 }
 
 /*****************************************************************************
@@ -118,8 +130,10 @@ Tree ScalarCompiler::prepare(Tree LS)
 	sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
 
+	//cerr << "SET1 fCompileKey : old=" << *fCompileKey; 
   	fCompileKey = makeCompileKey(L3);
-
+  	fVectorKey = makeVectorKey(L3);
+	//cerr << "; new=" << *fCompileKey << endl;
   	return L3;
 }
 
@@ -130,7 +144,10 @@ Tree ScalarCompiler::prepare2(Tree L0)
 	sharingAnalysis(L0);			// annotate L0 with sharing count
  	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis
 
+	//cerr << "SET2 fCompileKey : old=" << *fCompileKey; 
   	fCompileKey = makeCompileKey(L0);
+  	fVectorKey = makeVectorKey(L0);
+	//cerr << "; new=" << *fCompileKey << endl;
 
   	return L0;
 }
@@ -944,8 +961,6 @@ string ScalarCompiler::generateXtended 	(Tree sig)
 /*****************************************************************************
 						vector name property
 *****************************************************************************/
-static Tree VECTORPROPERTY = tree(symbol("VECTORPROPERTY"));
-
 
 /**
  * Set the vector name property of a signal, the name of the vector used to
@@ -954,10 +969,10 @@ static Tree VECTORPROPERTY = tree(symbol("VECTORPROPERTY"));
  * @param vecname the string representing the vector name.
  * @return true is already compiled
  */
-static void setVectorNameProperty(Tree sig, const string& vecname)
+void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 {
 		const char * r = vecname.c_str();
-		setProperty(sig, VECTORPROPERTY, tree(r));
+		setProperty(sig, fVectorKey, tree(r));
 }
 	
 
@@ -969,9 +984,9 @@ static void setVectorNameProperty(Tree sig, const string& vecname)
  * @return true if the signal has this property, false otherwise
  */
 
-static bool getVectorNameProperty(Tree sig, string& vecname)
+bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
 {
-	if (getProperty(sig, VECTORPROPERTY, sig)) {
+	if (getProperty(sig, fVectorKey, sig)) {
 		vecname = name(sig->node().getSym());
 		return true;
 	} else {

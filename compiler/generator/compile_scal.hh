@@ -39,6 +39,7 @@ class ScalarCompiler : public Compiler
 {
   private:
 	Tree						fCompileKey;
+	Tree						fVectorKey;
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
 	OccMarkup					fOccMarkup;
@@ -64,6 +65,8 @@ class ScalarCompiler : public Compiler
 
 	string 		getFreshID (const string& prefix);
 	Tree 		makeCompileKey(Tree t);
+	Tree 		makeVectorKey(Tree t);
+
 	void 		compilePreparedSignalList (Tree lsig);
 	Tree      	prepare(Tree L0);
 	Tree 		prepare2 (Tree L0);
@@ -71,7 +74,10 @@ class ScalarCompiler : public Compiler
 	
 	bool 		getCompiledExpression(Tree sig, string& name);
 	string		setCompiledExpression(Tree sig, const string& name);
-	
+
+	void 		setVectorNameProperty(Tree sig, const string& vecname);
+	bool 		getVectorNameProperty(Tree sig, string& vecname);
+
 	int 		getSharingCount(Tree t);
 	void 		setSharingCount(Tree t, int count);
 	void 		sharingAnalysis(Tree t);
