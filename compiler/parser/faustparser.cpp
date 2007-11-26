@@ -350,7 +350,7 @@ typedef union YYSTYPE
 {
 	CTree* 	exp;
 }
-/* Line 193 of yacc.c.  */
+/* Line 187 of yacc.c.  */
 #line 355 "parser/faustparser.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

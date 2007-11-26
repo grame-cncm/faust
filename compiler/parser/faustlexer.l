@@ -15,9 +15,11 @@ LETTER   [a-zA-Z]
 %%
 
 "/*"         			BEGIN(comment);
-<comment>[^*\n]*        /* eat anything that's not a '*' 		*/
-<comment>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s 	*/
-<comment>\n             /* no need to increment yylineno here 	*/
+<comment>[^*\x0a\x0d]*        /* eat anything that's not a '*' 		*/
+<comment>"*"+[^*/\x0a\x0d]*   /* eat up '*'s not followed by '/'s 	*/
+<comment>\x0a\x0d             /* no need to increment yylineno here 	*/
+<comment>\x0a             /* no need to increment yylineno here 	*/
+<comment>\x0d             /* no need to increment yylineno here 	*/
 <comment>"*"+"/"        BEGIN(INITIAL);
  
 
@@ -152,9 +154,9 @@ _{ID}   	return IDENT;
 "<"{LETTER}*">"				return FSTRING;
 
 
-"//"[^\n]*    	/* eat up one-line comments 	*/
+"//"[^\x0a\x0d]*    	/* eat up one-line comments 	*/
 
-[ \t\n]+        /* eat up whitespace */
+[ \t\x0a\x0d]+        /* eat up whitespace */
 		
 <<EOF>>		yyterminate();
 
