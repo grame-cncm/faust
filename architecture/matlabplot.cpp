@@ -442,12 +442,7 @@ int main(int argc, char *argv[] )
     nbsamples -= kFrames;
   }
 	
-  if (nbsamples) {
-    // Write out partial-chunk buffer:
-
-    if (nbsamples == kFrames) {
-      printf("faustout = [ ...\n");
-    }
+  if (nbsamples) { // Write out partial-chunk buffer:
 
     DSP.compute(nbsamples, 0, chan.buffers());
 
