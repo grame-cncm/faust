@@ -1,0 +1,59 @@
+// lagrange.lib - Lagrange interpolation utilities
+
+declare name "Lagrange Interpolation Library";
+declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare copyright "Julius O. Smith III";
+declare version "1.0";
+declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+//declare reference 
+//"http://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation";
+
+import("music.lib"); // define delay, frac
+
+// NOTE: While the implementations below appear to use multiple delay lines,
+//  they in fact use only one thanks to optimization by the Faust compiler.
+
+// first-order case (linear), delay in [0,1]:
+fdelay1(n,d,x)  = delay(n,id,x)*(1 - fd) + delay(n,id+1,x)*fd
+with {
+  id = int(d);
+  fd = frac(d);
+};
+
+// second-order case (quadratic), delay in [0,1] ([1,2] same quality):
+fdelay2(n,d,x) = delay(n,id,x)*(1-fd)*(2-fd)/2 
+               + delay(n,id+1,x)*(2-fd)*fd
+               + delay(n,id+2,x)*(fd-1)*fd
+with {
+  id = int(d);
+  fd = frac(d);
+};
+
+// third-order (cubic) case, delay in [1,2]:
+fdelay3(n,d,x) = delay(n,id,x) * (0-fdm1*fdm2*fdm3)/6
+               + delay(n,id+1,x) * fd*fdm2*fdm3/2
+               + delay(n,id+2,x) * (0-fd*fdm1*fdm3)/2
+               + delay(n,id+3,x) * fd*fdm1*fdm2/6
+with {
+  id = int(d-1); 
+  fd = 1+frac(d);
+  fdm1 = fd-1;
+  fdm2 = fd-2;
+  fdm3 = fd-3;
+};
+
+// fourth-order (quartic) case, delay in [1,2] ([2,3] same quality):
+fdelay4(n,d,x) = delay(n,id,x)   * fdm1*fdm2*fdm3*fdm4/24 
+               + delay(n,id+1,x) * (0-fd*fdm2*fdm3*fdm4)/6
+               + delay(n,id+2,x) * fd*fdm1*fdm3*fdm4/4
+               + delay(n,id+3,x) * (0-fd*fdm1*fdm2*fdm4)/6
+               + delay(n,id+4,x) * fd*fdm1*fdm2*fdm3/24
+with {
+  id = int(d-1);
+  fd = 1+frac(d);
+  fdm1 = fd-1;
+  fdm2 = fd-2;
+  fdm3 = fd-3;
+  fdm4 = fd-4;
+};
+
