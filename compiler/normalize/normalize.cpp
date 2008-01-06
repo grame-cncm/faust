@@ -708,7 +708,7 @@ static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
 /**
  * Compute the normal form of a 1-sample delay term s'.
  * The normalisation rules are :
- *     	0' -> 0
+ *     	0' -> 0 /// INACTIVATE dec07 bug recursion
  *     	(k*s)' -> k*s'
  *		(s/k)' -> s'/k
  * \param s the term to be delayed by 1 sample
@@ -769,9 +769,10 @@ Tree XXXnormalizeDelay1Term(Tree s)
 
 Tree normalizeFixedDelayTerm(Tree s, Tree d)
 {
-	Tree x, y;
+	Tree x, y, r;
+	int i;
 
-	if (isZero(d)) {
+	if (isZero(d) && ! isProj(s, &i, r)) {
 
 		return s;
 
