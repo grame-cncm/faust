@@ -52,6 +52,8 @@ Tree  sigOutput(int i, Tree t0)						{ return tree(SIGOUTPUT, tree(i), t0); 	}
 bool  isSigOutput(Tree t, int* i, Tree& t0)			{ Tree x; return isTree(t, SIGOUTPUT, x, t0) && isInt(x->node(),i); 	}
 
 Sym SIGDELAY1 = symbol ("sigDelay1");
+Tree  sigDelay0(Tree t0)							{ return sigFixDelay(t0, sigInt(0));}
+
 Tree  sigDelay1(Tree t0)							{ return tree(SIGDELAY1, t0); 		}
 bool  isSigDelay1(Tree t, Tree& t0)					{ return isTree(t, SIGDELAY1, t0); 	}
 
@@ -148,6 +150,7 @@ Tree  sigFloatCast(Tree t)
 	int i; 		if (isInt(n, &i)) 			return tree(float(i)); 
 	float x;	if (isFloat(n, &x)) 		return t;
 				if (isSigFloatCast(t))		return t;
+                if (isSigInput(t, &i))      return t;
 	 
 	return tree(SIGFLOATCAST, t);   
 }

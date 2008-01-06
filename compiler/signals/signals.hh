@@ -55,6 +55,7 @@ bool  isSigInput(Tree t, int* i);
 bool  isSigOutput(Tree t, int* i, Tree& t0);
 
 // delay
+Tree  sigDelay0(Tree t);
 Tree  sigDelay1(Tree t);
 bool  isSigDelay1(Tree t, Tree& t0);
 
