@@ -51,13 +51,10 @@
 extern bool	gLessTempSwitch;
 extern int		gMaxCopyDelay;
 
-//static void setVectorNameProperty(Tree sig, const string& vecname);
-//static bool getVectorNameProperty(Tree sig, string& vecname);
 static int pow2limit(int x);
 
 static Klass* signal2klass (const string& name, Tree sig)
 {
-	//cerr << "signal2klass : " << name << ", " << ppsig(sig) << endl;
 	Type t = getSigType(sig); //, NULLENV);
 	if (t->nature() == kInt) {
 
@@ -92,29 +89,6 @@ string ScalarCompiler::getFreshID(const string& prefix)
 }
 
 
-
-/*****************************************************************************
-						makeCompileKey
-*****************************************************************************/
-
-Tree ScalarCompiler::makeCompileKey(Tree t)
-{
-	char 	name[256];
-	snprintf(name, 256, "COMPILED IN %p : ", (CTree*)t);
-	Tree u = tree(unique(name));
-	//cerr << this << "::makeCompileKey -> " << *u << endl;
-	return u;
-}
-
-Tree ScalarCompiler::makeVectorKey(Tree t)
-{
-	char 	name[256];
-	snprintf(name, 256, "VECTORNAME IN %p : ", (CTree*)t);
-	Tree u = tree(unique(name));
-	//cerr << this << "::makeVectorKey -> " << *u << endl;
-	return u;
-}
-
 /*****************************************************************************
 						    prepare
 *****************************************************************************/
@@ -130,10 +104,6 @@ Tree ScalarCompiler::prepare(Tree LS)
 	sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
 
-	//cerr << "SET1 fCompileKey : old=" << *fCompileKey; 
-  	fCompileKey = makeCompileKey(L3);
-  	fVectorKey = makeVectorKey(L3);
-	//cerr << "; new=" << *fCompileKey << endl;
   	return L3;
 }
 
@@ -142,12 +112,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
 	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
 	typeAnnotation(L0);				// Annotate L0 with type information	
 	sharingAnalysis(L0);			// annotate L0 with sharing count
- 	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis
-
-	//cerr << "SET2 fCompileKey : old=" << *fCompileKey; 
-  	fCompileKey = makeCompileKey(L0);
-  	fVectorKey = makeVectorKey(L0);
-	//cerr << "; new=" << *fCompileKey << endl;
+ 	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis    
 
   	return L0;
 }
@@ -205,12 +170,7 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
  */
 bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
 {
-	if (getProperty(sig, fCompileKey, sig)) {
-		cexp = name(sig->node().getSym());
-		return true;
-	} else {
-		return false;
-	}
+    return fCompileProperty.get(sig, cexp);
 }
 
 /**
@@ -221,7 +181,7 @@ bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
  */
 string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
 {
-	setProperty(sig, fCompileKey, tree(cexp.c_str()));
+    fCompileProperty.set(sig, cexp);
 	return cexp;
 }
 
@@ -230,51 +190,21 @@ string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
  * @param sig the signal expression to compile.
  * @return the C code translation of sig as a string
  */
-
-string	ScalarCompiler::CS (Tree sig)
+string  ScalarCompiler::CS (Tree sig)
 {
-	contextor	contextRecursivness;
-	Tree t;
-#if 0
-	cerr << "ScalarCompiler::CS (" << *getSigType(sig) << ':' << ppsig(sig) << ")" << endl;
-#endif
+    contextor   contextRecursivness;
+    string      code;
 
-	if (getProperty(sig, fCompileKey, t)) {
-		// terme deja visit�
-#if 0
-		fprintf(stderr, "RETURN of CS(");
-			print(env, stderr);
-			fprintf(stderr, ", ");
-			printSignal(sig, stderr);
-		fprintf(stderr, ") -found-> "); print(t, stderr); fputc('\n', stderr);
-#endif
-		return name(t->node().getSym());
-
-	} else {
-
-		if (getRecursivness(sig) != contextRecursivness.get()) {
-		#if 0
-			cerr << "changement de recursivit�: "
-				 << contextRecursivness.get()
-				 << " -> "
-				 << getRecursivness(sig)
-				 << " for expression "CS
-				 << *sig
-				 << endl;
-		#endif
-			contextRecursivness.set(getRecursivness(sig));
-		}
-		string s = generateCode(sig);
-		const char * r = s.c_str();
-		setProperty(sig, fCompileKey, tree(r));
-
-#if 0
-		cerr << "ScalarCompiler::CS (" << *sig << ") -computed-> " << *r << endl;
-#endif
-		return s;
-	}
+    if (!getCompiledExpression(sig, code)) {
+        // not compiled yet
+        if (getRecursivness(sig) != contextRecursivness.get()) {
+            contextRecursivness.set(getRecursivness(sig));
+        }
+        code = generateCode(sig);
+        setCompiledExpression(sig, code);
+    }
+    return code;
 }
-
 
 /*****************************************************************************
 						generateCode : dispatch according to signal
@@ -297,8 +227,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	int 	i;
 	float	r;
-	//const char	*ct, *vn;
-	Tree 	c, sel, x, y, z, /*var, le,*/ label, id, ff, largs, type, name, file;
+	Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
 
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -308,15 +237,12 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
 	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
 
-	//else if ( isSigDelay1(sig, x) ) 				{ return generateDelay1 	(sig, x); 				}
-
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(sig, x, y); 			}
 	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix 	(sig, x, y); 			}
 	else if ( isSigIota(sig, x) ) 					{ return generateIota 		(sig, x); 				}
 
 	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp 	(sig, i, x, y); 		}
 	else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun 		(sig, ff, largs); 		}
-	//else if ( isSigFConst(sig, type, name, file) )	{ addIncludeFile(tree2str(file));	return tree2str(name); 	}
 	else if ( isSigFConst(sig, type, name, file) )	{ return generateFConst(sig, tree2str(file), tree2str(name)); }
 
 	else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable 	(sig, x, y); 			}
@@ -328,7 +254,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	else if ( isSigGen(sig, x) ) 					{ return generateSigGen 	(sig, x); 				}
 
-	else if ( isProj(sig, &i, x) ) 					{ return generateRecProj 	(sig, x, i); 	}
+    else if ( isProj(sig, &i, x) )                  { return generateRecProj    (sig, x, i);    }
 
 	else if ( isSigIntCast(sig, x) ) 				{ return generateIntCast   (sig, x); 				}
 	else if ( isSigFloatCast(sig, x) ) 				{ return generateFloatCast (sig, x); 				}
@@ -365,7 +291,6 @@ string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 	
 	// check for number occuring in delays
 	if (o->getMaxDelay()>0) {
-		//cerr << "generate number with delay" << endl;
 		getTypedNames(getSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
 	} 
@@ -445,25 +370,23 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 
 void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
 {
-	if (t->nature() == kInt) {
-		ctype = "int"; vname = subst("i$0", getFreshID(prefix));
-	} else {
-		ctype = "float"; vname = subst("f$0", getFreshID(prefix));
-	}
+    if (t->nature() == kInt) {
+        ctype = "int"; vname = subst("i$0", getFreshID(prefix));
+    } else {
+        ctype = "float"; vname = subst("f$0", getFreshID(prefix));
+    }
 } 
 
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
-	string 		vname, ctype;
+	string 		vname, ctype, code;
 	int 		sharing = getSharingCount(sig);
-	Tree		result;
 	Occurences* o = fOccMarkup.retrieve(sig);
 
 	// check reentrance
-	if (getProperty(sig, fCompileKey, result)) {
-		//cerr << "reentrance cache pour : "; printSignal (sig, stderr); cerr << endl;
-		return name(result->node().getSym());
-	}
+    if (getCompiledExpression(sig, code)) {
+        return code;
+    }
 	
 	// check for expression occuring in delays
 	if (o->getMaxDelay()>0) {
@@ -791,41 +714,58 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 *****************************************************************************/
 
 
-/*---------------------------------------------------------------------------
-							fonctions auxilliaires
-----------------------------------------------------------------------------*/
-
-
-// Projection : selection du iem signal d'un groupe recursif
-string ScalarCompiler::generateRecProj(Tree sig, Tree x, int i)
+/**
+ * Generate code for a projection of a group of mutually recursive definitions
+ */
+string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 {
-	//cerr << "generateRecProj : " << *sig << endl;
-	Tree 	var, le;
-	int		mxd;
+    string  vname;
+    Tree    var, le;
 
-	mxd = fOccMarkup.retrieve(sig)->getMaxDelay();
-	if ( isRec(x, var, le) )	{
-		string	ctype, vname;
-		if (getVectorNameProperty(sig, vname)) {
-			return subst("$0[0]", vname);
-		} else if (mxd == 0) {
-			// branche d'une expression récursive qui ne fait pas 
-			// appel à elle-même (donc son mxd == 0);
-			//cerr << "mxd = 0 for " << *sig << endl;
-			return generateCacheCode(sig, CS(nth(le,i)));
-		} else {
-
-			getTypedNames(getSigType(sig), "Rec", ctype, vname);
-			setVectorNameProperty(sig, vname);
-			return generateDelayVec(sig, CS(nth(le,i)), ctype, vname, mxd);
-		}
-	} else {
-		cerr << "generateRecProj error : " << *sig << endl;
-		exit(1);
-		return "error";
-	}
+    if ( ! getVectorNameProperty(sig, vname)) {
+        assert(isRec(r, var, le));
+        generateRec(r, var, le);
+        assert(getVectorNameProperty(sig, vname));
+    }
+    return subst("$0[0]", vname);
 }
 
+
+/**
+ * Generate code for a group of mutually recursive definitions
+ */
+void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
+{
+    int             N = len(le);
+
+    vector<bool>    used(N);
+    vector<int>     delay(N);
+    vector<string>  vname(N);
+    vector<string>  ctype(N);
+
+    // prepare each element of a recursive definition
+    for (int i=0; i<N; i++) {
+        Tree    e = sigProj(i,sig);     // recreate each recursive definition
+        if (fOccMarkup.retrieve(e)) {
+            // this projection is used
+            used[i] = true;
+            getTypedNames(getSigType(e), "Rec", ctype[i],  vname[i]);
+            setVectorNameProperty(e, vname[i]);
+            delay[i] = fOccMarkup.retrieve(e)->getMaxDelay();
+        } else {
+            // this projection is not used therefore
+            // we should not generte code for it
+            used[i] = false;
+        }
+    }
+
+    // generate delayline for each element of a recursive definition
+    for (int i=0; i<N; i++) {
+        if (used[i]) {
+            generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le,i)));
+        }
+    }
+}
 
 
 /*****************************************************************************
@@ -971,8 +911,7 @@ string ScalarCompiler::generateXtended 	(Tree sig)
  */
 void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 {
-		const char * r = vecname.c_str();
-		setProperty(sig, fVectorKey, tree(r));
+        fVectorProperty.set(sig, vecname);
 }
 	
 
@@ -986,12 +925,7 @@ void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 
 bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
 {
-	if (getProperty(sig, fVectorKey, sig)) {
-		vecname = name(sig->node().getSym());
-		return true;
-	} else {
-		return false;
-	}
+    return fVectorProperty.get(sig, vecname);
 }
 
 
@@ -1034,7 +968,7 @@ static int pow2limit(int x)
 
 string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 {
-	int 	mxd; 
+	int 	mxd, d; 
 	string 	vecname;
  
 	CS(exp); // ensure exp is compiled to have a vector name
@@ -1043,9 +977,16 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
 	assert(getVectorNameProperty(exp, vecname));
 
-	if (mxd < gMaxCopyDelay) {
+    if (mxd == 0) {
+        // not a real vector name but a scalar name
+        return vecname;
 
-		return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+	} else if (mxd < gMaxCopyDelay) {
+		if (isSigInt(delay, &d)) {
+			return subst("$0[$1]", vecname, CS(delay));
+		} else {
+			return generateCacheCode(sig, subst("$0[$1]", vecname, CS(delay)));
+		}
 
 	} else {
 
@@ -1054,50 +995,6 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 		return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N-1))); 
 	}
 }
-
-#if 0
-string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
-{
-	int 	mxd, d; 
-	string 	vecname;
- 
-	CS(exp); // ensure exp is compiled to have a vector name
-
-	mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
-
-	assert(isSigInt(delay, &d));
-	assert(getVectorNameProperty(exp, vecname));
-	assert(d > 0);
-	assert(d <= mxd);
-
-	if (mxd == 1) {
-		
-		// one sample delay
-		assert (d == 1);
-		if (gLessTempSwitch) {
-			return subst("$0[$1]", vecname, T(d));
-		} else {
-			return vecname;
-		}
-
-	} else if (mxd < gMaxCopyDelay) {
-
-		// short delay : we use a table
-		if (gLessTempSwitch) {
-			return subst("$0[$1]", vecname, T(d));
-		} else {
-			return subst("$0[$1]", vecname, T(d-1));
-		}
-
-	} else {
-
-		// long delay : we use a ring buffer of size 2^x
-		int 	N 	= pow2limit( mxd+1 );
-		return subst("$0[(IOTA-$1)&$2]", vecname, T(d), T(N-1)); 
-	}
-}
-#endif
-
 
 
 /**
@@ -1114,17 +1011,6 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 		return s;
 	}
 }
-
-#if 0
-string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
-{
-	if (gLessTempSwitch) {
-		return generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
-	} else {
-		return generateDelayVecWithTemp(sig, exp, ctype, vname, mxd);
-	}
-}
-#endif
 
 
 
@@ -1217,46 +1103,94 @@ string ScalarCompiler::generateDelayVecWithTemp(Tree sig, const string& exp, con
 
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
-	assert(mxd > 0);
+    assert(mxd > 0);
 
-	//bool odocc = fOccMarkup.retrieve(sig)->hasOutDelayOccurences();
+    //bool odocc = fOccMarkup.retrieve(sig)->hasOutDelayOccurences();
 
-	if (mxd < gMaxCopyDelay) {
+    if (mxd < gMaxCopyDelay) {
 
-		// short delay : we copy
-		fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
-		fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
-		fClass->addExecCode(subst("$0[0] = $1;", vname, exp));
-		
-		// generate post processing copy code to update delay values
-		if (mxd == 1) {
-			fClass->addPostCode(subst("$0[1] = $0[0];", vname));
-		} else if (mxd == 2) {
-			//fClass->addPostCode(subst("$0[2] = $0[1];", vname));
-			fClass->addPostCode(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname));
-		} else {
-			fClass->addPostCode(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname));
-		} 
-		setVectorNameProperty(sig, vname);	
-		return subst("$0[0]", vname);
+        // short delay : we copy
+        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
+        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
+        fClass->addExecCode(subst("$0[0] = $1;", vname, exp));
+        
+        // generate post processing copy code to update delay values
+        if (mxd == 1) {
+            fClass->addPostCode(subst("$0[1] = $0[0];", vname));
+        } else if (mxd == 2) {
+            //fClass->addPostCode(subst("$0[2] = $0[1];", vname));
+            fClass->addPostCode(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname));
+        } else {
+            fClass->addPostCode(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname));
+        } 
+        setVectorNameProperty(sig, vname);  
+        return subst("$0[0]", vname);
 
-	} else {
+    } else {
 
-		// generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-		int 	N = pow2limit(mxd+1);
+        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+        int     N = pow2limit(mxd+1);
 
-		// we need a iota index
-		ensureIotaCode();
+        // we need a iota index
+        ensureIotaCode();
 
-		// declare and init
-		fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-		fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+        // declare and init
+        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
-		// execute
-		fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
-		setVectorNameProperty(sig, vname);	
-		return subst("$0[IOTA&$1]", vname, T(N-1)); 
-	}
+        // execute
+        fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
+        setVectorNameProperty(sig, vname);  
+        return subst("$0[IOTA&$1]", vname, T(N-1)); 
+    }
+}
+
+
+
+/**
+ * Generate code for the delay mecchanism without using temporary variables
+ */
+
+void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp)
+{
+    //assert(mxd > 0);
+    if (mxd == 0) {
+        // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
+        // no need for a real vector 
+        fClass->addExecCode(subst("$0 \t$1 = $2;", ctype, vname, exp));
+
+
+    } else if (mxd < gMaxCopyDelay) {
+
+        // short delay : we copy
+        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
+        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
+        fClass->addExecCode(subst("$0[0] = $1;", vname, exp));
+        
+        // generate post processing copy code to update delay values
+        if (mxd == 1) {
+            fClass->addPostCode(subst("$0[1] = $0[0];", vname));
+        } else if (mxd == 2) {
+            fClass->addPostCode(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname));
+        } else {
+            fClass->addPostCode(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname));
+        } 
+
+    } else {
+
+        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+        int     N = pow2limit(mxd+1);
+
+        // we need a iota index
+        ensureIotaCode();
+
+        // declare and init
+        fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
+        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+
+        // execute
+        fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
+    }
 }
 
 

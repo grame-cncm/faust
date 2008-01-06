@@ -33,10 +33,12 @@
 		17-11-2001 : implementation initiale (yo)
 ***********************************************************************/
 #include <string>
+#include <vector>
 using namespace std; 
 
 	
 string subst (const string& m, const string& a0);
+string subst (const string& m, const vector<string>& vargs);
 string subst (const string& m, const string& a0, const string& a1);
 string subst (const string& m, const string& a0, const string& a1, const string& a2);
 string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3);

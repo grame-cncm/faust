@@ -28,6 +28,7 @@
 #include "sigtyperules.hh"
 #include "sigtyperules.hh"
 #include "occurences.hh"
+#include "property.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -38,8 +39,11 @@
 class ScalarCompiler : public Compiler
 {
   private:
-	Tree						fCompileKey;
-	Tree						fVectorKey;
+	//Tree						fCompileKey;
+	//Tree						fVectorKey;
+    property<string>            fCompileProperty;
+    property<string>            fVectorProperty;
+
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
 	OccMarkup					fOccMarkup;
@@ -49,23 +53,22 @@ class ScalarCompiler : public Compiler
   public:
 
 	ScalarCompiler ( const string& name, const string& super, int numInputs, int numOutputs) :
-		Compiler(name,super,numInputs,numOutputs,false),fCompileKey(nil),fSharingKey(nil), fHasIota(false)
+		Compiler(name,super,numInputs,numOutputs,false),
+        fHasIota(false)
 	{}
 	
-	ScalarCompiler ( Klass* k) : Compiler(k),fCompileKey(nil),fSharingKey(nil)
+	ScalarCompiler ( Klass* k) : Compiler(k)
 	{}
 	
 	virtual void 		compileMultiSignal  (Tree lsig);
 	virtual void		compileSingleSignal (Tree lsig);
 	virtual string		CS (Tree sig);
-	virtual string 	generateCacheCode(Tree sig, const string& exp) ;
+	virtual string 	    generateCacheCode(Tree sig, const string& exp) ;
 
 
   private:
 
 	string 		getFreshID (const string& prefix);
-	Tree 		makeCompileKey(Tree t);
-	Tree 		makeVectorKey(Tree t);
 
 	void 		compilePreparedSignalList (Tree lsig);
 	Tree      	prepare(Tree L0);
@@ -109,6 +112,7 @@ class ScalarCompiler : public Compiler
 	string 		generateSelect3 	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
 	
 	string 		generateRecProj 	(Tree sig, Tree exp, int i);
+    void        generateRec         (Tree sig, Tree var, Tree le);
 	
 	string 		generateIntCast   	(Tree sig, Tree x);
 	string 		generateFloatCast 	(Tree sig, Tree x);
@@ -128,6 +132,8 @@ class ScalarCompiler : public Compiler
 	string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	string		generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
+
 	void 		getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
 	void 		ensureIotaCode();
 

@@ -51,6 +51,10 @@ static string substitution (const string& model, const vector<string>& args)
 	if (i == ilast) result += model[i];
 	return result;
 }
+string subst (const string& model, const vector<string>& args)
+{
+	return substitution(model, args);
+}
 
 string subst (const string& model, const string& a0)
 {
@@ -118,8 +122,8 @@ string subst (const string& model, const string& a0, const string& a1, const str
 	return substitution (model, args);
 }	
 
-// ZDEL : supprime les zeros de fin d'une chaine de caratères représentant 
-// un nombre décimal. Attention : n'a pas de sens sur d'autres chaines !		
+// ZDEL : supprime les zeros de fin d'une chaine de caratï¿½res reprï¿½sentant 
+// un nombre dï¿½cimal. Attention : n'a pas de sens sur d'autres chaines !		
 static void zdel(char* c)
 {
 	int l = strlen(c) - 1;
