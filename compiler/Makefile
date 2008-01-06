@@ -40,9 +40,9 @@ main.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 main.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
 main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh generator/Text.hh
-main.o: generator/description.hh generator/occurences.hh generator/compile_vect.hh propagate/propagate.hh
-main.o: boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
-main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh
+main.o: generator/description.hh generator/occurences.hh tlib/property.hh generator/compile_vect.hh
+main.o: propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh
+main.o: parser/sourcereader.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
@@ -159,17 +159,17 @@ generator/compile_scal.o: generator/compile_scal.hh generator/compile.hh signals
 generator/compile_scal.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/compile_scal.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 generator/compile_scal.o: generator/uitree.hh generator/Text.hh generator/description.hh signals/sigtyperules.hh
-generator/compile_scal.o: generator/occurences.hh signals/sigprint.hh signals/recursivness.hh normalize/simplify.hh
-generator/compile_scal.o: normalize/privatise.hh signals/prim2.hh extended/xtended.hh signals/sigvisitor.hh
-generator/compile_scal.o: generator/contextor.hh tlib/compatibility.hh parser/unistd.h /usr/include/unistd.h
-generator/compile_scal.o: signals/ppsig.hh
+generator/compile_scal.o: generator/occurences.hh tlib/property.hh signals/sigprint.hh signals/recursivness.hh
+generator/compile_scal.o: normalize/simplify.hh normalize/privatise.hh signals/prim2.hh extended/xtended.hh
+generator/compile_scal.o: signals/sigvisitor.hh generator/contextor.hh tlib/compatibility.hh parser/unistd.h
+generator/compile_scal.o: /usr/include/unistd.h signals/ppsig.hh
 generator/compile_vect.o: generator/compile_vect.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/compile_vect.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/compile_vect.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 generator/compile_vect.o: generator/uitree.hh generator/Text.hh generator/description.hh tlib/compatibility.hh
 generator/compile_vect.o: parser/unistd.h /usr/include/unistd.h generator/compile_scal.hh signals/sigtyperules.hh
-generator/compile_vect.o: generator/occurences.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
-generator/compile_vect.o: signals/prim2.hh
+generator/compile_vect.o: generator/occurences.hh tlib/property.hh signals/sigprint.hh normalize/simplify.hh
+generator/compile_vect.o: normalize/privatise.hh signals/prim2.hh
 generator/contextor.o: generator/contextor.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/smartpointer.hh
@@ -184,7 +184,7 @@ generator/sharing.o: generator/compile_vect.hh generator/compile.hh signals/sign
 generator/sharing.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/sharing.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh
 generator/sharing.o: generator/Text.hh generator/description.hh generator/compile_scal.hh signals/sigtyperules.hh
-generator/sharing.o: generator/occurences.hh signals/sigprint.hh
+generator/sharing.o: generator/occurences.hh tlib/property.hh signals/sigprint.hh
 generator/Text.o: generator/Text.hh tlib/compatibility.hh parser/unistd.h /usr/include/unistd.h
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
@@ -203,8 +203,8 @@ normalize/simplify.o: signals/sigvisitor.hh normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh parser/unistd.h /usr/include/unistd.h
-parser/faustlexer.o: parser/unistd.h /usr/include/unistd.h tlib/tree.hh tlib/symbol.hh tlib/node.hh
-parser/faustlexer.o: parser/faustparser.hpp
+parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh parser/faustparser.hpp parser/unistd.h
+parser/faustlexer.o: /usr/include/unistd.h
 parser/faustparser.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh tlib/num.hh
 parser/faustparser.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 parser/faustparser.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
