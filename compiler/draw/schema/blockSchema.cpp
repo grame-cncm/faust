@@ -28,7 +28,6 @@ using namespace std;
 static double quantize(int n)
 {
 	int q = 3;
-	//return dLetter * (q *((n+1)/q));
 	return dLetter * (q *((n+q-1)/q));
 }
 
@@ -46,7 +45,6 @@ schema* makeBlockSchema (	unsigned int inputs,
 {
 	// determine the optimal size of the box
 	double minimal = 3*dWire;
-	//double w = 2*dHorz + max( minimal, (2+text.size())*dLetter );
 	double w = 2*dHorz + max( minimal, quantize(text.size()) );
 	double h = 2*dVert + max( minimal, max(inputs, outputs) * dWire );
 

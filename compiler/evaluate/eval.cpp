@@ -965,7 +965,6 @@ static Tree applyList (Tree fun, Tree larg)
 
 		Tree	fname;
 		if (getDefNameProperty(fun, fname)) {
-			//stringstream s; s << tree2str(fname) << "(" << boxpp(arg) << ")";
 			stringstream s; s << tree2str(fname); if (!gSimpleNames) s << "(" << boxpp(arg) << ")";
 			setDefNameProperty(f, s.str());
 		}

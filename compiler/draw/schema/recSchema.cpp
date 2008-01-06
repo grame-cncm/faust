@@ -195,9 +195,6 @@ void recSchema::drawDelaySign(device& dev, double x, double y, double size)
  */
 void recSchema::drawFeedfront(device& dev, const point& src, const point& dst, double dx)
 {
-	//assert(src.x == dst.x);
-	//if (src.x != dst.x) cerr << "differents x coord " << src.x << " != " << dst.x << endl;
-
 	double	ox = src.x + ((orientation()==kLeftRight) ? -dx : dx);
 
 	dev.trait(ox, src.y, src.x, src.y);
