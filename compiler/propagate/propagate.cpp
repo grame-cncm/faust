@@ -70,7 +70,7 @@ siglist split(const siglist& inputs, int nbus)
 siglist makeSigProjList (Tree t, int n)
 {
 	siglist l(n);
-	for (int i = 0; i < n; i++) l[i] = sigProj(i, t);
+	for (int i = 0; i < n; i++) l[i] = sigDelay0(sigProj(i, t));
 	return l;
 }
 
