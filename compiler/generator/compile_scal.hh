@@ -131,7 +131,7 @@ class ScalarCompiler : public Compiler
 	
 	string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	string		generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-	string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
     void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
 
 	void 		getTypedNames(Type t, const string& prefix, string& ctype, string& vname);

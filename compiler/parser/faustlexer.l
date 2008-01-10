@@ -135,11 +135,6 @@ LETTER   [a-zA-Z]
 "component"	return COMPONENT;
 
 "declare"	return DECLARE;
-"name"		return NAMEPROP;
-"author"	return AUTHORPROP;
-"version"	return VERSIONPROP;
-"copyright" return COPYRIGHTPROP;
-"license"	return LICENSEPROP;
 
 "case"		return CASE;
 "=>"		return ARROW;

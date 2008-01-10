@@ -24,11 +24,7 @@ extern int 			yylineno;
 extern int 			yyerr;
 extern Tree 		gResult;
 
-extern list<string>	gNameProperty;
-extern list<string>	gAuthorProperty;
-extern list<string>	gCopyrightProperty;
-extern list<string>	gVersionProperty;
-extern list<string>	gLicenseProperty;
+extern map<Tree, set<Tree> > gMetaDataSet;
 
 int yylex();
 
@@ -254,11 +250,7 @@ equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAb
 equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,cons($3,$6)); }
 				| eqname DEF diagram ENDDEF						{$$ = cons($1,cons(nil,$3)); }
 				| IMPORT LPAR uqstring RPAR ENDDEF				{$$ = importFile($3); }
-				| DECLARE NAMEPROP 		STRING {gNameProperty.push_back(yytext); } 		ENDDEF				{$$ = nil; }
-				| DECLARE AUTHORPROP 	STRING {gAuthorProperty.push_back(yytext); } 	ENDDEF				{$$ = nil; }
-				| DECLARE COPYRIGHTPROP STRING {gCopyrightProperty.push_back(yytext); } ENDDEF				{$$ = nil; }
-				| DECLARE VERSIONPROP 	STRING {gVersionProperty.push_back(yytext); } 	ENDDEF				{$$ = nil; }
-				| DECLARE LICENSEPROP 	STRING {gLicenseProperty.push_back(yytext); } 	ENDDEF				{$$ = nil; }
+                | DECLARE name string  ENDDEF                   {gMetaDataSet[$2].insert($3); $$ = nil; }
 				| error ENDDEF									{$$ = nil; yyerr++;}
                	;
 
