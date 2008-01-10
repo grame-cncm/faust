@@ -18,6 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+#define FAUSTVERSION "0.9.9.3"
 
 #include <stdio.h>
 #include <string.h>
@@ -74,11 +75,7 @@ Tree 			gResult2;
 
 SourceReader	gReader;
 
-list<string>	gNameProperty;
-list<string>	gAuthorProperty;
-list<string>	gCopyrightProperty;
-list<string>	gVersionProperty;
-list<string>	gLicenseProperty;
+map<Tree, set<Tree> > gMetaDataSet;
 
 
 /****************************************************************
@@ -219,8 +216,8 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST, DSP to C++ compiler, Version 0.9.9.3\n";
-	cout << "Copyright (C) 2002-2007, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
+	cout << "Copyright (C) 2002-2008, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 
@@ -258,6 +255,28 @@ void printhelp()
 }
 
 
+void printheader(ostream& dst)
+{
+    Tree author = tree("author");
+        
+    dst << "//-----------------------------------------------------" << endl;
+    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        dst << "// " << *(i->first) << " : ";      
+        if (i->first != author) {
+            dst << **(i->second.begin());
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j != i->second.begin()) { dst << endl << "// contributors : "; }
+                dst << **j << " ";
+            }
+        }
+        dst << endl;
+    }
+
+    dst << "//" << endl;
+    dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+    dst << "//-----------------------------------------------------" << endl;
+}
 
 
 
@@ -356,18 +375,15 @@ int main (int argc, char* argv[])
 	 6 - generate XML description (if required)
 	*****************************************************************/
 
-	//cerr << "gPrintXMLSwitch " << gPrintXMLSwitch << endl;
-
 	if (gPrintXMLSwitch) {
-		//cerr << "masterfilename " << masterFilename << endl;
 		Description* 	D = C->getDescription(); assert(D);
 		ostream* 		xout = new ofstream(subst("$0.xml", masterFilename).c_str());
 
-		if(gNameProperty.size()) 		D->name(*gNameProperty.begin());
-		if(gAuthorProperty.size()) 		D->author(*gAuthorProperty.begin());
-		if(gCopyrightProperty.size()) 	D->copyright(*gCopyrightProperty.begin());
-		if(gLicenseProperty.size()) 	D->license(*gLicenseProperty.begin());
-		if(gVersionProperty.size()) 	D->version(*gVersionProperty.begin());
+        if(gMetaDataSet[tree("name")].size()>0)     D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
+        if(gMetaDataSet[tree("author")].size()>0)   D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
+        if(gMetaDataSet[tree("copyright")].size()>0)D->copyright(tree2str(*(gMetaDataSet[tree("copyright")].begin())));
+        if(gMetaDataSet[tree("license")].size()>0)  D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
+        if(gMetaDataSet[tree("version")].size()>0)  D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
 
 		D->inputs(C->getClass()->inputs());
 		D->outputs(C->getClass()->outputs());
@@ -393,7 +409,7 @@ int main (int argc, char* argv[])
 
 	if (gArchFile != "") {
 		if ( (enrobage = open_arch_stream(gArchFile.c_str())) ) {
-
+            printheader(*dst);
 			C->getClass()->printLibrary(*dst);
 			C->getClass()->printIncludeFile(*dst);
 
@@ -410,6 +426,7 @@ int main (int argc, char* argv[])
 			return 1;
 		}
 	} else {
+        printheader(*dst);
 		C->getClass()->printLibrary(*dst);
 		C->getClass()->printIncludeFile(*dst);
 		C->getClass()->println(0,*dst);
