@@ -379,11 +379,11 @@ int main (int argc, char* argv[])
 		Description* 	D = C->getDescription(); assert(D);
 		ostream* 		xout = new ofstream(subst("$0.xml", masterFilename).c_str());
 
-        if(gMetaDataSet[tree("name")].size()>0)     D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
-        if(gMetaDataSet[tree("author")].size()>0)   D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
-        if(gMetaDataSet[tree("copyright")].size()>0)D->copyright(tree2str(*(gMetaDataSet[tree("copyright")].begin())));
-        if(gMetaDataSet[tree("license")].size()>0)  D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
-        if(gMetaDataSet[tree("version")].size()>0)  D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
+        if(gMetaDataSet.count(tree("name"))>0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
+        if(gMetaDataSet.count(tree("author"))>0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
+        if(gMetaDataSet.count(tree("copyright"))>0)     D->copyright(tree2str(*(gMetaDataSet[tree("copyright")].begin())));
+        if(gMetaDataSet.count(tree("license"))>0)       D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
+        if(gMetaDataSet.count(tree("version"))>0)       D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
 
 		D->inputs(C->getClass()->inputs());
 		D->outputs(C->getClass()->outputs());
