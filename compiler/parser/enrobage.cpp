@@ -63,30 +63,35 @@ ifstream* open_stream(const char* filename)
 	delete f;
 	return 0;
 }
-	
+
+#ifdef WIN32
+#define PATHSEP ";"
+#else
+#define PATHSEP ":"
+#endif
+
 ifstream* open_path_stream (const char* lofdir, const char* filename)
 {
-	char		old[PATH_MAX];
-	char* 		lod = strdup(lofdir);
-	char* 		dir = strtok(lod, ":");
-	
-	getcwd (old, PATH_MAX);
-	while (dir) {
-		if (chdir(dir) == 0) {
-			
-			ifstream* f = open_stream(filename);
-			if (f) {
-				free(lod);
-				return f;
-			}
-			chdir(old);
-		} else  {
-		}
-		dir = strtok(NULL, ":");
-	}
-	cerr << "file " << filename << " not found in path " << lofdir << endl;
-	free (lod);
-	return 0;
+    char        old[PATH_MAX];
+    char*       lod = strdup(lofdir);
+    char*       dir = strtok(lod, PATHSEP);
+    
+    if (!dir) dir = lod;
+    getcwd (old, PATH_MAX);
+    while (dir) {
+        if (chdir(dir) == 0) {
+            ifstream* f = open_stream(filename);
+            if (f) {
+                free(lod);
+                return f;
+            }
+            chdir(old);
+        }
+        dir = strtok(NULL, PATHSEP);
+    }
+    cerr << "file " << filename << " not found in path " << lofdir << endl;
+    free (lod);
+    return 0;
 }
 
 
