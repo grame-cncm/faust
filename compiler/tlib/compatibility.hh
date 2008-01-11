@@ -29,7 +29,7 @@
 #define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
 #define PATH_MAX 1024
 #define getcwd(buffer,len) GetCurrentDirectory(len,buffer)
-#define chdir(path) SetCurrentDirectory(path)
+#define chdir(path) (!SetCurrentDirectory(path))
 #define mkdir(path,attribute) CreateDirectory(path,NULL)
 #define S_IRWXU 0
 #define S_IRWXG 0
