@@ -227,10 +227,11 @@ Tree SourceReader::getlist(string fname)
 	if (!cached(fname)) {
 		fFileCache[fname] = parse(fname);
 	}
-	return fFileCache[fname];
+    if (fFileCache[fname] == 0) exit(1);
+    return fFileCache[fname];
 }
 
-
+ 
 /**
  * Return the list of definitions where all imports have been expanded.
  * 
