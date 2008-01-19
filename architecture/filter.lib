@@ -1,0 +1,303 @@
+// filter.lib - digital filters of various types useful in audio and beyond
+
+declare name "Faust Filter Library";
+declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare copyright "Julius O. Smith III";
+declare version "1.0";
+declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+declare reference "http://ccrma.stanford.edu/~jos/filters/";
+
+import("music.lib"); // delay, frac and, from math.lib, SR and PI
+
+//---------------------- zero(z) --------------------------
+// z = location of zero along real axis in z-plane
+// Difference equation: y(n) = x(n) - z * x(n-1)
+// Reference: http://ccrma.stanford.edu/~jos/filters/One_Zero.html
+
+zero(z) =  _ <: _,mem : _,*(z) : -;
+
+//------------------------ pole(p) ---------------------------
+// p = pole location = feedback coefficient
+// Could also be called a "leaky integrator".
+// Difference equation: y(n) = x(n) + p * y(n-1)
+// Reference: http://ccrma.stanford.edu/~jos/filters/One_Pole.html
+
+pole(p) = + ~ *(p);
+
+//---------------------- integrator --------------------------
+// pole(1) [implemented separately for block-diagram clarity]
+
+integrator = + ~ _ ;
+
+//---------------------- smooth(s) --------------------------
+// Exponential smoothing by a unity-dc-gain one-pole lowpass
+//
+// USAGE: smooth(s), where s = smoothness between 0 and 1.
+//   s=0 for no smoothing
+//   s=0.999 is "very smooth"
+// s>1 is unstable, and s=1 yields the zero signal for all inputs.
+// The exponential time-constant is approximately 
+// 1/(1-s) samples, when s is close to (but less than) 1.
+// Reference: 
+// http://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html
+
+smooth(s) = *(1.0 - s) : + ~ *(s);
+
+//------------------- dcblockerat(fb) -----------------------
+// fb = "break frequency" in Hz, i.e., -3 dB gain frequency.
+// The amplitude response is substantially flat above fb,
+// and sloped at about +6 dB/octave below fb.
+// Derived from the analog transfer function 
+// H(s) = s / (s + 2*PI*fb) 
+// by the low-frequency-matching bilinear transform method
+// (i.e., the standard frequency-scaling constant 2*SR).
+// Reference:
+// http://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
+
+dcblockerat(fb) = *(b0) : zero(1) : pole(p)
+with {
+  wn = PI*fb/SR;
+  b0 = 1.0 / (1 + wn);
+  p = (1 - wn) * b0;
+};
+
+//---------------------- dcblocker --------------------------
+// Default dc blocker has -3dB point near 35 Hz (at 44.1 kHz)
+// and high-frequency gain near 1.0025 (due to no scaling)
+//
+dcblocker = zero(1) : pole(0.995);
+
+//========================= Comb Filters ===============================
+
+//------------------------- ffcombfilter ---------------------------
+// Feed-Forward Comb Filter
+// 
+// USAGE: ffcombfilter(maxdel,del,g), where
+//   maxdel = maximum delay (a power of 2)
+//   del = current comb-filter delay between 0 and maxdel
+//   g = gain applied to delay-line output
+//
+// Reference: 
+//   http://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html
+
+ffcombfilter(maxdel,del,g) = _ <: delay(maxdel,del) : *(g): + ;
+
+//------------------------- fbcombfilter ---------------------------
+// Feed-Back Comb Filter
+//
+// USAGE: fbcombfilter(maxdel,del,g), where
+//   maxdel = maximum delay (a power of 2)
+//   del = current comb-filter delay between 0 and maxdel
+//   g = gain applied to delay-line output = feedback gain
+//
+// Reference: 
+//   http://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html
+
+fbcombfilter(maxdel,del,g) = (+ : delay(maxdel,del)) ~ *(g);
+
+//===================== Digital Filter Sections ========================
+
+//----------------------------- tf2 ---------------------------------
+// Second-order direct-form digital filter,
+// specified by transfer-function polynomials B(z)/A(z) as in matlab.
+// This is just a copy of TF2(b0,b1,b2,a1,a2) from Faust's music.lib.
+
+tf2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
+with {
+  conv3(k0,k1,k2,x)     = k0*x + k1*x' + k2*x'';
+  conv2(k0,k1,x)        = k0*x + k1*x';
+  sub(x,y)              = y-x;
+};
+
+//===== Digital Filter Sections Specified as Analog Filter Sections =====
+//
+//----------------------------- tf2s --------------------------------
+// Second-order direct-form digital filter,
+// specified by ANALOG transfer-function polynomials B(s)/A(s),
+// and a frequency-scaling parameter.  Digitization via the
+// bilinear transform is built in.
+//
+// USAGE: tf2s(b1,b0,a1,a0,w1), where 
+//
+//            b1 s + b0
+// H(s) = -----------------
+//         s^2 + a1 s + a0
+//
+// and w1 is the desired digital frequency (in radians/second)
+// corresponding to analog frequency 1 rad/sec (i.e., s = j).
+//
+// EXAMPLE: A second-order ANALOG Butterworth lowpass filter,
+//          normalized to have cutoff frequency at 1 rad/sec,
+//          has transfer function
+//
+//              1
+// H(s) = -----------------
+//         s^2 + a1 s + 1
+//
+// where a1 = sqrt(2).  Therefore, a DIGITAL Butterworth lowpass 
+// cutting off at SR/4 is specified as tf2s(0,1,sqrt(2),1,PI*SR/2);
+//
+tf2s(b1,b0,a1,a0,w1) = tf2(b0d,b1d,b2d,a1d,a2d)
+with {
+  a   = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
+  asq = a*a;
+  d   = a0 + a1*a + asq;
+  b0d = (b1 * a + b0)/d;
+  b1d = 2*b0/d;
+  b2d = (b0 - a * b1)/d;
+  a1d = 2 * (a0 - asq)/d;
+  a2d = (a0 - a1*a + asq)/d;
+};
+
+//----------------------------- tf1s --------------------------------
+// First-order direct-form analog filter,
+// specified by ANALOG transfer-function polynomials B(s)/A(s),
+// and a frequency-scaling parameter.
+//
+// USAGE: tf1s(b0,a0,w1), where 
+//
+//           b0
+// H(s) = --------
+//         s + a0
+//
+// and w1 is the desired digital frequency (in radians/second)
+// corresponding to analog frequency 1 rad/sec (i.e., s = j).
+//
+// EXAMPLE: A first-order ANALOG Butterworth lowpass filter,
+//          normalized to have cutoff frequency at 1 rad/sec,
+//          has transfer function
+//
+//           1
+// H(s) = -------
+//         s + 1
+//
+// so b0 = a0 = 1.  Therefore, a DIGITAL first-order Butterworth lowpass 
+// with gain -3dB at SR/4 is specified as tf1s(1,1,PI*SR/2);
+//
+tf1s(b0,a0,w1) = *(b0d) : zero(-1) : (+ ~ *(pole))
+with {
+  a    = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
+  d    = a0 + a;
+  b0d  = b0 / d;
+  pole = (a - a0) / d;
+};
+
+//===================== Butterworth Lowpass Filters =====================
+//
+// Reference: 
+// http://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html
+//
+//----------------------------- lowpass1 -----------------------------
+// First-order Butterworth lowpass filter
+// USAGE: lowpass1(fc), where 
+// fc = desired cut-off frequency (-3dB frequency) in Hz
+//
+lowpass1(fc) = tf1s(1,1,2*PI*(fc));
+
+//----------------------------- lowpass2 ------------------------------
+// Second-order Butterworth lowpass filter
+// USAGE: lowpass2(fc), where 
+// fc = desired cut-off frequency (-3dB frequency) in Hz
+//
+lowpass2(fc) = tf2s(0,1,sqrt(2),1,2*PI*(fc));
+
+//----------------------------- lowpass3 ------------------------------
+// Third-order Butterworth lowpass filter
+// USAGE: lowpass3(fc), where 
+// fc = desired cut-off frequency (-3dB frequency) in Hz
+//
+lowpass3(fc) = tf2s(0,1,1,1,w1) : tf1s(1,1,w1)
+with { w1 = 2*PI*(fc); };
+
+//----------------------------- lowpass4 ------------------------------
+// Fourth-order Butterworth lowpass filter
+// USAGE: lowpass4(fc), where 
+// fc = desired cut-off frequency (-3dB frequency) in Hz
+//
+lowpass4(fc) = tf2s(0,1,a11s,1,w1) : tf2s(0,1,a21s,1,w1)
+with {
+  a11s = 1.847759065022573; // -2*real(pole1)
+  a21s = 0.765366864730180; // -2*real(pole2)
+  w1 = 2*PI*(fc);
+};
+
+//----------------------------- pareq ---------------------------------
+// second order Parametric Equalizer section ("peaking equalizer")
+// pareq(Q,F,G)
+//                      Q : quality factor [1..100]
+//                      F :     frequency (Hz)
+//                      G : Attenuation (dB)
+// Adapted from "bandfilter.dsp" in the faust2pd distribution 
+// (specifically faust-pd-0.9.9.2 in Planet CCRMA)
+// which was released under the BSD license.
+//---------------------------------------------------------------------
+pareq(Q,F,G) = TF2(  (1 +  K/Q + K*K) / D,
+	       2 * (K*K - 1)          / D,
+	      (1 - K/Q + K*K)         / D,
+	       2 * (K*K - 1)          / D,
+	      (1 - V*K/Q + K*K)       / D
+		       )
+with {
+	      V = db2linear(G);
+	      K = tan(PI*F/SR);
+	      D = 1 + V*K/Q + K*K;
+};
+
+//========================= Lagrange Interpolation ========================
+
+// Reference:
+// http://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html
+// 
+//------------------ fdelay1, fdelay2, fdelay3, fdelay4 ---------------
+// Delay lines interpolated using Lagrange interpolation
+// USAGE: fdelayN(maxdelay, delay, inputsignal) 
+//        (exactly like fdelay in music.lib)
+// where N=1,2,3, or 4 is the order of the Lagrange interpolation polynomial.
+//
+// NOTE: While the implementations below appear to use multiple delay lines,
+//  they in fact use only one thanks to optimization by the Faust compiler.
+
+// first-order case (linear interpolation) - equivalent to fdelay in music.lib
+// delay d in [0,1] 
+fdelay1(n,d,x)  = delay(n,id,x)*(1 - fd) + delay(n,id+1,x)*fd
+with {
+  id = int(d);
+  fd = frac(d);
+};
+
+// second-order (quadratic) case, delay in [0,1] ([1,2] same quality):
+fdelay2(n,d,x) = delay(n,id,x)*(1-fd)*(2-fd)/2 
+               + delay(n,id+1,x)*(2-fd)*fd
+               + delay(n,id+2,x)*(fd-1)*fd
+with {
+  id = int(d);
+  fd = frac(d);
+};
+
+// third-order (cubic) case, delay in [1,2]:
+fdelay3(n,d,x) = delay(n,id,x) * (0-fdm1*fdm2*fdm3)/6
+               + delay(n,id+1,x) * fd*fdm2*fdm3/2
+               + delay(n,id+2,x) * (0-fd*fdm1*fdm3)/2
+               + delay(n,id+3,x) * fd*fdm1*fdm2/6
+with {
+  id = int(d-1); 
+  fd = 1+frac(d);
+  fdm1 = fd-1;
+  fdm2 = fd-2;
+  fdm3 = fd-3;
+};
+
+// fourth-order (quartic) case, delay in [1,2] ([2,3] same quality):
+fdelay4(n,d,x) = delay(n,id,x)   * fdm1*fdm2*fdm3*fdm4/24 
+               + delay(n,id+1,x) * (0-fd*fdm2*fdm3*fdm4)/6
+               + delay(n,id+2,x) * fd*fdm1*fdm3*fdm4/4
+               + delay(n,id+3,x) * (0-fd*fdm1*fdm2*fdm4)/6
+               + delay(n,id+4,x) * fd*fdm1*fdm2*fdm3/24
+with {
+  id = int(d-1);
+  fd = 1+frac(d);
+  fdm1 = fd-1;
+  fdm2 = fd-2;
+  fdm3 = fd-3;
+  fdm4 = fd-4;
+};
