@@ -1,5 +1,3 @@
-// filter.lib - filters of various types useful in audio
-
 declare name "Faust Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
@@ -9,9 +7,11 @@ declare reference "http://ccrma.stanford.edu/realsimple/faust_strings/";
 
 import("filter.lib"); // dcblocker*, lowpass4, ...
 
+
 //------------------------ levelfilter --------------------------
 // Dynamic level lowpass filter:
 // Reference: http://ccrma.stanford.edu/realsimple/faust_strings/
+//
 levelfilter(L,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
 with {
   L0 = pow(L,1/3);
@@ -20,6 +20,7 @@ with {
   Lpole2 = (1.0 - Lw) / (1.0 + Lw);
   lp2out = *(Lgain) : + ~ *(Lpole2);
 };
+
 
 //------------------------ speakerbp -----------------------------
 // Dirt-simple speaker simulator (overall bandpass eq with observed
@@ -35,8 +36,9 @@ with {
 // speakerbp(130,5000);
 //
 // Requires filter.lib
-
+//
 speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
+
 
 //--------------------- cubicnl(drive,offset) -----------------------
 // Cubic nonlinearity distortion
@@ -45,19 +47,16 @@ speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
 //   offset = constant added before nonlinearity to give even harmonics
 // Reference:
 // http://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html#18254
-
-cubicnl(drive,offset) = +(offset) 
-			 : *(pregain) : clippedcubic : *(postgain) 
-			 : dcblocker
+//
+cubicnl(drive,offset) =
+   +(offset) : *(pregain) : clip(-1,1) : cubic : *(postgain) : dcblocker
 with {
-  tt = 2.0/3.0;
-  // sel(x) = 1 - (x < -1) + (x > 1); // 0,1,2
-  // clippedcubic(x) = select3(sel(x), 0-tt, x - pow(x,3)/3.0, tt);
-  stage1(x) = select2(x>(-1.0), 0-tt, x - pow(x,3)/3.0);
-  clippedcubic(x) = select2(x>1.0, stage1(x), tt);
-  pregain = pow(10.0,2*drive);
-  postgain = max(1.0,(1.0/(pregain))); // unity gain when nearly linear
+    pregain = pow(10.0,2*drive);
+    clip(lo,hi) = min(hi) : max(lo);
+    cubic(x) = x - x*x*x/3;
+    postgain = max(1.0,1.0/pregain); // unity gain when nearly linear
 };
+
 
 //------------------------ moogvcf(Q,fr) ---------------------------
 // Moog "Voltage Controlled Filter" (VCF)
@@ -74,11 +73,13 @@ with {
      mk = 0-Q;
 };
 
+
 //-------------------------- wah4(fr) -------------------------------
 // Wah effect, 4th order
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
 // 
 wah4(fr) = moogvcf(3.8,fr); // Q fixed at ~ 3.8 (set to taste)
+
 
 //------------------------ crybaby(wah) -----------------------------
 // Digitized CryBaby wah pedal
