@@ -39,7 +39,7 @@ struct interval
 	double	lo;				///< minimal value
 	double	hi;				///< maximal value
 	
-	interval ()						: valid(false), lo(0), hi(0) { }
+	interval ()						: valid(false), lo(-HUGE_VAL), hi(HUGE_VAL) { }
 	interval (double n) 			: valid(true), lo(n), hi(n) { }
 	interval (double n, double m) 	: valid(true), lo(min(n,m)), hi(max(n,m)) {}
 	interval (const interval& r)	: valid(r.valid), lo(r.lo), hi(r.hi) { }
@@ -195,16 +195,12 @@ inline interval operator!=(const interval&, const interval&)
 
 inline interval min(const interval& x, const interval& y)
 {
-	return (x.valid && y.valid) 
-			? interval(min(x.lo,y.lo), min(x.hi,y.hi))
-			: interval();
+	return interval(min(x.lo,y.lo), min(x.hi,y.hi));
 }
 
 inline interval max(const interval& x, const interval& y)
 {
-	return (x.valid && y.valid) 
-			? interval(max(x.lo,y.lo), max(x.hi,y.hi))
-			: interval();
+	return interval(max(x.lo,y.lo), max(x.hi,y.hi));
 }
 		
 inline interval abs(const interval& x)
