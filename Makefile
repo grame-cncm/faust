@@ -2,6 +2,7 @@ version := 0.9.9.3
 prefix := /usr/local
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
+vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 
 
 all :
@@ -66,6 +67,22 @@ dist :
 	rm -f faust-$(version).tar.gz
 	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
+
+archive :
+	$(MAKE) -C compiler clean
+	$(MAKE) -C examples clean
+	mkdir -p $(vname)
+	cp README COPYING Makefile $(vname)
+	cp -r architecture $(vname)
+	cp -r compiler $(vname)
+	cp -r examples $(vname)
+	cp -r documentation $(vname)
+	cp -r syntax-highlighting $(vname)
+	cp -r tools $(vname)
+	cp -r windows $(vname)
+	find $(vname) -name "*~" | xargs rm -rf
+	tar czfv $(vname).tar.gz $(vname)
+	rm -rf $(vname)
 
 log :
 	cvs2cl --fsf
