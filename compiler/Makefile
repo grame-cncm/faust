@@ -161,8 +161,8 @@ generator/compile_scal.o: generator/klass.hh signals/sigtype.hh tlib/smartpointe
 generator/compile_scal.o: generator/uitree.hh generator/Text.hh generator/description.hh signals/sigtyperules.hh
 generator/compile_scal.o: generator/occurences.hh tlib/property.hh signals/sigprint.hh signals/recursivness.hh
 generator/compile_scal.o: normalize/simplify.hh normalize/privatise.hh signals/prim2.hh extended/xtended.hh
-generator/compile_scal.o: signals/sigvisitor.hh generator/contextor.hh tlib/compatibility.hh parser/unistd.h
-generator/compile_scal.o: /usr/include/unistd.h signals/ppsig.hh
+generator/compile_scal.o: signals/sigvisitor.hh tlib/compatibility.hh parser/unistd.h /usr/include/unistd.h
+generator/compile_scal.o: signals/ppsig.hh
 generator/compile_vect.o: generator/compile_vect.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/compile_vect.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/compile_vect.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
