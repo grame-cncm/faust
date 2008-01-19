@@ -44,7 +44,7 @@
 #include "privatise.hh"
 #include "prim2.hh"
 #include "xtended.hh"
-#include "contextor.hh"
+//#include "contextor.hh"
 #include "compatibility.hh"
 #include "ppsig.hh"
 
@@ -123,7 +123,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
 
 void ScalarCompiler::compileMultiSignal (Tree L)
 {
-	contextor recursivness(0);
+	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
 	for (int i = 0; i < fClass->inputs(); i++) {
 		fClass->addSlowCode(subst("float* input$0 = input[$0];", T(i)));
@@ -192,14 +192,14 @@ string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
  */
 string  ScalarCompiler::CS (Tree sig)
 {
-    contextor   contextRecursivness;
+    //contextor   contextRecursivness;
     string      code;
 
     if (!getCompiledExpression(sig, code)) {
         // not compiled yet
-        if (getRecursivness(sig) != contextRecursivness.get()) {
+/*        if (getRecursivness(sig) != contextRecursivness.get()) {
             contextRecursivness.set(getRecursivness(sig));
-        }
+        }*/
         code = generateCode(sig);
         setCompiledExpression(sig, code);
     }
@@ -819,55 +819,134 @@ string ScalarCompiler::generateIota (Tree sig, Tree n)
 
 
 // a revoir en utilisant la lecture de table et en partageant la construction de la paire de valeurs
-// il faudrait egalement tenir compte de la computability et de la variability
 
-string ScalarCompiler::generateSelect2 (Tree sig, Tree sel, Tree s1, Tree s2)
+
+/**
+ * Generate a select2 code
+ */
+
+string ScalarCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2)
 {
-	Type t   = getSigType(sig);//, tEnv);
-	//Type u1  = getSigType(s1, tEnv);
-	//Type u2  = getSigType(s2, tEnv);
+    Type t  = getSigType(sig);
+    Type t1 = getSigType(s1);
+    Type t2 = getSigType(s2);
+    Type w  = min(t1,t2);
 
-	string type = cType(t);
-	string var  = getFreshID("S");
+    string type = cType(t);
+    string var  = getFreshID("S");
 
-	//cerr << "compile a select2 of type = " << t << endl;
-	switch (t->variability())
-	{
-		case kKonst :
-			fClass->addDeclCode(subst("$0 \t$1[2];", type, var));
-			fClass->addInitCode(subst("$0[0] = $1;", var, CS(s1)));
-			fClass->addInitCode(subst("$0[1] = $1;", var, CS(s2)));
-			return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
+    switch (w->variability())
+    {
+        case kKonst :
+            fClass->addDeclCode(subst("$0 \t$1[2];", type, var));
+            break;
+        case kBlock :
+            fClass->addSlowCode(subst("$0 \t$1[2];", type, var));
+            break;
+        case kSamp :
+            fClass->addExecCode(subst("$0 \t$1[2];", type, var));
+            break;
+    }
 
-		case kBlock :
-			fClass->addSlowCode(subst("$0 \t$1[2];", type, var));
-			fClass->addSlowCode(subst("$0[0] = $1;", var, CS(s1)));
-			fClass->addSlowCode(subst("$0[1] = $1;", var, CS(s2)));
-			return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
+    switch (t1->variability())
+    {
+        case kKonst :
+            fClass->addInitCode(subst("$0[0] = $1;", var, CS(s1)));
+            break;
+        case kBlock :
+            fClass->addSlowCode(subst("$0[0] = $1;", var, CS(s1)));
+            break;
+        case kSamp :
+            fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
+            break;
+    }
 
-		case kSamp :
-			fClass->addExecCode(subst("$0 \t$1[2];", type, var));
-			fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
-			fClass->addExecCode(subst("$0[1] = $1;", var, CS(s2)));
-			return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
-	}
-	return "ScalarCompiler::generateSelect2";
+    switch (t2->variability())
+    {
+        case kKonst :
+            fClass->addInitCode(subst("$0[1] = $1;", var, CS(s2)));
+            break;
+        case kBlock :
+            fClass->addSlowCode(subst("$0[1] = $1;", var, CS(s2)));
+            break;
+        case kSamp :
+            fClass->addExecCode(subst("$0[1] = $1;", var, CS(s2)));
+            break;
+    }
+
+    return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
 }
 
-string ScalarCompiler::generateSelect3 	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
+
+/**
+ * Generate a select3 code
+ */
+string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
-	Type t  = getSigType(sig);//, tEnv);
+    Type t  = getSigType(sig);
+    Type t1 = getSigType(s1);
+    Type t2 = getSigType(s2);
+    Type t3 = getSigType(s3);
+    Type w  = min(t1,min(t2,t3));
 
-	string type = cType(t);
-	string var  = getFreshID("S");
+    string type = cType(t);
+    string var  = getFreshID("S");
 
-//	cerr << "compile a select3 of type = " << t << endl;
-	fClass->addExecCode(subst("$0 \t$1[3];", type, var));
-	fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
-	fClass->addExecCode(subst("$0[1] = $2;", var, CS(s2)));
-	fClass->addExecCode(subst("$0[2] = $3;", var, CS(s3)));
-	return subst("$0[$1]", var, CS(sel));
+    switch (w->variability())
+    {
+        case kKonst :
+            fClass->addDeclCode(subst("$0 \t$1[3];", type, var));
+            break;
+        case kBlock :
+            fClass->addSlowCode(subst("$0 \t$1[3];", type, var));
+            break;
+        case kSamp :
+            fClass->addExecCode(subst("$0 \t$1[3];", type, var));
+            break;
+    }
+
+    switch (t1->variability())
+    {
+        case kKonst :
+            fClass->addInitCode(subst("$0[0] = $1;", var, CS(s1)));
+            break;
+        case kBlock :
+            fClass->addSlowCode(subst("$0[0] = $1;", var, CS(s1)));
+            break;
+        case kSamp :
+            fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
+            break;
+    }
+
+    switch (t2->variability())
+    {
+        case kKonst :
+            fClass->addInitCode(subst("$0[1] = $1;", var, CS(s2)));
+            break;
+        case kBlock :
+            fClass->addSlowCode(subst("$0[1] = $1;", var, CS(s2)));
+            break;
+        case kSamp :
+            fClass->addExecCode(subst("$0[1] = $1;", var, CS(s2)));
+            break;
+    }
+
+    switch (t3->variability())
+    {
+        case kKonst :
+            fClass->addInitCode(subst("$0[2] = $1;", var, CS(s3)));
+            break;
+        case kBlock :
+            fClass->addSlowCode(subst("$0[2] = $1;", var, CS(s3)));
+            break;
+        case kSamp :
+            fClass->addExecCode(subst("$0[2] = $1;", var, CS(s3)));
+            break;
+    }
+
+    return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
 }
+
 
 /**
  * retrieve the type annotation of sig
