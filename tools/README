@@ -9,7 +9,10 @@
 These additional tools are provided by various contributors to help 
 the building process of applications and plugins with Faust. 
 
-Currently two tools are available :
+Currently the following tools are available :
+
+- faust2appls contains simple scripts to easily and quickly generate svg 
+  diagrams as well as jack, alsa and plot applications
 
 - faust2sc is a Ruby program used to generate a SuperCollider class 
   file, which can be compiled and subsequently used from within sclang. 
