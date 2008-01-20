@@ -1,0 +1,9 @@
+This folder contains 4 useful scripts that combines faust and g++ to generates executable binary. You can use 'sudo make install' to install them. 
+
+faust2jack <file1.dsp>... : create jack applications for each input file
+
+faust2alsa <file1.dsp>... : create alsa applications for each input file
+
+faust2svg  <file1.dsp>... : create svg block-diagrams for each input file and call firefox
+
+faust2octave <file.dsp>   : create a plot application, run it and display the value with octave   

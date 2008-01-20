@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for f in $@; do
+    faust -a alsa-gtk.cpp $f -o $f.cpp
+    ${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags --libs alsa gtk+-2.0` $f.cpp -o ${f%.dsp}
+done
