@@ -1,9 +1,15 @@
 #!/bin/bash
+if [[ $(uname) == Darwin ]]; then
+	APPL=open
+else
+	APPL=firefox
+fi
+
 faust2svg $@
-firefox $1-svg/process.svg&
+$APPL $1-svg/process.svg&
 shift
 for f in $@; do
     sleep 1
-    firefox $f-svg/process.svg&
+    $APPL $f-svg/process.svg&
 done
 
