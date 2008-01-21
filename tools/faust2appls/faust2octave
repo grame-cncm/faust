@@ -1,8 +1,9 @@
 #!/bin/bash
 
+faust2plot $@
 for f in $@; do
-    faust -a matlabplot.cpp $f -o $f.cpp
-    ${CXX=g++} ${CXXFLAGS=-O3} $f.cpp -o ${f%.dsp}
+##    faust -a matlabplot.cpp $f -o $f.cpp
+##    ${CXX=g++} ${CXXFLAGS=-O3} $f.cpp -o ${f%.dsp}
     ./${f%.dsp} -n 600 > ${f%.dsp}.m
     octave --persist ${f%.dsp}.m
 done

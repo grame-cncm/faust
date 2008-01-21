@@ -3,10 +3,3 @@ for f in $@; do
     faust -svg $f -o /dev/null
 done
 
-firefox $1-svg/process.svg&
-shift
-for f in $@; do
-    sleep 1
-    firefox $f-svg/process.svg&
-done
-

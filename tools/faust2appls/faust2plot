@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for f in $@; do
+    faust -a matlabplot.cpp $f -o $f.cpp
+    ${CXX=g++} ${CXXFLAGS=-O3} $f.cpp -o ${f%.dsp}
+done
