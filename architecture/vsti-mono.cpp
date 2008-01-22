@@ -1,18 +1,20 @@
 /********************************************************************
- * VST-2.4 wrapper for the FAUST language. 
+ * vsti-mono.cpp - Monaural VSTi-2.4 wrapper for the FAUST language. 
  *
- * Usage: faust -a vsti.cpp myfaustprog.dsp
+ * Usage: faust -a vsti-mono.cpp myfaustprog.dsp
  *
- * By Julius Smith (http://ccrma.stanford.edu/~jos/), based on 
- * vst.cpp by remy muller <remy.muller at ircam.fr>
- * (http://www.smartelectronix.com/~mdsp/).
- * Essentially, vst.cpp was first edited to look more like the "again" 
- * programming sample that comes with the VST-2.4 SDK from Steinberg,
- * then features from the "vstxsynth" program sample were added to 
- * give simple MIDI synth support analogous to that of faust2pd, except 
- * only one voice is supported.  Like faust2pd, to obtain MIDI control
- * via NoteOn/Off, Velocity, and KeyNumber, there must be a button named
- * "gate" and sliders (or numeric entries) named "gain" and "freq" in 
+ * By Julius Smith (http://ccrma.stanford.edu/~jos/), based on vst.cpp
+ * by remy muller <remy.muller at ircam.fr>
+ * (http://www.smartelectronix.com/~mdsp/).  Essentially, vst.cpp was
+ * first edited to look more like the "again" programming sample that
+ * comes with the VST-2.4 SDK from Steinberg. Next, features from the
+ * "vstxsynth" program sample were added to give simple MIDI synth
+ * support analogous to that of faust2pd, except that only one voice
+ * is supported.  (If the Faust patch has any input signals, this
+ * architecture file should reduce to vst2p4.cpp --- i.e., basic VST
+ * plugin support.)  As with faust2pd, to obtain MIDI control via
+ * NoteOn/Off, Velocity, and KeyNumber, there must be a button named
+ * "gate" and sliders (or numeric entries) named "gain" and "freq" in
  * the Faust patch specified in myfaustprog.dsp.
  *
  * NOTES:
@@ -937,7 +939,9 @@ VstInt32 Faust::processEvents (VstEvents* ev)
       // For a list, see 
       // http://www.alfred-j-faust.de/rft/midi%20status%20types.html
 
+#ifdef DEBUG
       fprintf(stderr,"=== Faust vsti: Going to next event\n", event->midiData[2]);
+#endif
 
       event++;
     }
@@ -966,7 +970,7 @@ void Faust::noteOff ()
 {
   if (noteIsOn) {
 #ifdef DEBUG
-    fprintf(stderr,"=== Faust vsti: noteOff!\n");
+    fprintf(stderr,"=== Faust vsti: noteOff\n");
 #endif
     dspUI->setGate(0);
   } else {
