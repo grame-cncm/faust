@@ -106,12 +106,12 @@ bool			gPatternEvalMode = false;
 
 //-- command line tools
 
-static bool isCmd(char* cmd, char* kw1)
+static bool isCmd(const char* cmd, const char* kw1)
 {
 	return 	(strcmp(cmd, kw1) == 0);
 }
 
-static bool isCmd(char* cmd, char* kw1, char* kw2)
+static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 {
 	return 	(strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }

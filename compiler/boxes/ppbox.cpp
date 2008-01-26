@@ -29,12 +29,12 @@
 #include "xtended.hh"
 
 
-char * prim0name(CTree *(*ptr) ())
+const char * prim0name(CTree *(*ptr) ())
 {
 	return "prim0???";
 }
 
-char * prim1name(CTree *(*ptr) (CTree *))
+const char * prim1name(CTree *(*ptr) (CTree *))
 {
 	if (ptr == sigDelay1) return "mem";
 	if (ptr == sigIntCast) return "int";
@@ -42,7 +42,7 @@ char * prim1name(CTree *(*ptr) (CTree *))
 	return "prim1???";
 }
 
-char * prim2name(CTree *(*ptr) (CTree *, CTree *))
+const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 {
 	if (ptr == sigAdd) return "+";
 	if (ptr == sigSub) return "-";
@@ -71,27 +71,27 @@ char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 	return "prim2???";
 }
 
-char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *))
+const char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *))
 {
 	if (ptr == sigReadOnlyTable) 	return "rdtable";
 	if (ptr == sigSelect2) 			return "select2";
 	return "prim3???";
 }
 
-char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
+const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
 {
 	if (ptr == sigSelect3) 			return "select3";
 	return "prim4???";
 }
 
-char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
+const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
 {
 	if (ptr == sigWriteReadTable) 	return "wrtable";
 	return "prim5???";
 }
 
 
-static void streambinop(ostream& fout, Tree t1, char* op, Tree t2, int curPriority, int upPriority)
+static void streambinop(ostream& fout, Tree t1, const char* op, Tree t2, int curPriority, int upPriority)
 {
 	if (upPriority > curPriority) fout << '(';
 	fout << boxpp(t1,curPriority) << op << boxpp(t2,curPriority);
@@ -299,7 +299,7 @@ ostream& boxpp::print (ostream& fout) const
 
 ostream& envpp::print (ostream& fout) const
 {
-		char* 	sep = "";
+		const char* 	sep = "";
 		Tree 	l = fEnv;
 
 		fout << '{';

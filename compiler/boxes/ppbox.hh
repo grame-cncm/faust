@@ -44,12 +44,12 @@ using namespace std;
 //inline void	ppbox  (Tree box, int priority=0) 					{ fppbox(stdout, box, priority); }
 
 
-char * prim0name(CTree *(*ptr) ());
-char * prim1name(CTree *(*ptr) (CTree *));
-char * prim2name(CTree *(*ptr) (CTree *, CTree *));
-char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *));
-char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *));
-char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *));
+const char * prim0name(CTree *(*ptr) ());
+const char * prim1name(CTree *(*ptr) (CTree *));
+const char * prim2name(CTree *(*ptr) (CTree *, CTree *));
+const char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *));
+const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *));
+const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *));
 
 
 // box pretty printer.

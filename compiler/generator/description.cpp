@@ -68,7 +68,7 @@ void Description::ui(Tree t)
 void Description::addGroup(int level, Tree t)
 {
 	Tree 	label, elements, varname, sig;
-	char*	groupnames[] = {"vgroup", "hgroup", "tgroup"};
+	const char*	groupnames[] = {"vgroup", "hgroup", "tgroup"};
 	
 	if (isUiFolder(t, label, elements)) {
 	

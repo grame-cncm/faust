@@ -68,7 +68,7 @@ void printSigType (int n, int v, int c)
 	putchar("CI X"[c]);
 }
 
-char* binopname[]= {
+const char* binopname[]= {
 		"+", "-", "*", "/", "%", 
 		"<<", ">>",
 		">", "<", ">=", "<=", "==", "!=",

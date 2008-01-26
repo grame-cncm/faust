@@ -118,7 +118,7 @@ ifstream* open_arch_stream (const char* filename)
 /*---------------------------------------------*/
 
 		
-bool check_file(char* filename)
+bool check_file(const char* filename)
 {
 	FILE* f = fopen(filename, "r");
 	

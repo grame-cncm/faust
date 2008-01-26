@@ -46,6 +46,6 @@ ifstream* open_stream (const char* filename);
 FILE* fopensearch(const char* filename);
 FILE* fopenpath(const char* lofdir, const char* filename);
 
-bool check_file(char* filename);
+bool check_file(const char* filename);
 		
 		
