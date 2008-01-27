@@ -390,38 +390,21 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	
 	// check for expression occuring in delays
 	if (o->getMaxDelay()>0) {
-		getTypedNames(getSigType(sig), "Vec", ctype, vname);
-		return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+
+        getTypedNames(getSigType(sig), "Vec", ctype, vname);
+        if (sharing>1) {
+            return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
+        } else {
+		    return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+        }
 
 	} else if (sharing == 1) {
-		return exp;
+
+        return exp;
 
 	} else if (sharing > 1) {
-
-		Type t = getSigType(sig);
-
-		switch (t->variability()) {
-
-			case kKonst :
-
-				getTypedNames(getSigType(sig), "Const", ctype, vname);
-				fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-				fClass->addInitCode(subst("$0 = $1;", vname, exp));
-				break;
-
-			case kBlock :
-
-				getTypedNames(getSigType(sig), "Slow", ctype, vname);
-				fClass->addSlowCode(subst("$0 $1 = $2;", ctype, vname, exp));
-				break;
-
-			case kSamp :
-
-				getTypedNames(getSigType(sig), "Temp", ctype, vname);
-				fClass->addExecCode(subst("$0 $1 = $2;", ctype, vname, exp));
-				break;
-		}
-		return vname;
+        
+        return generateVariableStore(sig, exp);
 
 	} else {
         cerr << "Error in sharing count (" << sharing << ") for " << *sig << endl;
@@ -429,6 +412,36 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	}
 
 	return "Error in generateCacheCode";
+}
+
+
+string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
+{
+    string      vname, ctype;
+    Type        t = getSigType(sig);
+
+    switch (t->variability()) {
+
+        case kKonst :
+
+            getTypedNames(t, "Const", ctype, vname);
+            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
+            fClass->addInitCode(subst("$0 = $1;", vname, exp));
+            break;
+
+        case kBlock :
+
+            getTypedNames(t, "Slow", ctype, vname);
+            fClass->addSlowCode(subst("$0 $1 = $2;", ctype, vname, exp));
+            break;
+
+        case kSamp :
+
+            getTypedNames(t, "Temp", ctype, vname);
+            fClass->addExecCode(subst("$0 $1 = $2;", ctype, vname, exp));
+            break;
+    }
+    return vname;
 }
 
 
@@ -961,8 +974,6 @@ string ScalarCompiler::generateXtended 	(Tree sig)
 	for (int i=0; i<sig->arity(); i++) {
 		args.push_back(CS(sig->branch(i)));
 		types.push_back(getSigType(sig->branch(i)));
-		//auditSigType(sig->branch(i));
-		//types.push_back(TINPUT);
 	}
 
 	if (p->needCache()) {
@@ -1085,7 +1096,7 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 {
 	string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
 	if (getSigType(sig)->variability() < kSamp) {
-		return exp;
+        return exp;
 	} else {
 		return s;
 	}

@@ -64,6 +64,7 @@ class ScalarCompiler : public Compiler
 	virtual void		compileSingleSignal (Tree lsig);
 	virtual string		CS (Tree sig);
 	virtual string 	    generateCacheCode(Tree sig, const string& exp) ;
+            string      generateVariableStore(Tree sig, const string& exp);
 
 
   private:
