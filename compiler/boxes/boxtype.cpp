@@ -157,7 +157,19 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		int u,v,x,y;
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
-		
+
+        if (v == 0) {
+            cerr    << "Connection error in : " << boxpp(t) << endl
+                    << "The first expression : " << boxpp(a) << " has no outputs" << endl;
+            exit(1);
+        }
+        
+        if (x == 0) {
+            cerr    << "Connection error in : " << boxpp(t) << endl
+                    << "The second expression : " << boxpp(b) << " has no inputs" << endl;
+            exit(1);
+        }
+		 
 		if (x % v != 0) {
 			cerr 	<< "Connection error in : " << boxpp(t) << endl
 					<< "The number of outputs " << v
@@ -173,7 +185,19 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		int u,v,x,y;
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
-		
+
+        if (v == 0) {
+            cerr    << "Connection error in : " << boxpp(t) << endl
+                    << "The first expression : " << boxpp(a) << " has no outputs" << endl;
+            exit(1);
+        }
+        
+        if (x == 0) {
+            cerr    << "Connection error in : " << boxpp(t) << endl
+                    << "The second expression : " << boxpp(b) << " has no inputs" << endl;
+            exit(1);
+        }
+        
 		if (v % x != 0) { 
 			cerr 	<< "Connection error in : " << boxpp(t) << endl
 					<< "The number of outputs " << v
