@@ -1,0 +1,75 @@
+declare name "Faust Oscillator Library";
+declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
+declare copyright "Julius O. Smith III";
+declare version "1.0";
+declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
+//incomplete at the moment: 
+//declare reference "http://ccrma.stanford.edu/~jos/pasp/";
+
+import("music.lib");
+import("filter.lib"); // wgr (and later svf)
+
+impulse = 1-1';
+
+// Filter-based oscillators - a quick guide (move to osc-doc.txt?):
+// USAGE: osc*(f), where f = frequency in Hz.
+//
+// oscb: fastest, amplitude varies with frequency, avoid dc
+// oscr: 2nd fastest, amplitude unchanging with frequency, dc ok, 
+//       amp slowly drifts,
+//       sine and cosine outputs available (exact phase quadrature)
+// oscs: 3rd fastest, amplitude varies slightly with frequency, dc ok, 
+//       no amp drift, hand optimizable to be the fastest no-drift case
+// oscw: 4th fastest, amplitude steady with frequency, no amp drift,
+//       sine and cosine outputs available (exact phase quadrature),
+//       numerical difficulty below 10 Hz,
+//       hand optimizable to be best (above 10 Hz) for custom silicon.
+
+//-------------------------- oscb --------------------------------
+// Sinusoidal oscillator based on the biquad
+//
+oscb(f) = impulse : TF2(1,0,0,a1,1)
+with {
+  a1 = -2*cos(2*PI*f/SR);
+};
+
+//-------------------------- oscr --------------------------------
+// Sinusoidal oscillator based on 2D vector rotation 
+//  = lossless 2nd-order normalized ladder filter
+//
+// Reference:
+// http://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html
+//
+oscrq(f) =  impulse : nlf2(f,1);
+oscrs(f) =  impulse : nlf2(f,1) : _,!; // sine
+oscrc(f) =  impulse : nlf2(f,1) : !,_; // cosine
+oscr = oscrs; // default = sine case
+
+//-------------------------- oscs --------------------------------
+// Sinusoidal oscillator based on the state variable filter
+//
+oscs(f) =  (*(0-1) : sint(wn) : sintp(wn,impulse)) ~ _
+with {
+  impulse = 1-1';
+  wn = 2*PI*f/SR; // approximate
+  // wn = 2*sin(PI*f/SR); // exact
+  sub(x,y) = y-x;
+  sint(x) = *(x) : + ~ _ ; // frequency-scaled integrator
+  sintp(x,y) = *(x) : +(y): + ~ _ ; // same + state input
+};
+
+//----------------- oscw, oscwq, oscwc, oscws --------------------
+// Sinusoidal oscillator based on the waveguide resonator wgr
+//
+// oscwc - unit-amplitude cosine oscillator
+// oscws - unit-amplitude sine oscillator
+// oscq  - unit-amplitude cosine and sine (quadrature) oscillator
+// oscw  - default = oscwc for maximum speed
+//
+// Reference:
+// http://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
+//
+oscwc(fr) = 1-1' : wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
+oscws(fr) = 1-1' : wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
+oscq(fr)  = 1-1' : wgr(fr,1);       // phase quadrature outputs
+oscw = oscwc;
