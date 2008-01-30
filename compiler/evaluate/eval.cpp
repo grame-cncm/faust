@@ -711,15 +711,24 @@ static int eval2int (Tree exp, Tree visited, Tree localValEnv)
 	}
 }
 
-static bool isIdentChar(char c)
+static bool isDigitChar(char c)
 {
-	return ((c >= 'a') & (c <= 'z')) || ((c >= 'A') & (c <= 'Z')) || ((c >= '0') & (c <= '9')) || (c == '_');
+    return (c >= '0') & (c <= '9');
 }
 
-static char* writeIdentValue(char* dst, const char* ident, Tree visited, Tree localValEnv)
+static bool isIdentChar(char c)
+{
+    return ((c >= 'a') & (c <= 'z')) || ((c >= 'A') & (c <= 'Z')) || ((c >= '0') & (c <= '9')) || (c == '_');
+}
+
+const char* Formats [] = {"%d", "%1d", "%2d", "%3d", "%4d"};
+
+static char* writeIdentValue(char* dst, int format, const char* ident, Tree visited, Tree localValEnv)
 {
 	int n = eval2int(boxIdent(ident), visited, localValEnv);
-	return dst + sprintf(dst, "%d", n);
+    int i = min(4,max(format,0));
+    
+	return dst + sprintf(dst, Formats[i], n);
 }
 
 static const char * evalLabel (const char* label, Tree visited, Tree localValEnv)
@@ -732,7 +741,7 @@ static const char * evalLabel (const char* label, Tree visited, Tree localValEnv
 	char*		id  = &ident[0];
 
 	bool		parametric = false;
-	int 		state = 0;
+	int 		state = 0; int format = 0;
 	char		c;
 
 	while ((c=*src++)) {
@@ -744,28 +753,39 @@ static const char * evalLabel (const char* label, Tree visited, Tree localValEnv
 					*dst++ = *src++; 		// copy escape char and skip one char
 				} else {
 					state = 1;				// prepare ident mode
+                    format = 0;
 					parametric = true;
 					id  = &ident[0];
 				}
 			} else {
 				*dst++ = c;					// copy char
 			}
-		} else {
+		} else if (state == 1) {
+            // read the format 
+            if (isDigitChar(c)) {
+                format = format*10 + (c-'0');
+            } else {
+                state = 2;
+                --src; // unread !!!
+            }
+
+        } else {
+            
 			// within ident mode
 			if (isIdentChar(c)) {
 				*id++ = c;
 			} else {
 				*id = 0;
-				dst = writeIdentValue(dst, ident, visited, localValEnv);
+				dst = writeIdentValue(dst, format, ident, visited, localValEnv);
 				state = 0;
 				src -= 1;
 			}
 		}
 	}
 
-	if (state == 1) {
+	if (state == 2) {
 		*id = 0;
-		dst = writeIdentValue(dst, ident, visited, localValEnv);
+		dst = writeIdentValue(dst, format, ident, visited, localValEnv);
 	}
 	*dst = 0;
 	return (parametric) ? strdup(res) : label;
