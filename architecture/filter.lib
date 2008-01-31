@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.0";
+declare version "1.1";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/~jos/filters/";
 
@@ -97,6 +97,12 @@ fbcombfilter(maxdel,del,g) = (+ : delay(maxdel,del)) ~ *(g);
 
 //================ Second Order Digital Filter Sections ================
 
+//----------------------------- tf1 ---------------------------------
+// First-order direct-form digital filter,
+// specified by transfer-function polynomials B(z)/A(z) as in matlab.
+
+tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
+
 //----------------------------- tf2 ---------------------------------
 // Second-order direct-form digital filter,
 // specified by transfer-function polynomials B(z)/A(z) as in matlab.
@@ -107,6 +113,31 @@ with {
   conv3(k0,k1,k2,x)     = k0*x + k1*x' + k2*x'';
   conv2(k0,k1,x)        = k0*x + k1*x';
   sub(x,y)              = y-x;
+};
+
+//----------------------------- tf3 ---------------------------------
+// Third-order direct-form digital filter,
+// specified by transfer-function polynomials B(z)/A(z) as in matlab.
+// Copies the method of TF2(b0,b1,b2,a1,a2) from Faust's music.lib.
+
+tf3(b0,b1,b2,b3,a1,a2,a3) = sub ~ conv3(a1,a2,a3) : conv4(b0,b1,b2,b3)
+with {
+  conv3(k0,k1,k2,x)     = k0*x + k1*x' + k2*x'';
+  conv4(k0,k1,k2,k3,x)  = k0*x + k1*x' + k2*x'' + k3*x''';
+  sub(x,y)              = y-x;
+};
+
+//----------------------------- tf4 ---------------------------------
+// Fourth-order direct-form digital filter,
+// specified by transfer-function polynomials B(z)/A(z) as in matlab.
+// Copies the method of TF2(b0,b1,b2,a1,a2) from Faust's music.lib.
+
+tf4(b0,b1,b2,b3,b4,a1,a2,a3,a4) = sub ~ conv4(a1,a2,a3,a4) 
+                                      : conv5(b0,b1,b2,b3,b4)
+with {
+  conv4(k0,k1,k2,k3,x)    = k0*x + k1*x' + k2*x'' + k3*x''';
+  conv5(k0,k1,k2,k3,k4,x) = k0*x + k1*x' + k2*x'' + k3*x''' + k4*x'''';
+  sub(x,y)                = y-x;
 };
 
 //----------------------------- wgr ---------------------------------
@@ -291,6 +322,8 @@ with {
 //        (exactly like fdelay in music.lib)
 // where N=1,2,3, or 4 is the order of the Lagrange interpolation polynomial.
 //
+// NOTE: requested delay should not be less than (N-1)/2.
+//
 // NOTE: While the implementations below appear to use multiple delay lines,
 //  they in fact use only one thanks to optimization by the Faust compiler.
 
@@ -302,13 +335,15 @@ with {
   fd = frac(d);
 };
 
-// second-order (quadratic) case, delay in [0,1] ([1,2] same quality):
+// second-order (quadratic) case, delay in [0.5,1.5]
 fdelay2(n,d,x) = delay(n,id,x)*(1-fd)*(2-fd)/2 
                + delay(n,id+1,x)*(2-fd)*fd
-               + delay(n,id+2,x)*(fd-1)*fd
+               + delay(n,id+2,x)*(fd-1)*fd/2
 with {
-  id = int(d);
-  fd = frac(d);
+  o = 0.49999; // offset to make life easy for interpolator
+  dmo = d - o; // assumed nonnegative
+  id = int(dmo);
+  fd = o + frac(dmo);
 };
 
 // third-order (cubic) case, delay in [1,2]:
@@ -331,10 +366,91 @@ fdelay4(n,d,x) = delay(n,id,x)   * fdm1*fdm2*fdm3*fdm4/24
                + delay(n,id+3,x) * (0-fd*fdm1*fdm2*fdm4)/6
                + delay(n,id+4,x) * fd*fdm1*fdm2*fdm3/24
 with {
-  id = int(d-1);
-  fd = 1+frac(d);
+  o = 1.49999;
+  dmo = d - o; // assumed nonnegative
+  id = int(dmo);
+  fd = o + frac(dmo);
   fdm1 = fd-1;
   fdm2 = fd-2;
   fdm3 = fd-3;
   fdm4 = fd-4;
+};
+
+//====================== Thiran Allpass Interpolation =====================
+//
+// Reference:
+// http://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html
+// 
+//---------------- fdelay1a, fdelay2a, fdelay3a, fdelay4a -------------
+// Delay lines interpolated using Thiran allpass interpolation
+// USAGE: fdelayNa(maxdelay, delay, inputsignal) 
+//        (exactly like fdelay in music.lib)
+// where N=1,2,3, or 4 is the order of the Thiran interpolation filter,
+// and the delay argument is at least N - 1/2.
+//
+// (Move the following and similar notes above to filter-lib-doc.txt?)
+//
+// NOTE: The interpolated delay should not be less than N - 1/2.
+//            (The allpass delay ranges from N - 1/2 to N + 1/2.)
+//            This constraint can be alleviated by altering the code,
+//            but be aware that allpass filters approach zero delay
+//            by means of pole-zero cancellations.
+//            The delay range [N-1/2,N+1/2] is not optimal. What is?
+//
+// NOTE: Delay arguments too small will produce an UNSTABLE allpass!
+//
+// NOTE: Because allpass interpolation is recursive, it is not as robust
+//       as Lagrange interpolation under time-varying conditions.
+//       (You may hear clicks when changing the delay rapidly.)
+//
+// first-order allpass interpolation, allpass delay in [0.5,1.5]:
+fdelay1a(n,d,x)  = delay(n,id,x) : tf1(eta,1,eta)
+with {
+  o = 0.49999; // offset to make life easy for allpass
+  dmo = d - o; // assumed nonnegative
+  id = int(dmo);
+  fd = o + frac(dmo);
+  eta = (1-fd)/(1+fd); // allpass coefficient
+};
+
+// second-order allpass delay in [1.5,2.5]:
+fdelay2a(n,d,x) = delay(n,id,x) : tf2(a2,a1,1,a1,a2)
+with {
+  o = 1.49999;
+  dmo = d - o; // delay range is [order-1/2, order+1/2]
+  id = int(dmo);
+  fd = o + frac(dmo);
+  a1o2 = (2-fd)/(1+fd); // share some terms (would the compiler catch this?)
+  a1 = 2*a1o2;
+  a2 = a1o2*(1-fd)/(2+fd);
+};
+
+// third-order allpass delay in [2.5,3.5]:
+fdelay3a(n,d,x) = delay(n,id,x) : tf3(a3,a2,a1,1,a1,a2,a3)
+with {
+  o = 2.49999;
+  dmo = d - o;
+  id = int(dmo);
+  fd = o + frac(dmo);
+  a1o3 = (3-fd)/(1+fd);
+  a2o3 = a1o3*(2-fd)/(2+fd);
+  a1 = 3*a1o3;
+  a2 = 3*a2o3;
+  a3 = a2o3*(1-fd)/(3+fd);
+};
+
+// fourth-order allpass delay in [4.5,4.5]:
+fdelay4a(n,d,x) = delay(n,id,x) : tf4(a4,a3,a2,a1,1,a1,a2,a3,a4)
+with {
+  o = 4.49999;
+  dmo = d - o;
+  id = int(dmo);
+  fd = o + frac(dmo);
+  a1o4 = (4-fd)/(1+fd);
+  a2o6 = a1o4*(3-fd)/(2+fd);
+  a3o4 = a2o6*(2-fd)/(3+fd);
+  a1 = 4*a1o4;
+  a2 = 6*a2o6;
+  a3 = 4*a3o4;
+  a4 = a3o4*(1-fd)/(4+fd);
 };
