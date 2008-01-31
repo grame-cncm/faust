@@ -956,84 +956,85 @@ int process (jack_nframes_t nframes, void *arg)
 
 int main(int argc, char *argv[] )
 {
-	//gtk_init (&argc, &argv);
-	
-	UI* 				interface = new GTKUI(argv[0], &argc, &argv);
-	jack_client_t*			client;	
-	char				jackname[256];
-	char				rcfilename[256];
-	char**				physicalInPorts;
-	char**				physicalOutPorts;
-	
-	snprintf(jackname, 255, "%s", basename(argv[0]));
-	
-	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
-	
-	if ((client = jack_client_new(jackname)) == 0) {
-	    fprintf(stderr, "jack server not running?\n");
-	    return 1;
-	}
-	
-	jack_set_process_callback(client, process, 0);
-	
-	jack_set_sample_rate_callback(client, srate, 0);
-	
-	jack_on_shutdown(client, jack_shutdown, 0);
-	
-	gNumInChans = DSP.getNumInputs();
-	gNumOutChans = DSP.getNumOutputs();
-	
-	for (int i = 0; i < gNumInChans; i++) {
-	    char buf[256];
-	    snprintf(buf, 256, "in_%d", i); 
-	    input_ports[i] = jack_port_register(client, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-	}
-	for (int i = 0; i < gNumOutChans; i++) {
-	    char buf[256];
-	    snprintf(buf, 256, "out_%d", i); 
-	    output_ports[i] = jack_port_register(client, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-	}
-	
-	DSP.init(jack_get_sample_rate(client));
-	DSP.buildUserInterface(interface);
-	
-	interface->recallState(rcfilename);
+    UI*                 interface;
+    jack_client_t*      client; 
+    char                buf [256];
+    char                rcfilename[256];
+    jack_status_t       jackstat;
+    char                *home;
+    char                *pname;
+    char                *jname;
 
-	physicalInPorts = (char **)jack_get_ports(client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
-	physicalOutPorts = (char **)jack_get_ports(client, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
-		
-	if (jack_activate(client)) {
-	    fprintf(stderr, "cannot activate client");
-	    return 1;
-	}
-	
-        if (physicalOutPorts != NULL) {
-            for (int i = 0; i < gNumInChans && physicalOutPorts[i]; i++) {
-                    jack_connect(client, physicalOutPorts[i], jack_port_name(input_ports[i]));
-            }
+    jname = basename (argv [0]);
+    client = jack_client_open (jname, (jack_options_t) 0, &jackstat);
+    if (client == 0) {
+        fprintf (stderr, "Can't connect to JACK, is the server running ?\n");
+        exit (1);
+    }
+    if (jackstat & JackNameNotUnique) {
+        jname = jack_get_client_name (client);
+    }
+
+    jack_set_process_callback(client, process, 0);
+    jack_set_sample_rate_callback(client, srate, 0);
+    jack_on_shutdown(client, jack_shutdown, 0);
+    
+    gNumInChans = DSP.getNumInputs();
+    gNumOutChans = DSP.getNumOutputs();
+    
+    for (int i = 0; i < gNumInChans; i++) {
+        snprintf(buf, 256, "in_%d", i);
+        input_ports[i] = jack_port_register(client, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+    }
+    for (int i = 0; i < gNumOutChans; i++) {
+        snprintf(buf, 256, "out_%d", i);
+        output_ports[i] = jack_port_register(client, buf,JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+    }
+    
+    interface = new GTKUI (jname, &argc, &argv);
+    DSP.init(jack_get_sample_rate(client));
+    DSP.buildUserInterface(interface);
+
+    home = getenv ("HOME");
+    if (home == 0) home = ".";
+    snprintf(rcfilename, 256, "%s/.%src", home, jname);
+    interface->recallState(rcfilename);
+
+    if (jack_activate(client)) {
+        fprintf(stderr, "Can't activate JACK client\n");
+        return 1;
+    }
+    
+    pname = getenv("FAUST2JACK_INPUTS");
+    if (pname && *pname) {
+       for (int i = 0; i < gNumInChans; i++) {
+            snprintf(buf, 256, pname, i + 1);
+            jack_connect(client, buf, jack_port_name(input_ports[i]));
         }
+    }
+
+    pname = getenv("FAUST2JACK_OUTPUTS");
+    if (pname && *pname) {
+        for (int i = 0; i < gNumOutChans; i++) {
+            snprintf(buf, 256, pname, i + 1);
+            jack_connect(client, jack_port_name(output_ports[i]), buf);
+        }       
+    }
+    
+    interface->run();
+    jack_deactivate(client);
+    
+    for (int i = 0; i < gNumInChans; i++) {
+        jack_port_unregister(client, input_ports[i]);
+    }
+    for (int i = 0; i < gNumOutChans; i++) {
+        jack_port_unregister(client, output_ports[i]);
+    }
+    
+    jack_client_close(client);
+    interface->saveState(rcfilename);
         
-        if (physicalInPorts != NULL) {
-            for (int i = 0; i < gNumOutChans && physicalInPorts[i]; i++) {
-                    jack_connect(client, jack_port_name(output_ports[i]), physicalInPorts[i]);
-            } 		
-        }
-	
-	interface->run();
-	
-	jack_deactivate(client);
-	
-	for (int i = 0; i < gNumInChans; i++) {
-	    jack_port_unregister(client, input_ports[i]);
-	}
-	for (int i = 0; i < gNumOutChans; i++) {
-	    jack_port_unregister(client, output_ports[i]);
-	}
-	
-	jack_client_close(client);
-	interface->saveState(rcfilename);
-		
-  	return 0;
+    return 0;
 }
+
 
