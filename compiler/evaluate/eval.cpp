@@ -1076,7 +1076,10 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
 		if (def == olddef) {
 			evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
 		} else {
-			evalwarning(getDefFileProp(id), getDefLineProp(id), "non-equivalent re-definition of", id);
+            fprintf(stderr, "%s:%d: ERROR: redefinition of symbols are not allowed : ", getDefFileProp(id), getDefLineProp(id)); 
+            print(id,stderr); 
+            fprintf(stderr, " is already defined in file \"%s\" line %d \n", getDefFileProp(id), getDefLineProp(id)); 
+            gErrorCount++;
 		}
 	}
 	setProperty(lenv, id, def);
