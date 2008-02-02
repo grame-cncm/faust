@@ -329,7 +329,8 @@ int main (int argc, char* argv[])
 
 	Tree process = evalprocess(gReader.expandlist(gResult2));
 	if (gErrorCount > 0) {
-		cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n";
+       // cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n";
+        cerr << "Total of " << gErrorCount << " errors during the compilation of  " << masterFilename << ";\n";
 		exit(1);
 	}
 
