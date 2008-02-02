@@ -372,6 +372,7 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| SELECT3						{$$ = boxPrim4(sigSelect3);}
 
 				| ident 						{$$ = $1;}
+                | SUB ident                     {$$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub));}
 
 				| LPAR diagram RPAR				{$$ = $2;}
 				| LAMBDA LPAR params RPAR DOT LPAR diagram RPAR
