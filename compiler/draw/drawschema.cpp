@@ -384,7 +384,8 @@ static schema* generateInsideSchema(Tree t)
 	else if (isBoxPrim5(t, &p5)) 	{ return makeBlockSchema(5, 1, prim5name(p5), normalcolor, ""); }
 
 	else if (isBoxFFun(t, ff)) 					{ return makeBlockSchema(ffarity(ff), 1, ffname(ff), normalcolor, ""); }
-	else if (isBoxFConst(t, type,name,file)) 	{ return makeBlockSchema(0, 1, tree2str(name), normalcolor, ""); }
+    else if (isBoxFConst(t, type,name,file))    { return makeBlockSchema(0, 1, tree2str(name), normalcolor, ""); }
+    else if (isBoxFVar (t, type, name,file))    { return makeBlockSchema(0, 1, tree2str(name), normalcolor, ""); }
 
 	else if (isBoxButton(t)) 		{ return generateUserInterfaceSchema(t); }
 	else if (isBoxCheckbox(t)) 		{ return generateUserInterfaceSchema(t); }

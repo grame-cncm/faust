@@ -117,8 +117,10 @@ int computeBoxComplexity (Tree box)
 	
 	// foreign elements 
 	else if (isBoxFFun(box, ff))		return 1; 
-	else if (isBoxFConst(box, type, name, file))		
-										return 1; 
+    else if (isBoxFConst(box, type, name, file))        
+                                        return 1; 
+    else if (isBoxFVar(box, type, name, file))        
+                                        return 1; 
 	// slots and symbolic boxes
 	else if (isBoxSlot(box, &i))		return 1;
 	else if (isBoxSymbolic(box,t1,t2))	return 1 + BC(t2);

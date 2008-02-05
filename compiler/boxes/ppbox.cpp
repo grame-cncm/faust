@@ -151,8 +151,10 @@ ostream& boxpp::print (ostream& fout) const
 
 	// foreign elements
 	else if (isBoxFFun(box, ff))		fout << "ffunction(" << ffname(ff) << ')';
-	else if (isBoxFConst(box, type, name, file))
-										fout << "fconstant(" /*<< tree2str(type) */<< tree2str(name) << ')';
+    else if (isBoxFConst(box, type, name, file))
+                                        fout << "fconstant(" /*<< tree2str(type) */<< tree2str(name) << ')';
+    else if (isBoxFVar(box, type, name, file))
+                                        fout << "fvariable(" << tree2str(name) << ')';
 
 	// block diagram binary operator
 	else if (isBoxSeq(box, t1, t2))		streambinop(fout, t1, ":", t2, 1, priority);

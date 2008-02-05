@@ -214,9 +214,14 @@ bool isBoxFFun	(Tree s);
 bool isBoxFFun	(Tree s, Tree& ff);
 
 
-Tree boxFConst 		(Tree type, Tree name, Tree file);
-bool isBoxFConst	(Tree s);
-bool isBoxFConst	(Tree s, Tree& type, Tree& name, Tree& file);
+Tree boxFConst      (Tree type, Tree name, Tree file);
+bool isBoxFConst    (Tree s);
+bool isBoxFConst    (Tree s, Tree& type, Tree& name, Tree& file);
+
+
+Tree boxFVar      (Tree type, Tree name, Tree file);
+bool isBoxFVar    (Tree s);
+bool isBoxFVar    (Tree s, Tree& type, Tree& name, Tree& file);
 
 
 /*****************************************************************************

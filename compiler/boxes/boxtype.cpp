@@ -118,7 +118,8 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxPrim5(t)) 	{ *inum = 5; *onum = 1; } 
 		
 	else if (isBoxFFun(t,ff)) 	{ *inum = ffarity(ff); *onum = 1; } 
-	else if (isBoxFConst(t)) 	{ *inum = 0; *onum = 1; } 
+    else if (isBoxFConst(t))    { *inum = 0; *onum = 1; } 
+    else if (isBoxFVar(t))      { *inum = 0; *onum = 1; } 
 	
 	else if (isBoxButton(t)) 	{ *inum = 0; *onum = 1; } 
 	else if (isBoxCheckbox(t)) 	{ *inum = 0; *onum = 1; } 

@@ -294,9 +294,15 @@ bool isBoxFFun	(Tree s, Tree& ff)			{ return isTree(s, BOXFFUN, ff);			}
 
 
 Sym BOXFCONST = symbol ("BoxFConst");
-Tree boxFConst 		(Tree type, Tree name, Tree file)				{ return tree(BOXFCONST, type, name, file); 			}
-bool isBoxFConst	(Tree s)										{ Tree t,n,f; return isTree(s, BOXFCONST, t, n, f);	}
-bool isBoxFConst	(Tree s, Tree& type, Tree& name, Tree& file)	{ return isTree(s, BOXFCONST,type, name, file);		}
+Tree boxFConst      (Tree type, Tree name, Tree file)               { return tree(BOXFCONST, type, name, file);             }
+bool isBoxFConst    (Tree s)                                        { Tree t,n,f; return isTree(s, BOXFCONST, t, n, f); }
+bool isBoxFConst    (Tree s, Tree& type, Tree& name, Tree& file)    { return isTree(s, BOXFCONST,type, name, file);     }
+
+
+Sym BOXFVAR = symbol ("BoxFVar");
+Tree boxFVar      (Tree type, Tree name, Tree file)                 { return tree(BOXFVAR, type, name, file);             }
+bool isBoxFVar    (Tree s)                                          { Tree t,n,f; return isTree(s, BOXFVAR, t, n, f); }
+bool isBoxFVar    (Tree s, Tree& type, Tree& name, Tree& file)      { return isTree(s, BOXFVAR,type, name, file);     }
 
 
 /*****************************************************************************
