@@ -413,15 +413,18 @@ For example \texttt{"feedback (\%\%)"} will result in \texttt{"feedback (\%)"}.
 
 
 %--------------------------------------------------------------------------------------------------------------
-\subsection{Foreign Functions and Constants}
+\subsection{The Foreign Function Mechanism}
 %--------------------------------------------------------------------------------------------------------------
 
-Any C function or constant can be introduced using the foreign function mechanism.
-It allows to declare an external C function by indicating its name and signature as well as the required include file.
-The syntax of foreign function and foreign constant declarations is the following :
+External C functions, variables and constants can be introduced using the foreign function mechanism.
+An external C function is declared by indicating its name and signature as well as the required include file. External variables and constants can also be declared with a similar syntax. 
+
+Variable are considered to vary at block speed. This means that expressions depending of external variables are computed every block, while expressions depending external constants are computed only once at initialization. There is currently no external signals that would be computed every sample. 
+
+The syntax of these foreign declarations is the following :
 
 \begin{rail}
-foreign : 'ffunction' '(' signature ',' includefile ',' comment ')' | 'fconstant' '(' type identifier ',' includefile ')' ;
+foreign : 'ffunction' '(' signature ',' includefile ',' comment ')' | 'fvariable' '(' type identifier ',' includefile ')' | 'fconstant' '(' type identifier ',' includefile ')' ;
 signature : type identifier '(' (type * ',') ')';
 type : 'int' | 'float';
 \end{rail}
@@ -548,11 +551,14 @@ Compilation options are listed in the following table :
 \texttt{-f \farg{n}} 		& \texttt{--fold \farg{n}}  		& max complexity of svg diagrams before splitting\\
 							&									& into several files (default 25 boxes)  \\
 \texttt{-mns \farg{n}} 		& \texttt{--max-name-size \farg{n}} & max character size used in svg diagram labels\\
+\texttt{-sn}             	& \texttt{--simple-names}			& use simple names (without arguments) for block-diagram \\
 							&									& (default max size : 40 chars) \\
 \texttt{-xml} 				& \texttt{--xml} 					& generate an additional description file in xml format  \\
 \texttt{-lb}	 			& \texttt{--left-balanced} 			& generate left-balanced expressions  \\
 \texttt{-mb} 				& \texttt{--mid-balanced} 			& generate mid-balanced expressions (default)  \\
 \texttt{-rb} 				& \texttt{--right-balanced}			& generate right-balanced expressions  \\
+\texttt{-mcd \farg{n}}		& \texttt{--max-copy-delay \farg{n}}& threshold between copy and ring buffer delays\\
+							&									& (default 16 samples)  \\
 \texttt{-a \farg{file}} 	&  									& C++ wrapper file  \\
 \texttt{-o \farg{file}} 	&  									& C++ output file  \\
 \hline
