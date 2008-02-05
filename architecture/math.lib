@@ -13,8 +13,14 @@
 // -- Utilities and constants
 
 SR 			= fconstant(int fSamplingFreq, <math.h>);
+BS          = fvariable(int count, <math.h>);
 
-PI 			= 3.1415926535897932385;
+PI          = 3.1415926535897932385;
+
+// -- neg and inv functions
+
+neg(x)      = -x;
+inv(x)      = 1/x;
 
 // -- Trigonometric Functions
 
