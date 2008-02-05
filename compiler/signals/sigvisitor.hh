@@ -32,7 +32,8 @@ struct sigvisitor
 	virtual void visitIntCast	(Tree sig, Tree s) = 0;
 	virtual void visitFloatCast	(Tree sig, Tree s) = 0;
 	virtual void visitFFun		(Tree sig, Tree ff, Tree ls) = 0;
-	virtual void visitFConst	(Tree sig, Tree type, Tree name, Tree file) = 0;
+    virtual void visitFConst    (Tree sig, Tree type, Tree name, Tree file) = 0;
+    virtual void visitFVar      (Tree sig, Tree type, Tree name, Tree file) = 0;
 	
 	// user interface
 	virtual void visitButton 	(Tree sig, Tree label) = 0;
@@ -87,7 +88,8 @@ struct fullvisitor : sigvisitor
 	virtual void visitFloatCast	(Tree sig, Tree s) 								{ visit(s);}
 	virtual void visitBinOp		(Tree sig, int op, Tree s1, Tree s2) 			{ visit(s1); visit(s2); }
 	virtual void visitFFun		(Tree sig, Tree ff, Tree ls) 					{ visit(ls); }
-	virtual void visitFConst	(Tree sig, Tree type, Tree name, Tree file) 	{}
+    virtual void visitFConst    (Tree sig, Tree type, Tree name, Tree file)     {}
+    virtual void visitFVar      (Tree sig, Tree type, Tree name, Tree file)     {}
 	
 	// user interface
 	virtual void visitButton 	(Tree sig, Tree label) 							{}

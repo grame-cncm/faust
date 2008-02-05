@@ -199,7 +199,8 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigIota(sig, x) ) 					{ printfun(fout, "iota", x); }
 	else if ( isSigBinOp(sig, &i, x, y) )			{ printinfix(fout, gBinOpTable[i]->fName, gBinOpTable[i]->fPriority, x, y);  }
 	else if ( isSigFFun(sig, ff, largs) )			{ printff(fout, ff, largs); }
-	else if ( isSigFConst(sig, type, name, file) )	{ fout << tree2str(name); }
+    else if ( isSigFConst(sig, type, name, file) )  { fout << tree2str(name); }
+    else if ( isSigFVar(sig, type, name, file) )    { fout << tree2str(name); }
 	
 	else if ( isSigTable(sig, id, x, y) ) 			{ printfun(fout, "TABLE", x, y); 		}
 	else if ( isSigWRTbl(sig, id, x, y, z) )		{ printfun(fout, "write", x, y, z);	}

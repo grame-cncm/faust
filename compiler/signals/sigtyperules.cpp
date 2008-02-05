@@ -40,6 +40,7 @@ static Type getInferredType(Tree term, Tree env);
 static Type infereSigType(Tree term, Tree env);
 static Type infereFFType (Tree ff, Tree ls, Tree env);
 static Type infereFConstType (Tree type);
+static Type infereFVarType (Tree type);
 static Type infereRecType (Tree var, Tree body, Tree env);
 static Type infereReadTableType(Type tbl, Type ri);
 static Type infereWriteTableType(Type tbl, Type wi, Type wd);
@@ -366,7 +367,9 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigFFun(sig, ff, ls)) 			return infereFFType(ff,ls,env);
 
-	else if (isSigFConst(sig,type,name,file))	return infereFConstType(type);
+    else if (isSigFConst(sig,type,name,file))   return infereFConstType(type);
+
+    else if (isSigFVar(sig,type,name,file))   return infereFVarType(type);
 
 	else if (isSigButton(sig)) 				return castInterval(TGUI,interval(0,1)); 
 
@@ -611,14 +614,24 @@ static Type infereFFType (Tree ff, Tree ls, Tree env)
 }
 
 /**
- *	Infere the type of a foreign constant
+ *  Infere the type of a foreign constant
  */
 static Type infereFConstType (Tree type)
 {
-	// une constante externe ne peut pas se calculer au plus tot qu'a
-	// l'initialisation. Elle est constante, auquel cas on considere que c'est comme
-	// rand() c'est a dire que le resultat varie a chaque appel.
-	return new SimpleType(tree2int(type),kKonst,kInit,kVect,kNum, interval());
+    // une constante externe ne peut pas se calculer au plus tot qu'a
+    // l'initialisation. Elle est constante, auquel cas on considere que c'est comme
+    // rand() c'est a dire que le resultat varie a chaque appel.
+    return new SimpleType(tree2int(type),kKonst,kInit,kVect,kNum, interval());
+}
+
+/**
+ *  Infere the type of a foreign variable
+ */
+static Type infereFVarType (Tree type)
+{
+    // une variable externe ne peut pas se calculer au plus tot qu'a
+    // l'execution. Elle est varie par blocs comme les éléments d'interface utilisateur.
+    return new SimpleType(tree2int(type),kBlock,kExec,kVect,kNum, interval());
 }
 
 

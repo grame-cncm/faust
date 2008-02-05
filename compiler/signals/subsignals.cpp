@@ -30,7 +30,8 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 
 	else if ( isSigBinOp(sig, &i, x, y) )			{ vsigs.push_back(x); vsigs.push_back(y); return 2; }
 	else if ( isSigFFun(sig, ff, largs) )			{ int n = 0; while (!isNil(largs)) { vsigs.push_back(hd(largs)); largs = tl(largs); n++; } return n; }
-	else if ( isSigFConst(sig, type, name, file) )	{ return 0; }
+    else if ( isSigFConst(sig, type, name, file) )  { return 0; }
+    else if ( isSigFVar(sig, type, name, file) )    { return 0; }
 
 	else if ( isSigTable(sig, id, x, y) ) 			{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
 	else if ( isSigWRTbl(sig, id, x, y, z) )		{ vsigs.push_back(x); vsigs.push_back(y); vsigs.push_back(z); return 3;	}

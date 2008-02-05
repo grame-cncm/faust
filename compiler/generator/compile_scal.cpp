@@ -243,7 +243,8 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp 	(sig, i, x, y); 		}
 	else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun 		(sig, ff, largs); 		}
-	else if ( isSigFConst(sig, type, name, file) )	{ return generateFConst(sig, tree2str(file), tree2str(name)); }
+    else if ( isSigFConst(sig, type, name, file) )  { return generateFConst(sig, tree2str(file), tree2str(name)); }
+    else if ( isSigFVar(sig, type, name, file) )    { return generateFVar(sig, tree2str(file), tree2str(name)); }
 
 	else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable 	(sig, x, y); 			}
 	else if ( isSigWRTbl(sig, id, x, y, z) )		{ return generateWRTbl 	(sig, x, y, z); 		}
@@ -298,22 +299,41 @@ string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 }
 
 /*****************************************************************************
-							   FOREIGN CONSTANTS
+                               FOREIGN CONSTANTS
 *****************************************************************************/
 
 
 string ScalarCompiler::generateFConst (Tree sig, const string& file, const string& exp)
 {
-	string		ctype, vname;
-	Occurences* o = fOccMarkup.retrieve(sig);
+    string      ctype, vname;
+    Occurences* o = fOccMarkup.retrieve(sig);
 
-	addIncludeFile(file);	
+    addIncludeFile(file);   
 
-	if (o->getMaxDelay()>0) {
-		getTypedNames(getSigType(sig), "Vec", ctype, vname);
-		generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-	} 
-	return exp; 	
+    if (o->getMaxDelay()>0) {
+        getTypedNames(getSigType(sig), "Vec", ctype, vname);
+        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+    } 
+    return exp;     
+}
+
+/*****************************************************************************
+                               FOREIGN VARIABLES
+*****************************************************************************/
+
+
+string ScalarCompiler::generateFVar (Tree sig, const string& file, const string& exp)
+{
+    string      ctype, vname;
+    Occurences* o = fOccMarkup.retrieve(sig);
+
+    addIncludeFile(file);   
+
+    if (o->getMaxDelay()>0) {
+        getTypedNames(getSigType(sig), "Vec", ctype, vname);
+        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
+    } 
+    return generateCacheCode(sig, exp);     
 }
 
 /*****************************************************************************

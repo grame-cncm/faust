@@ -195,11 +195,16 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		assert(lsig.size()==0); 
 		return makeList(sigReal(r)); 
 	}
-	
-	else if (isBoxFConst(box, type, name, file)) 	{ 
-		assert(lsig.size()==0); 
-		return makeList(sigFConst(type, name, file)); 
-	}
+    
+    else if (isBoxFConst(box, type, name, file))    { 
+        assert(lsig.size()==0); 
+        return makeList(sigFConst(type, name, file)); 
+    }
+    
+    else if (isBoxFVar(box, type, name, file))    { 
+        assert(lsig.size()==0); 
+        return makeList(sigFVar(type, name, file)); 
+    }
 	
 	// wire and cut
 	else if (isBoxCut(box)) 				{ 

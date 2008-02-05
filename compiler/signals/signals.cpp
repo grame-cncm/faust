@@ -109,9 +109,15 @@ bool isSigFFun	(Tree s, Tree& ff, Tree& largs)			{ return isTree(s, SIGFFUN, ff,
 
 
 Sym SIGFCONST = symbol ("SigFConst");
-Tree sigFConst 		(Tree type, Tree name, Tree file)				{ return tree(SIGFCONST, type, name, file); 			}
-bool isSigFConst	(Tree s)										{ Tree t,n,f; return isTree(s, SIGFCONST, t, n, f);	}
-bool isSigFConst	(Tree s, Tree& type, Tree& name, Tree& file)	{ return isTree(s, SIGFCONST,type, name, file);		}
+Tree sigFConst      (Tree type, Tree name, Tree file)             { return tree(SIGFCONST, type, name, file);         }
+bool isSigFConst    (Tree s)                                      { Tree t,n,f; return isTree(s, SIGFCONST, t, n, f); }
+bool isSigFConst    (Tree s, Tree& type, Tree& name, Tree& file)  { return isTree(s, SIGFCONST,type, name, file);     }
+
+
+Sym SIGFVAR = symbol ("SigFVar");
+Tree sigFVar      (Tree type, Tree name, Tree file)               { return tree(SIGFVAR, type, name, file);           }
+bool isSigFVar    (Tree s)                                        { Tree t,n,f; return isTree(s, SIGFVAR, t, n, f);   }
+bool isSigFVar    (Tree s, Tree& type, Tree& name, Tree& file)    { return isTree(s, SIGFVAR, type, name, file);      }
 
 // Generateur de signal (compil�en tant que classe C++)
 

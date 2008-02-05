@@ -89,6 +89,7 @@ Tree unquote(char* str)
 %token FLOATCAST
 %token FFUNCTION
 %token FCONSTANT
+%token FVARIABLE
 
 %token BUTTON
 %token CHECKBOX
@@ -170,12 +171,6 @@ Tree unquote(char* str)
 
 %token DECLARE
 
-%token NAMEPROP
-%token AUTHORPROP
-%token COPYRIGHTPROP
-%token VERSIONPROP
-%token LICENSEPROP
-
 %token CASE
 %token ARROW
 
@@ -199,6 +194,7 @@ Tree unquote(char* str)
 
 %type <exp> ffunction
 %type <exp> fconst
+%type <exp> fvariable
 %type <exp> signature
 %type <exp> string
 %type <exp> uqstring
@@ -381,7 +377,8 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| CASE LBRAQ rulelist RBRAQ		{$$ = boxCase(checkRulelist($3));}
 				
 				| ffunction						{$$ = boxFFun($1); }
-				| fconst						{$$ = $1;}
+                | fconst                        {$$ = $1;}
+                | fvariable                     {$$ = $1;}
 				| COMPONENT LPAR uqstring RPAR	{$$ = boxComponent($3); }
 
 				| button						{$$ = $1;}
@@ -456,8 +453,11 @@ ffunction		: FFUNCTION LPAR signature PAR fstring PAR string RPAR
 												{$$ = ffunction($3,$5,$7);}
 				;
 
-fconst			: FCONSTANT LPAR type name PAR fstring RPAR
-												{$$ = boxFConst($3,$4,$6);}
+fconst          : FCONSTANT LPAR type name PAR fstring RPAR
+                                                {$$ = boxFConst($3,$4,$6);}
+
+fvariable       : FVARIABLE LPAR type name PAR fstring RPAR
+                                                {$$ = boxFVar($3,$4,$6);}
 				;
 
 /* Description of user interface building blocks */

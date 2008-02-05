@@ -47,7 +47,9 @@ void sigvisitor::visit(Tree sig)
 
 	else if (isSigFFun(sig, ff, ls)) 			visitFFun(sig,ff,ls);
 
-	else if (isSigFConst(sig,type,name,file))	visitFConst(sig,type,name,file);
+    else if (isSigFConst(sig,type,name,file))   visitFConst(sig,type,name,file);
+
+    else if (isSigFVar(sig,type,name,file))     visitFVar(sig,type,name,file);
 	
 		
 	//---------------

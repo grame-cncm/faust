@@ -116,13 +116,15 @@ static int infereSigOrder(Tree sig)
 	
 	else if (isSigIntCast(sig, s1))				return O(s1);
         
-        else if (isSigFloatCast(sig, s1))                       return O(s1);
+    else if (isSigFloatCast(sig, s1))           return O(s1);
 
-        else if (isSigFFun(sig,ff,ls) && isNil(ls)) return 1;
+    else if (isSigFFun(sig,ff,ls) && isNil(ls)) return 1;
 
-        else if (isSigFFun(sig, ff, ls))                        return O(ls);
+    else if (isSigFFun(sig, ff, ls))            return O(ls);
 
-        else if (isSigFConst(sig,type,name,file))       return 1;
+    else if (isSigFConst(sig,type,name,file))   return 1;
+
+    else if (isSigFVar(sig,type,name,file))     return 2;
 		
 	else if (isSigButton(sig)) 					return 2;
 	

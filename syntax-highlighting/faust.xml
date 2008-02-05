@@ -13,6 +13,7 @@
       <item> select3 </item>
       <item> ffunction </item>
       <item> fconstant</item>
+      <item> fvariable</item>
       <item> button </item>
       <item> checkbox </item>
       <item> vslider </item>
@@ -59,11 +60,6 @@
 	  
 	  <item> component </item>
 	  <item> declare </item>
-	  <item> name </item>
-	  <item> author </item>
-	  <item> version </item>
-	  <item> copyright </item>
-	  <item> license </item>
     </list>
 	
     <contexts>

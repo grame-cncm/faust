@@ -119,9 +119,15 @@ bool isSigFFun	(Tree s, Tree& ff, Tree& largs);
 
 // Foreign Constants
 
-Tree sigFConst 		(Tree type, Tree name, Tree file);
-bool isSigFConst	(Tree s);
-bool isSigFConst	(Tree s, Tree& type, Tree& name, Tree& file);
+Tree sigFConst      (Tree type, Tree name, Tree file);
+bool isSigFConst    (Tree s);
+bool isSigFConst    (Tree s, Tree& type, Tree& name, Tree& file);
+
+// Foreign Variables
+
+Tree sigFVar      (Tree type, Tree name, Tree file);
+bool isSigFVar    (Tree s);
+bool isSigFVar    (Tree s, Tree& type, Tree& name, Tree& file);
 
 // emulation des anciennes fonctions
 inline Tree sigAdd(Tree x, Tree y)	{ return sigBinOp(kAdd, x, y); }

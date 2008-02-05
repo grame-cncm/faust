@@ -86,7 +86,8 @@ LETTER   [a-zA-Z]
 "select3"	return SELECT3;
 
 "ffunction"	return FFUNCTION; 
-"fconstant"	return FCONSTANT; 
+"fconstant" return FCONSTANT; 
+"fvariable" return FVARIABLE; 
 
 "button"	return BUTTON;
 "checkbox"	return CHECKBOX;
