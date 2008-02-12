@@ -30,7 +30,8 @@ Loop::Loop(Loop* encl, const string& size)
 /**
  * A loop with recursive dependencies can't be run alone. 
  * It must be included into another loop.
- * returns true is this loop has recursive dependencies.
+ * returns true is this loop has recursive dependencies
+ * and must be included in an enclosing loop
  */
 bool Loop::hasRecDependencies()                  
 { 
