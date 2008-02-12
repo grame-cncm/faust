@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.3b"
+#define FAUSTVERSION "0.9.9.3b-par"
 
 #include <stdio.h>
 #include <string.h>
@@ -68,7 +68,7 @@ using namespace std ;
 int yyparse();
 
 int 			yyerr;
-extern int 	yydebug;
+extern int 	    yydebug;
 extern FILE*	yyin;
 Tree 			gResult;
 Tree 			gResult2;
@@ -364,7 +364,7 @@ int main (int argc, char* argv[])
 	*****************************************************************/
 
 	Compiler* C;
-	if (gVectorSwitch) 	C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
+    if (gVectorSwitch)  C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
 	else 				C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
 
 	if (gPrintXMLSwitch) C->setDescription(new Description());
@@ -415,10 +415,9 @@ int main (int argc, char* argv[])
 			C->getClass()->printIncludeFile(*dst);
 
 			streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-			if ( gVectorSwitch && (intrinsic = open_arch_stream("intrinsic.hh")) ) {
-				streamCopyUntilEnd(*intrinsic, *dst);
-			}
-
+// 			if ( gVectorSwitch && (intrinsic = open_arch_stream("intrinsic.hh")) ) {
+// 				streamCopyUntilEnd(*intrinsic, *dst);
+// 			}
 			streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
 			C->getClass()->println(0,*dst);
 			streamCopyUntilEnd(*enrobage, *dst);
