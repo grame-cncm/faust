@@ -39,8 +39,6 @@
 class ScalarCompiler : public Compiler
 {
   private:
-	//Tree						fCompileKey;
-	//Tree						fVectorKey;
     property<string>            fCompileProperty;
     property<string>            fVectorProperty;
 
