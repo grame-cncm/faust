@@ -24,7 +24,9 @@
 #ifndef _COMPILE_VEC_
 #define _COMPILE_VEC_
 
-#include "compile.hh"
+#include "compile_scal.hh"
+#include "loop.hh"
+
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -32,134 +34,23 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
-class VectorCompiler : public Compiler
+class VectorCompiler : public ScalarCompiler
 {
-private:
-  Tree                          fCompileScalKey[4];
-  Tree                          fCompileScalarVecKey[4];
-  Tree                          fCompileVecKey;
+    Loop*       fTopLoopStack;      ///< active loops currently open
+    set<Loop*>  fLoopSet;           ///< set of closed loops
 
-  Tree				fSharingKeyScal;
-  Tree				fSharingKeyVec;
-  Tree				fSharingKeyTrueScal;
-  //Tree fSharingKey;
-
-
-  Tree                          fIDKey;
-  Tree                          fRDTblGenerate;
-  /*static*/ map<string, int>	        fIDCounters;
-
-  map<string, int>              rec_var_map;
-
-  int                           loop_unroll;
-  //bool                          MMX;
+    void    openLoop(const string& size);
+    void    openLoop(Tree recsymbol, const string& size);
+    void    closeLoop();
 
 public:
-  VectorCompiler ( const string& name, const string& super, int numInputs, int numOutputs) : Compiler(name,super,numInputs,numOutputs,true),
-											   loop_unroll(0)//,MMX(false)
-  {
-    fCompileScalKey[0] = fCompileScalKey[1] = fCompileScalKey[2] = fCompileScalKey[3] = nil;
-    fCompileScalarVecKey[0] = fCompileScalarVecKey[1] = fCompileScalarVecKey[2] = fCompileScalarVecKey[3] = nil;
-    fCompileVecKey = nil;
 
-    fSharingKeyScal = nil;
-    fSharingKeyVec = nil;
-    fSharingKeyTrueScal = nil;
-    //fSharingKey = nil;
-
-    fIDKey = nil;
-    fRDTblGenerate = nil;
-
-  }
-  VectorCompiler ( Klass* k) : Compiler(k),loop_unroll(0)//,MMX(false)
-  {
-    fCompileScalKey[0] = fCompileScalKey[1] = fCompileScalKey[2] = fCompileScalKey[3] = nil;
-    fCompileScalarVecKey[0] = fCompileScalarVecKey[1] = fCompileScalarVecKey[2] = fCompileScalarVecKey[3] = nil;
-    fCompileVecKey = nil;
-
-    fSharingKeyScal = nil;
-    fSharingKeyVec = nil;
-    fSharingKeyTrueScal = nil;
-    //fSharingKey = nil;
-
-    fIDKey = nil;
-    fRDTblGenerate = nil;
-  }
-
-  	virtual void 		compileMultiSignal  (Tree lsig);
-  	virtual void		compileSingleSignal (Tree lsig);
-	virtual string		CS (Tree tEnv, Tree sig, int ctxt);
-  	virtual string 		generateCacheCode(Tree tEnv,Tree sig, const string& exp, int context) ;
-
-private:
-  string 	getFreshID (const char* prefix);
-  Tree 		makeCompileKey(Tree t, int unroll);
-  void 		compilePreparedSignalList (Tree lsig);
-  Tree          prepare(Tree L0);
-  //Tree 		prepare2 (Tree L0);
-
-
-  int 		getSharingCount(Tree t, int ctxt);
-  void 		sharingAnalysis(Tree t);
-  void 		sharingAnnotation(int vctxt, Tree t, int ctxt);
-
-
-
- // string	CS (Tree tEnv, Tree sig, int context);
-
-  bool          DynamicCasting(Tree env, int nature_sig, int nature_arg1, int nature_arg2, Tree arg1, Tree arg2, string* cast_arg1, string* cast_arg2);
-  bool          TrinaryOperationAccVec(Tree env, Tree arg1,Tree arg2,string* result);
-  bool          TrinaryOperationAccScal(Tree env, Tree arg1,Tree arg2,string* result);
-  
-
-
-
-
-  //string		generateCode (Tree tEnv,Tree sig, int context) ;
-
-  //string              generateVec(Tree tEnv,string Scal0, string Scal1, string Scal2, string Scal3);
-  //string              generateScalarVec(Tree tEnv,string Vec);
-  //string              generateScal(Tree tEnv,string exp);
-  string                generateVec(Tree tEnv,Tree sig);
-  string                generateScalarVec(Tree tEnv,Tree sig);
-  string                generateScal(Tree tEnv,Tree sig);
-
-
-  string 		generateInput (Tree tEnv,Tree sig, const string& idx, int context) ;
-  string 		generateOutput(Tree tEnv,Tree sig, const string& idx, Tree arg, int context) ;
-
-  string 		generateBinOp (Tree tEnv,Tree sig, int opcode, Tree arg1, Tree arg2, int context) ;
-
-  string 		generateDelay1(Tree tEnv,Tree sig, Tree arg, int context) ;
-
-  string                generateSelect2(Tree tEnv,Tree sig, Tree selector, Tree s1, Tree s2, int context);
-  //string                generateSelect3(Tree tEnv,Tree sig, Tree selector, Tree s1, Tree s2, Tree s3, int context);
-
-  string 		generateFFun  (Tree tEnv,Tree sig, Tree ff, Tree largs) ;
-
-
-  string 		generateRecProj (Tree tEnv,Tree sig, const string& vname, int i) ;
-  string 		generateRecRef (Tree tEnv,Tree sig, Tree label) ;
-  string 		generateRecGroup (Tree tEnv,Tree sig, Tree label, Tree le) ;
-
-  bool                  heuristiqueRec (Tree tEnv,Tree sig, string* result) ;
-
-  string 		generateTable (Tree tEnv,Tree sig, Tree tsize, Tree content) ;
-  string 		generateSigGen(Tree tEnv,Tree sig, Tree content) ;
-  //string                generateRDOnlyTbl(Tree tEnv,Tree sig, Tree tbl, Tree idx) ;
-  string 		generateWRTbl (Tree tEnv,Tree sig, Tree tbl, Tree idx, Tree data) ;
-  string 		generateRDTbl (Tree tEnv,Tree sig, Tree tbl, Tree idx) ;
-
-  
-
-  string 		generateIntCast   	(Tree tEnv,Tree sig, Tree x, int context) ;
-  string 		generateFloatCast 	(Tree tEnv,Tree sig, Tree x, int context) ;
-
-  string 		generateButton 		(Tree tEnv,Tree sig, Tree label) ;
-  string 		generateCheckbox 	(Tree tEnv,Tree sig, Tree label) ;
-  string 		generateVSlider 	(Tree tEnv,Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) ;
-  string 		generateHSlider	 	(Tree tEnv,Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) ;
-  string 		generateNumEntry 	(Tree tEnv,Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step) ;
+    VectorCompiler (const string& name, const string& super, int numInputs, int numOutputs)
+        : ScalarCompiler(name,super,numInputs,numOutputs), fTopLoopStack(0)
+        {}
+    
+    VectorCompiler (Klass* k) : ScalarCompiler(k)
+    {}
 };
 
 
