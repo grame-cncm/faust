@@ -60,12 +60,15 @@ class ScalarCompiler : public Compiler
 	
 	virtual void 		compileMultiSignal  (Tree lsig);
 	virtual void		compileSingleSignal (Tree lsig);
-	virtual string		CS (Tree sig);
-	virtual string 	    generateCacheCode(Tree sig, const string& exp) ;
+
+
+  protected:
+
+    virtual string      CS (Tree sig);
+    virtual string      generateCode (Tree sig);
+    virtual string      generateCacheCode(Tree sig, const string& exp) ;
+
             string      generateVariableStore(Tree sig, const string& exp);
-
-
-  private:
 
 	string 		getFreshID (const string& prefix);
 
@@ -87,7 +90,6 @@ class ScalarCompiler : public Compiler
 	
 	
 	// generation du code
-	string		generateCode (Tree sig);
 	
 	string 		generateXtended		(Tree sig);
 	string 		generateFixDelay	(Tree sig, Tree arg, Tree size);
