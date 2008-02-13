@@ -40,10 +40,10 @@ using namespace std;
 #include <stack>
 #include <set>
 #include <map>
-#include "sigtype.hh"
-#include "smartpointer.hh"
+//#include "sigtype.hh"
+//#include "smartpointer.hh"
 #include "tlib.hh"
-#include "uitree.hh"
+//#include "uitree.hh"
 
 #define kMaxCategory 32
 
@@ -63,13 +63,14 @@ struct Loop
     list<string>        fPostCode;          ///< code to execute at the end of the loop
     int                 fOrder;             ///< used during topological sort
 
+    bool findRecDependency(Tree t);         ///< indicates a dependency with an enclosing loop 
+
 public:
     Loop(Tree recsymbol, Loop* encl, const string& size);   ///< create a recursive loop
     Loop(Loop* encl, const string& size);   ///< create a non recursive loop
 
     bool hasRecDependencies();              ///< returns true is this loop has recursive dependencies
-    void addRecDependency(Tree t);          ///< add a recursive dependency != fRecSymbol
-    bool isDependentOf(Tree t);             ///< indicates a dependency with an enclosing loop 
+    void trackRecDependency(Tree t);        ///< Check for a recursive dependecy and add it if needed
     void addExecCode (const string& str);   ///< add a line of C++ code
     void addPostCode (const string& str);   ///< add a line of C++ post code 
     void println (int n, ostream& fout);    ///< print the loop

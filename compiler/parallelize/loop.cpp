@@ -40,23 +40,24 @@ bool Loop::hasRecDependencies()
 
 
 /**
- * add a recursive dependency != fRecSymbol
+ * Check if a recursive symbol creates a 
+ * recursive dependency
  */
-void Loop::addRecDependency(Tree t)
+void Loop::trackRecDependency(Tree t)
 {
-    if (t != fRecSymbol) {
+    if (findRecDependency(t)) {
         fRecDependencies.insert(t);
     }
 }
 
 
 /**
- * A loop is recursively dependent of t if
- * it is enclosed in a recursive loop defining t 
+ * Search if t is defined in an enclosing loop and 
+ * therefore creates a recursive dependency. 
  */
-bool Loop::isDependentOf(Tree t)
+bool Loop::findRecDependency(Tree t)
 {
-    Loop* l = this; //fEnclosing;
+    Loop* l = fEnclosingLoop;
     while (l && l->fRecSymbol != t) l=l->fEnclosingLoop;
     return l != 0;
 }
@@ -88,7 +89,7 @@ void Loop::absorb (Loop* l)
 
 void Loop::println(int n, ostream& fout)
 {
-    tab(n,fout); fout << "for (int i = 0; i < " << fSize << "; i++) {";
+    tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
     printlines(n+1, fExecCode, fout);
     if (fPostCode.size()>0) {
         tab(n+1,fout); fout << "// post processing";
