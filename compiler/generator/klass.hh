@@ -25,7 +25,7 @@
 #define _KLASS_H
 
 /**********************************************************************
-			- klass.h : class C++ à remplir (projet FAUST) -
+			- klass.h : class C++ ï¿½ remplir (projet FAUST) -
 
 
 		Historique :
@@ -47,6 +47,8 @@ using namespace std;
 #include "uitree.hh"
 
 #define kMaxCategory 32
+
+#import "loop.hh"
 
 class Klass //: public Target
 {
@@ -70,11 +72,9 @@ class Klass //: public Target
 	list<string>		fInitCode;
 	list<string>		fUICode;
 	list<string>		fSlowCode;
-	list<string>		fExecCode;
-  //list<string>		fExecVecCode;
-  //list<string>		fExecScalCode[4];
-	list<string>		fPostCode;
-    //list<string>		fEndCode;
+
+    Loop*               fTopLoop;      ///< active loops currently open
+    set<Loop*>          fLoopSet;           ///< set of closed loops
 
     bool                 vec;
 
@@ -82,10 +82,15 @@ class Klass //: public Target
  public:
 
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
-	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs), vec(__vec)
+	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
+            fTopLoop(new Loop(0, "count")), vec(__vec)
 	{}
 
 	virtual ~Klass() 						{}
+
+    void    openLoop(const string& size);
+    void    openLoop(Tree recsymbol, const string& size);
+    void    closeLoop();
 
 	void addIncludeFile (const string& str) { fIncludeFileSet.insert(str); }
 
@@ -112,22 +117,9 @@ class Klass //: public Target
 
   //void addExecCode (const string& str)	{ fExecCode.push_back(str); }
 
-    void addExecCode ( const string& str) { fExecCode.push_back(str); }
+    void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
 
-  //void addExecCode (int codeType) {  // compilation avec vectorisation automatique
-  //                                      if(codeType==kScal) {
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[0]);
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[1]);
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[2]);
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[3]);
-  //				  } else fExecCode.splice(fExecCode.end(),fExecVecCode);
-  //                                }
-
-  //    void addExecVecCode (const string& str) { fExecVecCode.push_back(str); }
-
-  //    void addExecScalCode (const string& str, int loop_unroll) { fExecScalCode[loop_unroll].push_back(str); }
-
-	void addPostCode (const string& str)	{ fPostCode.push_front(str); }
+	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
    // void addEndCode (const string& str)	{ fEndCode.push_front(str); }
 

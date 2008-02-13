@@ -56,6 +56,44 @@ void tab (int n, ostream& fout)
 }
 
 
+
+/**
+ * Open a non-recursive loop on top of the loop stack
+ */
+void Klass::openLoop(const string& size)
+{
+    fTopLoop = new Loop(fTopLoop, size);
+}
+
+
+/**
+ * Open a recursive loop on top of the loop stack
+ */
+void Klass::openLoop(Tree recsymbol, const string& size)
+{
+    fTopLoop = new Loop(recsymbol, fTopLoop, size);    
+}
+
+
+/**
+ * Close the top loop and either store it in the loop set
+ * or merge it within the enclosing one
+ */
+void Klass::closeLoop()
+{
+    assert(fTopLoop);
+    Loop* l = fTopLoop;
+    fTopLoop = l->fEnclosingLoop;
+
+    if (l->hasRecDependencies()) {
+        assert(fTopLoop);
+        fTopLoop->absorb(l);
+        delete l;
+    } else {
+        fLoopSet.insert(l);
+    }
+}
+
 void printlines (int n, list<string>& lines, ostream& fout)
 {
 	list<string>::iterator s;
@@ -134,7 +172,8 @@ void Klass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
 			printlines (n+2, fSlowCode, fout);
-
+            fTopLoop->println(n+2, fout);
+/*
 			if(vec) {
 
 				tab(n+2,fout); fout << "for (int i=0; i<count; i+=4) {";
@@ -148,8 +187,8 @@ void Klass::println(int n, ostream& fout)
 					printlines (n+3, fPostCode, fout);
 			}
 
-
 			tab(n+2,fout); fout << "}";
+*/
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
@@ -187,11 +226,12 @@ void SigIntGenKlass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "void fill (int count, int output[]) {";
 			printlines (n+2, fSlowCode, fout);
-			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
+            fTopLoop->println(n+2, fout);
+/*			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
 				printlines (n+3, fExecCode, fout);
 				tab(n+3,fout); fout << "// post processing";
 				printlines (n+3, fPostCode, fout);
-			tab(n+2,fout); fout << "}";
+			tab(n+2,fout); fout << "}";*/
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
@@ -225,11 +265,12 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "void fill (int count, float output[]) {";
 			printlines (n+2, fSlowCode, fout);
-			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
+            fTopLoop->println(n+2, fout);
+/*			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
 				printlines (n+3, fExecCode, fout);
 				tab(n+3,fout); fout << "// post processing";
 				printlines (n+3, fPostCode, fout);
-			tab(n+2,fout); fout << "}";
+			tab(n+2,fout); fout << "}";*/
 			//printlines (n+2, fEndCode, fout);
 		tab(n+1,fout); fout << "}";
 
