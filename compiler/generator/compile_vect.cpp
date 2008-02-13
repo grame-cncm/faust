@@ -25,40 +25,35 @@
 
 
 /**
- * Open a non-recursive loop on top of the loop stack
+ * Compile a signal
+ * @param sig the signal expression to compile.
+ * @return the C code translation of sig as a string
  */
-void    VectorCompiler::openLoop(const string& size)
+string VectorCompiler::generateCode (Tree sig)
 {
-    fTopLoopStack = new Loop(fTopLoopStack, size);
-}
-
-
-/**
- * Open a recursive loop on top of the loop stack
- */
-void    VectorCompiler::openLoop(Tree recsymbol, const string& size)
-{
-    fTopLoopStack = new Loop(recsymbol, fTopLoopStack, size);    
-}
-
-
-/**
- * Close the top loop and either store it in the loop set
- * or merge it within the enclosing one
- */
-void    VectorCompiler::closeLoop()
-{
-    assert(fTopLoopStack);
-    Loop* l = fTopLoopStack;
-    fTopLoopStack = l->fEnclosingLoop;
-
-    if (l->hasRecDependencies()) {
-        assert(fTopLoopStack);
-        fTopLoopStack->absorb(l);
-        delete l;
+    if (needSeparateLoop(sig)) {
+        fClass->openLoop("count");
+        string c = ScalarCompiler::generateCode(sig);
+        fClass->closeLoop();
+        return c;
     } else {
-        fLoopSet.insert(l);
+        return ScalarCompiler::generateCode(sig);
     }
 }
 
 
+/**
+ * Compile a signal
+ * @param sig the signal expression to compile.
+ * @return the C code translation of sig as a string
+ */
+string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
+{
+    return ScalarCompiler::generateCacheCode(sig, exp);
+}
+
+
+bool VectorCompiler::needSeparateLoop(Tree sig)
+{
+    return false;
+}

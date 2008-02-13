@@ -36,21 +36,22 @@
 
 class VectorCompiler : public ScalarCompiler
 {
-    Loop*       fTopLoopStack;      ///< active loops currently open
-    set<Loop*>  fLoopSet;           ///< set of closed loops
-
-    void    openLoop(const string& size);
-    void    openLoop(Tree recsymbol, const string& size);
-    void    closeLoop();
 
 public:
 
     VectorCompiler (const string& name, const string& super, int numInputs, int numOutputs)
-        : ScalarCompiler(name,super,numInputs,numOutputs), fTopLoopStack(0)
+        : ScalarCompiler(name,super,numInputs,numOutputs)
         {}
     
     VectorCompiler (Klass* k) : ScalarCompiler(k)
     {}
+
+protected:
+    virtual string      generateCode (Tree sig);
+    virtual string      generateCacheCode(Tree sig, const string& exp);
+
+    bool    needSeparateLoop(Tree sig);
+
 };
 
 
