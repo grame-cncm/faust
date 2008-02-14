@@ -399,7 +399,7 @@ int main (int argc, char* argv[])
 
 	ostream* dst;
 	istream* enrobage;
-	istream* intrinsic;
+	//istream* intrinsic;
 
 	if (gOutputFile != "") {
 		dst = new ofstream(gOutputFile.c_str());
