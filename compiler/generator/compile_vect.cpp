@@ -22,6 +22,7 @@
 
 
 #include "compile_vect.hh"
+#include "ppsig.hh"
 
 
 /**
@@ -31,7 +32,7 @@
  */
 string VectorCompiler::generateCode (Tree sig)
 {
-    if (needSeparateLoop(sig)) {
+    if (fClass->topLoop()->isEmpty() == false && needSeparateLoop(sig)) {
         fClass->openLoop("count");
         string c = ScalarCompiler::generateCode(sig);
         fClass->closeLoop();
@@ -53,7 +54,46 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 }
 
 
+
+
+/**
+ * Test if a signal need to be compiled in a separate loop.
+ * @param sig the signal expression to test.
+ * @return true if a separate loop is needed
+ */
 bool VectorCompiler::needSeparateLoop(Tree sig)
 {
-    return false;
+    Occurences* o = fOccMarkup.retrieve(sig);
+    Type        t = getSigType(sig);
+    int         c = getSharingCount(sig);
+    bool        b;
+
+    int         i;
+    Tree        x;
+
+    if (verySimple(sig) || t->variability()<kSamp) {
+        // non sample computation never require a loop
+        b = false;
+    } else if (isProj(sig, &i ,x)) {
+        // recursive expressions require a separate loop
+        cerr << "REC ";
+        b = true;
+    } else if (o->getMaxDelay()>0) {
+        // delayed expressions require a separate loop
+        cerr << "DLY ";
+        b = true;
+    } else if (c > 1) {
+        // expressions used several times required a separate loop
+        cerr << "SHA(" << c << ") ";
+        b = true;
+    } else {
+        // sample expressions that are not recursive, not delayed
+        // and not shared, doesn't require a separate loop.
+        b = false;
+    }
+
+    if (b) { 
+        cerr << "separate loop for " << ppsig(sig) << endl;
+    }
+    return b;
 }
