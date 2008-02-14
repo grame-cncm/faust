@@ -20,11 +20,11 @@ static void printlines (int n, list<string>& lines, ostream& fout)
 }
 
 Loop::Loop( Tree recsymbol, Loop* encl,const string& size) 
-        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size) 
+        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1) 
 {}
 
 Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size) 
+        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1)
 {}
 
 /**
@@ -36,6 +36,14 @@ Loop::Loop(Loop* encl, const string& size)
 bool Loop::hasRecDependencies()                  
 { 
     return !fRecDependencies.empty(); 
+}
+
+/**
+ * Test if a loop is empty (no lines of code). 
+ */
+bool Loop::isEmpty()                  
+{ 
+    return fExecCode.empty() && fPostCode.empty(); 
 }
 
 
@@ -96,45 +104,4 @@ void Loop::println(int n, ostream& fout)
         printlines(n+1, fPostCode, fout);
     }
     tab(n,fout); fout << "}";
-}
-
-// loop ordering
-
-/**
- * Set the order of a loop and place it to appropriate set
- */
-static void setOrder(Loop* l, int order, vector<lset>& V)
-{
-    V.resize(order+1);
-    if (l->fOrder >= 0) { V[l->fOrder].erase(l); }
-    l->fOrder = order; V[order].insert(l);
-}
-
-/**
- * Set the order of T1's instructions and collect there sons into T2
- */
-static void setLevel(int order, const lset& T1, lset& T2, vector<lset>& V)
-{
-    for (lset::const_iterator p = T1.begin(); p!=T1.end(); p++) {
-        setOrder(*p, order, V);
-        T2.insert((*p)->fLoopDependencies.begin(), (*p)->fLoopDependencies.end());
-    }
-}
-
-/**
- * Define the order number of a set of instructions starting from 0
- * and collect them in a vector of sets
- */
-void orderInstructions(const lvec& S, vector<lset>& V)
-{
-    lset            T1, T2;
-    int             level;
-    
-    //cout << "START ordering" << endl;
-    T1.insert(S.begin(), S.end()); level=0; V.clear();
-    do {
-        setLevel(level, T1, T2, V); 
-        T1=T2; T2.clear(); level++;
-    } while (T1.size()>0);
-    //cout << "END ordering " << level << endl;
 }

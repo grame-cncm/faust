@@ -69,6 +69,7 @@ public:
     Loop(Tree recsymbol, Loop* encl, const string& size);   ///< create a recursive loop
     Loop(Loop* encl, const string& size);   ///< create a non recursive loop
 
+    bool isEmpty();                         ///< true when the loop doesn't contain any line of code
     bool hasRecDependencies();              ///< returns true is this loop has recursive dependencies
     void trackRecDependency(Tree t);        ///< Check for a recursive dependecy and add it if needed
     void addExecCode (const string& str);   ///< add a line of C++ code
@@ -77,9 +78,5 @@ public:
 
     void absorb(Loop* l);                   ///< absorb a loop inside this one
 };
- 
-
-typedef set<Loop*> lset;
-typedef vector<Loop*> lvec;
 
 #endif
