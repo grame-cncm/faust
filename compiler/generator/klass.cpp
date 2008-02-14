@@ -85,12 +85,23 @@ void Klass::closeLoop()
     Loop* l = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
 
-    if (l->hasRecDependencies()) {
+    if (l->isEmpty()) {
+        // empty loops are just deleted
+        delete l;
+    } else if (l->hasRecDependencies()) {
+        // not an independent loop, must be
+        // absorbed by enclosing loop
         assert(fTopLoop);
         fTopLoop->absorb(l);
         delete l;
     } else {
-        fLoopSet.insert(l);
+        // it is an independent loop. It must
+        // be computed before the enclosing one
+
+        if (fTopLoop != 0) {
+            fTopLoop->fLoopDependencies.insert(l);
+        }
+        //fLoopSet.insert(l);
     }
 }
 
@@ -129,6 +140,17 @@ void Klass::printIncludeFile(ostream& fout)
 	}
 }
 
+void Klass::printLoopGraph(int n, ostream& fout)
+{
+    lgraph G;
+    sortGraph(fTopLoop, G);
+    for (int l=G.size()-1; l>=0; l--) {
+        tab(n, fout); fout << "// level : " << l << endl;
+        for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
+            (*p)->println(n, fout);
+        }
+    }
+}
 
 void Klass::println(int n, ostream& fout)
 {
@@ -172,23 +194,7 @@ void Klass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
 			printlines (n+2, fSlowCode, fout);
-            fTopLoop->println(n+2, fout);
-/*
-			if(vec) {
-
-				tab(n+2,fout); fout << "for (int i=0; i<count; i+=4) {";
-			    	printlines (n+3, fExecCode, fout);
-					tab(n+3,fout); fout << "// post processing";
-					printlines (n+3, fPostCode, fout);
-			} else {
-			  	tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
-			    	printlines (n+3, fExecCode, fout);
-					tab(n+3,fout); fout << "// post processing";
-					printlines (n+3, fPostCode, fout);
-			}
-
-			tab(n+2,fout); fout << "}";
-*/
+            printLoopGraph (n+2,fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
@@ -226,12 +232,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "void fill (int count, int output[]) {";
 			printlines (n+2, fSlowCode, fout);
-            fTopLoop->println(n+2, fout);
-/*			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
-				printlines (n+3, fExecCode, fout);
-				tab(n+3,fout); fout << "// post processing";
-				printlines (n+3, fPostCode, fout);
-			tab(n+2,fout); fout << "}";*/
+            printLoopGraph (n+2,fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
@@ -265,13 +266,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "void fill (int count, float output[]) {";
 			printlines (n+2, fSlowCode, fout);
-            fTopLoop->println(n+2, fout);
-/*			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
-				printlines (n+3, fExecCode, fout);
-				tab(n+3,fout); fout << "// post processing";
-				printlines (n+3, fPostCode, fout);
-			tab(n+2,fout); fout << "}";*/
-			//printlines (n+2, fEndCode, fout);
+            printLoopGraph(n+2,fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;

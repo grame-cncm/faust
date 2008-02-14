@@ -49,6 +49,7 @@ using namespace std;
 #define kMaxCategory 32
 
 #import "loop.hh"
+#import "graphSorting.hh"
 
 class Klass //: public Target
 {
@@ -74,7 +75,7 @@ class Klass //: public Target
 	list<string>		fSlowCode;
 
     Loop*               fTopLoop;      ///< active loops currently open
-    set<Loop*>          fLoopSet;           ///< set of closed loops
+    //set<Loop*>          fLoopSet;           ///< set of closed loops
 
     bool                 vec;
 
@@ -91,6 +92,8 @@ class Klass //: public Target
     void    openLoop(const string& size);
     void    openLoop(Tree recsymbol, const string& size);
     void    closeLoop();
+
+    Loop*   topLoop()   { return fTopLoop; }
 
 	void addIncludeFile (const string& str) { fIncludeFileSet.insert(str); }
 
@@ -124,6 +127,8 @@ class Klass //: public Target
    // void addEndCode (const string& str)	{ fEndCode.push_front(str); }
 
 	virtual void println(int n, ostream& fout);
+
+    virtual void printLoopGraph(int n, ostream& fout);
 
 	virtual void printIncludeFile(ostream& fout);
 
