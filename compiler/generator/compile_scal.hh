@@ -38,7 +38,7 @@
 
 class ScalarCompiler : public Compiler
 {
-  private:
+  protected:
     property<string>            fCompileProperty;
     property<string>            fVectorProperty;
 
