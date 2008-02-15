@@ -48,6 +48,8 @@
 #include "Text.hh"
 #include "signals.hh"
 
+extern bool gVectorSwitch;
+
 void tab (int n, ostream& fout)
 {
 
@@ -58,7 +60,8 @@ void tab (int n, ostream& fout)
 
 
 /**
- * Open a non-recursive loop on top of the loop stack
+ * Open a non-recursive loop on top of the stack of open loops.
+ * @param size the number of iterations of the loop
  */
 void Klass::openLoop(const string& size)
 {
@@ -67,7 +70,9 @@ void Klass::openLoop(const string& size)
 
 
 /**
- * Open a recursive loop on top of the loop stack
+ * Open a recursive loop on top of the stack of open loops.
+ * @param recsymbol the recursive symbol defined in this loop
+ * @param size the number of iterations of the loop
  */
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
@@ -76,35 +81,30 @@ void Klass::openLoop(Tree recsymbol, const string& size)
 
 
 /**
- * Close the top loop and either store it in the loop set
- * or merge it within the enclosing one
+ * Close the top loop and either keep it
+ * or absorb it within its enclosing loop. 
  */
 void Klass::closeLoop()
 {
     assert(fTopLoop);
     Loop* l = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
+    assert(fTopLoop);
 
-    if (l->isEmpty()) {
-        // empty loops are just deleted
-        delete l;
-    } else if (l->hasRecDependencies()) {
-        // not an independent loop, must be
-        // absorbed by enclosing loop
-        assert(fTopLoop);
+    if (l->isEmpty() || l->hasRecDependencies()) {
+        // empty or dependent loop -> absorbed by enclosing one
         fTopLoop->absorb(l);
         delete l;
     } else {
-        // it is an independent loop. It must
-        // be computed before the enclosing one
-
-        if (fTopLoop != 0) {
-            fTopLoop->fLoopDependencies.insert(l);
-        }
-        //fLoopSet.insert(l);
+        // independent loop -> linked to by enclosing one
+        fTopLoop->fLoopDependencies.insert(l);
     }
 }
 
+
+/**
+ * Print a list of lines. 
+ */
 void printlines (int n, list<string>& lines, ostream& fout)
 {
 	list<string>::iterator s;
@@ -114,6 +114,10 @@ void printlines (int n, list<string>& lines, ostream& fout)
 }
 
 
+
+/**
+ * Print the required C++ libraries as comments in source code 
+ */
 void Klass::printLibrary(ostream& fout)
 {
 	set<string> S;
@@ -129,6 +133,12 @@ void Klass::printLibrary(ostream& fout)
 }
 
 
+
+
+
+/**
+ * Print the required include files 
+ */
 void Klass::printIncludeFile(ostream& fout)
 {
 	set<string> S;
@@ -140,18 +150,27 @@ void Klass::printIncludeFile(ostream& fout)
 	}
 }
 
+
+/**
+ * Print the loop graph as a serie of 
+ * parallel loops 
+ */
 void Klass::printLoopGraph(int n, ostream& fout)
 {
     lgraph G;
     sortGraph(fTopLoop, G);
     for (int l=G.size()-1; l>=0; l--) {
-        tab(n, fout); fout << "// level : " << l << endl;
+        if (gVectorSwitch) { tab(n, fout); fout << "// PARALLEL LEVEL : " << l; }
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
             (*p)->println(n, fout);
         }
     }
 }
 
+
+/**
+ * Print a full C++ class corresponding to a Faust dsp
+ */
 void Klass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
@@ -205,6 +224,9 @@ void Klass::println(int n, ostream& fout)
 }
 
 
+/**
+ * Print an auxillary C++ class corresponding to an integer init signal
+ */
 void SigIntGenKlass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
@@ -239,6 +261,9 @@ void SigIntGenKlass::println(int n, ostream& fout)
 }
 
 
+/**
+ * Print an auxillary C++ class corresponding to an float init signal
+ */
 void SigFloatGenKlass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
