@@ -30,13 +30,57 @@
  * @param sig the signal expression to compile.
  * @return the C code translation of sig as a string
  */
+string  VectorCompiler::CS (Tree sig)
+{
+    int         i;
+    Tree        x;
+    string      code;
+
+    if (!getCompiledExpression(sig, code)) {
+        code = generateCode(sig);
+        setCompiledExpression(sig, code);
+    } else {
+        // check for recursive dependencies
+        Loop*   l = fClass->topLoop();
+        if (isProj(sig, &i, x) && l->findRecDefinition(x)) {
+            l->addRecDependency(x);
+        }
+    }
+    return code;
+}
+
+/**
+ * Compile a signal
+ * @param sig the signal expression to compile.
+ * @return the C code translation of sig as a string
+ */
 string VectorCompiler::generateCode (Tree sig)
 {
-    if (fClass->topLoop()->isEmpty() == false && needSeparateLoop(sig)) {
-        fClass->openLoop("count");
-        string c = ScalarCompiler::generateCode(sig);
-        fClass->closeLoop();
-        return c;
+    int     i;
+    Tree    x;
+    Loop*   l;
+
+    l = fClass->topLoop();
+    assert(l);
+
+    if (needSeparateLoop(sig)) {
+        // we need a separate loop unless it's an old recursion
+        if (isProj(sig, &i, x)) {
+            if (l->findRecDefinition(x)) {
+                l->addRecDependency(x);
+                return ScalarCompiler::generateCode(sig);
+            } else {
+                fClass->openLoop(x, "count");
+                string c = ScalarCompiler::generateCode(sig);
+                fClass->closeLoop();
+                return c;
+            }
+        } else {
+            fClass->openLoop("count");
+            string c = ScalarCompiler::generateCode(sig);
+            fClass->closeLoop();
+            return c;
+        }
     } else {
         return ScalarCompiler::generateCode(sig);
     }
@@ -69,31 +113,25 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     bool        b;
 
     int         i;
-    Tree        x;
+    Tree        x,y;
 
     if (verySimple(sig) || t->variability()<kSamp) {
-        // non sample computation never require a loop
-        b = false;
+        b = false;      // non sample computation never require a loop
+    } else if (isSigFixDelay(sig, x, y)) {
+        b = false;      // 
     } else if (isProj(sig, &i ,x)) {
-        // recursive expressions require a separate loop
-        cerr << "REC ";
+        //cerr << "REC "; // recursive expressions require a separate loop
         b = true;
     } else if (o->getMaxDelay()>0) {
-        // delayed expressions require a separate loop
-        cerr << "DLY ";
+        //cerr << "DLY "; // delayed expressions require a separate loop
         b = true;
     } else if (c > 1) {
-        // expressions used several times required a separate loop
-        cerr << "SHA(" << c << ") ";
+        //cerr << "SHA(" << c << ") "; // expressions used several times required a separate loop
         b = true;
     } else {
         // sample expressions that are not recursive, not delayed
         // and not shared, doesn't require a separate loop.
         b = false;
-    }
-
-    if (b) { 
-        cerr << "separate loop for " << ppsig(sig) << endl;
     }
     return b;
 }
