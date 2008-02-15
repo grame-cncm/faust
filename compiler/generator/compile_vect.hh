@@ -47,6 +47,8 @@ public:
     {}
 
 protected:
+
+    virtual string      CS (Tree sig);
     virtual string      generateCode (Tree sig);
     virtual string      generateCacheCode(Tree sig, const string& exp);
 
