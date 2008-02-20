@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.1";
+declare version "1.2";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/~jos/filters/";
 
@@ -29,12 +29,21 @@ pole(p) = + ~ *(p);
 
 integrator = + ~ _ ;
 
+//----------------------- tau2pole ---------------------------
+// tau2pole(tau) returns a real pole giving exponential decay with
+// tau = time-constant in seconds
+//
+tau2pole(tau) = exp(-1.0/(tau*SR));
+
 //---------------------- smooth(s) --------------------------
 // Exponential smoothing by a unity-dc-gain one-pole lowpass
 //
-// USAGE: smooth(s), where s = smoothness between 0 and 1.
-//   s=0 for no smoothing
-//   s=0.999 is "very smooth"
+// USAGE: smooth(tau2pole(tau)), where 
+//   tau = desired smoothing time constant in seconds,
+// or
+//   smooth(s), where s = smoothness between 0 and 1.
+//    s=0 for no smoothing
+//    s=0.999 is "very smooth"
 // s>1 is unstable, and s=1 yields the zero signal for all inputs.
 // The exponential time-constant is approximately 
 // 1/(1-s) samples, when s is close to (but less than) 1.
@@ -82,30 +91,34 @@ dcblocker = zero(1) : pole(0.995);
 
 ffcombfilter(maxdel,del,g) = _ <: delay(maxdel,del) : *(g): + ;
 
-//------------------------- fbcombfilter ---------------------------
+//------------------- fbcombfilter, ffbcombfilter -------------------
 // Feed-Back Comb Filter
 //
-// USAGE: fbcombfilter(maxdel,del,g), where
+// USAGE: fbcombfilter(maxdel,intdel,g), where
 //   maxdel = maximum delay (a power of 2)
-//   del = current comb-filter delay between 0 and maxdel
+//   intdel = current comb-filter delay between 0 and maxdel
 //   g = gain applied to delay-line output = feedback gain
+//
+// or, if fractional delay is needed,
+//   ffbcombfilter(maxdel,del,g), where del is (non-int) delay
 //
 // Reference: 
 //   http://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html
 
-fbcombfilter(maxdel,del,g) = (+ : delay(maxdel,del)) ~ *(g);
+fbcombfilter(maxdel,intdel,g) = (+ : delay(maxdel,intdel)) ~ *(g);
+ffbcombfilter(maxdel,del,g) = (+ : fdelay(maxdel,del)) ~ *(g);
 
 //================ Second Order Digital Filter Sections ================
 
+// Specified by transfer-function polynomials B(z)/A(z) as in matlab
+
 //----------------------------- tf1 ---------------------------------
-// First-order direct-form digital filter,
-// specified by transfer-function polynomials B(z)/A(z) as in matlab.
+// First-order direct-form digital filter
 
 tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
 
 //----------------------------- tf2 ---------------------------------
-// Second-order direct-form digital filter,
-// specified by transfer-function polynomials B(z)/A(z) as in matlab.
+// Second-order direct-form digital filter.
 // This is just a copy of TF2(b0,b1,b2,a1,a2) from Faust's music.lib.
 
 tf2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
@@ -116,9 +129,7 @@ with {
 };
 
 //----------------------------- tf3 ---------------------------------
-// Third-order direct-form digital filter,
-// specified by transfer-function polynomials B(z)/A(z) as in matlab.
-// Copies the method of TF2(b0,b1,b2,a1,a2) from Faust's music.lib.
+// Third-order direct-form digital filter
 
 tf3(b0,b1,b2,b3,a1,a2,a3) = sub ~ conv3(a1,a2,a3) : conv4(b0,b1,b2,b3)
 with {
@@ -128,9 +139,7 @@ with {
 };
 
 //----------------------------- tf4 ---------------------------------
-// Fourth-order direct-form digital filter,
-// specified by transfer-function polynomials B(z)/A(z) as in matlab.
-// Copies the method of TF2(b0,b1,b2,a1,a2) from Faust's music.lib.
+// Fourth-order direct-form digital filter
 
 tf4(b0,b1,b2,b3,b4,a1,a2,a3,a4) = sub ~ conv4(a1,a2,a3,a4) 
                                       : conv5(b0,b1,b2,b3,b4)
@@ -141,7 +150,7 @@ with {
 };
 
 //----------------------------- wgr ---------------------------------
-// Second order transformer-normalized digital waveguide resonator
+// Second-order transformer-normalized digital waveguide resonator
 // USAGE: wgr(f,r), where
 //   f : resonance frequency (Hz)
 //   r : loss factor for exponential decay 
@@ -158,7 +167,6 @@ with {
   cross = _,_ <: !,_,_,!;
 };
 
-
 //----------------------------- nlf2 --------------------------------
 // Second order normalized digital waveguide resonator
 // USAGE: nlf2(f,r), where
@@ -169,7 +177,8 @@ with {
 // Reference:
 // http://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html
 //
-nlf2(f,r,x) = ((_<:_,_),(_<:_,_) : (*(s),*(c),*(c),*(0-s)) :> (*(r),+(x))) ~ cross
+nlf2(f,r,x) = ((_<:_,_),(_<:_,_) : (*(s),*(c),*(c),*(0-s)) :> 
+              (*(r),+(x))) ~ cross
 with { 
   th = 2*PI*f/SR;
   c = cos(th);
@@ -294,21 +303,21 @@ with {
 // pareq(Q,F,G)
 //                      Q : quality factor [1..100]
 //                      F :     frequency (Hz)
-//                      G : Attenuation (dB)
+//                      G : Attenuation (dB) at frequency F (0 elsewhere)
 // Adapted from "bandfilter.dsp" in the faust2pd distribution 
 // (specifically faust-pd-0.9.9.2 in Planet CCRMA)
 // which was released under the BSD license.
 //---------------------------------------------------------------------
 pareq(Q,F,G) = TF2(  (1 +  K/Q + K*K) / D,
-	       2 * (K*K - 1)          / D,
-	      (1 - K/Q + K*K)         / D,
-	       2 * (K*K - 1)          / D,
-	      (1 - V*K/Q + K*K)       / D
-		       )
+               2 * (K*K - 1)          / D,
+              (1 - K/Q + K*K)         / D,
+               2 * (K*K - 1)          / D,
+              (1 - V*K/Q + K*K)       / D
+                       )
 with {
-	      V = db2linear(G);
-	      K = tan(PI*F/SR);
-	      D = 1 + V*K/Q + K*K;
+              V = db2linear(G);
+              K = tan(PI*F/SR);
+              D = 1 + V*K/Q + K*K;
 };
 
 //========================= Lagrange Interpolation ========================
@@ -336,6 +345,7 @@ with {
 };
 
 // second-order (quadratic) case, delay in [0.5,1.5]
+// delay d should be at least 0.5
 fdelay2(n,d,x) = delay(n,id,x)*(1-fd)*(2-fd)/2 
                + delay(n,id+1,x)*(2-fd)*fd
                + delay(n,id+2,x)*(fd-1)*fd/2
@@ -346,7 +356,8 @@ with {
   fd = o + frac(dmo);
 };
 
-// third-order (cubic) case, delay in [1,2]:
+// third-order (cubic) case, delay in [1,2]
+// delay d should be at least 1
 fdelay3(n,d,x) = delay(n,id,x) * (0-fdm1*fdm2*fdm3)/6
                + delay(n,id+1,x) * fd*fdm2*fdm3/2
                + delay(n,id+2,x) * (0-fd*fdm1*fdm3)/2
@@ -359,13 +370,15 @@ with {
   fdm3 = fd-3;
 };
 
-// fourth-order (quartic) case, delay in [1,2] ([2,3] same quality):
+// fourth-order (quartic) case, delay in [1.5,2.5]
+// delay d should be at least 1.5
 fdelay4(n,d,x) = delay(n,id,x)   * fdm1*fdm2*fdm3*fdm4/24 
                + delay(n,id+1,x) * (0-fd*fdm2*fdm3*fdm4)/6
                + delay(n,id+2,x) * fd*fdm1*fdm3*fdm4/4
                + delay(n,id+3,x) * (0-fd*fdm1*fdm2*fdm4)/6
                + delay(n,id+4,x) * fd*fdm1*fdm2*fdm3/24
 with {
+//v1:  o = 1;
   o = 1.49999;
   dmo = d - o; // assumed nonnegative
   id = int(dmo);
@@ -403,7 +416,8 @@ with {
 //       as Lagrange interpolation under time-varying conditions.
 //       (You may hear clicks when changing the delay rapidly.)
 //
-// first-order allpass interpolation, allpass delay in [0.5,1.5]:
+// first-order allpass interpolation, allpass delay in [0.5,1.5]
+// delay d should be at least 0.5
 fdelay1a(n,d,x)  = delay(n,id,x) : tf1(eta,1,eta)
 with {
   o = 0.49999; // offset to make life easy for allpass
@@ -413,19 +427,21 @@ with {
   eta = (1-fd)/(1+fd); // allpass coefficient
 };
 
-// second-order allpass delay in [1.5,2.5]:
+// second-order allpass delay in [1.5,2.5]
+// delay d should be at least 1.5
 fdelay2a(n,d,x) = delay(n,id,x) : tf2(a2,a1,1,a1,a2)
 with {
   o = 1.49999;
   dmo = d - o; // delay range is [order-1/2, order+1/2]
   id = int(dmo);
   fd = o + frac(dmo);
-  a1o2 = (2-fd)/(1+fd); // share some terms (would the compiler catch this?)
+  a1o2 = (2-fd)/(1+fd); // share some terms (the compiler does this anyway)
   a1 = 2*a1o2;
   a2 = a1o2*(1-fd)/(2+fd);
 };
 
-// third-order allpass delay in [2.5,3.5]:
+// third-order allpass delay in [2.5,3.5]
+// delay d should be at least 2.5
 fdelay3a(n,d,x) = delay(n,id,x) : tf3(a3,a2,a1,1,a1,a2,a3)
 with {
   o = 2.49999;
@@ -439,10 +455,11 @@ with {
   a3 = a2o3*(1-fd)/(3+fd);
 };
 
-// fourth-order allpass delay in [4.5,4.5]:
+// fourth-order allpass delay in [3.5,3.5]
+// delay d should be at least 3.5
 fdelay4a(n,d,x) = delay(n,id,x) : tf4(a4,a3,a2,a1,1,a1,a2,a3,a4)
 with {
-  o = 4.49999;
+  o = 3.49999;
   dmo = d - o;
   id = int(dmo);
   fd = o + frac(dmo);
