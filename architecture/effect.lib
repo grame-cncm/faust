@@ -1,18 +1,23 @@
 declare name "Faust Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.0";
+declare version "1.1";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/realsimple/faust_strings/";
 
 import("filter.lib"); // dcblocker*, lowpass4, ...
 
 
-//------------------------ levelfilter --------------------------
+//--------------- levelfilter, levelfilterN -----------------------
 // Dynamic level lowpass filter:
-// Reference: http://ccrma.stanford.edu/realsimple/faust_strings/
+// USAGE: levelfilter(L,freq), where
+//  L    = desired level (in dB) at Nyquist limit (SR/2), e.g., -60
+//  freq = corner frequency (-3dB point) usually set to fundamental freq
 //
-levelfilter(L,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
+// Reference: 
+// http://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html
+//
+levelfilter(L,freq,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
 with {
   L0 = pow(L,1/3);
   Lw = PI*freq/SR; // = w1 T / 2
@@ -21,8 +26,9 @@ with {
   lp2out = *(Lgain) : + ~ *(Lpole2);
 };
 
+levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 
-//------------------------ speakerbp -----------------------------
+//------------------------- speakerbp -------------------------------
 // Dirt-simple speaker simulator (overall bandpass eq with observed
 // roll-offs above and below the passband).
 //
@@ -58,12 +64,14 @@ with {
 };
 
 
-//------------------------ moogvcf(Q,fr) ---------------------------
+//------------------------- moogvcf(Q,fr) ---------------------------
 // Moog "Voltage Controlled Filter" (VCF)
 //
 // USAGE: moogvcf(Q,fr), where
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
 //   Q  = corner-resonance quality factor Q
+// Requires filter.lib.
+// Reference "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
 moogvcf(Q,fr) = (+ : pole(p) : pole(p) 
                    : pole(p) : pole(p) : *(scale(p))) ~ *(mk)
@@ -77,6 +85,7 @@ with {
 //-------------------------- wah4(fr) -------------------------------
 // Wah effect, 4th order
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
+// Reference "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
 wah4(fr) = moogvcf(3.8,fr); // Q fixed at ~ 3.8 (set to taste)
 
@@ -85,6 +94,7 @@ wah4(fr) = moogvcf(3.8,fr); // Q fixed at ~ 3.8 (set to taste)
 // Digitized CryBaby wah pedal
 // USAGE: crybaby(wah), where wah = "pedal angle" from 0 to 1.
 // Requires filter.lib.
+// Reference "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 //
 crybaby(wah) = *(gs(s)) : tf2(1,-1,0,a1s(s),a2s(s))
 with {
