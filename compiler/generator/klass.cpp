@@ -49,6 +49,7 @@
 #include "signals.hh"
 
 extern bool gVectorSwitch;
+extern int  gVecSize;
 
 void tab (int n, ostream& fout)
 {
@@ -211,10 +212,27 @@ void Klass::println(int n, ostream& fout)
 			printlines (n+2, fUICode, fout);
 		tab(n+1,fout); fout << "}";
 
-		tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
-			printlines (n+2, fSlowCode, fout);
-            printLoopGraph (n+2,fout);
-		tab(n+1,fout); fout << "}";
+        if (!gVectorSwitch) {
+            
+            tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
+                printlines (n+2, fSlowCode, fout);
+                printLoopGraph (n+2,fout);
+                printlines (n+2, fEndCode, fout);
+            tab(n+1,fout); fout << "}";
+
+        } else {
+
+            // in vector mode we need to split loops in smaller pieces not larger
+            // than gVecSize
+		    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+                    tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+			        printlines (n+3, fSlowCode, fout);
+                    printLoopGraph (n+3,fout);
+                    printlines (n+3, fEndCode, fout);
+                tab(n+2,fout); fout << "}";
+		    tab(n+1,fout); fout << "}";
+        }
 
 	tab(n,fout); fout << "};\n" << endl;
 

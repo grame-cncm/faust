@@ -72,7 +72,8 @@ class Klass //: public Target
 	list<string>		fStaticFields;			///< static fields after class
 	list<string>		fInitCode;
 	list<string>		fUICode;
-	list<string>		fSlowCode;
+    list<string>        fSlowCode;
+    list<string>        fEndCode;
 
     Loop*               fTopLoop;      ///< active loops currently open
     //set<Loop*>          fLoopSet;           ///< set of closed loops
@@ -124,7 +125,7 @@ class Klass //: public Target
 
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
-   // void addEndCode (const string& str)	{ fEndCode.push_front(str); }
+    void addEndCode (const string& str)	{ fEndCode.push_front(str); }
 
 	virtual void println(int n, ostream& fout);
 
