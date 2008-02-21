@@ -51,8 +51,6 @@
 extern bool	gLessTempSwitch;
 extern int		gMaxCopyDelay;
 
-static int pow2limit(int x);
-
 static Klass* signal2klass (const string& name, Tree sig)
 {
 	Type t = getSigType(sig); //, NULLENV);
@@ -1043,7 +1041,7 @@ bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
  * Compute the minimal power of 2 greater than x
  */
 
-static int pow2limit(int x)
+int ScalarCompiler::pow2limit(int x)
 {
 	int n = 2;
 	while (n < x) { n = 2*n; }
