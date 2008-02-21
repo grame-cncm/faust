@@ -103,6 +103,7 @@ string			gOutputFile;
 list<string>	gInputFiles;
 
 bool			gPatternEvalMode = false;
+int             gVecSize        = 32;
 
 //-- command line tools
 
