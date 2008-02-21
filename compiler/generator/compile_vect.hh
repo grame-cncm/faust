@@ -27,6 +27,8 @@
 #include "compile_scal.hh"
 #include "loop.hh"
 
+extern int      gMaxCopyDelay;
+
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -45,12 +47,16 @@ public:
     
     VectorCompiler (Klass* k) : ScalarCompiler(k)
     {}
+    virtual void compileMultiSignal (Tree L);
 
 protected:
 
     virtual string      CS (Tree sig);
     virtual string      generateCode (Tree sig);
     virtual string      generateCacheCode(Tree sig, const string& exp);
+    virtual void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
+    virtual string      generateVariableStore(Tree sig, const string& exp);
+    virtual string      generateFixDelay (Tree sig, Tree exp, Tree delay);
 
     bool    needSeparateLoop(Tree sig);
 
