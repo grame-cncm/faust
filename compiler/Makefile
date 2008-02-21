@@ -168,6 +168,7 @@ generator/compile_vect.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh 
 generator/compile_vect.o: tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/compile_vect.o: signals/interval.hh generator/uitree.hh generator/Text.hh generator/description.hh
 generator/compile_vect.o: signals/sigtyperules.hh generator/occurences.hh tlib/property.hh parallelize/loop.hh
+generator/compile_vect.o: signals/ppsig.hh parallelize/delayline.hh
 generator/contextor.o: generator/contextor.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/smartpointer.hh
@@ -198,9 +199,13 @@ normalize/simplify.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.h
 normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigorderrules.hh signals/sigprint.hh
 normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
 normalize/simplify.o: signals/sigvisitor.hh normalize/normalize.hh
-parallelize/loop.o: parallelize/loop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh
-parallelize/loop.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
-parallelize/loop.o: generator/uitree.hh
+parallelize/delayline.o: parallelize/delayline.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+parallelize/delayline.o: generator/klass.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+parallelize/delayline.o: tlib/list.hh tlib/shlysis.hh generator/uitree.hh generator/Text.hh
+parallelize/graphSorting.o: parallelize/graphSorting.hh parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
+parallelize/graphSorting.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+parallelize/loop.o: parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+parallelize/loop.o: tlib/shlysis.hh
 parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh parser/unistd.h /usr/include/unistd.h
 parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh parser/faustparser.hpp parser/unistd.h
 parser/faustlexer.o: /usr/include/unistd.h
