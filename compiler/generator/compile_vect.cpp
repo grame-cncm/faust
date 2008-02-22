@@ -25,6 +25,7 @@
 #include "ppsig.hh"
 #include "delayline.hh"
 
+extern int gVecSize;
 
 void VectorCompiler::compileMultiSignal (Tree L)
 {
@@ -60,6 +61,7 @@ string  VectorCompiler::CS (Tree sig)
 
     if (!getCompiledExpression(sig, code)) {
         code = generateCode(sig);
+        //cerr << "CS : " << code << " for " << ppsig(sig) << endl;
         setCompiledExpression(sig, code);
     } else {
         // check for recursive dependencies
@@ -113,13 +115,63 @@ string VectorCompiler::generateCode (Tree sig)
 
 
 /**
- * Compile a signal
- * @param sig the signal expression to compile.
- * @return the C code translation of sig as a string
+ * Generate cache code for a signal if needed
+ * @param sig the signal expression.
+ * @param exp the corresponding C code.
+ * @return the cached C code
  */
 string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 {
-    return ScalarCompiler::generateCacheCode(sig, exp);
+    string      vname, ctype;
+    int         sharing = getSharingCount(sig);
+    Type        t = getSigType(sig);
+    Occurences* o = fOccMarkup.retrieve(sig);
+    int         d = o->getMaxDelay();
+
+    if (t->variability() < kSamp) {
+        if (d==0) {
+            // non-sample, not delayed : same as scalar cache
+            return ScalarCompiler::generateCacheCode(sig,exp);
+
+        } else {
+            // it is a non-sample but used delayed
+            // we need a delay line
+            getTypedNames(getSigType(sig), "Xec", ctype, vname);
+            generateDelayLine(ctype, vname, d, exp);
+            setVectorNameProperty(sig, vname);
+            if (verySimple(sig)) {
+                return exp;
+            } else {
+                return subst("$0[i]", vname);
+            }
+        }
+    } else {
+        // sample-rate signal
+        if (d > 0) {
+            // used delayed : we need a delay line
+            getTypedNames(getSigType(sig), "Yec", ctype, vname);
+            generateDelayLine(ctype, vname, d, exp);
+            setVectorNameProperty(sig, vname);
+
+            if (verySimple(sig)) {
+                return exp;
+            } else {
+                return subst("$0[i]", vname);
+            }
+        } else {
+            // not delayed
+            if ( sharing > 1 && ! verySimple(sig) ) {
+                // shared and not simple : we need a vector
+                getTypedNames(getSigType(sig), "Zec", ctype, vname);
+                generateDelayLine(ctype, vname, d, exp);
+                setVectorNameProperty(sig, vname);
+                return subst("$0[i]", vname);
+           } else {
+                // not shared or simple : no cache needed
+                return exp;
+            }
+        }
+    }
 }
 
 
@@ -203,13 +255,16 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
     mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
-    assert(getVectorNameProperty(exp, vecname));
+    if (! getVectorNameProperty(exp, vecname)) {
+        cerr << "no vector name for " << ppsig(exp) << endl;
+        exit(1);
+    }
 
     if (mxd == 0) {
         // not a real vector name but a scalar name
-        return vecname;
+        return subst("$0[i]", vecname);
 
-    } else if (mxd < gMaxCopyDelay) {
+    } else if (mxd < gMaxCopyDelay){
         if (isSigInt(delay, &d)) {
             if (d == 0) {
                 return subst("$0[i]", vecname);
@@ -223,8 +278,36 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
     } else {
 
         // long delay : we use a ring buffer of size 2^x
-        int     N   = pow2limit( mxd+1 );
-        return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N-1))); 
+        int     N   = pow2limit( mxd+gVecSize );
+
+        if (isSigInt(delay, &d)) {
+            if (d == 0) {
+                return subst("$0[($0_idx+i)&$1]", vecname, T(N-1));
+            } else {
+                return subst("$0[($0_idx+i-$2)&$1]", vecname, T(N-1), T(d));
+            }
+        } else {
+            return subst("$0[($0_idx+i-$2)&$1]", vecname, T(N-1), CS(delay));
+        }
+    }
+}
+
+
+/**
+ * Generate code for the delay mecchanism. The generated code depend of the
+ * maximum delay attached to exp and the "less temporaries" switch
+ */
+
+string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
+{
+    // it is a non-sample but used delayed
+    // we need a delay line
+    generateDelayLine(ctype, vname, mxd, exp);
+    setVectorNameProperty(sig, vname);
+    if (verySimple(sig)) {
+        return exp;
+    } else {
+        return subst("$0[i]", vname);
     }
 }
 

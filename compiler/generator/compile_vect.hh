@@ -57,6 +57,7 @@ protected:
     virtual void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
     virtual string      generateVariableStore(Tree sig, const string& exp);
     virtual string      generateFixDelay (Tree sig, Tree exp, Tree delay);
+    virtual string      generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 
     bool    needSeparateLoop(Tree sig);
 
