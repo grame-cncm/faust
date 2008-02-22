@@ -131,7 +131,7 @@ class ScalarCompiler : public Compiler
     string      generateFConst (Tree sig, const string& file, const string& name);
     string      generateFVar (Tree sig, const string& file, const string& name);
 	
-	string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+	virtual string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	string		generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
     virtual void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
