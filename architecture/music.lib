@@ -5,8 +5,8 @@ import("math.lib");
 //-----------------------------------------------
 frac(n)			= n-int(n);
 index(n)		= &(n-1) ~ +(1);		// n = 2**i
-delay(n,d,x) 	= rwtable(n, 0.0, index(n), x, (index(n)-int(d)) & (n-1));
-//delay(n,d,x) 	= x@(int(d)&n);
+//delay(n,d,x) 	= rwtable(n, 0.0, index(n), x, (index(n)-int(d)) & (n-1));
+delay(n,d,x) 	= x@(int(d)&(n-1));
 fdelay(n,d,x) 	= delay(n,int(d),x)*(1 - frac(d)) + delay(n,int(d)+1,x)*frac(d);
 
 
