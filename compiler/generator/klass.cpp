@@ -49,6 +49,7 @@
 #include "signals.hh"
 
 extern bool gVectorSwitch;
+extern bool gOpenMPSwitch;
 extern int  gVecSize;
 
 void tab (int n, ostream& fout)
@@ -145,6 +146,9 @@ void Klass::printIncludeFile(ostream& fout)
 	set<string> S;
 	set<string>::iterator f;
 
+    if (gOpenMPSwitch) {
+        fout << "#include <omp.h>" << "\n";
+    }
 	collectIncludeFile(S);
 	for (f = S.begin(); f != S.end(); f++) 	{
 		fout << "#include " << *f << "\n";
@@ -160,10 +164,31 @@ void Klass::printLoopGraph(int n, ostream& fout)
 {
     lgraph G;
     sortGraph(fTopLoop, G);
-    for (int l=G.size()-1; l>=0; l--) {
-        if (gVectorSwitch) { tab(n, fout); fout << "// PARALLEL LEVEL : " << l; }
-        for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
-            (*p)->println(n, fout);
+    if (!gOpenMPSwitch) {
+        // normal mode (non openMP)
+        for (int l=G.size()-1; l>=0; l--) {
+            if (gVectorSwitch) { tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l; }
+            for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
+                (*p)->println(n, fout);
+            }
+        }
+    } else {
+        // openMP mode : add openMP directives
+        for (int l=G.size()-1; l>=0; l--) {
+            tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l; 
+            if (G[l].size() > 1) {
+                tab(n, fout); fout << "#pragma omp sections ";
+                tab(n, fout); fout << "{ ";
+                for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
+                    tab(n+1, fout); fout << "#pragma omp section ";
+                    (*p)->println(n+1, fout);
+                }
+                tab(n, fout); fout << "} ";
+            } else {
+                for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
+                    (*p)->println(n, fout);
+                }
+            }    
         }
     }
 }
@@ -222,16 +247,32 @@ void Klass::println(int n, ostream& fout)
 
         } else {
 
-            // in vector mode we need to split loops in smaller pieces not larger
-            // than gVecSize
-		    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-                tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
-                    tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-			        printlines (n+3, fSlowCode, fout);
-                    printLoopGraph (n+3,fout);
-                    printlines (n+3, fEndCode, fout);
-                tab(n+2,fout); fout << "}";
-		    tab(n+1,fout); fout << "}";
+            if (!gOpenMPSwitch) {
+                // in vector mode we need to split loops in smaller pieces not larger
+                // than gVecSize
+                tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                    tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+                        tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+                        printlines (n+3, fSlowCode, fout);
+                        printLoopGraph (n+3,fout);
+                        printlines (n+3, fEndCode, fout);
+                    tab(n+2,fout); fout << "}";
+                tab(n+1,fout); fout << "}";
+            } else {
+                // in openMP mode we need to split loops in smaller pieces not larger
+                // than gVecSize and add openMP pragmas
+                tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                    tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+                        tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+                        printlines (n+3, fSlowCode, fout);
+                        tab(n+3,fout); fout << "#pragma omp parallel";
+                        tab(n+3,fout); fout << "{";
+                        printLoopGraph (n+4,fout);
+                        tab(n+3,fout); fout << "}";
+                        printlines (n+3, fEndCode, fout);
+                    tab(n+2,fout); fout << "}";
+                tab(n+1,fout); fout << "}";
+            }
         }
 
 	tab(n,fout); fout << "};\n" << endl;
