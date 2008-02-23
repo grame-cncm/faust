@@ -87,7 +87,6 @@ map<Tree, set<Tree> > gMetaDataSet;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool			gDetailsSwitch 	= false;
-bool            gVectorSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
@@ -103,7 +102,10 @@ string			gOutputFile;
 list<string>	gInputFiles;
 
 bool			gPatternEvalMode = false;
+
+bool            gVectorSwitch   = false;
 int             gVecSize        = 32;
+bool            gOpenMPSwitch   = false;
 
 //-- command line tools
 
@@ -142,10 +144,6 @@ bool process_cmdline(int argc, char* argv[])
 		} else if (isCmd(argv[i], "-o")) {
 			gOutputFile = argv[i+1];
 			i += 2;
-
-		} else if (isCmd(argv[i], "-vec", "--vectorize")) {
-			gVectorSwitch = true;
-			i += 1;
 
 		} else if (isCmd(argv[i], "-ps", "--postscript")) {
 			gDrawPSSwitch = true;
@@ -191,6 +189,18 @@ bool process_cmdline(int argc, char* argv[])
 			gMaxCopyDelay = atoi(argv[i+1]);
 			i += 2;
 
+        } else if (isCmd(argv[i], "-vec", "--vectorize")) {
+            gVectorSwitch = true;
+            i += 1;
+                
+        } else if (isCmd(argv[i], "-vs", "--vec-size")) {
+                gVecSize = atoi(argv[i+1]);
+                i += 2;
+                
+        } else if (isCmd(argv[i], "-omp", "--openMP")) {
+                gOpenMPSwitch = true;
+                i += 1;
+
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -203,6 +213,9 @@ bool process_cmdline(int argc, char* argv[])
 			err++;
 		}
 	}
+
+    // adjust related options
+    if (gOpenMPSwitch) gVectorSwitch = true;
 
 	return err == 0;
 }
@@ -245,9 +258,11 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-	cout << "-a <file> \tC++ wrapper file\n";
-	cout << "-o <file> \tC++ output file\n";
-
+	cout << "-a <file> \tC++ architecture file\n";
+    cout << "-o <file> \tC++ output file\n";
+    cout << "-vec    \t--vectorize generate easier to vectorize code\n";
+    cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
+    cout << "-omp    \t--openMP generate openMP pragmas, activates --vectorize option\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";
