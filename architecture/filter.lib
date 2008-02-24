@@ -76,6 +76,30 @@ with {
 //
 dcblocker = zero(1) : pole(0.995);
 
+//------------ notchw(width,freq), notch(freq) --------------
+// width = "notch width" in Hz (approximate)
+// freq  = "notch frequency" in Hz
+// Reference:
+// http://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html
+
+notchw(width,freq) = tf2(b0,b1,b2,a1,a2)
+with {
+  fb = 0.5*width; // First design a dcblockerat(width/2)
+  wn = PI*fb/SR;
+  b0db = 1.0 / (1 + wn);
+  p = (1 - wn) * b0db; // This is our pole radius.
+  // Now place unit-circle zeros at desired angles:
+  tn = 2*PI*freq/SR;
+  a2 = p * p;
+  a2p1 = 1+a2;
+  a1 = -a2p1*cos(tn);
+  b1 = a1;
+  b0 = 0.5*a2p1;
+  b2 = b0;
+};
+
+notch(fb) = notchw(70,fb); // 70 Hz default width (like dcblocker)
+
 //========================= Comb Filters ===============================
 
 //------------------------- ffcombfilter ---------------------------
@@ -269,14 +293,14 @@ with {
 // USAGE: lowpass1(fc), where 
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //
-lowpass1(fc) = tf1s(1,1,2*PI*(fc));
+lowpass1(fc) = tf1s(1,1,2*PI*fc);
 
 //----------------------------- lowpass2 ------------------------------
 // Second-order Butterworth lowpass filter
 // USAGE: lowpass2(fc), where 
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //
-lowpass2(fc) = tf2s(0,1,sqrt(2),1,2*PI*(fc));
+lowpass2(fc) = tf2s(0,1,sqrt(2),1,2*PI*fc);
 
 //----------------------------- lowpass3 ------------------------------
 // Third-order Butterworth lowpass filter
@@ -284,7 +308,7 @@ lowpass2(fc) = tf2s(0,1,sqrt(2),1,2*PI*(fc));
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //
 lowpass3(fc) = tf2s(0,1,1,1,w1) : tf1s(1,1,w1)
-with { w1 = 2*PI*(fc); };
+with { w1 = 2*PI*fc; };
 
 //----------------------------- lowpass4 ------------------------------
 // Fourth-order Butterworth lowpass filter
@@ -295,7 +319,7 @@ lowpass4(fc) = tf2s(0,1,a11s,1,w1) : tf2s(0,1,a21s,1,w1)
 with {
   a11s = 1.847759065022573; // -2*real(pole1)
   a21s = 0.765366864730180; // -2*real(pole2)
-  w1 = 2*PI*(fc);
+  w1 = 2*PI*fc;
 };
 
 //----------------------------- pareq ---------------------------------
