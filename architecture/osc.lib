@@ -7,9 +7,17 @@ declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 //declare reference "http://ccrma.stanford.edu/~jos/pasp/";
 
 import("music.lib");
-import("filter.lib"); // wgr (and later svf)
+import("filter.lib"); // wgr, nlf2
 
 impulse = 1-1';
+
+// Simple sawtooth waveform oscillator (not bandlimited - has aliasing)
+sawtooth(freq) = rawsaw : *(fn) : -(1.0) // zero-mean in [-1,1)
+with {
+  fn = freq/SR;    // normalized frequency (cycles per sample)  
+  fperiod = 1/fn;  // period in samples (non-int for best tuning)
+  rawsaw = (_,fperiod : fmod) ~ +(2.0); // sawtooth waveform in [0,2*fperiod)
+};
 
 // Filter-based oscillators - a quick guide (move to osc-doc.txt?):
 // USAGE: osc*(f), where f = frequency in Hz.
@@ -34,23 +42,24 @@ with {
 };
 
 //-------------------------- oscr --------------------------------
-// Sinusoidal oscillator based on 2D vector rotation 
+// Sinusoidal oscillator based on 2D vector rotation,
+//  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter
 //
 // Reference:
 // http://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html
 //
-oscrq(f) =  impulse : nlf2(f,1);
+oscrq(f) =  impulse : nlf2(f,1); // sine and cosine outputs
 oscrs(f) =  impulse : nlf2(f,1) : _,!; // sine
 oscrc(f) =  impulse : nlf2(f,1) : !,_; // cosine
 oscr = oscrs; // default = sine case
 
 //-------------------------- oscs --------------------------------
 // Sinusoidal oscillator based on the state variable filter
+// = undamped "modified-coupled-form" resonator
 //
 oscs(f) =  (*(0-1) : sint(wn) : sintp(wn,impulse)) ~ _
 with {
-  impulse = 1-1';
   wn = 2*PI*f/SR; // approximate
   // wn = 2*sin(PI*f/SR); // exact
   sub(x,y) = y-x;
@@ -73,3 +82,4 @@ oscwc(fr) = 1-1' : wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 oscws(fr) = 1-1' : wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 oscq(fr)  = 1-1' : wgr(fr,1);       // phase quadrature outputs
 oscw = oscwc;
+
