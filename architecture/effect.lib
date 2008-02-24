@@ -55,7 +55,7 @@ speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
 // http://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html#18254
 //
 cubicnl(drive,offset) =
-   +(offset) : *(pregain) : clip(-1,1) : cubic : *(postgain) : dcblocker
+   +(offset) : *(pregain) : clip(-1,1) : cubic : dcblocker
 with {
     pregain = pow(10.0,2*drive);
     clip(lo,hi) = min(hi) : max(lo);
