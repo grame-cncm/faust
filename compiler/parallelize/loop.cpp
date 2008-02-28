@@ -142,22 +142,24 @@ void Loop::absorb (Loop* l)
 
 
 /**
- * Print a loop.
+ * Print a loop (unless it is empty)
  * @param n number of tabs of indentation  
  * @param fout output stream  
  */
 void Loop::println(int n, ostream& fout)
 {
-    if (gVectorSwitch) {
-        tab(n,fout); 
-        fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
+    if (fExecCode.size()+fPostCode.size() > 0) {
+        if (gVectorSwitch) {
+            tab(n,fout); 
+            fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
+        }
+            
+        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        printlines(n+1, fExecCode, fout);
+        if (fPostCode.size()>0) {
+            tab(n+1,fout); fout << "// post processing";
+            printlines(n+1, fPostCode, fout);
+        }
+        tab(n,fout); fout << "}";
     }
-        
-    tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
-    printlines(n+1, fExecCode, fout);
-    if (fPostCode.size()>0) {
-        tab(n+1,fout); fout << "// post processing";
-        printlines(n+1, fPostCode, fout);
-    }
-    tab(n,fout); fout << "}";
 }
