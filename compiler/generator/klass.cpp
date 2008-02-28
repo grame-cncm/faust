@@ -265,10 +265,10 @@ void Klass::println(int n, ostream& fout)
                     tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
                         tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
                         printlines (n+3, fSlowCode, fout);
-                        tab(n+3,fout); fout << "#pragma omp parallel";
-                        tab(n+3,fout); fout << "{";
-                        printLoopGraph (n+4,fout);
-                        tab(n+3,fout); fout << "}";
+                        //tab(n+3,fout); fout << "#pragma omp parallel";
+                        //tab(n+3,fout); fout << "{";
+                        printLoopGraph (n+3,fout);
+                        //tab(n+3,fout); fout << "}";
                         printlines (n+3, fEndCode, fout);
                     tab(n+2,fout); fout << "}";
                 tab(n+1,fout); fout << "}";
