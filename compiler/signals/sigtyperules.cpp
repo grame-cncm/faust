@@ -197,20 +197,12 @@ void typeAnnotation(Tree sig)
  */
 Type getInferredType(Tree term, Tree env)
 {
-#if 0
-	cerr << "CALL getInferredType(" << *term << ", " << *env << ")" << endl;
-#endif
-
-	Tree 	tt;
-//	cerr << "toto1\n";
-// 	if (isClosed(term)) {
-// 		cerr << *term << " is a closed term !!! " << endl;
-// 		env = NULLENV;
-// 	}
-	if (!getProperty(term, TYPEPROPERTY, tt))
-	{
-		if (!getProperty(term, env, tt))
-		{
+    AudioType* at = (AudioType*) term->getType();
+    if (at) { 
+        return at; 
+    } else {
+        Tree    tt;
+		if (!getProperty(term, env, tt)) {
 			Type tp;
 			if (!isInEnv(env, term, tp)) {
 				Type t = infereSigType(term, env);
@@ -219,17 +211,14 @@ Type getInferredType(Tree term, Tree env)
 				} else {
 					setProperty(term, env, tree((void*)t));	// the result depends of hypothesis
 				}
-				//cerr << "-> TYPE RETURNED (1) : " << *t << endl;;
 				return t;
 			} else {
-				//cerr << "-> TYPE RETURNED (2) : " << *tp << endl;;
 				return tp;
 			}
 		}
-	}
-	Type rt((AudioType*)tree2ptr(tt));
-	//cerr << "-> TYPE RETURNED (3) : " << *rt << "\n";
-	return rt;
+	    Type rt((AudioType*)tree2ptr(tt));
+	    return rt;
+    }
 }
 
 
