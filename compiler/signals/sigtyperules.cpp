@@ -31,6 +31,7 @@
 #include "tlib.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
+#include "recursivness.hh"
 
 
 //--------------------------------------------------------------------------
@@ -565,10 +566,11 @@ static Type infereRecType (Tree var, Tree body, Tree env)
 		setProperty(var, env, tree((void*)t0));
 		t1 = T(body, addEnv(var, t0, env));
 	} while (t1 > t0);
-	if (env == NULLENV) {
-		setSigType(var, t1);
+    cerr << "recursinvess in infereRecType : " << getRecursivness(body) << endl;
+	if (getRecursivness(body) == 1 || env == NULLENV) {
+        setSigType(var, t1);
 		T(body, NULLENV);
-	}
+	} 
 	return t1;
 }
 
