@@ -120,7 +120,8 @@ Type TEXEC 	= new SimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
 Type TINPUT	= new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
 Type TGUI	= new SimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
 Type INT_TGUI   = new SimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
-Type TREC	= new SimpleType(kInt,  kSamp, kInit, kVect, kNum, interval()); // kVect ou kScal ?
+//Type TREC   = new SimpleType(kInt,  kSamp, kInit, kVect, kNum, interval()); // kVect ou kScal ?
+Type TREC   = TINT;
 		
 
 Type operator| ( const Type& t1, const Type& t2)
