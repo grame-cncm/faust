@@ -78,22 +78,12 @@ void setSigType(Tree sig, Type t)
  */
 Type getSigType(Tree sig)
 {
-#if 0	//cerr << "getSigType(" << *sig << ")" ;
-	Tree tt;
-	if (!getProperty(sig, TYPEPROPERTY, tt)) {
-		cerr << "ERROR in getSigType : no type information available for signal :" << *sig << endl;
-		exit(1);
-	}
-	//cerr << " -> " << *((AudioType*)tree2ptr(tt)) << endl;
-	return (AudioType*)tree2ptr(tt);
-#else
 	AudioType* t = (AudioType*) sig->getType();
 	if (t==0) {
 		cerr << "ERROR in getSigType : no type information available for signal :" << *sig << endl;
 		exit(1);
 	}
 	return t;	
-#endif
 }
 
 
@@ -123,9 +113,7 @@ Tree NULLENV = tree(symbol("NullEnv"));
  */
 Tree addEnv(Tree var, Type tp, Tree env)
 {
-	//cerr << "ADD ENV 1 " << *var << "with type " << *tp << " -> ";
 	Tree r = cons(cons(var,tree((AudioType*)tp)),env);
-	//cerr << *r << endl;
 	return r;
 }
 
@@ -179,13 +167,7 @@ static bool isInEnv(Tree env, Tree var, Type& val)
  */
 void typeAnnotation(Tree sig)
 {
-	//cerr << "Start Type annotation of " << *sig << endl;
-//	fprintf(stderr, "debut typeannotation\n");
 	getInferredType(sig, NULLENV);
-//	fprintf(stderr, "millieu typeannotation\n");
-//	markSigType(sig, NULLENV);
-//	fprintf(stderr, "fin typeannotation\n");
-	//cerr << "End Type annotation of " << *sig << endl;
 }
 
 
@@ -276,7 +258,6 @@ static interval __arithmetic (int opcode, const interval& x, const interval& y)
 static interval arithmetic (int opcode, const interval& x, const interval& y)
 {
 	interval r = __arithmetic(opcode,x,y);
-	//cerr << "arithmetic(" << opcode << ',' << x << ',' << y << ") -> " << r << endl;
 	return r;
 }
 
@@ -565,8 +546,10 @@ static Type infereRecType (Tree var, Tree body, Tree env)
 		t0 = t1;
 		setProperty(var, env, tree((void*)t0));
 		t1 = T(body, addEnv(var, t0, env));
-	} while (t1 > t0);
-    cerr << "recursinvess in infereRecType : " << getRecursivness(body) << endl;
+    } while (t1 > t0);
+
+    assert (t1 == t0);
+
 	if (getRecursivness(body) == 1 || env == NULLENV) {
         setSigType(var, t1);
 		T(body, NULLENV);
