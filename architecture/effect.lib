@@ -116,3 +116,54 @@ with {
   gs(s) =  g  : smooth(s);
 };
 
+//------------ pianodispersionfilter(M,B,f0) ---------------
+// Piano dispersion allpass filter in closed form 
+//
+// ARGUMENTS:
+//   M = number of first-order allpass sections (compile-time only)
+//       Keep below 20. 8 is typical for medium-sized piano strings.
+//   B = string inharmonicity coefficient (0.0001 is typical)
+//  f0 = fundamental frequency in Hz
+//
+// INPUT:
+//   Signal to be filtered by the allpass chain
+//
+// OUTPUTS:
+//  1. MINUS the estimated delay at f0 of allpass chain in samples,
+//     provided in negative form to facilitate subtraction
+//     from delay-line length (see USAGE below).
+//  2. Output signal from allpass chain
+//
+// USAGE:
+//  pianodispersionfilter(1,B,f0) : +(totalDelay) : fdelay(maxDelay)
+//
+// Reference: 
+//   "Dispersion Modeling in Waveguide Piano Synthesis
+//    Using Tunable Allpass Filters",
+//   by Jukka Rauhala and Vesa Valimaki, DAFX-2006, pp. 71-76
+//   URL: http://www.dafx.ca/proceedings/papers/p_071.pdf
+//   NOTE: An erratum in Eq. (7) is corrected in Dr. Rauhala's 
+//    encompassing dissertation (and below).
+//   See also: http://www.acoustics.hut.fi/research/asp/piano/
+//
+pianodispersionfilter(M,B,f0) = -Df0*M,seq(i,M,tf1(a1,1,a1))
+with {
+ a1 = (1-D)/(1+D); // By Eq. 3, have D >= 0, hence a1 >= 0 also
+ D = exp(Cd - Ikey(f0)*kd); 
+ trt = pow(2.0,1.0/12.0); // 12th root of 2
+ logb(b,x) = log(x) / log(b); // log-base-b of x
+ Ikey(f0) = logb(trt,f0*trt/27.5);
+ Bc = max(B,0.000001);
+ kd = exp(k1*log(Bc)*log(Bc) + k2*log(Bc)+k3);
+ Cd = exp((m1*log(M)+m2)*log(Bc)+m3*log(M)+m4);
+ k1 = -0.00179;
+ k2 = -0.0233;
+ k3 = -2.93;
+ m1 = 0.0126;
+ m2 = 0.0606;
+ m3 = -0.00825;
+ m4 = 1.97;
+ wT = 2*PI*f0/SR;
+ polydel(a) = atan(sin(wT)/(a+cos(wT)))/wT;
+ Df0 = polydel(a1) - polydel(1.0/a1);
+};
