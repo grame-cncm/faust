@@ -413,6 +413,28 @@ with {
   fdm4 = fd-4;
 };
 
+// fifth-order case, delay in [2,3]
+// delay d should be at least 2
+fdelay5(n,d,x) = 
+   delay(n,id,x)   *    -fdm1*fdm2*fdm3*fdm4*fdm5/120
+ + delay(n,id+1,x) *  fd*     fdm2*fdm3*fdm4*fdm5/24
+ + delay(n,id+2,x) * -fd*fdm1*     fdm3*fdm4*fdm5/12
+ + delay(n,id+3,x) *  fd*fdm1*fdm2*     fdm4*fdm5/12
+ + delay(n,id+4,x) * -fd*fdm1*fdm2*fdm3*     fdm5/24
+ + delay(n,id+5,x) *  fd*fdm1*fdm2*fdm3*fdm4     /120
+with {
+//v1:  o = 1;
+  o = 1.99999;
+  dmo = d - o; // assumed nonnegative
+  id = int(dmo);
+  fd = o + frac(dmo);
+  fdm1 = fd-1;
+  fdm2 = fd-2;
+  fdm3 = fd-3;
+  fdm4 = fd-4;
+  fdm5 = fd-5;
+};
+
 //====================== Thiran Allpass Interpolation =====================
 //
 // Reference:
@@ -479,7 +501,7 @@ with {
   a3 = a2o3*(1-fd)/(3+fd);
 };
 
-// fourth-order allpass delay in [3.5,3.5]
+// fourth-order allpass delay in [3.5,4.5]
 // delay d should be at least 3.5
 fdelay4a(n,d,x) = delay(n,id,x) : tf4(a4,a3,a2,a1,1,a1,a2,a3,a4)
 with {
