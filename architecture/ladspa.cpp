@@ -63,26 +63,26 @@ public:
 	UI() : fStopped(false) {}
 	virtual ~UI() {}
 	
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addToggleButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addButton(const char* label, float* zone) = 0;
+	virtual void addToggleButton(const char* label, float* zone) = 0;
+	virtual void addCheckButton(const char* label, float* zone) = 0;
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 		
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 
 	// -- frames and labels
 	
-	virtual void openFrameBox(char* label) = 0;
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
+	virtual void openFrameBox(const char* label) = 0;
+	virtual void openTabBox(const char* label) = 0;
+	virtual void openHorizontalBox(const char* label) = 0;
+	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void show() = 0;
@@ -249,7 +249,7 @@ class portCollector : public UI
 		return (dst.size() > 0) ? dst :src;
 	}
 
-	void addPortDescr(int type, char* label, int hint, float min=0.0, float max=0.0) 
+	void addPortDescr(int type, const char* label, int hint, float min=0.0, float max=0.0) 
 	{
 		string fullname = simplify(fPrefix.top() + "-" + label);
 		char * str = strdup(fullname.c_str());
@@ -262,7 +262,7 @@ class portCollector : public UI
 		fCtrlCount++; 
 	}
 	
-	void openAnyBox(char* label)
+	void openAnyBox(const char* label)
 	{
 		if (fPrefix.size() == 0) {
 			// top level label is used as plugin name
@@ -308,49 +308,49 @@ class portCollector : public UI
 	
 	//------------------------------Collect the control ports-------------------------------
 
-	virtual void addButton(char* label, float* zone) { 
+	virtual void addButton(const char* label, float* zone) { 
 		addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED); 
 	}
 	
-	virtual void addToggleButton(char* label, float* zone) { 
+	virtual void addToggleButton(const char* label, float* zone) { 
 		addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED); 
 	}
 	
-	virtual void addCheckButton(char* label, float* zone) { 
+	virtual void addCheckButton(const char* label, float* zone) { 
 		addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED); 
 	}
 		
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) { 
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) { 
 		addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
 	}		
 		
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) { 
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) { 
 		addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
 	}
 
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) { 
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) { 
 		addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
 	}
 		
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) {
+	virtual void addNumDisplay(const char* label, float* zone, int precision) {
 		addPortDescr(OCONTROL, label, 0, -10000, +10000); 
 	}
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) {
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) {
 		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
 	}
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) {
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {
 		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
 	}
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max){
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max){
 		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max); 
 	}
 
-	virtual void openFrameBox(char* label)		{ openAnyBox(label); }
-	virtual void openTabBox(char* label)		{ openAnyBox(label); }
-	virtual void openHorizontalBox(char* label)	{ openAnyBox(label); }
-	virtual void openVerticalBox(char* label)	{ openAnyBox(label); }
+	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
+	virtual void openTabBox(const char* label)		{ openAnyBox(label); }
+	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
+	virtual void openVerticalBox(const char* label)	{ openAnyBox(label); }
 	
 	virtual void closeBox() 					{ fPrefix.pop(); }
 	
@@ -372,7 +372,7 @@ class portCollector : public UI
 
 	// fill a ladspa descriptor with the information collected on ports
 	void fillPortDescription (LADSPA_Descriptor * descriptor) {
-		char* name = sym(mydsp);
+		const char* name = sym(mydsp);
 		descriptor->PortCount 			= fCtrlCount+fInsCount+fOutsCount;
 		descriptor->PortDescriptors 	= fPortDescs;
 		descriptor->PortNames 			= fPortNames;
@@ -438,25 +438,25 @@ class portData : public UI
 	
 	//------------------------------Collect the control zones-------------------------------
 
-	virtual void addButton(char* label, float* zone) 			{ addZone(zone); }
-	virtual void addToggleButton(char* label, float* zone)  	{ addZone(zone); }
-	virtual void addCheckButton(char* label, float* zone)  		{ addZone(zone); }
+	virtual void addButton(const char* label, float* zone) 			{ addZone(zone); }
+	virtual void addToggleButton(const char* label, float* zone)  	{ addZone(zone); }
+	virtual void addCheckButton(const char* label, float* zone)  		{ addZone(zone); }
 		
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) 		{ addZone(zone); }
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) 	{ addZone(zone); }
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step)  			{ addZone(zone); }
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) 		{ addZone(zone); }
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ addZone(zone); }
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)  			{ addZone(zone); }
 		
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) 						{ addZone(zone); }
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) 	{ addZone(zone); }
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) 			{ addZone(zone); }
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max)			{ addZone(zone); }
+	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{ addZone(zone); }
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) 	{ addZone(zone); }
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{ addZone(zone); }
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)			{ addZone(zone); }
 	
-	virtual void openFrameBox(char* label)		{ }
-	virtual void openTabBox(char* label)		{ }
-	virtual void openHorizontalBox(char* label)	{ }
-	virtual void openVerticalBox(char* label)	{ }
+	virtual void openFrameBox(const char* label)		{ }
+	virtual void openTabBox(const char* label)		{ }
+	virtual void openHorizontalBox(const char* label)	{ }
+	virtual void openVerticalBox(const char* label)	{ }
 	virtual void closeBox() 					{ }
 	
 	virtual void show() {}
