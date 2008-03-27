@@ -1,8 +1,17 @@
 Faust Syntax Highlighting Files
 -------------------------------
 
-This folder contains syntax highlighting files for various editors. The editors currently supported are : KDE Kate/Kwrite.
+This folder contains syntax highlighting files for various editors. The editors currently supported are : KDE Kate/Kwrite, Macintosh TextWrangler, and highlight
 
 1) KDE Kate/Kwrite
 install the file 'faust.xml' into Kate syntax folder ('/opt/kde3/share/apps/katepart/syntax' on suse 10.0)
 ('/usr/share/apps/katepart/syntax' on mandriva and ubuntu)
+
+2) TextWrangler
+install the file Faust.plist 
+
+3) Highlight
+install dsp.lang into /usr/share/highlight/langDefs/
+Examples using highlight :
+	highlight --latex -l -t 4 -i karplus.dsp -o karplus.dsp.tex
+	highlight -l -t 4 -i mixer.dsp -o mixer.dsp.html
