@@ -62,6 +62,25 @@ void tab (int n, ostream& fout)
 
 
 /**
+ * Store the loop used to compute a signal
+ */
+void Klass::setLoopProperty(Tree sig, Loop* l)
+{
+    fLoopProperty.set(sig,l);
+}
+
+
+/**
+ * Returns the loop used to compute a signal
+ */
+bool Klass::getLoopProperty(Tree sig, Loop*& l)
+{
+    return  fLoopProperty.get(sig, l);
+}
+
+
+
+/**
  * Open a non-recursive loop on top of the stack of open loops.
  * @param size the number of iterations of the loop
  */
@@ -78,7 +97,8 @@ void Klass::openLoop(const string& size)
  */
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
-    fTopLoop = new Loop(recsymbol, fTopLoop, size);    
+    fTopLoop = new Loop(recsymbol, fTopLoop, size);  
+    //cerr << "open loop :" << fTopLoop << endl;  
 }
 
 
@@ -86,19 +106,21 @@ void Klass::openLoop(Tree recsymbol, const string& size)
  * Close the top loop and either keep it
  * or absorb it within its enclosing loop. 
  */
-void Klass::closeLoop()
+void Klass::closeLoop(Tree sig)
 {
     assert(fTopLoop);
     Loop* l = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     assert(fTopLoop);
+    //cerr << "close loop :" << l << endl;  
 
     if (l->isEmpty() || l->hasRecDependencies()) {
         // empty or dependent loop -> absorbed by enclosing one
         fTopLoop->absorb(l);
         delete l;
     } else {
-        // independent loop -> linked to by enclosing one
+        // we have an independent loop
+        if (sig) setLoopProperty(sig,l);     // associate the signal
         fTopLoop->fLoopDependencies.insert(l);
     }
 }

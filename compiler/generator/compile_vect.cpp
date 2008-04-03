@@ -67,9 +67,16 @@ string  VectorCompiler::CS (Tree sig)
         setCompiledExpression(sig, code);
     } else {
         // check for recursive dependencies
-        Loop*   l = fClass->topLoop();
-        if (isProj(sig, &i, x) && l->findRecDefinition(x)) {
-            l->addRecDependency(x);
+        Loop*   ls;
+        Loop*   tl = fClass->topLoop();
+        if (isProj(sig, &i, x) && tl->findRecDefinition(x)) {
+            tl->addRecDependency(x);
+        } else if (fClass->getLoopProperty(sig,ls)) {
+            //cerr << "in CS : fLoopDependencies.insert : " << tl << " --dependson--> " << ls << endl;
+            tl->fLoopDependencies.insert(ls);
+        } else {
+           //cerr << "in CS :  no loop property for : " << ppsig(sig) << endl;
+
         }
     }
     return code;
@@ -101,13 +108,13 @@ string VectorCompiler::generateCode (Tree sig)
                 // x must be defined
                 fClass->openLoop(x, "count");
                 string c = ScalarCompiler::generateCode(sig);
-                fClass->closeLoop();
+                fClass->closeLoop(sig);
                 return c;
             }
         } else {
             fClass->openLoop("count");
             string c = ScalarCompiler::generateCode(sig);
-            fClass->closeLoop();
+            fClass->closeLoop(sig);
             return c;
         }
     } else {
@@ -164,6 +171,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             // not delayed
             if ( sharing > 1 && ! verySimple(sig) ) {
                 // shared and not simple : we need a vector
+               // cerr << "ZEC : " << ppsig(sig) << endl;
                 getTypedNames(getSigType(sig), "Zec", ctype, vname);
                 generateDelayLine(ctype, vname, d, exp);
                 setVectorNameProperty(sig, vname);
@@ -194,6 +202,12 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     int         i;
     Tree        x,y;
 
+
+    if (o->getMaxDelay()>0) {
+        //cerr << "DLY "; // delayed expressions require a separate loop
+        b = true;
+    } else 
+
     if (verySimple(sig) || t->variability()<kSamp) {
         b = false;      // non sample computation never require a loop
     } else if (isSigFixDelay(sig, x, y)) {
@@ -212,6 +226,11 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
         // and not shared, doesn't require a separate loop.
         b = false;
     }
+/*    if (b) {
+        cerr << "Separate Loop for " << ppsig(sig) << endl;
+    } else {
+        cerr << "Same Loop for " << ppsig(sig) << endl;
+    }*/
     return b;
 }
 
@@ -253,6 +272,8 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
     int     mxd, d; 
     string  vecname;
  
+    //cerr << "VectorCompiler::generateFixDelay " << ppsig(sig) << endl;
+
     CS(exp); // ensure exp is compiled to have a vector name
 
     mxd = fOccMarkup.retrieve(exp)->getMaxDelay();

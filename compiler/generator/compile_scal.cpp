@@ -101,7 +101,6 @@ Tree ScalarCompiler::prepare(Tree LS)
 	typeAnnotation(L3);				// Annotate L3 with type information
 	sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
-
   	return L3;
 }
 

@@ -45,6 +45,7 @@ using namespace std;
 #include "smartpointer.hh"
 #include "tlib.hh"
 #include "uitree.hh"
+#include "property.hh"
 
 #define kMaxCategory 32
 
@@ -75,8 +76,8 @@ class Klass //: public Target
     list<string>        fSlowCode;
     list<string>        fEndCode;
 
-    Loop*               fTopLoop;      ///< active loops currently open
-    //set<Loop*>          fLoopSet;           ///< set of closed loops
+    Loop*               fTopLoop;               ///< active loops currently open
+    property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
 
     bool                 vec;
 
@@ -92,7 +93,12 @@ class Klass //: public Target
 
     void    openLoop(const string& size);
     void    openLoop(Tree recsymbol, const string& size);
-    void    closeLoop();
+    void    closeLoop(Tree sig=0);
+
+    void    setLoopProperty(Tree sig, Loop* l);     ///< Store the loop used to compute a signal
+    bool    getLoopProperty(Tree sig, Loop*& l);    ///< Returns the loop used to compute a signal
+
+
 
     Loop*   topLoop()   { return fTopLoop; }
 
@@ -121,7 +127,9 @@ class Klass //: public Target
 
   //void addExecCode (const string& str)	{ fExecCode.push_back(str); }
 
-    void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
+    void addExecCode ( const string& str)   { 
+    //cerr << fTopLoop <<"::addExecCode " << str << endl;
+    fTopLoop->addExecCode(str); }
 
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
