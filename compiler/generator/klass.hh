@@ -123,7 +123,12 @@ class Klass //: public Target
 	void addUICode (const string& str)		{ fUICode.push_back(str); }
 
 
-	void addSlowCode (const string& str)	{ fSlowCode.push_back(str); }
+	//void addSlowCode (const string& str)	{ fSlowCode.push_back(str); }
+	string 	addLocalDecl (const string& type, const string& var);
+	string 	addLocalDecl (const string& type, const string& var, const string& value);
+	string	addLocalVecDecl (const string& ctype, const string& vname, int size);	
+	string	addLocalVecDecl (const string& ctype, const string& vname, const string& size);
+	void 	addSlowExecCode (const string& str);
 
   //void addExecCode (const string& str)	{ fExecCode.push_back(str); }
 

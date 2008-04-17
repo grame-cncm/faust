@@ -286,12 +286,19 @@ void Klass::println(int n, ostream& fout)
                 tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
                     tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
                         tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-                        printlines (n+3, fSlowCode, fout);
-                        //tab(n+3,fout); fout << "#pragma omp parallel";
-                        //tab(n+3,fout); fout << "{";
+
+                        tab(n+3,fout); fout << "#pragma omp single";
+                        tab(n+3,fout); fout << "{";
+                        	printlines (n+4, fSlowCode, fout);
+                        tab(n+3,fout); fout << "}";
+
                         printLoopGraph (n+3,fout);
-                        //tab(n+3,fout); fout << "}";
-                        printlines (n+3, fEndCode, fout);
+
+                        tab(n+3,fout); fout << "#pragma omp single";
+                        tab(n+3,fout); fout << "{";
+                        	printlines (n+4, fEndCode, fout);
+                        tab(n+3,fout); fout << "}";
+
                     tab(n+2,fout); fout << "}";
                 tab(n+1,fout); fout << "}";
             }
@@ -398,4 +405,33 @@ void Klass::collectLibrary(set<string>& S)
 
 	for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->collectLibrary(S);
 	merge(S, fLibrarySet);
+}
+
+string Klass::addLocalDecl (const string& ctype, const string& vname)	
+{ 
+	fSlowCode.push_back(subst("$0 \t$1;", ctype, vname));
+	return vname;
+}
+
+string Klass::addLocalVecDecl (const string& ctype, const string& vname, int size)	
+{ 
+	fSlowCode.push_back(subst("$0 \t$1[$2];", ctype, vname, T(size)));
+	return vname;
+}
+
+string Klass::addLocalVecDecl (const string& ctype, const string& vname, const string& size)	
+{ 
+	fSlowCode.push_back(subst("$0 \t$1[$2];", ctype, vname, size));
+	return vname;
+}
+
+string Klass::addLocalDecl (const string& ctype, const string& vname, const string& exp)	
+{ 
+	fSlowCode.push_back(subst("$0 \t$1 = $2;", ctype, vname, exp));
+	return vname;
+}
+
+void Klass::addSlowExecCode (const string& str)	
+{ 
+	fSlowCode.push_back(str); 
 }
