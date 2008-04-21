@@ -73,6 +73,7 @@ class Klass //: public Target
 	list<string>		fStaticFields;			///< static fields after class
 	list<string>		fInitCode;
 	list<string>		fUICode;
+    list<string>        fSlowDecl;
     list<string>        fSlowCode;
     list<string>        fEndCode;
 
