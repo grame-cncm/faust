@@ -947,15 +947,16 @@ void* jackthread(void* arg)
 	jack_nframes_t nframes;
     #pragma omp parallel
     {
+		#pragma omp single
+		{
+			nframes = jack_cycle_wait(client);
+		}
         while (1) {
-			#pragma omp single
-			{
-            	nframes = jack_cycle_wait(client);
-			}
             process(nframes, arg);
 			#pragma omp single
 			{
             	jack_cycle_signal(client, 0);
+            	nframes = jack_cycle_wait(client);
 			}			
         }
     }
