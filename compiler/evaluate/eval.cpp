@@ -39,6 +39,8 @@
 #include "signals.hh"
 #include "xtended.hh"
 #include "loopDetector.hh"
+#include "property.hh"
+
 
 #include <assert.h>
 extern SourceReader	gReader;
@@ -112,15 +114,24 @@ Tree evalprocess (Tree eqlist)
  * @return an expression where abstractions have been replaced by symbolic boxes
  */
 
+property<Tree> gSymbolicBoxProperty;
+
 static Tree real_a2sb(Tree exp);
 
 static Tree a2sb(Tree exp)
 {
-	Tree	id;
-	Tree 	result = real_a2sb(exp);
+    Tree    result;
+    Tree    id;
+
+    if (gSymbolicBoxProperty.get(exp, result)) {
+        return result;
+    }
+
+	result = real_a2sb(exp);
 	if (result != exp && getDefNameProperty(exp, id)) {
 		setDefNameProperty(result, id);		// propagate definition name property when needed
 	}
+    gSymbolicBoxProperty.set(exp, result);
 	return result;
 }
 
