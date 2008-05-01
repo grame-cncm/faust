@@ -6,7 +6,9 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS := -g -O3 -Wall -Wuninitialized $(addprefix -I, $(subprojects))
+###CXXFLAGS := -g -O3 -Wall -Wuninitialized $(addprefix -I, $(subprojects))
+
+CXXFLAGS := -g -O0 -Wall $(addprefix -I, $(subprojects))
 
 
 all : faust
