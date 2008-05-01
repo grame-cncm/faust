@@ -124,11 +124,13 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	L = prepare(L);		// optimize, share and annotate expression
 	for (int i = 0; i < fClass->inputs(); i++) {
 		//fClass->addSlowCode(subst("float* input$0 = input[$0];", T(i)));
-		fClass->addLocalDecl("float*", subst("input$0",T(i)), subst("input[$0]",T(i)));
+		//fClass->addLocalDecl("float*", subst("input$0",T(i)), subst("input[$0]",T(i)));
+        fClass->addLocalCommonDecl("float*", subst("input$0", T(i)), subst("input[$0];", T(i)));
 	}
 	for (int i = 0; i < fClass->outputs(); i++) {
 		//fClass->addSlowCode(subst("float* output$0 = output[$0];", T(i)));
-		fClass->addLocalDecl("float*", subst("output$0",T(i)), subst("output[$0]",T(i)));
+		//fClass->addLocalDecl("float*", subst("output$0",T(i)), subst("output[$0]",T(i)));
+        fClass->addLocalCommonDecl("float*", subst("output$0", T(i)), subst("output[$0];", T(i)));
 	}
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);

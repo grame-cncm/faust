@@ -206,7 +206,7 @@ void Klass::printLoopGraph(int n, ostream& fout)
                     (*p)->println(n+1, fout);
                 }
                 tab(n, fout); fout << "} ";
-            } else {
+            } else if (G[l].size() == 1 && !(*G[l].begin())->isEmpty()) {
                 tab(n, fout); fout << "#pragma omp single ";
                 tab(n, fout); fout << "{ ";
 					for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
@@ -427,10 +427,16 @@ string Klass::addLocalVecDecl (const string& ctype, const string& vname, int siz
 	return vname;
 }
 
-string Klass::addLocalVecDecl (const string& ctype, const string& vname, const string& size)	
+string Klass::addLocalVecDecl (const string& ctype, const string& vname, const string& size)    
 { 
-	fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, size));
-	return vname;
+    fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, size));
+    return vname;
+}
+
+string Klass::addLocalCommonDecl (const string& ctype, const string& vname, const string& init)
+{ 
+    fSlowDecl.push_back(subst("$0 \t$1 = $2;", ctype, vname, init));
+    return vname;
 }
 
 string Klass::addLocalDecl (const string& ctype, const string& vname, const string& exp)	

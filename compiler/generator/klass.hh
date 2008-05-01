@@ -125,6 +125,7 @@ class Klass //: public Target
 
 
 	//void addSlowCode (const string& str)	{ fSlowCode.push_back(str); }
+    string  addLocalCommonDecl (const string& ctype, const string& vname, const string& init);
 	string 	addLocalDecl (const string& type, const string& var);
 	string 	addLocalDecl (const string& type, const string& var, const string& value);
 	string	addLocalVecDecl (const string& ctype, const string& vname, int size);	
