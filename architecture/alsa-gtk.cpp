@@ -97,7 +97,8 @@ class AudioParam
 			
 	const char*		fCardName;					
 	unsigned int	fFrequency;
-	int				fBuffering; 
+	unsigned int	fBuffering; 
+	unsigned int	fPeriods; 
 	
 	unsigned int	fSoftInputs;
 	unsigned int	fSoftOutputs;
@@ -107,6 +108,7 @@ class AudioParam
 		fCardName("hw:0"),
 		fFrequency(44100),
 		fBuffering(512),
+		fPeriods(2),
 		fSoftInputs(2),
 		fSoftOutputs(2)
 	{}
@@ -114,6 +116,7 @@ class AudioParam
 	AudioParam&	cardName(const char* n)	{ fCardName = n; 		return *this; }
 	AudioParam&	frequency(int f)		{ fFrequency = f; 		return *this; }
 	AudioParam&	buffering(int fpb)		{ fBuffering = fpb; 	return *this; }
+	AudioParam&	periods(int p)			{ fPeriods = p; 		return *this; }
 	AudioParam&	inputs(int n)			{ fSoftInputs = n; 		return *this; }
 	AudioParam&	outputs(int n)			{ fSoftOutputs = n; 	return *this; }
 };
@@ -157,6 +160,7 @@ class AudioInterface : public AudioParam
 	const char*	cardName()				{ return fCardName;  	}
  	int			frequency()				{ return fFrequency; 	}
 	int			buffering()				{ return fBuffering;  	}
+	int			periods()				{ return fPeriods;  	}
 	
 	float**		inputSoftChannels()		{ return fInputSoftChannels;	}
 	float**		outputSoftChannels()	{ return fOutputSoftChannels;	}
@@ -272,7 +276,7 @@ class AudioInterface : public AudioParam
 		err = snd_pcm_hw_params_set_period_size	(stream, params, fBuffering, 0); 	
 		check_error_msg(err, "period size not available");
 		
-		err = snd_pcm_hw_params_set_periods (stream, params, 2, 0); 			
+		err = snd_pcm_hw_params_set_periods (stream, params, fPeriods, 0); 			
 		check_error_msg(err, "number of periods not available");
 
 	}
@@ -585,7 +589,7 @@ class UI
 
 	// -- saveState(filename) : save the value of every zone to a file
 	
-	void saveState(char* filename)	
+	void saveState(const char* filename)	
 	{
 		ofstream f(filename);
 		
@@ -599,7 +603,7 @@ class UI
 
 	// -- recallState(filename) : load the value of every zone from a file
 	
-	void recallState(char* filename)	
+	void recallState(const char* filename)	
 	{
 		ifstream f(filename);
 		if (f.good()) {
@@ -624,28 +628,28 @@ class UI
 	
 	// -- active widgets
 	
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addToggleButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addButton(const char* label, float* zone) = 0;
+	virtual void addToggleButton(const char* label, float* zone) = 0;
+	virtual void addCheckButton(const char* label, float* zone) = 0;
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
 	void addCallback(float* zone, uiCallback foo, void* data);
 	
 	// -- widget's layouts
 	
-	virtual void openFrameBox(char* label) = 0;
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
+	virtual void openFrameBox(const char* label) = 0;
+	virtual void openTabBox(const char* label) = 0;
+	virtual void openHorizontalBox(const char* label) = 0;
+	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void show() = 0;
@@ -780,7 +784,7 @@ class GTKUI : public UI
 	int 		fMode[stackSize];
 	bool		fStopped;
 
-	GtkWidget* addWidget(char* label, GtkWidget* w);
+	GtkWidget* addWidget(const char* label, GtkWidget* w);
 	virtual void pushBox(int mode, GtkWidget* w);
 
 		
@@ -794,28 +798,28 @@ class GTKUI : public UI
 	
 	// -- layout groups
 	
-	virtual void openFrameBox(char* label);	
-	virtual void openTabBox(char* label = "");
-	virtual void openHorizontalBox(char* label = "");
-	virtual void openVerticalBox(char* label = "");
+	virtual void openFrameBox(const char* label);	
+	virtual void openTabBox(const char* label = "");
+	virtual void openHorizontalBox(const char* label = "");
+	virtual void openVerticalBox(const char* label = "");
 	
 	virtual void closeBox();
 	
 	// -- active widgets
 	
-	virtual void addButton(char* label, float* zone);
-	virtual void addToggleButton(char* label, float* zone);
-	virtual void addCheckButton(char* label, float* zone);
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step);	
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step);	
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step);
+	virtual void addButton(const char* label, float* zone);
+	virtual void addToggleButton(const char* label, float* zone);
+	virtual void addCheckButton(const char* label, float* zone);
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);	
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step);	
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
 	
 	// -- passive display widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision);
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max);
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max);
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max);
+	virtual void addNumDisplay(const char* label, float* zone, int precision);
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max);
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
 	
 	virtual void show();
 	virtual void run();
@@ -888,7 +892,7 @@ void GTKUI::closeBox()
 
 // les differentes boites
 
-void GTKUI::openFrameBox(char* label)
+void GTKUI::openFrameBox(const char* label)
 {
 	GtkWidget * box = gtk_frame_new (label);
 	//gtk_container_set_border_width (GTK_CONTAINER (box), 10);
@@ -896,12 +900,12 @@ void GTKUI::openFrameBox(char* label)
 	pushBox(kSingleMode, addWidget(label, box));
 }
 
-void GTKUI::openTabBox(char* label)
+void GTKUI::openTabBox(const char* label)
 {
 	pushBox(kTabMode, addWidget(label, gtk_notebook_new ()));
 }
 
-void GTKUI::openHorizontalBox(char* label)
+void GTKUI::openHorizontalBox(const char* label)
 {	
 	GtkWidget * box = gtk_hbox_new (homogene, 4);
 	gtk_container_set_border_width (GTK_CONTAINER (box), 10);
@@ -916,7 +920,7 @@ void GTKUI::openHorizontalBox(char* label)
 	}
 }
 
-void GTKUI::openVerticalBox(char* label)
+void GTKUI::openVerticalBox(const char* label)
 {
 	GtkWidget * box = gtk_vbox_new (homogene, 4);
 	gtk_container_set_border_width (GTK_CONTAINER (box), 10);
@@ -931,7 +935,7 @@ void GTKUI::openVerticalBox(char* label)
 	}
 }
 	
-GtkWidget* GTKUI::addWidget(char* label, GtkWidget* w)
+GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
 { 
 	switch (fMode[fTop]) {
 		case kSingleMode	: gtk_container_add (GTK_CONTAINER(fBox[fTop]), w); 							break;
@@ -970,7 +974,7 @@ struct uiButton : public uiItem
 	}
 };
 
-void GTKUI::addButton(char* label, float* zone)
+void GTKUI::addButton(const char* label, float* zone)
 {
 	*zone = 0.0;
 	GtkWidget* 	button = gtk_button_new_with_label (label);
@@ -1005,7 +1009,7 @@ struct uiToggleButton : public uiItem
 	}
 };
 
-void GTKUI::addToggleButton(char* label, float* zone)
+void GTKUI::addToggleButton(const char* label, float* zone)
 {
 	*zone = 0.0;
 	GtkWidget* 	button = gtk_toggle_button_new_with_label (label);
@@ -1038,7 +1042,7 @@ struct uiCheckButton : public uiItem
 	}
 };
 
-void GTKUI::addCheckButton(char* label, float* zone)
+void GTKUI::addCheckButton(const char* label, float* zone)
 {
 	*zone = 0.0;
 	GtkWidget* 	button = gtk_check_button_new_with_label (label);
@@ -1081,7 +1085,7 @@ static int precision(double n)
 
 // -------------------------- Vertical Slider -----------------------------------
 
-void GTKUI::addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
+void GTKUI::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 {
 	*zone = init;
 	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
@@ -1102,7 +1106,7 @@ void GTKUI::addVerticalSlider(char* label, float* zone, float init, float min, f
 
 // -------------------------- Horizontal Slider -----------------------------------
 
-void GTKUI::addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step)
+void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 {
 	*zone = init;
 	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
@@ -1123,7 +1127,7 @@ void GTKUI::addHorizontalSlider(char* label, float* zone, float init, float min,
 
 // ------------------------------ Num Entry -----------------------------------
 
-void GTKUI::addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 {
 	*zone = init;
 	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, step);
@@ -1167,7 +1171,7 @@ struct uiBargraph : public uiItem
 
 	
 
-void GTKUI::addVerticalBargraph(char* label, float* zone, float lo, float hi)
+void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float hi)
 {
 	GtkWidget* pb = gtk_progress_bar_new();
 	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_BOTTOM_TO_TOP);
@@ -1179,7 +1183,7 @@ void GTKUI::addVerticalBargraph(char* label, float* zone, float lo, float hi)
 }
 	
 
-void GTKUI::addHorizontalBargraph(char* label, float* zone, float lo, float hi)
+void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, float hi)
 {
 	GtkWidget* pb = gtk_progress_bar_new();
 	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_LEFT_TO_RIGHT);
@@ -1211,7 +1215,7 @@ struct uiNumDisplay : public uiItem
 		} else if (fPrecision>3) {
 			snprintf(s, 63, "%f", v);
 		} else {
-			char* format[] = {"%.1f", "%.2f", "%.3f"};
+			const char* format[] = {"%.1f", "%.2f", "%.3f"};
 			snprintf(s, 63, format[fPrecision-1], v);
 		}
 		gtk_label_set_text(fLabel, s);
@@ -1219,7 +1223,7 @@ struct uiNumDisplay : public uiItem
 };
 	
 
-void GTKUI::addNumDisplay(char* label, float* zone, int precision )
+void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 {
 	GtkWidget* lw = gtk_label_new("");
 	new uiNumDisplay(this, zone, GTK_LABEL(lw), precision);
@@ -1262,7 +1266,7 @@ struct uiTextDisplay : public uiItem
 };
 	
 
-void GTKUI::addTextDisplay(char* label, float* zone, char* names[], float lo, float hi )
+void GTKUI::addTextDisplay(const char* label, float* zone, char* names[], float lo, float hi )
 {
 	GtkWidget* lw = gtk_label_new("");
 	new uiTextDisplay (this, zone, GTK_LABEL(lw), names, lo, hi);
@@ -1350,7 +1354,7 @@ mydsp	DSP;
 	
 // lopt : Scan Command Line long int Arguments
 
-long lopt (int argc, char *argv[], char* longname, char* shortname, long def) 
+long lopt (int argc, char *argv[], const char* longname, const char* shortname, long def) 
 {
 	for (int i=2; i<argc; i++) 
 		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
@@ -1360,7 +1364,7 @@ long lopt (int argc, char *argv[], char* longname, char* shortname, long def)
 	
 // sopt : Scan Command Line string Arguments
 
-char* sopt (int argc, char *argv[], char* longname, char* shortname, char* def) 
+const char* sopt (int argc, char *argv[], const char* longname, const char* shortname, const char* def) 
 {
 	for (int i=2; i<argc; i++) 
 		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
@@ -1370,7 +1374,7 @@ char* sopt (int argc, char *argv[], char* longname, char* shortname, char* def)
 	
 // fopt : Scan Command Line flag option (without argument), return true if the flag
 
-bool fopt (int argc, char *argv[], char* longname, char* shortname) 
+bool fopt (int argc, char *argv[], const char* longname, const char* shortname) 
 {
 	for (int i=1; i<argc; i++) 
 		if ( strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0 ) 
@@ -1406,6 +1410,7 @@ int main(int argc, char *argv[] )
 		AudioParam().cardName( sopt(argc, argv, "--device", "-d", "hw:0") ) 
 					.frequency( lopt(argc, argv, "--frequency", "-f", 44100) ) 
 					.buffering( lopt(argc, argv, "--buffer", "-b", 1024) )
+					.periods( lopt(argc, argv, "--periods", "-p", 2) )
 					.inputs(DSP.getNumInputs())
 					.outputs(DSP.getNumOutputs())
 	);
@@ -1423,15 +1428,24 @@ int main(int argc, char *argv[] )
 	bool rt = setRealtimePriority();
 	printf(rt?"RT : ":"NRT: "); audio.shortinfo();
 	if (fopt(argc, argv, "--verbose", "-v")) audio.longinfo();
-	
+	bool running = true;
 	audio.write();
 	audio.write();
-	while(!interface->stopped()) {
-		audio.read();
-		DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
-		audio.write();
-	} 
-	
+	#pragma omp parallel
+	{
+		while(running) {
+			#pragma omp single
+			{
+				audio.read();
+			}
+			DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
+			#pragma omp single
+			{
+				audio.write();
+				running = !interface->stopped();
+			}
+		} 
+	}
 	interface->saveState(rcfilename);
 
   	return 0;
