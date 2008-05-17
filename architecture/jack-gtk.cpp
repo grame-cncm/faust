@@ -118,7 +118,7 @@ class UI
 
 	// -- saveState(filename) : save the value of every zone to a file
 	
-	void saveState(char* filename)	
+	void saveState(const char* filename)	
 	{
 		ofstream f(filename);
 		
@@ -132,7 +132,7 @@ class UI
 
 	// -- recallState(filename) : load the value of every zone from a file
 	
-	void recallState(char* filename)	
+	void recallState(const char* filename)	
 	{
 		ifstream f(filename);
 		if (f.good()) {
@@ -157,28 +157,28 @@ class UI
 	
 	// -- active widgets
 	
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addToggleButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addButton(const char* label, float* zone) = 0;
+	virtual void addToggleButton(const char* label, float* zone) = 0;
+	virtual void addCheckButton(const char* label, float* zone) = 0;
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
 	void addCallback(float* zone, uiCallback foo, void* data);
 	
 	// -- widget's layouts
 	
-	virtual void openFrameBox(char* label) = 0;
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
+	virtual void openFrameBox(const char* label) = 0;
+	virtual void openTabBox(const char* label) = 0;
+	virtual void openHorizontalBox(const char* label) = 0;
+	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void show() = 0;
@@ -314,7 +314,7 @@ class GTKUI : public UI
 	int 		fMode[stackSize];
 	bool		fStopped;
 
-	GtkWidget* addWidget(char* label, GtkWidget* w);
+	GtkWidget* addWidget(const char* label, GtkWidget* w);
 	virtual void pushBox(int mode, GtkWidget* w);
 
 		
@@ -328,28 +328,28 @@ class GTKUI : public UI
 	
 	// -- layout groups
 	
-	virtual void openFrameBox(char* label);	
-	virtual void openTabBox(char* label = "");
-	virtual void openHorizontalBox(char* label = "");
-	virtual void openVerticalBox(char* label = "");
+	virtual void openFrameBox(const char* label);	
+	virtual void openTabBox(const char* label = "");
+	virtual void openHorizontalBox(const char* label = "");
+	virtual void openVerticalBox(const char* label = "");
 	
 	virtual void closeBox();
 	
 	// -- active widgets
 	
-	virtual void addButton(char* label, float* zone);
-	virtual void addToggleButton(char* label, float* zone);
-	virtual void addCheckButton(char* label, float* zone);
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step);	
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step);	
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step);
+	virtual void addButton(const char* label, float* zone);
+	virtual void addToggleButton(const char* label, float* zone);
+	virtual void addCheckButton(const char* label, float* zone);
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);	
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step);	
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
 	
 	// -- passive display widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision);
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max);
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max);
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max);
+	virtual void addNumDisplay(const char* label, float* zone, int precision);
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max);
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
 	
 	virtual void show();
 	virtual void run();
@@ -422,7 +422,7 @@ void GTKUI::closeBox()
 
 // les differentes boites
 
-void GTKUI::openFrameBox(char* label)
+void GTKUI::openFrameBox(const char* label)
 {
 	GtkWidget * box = gtk_frame_new (label);
 	//gtk_container_set_border_width (GTK_CONTAINER (box), 10);
@@ -430,12 +430,12 @@ void GTKUI::openFrameBox(char* label)
 	pushBox(kSingleMode, addWidget(label, box));
 }
 
-void GTKUI::openTabBox(char* label)
+void GTKUI::openTabBox(const char* label)
 {
 	pushBox(kTabMode, addWidget(label, gtk_notebook_new ()));
 }
 
-void GTKUI::openHorizontalBox(char* label)
+void GTKUI::openHorizontalBox(const char* label)
 {	
 	GtkWidget * box = gtk_hbox_new (homogene, 4);
 	gtk_container_set_border_width (GTK_CONTAINER (box), 10);
@@ -450,7 +450,7 @@ void GTKUI::openHorizontalBox(char* label)
 	}
 }
 
-void GTKUI::openVerticalBox(char* label)
+void GTKUI::openVerticalBox(const char* label)
 {
 	GtkWidget * box = gtk_vbox_new (homogene, 4);
 	gtk_container_set_border_width (GTK_CONTAINER (box), 10);
@@ -465,7 +465,7 @@ void GTKUI::openVerticalBox(char* label)
 	}
 }
 	
-GtkWidget* GTKUI::addWidget(char* label, GtkWidget* w)
+GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
 { 
 	switch (fMode[fTop]) {
 		case kSingleMode	: gtk_container_add (GTK_CONTAINER(fBox[fTop]), w); 							break;
@@ -504,7 +504,7 @@ struct uiButton : public uiItem
 	}
 };
 
-void GTKUI::addButton(char* label, float* zone)
+void GTKUI::addButton(const char* label, float* zone)
 {
 	*zone = 0.0;
 	GtkWidget* 	button = gtk_button_new_with_label (label);
@@ -539,7 +539,7 @@ struct uiToggleButton : public uiItem
 	}
 };
 
-void GTKUI::addToggleButton(char* label, float* zone)
+void GTKUI::addToggleButton(const char* label, float* zone)
 {
 	*zone = 0.0;
 	GtkWidget* 	button = gtk_toggle_button_new_with_label (label);
@@ -572,7 +572,7 @@ struct uiCheckButton : public uiItem
 	}
 };
 
-void GTKUI::addCheckButton(char* label, float* zone)
+void GTKUI::addCheckButton(const char* label, float* zone)
 {
 	*zone = 0.0;
 	GtkWidget* 	button = gtk_check_button_new_with_label (label);
@@ -615,7 +615,7 @@ static int precision(double n)
 
 // -------------------------- Vertical Slider -----------------------------------
 
-void GTKUI::addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
+void GTKUI::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 {
 	*zone = init;
 	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
@@ -636,7 +636,7 @@ void GTKUI::addVerticalSlider(char* label, float* zone, float init, float min, f
 
 // -------------------------- Horizontal Slider -----------------------------------
 
-void GTKUI::addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step)
+void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 {
 	*zone = init;
 	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
@@ -657,7 +657,7 @@ void GTKUI::addHorizontalSlider(char* label, float* zone, float init, float min,
 
 // ------------------------------ Num Entry -----------------------------------
 
-void GTKUI::addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 {
 	*zone = init;
 	GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, step);
@@ -701,7 +701,7 @@ struct uiBargraph : public uiItem
 
 	
 
-void GTKUI::addVerticalBargraph(char* label, float* zone, float lo, float hi)
+void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float hi)
 {
 	GtkWidget* pb = gtk_progress_bar_new();
 	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_BOTTOM_TO_TOP);
@@ -713,7 +713,7 @@ void GTKUI::addVerticalBargraph(char* label, float* zone, float lo, float hi)
 }
 	
 
-void GTKUI::addHorizontalBargraph(char* label, float* zone, float lo, float hi)
+void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, float hi)
 {
 	GtkWidget* pb = gtk_progress_bar_new();
 	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_LEFT_TO_RIGHT);
@@ -745,7 +745,7 @@ struct uiNumDisplay : public uiItem
 		} else if (fPrecision>3) {
 			snprintf(s, 63, "%f", v);
 		} else {
-			char* format[] = {"%.1f", "%.2f", "%.3f"};
+			const char* format[] = {"%.1f", "%.2f", "%.3f"};
 			snprintf(s, 63, format[fPrecision-1], v);
 		}
 		gtk_label_set_text(fLabel, s);
@@ -753,7 +753,7 @@ struct uiNumDisplay : public uiItem
 };
 	
 
-void GTKUI::addNumDisplay(char* label, float* zone, int precision )
+void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 {
 	GtkWidget* lw = gtk_label_new("");
 	new uiNumDisplay(this, zone, GTK_LABEL(lw), precision);
@@ -767,15 +767,15 @@ void GTKUI::addNumDisplay(char* label, float* zone, int precision )
 
 struct uiTextDisplay : public uiItem
 {
-	GtkLabel* 	fLabel;
-	char**		fNames;
-	float		fMin;
-	float		fMax;
-	int			fNum;
+	GtkLabel* 	    fLabel;
+	const char**    fNames;
+	float		    fMin;
+	float		    fMax;
+	int			    fNum;
 	
 	
-	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, char* names[], float lo, float hi) 
-			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)  
+	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi) 
+			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
 	{
 		fNum = 0;
 		while (fNames[fNum] != 0) fNum++;
@@ -796,7 +796,7 @@ struct uiTextDisplay : public uiItem
 };
 	
 
-void GTKUI::addTextDisplay(char* label, float* zone, char* names[], float lo, float hi )
+void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], float lo, float hi )
 {
 	GtkWidget* lw = gtk_label_new("");
 	new uiTextDisplay (this, zone, GTK_LABEL(lw), names, lo, hi);
@@ -939,7 +939,18 @@ int process (jack_nframes_t nframes, void *arg)
 	DSP.compute(nframes, gInChannel, gOutChannel);
 	return 0;
 }
-
+#ifdef _OPENMP
+void* jackthread(void* arg)
+{
+    jack_client_t*  client = (jack_client_t*) arg;
+	jack_nframes_t nframes;
+    while (1) {
+        nframes = jack_cycle_wait(client);
+        process(nframes, arg);
+        jack_cycle_signal(client, 0);
+    }
+}
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -961,7 +972,7 @@ int main(int argc, char *argv[] )
     char                buf [256];
     char                rcfilename[256];
     jack_status_t       jackstat;
-    char                *home;
+    const char          *home;
     char                *pname;
     char                *jname;
 
@@ -975,7 +986,11 @@ int main(int argc, char *argv[] )
         jname = jack_get_client_name (client);
     }
 
+#ifdef _OPENMP
+    jack_set_process_thread(client, jackthread, client);
+#else
     jack_set_process_callback(client, process, 0);
+#endif
     jack_set_sample_rate_callback(client, srate, 0);
     jack_on_shutdown(client, jack_shutdown, 0);
     
