@@ -289,6 +289,7 @@ void Klass::println(int n, ostream& fout)
                 // in openMP mode we need to split loops in smaller pieces not larger
                 // than gVecSize and add openMP pragmas
                 tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                    tab(n+2,fout); fout << "#pragma omp parallel";
                     tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
                         tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
                         printlines (n+3, fSlowDecl, fout);
@@ -417,19 +418,32 @@ void Klass::collectLibrary(set<string>& S)
 
 string Klass::addLocalDecl (const string& ctype, const string& vname)	
 { 
-	fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
+    if (!gOpenMPSwitch) {
+        fSlowDecl.push_back(subst("$0 \t$1;", ctype, vname));
+    } else {
+	    fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
+    }
 	return vname;
 }
 
 string Klass::addLocalVecDecl (const string& ctype, const string& vname, int size)	
 { 
-	fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+    if (!gOpenMPSwitch) {
+        fSlowDecl.push_back(subst("$0 \t$1[$2];", ctype, vname, T(size)));
+    } else {
+        fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+    }
+	
 	return vname;
 }
 
 string Klass::addLocalVecDecl (const string& ctype, const string& vname, const string& size)    
 { 
-    fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, size));
+    if (!gOpenMPSwitch) {
+        fSlowDecl.push_back(subst("$0 \t$1[$2];", ctype, vname, size));
+    } else {
+        fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, size));
+    }
     return vname;
 }
 
@@ -440,10 +454,13 @@ string Klass::addLocalCommonDecl (const string& ctype, const string& vname, cons
 }
 
 string Klass::addLocalDecl (const string& ctype, const string& vname, const string& exp)	
-{ 
-	//fSlowCode.push_back(subst("$0 \t$1 = $2;", ctype, vname, exp));
-	fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
-	fSlowCode.push_back(subst("$0 = $1;", vname, exp));
+{
+    if (!gOpenMPSwitch) {
+        fSlowCode.push_back(subst("$0 \t$1 = $2;", ctype, vname, exp));
+    } else {
+	    fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
+	    fSlowCode.push_back(subst("$0 = $1;", vname, exp));
+    }
 	return vname;
 }
 
