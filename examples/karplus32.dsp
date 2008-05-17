@@ -18,7 +18,7 @@ import("music.lib");
 upfront(x) 	= (x-x') > 0.0;
 decay(n,x)	= x - (x>0)/n;
 release(n)	= + ~ decay(n);
-trigger(n) 	= upfront : release(n) : >(0.0) : +(leak);
+trigger(n) 	= upfront : release(n) : >(0.0); // : +(leak);
 leak 		= 1.0/65536.0;
 
 size 		= hslider("excitation (samples)", 128, 2, 512, 1);
