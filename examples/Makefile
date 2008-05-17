@@ -1,6 +1,37 @@
-all : jackgtk
+MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2' 
+MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
-test: jackgtk alsagtk jackqt alsaqt ladspa ossgtk bench plot sndfile jackconsole
+
+test: ijackgtk ijackvec ijackomp gjackgtk gjackvec gjackomp
+
+ijackgtk :
+	install -d ijackgtkdir
+	$(MAKE) DEST='ijackgtkdir/' ARCH='jack-gtk.cpp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ijackvec :
+	install -d ijackvecdir
+	$(MAKE) DEST='ijackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ijackomp :
+	install -d ijackompdir
+	$(MAKE) DEST='ijackompdir/' ARCH='jack-gtk.cpp' VEC='-vs 4096 -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
+
+gjackgtk :
+	install -d gjackgtkdir
+	$(MAKE) DEST='gjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gjackvec :
+	install -d gjackvecdir
+	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gjackomp :
+	install -d gjackompdir
+	$(MAKE) DEST='gjackompdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096 -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
+
+
+jackqt :
+	install -d jackqtdir
+	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack' -f Makefile.qtcompile
 
 svg:
 	$(MAKE) -f Makefile.svg
@@ -12,14 +43,6 @@ puredata :
 alsagtk :
 	install -d alsagtkdir
 	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' -f Makefile.compile
-
-jackgtk :
-	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
-
-jackqt :
-	install -d jackqtdir
-	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack' -f Makefile.qtcompile
 
 alsaqt :
 	install -d alsaqtdir
@@ -69,6 +92,26 @@ bench :
 	install -d benchdir
 	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' LIB='' -f Makefile.compile
 
+ibench :
+	install -d ibenchdir
+	$(MAKE) DEST='ibenchdir/' ARCH='parbench.cpp' LIB='' CXX='icc' CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+ivecbench :
+	install -d ivecbenchdir
+	$(MAKE) DEST='ivecbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024' LIB='' CXX='icc' CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+ivecjack :
+	install -d ivecjackdir
+	$(MAKE) DEST='ivecjackdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 1024' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' CXX='icc' CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+iparbench :
+	install -d iparbenchdir
+	$(MAKE) DEST='iparbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024 -omp' LIB='' CXX='icc' CXXFLAGS='-O3 -openmp -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+gparbench :
+	install -d gparbenchdir
+	$(MAKE) DEST='gparbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024 -omp' LIB='' CXX='g++-4.2' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
+
 sndfile :
 	install -d sndfiledir
 	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-lsndfile' -f Makefile.compile
@@ -95,6 +138,4 @@ jackconsole :
 
 
 clean :
-	rm -rf alsagtkdir jackgtkdir alsaqtdir jackqtdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir vstdir benchdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir plotdir jackconsoledir matlabplotdir *-ps *-svg
-
-
+	rm -rf *dir
