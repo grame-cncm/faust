@@ -59,7 +59,7 @@ module Faust
     def initialize(node)
       @type = node.attributes["type"]
       @id   = node.attributes["id"]
-      @label = node.elements["label"].text.strip
+      @label = node.elements["label"].text
       dict = node.elements
       @init = dict["init"].to_f
       @min  = dict["min"].to_f
@@ -81,7 +81,7 @@ module Faust
     def initialize(path, node)
       @path = path
       %w(name author copyright license).each { |name|
-        instance_variable_set("@#{name}", node.elements["/faust/#{name}"].text.strip)
+        instance_variable_set("@#{name}", node.elements["/faust/#{name}"].text)
       }
       %w(inputs outputs).each { |name|
         instance_variable_set("@#{name}", node.elements["/faust/#{name}"].text.to_i)
@@ -206,7 +206,7 @@ module Faust
       end
       def generate_body(io)
         io.print("{\n")
-        io.print <<EOF
+        body = <<EOF
 \t*ar { | #{self.decl_args} |
 \t\t^this.multiNew(#{self.new_args(:audio).join(", ")})
 \t}
@@ -215,6 +215,7 @@ module Faust
 \t}
 \tname { ^\"#{@unit_name}\" }
 EOF
+        io.print(body)
         generate_outputs(io)
         io.print("}\n")
       end
@@ -283,14 +284,16 @@ plugins = ARGV.collect { |file|
 
 begin
   plugins.each { |plugin|
-    begin
-      gen = Faust::SC3::UGenGen.new(plugin, prefix)
-      print_info("generating #{gen.class_name}\n")
-      gen.generate(output)
-      output.print("\n\n")
-    rescue
-      print_error("#{$!}\n")
-      print_error("omitting #{plugin.path}\n")
+    if plugin
+      begin
+        gen = Faust::SC3::UGenGen.new(plugin, prefix)
+        print_info("generating #{gen.class_name}\n")
+        gen.generate(output)
+        output.print("\n\n")
+      rescue
+        print_error("#{$!}\n")
+        print_error("omitting #{plugin.path}\n")
+      end
     end
   }
   output.print("\n")

@@ -20,3 +20,5 @@ Currently the following tools are available :
 - faust2pd is a Q program used to generate a user interface patch to
   use in conjuction with a Faust generated pd plugin.
 
+- scbuilder is a Ruby/Python/SCons script for building SuperCollider
+  plugins, either from C++ sources or from Faust specifications.

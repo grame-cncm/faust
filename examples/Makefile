@@ -1,3 +1,5 @@
+SC_SOURCE_DIR = ../../supercollider
+
 all : jackgtk
 
 test: jackgtk alsagtk jackqt alsaqt ladspa ossgtk bench plot sndfile jackconsole
@@ -85,9 +87,15 @@ q :
 	install -d qdir
 	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='' -f Makefile.qcompile
 
+# supercollider :
+# 	install -d supercolliderdir
+# 	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.sccompile
+
 supercollider :
-	install -d supercolliderdir
-	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.sccompile
+	ls *.dsp | ../tools/scbuilder/scbuilder \
+			FAUST2SC=../tools/faust2sc-1.0.0/faust2sc \
+			SC_SOURCE_DIR=$(SC_SOURCE_DIR) \
+			BUILD_DIR=supercolliderdir
 
 jackconsole :
 	install -d jackconsoledir
