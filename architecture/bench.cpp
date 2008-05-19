@@ -1,8 +1,5 @@
 //#include "../bench/lmbench.h"
-
-
-
-
+// derived from bench.cpp to test parallel processing
 
 
 /* link with  */
@@ -25,7 +22,19 @@
 #include <sys/wait.h>
 #include <list>
 
+#include <iostream>
 
+
+using namespace std;
+
+
+
+float*          gBuffer = 0;        // a buffer of NV*VSize samples
+
+unsigned int    COUNT   = 2000;     // number of measures
+unsigned int    NV      = 4096;     // number of vectors
+unsigned int    VSIZE   = 4096;     // size of a vector in samples
+unsigned int    IDX     = 0;        // current vector number (0 <= VIdx < NV)
 
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
@@ -104,6 +113,17 @@ bool setRealtimePriority ()
     return (err != -1);
 }
 
+#include <sys/time.h>
+
+double mysecond()
+{
+        struct timeval tp;
+        struct timezone tzp;
+        int i;
+
+        i = gettimeofday(&tp,&tzp);
+        return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+}
 
 /******************************************************************************
 *******************************************************************************
@@ -145,7 +165,7 @@ public:
 	// -- passive widgets
 
 	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 
@@ -175,7 +195,7 @@ public:
 
 
 //----------------------------------------------------------------
-//  d�inition du processeur de signal
+//  definition du processeur de signal
 //----------------------------------------------------------------
 
 class dsp {
@@ -197,7 +217,7 @@ class dsp {
 mydsp	DSP;
 
 
-
+#if 0
 
 static __inline__ unsigned long long int rdtsc(void)
 {
@@ -206,86 +226,86 @@ static __inline__ unsigned long long int rdtsc(void)
      return x;
 }
 
+#endif
 
-#define CHRONO(title,test)					\
-{											\
-	unsigned long long int t0, t1, t2;							\
-											\
-	printf("Test %s... ", title);			\
-	test;									\
-	t0 = rdtsc ();							\
-	t1 = rdtsc ();							\
-	test;									\
-	t2 = rdtsc ();							\
-	printf("elapsed time: %ld cycles\n", long(t2-t1 - (t1-t0)));	\
+/**
+ * Bench by calling COUNT times the compute() method for
+ * the computation of vsize samples
+ */
+
+void statistic(const char* name, double* timing)
+{
+    double lo, hi, tot;
+    double mega =  double(VSIZE)/1000000.0; // mega samples
+    lo = hi = tot = mega/(timing[1] - timing[0]);
+    for (int i = 1; i<COUNT; i++) {
+        double delta = mega/(timing[i] - timing[i-1]);
+        if (delta < lo) {
+            lo = delta;
+        } else if (delta > hi) {
+            hi = delta;
+        }
+        tot += delta;
+    }
+
+    cout << '\t' << hi
+         << '\t' << hi*4*DSP.getNumInputs() << '\t' << "MB/s inputs"
+         << '\t' << hi*4*DSP.getNumOutputs() << '\t' << "MB/s outputs"
+         << '\t' << tot/COUNT
+         << '\t' << lo
+         << endl; 
+} 
+
+void allocBuffer()
+{
+    unsigned int BSIZE = NV * VSIZE;
+    gBuffer = (float*) aligned_calloc (BSIZE, sizeof(float));
+    
+    int R0_0 = 0;
+    for (int j = 0; j < BSIZE; j++) {
+        int R0temp0 = (12345 + (1103515245 * R0_0));
+        gBuffer[j] = 4.656613e-10f*R0temp0;
+        R0_0 = R0temp0;
+    }
 }
 
+float* nextVect()
+{
+    IDX = (1+IDX)%NV;
+    return &gBuffer[IDX*VSIZE];
+}
 
-
-
-#define BSIZE 128
-
-
-void bench()
+void bench(const char* name)
 {
 
-	int numInChan = DSP.getNumInputs();
-	int numOutChan = DSP.getNumOutputs();
+    int numInChan = DSP.getNumInputs();
+    int numOutChan = DSP.getNumOutputs();
 
-	assert (numInChan < 256);
-	assert (numOutChan < 256);
+    assert (numInChan < 256);
+    assert (numOutChan < 256);
 
-	float* 	inChannel[256];
-	float* 	outChannel[256];
+    float*  inChannel[256];
+    float*  outChannel[256];
 
-	// allocate input buffers (initialized with white noise)
-	int R0_0 = 0;
-	for (int i = 0; i < numInChan; i++) {
-		inChannel[i] = (float*) aligned_calloc (BSIZE, sizeof(float));
-		for (int j = 0; j < BSIZE; j++) {
-			int R0temp0 = (12345 + (1103515245 * R0_0));
-			inChannel[i][j] = 4.656613e-10f*R0temp0;
-			R0_0 = R0temp0;
-		}
-	}
-	// allocate output buffers (not initialized)
-	for (int i = 0; i < numOutChan; i++) outChannel[i] = (float*) aligned_calloc (BSIZE, sizeof(float));
+    // allocate input buffers (initialized with white noise)
+    allocBuffer();
 
-	// init the dsp with a resoneable sampling rate)
-	DSP.init(48000);
+    // allocate output channels (not initialized)
+    for (int i = 0; i < numOutChan; i++) outChannel[i] = (float*) aligned_calloc (VSIZE, sizeof(float));
 
-	// compute one block of BSIZE samples
-	//CHRONO("Faust generated code ", DSP.compute(BSIZE,inChannel,outChannel));
+    // init the dsp with a resoneable sampling rate)
+    DSP.init(48000);
+    double* timing = (double*) aligned_calloc (COUNT, sizeof(double));
 
-	
-	// search minimal execution time stable for at least 20 runs
-	int	stab = 0;
-	unsigned long long int tmin, t, t1, t2;
-										
-	t1 = rdtsc ();						
-	DSP.compute(BSIZE,inChannel,outChannel);		
-	t2 = rdtsc ();
-	
-	tmin = t2-t1;
-	
-	do {
-		t1 = rdtsc ();						
-		DSP.compute(BSIZE,inChannel,outChannel);		
-		t2 = rdtsc ();
-	
-		t = t2-t1;
-		if (tmin <= t) {
-			stab++;
-		} else {
-			tmin = t;
-			stab = 0;
-		}
-	} while (stab < 100);
+    for (int i = 0; i<COUNT; i++) {
+        timing[i] = mysecond();
+        // allocate new input buffers to avoid L2 cache
+        for (int c=0; c<numInChan; c++) { inChannel[c] = nextVect(); }
+        DSP.compute(VSIZE,inChannel,outChannel);
+    }
 
-	printf("\t%ld cycles\n", long(tmin));	\
+    statistic(name, timing);
 }
-
-
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -304,11 +324,11 @@ long lopt (int argc, char *argv[], const char* longname, const char* shortname, 
 
 int main(int argc, char *argv[] )
 {
-  bool rt = setRealtimePriority();
-  //printf(rt?"RealTime Set\n":"RealTime Not Set\n");
-
-  bench();
-  return 0;
+    VSIZE = lopt(argc, argv, "--vector-size", "-vec", 4096);
+    NV = lopt(argc, argv, "--num-vector", "-n", 20000);
+    COUNT = lopt(argc, argv, "--count", "-c", 10000);
+  	bench(argv[0]);
+  	return 0;
 }
 
 
