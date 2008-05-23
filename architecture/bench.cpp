@@ -32,7 +32,8 @@ using namespace std;
 float*          gBuffer = 0;        // a buffer of NV*VSize samples
 
 unsigned int    COUNT   = 2000;     // number of measures
-unsigned int    NV      = 4096;     // number of vectors
+unsigned int    NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
+unsigned int    ITER    = 10;       // number of iterations per measure
 unsigned int    VSIZE   = 4096;     // size of a vector in samples
 unsigned int    IDX     = 0;        // current vector number (0 <= VIdx < NV)
 
@@ -233,10 +234,12 @@ static __inline__ unsigned long long int rdtsc(void)
  * the computation of vsize samples
  */
 
+#define MEGABYTE 1048576.0
+
 void statistic(const char* name, double* timing)
 {
     double lo, hi, tot;
-    double mega =  double(VSIZE)/1000000.0; // mega samples
+    double mega =  double(VSIZE*ITER)/MEGABYTE; // mega samples
     lo = hi = tot = mega/(timing[1] - timing[0]);
     for (int i = 1; i<COUNT; i++) {
         double delta = mega/(timing[i] - timing[i-1]);
@@ -299,9 +302,11 @@ void bench(const char* name)
 
     for (int i = 0; i<COUNT; i++) {
         timing[i] = mysecond();
-        // allocate new input buffers to avoid L2 cache
-        for (int c=0; c<numInChan; c++) { inChannel[c] = nextVect(); }
-        DSP.compute(VSIZE,inChannel,outChannel);
+        for (int k = 0; k<ITER; k++) {
+            // allocate new input buffers to avoid L2 cache
+            for (int c=0; c<numInChan; c++) { inChannel[c] = nextVect(); }
+            DSP.compute(VSIZE,inChannel,outChannel);
+        }
     }
 
     statistic(name, timing);
@@ -326,7 +331,9 @@ int main(int argc, char *argv[] )
 {
     VSIZE = lopt(argc, argv, "--vector-size", "-vec", 4096);
     NV = lopt(argc, argv, "--num-vector", "-n", 20000);
-    COUNT = lopt(argc, argv, "--count", "-c", 10000);
+    COUNT = lopt(argc, argv, "--count", "-c", 1000);
+    ITER = lopt(argc, argv, "--iteration", "-i", 10);
+    setRealtimePriority();
   	bench(argv[0]);
   	return 0;
 }
