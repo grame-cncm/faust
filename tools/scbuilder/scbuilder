@@ -370,12 +370,17 @@ if isDefaultBuild():
         print 'pkg-config not found.'
         Exit(1)
     
-    # sndfile
+    # SC includes and flags
     success, libraries['scplugin'] = conf.CheckPKG('libscplugin')
     if not success:
+        success, libraries['scplugin'] = conf.CheckPKG('libscsynth')
+    if success:
+        libraries['scplugin']['LIBS'] = []
+    else:
         src_dir = env['SC_SOURCE_DIR']
         if os.path.isdir(src_dir):
             libraries['scplugin'] = Environment(
+                                        CPPDEFINES = [PLATFORM_SYMBOL],
                                         CPPPATH = [os.path.join(src_dir, 'Headers/common'),
                                                    os.path.join(src_dir, 'Headers/plugin_interface'),
                                                    os.path.join(src_dir, 'Headers/server')])
@@ -445,7 +450,7 @@ Help(opts.GenerateHelpText(env))
 
 # defines and compiler flags
 env.Append(
-    CPPDEFINES = [ '_REENTRANT', PLATFORM_SYMBOL ],
+    CPPDEFINES = [ '_REENTRANT' ],
     CCFLAGS    = [ '-Wno-unknown-pragmas' ],
     CXXFLAGS   = [ '-Wno-deprecated' ]
     )
