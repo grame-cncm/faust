@@ -131,10 +131,26 @@ void Klass::closeLoop(Tree sig)
  */
 void printlines (int n, list<string>& lines, ostream& fout)
 {
-	list<string>::iterator s;
-	for (s = lines.begin(); s != lines.end(); s++) {
-		tab(n, fout); fout << *s;
-	}
+    list<string>::iterator s;
+    for (s = lines.begin(); s != lines.end(); s++) {
+        tab(n, fout); fout << *s;
+    }
+}
+
+
+/**
+ * Print a list of elements (e1, e2,...) 
+ */
+void printlist (list<string>& lines, ostream& fout)
+{
+    list<string>::iterator s;
+    fout << '(';
+    string sep = "";
+    for (s = lines.begin(); s != lines.end(); s++) {
+        fout << sep << *s;
+        sep = ", ";
+    }
+    fout << ')';
 }
 
 
@@ -266,6 +282,7 @@ void Klass::println(int n, ostream& fout)
             
             tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
                 printlines (n+2, fSlowDecl, fout);
+                printlines (n+2, fCommonCode, fout);
                 printlines (n+2, fSlowCode, fout);
                 printLoopGraph (n+2,fout);
                 printlines (n+2, fEndCode, fout);
@@ -277,9 +294,10 @@ void Klass::println(int n, ostream& fout)
                 // in vector mode we need to split loops in smaller pieces not larger
                 // than gVecSize
                 tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                    printlines (n+2, fSlowDecl, fout);
                     tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
                         tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-                        printlines (n+3, fSlowDecl, fout);
+                        printlines (n+3, fCommonCode, fout);
                         printlines (n+3, fSlowCode, fout);
                         printLoopGraph (n+3,fout);
                         printlines (n+3, fEndCode, fout);
@@ -289,10 +307,13 @@ void Klass::println(int n, ostream& fout)
                 // in openMP mode we need to split loops in smaller pieces not larger
                 // than gVecSize and add openMP pragmas
                 tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-                    tab(n+2,fout); fout << "#pragma omp parallel";
+                    printlines (n+2, fSlowDecl, fout);
+                    tab(n+2,fout); fout << "#pragma omp parallel"; 
+                    if (!fSharedDecl.empty()) { fout << " shared"; printlist(fSharedDecl, fout); }
+                    
                     tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
                         tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-                        printlines (n+3, fSlowDecl, fout);
+                        printlines (n+3, fCommonCode, fout);
 
                         tab(n+3,fout); fout << "#pragma omp single";
                         tab(n+3,fout); fout << "{";
@@ -421,7 +442,9 @@ string Klass::addLocalDecl (const string& ctype, const string& vname)
     if (!gOpenMPSwitch) {
         fSlowDecl.push_back(subst("$0 \t$1;", ctype, vname));
     } else {
-	    fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
+        //fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
+        fSlowDecl.push_back(subst("$0 \t$1; /*former static*/", ctype, vname));
+        fSharedDecl.push_back(vname);
     }
 	return vname;
 }
@@ -431,7 +454,8 @@ string Klass::addLocalVecDecl (const string& ctype, const string& vname, int siz
     if (!gOpenMPSwitch) {
         fSlowDecl.push_back(subst("$0 \t$1[$2];", ctype, vname, T(size)));
     } else {
-        fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+        fSlowDecl.push_back(subst("$0 \t$1[$2]; /*former static*/", ctype, vname, T(size)));
+        fSharedDecl.push_back(vname);
     }
 	
 	return vname;
@@ -442,14 +466,18 @@ string Klass::addLocalVecDecl (const string& ctype, const string& vname, const s
     if (!gOpenMPSwitch) {
         fSlowDecl.push_back(subst("$0 \t$1[$2];", ctype, vname, size));
     } else {
-        fSlowDecl.push_back(subst("static $0 \t$1[$2];", ctype, vname, size));
+        fSlowDecl.push_back(subst("$0 \t$1[$2]; /*former static*/", ctype, vname, size));
+        fSharedDecl.push_back(vname);
     }
     return vname;
 }
 
 string Klass::addLocalCommonDecl (const string& ctype, const string& vname, const string& init)
 { 
-    fSlowDecl.push_back(subst("$0 \t$1 = $2;", ctype, vname, init));
+    //fSlowDecl.push_back(subst("$0 \t$1 = $2;", ctype, vname, init));
+    //fSlowDecl.push_back(subst("$0 \t$1;", ctype, vname));
+    //fSlowCode.push_back(subst("$0 = $1;", vname, init));
+    fCommonCode.push_back(subst("$0 \t$1 = $2; /*nouveau*/", ctype, vname, init));
     return vname;
 }
 
@@ -458,7 +486,8 @@ string Klass::addLocalDecl (const string& ctype, const string& vname, const stri
     if (!gOpenMPSwitch) {
         fSlowCode.push_back(subst("$0 \t$1 = $2;", ctype, vname, exp));
     } else {
-	    fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
+	    fSlowDecl.push_back(subst("$0 \t$1; /*former static*/", ctype, vname));
+        fSharedDecl.push_back(vname);
 	    fSlowCode.push_back(subst("$0 = $1;", vname, exp));
     }
 	return vname;

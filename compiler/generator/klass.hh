@@ -74,6 +74,8 @@ class Klass //: public Target
 	list<string>		fInitCode;
 	list<string>		fUICode;
     list<string>        fSlowDecl;
+    list<string>        fSharedDecl;            ///< declare shared variables for openMP
+    list<string>        fCommonCode;            ///< code executed by all threads
     list<string>        fSlowCode;
     list<string>        fEndCode;
 
