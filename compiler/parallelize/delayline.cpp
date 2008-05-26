@@ -70,7 +70,9 @@ void  dlineLoop (Klass* k, const string& tname, const string& dlname, int delay,
         
 		//k->addLocalDecl(tname, subst("$0[$1+$2]", buf, T(gVecSize), dsize));
         k->addLocalVecDecl(tname, buf, gVecSize+delay);
-        k->addLocalDecl(subst("$0*",tname), dlname, subst("&$0[$1]", buf, dsize));
+
+        ////////k->addLocalDecl(subst("$0*",tname), dlname, subst("&$0[$1]", buf, dsize));
+        k->addLocalCommonDecl(subst("$0*",tname), dlname,  subst("&$0[$1]", buf, dsize));
     
         // -- copy the stored samples to the delay line
         k->addSlowExecCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
