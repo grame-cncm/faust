@@ -333,7 +333,7 @@ int main(int argc, char *argv[] )
     NV = lopt(argc, argv, "--num-vector", "-n", 20000);
     COUNT = lopt(argc, argv, "--count", "-c", 1000);
     ITER = lopt(argc, argv, "--iteration", "-i", 10);
-    setRealtimePriority();
+    //setRealtimePriority();
   	bench(argv[0]);
   	return 0;
 }

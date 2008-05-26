@@ -167,7 +167,7 @@ class UI
 	// -- passive widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
@@ -347,7 +347,7 @@ class GTKUI : public UI
 	// -- passive display widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision);
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max);
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max);
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
 	
@@ -767,15 +767,15 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 
 struct uiTextDisplay : public uiItem
 {
-	GtkLabel* 	fLabel;
-	char**		fNames;
-	float		fMin;
-	float		fMax;
-	int			fNum;
+	GtkLabel* 	    fLabel;
+	const char**    fNames;
+	float		    fMin;
+	float		    fMax;
+	int			    fNum;
 	
 	
-	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, char* names[], float lo, float hi) 
-			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)  
+	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi) 
+			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
 	{
 		fNum = 0;
 		while (fNames[fNum] != 0) fNum++;
@@ -796,7 +796,7 @@ struct uiTextDisplay : public uiItem
 };
 	
 
-void GTKUI::addTextDisplay(const char* label, float* zone, char* names[], float lo, float hi )
+void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], float lo, float hi )
 {
 	GtkWidget* lw = gtk_label_new("");
 	new uiTextDisplay (this, zone, GTK_LABEL(lw), names, lo, hi);
@@ -939,28 +939,18 @@ int process (jack_nframes_t nframes, void *arg)
 	DSP.compute(nframes, gInChannel, gOutChannel);
 	return 0;
 }
-
-
+#ifdef _OPENMP
 void* jackthread(void* arg)
 {
     jack_client_t*  client = (jack_client_t*) arg;
 	jack_nframes_t nframes;
-    #pragma omp parallel
-    {
-		#pragma omp single
-		{
-			nframes = jack_cycle_wait(client);
-		}
-        while (1) {
-            process(nframes, arg);
-			#pragma omp single
-			{
-            	jack_cycle_signal(client, 0);
-            	nframes = jack_cycle_wait(client);
-			}			
-        }
+    while (1) {
+        nframes = jack_cycle_wait(client);
+        process(nframes, arg);
+        jack_cycle_signal(client, 0);
     }
 }
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -996,8 +986,11 @@ int main(int argc, char *argv[] )
         jname = jack_get_client_name (client);
     }
 
-    //jack_set_process_callback(client, process, 0);
+#ifdef _OPENMP
     jack_set_process_thread(client, jackthread, client);
+#else
+    jack_set_process_callback(client, process, 0);
+#endif
     jack_set_sample_rate_callback(client, srate, 0);
     jack_on_shutdown(client, jack_shutdown, 0);
     
