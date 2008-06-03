@@ -123,14 +123,10 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
 	for (int i = 0; i < fClass->inputs(); i++) {
-		//fClass->addSlowCode(subst("float* input$0 = input[$0];", T(i)));
-		//fClass->addLocalDecl("float*", subst("input$0",T(i)), subst("input[$0]",T(i)));
-        fClass->addLocalCommonDecl("float*", subst("input$0", T(i)), subst("input[$0];", T(i)));
+        fClass->addZone3(subst("float* input$0 = input[$0];", T(i)));
 	}
 	for (int i = 0; i < fClass->outputs(); i++) {
-		//fClass->addSlowCode(subst("float* output$0 = output[$0];", T(i)));
-		//fClass->addLocalDecl("float*", subst("output$0",T(i)), subst("output[$0]",T(i)));
-        fClass->addLocalCommonDecl("float*", subst("output$0", T(i)), subst("output[$0];", T(i)));
+        fClass->addZone3(subst("float* output$0 = output[$0];", T(i)));
 	}
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
@@ -453,7 +449,8 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
         case kBlock :
 
             getTypedNames(t, "Slow", ctype, vname);
-            fClass->addLocalDecl(ctype, vname, exp);
+            fClass->addFirstPrivateDecl(vname);
+            fClass->addZone2(subst("$0 \t$1 = $2;", ctype, vname, exp));
             break;
 
         case kSamp :
@@ -546,7 +543,7 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
 			break;
 
 		case kBlock :
-			fClass->addSlowExecCode(subst("$0 = $1;", varname, exp));
+			fClass->addZone2(subst("$0 = $1;", varname, exp));
 			break;
 
 		case kSamp :
@@ -572,7 +569,7 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 			break;
 
 		case kBlock :
-			fClass->addSlowExecCode(subst("$0 = $1;", varname, exp));
+			fClass->addZone2(subst("$0 = $1;", varname, exp));
 			break;
 
 		case kSamp :
@@ -876,7 +873,9 @@ string ScalarCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2)
             break;
         case kBlock :
             //fClass->addLocalDecl(type, subst("$0[2]", var));
-            fClass->addLocalVecDecl(type, var, 2);
+            //fClass->addLocalVecDecl(type, var, 2);
+            fClass->addSharedDecl(var);
+            fClass->addZone1(subst("$0 \t$1[2];", type, var));
             break;
         case kSamp :
             fClass->addExecCode(subst("$0 \t$1[2];", type, var));
@@ -889,7 +888,7 @@ string ScalarCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2)
             fClass->addInitCode(subst("$0[0] = $1;", var, CS(s1)));
             break;
         case kBlock :
-            fClass->addSlowExecCode(subst("$0[0] = $1;", var, CS(s1)));
+            fClass->addZone2b(subst("$0[0] = $1;", var, CS(s1)));
             break;
         case kSamp :
             fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
@@ -902,7 +901,7 @@ string ScalarCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2)
             fClass->addInitCode(subst("$0[1] = $1;", var, CS(s2)));
             break;
         case kBlock :
-            fClass->addSlowExecCode(subst("$0[1] = $1;", var, CS(s2)));
+            fClass->addZone2b(subst("$0[1] = $1;", var, CS(s2)));
             break;
         case kSamp :
             fClass->addExecCode(subst("$0[1] = $1;", var, CS(s2)));
@@ -934,7 +933,9 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
             break;
         case kBlock :
             //fClass->addLocalDecl(type, subst("$0[3]", var));
-            fClass->addLocalVecDecl(type, var, 3);
+            //fClass->addLocalVecDecl(type, var, 3);
+            fClass->addSharedDecl(var);
+            fClass->addZone1(subst("$0 \t$1[3];", type, var));
             break;
         case kSamp :
             fClass->addExecCode(subst("$0 \t$1[3];", type, var));
@@ -947,7 +948,7 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
             fClass->addInitCode(subst("$0[0] = $1;", var, CS(s1)));
             break;
         case kBlock :
-            fClass->addSlowExecCode(subst("$0[0] = $1;", var, CS(s1)));
+            fClass->addZone2b(subst("$0[0] = $1;", var, CS(s1)));
             break;
         case kSamp :
             fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
@@ -960,7 +961,7 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
             fClass->addInitCode(subst("$0[1] = $1;", var, CS(s2)));
             break;
         case kBlock :
-            fClass->addSlowExecCode(subst("$0[1] = $1;", var, CS(s2)));
+            fClass->addZone2b(subst("$0[1] = $1;", var, CS(s2)));
             break;
         case kSamp :
             fClass->addExecCode(subst("$0[1] = $1;", var, CS(s2)));
@@ -973,7 +974,7 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
             fClass->addInitCode(subst("$0[2] = $1;", var, CS(s3)));
             break;
         case kBlock :
-            fClass->addSlowExecCode(subst("$0[2] = $1;", var, CS(s3)));
+            fClass->addZone2b(subst("$0[2] = $1;", var, CS(s3)));
             break;
         case kSamp :
             fClass->addExecCode(subst("$0[2] = $1;", var, CS(s3)));

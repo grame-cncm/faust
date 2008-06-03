@@ -73,12 +73,25 @@ class Klass //: public Target
 	list<string>		fStaticFields;			///< static fields after class
 	list<string>		fInitCode;
 	list<string>		fUICode;
+
+#if 0
     list<string>        fSlowDecl;
     list<string>        fSharedDecl;            ///< declare shared variables for openMP
     list<string>        fCommonCode;            ///< code executed by all threads
     list<string>        fSlowCode;
     list<string>        fEndCode;
+#endif
+    list<string>        fSharedDecl;             ///< shared declarations 
+    list<string>        fFirstPrivateDecl;       ///< first private declarations
 
+    list<string>        fZone1Code;              ///< shared vectors 
+    list<string>        fZone2Code;              ///< first private 
+    list<string>        fZone2bCode;             ///< single once per block
+    list<string>        fZone3Code;              ///< private every sub block
+    list<string>        fZone4Code;              ///< single every sub block pre-graph
+    list<string>        fZone5Code;              ///< single every sub block post-graph
+
+    
     Loop*               fTopLoop;               ///< active loops currently open
     property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
 
@@ -126,14 +139,23 @@ class Klass //: public Target
 	void addUICode (const string& str)		{ fUICode.push_back(str); }
 
 
-	//void addSlowCode (const string& str)	{ fSlowCode.push_back(str); }
+    void addSharedDecl (const string& str)          { fSharedDecl.push_back(str); }
+    void addFirstPrivateDecl (const string& str)    { fFirstPrivateDecl.push_back(str); }
+
+    void addZone1 (const string& str)  { fZone1Code.push_back(str); }
+    void addZone2 (const string& str)  { fZone2Code.push_back(str); }
+    void addZone2b (const string& str)  { fZone2bCode.push_back(str); }
+    void addZone3 (const string& str)  { fZone3Code.push_back(str); }
+    void addZone4 (const string& str)  { fZone4Code.push_back(str); }
+    void addZone5 (const string& str)  { fZone5Code.push_back(str); }
+#if 0
     string  addLocalCommonDecl (const string& ctype, const string& vname, const string& init);
 	string 	addLocalDecl (const string& type, const string& var);
 	string 	addLocalDecl (const string& type, const string& var, const string& value);
 	string	addLocalVecDecl (const string& ctype, const string& vname, int size);	
 	string	addLocalVecDecl (const string& ctype, const string& vname, const string& size);
 	void 	addSlowExecCode (const string& str);
-
+#endif
   //void addExecCode (const string& str)	{ fExecCode.push_back(str); }
 
     void addExecCode ( const string& str)   { 
@@ -142,11 +164,13 @@ class Klass //: public Target
 
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
-    void addEndCode (const string& str)	{ fEndCode.push_front(str); }
+    //void addEndCode (const string& str)	{ fEndCode.push_front(str); }
 
 	virtual void println(int n, ostream& fout);
+    virtual void printComputeMethod (int n, ostream& fout);
 
     virtual void printLoopGraph(int n, ostream& fout);
+    virtual void printLoopLevel(int n, int lnum, const lset& L, ostream& fout);
 
 	virtual void printIncludeFile(ostream& fout);
 

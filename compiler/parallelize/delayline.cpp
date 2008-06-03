@@ -24,10 +24,9 @@ static int pow2limit(int x)
 void  vectorLoop (Klass* k, const string& tname, const string& vecname, const string& cexp) 
 {  
     // -- declare the vector
-    //k->addSlowCode(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
-    //k->addLocalDecl(tname, subst("$0[$1]", vecname, T(gVecSize)));
-    k->addLocalVecDecl(tname, vecname, gVecSize);
-        
+    k->addSharedDecl(vecname);
+    k->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
+       
     // -- compute the new samples
     k->addExecCode(subst("$0[i] = $1;", vecname, cexp));
 }
@@ -65,23 +64,21 @@ void  dlineLoop (Klass* k, const string& tname, const string& dlname, int delay,
         // compute method
             
         // -- declare a buffer and a "shifted" vector
-        //k->addSlowCode(subst("static $0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
-        //k->addSlowCode(subst("static $0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
-        
-		//k->addLocalDecl(tname, subst("$0[$1+$2]", buf, T(gVecSize), dsize));
-        k->addLocalVecDecl(tname, buf, gVecSize+delay);
+        k->addSharedDecl(buf);
+        k->addZone1(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
 
-        ////////k->addLocalDecl(subst("$0*",tname), dlname, subst("&$0[$1]", buf, dsize));
-        k->addLocalCommonDecl(subst("$0*",tname), dlname,  subst("&$0[$1]", buf, dsize));
-    
+        k->addFirstPrivateDecl(dlname);
+        k->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
+
+
         // -- copy the stored samples to the delay line
-        k->addSlowExecCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
+        k->addZone4(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
                     
         // -- compute the new samples
         k->addExecCode(subst("$0[i] = $1;", dlname, cexp));
             
         // -- copy back to stored samples
-        k->addEndCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        k->addZone5(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
 
     } else {
 
@@ -107,7 +104,7 @@ void  dlineLoop (Klass* k, const string& tname, const string& dlname, int delay,
         k->addExecCode(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask));
             
         // -- update index
-        k->addEndCode(subst("$0 = ($0+count)&$1;", idx, mask));
+        k->addZone5(subst("$0 = ($0+count)&$1;", idx, mask));
 
 
     }

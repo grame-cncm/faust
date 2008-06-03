@@ -141,16 +141,19 @@ void printlines (int n, list<string>& lines, ostream& fout)
 /**
  * Print a list of elements (e1, e2,...) 
  */
-void printlist (list<string>& lines, ostream& fout)
+void printdecllist (int n, const string& decl, list<string>& content, ostream& fout)
 {
-    list<string>::iterator s;
-    fout << '(';
-    string sep = "";
-    for (s = lines.begin(); s != lines.end(); s++) {
-        fout << sep << *s;
-        sep = ", ";
+    if (!content.empty()) {
+        list<string>::iterator s;
+        fout << "\\";
+        tab(n, fout); fout << decl;
+        string sep = "(";
+        for (s = content.begin(); s != content.end(); s++) {
+            fout << sep << *s;
+            sep = ", ";
+        }
+        fout << ')';
     }
-    fout << ')';
 }
 
 
@@ -213,24 +216,53 @@ void Klass::printLoopGraph(int n, ostream& fout)
     } else {
         // openMP mode : add openMP directives
         for (int l=G.size()-1; l>=0; l--) {
-            tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l; 
-            if (G[l].size() > 1) {
-                tab(n, fout); fout << "#pragma omp sections ";
-                tab(n, fout); fout << "{ ";
-                for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
-                    tab(n+1, fout); fout << "#pragma omp section ";
-                    (*p)->println(n+1, fout);
-                }
-                tab(n, fout); fout << "} ";
-            } else if (G[l].size() == 1 && !(*G[l].begin())->isEmpty()) {
-                tab(n, fout); fout << "#pragma omp single ";
-                tab(n, fout); fout << "{ ";
-					for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
-						(*p)->println(n+1, fout);
-					}
-                tab(n, fout); fout << "} ";
-            }    
+            tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l;
+            printLoopLevel(n, G.size() - l, G[l], fout);
         }
+    }
+}
+
+/**
+ * returns true if all the loops are non recursive 
+ */
+static bool nonRecursiveLevel(const lset& L)
+{
+    for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+        if ((*p)->fIsRecursive) return false;
+    }
+    return true;
+}
+
+/**
+ * Print the 'level' of the loop graph as a set of
+ * parallel loops 
+ */
+void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
+{
+    if (nonRecursiveLevel(L)) {
+
+        for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+            if ((*p)->isEmpty() == false) {
+                tab(n, fout); fout << "#pragma omp for ";
+                (*p)->println(n, fout);
+            }
+        }
+
+    } else if (L.size() > 1) {
+        tab(n, fout); fout << "#pragma omp sections ";
+        tab(n, fout); fout << "{ ";
+        for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+            tab(n+1, fout); fout << "#pragma omp section ";
+            (*p)->println(n+1, fout);
+        }
+        tab(n, fout); fout << "} ";
+    } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
+        tab(n, fout); fout << "#pragma omp single ";
+        tab(n, fout); fout << "{ ";
+            for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+                (*p)->println(n+1, fout);
+            }
+        tab(n, fout); fout << "} ";
     }
 }
 
@@ -278,59 +310,8 @@ void Klass::println(int n, ostream& fout)
 			printlines (n+2, fUICode, fout);
 		tab(n+1,fout); fout << "}";
 
-        if (!gVectorSwitch) {
-            
-            tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
-                printlines (n+2, fSlowDecl, fout);
-                printlines (n+2, fCommonCode, fout);
-                printlines (n+2, fSlowCode, fout);
-                printLoopGraph (n+2,fout);
-                printlines (n+2, fEndCode, fout);
-            tab(n+1,fout); fout << "}";
 
-        } else {
-
-            if (!gOpenMPSwitch) {
-                // in vector mode we need to split loops in smaller pieces not larger
-                // than gVecSize
-                tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-                    printlines (n+2, fSlowDecl, fout);
-                    tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
-                        tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-                        printlines (n+3, fCommonCode, fout);
-                        printlines (n+3, fSlowCode, fout);
-                        printLoopGraph (n+3,fout);
-                        printlines (n+3, fEndCode, fout);
-                    tab(n+2,fout); fout << "}";
-                tab(n+1,fout); fout << "}";
-            } else {
-                // in openMP mode we need to split loops in smaller pieces not larger
-                // than gVecSize and add openMP pragmas
-                tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-                    printlines (n+2, fSlowDecl, fout);
-                    tab(n+2,fout); fout << "#pragma omp parallel"; 
-                    if (!fSharedDecl.empty()) { fout << " shared"; printlist(fSharedDecl, fout); }
-                    
-                    tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
-                        tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-                        printlines (n+3, fCommonCode, fout);
-
-                        tab(n+3,fout); fout << "#pragma omp single";
-                        tab(n+3,fout); fout << "{";
-                        	printlines (n+4, fSlowCode, fout);
-                        tab(n+3,fout); fout << "}";
-
-                        printLoopGraph (n+3,fout);
-
-                        tab(n+3,fout); fout << "#pragma omp single";
-                        tab(n+3,fout); fout << "{";
-                        	printlines (n+4, fEndCode, fout);
-                        tab(n+3,fout); fout << "}";
-
-                    tab(n+2,fout); fout << "}";
-                tab(n+1,fout); fout << "}";
-            }
-        }
+        printComputeMethod(n+1, fout);
 
 	tab(n,fout); fout << "};\n" << endl;
 
@@ -339,6 +320,84 @@ void Klass::println(int n, ostream& fout)
 
 }
 
+void Klass::printComputeMethod (int n, ostream& fout)
+{
+    if (!gVectorSwitch) {
+        
+        tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
+            printlines (n+2, fZone1Code, fout);
+            printlines (n+2, fZone2Code, fout);
+            printlines (n+2, fZone2bCode, fout);
+            printlines (n+2, fZone3Code, fout);
+            printlines (n+2, fZone4Code, fout);
+            printLoopGraph (n+2,fout);
+            printlines (n+2, fZone5Code, fout);
+        tab(n+1,fout); fout << "}";
+
+    } else {
+
+        if (!gOpenMPSwitch) {
+            // in vector mode we need to split loops in smaller pieces not larger
+            // than gVecSize
+            tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                printlines (n+2, fZone1Code, fout);
+                printlines (n+2, fZone2Code, fout);
+                printlines (n+2, fZone2bCode, fout);
+                tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+                    tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+                    printlines (n+3, fZone3Code, fout);
+                    printlines (n+3, fZone4Code, fout);
+                    printLoopGraph (n+3,fout);
+                    printlines (n+3, fZone5Code, fout);
+                tab(n+2,fout); fout << "}";
+            tab(n+1,fout); fout << "}";
+        } else {
+            // in openMP mode we need to split loops in smaller pieces not larger
+            // than gVecSize and add openMP pragmas
+            tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                printlines (n+2, fZone1Code, fout);
+                printlines (n+2, fZone2Code, fout);
+                tab(n+2,fout); fout << "#pragma omp parallel default(none)";
+                printdecllist(n+3, "shared", fSharedDecl, fout);
+                printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
+
+                tab(n+2,fout); fout << "{";
+                    if (!fZone2bCode.empty()) {
+                        tab(n+3,fout); fout << "#pragma omp single";
+                        tab(n+3,fout); fout << "{";
+                            printlines (n+4, fZone2bCode, fout);
+                        tab(n+3,fout); fout << "}";
+                    }
+
+                    tab(n+3,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+                    tab(n+4,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+
+                    printlines (n+4, fZone3Code, fout);
+
+                    if (!fZone4Code.empty()) {
+                        tab(n+4,fout); fout << "#pragma omp single";
+                        tab(n+4,fout); fout << "{";
+                            printlines (n+5, fZone4Code, fout);
+                        tab(n+4,fout); fout << "}";
+                    }
+
+                    printLoopGraph (n+4,fout);
+
+
+                    if (!fZone5Code.empty()) {
+                        tab(n+4,fout); fout << "#pragma omp single";
+                        tab(n+4,fout); fout << "{";
+                            printlines (n+5, fZone5Code, fout);
+                        tab(n+4,fout); fout << "}";
+                    }
+                    
+                    tab(n+3,fout); fout << "}";
+
+                tab(n+2,fout); fout << "}";
+            tab(n+1,fout); fout << "}";
+        }
+    }
+}
 
 /**
  * Print an auxillary C++ class corresponding to an integer init signal
@@ -369,9 +428,13 @@ void SigIntGenKlass::println(int n, ostream& fout)
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << "void fill (int count, int output[]) {";
-			printlines (n+2, fSlowDecl, fout);
-			printlines (n+2, fSlowCode, fout);
+            printlines (n+2, fZone1Code, fout);
+            printlines (n+2, fZone2Code, fout);
+            printlines (n+2, fZone2bCode, fout);
+            printlines (n+2, fZone3Code, fout);
+            printlines (n+2, fZone4Code, fout);
             printLoopGraph (n+2,fout);
+            printlines (n+2, fZone5Code, fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
@@ -407,9 +470,13 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << "void fill (int count, float output[]) {";
-			printlines (n+2, fSlowDecl, fout);
-			printlines (n+2, fSlowCode, fout);
-            printLoopGraph(n+2,fout);
+            printlines (n+2, fZone1Code, fout);
+            printlines (n+2, fZone2Code, fout);
+            printlines (n+2, fZone2bCode, fout);
+            printlines (n+2, fZone3Code, fout);
+            printlines (n+2, fZone4Code, fout);
+            printLoopGraph (n+2,fout);
+            printlines (n+2, fZone5Code, fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
@@ -435,65 +502,4 @@ void Klass::collectLibrary(set<string>& S)
 
 	for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->collectLibrary(S);
 	merge(S, fLibrarySet);
-}
-
-string Klass::addLocalDecl (const string& ctype, const string& vname)	
-{ 
-    if (!gOpenMPSwitch) {
-        fSlowDecl.push_back(subst("$0 \t$1;", ctype, vname));
-    } else {
-        //fSlowDecl.push_back(subst("static $0 \t$1;", ctype, vname));
-        fSlowDecl.push_back(subst("$0 \t$1; /*former static*/", ctype, vname));
-        fSharedDecl.push_back(vname);
-    }
-	return vname;
-}
-
-string Klass::addLocalVecDecl (const string& ctype, const string& vname, int size)	
-{ 
-    if (!gOpenMPSwitch) {
-        fSlowDecl.push_back(subst("$0 \t$1[$2];", ctype, vname, T(size)));
-    } else {
-        fSlowDecl.push_back(subst("$0 \t$1[$2]; /*former static*/", ctype, vname, T(size)));
-        fSharedDecl.push_back(vname);
-    }
-	
-	return vname;
-}
-
-string Klass::addLocalVecDecl (const string& ctype, const string& vname, const string& size)    
-{ 
-    if (!gOpenMPSwitch) {
-        fSlowDecl.push_back(subst("$0 \t$1[$2];", ctype, vname, size));
-    } else {
-        fSlowDecl.push_back(subst("$0 \t$1[$2]; /*former static*/", ctype, vname, size));
-        fSharedDecl.push_back(vname);
-    }
-    return vname;
-}
-
-string Klass::addLocalCommonDecl (const string& ctype, const string& vname, const string& init)
-{ 
-    //fSlowDecl.push_back(subst("$0 \t$1 = $2;", ctype, vname, init));
-    //fSlowDecl.push_back(subst("$0 \t$1;", ctype, vname));
-    //fSlowCode.push_back(subst("$0 = $1;", vname, init));
-    fCommonCode.push_back(subst("$0 \t$1 = $2; /*nouveau*/", ctype, vname, init));
-    return vname;
-}
-
-string Klass::addLocalDecl (const string& ctype, const string& vname, const string& exp)	
-{
-    if (!gOpenMPSwitch) {
-        fSlowCode.push_back(subst("$0 \t$1 = $2;", ctype, vname, exp));
-    } else {
-	    fSlowDecl.push_back(subst("$0 \t$1; /*former static*/", ctype, vname));
-        fSharedDecl.push_back(vname);
-	    fSlowCode.push_back(subst("$0 = $1;", vname, exp));
-    }
-	return vname;
-}
-
-void Klass::addSlowExecCode (const string& str)	
-{ 
-	fSlowCode.push_back(str); 
 }

@@ -149,10 +149,10 @@ void Loop::absorb (Loop* l)
 void Loop::println(int n, ostream& fout)
 {
     if (fExecCode.size()+fPostCode.size() > 0) {
-        if (gVectorSwitch) {
+/*        if (gVectorSwitch) {
             tab(n,fout); 
             fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
-        }
+        }*/
             
         tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
         printlines(n+1, fExecCode, fout);
