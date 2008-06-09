@@ -103,6 +103,12 @@ parse DOC	= parse_doc (NAME,VERSION,IN,OUT,ACTIVE++PASSIVE,LAYOUT)
 		       "/faust/ui/layout/group"];
 		= throw "invalid XML data" otherwise;
 
+private str_val S;
+
+str_val S:String
+		= S where 'S:String = valq S;
+		= S otherwise;
+
 private parse_prop S, parse_control X, parse_group CD X;
 
 parse_doc (node (element "name" _ _) [node (text NAME) _],
@@ -122,8 +128,7 @@ parse_prop "Unknow" // sic!
 parse_prop "Unknown"
 		= "";
 parse_prop S:String
-		= S where 'S:String = valq S;
-		= S otherwise;
+		= str_val S;
 parse_prop _	= "" otherwise;
 
 private param X, make_control ID TYPE LABEL PARAMS;
@@ -132,7 +137,7 @@ parse_control (node (element "widget" _ ATTRS) PARAMS)
 = make_control ID TYPE LABEL PARAMS
     where ATTRS = dict ATTRS, PARAMS = dict $ map param PARAMS,
       TYPE:String = ATTRS!"type", ID:Int = val $ ATTRS!"id",
-      LABEL:String = val $ PARAMS!"label";
+      LABEL:String = str_val $ PARAMS!"label";
 parse_control _ = throw "invalid XML data" otherwise;
 
 param (node (element NAME:String _ _) [node (text VAL:String) _])
@@ -164,5 +169,5 @@ parse_group _ _ = throw "invalid XML data" otherwise;
 make_group CD TYPE
 [node (element "label" _ _) [node (text LABEL:String) _]|PARAMS]
 = C where C:Control = (val $ "faustxml::"++ TYPE)
-      (val LABEL,map (parse_group CD) PARAMS);
+      (str_val LABEL,map (parse_group CD) PARAMS);
 make_group _ _ _ = throw "invalid XML data" otherwise;
