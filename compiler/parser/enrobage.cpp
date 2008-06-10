@@ -25,14 +25,15 @@
 #include <string>
 #include "compatibility.hh"
 
-
+extern string gFaustSuperDirectory;
+extern string gFaustDirectory;
+extern string gMasterDirectory;
 //----------------------------------------------------------------
 
 
 /**
- * Try to open a file within a path (a set of directory).
+ * Copy src to dst until specific line.
  */
-
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
 { 
 	string	s;
@@ -41,9 +42,8 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
 
 
 /**
- * Try to open a file within a path (a set of directory).
+ * Copy src to dst until end
  */
-
 void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
 	string	s;
@@ -52,71 +52,52 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
 
 
 /**
- * Try to open a file within a path (a set of directory).
+ * Try to open an architecture file searching in various directories
  */
-
-ifstream* open_stream(const char* filename)
+ifstream* open_arch_stream(const char* filename)
 {
-	ifstream* f = new ifstream();
-	f->open(filename);
-	if (f->good()) return f;
-	delete f;
+	char	old[PATH_MAX];
+    getcwd (old, PATH_MAX);
+
+    {
+	    ifstream* f = new ifstream();
+	    f->open(filename, ifstream::in); if (f->is_open()) return f; else delete f;
+    }
+	if ( (chdir(gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+        ifstream* f = new ifstream();
+		f->open(filename, ifstream::in);
+		if (f->good()) return f; else delete f;
+	}
+	chdir(old);
+	if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+        ifstream* f = new ifstream();
+		f->open(filename, ifstream::in);
+		if (f->good()) return f; else delete f;
+	}
+	chdir(old);
+	if (chdir("/usr/local/lib/faust")==0) {
+        ifstream* f = new ifstream();
+		f->open(filename); 
+		if (f->good()) return f; else delete f;
+	}
+	chdir(old);
+	if (chdir("/usr/lib/faust")==0) {
+        ifstream* f = new ifstream();
+		f->open(filename); 
+		if (f->good()) return f; else delete f;
+	}
+	
 	return 0;
 }
 
-#ifdef WIN32
-#define PATHSEP ";"
-#else
-#define PATHSEP ":"
-#endif
-
-ifstream* open_path_stream (const char* lofdir, const char* filename)
-{
-    char        old[PATH_MAX];
-    char*       lod = strdup(lofdir);
-    char*       dir = strtok(lod, PATHSEP);
-    
-    if (!dir) dir = lod;
-    getcwd (old, PATH_MAX);
-    while (dir) {
-        if (chdir(dir) == 0) {
-            ifstream* f = open_stream(filename);
-            if (f) {
-                free(lod);
-                return f;
-            }
-            chdir(old);
-        }
-        dir = strtok(NULL, PATHSEP);
-    }
-    cerr << "file " << filename << " not found in path " << lofdir << endl;
-    free (lod);
-    return 0;
-}
-
-
-/**
- * Try to open an architecture file.
- */
-ifstream* open_arch_stream (const char* filename)
-{	
-	ifstream* f = open_stream(filename);
-	
-	if (f) {
-		return f;
-	} else {
-		const char* p1 = getenv("FAUST_PATH");
-		const char* p2 = (p1 != 0) ? p1 : "/usr/local/lib/faust/:/usr/lib/faust/";
-		return open_path_stream(p2, filename);
-	}
-}
-
-
-	
 
 
 /*---------------------------------------------*/
 
+/**
+ * Check if a file exists.
+ * @return true if the file exist, false otherwise
+ */
 		
 bool check_file(const char* filename)
 {
@@ -132,44 +113,76 @@ bool check_file(const char* filename)
 		
 
 /**
- * Try to open a file.
+ * Try to open the file 'dir/filename'
  */
-FILE* fopensearch(const char* filename)
-{	
-	FILE* f = fopen(filename, "r");
-	
-	if (f) {
-		return f;
-	} else {
-		const char* p1 = getenv("FAUST_PATH");
-		const char* p2 = (p1 != 0) ? p1 : "/usr/local/lib/faust/:/usr/lib/faust/";
-		return fopenpath(p2, filename);
-	}
-}
-
-	
-FILE* fopenpath(const char* lofdir, const char* filename)
+static FILE* fopenat(const char* dir, const char* filename)
 {
-	char		old[PATH_MAX];
-	char* 		lod = strdup(lofdir);
-	char* 		dir = strtok(lod, ":");
-	
-	getcwd (old, PATH_MAX);
-	while (dir) {
-		if (chdir(dir) == 0) {
-			
-			FILE* f = fopen(filename, "r");
-			chdir(old);
-			if (f) {
-				free(lod);
-				return f;
-			}
-		} else  {
-		}
-		dir = strtok(NULL, ":");
-	}
-	cerr << "file " << filename << " not found in path " << lofdir << endl;
-	free (lod);
-	return 0;
+    char        olddir[PATH_MAX];
+    
+    getcwd (olddir, PATH_MAX);
+    if (chdir(dir) == 0) {           
+        FILE* f = fopen(filename, "r");
+        chdir(olddir);
+        return f;
+    }
+    chdir(olddir);
+    return 0;
 }
 
+/**
+ * Try to open the file 'dir/filename'
+ */
+static FILE* fopenat(const string& dir, const char* filename)
+{
+    return fopenat(dir.c_str(), filename);
+}
+
+/**
+ * Try to open the file 'dir/path/filename'
+ */
+static FILE* fopenat(const string& dir, const char* path, const char* filename)
+{
+    char        olddir[PATH_MAX];
+    
+    getcwd (olddir, PATH_MAX);
+    if (chdir(dir.c_str()) == 0) {
+        if (chdir(path) == 0) {            
+            FILE* f = fopen(filename, "r");
+            chdir(olddir);
+            return f;
+        }
+    }
+    chdir(olddir);
+    return 0;
+}
+
+
+/**
+ * Try to open the file searching in various directories
+ */
+
+#ifdef WIN32
+FILE* fopensearch(const char* filename)
+{   
+    FILE* f;
+
+    if ((f = fopen(filename, "r"))) return f;
+    if ((f = fopenat(gMasterDirectory, filename))) return f;
+    if ((f = fopenat(gFaustDirectory, "architecture", filename))) return f;
+    if ((f = fopenat(gFaustSuperDirectory, "architecture", filename))) return f;
+    return 0;
+}
+#else
+FILE* fopensearch(const char* filename)
+{   
+    FILE* f;
+
+    if ((f = fopen(filename, "r"))) return f;
+    if ((f = fopenat(gMasterDirectory, filename))) return f;
+    if ((f = fopenat(gFaustDirectory, "architecture", filename))) return f;
+    if ((f = fopenat(gFaustSuperDirectory, "architecture", filename))) return f;
+    if ((f = fopenat("/usr/local/lib/faust", filename))) return f;
+    if ((f = fopenat("/usr/lib/faust", filename))) return f;
+    return 0;
+}
+#endif
