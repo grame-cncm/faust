@@ -3,7 +3,7 @@
 #include "Text.hh"
 #include <math.h>
 
-#ifdef WIN32 
+#if defined(WIN32) && ! defined(__MINGW32__) 
 /* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
 inline double rint(double nr)
 {
