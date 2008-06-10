@@ -38,11 +38,11 @@ class Description
 
   public:
   
-	Description():	fName("Unknow"), 
+	Description():	/*fName("Unknow"), 
 					fAuthor("Unknow"), 
 					fCopyright("Unknow"),
 					fLicense("Unknow"), 
-					fVersion("Unknow"),
+					fVersion("Unknow"),*/
 					
 					fInputs(0),
 					fOutputs(0),
