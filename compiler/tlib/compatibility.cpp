@@ -21,3 +21,25 @@
  
 
 int isatty(int file) {return 0;}
+
+
+#if defined( __MINGW32__) || defined (WIN32)
+#include <windows.h>
+
+    void getFaustPathname(char* str, unsigned int size)
+    {
+        GetModuleFileName(NULL, str, size);
+    }
+
+#else // Linux
+
+    #include <stdlib.h>
+    #include <string.h>
+    void getFaustPathname(char* str, unsigned int size)
+    {
+        strncpy(str, getenv("_"), size);
+    }
+
+#endif
+
+

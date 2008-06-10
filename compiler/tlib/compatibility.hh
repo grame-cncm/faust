@@ -23,7 +23,25 @@
 #ifndef     __COMPATIBILITY__
 #define     __COMPATIBILITY__
 
-#ifdef WIN32
+void getFaustPathname(char* str, unsigned int size);
+
+#if defined( __MINGW32__)
+
+#include <windows.h>
+#define snprintf _snprintf
+//#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
+//#define PATH_MAX 1024
+#define getcwd(buffer,len) GetCurrentDirectory(len,buffer)
+#define chdir(path) (!SetCurrentDirectory(path))
+#define mkdir(path,attribute) CreateDirectory(path,NULL)
+//#define S_IRWXU 0
+#define S_IRWXG 0
+#define S_IROTH 0
+#define S_IXOTH 0
+#define DIRSEP '\\'
+
+#elif defined (WIN32)
+
 #include <windows.h>
 #define snprintf _snprintf
 #define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
@@ -35,8 +53,13 @@
 #define S_IRWXG 0
 #define S_IROTH 0
 #define S_IXOTH 0
+#define DIRSEP '\\'
+
 #else
+
 #include <unistd.h>
+#define DIRSEP '/'
+
 #endif
 
 #endif
