@@ -3,6 +3,7 @@
 %{
 #include "tree.hh"
 #include "faustparser.hpp"
+#define YY_NO_UNISTD_H 1
 %}
 
 DIGIT    [0-9]
