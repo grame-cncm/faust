@@ -18,13 +18,14 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.4"
+#define FAUSTVERSION "0.9.9.4d"
 
 #include <stdio.h>
 #include <string.h>
-//#include <unistd.h>
 #include <assert.h>
+#include "libgen.h"
 
+#include "compatibility.hh"
 #include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -68,7 +69,7 @@ using namespace std ;
 int yyparse();
 
 int 			yyerr;
-extern int 	yydebug;
+extern int 	    yydebug;
 extern FILE*	yyin;
 Tree 			gResult;
 Tree 			gResult2;
@@ -81,6 +82,12 @@ map<Tree, set<Tree> > gMetaDataSet;
 /****************************************************************
  				Command line tools and arguments
 *****************************************************************/
+
+//-- globals
+string          gFaustSuperDirectory;
+string          gFaustDirectory;
+string          gMasterDocument;
+string          gMasterDirectory;
 
 //-- command line arguments
 
@@ -103,6 +110,8 @@ string			gOutputFile;
 list<string>	gInputFiles;
 
 bool			gPatternEvalMode = false;
+
+
 
 //-- command line tools
 
@@ -285,6 +294,29 @@ void printheader(ostream& dst)
 *****************************************************************/
 
 
+static string dirname(const string& path)
+{
+    char s[1024];
+    strncpy(s, path.c_str(), 1024);
+    return string(dirname(s));
+}
+
+
+static void initFaustDirectories()
+{
+    char s[1024];
+    getFaustPathname(s, 1024);
+    dirname(s);
+    gFaustDirectory = s;
+	gFaustSuperDirectory = dirname(gFaustDirectory);
+    if (gInputFiles.empty()) {
+        gMasterDocument = "Unknow";
+        gMasterDirectory = ".";
+    } else {
+        gMasterDocument = *gInputFiles.begin();
+        gMasterDirectory = dirname(gMasterDocument);
+    }
+}
 
 
 int main (int argc, char* argv[])
@@ -299,6 +331,8 @@ int main (int argc, char* argv[])
 	if (gHelpSwitch) 		{ printhelp(); exit(0); }
 	if (gVersionSwitch) 	{ printversion(); exit(0); }
 
+    initFaustDirectories();
+
 
 	/****************************************************************
 	 2 - parse source files
@@ -307,14 +341,13 @@ int main (int argc, char* argv[])
 	list<string>::iterator s;
 	gResult2 = nil;
 	yyerr = 0;
-	string masterFilename = "unknow";
 
 	if (gInputFiles.begin() == gInputFiles.end()) {
 		cerr << "ERROR: no files specified; for help type \"faust --help\"" << endl;
 		exit(1);
 	}
 	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-		if (s == gInputFiles.begin()) masterFilename = *s;
+		if (s == gInputFiles.begin()) gMasterDocument = *s;
 		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
 	}
 	if (yyerr > 0) {
@@ -330,15 +363,15 @@ int main (int argc, char* argv[])
 	Tree process = evalprocess(gReader.expandlist(gResult2));
 	if (gErrorCount > 0) {
        // cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n";
-        cerr << "Total of " << gErrorCount << " errors during the compilation of  " << masterFilename << ";\n";
+        cerr << "Total of " << gErrorCount << " errors during the compilation of  " << gMasterDocument << ";\n";
 		exit(1);
 	}
 
 
 	if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
-	if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps",  masterFilename).c_str(), "ps" ); }
-	if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", masterFilename).c_str(), "svg" ); }
+	if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps",  gMasterDocument).c_str(), "ps" ); }
+	if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", gMasterDocument).c_str(), "svg" ); }
 
 
 	int numInputs, numOutputs;
@@ -378,7 +411,7 @@ int main (int argc, char* argv[])
 
 	if (gPrintXMLSwitch) {
 		Description* 	D = C->getDescription(); assert(D);
-		ostream* 		xout = new ofstream(subst("$0.xml", masterFilename).c_str());
+		ostream* 		xout = new ofstream(subst("$0.xml", gMasterDocument).c_str());
 
         if(gMetaDataSet.count(tree("name"))>0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
         if(gMetaDataSet.count(tree("author"))>0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
