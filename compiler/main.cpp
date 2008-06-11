@@ -310,7 +310,7 @@ static void initFaustDirectories()
     gFaustDirectory = s;
 	gFaustSuperDirectory = dirname(gFaustDirectory);
     if (gInputFiles.empty()) {
-        gMasterDocument = "Unknow";
+        gMasterDocument = "Unknown";
         gMasterDirectory = ".";
     } else {
         gMasterDocument = *gInputFiles.begin();
