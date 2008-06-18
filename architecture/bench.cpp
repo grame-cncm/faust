@@ -240,8 +240,9 @@ void statistic(const char* name, double* timing)
 {
     double lo, hi, tot;
     double mega =  double(VSIZE*ITER)/MEGABYTE; // mega samples
-    lo = hi = tot = mega/(timing[1] - timing[0]);
-    for (int i = 1; i<COUNT; i++) {
+    // skip first 10 values to avoid cache bias ???
+    lo = hi = tot = mega/(timing[11] - timing[10]);
+    for (int i = 11; i<COUNT; i++) {
         double delta = mega/(timing[i] - timing[i-1]);
         if (delta < lo) {
             lo = delta;
@@ -254,7 +255,7 @@ void statistic(const char* name, double* timing)
     cout << '\t' << hi
          << '\t' << hi*4*DSP.getNumInputs() << '\t' << "MB/s inputs"
          << '\t' << hi*4*DSP.getNumOutputs() << '\t' << "MB/s outputs"
-         << '\t' << tot/COUNT
+         << '\t' << tot/(COUNT-11)
          << '\t' << lo
          << endl; 
 } 
