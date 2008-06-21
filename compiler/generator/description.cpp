@@ -134,7 +134,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"button\" id=\"$0\">", T(fWidgetID)));
 			addActiveLine(subst("\t<label>$0</label>", xmlize(tree2str(label))));
-			addActiveLine(subst("\t<var>$0</var>", tree2str(varname)));
+			addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigCheckbox(sig, path) ) 			{
@@ -143,7 +143,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		fActiveWidgetCount++;
 		addActiveLine(subst("<widget type=\"checkbox\" id=\"$0\">", T(fWidgetID)));
 			addActiveLine(subst("\t<label>$0</label>", xmlize(tree2str(label))));
-			addActiveLine(subst("\t<var>$0</var>", tree2str(varname)));
+			addActiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
@@ -153,10 +153,10 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		addActiveLine(subst("<widget type=\"vslider\" id=\"$0\">", T(fWidgetID)));
 			addActiveLine(subst("\t<label>$0</label>", 		xmlize(tree2str(label))));
 			addActiveLine(subst("\t<varname>$0</varname>", 	tree2str(varname)));
-			addActiveLine(subst("\t<init>$0</init>", 		T(tree2float(c))));
-			addActiveLine(subst("\t<min>$0</min>", 			T(tree2float(x))));
-			addActiveLine(subst("\t<max>$0</max>", 			T(tree2float(y))));
-			addActiveLine(subst("\t<step>$0</step>", 		T(tree2float(z))));
+			addActiveLine(subst("\t<init>$0</init>", 		T(tree2double(c))));
+			addActiveLine(subst("\t<min>$0</min>", 			T(tree2double(x))));
+			addActiveLine(subst("\t<max>$0</max>", 			T(tree2double(y))));
+			addActiveLine(subst("\t<step>$0</step>", 		T(tree2double(z))));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
@@ -166,10 +166,10 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		addActiveLine(subst("<widget type=\"hslider\" id=\"$0\">", T(fWidgetID)));
 			addActiveLine(subst("\t<label>$0</label>", 		xmlize(tree2str(label))));
 			addActiveLine(subst("\t<varname>$0</varname>", 	tree2str(varname)));
-			addActiveLine(subst("\t<init>$0</init>", 		T(tree2float(c))));
-			addActiveLine(subst("\t<min>$0</min>", 			T(tree2float(x))));
-			addActiveLine(subst("\t<max>$0</max>", 			T(tree2float(y))));
-			addActiveLine(subst("\t<step>$0</step>", 		T(tree2float(z))));
+			addActiveLine(subst("\t<init>$0</init>", 		T(tree2double(c))));
+			addActiveLine(subst("\t<min>$0</min>", 			T(tree2double(x))));
+			addActiveLine(subst("\t<max>$0</max>", 			T(tree2double(y))));
+			addActiveLine(subst("\t<step>$0</step>", 		T(tree2double(z))));
 		addActiveLine("</widget>");
 			
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
@@ -179,10 +179,10 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		addActiveLine(subst("<widget type=\"nentry\" id=\"$0\">", T(fWidgetID)));
 			addActiveLine(subst("\t<label>$0</label>", 		xmlize(tree2str(label))));
 			addActiveLine(subst("\t<varname>$0</varname>", 	tree2str(varname)));
-			addActiveLine(subst("\t<init>$0</init>", 		T(tree2float(c))));
-			addActiveLine(subst("\t<min>$0</min>", 			T(tree2float(x))));
-			addActiveLine(subst("\t<max>$0</max>", 			T(tree2float(y))));
-			addActiveLine(subst("\t<step>$0</step>", 		T(tree2float(z))));
+			addActiveLine(subst("\t<init>$0</init>", 		T(tree2double(c))));
+			addActiveLine(subst("\t<min>$0</min>", 			T(tree2double(x))));
+			addActiveLine(subst("\t<max>$0</max>", 			T(tree2double(y))));
+			addActiveLine(subst("\t<step>$0</step>", 		T(tree2double(z))));
 		addActiveLine("</widget>");
 
 			
@@ -195,8 +195,8 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		addPassiveLine(subst("<widget type=\"vbargraph\" id=\"$0\">", T(fWidgetID)));
 			addPassiveLine(subst("\t<label>$0</label>", 	xmlize(tree2str(label))));
 			addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
-			addPassiveLine(subst("\t<min>$0</min>", 		T(tree2float(x))));
-			addPassiveLine(subst("\t<max>$0</max>", 		T(tree2float(y))));
+			addPassiveLine(subst("\t<min>$0</min>", 		T(tree2double(x))));
+			addPassiveLine(subst("\t<max>$0</max>", 		T(tree2double(y))));
 		addPassiveLine("</widget>");
 		
 	} else if ( isSigHBargraph(sig,path,x,y,z) )	{
@@ -206,8 +206,8 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		addPassiveLine(subst("<widget type=\"hbargraph\" id=\"$0\">", T(fWidgetID)));
 			addPassiveLine(subst("\t<label>$0</label>", 	xmlize(tree2str(label))));
 			addPassiveLine(subst("\t<varname>$0</varname>", tree2str(varname)));
-			addPassiveLine(subst("\t<min>$0</min>", 		T(tree2float(x))));
-			addPassiveLine(subst("\t<max>$0</max>", 		T(tree2float(y))));
+			addPassiveLine(subst("\t<min>$0</min>", 		T(tree2double(x))));
+			addPassiveLine(subst("\t<max>$0</max>", 		T(tree2double(y))));
 		addPassiveLine("</widget>");
 		
 	} else {
