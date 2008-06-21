@@ -134,8 +134,7 @@ string T (char* c) 	{ return string(c); }
 string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
 string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
 
-#if 1
-string T (float n) 	
+string T (float n)
 { 
 	char c[64];
 	if  (n <  0.1 && n > -0.1 && n != 0.0) {
@@ -148,38 +147,9 @@ string T (float n)
 }
 
 string T (double n) 	
-{ 
+{
 	char c[64];
-	if  (n <  0.1 && n > -0.1) {
-		snprintf(c, 63, "%ef", n);
-	} else {
-		snprintf(c, 63, "%ff", n); 
-		zdel(c); 
-	}
-	return string(c); 
+	snprintf(c, 63, "%f", n);
+	zdel(c);
+	return string(c);
 }
-#else
-string T (float n) 	
-{ 
-	char c[64];
-	if  (n <  0.1 && n > -0.1 && n != 0.0) {
-		snprintf(c, 63, "%e", n);
-	} else {
-		snprintf(c, 63, "%f", n); 
-		zdel(c); 
-	}
-	return string(c); 
-}
-
-string T (double n) 	
-{ 
-	char c[64];
-	if  (n <  0.1 && n > -0.1) {
-		snprintf(c, 63, "%e", n);
-	} else {
-		snprintf(c, 63, "%f", n); 
-		zdel(c); 
-	}
-	return string(c); 
-}
-#endif
