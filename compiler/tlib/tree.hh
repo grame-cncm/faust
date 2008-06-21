@@ -180,7 +180,8 @@ inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c, co
 
 // useful conversions
 int 		tree2int (Tree t);		///< if t has a node of type int, return it otherwise error
-float 		tree2float (Tree t);	///< if t has a node of type float, return it otherwise error
+float       tree2float (Tree t);    ///< if t has a node of type float, return it otherwise error
+double      tree2double (Tree t);    ///< if t has a node of type float, return it otherwise error
 const char* tree2str (Tree t);		///< if t has a node of type symbol, return its name otherwise error
 void* 		tree2ptr (Tree t);		///< if t has a node of type ptr, return it otherwise error
 void*		getUserData(Tree t);	///< if t has a node of type symbol, return the associated user data

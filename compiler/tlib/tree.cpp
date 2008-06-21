@@ -252,22 +252,38 @@ int tree2int (Tree t)
 	}
 	return i;
 }	
-	
+    
 // if t has a node of type float, return it otherwise error
 float tree2float (Tree t)
 {
-	float	x;
-	int		i;
+    float   x;
+    int     i;
 
-	if (isInt(t->node(), &i)) {
-		x = float(i);
-	} else if (isFloat(t->node(), &x)) {
-		//nothing to do
-	} else {
-		ERROR("the node of the tree is not a float nor an int", t);
-	}
-	return x;
-}	
+    if (isInt(t->node(), &i)) {
+        x = float(i);
+    } else if (isFloat(t->node(), &x)) {
+        //nothing to do
+    } else {
+        ERROR("the node of the tree is not a float nor an int", t);
+    }
+    return x;
+}   
+    
+// if t has a node of type float, return it as a double otherwise error
+double tree2double (Tree t)
+{
+    float   x;
+    int     i;
+
+    if (isInt(t->node(), &i)) {
+        x = float(i);
+    } else if (isFloat(t->node(), &x)) {
+        //nothing to do
+    } else {
+        ERROR("the node of the tree is not a float nor an int", t);
+    }
+    return double(x);
+}   
 	
 // if t has a node of type symbol, return its name otherwise error		
 const char* tree2str (Tree t)
