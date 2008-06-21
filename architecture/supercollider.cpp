@@ -139,30 +139,33 @@ class ControlCounter : public UI
 {
 public:
 	ControlCounter()
-		: mNumControls(0)
+		: mNumControlInputs(0),
+		  mNumControlOutputs(0)
 	{ }
 
-	size_t getNumControls() const { return mNumControls; }
-
+	size_t getNumControls() const { return getNumControlInputs(); }
+	size_t getNumControlInputs() const { return mNumControlInputs; }
+	size_t getNumControlOutputs() const { return mNumControlOutputs; }
+	
 	// active widgets
 	virtual void addButton(const char* label, float* zone)
-	{ addControl(); }
+	{ addControlInput(); }
 	virtual void addToggleButton(const char* label, float* zone)
-	{ addControl(); }
+	{ addControlInput(); }
 	virtual void addCheckButton(const char* label, float* zone)
-	{ addControl(); }
+	{ addControlInput(); }
 	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
-	{ addControl(); }
+	{ addControlInput(); }
 	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
-	{ addControl(); }
+	{ addControlInput(); }
 	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
-	{ addControl(); }
+	{ addControlInput(); }
 	
 	// passive widgets
-	virtual void addNumDisplay(const char* label, float* zone, int precision) { }
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) { }
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) { }
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) { }
+	virtual void addNumDisplay(const char* label, float* zone, int precision) { addControlOutput(); }
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) { addControlOutput(); }
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) { addControlOutput(); }
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) { addControlOutput(); }
 	
 	// layout widgets
 	virtual void openFrameBox(const char* label) { }
@@ -172,10 +175,14 @@ public:
 	virtual void closeBox() { }
 
 protected:
-	void addControl() { mNumControls++; }
+	void addControlInput() {
+		printf("addControlInput %d\n", mNumControlInputs);
+		mNumControlInputs++; }
+	void addControlOutput() { }
 
 private:
-	size_t mNumControls;
+	size_t mNumControlInputs;
+	size_t mNumControlOutputs;
 };
 
 //----------------------------------------------------------------------------
@@ -317,9 +324,32 @@ struct Faust : public Unit
 	Control		mControls[0];
 };
 
-// globals
-static char gUnitName[PATH_MAX];
-static size_t gNumControls;
+// Global state
+struct State
+{
+	mydsp	dsp;
+	size_t	numControls;
+	char	unitName[PATH_MAX];
+	
+	void init(int sampleRate);
+	size_t unitSize() const;
+};
+
+void State::init(int sampleRate)
+{
+	ControlCounter cc;
+	dsp.classInit(sampleRate); // TODO: use real sample rate
+	dsp.buildUserInterface(&cc);
+	numControls = cc.getNumControls();
+}
+
+size_t State::unitSize() const
+{
+	return sizeof(Faust) + numControls * sizeof(Control);
+}
+
+// Globals
+static State gState;
 static InterfaceTable *ft;
 
 extern "C"
@@ -354,31 +384,46 @@ void Faust_Ctor(Faust* unit)
 	unit->mDSP.instanceInit((int)SAMPLERATE);
 
 	// allocate controls
+	unit->mNumControls = gState.numControls;
 	ControlAllocator ca(unit->mControls);
 	unit->mDSP.buildUserInterface(&ca);
-	unit->mNumControls = gNumControls;
 
 	// check input/output channel configuration
-	bool valid =
-		((unit->mNumInputs == (unit->mDSP.getNumInputs() + unit->mNumControls)) &&
-		 (unit->mNumOutputs == unit->mDSP.getNumOutputs()));
-
-	if (valid) {
+	const size_t numInputs  = unit->mDSP.getNumInputs() + unit->mNumControls;
+	const size_t numOutputs = unit->mDSP.getNumOutputs();
+	
+	bool channelsValid =   (numInputs  == unit->mNumInputs)
+						&& (numOutputs == unit->mNumOutputs);
+	bool rateValid = true;
+	int rateOffender = -1;
+	
+	if (channelsValid) {
 		for (int i = 0; i < unit->mDSP.getNumInputs(); ++i) {
 			if (INRATE(i) != calc_FullRate) {
-				valid = false;
+				rateValid = false;
+				rateOffender = i;
 				break;
 			}
 		}
 	}
 
-	if (valid) {
+	if (channelsValid && rateValid) {
 		SETCALC(Faust_next);
 	} else {
-		Print("Faust[%s]: Input/Output channel/rate mismatch\n"
-			  "           Generating silence ...\n",
-			  "           Did you recompile the class library?\n",
-			  gUnitName);
+		Print("Faust[%s]:\n", gState.unitName);
+		if (!channelsValid) {
+			Print("    Input/Output channel mismatch\n"
+				  "        Inputs:  faust %d, unit %d\n"
+				  "        Outputs: faust %d, unit %d\n",
+				  numInputs, unit->mNumInputs,
+				  numOutputs, unit->mNumOutputs);
+		}
+		if (!rateValid) {
+			Print("    Input rate mismatch\n"
+				  "        Input %d not audio rate\n");
+		}
+		Print("    Generating silence ...\n",
+			  "    Did you recompile the class library?\n");
 		SETCALC(Faust_next_clear);
 	}
 }
@@ -388,7 +433,7 @@ void load(InterfaceTable* inTable)
     ft = inTable;
 
 	// initialize unit name
-	char* name = gUnitName;
+	char* name = gState.unitName;
 
 	// use file name as ugen name
 	const char* fileName = strrchr(__FILE__, '/');
@@ -410,28 +455,18 @@ void load(InterfaceTable* inTable)
 		return;
 	}
 
-	// get number of controls and compute resulting unit size
-	mydsp* dsp = new mydsp; // avoid stack overflow!
-	ControlCounter cc;
-	dsp->classInit(48000); // TODO: use real sample rate
-	dsp->buildUserInterface(&cc);
-	size_t numControls = gNumControls = cc.getNumControls();
-	size_t sizeofFaust = sizeof(Faust) + numControls * sizeof(Control);
-	delete dsp;
-
+ 	// TODO: use real sample rate
+	gState.init(48000);
+	
 	// register ugen
 	(*ft->fDefineUnit)(
-		name, sizeofFaust,
+		name,
+		gState.unitSize(),
 		(UnitCtorFunc)&Faust_Ctor, 0,
 		kUnitDef_CantAliasInputsToOutputs
 		);
-
-#if 0
-	Print(
-		"Faust[%s]: inputs: %d outputs: %d controls: %d size: %d\n",
-		name, numInputs, numOutputs, numControls, sizeofFaust
-		);
-#endif
+		
+	Print("Faust: %s numControls=%d\n", gState.unitName, gState.numControls);
 }
 
 // EOF
