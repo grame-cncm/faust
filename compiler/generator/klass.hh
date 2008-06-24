@@ -25,7 +25,7 @@
 #define _KLASS_H
 
 /**********************************************************************
-			- klass.h : class C++ à remplir (projet FAUST) -
+			- klass.h : class C++ ï¿½ remplir (projet FAUST) -
 
 
 		Historique :
@@ -132,6 +132,8 @@ class Klass //: public Target
    // void addEndCode (const string& str)	{ fEndCode.push_front(str); }
 
 	virtual void println(int n, ostream& fout);
+
+    virtual void printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout);
 
 	virtual void printIncludeFile(ostream& fout);
 

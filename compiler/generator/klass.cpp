@@ -48,6 +48,8 @@
 #include "Text.hh"
 #include "signals.hh"
 
+extern map<Tree, set<Tree> > gMetaDataSet;
+
 void tab (int n, ostream& fout)
 {
 
@@ -91,6 +93,28 @@ void Klass::printIncludeFile(ostream& fout)
 	}
 }
 
+void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
+{
+    tab(n,fout); fout   << "static void metadata(Meta* m) \t{ ";
+
+    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            tab(n+1,fout); fout << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                     tab(n+1,fout); fout << "m->declare(\"" << *(i->first) << "\", " << **j << ");" ;
+                } else {
+                     tab(n+1,fout); fout << "m->declare(\"" << "contributor" << "\", " << **j << ");";
+                }
+            }
+        }
+    }
+
+    tab(n,fout); fout << "}" << endl;
+}
+
+
 
 void Klass::println(int n, ostream& fout)
 {
@@ -106,9 +130,10 @@ void Klass::println(int n, ostream& fout)
 
 	tab(n,fout); fout << "  public:";
 
-		tab(n+1,fout); fout 	<< "virtual int getNumInputs() \t{ "
-						<< "return " << fNumInputs
-						<< "; }";
+        printMetadata(n+1, gMetaDataSet, fout);
+        tab(n+1,fout); fout     << "virtual int getNumInputs() \t{ "
+                        << "return " << fNumInputs
+                        << "; }";
 		tab(n+1,fout); fout 	<< "virtual int getNumOutputs() \t{ "
 						<< "return " << fNumOutputs
 						<< "; }";

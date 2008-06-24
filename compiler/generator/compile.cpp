@@ -233,7 +233,7 @@ string	Compiler::CS (Tree env, Tree sig)
 #endif
 
 	if (getProperty(sig, fCompileKey, t)) {
-		// terme deja visité
+		// terme deja visitï¿½
 
 #if 0
 		fprintf(stderr, "RETURN of CS(");
@@ -378,19 +378,128 @@ void Compiler::addUIWidget(Tree path, Tree widget)
 	fUIRoot = putSubFolder(fUIRoot, path, widget);
 }
 
-void Compiler::generateWidgetCode(Tree label, Tree varname, Tree sig)
+
+static string wdel(const string& s)
+{
+    unsigned i = 0;
+    unsigned j = s.size();
+    while (i<j && s[i]==' ') i++;
+    while (j>i && s[j-1] == ' ') j--;
+    return s.substr(i,j-i);
+}
+    
+static void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
+{
+    enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
+    int state = kLabel; int deep = 0;
+    string key, value;
+
+    for (unsigned int i=0; i < fulllabel.size(); i++) {
+        char c = fulllabel[i];
+        switch (state) {
+            case kLabel :
+                assert (deep == 0);
+                switch (c) {
+                    case '\\' : state = kEscape1; break;
+                    case '[' : state = kKey; deep++; break;
+                    case ' ' : break;
+                    default : label += c;
+                }
+                break;
+
+            case kEscape1 :
+                label += c;
+                state = kLabel;
+                break;
+
+            case kEscape2 :
+                key += c;
+                state = kKey;
+                break;
+
+            case kEscape3 :
+                value += c;
+                state = kValue;
+                break;
+
+            case kKey :
+                assert (deep > 0);
+                switch (c) {
+                    case '\\' :  state = kEscape2;
+                                break;
+
+                    case '[' :  deep++;
+                                key += c;
+                                break;
+
+                    case ':' :  if (deep == 1) {
+                                    state = kValue;
+                                } else {
+                                    key += c;
+                                }
+                                break;
+                    case ']' :  deep--;
+                                if (deep < 1) {
+                                    metadata[key].insert("");
+                                    state = kLabel;
+                                    key="";
+                                    value="";
+                                } else {
+                                    key += c;
+                                }
+                                break;
+                    default :   key += c;
+                }
+                break;
+
+            case kValue :
+                assert (deep > 0);
+                switch (c) {
+                    case '\\' : state = kEscape3;
+                                break;
+
+                    case '[' :  deep++;
+                                value += c;
+                                break;
+
+                    case ']' :  deep--;
+                                if (deep < 1) {
+                                    metadata[key].insert(value);
+                                    state = kLabel;
+                                    key="";
+                                    value="";
+                                } else {
+                                    value += c;
+                                }
+                                break;
+                    default :   value += c;
+                }
+                break;
+
+            default :
+                cerr << "ERROR unrecognized state " << state << endl;
+        }
+    }
+}
+
+
+void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 {
 	Tree path, c, x, y, z;
+    string label;
+    map<string, set<string> >   metadata;
+
+    extractMetadata(tree2str(fulllabel), label, metadata);
 
 	if ( isSigButton(sig, path) ) 					{
-		fClass->addUICode(subst("interface->addButton($0, &$1);", tree2str(label), tree2str(varname)));
+		fClass->addUICode(subst("interface->addButton($0, &$1);", label, tree2str(varname)));
 
 	} else if ( isSigCheckbox(sig, path) ) 			{
-		fClass->addUICode(subst("interface->addCheckButton($0, &$1);", tree2str(label), tree2str(varname)));
+		fClass->addUICode(subst("interface->addCheckButton($0, &$1);", label, tree2str(varname)));
 
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
 		fClass->addUICode(subst("interface->addVerticalSlider($0, &$1, $2, $3, $4, $5);",
-				tree2str(label),
+				label,
 				tree2str(varname),
 				T(tree2float(c)),
 				T(tree2float(x)),
@@ -399,7 +508,7 @@ void Compiler::generateWidgetCode(Tree label, Tree varname, Tree sig)
 
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
 		fClass->addUICode(subst("interface->addHorizontalSlider($0, &$1, $2, $3, $4, $5);",
-				tree2str(label),
+				label,
 				tree2str(varname),
 				T(tree2float(c)),
 				T(tree2float(x)),
@@ -408,7 +517,7 @@ void Compiler::generateWidgetCode(Tree label, Tree varname, Tree sig)
 
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
 		fClass->addUICode(subst("interface->addNumEntry($0, &$1, $2, $3, $4, $5);",
-				tree2str(label),
+				label,
 				tree2str(varname),
 				T(tree2float(c)),
 				T(tree2float(x)),
@@ -417,14 +526,14 @@ void Compiler::generateWidgetCode(Tree label, Tree varname, Tree sig)
 
 	} else if ( isSigVBargraph(sig, path,x,y,z) )	{
 		fClass->addUICode(subst("interface->addVerticalBargraph($0, &$1, $2, $3);",
-				tree2str(label),
+				label,
 				tree2str(varname),
 				T(tree2float(x)),
 				T(tree2float(y))));
 
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
 		fClass->addUICode(subst("interface->addHorizontalBargraph($0, &$1, $2, $3);",
-				tree2str(label),
+				label,
 				tree2str(varname),
 				T(tree2float(x)),
 				T(tree2float(y))));
@@ -433,6 +542,15 @@ void Compiler::generateWidgetCode(Tree label, Tree varname, Tree sig)
 		fprintf(stderr, "Error in generating widget code\n");
 		exit(1);
 	}
+
+    // add metadata if any
+    for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
+        const string& key = i->first;
+        const set<string>& values = i->second;
+        for (set<string>::iterator j = values.begin(); j != values.end(); j++) {
+            fClass->addUICode(subst("interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key) ,wdel(*j)));
+        }
+    }
 }
 
 
