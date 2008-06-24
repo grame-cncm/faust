@@ -6,12 +6,18 @@
 #include <stack>
 #include <string>
 #include <iostream>
+#include <map>
 
 #include "ladspa.h"
 
 
 using namespace std;
- 
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
 	
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
@@ -90,6 +96,8 @@ public:
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
+
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 

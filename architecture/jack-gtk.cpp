@@ -80,6 +80,10 @@ inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
 using namespace std;
 
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
 
 struct uiItem;
 typedef void (*uiCallback)(float val, void* data);
@@ -157,35 +161,37 @@ class UI
 	
 	// -- active widgets
 	
-	virtual void addButton(const char* label, float* zone) = 0;
-	virtual void addToggleButton(const char* label, float* zone) = 0;
-	virtual void addCheckButton(const char* label, float* zone) = 0;
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addButton(const char* label, float* zone) {};
+	virtual void addToggleButton(const char* label, float* zone) {};
+	virtual void addCheckButton(const char* label, float* zone) {};
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) {};
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) {};
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) {};
 	
 	// -- passive widgets
 	
-	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addNumDisplay(const char* label, float* zone, int precision) {};
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {};
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {};
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) {};
 	
 	void addCallback(float* zone, uiCallback foo, void* data);
 	
 	// -- widget's layouts
 	
-	virtual void openFrameBox(const char* label) = 0;
-	virtual void openTabBox(const char* label) = 0;
-	virtual void openHorizontalBox(const char* label) = 0;
-	virtual void openVerticalBox(const char* label) = 0;
-	virtual void closeBox() = 0;
+	virtual void openFrameBox(const char* label) {};
+	virtual void openTabBox(const char* label) {};
+	virtual void openHorizontalBox(const char* label) {};
+	virtual void openVerticalBox(const char* label) {};
+	virtual void closeBox() {};
 	
-	virtual void show() = 0;
-	virtual void run() = 0;
+	virtual void show() {};
+	virtual void run() {};
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
+
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 
@@ -852,7 +858,7 @@ void GTKUI::run()
 //----------------------------------------------------------------
 //  définition du processeur de signal
 //----------------------------------------------------------------
-			
+	
 class dsp {
  protected:
 	int fSamplingFreq;

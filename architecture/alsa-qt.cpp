@@ -38,6 +38,14 @@
 //inline int lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
 //inline int int2pow2 (int x)		{ int r=0; while ((1<<r)<x) r++; return r; }
 
+#include <map>
+using namespace std;
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
 
 /**
  * Used to set the priority and scheduling of the audio thread 

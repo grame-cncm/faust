@@ -32,6 +32,11 @@
 
 using namespace std;
 
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 
 // g++ -O3 -lm -ljack `gtk-config --cflags --libs` ex2.cpp

@@ -547,6 +547,11 @@ class AudioInterface : public AudioParam
 
 using namespace std;
 
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
 
 struct uiItem;
 typedef void (*uiCallback)(float val, void* data);
@@ -653,6 +658,8 @@ class UI
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
+
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 

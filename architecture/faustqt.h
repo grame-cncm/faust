@@ -116,22 +116,22 @@ class UI : public QObject
 	// debut remplacement '= 0;' par '{}'
 	// -- active widgets
 	
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addButton(char*, float*) = 0;
+	virtual void addCheckButton(char*, float*) = 0;
+	virtual void addVerticalSlider(char*, float*, float, float, float, float) = 0;
+	virtual void addHorizontalSlider(char*, float*, float, float, float, float) = 0;
+	virtual void addNumEntry(char*, float*, float, float, float, float) = 0;
 	
 	// -- passive widgets
 	
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addHorizontalBargraph(char*, float*, float, float) = 0;
+	virtual void addVerticalBargraph(char*, float*, float, float) = 0;
 	
 	// -- widget's layouts
 	
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
+	virtual void openTabBox(char*) = 0;
+	virtual void openHorizontalBox(char*) = 0;
+	virtual void openVerticalBox(char*) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void run() = 0;
@@ -140,6 +140,8 @@ class UI : public QObject
 
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
+
+    virtual void declare(float*, const char*, const char*) {}
 };
 
 

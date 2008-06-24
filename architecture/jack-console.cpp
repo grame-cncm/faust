@@ -18,6 +18,11 @@
 
 using namespace std;
 
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
 
@@ -58,26 +63,26 @@ public:
 	
 	// -- active widgets
 	
-	virtual void addButton(char* label, float* zone) = 0;
-	virtual void addToggleButton(char* label, float* zone) = 0;
-	virtual void addCheckButton(char* label, float* zone) = 0;
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addButton(const char* label, float* zone) = 0;
+	virtual void addToggleButton(const char* label, float* zone) = 0;
+	virtual void addCheckButton(const char* label, float* zone) = 0;
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
 	// -- frames and labels
 	
-	virtual void openFrameBox(char* label) = 0;
-	virtual void openTabBox(char* label) = 0;
-	virtual void openHorizontalBox(char* label) = 0;
-	virtual void openVerticalBox(char* label) = 0;
+	virtual void openFrameBox(const char* label) = 0;
+	virtual void openTabBox(const char* label) = 0;
+	virtual void openHorizontalBox(const char* label) = 0;
+	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void show() = 0;
@@ -85,6 +90,8 @@ public:
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
+
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 struct param {
@@ -99,13 +106,13 @@ class CMDUI : public UI
 	stack<string>		fPrefix;
 	map<string, param>	fKeyParam;
 	
-	void addOption(char* label, float* zone, float min, float max)
+	void addOption(const char* label, float* zone, float min, float max)
 	{
 		string fullname = fPrefix.top() + label;
 		fKeyParam.insert(make_pair(fullname, param(zone, min, max)));
 	}
 	
-	void openAnyBox(char* label)
+	void openAnyBox(const char* label)
 	{
 		string prefix;
 		
@@ -122,36 +129,36 @@ public:
 	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("--"); }
 	virtual ~CMDUI() {}
 	
-	virtual void addButton(char* label, float* zone) 		{};
-	virtual void addToggleButton(char* label, float* zone) 	{};
-	virtual void addCheckButton(char* label, float* zone) 	{};
+	virtual void addButton(const char* label, float* zone) 		{};
+	virtual void addToggleButton(const char* label, float* zone) 	{};
+	virtual void addCheckButton(const char* label, float* zone) 	{};
 		
-	virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 	{
 		addOption(label,zone,min,max);
 	}
 		
-	virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step)
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 	{
 		addOption(label,zone,min,max);
 	}
 
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 	{
 		addOption(label,zone,min,max);
 	}
 		
 	// -- passive widgets
 	
-	virtual void addNumDisplay(char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) 	{}
-	virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) 			{}
-	virtual void addVerticalBargraph(char* label, float* zone, float min, float max) 			{}
+	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) 	{}
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
 
-	virtual void openFrameBox(char* label)		{ openAnyBox(label); }
-	virtual void openTabBox(char* label)		{ openAnyBox(label); }
-	virtual void openHorizontalBox(char* label)	{ openAnyBox(label); }
-	virtual void openVerticalBox(char* label)	{ openAnyBox(label); }
+	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
+	virtual void openTabBox(const char* label)		{ openAnyBox(label); }
+	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
+	virtual void openVerticalBox(const char* label)	{ openAnyBox(label); }
 	
 	virtual void closeBox() 					{ fPrefix.pop(); }
 	
