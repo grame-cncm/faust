@@ -63,6 +63,11 @@
 #include <math.h>
 
 using namespace std ;
+
+struct Meta
+{
+    void declare (const char* key, const char* value) {  }
+};
 	
 	
 #ifdef __GNUC__
@@ -184,6 +189,8 @@ public:
 		
   void stop()		{ fStopped = true; }
   bool stopped()	{ return fStopped; }
+
+  virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 

@@ -11,6 +11,13 @@
 
 using namespace std;
 
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
+
 /******************************************************************************
 *******************************************************************************
 
@@ -121,6 +128,7 @@ class UI
 	virtual void openVerticalBox(char* label) = 0;
 	virtual void closeBox() = 0;
 
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 

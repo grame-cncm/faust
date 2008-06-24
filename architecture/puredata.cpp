@@ -5,9 +5,14 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string>
 
 using namespace std;
-#include <string>
+
+struct Meta 
+{
+    void declare (const char* key, const char* value) {}
+};
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -112,6 +117,8 @@ public:
 	
   void stop()	{ fStopped = true; }
   bool stopped() 	{ return fStopped; }
+
+  virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 /***************************************************************************

@@ -28,6 +28,11 @@
 #include <string.h>
 #include <SC_PlugIn.h>
 
+struct Meta 
+{
+    void declare (const char* key, const char* value) { }
+};
+
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
 //-------------------------------------------------------------------
@@ -129,6 +134,8 @@ public:
 	virtual void openHorizontalBox(const char* label) = 0;
 	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
+
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 //----------------------------------------------------------------------------

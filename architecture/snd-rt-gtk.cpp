@@ -20,11 +20,17 @@
 
 #include <iostream>
 #include <fstream>
+#include <map>
 
 #include <libgen.h>
 
 
 using namespace std;
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
@@ -355,6 +361,8 @@ class GTKUI : public UI
 	
 	virtual void show();
 	virtual void run();
+
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 
