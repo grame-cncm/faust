@@ -19,10 +19,6 @@ jackgtk :
 	install -d jackgtkdir
 	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
-msjackgtk :
-	install -d msjackgtkdir
-	$(MAKE) DEST='msjackgtkdir/' ARCH='ms-jack-gtk.cpp' LIB='-lMidiShare `pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
-
 jackqt :
 	install -d jackqtdir
 	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack' -f Makefile.qtcompile
@@ -98,6 +94,7 @@ q :
 supercollider :
 	ls *.dsp | ../tools/scbuilder/scbuilder \
 			FAUST2SC=../tools/faust2sc-1.0.0/faust2sc \
+			FAUST2SC_PREFIX="Faust_" \
 			SC_SOURCE_DIR=$(SC_SOURCE_DIR) \
 			BUILD_DIR=supercolliderdir
 

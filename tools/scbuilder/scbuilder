@@ -259,7 +259,7 @@ def faustInitEnvironment(env):
         suffix = '.dsp.xml',
         src_suffix = '.dsp')
     sc = Builder(
-        action = '$FAUST2SC -o $TARGET $SOURCE',
+        action = '$FAUST2SC --prefix="$FAUST2SC_PREFIX" -o $TARGET $SOURCE',
         suffix = '.sc',
         src_suffix = '.dsp.xml')
     env.Append(BUILDERS = { 'Faust' : dsp,
@@ -292,6 +292,8 @@ opts.AddOptions(
     PathOption('FAUST2SC',
                'Path to faust2sc script', 'faust2sc',
                PathOption.PathAccept),
+    (          'FAUST2SC_PREFIX',
+               'Prefix for SC classes generated from Faust definitions', ''),
     PathOption('PREFIX',
                'Installation prefix', DEFAULT_PREFIX),
     PathOption('INSTALLDIR',
@@ -299,7 +301,8 @@ opts.AddOptions(
                PathOption.PathAccept),
     BoolOption('SSE',
                'Build with SSE support', 1),
-    ('OPT_ARCH', 'Architecture to optimize for', DEFAULT_OPT_ARCH),
+    (          'OPT_ARCH',
+               'Architecture to optimize for', DEFAULT_OPT_ARCH),
     PathOption('PLUGIN_SOURCES',
                'File containing plugin sources (C++ or Faust)', None,
                PathOption.PathAccept),
