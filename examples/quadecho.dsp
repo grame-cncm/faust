@@ -1,4 +1,4 @@
-declare name 		"echo";
+declare name 		"quadecho";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
