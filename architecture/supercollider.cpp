@@ -25,13 +25,10 @@
 
 #include <ctype.h>
 #include <limits.h>
+#include <map>
+#include <string>
 #include <string.h>
 #include <SC_PlugIn.h>
-
-struct Meta 
-{
-    void declare (const char* key, const char* value) { }
-};
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -96,6 +93,21 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)
 
 <<includeIntrinsic>>
 
+/******************************************************************************
+*******************************************************************************
+
+								META DATA
+
+*******************************************************************************
+*******************************************************************************/
+
+struct Meta : std::map<std::string, std::string>
+{
+	void declare(const char* key, const char* value)
+	{
+		(*this)[key] = value;
+	}
+};
 
 /******************************************************************************
 *******************************************************************************
@@ -182,10 +194,8 @@ public:
 	virtual void closeBox() { }
 
 protected:
-	void addControlInput() {
-		printf("addControlInput %d\n", mNumControlInputs);
-		mNumControlInputs++; }
-	void addControlOutput() { }
+	void addControlInput() { mNumControlInputs++; }
+	void addControlOutput() { mNumControlOutputs++; }
 
 private:
 	size_t mNumControlInputs;
@@ -334,29 +344,50 @@ struct Faust : public Unit
 // Global state
 struct State
 {
-	mydsp	dsp;
-	size_t	numControls;
-	char	unitName[PATH_MAX];
+	mydsp		m_dsp;
+	size_t		m_numControls;
+	std::string	m_unitName;
 	
-	void init(int sampleRate);
+public:
+	void init(const std::string& name, int sampleRate);
+	
+	mydsp& dsp() { return m_dsp; }
+	size_t numControls() const { return m_numControls; }
+	const char* unitName() const { return m_unitName.c_str(); }
 	size_t unitSize() const;
+	
+	static std::string fileNameToUnitName(const std::string& fileName);
 };
 
-void State::init(int sampleRate)
+void State::init(const std::string& name, int sampleRate)
 {
+	m_unitName = name;
 	ControlCounter cc;
-	dsp.classInit(sampleRate); // TODO: use real sample rate
-	dsp.buildUserInterface(&cc);
-	numControls = cc.getNumControls();
+	m_dsp.classInit(sampleRate);
+	m_dsp.buildUserInterface(&cc);
+	m_numControls = cc.getNumControls();
 }
 
 size_t State::unitSize() const
 {
-	return sizeof(Faust) + numControls * sizeof(Control);
+	return sizeof(Faust) + numControls() * sizeof(Control);
+}
+
+std::string State::fileNameToUnitName(const std::string& fileName)
+{
+	// Extract basename
+	size_t lpos = fileName.rfind('/', fileName.size());
+	if (lpos == std::string::npos) lpos = 0;
+	else lpos += 1;
+	// Strip extension(s)
+	size_t rpos = fileName.find('.', lpos);
+	// Return substring
+	return fileName.substr(lpos, rpos > lpos ? rpos - lpos : 0);
 }
 
 // Globals
 static State gState;
+
 static InterfaceTable *ft;
 
 extern "C"
@@ -391,7 +422,7 @@ void Faust_Ctor(Faust* unit)
 	unit->mDSP.instanceInit((int)SAMPLERATE);
 
 	// allocate controls
-	unit->mNumControls = gState.numControls;
+	unit->mNumControls = gState.numControls();
 	ControlAllocator ca(unit->mControls);
 	unit->mDSP.buildUserInterface(&ca);
 
@@ -417,7 +448,7 @@ void Faust_Ctor(Faust* unit)
 	if (channelsValid && rateValid) {
 		SETCALC(Faust_next);
 	} else {
-		Print("Faust[%s]:\n", gState.unitName);
+		Print("Faust[%s]:\n", gState.unitName());
 		if (!channelsValid) {
 			Print("    Input/Output channel mismatch\n"
 				  "        Inputs:  faust %d, unit %d\n"
@@ -439,41 +470,36 @@ void load(InterfaceTable* inTable)
 {
     ft = inTable;
 
-	// initialize unit name
-	char* name = gState.unitName;
-
-	// use file name as ugen name
-	const char* fileName = strrchr(__FILE__, '/');
-	if (fileName) {
-		fileName++;
-	} else {
-		fileName = __FILE__;
+	Meta meta;
+	mydsp::metadata(&meta);
+	
+	std::string name(meta["name"]);
+	
+	if (name.empty()) {
+		name = State::fileNameToUnitName(__FILE__);
 	}
-	strncpy(name, fileName, PATH_MAX);
 
-	// strip extension(s)
-	char* ext = strchr(name, '.');
-	if (ext) *ext = 0;
-
-	if (!name[0]) {
-		// catch empty name
+	if (name.empty()) {
+		// Catch empty name
 		Print("Faust: empty unit generator name\n"
 			  "       bailing out ...\n");
 		return;
 	}
-
- 	// TODO: use real sample rate
-	gState.init(48000);
 	
-	// register ugen
+ 	// TODO: use real sample rate
+	gState.init(name, 48000);
+	
+	// Register ugen
 	(*ft->fDefineUnit)(
-		name,
+		gState.unitName(),
 		gState.unitSize(),
 		(UnitCtorFunc)&Faust_Ctor, 0,
 		kUnitDef_CantAliasInputsToOutputs
 		);
-		
-	Print("Faust: %s numControls=%d\n", gState.unitName, gState.numControls);
+
+#if !defined(NDEBUG)
+	Print("Faust: %s numControls=%d\n", gState.unitName(), gState.numControls());
+#endif // NDEBUG
 }
 
 // EOF
