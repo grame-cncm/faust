@@ -163,7 +163,7 @@ module Faust
       attr_reader :unit_name, :class_name
       def initialize(plugin, prefix)
         @plugin = plugin
-        @unit_name = SC3::path_to_unitname(plugin.path)
+        @unit_name = plugin.name || SC3::path_to_unitname(plugin.path)
         @class_name = SC3::make_class_name(@unit_name, prefix)
       end
       def inputs
