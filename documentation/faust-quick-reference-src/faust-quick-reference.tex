@@ -11,7 +11,7 @@
 
 \title{Faust Quick Reference}
 \author{Yann Orlarey\\Grame, Centre National de Creation Musicale}
-\date{October 2007}
+\date{June 2008}
 
 
 \railalias{recur}{$\sim$}
@@ -41,7 +41,7 @@
 
 \section{Introduction}
 
-This document is a quick-reference to the Faust language (version 0.9.9.2), a programming language for real-time signal processing and synthesis that targets high-performance signal processing applications and audio plug-ins.
+This document is a quick-reference to the Faust language (version 0.9.9.4), a programming language for real-time signal processing and synthesis that targets high-performance signal processing applications and audio plug-ins.
 
 \section{Faust program}
 
@@ -53,7 +53,11 @@ program : (definition | fileimport | declaration)+;
 \end{rail}
 
 \subsection{Definitions}
-Faust is based on a declarative style of programming. A valid Faust program must contain at least one definition for the keyword \emph{process}  (the equivalent of \emph{main} in C) . Definitions can appear in any order. In particular an identifier can be used before being defined. Multiple definitions of the same identifier are treated as pattern-matching rules and analyzed as such.
+Faust is based on a declarative style of programming. A valid Faust program must contain at least one definition for the keyword \emph{process}  (the equivalent of \emph{main} in C) . Definitions can appear in any order. In particular an identifier can be used before being defined. 
+
+Multiple definitions of the same identifier in the same file are treated as pattern-matching rules and analyzed as such. In this case, the order of the pattern matching rules is important. The more specific rules must appear before the more general rules. If it's not the case, a ``shadowed pattern-matching rule'' warning is produced.
+
+Multiple definitions of an identifier in different files are not allowed. It trigs a ``redefinition of symbols are not allowed'' error message.
 
 \begin{rail}
 definition  : "process" '=' blockdiagram ';'
@@ -101,19 +105,19 @@ fileimport : "import" '(' filename ')' ';';
 It is common for a Faust program to import the definitions of math.lib and music.lib files by including the lines : $\mathtt{import("math.lib");}$ and  $\mathtt{import("music.lib");}$.
 
 
-\subsection{Declarations}
+\subsection{Meta-data declarations}
 
-Declarations can be used to define some meta-data documenting and describing the project. The currently implemented meta-data are the name, the author, the version, the copyright and the license of the project. This information is typically used when generating an XML description of the project (option -xml of the compiler).
+Meta-data declarations can be used to document a Faust project. For example it can be useful to declare the author of a program as well as its name and version. The syntax of these meta-data declarations is the following :
 
 \begin{rail}
-declaration : "declare" property string ';';
-property : "name" | "author" | "copyright" | "license" | "version";
+declaration : "declare" key string ';';
+key : identifier;
 \end{rail}
 
-Here is an example of declarations :
+These meta-data are embedded in the generated C++ code as well as in the XML description of the project (option -xml of the compiler). Here is an example of meta-data declarations :
 
 \begin{tabular}{l}
-	\texttt{declare name "superFX";}\\
+	\texttt{declare name "super reverb";}\\
 	\texttt{declare author "Alonzo Church";}\\
 	\texttt{declare version "0.9.5c";}\\
 \end{tabular}
