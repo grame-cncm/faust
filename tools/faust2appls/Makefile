@@ -5,6 +5,8 @@ install :
 	install faust2alsa $(prefix)/bin
 	install faust2plot $(prefix)/bin
 	install faust2svg $(prefix)/bin
+	install faust2png $(prefix)/bin
+	install faust2eps $(prefix)/bin
 	install faust2octave $(prefix)/bin
 	install faust2firefox $(prefix)/bin
 

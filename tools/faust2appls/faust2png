@@ -1,0 +1,12 @@
+#!/bin/bash
+
+faust2svg $@
+
+for d in $@; do
+    for f in $d-svg/*.svg; do
+        inkscape -e ${f%.svg}.png -d 300 $f
+        rm $f
+    done
+    mv $d-svg $d-png
+done
+
