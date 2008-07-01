@@ -12,11 +12,17 @@
 #include <stack>
 #include <string>
 #include <map>
+#include <list>
 #include <iostream> 
 
 // g++ -O3 -lm -lsndfile  myfx.cpp
 
 using namespace std;
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
 
 
 //-------------------------------------------------------------------
@@ -133,6 +139,8 @@ public:
 	
   void stop()		{ fStopped = true; }
   bool stopped() 	{ return fStopped; }
+
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 struct param {
