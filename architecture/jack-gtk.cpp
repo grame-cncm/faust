@@ -27,6 +27,8 @@
 
 using namespace std;
 
+#define BENCHMARKMODE
+
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
@@ -928,6 +930,40 @@ void jack_shutdown(void *arg)
 	exit(1);
 }
 
+#ifdef BENCHMARKMODE
+// mesuring jack performances
+static __inline__ unsigned long long int rdtsc(void)
+{
+  unsigned long long int x;
+     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+     return x;
+}
+
+#define KMESURE 1024
+int mesure = 0;
+unsigned long long int starts[KMESURE];
+unsigned long long int stops [KMESURE];
+
+#define STARTMESURE starts[mesure] = rdtsc();
+#define STOPMESURE stops[mesure] = rdtsc(); mesure = (mesure+1)&(KMESURE-1);
+
+void printstats()
+{
+    unsigned long long int low, hi, tot;
+    
+    low = hi = tot = (stops[0] - starts[0]);
+
+    for (int i = 1; i<KMESURE; i++) {
+        unsigned long long int m = stops[i] - starts[i];
+        if (m<low) low = m;
+        if (m>hi) hi = m;
+        tot += m;
+    }
+    cout << low << ' ' << tot/KMESURE << ' ' << hi << endl;
+}
+#endif
+// end
+
 int process (jack_nframes_t nframes, void *arg)
 {
 	for (int i = 0; i < gNumInChans; i++) {
@@ -936,7 +972,9 @@ int process (jack_nframes_t nframes, void *arg)
 	for (int i = 0; i < gNumOutChans; i++) {
 	    gOutChannel[i] = (float *)jack_port_get_buffer(output_ports[i], nframes);
 	}
+    STARTMESURE
 	DSP.compute(nframes, gInChannel, gOutChannel);
+    STOPMESURE  
 	return 0;
 }
 #ifdef _OPENMP
@@ -1048,7 +1086,9 @@ int main(int argc, char *argv[] )
     
     jack_client_close(client);
     interface->saveState(rcfilename);
-        
+#ifdef BENCHMARKMODE
+    printstats();
+#endif       
     return 0;
 }
 
