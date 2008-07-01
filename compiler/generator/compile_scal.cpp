@@ -373,14 +373,17 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
 	addIncludeFile(ffincfile(ff)); 	//printf("inc file %s\n", ffincfile(ff));
 	addLibrary(fflibfile(ff));		//printf("lib file %s\n", fflibfile(ff));
-	switch (ffarity(ff)) {
-		case 0 : return generateCacheCode(sig, subst("$0()", ffname(ff)));
-		case 1 : return generateCacheCode(sig, subst("$0($1)", ffname(ff), CS(nth(largs,0))));
-		case 2 : return generateCacheCode(sig, subst("$0($1, $2)", ffname(ff), CS(nth(largs,0)), CS(nth(largs,1))));
-		case 3 : return generateCacheCode(sig, subst("$0($1, $2, $3)", ffname(ff), CS(nth(largs,0)), CS(nth(largs,1)), CS(nth(largs,2))));
-		default : fprintf(stderr, "error inside generateFFun"); exit(1);
-	}
-	return "Arity Error in FFun";
+
+    string code = ffname(ff);
+    code += '(';
+    string sep = "";
+    for (int i = 0; i< ffarity(ff); i++) {
+        code += sep;
+        code += CS(nth(largs, i));
+        sep = ", ";
+    }
+    code += ')';
+    return code;
 }
 
 
