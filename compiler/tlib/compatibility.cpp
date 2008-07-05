@@ -37,7 +37,13 @@ int isatty(int file) {return 0;}
     #include <string.h>
     void getFaustPathname(char* str, unsigned int size)
     {
-        strncpy(str, getenv("_"), size);
+		char* path = getenv("_");
+		if (path) {
+        	strncpy(str, path, size);
+		} else {
+			// prevent the case of _ undefined
+			strncpy(str, "/usr/local/bin/faust", size);
+		} 
     }
 
 #endif
