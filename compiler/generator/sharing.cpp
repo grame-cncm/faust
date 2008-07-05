@@ -196,7 +196,7 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	int cTrueScal = getSharingCount(t,kTrueScal);
 
 
-	int type;
+	int type=0;
 
 	if ((cVect==0)&&(cScal==0)&&(cTrueScal==0)) {
 
@@ -236,7 +236,7 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	      else if(isSigWRTbl(t,id,x,y,z)) { sharingAnnotation(vctxt, t->branch(0),kTrueScal); sharingAnnotation(vctxt, t->branch(1),kTrueScal); sharingAnnotation(vctxt, t->branch(2),kTrueScal); sharingAnnotation(vctxt, t->branch(3),kScal); }
 	      else if(isRec(t,label,le)||isRef(t,label)) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),kScal);
 
-	      else if(ctxt==kTrueScal) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),type); // et forcément vctxt == kSamp
+	      else if(ctxt==kTrueScal) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),type); // et forcï¿½ment vctxt == kSamp
 	      else for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),ctxt|type);
 
 
