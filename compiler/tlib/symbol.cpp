@@ -21,7 +21,8 @@
 
 #include    "symbol.hh"
 #include    "compatibility.hh"
-#include 	<iostream>
+#include    <iostream>
+#include    <cstring>
 
 using namespace std;
 

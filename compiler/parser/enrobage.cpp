@@ -24,6 +24,7 @@
 #include "enrobage.hh"
 #include <string>
 #include "compatibility.hh"
+#include <climits>
 
 extern string gFaustSuperDirectory;
 extern string gFaustDirectory;

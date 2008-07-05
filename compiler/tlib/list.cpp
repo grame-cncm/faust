@@ -105,6 +105,7 @@ This file contains several extensions to the tree library :
 #include "list.hh"
 #include "compatibility.hh"
 #include <map>
+#include <cstdlib>
 
 // predefined symbols CONS and NIL
 Sym CONS = symbol("cons");
@@ -490,7 +491,7 @@ Tree tmap (Tree key, tfun f, Tree t)
 // substitute :remplace toutes les occurences de 'id' par 'val' dans 't'
 //------------------------------------------------------------------------------
 
-// genere une clef unique propre à cette substitution
+// genere une clef unique propre ï¿½ cette substitution
 static Tree substkey(Tree t, Tree id, Tree val) 
 {
 	char 	name[256];
@@ -498,8 +499,8 @@ static Tree substkey(Tree t, Tree id, Tree val)
 	return tree(unique(name));
 }	
 
-// realise la substitution proprement dite tout en mettant à jour la propriete
-// pour ne pas avoir à la calculer deux fois
+// realise la substitution proprement dite tout en mettant ï¿½ jour la propriete
+// pour ne pas avoir ï¿½ la calculer deux fois
 
 static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 {

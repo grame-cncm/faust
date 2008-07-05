@@ -79,6 +79,7 @@ storage of trees.
 #include <limits.h>
 #include "tree.hh"
 #include <fstream>
+#include <cstdlib>
 
 Tabber TABBER(1);	
 extern Tabber TABBER;

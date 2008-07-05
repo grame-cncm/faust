@@ -22,6 +22,7 @@
 #include "topSchema.h"
 #include <iostream>
 #include <assert.h>
+#include <cstdlib>
 
 using namespace std;
 
