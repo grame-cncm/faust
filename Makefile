@@ -1,4 +1,4 @@
-version := 0.9.9.4f
+version := 0.9.9.4g
 prefix := /usr/local
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
