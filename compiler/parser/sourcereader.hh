@@ -9,6 +9,7 @@ using namespace std;
 
 Tree formatDefinitions(Tree rldef);
 Tree checkRulelist (Tree lrules);
+void declareMetadata(Tree key, Tree value);
 
 class SourceReader 
 {

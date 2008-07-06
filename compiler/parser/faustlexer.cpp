@@ -674,7 +674,7 @@ char *yytext;
 #line 4 "parser/faustlexer.l"
 #include "tree.hh"
 #include "faustparser.hpp"
-//#define YY_NO_UNISTD_H 1
+#define YY_NO_UNISTD_H 1
 
 #line 680 "parser/faustlexer.cpp"
 

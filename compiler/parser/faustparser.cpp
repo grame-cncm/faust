@@ -1923,7 +1923,7 @@ yyreduce:
 
   case 8:
 #line 249 "parser/faustparser.y"
-    {gMetaDataSet[(yyvsp[(2) - (4)].exp)].insert((yyvsp[(3) - (4)].exp)); (yyval.exp) = nil; ;}
+    {declareMetadata((yyvsp[(2) - (4)].exp),(yyvsp[(3) - (4)].exp)); (yyval.exp) = nil; ;}
     break;
 
   case 9:

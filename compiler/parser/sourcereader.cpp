@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 #include <list>
+#include <string>
 
 
 #include "sourcereader.hh"
@@ -15,6 +16,9 @@
 #include "ppbox.hh"
 
 using namespace std;
+
+extern map<Tree, set<Tree> > gMetaDataSet;
+extern string gMasterDocument;
 
 /****************************************************************
  						Parser variables
@@ -270,4 +274,21 @@ Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)
 	return lresult;
 }
 				
-			
+
+void declareMetadata(Tree key, Tree value)
+{
+    if (gMasterDocument == yyfilename) {
+        // inside master document, no prefix needed to declare metadata
+        gMetaDataSet[key].insert(value);
+    } else {
+        string fkey(yyfilename);
+        fkey += "/";
+        fkey += tree2str(key);
+        gMetaDataSet[tree(fkey.c_str())].insert(value);
+    }
+}
+/*
+ cout << "toto "; }
+    cout << "Master " << gMasterDocument  << ", file " << yyfilename <<  " : declare " << *key << "," << *value << endl;
+    gMetaDataSet[key].insert(value);
+}		*/

@@ -246,7 +246,7 @@ equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAb
 equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,cons($3,$6)); }
 				| eqname DEF diagram ENDDEF						{$$ = cons($1,cons(nil,$3)); }
 				| IMPORT LPAR uqstring RPAR ENDDEF				{$$ = importFile($3); }
-                | DECLARE name string  ENDDEF                   {gMetaDataSet[$2].insert($3); $$ = nil; }
+                | DECLARE name string  ENDDEF                   {declareMetadata($2,$3); $$ = nil; }
 				| error ENDDEF									{$$ = nil; yyerr++;}
                	;
 

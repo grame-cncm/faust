@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.4f"
+#define FAUSTVERSION "0.9.9.4g"
 
 #include <stdio.h>
 #include <string.h>
@@ -266,20 +266,25 @@ void printhelp()
 
 void printheader(ostream& dst)
 {
-    Tree author = tree("author");
+    // defines the metadata we want to print as comments at the begin of in the C++ file
+    set<Tree> selectedKeys;
+    selectedKeys.insert(tree("name"));
+    selectedKeys.insert(tree("author"));
+    selectedKeys.insert(tree("copyright"));
+    selectedKeys.insert(tree("license"));
+    selectedKeys.insert(tree("version"));
         
     dst << "//-----------------------------------------------------" << endl;
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
-        dst << "// " << *(i->first) << " : ";      
-        if (i->first != author) {
-            dst << **(i->second.begin());
-        } else {
+        if (selectedKeys.count(i->first)) {
+            dst << "// " << *(i->first);
+            const char* sep = ": ";
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j != i->second.begin()) { dst << endl << "// contributors : "; }
-                dst << **j << " ";
+                dst << sep << **j;
+                sep = ", ";
             }
+            dst << endl;
         }
-        dst << endl;
     }
 
     dst << "//" << endl;
