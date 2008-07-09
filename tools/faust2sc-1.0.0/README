@@ -1,8 +1,13 @@
 faust2sc (by Stefan Kersten)
 ----------------------------
 
-Faust can produce an XML description of a plugin, including
-various meta data and the structural layout of the user
-interface. This information is used by faust2sc to generate 
-a SuperCollider class file, which can be compiled and
-subsequently used from within sclang. 
+Faust can produce an XML description of a plugin, including various meta data
+and the structural layout of the user interface. This information is used by
+faust2sc to generate SuperCollider class file, which can be compiled and
+subsequently used from within sclang.
+
+Since version 1.1.0 faust2sc supports multiple output languages. Currently
+support for the languages has been implemented:
+
+* SuperCollider (sclang)
+* Haskell

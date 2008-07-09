@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 # ======================================================================
-# faust2sc.rb
-# Generate SuperCollider UGen classes from Faust XML
-# Copyright (C) 2005 stefan kersten
+# faust2sc - Generate language modules from Faust XML.
+# Copyright (C) 2005-2008 Stefan Kersten
 # ======================================================================
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +25,18 @@
 require 'getoptlong'
 require 'rexml/document'
 
-PROGRAM = File.basename($0)
+PROGRAM         = File.basename($0)
+PROGRAM_VERSION = "1.1.0"
+
+class Array
+  def flatten1
+    res = []
+    self.each { |l|
+      res += l
+    }
+    res
+  end
+end
 
 module REXML
   class Element
@@ -40,8 +50,24 @@ module REXML
 end
 
 class String
-  def decapitalize
-    self[0..0].downcase + self[1..-1]
+  def encapitalize
+    self[0..0].upcase + self[1..-1]
+  end
+  def decapitalize(greedy=false)
+    unless greedy
+      self[0..0].downcase + self[1..-1]
+    else
+      res = self.clone
+      (0..res.size-1).each { |i|
+        c = res[i]
+        if 65 <= c && c <= 90
+          res[i] = c + 32
+        else
+          break
+        end
+      }
+      res
+    end
   end
 end
 
@@ -88,29 +114,57 @@ module Faust
       }
       @ui = UI.new(node.elements["/faust/ui"])
     end
+    def total_inputs
+      inputs + ui.active_widgets.size
+    end
     def Plugin::from_file(path)
       self.new(path, REXML::Document.new(File.open(path) { |io| io.read }))
     end
   end
 
-  module SC3
-    CLASS_REGEXP = /^[A-Z][a-zA-Z0-9_]*[a-zA-Z0-9]?$/
+  class Generator
+    attr_reader :plugins, :options
+    def initialize(plugins, options)
+      @plugins = plugins
+      @options = options
+    end
+    def lang
+      "unknown"
+    end
+    def generate(io)
+      generate_header(io)
+      generate_body(io)
+      generate_footer(io)
+    end
+    def generate_header(io)
+    end
+    def generate_footer(io)
+    end
+    def generate_body(io)
+      plugins.each_with_index { |plugin,i|
+        if plugin
+          begin
+            print_info("Generating #{lang} code for #{plugin.name} ...\n")
+            generate_plugin(io, plugin)
+            if i < (plugins.size - 1)
+              io.print("\n")
+            end
+          rescue
+            print_error("#{$!}\n")
+            $!.backtrace.each { |l| print_error(l + "\n") }
+            print_error("Omitting #{plugin.path}\n")
+          end
+        end
+      }
+      io.print("\n")
+    end
+    def generate_plugin(io, plugin)
+      raise "#{self.class}::generate_plugin() missing!"
+    end
+  end
+  
+  module Language
     IDENTIFIER_REGEXP = /^[a-z][a-zA-Z0-9_]*[a-zA-Z0-9]?$/
-
-    def path_to_unitname(path)
-      name = File.basename(path)
-      if ext_index = name.index(".")
-        name = name[0..ext_index-1]
-      end
-      name
-    end
-    def make_class_name(unit_name, prefix)
-      name = prefix + unit_name.capitalize.sub("-", "_")
-      unless name =~ CLASS_REGEXP
-        raise "invalid class name: \"#{name}\""
-      end
-      name
-    end
     def make_identifier(name)
       # gentle identifier massage
       # remove quotes
@@ -145,11 +199,107 @@ module Faust
       end
       res
     end
-    module_function :path_to_unitname, :make_class_name, :make_identifier, :make_unique
+    module_function :make_identifier, :make_unique
+  end
+  
+  module Haskell
+    INDENT = " " * 4
+    
+    def mk_function_names(plugin)
+      fname = plugin.name.decapitalize(true)
+      lname = fname + "'"
+      [lname, fname]
+    end
+    module_function :mk_function_names
+    
+    class PluginGenerator
+      attr_reader :plugin
+      def initialize(plugin)
+        @plugin = plugin
+      end
+      def generate(io)
+        lname, fname = Haskell.mk_function_names(plugin)
+        gen_curry_func(io, lname, fname)
+        io << "\n"
+        gen_list_func(io, lname)
+      end
+      def gen_ugen(io, name, rate, inputs, num_outputs)
+        io << "UGen.mkUGen #{rate} \"#{name}\" #{inputs} (replicate #{num_outputs} #{rate}) (UGen.Special 0) Nothing"
+        io << "\n"
+      end
+      def gen_curry_func(io, lname, fname)
+        args = mk_args(plugin.total_inputs)
+        decs = args.collect { "UGen" }
+        io << "#{fname} :: #{decs.join(" -> ")} -> UGen\n"
+        io << "#{fname} #{args.join(" ")} = #{lname} [#{args.join(',')}]\n"
+      end
+      def gen_list_func(io, fname)
+        io << "#{fname} :: [UGen] -> UGen\n"
+        io << "#{fname} args = "
+        gen_ugen(io, plugin.name, "UGen.AR", "args", plugin.outputs)
+      end
+      
+      protected
+      def mk_args(n, x="x")
+        (1..n).collect { |i| "#{x}#{i}" }
+      end
+    end # PluginGenerator
+    
+    class Generator < Faust::Generator
+      def initialize(plugins, options)
+        super(plugins, options)
+        @module = options["prefix"]
+      end
+      def lang
+        "haskell"
+      end
+      def generate_header(io)
+        gen_module(io, plugins.collect { |p| Haskell.mk_function_names(p) }.flatten1)
+        io << "\n"
+        gen_imports(io)
+        io << "\n"
+      end
+      def generate_plugin(io, plugin)
+        PluginGenerator.new(plugin).generate(io)
+      end
+      def gen_module(io, exports)
+        #m = @module.empty? ? "" : @module + "."
+        #io << "module #{m}#{plugin.name.encapitalize} (\n"
+        io << "module #{@module.empty? ? "Main" : @module} (\n"
+        io << exports.collect { |x| (INDENT * 1) + x }.join(",\n") << "\n"
+        io << ") where\n"
+      end
+      def gen_imports(io)
+        io << "import Sound.SC3.UGen (UGen)\n"
+        io << "import qualified Sound.SC3.UGen as UGen\n"
+      end
+    end
+  end
+  
+  module SC3
+    include Language
+    
+    CLASS_REGEXP = /^[A-Z][a-zA-Z0-9_]*[a-zA-Z0-9]?$/
+
+    def path_to_unitname(path)
+      name = File.basename(path)
+      if ext_index = name.index(".")
+        name = name[0..ext_index-1]
+      end
+      name
+    end
+    def make_class_name(unit_name, prefix)
+      name = prefix + unit_name.encapitalize.sub("-", "_")
+      unless name =~ CLASS_REGEXP
+        raise "invalid class name: \"#{name}\""
+      end
+      name
+    end
+    module_function :path_to_unitname, :make_class_name
 
     class Faust::Widget
       def sc3_identifier
-        SC3::make_identifier(self.label)
+        Language.make_identifier(self.label)
       end
       def sc3_arg_string
         "#{self.sc3_identifier}(#{self.init})"
@@ -159,12 +309,12 @@ module Faust
       end
     end
 
-    class UGenGen
+    class PluginGenerator
       attr_reader :unit_name, :class_name
-      def initialize(plugin, prefix)
-        @plugin = plugin
-        @unit_name = plugin.name || SC3::path_to_unitname(plugin.path)
-        @class_name = SC3::make_class_name(@unit_name, prefix)
+      def initialize(plugin, options)
+        @plugin     = plugin
+        @unit_name  = plugin.name || SC3::path_to_unitname(plugin.path)
+        @class_name = SC3::make_class_name(@unit_name, options["prefix"])
       end
       def inputs
         @plugin.inputs
@@ -179,7 +329,7 @@ module Faust
         (1..self.inputs).collect { |i| "in#{i}" }
       end
       def control_names
-        SC3::make_unique(@plugin.ui.active_widgets.collect { |x| x.sc3_identifier })
+        Language::make_unique(@plugin.ui.active_widgets.collect { |x| x.sc3_identifier })
       end
       def decl_args
         cnames = self.control_names
@@ -230,41 +380,79 @@ EOF
         end
       end
     end
+    
+    class Generator < Faust::Generator
+      def lang
+        "sclang"
+      end
+      def generate_plugin(io, plugin)
+        PluginGenerator.new(plugin, options).generate(io)
+      end
+    end
   end # module SC3
 end # module Faust
 
 def usage
   $stdout.print <<EOF
-Usage: #{File.basename($0)} [OPTION]... INPUT_FILE...\n
-Generate a SuperCollider class file from FAUST generated XML.
+Usage: #{File.basename($0)} [OPTION]... INPUT_FILE...
+
+Generate a language module file from FAUST generated XML.
+Currently supported languages are Haskell and SuperCollider.
 
 Options:
- -h, --help     display this help
- -o, --output   set output file name
- -p, --prefix   set SC class prefix
+ -h, --help     Display this help
+ -l, --lang     Set output language (haskell, sclang)
+ -o, --output   Set output file name
+ -p, --prefix   Set class or module prefix
+ -V, --version  Display version information
 EOF
 end
 
 opts = GetoptLong.new(
-  [ "--help", "-h",     GetoptLong::NO_ARGUMENT ],
+  [ "--help",   "-h",   GetoptLong::NO_ARGUMENT ],
+  [ "--lang",   "-l",   GetoptLong::REQUIRED_ARGUMENT ],
   [ "--output", "-o",   GetoptLong::REQUIRED_ARGUMENT ],
-  [ "--prefix", "-p",   GetoptLong::REQUIRED_ARGUMENT ]
+  [ "--prefix", "-p",   GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--version", "-V",  GetoptLong::NO_ARGUMENT ]
 )
 
+LANG_MAP = {
+  "sclang"  => Faust::SC3::Generator,
+  "haskell" => Faust::Haskell::Generator
+}
+
+lang = "sclang"
+generator = nil
 output_file = nil
-prefix = ""
+
+options = {
+  "prefix" => ""
+}
 
 opts.each { | opt, arg |
   case opt
   when "--help"
     usage
     exit(0)
+  when "--lang"
+    lang = arg
   when "--output"
     output_file = arg
   when "--prefix"
-    prefix = arg
+    options["prefix"] = arg
+    options["module"] = arg
+  when "--version"
+    puts "#{PROGRAM} #{PROGRAM_VERSION}"
+    exit(0)
   end
 }
+
+if LANG_MAP.key?(lang)
+  generator = LANG_MAP[lang]
+else
+  print_error("unknown output language #{lang}\n")
+  exit(1)
+end
 
 if output_file
   output = File.open(output_file, "w")
@@ -274,29 +462,16 @@ end
 
 plugins = ARGV.collect { |file|
   begin
-    print_info("parsing #{file} ...\n")
+    print_info("Parsing #{file} ...\n")
     Faust::Plugin.from_file(file)
   rescue
     print_error("#{$!}\n")
-    print_error("omitting #{file}\n")
+    print_error("Omitting #{file}\n")
   end
 }
 
 begin
-  plugins.each { |plugin|
-    if plugin
-      begin
-        gen = Faust::SC3::UGenGen.new(plugin, prefix)
-        print_info("generating #{gen.class_name}\n")
-        gen.generate(output)
-        output.print("\n\n")
-      rescue
-        print_error("#{$!}\n")
-        print_error("omitting #{plugin.path}\n")
-      end
-    end
-  }
-  output.print("\n")
+  generator.new(plugins, options).generate(output)
 ensure
   output.close unless output === $stdout
 end

@@ -14,8 +14,8 @@ Currently the following tools are available :
 - faust2appls contains simple scripts to easily and quickly generate svg 
   diagrams as well as jack, alsa and plot applications
 
-- faust2sc is a Ruby program used to generate a SuperCollider class 
-  file, which can be compiled and subsequently used from within sclang. 
+- faust2sc is a Ruby program used to generate language modules (e.g. for
+  Haskell and SuperCollider).
 
 - faust2pd is a Q program used to generate a user interface patch to
   use in conjuction with a Faust generated pd plugin.
