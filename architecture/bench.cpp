@@ -95,20 +95,23 @@ inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 
-
-
 bool setRealtimePriority ()
 {
     struct passwd *         pw;
     int                     err;
     uid_t                   uid;
+    int                     policy;
     struct sched_param      param;
 
     uid = getuid ();
     pw = getpwnam ("root");
     setuid (pw->pw_uid);
-    param.sched_priority = 50; /* 0 to 99  */
-    err = sched_setscheduler(0, SCHED_RR, &param);
+
+    pthread_getschedparam(pthread_self(), &policy, &param);
+    policy = SCHED_RR;
+    param.sched_priority = 50;
+    err = pthread_setschedparam(pthread_self(), policy, &param);
+
     setuid (uid);
     return (err != -1);
 }
