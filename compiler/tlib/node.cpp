@@ -7,8 +7,9 @@ ostream& Node::print (ostream& fout) const 					///< print a node on a stream
 		case kFloatNode : 	return fout << fData.f;
 		case kSymNode : 	return fout << *(fData.s);
 		case kPointerNode : return fout << "ptr:" << fData.p;
+		default : 			return fout << "badnode";
 	}
 			
-	return fout;
+//	return fout;
 }
 
