@@ -57,49 +57,31 @@ static void combineSub(Tree& R, Tree A)
 }
 
 
+static Tree simplifyingAdd(Tree t1, Tree t2)
+{
+	assert(t1!=0);
+	assert(t2!=0);
+
+	if (isNum(t1) && isNum(t2)) {
+		return addNums(t1,t2);
+
+	} else if (isZero(t1)) {
+		return t2;
+
+	} else if (isZero(t2)) {
+		return t1;
+
+	} else if (t1 <= t2) {
+		return sigAdd(t1, t2);
+
+	} else {
+		return sigAdd(t2, t1);
+	}
+}
+
 /**
  * return the corresponding normalized expression tree
  */
-#if 0
-Tree aterm::normalizedTree() const
-{
-	Tree SUM = tree(0);
-	for (SM::const_iterator p = fSig2MTerms.begin(); p != fSig2MTerms.end(); p++) {
-		const mterm& m = p->second;
-		combineAdd(SUM, m.normalizedTree());
-	}
-	assert(SUM);
-	return SUM;
-}
-#endif
-
-#if 0
-Tree aterm::normalizedTree() const
-
-{
-	Tree S[4];
-	
-	// sum by order
-	for (int order = 0; order < 4; order++) {
-		S[order] = tree(0);
-		for (SM::const_iterator p = fSig2MTerms.begin(); p != fSig2MTerms.end(); p++) {
-			const mterm& m = p->second;		
-			Tree t = m.normalizedTree();
-			if (getSigOrder(t)==order) {
-				combineAdd (S[order], t);
-			}
-		}
-	}
-	
-	// sum groups together
-	Tree SUM = tree(0);
-	for (int order = 0; order < 4; order++) {
-		combineAdd(SUM, S[order]);
-	}
-	assert(SUM);
-	return SUM;
-}
-#endif
 
 Tree aterm::normalizedTree() const
 {

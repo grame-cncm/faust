@@ -61,9 +61,5 @@ class mterm
 
 inline ostream& operator << (ostream& s, const mterm& m) { return m.print(s); }
 
-/**
- * search 
- */
-//mterm multigcd(const list<mterm*>& lm, mterm& gcd, list<mterm*>& nodiv, list<mterm*>& div);
 
 #endif

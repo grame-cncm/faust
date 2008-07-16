@@ -205,7 +205,7 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigDelay1(sig, x) ) 				{ fout << ppsig(x, fEnv, 9) << "'"; }
 	//else if ( isSigFixDelay(sig, x, y) ) 			{ printinfix(fout, "@", 8, x, y); 	}
 	else if ( isSigFixDelay(sig, x, y) ) 			{ printFixDelay(fout, x, y); 	}
-	else if ( isSigPrefix(sig, x, y) ) 			{ printfun(fout, "prefix", x, y); }
+	else if ( isSigPrefix(sig, x, y) ) 				{ printfun(fout, "prefix", x, y); }
 	else if ( isSigIota(sig, x) ) 					{ printfun(fout, "iota", x); }
 	else if ( isSigBinOp(sig, &i, x, y) )			{ printinfix(fout, gBinOpTable[i]->fName, gBinOpTable[i]->fPriority, x, y);  }
 	else if ( isSigFFun(sig, ff, largs) )			{ printff(fout, ff, largs); }

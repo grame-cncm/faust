@@ -109,7 +109,7 @@ Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3);
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
-// operations num�iques
+// arithmetical operations 
 Tree sigBinOp	(int op, Tree x, Tree y);
 bool isSigBinOp	(Tree s, int* op, Tree& x, Tree& y);
 
@@ -173,7 +173,7 @@ inline bool isGEZero	(Tree a)	{ assert(a); return isGEZero(a->node()); }
 inline bool isOne		(Tree a)	{ assert(a); return isOne(a->node()); }
 inline bool isMinusOne	(Tree a)	{ assert(a); return isMinusOne(a->node()); }
 
-//projection pour les groupes r�ursifs
+//projection for recursive groups
 Tree sigProj (int i, Tree rgroup);
 bool isProj (Tree t, int* i, Tree& rgroup);
 

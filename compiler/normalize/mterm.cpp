@@ -377,53 +377,6 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 	}
 }	
 	
-#if 0
-/**
- * like normalizedTree returns a normalized (canonical) tree expression of
- * structure :
- * 		(c1*c2)*(s1*s2*s3)/((c6*c7)*(s6*s7*s8))
- * but without the coefficient k so that two mterms that differ only from
- * their coefficients k will have the same signature 
- */
-Tree mterm::signatureTree() const
-{
-    cerr << "signature of " << *this << endl;
-	Tree A[4], B[4];
-	
-	// group by order
-	for (int order = 0; order < 4; order++) {
-		A[order] = 0; B[order] = 0;
-		for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
-			Tree 	f = p->first;		// f = factor
-			int		q = p->second;		// q = power of f
-			if (f && (q!=0) & getSigOrder(f)==order) {
-				combineMulDiv (A[order], B[order], f, q);
-			}
-		}
-        cerr << "order " << order << " -> " << A[order] << " :: " << B[order] << endl;
-	}
-	
-	// combine A[i] and combine B[i]
-	Tree AA=A[3]; Tree BB=B[3];
-	for (int order = 2; order >= 0; order--) {
-		combineMul(AA, A[order]);
-		combineMul(BB, B[order]);
-	}
-	//if (!isOne(fCoef)) combineMul(AA, fCoef);
-		
-	// create R = AA/BB
-	Tree R;
-	if (AA && BB) 	R = sigDiv(AA,BB);
-	else if (AA) 	R = AA;
-	else if (BB) 	R = sigDiv(tree(1),BB);
-	else 			R = tree(1);
-
-    
-    cerr << "signature of " << *this << " is " << ppsig(R) << endl;
-	return R;
-
-}
-#endif
 			
 /**
  * returns a normalized (canonical) tree expression of structure :
@@ -437,7 +390,8 @@ Tree mterm::signatureTree() const
 /**
  * returns a normalized (canonical) tree expression of structure :
  * 		((k*(v1/v2))*(c1/c2))*(s1/s2)
- * in signature mode the k factor is ommited
+ * In signature mode the fCoef factor is ommited
+ * In negativeMode the sign of the fCoef factor is inverted
  */
 Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 {
@@ -495,72 +449,3 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 	}
 }
 
-
-#if 0
-/**
- * Intersection of two map term.
- * @return the "size" of the intersection
- */
-static int intersectMapTerm(const MT& M1, const MT& M2, MT& R)
-{
-    int count = 0;
-    for (MT::const_iterator p1 = M1.begin(); p1 != M1.end(); p1++) {
-        Tree t = p1->first;
-        if (!isOne(t) && !isMinusOne(t)) {
-            MT::const_iterator p2 = M2.find(t);
-            if (p2 != M2.end()) {
-            int v1 = p1->second;
-            int v2 = p2->second;
-            // intersection only if same sign 
-            if (v1*v2 > 0) {
-                int c = min(abs(v1),abs(v2));
-                count += c*(1+getSigOrder(t));
-                R[t] = sign(v1)*c;
-            }
-        }
-    }
-    return count;
-}
-
-
-
-static void divideMapTerm(const MT& M1, const MT& M2, MT& R)
-{
-    R.clear();
-    for (MT::const_iterator p1 = M1.begin(); p1 != M1.end(); p1++) {
-        R.insert(*p);
-    }   
-    for (MT::const_iterator p2 = M1.begin(); p2 != M1.end(); p2++) {
-        R[p2->first] -= p2->second;
-    }
-        Tree t = e->first;
-        if (M1[t] > M2[t]) {
-            R[t] = M1[t] - M2[t];
-        }
-    }
-}
-
-
-
-static int maxIntersect(list<MT>& LM, MT& E1, MT& E2, MT& I)
-{
-    int Cmax = 0;
-    for (list<MT>::iterator P1 = LM.begin(); P1 != LM.end(); P1++) {
-        for (list<MT>::iterator P2 = P1; P2 != LM.end(); P2++) {
-            if (P1 != P2) {
-                MT  J;
-                int c = intersectMapTerm(*P1, *P2, J);
-                if (c > Cmax) {
-                    I = J;
-                    E1 = *P1;
-                    E2 = *P2;
-                    Cmax = c;
-                }
-            }
-        }
-    }
-
-    return Cmax;
-}
-
-#endif
