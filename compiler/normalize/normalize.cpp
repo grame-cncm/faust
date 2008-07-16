@@ -36,7 +36,7 @@ Tree normalizeAddTerm(Tree t)
 	aterm A(t);
 	//cerr << "ATERM IS : " << A << endl;
 	mterm D = A.greatestDivisor();
-	while (D.complexity() > 0) {
+	while (D.isNotZero() && D.complexity() > 0) {
 		//cerr << "GREAT DIV : " << D << endl;
 		A = A.factorize(D);
 		D = A.greatestDivisor();
