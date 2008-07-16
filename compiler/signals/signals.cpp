@@ -271,37 +271,51 @@ bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGATTACH, t0,
 
 Tree addNums(Tree a, Tree b)
 {
-	return tree(addNode(a->node(),b->node()));
+	Tree r = tree(addNode(a->node(),b->node()));
+	//cerr.flags(ios::showpoint); cerr << "addNums " << *a << "+" << *b << " -> " << *r << endl;
+	return r;
 }
 
 Tree subNums(Tree a, Tree b)
 {
-	return tree(subNode(a->node(),b->node()));
+	Tree r = tree(subNode(a->node(),b->node()));
+	//cerr.flags(ios::showpoint); cerr << "subNums " << *a << "-" << *b << " -> " << *r << endl;
+	return r;
 }
 
 Tree mulNums(Tree a, Tree b)
 {
-	return tree(mulNode(a->node(),b->node()));
+	Tree r = tree(mulNode(a->node(),b->node()));
+	//cerr.flags(ios::showpoint); cerr << "mulNums " << *a << "*" << *b << " -> " << *r << endl;
+	return r;
 }
 
 Tree divNums(Tree a, Tree b)
 {
-	return tree(divNode(a->node(),b->node()));
+	Tree r = tree(divNode(a->node(),b->node()));
+	//cerr.flags(ios::showpoint); cerr << "divNums " << *a << "/" << *b << " -> " << *r << endl;
+	return r;
 }
 
 Tree divExtendedNums(Tree a, Tree b)
 {
-	return tree(divExtendedNode(a->node(),b->node()));
+	Tree r = tree(divExtendedNode(a->node(),b->node()));
+	//cerr.flags(ios::showpoint); cerr << "divExtendeNums " << *a << "/" << *b << " -> " << *r << endl;
+	return r;
 }
 
 Tree minusNum(Tree a)
 {
-	return tree(minusNode(a->node()));
+	Tree r = tree(minusNode(a->node()));
+	//cerr.flags(ios::showpoint); cerr << "minusNum " << *a << " -> " << *r << endl;
+	return r;
 }
 
 Tree inverseNum(Tree a)
 {
-	return tree(inverseNode(a->node()));
+	Tree r = tree(inverseNode(a->node()));
+	//cerr.flags(ios::showpoint); cerr << "inverseNum " << *a << " -> " << *r << endl;
+	return r;
 }
 
 bool isSigAdd(Tree a, Tree& x, Tree& y)
