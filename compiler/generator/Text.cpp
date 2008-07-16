@@ -27,6 +27,9 @@
 #include "compatibility.hh"
 #include <string>
 #include <vector>
+#include <iostream>
+#include <sstream>
+#include <assert.h>
 
 
 static string substitution (const string& model, const vector<string>& args)
@@ -130,12 +133,34 @@ static void zdel(char* c)
 	while ( l>1 && c[l-1] != '.' && c[l] == '0')  c[l--]=0;
 }
 
+/**
+ * Format a string representing a floating point number by removing the 
+ * trailing '0' (after the '.') and addind an 'f'
+ * example : 1.00000 -> 1.0f
+ */
+static string reformatFloat(const string& str)
+{
+	int 	i;
+	string 	s = str;
+	
+	for (i = s.length(); s[--i] == '0';);
+	if (s[i] == '.') {
+		s.erase(i+2);
+	} else {
+		if (s.find('e')==string::npos) s.erase(i+1);
+	}
+	s += 'f';
+	
+	return s;
+}
+
 string T (char* c) 	{ return string(c); }
 string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
 string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
-
+#if 0
 string T (float n)
 { 
+	std::cerr << "T (float n) " << n << std::endl;
 	char c[64];
 	if  (n <  0.1 && n > -0.1 && n != 0.0) {
 		snprintf(c, 63, "%ef", n);
@@ -145,6 +170,15 @@ string T (float n)
 	}
 	return string(c); 
 }
+#else
+string T (float n)
+{ 
+	ostringstream s; s.setf(ios::showpoint);
+	s << n;
+	assert (s.str().find('.') > 0);
+	return reformatFloat(s.str());
+}
+#endif
 
 string T (double n) 	
 {
