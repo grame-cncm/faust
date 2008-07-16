@@ -6,7 +6,9 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS := -g -O3 -Wall -Wuninitialized -Wno-parentheses $(addprefix -I, $(subprojects))
+CXXFLAGS := -g -O0 -Wall -Wuninitialized -Wno-parentheses $(addprefix -I, $(subprojects))
+#CXXFLAGS := -O3  $(addprefix -I, $(subprojects))
+#CXX := icpc
 
 all : faust
 
@@ -184,9 +186,15 @@ generator/sharing.o: generator/occurences.hh tlib/property.hh signals/sigprint.h
 generator/Text.o: generator/Text.hh tlib/compatibility.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
+normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+normalize/aterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
+normalize/aterm.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh signals/ppsig.hh
+normalize/mterm.o: normalize/mterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+normalize/mterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
+normalize/mterm.o: normalize/normalize.hh signals/sigorderrules.hh signals/ppsig.hh
 normalize/normalize.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
-normalize/normalize.o: signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
-normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh
+normalize/normalize.o: signals/signals.hh signals/binop.hh signals/sigprint.hh signals/ppsig.hh normalize/simplify.hh
+normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh
 normalize/privatise.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh tlib/compatibility.hh
 normalize/privatise.o: signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 normalize/privatise.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtyperules.hh
