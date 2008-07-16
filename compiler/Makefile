@@ -194,7 +194,7 @@ normalize/mterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/s
 normalize/mterm.o: normalize/normalize.hh signals/sigorderrules.hh signals/ppsig.hh
 normalize/normalize.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 normalize/normalize.o: signals/signals.hh signals/binop.hh signals/sigprint.hh signals/ppsig.hh normalize/simplify.hh
-normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh
+normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh normalize/aterm.hh
 normalize/privatise.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh tlib/compatibility.hh
 normalize/privatise.o: signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 normalize/privatise.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtyperules.hh
