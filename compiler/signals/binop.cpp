@@ -30,8 +30,8 @@ BinOp* gBinOpTable[] = {
 	new BinOp("+","add_vec","add_scal", &addNode, &isZero, &isZero, 6),
 	new BinOp("-","sub_vec","sub_scal", &subNode, &noNtrl, &isZero, 6),
 	new BinOp("*","mul_vec","mul_scal", &mulNode, &isOne, &isOne, 7),
-	new BinOp("/","div_vec","div_scal", &divNode, &noNtrl, &isOne, 7),
-	new BinOp("%","mod_vec","mod_scal", &remNode, &noNtrl, &noNtrl, 7),
+	new BinOp("/","div_vec","div_scal", &divNode, &noNtrl, &isOne, 8),
+	new BinOp("%","mod_vec","mod_scal", &remNode, &noNtrl, &noNtrl, 8),
 
 	new BinOp("<<","shift_left_vec","shift_left_scal", &lshNode, &noNtrl, &isZero, 7),
 	new BinOp(">>","shift_right_vec","shift_right_scal", &rshNode, &noNtrl, &isZero, 7),
