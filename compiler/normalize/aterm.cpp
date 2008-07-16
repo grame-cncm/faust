@@ -28,35 +28,8 @@ aterm::aterm (Tree t)
 	
 
 /**
- * Combine R and A doing R = R+A or R = A
+ * Add two terms trying to simplify the result 
  */
-static void combineAdd(Tree& R, Tree A)
-{
-	assert(R);
-	assert(A);
-
-	if (isZero(R)) {
-		R = A; 
-	} else if (!isZero(A)){
-		R = sigAdd(R,A);
-	}
-}
-	
-
-/**
- * Combine R and A doing R = R-A or R = -A
- */
-static void combineSub(Tree& R, Tree A)
-{
-	assert(R);
-	assert(A);
-
-	if (!isZero(A)){
-		R = sigSub(R,A);
-	}
-}
-
-
 static Tree simplifyingAdd(Tree t1, Tree t2)
 {
 	assert(t1!=0);
