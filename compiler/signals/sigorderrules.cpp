@@ -163,12 +163,12 @@ static int infereSigOrder(Tree sig)
 	else if (isList(sig)) 
 	{
 		int r = 0;
-                while (isList(sig)) { int x = O(hd(sig)); if (x > r) r = x; sig = tl(sig); }
-                return r;
-        }
-        
-        // unrecognized signal here
-        fprintf(stderr, "ERROR infering signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
+		while (isList(sig)) { int x = O(hd(sig)); if (x > r) r = x; sig = tl(sig); }
+		return r;
+	}
+	
+	// unrecognized signal here
+	fprintf(stderr, "ERROR infering signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);
 	return 0;
 }
