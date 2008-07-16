@@ -1,0 +1,566 @@
+#include "mterm.hh"
+#include "signals.hh"
+#include "ppsig.hh"
+#include <assert.h>
+//static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
+
+
+using namespace std;
+
+typedef map<Tree,int> MP;
+
+mterm::mterm ()            		: fCoef(sigInt(0)) {}
+mterm::mterm (int k)            : fCoef(sigInt(k)) {}
+mterm::mterm (double k)         : fCoef(sigReal(k)) {}	// cerr << "DOUBLE " << endl; }
+mterm::mterm (const mterm& m)   : fCoef(m.fCoef), fFactors(m.fFactors) {}
+
+/**
+ * create a mterm from a tree sexpression
+ */
+mterm::mterm (Tree t) : fCoef(sigInt(1))
+{
+    //cerr << "mterm::mterm (Tree t) : " << ppsig(t) << endl;
+	*this *= t; 
+	//cerr << "MTERM(" << ppsig(t) << ") -> " << *this << endl;
+}
+
+/**
+ * true if mterm doesn't represent number 0
+ */
+bool mterm::isNotZero() const
+{
+	return !isZero(fCoef);
+}
+
+/**
+ * true if mterm doesn't represent number 0
+ */
+bool mterm::isNegative() const
+{
+	return !isGEZero(fCoef);
+}
+
+/**
+ * print a mterm in a human readable format
+ */
+ostream& mterm::print(ostream& dst) const
+{
+	const char* sep = "";
+	if (!isOne(fCoef) || fFactors.empty()) { dst << ppsig(fCoef); sep = " * "; }
+	//if (true) { dst << ppsig(fCoef); sep = " * "; }
+	for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
+		dst << sep << ppsig(p->first);
+		if (p->second != 1) dst << "**" << p->second;
+		sep = " * ";
+	}
+	return dst;
+}
+
+/**
+ * Compute the "complexity" of a mterm, that is the number of
+ * factors it contains (weighted by the importance of these factors)
+ */
+int mterm::complexity() const
+{
+	int c = isOne(fCoef) ? 0 : 1;
+	for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
+		c += (1+getSigOrder(p->first))*abs(p->second);
+	}
+	return c;
+}
+
+
+/**
+ * Multiple a mterm by an expression tree t. Go down recursively looking 
+ * for multiplications and divisions
+ */
+const mterm& mterm::operator *= (Tree t)
+{
+	int		op;
+	Tree	x,y;
+
+	assert(t!=0);
+
+	if (isNum(t)) {
+		fCoef = mulNums(fCoef,t);
+
+	} else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
+		*this *= x;
+		*this *= y;
+
+	} else if (isSigBinOp(t, &op, x, y) && (op == kDiv)) {
+		*this *= x;
+		*this /= y;
+
+	} else {
+		Tree tnorm = t; //= simplify(t);
+		fFactors[tnorm] += 1;
+	}
+    return *this;
+}
+
+/**
+ * Divide a mterm by an expression tree t. Go down recursively looking 
+ * for multiplications and divisions
+ */
+const mterm& mterm::operator /= (Tree t)
+{
+	//cerr << "division en place : " << *this << " / " << ppsig(t) << endl;
+	int		op;
+	Tree	x,y;
+
+	assert(t!=0);
+
+	if (isNum(t)) {
+		fCoef = divExtendedNums(fCoef,t);
+
+	} else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
+		*this /= x;
+		*this /= y;
+
+	} else if (isSigBinOp(t, &op, x, y) && (op == kDiv)) {
+		*this /= x;
+		*this *= y;
+
+	} else {
+		fFactors[t] -= 1;
+	}
+    return *this;
+}
+
+/**
+ * replace the content with a copy of m
+ */
+const mterm& mterm::operator = (const mterm& m)
+{
+	fCoef = m.fCoef;
+	fFactors = m.fFactors;
+    return *this;
+}
+
+/**
+ * Clean a mterm by removing x**0 factors 
+ */
+void mterm::cleanup()
+{
+	if (isZero(fCoef)) {
+		fFactors.clear();
+	} else {
+		for (MP::iterator p = fFactors.begin(); p != fFactors.end(); ) {
+			if (p->second == 0) {
+				fFactors.erase(p++);
+			} else {
+				p++;
+			}
+		}
+	}
+}
+
+/**
+ * Add in place an mterm. As we want the result to be
+ * a mterm therefore essentially mterms of same signature can be added
+ */
+const mterm& mterm::operator += (const mterm& m)
+{
+	if (isZero(m.fCoef)) {
+		// nothing to do
+	} else if (isZero(fCoef)) 	{
+		// copy of m
+		fCoef = m.fCoef;
+		fFactors = m.fFactors;
+	} else {
+		// only add mterms of same signature
+		assert(signatureTree() == m.signatureTree());
+		fCoef = addNums(fCoef, m.fCoef);
+	}
+	cleanup();
+    return *this;
+}
+
+/**
+ * Substract in place an mterm. As we want the result to be
+ * a mterm therefore essentially mterms of same signature can be substracted
+ */
+const mterm& mterm::operator -= (const mterm& m)
+{
+	if (isZero(m.fCoef)) {
+		// nothing to do
+	} else if (isZero(fCoef)) 	{
+		// minus of m
+		fCoef = minusNum(m.fCoef);
+		fFactors = m.fFactors;
+	} else {
+		// only add mterms of same signature
+		assert(signatureTree() == m.signatureTree());
+		fCoef = subNums(fCoef, m.fCoef);
+	}
+	cleanup();
+    return *this;
+}
+
+/**
+ * Multiply a mterm by the content of another mterm
+ */
+const mterm& mterm::operator *= (const mterm& m)
+{
+	fCoef = mulNums(fCoef,m.fCoef);
+	for (MP::const_iterator p = m.fFactors.begin(); p != m.fFactors.end(); p++) {
+		fFactors[p->first] += p->second;
+	}
+	cleanup();
+    return *this;
+}
+
+/**
+ * Divide a mterm by the content of another mterm
+ */
+const mterm& mterm::operator /= (const mterm& m)
+{
+	//cerr << "division en place : " << *this << " / " << m << endl;
+	fCoef = divExtendedNums(fCoef,m.fCoef);
+	for (MP::const_iterator p = m.fFactors.begin(); p != m.fFactors.end(); p++) {
+		fFactors[p->first] -= p->second;
+	}
+	cleanup();
+    return *this;
+}
+
+/**
+ * Multiply two mterms
+ */
+mterm mterm::operator * (const mterm& m) const
+{
+    mterm r(*this);
+    r *= m;
+    return r;
+}
+
+/**
+ * Divide two mterms
+ */
+mterm mterm::operator / (const mterm& m) const
+{
+    mterm r(*this);
+    r /= m;
+    return r;
+}
+
+/**
+ * return the "common quantity" of two numbers
+ */
+static int common(int a, int b)
+{
+    if (a > 0 & b > 0) {
+        return min(a,b);
+    } else if (a < 0 & b < 0) {
+        return max(a,b);
+    } else {
+        return 0;
+    }
+}
+
+
+/**
+ * return a mterm that is the greatest common divisor of two mterms
+ */
+mterm gcd (const mterm& m1, const mterm& m2)
+{
+	//cerr << "GCD of " << m1 << " and " << m2 << endl;
+
+	Tree c = (m1.fCoef == m2.fCoef) ? m1.fCoef : tree(1);		// common coefficient (real gcd not needed)
+	mterm R(c);
+	for (MP::const_iterator p1 = m1.fFactors.begin(); p1 != m1.fFactors.end(); p1++) {
+        Tree t = p1->first;
+		MP::const_iterator p2 = m2.fFactors.find(t);
+		if (p2 != m2.fFactors.end()) {
+			int v1 = p1->second;
+			int v2 = p2->second;
+            int c = common(v1,v2);
+            if (c != 0) {
+                R.fFactors[t] = c;
+            }
+        }
+    }
+	//cerr << "GCD of " << m1 << " and " << m2 << " is : " << R << endl;
+	return R;
+}
+
+/**
+ * We say that a "contains" b if a/b > 0. For example 3 contains 2 and
+ * -4 contains -2, but 3 doesn't contains -2 and -3 doesn't contains 1
+ */
+static bool contains(int a, int b)
+{
+	return (b == 0) || (a/b > 0);
+}
+
+/**
+ * Check if M accept N has a divisor. We can say that N is
+ * a divisor of M if M = N*Q and the complexity is preserved :
+ * complexity(M) = complexity(N)+complexity(Q)
+ * x**u has divisor x**v if u >= v
+ * x**-u has divisor x**-v if -u <= -v
+ */
+bool mterm::hasDivisor (const mterm& n) const
+{
+	for (MP::const_iterator p1 = n.fFactors.begin(); p1 != n.fFactors.end(); p1++) {
+		// for each factor f**q of m
+        Tree 	f = p1->first; 	
+		int 	v = p1->second;
+		
+		// check that f is also a factor of *this
+		MP::const_iterator p2 = fFactors.find(f);
+		if (p2 == fFactors.end()) return false;
+		
+		// analyze quantities
+		int u = p2->second;
+		if (! contains(u,v) ) return false;
+    }
+	return true;
+}
+
+/**
+ * produce the canonical tree correspoding to a mterm
+ */
+ 
+/**
+ * Build a power term of type f**q -> (((f.f).f)..f) with q>0
+ */
+static Tree buildPowTerm(Tree f, int q)
+{
+	assert(f);
+	assert(q>0);
+	Tree r = f;
+	for (int c=2; c<=q; c++) { r = sigMul(r,f); }
+	assert(r);
+	return r;
+}
+
+/**
+ * Combine R and A doing R = R*A or R = A
+ */
+static void combineMulLeft(Tree& R, Tree A)
+{
+	if (R && A) 	R = sigMul(R,A);
+	else if (A)		R = A;
+}
+
+/**
+ * Combine R and A doing R = R*A or R = A
+ */
+static void combineDivLeft(Tree& R, Tree A)
+{
+	if (R && A) 	R = sigDiv(R,A);
+	else if (A)		R = sigDiv(tree(1.0f),A);
+}
+
+/**
+ * Combine R and A doing R = R*A or R = A
+ */
+static void combineMulRight(Tree& R, Tree A)
+{
+	if (R && A) 	R = sigMul(A,R);
+	else if (A)		R = A;
+}
+
+/**	
+ * Do M = M * f**q or D = D * f**-q
+ */
+static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
+{
+	if (f) {
+		if (q > 0) {
+			combineMulLeft(M, buildPowTerm(f,q));
+		} else if (q < 0) {
+			combineMulLeft(D, buildPowTerm(f,-q));
+		}
+	}
+}	
+	
+#if 0
+/**
+ * like normalizedTree returns a normalized (canonical) tree expression of
+ * structure :
+ * 		(c1*c2)*(s1*s2*s3)/((c6*c7)*(s6*s7*s8))
+ * but without the coefficient k so that two mterms that differ only from
+ * their coefficients k will have the same signature 
+ */
+Tree mterm::signatureTree() const
+{
+    cerr << "signature of " << *this << endl;
+	Tree A[4], B[4];
+	
+	// group by order
+	for (int order = 0; order < 4; order++) {
+		A[order] = 0; B[order] = 0;
+		for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
+			Tree 	f = p->first;		// f = factor
+			int		q = p->second;		// q = power of f
+			if (f && (q!=0) & getSigOrder(f)==order) {
+				combineMulDiv (A[order], B[order], f, q);
+			}
+		}
+        cerr << "order " << order << " -> " << A[order] << " :: " << B[order] << endl;
+	}
+	
+	// combine A[i] and combine B[i]
+	Tree AA=A[3]; Tree BB=B[3];
+	for (int order = 2; order >= 0; order--) {
+		combineMul(AA, A[order]);
+		combineMul(BB, B[order]);
+	}
+	//if (!isOne(fCoef)) combineMul(AA, fCoef);
+		
+	// create R = AA/BB
+	Tree R;
+	if (AA && BB) 	R = sigDiv(AA,BB);
+	else if (AA) 	R = AA;
+	else if (BB) 	R = sigDiv(tree(1),BB);
+	else 			R = tree(1);
+
+    
+    cerr << "signature of " << *this << " is " << ppsig(R) << endl;
+	return R;
+
+}
+#endif
+			
+/**
+ * returns a normalized (canonical) tree expression of structure :
+ * 		((v1/v2)*(c1/c2))*(s1/s2)
+ */
+Tree mterm::signatureTree() const
+{
+	return normalizedTree(true);
+}
+	
+/**
+ * returns a normalized (canonical) tree expression of structure :
+ * 		((k*(v1/v2))*(c1/c2))*(s1/s2)
+ * in signature mode the k factor is ommited
+ */
+Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
+{
+	if (fFactors.empty() || isZero(fCoef)) {
+		// it's a pure number
+		if (signatureMode) 	return tree(1);
+		if (negativeMode)	return minusNum(fCoef);
+		else				return fCoef;
+	} else {
+		// it's not a pure number, it has factors
+		Tree A[4], B[4];
+		
+		// group by order
+		for (int order = 0; order < 4; order++) {
+			A[order] = 0; B[order] = 0;
+			for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
+				Tree 	f = p->first;		// f = factor
+				int		q = p->second;		// q = power of f
+				if (f && q && getSigOrder(f)==order) {
+					combineMulDiv (A[order], B[order], f, q);
+				}
+			}
+		}
+		// en principe ici l'order zero est vide car il correspond au coef numerique
+		assert(A[0] == 0);
+		assert(B[0] == 0);
+		
+		// we only use a coeficient if it differes from 1 and if we are not in signature mode
+		if (! (signatureMode | isOne(fCoef))) {
+			A[0] = (negativeMode) ? minusNum(fCoef) : fCoef;
+		}
+		
+		if (signatureMode) {
+			A[0] = 0;
+		} else if (negativeMode) {
+			if (isMinusOne(fCoef)) { A[0] = 0; } else { A[0] = minusNum(fCoef); }
+		} else if (isOne(fCoef)) {
+			A[0] = 0;
+		} else {
+			A[0] = fCoef;
+		}
+					
+		// combine each order separately : R[i] = A[i]/B[i]
+		Tree RR = 0;
+		for (int order = 0; order < 4; order++) {
+			if (A[order] && B[order]) 	combineMulLeft(RR,sigDiv(A[order],B[order]));
+			else if (A[order])			combineMulLeft(RR,A[order]);
+			else if (B[order])			combineDivLeft(RR,B[order]);
+		}
+		if (RR == 0) RR = tree(1); // a verifier *******************
+			
+		assert(RR);
+		//cerr << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
+		return RR;
+	}
+}
+
+
+#if 0
+/**
+ * Intersection of two map term.
+ * @return the "size" of the intersection
+ */
+static int intersectMapTerm(const MT& M1, const MT& M2, MT& R)
+{
+    int count = 0;
+    for (MT::const_iterator p1 = M1.begin(); p1 != M1.end(); p1++) {
+        Tree t = p1->first;
+        if (!isOne(t) && !isMinusOne(t)) {
+            MT::const_iterator p2 = M2.find(t);
+            if (p2 != M2.end()) {
+            int v1 = p1->second;
+            int v2 = p2->second;
+            // intersection only if same sign 
+            if (v1*v2 > 0) {
+                int c = min(abs(v1),abs(v2));
+                count += c*(1+getSigOrder(t));
+                R[t] = sign(v1)*c;
+            }
+        }
+    }
+    return count;
+}
+
+
+
+static void divideMapTerm(const MT& M1, const MT& M2, MT& R)
+{
+    R.clear();
+    for (MT::const_iterator p1 = M1.begin(); p1 != M1.end(); p1++) {
+        R.insert(*p);
+    }   
+    for (MT::const_iterator p2 = M1.begin(); p2 != M1.end(); p2++) {
+        R[p2->first] -= p2->second;
+    }
+        Tree t = e->first;
+        if (M1[t] > M2[t]) {
+            R[t] = M1[t] - M2[t];
+        }
+    }
+}
+
+
+
+static int maxIntersect(list<MT>& LM, MT& E1, MT& E2, MT& I)
+{
+    int Cmax = 0;
+    for (list<MT>::iterator P1 = LM.begin(); P1 != LM.end(); P1++) {
+        for (list<MT>::iterator P2 = P1; P2 != LM.end(); P2++) {
+            if (P1 != P2) {
+                MT  J;
+                int c = intersectMapTerm(*P1, *P2, J);
+                if (c > Cmax) {
+                    I = J;
+                    E1 = *P1;
+                    E2 = *P2;
+                    Cmax = c;
+                }
+            }
+        }
+    }
+
+    return Cmax;
+}
+
+#endif

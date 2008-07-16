@@ -3,17 +3,19 @@
 #include "tlib.hh"
 #include "signals.hh"
 #include "sigprint.hh"
+#include "ppsig.hh"
 #include "simplify.hh"
 #include "normalize.hh"
 #include "sigorderrules.hh"
 #include <map>
 #include <list>
 
+#include "mterm.hh"
+#include "aterm.hh"
+
 static void countAddTerm (map<Tree,Tree>& M, Tree t, bool invflag);
 static void incTermCount (map<Tree,int>& M, Tree t, bool invflag);
 static Tree buildPowTerm (Tree f, int q);
-static Tree simplifyingAdd (Tree t1, Tree t2);
-static Tree simplifyingMul (Tree t1, Tree t2);
 static Tree simplifyingReorganizingMul(Tree t1, Tree t2);
 static Tree reorganizingMul(Tree k, Tree t);
 static void factorizeAddTerm(map<Tree,Tree>& M);
@@ -28,11 +30,43 @@ static void factorizeAddTerm(map<Tree,Tree>& M);
 Tree normalizeAddTerm(Tree t)
 {
 #ifdef TRACE
+	cerr << "START normalizeAddTerm : " << ppsig(t) << endl;
+#endif
+	
+	aterm A(t);
+	//cerr << "ATERM IS : " << A << endl;
+	mterm D = A.greatestDivisor();
+	while (D.complexity() > 0) {
+		//cerr << "GREAT DIV : " << D << endl;
+		A = A.factorize(D);
+		D = A.greatestDivisor();
+	}
+	return A.normalizedTree();
+}
+
+Tree OLD_normalizeAddTerm(Tree t)
+{
+#ifdef TRACE
 	fprintf(stderr, "START ADD Normalize of : "); printSignal(t, stderr); fputs("\n", stderr);
 #endif
 	assert(t!=0);
 	map<Tree,Tree>	M;
 	Tree			coef = tree(0);
+	// experimental
+	aterm A(t);
+	mterm D = A.greatestDivisor();
+	int cplx = D.complexity();
+	
+	cerr << "ATREM     : " << A << endl;
+	cerr << "GREAT DIV : " << D << endl;
+	cerr << "COMPLEXITY: " << cplx << endl;
+	
+	if (cplx > 1) {
+		aterm B = A.factorize(D);
+		cerr << "FACTORIZED : " << B << endl;
+	}
+	
+	
 	collectAddTerms(coef, M, t, false);
 	factorizeAddTerm(M);
 	Tree result = buildAddTerm(coef, M);
@@ -85,6 +119,17 @@ void collectAddTerms (Tree& coef, map<Tree,Tree>& M, Tree t, bool invflag)
 	} else if (isNum(t)) {
 		coef = (invflag) ? subNums(coef,t) : addNums(coef,t);
 	} else {
+        // experimental
+        #if 0
+            mterm m(t);
+			mterm g = gcd(m,m);
+            cerr << "MTERM     : " << m << endl;
+            //cerr << "GCD       : " << g << endl;
+            //cerr << "CANONICAL : " << ppsig(m.normalizedTree()) << endl;
+			assert (m.hasDivisor(m));
+			assert (m.hasDivisor(g));
+			assert (m.signatureTree() == g.signatureTree());
+        #endif
 		countAddTerm(M, normalizeMulTerm(t), invflag);
 	}
 }
@@ -270,13 +315,14 @@ Tree buildAddTerm(Tree k, map<Tree,Tree>& M)
 Tree buildMulTerm(Tree k, map<Tree,int>& M)
 {
 	assert(k!=0);
-	Tree t = tree(1.0f);	// t will be ((F1.F2)..Fn)
+	Tree t = tree(1);	// t will be ((F1.F2)..Fn)
 
 	for (int order = 0; order < 4; order++) {
 
 		for (map<Tree,int>::iterator F = M.begin(); F != M.end(); F++) {
 			Tree 	f = F->first;		// f = factor
 			int		q = F->second;		// q = power of f
+			//cerr << "pow :" << q << " factor :"; printSignal(f,stderr); cerr << endl;
 
 			if (getSigOrder(f)==order) {
 
@@ -356,7 +402,7 @@ static Tree buildPowTerm(Tree f, int q)
 }
 
 
-static Tree simplifyingAdd(Tree t1, Tree t2)
+Tree simplifyingAdd(Tree t1, Tree t2)
 {
 	assert(t1!=0);
 	assert(t2!=0);
@@ -474,7 +520,7 @@ static Tree simplifyingReorganizingMul(Tree t1, Tree t2)
 
 
 
-static Tree simplifyingMul(Tree t1, Tree t2)
+Tree simplifyingMul(Tree t1, Tree t2)
 {
 	assert(t1!=0);
 	assert(t2!=0);
@@ -513,62 +559,27 @@ static Tree simplifyingMul(Tree t1, Tree t2)
 	return result;
 }
 
+/**
+ * sign of a number x such that
+ * sign(x)*abs(x) = x
+ */
+int sign(int x)
+{
+	return (x<0) ? -1 : 1;
+}
+
+double sign(double x)
+{
+	return (x<0.0) ? -1.0 : 1.0;
+}
+
+
+/**
+ * MT: Map Term is used to represent a multiplicative term x^n*y^m*...
+ * as a map {x->n, y->m, ...}
+ */
 typedef map<Tree,int> MT;
 
-/*
-static int intersectMapTerm(MT& M1, MT& M2, MT& R)
-{
-	int count = 0;
-	for (MT::const_iterator e = M1.begin(); e != M1.end(); e++) {
-		Tree t = e->first;
-		if (M2.find(t) != M2.end() && !isOne(t) && !isMinusOne(t)) {
-			int v1 = M1[t];
-			int v2 = M2[t];
-			if (v1*v2 > 0) {
-				int c = min(v1,v2);
-				count += c;
-				R[t] = c;
-			}
-		}
-	}
-	return count;
-}
-*/
-
-/*
-static void divideMapTerm(MT& M1, MT& M2, MT& R)
-{
-	for (MT::const_iterator e = M2.begin(); e != M2.end(); e++) {
-		Tree t = e->first;
-		if (M1[t] > M2[t]) {
-			R[t] = M1[t] - M2[t];
-		}
-	}
-}
-*/
-
-/*
-static int maxIntersect(list<MT>& LM, MT& E1, MT& E2, MT& I)
-{
-	int	Cmax = 0;
-	for (list<MT>::iterator P1 = LM.begin(); P1 != LM.end(); P1++) {
-		for (list<MT>::iterator P2 = P1; P2 != LM.end(); P2++) {
-			if (P1 != P2) {
-				MT 	J;
-				int	c = intersectMapTerm(*P1, *P2, J);
-				if (c > Cmax) {
-					I = J;
-					E1 = *P1;
-					E2 = *P2;
-					Cmax = c;
-				}
-			}
-		}
-	}
-
-	return Cmax;
-}
-*/
 
 /**
  * Factorize add terms : k1.k2.k4 + k2.k3.k4 -> (k1+k3).k2.k4
@@ -631,7 +642,7 @@ static void factorizeAddTerm(map<Tree,Tree>& MAT)
 }
 
 
-/*
+#if 0
 static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
 {
 	list<MT>	L;
@@ -703,7 +714,7 @@ static void disabledfactorizeAddTerm(map<Tree,Tree>& MAT)
 	}
 
 }
-*/
+#endif
 
 /**
  * Compute the normal form of a 1-sample delay term s'.
