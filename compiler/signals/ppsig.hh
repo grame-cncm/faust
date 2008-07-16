@@ -66,6 +66,7 @@ private:
 	ostream& printlist (ostream& fout, Tree largs) const;
 	ostream& printff (ostream& fout, Tree ff, Tree largs) const;
 	ostream& printrec (ostream& fout, Tree var, Tree lexp, bool hide) const;
+	ostream& printrec (ostream& fout, Tree lexp, bool hide) const;
 	ostream& printextended (ostream& fout, Tree sig) const;
 	ostream& printui (ostream& fout, const string& funame, Tree label) const;
 	ostream& printui (ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;

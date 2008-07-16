@@ -149,6 +149,12 @@ ostream& ppsig::printrec (ostream& fout, Tree var, Tree lexp, bool hide) const
 	return fout;
 }
 
+ostream& ppsig::printrec (ostream& fout, Tree lexp, bool hide) const
+{
+	fout << "debruijn(" << ppsig(lexp,fEnv) << ")";
+	return fout;
+}
+
 ostream& ppsig::printextended (ostream& fout, Tree sig) const
 {
 	string 		sep = "";
@@ -183,13 +189,17 @@ ostream& ppsig::print (ostream& fout) const
 	Tree 	c, sel, x, y, z, var, le, label, id, ff, largs, type, name, file;
 
 		  if ( isList(sig) ) 						{ printlist(fout, sig); }
-	else if ( isProj(sig, &i, x) ) 				{ fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';	}
-	else if ( isRec(sig, var, le) )				{ printrec(fout, var, le, fHideRecursion && (getRecursivness(sig)==0) ); }
+	else if ( isProj(sig, &i, x) ) 					{ fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';	}
+	else if ( isRec(sig, var, le) )					{ printrec(fout, var, le, fHideRecursion /*&& (getRecursivness(sig)==0)*/ ); }
+
+	// debruinj notation
+	else if ( isRec(sig, le) )						{ printrec(fout, le, fHideRecursion ); }
+	else if ( isRef(sig, i) )						{ fout << "REF[" << i << "]"; }
 	
 	else if ( getUserData(sig) ) 					{ printextended(fout, sig); }
 	else if ( isSigInt(sig, &i) ) 					{ fout << i; }
-	else if ( isSigReal(sig, &r) ) 				{ fout << r; }
-	else if ( isSigInput(sig, &i) ) 				{ fout << "IN" << i; }
+	else if ( isSigReal(sig, &r) ) 					{ fout << r; }
+	else if ( isSigInput(sig, &i) ) 				{ fout << "IN[" << i << "]"; }
 	else if ( isSigOutput(sig, &i, x) ) 			{ printout(fout, i, x) ; }
 	
 	else if ( isSigDelay1(sig, x) ) 				{ fout << ppsig(x, fEnv, 9) << "'"; }
