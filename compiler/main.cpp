@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.4h"
+#define FAUSTVERSION "0.9.9.4i"
 
 #include <stdio.h>
 #include <string.h>
@@ -102,6 +102,7 @@ int            	gBalancedSwitch = 0;
 int            	gFoldThreshold 	= 25;
 int            	gMaxNameSize 	= 40;
 bool			gSimpleNames 	= false;
+bool            gSimplifyDiagrams = false;
 bool			gLessTempSwitch = false;
 int				gMaxCopyDelay	= 16;
 
@@ -199,6 +200,10 @@ bool process_cmdline(int argc, char* argv[])
 			gMaxCopyDelay = atoi(argv[i+1]);
 			i += 2;
 
+    } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
+      gSimplifyDiagrams = true;
+      i += 1;
+
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -243,7 +248,8 @@ void printhelp()
 	cout << "-v \t\tprint compiler --version information\n";
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
-	cout << "-svg \t\tprint block-diagram --svg file\n";
+  cout << "-svg \t\tprint block-diagram --svg file\n";
+  cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
 	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
