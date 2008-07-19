@@ -109,7 +109,7 @@ typedef vector<Tree>	tvec;
 class CTree
 {
  private:
-	static const int 	kHashTableSize = 510511;	///< size of the hash table used for "hash consing"
+	static const int 	kHashTableSize = 2000000; //510511;	///< size of the hash table used for "hash consing"
 	static Tree			gHashTable[kHashTableSize];	///< hash table used for "hash consing"
 
  public:
