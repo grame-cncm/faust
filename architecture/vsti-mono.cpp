@@ -679,7 +679,7 @@ bool Faust::getInputProperties (VstInt32 index, VstPinProperties* properties)
   if(index>=0 && index<dsp->getNumInputs())
   {
     sprintf (properties->label, "Grame Faust DSP input: %d",index);
-    sprintf (properties->shortLabel, "FaustIn: %d",index);
+    sprintf (properties->shortLabel, "In %d",index);
     properties->flags = kVstPinIsActive;
     if (dsp->getNumInputs() == 2) {
       properties->flags |= kVstPinIsStereo;
@@ -696,7 +696,7 @@ bool Faust::getOutputProperties (VstInt32 index, VstPinProperties* properties)
   if(index>=0 && index<dsp->getNumOutputs())
   {
     sprintf (properties->label, "Grame Faust DSP output: %d",index);
-    sprintf (properties->shortLabel, "FaustOut: %d",index);
+    sprintf (properties->shortLabel, "Out %d",index);
     properties->flags = kVstPinIsActive;
     if (dsp->getNumOutputs() == 2) {
       properties->flags |= kVstPinIsStereo;
