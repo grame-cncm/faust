@@ -44,10 +44,10 @@
 
 #include <assert.h>
 extern SourceReader	gReader;
-extern int gMaxNameSize;
+extern int  gMaxNameSize;
 extern bool gPatternEvalMode;
 extern bool	gSimpleNames;
-
+extern bool gSimplifyDiagrams;
 // History
 // 23/05/2005 : New environment management
 
@@ -188,11 +188,24 @@ static Tree real_a2sb(Tree exp)
 
 	} else {
 		// it is a constructor : transform each branches
-		Tree B[4];
-		for (int i = 0; i < exp->arity(); i++) {
-			B[i] = a2sb(exp->branch(i));
+        unsigned int    ar = exp->arity();
+		tvec            B(ar);
+        bool            modified = false;
+		for (unsigned int i = 0; i < ar; i++) {
+            Tree b = exp->branch(i);
+            Tree m = a2sb(b);
+            B[i] = m;
+            if (b != m) modified=true;
 		}
-		return replaceBoxNumeric(CTree::make(exp->node(), exp->arity(), B));
+        Tree r = (modified) ? CTree::make(exp->node(), B) : exp;
+        if (gSimplifyDiagrams) {
+            return replaceBoxNumeric(r);
+        } else {
+            return r;
+        }
+/*
+        if (modified) {
+		return replaceBoxNumeric(CTree::make(exp->node(), exp->arity(), B));*/
 	}
 }
 
