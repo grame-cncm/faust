@@ -536,13 +536,16 @@ void Faust::processReplacing(float **inputs, float **outputs, VstInt32 sampleFra
 //-----------------------------------------------------------------------------------------
 bool Faust::getInputProperties (VstInt32 index, VstPinProperties* properties)
 {
-  if(index>=0 && index<dsp->getNumOutputs())
-    {
-      sprintf (properties->label, "Grame Faust DSP: %d",index);
-      sprintf (properties->shortLabel, "Faust: %d",index);
-      properties->flags = kVstPinIsActive;			
-      return true;
+  if(index>=0 && index<dsp->getNumInputs())
+  {
+    sprintf (properties->label, "Grame Faust DSP input: %d",index);
+    sprintf (properties->shortLabel, "FaustIn: %d",index);
+    properties->flags = kVstPinIsActive;
+    if (dsp->getNumInputs() == 2) {
+      properties->flags |= kVstPinIsStereo;
     }
+    return true;
+  }
   else
     return false;
 }
@@ -550,13 +553,16 @@ bool Faust::getInputProperties (VstInt32 index, VstPinProperties* properties)
 //-----------------------------------------------------------------------------------------
 bool Faust::getOutputProperties (VstInt32 index, VstPinProperties* properties)
 {
-  if(index>=0 && index<dsp->getNumInputs())
-    {
-      sprintf (properties->label, "Grame Faust DSP: %d",index);
-      sprintf (properties->shortLabel, "Faust: %d",index);
-      properties->flags = kVstPinIsActive;			
-      return true;
+  if(index>=0 && index<dsp->getNumOutputs())
+  {
+    sprintf (properties->label, "Grame Faust DSP output: %d",index);
+    sprintf (properties->shortLabel, "FaustOut: %d",index);
+    properties->flags = kVstPinIsActive;
+    if (dsp->getNumOutputs() == 2) {
+      properties->flags |= kVstPinIsStereo;
     }
+    return true;
+  }
   else
     return false;
 }
