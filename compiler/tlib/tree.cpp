@@ -75,7 +75,9 @@ storage of trees.
 ******************************************************************************
 *****************************************************************************/
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <limits.h>
 #include "tree.hh"
 #include <fstream>

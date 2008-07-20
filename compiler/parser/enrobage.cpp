@@ -23,6 +23,8 @@
  
 #include "enrobage.hh"
 #include <string>
+#include <limits.h>
+#include <stdlib.h>
 #include "compatibility.hh"
 
 

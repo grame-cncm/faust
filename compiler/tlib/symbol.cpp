@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#include    <stdlib.h>
+#include    <stdio.h>
+#include    <string.h>
 #include    "symbol.hh"
 #include    "compatibility.hh"
 #include 	<iostream>
