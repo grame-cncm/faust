@@ -16,8 +16,15 @@
 #include <unistd.h>
 #endif
 
+#include <map>
+#include <list>
+
 using namespace std ;
-	
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
 	
 
 //-------------------------------------------------------------------
@@ -80,9 +87,6 @@ inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 *******************************************************************************
 *******************************************************************************/
 
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
 <<includeIntrinsic>>
 
 
@@ -125,6 +129,8 @@ class UI
 		
 		void stop()		{ fStopped = true; }
 		bool stopped() 	{ return fStopped; }
+        
+        virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 
@@ -370,6 +376,15 @@ void faust_ft8(t_faust* obj, double f) {obj->dspUI->SetValue(7,f);}
 void faust_ft9(t_faust* obj, double f) {obj->dspUI->SetValue(8,f);}
 
 /*--------------------------------------------------------------------------*/
+void faust_free(t_faust *x)
+{
+	dsp_free((t_pxobject *)x);
+	if (x->dsp) delete x->dsp;
+	if (x->dspUI) delete x->dspUI;
+	if (x->args) free(x->args);
+}
+
+/*--------------------------------------------------------------------------*/
 void *faust_new(t_symbol *s, short ac, t_atom *av)
 {
 	t_faust *x = (t_faust *)newobject(faust_class);
@@ -381,17 +396,17 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	x->dsp->buildUserInterface(x->dspUI);
 	if (!x->dspUI->AddInlets(x)) {
 		post("Error : Faust DSP object cannot be allocated: max inlets is 9");
-//		faust_free(x); should be freed but Max crashes 
+		faust_free(x);  
 		return 0;
 	}
 	
-	x->args = (void**)aligned_calloc((x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, sizeof(void*));
+	x->args = (void**)calloc((x->dsp->getNumInputs() + x->dsp->getNumOutputs()) + 2, sizeof(void*));
 	
 	/* Multi in */
 	dsp_setup((t_pxobject *)x, x->dsp->getNumInputs());
 	
 	/* Multi out */
-	for (int i = 0; i< x->dsp->getNumOutputs(); i++) 
+	for (int i = 0; i < x->dsp->getNumOutputs(); i++) 
 		outlet_new((t_pxobject *)x, "signal");
 	
 	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
@@ -432,15 +447,6 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 		std::sprintf(dst, "(signal) : Audio Output %ld", (a+1));
 	#endif
     }
-}
-
-/*--------------------------------------------------------------------------*/
-void faust_free(t_faust *x)
-{
-	dsp_free((t_pxobject *)x);
-	if (x->dsp) delete x->dsp;
-	if (x->dspUI) delete x->dspUI;
-	if (x->args)free(x->args);
 }
 
 /*--------------------------------------------------------------------------*/
