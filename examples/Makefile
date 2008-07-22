@@ -1,8 +1,35 @@
+MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2' 
+MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+
 SC_SOURCE_DIR = ../../supercollider
 
 all : jackgtk
 
-test: jackgtk alsagtk jackqt alsaqt ladspa ossgtk bench plot sndfile jackconsole
+test: ijackgtk ijackvec ijackomp gjackgtk gjackvec gjackomp
+
+ijackgtk :
+	install -d ijackgtkdir
+	$(MAKE) DEST='ijackgtkdir/' ARCH='jack-gtk.cpp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ijackvec :
+	install -d ijackvecdir
+	$(MAKE) DEST='ijackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ijackomp :
+	install -d ijackompdir
+	$(MAKE) DEST='ijackompdir/' ARCH='jack-gtk.cpp' VEC='-vs 4096 -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
+
+gjackgtk :
+	install -d gjackgtkdir
+	$(MAKE) DEST='gjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gjackvec :
+	install -d gjackvecdir
+	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gjackomp :
+	install -d gjackompdir
+	$(MAKE) DEST='gjackompdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096 -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
 
 svg:
 	$(MAKE) -f Makefile.svg
@@ -75,6 +102,26 @@ bench :
 	install -d benchdir
 	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' LIB='' -f Makefile.compile
 
+ibench :
+	install -d ibenchdir
+	$(MAKE) DEST='ibenchdir/' ARCH='parbench.cpp' LIB='' CXX='icc' CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+ivecbench :
+	install -d ivecbenchdir
+	$(MAKE) DEST='ivecbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024' LIB='' CXX='icc' CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+ivecjack :
+	install -d ivecjackdir
+	$(MAKE) DEST='ivecjackdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 1024' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' CXX='icc' CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+iparbench :
+	install -d iparbenchdir
+	$(MAKE) DEST='iparbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024 -omp' LIB='' CXX='icc' CXXFLAGS='-O3 -openmp -xT -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+
+gparbench :
+	install -d gparbenchdir
+	$(MAKE) DEST='gparbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024 -omp' LIB='' CXX='g++-4.2' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
+
 sndfile :
 	install -d sndfiledir
 	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-lsndfile' -f Makefile.compile
@@ -109,4 +156,3 @@ jackconsole :
 
 clean :
 	rm -rf *dir
-

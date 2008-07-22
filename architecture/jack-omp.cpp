@@ -1,6 +1,5 @@
-/* link with : "" */
+/* link with  */
 #include <stdlib.h>
-#include <libgen.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -10,7 +9,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <alsa/asoundlib.h>
 #include <pwd.h>
 #include <sys/types.h>
 #include <assert.h>
@@ -18,18 +16,27 @@
 #include <pthread.h> 
 #include <sys/wait.h>
 #include <list>
+#include <vector>
 
 #include <iostream>
 #include <fstream>
 
-// g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
+#include <libgen.h>
+#include <jack/jack.h>
 
-#define check_error(err) if (err) { printf("%s:%d, alsa error %d : %s\n", __FILE__, __LINE__, err, snd_strerror(err)); exit(1); }
-#define check_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); exit(1); }
-#define display_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); }
+
+using namespace std;
+
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
+
+// g++ -O3 -lm -ljack `gtk-config --cflags --libs` ex2.cpp
+ 
+	
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
+
 
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
@@ -37,28 +44,8 @@
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
+inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
-inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
-
-
-/**
- * Used to set the priority and scheduling of the audio thread 
- */
-bool setRealtimePriority ()
-{
-    struct passwd *         pw;
-    int                     err;
-    uid_t                   uid;
-    struct sched_param      param;  
-
-    uid = getuid ();
-    pw = getpwnam ("root");
-    setuid (pw->pw_uid); 
-    param.sched_priority = 50; /* 0 to 99  */
-    err = sched_setscheduler(0, SCHED_RR, &param); 
-    setuid (uid);
-    return (err != -1);
-}
 
 
 /******************************************************************************
@@ -70,468 +57,10 @@ bool setRealtimePriority ()
 *******************************************************************************/
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 
 <<includeIntrinsic>>
 
-
-
-/******************************************************************************
-*******************************************************************************
-
-								AUDIO INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
-enum { kRead = 1, kWrite = 2, kReadWrite = 3 };
-
-
-/**
- * A convenient class to pass parameters to AudioInterface
- */
-class AudioParam
-{
-  public:
-			
-	const char*		fCardName;					
-	unsigned int	fFrequency;
-	unsigned int	fBuffering; 
-	unsigned int	fPeriods; 
-	
-	unsigned int	fSoftInputs;
-	unsigned int	fSoftOutputs;
-	
-  public :
-	AudioParam() : 
-		fCardName("hw:0"),
-		fFrequency(44100),
-		fBuffering(512),
-		fPeriods(2),
-		fSoftInputs(2),
-		fSoftOutputs(2)
-	{}
-	
-	AudioParam&	cardName(const char* n)	{ fCardName = n; 		return *this; }
-	AudioParam&	frequency(int f)		{ fFrequency = f; 		return *this; }
-	AudioParam&	buffering(int fpb)		{ fBuffering = fpb; 	return *this; }
-	AudioParam&	periods(int p)			{ fPeriods = p; 		return *this; }
-	AudioParam&	inputs(int n)			{ fSoftInputs = n; 		return *this; }
-	AudioParam&	outputs(int n)			{ fSoftOutputs = n; 	return *this; }
-};
-
-
-
-/**
- * An ALSA audio interface
- */
-class AudioInterface : public AudioParam
-{
- public :
-	snd_pcm_t*				fOutputDevice ;		
-	snd_pcm_t*				fInputDevice ;			
-	snd_pcm_hw_params_t* 	fInputParams;
-	snd_pcm_hw_params_t* 	fOutputParams;
-	
-	snd_pcm_format_t 		fSampleFormat;
-	snd_pcm_access_t 		fSampleAccess;
-	
-	unsigned int			fCardInputs;
-	unsigned int			fCardOutputs;
-	
-	unsigned int			fChanInputs;
-	unsigned int			fChanOutputs;
-	
-	// interleaved mode audiocard buffers
-	void*		fInputCardBuffer;
-	void*		fOutputCardBuffer;
-	
-	// non interleaved mode audiocard buffers
-	void*		fInputCardChannels[256];
-	void*		fOutputCardChannels[256];
-	
-	// non interleaved mod, floating point software buffers
-	float*		fInputSoftChannels[256];
-	float*		fOutputSoftChannels[256];
-
- public :
- 
-	const char*	cardName()				{ return fCardName;  	}
- 	int			frequency()				{ return fFrequency; 	}
-	int			buffering()				{ return fBuffering;  	}
-	int			periods()				{ return fPeriods;  	}
-	
-	float**		inputSoftChannels()		{ return fInputSoftChannels;	}
-	float**		outputSoftChannels()	{ return fOutputSoftChannels;	}
-
-	
-	AudioInterface(const AudioParam& ap = AudioParam()) : AudioParam(ap)
-	{
-		
-		fInputDevice 			= 0;
-		fOutputDevice 			= 0;
-		fInputParams			= 0;
-		fOutputParams			= 0;
-	}
-	
-	
-	/**
-	 * Open the audio interface
-	 */
-	void open()
-	{
-		int err;
-		
-		// allocation d'un stream d'entree et d'un stream de sortie
-		err = snd_pcm_open( &fInputDevice,  fCardName, SND_PCM_STREAM_CAPTURE, 0 ); 	check_error(err)
-		err = snd_pcm_open( &fOutputDevice, fCardName, SND_PCM_STREAM_PLAYBACK, 0 ); 	check_error(err)
-
-		// recherche des parametres d'entree
-		err = snd_pcm_hw_params_malloc	( &fInputParams ); 	check_error(err);
-		setAudioParams(fInputDevice, fInputParams);
-		snd_pcm_hw_params_get_channels(fInputParams, &fCardInputs);
-
-		// recherche des parametres de sortie
-		err = snd_pcm_hw_params_malloc	( &fOutputParams ); 		check_error(err)
-		setAudioParams(fOutputDevice, fOutputParams);
-		snd_pcm_hw_params_get_channels(fOutputParams, &fCardOutputs);
-
-		printf("inputs : %ud, outputs : %ud\n", fCardInputs, fCardOutputs);
-
-		// enregistrement des parametres d'entree-sortie
-		
-		err = snd_pcm_hw_params (fInputDevice,  fInputParams );	 	check_error (err);
-		err = snd_pcm_hw_params (fOutputDevice, fOutputParams );	check_error (err);
-
-		//assert(snd_pcm_hw_params_get_period_size(fInputParams,NULL) == snd_pcm_hw_params_get_period_size(fOutputParams,NULL));
-
-		// allocation of alsa buffers
-		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
-			fInputCardBuffer = aligned_calloc(interleavedBufferSize(fInputParams), 1);
-	 		fOutputCardBuffer = aligned_calloc(interleavedBufferSize(fOutputParams), 1);
-			
-		} else {
-			for (unsigned int i = 0; i < fCardInputs; i++) {
-				fInputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fInputParams), 1);
-			}
-			for (unsigned int i = 0; i < fCardOutputs; i++) {
-				fOutputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fOutputParams), 1);
-			}
-			
-		}
-		
-		// allocation of floating point buffers needed by the dsp code
-		
-		fChanInputs = max(fSoftInputs, fCardInputs);		assert (fChanInputs < 256);
-		fChanOutputs = max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
-
-		for (unsigned int i = 0; i < fChanInputs; i++) {
-			fInputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
-			for (int j = 0; j < fBuffering; j++) {
-				fInputSoftChannels[i][j] = 0.0;
-			}
-		}
-
-		for (unsigned int i = 0; i < fChanOutputs; i++) {
-			fOutputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
-			for (int j = 0; j < fBuffering; j++) {
-				fOutputSoftChannels[i][j] = 0.0;
-			}
-		}
-
-
-	}
-	
-	
-	void setAudioParams(snd_pcm_t* stream, snd_pcm_hw_params_t* params)
-	{	
-		int	err;
-
-		// set params record with initial values
-		err = snd_pcm_hw_params_any	( stream, params ); 	
-		check_error_msg(err, "unable to init parameters")
-
-		// set alsa access mode (and fSampleAccess field) either to non interleaved or interleaved
-				
-		err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_NONINTERLEAVED );
-		if (err) {
-			err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_INTERLEAVED );
-			check_error_msg(err, "unable to set access mode neither to non-interleaved or to interleaved");
-		}
-		snd_pcm_hw_params_get_access(params, &fSampleAccess);
-		
-
-		// search for 32-bits or 16-bits format
-		err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S32);
-		if (err) {
-			err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S16);
-		 	check_error_msg(err, "unable to set format to either 32-bits or 16-bits");
-		}
-		snd_pcm_hw_params_get_format(params, &fSampleFormat);
-		// set sample frequency
-		snd_pcm_hw_params_set_rate_near (stream, params, &fFrequency, 0); 
-
-		// set period and period size (buffering)
-		err = snd_pcm_hw_params_set_period_size	(stream, params, fBuffering, 0); 	
-		check_error_msg(err, "period size not available");
-		
-		err = snd_pcm_hw_params_set_periods (stream, params, fPeriods, 0); 			
-		check_error_msg(err, "number of periods not available");
-
-	}
-
-
-	ssize_t interleavedBufferSize (snd_pcm_hw_params_t* params)
-	{
-		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
-		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
-		unsigned int 		channels; 	snd_pcm_hw_params_get_channels(params, &channels);
-		ssize_t bsize = snd_pcm_format_size (format, psize * channels);
-		return bsize;
-	}
-
-
-	ssize_t noninterleavedBufferSize (snd_pcm_hw_params_t* params)
-	{
-		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
-		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
-		ssize_t bsize = snd_pcm_format_size (format, psize);
-		return bsize;
-	}
-
-
-	void close()
-	{
-	}
-
-
-
-	/**
-	 * Read audio samples from the audio card. Convert samples to floats and take 
-	 * care of interleaved buffers
-	 */
-	void read()
-	{
-		
-		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
-			
-			int count = snd_pcm_readi(fInputDevice, fInputCardBuffer, fBuffering); 	
-			if (count<0) { 
-				display_error_msg(count, "reading samples");
-				 int err = snd_pcm_prepare(fInputDevice);	
-				 check_error_msg(err, "preparing input stream");
-			}
-			
-			if (fSampleFormat == SND_PCM_FORMAT_S16) {
-
-				short* 	buffer16b = (short*) fInputCardBuffer;
-				for (int s = 0; s < fBuffering; s++) {
-					for (unsigned int c = 0; c < fCardInputs; c++) {
-						fInputSoftChannels[c][s] = float(buffer16b[c + s*fCardInputs])*(1.0/float(SHRT_MAX));
-					}
-				}
-
-			} else { // SND_PCM_FORMAT_S32
-
-				long* 	buffer32b = (long*) fInputCardBuffer;
-				for (int s = 0; s < fBuffering; s++) {
-					for (unsigned int c = 0; c < fCardInputs; c++) {
-						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(LONG_MAX));
-					}
-				}
-			}
-			
-		} else if (fSampleAccess == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
-			
-			int count = snd_pcm_readn(fInputDevice, fInputCardChannels, fBuffering); 	
-			if (count<0) { 
-				display_error_msg(count, "reading samples");
-				 int err = snd_pcm_prepare(fInputDevice);	
-				 check_error_msg(err, "preparing input stream");
-			}
-			
-			if (fSampleFormat == SND_PCM_FORMAT_S16) {
-
-				for (unsigned int c = 0; c < fCardInputs; c++) {
-					short* 	chan16b = (short*) fInputCardChannels[c];
-					for (int s = 0; s < fBuffering; s++) {
-						fInputSoftChannels[c][s] = float(chan16b[s])*(1.0/float(SHRT_MAX));
-					}
-				}
-
-			} else { // SND_PCM_FORMAT_S32
-
-				for (unsigned int c = 0; c < fCardInputs; c++) {
-					long* 	chan32b = (long*) fInputCardChannels[c];
-					for (int s = 0; s < fBuffering; s++) {
-						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(LONG_MAX));
-					}
-				}
-			}
-			
-		} else {
-			check_error_msg(-10000, "unknow access mode");
-		}
-
-
-	}
-
-
-	/**
-	 * write the output soft channels to the audio card. Convert sample 
-	 * format and interleaves buffers when needed
-	 */
-	void write()
-	{
-		recovery :
-				
-		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
-			
-			if (fSampleFormat == SND_PCM_FORMAT_S16) {
-
-				short* buffer16b = (short*) fOutputCardBuffer;
-				for (int f = 0; f < fBuffering; f++) {
-					for (unsigned int c = 0; c < fCardOutputs; c++) {
-						float x = fOutputSoftChannels[c][f];
-						buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
-					}
-				}
-
-			} else { // SND_PCM_FORMAT_S32
-
-				long* buffer32b = (long*) fOutputCardBuffer;
-				for (int f = 0; f < fBuffering; f++) {
-					for (unsigned int c = 0; c < fCardOutputs; c++) {
-						float x = fOutputSoftChannels[c][f];
-						buffer32b[c + f*fCardOutputs] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
-					}
-				}
-			}
-
-			int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering); 	
-			if (count<0) { 
-				display_error_msg(count, "w3"); 
-				int err = snd_pcm_prepare(fOutputDevice);	
-				check_error_msg(err, "preparing output stream");
-				goto recovery;
-			}
-			
-			
-		} else if (fSampleAccess == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
-			
-			if (fSampleFormat == SND_PCM_FORMAT_S16) {
-
-				for (unsigned int c = 0; c < fCardOutputs; c++) {
-					short* chan16b = (short*) fOutputCardChannels[c];
-					for (int f = 0; f < fBuffering; f++) {
-						float x = fOutputSoftChannels[c][f];
-						chan16b[f] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
-					}
-				}
-
-			} else { // SND_PCM_FORMAT_S32
-
-				for (unsigned int c = 0; c < fCardOutputs; c++) {
-					long* chan32b = (long*) fOutputCardChannels[c];
-					for (int f = 0; f < fBuffering; f++) {
-						float x = fOutputSoftChannels[c][f];
-						chan32b[f] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
-					}
-				}
-			}
-
-			int count = snd_pcm_writen(fOutputDevice, fOutputCardChannels, fBuffering); 	
-			if (count<0) { 
-				display_error_msg(count, "w3"); 
-				int err = snd_pcm_prepare(fOutputDevice);	
-				check_error_msg(err, "preparing output stream");
-				goto recovery;
-			}
-			
-		} else {
-			check_error_msg(-10000, "unknow access mode");
-		}
-	}
-
-
-	
-	/**
-	 *  print short information on the audio device
-	 */
-	void shortinfo()
-	{
-		int						err;
-		snd_ctl_card_info_t*	card_info;
-    	snd_ctl_t*				ctl_handle;
-		err = snd_ctl_open (&ctl_handle, fCardName, 0);		check_error(err);
-		snd_ctl_card_info_alloca (&card_info);
-		err = snd_ctl_card_info(ctl_handle, card_info);		check_error(err);
-		printf("%s|%d|%d|%d|%d|%s\n", 
-				snd_ctl_card_info_get_driver(card_info),
-				fCardInputs, fCardOutputs,
-				fFrequency, fBuffering,
-				snd_pcm_format_name((_snd_pcm_format)fSampleFormat));
-	}
-					
-	/**
-	 *  print more detailled information on the audio device
-	 */
-	void longinfo()
-	{
-		int						err;
-		snd_ctl_card_info_t*	card_info;
-    	snd_ctl_t*				ctl_handle;
-
-		printf("Audio Interface Description :\n");
-		printf("Sampling Frequency : %d, Sample Format : %s, buffering : %d\n", 
-				fFrequency, snd_pcm_format_name((_snd_pcm_format)fSampleFormat), fBuffering);
-		printf("Software inputs : %2d, Software outputs : %2d\n", fSoftInputs, fSoftOutputs);
-		printf("Hardware inputs : %2d, Hardware outputs : %2d\n", fCardInputs, fCardOutputs);
-		printf("Channel inputs  : %2d, Channel outputs  : %2d\n", fChanInputs, fChanOutputs);
-		
-		// affichage des infos de la carte
-		err = snd_ctl_open (&ctl_handle, fCardName, 0);		check_error(err);
-		snd_ctl_card_info_alloca (&card_info);
-		err = snd_ctl_card_info(ctl_handle, card_info);		check_error(err);
-		printCardInfo(card_info);
-
-		// affichage des infos liees aux streams d'entree-sortie
-		if (fSoftInputs > 0)	printHWParams(fInputParams);
-		if (fSoftOutputs > 0)	printHWParams(fOutputParams);
-	}
-	
-	void printCardInfo(snd_ctl_card_info_t*	ci)
-	{
-		printf("Card info (address : %p)\n", ci);
-		printf("\tID         = %s\n", snd_ctl_card_info_get_id(ci));
-		printf("\tDriver     = %s\n", snd_ctl_card_info_get_driver(ci));
-		printf("\tName       = %s\n", snd_ctl_card_info_get_name(ci));
-		printf("\tLongName   = %s\n", snd_ctl_card_info_get_longname(ci));
-		printf("\tMixerName  = %s\n", snd_ctl_card_info_get_mixername(ci));
-		printf("\tComponents = %s\n", snd_ctl_card_info_get_components(ci));
-		printf("--------------\n");
-	}
-
-	void printHWParams( snd_pcm_hw_params_t* params )
-	{
-		printf("HW Params info (address : %p)\n", params);
-#if 0
-		printf("\tChannels    = %d\n", snd_pcm_hw_params_get_channels(params));
-		printf("\tFormat      = %s\n", snd_pcm_format_name((_snd_pcm_format)snd_pcm_hw_params_get_format(params)));
-		printf("\tAccess      = %s\n", snd_pcm_access_name((_snd_pcm_access)snd_pcm_hw_params_get_access(params)));
-		printf("\tRate        = %d\n", snd_pcm_hw_params_get_rate(params, NULL));
-		printf("\tPeriods     = %d\n", snd_pcm_hw_params_get_periods(params, NULL));
-		printf("\tPeriod size = %d\n", (int)snd_pcm_hw_params_get_period_size(params, NULL));
-		printf("\tPeriod time = %d\n", snd_pcm_hw_params_get_period_time(params, NULL));
-		printf("\tBuffer size = %d\n", (int)snd_pcm_hw_params_get_buffer_size(params));
-		printf("\tBuffer time = %d\n", snd_pcm_hw_params_get_buffer_time(params, NULL));
-#endif
-		printf("--------------\n");
-	}
-
-	
-};
 
 
 
@@ -550,11 +79,6 @@ class AudioInterface : public AudioParam
 #include <list>
 
 using namespace std;
-
-struct Meta : map<const char*, const char*>
-{
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
-};
 
 
 struct uiItem;
@@ -584,7 +108,7 @@ class UI
 		// suppression de this dans fGuiList
 	}
 
-	// -- zone management
+	// -- registerZone(z,c) : zone management
 	
 	void registerZone(float* z, uiItem* c)
 	{
@@ -643,7 +167,7 @@ class UI
 	// -- passive widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
@@ -662,8 +186,6 @@ class UI
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
-
-    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 
@@ -686,9 +208,8 @@ class uiItem
 	
 	
   public :
-	
 	virtual ~uiItem() {}
-
+	
 	void modifyZone(float v) 	
 	{ 
 		fCache = v;
@@ -721,6 +242,8 @@ struct uiCallbackItem : public uiItem
 		fCallback(v, fData);	
 	}
 };
+
+// en cours d'installation de call back. a finir!!!!!
 
 /**
  * Update all user items reflecting zone z
@@ -824,7 +347,7 @@ class GTKUI : public UI
 	// -- passive display widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision);
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max);
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max);
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
 	
@@ -1244,15 +767,15 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 
 struct uiTextDisplay : public uiItem
 {
-	GtkLabel* 	fLabel;
-	char**		fNames;
-	float		fMin;
-	float		fMax;
-	int			fNum;
+	GtkLabel* 	    fLabel;
+	const char**    fNames;
+	float		    fMin;
+	float		    fMax;
+	int			    fNum;
 	
 	
-	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, char* names[], float lo, float hi) 
-			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)  
+	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi) 
+			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
 	{
 		fNum = 0;
 		while (fNames[fNum] != 0) fNum++;
@@ -1273,7 +796,7 @@ struct uiTextDisplay : public uiItem
 };
 	
 
-void GTKUI::addTextDisplay(const char* label, float* zone, char* names[], float lo, float hi )
+void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], float lo, float hi )
 {
 	GtkWidget* lw = gtk_label_new("");
 	new uiTextDisplay (this, zone, GTK_LABEL(lw), names, lo, hi);
@@ -1317,14 +840,17 @@ void GTKUI::run()
 /******************************************************************************
 *******************************************************************************
 
-								DSP
+								FAUST DSP
 
 *******************************************************************************
 *******************************************************************************/
 
 
+
+
+
 //----------------------------------------------------------------
-//  Definition of a Faust Digital Signal Processor
+//  définition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {
@@ -1339,17 +865,92 @@ class dsp {
 	virtual void buildUserInterface(UI* interface) 					= 0;
 	virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
- 	virtual void conclude() 										{}
 };
 		
+
+//----------------------------------------------------------------------------
+// 	FAUST generated code
+//----------------------------------------------------------------------------
 		
 <<includeclass>>
-
-						
+		
+				
 mydsp	DSP;
 
 
 
+
+
+/******************************************************************************
+*******************************************************************************
+
+							JACK AUDIO INTERFACE
+
+*******************************************************************************
+*******************************************************************************/
+
+
+
+//----------------------------------------------------------------------------
+// 	number of input and output channels
+//----------------------------------------------------------------------------
+
+int		gNumInChans;
+int		gNumOutChans;
+
+
+//----------------------------------------------------------------------------
+// Jack ports
+//----------------------------------------------------------------------------
+
+jack_port_t *input_ports[256];
+jack_port_t *output_ports[256];
+
+//----------------------------------------------------------------------------
+// tables of noninterleaved input and output channels for FAUST
+//----------------------------------------------------------------------------
+
+float* 	gInChannel[256];
+float* 	gOutChannel[256];
+
+//----------------------------------------------------------------------------
+// Jack Callbacks 
+//----------------------------------------------------------------------------
+
+int srate(jack_nframes_t nframes, void *arg)
+{
+	printf("the sample rate is now %u/sec\n", nframes);
+	return 0;
+}
+
+void jack_shutdown(void *arg)
+{
+	exit(1);
+}
+
+int process (jack_nframes_t nframes, void *arg)
+{
+	for (int i = 0; i < gNumInChans; i++) {
+	    gInChannel[i] = (float *)jack_port_get_buffer(input_ports[i], nframes);
+	}
+	for (int i = 0; i < gNumOutChans; i++) {
+	    gOutChannel[i] = (float *)jack_port_get_buffer(output_ports[i], nframes);
+	}
+	DSP.compute(nframes, gInChannel, gOutChannel);
+	return 0;
+}
+#ifdef _OPENMP
+void* jackthread(void* arg)
+{
+    jack_client_t*  client = (jack_client_t*) arg;
+	jack_nframes_t nframes;
+    while (1) {
+        nframes = jack_cycle_wait(client);
+        process(nframes, arg);
+        jack_cycle_signal(client, 0);
+    }
+}
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -1359,101 +960,96 @@ mydsp	DSP;
 *******************************************************************************
 *******************************************************************************/
 	
-// lopt : Scan Command Line long int Arguments
-
-long lopt (int argc, char *argv[], const char* longname, const char* shortname, long def) 
-{
-	for (int i=2; i<argc; i++) 
-		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
-			return atoi(argv[i]);
-	return def;
-}
 	
-// sopt : Scan Command Line string Arguments
-
-const char* sopt (int argc, char *argv[], const char* longname, const char* shortname, const char* def) 
-{
-	for (int i=2; i<argc; i++) 
-		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
-			return argv[i];
-	return def;
-}
-	
-// fopt : Scan Command Line flag option (without argument), return true if the flag
-
-bool fopt (int argc, char *argv[], const char* longname, const char* shortname) 
-{
-	for (int i=1; i<argc; i++) 
-		if ( strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0 ) 
-			return true;
-	return false;
-}
-	
-
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 
-pthread_t	guithread;
-	
-void* run_ui(void* ptr)
-{
-	UI* interface = (UI*) ptr;
-	interface->run();
-	pthread_exit(0);
-	return 0;
-}
-
 int main(int argc, char *argv[] )
 {
-	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
-	
-	// compute rcfilename to (re)store application state
-	char	rcfilename[256];
-	char* 	home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
-	
-	AudioInterface	audio (
-		AudioParam().cardName( sopt(argc, argv, "--device", "-d", "hw:0") ) 
-					.frequency( lopt(argc, argv, "--frequency", "-f", 44100) ) 
-					.buffering( lopt(argc, argv, "--buffer", "-b", 1024) )
-					.periods( lopt(argc, argv, "--periods", "-p", 2) )
-					.inputs(DSP.getNumInputs())
-					.outputs(DSP.getNumOutputs())
-	);
+    UI*                 interface;
+    jack_client_t*      client; 
+    char                buf [256];
+    char                rcfilename[256];
+    jack_status_t       jackstat;
+    const char          *home;
+    char                *pname;
+    char                *jname;
 
-	
-	audio.open();
-	
-	DSP.init(audio.frequency());
-	DSP.buildUserInterface(interface);
-	
-	interface->recallState(rcfilename);
+    jname = basename (argv [0]);
+    client = jack_client_open (jname, (jack_options_t) 0, &jackstat);
+    if (client == 0) {
+        fprintf (stderr, "Can't connect to JACK, is the server running ?\n");
+        exit (1);
+    }
+    if (jackstat & JackNameNotUnique) {
+        jname = jack_get_client_name (client);
+    }
 
-	pthread_create(&guithread, NULL, run_ui, interface);
-	
-	bool rt = setRealtimePriority();
-	printf(rt?"RT : ":"NRT: "); audio.shortinfo();
-	if (fopt(argc, argv, "--verbose", "-v")) audio.longinfo();
-	bool running = true;
-	audio.write();
-	audio.write();
-	#pragma omp parallel
-	{
-		while(running) {
-			#pragma omp single
-			{
-				audio.read();
-			}
-			DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
-			#pragma omp single
-			{
-				audio.write();
-				running = !interface->stopped();
-			}
-		} 
-	}
-	interface->saveState(rcfilename);
+#ifdef _OPENMP
+    jack_set_process_thread(client, jackthread, client);
+#else
+    jack_set_process_callback(client, process, 0);
+#endif
+    jack_set_sample_rate_callback(client, srate, 0);
+    jack_on_shutdown(client, jack_shutdown, 0);
+    
+    gNumInChans = DSP.getNumInputs();
+    gNumOutChans = DSP.getNumOutputs();
+    
+    for (int i = 0; i < gNumInChans; i++) {
+        snprintf(buf, 256, "in_%d", i);
+        input_ports[i] = jack_port_register(client, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+    }
+    for (int i = 0; i < gNumOutChans; i++) {
+        snprintf(buf, 256, "out_%d", i);
+        output_ports[i] = jack_port_register(client, buf,JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+    }
+    
+    interface = new GTKUI (jname, &argc, &argv);
+    DSP.init(jack_get_sample_rate(client));
+    DSP.buildUserInterface(interface);
 
-  	return 0;
+    home = getenv ("HOME");
+    if (home == 0) home = ".";
+    snprintf(rcfilename, 256, "%s/.%src", home, jname);
+    interface->recallState(rcfilename);
+
+    if (jack_activate(client)) {
+        fprintf(stderr, "Can't activate JACK client\n");
+        return 1;
+    }
+    
+    pname = getenv("FAUST2JACK_INPUTS");
+    if (pname && *pname) {
+       for (int i = 0; i < gNumInChans; i++) {
+            snprintf(buf, 256, pname, i + 1);
+            jack_connect(client, buf, jack_port_name(input_ports[i]));
+        }
+    }
+
+    pname = getenv("FAUST2JACK_OUTPUTS");
+    if (pname && *pname) {
+        for (int i = 0; i < gNumOutChans; i++) {
+            snprintf(buf, 256, pname, i + 1);
+            jack_connect(client, jack_port_name(output_ports[i]), buf);
+        }       
+    }
+    
+    interface->run();
+    jack_deactivate(client);
+    
+    for (int i = 0; i < gNumInChans; i++) {
+        jack_port_unregister(client, input_ports[i]);
+    }
+    for (int i = 0; i < gNumOutChans; i++) {
+        jack_port_unregister(client, output_ports[i]);
+    }
+    
+    jack_client_close(client);
+    interface->saveState(rcfilename);
+        
+    return 0;
 }
+
+

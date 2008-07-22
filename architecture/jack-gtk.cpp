@@ -27,6 +27,8 @@
 
 using namespace std;
 
+#define BENCHMARKMODE
+
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
@@ -158,35 +160,35 @@ class UI
 			(*g)->updateAllZones();
 		}
 	}
-	
-	// -- active widgets
-	
-	virtual void addButton(const char* label, float* zone) {};
-	virtual void addToggleButton(const char* label, float* zone) {};
-	virtual void addCheckButton(const char* label, float* zone) {};
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) {};
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) {};
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) {};
-	
-	// -- passive widgets
-	
-	virtual void addNumDisplay(const char* label, float* zone, int precision) {};
-	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {};
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {};
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) {};
-	
-	void addCallback(float* zone, uiCallback foo, void* data);
-	
-	// -- widget's layouts
-	
-	virtual void openFrameBox(const char* label) {};
-	virtual void openTabBox(const char* label) {};
-	virtual void openHorizontalBox(const char* label) {};
-	virtual void openVerticalBox(const char* label) {};
-	virtual void closeBox() {};
-	
-	virtual void show() {};
-	virtual void run() {};
+        
+        // -- active widgets
+        
+        virtual void addButton(const char* label, float* zone) = 0;
+        virtual void addToggleButton(const char* label, float* zone) = 0;
+        virtual void addCheckButton(const char* label, float* zone) = 0;
+        virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+        virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+        virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
+        
+        // -- passive widgets
+        
+        virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+        virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
+        virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+        virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+        
+        void addCallback(float* zone, uiCallback foo, void* data);
+        
+        // -- widget's layouts
+        
+        virtual void openFrameBox(const char* label) = 0;
+        virtual void openTabBox(const char* label) = 0;
+        virtual void openHorizontalBox(const char* label) = 0;
+        virtual void openVerticalBox(const char* label) = 0;
+        virtual void closeBox() = 0;
+        
+        virtual void show() {};
+        virtual void run() {};
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
@@ -773,18 +775,18 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 
 struct uiTextDisplay : public uiItem
 {
-	GtkLabel* 	fLabel;
-	const char**		fNames;
-	float		fMin;
-	float		fMax;
-	int			fNum;
-	
-	
-	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi) 
-			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)  
-	{
-		fNum = 0;
-		while (fNames[fNum] != 0) fNum++;
+        GtkLabel*           fLabel;
+        const char**    fNames;
+        float               fMin;
+        float               fMax;
+        int                         fNum;
+        
+        
+        uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
+                        : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
+        {
+                fNum = 0;
+                while (fNames[fNum] != 0) fNum++;
 	}
 
 	virtual void reflectZone() 	
@@ -856,7 +858,7 @@ void GTKUI::run()
 
 
 //----------------------------------------------------------------
-//  définition du processeur de signal
+//  dÃ©finition du processeur de signal
 //----------------------------------------------------------------
 	
 class dsp {
@@ -934,6 +936,54 @@ void jack_shutdown(void *arg)
 	exit(1);
 }
 
+#ifdef BENCHMARKMODE
+// mesuring jack performances
+static __inline__ unsigned long long int rdtsc(void)
+{
+  unsigned long long int x;
+     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+     return x;
+}
+
+#define KSKIP 10
+#define KMESURE 1024
+int mesure = 0;
+unsigned long long int starts[KMESURE];
+unsigned long long int stops [KMESURE];
+
+#define STARTMESURE starts[mesure%KMESURE] = rdtsc();
+#define STOPMESURE stops[mesure%KMESURE] = rdtsc(); mesure = mesure+1;
+
+void printstats()
+{
+    unsigned long long int low, hi, tot;
+    low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
+
+    if (mesure < KMESURE) {
+    
+        for (int i = KSKIP+1; i<mesure; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(mesure-KSKIP) << ' ' << hi << endl;
+
+    } else {
+    
+        for (int i = KSKIP+1; i<KMESURE; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(KMESURE-KSKIP) << ' ' << hi << endl;
+
+    }    
+}
+#endif
+// end
+
 int process (jack_nframes_t nframes, void *arg)
 {
 	for (int i = 0; i < gNumInChans; i++) {
@@ -942,10 +992,23 @@ int process (jack_nframes_t nframes, void *arg)
 	for (int i = 0; i < gNumOutChans; i++) {
 	    gOutChannel[i] = (float *)jack_port_get_buffer(output_ports[i], nframes);
 	}
+    STARTMESURE
 	DSP.compute(nframes, gInChannel, gOutChannel);
+    STOPMESURE  
 	return 0;
 }
-
+#ifdef _OPENMP
+void* jackthread(void* arg)
+{
+    jack_client_t*  client = (jack_client_t*) arg;
+	jack_nframes_t nframes;
+    while (1) {
+        nframes = jack_cycle_wait(client);
+        process(nframes, arg);
+        jack_cycle_signal(client, 0);
+    }
+}
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -967,9 +1030,9 @@ int main(int argc, char *argv[] )
     char                buf [256];
     char                rcfilename[256];
     jack_status_t       jackstat;
-    const char*			home;
-    char*				pname;
-    char*				jname;
+    const char*                 home;
+    char*                               pname;
+    char*                               jname;
 
     jname = basename (argv [0]);
     client = jack_client_open (jname, (jack_options_t) 0, &jackstat);
@@ -981,7 +1044,11 @@ int main(int argc, char *argv[] )
         jname = jack_get_client_name (client);
     }
 
+#ifdef _OPENMP
+    jack_set_process_thread(client, jackthread, client);
+#else
     jack_set_process_callback(client, process, 0);
+#endif
     jack_set_sample_rate_callback(client, srate, 0);
     jack_on_shutdown(client, jack_shutdown, 0);
     
@@ -1039,7 +1106,9 @@ int main(int argc, char *argv[] )
     
     jack_client_close(client);
     interface->saveState(rcfilename);
-        
+#ifdef BENCHMARKMODE
+    printstats();
+#endif       
     return 0;
 }
 
