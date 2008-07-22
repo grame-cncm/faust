@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.4i"
+#define FAUSTVERSION "0.9.9.4j-par"
 
 #include <stdio.h>
 #include <string.h>
@@ -94,7 +94,6 @@ string          gMasterDirectory;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool			gDetailsSwitch 	= false;
-bool            gVectorSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
@@ -110,8 +109,11 @@ string			gArchFile;
 string			gOutputFile;
 list<string>	gInputFiles;
 
-bool			gPatternEvalMode = false;
+bool                    gPatternEvalMode = false;
 
+bool            gVectorSwitch   = false;
+int             gVecSize        = 32;
+bool            gOpenMPSwitch   = false;
 
 
 //-- command line tools
@@ -151,10 +153,6 @@ bool process_cmdline(int argc, char* argv[])
 		} else if (isCmd(argv[i], "-o")) {
 			gOutputFile = argv[i+1];
 			i += 2;
-
-		} else if (isCmd(argv[i], "-vec", "--vectorize")) {
-			gVectorSwitch = true;
-			i += 1;
 
 		} else if (isCmd(argv[i], "-ps", "--postscript")) {
 			gDrawPSSwitch = true;
@@ -200,9 +198,21 @@ bool process_cmdline(int argc, char* argv[])
 			gMaxCopyDelay = atoi(argv[i+1]);
 			i += 2;
 
-    } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
-      gSimplifyDiagrams = true;
-      i += 1;
+		} else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
+			gSimplifyDiagrams = true;
+			i += 1;
+
+        } else if (isCmd(argv[i], "-vec", "--vectorize")) {
+            gVectorSwitch = true;
+            i += 1;
+                
+        } else if (isCmd(argv[i], "-vs", "--vec-size")) {
+			gVecSize = atoi(argv[i+1]);
+			i += 2;
+                
+        } else if (isCmd(argv[i], "-omp", "--openMP")) {
+			gOpenMPSwitch = true;
+			i += 1;
 
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
@@ -216,6 +226,9 @@ bool process_cmdline(int argc, char* argv[])
 			err++;
 		}
 	}
+
+    // adjust related options
+    if (gOpenMPSwitch) gVectorSwitch = true;
 
 	return err == 0;
 }
@@ -248,8 +261,8 @@ void printhelp()
 	cout << "-v \t\tprint compiler --version information\n";
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
-  cout << "-svg \t\tprint block-diagram --svg file\n";
-  cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
+    cout << "-svg \t\tprint block-diagram --svg file\n";
+    cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
 	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
@@ -259,9 +272,11 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-	cout << "-a <file> \tC++ wrapper file\n";
-	cout << "-o <file> \tC++ output file\n";
-
+	cout << "-a <file> \tC++ architecture file\n";
+    cout << "-o <file> \tC++ output file\n";
+    cout << "-vec    \t--vectorize generate easier to vectorize code\n";
+    cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
+    cout << "-omp    \t--openMP generate openMP pragmas, activates --vectorize option\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";
@@ -408,7 +423,7 @@ int main (int argc, char* argv[])
 	*****************************************************************/
 
 	Compiler* C;
-	if (gVectorSwitch) 	C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
+    if (gVectorSwitch)  C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
 	else 				C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
 
 	if (gPrintXMLSwitch) C->setDescription(new Description());
@@ -443,7 +458,7 @@ int main (int argc, char* argv[])
 
 	ostream* dst;
 	istream* enrobage;
-	istream* intrinsic;
+	//istream* intrinsic;
 
 	if (gOutputFile != "") {
 		dst = new ofstream(gOutputFile.c_str());
@@ -459,10 +474,9 @@ int main (int argc, char* argv[])
 			C->getClass()->printIncludeFile(*dst);
 
 			streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-			if ( gVectorSwitch && (intrinsic = open_arch_stream("intrinsic.hh")) ) {
-				streamCopyUntilEnd(*intrinsic, *dst);
-			}
-
+// 			if ( gVectorSwitch && (intrinsic = open_arch_stream("intrinsic.hh")) ) {
+// 				streamCopyUntilEnd(*intrinsic, *dst);
+// 			}
 			streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
 			C->getClass()->println(0,*dst);
 			streamCopyUntilEnd(*enrobage, *dst);

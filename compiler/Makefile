@@ -1,4 +1,4 @@
-subprojects := boxes errors evaluate generator normalize parser propagate signals tlib draw draw/device draw/schema extended patternmatcher
+subprojects := boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher
 
 sources = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard draw/*/*.cpp)
 
@@ -6,7 +6,7 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS := -g -O3 -Wall -Wuninitialized -Wno-parentheses $(addprefix -I, $(subprojects))
+CXXFLAGS := -g -O1 -Wall -Wuninitialized -Wno-parentheses $(addprefix -I, $(subprojects))
 
 all : faust
 
@@ -38,30 +38,30 @@ doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
 main.o: tlib/compatibility.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
-main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh generator/Text.hh
-main.o: generator/description.hh generator/occurences.hh tlib/property.hh generator/compile_vect.hh
-main.o: propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh
-main.o: parser/sourcereader.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
+main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh tlib/property.hh
+main.o: generator/Text.hh generator/description.hh generator/occurences.hh generator/compile_vect.hh
+main.o: parallelize/loop.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh
+main.o: evaluate/eval.hh parser/sourcereader.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-boxes/boxcomplexity.o: boxes/boxcomplexity.h boxes/boxes.hh
+boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh
+boxes/boxcomplexity.o: signals/binop.hh boxes/boxcomplexity.h boxes/boxes.hh
 boxes/boxes.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxes.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
 boxes/boxes.o: tlib/smartpointer.hh signals/interval.hh
 boxes/boxtype.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxtype.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
 boxes/boxtype.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
-boxes/boxtype.o: signals/sigvisitor.hh
+boxes/boxtype.o: tlib/property.hh signals/sigvisitor.hh
 boxes/ppbox.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh boxes/boxes.hh tlib/tlib.hh tlib/num.hh
 boxes/ppbox.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
 boxes/ppbox.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
-boxes/ppbox.o: signals/sigvisitor.hh
+boxes/ppbox.o: tlib/property.hh signals/sigvisitor.hh
 draw/drawschema.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 draw/drawschema.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
 draw/drawschema.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh draw/device/devLib.h
 draw/drawschema.o: draw/device/SVGDev.h draw/device/device.h draw/device/PSDev.h extended/xtended.hh generator/klass.hh
-draw/drawschema.o: generator/uitree.hh signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh
+draw/drawschema.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh
 draw/drawschema.o: tlib/occurrences.hh boxes/boxcomplexity.h draw/schema/schema.h draw/drawschema.hh
 draw/drawschema.o: tlib/compatibility.hh
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
@@ -70,117 +70,129 @@ evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tli
 evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
 evaluate/eval.o: errors/errormsg.hh boxes/ppbox.hh normalize/simplify.hh propagate/propagate.hh
 evaluate/eval.o: patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh tlib/smartpointer.hh
-evaluate/eval.o: signals/interval.hh generator/klass.hh generator/uitree.hh signals/sigvisitor.hh
-evaluate/eval.o: evaluate/loopDetector.hh tlib/property.hh
+evaluate/eval.o: signals/interval.hh generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh
+evaluate/eval.o: evaluate/loopDetector.hh
 evaluate/loopDetector.o: evaluate/loopDetector.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 evaluate/loopDetector.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 evaluate/loopDetector.o: parser/sourcereader.hh boxes/ppbox.hh
 extended/absprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/absprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/absprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
-extended/absprim.o: signals/sigtyperules.hh
+extended/absprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/absprim.o: generator/Text.hh signals/sigtyperules.hh
 extended/acosprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/acosprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/acosprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/acosprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/acosprim.o: generator/Text.hh
 extended/asinprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/asinprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/asinprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/asinprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/asinprim.o: generator/Text.hh
 extended/atan2prim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/atan2prim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/atan2prim.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-extended/atan2prim.o: generator/Text.hh
+extended/atan2prim.o: generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh
+extended/atan2prim.o: signals/binop.hh generator/Text.hh
 extended/atanprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/atanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/atanprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/atanprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/atanprim.o: generator/Text.hh
 extended/ceilprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/ceilprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/ceilprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/ceilprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/ceilprim.o: generator/Text.hh
 extended/cosprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/cosprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/cosprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/cosprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/cosprim.o: generator/Text.hh
 extended/expprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/expprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/expprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/expprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/expprim.o: generator/Text.hh
 extended/floorprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/floorprim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/floorprim.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-extended/floorprim.o: generator/Text.hh
+extended/floorprim.o: generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh
+extended/floorprim.o: signals/binop.hh generator/Text.hh
 extended/fmodprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/fmodprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/fmodprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/fmodprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/fmodprim.o: generator/Text.hh
 extended/log10prim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/log10prim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/log10prim.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-extended/log10prim.o: generator/Text.hh
+extended/log10prim.o: generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh
+extended/log10prim.o: signals/binop.hh generator/Text.hh
 extended/logprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/logprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/logprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/logprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/logprim.o: generator/Text.hh
 extended/maxprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/maxprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/maxprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
-extended/maxprim.o: signals/sigtyperules.hh
+extended/maxprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/maxprim.o: generator/Text.hh signals/sigtyperules.hh
 extended/minprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/minprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/minprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
-extended/minprim.o: signals/sigtyperules.hh
+extended/minprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/minprim.o: generator/Text.hh signals/sigtyperules.hh
 extended/powprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/powprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/powprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/powprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/powprim.o: generator/Text.hh
 extended/remainderprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/remainderprim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/remainderprim.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh
-extended/remainderprim.o: signals/binop.hh tlib/compatibility.hh generator/Text.hh
+extended/remainderprim.o: generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh
+extended/remainderprim.o: signals/signals.hh signals/binop.hh tlib/compatibility.hh generator/Text.hh
 extended/rintprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/rintprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/rintprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/rintprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
 extended/rintprim.o: tlib/compatibility.hh generator/Text.hh
 extended/sinprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/sinprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/sinprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/sinprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/sinprim.o: generator/Text.hh
 extended/sqrtprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/sqrtprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/sqrtprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/sqrtprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/sqrtprim.o: generator/Text.hh
 extended/tanprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 extended/tanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-extended/tanprim.o: generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh
+extended/tanprim.o: generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/tanprim.o: generator/Text.hh
 generator/codegeneration.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/codegeneration.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh
 generator/codegeneration.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh
-generator/codegeneration.o: generator/Text.hh generator/description.hh signals/sigprint.hh signals/sigtyperules.hh
-generator/codegeneration.o: signals/prim2.hh
+generator/codegeneration.o: tlib/property.hh generator/Text.hh generator/description.hh signals/sigprint.hh
+generator/codegeneration.o: signals/sigtyperules.hh signals/prim2.hh
 generator/compile.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 generator/compile.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh
-generator/compile.o: tlib/smartpointer.hh signals/interval.hh generator/uitree.hh generator/Text.hh
+generator/compile.o: tlib/smartpointer.hh signals/interval.hh generator/uitree.hh tlib/property.hh generator/Text.hh
 generator/compile.o: generator/description.hh signals/sigprint.hh signals/sigtyperules.hh normalize/simplify.hh
 generator/compile.o: normalize/privatise.hh
 generator/compile_scal.o: generator/compile_scal.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/compile_scal.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/compile_scal.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-generator/compile_scal.o: generator/uitree.hh generator/Text.hh generator/description.hh signals/sigtyperules.hh
-generator/compile_scal.o: generator/occurences.hh tlib/property.hh signals/sigprint.hh signals/recursivness.hh
+generator/compile_scal.o: generator/uitree.hh tlib/property.hh generator/Text.hh generator/description.hh
+generator/compile_scal.o: signals/sigtyperules.hh generator/occurences.hh signals/sigprint.hh signals/recursivness.hh
 generator/compile_scal.o: normalize/simplify.hh normalize/privatise.hh signals/prim2.hh extended/xtended.hh
 generator/compile_scal.o: signals/sigvisitor.hh tlib/compatibility.hh signals/ppsig.hh
-generator/compile_vect.o: generator/compile_vect.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
-generator/compile_vect.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
-generator/compile_vect.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-generator/compile_vect.o: generator/uitree.hh generator/Text.hh generator/description.hh tlib/compatibility.hh
-generator/compile_vect.o: generator/compile_scal.hh signals/sigtyperules.hh generator/occurences.hh tlib/property.hh
-generator/compile_vect.o: signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh signals/prim2.hh
+generator/compile_vect.o: generator/compile_vect.hh generator/compile_scal.hh generator/compile.hh signals/signals.hh
+generator/compile_vect.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+generator/compile_vect.o: tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh
+generator/compile_vect.o: signals/interval.hh generator/uitree.hh tlib/property.hh generator/Text.hh
+generator/compile_vect.o: generator/description.hh signals/sigtyperules.hh generator/occurences.hh parallelize/loop.hh
+generator/compile_vect.o: signals/ppsig.hh parallelize/delayline.hh
 generator/contextor.o: generator/contextor.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/smartpointer.hh
 generator/description.o: generator/uitree.hh generator/Text.hh
 generator/klass.o: tlib/smartpointer.hh generator/klass.hh signals/sigtype.hh signals/interval.hh tlib/tlib.hh
 generator/klass.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
-generator/klass.o: generator/uitree.hh generator/Text.hh signals/signals.hh signals/binop.hh
+generator/klass.o: generator/uitree.hh tlib/property.hh generator/Text.hh signals/signals.hh signals/binop.hh
 generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/occurences.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/occurences.hh
 generator/occurences.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigtyperules.hh
-generator/sharing.o: generator/compile_vect.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
-generator/sharing.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
-generator/sharing.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh
-generator/sharing.o: generator/Text.hh generator/description.hh generator/compile_scal.hh signals/sigtyperules.hh
-generator/sharing.o: generator/occurences.hh tlib/property.hh signals/sigprint.hh
+generator/sharing.o: generator/compile_vect.hh generator/compile_scal.hh generator/compile.hh signals/signals.hh
+generator/sharing.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+generator/sharing.o: signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+generator/sharing.o: generator/uitree.hh tlib/property.hh generator/Text.hh generator/description.hh
+generator/sharing.o: signals/sigtyperules.hh generator/occurences.hh parallelize/loop.hh signals/sigprint.hh
 generator/Text.o: generator/Text.hh tlib/compatibility.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
@@ -200,16 +212,23 @@ normalize/privatise.o: normalize/privatise.hh
 normalize/simplify.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigtyperules.hh
 normalize/simplify.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigorderrules.hh signals/sigprint.hh
-normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
+normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
 normalize/simplify.o: signals/sigvisitor.hh normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
+parallelize/delayline.o: parallelize/delayline.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+parallelize/delayline.o: generator/klass.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+parallelize/delayline.o: tlib/list.hh tlib/shlysis.hh generator/uitree.hh tlib/property.hh generator/Text.hh
+parallelize/graphSorting.o: parallelize/graphSorting.hh parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
+parallelize/graphSorting.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+parallelize/loop.o: parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+parallelize/loop.o: tlib/shlysis.hh
 parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh
 parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh parser/faustparser.hpp
 parser/faustparser.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh tlib/num.hh
 parser/faustparser.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-parser/faustparser.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-parser/faustparser.o: boxes/boxes.hh signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh
+parser/faustparser.o: generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh signals/signals.hh
+parser/faustparser.o: signals/binop.hh boxes/boxes.hh signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/enrobage.hh
 parser/sourcereader.o: boxes/ppbox.hh
@@ -219,12 +238,12 @@ patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh pattern
 propagate/propagate.o: propagate/propagate.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 propagate/propagate.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
 propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh boxes/ppbox.hh extended/xtended.hh
-propagate/propagate.o: generator/klass.hh generator/uitree.hh signals/sigvisitor.hh
+propagate/propagate.o: generator/klass.hh generator/uitree.hh tlib/property.hh signals/sigvisitor.hh
 signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
 signals/ppsig.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 signals/ppsig.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigtype.hh tlib/smartpointer.hh
-signals/ppsig.o: signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh signals/sigvisitor.hh
-signals/ppsig.o: signals/recursivness.hh
+signals/ppsig.o: signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
+signals/ppsig.o: signals/sigvisitor.hh signals/recursivness.hh
 signals/prim2.o: signals/prim2.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/prim2.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
@@ -234,7 +253,8 @@ signals/signals.o: tlib/shlysis.hh signals/binop.hh
 signals/sigorderrules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigprint.hh
 signals/sigorderrules.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 signals/sigorderrules.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigorderrules.hh
-signals/sigorderrules.o: extended/xtended.hh generator/klass.hh generator/uitree.hh signals/sigvisitor.hh
+signals/sigorderrules.o: extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
+signals/sigorderrules.o: signals/sigvisitor.hh
 signals/sigprint.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/sigprint.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/sigprint.o: signals/sigtyperules.hh
@@ -243,10 +263,10 @@ signals/sigtyperules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval
 signals/sigtyperules.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 signals/sigtyperules.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/ppsig.hh signals/prim2.hh
 signals/sigtyperules.o: signals/sigtyperules.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
-signals/sigtyperules.o: signals/sigvisitor.hh signals/recursivness.hh
+signals/sigtyperules.o: tlib/property.hh signals/sigvisitor.hh signals/recursivness.hh
 signals/sigvisitor.o: signals/sigvisitor.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 signals/sigvisitor.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh extended/xtended.hh signals/sigtype.hh
-signals/sigvisitor.o: tlib/smartpointer.hh signals/interval.hh generator/klass.hh generator/uitree.hh
+signals/sigvisitor.o: tlib/smartpointer.hh signals/interval.hh generator/klass.hh generator/uitree.hh tlib/property.hh
 signals/subsignals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/subsignals.o: tlib/shlysis.hh signals/binop.hh
 tlib/list.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh

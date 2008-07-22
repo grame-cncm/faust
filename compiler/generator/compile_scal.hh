@@ -38,9 +38,7 @@
 
 class ScalarCompiler : public Compiler
 {
-  private:
-	//Tree						fCompileKey;
-	//Tree						fVectorKey;
+  protected:
     property<string>            fCompileProperty;
     property<string>            fVectorProperty;
 
@@ -62,12 +60,15 @@ class ScalarCompiler : public Compiler
 	
 	virtual void 		compileMultiSignal  (Tree lsig);
 	virtual void		compileSingleSignal (Tree lsig);
-	virtual string		CS (Tree sig);
-	virtual string 	    generateCacheCode(Tree sig, const string& exp) ;
-            string      generateVariableStore(Tree sig, const string& exp);
 
 
-  private:
+  protected:
+
+    virtual string      CS (Tree sig);
+    virtual string      generateCode (Tree sig);
+    virtual string      generateCacheCode(Tree sig, const string& exp) ;
+
+    virtual string      generateVariableStore(Tree sig, const string& exp);
 
 	string 		getFreshID (const string& prefix);
 
@@ -89,10 +90,9 @@ class ScalarCompiler : public Compiler
 	
 	
 	// generation du code
-	string		generateCode (Tree sig);
 	
 	string 		generateXtended		(Tree sig);
-	string 		generateFixDelay	(Tree sig, Tree arg, Tree size);
+	virtual string 		generateFixDelay	(Tree sig, Tree arg, Tree size);
 	string 		generatePrefix 		(Tree sig, Tree x, Tree e);
 	string 		generateIota		(Tree sig, Tree arg);
 	string 		generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
@@ -131,13 +131,15 @@ class ScalarCompiler : public Compiler
     string      generateFConst (Tree sig, const string& file, const string& name);
     string      generateFVar (Tree sig, const string& file, const string& name);
 	
-	string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+	virtual string		generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	string		generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
+    virtual void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
 
 	void 		getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
 	void 		ensureIotaCode();
+    int         pow2limit(int x);
+
 
 
 };

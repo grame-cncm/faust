@@ -45,8 +45,12 @@ using namespace std;
 #include "smartpointer.hh"
 #include "tlib.hh"
 #include "uitree.hh"
+#include "property.hh"
 
 #define kMaxCategory 32
+
+#import "loop.hh"
+#import "graphSorting.hh"
 
 class Klass //: public Target
 {
@@ -69,12 +73,27 @@ class Klass //: public Target
 	list<string>		fStaticFields;			///< static fields after class
 	list<string>		fInitCode;
 	list<string>		fUICode;
-	list<string>		fSlowCode;
-	list<string>		fExecCode;
-  //list<string>		fExecVecCode;
-  //list<string>		fExecScalCode[4];
-	list<string>		fPostCode;
-    //list<string>		fEndCode;
+
+#if 0
+    list<string>        fSlowDecl;
+    list<string>        fSharedDecl;            ///< declare shared variables for openMP
+    list<string>        fCommonCode;            ///< code executed by all threads
+    list<string>        fSlowCode;
+    list<string>        fEndCode;
+#endif
+    list<string>        fSharedDecl;             ///< shared declarations 
+    list<string>        fFirstPrivateDecl;       ///< first private declarations
+
+    list<string>        fZone1Code;              ///< shared vectors 
+    list<string>        fZone2Code;              ///< first private 
+    list<string>        fZone2bCode;             ///< single once per block
+    list<string>        fZone3Code;              ///< private every sub block
+    list<string>        fZone4Code;              ///< single every sub block pre-graph
+    list<string>        fZone5Code;              ///< single every sub block post-graph
+
+    
+    Loop*               fTopLoop;               ///< active loops currently open
+    property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
 
     bool                 vec;
 
@@ -82,10 +101,22 @@ class Klass //: public Target
  public:
 
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
-	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs), vec(__vec)
+	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
+            fTopLoop(new Loop(0, "count")), vec(__vec)
 	{}
 
 	virtual ~Klass() 						{}
+
+    void    openLoop(const string& size);
+    void    openLoop(Tree recsymbol, const string& size);
+    void    closeLoop(Tree sig=0);
+
+    void    setLoopProperty(Tree sig, Loop* l);     ///< Store the loop used to compute a signal
+    bool    getLoopProperty(Tree sig, Loop*& l);    ///< Returns the loop used to compute a signal
+
+
+
+    Loop*   topLoop()   { return fTopLoop; }
 
 	void addIncludeFile (const string& str) { fIncludeFileSet.insert(str); }
 
@@ -108,30 +139,38 @@ class Klass //: public Target
 	void addUICode (const string& str)		{ fUICode.push_back(str); }
 
 
-	void addSlowCode (const string& str)	{ fSlowCode.push_back(str); }
+    void addSharedDecl (const string& str)          { fSharedDecl.push_back(str); }
+    void addFirstPrivateDecl (const string& str)    { fFirstPrivateDecl.push_back(str); }
 
+    void addZone1 (const string& str)  { fZone1Code.push_back(str); }
+    void addZone2 (const string& str)  { fZone2Code.push_back(str); }
+    void addZone2b (const string& str)  { fZone2bCode.push_back(str); }
+    void addZone3 (const string& str)  { fZone3Code.push_back(str); }
+    void addZone4 (const string& str)  { fZone4Code.push_back(str); }
+    void addZone5 (const string& str)  { fZone5Code.push_back(str); }
+#if 0
+    string  addLocalCommonDecl (const string& ctype, const string& vname, const string& init);
+	string 	addLocalDecl (const string& type, const string& var);
+	string 	addLocalDecl (const string& type, const string& var, const string& value);
+	string	addLocalVecDecl (const string& ctype, const string& vname, int size);	
+	string	addLocalVecDecl (const string& ctype, const string& vname, const string& size);
+	void 	addSlowExecCode (const string& str);
+#endif
   //void addExecCode (const string& str)	{ fExecCode.push_back(str); }
 
-    void addExecCode ( const string& str) { fExecCode.push_back(str); }
+    void addExecCode ( const string& str)   { 
+    //cerr << fTopLoop <<"::addExecCode " << str << endl;
+    fTopLoop->addExecCode(str); }
 
-  //void addExecCode (int codeType) {  // compilation avec vectorisation automatique
-  //                                      if(codeType==kScal) {
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[0]);
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[1]);
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[2]);
-  //				    fExecCode.splice(fExecCode.end(),fExecScalCode[3]);
-  //				  } else fExecCode.splice(fExecCode.end(),fExecVecCode);
-  //                                }
+	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
-  //    void addExecVecCode (const string& str) { fExecVecCode.push_back(str); }
-
-  //    void addExecScalCode (const string& str, int loop_unroll) { fExecScalCode[loop_unroll].push_back(str); }
-
-	void addPostCode (const string& str)	{ fPostCode.push_front(str); }
-
-   // void addEndCode (const string& str)	{ fEndCode.push_front(str); }
+    //void addEndCode (const string& str)	{ fEndCode.push_front(str); }
 
 	virtual void println(int n, ostream& fout);
+    virtual void printComputeMethod (int n, ostream& fout);
+
+    virtual void printLoopGraph(int n, ostream& fout);
+    virtual void printLoopLevel(int n, int lnum, const lset& L, ostream& fout);
 
     virtual void printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout);
 

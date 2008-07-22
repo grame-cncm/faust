@@ -80,39 +80,6 @@ void ScalarCompiler::setSharingCount(Tree sig, int count)
 
 
 
-int VectorCompiler::getSharingCount(Tree t, int ctxt)
-{
-	Tree c;
-
-	if(ctxt==kVect) {
-
-	  if (getProperty(t, fSharingKeyVec, c)) {
-	    return c->node().getInt();
-	  } else {
-	    return 0;
-	  }
-
-	} else if(ctxt==kScal) {
-
-	  if (getProperty(t, fSharingKeyScal, c)) {
-	    return c->node().getInt();
-	  } else {
-	    return 0;
-	  }
-
-	} else {
-
-	  if (getProperty(t, fSharingKeyTrueScal, c)) {
-	    return c->node().getInt();
-	  } else {
-	    return 0;
-	  }
-
-	}
-}
-
-
-
 //------------------------------------------------------------------------------
 // Create a specific property key for the sharing count of subtrees of t
 //------------------------------------------------------------------------------
@@ -128,21 +95,6 @@ void ScalarCompiler::sharingAnalysis(Tree t)
 		}
 	} else {
 		sharingAnnotation(kSamp, t);
-	}
-}
-
-
-
-void VectorCompiler::sharingAnalysis(Tree t)
-{
-	fSharingKeyVec = shprkey(t);
-	if (isList(t)) {
-		while (isList(t)) {
-			sharingAnnotation(kSamp, hd(t), kVect);
-			t = tl(t);
-		}
-	} else {
-		sharingAnnotation(kSamp, t, kVect);
 	}
 }
 
@@ -182,11 +134,11 @@ void ScalarCompiler::sharingAnnotation(int vctxt, Tree sig)
 }
 
 
-
+#if 0
 
 void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 {
-	Tree	tt;
+        Tree    tt;
 // 	fprintf (stderr, "Start sharing annotation of ");
 // 	printSignal (t, stderr);
 // 	cerr << "in context " << vctxt << endl;
@@ -236,7 +188,7 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 	      else if(isSigWRTbl(t,id,x,y,z)) { sharingAnnotation(vctxt, t->branch(0),kTrueScal); sharingAnnotation(vctxt, t->branch(1),kTrueScal); sharingAnnotation(vctxt, t->branch(2),kTrueScal); sharingAnnotation(vctxt, t->branch(3),kScal); }
 	      else if(isRec(t,label,le)||isRef(t,label)) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),kScal);
 
-	      else if(ctxt==kTrueScal) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),type); // et forc�ment vctxt == kSamp
+	      else if(ctxt==kTrueScal) for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),type); // et forcï¿½ment vctxt == kSamp
 	      else for (int i=0; i<n; i++) sharingAnnotation(vctxt, t->branch(i),ctxt|type);
 
 
@@ -281,6 +233,4 @@ void VectorCompiler::sharingAnnotation(int vctxt, Tree t, int ctxt)
 }
 
 
-
-
-
+#endif

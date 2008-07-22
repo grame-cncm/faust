@@ -22,7 +22,7 @@
 
 
  /**********************************************************************
-			- klass.cpp : class C++ à remplir (projet FAUST) -
+			- klass.cpp : class C++ Ã  remplir (projet FAUST) -
 
 
 		Historique :
@@ -48,7 +48,14 @@
 #include "Text.hh"
 #include "signals.hh"
 
+
+extern bool gVectorSwitch;
+extern bool gOpenMPSwitch;
+extern int  gVecSize;
+
+
 extern map<Tree, set<Tree> > gMetaDataSet;
+
 
 void tab (int n, ostream& fout)
 {
@@ -58,15 +65,107 @@ void tab (int n, ostream& fout)
 }
 
 
-void printlines (int n, list<string>& lines, ostream& fout)
+
+/**
+ * Store the loop used to compute a signal
+ */
+void Klass::setLoopProperty(Tree sig, Loop* l)
 {
-	list<string>::iterator s;
-	for (s = lines.begin(); s != lines.end(); s++) {
-		tab(n, fout); fout << *s;
-	}
+    fLoopProperty.set(sig,l);
 }
 
 
+/**
+ * Returns the loop used to compute a signal
+ */
+bool Klass::getLoopProperty(Tree sig, Loop*& l)
+{
+    return  fLoopProperty.get(sig, l);
+}
+
+
+
+/**
+ * Open a non-recursive loop on top of the stack of open loops.
+ * @param size the number of iterations of the loop
+ */
+void Klass::openLoop(const string& size)
+{
+    fTopLoop = new Loop(fTopLoop, size);
+}
+
+
+/**
+ * Open a recursive loop on top of the stack of open loops.
+ * @param recsymbol the recursive symbol defined in this loop
+ * @param size the number of iterations of the loop
+ */
+void Klass::openLoop(Tree recsymbol, const string& size)
+{
+    fTopLoop = new Loop(recsymbol, fTopLoop, size);  
+    //cerr << "open loop :" << fTopLoop << endl;  
+}
+
+
+/**
+ * Close the top loop and either keep it
+ * or absorb it within its enclosing loop. 
+ */
+void Klass::closeLoop(Tree sig)
+{
+    assert(fTopLoop);
+    Loop* l = fTopLoop;
+    fTopLoop = l->fEnclosingLoop;
+    assert(fTopLoop);
+    //cerr << "close loop :" << l << endl;  
+
+    if (l->isEmpty() || l->hasRecDependencies()) {
+        // empty or dependent loop -> absorbed by enclosing one
+        fTopLoop->absorb(l);
+        delete l;
+    } else {
+        // we have an independent loop
+        if (sig) setLoopProperty(sig,l);     // associate the signal
+        fTopLoop->fLoopDependencies.insert(l);
+    }
+}
+
+
+/**
+ * Print a list of lines. 
+ */
+void printlines (int n, list<string>& lines, ostream& fout)
+{
+    list<string>::iterator s;
+    for (s = lines.begin(); s != lines.end(); s++) {
+        tab(n, fout); fout << *s;
+    }
+}
+
+
+/**
+ * Print a list of elements (e1, e2,...) 
+ */
+void printdecllist (int n, const string& decl, list<string>& content, ostream& fout)
+{
+    if (!content.empty()) {
+        list<string>::iterator s;
+        fout << "\\";
+        tab(n, fout); fout << decl;
+        string sep = "(";
+        for (s = content.begin(); s != content.end(); s++) {
+            fout << sep << *s;
+            sep = ", ";
+        }
+        fout << ')';
+    }
+}
+
+
+
+/**
+ * Print the required C++ libraries as comments in source code 
+ */
 void Klass::printLibrary(ostream& fout)
 {
 	set<string> S;
@@ -82,11 +181,20 @@ void Klass::printLibrary(ostream& fout)
 }
 
 
+
+
+
+/**
+ * Print the required include files 
+ */
 void Klass::printIncludeFile(ostream& fout)
 {
 	set<string> S;
 	set<string>::iterator f;
 
+    if (gOpenMPSwitch) {
+        fout << "#include <omp.h>" << "\n";
+    }
 	collectIncludeFile(S);
 	for (f = S.begin(); f != S.end(); f++) 	{
 		fout << "#include " << *f << "\n";
@@ -116,6 +224,79 @@ void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 
 
 
+/**
+ * Print the loop graph as a serie of 
+ * parallel loops 
+ */
+void Klass::printLoopGraph(int n, ostream& fout)
+{
+    lgraph G;
+    sortGraph(fTopLoop, G);
+    if (!gOpenMPSwitch) {
+        // normal mode (non openMP)
+        for (int l=G.size()-1; l>=0; l--) {
+            if (gVectorSwitch) { tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l; }
+            for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
+                (*p)->println(n, fout);
+            }
+        }
+    } else {
+        // openMP mode : add openMP directives
+        for (int l=G.size()-1; l>=0; l--) {
+            tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l;
+            printLoopLevel(n, G.size() - l, G[l], fout);
+        }
+    }
+}
+
+/**
+ * returns true if all the loops are non recursive 
+ */
+static bool nonRecursiveLevel(const lset& L)
+{
+    for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+        if ((*p)->fIsRecursive) return false;
+    }
+    return true;
+}
+
+/**
+ * Print the 'level' of the loop graph as a set of
+ * parallel loops 
+ */
+void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
+{
+    if (nonRecursiveLevel(L)) {
+
+        for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+            if ((*p)->isEmpty() == false) {
+                tab(n, fout); fout << "#pragma omp for ";
+                (*p)->println(n, fout);
+            }
+        }
+
+    } else if (L.size() > 1) {
+        tab(n, fout); fout << "#pragma omp sections ";
+        tab(n, fout); fout << "{ ";
+        for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+            tab(n+1, fout); fout << "#pragma omp section ";
+            (*p)->println(n+1, fout);
+        }
+        tab(n, fout); fout << "} ";
+    } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
+        tab(n, fout); fout << "#pragma omp single ";
+        tab(n, fout); fout << "{ ";
+            for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
+                (*p)->println(n+1, fout);
+            }
+        tab(n, fout); fout << "} ";
+    }
+}
+
+
+/**
+ * Print a full C++ class corresponding to a Faust dsp
+ */
 void Klass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
@@ -157,25 +338,8 @@ void Klass::println(int n, ostream& fout)
 			printlines (n+2, fUICode, fout);
 		tab(n+1,fout); fout << "}";
 
-		tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
-			printlines (n+2, fSlowCode, fout);
 
-			if(vec) {
-
-				tab(n+2,fout); fout << "for (int i=0; i<count; i+=4) {";
-			    	printlines (n+3, fExecCode, fout);
-					tab(n+3,fout); fout << "// post processing";
-					printlines (n+3, fPostCode, fout);
-			} else {
-			  	tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
-			    	printlines (n+3, fExecCode, fout);
-					tab(n+3,fout); fout << "// post processing";
-					printlines (n+3, fPostCode, fout);
-			}
-
-
-			tab(n+2,fout); fout << "}";
-		tab(n+1,fout); fout << "}";
+        printComputeMethod(n+1, fout);
 
 	tab(n,fout); fout << "};\n" << endl;
 
@@ -184,7 +348,88 @@ void Klass::println(int n, ostream& fout)
 
 }
 
+void Klass::printComputeMethod (int n, ostream& fout)
+{
+    if (!gVectorSwitch) {
+        
+        tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
+            printlines (n+2, fZone1Code, fout);
+            printlines (n+2, fZone2Code, fout);
+            printlines (n+2, fZone2bCode, fout);
+            printlines (n+2, fZone3Code, fout);
+            printlines (n+2, fZone4Code, fout);
+            printLoopGraph (n+2,fout);
+            printlines (n+2, fZone5Code, fout);
+        tab(n+1,fout); fout << "}";
 
+    } else {
+
+        if (!gOpenMPSwitch) {
+            // in vector mode we need to split loops in smaller pieces not larger
+            // than gVecSize
+            tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                printlines (n+2, fZone1Code, fout);
+                printlines (n+2, fZone2Code, fout);
+                printlines (n+2, fZone2bCode, fout);
+                tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+                    tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+                    printlines (n+3, fZone3Code, fout);
+                    printlines (n+3, fZone4Code, fout);
+                    printLoopGraph (n+3,fout);
+                    printlines (n+3, fZone5Code, fout);
+                tab(n+2,fout); fout << "}";
+            tab(n+1,fout); fout << "}";
+        } else {
+            // in openMP mode we need to split loops in smaller pieces not larger
+            // than gVecSize and add openMP pragmas
+            tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+                printlines (n+2, fZone1Code, fout);
+                printlines (n+2, fZone2Code, fout);
+                tab(n+2,fout); fout << "#pragma omp parallel default(none)";
+                printdecllist(n+3, "shared", fSharedDecl, fout);
+                printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
+
+                tab(n+2,fout); fout << "{";
+                    if (!fZone2bCode.empty()) {
+                        tab(n+3,fout); fout << "#pragma omp single";
+                        tab(n+3,fout); fout << "{";
+                            printlines (n+4, fZone2bCode, fout);
+                        tab(n+3,fout); fout << "}";
+                    }
+
+                    tab(n+3,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+                    tab(n+4,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+
+                    printlines (n+4, fZone3Code, fout);
+
+                    if (!fZone4Code.empty()) {
+                        tab(n+4,fout); fout << "#pragma omp single";
+                        tab(n+4,fout); fout << "{";
+                            printlines (n+5, fZone4Code, fout);
+                        tab(n+4,fout); fout << "}";
+                    }
+
+                    printLoopGraph (n+4,fout);
+
+
+                    if (!fZone5Code.empty()) {
+                        tab(n+4,fout); fout << "#pragma omp single";
+                        tab(n+4,fout); fout << "{";
+                            printlines (n+5, fZone5Code, fout);
+                        tab(n+4,fout); fout << "}";
+                    }
+                    
+                    tab(n+3,fout); fout << "}";
+
+                tab(n+2,fout); fout << "}";
+            tab(n+1,fout); fout << "}";
+        }
+    }
+}
+
+/**
+ * Print an auxillary C++ class corresponding to an integer init signal
+ */
 void SigIntGenKlass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
@@ -211,18 +456,22 @@ void SigIntGenKlass::println(int n, ostream& fout)
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << "void fill (int count, int output[]) {";
-			printlines (n+2, fSlowCode, fout);
-			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
-				printlines (n+3, fExecCode, fout);
-				tab(n+3,fout); fout << "// post processing";
-				printlines (n+3, fPostCode, fout);
-			tab(n+2,fout); fout << "}";
+            printlines (n+2, fZone1Code, fout);
+            printlines (n+2, fZone2Code, fout);
+            printlines (n+2, fZone2bCode, fout);
+            printlines (n+2, fZone3Code, fout);
+            printlines (n+2, fZone4Code, fout);
+            printLoopGraph (n+2,fout);
+            printlines (n+2, fZone5Code, fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
 }
 
 
+/**
+ * Print an auxillary C++ class corresponding to an float init signal
+ */
 void SigFloatGenKlass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
@@ -249,13 +498,13 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << "void fill (int count, float output[]) {";
-			printlines (n+2, fSlowCode, fout);
-			tab(n+2,fout); fout << "for (int i=0; i<count; i++) {";
-				printlines (n+3, fExecCode, fout);
-				tab(n+3,fout); fout << "// post processing";
-				printlines (n+3, fPostCode, fout);
-			tab(n+2,fout); fout << "}";
-			//printlines (n+2, fEndCode, fout);
+            printlines (n+2, fZone1Code, fout);
+            printlines (n+2, fZone2Code, fout);
+            printlines (n+2, fZone2bCode, fout);
+            printlines (n+2, fZone3Code, fout);
+            printlines (n+2, fZone4Code, fout);
+            printLoopGraph (n+2,fout);
+            printlines (n+2, fZone5Code, fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;

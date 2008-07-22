@@ -20,11 +20,11 @@
  ************************************************************************/
  
 
-int isatty(int file) {return 0;}
 
 
 #if defined( __MINGW32__) || defined (WIN32)
 #include <windows.h>
+    int isatty(int file) {return 0;}
 
     void getFaustPathname(char* str, unsigned int size)
     {
