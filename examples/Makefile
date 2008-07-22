@@ -108,6 +108,5 @@ jackconsole :
 
 
 clean :
-	rm -rf alsagtkdir jackgtkdir alsaqtdir jackqtdir vecalsagtkdir vecjackgtkdir ladspadir jackwxdir ossgtkdir osswxdir pagtkdir pawxdir moduledir bundledir mspdir vstdir benchdir sndfiledir plotdir benchdir supercolliderdir puredatadir qdir plotdir jackconsoledir matlabplotdir *-ps *-svg
-
+	rm -rf *dir
 
