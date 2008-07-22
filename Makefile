@@ -28,6 +28,7 @@ parser :
 
 clean :
 	$(MAKE) -C compiler clean
+	$(MAKE) -C examples clean
 
 depend :
 	$(MAKE) -C compiler depend
