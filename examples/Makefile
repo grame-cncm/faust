@@ -21,15 +21,15 @@ ijackomp :
 
 gjackgtk :
 	install -d gjackgtkdir
-	$(MAKE) DEST='gjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='gjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 gjackvec :
 	install -d gjackvecdir
-	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 gjackomp :
 	install -d gjackompdir
-	$(MAKE) DEST='gjackompdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096 -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++-4.2' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='gjackompdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs 4096 -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
 
 svg:
 	$(MAKE) -f Makefile.svg
@@ -120,7 +120,7 @@ iparbench :
 
 gparbench :
 	install -d gparbenchdir
-	$(MAKE) DEST='gparbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024 -omp' LIB='' CXX='g++-4.2' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
+	$(MAKE) DEST='gparbenchdir/' ARCH='parbench.cpp' VEC='-vec -vs 1024 -omp' LIB='' CXX='g++' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
 
 sndfile :
 	install -d sndfiledir
