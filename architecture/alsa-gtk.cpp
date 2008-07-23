@@ -22,6 +22,11 @@
 #include <iostream>
 #include <fstream>
 
+
+using namespace std;
+
+#define BENCHMARKMODE
+
 // g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
 
 #define check_error(err) if (err) { printf("%s:%d, alsa error %d : %s\n", __FILE__, __LINE__, err, snd_strerror(err)); exit(1); }
@@ -75,6 +80,53 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)
 
 <<includeIntrinsic>>
 
+
+#ifdef BENCHMARKMODE
+// mesuring jack performances
+static __inline__ unsigned long long int rdtsc(void)
+{
+  unsigned long long int x;
+     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+     return x;
+}
+
+#define KSKIP 10
+#define KMESURE 1024
+int mesure = 0;
+unsigned long long int starts[KMESURE];
+unsigned long long int stops [KMESURE];
+
+#define STARTMESURE starts[mesure%KMESURE] = rdtsc();
+#define STOPMESURE stops[mesure%KMESURE] = rdtsc(); mesure = mesure+1;
+
+void printstats()
+{
+    unsigned long long int low, hi, tot;
+    low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
+
+    if (mesure < KMESURE) {
+    
+        for (int i = KSKIP+1; i<mesure; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(mesure-KSKIP) << ' ' << hi << endl;
+
+    } else {
+    
+        for (int i = KSKIP+1; i<KMESURE; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(KMESURE-KSKIP) << ' ' << hi << endl;
+
+    }    
+}
+#endif
 
 
 /******************************************************************************
@@ -1438,22 +1490,19 @@ int main(int argc, char *argv[] )
 	bool running = true;
 	audio.write();
 	audio.write();
-	#pragma omp parallel
-	{
-		while(running) {
-			#pragma omp single
-			{
-				audio.read();
-			}
-			DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
-			#pragma omp single
-			{
-				audio.write();
-				running = !interface->stopped();
-			}
-		} 
+	while(running) {
+		audio.read();
+    STARTMESURE
+		DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
+    STOPMESURE  
+		audio.write();
+		running = !interface->stopped();
 	}
 	interface->saveState(rcfilename);
+
+#ifdef BENCHMARKMODE
+    printstats();
+#endif       
 
   	return 0;
 }
