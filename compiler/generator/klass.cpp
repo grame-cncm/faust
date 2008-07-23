@@ -235,7 +235,7 @@ void Klass::printLoopGraph(int n, ostream& fout)
     if (!gOpenMPSwitch) {
         // normal mode (non openMP)
         for (int l=G.size()-1; l>=0; l--) {
-            if (gVectorSwitch) { tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l; }
+            if (gVectorSwitch) { tab(n, fout); fout << "// SECTION : " << G.size() - l; }
             for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
                 (*p)->println(n, fout);
             }
@@ -243,7 +243,7 @@ void Klass::printLoopGraph(int n, ostream& fout)
     } else {
         // openMP mode : add openMP directives
         for (int l=G.size()-1; l>=0; l--) {
-            tab(n, fout); fout << "// PARALLEL SECTION : " << G.size() - l;
+            tab(n, fout); fout << "// SECTION : " << G.size() - l;
             printLoopLevel(n, G.size() - l, G[l], fout);
         }
     }
@@ -385,8 +385,7 @@ void Klass::printComputeMethod (int n, ostream& fout)
             tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
                 printlines (n+2, fZone1Code, fout);
                 printlines (n+2, fZone2Code, fout);
-                tab(n+2,fout); fout << "#pragma omp parallel default(none)";
-                printdecllist(n+3, "shared", fSharedDecl, fout);
+                tab(n+2,fout); fout << "#pragma omp parallel";
                 printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
 
                 tab(n+2,fout); fout << "{";
