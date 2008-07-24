@@ -265,7 +265,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
-	else if ( isSigAttach(sig, x, y) )				{ CS(y); return CS(x); }
+	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
 
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
@@ -554,7 +554,8 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
 			break;
 	}
 
-	return varname;
+	//return varname;
+    return generateCacheCode(sig, varname);
 }
 
 
@@ -580,7 +581,8 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 			break;
 	}
 
-	return varname;
+    //return varname;
+    return generateCacheCode(sig, varname);
 }
 
 
@@ -1092,7 +1094,10 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
 	mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
-	assert(getVectorNameProperty(exp, vecname));
+	if (! getVectorNameProperty(exp, vecname)) {
+        cerr << "No vector name for : " << ppsig(exp) << endl;
+        assert(0);
+    }
 
     if (mxd == 0) {
         // not a real vector name but a scalar name
