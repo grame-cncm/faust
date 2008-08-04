@@ -27,7 +27,6 @@
  ********************************************************************/
 
 #include <stdlib.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -39,13 +38,16 @@
 #include <assert.h>
 #include <string>
 #include <vector>
-#include <math.h>
+#include <map>
 
 using namespace std ;
 
-struct Meta
+struct Meta : std::map<std::string, std::string>
 {
-    void declare (const char* key, const char* value) {  }
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
 };
 	
 	
@@ -223,6 +225,13 @@ class vstUI;
 
 class Faust : public AudioEffectX
 {
+
+private:
+  mydsp*    dsp;
+  vstUI*    dspUI;
+  char      programName[kVstMaxProgNameLen + 1];
+  Meta      meta;
+
 public:
   Faust(audioMasterCallback audioMaster, mydsp* dspi, vstUI* dspUIi);
   virtual ~Faust();
@@ -247,11 +256,6 @@ public:
 
   virtual bool	getInputProperties (VstInt32 index, VstPinProperties* properties);
   virtual bool	getOutputProperties (VstInt32 index, VstPinProperties* properties);
-
-private:
-  mydsp*	dsp;
-  vstUI*	dspUI;
-  char programName[kVstMaxProgNameLen + 1];
 };
 
 /*--------------------------------------------------------------------------*/
@@ -421,13 +425,15 @@ AudioEffect* createEffectInstance (audioMasterCallback audioMaster)
 }
 
 Faust::Faust(audioMasterCallback audioMaster, mydsp* dspi, vstUI* dspUIi)
-  :AudioEffectX(audioMaster, NUM_PROGRAMS,dspUIi->GetNumParams())
+  : AudioEffectX(audioMaster, NUM_PROGRAMS, dspUIi->GetNumParams())
 {
   // Copy the pointers to dsp and dspUI instances and take them over 
   // (we'll also deallocate):
   dsp = dspi;
   dspUI = dspUIi;
   dsp->init(long(getSampleRate()));
+  meta["name"] = "FaustFx";
+  mydsp::metadata(&meta);
   setNumInputs(dsp->getNumInputs());		
   setNumOutputs(dsp->getNumOutputs());		
   setUniqueID(dspUI->makeID());					
@@ -502,22 +508,27 @@ void Faust::setSampleRate(float sampleRate)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Faust::getEffectName (char* name)
+bool Faust::getEffectName (char* text)
 {
-  return false;
+  vst_strncpy (text, meta["name"].c_str(), kVstMaxProductStrLen);
+  return true;
 }
 
 //-----------------------------------------------------------------------------------------
 bool Faust::getVendorString (char* text)
 {
-  vst_strncpy (text, "Vendor String goes here", kVstMaxVendorStrLen);
-  return true;
+  if (meta.count("author") > 0) {
+    vst_strncpy (text, meta["author"].c_str(), kVstMaxVendorStrLen);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 //-----------------------------------------------------------------------------------------
 bool Faust::getProductString (char* text)
 {
-  vst_strncpy (text, "Product String goes here", kVstMaxProductStrLen);
+  vst_strncpy (text, meta["name"].c_str(), kVstMaxProductStrLen);
   return true;
 }
 
