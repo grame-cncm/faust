@@ -106,6 +106,10 @@ msp :
 	install -d mspdir
 	$(MAKE) DEST='mspdir/' ARCH='max-msp.cpp' LIB='' -f Makefile.mspcompile
 
+w32vst :
+	install -d w32vstdir
+	$(MAKE) DEST='w32vstdir/' ARCH='vst2p4.cpp' LIB='' -f Makefile.w32vstcompile
+
 vst :
 	install -d vstdir
 	$(MAKE) DEST='vstdir/' ARCH='vst.cpp' LIB='' -f Makefile.vstcompile
