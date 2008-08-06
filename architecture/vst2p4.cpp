@@ -39,8 +39,16 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstring>
+#include <cmath>
 
 using namespace std ;
+
+// There is a bug with powf() when cross compiling with mingw
+// the following macro avoid the problem
+#ifdef WIN32
+#define powf(x,y) pow(x,y)
+#endif
 
 struct Meta : std::map<std::string, std::string>
 {
@@ -50,19 +58,6 @@ struct Meta : std::map<std::string, std::string>
     }
 };
 	
-	
-#ifdef __GNUC__
-
-//-------------------------------------------------------------------
-// Generic min and max using gcc extensions
-//-------------------------------------------------------------------
-
-#define max(x,y) ((x)>?(y))
-#define min(x,y) ((x)<?(y))
-
-//abs(x) should be already predefined
-
-#else
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -109,8 +104,6 @@ inline double	min (double a, long b)		{ return (a<b) ? a : b; }
 inline double	min (float a, double b)		{ return (a<b) ? a : b; }
 inline double	min (double a, float b)		{ return (a<b) ? a : b; }
 		
-#endif
-
 // abs is now predefined
 //template<typename T> T abs (T a) { return (a<T(0)) ? -a : a; }
 
@@ -148,22 +141,22 @@ public:
   UI() : fStopped(false) {}
   virtual ~UI() {}
 		
-  virtual void addButton(char* label, float* zone) = 0;
-  virtual void addToggleButton(char* label, float* zone) = 0;
-  virtual void addCheckButton(char* label, float* zone) = 0;
-  virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+  virtual void addButton(const char* label, float* zone) = 0;
+  virtual void addToggleButton(const char* label, float* zone) = 0;
+  virtual void addCheckButton(const char* label, float* zone) = 0;
+  virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+  virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+  virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	
-  virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-  virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-  virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-  virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+  virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+  virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+  virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+  virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 		
-  virtual void openFrameBox(char* label) = 0;
-  virtual void openTabBox(char* label) = 0;
-  virtual void openHorizontalBox(char* label) = 0;
-  virtual void openVerticalBox(char* label) = 0;
+  virtual void openFrameBox(const char* label) = 0;
+  virtual void openTabBox(const char* label) = 0;
+  virtual void openHorizontalBox(const char* label) = 0;
+  virtual void openVerticalBox(const char* label) = 0;
   virtual void closeBox() = 0;
 		
   virtual void run() {};
@@ -271,7 +264,7 @@ protected:
   }
 	 
 public:			
-  vstUIObject(char* label, float* zone):fLabel(label),fZone(zone) {}
+  vstUIObject(const char* label, float* zone):fLabel(label),fZone(zone) {}
   virtual ~vstUIObject() {}
 
   virtual void  GetName(char *text){std::strcpy(text,fLabel.c_str());}
@@ -292,7 +285,7 @@ class vstToggleButton : public vstUIObject {
 	
 public:	
 	
-  vstToggleButton(char* label, float* zone):vstUIObject(label,zone) {}
+  vstToggleButton(const char* label, float* zone):vstUIObject(label,zone) {}
   virtual ~vstToggleButton() {}
   virtual float GetValue() {return *fZone;}
   virtual void SetValue(double f) {*fZone = (f>0.5f)?1.0f:0.0f;}				
@@ -304,7 +297,7 @@ class vstCheckButton : public vstUIObject {
 	
 public:
 	
-  vstCheckButton(char* label, float* zone):vstUIObject(label,zone) {}	
+  vstCheckButton(const char* label, float* zone):vstUIObject(label,zone) {}
   virtual ~vstCheckButton() {}
   virtual float GetValue() {return *fZone;}
   virtual void SetValue(double f) {*fZone = (f>0.5f)?1.0f:0.0f;}
@@ -316,7 +309,7 @@ class vstButton : public vstUIObject {
 	
 public:
 	
-  vstButton(char* label, float* zone):vstUIObject(label,zone) {}
+  vstButton(const char* label, float* zone):vstUIObject(label,zone) {}
   virtual ~vstButton() {}		
   virtual float GetValue() {return *fZone;}
   virtual void SetValue(double f) {*fZone = (f>0.5f)?1.0f:0.0f;}		
@@ -335,7 +328,7 @@ private:
 	
 public:	
 	
-  vstSlider(char* label, float* zone, float init, float min, float max, float step)
+  vstSlider(const char* label, float* zone, float init, float min, float max, float step)
     :vstUIObject(label,zone), fInit(init), fMin(min), fMax(max),fStep(step) {}
   virtual ~vstSlider() {}	
 
@@ -358,31 +351,31 @@ public:
     for (vector<vstUIObject*>::iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) delete *iter;
   }
 		
-  void addButton(char* label, float* zone) {fUITable.push_back(new vstButton(label, zone));}
+  void addButton(const char* label, float* zone) {fUITable.push_back(new vstButton(label, zone));}
 		
-  void addToggleButton(char* label, float* zone) {fUITable.push_back(new vstToggleButton(label, zone));}
+  void addToggleButton(const char* label, float* zone) {fUITable.push_back(new vstToggleButton(label, zone));}
 		
-  void addCheckButton(char* label, float* zone) {fUITable.push_back(new vstCheckButton(label, zone));}
+  void addCheckButton(const char* label, float* zone) {fUITable.push_back(new vstCheckButton(label, zone));}
 		
-  void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) 
+  void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
   { 	
     fUITable.push_back(new vstSlider(label, zone, init, min, max, step));
   }
 		
-  void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) 
+  void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
   {
     fUITable.push_back(new vstSlider(label, zone, init, min, max, step));
   }
 		
-  void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+  void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
   { /* Number entries converted to horizontal sliders */
     fUITable.push_back(new vstSlider(label, zone, init, min, max, step));
   }
 		
-  void openFrameBox(char* label) {}
-  void openTabBox(char* label) {}
-  void openHorizontalBox(char* label) {}
-  void openVerticalBox(char* label) {}
+  void openFrameBox(const char* label) {}
+  void openTabBox(const char* label) {}
+  void openHorizontalBox(const char* label) {}
+  void openVerticalBox(const char* label) {}
   void closeBox() {}
 		
   void  SetValue(VstInt32 index, double f) {assert(index<fUITable.size()); fUITable[index]->SetValue(f);}
@@ -405,10 +398,10 @@ public:
   }
 		
   // To be implemented
-  void addNumDisplay(char* label, float* zone, int precision){}
-  void addTextDisplay(char* label, float* zone, char* names[], float min, float max){}
-  void addHorizontalBargraph(char* label, float* zone, float min, float max){}
-  void addVerticalBargraph(char* label, float* zone, float min, float max){}
+  void addNumDisplay(const char* label, float* zone, int precision){}
+  void addTextDisplay(const char* label, float* zone, char* names[], float min, float max){}
+  void addHorizontalBargraph(const char* label, float* zone, float min, float max){}
+  void addVerticalBargraph(const char* label, float* zone, float min, float max){}
 };
 
 //-----------------------------------------------------------------------------
