@@ -1,3 +1,15 @@
+2008-08-11  Albert Graef  <Dr.Graef@t-online.de>
+
+	* faust2pd/faustxml.q: Fixes for latest (CVS) Faust XML format.
+
+2007-10-16  Albert Graef  <Dr.Graef@t-online.de>
+
+	+ Release 1.1
+
+	* bump version number
+
+	* Makefile: add dist target
+
 2007-10-07  Albert Graef  <ag@muwiinfa.geschichte.uni-mainz.de>
 
 	* Makefile: various changes to the make install/uninstall goals
@@ -20,7 +32,7 @@
 
 2006-10-05  Albert Graef  <ag@>
 
-	+++ Release 1.0 +++
+	+ Release 1.0
 
 	* faust2pd/faust2pd.q, faust2pd/faust-timer.pd: Change the update
 	logic of the passive controls to use a custom timer (metro)

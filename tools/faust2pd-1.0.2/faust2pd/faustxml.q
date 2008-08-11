@@ -109,19 +109,25 @@ str_val S:String
 		= S where 'S:String = valq S;
 		= S otherwise;
 
-private parse_prop S, parse_control X, parse_group CD X;
+private parse_node X, parse_prop S, parse_control X, parse_group CD X;
 
-parse_doc (node (element "name" _ _) [node (text NAME) _],
-	   node (element "version" _ _) [node (text VERSION) _],
-	   node (element "inputs" _ _) [node (text IN) _],
-	   node (element "outputs" _ _) [node (text OUT) _],
+parse_doc (node (element "name" _ _) NAME,
+	   node (element "version" _ _) VERSION,
+	   node (element "inputs" _ _) IN,
+	   node (element "outputs" _ _) OUT,
 	   CONTROLS,LAYOUT)
 = (NAME,VERSION,IN,OUT,CONTROLS)
-    where [NAME,VERSION] = map (parse_prop.trim) [NAME,VERSION],
+    where [NAME,VERSION,IN,OUT] = map parse_node [NAME,VERSION,IN,OUT],
+      [NAME,VERSION] = map (parse_prop.trim) [NAME,VERSION],
       IN:Int = val IN, OUT:Int = val OUT,
       CONTROLS = map parse_control CONTROLS,
       [CONTROLS] = map (parse_group (dict CONTROLS)) LAYOUT;
 parse_doc _ = throw "invalid XML data" otherwise;
+
+parse_node [node (text S:String) _]
+		= S;
+parse_node []	= "";
+parse_node _	= throw "invalid XML data" otherwise;
 
 parse_prop "Unknow" // sic!
 		= "";
@@ -140,8 +146,8 @@ parse_control (node (element "widget" _ ATTRS) PARAMS)
       LABEL:String = str_val $ PARAMS!"label";
 parse_control _ = throw "invalid XML data" otherwise;
 
-param (node (element NAME:String _ _) [node (text VAL:String) _])
-= (NAME,VAL);
+param (node (element NAME:String _ _) VAL)
+= (NAME,VAL) where VAL:String = parse_node VAL;
 param _ _ = throw "invalid XML data" otherwise;
 
 make_control ID TYPE LABEL PARAMS
@@ -167,7 +173,8 @@ parse_group CD (node (element "widgetref" _ [("id",ID)]) [])
 parse_group _ _ = throw "invalid XML data" otherwise;
 
 make_group CD TYPE
-[node (element "label" _ _) [node (text LABEL:String) _]|PARAMS]
-= C where C:Control = (val $ "faustxml::"++ TYPE)
+[node (element "label" _ _) LABEL|PARAMS]
+= C where LABEL:String = parse_node LABEL,
+      C:Control = (val $ "faustxml::"++ TYPE)
       (str_val LABEL,map (parse_group CD) PARAMS);
 make_group _ _ _ = throw "invalid XML data" otherwise;

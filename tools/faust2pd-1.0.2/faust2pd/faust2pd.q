@@ -1,4 +1,4 @@
-#!/usr/bin/q --
+#!/usr/local/bin/q --
 #! -cmain
 
 /* Copyright (c) 2006 by Albert Graef.
@@ -16,7 +16,7 @@
    with this program; if not, write to the Free Software Foundation, Inc., 675
    Mass Ave, Cambridge, MA 02139, USA. */
 
-var const VERSION = "1.0";
+var const VERSION = "1.1";
 
 import dict, faustxml, getopt, system;
 private pcontrols X;
