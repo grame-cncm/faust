@@ -107,22 +107,22 @@ class UI
 		UI() : fStopped(false) {}
 		virtual ~UI() {}
 		
-		virtual void addButton(char* label, float* zone) = 0;
-		virtual void addToggleButton(char* label, float* zone) = 0;
-		virtual void addCheckButton(char* label, float* zone) = 0;
-		virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-		virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
-		virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
+		virtual void addButton(const char* label, float* zone) = 0;
+		virtual void addToggleButton(const char* label, float* zone) = 0;
+		virtual void addCheckButton(const char* label, float* zone) = 0;
+		virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+		virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+		virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 		
-		virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-		virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
-		virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
-		virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
+		virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+		virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+		virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+		virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 		
-		virtual void openFrameBox(char* label) = 0;
-		virtual void openTabBox(char* label) = 0;
-		virtual void openHorizontalBox(char* label) = 0;
-		virtual void openVerticalBox(char* label) = 0;
+		virtual void openFrameBox(const char* label) = 0;
+		virtual void openTabBox(const char* label) = 0;
+		virtual void openHorizontalBox(const char* label) = 0;
+		virtual void openVerticalBox(const char* label) = 0;
 		virtual void closeBox() = 0;
 		
 		virtual void run() {};
@@ -205,7 +205,7 @@ class mspUIObject {
 	
 	public:
 			
-		mspUIObject(char* label, float* zone):fLabel(label),fZone(zone) {}
+		mspUIObject(const char* label, float* zone):fLabel(label),fZone(zone) {}
 		virtual ~mspUIObject() {}
 		
 		virtual void SetValue(double f) {*fZone = range(0.0,1.0,f);}
@@ -217,7 +217,7 @@ class mspToggleButton : public mspUIObject {
 	
 	public:	
 	
-		mspToggleButton(char* label, float* zone):mspUIObject(label,zone) {}
+		mspToggleButton(const char* label, float* zone):mspUIObject(label,zone) {}
 		virtual ~mspToggleButton() {}
 				
 		void toString(char* buffer)
@@ -235,7 +235,7 @@ class mspCheckButton : public mspUIObject {
 	
 	public:
 	
-		mspCheckButton(char* label, float* zone):mspUIObject(label,zone) {}	
+		mspCheckButton(const char* label, float* zone):mspUIObject(label,zone) {}
 		virtual ~mspCheckButton() {}
 		
 		void toString(char* buffer)
@@ -253,7 +253,7 @@ class mspButton : public mspUIObject {
 	
 	public:
 	
-		mspButton(char* label, float* zone):mspUIObject(label,zone) {}
+		mspButton(const char* label, float* zone):mspUIObject(label,zone) {}
 		virtual ~mspButton() {}		
 		
 		void toString(char* buffer)
@@ -278,7 +278,7 @@ class mspSlider : public mspUIObject{
 	
 	public:	
 	
-		mspSlider(char* label, float* zone, float init, float min, float max, float step)
+		mspSlider(const char* label, float* zone, float init, float min, float max, float step)
 			:mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
 		virtual ~mspSlider() {}	
 		
@@ -310,31 +310,31 @@ class mspUI : public UI
 				delete *iter;
    		}
 		
-		void addButton(char* label, float* zone) {fUITable.push_back(new mspButton(label, zone));}
+		void addButton(const char* label, float* zone) {fUITable.push_back(new mspButton(label, zone));}
 		
-		void addToggleButton(char* label, float* zone) {fUITable.push_back(new mspToggleButton(label, zone));}
+		void addToggleButton(const char* label, float* zone) {fUITable.push_back(new mspToggleButton(label, zone));}
 		
-		void addCheckButton(char* label, float* zone) {fUITable.push_back(new mspCheckButton(label, zone));}
+		void addCheckButton(const char* label, float* zone) {fUITable.push_back(new mspCheckButton(label, zone));}
 		
-		void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) 
+		void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 		{ 	
 			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
 		}
 		
-		void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) 
+		void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 		{
 			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
 		}
 		
-		void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+		void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 		{
 			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
 		}
 		
-		void openFrameBox(char* label) {}
-		void openTabBox(char* label) {}
-		void openHorizontalBox(char* label) {}
-		void openVerticalBox(char* label) {}
+		void openFrameBox(const char* label) {}
+		void openTabBox(const char* label) {}
+		void openHorizontalBox(const char* label) {}
+		void openVerticalBox(const char* label) {}
 		void closeBox() {}
 		
 		void SetValue(int slider, double f) 
@@ -358,10 +358,10 @@ class mspUI : public UI
 		}
 		
 		// To be implemented
-		void addNumDisplay(char* label, float* zone, int precision){}
-		void addTextDisplay(char* label, float* zone, char* names[], float min, float max){}
-		void addHorizontalBargraph(char* label, float* zone, float min, float max){}
-		void addVerticalBargraph(char* label, float* zone, float min, float max){}
+		void addNumDisplay(const char* label, float* zone, int precision){}
+		void addTextDisplay(const char* label, float* zone, char* names[], float min, float max){}
+		void addHorizontalBargraph(const char* label, float* zone, float min, float max){}
+		void addVerticalBargraph(const char* label, float* zone, float min, float max){}
 };
 
 /*--------------------------------------------------------------------------*/
