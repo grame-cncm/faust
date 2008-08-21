@@ -48,6 +48,7 @@ using namespace std ;
 // the following macro avoid the problem
 #ifdef WIN32
 #define powf(x,y) pow(x,y)
+#define expf(x) exp(x)
 #endif
 
 struct Meta : std::map<std::string, std::string>
