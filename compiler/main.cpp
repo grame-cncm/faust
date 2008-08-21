@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.4j-par"
+#define FAUSTVERSION "0.9.9.4k-par"
 
 #include <stdio.h>
 #include <string.h>
@@ -48,6 +48,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 
 #include "sourcereader.hh"
 
@@ -114,6 +115,8 @@ bool                    gPatternEvalMode = false;
 bool            gVectorSwitch   = false;
 int             gVecSize        = 32;
 bool            gOpenMPSwitch   = false;
+
+int             gTimeout        = 0;        // time out to abort compiler
 
 
 //-- command line tools
@@ -213,6 +216,10 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
 			gOpenMPSwitch = true;
 			i += 1;
+                
+        } else if (isCmd(argv[i], "-t", "--timeout")) {
+            gTimeout = atoi(argv[i+1]);
+            i += 2;
 
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
@@ -358,6 +365,7 @@ int main (int argc, char* argv[])
 	if (gVersionSwitch) 	{ printversion(); exit(0); }
 
     initFaustDirectories();
+    alarm(gTimeout);
 
 
 	/****************************************************************
