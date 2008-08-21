@@ -21,6 +21,13 @@
 
 using namespace std ;
 
+// There is a bug with powf() when cross compiling with mingw
+// the following macro avoid the problem
+#ifdef WIN32
+#define powf(x,y) pow(x,y)
+#define expf(x) exp(x)
+#endif
+
 struct Meta : map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
