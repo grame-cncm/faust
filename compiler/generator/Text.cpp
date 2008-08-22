@@ -125,42 +125,29 @@ string subst (const string& model, const string& a0, const string& a1, const str
 	return substitution (model, args);
 }	
 
-// ZDEL : supprime les zeros de fin d'une chaine de carat�res repr�sentant 
-// un nombre d�cimal. Attention : n'a pas de sens sur d'autres chaines !		
-static void zdel(char* c)
-{
-	int l = strlen(c) - 1;
-	while ( l>1 && c[l-1] != '.' && c[l] == '0')  c[l--]=0;
-}
 
 /**
- * Format a string representing a floating point number by removing the 
- * trailing '0' (after the '.') and addind an 'f'
- * example : 1.00000 -> 1.0f
+ * Suppress trailing zero in a string representating a floating point number. 
+ * example : 1.00000f -> 1.0f
  */
-static string reformatFloat(const string& str)
+
+static void zdel(char* c)
 {
-	int 	i;
-	string 	s = str;
-	
-	for (i = s.length(); s[--i] == '0';);
-	if (s[i] == '.') {
-		s.erase(i+2);
-	} else {
-		if (s.find('e')==string::npos) s.erase(i+1);
-	}
-	s += 'f';
-	
-	return s;
+    int     l = strlen(c) - 1;
+
+    assert(c[l] == 'f');
+
+    c[l--] = 0; // remove trailing f
+    while ( l>1 && c[l-1] != '.' && c[l] == '0')  c[l--] = 0;
+    c[++l] = 'f'; // restaure trailing f
 }
 
 string T (char* c) 	{ return string(c); }
 string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
 string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
-#if 0
+
 string T (float n)
 { 
-	std::cerr << "T (float n) " << n << std::endl;
 	char c[64];
 	if  (n <  0.1 && n > -0.1 && n != 0.0) {
 		snprintf(c, 63, "%ef", n);
@@ -170,15 +157,6 @@ string T (float n)
 	}
 	return string(c); 
 }
-#else
-string T (float n)
-{
-	ostringstream s; s.setf(ios::showpoint); s.precision(32);
-	s << n;
-	assert (s.str().find('.') > 0);
-	return reformatFloat(s.str());
-}
-#endif
 
 string T (double n) 	
 {
