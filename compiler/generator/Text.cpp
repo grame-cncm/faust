@@ -172,8 +172,8 @@ string T (float n)
 }
 #else
 string T (float n)
-{ 
-	ostringstream s; s.setf(ios::showpoint);
+{
+	ostringstream s; s.setf(ios::showpoint); s.precision(32);
 	s << n;
 	assert (s.str().find('.') > 0);
 	return reformatFloat(s.str());
