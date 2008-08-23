@@ -375,6 +375,32 @@ with {
 };
 
 
+//===================== Shelf Filters =====================
+
+// References:
+// [1] Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999
+// [2] http://www.harmony-central.com/Computer/Programming/Audio-EQ-Cookbook.txt
+// [3] http://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html
+
+//----------------------------- lowshelf -----------------------------
+// First-order "low shelf" filter (a gain boost around dc)
+// USAGE: lowshelf(B0,fx), where
+//  B0 = desired boost at dc (gain is 1+B0 at frequency 0)
+//  fx = desired transition frequency in Hz
+// The gain at SR/2 is constrained to be 1
+//
+lowshelf(B0,fx,x) = x + B0*lowpass1(fx,x);
+
+//----------------------------- highshelf -----------------------------
+// First-order "high shelf" filter (a gain boost around SR/2)
+// USAGE: highshelf(Bpi,fx), where
+//  Bpi = desired boost at SR/2 (gain is 1+Bpi there)
+//  fx = desired transition frequency in Hz
+// The gain at dc is constrained to be 1
+//
+highshelf(Bpi,fx,x) = x + Bpi*highpass1(fx,x);
+
+
 //===================== Peaking Equalizer =====================
 
 //----------------------------- pareq ---------------------------------
