@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.2";
+declare version "1.3";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/~jos/filters/";
 
@@ -321,6 +321,61 @@ with {
   a21s = 0.765366864730180; // -2*real(pole2)
   w1 = 2*PI*fc;
 };
+
+//===================== Highpass Filters =====================
+//
+//--------------------------- highpass1-4 -----------------------------
+// Butterworth highpass filters, orders 1 through 4.
+// USAGE: highpassN(fc), where
+// fc = desired cut-off frequency (-3dB frequency) in Hz
+//  N = desired filter order (1,2,3, or 4)
+//
+// Note, another method is "highpassN(fc,x) = x - lowpassN(fc,x)",
+// but this gives a Butterworth highpass only for N=1.
+
+// Method: Design a Butterworth lowpass cutting off at 0.5*SR - fc,
+// and rotate the z-plane 180 degrees to convert lowpass to highpass.
+
+// tf1spr is identical to tf1s except its pole & zero are PI-rotated,
+// and its frequency-scaling parameter w1 is reflected wrt PI.
+// We could add a +/- 1 argument to tf1s, where +1 means lowpass
+// and -1 means highpass, but who would want to look at that?
+tf1spr(b0,a0,w1) = *(b0d) : zero(1) : (+ ~ *(-pole))
+with {
+  w1i = PI*SR - w1;
+  a    = 1/tan((w1i)*0.5/SR); // bilinear-transform scale-factor
+  d    = a0 + a;
+  b0d  = b0 / d;
+  pole = (a - a0) / d;
+};
+
+// tf1spr is identical to tf1s except odd-order coefficients are negated,
+// and its frequency-scaling parameter w1 is reflected wrt PI.
+tf2spr(b1,b0,a1,a0,w1) = tf2(b0d,-b1d,b2d,-a1d,a2d)
+with {
+  w1i = PI*SR - w1;
+  a   = 1/tan((w1i)*0.5/SR); // bilinear-transform scale-factor
+  asq = a*a;
+  d   = a0 + a1*a + asq;
+  b0d = (b1 * a + b0)/d;
+  b1d = 2*b0/d;
+  b2d = (b0 - a * b1)/d;
+  a1d = 2 * (a0 - asq)/d;
+  a2d = (a0 - a1*a + asq)/d;
+};
+
+highpass1(fc) = tf1spr(1,1,2*PI*fc);
+highpass2(fc) = tf2spr(0,1,sqrt(2),1,2*PI*fc);
+highpass3(fc) = tf2spr(0,1,1,1,2*PI*fc) : tf1spr(1,1,2*PI*fc);
+highpass4(fc) = tf2spr(0,1,a11s,1,w1)   : tf2spr(0,1,a21s,1,w1)
+with {
+  a11s = 1.847759065022573; // -2*real(pole1)
+  a21s = 0.765366864730180; // -2*real(pole2)
+  w1 = 2*PI*fc;
+};
+
+
+//===================== Peaking Equalizer =====================
 
 //----------------------------- pareq ---------------------------------
 // second order Parametric Equalizer section ("peaking equalizer")
