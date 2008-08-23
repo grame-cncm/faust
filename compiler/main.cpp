@@ -48,7 +48,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 #include "sourcereader.hh"
 
@@ -365,7 +368,9 @@ int main (int argc, char* argv[])
 	if (gVersionSwitch) 	{ printversion(); exit(0); }
 
     initFaustDirectories();
+#ifndef WIN32
     alarm(gTimeout);
+#endif
 
 
 	/****************************************************************
