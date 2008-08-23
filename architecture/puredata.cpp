@@ -4,6 +4,7 @@
    then loaded dynamically by Pd as an external. */
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <string>
 
@@ -616,7 +617,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
       if (argc == 0) {
 	t_atom arg;
 	SETFLOAT(&arg, (float)x->active);
-	outlet_anything(x->out, gensym("active"), 1, &arg);
+	outlet_anything(x->out, gensym((char*)"active"), 1, &arg);
       } else if (argc == 1 &&
 		 (argv[0].a_type == A_FLOAT ||
 		  argv[0].a_type == A_DEFFLOAT)) {
@@ -699,16 +700,16 @@ extern "C" void faust_setup(mydsp)
     class_new(s, (t_newmethod)faust_new, (t_method)faust_free,
 	      sizeof(t_faust), CLASS_DEFAULT,
 	      A_GIMME, A_NULL);
-  class_addmethod(faust_class, (t_method)faust_dsp, gensym("dsp"), A_NULL);
+  class_addmethod(faust_class, (t_method)faust_dsp, gensym((char*)"dsp"), A_NULL);
   class_addanything(faust_class, faust_any);
   class_addmethod(faust_class, nullfn, &s_signal, A_NULL);
-  s_button = gensym("button");
-  s_checkbox = gensym("checkbox");
-  s_vslider = gensym("vslider");
-  s_hslider = gensym("hslider");
-  s_nentry = gensym("nentry");
-  s_vbargraph = gensym("vbargraph");
-  s_hbargraph = gensym("hbargrap");
+  s_button = gensym((char*)"button");
+  s_checkbox = gensym((char*)"checkbox");
+  s_vslider = gensym((char*)"vslider");
+  s_hslider = gensym((char*)"hslider");
+  s_nentry = gensym((char*)"nentry");
+  s_vbargraph = gensym((char*)"vbargraph");
+  s_hbargraph = gensym((char*)"hbargrap");
   /* give some indication that we're loaded and ready to go */
   mydsp dsp = mydsp();
   post("[faust] %s: %d inputs, %d outputs", sym(mydsp) "~",
