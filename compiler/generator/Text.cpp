@@ -128,18 +128,18 @@ string subst (const string& model, const string& a0, const string& a1, const str
 
 /**
  * Suppress trailing zero in a string representating a floating point number. 
+ * example : 1.00000  -> 1.0
  * example : 1.00000f -> 1.0f
  */
 
 static void zdel(char* c)
 {
     int     l = strlen(c) - 1;
+    bool    f = (c[l] == 'f');
 
-    assert(c[l] == 'f');
-
-    c[l--] = 0; // remove trailing f
+    if (f) c[l--] = 0;      // remove trailing if any f
     while ( l>1 && c[l-1] != '.' && c[l] == '0')  c[l--] = 0;
-    c[++l] = 'f'; // restaure trailing f
+    if (f) c[++l] = 'f';    // restaure trailing f if needed
 }
 
 string T (char* c) 	{ return string(c); }
