@@ -11,12 +11,12 @@ VST=../vstsdk2.4
 
 #------------------------------------------------------------------------------
 # 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
-
-CXX=i586-mingw32msvc-g++
+CROSS=i386-mingw32-
+CXX=$(CROSS)g++
 CXXFLAGS=-I$(VST) -I$(VST)/public.sdk/source/vst2.x -DBUILDING_DLL -mno-cygwin
 LDFLAGS=
-DLLWRAP=i586-mingw32msvc-dllwrap --target=i386-mingw32 -mno-cygwin
-STRIP=i586-mingw32msvc-strip
+DLLWRAP=$(CROSS)dllwrap --target=i386-mingw32 -mno-cygwin
+STRIP=$(CROSS)strip
 
 
 #------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ $(DEST)%.def :
 
 
 $(DEST)%.dll: $(DEST)%.o  $(DEST)%.def $(DEST)audioeffect.o $(DEST)audioeffectx.o $(DEST)vstplugmain.o
-	$(DLLWRAP) --driver-name i586-mingw32msvc-g++ --def $(@:.dll=.def) $^ -o $@
+	$(DLLWRAP) --driver-name $(CXX) --def $(@:.dll=.def) $^ -o $@
 	$(STRIP) $@
 
 $(DEST)audioeffect.o: $(VST)/public.sdk/source/vst2.x/audioeffect.cpp
