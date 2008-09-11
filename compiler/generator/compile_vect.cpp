@@ -211,17 +211,12 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     if (o->getMaxDelay()>0) {
         //cerr << "DLY "; // delayed expressions require a separate loop
         b = true;
-    } else 
-
-    if (verySimple(sig) || t->variability()<kSamp) {
+    } else if (verySimple(sig) || t->variability()<kSamp) {
         b = false;      // non sample computation never require a loop
     } else if (isSigFixDelay(sig, x, y)) {
         b = false;      // 
     } else if (isProj(sig, &i ,x)) {
         //cerr << "REC "; // recursive expressions require a separate loop
-        b = true;
-    } else if (o->getMaxDelay()>0) {
-        //cerr << "DLY "; // delayed expressions require a separate loop
         b = true;
     } else if (c > 1) {
         //cerr << "SHA(" << c << ") "; // expressions used several times required a separate loop
