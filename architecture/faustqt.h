@@ -75,7 +75,7 @@ class UI : public QObject
 
 	// -- saveState(filename) : save the value of every zone to a file
 	
-	void saveState(char* filename)	
+	void saveState(const char* filename)	
 	{
 		ofstream f(filename);
 		
@@ -89,7 +89,7 @@ class UI : public QObject
 
 	// -- recallState(filename) : load the value of every zone from a file
 	
-	void recallState(char* filename)	
+	void recallState(const char* filename)	
 	{
 		ifstream f(filename);
 		if (f.good()) {
@@ -116,22 +116,22 @@ class UI : public QObject
 	// debut remplacement '= 0;' par '{}'
 	// -- active widgets
 	
-	virtual void addButton(char*, float*) = 0;
-	virtual void addCheckButton(char*, float*) = 0;
-	virtual void addVerticalSlider(char*, float*, float, float, float, float) = 0;
-	virtual void addHorizontalSlider(char*, float*, float, float, float, float) = 0;
-	virtual void addNumEntry(char*, float*, float, float, float, float) = 0;
+	virtual void addButton(const char*, float*) = 0;
+	virtual void addCheckButton(const char*, float*) = 0;
+	virtual void addVerticalSlider(const char*, float*, float, float, float, float) = 0;
+	virtual void addHorizontalSlider(const char*, float*, float, float, float, float) = 0;
+	virtual void addNumEntry(const char*, float*, float, float, float, float) = 0;
 	
 	// -- passive widgets
 	
-	virtual void addHorizontalBargraph(char*, float*, float, float) = 0;
-	virtual void addVerticalBargraph(char*, float*, float, float) = 0;
+	virtual void addHorizontalBargraph(const char*, float*, float, float) = 0;
+	virtual void addVerticalBargraph(const char*, float*, float, float) = 0;
 	
 	// -- widget's layouts
 	
-	virtual void openTabBox(char*) = 0;
-	virtual void openHorizontalBox(char*) = 0;
-	virtual void openVerticalBox(char*) = 0;
+	virtual void openTabBox(const char*) = 0;
+	virtual void openHorizontalBox(const char*) = 0;
+	virtual void openVerticalBox(const char*) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void run() = 0;
@@ -402,7 +402,7 @@ class QTGUI : public UI
 		return fGroupStack.empty() || (!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0);
 	}
 
-	void insert(char* label, QWidget* widget)
+	void insert(const char* label, QWidget* widget)
 	{
 		if (fStyle) widget->setStyle(fStyle);
 		if (!fGroupStack.empty()) {
@@ -417,7 +417,7 @@ class QTGUI : public UI
 		}
 	}
 
-	void openBox(char* label, QLayout* layout) 
+	void openBox(const char* label, QLayout* layout)
 	{
 		layout->setMargin(5);
 		QWidget* box;
@@ -438,7 +438,7 @@ class QTGUI : public UI
 		fGroupStack.push(box);
 	}
 
-	void openTab(char* label) 
+	void openTab(const char* label) 
 	{
 		QTabWidget* group = new QTabWidget();
 		if (fStyle) group->setStyle(fStyle);
@@ -473,11 +473,11 @@ class QTGUI : public UI
 
 	// ------------------------- Groups -----------------------------------
 
-	virtual void openHorizontalBox(char* label) { openBox(label, new QHBoxLayout()); }
+	virtual void openHorizontalBox(const char* label) { openBox(label, new QHBoxLayout()); }
 
-	virtual void openVerticalBox(char* label) 	{ openBox(label, new QVBoxLayout()); }
+	virtual void openVerticalBox(const char* label) 	{ openBox(label, new QVBoxLayout()); }
 
-	virtual void openTabBox(char* label) 		{ openTab(label); }
+	virtual void openTabBox(const char* label) 		{ openTab(label); }
 
 	virtual void closeBox()
 	{
@@ -488,7 +488,7 @@ class QTGUI : public UI
 
 	// ------------------------- active widgets -----------------------------------
 
-	virtual void addButton(char* label , float* zone)
+	virtual void addButton(const char* label , float* zone)
 	{
 		QAbstractButton* 	w = new QPushButton(label);
 		uiButton* 			c = new uiButton(this, zone, w);
@@ -498,7 +498,7 @@ class QTGUI : public UI
 		QObject::connect(w, SIGNAL(released()), c, SLOT(released()));
 	}
 
-	virtual void addCheckButton(char* label , float* zone)
+	virtual void addCheckButton(const char* label , float* zone)
 	{
 		QCheckBox* 	w = new QCheckBox(label);
 		uiCheckButton* 	c = new uiCheckButton(this, zone, w);
@@ -507,7 +507,7 @@ class QTGUI : public UI
 		QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
 	}
 
-	virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step)
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 	{
 		//insert(label, new QDoubleSpinBox());
 		if (label && label[0]) openVerticalBox(label);
@@ -518,7 +518,7 @@ class QTGUI : public UI
 		if (label && label[0]) closeBox();
 	}
 
-	virtual void addVerticalSlider(char* label , float* zone, float init, float min, float max, float step)
+	virtual void addVerticalSlider(const char* label , float* zone, float init, float min, float max, float step)
 	{
 		openVerticalBox(label);
 //		addNumEntry(0, zone, init, min, max, step);
@@ -531,7 +531,7 @@ class QTGUI : public UI
 		closeBox();
 	}
 
-	virtual void addHorizontalSlider(char* label , float* zone, float init, float min, float max, float step)
+	virtual void addHorizontalSlider(const char* label , float* zone, float init, float min, float max, float step)
 	{
 		openHorizontalBox(label);
 		QSlider* 	w = new QSlider(Qt::Horizontal);
@@ -546,7 +546,7 @@ class QTGUI : public UI
 
 	// ------------------------- passive widgets -----------------------------------
 
-	virtual void addHorizontalBargraph(char* label , float* zone, float min, float max)
+	virtual void addHorizontalBargraph(const char* label , float* zone, float min, float max)
 	{
 		openHorizontalBox(label);
 		QProgressBar* bargraph = new QProgressBar();
@@ -558,7 +558,7 @@ class QTGUI : public UI
 		closeBox();
 	}
 
-	virtual void addVerticalBargraph(char* label , float* zone, float min, float max)
+	virtual void addVerticalBargraph(const char* label , float* zone, float min, float max)
 	{
 		openVerticalBox(label);
 		QProgressBar* bargraph = new QProgressBar();
