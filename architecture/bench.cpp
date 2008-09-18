@@ -31,6 +31,19 @@ using namespace std;
 
 using namespace std;
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
 struct Meta : map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
@@ -345,6 +358,7 @@ long lopt (int argc, char *argv[], const char* longname, const char* shortname, 
 
 int main(int argc, char *argv[] )
 {
+    AVOIDDENORMALS;
     VSIZE = lopt(argc, argv, "--vector-size", "-vec", 4096);
     NV = lopt(argc, argv, "--num-vector", "-n", 20000);
     COUNT = lopt(argc, argv, "--count", "-c", 1000);
