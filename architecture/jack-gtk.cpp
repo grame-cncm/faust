@@ -17,6 +17,7 @@
 #include <sys/wait.h>
 #include <list>
 #include <vector>
+#include <map>
 
 #include <iostream>
 #include <fstream>
@@ -27,7 +28,25 @@
 
 using namespace std;
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
 #define BENCHMARKMODE
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
@@ -46,7 +65,7 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
-inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
+inline int 		int2pow2 (int x)	        { int r=0; while ((1<<r)<x) r++; return r; }
 
 
 
@@ -76,16 +95,6 @@ inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
 *******************************************************************************
 *******************************************************************************/
-
-#include <map>
-#include <list>
-
-using namespace std;
-
-struct Meta : map<const char*, const char*>
-{
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
-};
 
 struct uiItem;
 typedef void (*uiCallback)(float val, void* data);
@@ -986,6 +995,8 @@ void printstats()
 
 int process (jack_nframes_t nframes, void *arg)
 {
+    AVOIDDENORMALS;
+
 	for (int i = 0; i < gNumInChans; i++) {
 	    gInChannel[i] = (float *)jack_port_get_buffer(input_ports[i], nframes);
 	}
@@ -997,11 +1008,13 @@ int process (jack_nframes_t nframes, void *arg)
     STOPMESURE  
 	return 0;
 }
+
 #ifdef _OPENMP
 void* jackthread(void* arg)
 {
     jack_client_t*  client = (jack_client_t*) arg;
 	jack_nframes_t nframes;
+    AVOIDDENORMALS;
     while (1) {
         nframes = jack_cycle_wait(client);
         process(nframes, arg);
@@ -1033,6 +1046,8 @@ int main(int argc, char *argv[] )
     const char*                 home;
     char*                               pname;
     char*                               jname;
+
+    AVOIDDENORMALS;
 
     jname = basename (argv [0]);
     client = jack_client_open (jname, (jack_options_t) 0, &jackstat);
@@ -1106,9 +1121,11 @@ int main(int argc, char *argv[] )
     
     jack_client_close(client);
     interface->saveState(rcfilename);
+
 #ifdef BENCHMARKMODE
     printstats();
-#endif       
+#endif
+ 
     return 0;
 }
 
