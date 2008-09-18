@@ -23,9 +23,31 @@
 #include <iostream>
 #include <fstream>
 
+using namespace std;
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
 
 // g++ -O3 -lm -lpthread `gtk-config --cflags --libs` ex2.cpp
  
+
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
+#define BENCHMARKMODE
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -115,6 +137,53 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)
 
 
 <<includeIntrinsic>>
+
+#ifdef BENCHMARKMODE
+// mesuring jack performances
+static __inline__ unsigned long long int rdtsc(void)
+{
+  unsigned long long int x;
+     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+     return x;
+}
+
+#define KSKIP 10
+#define KMESURE 1024
+int mesure = 0;
+unsigned long long int starts[KMESURE];
+unsigned long long int stops [KMESURE];
+
+#define STARTMESURE starts[mesure%KMESURE] = rdtsc();
+#define STOPMESURE stops[mesure%KMESURE] = rdtsc(); mesure = mesure+1;
+
+void printstats()
+{
+    unsigned long long int low, hi, tot;
+    low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
+
+    if (mesure < KMESURE) {
+    
+        for (int i = KSKIP+1; i<mesure; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(mesure-KSKIP) << ' ' << hi << endl;
+
+    } else {
+    
+        for (int i = KSKIP+1; i<KMESURE; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(KMESURE-KSKIP) << ' ' << hi << endl;
+
+    }    
+}
+#endif
 
 
 /******************************************************************************
@@ -1235,6 +1304,10 @@ void* run_ui(void* ptr)
 int main(int argc, char *argv[] )
 {
 	UI* interface = new GTKUI(argv[0], &argc, &argv);
+    // compute rcfilename to (re)store application state
+    char    rcfilename[256];
+    char*   home = getenv("HOME");
+    snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 	
 	AudioInterface	audio (
 		AudioParam().frequency(lopt(argv, "--frequency", 44100)) 
@@ -1246,6 +1319,8 @@ int main(int argc, char *argv[] )
 	
 	DSP.init(audio.getSamplingFrequency());
 	DSP.buildUserInterface(interface);
+    
+    interface->recallState(rcfilename);
 
 	pthread_create(&guithread, NULL, run_ui, interface);
 	
@@ -1256,16 +1331,24 @@ int main(int argc, char *argv[] )
 	audio.allocChanGroup(inChannel,  max(audio.getNumInputs(),  DSP.getNumInputs()), fpb);
 	audio.allocChanGroup(outChannel, max(audio.getNumOutputs(), DSP.getNumOutputs()), fpb);
 	setRealtimePriority();
+    AVOIDDENORMALS;
 	// Sound processing loop
 	audio.write(fpb, outChannel);	
 	audio.write(fpb, outChannel);	
 	while(!interface->stopped()) {
 		if ( !audio.write(fpb, outChannel)) printf("w");	
 		if ( !audio.read (fpb, inChannel)) printf("r");;	
-		DSP.compute(fpb, inChannel, outChannel);
+    STARTMESURE
+        DSP.compute(fpb, inChannel, outChannel);
+    STOPMESURE
 	}
 	
 	audio.close();
+    interface->saveState(rcfilename);
+
+#ifdef BENCHMARKMODE
+    printstats();
+#endif       
 	//wait(0);
   	return 0;
 }
