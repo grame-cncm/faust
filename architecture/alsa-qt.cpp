@@ -17,6 +17,7 @@
 #include <pthread.h> 
 #include <sys/wait.h>
 #include <list>
+#include <map>
 
 #include <iostream>
 #include <fstream>
@@ -38,8 +39,71 @@
 //inline int lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
 //inline int int2pow2 (int x)		{ int r=0; while ((1<<r)<x) r++; return r; }
 
-#include <map>
 using namespace std;
+
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
+
+#define BENCHMARKMODE
+
+#ifdef BENCHMARKMODE
+// mesuring jack performances
+static __inline__ unsigned long long int rdtsc(void)
+{
+  unsigned long long int x;
+     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+     return x;
+}
+
+#define KSKIP 10
+#define KMESURE 1024
+int mesure = 0;
+unsigned long long int starts[KMESURE];
+unsigned long long int stops [KMESURE];
+
+#define STARTMESURE starts[mesure%KMESURE] = rdtsc();
+#define STOPMESURE stops[mesure%KMESURE] = rdtsc(); mesure = mesure+1;
+
+void printstats()
+{
+    unsigned long long int low, hi, tot;
+    low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
+
+    if (mesure < KMESURE) {
+    
+        for (int i = KSKIP+1; i<mesure; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(mesure-KSKIP) << ' ' << hi << endl;
+
+    } else {
+    
+        for (int i = KSKIP+1; i<KMESURE; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(KMESURE-KSKIP) << ' ' << hi << endl;
+
+    }    
+}
+#endif
+
 
 struct Meta : map<const char*, const char*>
 {
@@ -103,6 +167,7 @@ class AudioParam
 	const char*		fCardName;					
 	unsigned int	fFrequency;
 	int				fBuffering; 
+    unsigned int    fPeriods; 
 	
 	unsigned int	fSoftInputs;
 	unsigned int	fSoftOutputs;
@@ -112,6 +177,7 @@ class AudioParam
 		fCardName("hw:0"),
 		fFrequency(44100),
 		fBuffering(512),
+        fPeriods(2),
 		fSoftInputs(2),
 		fSoftOutputs(2)
 	{}
@@ -119,6 +185,7 @@ class AudioParam
 	AudioParam&	cardName(const char* n)	{ fCardName = n; 		return *this; }
 	AudioParam&	frequency(int f)		{ fFrequency = f; 		return *this; }
 	AudioParam&	buffering(int fpb)		{ fBuffering = fpb; 	return *this; }
+    AudioParam& periods(int p)          { fPeriods = p;         return *this; }
 	AudioParam&	inputs(int n)			{ fSoftInputs = n; 		return *this; }
 	AudioParam&	outputs(int n)			{ fSoftOutputs = n; 	return *this; }
 };
@@ -161,6 +228,7 @@ class AudioInterface : public AudioParam
 	const char*	cardName()				{ return fCardName;  	}
  	int			frequency()				{ return fFrequency; 	}
 	int			buffering()				{ return fBuffering;  	}
+    int         periods()               { return fPeriods;      }
 	
 	float**		inputSoftChannels()		{ return fInputSoftChannels;	}
 	float**		outputSoftChannels()	{ return fOutputSoftChannels;	}
@@ -274,7 +342,7 @@ class AudioInterface : public AudioParam
 		err = snd_pcm_hw_params_set_period_size	(stream, params, fBuffering, 0); 	
 		check_error_msg(err, "period size not available");
 		
-		err = snd_pcm_hw_params_set_periods (stream, params, 2, 0); 			
+		err = snd_pcm_hw_params_set_periods (stream, params, fPeriods, 0);
 		check_error_msg(err, "number of periods not available");
 
 	}
@@ -579,7 +647,7 @@ mydsp	DSP;
 *******************************************************************************/
 	
 ///< lopt : Scan Command Line long int Arguments
-long lopt (int argc, char *argv[], char* longname, char* shortname, long def) 
+long lopt (int argc, char *argv[], const char* longname, const char* shortname, long def) 
 {
 	for (int i=2; i<argc; i++) 
 		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
@@ -588,7 +656,7 @@ long lopt (int argc, char *argv[], char* longname, char* shortname, long def)
 }
 	
 ///< sopt : Scan Command Line string Arguments
-char* sopt (int argc, char *argv[], char* longname, char* shortname, char* def) 
+char* sopt (int argc, char *argv[], const char* longname, const char* shortname, char* def) 
 {
 	for (int i=2; i<argc; i++) 
 		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
@@ -597,7 +665,7 @@ char* sopt (int argc, char *argv[], char* longname, char* shortname, char* def)
 }
 	
 ///< fopt : Scan Command Line flag option (without argument), return true if the flag
-bool fopt (int argc, char *argv[], char* longname, char* shortname) 
+bool fopt (int argc, char *argv[], const char* longname, const char* shortname) 
 {
 	for (int i=1; i<argc; i++) 
 		if ( strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0 ) 
@@ -636,6 +704,7 @@ pthread_t	audiothread;
  */
 void* run_audio(void* ptr)
 {
+    AVOIDDENORMALS;
 	AudioInterface*	audio = (AudioInterface*) ptr;
 
 	bool rt = setRealtimePriority();
@@ -645,7 +714,9 @@ void* run_audio(void* ptr)
 	audio->write();
 	while(!interface->stopped()) {
 		audio->read();
+    STARTMESURE
 		DSP.compute(audio->buffering(), audio->inputSoftChannels(), audio->outputSoftChannels());
+    STOPMESURE
 		audio->write();
 	} 
 
@@ -681,6 +752,7 @@ int main(int argc, char *argv[] )
 		AudioParam().cardName( sopt(argc, argv, "--device", "-d", "hw:0") ) 
 					.frequency( lopt(argc, argv, "--frequency", "-f", 44100) ) 
 					.buffering( lopt(argc, argv, "--buffer", "-b", 1024) )
+                    .periods( lopt(argc, argv, "--periods", "-p", 2) )
 					.inputs(DSP.getNumInputs())
 					.outputs(DSP.getNumOutputs())
 	);
@@ -698,6 +770,10 @@ int main(int argc, char *argv[] )
 	
 	interface->run();
 	interface->saveState(rcfilename);
+
+#ifdef BENCHMARKMODE
+    printstats();
+#endif       
 
   	return 0;
 }
