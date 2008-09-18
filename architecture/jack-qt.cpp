@@ -32,6 +32,22 @@
 
 using namespace std;
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
+#define BENCHMARKMODE
+
+
 struct Meta : map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
@@ -162,18 +178,84 @@ void jack_shutdown(void *)
 	exit(1);
 }
 
+#ifdef BENCHMARKMODE
+// mesuring jack performances
+static __inline__ unsigned long long int rdtsc(void)
+{
+  unsigned long long int x;
+     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+     return x;
+}
+
+#define KSKIP 10
+#define KMESURE 1024
+int mesure = 0;
+unsigned long long int starts[KMESURE];
+unsigned long long int stops [KMESURE];
+
+#define STARTMESURE starts[mesure%KMESURE] = rdtsc();
+#define STOPMESURE stops[mesure%KMESURE] = rdtsc(); mesure = mesure+1;
+
+void printstats()
+{
+    unsigned long long int low, hi, tot;
+    low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
+
+    if (mesure < KMESURE) {
+    
+        for (int i = KSKIP+1; i<mesure; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(mesure-KSKIP) << ' ' << hi << endl;
+
+    } else {
+    
+        for (int i = KSKIP+1; i<KMESURE; i++) {
+            unsigned long long int m = stops[i] - starts[i];
+            if (m<low) low = m;
+            if (m>hi) hi = m;
+            tot += m;
+        }
+        cout << low << ' ' << tot/(KMESURE-KSKIP) << ' ' << hi << endl;
+
+    }    
+}
+#endif
+
+
 int process (jack_nframes_t nframes, void *)
 {
+    AVOIDDENORMALS;
+
 	for (int i = 0; i < gNumInChans; i++) {
 	    gInChannel[i] = (float *)jack_port_get_buffer(input_ports[i], nframes);
 	}
 	for (int i = 0; i < gNumOutChans; i++) {
 	    gOutChannel[i] = (float *)jack_port_get_buffer(output_ports[i], nframes);
 	}
-	DSP.compute(nframes, gInChannel, gOutChannel);
+    STARTMESURE
+    DSP.compute(nframes, gInChannel, gOutChannel);
+    STOPMESURE  
+
 	return 0;
 }
 
+#ifdef _OPENMP
+void* jackthread(void* arg)
+{
+    jack_client_t*  client = (jack_client_t*) arg;
+    jack_nframes_t nframes;
+    AVOIDDENORMALS;
+    while (1) {
+        nframes = jack_cycle_wait(client);
+        process(nframes, arg);
+        jack_cycle_signal(client, 0);
+    }
+}
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -210,7 +292,11 @@ int main( int argc, char *argv[] )
 	    return 1;
 	}
 	
-	jack_set_process_callback(client, process, 0);
+#ifdef _OPENMP
+    jack_set_process_thread(client, jackthread, client);
+#else
+    jack_set_process_callback(client, process, 0);
+#endif
 	
 	jack_set_sample_rate_callback(client, srate, 0);
 	
@@ -268,6 +354,10 @@ int main( int argc, char *argv[] )
 	
 	jack_client_close(client);
 	interface->saveState(rcfilename);
+
+#ifdef BENCHMARKMODE
+    printstats();
+#endif       
 		
   	return 0;
 }
