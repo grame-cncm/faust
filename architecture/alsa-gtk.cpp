@@ -25,6 +25,19 @@
 
 using namespace std;
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
 #define BENCHMARKMODE
 
 // g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
@@ -1474,7 +1487,7 @@ int main(int argc, char *argv[] )
 					.outputs(DSP.getNumOutputs())
 	);
 
-	
+	AVOIDDENORMALS;
 	audio.open();
 	
 	DSP.init(audio.frequency());
