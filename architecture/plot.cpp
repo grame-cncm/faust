@@ -84,7 +84,7 @@ template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 *******************************************************************************/
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -379,7 +379,7 @@ class channels
 		
 		// allocate audio  channels
 		for (int i = 0; i < fNumChannels; i++) {
-			fBuffers[i] = (float*) aligned_calloc (fNumFrames, sizeof(float));
+			fBuffers[i] = (float*) alloc (fNumFrames, sizeof(float));
 		}
 	}
 	

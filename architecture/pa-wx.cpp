@@ -111,7 +111,7 @@ inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 *******************************************************************************/
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -227,14 +227,14 @@ void allocChannels (int size, int numInChan, int numOutChan)
 	
 	
 	for (int i = 0; i < numInChan; i++) {
-		gInChannel[i] = (float*) aligned_calloc (size, sizeof(float));
+		gInChannel[i] = (float*) alloc (size, sizeof(float));
 		for (int j = 0; j < size; j++) {
 			gInChannel[i][j] = 0.0;
 		}
 	}
 	
 	for (int i = 0; i < numOutChan; i++) {
-		gOutChannel[i] = (float*) aligned_calloc (size, sizeof(float));
+		gOutChannel[i] = (float*) alloc (size, sizeof(float));
 		for (int j = 0; j < size; j++) {
 			gOutChannel[i][j] = 0.0;
 		}

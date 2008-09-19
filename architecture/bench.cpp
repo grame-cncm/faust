@@ -61,7 +61,7 @@ unsigned int    IDX     = 0;        // current vector number (0 <= VIdx < NV)
 
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 
 
@@ -291,7 +291,7 @@ void statistic(const char* name, double* timing)
 void allocBuffer()
 {
     unsigned int BSIZE = NV * VSIZE;
-    gBuffer = (float*) aligned_calloc (BSIZE, sizeof(float));
+    gBuffer = (float*) calloc (BSIZE, sizeof(float));
     
     int R0_0 = 0;
     for (int j = 0; j < BSIZE; j++) {
@@ -323,11 +323,11 @@ void bench(const char* name)
     allocBuffer();
 
     // allocate output channels (not initialized)
-    for (int i = 0; i < numOutChan; i++) outChannel[i] = (float*) aligned_calloc (VSIZE, sizeof(float));
+    for (int i = 0; i < numOutChan; i++) outChannel[i] = (float*) calloc (VSIZE, sizeof(float));
 
     // init the dsp with a resoneable sampling rate)
     DSP.init(48000);
-    double* timing = (double*) aligned_calloc (COUNT, sizeof(double));
+    double* timing = (double*) calloc (COUNT, sizeof(double));
 
     for (int i = 0; i<COUNT; i++) {
         timing[i] = mysecond();
