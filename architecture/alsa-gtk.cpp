@@ -88,7 +88,7 @@ bool setRealtimePriority ()
 *******************************************************************************/
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 
 <<includeIntrinsic>>
@@ -273,15 +273,15 @@ class AudioInterface : public AudioParam
 
 		// allocation of alsa buffers
 		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
-			fInputCardBuffer = aligned_calloc(interleavedBufferSize(fInputParams), 1);
-	 		fOutputCardBuffer = aligned_calloc(interleavedBufferSize(fOutputParams), 1);
+			fInputCardBuffer = calloc(interleavedBufferSize(fInputParams), 1);
+	 		fOutputCardBuffer = calloc(interleavedBufferSize(fOutputParams), 1);
 			
 		} else {
 			for (unsigned int i = 0; i < fCardInputs; i++) {
-				fInputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fInputParams), 1);
+				fInputCardChannels[i] = calloc(noninterleavedBufferSize(fInputParams), 1);
 			}
 			for (unsigned int i = 0; i < fCardOutputs; i++) {
-				fOutputCardChannels[i] = aligned_calloc(noninterleavedBufferSize(fOutputParams), 1);
+				fOutputCardChannels[i] = calloc(noninterleavedBufferSize(fOutputParams), 1);
 			}
 			
 		}
@@ -292,14 +292,14 @@ class AudioInterface : public AudioParam
 		fChanOutputs = max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
 
 		for (unsigned int i = 0; i < fChanInputs; i++) {
-			fInputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
+			fInputSoftChannels[i] = (float*) calloc (fBuffering, sizeof(float));
 			for (int j = 0; j < fBuffering; j++) {
 				fInputSoftChannels[i][j] = 0.0;
 			}
 		}
 
 		for (unsigned int i = 0; i < fChanOutputs; i++) {
-			fOutputSoftChannels[i] = (float*) aligned_calloc (fBuffering, sizeof(float));
+			fOutputSoftChannels[i] = (float*) calloc (fBuffering, sizeof(float));
 			for (int j = 0; j < fBuffering; j++) {
 				fOutputSoftChannels[i][j] = 0.0;
 			}
