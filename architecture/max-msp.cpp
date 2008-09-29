@@ -28,6 +28,19 @@ using namespace std ;
 #define expf(x) exp(x)
 #endif
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
 struct Meta : map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
@@ -462,6 +475,7 @@ t_int *faust_perform(t_int *w)
 	t_faust* x = (t_faust*) (w[1]);
 	long n = w[2];
 	int offset = 3;
+	AVOIDDENORMALS;
 	x->dsp->compute(n, ((float**)&w[offset]), ((float**)&w[offset+x->dsp->getNumInputs()]));
 	return (w + (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2+1);
 }
