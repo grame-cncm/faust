@@ -334,7 +334,8 @@ module Faust
       def decl_args
         cnames = self.control_names
         cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default }
-        (self.input_names + cnames.zip(cdefaults).collect { |ary| ary[0] + ary[1] }).join(", ")
+        args = self.input_names + cnames.zip(cdefaults).collect { |ary| ary[0] + ary[1] }
+        args.empty? ? "" : " | " + args.join(", ") + " |"
       end
       def new_args(rate)
         ["'%s'" % rate] + self.input_names + self.control_names
@@ -357,10 +358,10 @@ module Faust
       def generate_body(io)
         io.print("{\n")
         body = <<EOF
-\t*ar { | #{self.decl_args} |
+\t*ar {#{self.decl_args}
 \t\t^this.multiNew(#{self.new_args(:audio).join(", ")})
 \t}
-\t*kr { | #{self.decl_args} |
+\t*kr {#{self.decl_args}
 \t\t^this.multiNew(#{self.new_args(:control).join(", ")})
 \t}
 \tname { ^\"#{@unit_name}\" }
