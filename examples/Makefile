@@ -167,7 +167,8 @@ supercollider :
 			FAUST2SC=../tools/faust2sc-1.0.0/faust2sc \
 			FAUST2SC_PREFIX="Faust_" \
 			SC_SOURCE_DIR=$(SC_SOURCE_DIR) \
-			BUILD_DIR=supercolliderdir
+			BUILD_DIR=supercolliderdir \
+			$(SCONS_OPTIONS)
 
 jackconsole :
 	install -d jackconsoledir
