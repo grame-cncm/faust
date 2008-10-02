@@ -467,14 +467,10 @@ else:
         CPPDEFINES = ['NDEBUG'])
 
 # platform specific
-# if PLATFORM == 'darwin':
-#     # universal binary support
-#     if env['UNIVERSAL']:
-#         archs = map(lambda x: ['-arch', x], ['ppc', 'i386'])
-#         env.Append(
-#             CCFLAGS = archs,
-#             LINKFLAGS = archs
-#         )
+if PLATFORM == 'darwin':
+    env.Append(
+        CCFLAGS = '-fvisibility=hidden'
+        )
 
 # vectorization
 if features['altivec']:
@@ -492,7 +488,7 @@ pluginEnv = env.Copy(
     SHLIBPREFIX = '',
     SHLIBSUFFIX = PLUGIN_EXT)
 if PLATFORM == 'darwin':
-    pluginEnv['SHLINKFLAGS'] = '$LINKFLAGS -bundle -flat_namespace -undefined suppress'
+    pluginEnv['SHLINKFLAGS'] = '$LINKFLAGS -bundle'
 merge_lib_info(pluginEnv, libraries['scplugin'])
 
 def get_sources(env):
