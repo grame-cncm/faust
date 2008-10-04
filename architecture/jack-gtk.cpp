@@ -867,7 +867,7 @@ void GTKUI::run()
 
 
 //----------------------------------------------------------------
-//  dÃ©finition du processeur de signal
+//  Definition of an abstract signal processor
 //----------------------------------------------------------------
 	
 class dsp {
@@ -1009,19 +1009,6 @@ int process (jack_nframes_t nframes, void *arg)
 	return 0;
 }
 
-#ifdef _OPENMP
-void* jackthread(void* arg)
-{
-    jack_client_t*  client = (jack_client_t*) arg;
-	jack_nframes_t nframes;
-    AVOIDDENORMALS;
-    while (1) {
-        nframes = jack_cycle_wait(client);
-        process(nframes, arg);
-        jack_cycle_signal(client, 0);
-    }
-}
-#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -1059,12 +1046,7 @@ int main(int argc, char *argv[] )
         jname = jack_get_client_name (client);
     }
 
-#ifdef _OPENMP
-    jack_set_process_thread(client, jackthread, client);
-#else
     jack_set_process_callback(client, process, 0);
-#endif
-    jack_set_sample_rate_callback(client, srate, 0);
     jack_on_shutdown(client, jack_shutdown, 0);
     
     gNumInChans = DSP.getNumInputs();
