@@ -51,6 +51,19 @@ using namespace std ;
 #define expf(x) exp(x)
 #endif
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
 struct Meta : std::map<std::string, std::string>
 {
     void declare(const char* key, const char* value)
@@ -535,7 +548,8 @@ VstInt32 Faust::getVendorVersion ()
 //-----------------------------------------------------------------------------
 void Faust::processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames)
 {
-  dsp->compute(sampleFrames, inputs, outputs);
+    AVOIDDENORMALS;
+    dsp->compute(sampleFrames, inputs, outputs);
 }
 
 //-----------------------------------------------------------------------------------------

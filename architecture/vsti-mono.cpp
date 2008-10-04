@@ -64,6 +64,26 @@
 
 using namespace std ;
 
+// There is a bug with powf() when cross compiling with mingw
+// the following macro avoid the problem
+#ifdef WIN32
+#define powf(x,y) pow(x,y)
+#define expf(x) exp(x)
+#endif
+
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
 struct Meta
 {
     void declare (const char* key, const char* value) {  }
@@ -832,6 +852,7 @@ void Faust::initProcess ()
 //-----------------------------------------------------------------------------
 void Faust::processReplacing(float **inputs, float **outputs, VstInt32 sampleFrames)
 {
+    AVOIDDENORMALS;
 #ifdef DEBUG
     fprintf(stderr,"=== Faust vsti: processReplacing . . .\n");
 #endif
