@@ -266,8 +266,7 @@ static bool nonRecursiveLevel(const lset& L)
  */
 void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
 {
-    if (nonRecursiveLevel(L)) {
-
+    if (nonRecursiveLevel(L) && L.size()==1) {
         for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
             if ((*p)->isEmpty() == false) {
                 tab(n, fout); fout << "#pragma omp for ";
@@ -283,6 +282,7 @@ void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
             (*p)->println(n+1, fout);
         }
         tab(n, fout); fout << "} ";
+
     } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
         tab(n, fout); fout << "#pragma omp single ";
         tab(n, fout); fout << "{ ";
