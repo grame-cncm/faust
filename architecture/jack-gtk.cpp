@@ -645,10 +645,14 @@ void GTKUI::addVerticalSlider(const char* label, float* zone, float init, float 
 	gtk_range_set_inverted (GTK_RANGE(slider), TRUE);
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
 	gtk_widget_set_usize(slider, -1, 160);
-	
-	openFrameBox(label);
-	addWidget(label, slider);
-	closeBox();
+
+	if (label && label[0]!=0) {
+	    openFrameBox(label);
+	    addWidget(label, slider);
+	    closeBox();
+    } else {
+        addWidget(label, slider);
+    }             
 }
 
 // -------------------------- Horizontal Slider -----------------------------------
@@ -666,9 +670,13 @@ void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, floa
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
 	gtk_widget_set_usize(slider, 160, -1);
 	
-	openFrameBox(label);
-	addWidget(label, slider);
-	closeBox();
+    if (label && label[0]!=0) {
+        openFrameBox(label);
+        addWidget(label, slider);
+        closeBox();
+    } else {
+        addWidget(label, slider);
+    }             
 }
 
 
