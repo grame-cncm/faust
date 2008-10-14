@@ -379,7 +379,7 @@ class channels
 		
 		// allocate audio  channels
 		for (int i = 0; i < fNumChannels; i++) {
-			fBuffers[i] = (float*) alloc (fNumFrames, sizeof(float));
+			fBuffers[i] = (float*) calloc (fNumFrames, sizeof(float));
 		}
 	}
 	
