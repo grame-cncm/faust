@@ -42,8 +42,6 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 *******************************************************************************
 *******************************************************************************/
 
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -368,11 +366,11 @@ class Interleaver
 		
 		// allocate separate input channels
 		for (int i = 0; i < fNumInputs; i++) {
-			fInputs[i] = (float*) alloc (fNumFrames, sizeof(float));
+			fInputs[i] = (float*) calloc (fNumFrames, sizeof(float));
 		}
 		
 		// allocate interleaved output channel
-		fOutput = (float*) alloc(fNumFrames*fNumOutputs, sizeof(float));
+		fOutput = (float*) calloc(fNumFrames*fNumOutputs, sizeof(float));
 		
 	}
 	
