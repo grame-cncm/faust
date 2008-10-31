@@ -581,7 +581,7 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     
     // Register ugen
     (*ft->fDefineUnit)(
-        name.c_str(),
+        (char*)name.c_str(),
         unitSize(),
         (UnitCtorFunc)&Faust_Ctor,
         (UnitDtorFunc)&Faust_Dtor,
