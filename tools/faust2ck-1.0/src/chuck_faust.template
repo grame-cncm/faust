@@ -1,0 +1,126 @@
+
+#include "ugen_clip.h"
+#include "chuck_type.h"
+#include "chuck_ugen.h"
+#include "chuck_vm.h"
+#include "chuck_globals.h"
+
+/* UI class - do-nothing (from FAUST/minimal.cpp) */
+
+class UI
+{
+	bool	fStopped;
+public:
+		
+	UI() : fStopped(false) {}
+	virtual ~UI() {}
+	
+	virtual void addButton(const char* label, float* zone) {}
+	virtual void addToggleButton(const char* label, float* zone) {}
+	virtual void addCheckButton(const char* label, float* zone) {}
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) {}
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) {}
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) {}
+	
+	virtual void openFrameBox(const char* label) {}
+	virtual void openTabBox(const char* label) {}
+	virtual void openHorizontalBox(const char* label) {}
+	virtual void openVerticalBox(const char* label) {}
+	virtual void closeBox() {}
+	
+	virtual void run() {}
+	
+	void stop()	{ fStopped = true; }
+	bool stopped() 	{ return fStopped; }
+};
+
+class dsp { public: float fSamplingFreq; };
+
+/*
+ * FAUST intrinsic
+ */
+<<includeIntrinsic>>
+
+/*
+ * FAUST defines UI values as private, but provides no getters/setters.
+ * In our particular case it's way more convenient to access them directly
+ * than to set up a complicated UI structure.  Also get rid of everything
+ * being "virtual", since it may stop the compiler from inlining properly!
+ */
+#define private public
+#define virtual
+
+/* Rename the class the name of our DSP. */
+#define mydsp %dsp_name%
+
+/*
+ * FAUST class
+ */
+<<includeclass>>
+
+#undef private
+#undef virtual
+#undef mydsp
+
+/*
+ * ChucK glue code
+ */
+static t_CKUINT %dsp_name%_offset_data = 0;
+static int g_sr = 44100;
+
+static void %dsp_name%_ctor( Chuck_Object * SELF, void * ARGS, Chuck_VM_Shred * SHRED )
+{
+    // return data to be used later
+    %dsp_name% *d = new %dsp_name%;
+    OBJ_MEMBER_UINT(SELF, %dsp_name%_offset_data) = (t_CKUINT)d;
+    d->init(g_sr);
+}
+
+static void %dsp_name%_dtor( Chuck_Object * SELF, Chuck_VM_Shred * SHRED )
+{
+    delete (%dsp_name%*) OBJ_MEMBER_UINT(SELF, %dsp_name%_offset_data);
+    OBJ_MEMBER_UINT(SELF, %dsp_name%_offset_data) = 0;
+}
+
+static t_CKBOOL %dsp_name%_tick( Chuck_Object * SELF, float in, float * out, Chuck_VM_Shred * SHRED )
+{
+    %dsp_name% *d = (%dsp_name%*)OBJ_MEMBER_UINT(SELF, %dsp_name%_offset_data);
+    float * input, * output;
+    input = &in;
+    output = out;
+	d->compute (1, &input, &output);
+    return TRUE;
+}
+
+%ctrl_cget_functions%
+
+DLL_QUERY %dsp_name%_query( Chuck_DL_Query * QUERY )
+{
+    Chuck_Env * env = Chuck_Env::instance();
+    Chuck_DL_Func * func = NULL;
+
+    g_sr = QUERY->srate;
+
+    if( !type_engine_import_ugen_begin( env, "%dsp_name%", "UGen", env->global(), 
+                                        %dsp_name%_ctor, %dsp_name%_dtor, %dsp_name%_tick, NULL ) )
+        return FALSE;
+
+    // add member variable
+    %dsp_name%_offset_data = type_engine_import_mvar( env, "int", "@%dsp_name%_data", FALSE );
+    if( %dsp_name%_offset_data == CK_INVALID_OFFSET ) goto error;
+
+    %ctrl_cget_query%
+
+    // end import
+    if( !type_engine_import_class_end( env ) )
+        return FALSE;
+
+    return TRUE;
+
+error:
+    // end import
+    if( !type_engine_import_class_end( env ) )
+        return FALSE;
+
+    return FALSE;
+}

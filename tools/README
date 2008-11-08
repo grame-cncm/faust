@@ -22,3 +22,7 @@ Currently the following tools are available :
 
 - scbuilder is a Ruby/Python/SCons script for building SuperCollider
   plugins, either from C++ sources or from Faust specifications.
+
+- faust2ck is a wrapper-generator for ChucK Ugens. It allows to create
+  ChucK-compatible C++ code that can be placed in the Chuck source tree
+  to extend the language.

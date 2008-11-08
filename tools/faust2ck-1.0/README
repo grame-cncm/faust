@@ -1,0 +1,202 @@
+
+faust2ck - A FAUST wrapper-generator for ChucK Ugens.
+========
+
+FAUST is a functional language for defining DSP structures that can be
+used for real-time audio computing.  It can generate block diagrams
+and also C++ code which will execute the given routine.
+
+This is an ideal way to create unit generators (UGens) for ChucK.  The
+ChucK data structures can be a bit weird and the learning curve for
+hacking on ChucK can be a little steap.  Using FAUST, you can
+concentrate on the DSP algorithm, and allow faust2ck to take care of
+creating ChucK-compatible C++ code so that you can instantiate your
+new DSP object in a ChucK program.
+
+That said, in order to take advantage of faust2ck, you'll need a
+little C++ knowledge.  At least enough to know how to compile ChucK
+and add a line or two to its source code, which is explained in this
+document.
+
+Please see the FAUST websites for more details, online tutorials, and
+even an online compiler that you can try:
+
+http://faust.grame.fr/
+http://sourceforge.net/projects/faudiostream/
+
+This document describes how to use faust2ck.
+
+
+Usage
+=====
+
+Running faust2ck with no parameters will give you a usage string:
+
+$ ./faust2ck 
+Usage: faust2ck <filename.dsp.xml>
+
+You can see that it requires a single input, the name of an XML file.
+This XML file can be generated with FAUST by giving it the "-xml"
+parameter:
+
+$ faust -xml filename.dsp
+
+faust2ck will then generate a file called "filename.dsp-wrapper.cpp".
+(Where "filename" is whatever your file is called.)
+
+This program is yet another input for FAUST.  It is a C++ file, but it
+has some tags in it that tell FAUST where to put the DSP code.  So you 
+must run FAUST again, this time telling it to use the wrapper:
+
+$ faust -a filename.dsp-wrapper.cpp -o filename.cpp filename.dsp
+
+This gives you a final C++ file containing the algorithm along with
+routines necessary to plug it in to ChucK.
+
+
+Adding to ChucK
+---------------
+
+Unfortunately there are a couple of manual steps necessary here.
+ChucK does not currently support (rightly in my opinion) loadable
+external modules, like other audio programs such as PureData.
+
+So, you need to re-compile ChucK.  First, we need to tell it about our
+new C++ file.  The first thing to do is create a header file.  It only
+needs to contain one line of code, enough to tell ChucK about a single
+function declared in the C++ file.
+
+If your DSP object is called 'mydsp', then your file, mydsp.h, should
+look like this:
+
+    #ifndef __MYDSP_H__
+    #define __MYDSP_H__
+
+    DLL_QUERY mydsp_query( Chuck_DL_Query * QUERY );
+
+    #endif // __MYDSP_H__
+
+Put this file in the ChucK source directory.  Now you just have to add
+a few lines to the file, 'chuck_compile.cpp'.
+
+At the top of chuck_compile.cpp, add an #include statement for our
+header file:
+
+    #include "mydsp.h"
+
+Now, find the function "load_internal_modules()", which should be
+around line 516.  Add the necessary code to load your new module,
+which is done by passing ChucK the "mydsp_query" function, where
+"mydsp" is the name of your FAUST object.
+
+    EM_log( CK_LOG_SEVERE, "class 'mydsp'..." );
+    if( !load_module( env, mydsp_query, "mydsp", "global" ) ) goto error;
+
+That's it!
+
+The last thing to do is to add your C++ file to the makefile so that
+it gets compiled along with ChucK.  Depending on which operating
+system you are using, load "makefile.alsa" for Linux, or
+"makefile.win32" for Windows, or "makefile.osx" for OS X, etc.
+
+There is a big list of filenames in a variable called OBJS.  You need
+to add "mydsp.o" to this list.
+
+Lastly, you need to add a build target for mydsp.o to the bottom of
+the file:
+
+    mydsp.o: mydsp.h mydsp.cpp
+	    $(CXX) $(FLAGS) mydsp.cpp
+
+Now, run "make", and if all goes well, ChucK will be built with your
+object.
+
+$ make
+
+Time to create a test program!  Make a simple ChucK program that looks
+something like the following:
+
+    Impulse i => mydsp m => dac;
+    100 => t;
+    1 => i.next;
+    while (t>0) {
+        <<<m.last()>>>;
+        t--;
+        samp => now;
+    }
+
+This will print the impulse response your object to the console.  Good
+luck!  Have fun!
+
+If you have any questions you can email me at:
+
+Stephen Sinclair <radarsat1@gmail.com>
+
+
+License
+=======
+
+This code is licensed under the GNU General Public License (GPL) v2 or
+above.  Please see COPYING for details, or visit:
+
+http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+
+
+Technical
+=========
+
+You wrote a string parsing and XML reading program
+like this, in 2008, in C ???!  Are you mad?
+--------------------------------------------------
+
+Yes, a sane person would probably not do such a thing.  The FAUST XML
+output is so simple, however, and generally predictable, that I didn't
+feel it was necessary to bring in a lot of external dependencies for
+such a small application.  So I ended up basically writing a small,
+inadequate macro replacement parser, which was actually kind of fun.
+Of course, if it ever called for more a complex solution I'd probably
+re-do it in Perl or Python.  But this'll do for now, and it means the
+program is tiny and easy to execute on any computer without installing
+huge libraries.
+
+Of course, it does depend on 'sed' to generate the template for
+inclusion in the final program.  I wanted to include it right in the
+executable instead of having faust2ck load an external file that would
+always be exactly the same.  Unfortunately the C preprocessor doesn't
+make it easy, so sed is just used to wrap lines of the template file
+in double-quotes ("") and backslash-escape a few special characters.
+
+faust2ck is distributed with the template already generated so that it
+can be compiled without needing to have sed around.
+
+
+Why generate the C++ wrapper on demand instead of just writing a
+better wrapper that doesn't need to change?
+----------------------------------------------------------------
+
+If you look at the FAUST wrappers for PureData and Max/MSP, for
+example, they are just a single file where FAUST replaces a certain
+line with the DSP code class.
+
+Unfortunately FAUST doesn't provide much for dynamically generating
+code from the wrapper, other than a single replacement within the file
+where it provides the DSP class.  Specifically, for parameters
+(declared in FAUST with "UI" elements like hslider and vslider), it
+calls a function at run-time to inform the UI code about each
+parameter.  In the case of PureData and Max/MSP, it's possible to
+instantiate parameters (inlets) at run-time, so this works well.  In
+ChucK however, each parameter needs a getter and setting function,
+called "cget" and "ctrl", which must be made available statically at
+compile time.  (This isn't strictly true, these functions are "linked
+in" to the rest of ChucK at run-time, but ChucK doesn't provide the
+function with enough information to figure out which parameter it's
+modifying, so each parameter needs its own function.)
+
+Now, before writing faust2ck, I tried very hard to come up with some
+kind of combination of preprocessor macros or C++ templates that would
+do the job of instantiating a cget and ctrl function for each
+parameter, but I just couldn't figure out a way to do it.  If anyone
+wants to give it a try, it's a nice challenging problem.  In any case,
+I realized I was wasting my time when a quick little program could
+generate the appropriate wrapper easily enough, hence faust2ck.
