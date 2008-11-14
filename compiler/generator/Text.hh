@@ -18,15 +18,15 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _stringFAUST_H
 #define _stringFAUST_H
 
 /**********************************************************************
 			- string.h : Chaines de caractere -
-					
+
 
 		Historique :
 		-----------
@@ -34,9 +34,9 @@
 ***********************************************************************/
 #include <string>
 #include <vector>
-using namespace std; 
+using namespace std;
 
-	
+
 string subst (const string& m, const string& a0);
 string subst (const string& m, const vector<string>& vargs);
 string subst (const string& m, const string& a0, const string& a1);
@@ -44,6 +44,7 @@ string subst (const string& m, const string& a0, const string& a1, const string&
 string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3);
 string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4);
 string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5);
+string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5, const string& a6);
 
 string T (char* c);
 string T (int n);

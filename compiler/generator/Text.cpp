@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #include <stdio.h>
 #include <string.h>
 #include "Text.hh"
@@ -37,7 +37,7 @@ static string substitution (const string& model, const vector<string>& args)
 	char 	c;
 	int 	i=0, ilast = model.length()-1;
 	string 	result;
-	
+
 	while (i < ilast) {
 		c = model[i++];
 		if (c != '$') {
@@ -64,70 +64,85 @@ string subst (const string& model, const string& a0)
 	vector<string> args(10);
 	args[0] = a0;
 	return substitution (model, args);
-}			
+}
 
 string subst (const string& model, const string& a0, const string& a1)
 {
 	vector<string> args(10);
 	args[0] = a0;
 	args[1] = a1;
-	
+
 	return substitution (model, args);
-}			
+}
 
 string subst (const string& model, const string& a0, const string& a1, const string& a2)
 {
 	vector<string> args(10);
-	
+
 	args[0] = a0;
 	args[1] = a1;
 	args[2] = a2;
-	
+
 	return substitution (model, args);
-}			
+}
 
 string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3)
 {
 	vector<string> args(10);
-	
+
 	args[0] = a0;
 	args[1] = a1;
 	args[2] = a2;
 	args[3] = a3;
-	
+
 	return substitution (model, args);
-}	
+}
 
 string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4)
 {
 	vector<string> args(10);
-	
+
 	args[0] = a0;
 	args[1] = a1;
 	args[2] = a2;
 	args[3] = a3;
 	args[4] = a4;
-	
+
 	return substitution (model, args);
-}	
+}
 
 string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5)
 {
 	vector<string> args(10);
-	
+
 	args[0] = a0;
 	args[1] = a1;
 	args[2] = a2;
 	args[3] = a3;
 	args[4] = a4;
 	args[5] = a5;
-	
+
 	return substitution (model, args);
-}	
+}
+
+string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5, const string& a6)
+{
+	vector<string> args(10);
+
+	args[0] = a0;
+	args[1] = a1;
+	args[2] = a2;
+	args[3] = a3;
+	args[4] = a4;
+	args[5] = a5;
+	args[6] = a6;
+
+	return substitution (model, args);
+}
 
 
 /**
- * Suppress trailing zero in a string representating a floating point number. 
+ * Suppress trailing zero in a string representating a floating point number.
  * example : 1.00000  -> 1.0
  * example : 1.00000f -> 1.0f
  */
@@ -147,18 +162,18 @@ string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
 string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
 
 string T (float n)
-{ 
+{
 	char c[64];
 	if  (n <  0.1 && n > -0.1 && n != 0.0) {
 		snprintf(c, 63, "%ef", n);
 	} else {
-		snprintf(c, 63, "%ff", n); 
-		zdel(c); 
+		snprintf(c, 63, "%ff", n);
+		zdel(c);
 	}
-	return string(c); 
+	return string(c);
 }
 
-string T (double n) 	
+string T (double n)
 {
 	char c[64];
 	snprintf(c, 63, "%f", n);
