@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.4k-par"
+#define FAUSTVERSION "0.9.9.5b1"
 
 #include <stdio.h>
 #include <string.h>
@@ -92,6 +92,7 @@ string          gFaustSuperDirectory;
 string          gFaustDirectory;
 string          gMasterDocument;
 string          gMasterDirectory;
+string          gMasterName;
 
 //-- command line arguments
 
@@ -113,11 +114,12 @@ string			gArchFile;
 string			gOutputFile;
 list<string>	gInputFiles;
 
-bool                    gPatternEvalMode = false;
+bool            gPatternEvalMode = false;
 
 bool            gVectorSwitch   = false;
 int             gVecSize        = 32;
 bool            gOpenMPSwitch   = false;
+bool            gUIMacroSwitch  = false;
 
 int             gTimeout        = 0;        // time out to abort compiler
 
@@ -211,15 +213,19 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-vec", "--vectorize")) {
             gVectorSwitch = true;
             i += 1;
-                
+
         } else if (isCmd(argv[i], "-vs", "--vec-size")) {
 			gVecSize = atoi(argv[i+1]);
 			i += 2;
-                
+
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
 			gOpenMPSwitch = true;
 			i += 1;
-                
+
+        } else if (isCmd(argv[i], "-uim", "--user-interface-macros")) {
+			gUIMacroSwitch = true;
+			i += 1;
+
         } else if (isCmd(argv[i], "-t", "--timeout")) {
             gTimeout = atoi(argv[i+1]);
             i += 2;
@@ -287,6 +293,7 @@ void printhelp()
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-omp    \t--openMP generate openMP pragmas, activates --vectorize option\n";
+    cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";
@@ -304,7 +311,7 @@ void printheader(ostream& dst)
     selectedKeys.insert(tree("copyright"));
     selectedKeys.insert(tree("license"));
     selectedKeys.insert(tree("version"));
-        
+
     dst << "//-----------------------------------------------------" << endl;
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
         if (selectedKeys.count(i->first)) {
@@ -337,6 +344,27 @@ static string dirname(const string& path)
     return string(dirname(s));
 }
 
+/**
+ * transform a filename "faust/example/noise.dsp" into
+ * the corresponding fx name "noise"
+ */
+static string fxname(const string& filename)
+{
+	// determine position right after the last '/' or 0
+	unsigned int p1 = 0;
+    for (unsigned int i=0; i<filename.size(); i++) {
+        if (filename[i] == '/')  { p1 = i+1; }
+    }
+	
+	// determine position of the last '.'
+	unsigned int p2 = filename.size();
+    for (unsigned int i=p1; i<filename.size(); i++) {
+        if (filename[i] == '.')  { p2 = i; }
+    }
+
+    return filename.substr(p1, p2-p1);
+}
+
 
 static void initFaustDirectories()
 {
@@ -348,9 +376,11 @@ static void initFaustDirectories()
     if (gInputFiles.empty()) {
         gMasterDocument = "Unknown";
         gMasterDirectory = ".";
+		gMasterName = "faustfx";
     } else {
         gMasterDocument = *gInputFiles.begin();
         gMasterDirectory = dirname(gMasterDocument);
+		gMasterName = fxname(gMasterDocument);
     }
 }
 

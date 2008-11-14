@@ -52,6 +52,7 @@
 extern bool gVectorSwitch;
 extern bool gOpenMPSwitch;
 extern int  gVecSize;
+extern bool gUIMacroSwitch;
 
 
 extern map<Tree, set<Tree> > gMetaDataSet;
@@ -102,14 +103,14 @@ void Klass::openLoop(const string& size)
  */
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
-    fTopLoop = new Loop(recsymbol, fTopLoop, size);  
-    //cerr << "open loop :" << fTopLoop << endl;  
+    fTopLoop = new Loop(recsymbol, fTopLoop, size);
+    //cerr << "open loop :" << fTopLoop << endl;
 }
 
 
 /**
  * Close the top loop and either keep it
- * or absorb it within its enclosing loop. 
+ * or absorb it within its enclosing loop.
  */
 void Klass::closeLoop(Tree sig)
 {
@@ -117,7 +118,7 @@ void Klass::closeLoop(Tree sig)
     Loop* l = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     assert(fTopLoop);
-    //cerr << "close loop :" << l << endl;  
+    //cerr << "close loop :" << l << endl;
 
     if (l->isEmpty() || l->hasRecDependencies()) {
         // empty or dependent loop -> absorbed by enclosing one
@@ -132,7 +133,7 @@ void Klass::closeLoop(Tree sig)
 
 
 /**
- * Print a list of lines. 
+ * Print a list of lines.
  */
 void printlines (int n, list<string>& lines, ostream& fout)
 {
@@ -144,7 +145,7 @@ void printlines (int n, list<string>& lines, ostream& fout)
 
 
 /**
- * Print a list of elements (e1, e2,...) 
+ * Print a list of elements (e1, e2,...)
  */
 void printdecllist (int n, const string& decl, list<string>& content, ostream& fout)
 {
@@ -164,7 +165,7 @@ void printdecllist (int n, const string& decl, list<string>& content, ostream& f
 
 
 /**
- * Print the required C++ libraries as comments in source code 
+ * Print the required C++ libraries as comments in source code
  */
 void Klass::printLibrary(ostream& fout)
 {
@@ -185,7 +186,7 @@ void Klass::printLibrary(ostream& fout)
 
 
 /**
- * Print the required include files 
+ * Print the required include files
  */
 void Klass::printIncludeFile(ostream& fout)
 {
@@ -201,6 +202,10 @@ void Klass::printIncludeFile(ostream& fout)
 	}
 }
 
+
+/**
+ * Print metadata declaration
+ */
 void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 {
     tab(n,fout); fout   << "static void metadata(Meta* m) \t{ ";
@@ -225,8 +230,8 @@ void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 
 
 /**
- * Print the loop graph as a serie of 
- * parallel loops 
+ * Print the loop graph as a serie of
+ * parallel loops
  */
 void Klass::printLoopGraph(int n, ostream& fout)
 {
@@ -249,8 +254,9 @@ void Klass::printLoopGraph(int n, ostream& fout)
     }
 }
 
+
 /**
- * returns true if all the loops are non recursive 
+ * returns true if all the loops are non recursive
  */
 static bool nonRecursiveLevel(const lset& L)
 {
@@ -262,7 +268,7 @@ static bool nonRecursiveLevel(const lset& L)
 
 /**
  * Print the 'level' of the loop graph as a set of
- * parallel loops 
+ * parallel loops
  */
 void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
 {
@@ -344,6 +350,15 @@ void Klass::println(int n, ostream& fout)
 	tab(n,fout); fout << "};\n" << endl;
 
 	printlines (n, fStaticFields, fout);
+
+	// generate user interface macros if needed
+	if (gUIMacroSwitch) {
+		tab(n, fout); fout << "#ifdef FAUST_UIMACROS";
+			printlines(n+1, fUIMacro, fout);
+		tab(n, fout); fout << "#endif";
+	}
+
+
 	fout << endl;
 
 }
@@ -351,7 +366,7 @@ void Klass::println(int n, ostream& fout)
 void Klass::printComputeMethod (int n, ostream& fout)
 {
     if (!gVectorSwitch) {
-        
+
         tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
             printlines (n+2, fZone1Code, fout);
             printlines (n+2, fZone2Code, fout);
@@ -417,7 +432,7 @@ void Klass::printComputeMethod (int n, ostream& fout)
                             printlines (n+5, fZone5Code, fout);
                         tab(n+4,fout); fout << "}";
                     }
-                    
+
                     tab(n+3,fout); fout << "}";
 
                 tab(n+2,fout); fout << "}";

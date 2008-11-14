@@ -107,9 +107,9 @@ Tree ScalarCompiler::prepare(Tree LS)
 Tree ScalarCompiler::prepare2(Tree L0)
 {
 	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
-	typeAnnotation(L0);				// Annotate L0 with type information	
+	typeAnnotation(L0);				// Annotate L0 with type information
 	sharingAnalysis(L0);			// annotate L0 with sharing count
- 	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis    
+ 	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis
 
   	return L0;
 }
@@ -133,6 +133,7 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 		fClass->addExecCode(subst("output$0[i] = $1;", T(i), CS(sig)));
 	}
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
@@ -149,6 +150,7 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 	sig = prepare2(sig);		// optimize and annotate expression
 	fClass->addExecCode(subst("output[i] = $0;", CS(sig)));
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
@@ -286,12 +288,12 @@ string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 {
 	string		ctype, vname;
 	Occurences* o = fOccMarkup.retrieve(sig);
-	
+
 	// check for number occuring in delays
 	if (o->getMaxDelay()>0) {
 		getTypedNames(getSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-	} 
+	}
 	return exp;
 }
 
@@ -305,13 +307,13 @@ string ScalarCompiler::generateFConst (Tree sig, const string& file, const strin
     string      ctype, vname;
     Occurences* o = fOccMarkup.retrieve(sig);
 
-    addIncludeFile(file);   
+    addIncludeFile(file);
 
     if (o->getMaxDelay()>0) {
         getTypedNames(getSigType(sig), "Vec", ctype, vname);
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-    } 
-    return exp;     
+    }
+    return exp;
 }
 
 /*****************************************************************************
@@ -324,13 +326,13 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
     string      ctype, vname;
     Occurences* o = fOccMarkup.retrieve(sig);
 
-    addIncludeFile(file);   
+    addIncludeFile(file);
 
     if (o->getMaxDelay()>0) {
         getTypedNames(getSigType(sig), "Vec", ctype, vname);
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-    } 
-    return generateCacheCode(sig, exp);     
+    }
+    return generateCacheCode(sig, exp);
 }
 
 /*****************************************************************************
@@ -395,7 +397,7 @@ void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, 
     } else {
         ctype = "float"; vname = subst("f$0", getFreshID(prefix));
     }
-} 
+}
 
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
@@ -407,7 +409,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     if (getCompiledExpression(sig, code)) {
         return code;
     }
-	
+
 	// check for expression occuring in delays
 	if (o->getMaxDelay()>0) {
 
@@ -423,7 +425,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return exp;
 
 	} else if (sharing > 1) {
-        
+
         return generateVariableStore(sig, exp);
 
 	} else {
@@ -1032,7 +1034,7 @@ void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 {
         fVectorProperty.set(sig, vecname);
 }
-	
+
 
 /**
  * Get the vector name property of a signal, the name of the vector used to
@@ -1064,7 +1066,7 @@ int ScalarCompiler::pow2limit(int x)
 
 	case 1-sample max delay :
 		Y(t-0)	Y(t-1)
-		Temp	Var						gLessTempSwitch = false		
+		Temp	Var						gLessTempSwitch = false
 		V[0]	V[1]					gLessTempSwitch = true
 
 	case max delay < gMaxCopyDelay :
@@ -1077,19 +1079,19 @@ int ScalarCompiler::pow2limit(int x)
 		Temp	V[0]	V[1]	...
 		V[0]	V[1]	V[2]	...
 
-		
+
 *****************************************************************************/
 
 /**
- * Generate code for accessing a delayed signal. The generated code depend of 
- * the maximum delay attached to exp and the gLessTempSwitch. 
+ * Generate code for accessing a delayed signal. The generated code depend of
+ * the maximum delay attached to exp and the gLessTempSwitch.
  */
 
 string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 {
-	int 	mxd, d; 
+	int 	mxd, d;
 	string 	vecname;
- 
+
 	CS(exp); // ensure exp is compiled to have a vector name
 
 	mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
@@ -1114,7 +1116,7 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
 		// long delay : we use a ring buffer of size 2^x
 		int 	N 	= pow2limit( mxd+1 );
-		return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N-1))); 
+		return generateCacheCode(sig, subst("$0[(IOTA-$1)&$2]", vecname, CS(delay), T(N-1)));
 	}
 }
 
@@ -1150,7 +1152,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
         fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
         fClass->addExecCode(subst("$0[0] = $1;", vname, exp));
-        
+
         // generate post processing copy code to update delay values
         if (mxd == 1) {
             fClass->addPostCode(subst("$0[1] = $0[0];", vname));
@@ -1159,8 +1161,8 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
             fClass->addPostCode(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname));
         } else {
             fClass->addPostCode(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname));
-        } 
-        setVectorNameProperty(sig, vname);  
+        }
+        setVectorNameProperty(sig, vname);
         return subst("$0[0]", vname);
 
     } else {
@@ -1177,8 +1179,8 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 
         // execute
         fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
-        setVectorNameProperty(sig, vname);  
-        return subst("$0[IOTA&$1]", vname, T(N-1)); 
+        setVectorNameProperty(sig, vname);
+        return subst("$0[IOTA&$1]", vname, T(N-1));
     }
 }
 
@@ -1193,7 +1195,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     //assert(mxd > 0);
     if (mxd == 0) {
         // cerr << "MXD==0 :  " << vname << " := " << exp << endl;
-        // no need for a real vector 
+        // no need for a real vector
         fClass->addExecCode(subst("$0 \t$1 = $2;", ctype, vname, exp));
 
 
@@ -1203,7 +1205,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
         fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
         fClass->addExecCode(subst("$0[0] = $1;", vname, exp));
-        
+
         // generate post processing copy code to update delay values
         if (mxd == 1) {
             fClass->addPostCode(subst("$0[1] = $0[0];", vname));
@@ -1211,7 +1213,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
             fClass->addPostCode(subst("$0[2] = $0[1]; $0[1] = $0[0];", vname));
         } else {
             fClass->addPostCode(subst("for (int i=$0; i>0; i--) $1[i] = $1[i-1];", T(mxd), vname));
-        } 
+        }
 
     } else {
 
@@ -1234,7 +1236,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
 
 /**
  * Generate code for a unique IOTA variable increased at each sample
- * and used to index ring buffers. 
+ * and used to index ring buffers.
  */
 void ScalarCompiler::ensureIotaCode()
 {
