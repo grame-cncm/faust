@@ -104,13 +104,13 @@ void compileSignals (const string& name, const string& super, int numInputs, int
 
 Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec)
 		: fClass(new Klass(name, super, numInputs, numOutputs, vec)),
-		  fUIRoot(uiFolder(cons(tree(0), tree(gMasterName)))),
+		  fUIRoot(uiFolder(cons(tree(0), tree(subst("\"$0\"", gMasterName))))),
 		  fDescription(0)
 {}
 
 Compiler::Compiler(Klass* k)
 		: fClass(k),
-		  fUIRoot(uiFolder(cons(tree(0), tree(gMasterName)))),
+		  fUIRoot(uiFolder(cons(tree(0), tree(subst("\"$0\"", gMasterName))))),
 		  fDescription(0)
 {}
 
