@@ -128,8 +128,6 @@ void setRealtimePriority ()
 *******************************************************************************
 *******************************************************************************/
 
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -226,7 +224,7 @@ class AudioInterface
 		assert( ioctl(fInputDevice, SNDCTL_DSP_GETBLKSIZE, &fInputBufferSize)  != -1);
 		assert( fInputBufferSize == fParam.fFramesPerBuffer * 2 * fNumOfInputChannels );
 
-		fInputBuffer = (short*) alloc(fInputBufferSize, 1);
+		fInputBuffer = (short*) calloc(fInputBufferSize, 1);
 	}
 
 
@@ -246,7 +244,7 @@ class AudioInterface
 		assert( ioctl(fOutputDevice, SNDCTL_DSP_GETBLKSIZE, &fOutputBufferSize) != -1);
 		assert( fOutputBufferSize == fParam.fFramesPerBuffer * 2 * fNumOfOutputChannels );
 
-		fOutputBuffer = (short*)alloc(fOutputBufferSize, 1);
+		fOutputBuffer = (short*)calloc(fOutputBufferSize, 1);
 	}
 
 
@@ -275,7 +273,7 @@ class AudioInterface
 	void allocChanGroup(float* chan[], int n, int len)
 	{
 		for (int c = 0; c < n; c++) {
-			chan[c] = (float*) alloc (len, sizeof(float));
+			chan[c] = (float*) calloc (len, sizeof(float));
 		}
 	}
 
@@ -443,14 +441,14 @@ void allocChannels (int size, int numInChan, int numOutChan)
 	
 	
 	for (int i = 0; i < numInChan; i++) {
-		gInChannel[i] = (float*) alloc (size, sizeof(float));
+		gInChannel[i] = (float*) calloc (size, sizeof(float));
 		for (int j = 0; j < size; j++) {
 			gInChannel[i][j] = 0.0;
 		}
 	}
 	
 	for (int i = 0; i < numOutChan; i++) {
-		gOutChannel[i] = (float*) alloc (size, sizeof(float));
+		gOutChannel[i] = (float*) calloc (size, sizeof(float));
 		for (int j = 0; j < size; j++) {
 			gOutChannel[i][j] = 0.0;
 		}
