@@ -47,11 +47,6 @@ struct Meta : map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
-
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
-// g++ -O3 -lm -ljack `gtk-config --cflags --libs` ex2.cpp
  
 	
 
@@ -77,7 +72,6 @@ inline int 		int2pow2 (int x)	        { int r=0; while ((1<<r)<x) r++; return r;
 *******************************************************************************
 *******************************************************************************/
 
-//inline void *alloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 
 
 <<includeIntrinsic>>
@@ -321,8 +315,9 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 class GTKUI : public UI
 {
  private :
- 	static bool			fInitialized;
- 	static list<UI*>	fGuiList;
+ 	static bool			        fInitialized;
+    static list<UI*>            fGuiList;
+    static map<float*, int>     fGuiSize;
 	
  protected :
 	GtkWidget* 	fWindow;
@@ -370,7 +365,8 @@ class GTKUI : public UI
 	
 	virtual void show();
 	virtual void run();
-		
+	virtual void declare(float* zone, const char* key, const char* value);
+	
 };
 
 
@@ -388,6 +384,7 @@ class GTKUI : public UI
 
 bool		GTKUI::fInitialized = false;
 list<UI*>	UI::fGuiList;
+map<float*, int>     GTKUI::fGuiSize;
 
 
 
@@ -436,6 +433,15 @@ void GTKUI::closeBox()
 	assert(--fTop >= 0);
 }
 
+// les metadata
+void GTKUI::declare(float* zone, const char* key, const char* value)
+{
+    if (strcmp(key,"size")==0) {
+        fGuiSize[zone]=atoi(value);
+    }
+}
+        
+        
 
 // les differentes boites
 
@@ -644,7 +650,8 @@ void GTKUI::addVerticalSlider(const char* label, float* zone, float init, float 
 	GtkWidget* slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
 	gtk_range_set_inverted (GTK_RANGE(slider), TRUE);
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
-	gtk_widget_set_usize(slider, -1, 160);
+    float size = 160 * pow(2, fGuiSize[zone]);
+	gtk_widget_set_usize(slider, -1, size);
 
 	if (label && label[0]!=0) {
 	    openFrameBox(label);
@@ -668,7 +675,8 @@ void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, floa
 	
 	GtkWidget* slider = gtk_hscale_new (GTK_ADJUSTMENT(adj));
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
-	gtk_widget_set_usize(slider, 160, -1);
+	float size = 160 * pow(2, fGuiSize[zone]);
+    gtk_widget_set_usize(slider, size, -1);
 	
     if (label && label[0]!=0) {
         openFrameBox(label);
