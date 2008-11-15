@@ -1,11 +1,10 @@
-version := 0.9.9.4j-par
+version := 0.9.9.5b1
 
 prefix := /usr/local
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
-
 
 all :
 	$(MAKE) -C compiler
