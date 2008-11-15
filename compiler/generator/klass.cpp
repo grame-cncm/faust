@@ -309,7 +309,11 @@ void Klass::println(int n, ostream& fout)
 
 	tab(n,fout); fout << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
-	tab(n,fout); fout << "  private:";
+    if (gUIMacroSwitch) {
+        tab(n,fout); fout << "  public:";
+    } else {
+	    tab(n,fout); fout << "  private:";
+    }
 
 		for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->println(n+1, fout);
 
