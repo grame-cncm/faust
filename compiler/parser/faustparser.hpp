@@ -121,17 +121,19 @@
      DEF = 337,
      IMPORT = 338,
      COMPONENT = 339,
-     IPAR = 340,
-     ISEQ = 341,
-     ISUM = 342,
-     IPROD = 343,
-     STRING = 344,
-     FSTRING = 345,
-     IDENT = 346,
-     EXTRA = 347,
-     DECLARE = 348,
-     CASE = 349,
-     ARROW = 350
+     LIBRARY = 340,
+     ENVIRONMENT = 341,
+     IPAR = 342,
+     ISEQ = 343,
+     ISUM = 344,
+     IPROD = 345,
+     STRING = 346,
+     FSTRING = 347,
+     IDENT = 348,
+     EXTRA = 349,
+     DECLARE = 350,
+     CASE = 351,
+     ARROW = 352
    };
 #endif
 /* Tokens.  */
@@ -217,17 +219,19 @@
 #define DEF 337
 #define IMPORT 338
 #define COMPONENT 339
-#define IPAR 340
-#define ISEQ 341
-#define ISUM 342
-#define IPROD 343
-#define STRING 344
-#define FSTRING 345
-#define IDENT 346
-#define EXTRA 347
-#define DECLARE 348
-#define CASE 349
-#define ARROW 350
+#define LIBRARY 340
+#define ENVIRONMENT 341
+#define IPAR 342
+#define ISEQ 343
+#define ISUM 344
+#define IPROD 345
+#define STRING 346
+#define FSTRING 347
+#define IDENT 348
+#define EXTRA 349
+#define DECLARE 350
+#define CASE 351
+#define ARROW 352
 
 
 
@@ -239,7 +243,7 @@ typedef union YYSTYPE
 	CTree* 	exp;
 }
 /* Line 1489 of yacc.c.  */
-#line 243 "parser/faustparser.hpp"
+#line 247 "parser/faustparser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -165,6 +165,12 @@ static Tree real_a2sb(Tree exp)
 			// propagate definition name property when needed
 			if (getDefNameProperty(exp, name)) setDefNameProperty(result, name);
 			return result;
+
+        } else if (isBoxEnvironment(abstr)) {
+            // Here we have remaining abstraction that we will try to 
+            // transform in a symbolic box by applying it to a slot
+            evalerrorbox(yyfilename, -1, " an environment can't be used as a block-diagram ", exp);
+            exit(1);
 	
 		} else {
 			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure ", exp);
@@ -399,13 +405,21 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 			exit(1);
 		}
 
-	} else if (isBoxComponent(exp, label)) {
-		string 	fname 	= tree2str(label);
-		Tree 	eqlst 	= gReader.expandlist(gReader.getlist(fname));
-		Tree	res 	= closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
-		setDefNameProperty(res, label);
-		//cerr << "component is " << boxpp(res) << endl;
-		return res;
+    } else if (isBoxComponent(exp, label)) {
+        string  fname   = tree2str(label);
+        Tree    eqlst   = gReader.expandlist(gReader.getlist(fname));
+        Tree    res     = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+        setDefNameProperty(res, label);
+        //cerr << "component is " << boxpp(res) << endl;
+        return res;
+
+    } else if (isBoxLibrary(exp, label)) {
+        string  fname   = tree2str(label);
+        Tree    eqlst   = gReader.expandlist(gReader.getlist(fname));
+        Tree    res     = closure(boxEnvironment(), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+        setDefNameProperty(res, label);
+        //cerr << "component is " << boxpp(res) << endl;
+        return res;
 
 
 	// user interface elements
@@ -492,9 +506,13 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		return applyList(	eval(fun, visited, localValEnv),
 							revEvalList(arg, visited, localValEnv) );
 
-	} else if (isBoxAbstr(exp)) {
-		// it is an abstraction : return a closure
-		return closure(exp, nil, visited, localValEnv);
+    } else if (isBoxAbstr(exp)) {
+        // it is an abstraction : return a closure
+        return closure(exp, nil, visited, localValEnv);
+
+    } else if (isBoxEnvironment(exp)) {
+        // environment : return also a closure
+        return closure(exp, nil, visited, localValEnv);
 
 	} else if (isClosure(exp, exp2, notused, visited2, lenv2)) {
 
@@ -996,10 +1014,15 @@ static Tree applyList (Tree fun, Tree larg)
 		return boxSeq(larg2par(larg), fun);
 	}
 
-	if (!isBoxAbstr(abstr, id, body)) {
-		evalerror(yyfilename, -1, "(internal) not an abstraction inside closure", fun);
-		exit(1);
-	}
+    if (isBoxEnvironment(abstr)) {
+        evalerrorbox(yyfilename, -1, "an environment can't be used as a function", fun);
+        exit(1);
+    }
+
+    if (!isBoxAbstr(abstr, id, body)) {
+        evalerror(yyfilename, -1, "(internal) not an abstraction inside closure", fun);
+        exit(1);
+    }
 
 	// try to synthetise a  name from the function name and the argument name
 	{

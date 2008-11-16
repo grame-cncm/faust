@@ -23,6 +23,7 @@
  
 #include "errormsg.hh"
 #include "boxes.hh"
+#include "ppbox.hh"
 #include <iostream>
 using namespace std;
 
@@ -38,9 +39,15 @@ void yyerror(char* msg)
 
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
-	fprintf(stderr, "%s:%d: ERROR: %s ", filename, linenum, msg); 
-	print(exp,stderr); fprintf(stderr, "\n");
-	gErrorCount++;
+    fprintf(stderr, "%s:%d: ERROR: %s ", filename, linenum, msg); 
+    print(exp,stderr); fprintf(stderr, "\n");
+    gErrorCount++;
+}
+
+void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
+{
+    cerr << filename << ':' << linenum << ": ERROR: " << msg << " : " << boxpp(exp) << endl;
+    gErrorCount++;
 }
 
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)

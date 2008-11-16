@@ -238,13 +238,25 @@ bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXW
 /*****************************************************************************
 							 Modules
 *****************************************************************************/
-Sym BOXCOMPONENT 	= symbol ("BoxComponent");
 
-Tree boxComponent (Tree filename)							{ return tree(BOXCOMPONENT, filename); }
-bool isBoxComponent	(Tree s, Tree& filename)				{ return isTree(s, BOXCOMPONENT, filename); }
+Sym BOXENVIRONMENT  = symbol ("BoxEnvironment");
+
+Tree boxEnvironment ()                                      { return tree(BOXENVIRONMENT); }
+bool isBoxEnvironment (Tree s)                              { return isTree(s, BOXENVIRONMENT); }
+
+Sym BOXCOMPONENT    = symbol ("BoxComponent");
+
+Tree boxComponent (Tree filename)                           { return tree(BOXCOMPONENT, filename); }
+bool isBoxComponent (Tree s, Tree& filename)                { return isTree(s, BOXCOMPONENT, filename); }
+
+Sym BOXLIBRARY      = symbol ("BoxLibrary");
+
+Tree boxLibrary (Tree filename)                             { return tree(BOXLIBRARY, filename); }
+bool isBoxLibrary (Tree s, Tree& filename)                  { return isTree(s, BOXLIBRARY, filename); }
 
 
-Sym IMPORTFILE		= symbol ("ImportFile");
+Sym IMPORTFILE      = symbol ("ImportFile");
+
 Tree importFile(Tree filename)								{ return tree(IMPORTFILE, filename); }
 bool isImportFile(Tree s, Tree& filename)					{ return isTree(s, IMPORTFILE, filename); }
 

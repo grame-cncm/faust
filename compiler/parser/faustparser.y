@@ -158,6 +158,8 @@ Tree unquote(char* str)
 
 %token IMPORT
 %token COMPONENT
+%token LIBRARY
+%token ENVIRONMENT
 
 %token IPAR
 %token ISEQ
@@ -176,6 +178,9 @@ Tree unquote(char* str)
 
 
 %type <exp> program
+
+%type <exp> stmtlist
+%type <exp> statement
 
 %type <exp> eqlist
 %type <exp> equation
@@ -233,20 +238,23 @@ Tree unquote(char* str)
 
 %% /* grammar rules and actions follow */
 
-program         : eqlist 						{$$ = $1; gResult = formatDefinitions($$); }
+program         : stmtlist 						{$$ = $1; gResult = formatDefinitions($$); }
 				;
 
-eqlist			: /*empty*/						{$$ = nil; }
-				| eqlist equation 				{$$ = cons ($2,$1); }
+stmtlist        : /*empty*/                     {$$ = nil; }
+                | stmtlist statement            {$$ = cons ($2,$1); }
+
+eqlist          : /*empty*/                     {$$ = nil; }
+                | eqlist equation               {$$ = cons ($2,$1); }
                 ;
-/*
-equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,buildBoxAbstr($3,$6)); }
-				| eqname DEF diagram ENDDEF						{$$ = cons($1,$3); }
-*/
+
+statement       : IMPORT LPAR uqstring RPAR ENDDEF              {$$ = importFile($3); }
+                | DECLARE name string  ENDDEF                   {declareMetadata($2,$3); $$ = nil; }
+                | equation                                      {$$ = $1; }
+                ;
+
 equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,cons($3,$6)); }
 				| eqname DEF diagram ENDDEF						{$$ = cons($1,cons(nil,$3)); }
-				| IMPORT LPAR uqstring RPAR ENDDEF				{$$ = importFile($3); }
-                | DECLARE name string  ENDDEF                   {declareMetadata($2,$3); $$ = nil; }
 				| error ENDDEF									{$$ = nil; yyerr++;}
                	;
 
@@ -379,7 +387,9 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| ffunction						{$$ = boxFFun($1); }
                 | fconst                        {$$ = $1;}
                 | fvariable                     {$$ = $1;}
-				| COMPONENT LPAR uqstring RPAR	{$$ = boxComponent($3); }
+                | COMPONENT LPAR uqstring RPAR  {$$ = boxComponent($3); }
+                | LIBRARY LPAR uqstring RPAR    {$$ = boxLibrary($3); }
+                | ENVIRONMENT LBRAQ eqlist RBRAQ {$$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
 
 				| button						{$$ = $1;}
 				| checkbox						{$$ = $1;}

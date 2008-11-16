@@ -228,8 +228,14 @@ bool isBoxFVar    (Tree s, Tree& type, Tree& name, Tree& file);
 							 Modules
 *****************************************************************************/
 
+Tree boxEnvironment();
+bool isBoxEnvironment (Tree s);
+
 Tree boxComponent (Tree filename);
-bool isBoxComponent	(Tree s, Tree& filename);
+bool isBoxComponent (Tree s, Tree& filename);
+
+Tree boxLibrary (Tree filename);
+bool isBoxLibrary (Tree s, Tree& filename);
 
 Tree importFile(Tree filename);
 bool isImportFile(Tree s, Tree& filename);

@@ -41,6 +41,7 @@ void 		yyerror(char* msg);
 
 // three levels or errors, warnings and remarks are provided during evaluation
 void 		evalerror(const char* filename, int linenum, const char* msg, Tree exp);
+void        evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp);
 void 		evalwarning(const char* filename, int linenum, const char* msg, Tree exp);
 void 		evalremark(const char* filename, int linenum, const char* msg, Tree exp);
 

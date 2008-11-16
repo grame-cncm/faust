@@ -135,7 +135,9 @@ LETTER   [a-zA-Z]
 "prod"		return IPROD;
 
 "import"	return IMPORT;
-"component"	return COMPONENT;
+"component" return COMPONENT;
+"library"   return LIBRARY;
+"environment"   return ENVIRONMENT;
 
 "declare"	return DECLARE;
 

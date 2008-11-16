@@ -234,12 +234,16 @@ ostream& boxpp::print (ostream& fout) const
 		fout << ')';
 
 	}
-	else if (isClosure(box, abstr, genv, vis, lenv)) {
-		fout << "closure[" << boxpp(abstr)
-			<< ", genv = " << envpp(genv)
-			<< ", lenv = " << envpp(lenv)
-			<< "]";
-	}
+    else if (isClosure(box, abstr, genv, vis, lenv) && isBoxEnvironment(abstr)) {
+        // we have an environment object
+        fout << "environment"<< envpp(lenv);
+    }
+    else if (isClosure(box, abstr, genv, vis, lenv)) {
+        fout << "closure[" << boxpp(abstr)
+            << ", genv = " << envpp(genv)
+            << ", lenv = " << envpp(lenv)
+            << "]";
+    }
 	else if (isBoxComponent(box, label)) {
 		fout << "component("
 			<< tree2str(label) << ')';
