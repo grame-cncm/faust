@@ -13,7 +13,7 @@
 
 $DESCRIPTION=Faust
 
-$KW_LIST(kwa)=component mem prefix int float rdtable rwtable select2 select3 ffunction fconstant fvariable button checkbox vslider hslider nentry vgroup hgroup tgroup vbargraph hbargraph attach acos asin atan atan2 cos sin tan exp log log10 pow sqrt abs min max fmod remainder floor ceil rint
+$KW_LIST(kwa)=component library environment mem prefix int float rdtable rwtable select2 select3 ffunction fconstant fvariable button checkbox vslider hslider nentry vgroup hgroup tgroup vbargraph hbargraph attach acos asin atan atan2 cos sin tan exp log log10 pow sqrt abs min max fmod remainder floor ceil rint
 
 $KW_LIST(kwc)=process with case seq par sum prod import declare
 

@@ -58,7 +58,10 @@
 	  <item> prod </item>
 	  <item> import </item>
 	  
-	  <item> component </item>
+      <item> component </item>
+      <item> library </item>
+      <item> environment </item>
+      
 	  <item> declare </item>
     </list>
 	

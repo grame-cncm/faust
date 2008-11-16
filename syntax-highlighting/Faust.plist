@@ -13,6 +13,9 @@
 		<string>process</string>
 		<string>declare</string>
         <string>with</string>
+        <string>component</string>
+        <string>library</string>
+        <string>environment</string>
         <string>case</string>
         <string>seq</string>
         <string>par</string>

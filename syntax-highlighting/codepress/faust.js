@@ -5,7 +5,7 @@
 // Faust
 Language.syntax = [
 	{ input : /\"(.*?)(\"|<br>|<\/P>)/g, output : '<s>"$1$2</s>'}, // strings double quote
-    { input : /\b(component|mem|prefix|int|float|rdtable|rwtable|select2|select3|ffunction|fconstant|fvariable|button|checkbox|vslider|hslider|nentry|vbargraph|hbargraph|attach|acos|asin|atan|atan2|cos|sin|tan|exp|log|log10|pow|sqrt|abs|min|max|fmod|remainder|floor|ceil|rint)\b/g, output : '<b>$1</b>'},
+    { input : /\b(component|library|environment|mem|prefix|int|float|rdtable|rwtable|select2|select3|ffunction|fconstant|fvariable|button|checkbox|vslider|hslider|nentry|vbargraph|hbargraph|attach|acos|asin|atan|atan2|cos|sin|tan|exp|log|log10|pow|sqrt|abs|min|max|fmod|remainder|floor|ceil|rint)\b/g, output : '<b>$1</b>'},
     { input : /\b(process|with|case|seq|par|sum|prod|import|vgroup|hgroup|tgroup|declare)\b/g, output : '<u>$1</u>'},
     { input : /(&lt;:|:&gt;|,|:)/g, output : '<al>$1</al>'},
     { input : /(~)/g, output : '<al>$1</al>'},
@@ -20,6 +20,8 @@ Language.snippets = [
     { input : 'pr', output : 'process = $0;' },
     { input : 'im', output : 'import("$0.lib");' },
     { input : 'co', output : 'component("$0.dsp")' },
+    { input : 'li', output : 'library("$0.dsp")' },
+    { input : 'en', output : 'environment {$0}' },
     { input : 'wi', output : 'with {$0}' },
 
     // pattern matching
