@@ -234,9 +234,8 @@ ostream& boxpp::print (ostream& fout) const
 		fout << ')';
 
 	}
-    else if (isClosure(box, abstr, genv, vis, lenv) && isBoxEnvironment(abstr)) {
-        // we have an environment object
-        fout << "environment"<< envpp(lenv);
+    else if (isBoxEnvironment(box)) {
+        fout << "environment";
     }
     else if (isClosure(box, abstr, genv, vis, lenv)) {
         fout << "closure[" << boxpp(abstr)
