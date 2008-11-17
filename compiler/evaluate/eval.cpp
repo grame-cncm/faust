@@ -167,10 +167,7 @@ static Tree real_a2sb(Tree exp)
 			return result;
 
         } else if (isBoxEnvironment(abstr)) {
-            // Here we have remaining abstraction that we will try to 
-            // transform in a symbolic box by applying it to a slot
-            evalerrorbox(yyfilename, -1, " an environment can't be used as a block-diagram ", exp);
-            exit(1);
+            return abstr;
 	
 		} else {
 			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure ", exp);
@@ -516,10 +513,13 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isClosure(exp, exp2, notused, visited2, lenv2)) {
 
-		if (isBoxAbstr(exp2)) {
-			// a 'real' closure
-			return closure(exp2, nil, setUnion(visited,visited2), lenv2);
-		} else {
+        if (isBoxAbstr(exp2)) {
+            // a 'real' closure
+            return closure(exp2, nil, setUnion(visited,visited2), lenv2);
+        } else if (isBoxEnvironment(exp2)) {
+            // a 'real' closure
+            return closure(exp2, nil, setUnion(visited,visited2), lenv2);
+        } else {
 			// it was a suspended evaluation
 			return eval(exp2, setUnion(visited,visited2), lenv2);
 		}
