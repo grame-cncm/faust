@@ -226,7 +226,10 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		}
 		*inum = max(0,u-y); *onum = v;
 		
-	} else {
+    } else if (isBoxEnvironment(t)) {
+        cerr << "An environment is not a block-diagram : " << boxpp(t) << endl;
+        return false;
+    } else {
 	  return false;
 	}
 	return true;
