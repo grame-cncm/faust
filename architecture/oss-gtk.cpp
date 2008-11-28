@@ -47,7 +47,7 @@ struct Meta : map<const char*, const char*>
     #define AVOIDDENORMALS 
 #endif
 
-#define BENCHMARKMODE
+//#define BENCHMARKMODE
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -183,6 +183,11 @@ void printstats()
 
     }    
 }
+#else
+
+#define STARTMESURE
+#define STOPMESURE
+
 #endif
 
 

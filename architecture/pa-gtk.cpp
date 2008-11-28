@@ -40,7 +40,6 @@ using namespace std;
     #define AVOIDDENORMALS 
 #endif
 
-#define BENCHMARKMODE
 
 struct Meta : map<const char*, const char*>
 {

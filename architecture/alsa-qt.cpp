@@ -55,7 +55,7 @@ using namespace std;
 #endif
 
 
-#define BENCHMARKMODE
+//#define BENCHMARKMODE
 
 #ifdef BENCHMARKMODE
 // mesuring jack performances
@@ -102,8 +102,12 @@ void printstats()
 
     }    
 }
-#endif
+#else
 
+#define STARTMESURE
+#define STOPMESURE
+
+#endif
 
 struct Meta : map<const char*, const char*>
 {

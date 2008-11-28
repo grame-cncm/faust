@@ -38,7 +38,7 @@ using namespace std;
     #define AVOIDDENORMALS 
 #endif
 
-#define BENCHMARKMODE
+//#define BENCHMARKMODE
 
 // g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
 
@@ -139,8 +139,13 @@ void printstats()
 
     }    
 }
-#endif
 
+#else
+
+#define STARTMESURE
+#define STOPMESURE
+
+#endif
 
 /******************************************************************************
 *******************************************************************************

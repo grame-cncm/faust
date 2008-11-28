@@ -41,7 +41,8 @@ using namespace std;
     #define AVOIDDENORMALS 
 #endif
 
-#define BENCHMARKMODE
+//#define BENCHMARKMODE
+
 
 struct Meta : map<const char*, const char*>
 {
@@ -1006,7 +1007,14 @@ void printstats()
 
     }    
 }
+
+#else
+
+#define STARTMESURE
+#define STOPMESURE
+
 #endif
+
 // end
 
 int process (jack_nframes_t nframes, void *arg)
