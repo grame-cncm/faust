@@ -53,7 +53,7 @@ extern bool gVectorSwitch;
 extern bool gOpenMPSwitch;
 extern int  gVecSize;
 extern bool gUIMacroSwitch;
-
+extern int  gVectorLoopVariant;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 
@@ -349,7 +349,7 @@ void Klass::println(int n, ostream& fout)
 		tab(n+1,fout); fout << "}";
 
 
-        printComputeMethod(n+1, fout);
+        printComputeMethod(n, fout);
 
 	tab(n,fout); fout << "};\n" << endl;
 
@@ -367,83 +367,206 @@ void Klass::println(int n, ostream& fout)
 
 }
 
+
+/**
+ * Print Compute() method according to the various switch
+ */
 void Klass::printComputeMethod (int n, ostream& fout)
 {
-    if (!gVectorSwitch) {
+    if (gOpenMPSwitch) {
+        printComputeMethodOpenMP (n, fout);
 
-        tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
-            printlines (n+2, fZone1Code, fout);
-            printlines (n+2, fZone2Code, fout);
-            printlines (n+2, fZone2bCode, fout);
-            printlines (n+2, fZone3Code, fout);
-            printlines (n+2, fZone4Code, fout);
-            printLoopGraph (n+2,fout);
-            printlines (n+2, fZone5Code, fout);
-        tab(n+1,fout); fout << "}";
+    } else if (gVectorSwitch) {
+        switch (gVectorLoopVariant) {
+            case 0 : printComputeMethodVectorFaster (n, fout); break;
+            case 1 : printComputeMethodVectorSimple (n, fout); break;
+            default : cerr << "unknown loop variant " << gVectorLoopVariant << endl; exit(1);
+        }
 
     } else {
-
-        if (!gOpenMPSwitch) {
-            // in vector mode we need to split loops in smaller pieces not larger
-            // than gVecSize
-            tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-                printlines (n+2, fZone1Code, fout);
-                printlines (n+2, fZone2Code, fout);
-                printlines (n+2, fZone2bCode, fout);
-                tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
-                    tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-                    printlines (n+3, fZone3Code, fout);
-                    printlines (n+3, fZone4Code, fout);
-                    printLoopGraph (n+3,fout);
-                    printlines (n+3, fZone5Code, fout);
-                tab(n+2,fout); fout << "}";
-            tab(n+1,fout); fout << "}";
-        } else {
-            // in openMP mode we need to split loops in smaller pieces not larger
-            // than gVecSize and add openMP pragmas
-            tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-                printlines (n+2, fZone1Code, fout);
-                printlines (n+2, fZone2Code, fout);
-                tab(n+2,fout); fout << "#pragma omp parallel";
-                printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
-
-                tab(n+2,fout); fout << "{";
-                    if (!fZone2bCode.empty()) {
-                        tab(n+3,fout); fout << "#pragma omp single";
-                        tab(n+3,fout); fout << "{";
-                            printlines (n+4, fZone2bCode, fout);
-                        tab(n+3,fout); fout << "}";
-                    }
-
-                    tab(n+3,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
-                    tab(n+4,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-
-                    printlines (n+4, fZone3Code, fout);
-
-                    if (!fZone4Code.empty()) {
-                        tab(n+4,fout); fout << "#pragma omp single";
-                        tab(n+4,fout); fout << "{";
-                            printlines (n+5, fZone4Code, fout);
-                        tab(n+4,fout); fout << "}";
-                    }
-
-                    printLoopGraph (n+4,fout);
-
-
-                    if (!fZone5Code.empty()) {
-                        tab(n+4,fout); fout << "#pragma omp single";
-                        tab(n+4,fout); fout << "{";
-                            printlines (n+5, fZone5Code, fout);
-                        tab(n+4,fout); fout << "}";
-                    }
-
-                    tab(n+3,fout); fout << "}";
-
-                tab(n+2,fout); fout << "}";
-            tab(n+1,fout); fout << "}";
-        }
+        printComputeMethodScalar (n, fout);
     }
 }
+
+void Klass::printComputeMethodScalar (int n, ostream& fout)
+{
+    tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
+        printlines (n+2, fZone1Code, fout);
+        printlines (n+2, fZone2Code, fout);
+        printlines (n+2, fZone2bCode, fout);
+        printlines (n+2, fZone3Code, fout);
+        printlines (n+2, fZone4Code, fout);
+        printLoopGraph (n+2,fout);
+        printlines (n+2, fZone5Code, fout);
+    tab(n+1,fout); fout << "}";
+}
+
+/**
+ * Uses loops of constant gVecSize boundary in order to provide the 
+ * C compiler with more optimisation opportunities. Improves performances
+ * in general, but not always
+ */
+void Klass::printComputeMethodVectorFaster (int n, ostream& fout)
+{
+    // in vector mode we need to split loops in smaller pieces not larger
+    // than gVecSize
+    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+        printlines (n+2, fZone1Code, fout);
+        printlines (n+2, fZone2Code, fout);
+        printlines (n+2, fZone2bCode, fout);
+
+        tab(n+2,fout); fout << "int index;";
+        tab(n+2,fout); fout << "for (index = 0; index <= fullcount - " << gVecSize << "; index += " << gVecSize << ") {";
+            tab(n+3,fout); fout << "// compute by blocks of " << gVecSize << " samples";
+            tab(n+3,fout); fout << "const int count = " << gVecSize << ";";
+            printlines (n+3, fZone3Code, fout);
+            printlines (n+3, fZone4Code, fout);
+            printLoopGraph (n+3,fout);
+            printlines (n+3, fZone5Code, fout);
+        tab(n+2,fout); fout << "}";
+
+        tab(n+2,fout); fout << "if (index < fullcount) {";
+            tab(n+3,fout); fout << "// compute the remaining samples if any";
+            tab(n+3,fout); fout << "int count = fullcount-index;";
+            printlines (n+3, fZone3Code, fout);
+            printlines (n+3, fZone4Code, fout);
+            printLoopGraph (n+3,fout);
+            printlines (n+3, fZone5Code, fout);
+        tab(n+2,fout); fout << "}";
+    tab(n+1,fout); fout << "}";
+}
+
+
+/**
+ * Simple loop layout, generally less efficient than printComputeMethodVectorFaster
+ */
+void Klass::printComputeMethodVectorSimple (int n, ostream& fout)
+{
+    // in vector mode we need to split loops in smaller pieces not larger
+    // than gVecSize
+    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+        printlines (n+2, fZone1Code, fout);
+        printlines (n+2, fZone2Code, fout);
+        printlines (n+2, fZone2bCode, fout);
+        tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+            tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+            printlines (n+3, fZone3Code, fout);
+            printlines (n+3, fZone4Code, fout);
+            printLoopGraph (n+3,fout);
+            printlines (n+3, fZone5Code, fout);
+        tab(n+2,fout); fout << "}";
+    tab(n+1,fout); fout << "}";
+}
+
+/*
+void Klass::printComputeMethodVectorFix0 (int n, ostream& fout)
+{
+    // in vector mode we need to split loops in smaller pieces not larger
+    // than gVecSize
+    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+        printlines (n+2, fZone1Code, fout);
+        printlines (n+2, fZone2Code, fout);
+        printlines (n+2, fZone2bCode, fout);
+        tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+            tab(n+3,fout); fout << "if (fullcount >= index + " << gVecSize << ") {";
+                tab(n+4,fout); fout << "// compute by blocks of " << gVecSize << " samples";
+                tab(n+4,fout); fout << "const int count = " << gVecSize << ";"; // temporaire
+                printlines (n+4, fZone3Code, fout);
+                printlines (n+4, fZone4Code, fout);
+                printLoopGraph (n+4,fout);
+                printlines (n+4, fZone5Code, fout);
+            tab(n+3,fout); fout << "} else if (fullcount > index) {";
+                //tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+                tab(n+4,fout); fout << "// compute the remaining samples";
+                tab(n+4,fout); fout << "int count = fullcount-index;" ;
+                printlines (n+4, fZone3Code, fout);
+                printlines (n+4, fZone4Code, fout);
+                printLoopGraph (n+4,fout);
+                printlines (n+4, fZone5Code, fout);
+            tab(n+3,fout); fout << "}";
+        tab(n+2,fout); fout << "}";
+    tab(n+1,fout); fout << "}";
+}
+
+void Klass::printComputeMethodVectorFix1 (int n, ostream& fout)
+{
+    // in vector mode we need to split loops in smaller pieces not larger
+    // than gVecSize
+    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+        printlines (n+2, fZone1Code, fout);
+        printlines (n+2, fZone2Code, fout);
+        printlines (n+2, fZone2bCode, fout);
+
+        tab(n+2,fout); fout << "int \tblock;";
+        tab(n+2,fout); fout << "for (block = 0; block < fullcount/" << gVecSize << "; block++) {";
+            tab(n+3,fout); fout << "// compute by blocks of " << gVecSize << " samples";
+            tab(n+3,fout); fout << "const int index = block*" << gVecSize << ";";
+            tab(n+3,fout); fout << "const int count = " << gVecSize << ";"; // temporaire
+            printlines (n+3, fZone3Code, fout);
+            printlines (n+3, fZone4Code, fout);
+            printLoopGraph (n+3,fout);
+            printlines (n+3, fZone5Code, fout);
+        tab(n+2,fout); fout << "}";
+
+        tab(n+2,fout); fout << "if (fullcount%" << gVecSize << " != 0) {";
+            //tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+            tab(n+3,fout); fout << "// compute the remaining samples";
+            tab(n+3,fout); fout << "const int index = block*" << gVecSize << ";";
+            tab(n+3,fout); fout << "int count = fullcount%" << gVecSize << ";" ;
+            printlines (n+3, fZone3Code, fout);
+            printlines (n+3, fZone4Code, fout);
+            printLoopGraph (n+3,fout);
+            printlines (n+3, fZone5Code, fout);
+        tab(n+2,fout); fout << "}";
+    tab(n+1,fout); fout << "}";
+}*/
+
+void Klass::printComputeMethodOpenMP (int n, ostream& fout)
+{
+    // in openMP mode we need to split loops in smaller pieces not larger
+    // than gVecSize and add openMP pragmas
+    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+        printlines (n+2, fZone1Code, fout);
+        printlines (n+2, fZone2Code, fout);
+        tab(n+2,fout); fout << "#pragma omp parallel";
+        printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
+
+        tab(n+2,fout); fout << "{";
+            if (!fZone2bCode.empty()) {
+                tab(n+3,fout); fout << "#pragma omp single";
+                tab(n+3,fout); fout << "{";
+                    printlines (n+4, fZone2bCode, fout);
+                tab(n+3,fout); fout << "}";
+            }
+
+            tab(n+3,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+            tab(n+4,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
+
+            printlines (n+4, fZone3Code, fout);
+
+            if (!fZone4Code.empty()) {
+                tab(n+4,fout); fout << "#pragma omp single";
+                tab(n+4,fout); fout << "{";
+                    printlines (n+5, fZone4Code, fout);
+                tab(n+4,fout); fout << "}";
+            }
+
+            printLoopGraph (n+4,fout);
+
+
+            if (!fZone5Code.empty()) {
+                tab(n+4,fout); fout << "#pragma omp single";
+                tab(n+4,fout); fout << "{";
+                    printlines (n+5, fZone5Code, fout);
+                tab(n+4,fout); fout << "}";
+            }
+
+            tab(n+3,fout); fout << "}";
+
+        tab(n+2,fout); fout << "}";
+    tab(n+1,fout); fout << "}";
+}
+
 
 /**
  * Print an auxillary C++ class corresponding to an integer init signal

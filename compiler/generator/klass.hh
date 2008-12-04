@@ -49,8 +49,8 @@ using namespace std;
 
 #define kMaxCategory 32
 
-#import "loop.hh"
-#import "graphSorting.hh"
+#include "loop.hh"
+#include "graphSorting.hh"
 
 class Klass //: public Target
 {
@@ -171,6 +171,12 @@ class Klass //: public Target
 
 	virtual void println(int n, ostream& fout);
     virtual void printComputeMethod (int n, ostream& fout);
+    virtual void printComputeMethodScalar (int n, ostream& fout);
+    virtual void printComputeMethodVectorFaster (int n, ostream& fout);
+    virtual void printComputeMethodVectorSimple (int n, ostream& fout);
+//    virtual void printComputeMethodVectorFix0 (int n, ostream& fout);
+//    virtual void printComputeMethodVectorFix1 (int n, ostream& fout);
+    virtual void printComputeMethodOpenMP (int n, ostream& fout);
 
     virtual void printLoopGraph(int n, ostream& fout);
     virtual void printLoopLevel(int n, int lnum, const lset& L, ostream& fout);
