@@ -23,6 +23,14 @@ static void setLevel(int order, const lset& T1, lset& T2, lgraph& V)
     }
 }
 
+
+static void resetOrder(Loop* l)
+{
+    l->fOrder = -1;
+    for (lset::const_iterator p = l->fLoopDependencies.begin(); p!=l->fLoopDependencies.end(); p++) {
+        resetOrder(*p);
+    }
+}
 /**
  * Topological sort of an acyclic graph of loops. The loops
  * are collect in an lgraph : a vector of sets of loops
@@ -33,6 +41,7 @@ void sortGraph(Loop* root, lgraph& V)
     int             level;
     
     assert(root);
+    resetOrder(root);
     T1.insert(root); level=0; V.clear();
     do {
         setLevel(level, T1, T2, V); 
