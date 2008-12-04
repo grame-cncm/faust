@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.5b1"
+#define FAUSTVERSION "0.9.9.5b2"
 
 #include <stdio.h>
 #include <string.h>
@@ -118,6 +118,8 @@ bool            gPatternEvalMode = false;
 
 bool            gVectorSwitch   = false;
 int             gVecSize        = 32;
+int             gVectorLoopVariant = 0;
+
 bool            gOpenMPSwitch   = false;
 bool            gUIMacroSwitch  = false;
 
@@ -215,8 +217,12 @@ bool process_cmdline(int argc, char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-vs", "--vec-size")) {
-			gVecSize = atoi(argv[i+1]);
-			i += 2;
+            gVecSize = atoi(argv[i+1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-lv", "--loop-variant")) {
+            gVectorLoopVariant = atoi(argv[i+1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
 			gOpenMPSwitch = true;
@@ -292,6 +298,7 @@ void printhelp()
     cout << "-o <file> \tC++ output file\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
+    cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate openMP pragmas, activates --vectorize option\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
 
