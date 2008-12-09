@@ -19,7 +19,7 @@
 
 #include <iostream>
 #include <fstream>
-
+#include <libgen.h>
 #include <portaudio.h>
 
 // g++ -O3 -lm -lportaudio `gtk-config --cflags --libs` ex2.cpp
@@ -907,10 +907,6 @@ class dsp {
 				
 mydsp	DSP;
 
-
-
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -963,45 +959,17 @@ void allocChannels (int size, int numInChan, int numOutChan)
 	}
 }
 
-
-//----------------------------------------------------------------------------
-// Search the best (closest) sample rate 
-//----------------------------------------------------------------------------
-
-double searchBestSampleRate(const PaDeviceInfo* dev, double requestedRate)
-{
-	if (dev->numSampleRates == -1) {
-		double minRate = min(dev->sampleRates[0], dev->sampleRates[1]);
-		double maxRate = max(dev->sampleRates[0], dev->sampleRates[1]);
-		if (requestedRate <= minRate) return minRate;
-		if (requestedRate >= maxRate) return maxRate;
-		return requestedRate;
-	} else {
-		double bestDiff = abs(dev->sampleRates[0] - requestedRate);
-		double bestRate = dev->sampleRates[0];
-		for (int j=1; j<dev->numSampleRates; j++ ) {
-			double diff = abs(dev->sampleRates[j] - requestedRate);
-			if (diff < bestDiff) {
-				bestDiff = diff;
-				bestRate = dev->sampleRates[j];
-			}
-		}
-		return bestRate;
-	}
-}
-
-
 //----------------------------------------------------------------------------
 // Port Audio Callback 
 //----------------------------------------------------------------------------
 
-static int audioCallback( void *ibuf, void *obuf, unsigned long frames, PaTimestamp, void * )
+static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * )
 {
 	float* fInputBuffer = (float*) ibuf;
 	float* fOutputBuffer = (float*) obuf;
 		
 	// split input samples
-	for (int s = 0; s < frames; s++) {
+	for (unsigned long s = 0; s < frames; s++) {
 		for (int c = 0; c < gDevNumInChans; c++) {
 			gInChannel[c][s] = fInputBuffer[c + s*gDevNumInChans];
 		}
@@ -1011,7 +979,7 @@ static int audioCallback( void *ibuf, void *obuf, unsigned long frames, PaTimest
 	DSP.compute(frames, gInChannel, gOutChannel);
 
 	// merge output samples
-	for (int s = 0; s < frames; s++) {
+	for (unsigned long s = 0; s < frames; s++) {
 		for (int c = 0; c < gDevNumOutChans; c++) {
 			fOutputBuffer[c + s*gDevNumOutChans] = gOutChannel[c][s];
 		}
@@ -1020,9 +988,6 @@ static int audioCallback( void *ibuf, void *obuf, unsigned long frames, PaTimest
     return 0;
 }
 		
-
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -1052,6 +1017,7 @@ void pa_error(int err)
 		exit(1);
 	}
 }
+
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
@@ -1059,27 +1025,44 @@ void pa_error(int err)
 int main(int argc, char *argv[] )
 {
 	gtk_init (&argc, &argv);
-	const char*         name = basename(argv[0]);
-	UI* 				interface = new GTKUI(name, &argc, &argv);
-	PortAudioStream*	as;
-    char                rcfilename[256];
+	const char* name = basename(argv[0]);
+	UI* interface = new GTKUI(name, &argc, &argv);
+	PaStream* as;
+    char rcfilename[256];
+    long srate = (long)lopt(argv, "--frequency", 44100);
+    int	fpb = lopt(argv, "--buffer", 128);
+    
+    pa_error(Pa_Initialize());
 	
+	const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
+	const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
 	
-	pa_error( Pa_Initialize() );
-	
-	const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDeviceID());
-	const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDeviceID());
-	
-	double 	srate 	= searchBestSampleRate(odev, lopt(argv, "--frequency", 44100));
-	int		fpb 	= lopt(argv, "--buffer", 128);
-	
-	gDevNumInChans 	= (DSP.getNumInputs() > 0) ? idev->maxInputChannels : 0 ;
+	gDevNumInChans = (DSP.getNumInputs() > 0) ? idev->maxInputChannels : 0 ;
 	gDevNumOutChans = (DSP.getNumOutputs() > 0) ? odev->maxOutputChannels : 0;
+    
+    PaStreamParameters inputParameters;
+    PaStreamParameters outputParameters;
+    
+    inputParameters.device = Pa_GetDefaultInputDevice();
+    inputParameters.sampleFormat = paFloat32;
+    inputParameters.channelCount = gDevNumInChans;
+    inputParameters.hostApiSpecificStreamInfo = 0;
+    
+    outputParameters.device = Pa_GetDefaultOutputDevice();
+    outputParameters.sampleFormat = paFloat32;
+    outputParameters.channelCount = gDevNumOutChans;
+    outputParameters.hostApiSpecificStreamInfo = 0;
+    
+    PaError err;
+    if ((err = Pa_IsFormatSupported(
+        ((gDevNumInChans > 0) ? &inputParameters : 0), 
+        ((gDevNumOutChans > 0) ? &outputParameters : 0), srate)) != 0) {
+        printf("stream format is not supported err = %d\n", err);
+        exit(1);
+    }
 	
-	printf("inchan = %d, outchan = %d, freq = %f\n", gDevNumInChans, gDevNumOutChans, srate);
-	
-	
-	allocChannels( fpb, max(gDevNumInChans,  DSP.getNumInputs()), max(gDevNumOutChans, DSP.getNumOutputs()) );
+	printf("inchan = %d, outchan = %d, freq = %ld\n", gDevNumInChans, gDevNumOutChans, srate);
+	allocChannels(fpb, max(gDevNumInChans, DSP.getNumInputs()), max(gDevNumOutChans, DSP.getNumOutputs()));
 	
 	DSP.init(long(srate));
 	DSP.buildUserInterface(interface);
@@ -1089,7 +1072,7 @@ int main(int argc, char *argv[] )
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     interface->recallState(rcfilename);
 
-	pa_error( Pa_OpenDefaultStream( &as, gDevNumInChans, gDevNumOutChans, paFloat32, srate, fpb, 0, audioCallback, 0) );
+	pa_error(Pa_OpenDefaultStream(&as, gDevNumInChans, gDevNumOutChans, paFloat32, srate, fpb, audioCallback, 0));
 	Pa_StartStream(as);
 	interface->run();
 	Pa_StopStream(as);

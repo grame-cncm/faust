@@ -68,13 +68,17 @@ jackqt :
 	install -d jackqtdir
 	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack' -f Makefile.qtcompile
 
+paqt :
+	install -d paqtdir
+	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio' -f Makefile.qtcompile
+
 alsaqt :
 	install -d alsaqtdir
 	$(MAKE) DEST='alsaqtdir/' ARCH='alsa-qt.cpp' LIB='-lpthread -lasound' -f Makefile.qtcompile
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -shared' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
 	
 jackwx :
 	install -d jackwxdir
