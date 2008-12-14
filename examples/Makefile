@@ -72,6 +72,10 @@ paqt :
 	install -d paqtdir
 	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio' -f Makefile.qtcompile
 
+caqt :
+	install -d caqtdir
+	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit' -f Makefile.qtcompile
+
 alsaqt :
 	install -d alsaqtdir
 	$(MAKE) DEST='alsaqtdir/' ARCH='alsa-qt.cpp' LIB='-lpthread -lasound' -f Makefile.qtcompile
