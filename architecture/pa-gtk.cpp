@@ -798,18 +798,18 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 
 struct uiTextDisplay : public uiItem
 {
-        GtkLabel*           fLabel;
+        GtkLabel*       fLabel;
         const char**    fNames;
-        float               fMin;
-        float               fMax;
-        int                         fNum;
+        float           fMin;
+        float           fMax;
+        int             fNum;
         
         
-        uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
+    uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
                         : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
-        {
-                fNum = 0;
-                while (fNames[fNum] != 0) fNum++;
+    {
+        fNum = 0;
+        while (fNames[fNum] != 0) fNum++;
     }
 
     virtual void reflectZone()  
@@ -938,11 +938,9 @@ float* 	gOutChannel[256];
 //----------------------------------------------------------------------------
 
 void allocChannels (int size, int numInChan, int numOutChan) 
-{
-	
+{	
 	assert (numInChan < 256);
 	assert (numOutChan < 256);
-	
 	
 	for (int i = 0; i < numInChan; i++) {
 		gInChannel[i] = (float*) calloc (size, sizeof(float));
