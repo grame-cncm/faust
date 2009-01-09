@@ -28,3 +28,5 @@ else
 	echo "Cannot be run on Linux"
 
 fi
+
+echo  ${f%.dsp}.app

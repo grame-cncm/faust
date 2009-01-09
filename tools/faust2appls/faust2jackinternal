@@ -15,3 +15,5 @@ else
 	done
 
 fi
+
+echo  ${f%.dsp}.so

@@ -1,6 +1,6 @@
 prefix := /usr/local
 
-install :
+install:
 	install faust2jack $(prefix)/bin
 	install faust2alsa $(prefix)/bin
 	install faust2plot $(prefix)/bin
