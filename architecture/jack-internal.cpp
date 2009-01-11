@@ -358,7 +358,6 @@ typedef struct {
 }
 jack_driver_param_t;
 
-
 /** A struct for describing a jack driver */
 typedef struct {
     char name[JACK_DRIVER_NAME_MAX + 1];      /**< The driver's canonical name */
@@ -368,7 +367,6 @@ typedef struct {
     jack_driver_param_desc_t * params;        /**< An array of parameter descriptors */
 }
 jack_driver_desc_t;
-
 
 // class JackArgParser ***************************************************
 class  JackArgParser
@@ -673,19 +671,8 @@ struct JackFaustInternal {
         return 0;
     }    
     
-    
     void JackFaustInternal::Close()
-    {
-        jack_deactivate(fClient);
-        
-        for (int i = 0; i < fNumInChans; i++) {
-            jack_port_unregister(fClient, fInputPorts[i]);
-        }
-        for (int i = 0; i < fNumOutChans; i++) {
-            jack_port_unregister(fClient, fOutputPorts[i]);
-        }
-   }
-
+    {}
 
     //----------------------------------------------------------------------------
     // Jack Callbacks 
@@ -700,9 +687,6 @@ struct JackFaustInternal {
     static int process(jack_nframes_t nframes, void *arg)
     {
         JackFaustInternal* obj = (JackFaustInternal*)arg;
-        
-        printf("nframes %d %x %d\n", nframes, obj, obj->fNumInChans);
-        
         AVOIDDENORMALS;
         
         for (int i = 0; i < obj->fNumInChans; i++) {

@@ -4,14 +4,14 @@ if [[ $(uname) == Darwin ]]; then
 	#On Darwin build a Jack internal client
 	for f in $@; do
 		faust -a jack-internal.cpp $f -o $f.cpp
-		${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags --libs jack` $f.cpp -fPIC -bundle -o ${f%.dsp}.so
+		${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags jack` $f.cpp -ljackserver -fPIC -bundle -o ${f%.dsp}.so
 	done
 
 else
 	#On Linux build a Jack internal client 
 	for f in $@; do
 		faust -a jack-gtk.cpp $f -o $f.cpp
-		${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags --libs jack` $f.cpp -fPIC -shared -o ${f%.dsp}.so
+		${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags jack` $f.cpp  -ljackserver -fPIC -shared -o ${f%.dsp}.so
 	done
 
 fi
