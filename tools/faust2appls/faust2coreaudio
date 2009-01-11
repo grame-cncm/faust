@@ -14,9 +14,7 @@ if [[ $(uname) == Darwin ]]; then
 		
 		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-framework CoreAudio -framework AudioUnit" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
 		cd $TMP; qmake
-		echo toto
 		cd $TMP; xcodebuild -project ${f%.dsp}.xcodeproj
-		echo titi
 		cd $CUR; rm -rf ${f%.dsp}.app
 		cd $CUR; mv $TMP/build/Default/${f%.dsp}.app ${f%.dsp}.app
 		rm -rf $TMP
