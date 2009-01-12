@@ -497,17 +497,6 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err1);
     }
 	PrintStreamDesc(&dstFormat);
-	
-    /*
-	srcFormat.mSampleRate = samplerate;
-    srcFormat.mFormatID = kAudioFormatLinearPCM;
-	srcFormat.mBitsPerChannel = 32;
-	srcFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked;
-	srcFormat.mChannelsPerFrame = outChan;
-	srcFormat.mFramesPerPacket = 1;
-	srcFormat.mBytesPerFrame = srcFormat.mBitsPerChannel * srcFormat.mChannelsPerFrame / 8;
-    srcFormat.mBytesPerPacket = srcFormat.mBytesPerFrame * srcFormat.mFramesPerPacket;
-    */
     
     srcFormat.mSampleRate = samplerate;
     srcFormat.mFormatID = kAudioFormatLinearPCM;
@@ -526,17 +515,6 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err1);
     }
 	
-    /*
-    dstFormat.mSampleRate = samplerate;
-	dstFormat.mFormatID = kAudioFormatLinearPCM;
-	dstFormat.mBitsPerChannel = 32;
-	dstFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked;
-	dstFormat.mChannelsPerFrame = inChan;
-	dstFormat.mFramesPerPacket = 1;
-	dstFormat.mBytesPerFrame = dstFormat.mBitsPerChannel * dstFormat.mChannelsPerFrame / 8;
-    dstFormat.mBytesPerPacket = dstFormat.mBytesPerFrame * dstFormat.mFramesPerPacket;
-    */
-    
     dstFormat.mSampleRate = samplerate;
     dstFormat.mFormatID = kAudioFormatLinearPCM;
     dstFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
