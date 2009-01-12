@@ -281,10 +281,12 @@ OSStatus TCoreAudioRenderer::Render(void *inRefCon,
 {
     TCoreAudioRendererPtr renderer = (TCoreAudioRendererPtr)inRefCon;
     AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fInputData);
-    for (int i = 0; i < gDevNumInChans; i++)
+    for (int i = 0; i < gDevNumInChans; i++) {
         gInChannel[i] = (float*)renderer->fInputData->mBuffers[i].mData;
-    for (int i = 0; i < gDevNumOutChans; i++)
+    }
+    for (int i = 0; i < gDevNumOutChans; i++) {
         gOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+    }
     DSP.compute((int)inNumberFrames, gInChannel, gOutChannel);
 	return 0;
 }
@@ -496,6 +498,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     }
 	PrintStreamDesc(&dstFormat);
 	
+    /*
 	srcFormat.mSampleRate = samplerate;
     srcFormat.mFormatID = kAudioFormatLinearPCM;
 	srcFormat.mBitsPerChannel = 32;
@@ -504,6 +507,16 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	srcFormat.mFramesPerPacket = 1;
 	srcFormat.mBytesPerFrame = srcFormat.mBitsPerChannel * srcFormat.mChannelsPerFrame / 8;
     srcFormat.mBytesPerPacket = srcFormat.mBytesPerFrame * srcFormat.mFramesPerPacket;
+    */
+    
+    srcFormat.mSampleRate = samplerate;
+    srcFormat.mFormatID = kAudioFormatLinearPCM;
+    srcFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
+    srcFormat.mBytesPerPacket = sizeof(float);
+    srcFormat.mFramesPerPacket = 1;
+    srcFormat.mBytesPerFrame = sizeof(float);
+    srcFormat.mChannelsPerFrame = outChan;
+    srcFormat.mBitsPerChannel = 32;
 		
 	PrintStreamDesc(&srcFormat);
 
@@ -513,6 +526,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err1);
     }
 	
+    /*
     dstFormat.mSampleRate = samplerate;
 	dstFormat.mFormatID = kAudioFormatLinearPCM;
 	dstFormat.mBitsPerChannel = 32;
@@ -521,6 +535,16 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	dstFormat.mFramesPerPacket = 1;
 	dstFormat.mBytesPerFrame = dstFormat.mBitsPerChannel * dstFormat.mChannelsPerFrame / 8;
     dstFormat.mBytesPerPacket = dstFormat.mBytesPerFrame * dstFormat.mFramesPerPacket;
+    */
+    
+    dstFormat.mSampleRate = samplerate;
+    dstFormat.mFormatID = kAudioFormatLinearPCM;
+    dstFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
+    dstFormat.mBytesPerPacket = sizeof(float);
+    dstFormat.mFramesPerPacket = 1;
+    dstFormat.mBytesPerFrame = sizeof(float);
+    dstFormat.mChannelsPerFrame = inChan;
+    dstFormat.mBitsPerChannel = 32;
 	
 	PrintStreamDesc(&dstFormat);
 
@@ -534,9 +558,9 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         AURenderCallbackStruct output;
         output.inputProc = Render;
         output.inputProcRefCon = this;
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Output, 1, &output, sizeof(output));
+        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0, &output, sizeof(output));
         if (err1 != noErr) {
-            printf("Error calling  AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 1\n");
+            printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 1\n");
             printError(err1);
             goto error;
         }
@@ -562,6 +586,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     // Prepare buffers
     for (int i = 0; i < inChan; i++) {
         fInputData->mBuffers[i].mNumberChannels = 1;
+        fInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(float));
         fInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(float);
     }
  	
@@ -575,6 +600,9 @@ error:
 
 long TCoreAudioRenderer::Close()
 {
+    for (int i = 0; i < gDevNumInChans; i++) {
+        free(fInputData->mBuffers[i].mData);
+    }
 	free(fInputData);
 	AudioUnitUninitialize(fAUHAL);
     CloseComponent(fAUHAL);
@@ -645,7 +673,7 @@ int main( int argc, char *argv[] )
     gDevNumOutChans = min(2, DSP.getNumOutputs());
     
     interface->recallState(rcfilename);
-    if (audio_device.OpenDefault(min(2, DSP.getNumInputs()), min(2, DSP.getNumOutputs()), fpb, srate) < 0) {
+    if (audio_device.OpenDefault(gDevNumInChans, gDevNumOutChans, fpb, srate) < 0) {
         printf("Cannot open CoreAudio device\n");
         return 0;
     }
