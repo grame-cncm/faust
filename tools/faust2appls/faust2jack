@@ -32,3 +32,5 @@ else
 	done
 
 fi
+
+echo ${1%.dsp}
