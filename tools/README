@@ -11,6 +11,9 @@ the building process of applications and plugins with Faust.
 
 Currently the following tools are available :
 
+- faust2oct is a script to create dynamically loadable functions for
+  gnu octave
+
 - faust2appls contains simple scripts to easily and quickly generate svg 
   diagrams as well as jack, alsa and plot applications
 
