@@ -1,0 +1,52 @@
+
+README for faust2octave
+
+
+faust2octave is a script to create dynamically loadable functions for gnu octave
+from faust code.  You have to copy the file "octave.cpp" into the folder where
+faust looks for its architecture files (check /usr/local/lib/faust or /usr/lib/faust) and
+the script "faust2octave" somewhere in your PATH.
+
+Then you can call the script with an faust ".dsp" file as argument.
+
+> faust2octave wgo.dsp
+
+This command creates the octfile wgo.oct which contains the function "wgo"
+callable from octave.
+
+Audio outputs are returned as vectors in the output list.
+For the example function WGO the call should look like this:
+
+[out1, out2] = wgo(NSAMPS, FREQ)
+
+NSAMPS is the number of output samples to be produced and FREQ is a control input, which
+can be a scalar or vector.  If vectors are passed as control inputs the processing
+happens blockwise (with a blocksize of 64 samples) and the control values are created
+by treating the values of the input vector as uniform spaced control points, which
+are linearly interpolated.  For the first block to be processed the control value
+will be equal to the first value in the vector and for the last block the value
+is the last value of the vector.
+
+If the plugin has audio inputs, the created function expects vectors containing
+the input as the first parameters in the argument list.
+In this case the number of output values to be created is equal to the longest
+input vector.  Shorter input vectors will be zero-padded to the size of the longest
+input.
+
+The samplerate and the blocksize (the number of sample to process with each call
+to the compute-function) can be changed from the defaults (44100 and 64) by
+setting global variables.
+
+global FAUST_BLOCKSIZE=64;
+global FAUST_SAMPLERATE=48000;
+
+See also the file test.m for some example calls.
+
+The script requires "sed" and the octave development files (headers and mkoctfile)
+to be installed.
+
+
+For suggestions, bugs, etc.. contact the author
+Bjoern Erlach - bantone@web.de
+
+

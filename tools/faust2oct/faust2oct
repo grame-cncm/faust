@@ -1,0 +1,8 @@
+#!/bin/sh
+
+bname=`basename $1 .dsp`
+
+faust -a octave.cpp $1 > ${bname}.cpp
+sed -i "s/FAUST_FUNC_NAME/${bname}/g" ${bname}.cpp
+mkoctfile ${bname}.cpp
+
