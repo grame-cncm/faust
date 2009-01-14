@@ -292,7 +292,7 @@ int main( int argc, char *argv[] )
 	char* home = getenv("HOME");
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 	
-	if ((client = jack_client_new(jackname)) == 0) {
+	if ((client = jack_client_open(jackname, JackNullOption, NULL)) == 0) {
 	    fprintf(stderr, "jack server not running?\n");
 	    return 1;
 	}

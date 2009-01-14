@@ -1,0 +1,34 @@
+#!/bin/bash
+
+if [[ $(uname) == Darwin ]]; then
+	#On Darwin build a Jack QT4 application using xcode
+	for f in $@; do
+	
+		CUR=$(pwd)
+		TMP=/var/tmp/${f%.dsp}
+	
+		rm -rf $TMP
+		install -d $TMP
+		
+		faust -a jack-qt.cpp $f -o $TMP/${f%.dsp}.cpp
+		
+		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-ljackserver" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
+		cd $TMP; qmake
+		echo toto
+		cd $TMP; xcodebuild -project ${f%.dsp}.xcodeproj
+		echo titi
+		cd $CUR; rm -rf ${f%.dsp}.app
+		cd $CUR; mv $TMP/build/Default/${f%.dsp}.app ${f%.dsp}.app
+		rm -rf $TMP
+		
+	done
+
+
+else
+	#On Linux (default) build a jack gtk application
+	for f in $@; do
+		faust -a jack-gtk.cpp $f -o $f.cpp
+		${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags --libs jack gtk+-2.0` $f.cpp -o ${f%.dsp}
+	done
+
+fi

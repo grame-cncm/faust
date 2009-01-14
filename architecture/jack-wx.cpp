@@ -661,7 +661,7 @@ class MyFrame : public wxFrame
 
 class MyApp : public wxApp
 {
-	jack_client_t*		client;	
+	jack_client_t*	client;	
 	char			jackname[256];
 	char**			physicalInPorts;
 	char**			physicalOutPorts;	
@@ -692,15 +692,13 @@ class MyApp : public wxApp
 
 		snprintf(jackname, 256, "faust_%s", basename(argv[0]));
 
-		if ((client = jack_client_new(jackname)) == 0) {
-	    		fprintf(stderr, "jack server not running?\n");
-	    		return 1;
+		if ((client = jack_client_open(jackname, JackNullOption, NULL)) == 0) {
+            fprintf(stderr, "jack server not running?\n");
+            return 1;
 		}
 	
-		jack_set_process_callback(client, process, 0);
-	
-		jack_set_sample_rate_callback(client, srate, 0);
-	
+        jack_set_process_callback(client, process, 0);
+		jack_set_sample_rate_callback(client, srate, 0);	
 		jack_on_shutdown(client, jack_shutdown, 0);
 	
 		gNumInChans = DSP.getNumInputs();

@@ -10,5 +10,6 @@ install:
 	install faust2octave $(prefix)/bin
 	install faust2firefox $(prefix)/bin
 	install faust2jackinternal $(prefix)/bin
+	install faust2jackserver $(prefix)/bin
 	install faust2coreaudio $(prefix)/bin
 
