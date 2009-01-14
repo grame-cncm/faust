@@ -376,12 +376,14 @@ int main(int argc, char *argv[] )
 		for (int i = 0; i < gNumInChans && physicalOutPorts[i]; i++) {
 			jack_connect(client, physicalOutPorts[i], jack_port_name(input_ports[i]));
 		}
+        free(physicalOutPorts);
 	}
 	
 	if (physicalInPorts != NULL) {
 		for (int i = 0; i < gNumOutChans && physicalInPorts[i]; i++) {
 			jack_connect(client, jack_port_name(output_ports[i]), physicalInPorts[i]);
-		} 		
+		} 	
+        free(physicalInPorts);	
 	}
 	
 	interface->run();

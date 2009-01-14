@@ -338,6 +338,8 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	Boolean isWritable;
 	AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
     long in_nChannels, out_nChannels;
+    
+    printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld", inChan, outChan, bufferSize, samplerate);
 	
 	if (GetDefaultDevice(inChan, outChan, &fDeviceID) != noErr) {
 		printf("Cannot open default device\n");
@@ -434,6 +436,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     }
 
     in_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
+    printf("in_nChannels = %ld\n", in_nChannels);
 
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
     if (err1 != noErr) {
@@ -442,6 +445,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     }
 
     out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
+    printf("out_nChannels = %ld\n", out_nChannels);
 
     if (outChan > out_nChannels) {
         printf("This device hasn't required output channels\n");
@@ -646,9 +650,9 @@ int main( int argc, char *argv[] )
     const char* home = getenv("HOME");
     if (home == 0) home = ".";
     snprintf(rcfilename, 256, "%s/.%src", home, basename(argv[0]));
-    
-    gDevNumInChans = min(2, DSP.getNumInputs());
-    gDevNumOutChans = min(2, DSP.getNumOutputs());
+      
+    gDevNumInChans = DSP.getNumInputs();
+    gDevNumOutChans = DSP.getNumOutputs();
     
     interface->recallState(rcfilename);
     if (audio_device.OpenDefault(gDevNumInChans, gDevNumOutChans, fpb, srate) < 0) {
