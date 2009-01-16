@@ -281,7 +281,7 @@ int main( int argc, char *argv[] )
 	//gtk_init (&argc, &argv);
 	
 	UI* 				interface = new QTGUI(argc, argv);
-	jack_client_t*			client;	
+	jack_client_t*		client;	
 	char				jackname[256];
 	char				rcfilename[256];
 	char**				physicalInPorts;
@@ -334,17 +334,17 @@ int main( int argc, char *argv[] )
 	    return 1;
 	}
 	
-        if (physicalOutPorts != NULL) {
-            for (int i = 0; i < gNumInChans && physicalOutPorts[i]; i++) {
-                    jack_connect(client, physicalOutPorts[i], jack_port_name(input_ports[i]));
-            }
+    if (physicalOutPorts != NULL) {
+        for (int i = 0; i < gNumInChans && physicalOutPorts[i]; i++) {
+                jack_connect(client, physicalOutPorts[i], jack_port_name(input_ports[i]));
         }
-        
-        if (physicalInPorts != NULL) {
-            for (int i = 0; i < gNumOutChans && physicalInPorts[i]; i++) {
-                    jack_connect(client, jack_port_name(output_ports[i]), physicalInPorts[i]);
-            } 		
-        }
+    }
+    
+    if (physicalInPorts != NULL) {
+        for (int i = 0; i < gNumOutChans && physicalInPorts[i]; i++) {
+                jack_connect(client, jack_port_name(output_ports[i]), physicalInPorts[i]);
+        } 		
+    }
 	
 	interface->run();
 	

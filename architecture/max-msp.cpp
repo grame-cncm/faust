@@ -5,19 +5,18 @@
 #include <math.h>
 #include <errno.h>
 #include <time.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <string>
 #include <vector>
+#include <map>
 #include <math.h>
 
 #ifdef __APPLE__
 #include <Carbon/Carbon.h>
 #include <unistd.h>
 #endif
-
-#include <map>
-#include <list>
 
 using namespace std ;
 
@@ -46,6 +45,18 @@ struct Meta : map<const char*, const char*>
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
 	
+#ifdef __GNUC__
+
+//-------------------------------------------------------------------
+// Generic min and max using gcc extensions
+//-------------------------------------------------------------------
+
+#define max(x,y) ((x)>?(y))
+#define min(x,y) ((x)<?(y))
+
+//abs(x) should be already predefined
+
+#else
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -92,6 +103,11 @@ inline double 	min (long a, double b) 		{ return (a<b) ? a : b; }
 inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
 inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
+		
+#endif
+
+// abs is now predefined
+//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
@@ -230,6 +246,7 @@ class mspUIObject {
 		
 		virtual void SetValue(double f) {*fZone = range(0.0,1.0,f);}
 		virtual void toString(char* buffer) {}
+		virtual string GetName() {return fLabel;}
 };
 
 /*--------------------------------------------------------------------------*/
@@ -319,36 +336,37 @@ class mspUI : public UI
 {
 	private:
 	
-		vector<mspUIObject*> fUITable;
+		map<string,mspUIObject*> fUITable;
 		
 	public:
+		typedef map<string,mspUIObject*>::iterator iterator;
 			
 		mspUI(){}
 		virtual ~mspUI() 
 		{
-			for (vector<mspUIObject*>::iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) 
-				delete *iter;
+			for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) 
+				delete (iter->second);
    		}
 		
-		void addButton(const char* label, float* zone) {fUITable.push_back(new mspButton(label, zone));}
+		void addButton(const char* label, float* zone) {fUITable[string(label)] = new mspButton(label, zone);}
 		
-		void addToggleButton(const char* label, float* zone) {fUITable.push_back(new mspToggleButton(label, zone));}
+		void addToggleButton(const char* label, float* zone) {fUITable[string(label)] = new mspToggleButton(label, zone);}
 		
-		void addCheckButton(const char* label, float* zone) {fUITable.push_back(new mspCheckButton(label, zone));}
+		void addCheckButton(const char* label, float* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
 		
-		void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+		void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) 
 		{ 	
-			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
+			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
 		
-		void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+		void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 
 		{
-			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
+			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
 		
 		void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 		{
-			fUITable.push_back(new mspSlider(label, zone, init, min, max, step));
+			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
 		
 		void openFrameBox(const char* label) {}
@@ -357,51 +375,35 @@ class mspUI : public UI
 		void openVerticalBox(const char* label) {}
 		void closeBox() {}
 		
-		void SetValue(int slider, double f) 
+		void SetValue(string name, double f) 
 		{
-			assert(slider<fUITable.size()); 
-			fUITable[slider]->SetValue(f);
+			if(fUITable.count(name))
+				fUITable[name]->SetValue(f);
 		}
-		
-		void UIObject2String(char* buffer,int slider) 
-		{
-			if (fUITable[slider]) 
-				fUITable[slider]->toString(buffer);
-		}
-		
-		bool AddInlets(t_faust *x) 
-		{
-			if (fUITable.size() > 9) return false;
-			for (int i = fUITable.size(); i>0 ; i--) 
-				floatin((t_pxobject *)x,i);
-			return true;
-		}
-		
+		iterator begin()	{return fUITable.begin();}
+		iterator end()		{return fUITable.end();}
+							
 		// To be implemented
 		void addNumDisplay(const char* label, float* zone, int precision){}
 		void addTextDisplay(const char* label, float* zone, char* names[], float min, float max){}
 		void addHorizontalBargraph(const char* label, float* zone, float min, float max){}
 		void addVerticalBargraph(const char* label, float* zone, float min, float max){}
-};
+}; 
 
-/*--------------------------------------------------------------------------*/
-void faust_ft1(t_faust* obj, double f) {obj->dspUI->SetValue(0,f);}
-void faust_ft2(t_faust* obj, double f) {obj->dspUI->SetValue(1,f);}
-void faust_ft3(t_faust* obj, double f) {obj->dspUI->SetValue(2,f);}
-void faust_ft4(t_faust* obj, double f) {obj->dspUI->SetValue(3,f);}
-void faust_ft5(t_faust* obj, double f) {obj->dspUI->SetValue(4,f);}
-void faust_ft6(t_faust* obj, double f) {obj->dspUI->SetValue(5,f);}
-void faust_ft7(t_faust* obj, double f) {obj->dspUI->SetValue(6,f);}
-void faust_ft8(t_faust* obj, double f) {obj->dspUI->SetValue(7,f);}
-void faust_ft9(t_faust* obj, double f) {obj->dspUI->SetValue(8,f);}
 
-/*--------------------------------------------------------------------------*/
-void faust_free(t_faust *x)
+//--------------------------------------------------------------------------
+void faust_method(t_faust *obj, t_symbol *s, short ac, t_atom *at)
 {
-	dsp_free((t_pxobject *)x);
-	if (x->dsp) delete x->dsp;
-	if (x->dspUI) delete x->dspUI;
-	if (x->args) free(x->args);
+	if(ac < 0) return;
+    if(at[0].a_type != A_FLOAT) return;
+	
+    string name = string( (s)->s_name );
+    float value = at[0].a_w.w_float;
+	
+    // lookup du nom dans une std::map<string,mspUIObject *>
+    // ou une std::map<string,float *>
+    // et affectation de value;	
+	obj->dspUI->SetValue(name,value); // doesn't have any effect if name is unknown
 }
 
 /*--------------------------------------------------------------------------*/
@@ -414,19 +416,14 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	
 	x->dsp->init(long(sys_getsr()));
 	x->dsp->buildUserInterface(x->dspUI);
-	if (!x->dspUI->AddInlets(x)) {
-		post("Error : Faust DSP object cannot be allocated: max inlets is 9");
-		faust_free(x);  
-		return 0;
-	}
 	
-	x->args = (void**)calloc((x->dsp->getNumInputs() + x->dsp->getNumOutputs()) + 2, sizeof(void*));
+	x->args = (void**)calloc((x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, sizeof(void*));
 	
 	/* Multi in */
 	dsp_setup((t_pxobject *)x, x->dsp->getNumInputs());
 	
 	/* Multi out */
-	for (int i = 0; i < x->dsp->getNumOutputs(); i++) 
+	for (int i = 0; i< x->dsp->getNumOutputs(); i++) 
 		outlet_new((t_pxobject *)x, "signal");
 	
 	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
@@ -450,6 +447,12 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 			#else
 				std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 			#endif
+				post("------------------");
+				for (mspUI::iterator it = x->dspUI->begin(); it != x->dspUI->end(); ++it) {
+					char param[64];
+					it->second->toString(param);
+					post(param);
+				}
 			}
         } else if (a < x->dsp->getNumInputs()) {
 		#ifdef WIN32
@@ -457,8 +460,6 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 		#else
 			std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 		#endif
-        } else {
-            x->dspUI->UIObject2String(dst,a - max(1,x->dsp->getNumInputs()));
         }
     } else if (msg == ASSIST_OUTLET) {
 	#ifdef WIN32
@@ -467,6 +468,15 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 		std::sprintf(dst, "(signal) : Audio Output %ld", (a+1));
 	#endif
     }
+}
+
+/*--------------------------------------------------------------------------*/
+void faust_free(t_faust *x)
+{
+	dsp_free((t_pxobject *)x);
+	if (x->dsp) delete x->dsp;
+	if (x->dspUI) delete x->dspUI;
+	if (x->args)free(x->args);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -496,16 +506,17 @@ int main()
 	setup((t_messlist **)&faust_class, (method)faust_new, (method)faust_free, 
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
-	// External can have up to 9 inlets
-	addftx((method)faust_ft1,1);
-	addftx((method)faust_ft2,2);
-	addftx((method)faust_ft3,3);
-	addftx((method)faust_ft4,4);
-	addftx((method)faust_ft5,5);
-	addftx((method)faust_ft6,6);
-	addftx((method)faust_ft7,7);
-	addftx((method)faust_ft8,8);
-	addftx((method)faust_ft9,9);
+	dsp *thedsp = new mydsp();
+	mspUI *dspUI= new mspUI();
+	thedsp->init(long(sys_getsr()));
+	thedsp->buildUserInterface(dspUI);
+	
+	// Add the same method for every parameters and use the symbol as a selector 
+	// inside thid method
+	for (mspUI::iterator it = dspUI->begin(); it != dspUI->end(); ++it) {
+		char *name = const_cast<char *>(it->second->GetName().c_str());
+		addmess((method)faust_method, name, A_GIMME, 0);
+	}
 	
 	addmess((method)faust_dsp, "dsp", A_CANT, 0);
 	addmess((method)faust_assist, "assist", A_CANT, 0);
