@@ -11,6 +11,32 @@
 
 using namespace std;
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #define AVOIDDENORMALS 
+#endif
+
+struct Meta : map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
+#define max(x,y) (((x)>(y)) ? (x) : (y))
+#define min(x,y) (((x)<(y)) ? (x) : (y))
+
+// abs is now predefined
+//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
+
+inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
+
 /******************************************************************************
 *******************************************************************************
 
@@ -23,15 +49,6 @@ using namespace std;
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
-
-#define max(x,y) (((x)>(y)) ? (x) : (y))
-#define min(x,y) (((x)<(y)) ? (x) : (y))
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 /******************************************************************************
 *******************************************************************************

@@ -209,7 +209,6 @@ static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
 
 static void printError(OSStatus err)
 {
-#ifdef DEBUG
     switch (err) {
         case kAudioHardwareNoError:
             printf("error code : kAudioHardwareNoError\n");
@@ -269,13 +268,12 @@ static void printError(OSStatus err)
             printf("error code : unknown\n");
             break;
     }
-#endif
 }
 
 OSStatus TCoreAudioRenderer::Render(void *inRefCon,
                                      AudioUnitRenderActionFlags *ioActionFlags,
                                      const AudioTimeStamp *inTimeStamp,
-                                     UInt32 inBusNumber,
+                                     UInt32,
                                      UInt32 inNumberFrames,
                                      AudioBufferList *ioData)
 {
@@ -364,7 +362,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         return OPEN_ERR;
     }
 
-    if (samplerate != (unsigned long)sampleRate.mSampleRate) {
+    if (samplerate != long(sampleRate.mSampleRate)) {
         sampleRate.mSampleRate = (Float64)(samplerate);
         err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyStreamFormat, outSize, &sampleRate);
         if (err != noErr) {
