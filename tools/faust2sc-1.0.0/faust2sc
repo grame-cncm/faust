@@ -229,8 +229,8 @@ module Faust
       end
       def gen_curry_func(io, lname, fname)
         args = mk_args(plugin.total_inputs)
-        decs = args.collect { "UGen" }
-        io << "#{fname} :: #{decs.join(" -> ")} -> UGen\n"
+        decs = args.collect { "UGen" } + ["UGen"] # add result type
+        io << "#{fname} :: #{decs.join(" -> ")}\n"
         io << "#{fname} #{args.join(" ")} = #{lname} [#{args.join(',')}]\n"
       end
       def gen_list_func(io, fname)
