@@ -261,14 +261,20 @@ class AudioInterface : public AudioParam
 		// search for optimal input parameters
 		err = snd_pcm_hw_params_malloc	( &fInputParams ); 	check_error(err);
 		setAudioParams(fInputDevice, fInputParams);
-		snd_pcm_hw_params_get_channels(fInputParams, &fCardInputs);
 
 		// search for optimal output parameters
 		err = snd_pcm_hw_params_malloc	( &fOutputParams ); 		check_error(err)
 		setAudioParams(fOutputDevice, fOutputParams);
-		snd_pcm_hw_params_get_channels(fOutputParams, &fCardOutputs);
 
-		printf("inputs : %ud, outputs : %ud\n", fCardInputs, fCardOutputs);
+		// set the number of physical input and output channels close to what we need
+		fCardInputs 	= fSoftInputs;
+		fCardOutputs 	= fSoftOutputs;
+		
+		snd_pcm_hw_params_set_channels_near(fInputDevice, fInputParams, &fCardInputs);
+		snd_pcm_hw_params_set_channels_near(fOutputDevice, fOutputParams, &fCardOutputs);
+
+		printf("inputs : %u, outputs : %u\n", fCardInputs, fCardOutputs);
+
 
 		// setup input-output parameters
 		err = snd_pcm_hw_params (fInputDevice,  fInputParams );	 	check_error (err);
