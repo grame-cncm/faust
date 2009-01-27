@@ -1,0 +1,15 @@
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+
+
+all :  $(appl)
+
+
+$(DEST)%$(EXT) : %.dsp 
+	faust $(VEC) -a $(ARCH) $< -o $@.cpp
+	$(CXX) -O3 $(CXXFLAGS) $(LIB) $@.cpp -o $@
+	
+
+clean :
+	rm -f $(DEST)
