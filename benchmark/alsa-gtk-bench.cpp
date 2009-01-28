@@ -143,10 +143,25 @@ void closeMesure()
 /**
  * Converts RDTSC clocks into seconds
  */
+long long int rdtscpersec()
+{
+	// If the environment variable CLOCKSPERSEC is defined
+	// we use it instead of our own measurement
+	char* str = getenv("CLOCKSPERSEC");
+	long long int cps = atoll(str);
+	//cout << "getenv(\"CLOCKSPERSEC\") =  " << str << "; converted = " << cps << endl;
+	if (cps > 1000000000) {
+		return cps;
+	} else {
+		return (lastRDTSC-firstRDTSC) / (lastSECOND-firstSECOND) ;
+	}
+}
+
 double rdtsc2sec( unsigned long long int clk)
 {
-	return double(clk*(lastSECOND-firstSECOND)) / double(lastRDTSC-firstRDTSC);
+	return double(clk) / double(rdtscpersec());
 }
+
 
 double megapersec(int frames, int chans, unsigned long long int clk)
 {
@@ -178,7 +193,11 @@ void printstats(int bsize, int ichans, int ochans)
         }
 		mean = tot/KMESURE;
     } 
-	cout << megapersec(bsize, ochans, low) << ' ' << megapersec(bsize, ochans, mean) << ' ' << megapersec(bsize, ochans, hi) << endl;
+	cout << megapersec(bsize, ochans, low) << ' ' 
+		 << megapersec(bsize, ochans, mean) << ' ' 
+		 << megapersec(bsize, ochans, hi) << ' '
+		 << "(cloks/sec : " << rdtscpersec() << ")" 
+		 << endl;
 }
 
 #else
