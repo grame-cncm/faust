@@ -1,5 +1,5 @@
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
-MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
 
 VSIZE := 3968
 
