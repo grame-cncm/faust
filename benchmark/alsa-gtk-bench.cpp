@@ -148,13 +148,17 @@ long long int rdtscpersec()
 	// If the environment variable CLOCKSPERSEC is defined
 	// we use it instead of our own measurement
 	char* str = getenv("CLOCKSPERSEC");
-	long long int cps = atoll(str);
-	//cout << "getenv(\"CLOCKSPERSEC\") =  " << str << "; converted = " << cps << endl;
-	if (cps > 1000000000) {
-		return cps;
-	} else {
-		return (lastRDTSC-firstRDTSC) / (lastSECOND-firstSECOND) ;
-	}
+    if (str) {
+	    long long int cps = atoll(str);
+	    //cout << "getenv(\"CLOCKSPERSEC\") =  " << str << "; converted = " << cps << endl;
+	    if (cps > 1000000000) {
+		    return cps;
+	    } else {
+		    return (lastRDTSC-firstRDTSC) / (lastSECOND-firstSECOND) ;
+	    }
+    } else {
+        return (lastRDTSC-firstRDTSC) / (lastSECOND-firstSECOND) ;
+    }   
 }
 
 double rdtsc2sec( unsigned long long int clk)
@@ -170,31 +174,33 @@ double megapersec(int frames, int chans, unsigned long long int clk)
 
 void printstats(int bsize, int ichans, int ochans)
 {
-    unsigned long long int low, hi, tot, mean;
-    low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
+    assert(mesure > KMESURE);
+    unsigned long long int low, hi, tot1, tot2, mean1, mean2;
+    low = hi = (stops[0] - starts[0]);
+    tot1 = 0;
 
-    if (mesure < KMESURE) {
-    
-        for (int i = KSKIP; i<mesure; i++) {
-            unsigned long long int m = stops[i] - starts[i];
-            if (m<low) low = m;
-            if (m>hi) hi = m;
-            tot += m;
-        }
-        mean = tot/(mesure-KSKIP);
+    for (int i = 0; i<KMESURE; i++) {
+        unsigned long long int m = stops[i] - starts[i];
+        if (m<low) low = m;
+        if (m>hi) hi = m;
+        tot1 += m;
+    }
+    mean1 = tot1/KMESURE;
 
-    } else {
-    
-        for (int i = 0; i<KMESURE; i++) {
-            unsigned long long int m = stops[i] - starts[i];
-            if (m<low) low = m;
-            if (m>hi) hi = m;
-            tot += m;
+    // compute means of values < mean value
+    tot2 = 0; int count = 0;
+    for (int i = 0; i<KMESURE; i++) {
+        unsigned long long int m = stops[i] - starts[i];
+        if (low <= m && m <= mean1) {
+            tot2 += m;
+            count += 1;
         }
-		mean = tot/KMESURE;
-    } 
-	cout << megapersec(bsize, ochans, low) << ' ' 
-		 << megapersec(bsize, ochans, mean) << ' ' 
+    }
+    mean2 = tot2/count;
+
+	cout << megapersec(bsize, ochans, low) << ' '
+         << megapersec(bsize, ochans, mean1) << ' ' 
+         << '[' << megapersec(bsize, ochans, mean2) << ']' << ' '
 		 << megapersec(bsize, ochans, hi) << ' '
 		 << "(cloks/sec : " << rdtscpersec() << ")" 
 		 << endl;
