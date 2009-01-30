@@ -111,8 +111,9 @@ static __inline__ unsigned long long int rdtsc(void)
      return x;
 }
 
-#define KSKIP 10
-#define KMESURE 1000
+#define KSKIP 128
+#define KMESURE 2048
+
 int mesure = 0;
 
 // these values are used to determine the number of clocks in a second
