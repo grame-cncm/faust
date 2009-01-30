@@ -22,6 +22,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <algorithm>
 
 
 using namespace std;
@@ -97,7 +99,11 @@ bool setRealtimePriority ()
 #define BENCHMARKMODE
 
 #ifdef BENCHMARKMODE
-// mesuring jack performances
+
+/**
+ * Returns the number of clock cycles elapsed since the last reset
+ * of the processor
+ */
 static __inline__ unsigned long long int rdtsc(void)
 {
   unsigned long long int x;
@@ -106,7 +112,7 @@ static __inline__ unsigned long long int rdtsc(void)
 }
 
 #define KSKIP 10
-#define KMESURE 1024
+#define KMESURE 1000
 int mesure = 0;
 
 // these values are used to determine the number of clocks in a second
@@ -141,7 +147,7 @@ void closeMesure()
 }
 	
 /**
- * Converts RDTSC clocks into seconds
+ * return the number of RDTSC clocks per seconds
  */
 long long int rdtscpersec()
 {
@@ -150,8 +156,7 @@ long long int rdtscpersec()
 	char* str = getenv("CLOCKSPERSEC");
     if (str) {
 	    long long int cps = atoll(str);
-	    //cout << "getenv(\"CLOCKSPERSEC\") =  " << str << "; converted = " << cps << endl;
-	    if (cps > 1000000000) {
+        if (cps > 1000000000) {
 		    return cps;
 	    } else {
 		    return (lastRDTSC-firstRDTSC) / (lastSECOND-firstSECOND) ;
@@ -161,49 +166,48 @@ long long int rdtscpersec()
     }   
 }
 
+    
+/**
+ * Converts a duration, expressed in RDTSC clocks, into seconds
+ */
 double rdtsc2sec( unsigned long long int clk)
 {
 	return double(clk) / double(rdtscpersec());
 }
 
-
+    
+/**
+ * Converts RDTSC clocks into Megabytes/seconds according to the
+ * number of frames processed during the period, the number of channels
+ * and 4 bytes samples.
+ */
 double megapersec(int frames, int chans, unsigned long long int clk)
 {
 	return double(frames*chans*4)/double(1024*1024*rdtsc2sec(clk));
 }
 
-void printstats(int bsize, int ichans, int ochans)
+    
+/**
+ * Print the median value (in Megabytes/second) of KMESURE
+ * throughputs measurements
+ */
+void printstats(const char* applname, int bsize, int ichans, int ochans)
 {
     assert(mesure > KMESURE);
-    unsigned long long int low, hi, tot1, tot2, mean1, mean2;
-    low = hi = (stops[0] - starts[0]);
-    tot1 = 0;
+    vector<unsigned long long int> V(KMESURE);
 
     for (int i = 0; i<KMESURE; i++) {
-        unsigned long long int m = stops[i] - starts[i];
-        if (m<low) low = m;
-        if (m>hi) hi = m;
-        tot1 += m;
+        V[i] = stops[i] - starts[i];
     }
-    mean1 = tot1/KMESURE;
 
-    // compute means of values < mean value
-    tot2 = 0; int count = 0;
-    for (int i = 0; i<KMESURE; i++) {
-        unsigned long long int m = stops[i] - starts[i];
-        if (low <= m && m <= mean1) {
-            tot2 += m;
-            count += 1;
-        }
-    }
-    mean2 = tot2/count;
+    sort(V.begin(), V.end());
+    unsigned long long int median = (  *(V.begin() + V.size()/2 - 1)
+                                     + *(V.begin() + V.size()/2) ) / 2;
 
-	cout << megapersec(bsize, ochans, low) << ' '
-         << megapersec(bsize, ochans, mean1) << ' ' 
-         << '[' << megapersec(bsize, ochans, mean2) << ']' << ' '
-		 << megapersec(bsize, ochans, hi) << ' '
-		 << "(cloks/sec : " << rdtscpersec() << ")" 
-		 << endl;
+    cout << megapersec(bsize, ochans, median) << "\tMB/s"
+         << '\t' << applname
+         << '\t' << "(clocks/sec : " << rdtscpersec() << ")"
+         << endl;
 }
 
 #else
@@ -1586,13 +1590,13 @@ int main(int argc, char *argv[] )
 		DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
     STOPMESURE  
 		audio.write();
-		running = mesure <= KMESURE;
+		running = mesure <= (KMESURE + KSKIP);
 	}
 	closeMesure();
 	interface->saveState(rcfilename);
 
 #ifdef BENCHMARKMODE
-    printstats(audio.buffering(), DSP.getNumInputs(), DSP.getNumOutputs());
+    printstats(argv[0], audio.buffering(), DSP.getNumInputs(), DSP.getNumOutputs());
 #endif       
 
   	return 0;
