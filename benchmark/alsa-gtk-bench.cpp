@@ -111,8 +111,8 @@ static __inline__ unsigned long long int rdtsc(void)
      return x;
 }
 
-#define KSKIP 128
-#define KMESURE 2048
+#define KSKIP 20
+#define KMESURE 600
 
 int mesure = 0;
 
