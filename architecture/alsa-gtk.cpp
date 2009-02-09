@@ -863,7 +863,11 @@ static string rmWhiteSpaces(const string& s)
     unsigned int i = s.find_first_not_of(" \t");
     unsigned int j = s.find_last_not_of(" \t");
 
-    return s.substr(i, 1+j-i);
+    if (i != string::npos & j != string::npos) {
+        return s.substr(i, 1+j-i);
+    } else {
+        return "";
+    }
 }
 
 /**

@@ -667,7 +667,6 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 #define kTabMode 2
 
 
-
 /**
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
  * (but not those in the middle of the string)
@@ -677,8 +676,13 @@ static string rmWhiteSpaces(const string& s)
     unsigned int i = s.find_first_not_of(" \t");
     unsigned int j = s.find_last_not_of(" \t");
 
-    return s.substr(i, 1+j-i);
+    if (i != string::npos & j != string::npos) {
+        return s.substr(i, 1+j-i);
+    } else {
+        return "";
+    }
 }
+
 
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
