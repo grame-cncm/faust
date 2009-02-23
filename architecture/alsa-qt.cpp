@@ -18,6 +18,7 @@
 #include <sys/wait.h>
 #include <list>
 #include <map>
+#include <set>
 
 #include <iostream>
 #include <fstream>
@@ -693,7 +694,12 @@ bool fopt (int argc, char *argv[], const char* longname, const char* shortname)
 *******************************************************************************
 *******************************************************************************/
 	
-list<UI*> 	UI::fGuiList;
+list<UI*> 	            UI::fGuiList;
+map<float*, float>      QTGUI::fGuiSize;       // map widget zone with widget size coef
+map<float*, string>     QTGUI::fTooltip;       // map widget zone with tooltip strings
+map<float*, string>     QTGUI::fUnit;           // map widget zone with unit strings (i.e. "dB")
+set<float*>             QTGUI::fKnobSet;       // set of widget zone to be knobs
+set<float*>             QTGUI::fLedSet;        // set of widget zone to be LEDs
 
 UI* 		interface;
 
@@ -733,7 +739,6 @@ void* run_audio(void* ptr)
 	pthread_exit(0);
   	return 0;
 }
-
 
 
 /******************************************************************************

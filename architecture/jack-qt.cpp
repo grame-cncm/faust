@@ -262,20 +262,34 @@ void* jackthread(void* arg)
 }
 #endif
 
+
 /******************************************************************************
 *******************************************************************************
 
-								MAIN PLAY THREAD
+                                GLOBAL VARIABLES
 
 *******************************************************************************
 *******************************************************************************/
-	
-	
-//-------------------------------------------------------------------------
-// 									MAIN
-//-------------------------------------------------------------------------
-list<UI*> UI::fGuiList;
+    
+list<UI*>               UI::fGuiList;
+map<float*, float>      QTGUI::fGuiSize;       // map widget zone with widget size coef
+map<float*, string>     QTGUI::fTooltip;       // map widget zone with tooltip strings
+set<float*>             QTGUI::fKnobSet;       // set of widget zone to be knobs
+map<float*, string>     QTGUI::fUnit;          // map widget zone with unit strings (i.e. "dB")
+set<float*>             QTGUI::fLedSet;        // set of widget zone to be LEDs
 
+//UI*                     interface;
+
+
+
+/******************************************************************************
+*******************************************************************************
+
+                                MAIN PLAY THREAD
+
+*******************************************************************************
+*******************************************************************************/
+    
 int main( int argc, char *argv[] )
 {
 	//gtk_init (&argc, &argv);
