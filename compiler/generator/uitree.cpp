@@ -25,9 +25,9 @@
 
 
 
-Tree makeSubFolderChain(Tree path, Tree elem);
-Tree putFolder(Tree folder, Tree item);
-Tree getFolder (Tree folder, Tree ilabel);
+static Tree makeSubFolderChain(Tree path, Tree elem);
+static Tree putFolder(Tree folder, Tree item);
+static Tree getFolder (Tree folder, Tree ilabel);
 
 
 static void error(const char * s, Tree t)
@@ -99,12 +99,24 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
 {
-	if (isNil(pl)) 					return cons ( cons(key,val), nil );
-	if (left(hd(pl)) == key) 		return cons ( cons(key,val), tl(pl) );
-	if (isBefore(left(hd(pl)),key))	return cons ( hd(pl), updateKey( tl(pl), key, val ));
-	return cons(cons(key,val), pl);
+    if (isNil(pl))                  return cons ( cons(key,val), nil );
+    if (left(hd(pl)) == key)        return cons ( cons(key,val), tl(pl) );
+    if (isBefore(left(hd(pl)),key)) return cons ( hd(pl), updateKey( tl(pl), key, val ));
+    return cons(cons(key,val), pl);
 }
 
+/**
+ * Like updateKey but allow multiple items with same key
+ */
+static Tree addKey (Tree pl, Tree key, Tree val)
+{
+    if (isNil(pl))                  return cons ( cons(key,val), nil );
+    if (isBefore(key, left(hd(pl)))) return cons(cons(key,val), pl);
+    return cons ( hd(pl), addKey( tl(pl), key, val ));
+}
+
+
+#if 0
 static Tree removeKey (Tree pl, Tree key)
 {
 	if (isNil(pl)) 					return nil;
@@ -112,6 +124,7 @@ static Tree removeKey (Tree pl, Tree key)
 	if (isBefore(left(hd(pl)),key))	return cons (hd(pl), removeKey(tl(pl), key));
 	return pl;
 }
+#endif
 #endif
 
 //------------------------------------------------------------------------------
@@ -132,10 +145,19 @@ bool 	isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig)		{ return isTree
 // place un item dans un folder. Remplace eventuellement l'élément de même nom.
 Tree putFolder(Tree folder, Tree item)
 {
-	Tree	label, content;
-	
-	if ( ! isUiFolder(folder, label, content)) { fprintf(stderr, "ERROR in addFolder : not a folder\n"); }
-	return uiFolder(label, updateKey(content, uiLabel(item), item));
+    Tree    label, content;
+    
+    if ( ! isUiFolder(folder, label, content)) { fprintf(stderr, "ERROR in addFolder : not a folder\n"); }
+    return uiFolder(label, updateKey(content, uiLabel(item), item));
+}
+
+// place un item dans un folder. Sans Remplacement
+Tree addToFolder(Tree folder, Tree item)
+{
+    Tree    label, content;
+    
+    if ( ! isUiFolder(folder, label, content)) { fprintf(stderr, "ERROR in addFolder : not a folder\n"); }
+    return uiFolder(label, addKey(content, uiLabel(item), item));
 }
 
 // get an item from a folder (or return NIL)
@@ -164,7 +186,8 @@ Tree makeSubFolderChain(Tree path, Tree elem)
 Tree putSubFolder(Tree folder, Tree path, Tree item) 
 {
 	if (isNil(path)) {
-		return putFolder(folder, item);
+        //return putFolder(folder, item);
+        return addToFolder(folder, item);
 	} else {
 		Tree subfolder = getFolder(folder, hd(path));
 		if (isUiFolder(subfolder)) {
