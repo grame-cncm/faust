@@ -433,6 +433,22 @@ static string wdel(const string& s)
 
 
 /**
+ * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
+ * (but not those in the middle of the string)
+ */
+static string rmWhiteSpaces(const string& s)
+{
+    unsigned int i = s.find_first_not_of(" \t");
+    unsigned int j = s.find_last_not_of(" \t");
+
+    if ( (i != string::npos) & (j != string::npos) ) {
+        return s.substr(i, 1+j-i);
+    } else {
+        return "";
+    }
+}
+
+/**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
 static void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
@@ -449,7 +465,6 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
                 switch (c) {
                     case '\\' : state = kEscape1; break;
                     case '[' : state = kKey; deep++; break;
-                    case ' ' : break;
                     default : label += c;
                 }
                 break;
@@ -487,7 +502,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
                                 break;
                     case ']' :  deep--;
                                 if (deep < 1) {
-                                    metadata[key].insert("");
+                                    metadata[rmWhiteSpaces(key)].insert("");
                                     state = kLabel;
                                     key="";
                                     value="";
@@ -511,7 +526,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 
                     case ']' :  deep--;
                                 if (deep < 1) {
-                                    metadata[key].insert(value);
+                                    metadata[rmWhiteSpaces(key)].insert(rmWhiteSpaces(value));
                                     state = kLabel;
                                     key="";
                                     value="";
@@ -527,6 +542,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
                 cerr << "ERROR unrecognized state " << state << endl;
         }
     }
+    label = rmWhiteSpaces(label);
 }
 
 
@@ -643,7 +659,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
 		fClass->addUICode(subst("interface->addHorizontalBargraph($0, &$1, $2, $3);",
-				label,
+                label,
 				tree2str(varname),
 				T(tree2float(x)),
 				T(tree2float(y))));
