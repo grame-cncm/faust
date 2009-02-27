@@ -13,9 +13,9 @@ pan 		= component("panpot.dsp");
 vumeter 	= component("vumeter.dsp").vmeter;
 mute		= *(1 - checkbox("mute"));       
 
-voice(v) 	= vgroup("voice %v",  mute : hgroup("", vol : vumeter) : pan);
-stereo		= hgroup("stereo out", vol, vol);
+voice(v) 	= vgroup("Ch %v",  mute : hgroup("", vol : vumeter) : pan);
+stereo		= hgroup("stereo out", (vol, vol : vgroup("L", vumeter), vgroup("R", vumeter)));
 
-process		= hgroup("mixer", par(i, 8, voice(i)) :> stereo);
+process		= hgroup("mixer", par(i, 8, voice(i)) :> stereo );
 
 

@@ -9,7 +9,7 @@ declare copyright 	"(c)GRAME 2006";
 //		with 32 resonators in parallel
 //-----------------------------------------------
 
-import("music.lib");
+import("music.lib"); 
 
 
 // Excitator

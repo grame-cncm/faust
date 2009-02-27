@@ -34,9 +34,9 @@ filter(Q,F,G)	= TF2(  (1 +  K/Q + K*K) 	/ D,
 //
 //------------------------------------------------------------------
 
-bandfilter(F)	= filter(	nentry("Q factor",50,0.1,100,0.1),
-							nentry("freq (Hz)", F, 20, 20000, 1),
-							0 - vslider("gain (dB)", 0, -50, 50, 0.1)
+bandfilter(F)	= filter(	nentry("Q factor [style:knob]",50,0.1,100,0.1),
+							nentry("freq [unit:Hz][style:knob]", F, 20, 20000, 1),
+							0 - vslider("gain [unit:dB]", 0, -50, 50, 0.1)
 						);
 
 

@@ -8,9 +8,9 @@ declare copyright 	"(c)GRAME 2006";
 // Stereo panpot
 //-------------------------------------------------
 
-panpot(x) 	= (1-c)*x, c*x
+panpot(x) 	= sqrt(c)*x, sqrt(1-c)*x
 			with {
-				c=(nentry("pan",0,-8,8,1)-8)/-16;
+				c=(nentry("[1]pan[style:knob]",0,-90,90,1)-90.01)/-180.1;
 			};
 
 process		= panpot;

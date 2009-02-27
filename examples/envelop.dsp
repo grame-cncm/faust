@@ -25,11 +25,11 @@ envelop(a,d,s,r,t) = adsr ~ (_,_) : !						// The 2 'state' signal are feedback
     };
 
 
-attack 	= 1.0/(SR*nentry("1-attack (ms)", 20, 1, 1000, 1)/1000);
-decay  	= nentry("2-decay (speed)", 2, 1, 100, 0.1)/100000;
-sustain	= nentry("3-sustain (pcent)", 10, 1, 100, 0.1)/100;
-release	= nentry("4-release (speed)", 10, 1, 100, 0.1)/100000;
+attack 	= 1.0/(SR*nentry("[1:]attack [unit:ms][style:knob]", 20, 1, 1000, 1)/1000);
+decay  	= nentry("[2:]decay[style:knob]", 2, 1, 100, 0.1)/100000;
+sustain	= nentry("[3:]sustain [unit:pc][style:knob]", 10, 1, 100, 0.1)/100;
+release	= nentry("[4:]release[style:knob]", 10, 1, 100, 0.1)/100000;
 
 
-process =  button("play"): envelop(attack, decay, sustain, release) : *(noise);
+process =  button("play"): hgroup("", envelop(attack, decay, sustain, release) : *(noise));
 

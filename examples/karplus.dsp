@@ -18,7 +18,7 @@ decay(n,x)	= x - (x>0.0)/n;
 release(n)	= + ~ decay(n);
 trigger(n) 	= upfront : release(n) : >(0.0);
 
-size 		= hslider("excitation (samples)", 128, 2, 512, 1);
+size 		= hslider("excitation [unit:f]", 128, 2, 512, 1);
 
 
 
@@ -26,7 +26,7 @@ size 		= hslider("excitation (samples)", 128, 2, 512, 1);
 // resonator
 //-----------------
 
-dur 		= hslider("duration (samples)", 128, 2, 512, 1);
+dur 		= hslider("duration [unit:f]", 128, 2, 512, 1);
 att 		= hslider("attenuation", 0.1, 0, 1, 0.01);
 average(x)	= (x+x')/2;
 

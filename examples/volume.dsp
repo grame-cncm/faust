@@ -11,6 +11,6 @@ declare copyright 	"(c)GRAME 2006";
 import("music.lib");
 
 smooth(c)	= *(1-c) : +~*(c);
-gain		= vslider("fader", 0, -60, 4, 0.1) : db2linear : smooth(0.999);
+gain		= vslider("[1]", 0, -70, +4, 0.1) : db2linear : smooth(0.999);
 
 process		= *(gain);

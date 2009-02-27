@@ -31,8 +31,8 @@ lfboost(fc, g)	= TF2(  (1 + sqrt(2*V0(g))*K(fc) + V0(g)*square(K(fc))) / denom(f
 
 //------------------------------ User Interface -----------------------------------
 
-freq 				= hslider("freq", 1000, 20, 20000, 0.1);
-gain				= hslider("gain (db)", 0, -20, 20, 0.1);
+freq 				= hslider("[1]freq [unit:Hz][style:knob]", 1000, 20, 20000, 0.1);
+gain				= hslider("[2]gain [unit:dB][style:knob]", 0, -20, 20, 0.1);
 
 
 //----------------------------------- Process -------------------------------------

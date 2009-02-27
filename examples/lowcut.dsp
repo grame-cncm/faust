@@ -32,8 +32,8 @@ lfcut(fc, g)	= TF2(  (1 + sqrt(2)*K(fc) + square(K(fc))) / denom(fc,g),
 
 //------------------------------ User Interface -----------------------------------
 
-freq 			= hslider("freq", 1000, 20, 20000, 0.1);
-att				= hslider("attenuation (db)", 0, -96, 10, 0.1);
+freq 			= hslider("freq [unit:Hz][style:knob]", 100, 20, 5000, 1);
+att				= hslider("attenuation [unit:dB][style:knob]", 0, -96, 10, 0.1);
 
 
 //----------------------------------- Process -------------------------------------

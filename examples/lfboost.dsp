@@ -39,6 +39,6 @@ lfboost(F,G)	= TF2(  (1 + sqrt(2*V)*K + V*K*K) / denom,
 //====================low frequency boost process ===============================
 
 process = vgroup("lowboost", lfboost(
-								nentry("freq (Hz)", 100, 20, 150, 1),
-								vslider("gain (dB)", 0, -20, 20, 0.1)
+								nentry("freq [unit:Hz][style:knob]", 100, 20, 150, 1),
+								vslider("gain [unit:dB]", 0, -20, 20, 0.1)
 				) );
