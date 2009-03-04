@@ -1,7 +1,9 @@
-version := 0.9.9.5b1
+version := 0.9.9.5b3
 
-DESTDIR ?= /usr/local
-prefix := $(DESTDIR)
+DESTDIR ?= 
+PREFIX ?= /usr/local
+
+prefix := $(DESTDIR)$(PREFIX)
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
@@ -41,7 +43,8 @@ doc :
 
 install :
 	mkdir -p $(prefix)/lib/faust/
-	install -D compiler/faust $(prefix)/bin/faust
+	mkdir -p $(prefix)/bin/
+	install compiler/faust $(prefix)/bin/
 	install -m 0644 $(arch) $(prefix)/lib/faust/
 	- test -d  $(prefix)/lib/faust/VST && rm -rf $(prefix)/lib/faust/VST
 	cp -r architecture/VST $(prefix)/lib/faust/
