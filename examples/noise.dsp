@@ -9,4 +9,4 @@ declare copyright 	"(c)GRAME 2006";
 random 	= +(12345)~*(1103515245);
 noise	= random/2147483647.0;
 
-process = noise * vslider("volumer [type:knob]", 0, 0, 1, 0.1);
+process = noise * vslider("volumer[style:knob]", 0, 0, 1, 0.1); 
