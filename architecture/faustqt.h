@@ -1551,6 +1551,7 @@ class QTGUI : public UI
 
                     "QSlider::handle:vertical {"
                         "height: 40px;"
+                        "width: 30px;"
                         "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
                                                           "stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000);"
                         "margin: 0 -5px; /* expand outside the groove */"
@@ -1781,7 +1782,8 @@ class QTGUI : public UI
 		openVerticalBox(label);
 		QSlider* 	w = new QSlider(Qt::Vertical);
         w->setMinimumHeight(160);
-		w->setTickPosition(QSlider::TicksBothSides);
+        w->setMinimumWidth(34);
+		//w->setTickPosition(QSlider::TicksBothSides);
 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
@@ -1798,7 +1800,9 @@ class QTGUI : public UI
 		}
 		openHorizontalBox(label);
 		QSlider* 	w = new QSlider(Qt::Horizontal);
-		w->setTickPosition(QSlider::TicksBothSides);
+        w->setMinimumHeight(34);
+        w->setMinimumWidth(160);
+		//w->setTickPosition(QSlider::TicksBothSides);
 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step);
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
