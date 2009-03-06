@@ -704,7 +704,7 @@ class dbVerticalBargraph : public dbBargraph
         {
             if (pos == -1) pos = height();
             float y = dB2y(v);
-            painter->fillRect(0, y, width(), pos-y, b);
+            painter->fillRect(0, y, width(), pos-y+1, b);
             return y;
         }
 
