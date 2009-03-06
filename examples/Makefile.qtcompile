@@ -30,6 +30,7 @@ $(DEST)%.app : %.dsp
 	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
 	cd $(TMP); qmake
 	cd $(TMP); xcodebuild -project $(<:.dsp=).xcodeproj
+	rm -rf $@
 	mv $(TMP)/build/Default/$(<:.dsp=.app) $@
 	rm -rf $(TMP)
 
