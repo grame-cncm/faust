@@ -445,6 +445,9 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
     printf("out_nChannels = %ld\n", out_nChannels);
 
+    /*
+    Just ignore this case : seems to work without any further change...
+     
     if (outChan > out_nChannels) {
         printf("This device hasn't required output channels\n");
         goto error;
@@ -453,6 +456,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printf("This device hasn't required input channels\n");
         goto error;
     }
+    */
 
     if (outChan < out_nChannels) {
         SInt32 chanArr[out_nChannels];
@@ -658,7 +662,7 @@ int main( int argc, char *argv[] )
     TCoreAudioRenderer audio_device;
 		
     long srate = (long)lopt(argv, "--frequency", 44100);
-    int	fpb = lopt(argv, "--buffer", 128);
+    int	fpb = lopt(argv, "--buffer", 512);
  		
 	DSP.init(long(srate));
 	DSP.buildUserInterface(interface);
