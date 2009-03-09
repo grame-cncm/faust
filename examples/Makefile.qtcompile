@@ -10,13 +10,18 @@ cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 ### check what type of applications to build (MacOSX Darwin or Linux)
 ifeq ($(system), Darwin)
 appls	:= $(addprefix $(DEST),  $(dspsrc:.dsp=.app))
+SPEC	:= -spec macx-g++
 else
 appls	:= $(addprefix $(DEST),  $(dspsrc:.dsp=))
+SPEC	:= 
 endif
+### --------------------------------------------
 
 
-TMP = /var/tmp/$(<:.dsp=)
-###--------------------------------------------
+### allocate a unique directory
+TDR := $(shell mktemp -d -t FAUST)
+TMP = $(TDR)/$(<:.dsp=)
+### --------------------------------------------
 
 
 all : $(appls)
@@ -24,14 +29,13 @@ all : $(appls)
 
 ### Darwin 
 $(DEST)%.app : %.dsp
-	rm -rf $(TMP)
 	install -d $(TMP)
 	faust -a $(ARCH) $< -o $(TMP)/$<.cpp
 	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
-	cd $(TMP); qmake
-	cd $(TMP); xcodebuild -project $(<:.dsp=).xcodeproj
+	cd $(TMP); qmake $(SPEC)
+	make -C $(TMP)
 	rm -rf $@
-	mv $(TMP)/build/Default/$(<:.dsp=.app) $@
+	mv $(TMP)/$(<:.dsp=.app) $(DEST)
 	rm -rf $(TMP)
 
 
@@ -41,7 +45,7 @@ $(DEST)% : %.dsp
 	install -d $(TMP)
 	faust -a $(ARCH) $< -o $(TMP)/$<.cpp
 	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
-	cd $(TMP); qmake 
+	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)
 	mv $(TMP)/$(<:.dsp=) $@
 	rm -rf $(TMP)
