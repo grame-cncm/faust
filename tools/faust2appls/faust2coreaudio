@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $(uname) == Darwin ]]; then
-	#On Darwin build a CoreAudio QT4 application using xcode
+	#On Darwin build a CoreAudio QT4 application using g++
 	for f in $@; do
 	
 		CUR=$(pwd)
@@ -9,22 +9,21 @@ if [[ $(uname) == Darwin ]]; then
 	
 		rm -rf $TMP
 		install -d $TMP
-		
+
 		faust -a ca-qt.cpp $f -o $TMP/${f%.dsp}.cpp
 		
 		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-framework CoreAudio -framework AudioUnit" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
-		cd $TMP; qmake
-		cd $TMP; xcodebuild -project ${f%.dsp}.xcodeproj 
+		cd $TMP; qmake -spec macx-g++
+		cd $TMP; make 
 		cd $CUR; rm -rf ${f%.dsp}.app
-		cd $CUR; mv $TMP/build/Default/${f%.dsp}.app ${f%.dsp}.app
+		cd $CUR; mv $TMP/${f%.dsp}.app $CUR
 		rm -rf $TMP
-		
+		echo  ${f%.dsp}.app
 	done
 
 
 else
-	echo "Cannot be run on Linux"
+	echo "$0 is written for Mac OS X ('Darwin') only"
 
 fi
 
-echo  ${f%.dsp}.app
