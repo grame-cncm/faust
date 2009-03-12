@@ -1,6 +1,6 @@
 #!/bin/bash
 if [[ $(uname) == Darwin ]]; then
-	APPL=open
+	APPL='open -a Safari'
 else
 	APPL=firefox
 fi
