@@ -1,16 +1,138 @@
 //------------------------------------
 // generation of an xml description
 //------------------------------------
+#include <map>
+#include <set>
+#include <string>
 
 #include "description.hh"
 #include "Text.hh"
 
 /**
+ * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
+ * (but not those in the middle of the string)
+ */
+static string rmWhiteSpaces(const string& s)
+{
+    unsigned int i = s.find_first_not_of(" \t");
+    unsigned int j = s.find_last_not_of(" \t");
+
+    if ( (i != string::npos) & (j != string::npos) ) {
+        return s.substr(i, 1+j-i);
+    } else {
+        return "";
+    }
+}
+
+/**
+ * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
+ */
+static void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
+{
+    enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
+    int state = kLabel; int deep = 0;
+    string key, value;
+
+    for (unsigned int i=0; i < fulllabel.size(); i++) {
+        char c = fulllabel[i];
+        switch (state) {
+            case kLabel :
+                assert (deep == 0);
+                switch (c) {
+                    case '\\' : state = kEscape1; break;
+                    case '[' : state = kKey; deep++; break;
+                    default : label += c;
+                }
+                break;
+
+            case kEscape1 :
+                label += c;
+                state = kLabel;
+                break;
+
+            case kEscape2 :
+                key += c;
+                state = kKey;
+                break;
+
+            case kEscape3 :
+                value += c;
+                state = kValue;
+                break;
+
+            case kKey :
+                assert (deep > 0);
+                switch (c) {
+                    case '\\' :  state = kEscape2;
+                                break;
+
+                    case '[' :  deep++;
+                                key += c;
+                                break;
+
+                    case ':' :  if (deep == 1) {
+                                    state = kValue;
+                                } else {
+                                    key += c;
+                                }
+                                break;
+                    case ']' :  deep--;
+                                if (deep < 1) {
+                                    metadata[rmWhiteSpaces(key)].insert("");
+                                    state = kLabel;
+                                    key="";
+                                    value="";
+                                } else {
+                                    key += c;
+                                }
+                                break;
+                    default :   key += c;
+                }
+                break;
+
+            case kValue :
+                assert (deep > 0);
+                switch (c) {
+                    case '\\' : state = kEscape3;
+                                break;
+
+                    case '[' :  deep++;
+                                value += c;
+                                break;
+
+                    case ']' :  deep--;
+                                if (deep < 1) {
+                                    metadata[rmWhiteSpaces(key)].insert(rmWhiteSpaces(value));
+                                    state = kLabel;
+                                    key="";
+                                    value="";
+                                } else {
+                                    value += c;
+                                }
+                                break;
+                    default :   value += c;
+                }
+                break;
+
+            default :
+                cerr << "ERROR unrecognized state " << state << endl;
+        }
+    }
+    label = rmWhiteSpaces(label);
+}
+
+
+/**
  * removes enclosing quotes and transforms '<', '>' and '&' characters
  */
-static string xmlize(const string& src)
+static string xmlize(const string& fullsrc)
 {
+    map<string, set<string> > metadata;
     string dst;
+    string src;
+
+    extractMetadata(fullsrc, src, metadata);
+    
     for (unsigned int i=0; i<src.size(); i++) {
         if (src[i] == '"' & (i==0 | i==src.size()-1)) {
             // nothing to do just skip the quotes
