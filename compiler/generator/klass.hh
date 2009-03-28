@@ -151,31 +151,17 @@ class Klass //: public Target
     void addZone3 (const string& str)  { fZone3Code.push_back(str); }
     void addZone4 (const string& str)  { fZone4Code.push_back(str); }
     void addZone5 (const string& str)  { fZone5Code.push_back(str); }
-#if 0
-    string  addLocalCommonDecl (const string& ctype, const string& vname, const string& init);
-	string 	addLocalDecl (const string& type, const string& var);
-	string 	addLocalDecl (const string& type, const string& var, const string& value);
-	string	addLocalVecDecl (const string& ctype, const string& vname, int size);
-	string	addLocalVecDecl (const string& ctype, const string& vname, const string& size);
-	void 	addSlowExecCode (const string& str);
-#endif
-  //void addExecCode (const string& str)	{ fExecCode.push_back(str); }
 
-    void addExecCode ( const string& str)   {
-    //cerr << fTopLoop <<"::addExecCode " << str << endl;
-    fTopLoop->addExecCode(str); }
+    void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
 
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
-
-    //void addEndCode (const string& str)	{ fEndCode.push_front(str); }
 
 	virtual void println(int n, ostream& fout);
     virtual void printComputeMethod (int n, ostream& fout);
     virtual void printComputeMethodScalar (int n, ostream& fout);
     virtual void printComputeMethodVectorFaster (int n, ostream& fout);
     virtual void printComputeMethodVectorSimple (int n, ostream& fout);
-//    virtual void printComputeMethodVectorFix0 (int n, ostream& fout);
-//    virtual void printComputeMethodVectorFix1 (int n, ostream& fout);
+
     virtual void printComputeMethodOpenMP (int n, ostream& fout);
 
     virtual void printLoopGraph(int n, ostream& fout);
