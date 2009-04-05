@@ -1,3 +1,18 @@
+
+
+/**
+DEFAULT ALSA PARAMETERS CONTROLLED BY ENVIRONMENT VARIABLES
+
+Some default parameters of Faust's ALSA applications are controlled by the following environment variables :
+
+    FAUST2ALSA_DEVICE   = "hw:0"
+    FAUST2ALSA_FREQUENCY= 44100
+    FAUST2ALSA_BUFFER   = 1024
+    FAUST2ALSA_PERIODS  = 2
+
+*/
+
+
 /* link with : "" */
 #include <stdlib.h>
 #include <libgen.h>
@@ -1864,6 +1879,34 @@ void* run_ui(void* ptr)
 	return 0;
 }
 
+
+
+/**
+ * Return the value of an environment variable or defval if undefined.
+ */
+static int getDefaultEnv(const char* name, int defval)
+{
+    const char* str = getenv(name);
+    if (str) {
+        return atoi(str);
+    } else {
+        return defval;
+    }
+}
+
+/**
+ * Return the value of an environment variable or defval if undefined.
+ */
+static const char* getDefaultEnv(const char* name, const char* defval)
+{
+    const char* str = getenv(name);
+    if (str) {
+        return str;
+    } else {
+        return defval;
+    }
+}
+
 int main(int argc, char *argv[] )
 {
 	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
@@ -1874,10 +1917,10 @@ int main(int argc, char *argv[] )
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 	
 	AudioInterface	audio (
-		AudioParam().cardName( sopt(argc, argv, "--device", "-d", "hw:0") ) 
-					.frequency( lopt(argc, argv, "--frequency", "-f", 44100) ) 
-					.buffering( lopt(argc, argv, "--buffer", "-b", 1024) )
-					.periods( lopt(argc, argv, "--periods", "-p", 2) )
+		AudioParam().cardName( sopt(argc, argv, "--device", "-d",     getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")  ) )
+					.frequency( lopt(argc, argv, "--frequency", "-f", getDefaultEnv("FAUST2ALSA_FREQUENCY",44100) ) ) 
+					.buffering( lopt(argc, argv, "--buffer", "-b",    getDefaultEnv("FAUST2ALSA_BUFFER",1024)     ) )
+					.periods( lopt(argc, argv, "--periods", "-p",     getDefaultEnv("FAUST2ALSA_PERIODS",2)       ) )
 					.inputs(DSP.getNumInputs())
 					.outputs(DSP.getNumOutputs())
 	);
