@@ -682,7 +682,7 @@ long lopt (int argc, char *argv[], const char* longname, const char* shortname, 
 }
 	
 ///< sopt : Scan Command Line string Arguments
-char* sopt (int argc, char *argv[], const char* longname, const char* shortname, char* def) 
+const char* sopt (int argc, char *argv[], const char* longname, const char* shortname, const char* def) 
 {
 	for (int i=2; i<argc; i++) 
 		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
