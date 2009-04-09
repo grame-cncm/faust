@@ -139,10 +139,13 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
 
-		if (v >= x) {
-			*inum = u; *onum = y+v-x;
+		if (v != x) {
+            cerr    << "Error in sequential composition (A:B)" << endl
+                    << "The number of outputs (" << v << ") of A = " << boxpp(a) << endl
+                    << "must be equal to the number of inputs (" << x << ") of B : " << boxpp(b) << endl;
+            exit(1);
 		} else {
-			*inum = u+x-v; *onum = y;
+			*inum = u; *onum = y;
 		}
 
 	} else if (isBoxPar(t, a, b)) {
