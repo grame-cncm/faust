@@ -944,6 +944,26 @@ static Tree iterateProd (Tree id, int num, Tree body, Tree visited, Tree localVa
 }
 
 /**
+ * Compute the sum of outputs of a list of boxes. The sum is
+ * valid if all the boxes have a valid boxType
+ *
+ * @param boxlist the list of boxes
+ * @param outputs sum of outputs of the boxes
+ * @return true if outputs is valid, false otherwise
+ */
+static bool boxlistOutputs(Tree boxlist, int* outputs)
+{
+    int ins, outs;
+
+    *outputs = 0;
+    while (!isNil(boxlist) && getBoxType(hd(boxlist), &ins, &outs)) {
+            *outputs += outs;
+            boxlist = tl(boxlist);
+    }
+    return isNil(boxlist);
+}
+
+/**
  * Apply a function to a list of arguments. 
  * Apply a function F to a list of arguments (a,b,c,...).
  * F can be either a closure over an abstraction, or a 
@@ -1008,10 +1028,36 @@ static Tree applyList (Tree fun, Tree larg)
 		}			
 	}
 	if (!isClosure(fun, abstr, globalDefEnv, visited, localValEnv)) {
+//         int ins, outs;
+//         if (getBoxType(fun, &ins, &outs)) {
+//             cout << "application of non-closure " << ins << "->" << outs << endl;
+//         } else {
+//             cout << "application of untyped expression : " << boxpp(fun) << endl;
+//         }
+// 
+//         // check arity of arg list
+//         if (boxlistOutputs(larg,&outs)) {
+//             cout << "argument list of arity : " << outs << endl;            
+//         } else {
+//             cout << "unknow arity for argument list" << endl;
+//         }
+
 		if (isNil(tl(larg)) && isBoxPrim2(fun, &p2) && (p2 != sigPrefix)) {
 			return boxSeq(boxPar(boxWire(), hd(larg)), fun);
-		}
-		return boxSeq(larg2par(larg), fun);
+		} else {
+            
+            if (isNil(tl(larg)) && isBoxPrim2(fun, &p2) && (p2 == sigPrefix)) {
+                return boxSeq(boxPar(hd(larg),boxWire()), fun);
+            }
+            xtended* xt = (xtended*) getUserData(fun);
+            if (xt && isNil(tl(larg)) && (xt->arity() == 2)) {
+                return boxSeq(boxPar(boxWire(), hd(larg)), fun);
+            }
+            // TODO complete with _
+            // cout << "application de : " << boxpp(fun) << endl
+            //      << "           sur : " << boxpp(larg) << endl;
+		    return boxSeq(larg2par(larg), fun);
+        }
 	}
 
     if (isBoxEnvironment(abstr)) {
