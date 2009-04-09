@@ -327,7 +327,9 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		int in1, out1, in2, out2;
 		getBoxType(t1, &in1, &out1);
 		getBoxType(t2, &in2, &out2);
-			
+
+        assert(out1==in2);
+
 		if (out1 == in2) {
 			return propagate(slotenv, path, t2, propagate(slotenv, path,t1,lsig));
 		} else if (out1 > in2) {
