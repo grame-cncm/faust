@@ -212,6 +212,23 @@ static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, con
 			
     return 0;
 }
+
+/******************************************************************************
+*******************************************************************************
+
+                                GLOBAL VARIABLES
+
+*******************************************************************************
+*******************************************************************************/
+    
+list<UI*>               UI::fGuiList;
+map<float*, float>      QTGUI::fGuiSize;       // map widget zone with widget size coef
+map<float*, string>     QTGUI::fTooltip;       // map widget zone with tooltip strings
+set<float*>             QTGUI::fKnobSet;       // set of widget zone to be knobs
+map<float*, string>     QTGUI::fUnit;          // map widget zone with unit strings (i.e. "dB")
+set<float*>             QTGUI::fLedSet;        // set of widget zone to be LEDs
+
+
 		
 
 
@@ -241,7 +258,6 @@ void pa_error(int err)
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-list<UI*> UI::fGuiList;
 
 int main( int argc, char *argv[] )
 {
