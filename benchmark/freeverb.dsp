@@ -70,7 +70,7 @@ combfeed 		= roomsizeSlider;
 // Comb and Allpass filters
 //-------------------------
 
-allpass(dt,fb) = (_,_ <: (*(fb):+:@(dt)), -) ~ _ : (!,_);
+allpass(dt,fb) = (_,_ <: (*(fb),_:+:@(dt)), -) ~ _ : (!,_);
 
 comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 
@@ -87,7 +87,7 @@ monoReverb(fb1, fb2, damp, spread)
 			comb(combtuningL6+spread, fb1, damp),
 			comb(combtuningL7+spread, fb1, damp),
 			comb(combtuningL8+spread, fb1, damp)
-		+>
+		:>
 		 	allpass (allpasstuningL1+spread, fb2)
 		:	allpass (allpasstuningL2+spread, fb2)
 		:	allpass (allpasstuningL3+spread, fb2)
