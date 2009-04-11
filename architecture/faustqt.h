@@ -924,7 +924,7 @@ typedef void (*uiCallback)(float val, void* data);
  * Graphic User Interface : abstract definition
  */
 
-class UI : public QObject
+class UI
 {
 	typedef list<uiItem*> clist;
 	typedef map<float*, clist*> zmap;
@@ -1028,7 +1028,7 @@ class UI : public QObject
  * A User Interface Item that can reflect and modify a floating point zone
  */
 
-class uiItem : public QObject
+class uiItem
 {
   protected :
 		  
@@ -1100,7 +1100,7 @@ inline void UI::updateAllZones()
 *******************************************************************************/
 
 
-class uiButton : public uiItem
+class uiButton : public QObject, public uiItem
 {
     Q_OBJECT
 			
@@ -1123,7 +1123,7 @@ class uiButton : public uiItem
 };
 
 
-class uiCheckButton : public uiItem
+class uiCheckButton : public QObject, public uiItem
 {
     Q_OBJECT
 			
@@ -1144,7 +1144,7 @@ class uiCheckButton : public uiItem
 };
 
 
-class uiSlider : public uiItem
+class uiSlider : public QObject, public uiItem
 {
     Q_OBJECT
 
@@ -1186,7 +1186,7 @@ class uiSlider : public uiItem
 };
 
 
-class uiKnob : public uiItem
+class uiKnob : public QObject, public uiItem
 {
     Q_OBJECT
 
@@ -1228,7 +1228,7 @@ class uiKnob : public uiItem
 };
 
 
-class uiBargraph : public uiItem
+class uiBargraph : public QObject, public uiItem
 {
     Q_OBJECT
 
@@ -1259,7 +1259,7 @@ class uiBargraph : public uiItem
 };
 
 
-class uiBargraph2 : public uiItem
+class uiBargraph2 : public QObject, public uiItem
 {
     Q_OBJECT
             
@@ -1284,7 +1284,7 @@ class uiBargraph2 : public uiItem
 
 
 
-class uiNumEntry : public uiItem
+class uiNumEntry : public QObject, public uiItem
 {
     Q_OBJECT
 
@@ -1336,7 +1336,7 @@ class uiNumEntry : public uiItem
 *******************************************************************************/
 
 
-class QTGUI : public UI
+class QTGUI : public QObject, public UI
 {
     Q_OBJECT
 	QApplication		fAppl;
