@@ -1,16 +1,31 @@
-This folder contains useful scripts that combines faust and g++ to generates executable binary. You can use 'sudo make install' to install them. 
-
-faust2jack <file1.dsp>... : create jack applications for each input file
-
-faust2alsa <file1.dsp>... : create alsa applications for each input file
-
-faust2svg  <file1.dsp>... : create svg block-diagrams for each input file
-
-faust2plot  <file1.dsp>... : create a matplot application for each input file
+This folder contains useful scripts that combines faust and g++ to generates executable binary.
+You can use 'sudo make install' to install them. 
 
 
-The following scripts also integrate a visualization :
+1) The following scripts generate audio applications
 
-faust2firefox  <file1.dsp>... : faust2svg with visualization using firefox
+faust2jack <file1.dsp>...       : create jack-gtk  applications for each input file
 
-faust2octave <file.dsp>       : faust2plot with visualization using octave   
+faust2jaqt <file.dsp>...        : create jack-qt applications for each input file
+
+faust2alsa <file1.dsp>...       : create alsa-gtk applications for each input file
+
+faust2plot  <file1.dsp>...      : create a matplot application for each input file
+
+faust2coreaudio  <file1.dsp>... : create a coreaudio-qt application for each input file
+
+
+2) The following scripts can be used to generate block diagrams
+
+faust2svg  <file1.dsp>...       : create svg block-diagrams for each input file
+
+faust2png  <file1.dsp>...       : create svg block-diagrams for each input file
+
+faust2eps  <file1.dsp>...       : create svg block-diagrams for each input file
+
+
+3) The following scripts also integrate a visualization :
+
+faust2firefox  <file1.dsp>...   : faust2svg with visualization using firefox
+
+faust2octave <file.dsp>         : faust2plot with visualization using octave   
