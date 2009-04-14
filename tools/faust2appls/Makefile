@@ -2,6 +2,7 @@ prefix := /usr/local
 
 install:
 	install faust2jack $(prefix)/bin
+	install faust2jaqt $(prefix)/bin
 	install faust2alsa $(prefix)/bin
 	install faust2plot $(prefix)/bin
 	install faust2svg $(prefix)/bin
@@ -12,4 +13,5 @@ install:
 	install faust2jackinternal $(prefix)/bin
 	install faust2jackserver $(prefix)/bin
 	install faust2coreaudio $(prefix)/bin
+	install faust2puredata $(prefix)/bin
 
