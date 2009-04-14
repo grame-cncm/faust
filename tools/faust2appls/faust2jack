@@ -1,36 +1,102 @@
 #!/bin/bash
 
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to jack-gtk                 #
+#               (c) Grame, 2009                                     #
+#                                                                   #
+#####################################################################
+
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -e "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
+done
+
+
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
 if [[ $(uname) == Darwin ]]; then
-	#On Darwin build a Jack QT4 application using xcode
-	for f in $@; do
+    SPEC="-spec macx-g++"
+    EXT=".app"
+
+	#-------------------------------------------------------------------
+	# compile the *.dsp files on darwin using QT instead of GTK
+	#
+	for f in $FILES; do
+		faust -a jack-gtk.cpp "$f" -o "$f.cpp"
+		${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags --libs jack gtk+-2.0` "$f.cpp" -o "${f%.dsp}"
 	
 		CUR=$(pwd)
-		TMP=/var/tmp/${f%.dsp}
+		f=$(basename "$p")
+		SRCDIR=$(dirname "$p")
 	
-		rm -rf $TMP
-		install -d $TMP
-		
-		faust -a jack-qt.cpp $f -o $TMP/${f%.dsp}.cpp
-		
-		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-ljack" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
-		cd $TMP; qmake
-		echo toto
-		cd $TMP; xcodebuild -project ${f%.dsp}.xcodeproj
-		echo titi
-		cd $CUR; rm -rf ${f%.dsp}.app
-		cd $CUR; mv $TMP/build/Default/${f%.dsp}.app ${f%.dsp}.app
-		rm -rf $TMP
-		
+		# creates a temporary dir 
+		TDR=$(mktemp -d)
+		TMP=$TDR/${f%.dsp}
+		mkdir "$TMP"
+	
+		# compile faust to c++
+		faust -a jack-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	
+		# compile c++ to binary
+		(
+			cd "$TMP"
+			qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-ljack" "HEADERS+=/usr/local/lib/faust/faustqt.h"
+			qmake $SPEC
+			make
+		) > /dev/null
+	
+		rm -rf "$SRCDIR/${f%.dsp}$EXT"
+		cp "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+		rm -rf "$TDR"
+	
+		# collect binary file name for FaustGIDE
+		BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
 	done
 
-
 else
-	#On Linux (default) build a jack gtk application
-	for f in $@; do
-		faust -a jack-gtk.cpp $f -o $f.cpp
-		${CXX=g++} ${CXXFLAGS=-O3} `pkg-config --cflags --libs jack gtk+-2.0` $f.cpp -o ${f%.dsp}
+	
+	#-------------------------------------------------------------------
+	# compile the *.dsp files using GTK on linux
+	#
+	for f in $FILES; do
+	
+		# compile faust to c++
+		faust -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+
+		# compile c++ to binary
+		(
+			${CXX=g++} ${CXXFLAGS=-O3} $OMP `pkg-config --cflags --libs jack gtk+-2.0` "$f.cpp" -o "${f%.dsp}"
+		) > /dev/null
+		rm "$f.cpp"
+
+		# collect binary file name for FaustGIDE
+		BINARIES="$BINARIES${f%.dsp};"
 	done
 
 fi
 
-echo ${1%.dsp}
+echo $BINARIES
+
+
