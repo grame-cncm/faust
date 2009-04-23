@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.3";
+declare version "1.4";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/~jos/filters/";
 
@@ -113,7 +113,7 @@ notch(fb) = notchw(70,fb); // 70 Hz default width (like dcblocker)
 // Reference: 
 //   http://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html
 
-ffcombfilter(maxdel,del,g) = _ <: delay(maxdel,del) : *(g): + ;
+ffcombfilter(maxdel,del,g) = _ <: _,(delay(maxdel,del) : *(g)) : + ;
 
 //------------------- fbcombfilter, ffbcombfilter -------------------
 // Feed-Back Comb Filter
@@ -281,6 +281,31 @@ with {
   d    = a0 + a;
   b0d  = b0 / d;
   pole = (a - a0) / d;
+};
+
+//====================== Simple Resonator Filters ======================
+
+// resonlp = 2nd-order lowpass with corner resonance:
+resonlp(fc,Q,gain) = tf2s(b1,b0,a1,a0,wc)
+with {
+     wc = 2*PI*fc;
+     a1 = 2/Q;
+     a0 = 1;
+     b1 = 0;
+     b0 = gain;
+};
+
+// resonhp = 2nd-order highpass with corner resonance:
+resonhp(fc,Q,gain,x) = gain*x-resonlp(fc,Q,gain,x);
+
+// resonbp = 2nd-order bandpass
+resonbp(fc,Q,gain) = tf2s(b1,b0,a1,a0,wc) 
+with {
+     wc = 2*PI*fc;
+     a1 = 2/Q;
+     a0 = 1;
+     b1 = gain;
+     b0 = 0;
 };
 
 //===================== Butterworth Lowpass Filters =====================
@@ -598,3 +623,4 @@ with {
   a3 = 4*a3o4;
   a4 = a3o4*(1-fd)/(4+fd);
 };
+
