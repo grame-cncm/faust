@@ -1,7 +1,7 @@
 declare name "Faust Oscillator Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.0";
+declare version "1.1";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 //incomplete at the moment: 
 //declare reference "http://ccrma.stanford.edu/~jos/pasp/";
@@ -11,6 +11,16 @@ import("filter.lib"); // wgr, nlf2
 
 impulse = 1-1';
 
+// Simple sawtooth waveform oscillator between 0 and 1
+sawpos(freq) = rawsaw : *(fn) 
+with {
+  fn = freq/SR;    // normalized frequency (cycles per sample)  
+  fperiod = 1/fn;  // period in samples (not an integer in general)
+  rawsaw = (_,fperiod : fmod) ~ +(1.0); // sawtooth waveform in [0,fperiod)
+};
+
+imptrain(freq) = sawpos(freq)<:-(mem)<0;
+
 // Simple sawtooth waveform oscillator (not bandlimited - has aliasing)
 sawtooth(freq) = rawsaw : *(fn) : -(1.0) // zero-mean in [-1,1)
 with {
@@ -18,6 +28,10 @@ with {
   fperiod = 1/fn;  // period in samples (non-int for best tuning)
   rawsaw = (_,fperiod : fmod) ~ +(2.0); // sawtooth waveform in [0,2*fperiod)
 };
+
+// Differentiated Polynomial Wave (DPW)  sawtooth generator
+// Reference: Välimäki, IEEE Signal Processing Letters, March 2005
+saw2(freq) = sawtooth(freq) <: * <: -(mem) : *(0.25*SR/freq) : *(1');
 
 // Filter-based oscillators - a quick guide (move to osc-doc.txt?):
 // USAGE: osc*(f), where f = frequency in Hz.
@@ -36,7 +50,7 @@ with {
 //-------------------------- oscb --------------------------------
 // Sinusoidal oscillator based on the biquad
 //
-oscb(f) = impulse : TF2(1,0,0,a1,1)
+oscb(f) = impulse : tf2(1,0,0,a1,1)
 with {
   a1 = -2*cos(2*PI*f/SR);
 };
