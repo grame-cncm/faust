@@ -358,6 +358,10 @@ void Klass::println(int n, ostream& fout)
 	// generate user interface macros if needed
 	if (gUIMacroSwitch) {
 		tab(n, fout); fout << "#ifdef FAUST_UIMACROS";
+            tab(n+1,fout); fout << "#define FAUST_INPUTS " << fNumInputs;
+            tab(n+1,fout); fout << "#define FAUST_OUTPUTS " << fNumOutputs;
+            tab(n+1,fout); fout << "#define FAUST_ACTIVES " << fNumActives;
+            tab(n+1,fout); fout << "#define FAUST_PASSIVES " << fNumPassives;
 			printlines(n+1, fUIMacro, fout);
 		tab(n, fout); fout << "#endif";
 	}

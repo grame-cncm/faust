@@ -60,6 +60,8 @@ class Klass //: public Target
 	string			fSuperKlassName;
 	int				fNumInputs;
 	int				fNumOutputs;
+    int             fNumActives;                ///< number of active controls in the UI (sliders, buttons, etc.)
+    int             fNumPassives;               ///< number of passive widgets in the UI (bargraphs, etc.)
 
 
 
@@ -103,6 +105,7 @@ class Klass //: public Target
 
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
 	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
+            fNumActives(0), fNumPassives(0),
             fTopLoop(new Loop(0, "count")), vec(__vec)
 	{}
 
@@ -139,7 +142,10 @@ class Klass //: public Target
 
 	void addUICode (const string& str)		{ fUICode.push_back(str); }
 
-	void addUIMacro (const string& str)		{ fUIMacro.push_back(str); }
+    void addUIMacro (const string& str)     { fUIMacro.push_back(str); }
+
+    void incUIActiveCount ()                { fNumActives++; }
+    void incUIPassiveCount ()               { fNumPassives++; }
 
 
     void addSharedDecl (const string& str)          { fSharedDecl.push_back(str); }

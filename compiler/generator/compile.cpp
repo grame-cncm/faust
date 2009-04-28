@@ -618,12 +618,15 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
     }
 
 	if ( isSigButton(sig, path) ) 					{
+        fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addButton($0, &$1);", label, tree2str(varname)));
 
 	} else if ( isSigCheckbox(sig, path) ) 			{
+        fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addCheckButton($0, &$1);", label, tree2str(varname)));
 
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
+        fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addVerticalSlider($0, &$1, $2, $3, $4, $5);",
 				label,
 				tree2str(varname),
@@ -633,6 +636,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 				T(tree2float(z))));
 
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
+        fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addHorizontalSlider($0, &$1, $2, $3, $4, $5);",
 				label,
 				tree2str(varname),
@@ -642,6 +646,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 				T(tree2float(z))));
 
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
+        fClass->incUIActiveCount();
 		fClass->addUICode(subst("interface->addNumEntry($0, &$1, $2, $3, $4, $5);",
 				label,
 				tree2str(varname),
@@ -651,6 +656,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 				T(tree2float(z))));
 
 	} else if ( isSigVBargraph(sig, path,x,y,z) )	{
+        fClass->incUIPassiveCount();
 		fClass->addUICode(subst("interface->addVerticalBargraph($0, &$1, $2, $3);",
 				label,
 				tree2str(varname),
@@ -658,6 +664,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 				T(tree2float(y))));
 
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
+        fClass->incUIPassiveCount();
 		fClass->addUICode(subst("interface->addHorizontalBargraph($0, &$1, $2, $3);",
                 label,
 				tree2str(varname),
