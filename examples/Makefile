@@ -83,6 +83,10 @@ alsaqt :
 ladspa :
 	install -d ladspadir
 	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+
+csound :
+	install -d csounddir
+	$(MAKE) DEST='csounddir/' -f Makefile.csound
 	
 jackwx :
 	install -d jackwxdir
