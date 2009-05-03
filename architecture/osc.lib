@@ -1,51 +1,53 @@
 declare name "Faust Oscillator Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.1";
+declare version "1.2";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
-//incomplete at the moment: 
+//incomplete at the moment, but coverage is planned:
 //declare reference "http://ccrma.stanford.edu/~jos/pasp/";
 
 import("music.lib");
 import("filter.lib"); // wgr, nlf2
 
-impulse = 1-1';
+//---------------------- Virtual Analog Oscillators ------------------------
 
-// Simple sawtooth waveform oscillator between 0 and 1
-sawpos(freq) = rawsaw : *(fn) 
+// Simple sawtooth waveform oscillator between 0 and period in samples:
+rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
+
+// Simple sawtooth waveform oscillator between 0 and 1s
+sawpos(freq) = rawsaw(periodsamps) / periodsamps
 with {
-  fn = freq/SR;    // normalized frequency (cycles per sample)  
-  fperiod = 1/fn;  // period in samples (not an integer in general)
-  rawsaw = (_,fperiod : fmod) ~ +(1.0); // sawtooth waveform in [0,fperiod)
+  periodsamps = float(SR)/freq; // period in samples (not nec. integer)
 };
 
 imptrain(freq) = sawpos(freq)<:-(mem)<0;
 
 // Simple sawtooth waveform oscillator (not bandlimited - has aliasing)
-sawtooth(freq) = rawsaw : *(fn) : -(1.0) // zero-mean in [-1,1)
-with {
-  fn = freq/SR;    // normalized frequency (cycles per sample)  
-  fperiod = 1/fn;  // period in samples (non-int for best tuning)
-  rawsaw = (_,fperiod : fmod) ~ +(2.0); // sawtooth waveform in [0,2*fperiod)
-};
+saw1(freq) = 2.0 * sawpos(freq) - 1.0; // zero-mean in [-1,1)
+sawtooth = saw1;
 
-// Differentiated Polynomial Wave (DPW)  sawtooth generator
+// Differentiated Parabolic Wave (DPW) sawtooth (less aliasing)
 // Reference: Välimäki, IEEE Signal Processing Letters, March 2005
-saw2(freq) = sawtooth(freq) <: * <: -(mem) : *(0.25*SR/freq) : *(1');
+saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*SR/freq);
 
-// Filter-based oscillators - a quick guide (move to osc-doc.txt?):
-// USAGE: osc*(f), where f = frequency in Hz.
+//----------------------- Filter-Based Oscillators ------------------------
+
+// Quick Guide (more complete documentation forthcoming):
+//
+//    USAGE: osc*(f), where f = frequency in Hz.
 //
 // oscb: fastest, amplitude varies with frequency, avoid dc
 // oscr: 2nd fastest, amplitude unchanging with frequency, dc ok, 
 //       amp slowly drifts,
 //       sine and cosine outputs available (exact phase quadrature)
 // oscs: 3rd fastest, amplitude varies slightly with frequency, dc ok, 
-//       no amp drift, hand optimizable to be the fastest no-drift case
+//       no amp drift, likely optimizable to be the fastest no-drift case
 // oscw: 4th fastest, amplitude steady with frequency, no amp drift,
 //       sine and cosine outputs available (exact phase quadrature),
 //       numerical difficulty below 10 Hz,
-//       hand optimizable to be best (above 10 Hz) for custom silicon.
+//       likely optimizable to be best (above 10 Hz) for custom silicon.
+
+impulse = 1-1'; // used to start filter-based oscillators
 
 //-------------------------- oscb --------------------------------
 // Sinusoidal oscillator based on the biquad
