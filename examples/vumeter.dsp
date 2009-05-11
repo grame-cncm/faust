@@ -15,9 +15,6 @@ import("music.lib");
 vmeter(x)		= attach(x, envelop(x) : vbargraph("[2][unit:dB]", -70, +5));
 hmeter(x)		= attach(x, envelop(x) : hbargraph("[2][unit:dB]", -70, +5));
 
-envelop			= abs : max ~ -(1.0/SR) : max(db2linear(-70)): linear2db;
+envelop         = abs : max ~ -(1.0/SR) : max(db2linear(-70)) : linear2db;
 
-//process 		= vgroup("vu meter", vmeter);
 process 		= vmeter;
-
-
