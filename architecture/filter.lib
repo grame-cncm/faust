@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.4";
+declare version "1.5";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/~jos/filters/";
 
@@ -183,7 +183,7 @@ with {
 // Reference:
 // http://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
 //
-wgr(f,r,x) = (*(G),_<:_,((+:*(C))<:_,_),_:+:+(x),-) ~ cross : _,*(0-gi)
+wgr(f,r,x) = (*(G),_<:_,((+:*(C))<:_,_),_:+,_,_:+(x),-) ~ cross : _,*(0-gi)
 with { 
   C = cos(2*PI*f/SR);
   gi = sqrt((1+C)/(1-C)); // compensate amplitude (only needed when 
