@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.5b2"
+#define FAUSTVERSION "0.9.9.6b1"
 
 #include <stdio.h>
 #include <string.h>
@@ -98,7 +98,8 @@ string          gMasterName;
 
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
-bool			gDetailsSwitch 	= false;
+bool            gDetailsSwitch  = false;
+bool            gShadowBlur     = false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
@@ -168,9 +169,13 @@ bool process_cmdline(int argc, char* argv[])
 			gDrawPSSwitch = true;
 			i += 1;
 
-		} else if (isCmd(argv[i], "-xml", "--xml")) {
-			gPrintXMLSwitch = true;
-			i += 1;
+        } else if (isCmd(argv[i], "-xml", "--xml")) {
+            gPrintXMLSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
+            gShadowBlur = true;
+            i += 1;
 
 		} else if (isCmd(argv[i], "-svg", "--svg")) {
 			gDrawSVGSwitch = true;
@@ -289,6 +294,7 @@ void printhelp()
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
 	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
 	cout << "-xml \t\tgenerate an --xml description file\n";
+    cout << "-blur \t\tadd a --shadow-blur to SVG boxes\n";
 	cout << "-lb \t\tgenerate --left-balanced expressions\n";
 	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";

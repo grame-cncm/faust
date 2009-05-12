@@ -28,6 +28,8 @@
 #include <iostream>
 using namespace std;
 
+extern bool gShadowBlur;
+
 static char* xmlcode(const char* name, char* name2)
 {
 	int	i,j;
@@ -64,6 +66,18 @@ SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 	// viewBox:
 	//fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 %f %f\" width=\"200mm\" height=\"150mm\" >\n",largeur,hauteur);
 	fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 %f %f\" width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n", largeur, hauteur, largeur*gScale, hauteur*gScale);
+
+    if (gShadowBlur) {
+     fprintf(fic_repr,
+        "<defs>\n"
+        "   <filter id=\"filter\" filterRes=\"50\" x=\"0\" y=\"0\">\n"
+        "     <feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"1.5\"/>\n"
+        "     <feOffset dx=\"1\" dy=\"1\"/>\n"
+        "   </filter>\n"
+        "</defs>\n"
+        );
+    }
+
 }
 
 SVGDev::~SVGDev()
@@ -80,7 +94,11 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
 		fprintf(fic_repr,"<a xlink:href=\"%s\">\n", xmlcode(link, buf));
 	}
 	// draw the shadow
-	fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:#cccccc;\"/>\n",x+1,y+1,l,h);
+    if (gShadowBlur) {
+        fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:#888888;;filter:url(#filter);\"/>\n",x+1,y+1,l,h);
+    } else {
+        fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:#cccccc;\"/>\n",x+1,y+1,l,h);
+    }
 
 	// draw the rectangle
 	//fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"shape-rendering: crispEdges; stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
