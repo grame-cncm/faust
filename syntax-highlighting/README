@@ -15,3 +15,6 @@ install dsp.lang into /usr/share/highlight/langDefs/
 Examples using highlight :
 	highlight --latex -l -t 4 -i karplus.dsp -o karplus.dsp.tex
 	highlight -l -t 4 -i mixer.dsp -o mixer.dsp.html
+
+4) VIM
+faust.vim is a syntax file for VIM contributed by Björn Lindig
