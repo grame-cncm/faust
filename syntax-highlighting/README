@@ -17,4 +17,17 @@ Examples using highlight :
 	highlight -l -t 4 -i mixer.dsp -o mixer.dsp.html
 
 4) VIM
-faust.vim is a syntax file for VIM contributed by Björn Lindig
+'faust.vim' is a syntax file for VIM contributed by Björn Lindig
+- install the file 'faust.vim' into vim syntax folder ('~/.vim/syntax/')
+- add the following lines to the file 'filetype.vim' in the '~/.vim' directory (if its not there, you have to create it):
+
+faust filetype file
+    if exists("did_load_filetypes")
+      finish
+    endif
+    augroup filetypedetect
+      au! BufRead,BufNewFile *.fst      setfiletype faust
+      au! BufRead,BufNewFile *.dsp      setfiletype faust
+    augroup END
+
+
