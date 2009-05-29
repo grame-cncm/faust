@@ -87,6 +87,10 @@ ladspa :
 csound :
 	install -d csounddir
 	$(MAKE) DEST='csounddir/' -f Makefile.csound
+
+csounddouble :
+	install -d csounddoubledir
+	$(MAKE) DEST='csounddoubledir/' VEC='-double' -f Makefile.csound
 	
 jackwx :
 	install -d jackwxdir
