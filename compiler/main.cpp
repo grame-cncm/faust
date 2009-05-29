@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.6b1"
+#define FAUSTVERSION "0.9.9.6-double-2"
 
 #include <stdio.h>
 #include <string.h>
@@ -41,6 +41,7 @@
 #include "enrobage.hh"
 #include "eval.hh"
 #include "description.hh"
+#include "floats.hh"
 
 #include <map>
 #include <string>
@@ -124,8 +125,9 @@ int             gVectorLoopVariant = 0;
 bool            gOpenMPSwitch   = false;
 bool            gUIMacroSwitch  = false;
 
-int             gTimeout        = 0;        // time out to abort compiler
+int             gTimeout        = 0;            // time out to abort compiler
 
+int             gFloatSize = 1;
 
 //-- command line tools
 
@@ -241,6 +243,19 @@ bool process_cmdline(int argc, char* argv[])
             gTimeout = atoi(argv[i+1]);
             i += 2;
 
+        // double float options
+        } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
+            gFloatSize = 1;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-double", "--double-precision-floats")) {
+            gFloatSize = 2;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
+            gFloatSize = 3;
+            i += 1;
+
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -271,7 +286,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2008, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2009, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 
@@ -307,6 +322,9 @@ void printhelp()
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate openMP pragmas, activates --vectorize option\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
+    cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
+    cout << "-double \tuse --double-precision-floats for internal computations\n";
+    cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";
@@ -463,7 +481,9 @@ int main (int argc, char* argv[])
 		exit(1);
 	}
 
-	if (gDetailsSwitch) { cerr <<"process has " <<numInputs <<" inputs, and " <<numOutputs <<" outputs" <<endl; }
+	if (gDetailsSwitch) {
+        cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
+    }
 
 
 	/****************************************************************
@@ -534,6 +554,8 @@ int main (int argc, char* argv[])
 // 				streamCopyUntilEnd(*intrinsic, *dst);
 // 			}
 			streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+            printfloatdef(*dst);
+            
 			C->getClass()->println(0,*dst);
 			streamCopyUntilEnd(*enrobage, *dst);
 		} else {
@@ -542,6 +564,7 @@ int main (int argc, char* argv[])
 		}
 	} else {
         printheader(*dst);
+        printfloatdef(*dst);
 		C->getClass()->printLibrary(*dst);
 		C->getClass()->printIncludeFile(*dst);
 		C->getClass()->println(0,*dst);
