@@ -67,13 +67,13 @@ bool isBoxIdent(Tree t, const char** name);
 *****************************************************************************/
 
 Tree boxInt(int n);
-Tree boxReal(float n);
+Tree boxReal(double n);
 
 bool  isBoxInt(Tree t);
 bool  isBoxReal(Tree t);
 
 bool  isBoxInt(Tree t, int* i);
-bool  isBoxReal(Tree t, float* r);
+bool  isBoxReal(Tree t, double* r);
 
 
 /*****************************************************************************

@@ -115,7 +115,7 @@ public:
 };
 
 
-template<> class property<float>
+template<> class property<double>
 {
     Tree	fKey;
 
@@ -125,16 +125,16 @@ public:
 
     property (const char* keyname) : fKey(tree(Node(keyname))) {}
 
-    void set(Tree t, float x)
+    void set(Tree t, double x)
     {
         t->setProperty(fKey, tree(Node(x)));
     }
 
-    bool get(Tree t, float& x)
+    bool get(Tree t, double& x)
     {
         Tree d = t->getProperty(fKey);
         if (d) {
-            x = d->node().getFloat();
+            x = d->node().getDouble();
             return true;
         } else {
             return false;

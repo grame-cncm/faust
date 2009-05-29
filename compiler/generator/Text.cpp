@@ -31,6 +31,9 @@
 #include <sstream>
 #include <assert.h>
 
+#include "floats.hh"
+
+extern bool gInternDoubleSwitch;
 
 static string substitution (const string& model, const vector<string>& args)
 {
@@ -161,22 +164,52 @@ string T (char* c) 	{ return string(c); }
 string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
 string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
 
+#if 0
 string T (float n)
 {
-	char c[64];
-	if  (n <  0.1 && n > -0.1 && n != 0.0) {
-		snprintf(c, 63, "%ef", n);
-	} else {
-		snprintf(c, 63, "%ff", n);
-		zdel(c);
-	}
-	return string(c);
+    char c[64];
+    if  (n <  0.1 && n > -0.1 && n != 0.0) {
+        snprintf(c, 63, "%ef", n);
+    } else {
+        snprintf(c, 63, "%ff", n);
+        zdel(c);
+    }
+    return string(c);
 }
+#endif
 
+/**
+ * Add a trailing f when converting double-precision numbers to text
+ * if single-precision is required
+ */
 string T (double n)
 {
-	char c[64];
-	snprintf(c, 63, "%f", n);
-	zdel(c);
-	return string(c);
+    char c[64];
+    if  (n <  0.1 && n > -0.1 && n != 0.0) {
+        snprintf(c, 63, "%e%s", n, inumix());
+    } else {
+        snprintf(c, 63, "%f%s", n, inumix());
+        zdel(c);
+    }
+    return string(c);
 }
+/*
+string T (double n)
+{
+    char c[64];
+    if  (n <  0.1 && n > -0.1 && n != 0.0) {
+        if (gInternDoubleSwitch) {
+            snprintf(c, 63, "%e", n);
+        } else {
+            snprintf(c, 63, "%ef", n);
+        }
+    } else {
+        if (gInternDoubleSwitch) {
+            snprintf(c, 63, "%f", n);
+        } else {
+            snprintf(c, 63, "%ff", n);
+        }
+        zdel(c);
+    }
+    return string(c);
+}*/

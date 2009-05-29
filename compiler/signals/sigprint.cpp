@@ -85,7 +85,7 @@ int binopprec[]= {
 void printSignal(Tree sig, FILE* out, int prec)
 {
 	int 	i;
-	float	r;
+	double	r;
 	Tree 	 x, y, z, le, id;
 	    
 		 if ( isSigInt(sig, &i) ) 			{ fprintf(out, "%d", i); 	}

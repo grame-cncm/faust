@@ -77,6 +77,7 @@ Tree unquote(char* str)
 
 %left ADD SUB OR
 %left MUL DIV MOD AND XOR LSH RSH
+%left POWOP
 %left FDELAY
 %left DELAY1
 %left APPL DOT
@@ -116,7 +117,7 @@ Tree unquote(char* str)
 %token EXP
 %token LOG
 %token LOG10
-%token POW
+%token POWFUN
 %token SQRT
 
 %token ABS
@@ -278,8 +279,9 @@ expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sig
 				| expression SUB expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigSub)); }
 				| expression MUL expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigMul)); }
 				| expression DIV expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
-				| expression MOD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
-				| expression FDELAY expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
+                | expression MOD expression     {$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
+                | expression POWOP expression   {$$ = boxSeq(boxPar($1,$3),gPowPrim->box()); }
+                | expression FDELAY expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
 				| expression DELAY1  			{$$ = boxSeq($1,boxPrim1(sigDelay1)); }
 				| expression DOT ident  		{$$ = boxAccess($1,$3); }
 
@@ -303,13 +305,13 @@ expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sig
 				;
 
 primitive		: INT   						{$$ = boxInt(atoi(yytext));}
-				| FLOAT 						{$$ = boxReal(float(atof(yytext)));}
+				| FLOAT 						{$$ = boxReal(atof(yytext));}
 
-				| ADD INT   					{$$ = boxInt(atoi(yytext));}
-				| ADD FLOAT 					{$$ = boxReal(float(atof(yytext)));}
+				| ADD INT   					{$$ = boxInt (atoi(yytext));}
+				| ADD FLOAT 					{$$ = boxReal(atof(yytext));}
 
-				| SUB INT   					{$$ = boxInt(0 - atoi(yytext));}
-				| SUB FLOAT 					{$$ = boxReal(0.0f - float(atof(yytext)));}
+				| SUB INT   					{$$ = boxInt ( -atoi(yytext) );}
+				| SUB FLOAT 					{$$ = boxReal( -atof(yytext) );}
 
 				| WIRE   						{$$ = boxWire();}
 				| CUT   						{$$ = boxCut();}
@@ -354,7 +356,8 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| EXP							{$$ = gExpPrim->box(); }
 				| LOG							{$$ = gLogPrim->box(); }
 				| LOG10							{$$ = gLog10Prim->box(); }
-				| POW							{$$ = gPowPrim->box(); }
+                | POWOP                         {$$ = gPowPrim->box(); }
+                | POWFUN                        {$$ = gPowPrim->box(); }
 				| SQRT							{$$ = gSqrtPrim->box(); }
 
 				| ABS							{$$ = gAbsPrim->box(); }

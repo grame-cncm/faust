@@ -64,7 +64,7 @@ static Tree 	iterateSum (Tree id, int num, Tree body, Tree visited, Tree localVa
 static Tree 	iterateProd (Tree id, int num, Tree body, Tree visited, Tree localValEnv);
 static Tree 	larg2par (Tree larg);
 static int 		eval2int (Tree exp, Tree visited, Tree localValEnv);
-static float	eval2float (Tree exp, Tree visited, Tree localValEnv);
+static double   eval2double (Tree exp, Tree visited, Tree localValEnv);
 static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
 
 static Tree 	pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
@@ -438,28 +438,28 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		return ( boxVSlider(tree(l2),
-					tree(eval2float(cur, visited, localValEnv)),
-					tree(eval2float(lo, visited, localValEnv)),
-					tree(eval2float(hi, visited, localValEnv)),
-					tree(eval2float(step, visited, localValEnv))));
+					tree(eval2double(cur, visited, localValEnv)),
+					tree(eval2double(lo, visited, localValEnv)),
+					tree(eval2double(hi, visited, localValEnv)),
+					tree(eval2double(step, visited, localValEnv))));
 
 	} else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		return ( boxHSlider(tree(l2),
-					tree(eval2float(cur, visited, localValEnv)),
-					tree(eval2float(lo, visited, localValEnv)),
-					tree(eval2float(hi, visited, localValEnv)),
-					tree(eval2float(step, visited, localValEnv))));
+					tree(eval2double(cur, visited, localValEnv)),
+					tree(eval2double(lo, visited, localValEnv)),
+					tree(eval2double(hi, visited, localValEnv)),
+					tree(eval2double(step, visited, localValEnv))));
 
 	} else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		return (boxNumEntry(tree(l2),
-					tree(eval2float(cur, visited, localValEnv)),
-					tree(eval2float(lo, visited, localValEnv)),
-					tree(eval2float(hi, visited, localValEnv)),
-					tree(eval2float(step, visited, localValEnv))));
+					tree(eval2double(cur, visited, localValEnv)),
+					tree(eval2double(lo, visited, localValEnv)),
+					tree(eval2double(hi, visited, localValEnv)),
+					tree(eval2double(step, visited, localValEnv))));
 
 	} else if (isBoxVGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
@@ -480,15 +480,15 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		return boxHBargraph(tree(l2),
-					tree(eval2float(lo, visited, localValEnv)),
-					tree(eval2float(hi, visited, localValEnv)));
+					tree(eval2double(lo, visited, localValEnv)),
+					tree(eval2double(hi, visited, localValEnv)));
 
 	} else if (isBoxVBargraph(exp, label, lo, hi)) {
 		const char* l1 = tree2str(label);
 		const char* l2= evalLabel(l1, visited, localValEnv);
 		return boxVBargraph(tree(l2),
-					tree(eval2float(lo, visited, localValEnv)),
-					tree(eval2float(hi, visited, localValEnv)));
+					tree(eval2double(lo, visited, localValEnv)),
+					tree(eval2double(hi, visited, localValEnv)));
 
 	// lambda calculus
 	//----------------
@@ -604,7 +604,7 @@ bool getNumericProperty(Tree t, Tree& num)
 static Tree replaceBoxNumeric (Tree exp)
 {
 	int 	numInputs, numOutputs;
-	float 	x; 
+	double 	x; 
 	int		i;
 	Tree	out;
 	
@@ -653,7 +653,7 @@ Tree simplifyPattern (Tree value)
 static bool isBoxNumeric (Tree in, Tree& out)
 {
 	int 	numInputs, numOutputs;
-	float 	x; 
+	double 	x; 
 	int		i;
 	Tree 	v;
 	
@@ -697,19 +697,19 @@ static Tree patternSimplification (Tree pattern)
 
 
 /**
- * Eval a block diagram to a float.
+ * Eval a block diagram to a double.
  *
- * Eval a block diagram that represent a float constant. This function first eval
+ * Eval a block diagram that represent a double constant. This function first eval
  * a block diagram to its normal form, then check it represent a numerical value (a
  * block diagram of type : 0->1) then do a symbolic propagation and try to convert the
- * resulting signal to a float.
+ * resulting signal to a double.
  * @param exp the expression to evaluate
  * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
  * @param localValEnv the local environment
  * @return a block diagram in normal form
  */
-static float eval2float (Tree exp, Tree visited, Tree localValEnv)
+static double eval2double (Tree exp, Tree visited, Tree localValEnv)
 {
 	Tree diagram = eval(exp, visited, localValEnv);
 	int numInputs, numOutputs;

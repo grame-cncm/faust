@@ -32,13 +32,13 @@ the num.h file, there is no num.cpp file.
  API:
  ----
 	num(10);				: num with int content
-	num(3.14159);			: num with float content
+	num(3.14159);			: num with double content
 	
 	num op num				: op is any C binary operator
 	
-	type(num)				: 0 = int, 1 = float 
+	type(num)				: 0 = int, 1 = double
 	int(num);				: int content of num or conversion
-	float(num);				: float content of num or conversion 
+	double(num);				: double content of num or conversion
 	
  History :
  ---------
@@ -53,25 +53,25 @@ the num.h file, there is no num.cpp file.
 
 
 //-------------------------------------------------------------------------
-// Class num = (int x (int + float))
+// Class num = (int x (int + double))
 //-------------------------------------------------------------------------
 class num
 {
 	int		fType;
 	union { 
 		int 	i; 
-		float 	f; 
+		double 	f;
 	} fData;
 
  public:
 	// constructeurs
 	num (int x=0) 		: fType(0) 			{ fData.i = x; }
-	num (double x) 		: fType(1)  		{ fData.f = (float)x; }
-	num (float x) 		: fType(1)  		{ fData.f = x; }
+	//num (double x) 		: fType(1)  		{ fData.f = (double)x; }
+	num (double x) 		: fType(1)  		{ fData.f = x; }
 	num (const num& n) 	: fType(n.fType) 	{ fData.i = n.fData.i; }
 
 	num& operator = (int n) 	{ fType = 0; fData.i = n; return *this; }
-	num& operator = (float n) 	{ fType = 1; fData.f = n; return *this; }
+	num& operator = (double n) 	{ fType = 1; fData.f = n; return *this; }
  	
 	// predicats
 	bool operator == (const num& n) const { return fType == n.fType && fData.i == n.fData.i; }
@@ -80,7 +80,7 @@ class num
 	// accessors
 	int			type() 		const 	{ return fType; }
 	operator 	int() 		const 	{ return (fType) ? int(fData.f) : fData.i; }
-	operator 	float() 	const 	{ return (fType) ? fData.f : float(fData.i); }
+	operator 	double() 	const 	{ return (fType) ? fData.f : double(fData.i); }
 	
 };
 
@@ -88,16 +88,16 @@ class num
 inline int isfloat (const num& n) { return n.type(); }
 
 inline const num operator+ (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)+float(y)) : num(int(x)+int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)+double(y)) : num(int(x)+int(y)); }
 
 inline const num operator- (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)-float(y)) : num(int(x)-int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)-double(y)) : num(int(x)-int(y)); }
 
 inline const num operator* (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)*float(y)) : num(int(x)*int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)*double(y)) : num(int(x)*int(y)); }
 
 inline const num operator/ (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)/float(y)) : num(int(x)/int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)/double(y)) : num(int(x)/int(y)); }
 
 inline const num operator% (const num& x, const num& y)	
 	{ return num(int(x)%int(y)); }
@@ -124,22 +124,22 @@ inline const num operator^ (const num& x, const num& y)
 
 // operations de comparaison
 inline const num operator> (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)>float(y)) : num(int(x)>int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)>double(y)) : num(int(x)>int(y)); }
 
 inline const num operator< (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)<float(y)) : num(int(x)<int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)<double(y)) : num(int(x)<int(y)); }
 
 inline const num operator>= (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)>=float(y)) : num(int(x)>=int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)>=double(y)) : num(int(x)>=int(y)); }
 
 inline const num operator<= (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)<=float(y)) : num(int(x)<=int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)<=double(y)) : num(int(x)<=int(y)); }
 
 inline const num operator== (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)==float(y)) : num(int(x)==int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)==double(y)) : num(int(x)==int(y)); }
 
 inline const num operator!= (const num& x, const num& y)	
-	{ return (isfloat(x)|isfloat(y)) ? num(float(x)!=float(y)) : num(int(x)!=int(y)); }
+	{ return (isfloat(x)|isfloat(y)) ? num(double(x)!=double(y)) : num(int(x)!=int(y)); }
 
 
 #endif    

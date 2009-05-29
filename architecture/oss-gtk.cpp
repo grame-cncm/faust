@@ -673,8 +673,8 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
  */
 static string rmWhiteSpaces(const string& s)
 {
-    unsigned int i = s.find_first_not_of(" \t");
-    unsigned int j = s.find_last_not_of(" \t");
+    size_t i = s.find_first_not_of(" \t");
+    size_t j = s.find_last_not_of(" \t");
 
     if (i != string::npos & j != string::npos) {
         return s.substr(i, 1+j-i);

@@ -215,7 +215,7 @@ void Automaton::build(State *st)
   list<Trans>::const_iterator t;
   for (t = st->trans.begin(); t != st->trans.end(); t++) {
     Tree x;
-    float f; 
+    double f; 
     int i;
     if (t->is_cst_trans(x) &&
 	(isBoxInt(x, &i) || isBoxReal(x, &f)))

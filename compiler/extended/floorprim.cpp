@@ -2,6 +2,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 class FloorPrim : public xtended
 {
 
@@ -31,7 +33,7 @@ class FloorPrim : public xtended
 		num n;
 		assert (args.size() == arity());
 		if (isNum(args[0],n)) {
-			return tree(floorf(float(n)));
+			return tree(floor(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -40,7 +42,7 @@ class FloorPrim : public xtended
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
-		return subst("floorf($0)", args[0]);
+        return subst("floor$1($0)", args[0], isuffix());
 	}
 	
 };

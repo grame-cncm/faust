@@ -25,23 +25,23 @@
 ******************************************************************************/
 
 /** \file node.hh
- * A Node is a tagged unions of int, float, symbol and void* used in the implementation of CTrees.
+ * A Node is a tagged unions of int, double, symbol and void* used in the implementation of CTrees.
  * Nodes are completly described by the node.h file, there is no node.cpp file.
  *
  * <b>API:</b>
  *
  * 	Node(symbol("abcd")); 	: node with symbol content
  * 	Node(10);				: node with int content
- * 	Node(3.14159);			: node with float content
+ * 	Node(3.14159);			: node with double content
  *
- * 	n->type();				: kIntNode or kFloatNode or kSymNode
+ * 	n->type();				: kIntNode or kDoubleNode or kSymNode
  *
  * 	n->getInt();			: int content of n
- * 	n->getFloat();			: float content of n
+ * 	n->getDouble();			: double content of n
  * 	n->getSym();			: symbol content of n
  *
  * 	if (isInt(n, &i))	... : int i = int content of n
- * 	if (isFloat(n, &f))	... : float f = float content of n
+ * 	if (isDouble(n, &f))	... : double f = double content of n
  * 	if (isSym(n, &s))	... : Sym s = Sym content of n
  *
  */
@@ -61,48 +61,48 @@ using namespace std;
 /**
  * Tags used to define the type of a Node
  */
-enum { kIntNode, kFloatNode, kSymNode, kPointerNode };
+enum { kIntNode, kDoubleNode, kSymNode, kPointerNode };
 
 
 /**
- * Class Node = (type x (int + float + Sym + void*))
+ * Class Node = (type x (int + double + Sym + void*))
  */
 class Node
 {
 	int		fType;
 	union {
 		int 	i;
-		float 	f;
+		double 	f;
 		Sym 	s;
 		void* 	p;
 	} fData;
 
  public:
-	// constructeurs
-	Node (int x) 				: fType(kIntNode) 		{ fData.p = 0; fData.i = x; }
-	Node (float x) 				: fType(kFloatNode) 	{ fData.p = 0; fData.f = (float)x; }
-	Node (const char* name)		: fType(kSymNode) 		{ fData.s = symbol(name); }
-	Node (const string& name)	: fType(kSymNode) 		{ fData.s = symbol(name); }
-	Node (Sym x) 				: fType(kSymNode) 		{ fData.s = x; }
-	Node (void* x) 				: fType(kPointerNode) 	{ fData.p = x; }
+	// constructeurs (assume size of field f is the biggest)
+	Node (int x) 				: fType(kIntNode) 		{ fData.f = 0; fData.i = x; }
+	Node (double x) 			: fType(kDoubleNode) 	{ fData.f = x; }
+	Node (const char* name)		: fType(kSymNode) 		{ fData.f = 0; fData.s = symbol(name); }
+	Node (const string& name)	: fType(kSymNode) 		{ fData.f = 0; fData.s = symbol(name); }
+	Node (Sym x) 				: fType(kSymNode) 		{ fData.f = 0; fData.s = x; }
+	Node (void* x) 				: fType(kPointerNode) 	{ fData.f = 0; fData.p = x; }
 
-	Node (const Node& n) 		: fType(n.fType) 		{ fData.p = n.fData.p; }
+    Node (const Node& n)        : fType(n.fType)        { fData = n.fData; }
 
 	// predicats
-	bool operator == (const Node& n) const { return fType == n.fType && fData.p == n.fData.p; }
-	bool operator != (const Node& n) const { return fType != n.fType || fData.p != n.fData.p; }
+	bool operator == (const Node& n) const { return fType == n.fType && fData.f == n.fData.f; }
+	bool operator != (const Node& n) const { return fType != n.fType || fData.f != n.fData.f; }
 
 	// accessors
 	int		type() 		const 	{ return fType; }
 
 	int		getInt() 		const 	{ return fData.i; }
-	float 	getFloat() 		const 	{ return fData.f; }
+	double 	getDouble() 	const 	{ return fData.f; }
 	Sym 	getSym() 		const 	{ return fData.s; }
 	void* 	getPointer() 	const 	{ return fData.p; }
 
 	// conversions and promotion for numbers
-	operator int() 	 const 	{ return (fType == kIntNode) ? fData.i : (fType == kFloatNode) ? int(fData.f) : 0 ; }
-	operator float() const 	{ return (fType == kIntNode) ? float(fData.i) : (fType == kFloatNode) ? fData.f : 0.0f ; }
+	operator int() 	 const 	    { return (fType == kIntNode) ? fData.i : (fType == kDoubleNode) ? int(fData.f) : 0 ; }
+    operator double() const     { return (fType == kIntNode) ? double(fData.i) : (fType == kDoubleNode) ? fData.f : 0.0 ; }
 
 	ostream& 	print (ostream& fout) const; 					///< print a node on a stream
 };
@@ -134,15 +134,15 @@ inline bool isInt (const Node& n, int* x)
 
 
 // floats
-inline bool isFloat (const Node& n)
+inline bool isDouble (const Node& n)
 {
-	return (n.type() == kFloatNode);
+	return (n.type() == kDoubleNode);
 }
 
-inline bool isFloat (const Node& n, float* x)
+inline bool isDouble (const Node& n, double* x)
 {
-	if (n.type() == kFloatNode) {
-		*x = n.getFloat();
+	if (n.type() == kDoubleNode) {
+		*x = n.getDouble();
 		return true;
 	} else {
 		return false;
@@ -153,31 +153,31 @@ inline bool isFloat (const Node& n, float* x)
 
 inline bool isZero (const Node& n)
 {
-	return (n.type() == kFloatNode) && (n.getFloat() == 0.0f)
+	return (n.type() == kDoubleNode) && (n.getDouble() == 0.0)
 		|| (n.type() == kIntNode) && (n.getInt() == 0);
 }
 
 inline bool isGEZero (const Node& n)
 {
-	return (n.type() == kFloatNode) && (n.getFloat() >= 0.0f)
+	return (n.type() == kDoubleNode) && (n.getDouble() >= 0.0)
 		|| (n.type() == kIntNode) && (n.getInt() >= 0);
 }
 
 inline bool isGTZero (const Node& n)
 {
-	return (n.type() == kFloatNode) && (n.getFloat() > 0.0f)
+	return (n.type() == kDoubleNode) && (n.getDouble() > 0.0)
 		|| (n.type() == kIntNode) && (n.getInt() > 0);
 }
 
 inline bool isOne (const Node& n)
 {
-	return (n.type() == kFloatNode) && (n.getFloat() == 1.0f)
+	return (n.type() == kDoubleNode) && (n.getDouble() == 1.0)
 		|| (n.type() == kIntNode) && (n.getInt() == 1);
 }
 
 inline bool isMinusOne (const Node& n)
 {
-	return (n.type() == kFloatNode) && (n.getFloat() == -1.0f)
+	return (n.type() == kDoubleNode) && (n.getDouble() == -1.0)
 		|| (n.type() == kIntNode) && (n.getInt() == -1);
 }
 
@@ -185,7 +185,7 @@ inline bool isMinusOne (const Node& n)
 // numbers in general
 inline bool isNum (const Node& n)
 {
-	return isInt(n)||isFloat(n);
+	return isInt(n)||isDouble(n);
 }
 
 
@@ -233,21 +233,21 @@ inline bool isPointer (const Node& n, void** x)
 // arithmetic operations
 
 inline const Node addNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)+float(y)) : Node(int(x)+int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)+double(y)) : Node(int(x)+int(y)); }
 
 inline const Node subNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)-float(y)) : Node(int(x)-int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)-double(y)) : Node(int(x)-int(y)); }
 
 inline const Node mulNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)*float(y)) : Node(int(x)*int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)*double(y)) : Node(int(x)*int(y)); }
 
 inline const Node divNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)/float(y)) : Node(int(x)/int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)/double(y)) : Node(int(x)/int(y)); }
 
 inline const Node divExtendedNode (const Node& x, const Node& y)
-	{ return  (isFloat(x)||isFloat(y)) ? Node(float(x)/float(y))
-			: (float(int(x)/int(y))==float(x)/float(y)) ? Node(int(x)/int(y))
-			: Node(float(x)/float(y)); }
+	{ return  (isDouble(x)||isDouble(y)) ? Node(double(x)/double(y))
+			: (double(int(x)/int(y))==double(x)/double(y)) ? Node(int(x)/int(y))
+			: Node(double(x)/double(y)); }
 
 inline const Node remNode (const Node& x, const Node& y)
 	{ return Node(int(x)%int(y)); }
@@ -285,22 +285,22 @@ inline const Node xorNode (const Node& x, const Node& y)
 // compare operations
 
 inline const Node gtNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)>float(y)) : Node(int(x)>int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)>double(y)) : Node(int(x)>int(y)); }
 
 inline const Node ltNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)<float(y)) : Node(int(x)<int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)<double(y)) : Node(int(x)<int(y)); }
 
 inline const Node geNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)>=float(y)) : Node(int(x)>=int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)>=double(y)) : Node(int(x)>=int(y)); }
 
 inline const Node leNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)<=float(y)) : Node(int(x)<=int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)<=double(y)) : Node(int(x)<=int(y)); }
 #if 1
 inline const Node eqNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)==float(y)) : Node(int(x)==int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)==double(y)) : Node(int(x)==int(y)); }
 
 inline const Node neNode (const Node& x, const Node& y)
-	{ return (isFloat(x)||isFloat(y)) ? Node(float(x)!=float(y)) : Node(int(x)!=int(y)); }
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)!=double(y)) : Node(int(x)!=int(y)); }
 #endif
 
 

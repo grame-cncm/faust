@@ -3,6 +3,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 #if defined(WIN32) && ! defined(__MINGW32__) 
 /* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
 inline double rint(double nr)
@@ -47,7 +49,7 @@ class RintPrim : public xtended
 		num n;
 		assert (args.size() == arity());
 		if (isNum(args[0],n)) {
-			return tree(rintf(float(n)));
+			return tree(rint(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -56,7 +58,7 @@ class RintPrim : public xtended
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
-		return subst("rintf($0)", args[0]);
+        return subst("rint$1($0)", args[0], isuffix());
 	}
 	
 };

@@ -12,7 +12,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	vsigs.clear();
 
 	int 	i;
-	float	r;
+	double	r;
 	Tree 	c, sel, x, y, z, var, le, label, id, ff, largs, type, name, file;
 
 		 if ( getUserData(sig) ) 					{ for (int i=0; i<sig->arity(); i++) { vsigs.push_back(sig->branch(i)); }

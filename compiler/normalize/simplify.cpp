@@ -118,11 +118,11 @@ static Tree simplification (Tree sig)
 
 		Tree 	tx;
 		int		i;
-		float 	x;
+		double 	x;
 		Node 	n1 = t1->node();
 
 		if (isInt(n1, &i)) 			return t1; 
-		if (isFloat(n1, &x)) 		return tree(int(x));
+		if (isDouble(n1, &x)) 		return tree(int(x));
 		if (isSigIntCast(t1, tx)) 	return t1;
 		
 		return sig;
@@ -131,11 +131,11 @@ static Tree simplification (Tree sig)
 
 		Tree 	tx;
 		int		i;
-		float 	x;
+		double 	x;
 		Node 	n1 = t1->node();
 
-		if (isInt(n1, &i)) 				return tree(float(i));
-		if (isFloat(n1, &x)) 			return t1;
+		if (isInt(n1, &i)) 				return tree(double(i));
+		if (isDouble(n1, &x)) 			return t1;
 		if (isSigFloatCast(t1, tx)) 	return t1;
 		
 		return sig;

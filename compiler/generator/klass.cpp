@@ -22,7 +22,7 @@
 
 
  /**********************************************************************
-			- klass.cpp : class C++ Ã  remplir (projet FAUST) -
+			- klass.cpp : class C++ a remplir (projet FAUST) -
 
 
 		Historique :
@@ -34,7 +34,6 @@
 
 ***********************************************************************/
 
-
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
@@ -42,6 +41,7 @@
 #include <list>
 #include <map>
 
+#include "floats.hh"
 #include "smartpointer.hh"
 #include "klass.hh"
 #include "uitree.hh"
@@ -394,7 +394,7 @@ void Klass::printComputeMethod (int n, ostream& fout)
 
 void Klass::printComputeMethodScalar (int n, ostream& fout)
 {
-    tab(n+1,fout); fout << "virtual void compute (int count, float** input, float** output) {";
+    tab(n+1,fout); fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
         printlines (n+2, fZone2bCode, fout);
@@ -414,7 +414,7 @@ void Klass::printComputeMethodVectorFaster (int n, ostream& fout)
 {
     // in vector mode we need to split loops in smaller pieces not larger
     // than gVecSize
-    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
         printlines (n+2, fZone2bCode, fout);
@@ -448,7 +448,7 @@ void Klass::printComputeMethodVectorSimple (int n, ostream& fout)
 {
     // in vector mode we need to split loops in smaller pieces not larger
     // than gVecSize
-    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
         printlines (n+2, fZone2bCode, fout);
@@ -529,7 +529,7 @@ void Klass::printComputeMethodOpenMP (int n, ostream& fout)
 {
     // in openMP mode we need to split loops in smaller pieces not larger
     // than gVecSize and add openMP pragmas
-    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
+    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
         tab(n+2,fout); fout << "#pragma omp parallel";
@@ -642,7 +642,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 			printlines (n+2, fInitCode, fout);
 		tab(n+1,fout); fout << "}";
 
-		tab(n+1,fout); fout << "void fill (int count, float output[]) {";
+		tab(n+1,fout); fout << subst("void fill (int count, $0 output[]) {", ifloat());
             printlines (n+2, fZone1Code, fout);
             printlines (n+2, fZone2Code, fout);
             printlines (n+2, fZone2bCode, fout);

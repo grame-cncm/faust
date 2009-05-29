@@ -272,7 +272,7 @@ static interval arithmetic (int opcode, const interval& x, const interval& y)
 static Type infereSigType(Tree sig, Tree env)
 {
 	int 		i;
-	float 		r;
+	double 		r;
 	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
 	Tree		label, cur, min, max, step;
 

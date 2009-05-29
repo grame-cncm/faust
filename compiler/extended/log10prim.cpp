@@ -2,6 +2,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 
 class Log10Prim : public xtended
 {
@@ -37,7 +39,7 @@ class Log10Prim : public xtended
 		num n;
 		assert (args.size() == arity());
 		if (isNum(args[0],n)) {
-			return tree(log10f(float(n)));
+			return tree(log10(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -46,7 +48,7 @@ class Log10Prim : public xtended
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
-		return subst("log10f($0)", args[0]);
+        return subst("log10$1($0)", args[0], isuffix());
 	}
 	
 };

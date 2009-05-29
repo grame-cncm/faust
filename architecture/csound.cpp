@@ -21,6 +21,8 @@
 #define sym(name) xsym(name)
 #define xsym(name) #name
 
+// make sure we use csound floats
+#define FAUSTFLOAT MYFLT
 
 // we require macro declarations
 #define FAUST_UIMACROS
@@ -87,19 +89,19 @@ class UI
 
     // -- active widgets
     
-    virtual void addButton(const char* label, float* zone) = 0;
-    virtual void addToggleButton(const char* label, float* zone) = 0;
-    virtual void addCheckButton(const char* label, float* zone) = 0;
-    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) = 0;
+    virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) = 0;
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) = 0;
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
     
     // -- passive widgets
     
-    virtual void addNumDisplay(const char* label, float* zone, int precision)                           {}
-    virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max)    {}
-    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)            {}
-    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)              {}
+    virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision)                           {}
+    virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, char* names[], FAUSTFLOAT min, FAUSTFLOAT max)    {}
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)            {}
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)              {}
     
     // -- widget's layouts
     
@@ -109,7 +111,7 @@ class UI
     virtual void openVerticalBox(const char* label)                                                     {}
     virtual void closeBox()                                                                             {}
 
-    virtual void declare(float* zone, const char* key, const char* value) {}
+    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value) {}
 };
 
 /**
@@ -118,17 +120,17 @@ class UI
  */
 class CSUI : public UI
 {
-    vector<float*>  vZone;
+    vector<FAUSTFLOAT*>  vZone;
 
  public:
     // -- active widgets
     
-    virtual void addButton(const char* label, float* zone)                                                          { vZone.push_back(zone); }
-    virtual void addToggleButton(const char* label, float* zone)                                                    { vZone.push_back(zone); }
-    virtual void addCheckButton(const char* label, float* zone)                                                     { vZone.push_back(zone); }
-    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)    { vZone.push_back(zone); }
-    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)  { vZone.push_back(zone); }
-    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)          { vZone.push_back(zone); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)                                                          { vZone.push_back(zone); }
+    virtual void addToggleButton(const char* label, FAUSTFLOAT* zone)                                                    { vZone.push_back(zone); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)                                                     { vZone.push_back(zone); }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)    { vZone.push_back(zone); }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)  { vZone.push_back(zone); }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)          { vZone.push_back(zone); }
 
     void copyfrom(MYFLT* mem[]) {
         for (unsigned int i=0; i<vZone.size(); i++) { *vZone[i] = *(mem[i]); }
@@ -143,7 +145,6 @@ class CSUI : public UI
  * Abstract Definition of a DSP
  */
 
-
 class dsp {
  protected:
     int fSamplingFreq;
@@ -153,7 +154,7 @@ class dsp {
     virtual void instanceInit(int samplingFreq) = 0;
     virtual void init(int samplingFreq)= 0;
     virtual void buildUserInterface(UI* interface) = 0;
-    virtual void compute (int count, float** input, float** output) = 0;
+    virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) = 0;
 };
 
 /**
@@ -221,7 +222,7 @@ static int init(CSOUND *csound, dataspace *p)
 /**
  * CSound callback that process the samples by updating
  * the controls values and calling the compute() method
- * of the DSP object. (Assume MYFLT = float)
+ * of the DSP object. (Assume MYFLT = FAUSTFLOAT)
  */
 static int process32bits(CSOUND *csound, dataspace *p)
 {
@@ -233,19 +234,6 @@ static int process32bits(CSOUND *csound, dataspace *p)
   p->DSP->compute(csound->GetKsmps(csound), p->ain, p->aout);
   return OK;
 }
-
-#if 0
-/**
- * CSound callback that process the samples by copying
- * the controls values and calling the compute() method
- * of the FAUST generated DSP object. Assume MYFLT = double
- */
-static int process64bits(CSOUND *csound, dataspace *p)
-{
-  // to be defined
-  return NOTOK;
-}
-#endif
 
 extern "C" {
 

@@ -61,79 +61,80 @@
      MOD = 277,
      DIV = 278,
      MUL = 279,
-     FDELAY = 280,
-     DELAY1 = 281,
-     DOT = 282,
-     APPL = 283,
-     MEM = 284,
-     PREFIX = 285,
-     INTCAST = 286,
-     FLOATCAST = 287,
-     FFUNCTION = 288,
-     FCONSTANT = 289,
-     FVARIABLE = 290,
-     BUTTON = 291,
-     CHECKBOX = 292,
-     VSLIDER = 293,
-     HSLIDER = 294,
-     NENTRY = 295,
-     VGROUP = 296,
-     HGROUP = 297,
-     TGROUP = 298,
-     HBARGRAPH = 299,
-     VBARGRAPH = 300,
-     ATTACH = 301,
-     ACOS = 302,
-     ASIN = 303,
-     ATAN = 304,
-     ATAN2 = 305,
-     COS = 306,
-     SIN = 307,
-     TAN = 308,
-     EXP = 309,
-     LOG = 310,
-     LOG10 = 311,
-     POW = 312,
-     SQRT = 313,
-     ABS = 314,
-     MIN = 315,
-     MAX = 316,
-     FMOD = 317,
-     REMAINDER = 318,
-     FLOOR = 319,
-     CEIL = 320,
-     RINT = 321,
-     RDTBL = 322,
-     RWTBL = 323,
-     SELECT2 = 324,
-     SELECT3 = 325,
-     INT = 326,
-     FLOAT = 327,
-     LAMBDA = 328,
-     WIRE = 329,
-     CUT = 330,
-     ENDDEF = 331,
-     VIRG = 332,
-     LPAR = 333,
-     RPAR = 334,
-     LBRAQ = 335,
-     RBRAQ = 336,
-     DEF = 337,
-     IMPORT = 338,
-     COMPONENT = 339,
-     LIBRARY = 340,
-     ENVIRONMENT = 341,
-     IPAR = 342,
-     ISEQ = 343,
-     ISUM = 344,
-     IPROD = 345,
-     STRING = 346,
-     FSTRING = 347,
-     IDENT = 348,
-     EXTRA = 349,
-     DECLARE = 350,
-     CASE = 351,
-     ARROW = 352
+     POWOP = 280,
+     FDELAY = 281,
+     DELAY1 = 282,
+     DOT = 283,
+     APPL = 284,
+     MEM = 285,
+     PREFIX = 286,
+     INTCAST = 287,
+     FLOATCAST = 288,
+     FFUNCTION = 289,
+     FCONSTANT = 290,
+     FVARIABLE = 291,
+     BUTTON = 292,
+     CHECKBOX = 293,
+     VSLIDER = 294,
+     HSLIDER = 295,
+     NENTRY = 296,
+     VGROUP = 297,
+     HGROUP = 298,
+     TGROUP = 299,
+     HBARGRAPH = 300,
+     VBARGRAPH = 301,
+     ATTACH = 302,
+     ACOS = 303,
+     ASIN = 304,
+     ATAN = 305,
+     ATAN2 = 306,
+     COS = 307,
+     SIN = 308,
+     TAN = 309,
+     EXP = 310,
+     LOG = 311,
+     LOG10 = 312,
+     POWFUN = 313,
+     SQRT = 314,
+     ABS = 315,
+     MIN = 316,
+     MAX = 317,
+     FMOD = 318,
+     REMAINDER = 319,
+     FLOOR = 320,
+     CEIL = 321,
+     RINT = 322,
+     RDTBL = 323,
+     RWTBL = 324,
+     SELECT2 = 325,
+     SELECT3 = 326,
+     INT = 327,
+     FLOAT = 328,
+     LAMBDA = 329,
+     WIRE = 330,
+     CUT = 331,
+     ENDDEF = 332,
+     VIRG = 333,
+     LPAR = 334,
+     RPAR = 335,
+     LBRAQ = 336,
+     RBRAQ = 337,
+     DEF = 338,
+     IMPORT = 339,
+     COMPONENT = 340,
+     LIBRARY = 341,
+     ENVIRONMENT = 342,
+     IPAR = 343,
+     ISEQ = 344,
+     ISUM = 345,
+     IPROD = 346,
+     STRING = 347,
+     FSTRING = 348,
+     IDENT = 349,
+     EXTRA = 350,
+     DECLARE = 351,
+     CASE = 352,
+     ARROW = 353
    };
 #endif
 /* Tokens.  */
@@ -159,79 +160,80 @@
 #define MOD 277
 #define DIV 278
 #define MUL 279
-#define FDELAY 280
-#define DELAY1 281
-#define DOT 282
-#define APPL 283
-#define MEM 284
-#define PREFIX 285
-#define INTCAST 286
-#define FLOATCAST 287
-#define FFUNCTION 288
-#define FCONSTANT 289
-#define FVARIABLE 290
-#define BUTTON 291
-#define CHECKBOX 292
-#define VSLIDER 293
-#define HSLIDER 294
-#define NENTRY 295
-#define VGROUP 296
-#define HGROUP 297
-#define TGROUP 298
-#define HBARGRAPH 299
-#define VBARGRAPH 300
-#define ATTACH 301
-#define ACOS 302
-#define ASIN 303
-#define ATAN 304
-#define ATAN2 305
-#define COS 306
-#define SIN 307
-#define TAN 308
-#define EXP 309
-#define LOG 310
-#define LOG10 311
-#define POW 312
-#define SQRT 313
-#define ABS 314
-#define MIN 315
-#define MAX 316
-#define FMOD 317
-#define REMAINDER 318
-#define FLOOR 319
-#define CEIL 320
-#define RINT 321
-#define RDTBL 322
-#define RWTBL 323
-#define SELECT2 324
-#define SELECT3 325
-#define INT 326
-#define FLOAT 327
-#define LAMBDA 328
-#define WIRE 329
-#define CUT 330
-#define ENDDEF 331
-#define VIRG 332
-#define LPAR 333
-#define RPAR 334
-#define LBRAQ 335
-#define RBRAQ 336
-#define DEF 337
-#define IMPORT 338
-#define COMPONENT 339
-#define LIBRARY 340
-#define ENVIRONMENT 341
-#define IPAR 342
-#define ISEQ 343
-#define ISUM 344
-#define IPROD 345
-#define STRING 346
-#define FSTRING 347
-#define IDENT 348
-#define EXTRA 349
-#define DECLARE 350
-#define CASE 351
-#define ARROW 352
+#define POWOP 280
+#define FDELAY 281
+#define DELAY1 282
+#define DOT 283
+#define APPL 284
+#define MEM 285
+#define PREFIX 286
+#define INTCAST 287
+#define FLOATCAST 288
+#define FFUNCTION 289
+#define FCONSTANT 290
+#define FVARIABLE 291
+#define BUTTON 292
+#define CHECKBOX 293
+#define VSLIDER 294
+#define HSLIDER 295
+#define NENTRY 296
+#define VGROUP 297
+#define HGROUP 298
+#define TGROUP 299
+#define HBARGRAPH 300
+#define VBARGRAPH 301
+#define ATTACH 302
+#define ACOS 303
+#define ASIN 304
+#define ATAN 305
+#define ATAN2 306
+#define COS 307
+#define SIN 308
+#define TAN 309
+#define EXP 310
+#define LOG 311
+#define LOG10 312
+#define POWFUN 313
+#define SQRT 314
+#define ABS 315
+#define MIN 316
+#define MAX 317
+#define FMOD 318
+#define REMAINDER 319
+#define FLOOR 320
+#define CEIL 321
+#define RINT 322
+#define RDTBL 323
+#define RWTBL 324
+#define SELECT2 325
+#define SELECT3 326
+#define INT 327
+#define FLOAT 328
+#define LAMBDA 329
+#define WIRE 330
+#define CUT 331
+#define ENDDEF 332
+#define VIRG 333
+#define LPAR 334
+#define RPAR 335
+#define LBRAQ 336
+#define RBRAQ 337
+#define DEF 338
+#define IMPORT 339
+#define COMPONENT 340
+#define LIBRARY 341
+#define ENVIRONMENT 342
+#define IPAR 343
+#define ISEQ 344
+#define ISUM 345
+#define IPROD 346
+#define STRING 347
+#define FSTRING 348
+#define IDENT 349
+#define EXTRA 350
+#define DECLARE 351
+#define CASE 352
+#define ARROW 353
 
 
 
@@ -243,7 +245,7 @@ typedef union YYSTYPE
 	CTree* 	exp;
 }
 /* Line 1489 of yacc.c.  */
-#line 247 "parser/faustparser.hpp"
+#line 249 "parser/faustparser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

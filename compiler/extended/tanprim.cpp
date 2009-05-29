@@ -2,6 +2,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 class TanPrim : public xtended
 {
 
@@ -29,7 +31,7 @@ class TanPrim : public xtended
 	virtual Tree	computeSigOutput (const vector<Tree>& args) {
 		num n;
 		if (isNum(args[0],n)) {
-			return tree(tanf(float(n)));
+			return tree(tan(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -37,7 +39,7 @@ class TanPrim : public xtended
 		
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
-		return subst("tanf($0)", args[0]);
+        return subst("tan$1($0)", args[0], isuffix());
 	}
 	
 };

@@ -87,7 +87,7 @@ int boxComplexity (Tree box)
 int computeBoxComplexity (Tree box)
 {
 	int		i;
-	float	r;
+	double	r;
 	prim0	p0;
 	prim1	p1;
 	prim2	p2;

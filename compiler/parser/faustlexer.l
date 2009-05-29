@@ -49,7 +49,7 @@ LETTER   [a-zA-Z]
 
 "&"   		return AND;
 "|"   		return OR;
-"^"   		return XOR;
+"xor"       return XOR;
 
 "<<"   		return LSH;
 ">>"   		return RSH;
@@ -115,7 +115,8 @@ LETTER   [a-zA-Z]
 "exp"		return EXP;
 "log"		return LOG;
 "log10"		return LOG10;
-"pow"		return POW;
+"^"         return POWOP;
+"pow"       return POWFUN;
 "sqrt"		return SQRT;
 
 "abs"		return ABS;

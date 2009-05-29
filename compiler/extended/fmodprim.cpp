@@ -2,6 +2,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 class FmodPrim : public xtended
 {
 
@@ -31,7 +33,7 @@ class FmodPrim : public xtended
 		num n,m;
 		assert (args.size() == arity());
 		if (isNum(args[0],n) & isNum(args[1],m)) {
-			return tree(fmodf(float(n), float(m)));
+			return tree(fmod(double(n), double(m)));
 		} else {
 			return tree(symbol(), args[0], args[1]);
 		}
@@ -40,7 +42,7 @@ class FmodPrim : public xtended
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
-		return subst("fmodf($0, $1)", args[0], args[1]);
+        return subst("fmod$2($0,$1)", args[0], args[1], isuffix());
 	}
 	
 };

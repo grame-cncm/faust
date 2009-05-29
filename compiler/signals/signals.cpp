@@ -40,8 +40,8 @@
 Tree  sigInt(int i) 								{ return tree(i); 					}
 bool  isSigInt(Tree t, int* i) 						{ return isInt(t->node(), i); 		}
 
-Tree  sigReal(float r) 							{ return tree(r); 					}
-bool  isSigReal(Tree t, float* r) 					{ return isFloat(t->node(), r); 	}
+Tree  sigReal(double r) 							{ return tree(r); 					}
+bool  isSigReal(Tree t, double* r) 					{ return isDouble(t->node(), r); 	}
 
 Sym SIGINPUT = symbol ("sigInput");
 Tree  sigInput(int i)								{ return tree(SIGINPUT, tree(i));	}
@@ -143,7 +143,7 @@ Tree  sigIntCast(Tree t)
 	Node n = t->node();
 	
 	int i; 		if (isInt(n, &i)) 			return t; 
-	float x;	if (isFloat(n, &x)) 		return tree(int(x));
+	double x;	if (isDouble(n, &x)) 		return tree(int(x));
 				if (isSigIntCast(t))		return t;
 	 
 	return tree(SIGINTCAST, t);   
@@ -153,8 +153,8 @@ Tree  sigFloatCast(Tree t)
 { 
 	Node n = t->node();
 	
-	int i; 		if (isInt(n, &i)) 			return tree(float(i)); 
-	float x;	if (isFloat(n, &x)) 		return t;
+	int i; 		if (isInt(n, &i)) 			return tree(double(i)); 
+	double x;	if (isDouble(n, &x)) 		return t;
 				if (isSigFloatCast(t))		return t;
                 if (isSigInput(t, &i))      return t;
 	 
@@ -394,7 +394,7 @@ Tree sigCartesianProd (Tree s1, Tree s2)
 bool verySimple(Tree exp)
 {
 	int		i;
-	float	r;
+	double	r;
 	Tree 	type, name, file;
 	
 	return 	isSigInt(exp, &i) 

@@ -153,13 +153,13 @@ static bool printlist (Tree l, FILE* out)
 
 void print (Tree t, FILE* out)
 {
-	int i; float f; Sym s; void* p;
+	int i; double f; Sym s; void* p;
 	
 	if (printlist(t, out))		return;
 	
 	Node n = t->node();
 		 if (isInt(n, &i)) 		fprintf (out, "%d", i);
-	else if (isFloat(n, &f)) 	fprintf (out, "%f", f);
+	else if (isDouble(n, &f)) 	fprintf (out, "%f", f);
 	else if (isSym(n, &s)) 		fprintf (out, "%s", name(s));
 	else if (isPointer(n, &p)) 	fprintf (out, "#%p", p);
 	

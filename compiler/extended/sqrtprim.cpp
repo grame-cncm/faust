@@ -2,6 +2,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 
 class SqrtPrim : public xtended
 {
@@ -37,7 +39,7 @@ class SqrtPrim : public xtended
 		// verifier les simplifications
 		num n;
 		if (isNum(args[0],n)) {
-			return tree(sqrtf(float(n)));
+			return tree(sqrt(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -45,7 +47,7 @@ class SqrtPrim : public xtended
 		
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
-		return subst("sqrtf($0)", args[0]);
+        return subst("sqrt$1($0)", args[0], isuffix());
 	}
 	
 };

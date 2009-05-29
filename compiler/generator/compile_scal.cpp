@@ -37,6 +37,7 @@
 #include <vector>
 #include <math.h>
 
+#include "floats.hh"
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 #include "recursivness.hh"
@@ -123,14 +124,14 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
 	for (int i = 0; i < fClass->inputs(); i++) {
-        fClass->addZone3(subst("float* input$0 = input[$0];", T(i)));
+        fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
 	}
 	for (int i = 0; i < fClass->outputs(); i++) {
-        fClass->addZone3(subst("float* output$0 = output[$0];", T(i)));
+        fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
 	}
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
-		fClass->addExecCode(subst("output$0[i] = $1;", T(i), CS(sig)));
+		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
 	}
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -218,14 +219,12 @@ string	ScalarCompiler::generateCode (Tree sig)
 {
 #if 0
 	fprintf(stderr, "CALL generateCode(");
-		print(env, stderr);
-		fprintf(stderr, ", ");
-		printSignal(sig, stderr);
+        printSignal(sig, stderr);
 	fprintf(stderr, ")\n");
 #endif
 
 	int 	i;
-	float	r;
+	double	r;
 	Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
 
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
@@ -342,14 +341,14 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
-	return generateCacheCode(sig, subst("input$0[i]", idx));
+	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
 }
 
 
 string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string& arg)
 {
 	string dst = subst("output$0[i]", idx);
-	fClass->addExecCode(subst("$0 = $1;", dst, arg));
+	fClass->addExecCode(subst("$0 = $2$1;", dst, arg, xcast()));
 	return dst;
 }
 
@@ -395,7 +394,7 @@ void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, 
     if (t->nature() == kInt) {
         ctype = "int"; vname = subst("i$0", getFreshID(prefix));
     } else {
-        ctype = "float"; vname = subst("f$0", getFreshID(prefix));
+        ctype = ifloat(); vname = subst("f$0", getFreshID(prefix));
     }
 }
 
@@ -480,7 +479,7 @@ string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 
 string ScalarCompiler::generateFloatCast (Tree sig, Tree x)
 {
-	return generateCacheCode(sig, subst("float($0)", CS(x)));
+	return generateCacheCode(sig, subst("$1($0)", CS(x), ifloat()));
 }
 
 /*****************************************************************************
@@ -490,7 +489,7 @@ string ScalarCompiler::generateFloatCast (Tree sig, Tree x)
 string ScalarCompiler::generateButton(Tree sig, Tree path)
 {
 	string varname = getFreshID("fbutton");
-	fClass->addDeclCode(subst("float \t$0;", varname));
+	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = 0.0;", varname));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 	return generateCacheCode(sig, varname);
@@ -499,7 +498,7 @@ string ScalarCompiler::generateButton(Tree sig, Tree path)
 string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
 {
 	string varname = getFreshID("fcheckbox");
-	fClass->addDeclCode(subst("float \t$0;", varname));
+	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = 0.0;", varname));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 	return generateCacheCode(sig, varname);
@@ -509,7 +508,7 @@ string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
 string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
 	string varname = getFreshID("fslider");
-	fClass->addDeclCode(subst("float \t$0;", varname));
+	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = $1;", varname, T(tree2float(cur))));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 	return generateCacheCode(sig, varname);
@@ -518,7 +517,7 @@ string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, 
 string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
 	string varname = getFreshID("fslider");
-	fClass->addDeclCode(subst("float \t$0;", varname));
+	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = $1;", varname, T(tree2float(cur))));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 	return generateCacheCode(sig, varname);
@@ -527,7 +526,7 @@ string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, 
 string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
 	string varname = getFreshID("fentry");
-	fClass->addDeclCode(subst("float \t$0;", varname));
+	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	fClass->addInitCode(subst("$0 = $1;", varname, T(tree2float(cur))));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 	return generateCacheCode(sig, varname);
@@ -537,7 +536,7 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
 string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
 	string varname = getFreshID("fbargraph");
-	fClass->addDeclCode(subst("float \t$0;", varname));
+	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
 	Type t = getSigType(sig);
@@ -564,7 +563,7 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
 string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
 	string varname = getFreshID("fbargraph");
-	fClass->addDeclCode(subst("float \t$0;", varname));
+	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
 	Type t = getSigType(sig);
@@ -648,7 +647,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 		ctype = "int";
 	} else {
 		vname = getFreshID("ftbl");
-		ctype = "float";
+		ctype = ifloat();
 	}
 
 	// declaration de la table
@@ -691,7 +690,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 		ctype = "int";
 	} else {
 		vname = getFreshID("ftbl");
-		ctype = "float";
+		ctype = ifloat(); 
 	}
 
 	// declaration de la table

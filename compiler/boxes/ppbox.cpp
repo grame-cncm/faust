@@ -113,7 +113,7 @@ static void printRule(ostream& fout, Tree rule)
 ostream& boxpp::print (ostream& fout) const
 {
 	int		i, id;
-	float	r;
+	double	r;
 	prim0	p0;
 	prim1	p1;
 	prim2	p2;

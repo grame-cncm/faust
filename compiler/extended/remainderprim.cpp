@@ -3,6 +3,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 class RemainderPrim : public xtended
 {
 
@@ -32,7 +34,7 @@ class RemainderPrim : public xtended
 		num n,m;
 		assert (args.size() == arity());
 		if (isNum(args[0],n) & isNum(args[1],m)) {
-			return tree(fmodf(float(n), float(m)));
+			return tree(remainder(double(n), double(m)));
 		} else {
 			return tree(symbol(), args[0], args[1]);
 		}
@@ -41,7 +43,7 @@ class RemainderPrim : public xtended
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
-		return subst("remainderf($0, $1)", args[0], args[1]);
+        return subst("remainder$2($0,$1)", args[0], args[1], isuffix());
 	}
 	
 };

@@ -358,7 +358,7 @@ static schema* generateInsideSchema(Tree t)
 {
 	Tree a, b, ff, l, type,name,file;
 	int		i;
-	float	r;
+	double	r;
 	prim0	p0;
 	prim1	p1;
 	prim2	p2;

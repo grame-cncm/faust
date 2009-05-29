@@ -2,6 +2,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 class Atan2Prim : public xtended
 {
 
@@ -31,7 +33,7 @@ class Atan2Prim : public xtended
 		assert (args.size() == 2);
 		num n,m;
 		if (isNum(args[0],n) && isNum(args[1],m)) {
-			return tree(atan2f(float(n), float(m)));
+			return tree(atan2(double(n), double(m)));
 		} else {
 			return tree(symbol(), args[0], args[1]);
 		}
@@ -39,7 +41,7 @@ class Atan2Prim : public xtended
 		
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
-		return subst("atan2f($0, $1)", args[0], args[1]);
+        return subst("atan2$2($0,$1)", args[0], args[1], isuffix());
 	}
 	
 };

@@ -2,6 +2,8 @@
 #include "Text.hh"
 #include <math.h>
 
+#include "floats.hh"
+
 class CeilPrim : public xtended
 {
 
@@ -31,7 +33,7 @@ class CeilPrim : public xtended
 		num n;
 		assert (args.size() == arity());
 		if (isNum(args[0],n)) {
-			return tree(ceilf(float(n)));
+			return tree(ceil(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -40,7 +42,7 @@ class CeilPrim : public xtended
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
-		return subst("ceilf($0)", args[0]);
+        return subst("ceil$1($0)", args[0], isuffix());
 	}
 	
 };

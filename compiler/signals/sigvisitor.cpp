@@ -17,7 +17,7 @@ using namespace std;
 void sigvisitor::visit(Tree sig)
 {
 	int 		i;
-	float 		r;
+	double 		r;
 	Tree		sel, s1, s2, s3, ff, id, ls, l, var, body, type, name, file, cur, min, max, step;
 	
 	assert(sig);

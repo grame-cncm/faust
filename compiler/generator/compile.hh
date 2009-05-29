@@ -46,6 +46,7 @@
 
 #define kMaxHeight 1024
 
+
 class Compiler
 {
 protected:
@@ -61,8 +62,6 @@ public:
 
 	virtual void		compileMultiSignal  (Tree lsig) = 0;
 	virtual void		compileSingleSignal (Tree lsig) = 0;
-  	//virtual string		CS (Tree tEnv, Tree sig, int ctx = 0) = 0;
-	//virtual string 		generateCacheCode(Tree tEnv, Tree sig, const string& exp, int context=0)=0;
 
 	Klass*				getClass() { return (Klass*)fClass; }
 
@@ -70,52 +69,8 @@ public:
 	Description*		getDescription()					{ return fDescription; }
 
 protected:
-  //string 		getFreshID (const char* prefix);
-  //Tree 		makeCompileKey(Tree t);
   virtual Tree 		prepare (Tree L0);
   virtual Tree 		prepare2 (Tree L0);
-  //void 		compilePreparedSignalList (Tree lsig);
-
- // analyse du partage des expressions
-  //virtual int 		getSharingCount(Tree t) = 0;
-  //virtual void 		sharingAnalysis(Tree t) = 0;
-  //virtual void 		sharingAnnotation(int vctxt, Tree t) = 0;
-
-
- // generation du code
-  //string		generateCode (Tree tEnv, Tree sig);
-
-  //string 		generateCacheCode	(Tree tEnv, Tree sig, const string& exp);
-
-  //string 		generateDelay1		(Tree tEnv, Tree sig, Tree arg);
-  //string 		generateBinOp 		(Tree tEnv, Tree sig, int opcode, Tree arg1, Tree arg2);
-
-  //string 		generateFFun  		(Tree tEnv, Tree sig, Tree ff, Tree largs);
-
-  //string 		generateInput 		(Tree tEnv, Tree sig, const string& idx);
-  //string 		generateOutput		(Tree tEnv, Tree sig, const string& idx, const string& arg1);
-
-  //string 		generateTable 		(Tree tEnv, Tree sig, Tree tsize, Tree content);
-  //string 		generateWRTbl 		(Tree tEnv, Tree sig, Tree tbl, Tree idx, Tree data);
-  //string 		generateRDTbl 		(Tree tEnv, Tree sig, Tree tbl, Tree idx);
-  //string 		generateSigGen		(Tree tEnv, Tree sig, Tree content);
-
-  //string 		generateSelect2 	(Tree tEnv, Tree sig, Tree sel, Tree s1, Tree s2);
-  //string 		generateSelect3 	(Tree tEnv, Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
-
-  //string 		generateRecProj 	(Tree tEnv, Tree sig, const string& vname, int i);
-  //string 		generateRecRef 		(Tree tEnv, Tree sig, Tree var);
-  //string 		generateRecGroup 	(Tree tEnv, Tree sig, Tree var, Tree le);
-
-  //string 		generateIntCast   	(Tree tEnv, Tree sig, Tree x);
-  //string 		generateFloatCast 	(Tree tEnv, Tree sig, Tree x);
-
-  //string 		generateButton 		(Tree tEnv, Tree sig, Tree label);
-  //string 		generateCheckbox 	(Tree tEnv, Tree sig, Tree label);
-  //string 		generateVSlider 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-  //string 		generateHSlider	 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-  //string 		generateNumEntry 	(Tree tEnv, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-
 
 // gestion des includes et librairies
 	void 		addIncludeFile (const string& str) 	{ fClass->addIncludeFile(str); 	}

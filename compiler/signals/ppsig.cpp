@@ -172,20 +172,8 @@ ostream& ppsig::printextended (ostream& fout, Tree sig) const
 	
 ostream& ppsig::print (ostream& fout) const
 {
-#if 0
 	int 	i;
-	float	r;
-	Tree 	c, sel, x, y, z, var, le, label, id, ff, largs, type, name, file;
-	//cerr << "ppsig::print of " << *sig <<endl;
-	 if ( isSigBinOp(sig, &i, x, y) )			{ printinfix(fout, gBinOpTable[i]->fName, gBinOpTable[i]->fPriority, x, y);  }
-	 else { cerr << "ppsig::print of " << *sig <<endl; }
-#endif
- 
-
-
-#if 1
-	int 	i;
-	float	r;
+	double	r;
 	Tree 	c, sel, x, y, z, var, le, label, id, ff, largs, type, name, file;
 
 		  if ( isList(sig) ) 						{ printlist(fout, sig); }
@@ -236,7 +224,6 @@ ostream& ppsig::print (ostream& fout) const
 		cerr << "ERROR, ppsig doesn't recognize signal : " << *sig << endl;
 		exit(1);
 	}
-#endif
 	return fout;
 }
 

@@ -243,12 +243,12 @@ void CTree::control ()
 // if t has a node of type int, return it otherwise error
 int tree2int (Tree t)
 {
-	float	x;
+	double	x;
 	int		i;
 
 	if (isInt(t->node(), &i)) {
 		// nothing to do
-	} else if (isFloat(t->node(), &x)) {
+	} else if (isDouble(t->node(), &x)) {
 		i = int(x);
 	} else {
 		ERROR("the node of the tree is not an int nor a float", t);
@@ -257,14 +257,14 @@ int tree2int (Tree t)
 }	
     
 // if t has a node of type float, return it otherwise error
-float tree2float (Tree t)
+double tree2float (Tree t)
 {
-    float   x;
+    double   x;
     int     i;
 
     if (isInt(t->node(), &i)) {
-        x = float(i);
-    } else if (isFloat(t->node(), &x)) {
+        x = double(i);
+    } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
         ERROR("the node of the tree is not a float nor an int", t);
@@ -275,12 +275,12 @@ float tree2float (Tree t)
 // if t has a node of type float, return it as a double otherwise error
 double tree2double (Tree t)
 {
-    float   x;
+    double   x;
     int     i;
 
     if (isInt(t->node(), &i)) {
-        x = float(i);
-    } else if (isFloat(t->node(), &x)) {
+        x = double(i);
+    } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
         ERROR("the node of the tree is not a float nor an int", t);

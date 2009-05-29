@@ -3,6 +3,8 @@
 #include <math.h>
 #include "sigtyperules.hh"
 
+#include "floats.hh"
+
 class AbsPrim : public xtended
 {
 
@@ -33,12 +35,12 @@ class AbsPrim : public xtended
 
 	virtual Tree	computeSigOutput (const vector<Tree>& args)
 	{
-		float f; int i;
+		double f; int i;
 
 		assert (args.size() == arity());
 
-		if (isFloat(args[0]->node(),&f)) {
-			return tree(fabsf(f));
+		if (isDouble(args[0]->node(),&f)) {
+			return tree(fabs(f));
 
 		} else if (isInt(args[0]->node(),&i)) {
 			return tree(abs(i));
@@ -55,7 +57,7 @@ class AbsPrim : public xtended
 
 		Type t = infereSigType(types);
 		if (t->nature() == kReal) {
-			return subst("fabsf($0)", args[0]);
+            return subst("fabs$1($0)", args[0], isuffix());
 		} else {
 			return subst("abs($0)", args[0]);
 		}

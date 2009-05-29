@@ -3,6 +3,8 @@
 #include <math.h>
 #include "sigtyperules.hh"
 
+#include "floats.hh"
+
 class MaxPrim : public xtended
 {
 
@@ -33,24 +35,24 @@ class MaxPrim : public xtended
 	
 	virtual Tree	computeSigOutput (const vector<Tree>& args) 
 	{
-		float f,g; int i,j;
+		double f,g; int i,j;
 		
 		assert (args.size() == arity());
 		
-		if (isFloat(args[0]->node(),&f)) {
+		if (isDouble(args[0]->node(),&f)) {
 		
-			if (isFloat(args[1]->node(), &g)) {
+			if (isDouble(args[1]->node(), &g)) {
 				return tree(max(f, g));
 			} else if (isInt(args[1]->node(),&j)) {
-				return tree(max(f, float(j)));
+				return tree(max(f, double(j)));
 			} else {
 				return tree(symbol(), args[0], args[1]);
 			}
 				
 		} else if (isInt(args[0]->node(),&i)) {
 		
-			if (isFloat(args[1]->node(), &g)) {
-				return tree(max(float(i), g));
+			if (isDouble(args[1]->node(), &g)) {
+				return tree(max(double(i), g));
 			} else if (isInt(args[1]->node(),&j)) {
 				return tree(max(i, j));
 			} else {

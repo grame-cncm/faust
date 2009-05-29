@@ -41,10 +41,10 @@ using namespace std;
 
 // les constantes
 Tree sigInt(int n);
-Tree sigReal(float n);
+Tree sigReal(double n);
 
 bool  isSigInt(Tree t, int* i);
-bool  isSigReal(Tree t, float* r);
+bool  isSigReal(Tree t, double* r);
 
 
 // les entr�s sorties
@@ -68,7 +68,7 @@ bool  isSigPrefix(Tree t, Tree& t0, Tree& t1);
 Tree  sigIota(Tree t0);
 bool  isSigIota(Tree t, Tree& t0);
 
-// Int and Float casting
+// Int and Double casting
 Tree  sigIntCast(Tree t);
 Tree  sigFloatCast(Tree t);
 
@@ -179,10 +179,10 @@ bool isProj (Tree t, int* i, Tree& rgroup);
 
 inline bool isNum(const Tree& t, num& n)
 {
-	float 		f;
+	double 		f;
 	int 		i;
 
-	if (isFloat(t->node(), &f)) { n = f; return true;  }
+	if (isDouble(t->node(), &f)) { n = f; return true;  }
 	if (isInt(t->node(), &i)) { n = i; return true;  }
 	return false;
 }

@@ -84,7 +84,7 @@ int getSigOrder(Tree sig)
 static int infereSigOrder(Tree sig)
 {
 	int 		i;
-	float 		r;
+	double 		r;
 	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
 
 	xtended* xt = (xtended*) getUserData(sig);

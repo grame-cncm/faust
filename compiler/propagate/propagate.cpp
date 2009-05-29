@@ -168,7 +168,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 {
 	int		i;
-	float	r;
+	double	r;
 	prim0	p0;
 	prim1	p1;
 	prim2	p2;
