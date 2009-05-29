@@ -19,7 +19,7 @@ endif
 
 
 ### allocate a unique directory
-TDR := $(shell mktemp -d -t FAUST)
+TDR := $(shell mktemp -d -t FAUST.XXXXXX)
 TMP = $(TDR)/$(<:.dsp=)
 ### --------------------------------------------
 
@@ -36,7 +36,7 @@ $(DEST)%.app : %.dsp
 	make -C $(TMP)
 	rm -rf $@
 	mv $(TMP)/$(<:.dsp=.app) $(DEST)
-	rm -rf $(TMP)
+	rm -rf $(TDR)
 
 
 ### Linux
