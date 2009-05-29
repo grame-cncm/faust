@@ -9,7 +9,7 @@ ifeq ($(system), Darwin)
 LIB := -I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -lsndfile -dynamiclib
 else
 #LIB := -I/usr/local/include -lsndfile -lcsound -shared
-LIB := -I/usr/local/include -shared
+LIB := -I/usr/include/csound -shared -fPIC
 endif
 
 ###For Windows with gcc/mingw:(if headers in /usr/local/include and libs in /usr/local/lib)
