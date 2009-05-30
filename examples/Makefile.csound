@@ -31,7 +31,7 @@ all :  $(opcodes)
 
 $(DEST)%.dylib : %.dsp
 	faust $(VEC) -uim -a csound.cpp $< -o $@.cpp
-	$(CXX) -O3 $(CXXFLAGS) $(LIB) -DOPCODE_NAME=$(@:.dylib=) $@.cpp -o $@
+	$(CXX) -O3 $(CXXFLAGS) $(LIB) -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
 	
 
 clean :
