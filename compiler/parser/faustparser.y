@@ -183,14 +183,14 @@ Tree unquote(char* str)
 %type <exp> stmtlist
 %type <exp> statement
 
-%type <exp> eqlist
-%type <exp> equation
+%type <exp> deflist
+%type <exp> definition
 
 %type <exp> params
 
-%type <exp> diagram
-%type <exp> eqname
 %type <exp> expression
+%type <exp> defname
+%type <exp> infixexp
 %type <exp> primitive
 %type <exp> argument
 %type <exp> arglist
@@ -245,61 +245,61 @@ program         : stmtlist 						{$$ = $1; gResult = formatDefinitions($$); }
 stmtlist        : /*empty*/                     {$$ = nil; }
                 | stmtlist statement            {$$ = cons ($2,$1); }
 
-eqlist          : /*empty*/                     {$$ = nil; }
-                | eqlist equation               {$$ = cons ($2,$1); }
+deflist          : /*empty*/                     {$$ = nil; }
+                | deflist definition             {$$ = cons ($2,$1); }
                 ;
 
 statement       : IMPORT LPAR uqstring RPAR ENDDEF              {$$ = importFile($3); }
                 | DECLARE name string  ENDDEF                   {declareMetadata($2,$3); $$ = nil; }
-                | equation                                      {$$ = $1; }
+                | definition                                    {$$ = $1; }
                 ;
 
-equation		: eqname LPAR arglist RPAR DEF diagram ENDDEF	{$$ = cons($1,cons($3,$6)); }
-				| eqname DEF diagram ENDDEF						{$$ = cons($1,cons(nil,$3)); }
+definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{$$ = cons($1,cons($3,$6)); }
+				| defname DEF expression ENDDEF					{$$ = cons($1,cons(nil,$3)); }
 				| error ENDDEF									{$$ = nil; yyerr++;}
                	;
 
-eqname			: ident 						{$$=$1; setDefProp($1, yyfilename, yylineno); }
+defname			: ident 						{$$=$1; setDefProp($1, yyfilename, yylineno); }
 				;
 
 params			: ident							{$$ = cons($1,nil); }
 				| params PAR ident				{$$ = cons($3,$1); }
                 ;
 
-diagram			: diagram WITH LBRAQ eqlist RBRAQ	{$$ = boxWithLocalDef($1,formatDefinitions($4)); }
-				| diagram PAR diagram  			{$$ = boxPar($1,$3);}
-				| diagram SEQ diagram  			{$$ = boxSeq($1,$3);}
-				| diagram SPLIT  diagram 		{$$ = boxSplit($1,$3);}
-				| diagram MIX diagram 			{$$ = boxMerge($1,$3);}
-				| diagram REC diagram  			{$$ = boxRec($1,$3);}
-				| expression					{$$ = $1; }
+expression		: expression WITH LBRAQ deflist RBRAQ	{$$ = boxWithLocalDef($1,formatDefinitions($4)); }
+				| expression PAR expression  			{$$ = boxPar($1,$3);}
+				| expression SEQ expression  			{$$ = boxSeq($1,$3);}
+				| expression SPLIT  expression 		    {$$ = boxSplit($1,$3);}
+				| expression MIX expression 			{$$ = boxMerge($1,$3);}
+				| expression REC expression  			{$$ = boxRec($1,$3);}
+				| infixexp					            {$$ = $1; }
 				;
 
-expression		: expression ADD expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd)); }
-				| expression SUB expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigSub)); }
-				| expression MUL expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigMul)); }
-				| expression DIV expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
-                | expression MOD expression     {$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
-                | expression POWOP expression   {$$ = boxSeq(boxPar($1,$3),gPowPrim->box()); }
-                | expression FDELAY expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
-				| expression DELAY1  			{$$ = boxSeq($1,boxPrim1(sigDelay1)); }
-				| expression DOT ident  		{$$ = boxAccess($1,$3); }
+infixexp		: infixexp ADD infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd)); }
+				| infixexp SUB infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigSub)); }
+				| infixexp MUL infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigMul)); }
+				| infixexp DIV infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
+                | infixexp MOD infixexp     {$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
+                | infixexp POWOP infixexp   {$$ = boxSeq(boxPar($1,$3),gPowPrim->box()); }
+                | infixexp FDELAY infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
+				| infixexp DELAY1  			{$$ = boxSeq($1,boxPrim1(sigDelay1)); }
+				| infixexp DOT ident  		{$$ = boxAccess($1,$3); }
 
-				| expression AND expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
-				| expression OR expression 		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
-				| expression XOR expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigXOR)); }
+				| infixexp AND infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
+				| infixexp OR infixexp 		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
+				| infixexp XOR infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigXOR)); }
 
-				| expression LSH expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLeftShift)); }
-				| expression RSH expression 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRightShift)); }
+				| infixexp LSH infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLeftShift)); }
+				| infixexp RSH infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRightShift)); }
 
-				| expression LT expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLT)); }
-				| expression LE expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLE)); }
-				| expression GT expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGT)); }
-				| expression GE expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGE)); }
-				| expression EQ expression  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
-				| expression NE expression		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
+				| infixexp LT infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLT)); }
+				| infixexp LE infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLE)); }
+				| infixexp GT infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGT)); }
+				| infixexp GE infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGE)); }
+				| infixexp EQ infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
+				| infixexp NE infixexp		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
 
-				| expression LPAR arglist RPAR %prec APPL	{$$ = buildBoxAppl($1,$3); }
+				| infixexp LPAR arglist RPAR %prec APPL	{$$ = buildBoxAppl($1,$3); }
 				
 				| primitive						{$$ = $1;}
 				;
@@ -381,8 +381,8 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
 				| ident 						{$$ = $1;}
                 | SUB ident                     {$$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub));}
 
-				| LPAR diagram RPAR				{$$ = $2;}
-				| LAMBDA LPAR params RPAR DOT LPAR diagram RPAR
+				| LPAR expression RPAR				{$$ = $2;}
+				| LAMBDA LPAR params RPAR DOT LPAR expression RPAR
 												{$$ = buildBoxAbstr($3,$7);}
 
 				| CASE LBRAQ rulelist RBRAQ		{$$ = boxCase(checkRulelist($3));}
@@ -392,7 +392,7 @@ primitive		: INT   						{$$ = boxInt(atoi(yytext));}
                 | fvariable                     {$$ = $1;}
                 | COMPONENT LPAR uqstring RPAR  {$$ = boxComponent($3); }
                 | LIBRARY LPAR uqstring RPAR    {$$ = boxLibrary($3); }
-                | ENVIRONMENT LBRAQ eqlist RBRAQ {$$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
+                | ENVIRONMENT LBRAQ deflist RBRAQ {$$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
 
 				| button						{$$ = $1;}
 				| checkbox						{$$ = $1;}
@@ -428,7 +428,7 @@ argument		: argument SEQ argument  		{$$ = boxSeq($1,$3);}
 				| argument SPLIT argument 		{$$ = boxSplit($1,$3);}
 				| argument MIX argument 		{$$ = boxMerge($1,$3);}
 				| argument REC argument  		{$$ = boxRec($1,$3);}
-				| expression					{$$ = $1;}
+				| infixexp					{$$ = $1;}
 				;
 
 string			: STRING						{$$ = tree(yytext); }
@@ -443,19 +443,19 @@ fstring			: STRING						{$$ = tree(yytext); }
 
 /* description of iterative expressions */
 
-fpar			: IPAR LPAR ident PAR argument PAR diagram RPAR
+fpar			: IPAR LPAR ident PAR argument PAR expression RPAR
 												{$$ = boxIPar($3,$5,$7);}
 				;
 
-fseq			: ISEQ LPAR ident PAR argument PAR diagram RPAR
+fseq			: ISEQ LPAR ident PAR argument PAR expression RPAR
 												{$$ = boxISeq($3,$5,$7);}
 				;
 
-fsum			: ISUM LPAR ident PAR argument PAR diagram RPAR
+fsum			: ISUM LPAR ident PAR argument PAR expression RPAR
 												{$$ = boxISum($3,$5,$7);}
 				;
 
-fprod			: IPROD LPAR ident PAR argument PAR diagram RPAR
+fprod			: IPROD LPAR ident PAR argument PAR expression RPAR
 												{$$ = boxIProd($3,$5,$7);}
 				;
 
@@ -489,13 +489,13 @@ hslider			: HSLIDER LPAR string PAR argument PAR argument PAR argument PAR argum
 nentry			: NENTRY LPAR string PAR argument PAR argument PAR argument PAR argument RPAR
 												{$$ = boxNumEntry($3,$5,$7,$9,$11); }
 				;
-vgroup			: VGROUP LPAR string PAR diagram RPAR
+vgroup			: VGROUP LPAR string PAR expression RPAR
 												{$$ = boxVGroup($3, $5); }
 				;
-hgroup			: HGROUP LPAR string PAR diagram RPAR
+hgroup			: HGROUP LPAR string PAR expression RPAR
 												{$$ = boxHGroup($3, $5); }
 				;
-tgroup			: TGROUP LPAR string PAR diagram RPAR
+tgroup			: TGROUP LPAR string PAR expression RPAR
 												{$$ = boxTGroup($3, $5); }
 				;
 
@@ -522,7 +522,7 @@ rulelist		: rule							{$$ = cons($1,nil); }
 				| rulelist rule					{$$ = cons($2,$1); }
 				;
 
-rule			: LPAR arglist RPAR ARROW diagram ENDDEF
+rule			: LPAR arglist RPAR ARROW expression ENDDEF
 												{$$ = cons($2,$5); }
 				;
 
