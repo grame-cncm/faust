@@ -213,3 +213,27 @@ string T (double n)
     }
     return string(c);
 }*/
+
+/**
+ * remove quotes from a string
+ */
+string unquote(const string& s)
+{
+	assert(s.size() >= 2);
+	assert(s[0] == '"');
+	assert(s[s.size()-1] == '"');
+	return s.substr(1, s.size()-2);
+}
+
+
+/**
+ * add quotes to a string
+ */
+string quote(const string& s)
+{
+	string q("\"");
+	q += s;
+	q += "\"";
+	return q;
+}
+
