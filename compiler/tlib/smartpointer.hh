@@ -25,7 +25,8 @@
 #define _SMARTPOINTER_H
 
 //#include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
 
 
 
