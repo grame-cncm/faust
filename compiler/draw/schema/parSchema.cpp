@@ -62,14 +62,14 @@ void parSchema::place(double ox, double oy, int orientation)
 	endPlace();
 }
 
-point parSchema::inputPoint(unsigned int i)
+point parSchema::inputPoint(unsigned int i) const
 {
 	return (i < fInputFrontier)
 		? fSchema1->inputPoint(i)
 		: fSchema2->inputPoint(i-fInputFrontier);
 }
 
-point parSchema::outputPoint(unsigned int i)
+point parSchema::outputPoint(unsigned int i) const
 {
 	return (i < fOutputFrontier)
 		? fSchema1->outputPoint(i)

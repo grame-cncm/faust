@@ -45,8 +45,8 @@ class seqSchema : public schema
 
 	virtual void 	place(double ox, double oy, int orientation);
 	virtual void 	draw(device& dev);
-	virtual point	inputPoint(unsigned int i);
-	virtual point 	outputPoint(unsigned int i);
+	virtual point	inputPoint(unsigned int i)	const;
+	virtual point 	outputPoint(unsigned int i)	const;
 
   private:
  	seqSchema (schema* s1, schema* s2, double hgap);

@@ -84,7 +84,7 @@ void mergeSchema::place(double ox, double oy, int orientation)
 /**
  * The inputs of s1 :> s2 are the inputs of s1
  */
-point mergeSchema::inputPoint(unsigned int i)
+point mergeSchema::inputPoint(unsigned int i) const
 {
 	return fSchema1->inputPoint(i);
 }
@@ -93,7 +93,7 @@ point mergeSchema::inputPoint(unsigned int i)
 /**
  * The outputs of s1 :> s2 are the outputs of s2
  */
-point mergeSchema::outputPoint(unsigned int i)
+point mergeSchema::outputPoint(unsigned int i) const
 {
 	return fSchema2->outputPoint(i);
 }

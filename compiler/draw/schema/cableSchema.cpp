@@ -77,7 +77,7 @@ void cableSchema::draw(device& dev)
 /**
  *input and output points are the same as the width is 0
  */
-point cableSchema::inputPoint(unsigned int i)
+point cableSchema::inputPoint(unsigned int i) const
 {
 	assert(i<inputs());
 	return fPoint[i];
@@ -86,7 +86,7 @@ point cableSchema::inputPoint(unsigned int i)
 /**
  *input and output points are the same as the width is 0
  */
-point cableSchema::outputPoint(unsigned int i)
+point cableSchema::outputPoint(unsigned int i) const
 {
 	assert(i<outputs());
 	return fPoint[i];

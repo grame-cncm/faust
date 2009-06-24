@@ -45,8 +45,8 @@ class topSchema : public schema
 
 	virtual void 	place(double ox, double oy, int orientation);
 	virtual void 	draw(device& dev);
-	virtual point	inputPoint(unsigned int i);
-	virtual point 	outputPoint(unsigned int i);
+	virtual point	inputPoint(unsigned int i) 	const;
+	virtual point 	outputPoint(unsigned int i)	const;
 
   private:
 	topSchema (schema* s1, double margin, const string& text, const string& link);

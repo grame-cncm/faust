@@ -83,7 +83,7 @@ void enlargedSchema::place(double ox, double oy, int orientation)
 /**
  * Returns an input point
  */
-point enlargedSchema::inputPoint(unsigned int i)
+point enlargedSchema::inputPoint(unsigned int i)	const
 {
 	assert (placed());
 	assert (i < inputs());
@@ -93,7 +93,7 @@ point enlargedSchema::inputPoint(unsigned int i)
 /**
  * Returns an output point
  */
-point enlargedSchema::outputPoint(unsigned int i)
+point enlargedSchema::outputPoint(unsigned int i)	const
 {
 	assert (placed());
 	assert (i < outputs());

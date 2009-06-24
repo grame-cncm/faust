@@ -69,7 +69,7 @@ void cutSchema::draw(device& dev)
 /**
  * By definition a Cut has only one input point
  */
-point cutSchema::inputPoint(unsigned int i)
+point cutSchema::inputPoint(unsigned int i) const
 {
 	assert(i==0);
 	return fPoint;
@@ -78,9 +78,10 @@ point cutSchema::inputPoint(unsigned int i)
 /**
  * By definition a Cut has no output point
  */
-point cutSchema::outputPoint(unsigned int i)
+point cutSchema::outputPoint(unsigned int i) const
 {
 	assert(false);
+	i; // not used
 	return point(-1,-1);
 }
 

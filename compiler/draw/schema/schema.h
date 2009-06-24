@@ -79,10 +79,10 @@ class schema
   	virtual ~schema() {}
 
  	// constant fields
- 	double			width()				{ return fWidth; }
- 	double			height()			{ return fHeight; }
- 	unsigned int	inputs()			{ return fInputs; }
- 	unsigned int	outputs()			{ return fOutputs; }
+ 	double			width()		const		{ return fWidth; }
+ 	double			height()	const		{ return fHeight; }
+ 	unsigned int	inputs()	const		{ return fInputs; }
+ 	unsigned int	outputs()	const		{ return fOutputs; }
 
  	// starts and end placement
 	void 			beginPlace (double x, double y, int orientation)
@@ -90,17 +90,17 @@ class schema
  	void			endPlace ()			{ fPlaced = true; }
 
  	// fields available after placement
- 	bool			placed()			{ return fPlaced; }
- 	double 			x()					{ return fX; }
-	double 			y()					{ return fY; }
-	int				orientation()		{ return fOrientation; }
+ 	bool			placed()	const		{ return fPlaced; }
+ 	double 			x()			const		{ return fX; }
+	double 			y()			const		{ return fY; }
+	int				orientation()	const	{ return fOrientation; }
 
 
  	// abstract interface for subclasses
 	virtual void 	place(double x, double y, int orientation) 	= 0;
 	virtual void 	draw(device& dev) 							= 0;
-	virtual point	inputPoint(unsigned int i) 					= 0;
-	virtual point 	outputPoint(unsigned int i) 				= 0;
+	virtual point	inputPoint(unsigned int i) const			= 0;
+	virtual point 	outputPoint(unsigned int i)const			= 0;
 };
 
 // various functions to create schemas

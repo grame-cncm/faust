@@ -92,7 +92,7 @@ void blockSchema::place(double x, double y, int orientation)
 /**
  * Returns an input point
  */
-point blockSchema::inputPoint(unsigned int i)
+point blockSchema::inputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < inputs());
@@ -102,7 +102,7 @@ point blockSchema::inputPoint(unsigned int i)
 /**
  * Returns an output point
  */
-point blockSchema::outputPoint(unsigned int i)
+point blockSchema::outputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < outputs());

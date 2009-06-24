@@ -100,7 +100,7 @@ void seqSchema::place(double ox, double oy, int orientation)
 /**
  * The input points are the input points of the first component
  */
-point seqSchema::inputPoint(unsigned int i)
+point seqSchema::inputPoint(unsigned int i) const
 {
 	return fSchema1->inputPoint(i);
 }
@@ -109,7 +109,7 @@ point seqSchema::inputPoint(unsigned int i)
 /**
  * The output points are the output points of the second component
  */
-point seqSchema::outputPoint(unsigned int i)
+point seqSchema::outputPoint(unsigned int i) const
 {
 	return fSchema2->outputPoint(i);
 }

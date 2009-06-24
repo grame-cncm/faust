@@ -68,7 +68,7 @@ void topSchema::place(double ox, double oy, int orientation)
 /**
  * Top schema has no input
  */
-point topSchema::inputPoint(unsigned int i)
+point topSchema::inputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < inputs());
@@ -78,7 +78,7 @@ point topSchema::inputPoint(unsigned int i)
 /**
  * Top schema has no output
  */
-point topSchema::outputPoint(unsigned int i)
+point topSchema::outputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < outputs());

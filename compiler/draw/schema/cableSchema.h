@@ -40,8 +40,8 @@ class cableSchema : public schema
 
 	virtual void 	place(double x, double y, int orientation);
 	virtual void 	draw(device& dev);
-	virtual point	inputPoint(unsigned int i);
-	virtual point 	outputPoint(unsigned int i);
+	virtual point	inputPoint(unsigned int i)	const;
+	virtual point 	outputPoint(unsigned int i)	const;
 
   private:
   	 cableSchema (unsigned int n);

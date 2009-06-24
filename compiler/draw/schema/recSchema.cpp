@@ -107,7 +107,7 @@ void recSchema::place(double ox, double oy, int orientation)
 /**
  * The input points s1 ~ s2
  */
-point recSchema::inputPoint(unsigned int i)
+point recSchema::inputPoint(unsigned int i) const
 {
 	return fInputPoint[i];
 }
@@ -116,7 +116,7 @@ point recSchema::inputPoint(unsigned int i)
 /**
  * The output points s1 ~ s2
  */
-point recSchema::outputPoint(unsigned int i)
+point recSchema::outputPoint(unsigned int i) const
 {
 	return fOutputPoint[i];
 }
