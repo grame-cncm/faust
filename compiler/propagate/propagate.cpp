@@ -26,6 +26,7 @@
 #include <assert.h>
 #include "ppbox.hh"
 #include "xtended.hh"
+#include "labels.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -181,12 +182,15 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 	xtended* xt = (xtended*)getUserData(box);
 	
+	// Extended Primitives
+	
 	if (xt)	{
 		assert(lsig.size() == xt->arity());
 		return makeList(xt->computeSigOutput(lsig));
 	}
 		
-	// numbers and constants
+	// Numbers and Constants
+	
 	else if (isBoxInt(box, &i)) 	{ 
 		assert(lsig.size()==0); 
 		return makeList(sigInt(i)); 
@@ -206,7 +210,8 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
         return makeList(sigFVar(type, name, file)); 
     }
 	
-	// wire and cut
+	// Wire and Cut
+	
 	else if (isBoxCut(box)) 				{ 
 		assert(lsig.size()==1); 
 		return siglist(); 
@@ -217,7 +222,8 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		return lsig;  
 	}
 	
-	// slots and symbolic boxes
+	// Slots and Symbolic Boxes
+	
 	else if (isBoxSlot(box)) 				{ 
 		Tree sig;
 		assert(lsig.size()==0); 
@@ -230,13 +236,13 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		return makeList(sig);
 	}
 	
-	// slots and symbolic boxes
 	else if (isBoxSymbolic(box, slot, body)) 				{ 
 		assert(lsig.size()>0); 
 		return propagate(pushEnv(slot,lsig[0],slotenv), path, body, listRange(lsig, 1, lsig.size()));
 	}
 	
-	// primitives
+	// Primitives
+	
 	else if (isBoxPrim0(box, &p0)) 			{ 
 		assert(lsig.size()==0); 
 		return makeList( p0() );  
@@ -274,31 +280,44 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		return makeList(sigFFun(ff, listConvert(lsig)));  
 	}
 	
-	// user interface
+	// User Interface Widgets
+	
 	else if (isBoxButton(box, label)) 	{ 
 		assert(lsig.size()==0); 
-		return makeList(sigButton(cons(label, path))); 
+		return makeList(sigButton(normalizePath(cons(label, path)))); 
 	}
 	
 	else if (isBoxCheckbox(box, label)) 	{ 
 		assert(lsig.size()==0); 
-		return makeList(sigCheckbox(cons(label, path))); 
+		return makeList(sigCheckbox(normalizePath(cons(label, path)))); 
 	}
 	
 	else if (isBoxVSlider(box, label, cur, min, max, step)) 	{ 
 		assert(lsig.size()==0); 
-		return makeList(sigVSlider(cons(label, path), cur, min, max, step)); 
+		return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step)); 
 	}
 	
 	else if (isBoxHSlider(box, label, cur, min, max, step)) 	{ 
 		assert(lsig.size()==0); 
-		return makeList(sigHSlider(cons(label, path), cur, min, max, step)); 
+		return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step)); 
 	}
 	
 	else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{ 
 		assert(lsig.size()==0); 
-		return makeList(sigNumEntry(cons(label, path), cur, min, max, step)); 
+		return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step)); 
 	}
+	
+	else if (isBoxVBargraph(box, label, min, max)) 	{ 
+		assert(lsig.size()==1); 
+		return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0])); 
+	}
+	
+	else if (isBoxHBargraph(box, label, min, max)) 	{ 
+		assert(lsig.size()==1); 
+		return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0])); 
+	}
+	
+	// User Interface Groups
 	
 	else if (isBoxVGroup(box, label, t1)) 	{ 
 		return propagate(slotenv,cons(cons(tree(0),label), path), t1, lsig); 
@@ -312,17 +331,8 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		return propagate(slotenv, cons(cons(tree(2),label), path), t1, lsig); 
 	}
 	
-	else if (isBoxVBargraph(box, label, min, max)) 	{ 
-		assert(lsig.size()==1); 
-		return makeList(sigVBargraph(cons(label, path), min, max, lsig[0])); 
-	}
+	// Block Diagram Composition Algebra
 	
-	else if (isBoxHBargraph(box, label, min, max)) 	{ 
-		assert(lsig.size()==1); 
-		return makeList(sigHBargraph(cons(label, path), min, max, lsig[0])); 
-	}
-	
-	// propagation dans les constructeurs
 	else if (isBoxSeq(box, t1, t2)) 	{ 
 		int in1, out1, in2, out2;
 		getBoxType(t1, &in1, &out1);
