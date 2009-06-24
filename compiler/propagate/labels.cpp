@@ -62,7 +62,7 @@ static Tree encodeName(const string& name)
  
 static Tree label2path(const char* label)
 {
-	cout << "label2path of " << label << endl;
+	//cout << "label2path of " << label << endl;
 	int i = 0;
 	if (label[i] == 0) return nil;
 	if (label[i] == '/') return cons(pathRoot(), label2path(&label[i+1]));
