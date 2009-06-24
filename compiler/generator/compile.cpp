@@ -163,23 +163,6 @@ Tree Compiler::prepareUserInterfaceTree(Tree t)
 //================================= some string processing utilities =================================
 
 /**
- * Removes enclosing quotes : '"toto"' -> 'toto'
- */
-static string unquote(const string& src)
-{
-    string dst;
-    for (unsigned int i=0; i<src.size(); i++) {
-        if (src[i] == '"' & (i==0 | i==src.size()-1)) {
-            // nothing to do just skip the quotes
-        } else {
-            dst += src[i];
-        }
-    }
-    return dst;
-}
-
-
-/**
  * Removes enclosing whitespaces : '  toto  ' -> 'toto'
  */
 static string wdel(const string& s)
@@ -323,9 +306,9 @@ void Compiler::generateUserInterfaceTree(Tree t)
 		const char * 	model;
 
 		switch (orient) {
-			case 0 : model = "interface->openVerticalBox($0);"; break;
-			case 1 : model = "interface->openHorizontalBox($0);"; break;
-			case 2 : model = "interface->openTabBox($0);"; break;
+			case 0 : model = "interface->openVerticalBox(\"$0\");"; break;
+			case 1 : model = "interface->openHorizontalBox(\"$0\");"; break;
+			case 2 : model = "interface->openTabBox(\"$0\");"; break;
 			default :
 					fprintf(stderr, "error in user interface generation 1\n");
 				exit(1);
@@ -380,15 +363,15 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	if ( isSigButton(sig, path) ) 					{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addButton($0, &$1);", label, tree2str(varname)));
+		fClass->addUICode(subst("interface->addButton(\"$0\", &$1);", label, tree2str(varname)));
 
 	} else if ( isSigCheckbox(sig, path) ) 			{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addCheckButton($0, &$1);", label, tree2str(varname)));
+		fClass->addUICode(subst("interface->addCheckButton(\"$0\", &$1);", label, tree2str(varname)));
 
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addVerticalSlider($0, &$1, $2, $3, $4, $5);",
+		fClass->addUICode(subst("interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",
 				label,
 				tree2str(varname),
 				T(tree2float(c)),
@@ -398,7 +381,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addHorizontalSlider($0, &$1, $2, $3, $4, $5);",
+		fClass->addUICode(subst("interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",
 				label,
 				tree2str(varname),
 				T(tree2float(c)),
@@ -408,7 +391,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addNumEntry($0, &$1, $2, $3, $4, $5);",
+		fClass->addUICode(subst("interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);",
 				label,
 				tree2str(varname),
 				T(tree2float(c)),
@@ -418,7 +401,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigVBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
-		fClass->addUICode(subst("interface->addVerticalBargraph($0, &$1, $2, $3);",
+		fClass->addUICode(subst("interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
 				label,
 				tree2str(varname),
 				T(tree2float(x)),
@@ -426,7 +409,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
-		fClass->addUICode(subst("interface->addHorizontalBargraph($0, &$1, $2, $3);",
+		fClass->addUICode(subst("interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
                 label,
 				tree2str(varname),
 				T(tree2float(x)),
@@ -450,7 +433,8 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
 
 	if (isUiFolder(t, label, elements)) {
 		string pathname2 = pathname;
-		string str = unquote(tree2str(right(label)));
+		//string str = unquote(tree2str(right(label)));
+		string str = tree2str(right(label));
 		if (str.length()>0) pathname2 += str + "/";
 		generateMacroInterfaceElements(pathname2, elements);
 
@@ -491,7 +475,8 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
 
     extractMetadata(tree2str(fulllabel), label, metadata);
 
-    string pathlabel = pathname+unquote(label);
+    //string pathlabel = pathname+unquote(label);
+	string pathlabel = pathname+label;
 
 
 	if ( isSigButton(sig, path) ) 					{
