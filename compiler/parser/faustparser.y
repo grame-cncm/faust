@@ -474,38 +474,39 @@ fvariable       : FVARIABLE LPAR type name PAR fstring RPAR
 				;
 
 /* Description of user interface building blocks */
-button			: BUTTON LPAR string RPAR		{$$ = boxButton($3); }
+button			: BUTTON LPAR uqstring RPAR		{$$ = boxButton($3); }
 				;
 
-checkbox		: CHECKBOX LPAR string RPAR		{$$ = boxCheckbox($3); }
+checkbox		: CHECKBOX LPAR uqstring RPAR		{$$ = boxCheckbox($3); }
 				;
 
-vslider			: VSLIDER LPAR string PAR argument PAR argument PAR argument PAR argument RPAR
+vslider			: VSLIDER LPAR uqstring PAR argument PAR argument PAR argument PAR argument RPAR
 												{$$ = boxVSlider($3,$5,$7,$9,$11); }
 				;
-hslider			: HSLIDER LPAR string PAR argument PAR argument PAR argument PAR argument RPAR
+hslider			: HSLIDER LPAR uqstring PAR argument PAR argument PAR argument PAR argument RPAR
 												{$$ = boxHSlider($3,$5,$7,$9,$11); }
 				;
-nentry			: NENTRY LPAR string PAR argument PAR argument PAR argument PAR argument RPAR
+nentry			: NENTRY LPAR uqstring PAR argument PAR argument PAR argument PAR argument RPAR
 												{$$ = boxNumEntry($3,$5,$7,$9,$11); }
 				;
-vgroup			: VGROUP LPAR string PAR expression RPAR
+vgroup			: VGROUP LPAR uqstring PAR expression RPAR
 												{$$ = boxVGroup($3, $5); }
 				;
-hgroup			: HGROUP LPAR string PAR expression RPAR
+hgroup			: HGROUP LPAR uqstring PAR expression RPAR
 												{$$ = boxHGroup($3, $5); }
 				;
-tgroup			: TGROUP LPAR string PAR expression RPAR
+tgroup			: TGROUP LPAR uqstring PAR expression RPAR
 												{$$ = boxTGroup($3, $5); }
 				;
 
-vbargraph		: VBARGRAPH LPAR string PAR argument PAR argument RPAR
+vbargraph		: VBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
 												{$$ = boxVBargraph($3,$5,$7); }
 				;
 hbargraph		: HBARGRAPH LPAR string PAR argument PAR argument RPAR
 												{$$ = boxHBargraph($3,$5,$7); }
 				;
 
+/* Description of foreign functions */
 
 signature		: type fun LPAR typelist RPAR	{$$ = cons($1, cons($2, $4)); }
 				| type fun LPAR RPAR			{$$ = cons($1, cons($2, nil)); }
