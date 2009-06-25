@@ -5,11 +5,13 @@
 /**
  * Grammar for labels with pathnames
  *-----------------------------------
- * label = name | dir name
- * name = [^/]+ | ".." | "." (need to take into account also properties)
- * dir = adir | rdir
- * adir = '/' | '/' rdir
- * rdir = (name '/')+
+ * <label> = <name> | <path> <name>
+ * <name> = [^/]+             
+ * <path> = <apath> | <rpath>
+ * <apath> = '/' | '/' <rpath>
+ * <rpath> = (<gname> '/')+
+ * <gname> = ".." | "." | <gtype> <name>
+ * <gtype> = "h:" | "H:" | "v:" | V:" | "t:" | "T:"
  *
  */
 
@@ -90,8 +92,12 @@ static Tree concatPath(Tree relpath, Tree abspath)
 		if (isPathRoot(head)) {
 			return concatPath(tl(relpath), nil);
 		} else if (isPathParent(head)) {
-			assert (isList(abspath));
-			return concatPath(tl(relpath), tl(abspath));
+			if (!isList(abspath)) { 
+				//cerr << "abspath : " << *abspath << endl; 
+				return concatPath(tl(relpath), hd(relpath));
+			} else {
+				return concatPath(tl(relpath), tl(abspath));
+			}
 		} else if (isPathCurrent(head)) {
 			return concatPath(tl(relpath), abspath);
 		} else {
@@ -107,7 +113,7 @@ static Tree concatPath(Tree relpath, Tree abspath)
 static Tree normalizeLabel(Tree label, Tree path)
 {
 	// we suppose label = "../label" ou "name/label" ou "name"	
-	//cout << "Normalize Label " << *label << endl;
+	//cout << "Normalize Label " << *label << " with path " << *path << endl;
 	if (isList(label)) {
 		return cons(label, path);
 	} else {
