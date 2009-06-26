@@ -4,6 +4,7 @@
 #include <assert.h>
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
+#undef TRACE
 
 using namespace std;
 
@@ -368,6 +369,9 @@ static void combineMulRight(Tree& R, Tree A)
  */
 static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 {
+	#ifdef TRACE
+	cerr << "combineMulDiv (" << M << "/"  << D << "*" << ppsig(f)<< "**" << q << endl;
+	#endif
 	if (f) {
 		if (q > 0) {
 			combineMulLeft(M, buildPowTerm(f,q));
@@ -411,10 +415,13 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 				Tree 	f = p->first;		// f = factor
 				int		q = p->second;		// q = power of f
 				if (f && q && getSigOrder(f)==order) {
+					
 					combineMulDiv (A[order], B[order], f, q);
 				}
 			}
 		}
+		if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl; 
+		if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl; 
 		// en principe ici l'order zero est vide car il correspond au coef numerique
 		assert(A[0] == 0);
 		assert(B[0] == 0);
