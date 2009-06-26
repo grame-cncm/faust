@@ -120,7 +120,7 @@ static int infereSigOrder(Tree sig)
 
     else if (isSigFFun(sig,ff,ls) && isNil(ls)) return 1;
 
-    else if (isSigFFun(sig, ff, ls))            return O(ls);
+    else if (isSigFFun(sig, ff, ls))            return max(1,O(ls));
 
     else if (isSigFConst(sig,type,name,file))   return 1;
 
