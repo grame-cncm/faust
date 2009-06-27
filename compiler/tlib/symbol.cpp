@@ -26,7 +26,6 @@
 #include    "compatibility.hh"
 #include    <iostream>
 #include    <cstring>
-#include	<map>
 #include    <assert.h>
 
 using namespace std;
@@ -36,6 +35,7 @@ using namespace std;
  */
  
 Symbol*	Symbol::gSymbolTable[kHashTableSize];
+map<const char*, unsigned int> Symbol::gPrefixCounters;
 
 
 /**
@@ -99,7 +99,6 @@ bool Symbol::isnew(const char* str)
  * \param str the prefix of the name
  * \return a symbol of name \p prefix++n 
  */
-static map<const char*, unsigned int> gPrefixCounters;
 
 Symbol* Symbol::prefix (const char* str)
 {
