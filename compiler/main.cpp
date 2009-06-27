@@ -18,11 +18,13 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.6b3"
+#define FAUSTVERSION "0.9.9.6b4"
 
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/time.h>
+
 #include "libgen.h"
 
 #include "compatibility.hh"
@@ -415,6 +417,36 @@ static void initFaustDirectories()
     }
 }
 
+#if 0
+double mysecond()
+{
+        struct timeval tp;
+        struct timezone tzp;
+        int i;
+
+        i = gettimeofday(&tp,&tzp);
+        return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+}
+
+double lStartTime;
+double lEndTime;
+
+void startTiming (const char* msg)
+{
+	cerr << "start " << msg << endl;
+	lStartTime = mysecond();
+}
+
+void endTiming (const char* msg)
+{
+	lEndTime = mysecond();
+	cerr << "end " << msg << " (duration : " << lEndTime - lStartTime << ")" << endl;
+}
+#else
+#define startTiming(msg)
+#define endTiming(msg)
+#endif
+
 
 int main (int argc, char* argv[])
 {
@@ -438,6 +470,8 @@ int main (int argc, char* argv[])
 	 2 - parse source files
 	*****************************************************************/
 
+	startTiming("parser");
+	
 	list<string>::iterator s;
 	gResult2 = nil;
 	yyerr = 0;
@@ -455,10 +489,13 @@ int main (int argc, char* argv[])
 		exit(1);
 	}
 
-
+	endTiming("parser");
+	
 	/****************************************************************
 	 3 - evaluate 'process' definition
 	*****************************************************************/
+	
+	startTiming("evaluation");
 
 	Tree process = evalprocess(gReader.expandlist(gResult2));
 	if (gErrorCount > 0) {
@@ -485,18 +522,26 @@ int main (int argc, char* argv[])
         cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
     }
 
-
+	endTiming("evaluation");
+	
+	
 	/****************************************************************
 	 4 - compute output signals of 'process'
 	*****************************************************************/
+	
+	startTiming("propagation");
 
 	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
 	if (gDetailsSwitch) { cerr << "output signals are : " << endl;  printSignal(lsignals, stderr); }
+
+	endTiming("propagation");
 
 
 	/****************************************************************
 	 5 - translate output signals into C++ code
 	*****************************************************************/
+
+	startTiming("compilation");
 
 	Compiler* C;
     if (gVectorSwitch)  C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
@@ -506,6 +551,7 @@ int main (int argc, char* argv[])
 
 	C->compileMultiSignal(lsignals);
 
+	endTiming("compilation");
 
 	/****************************************************************
 	 6 - generate XML description (if required)
