@@ -26,6 +26,8 @@
 #include    "compatibility.hh"
 #include    <iostream>
 #include    <cstring>
+#include	<map>
+#include    <assert.h>
 
 using namespace std;
 
@@ -97,15 +99,17 @@ bool Symbol::isnew(const char* str)
  * \param str the prefix of the name
  * \return a symbol of name \p prefix++n 
  */
+static map<const char*, unsigned int> gPrefixCounters;
 
 Symbol* Symbol::prefix (const char* str)
 {
 	char 	name[256];
 	
 	for (int n = 0; n<10000; n++) {
-		snprintf(name, 256, "%s%d", str, n);
+		snprintf(name, 256, "%s%d", str, gPrefixCounters[str]++);
 		if (isnew(name)) return get(name);
 	}
+	assert(false);
 	return get("UNIQUEOVERFLOW");
 }	
 
