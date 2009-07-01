@@ -1,0 +1,51 @@
+ 
+strict digraph faustflow {
+    root=syntax;
+    
+    
+    simple[label="Simple"];
+    fundef[label="Variable"];
+    patdef[label="Pattern"];
+    
+    diag[label="Diag."];
+    math[label="Math"];
+    bit[label="Bitwise"];
+    cmp[label="Compare"];
+    
+    time[label="Time"];
+    env[label="Lexical"];
+    foreign[label="Foreign"];
+    prog[label="Lambda"];
+
+
+
+    node[shape=box, color=blue, fillcolor=lightblue, style=filled];
+    syntax[label="Syntax"];
+    program[label="Statements"];
+    definition[label="Definitions"];
+    expr[label="Expressions"];
+    prim[label="Primitives"];
+    infix[label="Numerical"];
+  
+
+    syntax->program;
+    syntax->definition;
+    syntax->expr;
+    syntax->prim;
+    
+    definition->simple;
+    definition->fundef;
+    definition->patdef;
+
+    expr->diag;		{rank=same; expr simple}
+    expr->infix;
+    expr->time;
+    expr->env;
+    expr->foreign;
+    expr->prog;
+    
+    infix->math;
+    infix->bit;
+    infix->cmp;
+    
+}
