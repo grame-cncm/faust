@@ -35,7 +35,6 @@ using namespace std;
  */
  
 Symbol*	Symbol::gSymbolTable[kHashTableSize];
-map<const char*, unsigned int> Symbol::gPrefixCounters;
 
 
 /**
@@ -103,6 +102,8 @@ bool Symbol::isnew(const char* str)
 Symbol* Symbol::prefix (const char* str)
 {
 	char 	name[256];
+    
+    static map<const char*, unsigned int> gPrefixCounters;
 	
 	for (int n = 0; n<10000; n++) {
 		snprintf(name, 256, "%s%d", str, gPrefixCounters[str]++);
