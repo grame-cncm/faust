@@ -181,23 +181,47 @@ Please note that this last definition is a convenient alternative to the more ve
   
 \subsection{Expressions}
 
-Faust is conceptually a block-diagram language, but with a textual syntax. Complex expressions are assembled from primitive ones using \textit{composition} operations. More traditional infix expressions are also possible. Faust provides also delayed expressions as well as expressions related to lexical environments.
+Despite its textual syntax, Faust is conceptually a block-diagram language. \textit{Diagram} expressions are assembled from primitive ones using \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally Faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
 
 \begin{rail}
 expression : diagram | numerical | time | lexical | foreign | lambda;
 \end{rail}
   
 \subsubsection{Diagram Expressions}
-Block-diagrams expressions are assembled from primitive ones using an algebra of 5 composition operations, or using iterative composition operations.
+
+\paragraph{Diagram expressions} are assembled from primitive ones using composition operations. High level iterative constructions are also possible.
  
 \begin{rail}
 diagramexp : diagcomposition | diagiteration;
 \end{rail}
 
+\paragraph{Five composition operations} are available : recursion, parallel, sequential, split and merge.
+
 \begin{rail}
-diagcomposition : expression (':'|','|'<:'|':>'|recur) expression;
+diagcomposition : expression (recur|','|':'|'<:'|':>') expression;
 \end{rail}
-           
+
+Amond these operations recursion has the highest priority and split and merge the lowest :
+
+\vspace{5 mm}
+
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Syntax} & \textbf{Pri.}  & \textbf{Description} \\
+\hline
+\texttt{\farg{expression}\ $\sim$\ \farg{expression}}		& 4 & recursive composition     \\
+\texttt{\farg{expression}\ ,\ \farg{expression}}			& 3 & parallel composition      \\
+\texttt{\farg{expression}\ :\ \farg{expression}}			& 2 & sequential composition    \\
+\texttt{\farg{expression}\ <:\ \farg{expression}}			& 1 & split composition      	\\
+\texttt{\farg{expression}\ :>\ \farg{expression}}			& 1 & merge composition      	\\
+\hline
+\end{tabular}
+
+
+ 
+\paragraph{Iterations} are analog to \lstinline'for(...)' loops and provide a convenient way to automate complex block-diagram constructions. 
+ 
+      
 \begin{rail}
 diagiteration: "par" '(' ident ',' numiter ',' expression ')'
            | "seq" '(' ident ',' numiter ',' expression ')'
@@ -205,51 +229,107 @@ diagiteration: "par" '(' ident ',' numiter ',' expression ')'
            | "prod" '(' ident ',' numiter ',' expression ')';
            
 numiter : expression;
+
 \end{rail}
-  
+The number of iterations should be a constant expression. 
+
+
+
 \subsubsection{Numerical Expressions}
-Numerical expressions are essentially syntactic sugar allowing to use a familiar infix notation.
+
+Numerical expressions are essentially syntactic sugar allowing to use a familiar infix notation to express mathematical expressions, bitwise operations and to compare signals. Please note that is this section only builtin primitives with an infix syntax are presented. Other buildtins are in the primitive section. 
 
 \begin{rail}
-numerical : math | bitwise | predicate;
+numerical : math | bitwise | comparison;
 \end{rail}
 
+\paragraph{Mathematical expressions} are the familiar 4 operations as well as the modulo and power operations
 \begin{rail}
 math : expression ('+'|'-'|'*'|'/'|'\%'|hat) expression;
 \end{rail}
-Mathematical expressions
  
+
+\paragraph{Bitwise expressions} are the boolean operations and the left and right arithmetic shifts.
+
 \begin{rail}
 bitwise : expression (pipe|ampersand|'xor'|'<<' |'>>') expression;
 \end{rail}
-Bitwise expressions : booleans and shifts
+
+\paragraph{Comparison} operations allow to compare signals and result in a boolean signal that is 1 when the condition is true and 0 when the condition is false.
 
 \begin{rail}
-predicate : expression ('<'|'<='|'>'|'>='|'=='|'!=') expression;
+comparison : expression ('<'|'<='|'>'|'>='|'=='|'!=') expression;
 \end{rail}
-Comparison predicates
 
 
 
 \subsubsection{Time expressions}
-
+Time expressions are used to express delays. The notation \lstinline'X@10' represent the signal \lstinline'X' delayed by 10 samples. The notation \lstinline"X'" represent the signal X delayed by one sample and is therefore equivalent to \lstinline'X@1'.
 \begin{rail}
 time : expression arobase expression|expression kot; 
 \end{rail}
-Time delayed expressions
+The delay don't have to be fixed, but it must be positive and bounded.
 
 \subsubsection{Environment expressions}
-Each Faust expression has an associated lexical environment : a list of dictionaries where to look for definitions. Environment expressions allow to access or specify this environment.
+Each Faust expression has an associated lexical environment : a list of dictionaries where to look for definitions. Environment expressions allow to create and access such environments.
 
 \begin{rail}
-envexp : expression '.' ident
+envexp :    expression 'with' lbrace (definition+) rbrace
+          | 'environment' lbrace (definition+) rbrace
           | 'component' '(' filename ')'
           | 'library' '(' filename ')'
-          | 'environment' lbrace (definition+) rbrace
-          | expression 'with' lbrace (definition+) rbrace;
+		  | expression '.' ident;
+          
 \end{rail}
+
+The \lstinline'with{...}' construction allows to specify a list of definition that will be used as a local environment of an expression. The \lstinline'environment{...}' allows to create an explicit environment. It can be used to group together various definitions and create a name hierarchy. For example :
+
+\begin{lstlisting}
+    constant = environment {
+                      pi = 3.14159;
+                      e = 2,718 ;
+                                    ....
+                       };
+
+    ... constant.pi ... constant.e ...
+\end{lstlisting}
+
 Structuring expressions
 
+Like many functional programming interpreters, Faust relies on lexical 
+environments to evaluate expressions before compiling them to C++. A 
+lexical environment is a kind of dictionary that keeps track of the 
+definitions associated to a list of symbolic names. It is a very 
+powerful concept and there are many advantages (specially in terms of 
+modularity) in making lexical environments explicit and accessible. For 
+that purpose two new expressions are introduced : library() and 
+environment{}.
+
+1) library("filename")
+----------------------
+The expression library("filter.lib") represents the lexical environment 
+obtained by reading the file "filter.lib". It works like 
+import("filter.lib") but here the current environment is not affected. 
+All the read definitions are stored in a new separate lexical environment.
+
+Definitions inside the returned environment can be easily accessed using 
+the '.' construction. For example :
+    library("filter.lib").dcblocker
+denotes dcblocked as defined in "filter.lib".
+
+Please note that library() is very similar to component(). The 
+equivalence rule is the following :
+    component("freeverb.dsp") = library("freeverb.dsp").process
+
+Lexical environments can be used like some sort of namespaces :
+
+    filter = library("filter.lib");
+   
+    ... filter.dcblocker ...
+
+
+2) environment{def1; def2; ...}
+-------------------------------
 
 
 
