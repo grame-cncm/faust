@@ -26,7 +26,7 @@
 
 
 #include "compile_scal.hh"
-#include "compile_scal.hh"
+#include "timing.hh"
 
 #include "compile.hh"
 #include "sigtype.hh"
@@ -94,7 +94,10 @@ string ScalarCompiler::getFreshID(const string& prefix)
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
+startTiming("ScalarCompiler::prepare");
+ startTiming("deBruijn2Sym");
 	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
+ endTiming("deBruijn2Sym");
 	Tree L2 = simplify(L1);			// simplify by executing every computable operation
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 
@@ -102,15 +105,18 @@ Tree ScalarCompiler::prepare(Tree LS)
 	typeAnnotation(L3);				// Annotate L3 with type information
 	sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
+endTiming("ScalarCompiler::prepare");
   	return L3;
 }
 
 Tree ScalarCompiler::prepare2(Tree L0)
 {
+startTiming("ScalarCompiler::prepare2");
 	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
 	typeAnnotation(L0);				// Annotate L0 with type information
 	sharingAnalysis(L0);			// annotate L0 with sharing count
  	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis
+endTiming("ScalarCompiler::prepare2");
 
   	return L0;
 }

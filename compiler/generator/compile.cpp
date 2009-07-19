@@ -37,6 +37,7 @@ Compile a list of FAUST signals into a C++ class .
 
 
 
+#include "timing.hh"
 #include "compile.hh"
 #include "floats.hh"
 #include "sigtype.hh"
@@ -113,6 +114,8 @@ Compiler::~Compiler()
 
 Tree Compiler::prepare (Tree L0)
 {
+startTiming("Compiler::prepare");
+
 //	fprintf(stderr, "L0 = "); printSignal(L0, stderr); fputs("\n", stderr);
 	Tree L1 = simplify(L0);			// simplify by executing every computable operation
 	//fprintf(stderr, "L1 = "); printSignal(L1, stderr); fputs("\n", stderr);
@@ -121,6 +124,8 @@ Tree Compiler::prepare (Tree L0)
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 	updateAperture(L3);
 	typeAnnotation(L3);
+	
+endTiming("Compiler::prepare");
 
 	return L3;
 }
