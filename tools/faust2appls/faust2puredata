@@ -79,7 +79,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
         cd "$TMP"
-        ${CXX=g++} $CXXFLAGS $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
+        ${CXX=g++} $CXXFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
         faust2pd -s $f.xml
     ) > /dev/null
 
