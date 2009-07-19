@@ -42,7 +42,7 @@ main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh genera
 main.o: parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh generator/description.hh
 main.o: generator/occurences.hh generator/compile_vect.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh
 main.o: boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh generator/floats.hh
-main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh
+main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
@@ -68,6 +68,7 @@ draw/drawschema.o: signals/sigvisitor.hh evaluate/eval.hh parser/sourcereader.hh
 draw/drawschema.o: boxes/boxcomplexity.h draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 errors/errormsg.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
+errors/timing.o: errors/timing.hh
 evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
 evaluate/eval.o: errors/errormsg.hh boxes/ppbox.hh normalize/simplify.hh propagate/propagate.hh
@@ -165,20 +166,20 @@ extended/tanprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 extended/tanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
 extended/tanprim.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 extended/tanprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh generator/Text.hh generator/floats.hh
-generator/compile.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
-generator/compile.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh
-generator/compile.o: tlib/smartpointer.hh signals/interval.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
-generator/compile.o: parallelize/graphSorting.hh generator/Text.hh generator/description.hh generator/floats.hh
-generator/compile.o: signals/sigprint.hh signals/ppsig.hh signals/sigtyperules.hh normalize/simplify.hh
-generator/compile.o: normalize/privatise.hh
+generator/compile.o: errors/timing.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
+generator/compile.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh
+generator/compile.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh tlib/property.hh
+generator/compile.o: parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh generator/description.hh
+generator/compile.o: generator/floats.hh signals/sigprint.hh signals/ppsig.hh signals/sigtyperules.hh
+generator/compile.o: normalize/simplify.hh normalize/privatise.hh
 generator/compile_scal.o: generator/compile_scal.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
 generator/compile_scal.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/compile_scal.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 generator/compile_scal.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 generator/compile_scal.o: generator/Text.hh generator/description.hh signals/sigtyperules.hh generator/occurences.hh
-generator/compile_scal.o: generator/floats.hh signals/sigprint.hh signals/recursivness.hh normalize/simplify.hh
-generator/compile_scal.o: normalize/privatise.hh signals/prim2.hh extended/xtended.hh signals/sigvisitor.hh
-generator/compile_scal.o: tlib/compatibility.hh signals/ppsig.hh
+generator/compile_scal.o: errors/timing.hh generator/floats.hh signals/sigprint.hh signals/recursivness.hh
+generator/compile_scal.o: normalize/simplify.hh normalize/privatise.hh signals/prim2.hh extended/xtended.hh
+generator/compile_scal.o: signals/sigvisitor.hh tlib/compatibility.hh signals/ppsig.hh
 generator/compile_vect.o: generator/compile_vect.hh generator/compile_scal.hh generator/compile.hh signals/signals.hh
 generator/compile_vect.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/compile_vect.o: tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh
