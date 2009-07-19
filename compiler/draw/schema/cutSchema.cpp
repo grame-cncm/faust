@@ -78,10 +78,9 @@ point cutSchema::inputPoint(unsigned int i) const
 /**
  * By definition a Cut has no output point
  */
-point cutSchema::outputPoint(unsigned int i) const
+point cutSchema::outputPoint(unsigned int) const
 {
 	assert(false);
-	i; // not used
 	return point(-1,-1);
 }
 
