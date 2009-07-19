@@ -23,10 +23,10 @@
  
 #include "enrobage.hh"
 #include <string>
-#include <limits.h>
-#include <stdlib.h>
-#include "compatibility.hh"
+#include <cstdlib>
 #include <climits>
+#include <assert.h>
+#include "compatibility.hh"
 
 extern string gFaustSuperDirectory;
 extern string gFaustDirectory;
@@ -60,7 +60,8 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
 ifstream* open_arch_stream(const char* filename)
 {
 	char	old[PATH_MAX];
-    getcwd (old, PATH_MAX);
+	
+    assert(getcwd (old, PATH_MAX) != 0) ;
 
     {
 	    ifstream* f = new ifstream();
@@ -71,19 +72,19 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
-	chdir(old);
+	assert(chdir(old) == 0);
 	if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
         ifstream* f = new ifstream();
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
-	chdir(old);
+	assert(chdir(old) == 0);
 	if (chdir("/usr/local/lib/faust")==0) {
         ifstream* f = new ifstream();
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
-	chdir(old);
+	assert(chdir(old) == 0);
 	if (chdir("/usr/lib/faust")==0) {
         ifstream* f = new ifstream();
 		f->open(filename); 
@@ -122,13 +123,16 @@ static FILE* fopenat(const char* dir, const char* filename)
 {
     char        olddir[PATH_MAX];
     
-    getcwd (olddir, PATH_MAX);
+    assert(getcwd (olddir, PATH_MAX) != 0) ;
+    //getcwd (olddir, PATH_MAX);
     if (chdir(dir) == 0) {           
         FILE* f = fopen(filename, "r");
-        chdir(olddir);
+        assert(chdir(olddir) == 0);
+    	//chdir(olddir);
         return f;
     }
-    chdir(olddir);
+	assert(chdir(olddir) == 0);
+    //chdir(olddir);
     return 0;
 }
 
@@ -147,15 +151,18 @@ static FILE* fopenat(const string& dir, const char* path, const char* filename)
 {
     char        olddir[PATH_MAX];
     
-    getcwd (olddir, PATH_MAX);
+    assert(getcwd (olddir, PATH_MAX) != 0) ;
+    //getcwd (olddir, PATH_MAX);
     if (chdir(dir.c_str()) == 0) {
         if (chdir(path) == 0) {            
             FILE* f = fopen(filename, "r");
-            chdir(olddir);
+            assert(chdir(olddir) == 0);
+    		//chdir(olddir);
             return f;
         }
     }
-    chdir(olddir);
+    assert(chdir(olddir) == 0);
+    //chdir(olddir);
     return 0;
 }
 
