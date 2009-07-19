@@ -63,7 +63,7 @@
 
 #include "schema.h"
 #include "drawschema.hh"
-
+#include "timing.hh"
 
 using namespace std ;
 
@@ -417,35 +417,6 @@ static void initFaustDirectories()
     }
 }
 
-#if 0
-double mysecond()
-{
-        struct timeval tp;
-        struct timezone tzp;
-        int i;
-
-        i = gettimeofday(&tp,&tzp);
-        return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
-}
-
-double lStartTime;
-double lEndTime;
-
-void startTiming (const char* msg)
-{
-	cerr << "start " << msg << endl;
-	lStartTime = mysecond();
-}
-
-void endTiming (const char* msg)
-{
-	lEndTime = mysecond();
-	cerr << "end " << msg << " (duration : " << lEndTime - lStartTime << ")" << endl;
-}
-#else
-#define startTiming(msg)
-#define endTiming(msg)
-#endif
 
 
 int main (int argc, char* argv[])
