@@ -238,7 +238,7 @@ diagramexp : diagcomposition | diagiteration;
 diagcomposition : expression (recur|','|':'|'<:'|':>') expression;
 \end{rail}
 
-Amond these operations recursion has the highest priority and split and merge the lowest (see table \ref{table/composition}).
+Amond these operations recursion has the highest priority and split and merge the lowest (see table \ref{table:composition}).
  
 \begin{table}[ht]
 	\centering
@@ -433,36 +433,92 @@ component :    'component' '(' filename ')';
 
 \subsubsection{Foreign expressions}
 
-The foreign function mechanism allows to use external functions, variables and constants. External functions are limited to numerical ones. 
+Reference to external C \textit{functions}, \textit{variables} and \textit{constants} can be introduced using the \textit{foreign function} mechanism.
  
 \begin{rail}
 foreignexp : 'ffunction' '(' signature ',' includefile ',' comment ')' 
           | 'fvariable' '(' type identifier ',' includefile ')' 
           | 'fconstant' '(' type identifier ',' includefile ')' ;
 \end{rail}
-  
-The file \lstinline'"math.lib"' contains several foreign function definitions. For example  \lstinline'asinh' which is not a Faust primitive is defined as follows:
+
+
+\paragraph{function} An external C function is declared by indicating its name and signature as well as the required include file.
+The file \lstinline'"math.lib"' of the Faust distribution contains several foreign function definitions, for example the inverse hyperbolic sine function \lstinline'asinh':
 
 \begin{lstlisting}
 asinh = ffunction(float asinhf (float), <math.h>, "");
 \end{lstlisting}
-  
-ffunction are pure math unless no params
-difference between fconstant and fvariable
 
-SR 			= fconstant(int fSamplingFreq, <math.h>);
-BS          = fvariable(int count, <math.h>);
+Foreign functions with input parameters are considered pure math functions. They are therefore considered free of side effects and called only when their parameters change (that is at the rate of the fastest parameter). 
+
+Exceptions are functions with no input parameters. A typical example is the C \lstinline'rand()' function. In this case the compiler generate code to call the function at sample rate.
+
+
+\paragraph{signature} 
+The signature part (\lstinline'float asinhf (float)' in our previous example) describes the prototype of the C function : return type, function name and list of parameter types. 
 
 \begin{rail}
-includefile : '<' (char+) '>' | string;
-
 signature : type identifier '(' (type + ',') ')';
+\end{rail}
 
+
+\paragraph{types}
+Note that currently only numerical functions involving simple int and float parameters are allowed. No vectors, tables or data structures can be passed as parameters or returned.
+
+\begin{rail}
 type : 'int'|'float';
 \end{rail}
 
-that take simple numerical parameters and return a number.
-Foreign functions, variables and constants. Example of foreign function expression : \lstinline'ffunction (float acoshf (float), <math.h>, "")'.
+\paragraph{variables and constants} 
+External variables and constants can also be declared with a similar syntax. In the same \lstinline'"math.lib"' file we can found the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' :
+
+\begin{lstlisting}
+SR 			= fconstant(int fSamplingFreq, <math.h>);
+BS          = fvariable(int count, <math.h>);
+\end{lstlisting}
+
+Foreign constants are not supposed to vary. Therefore expressions involving only foreign constants are only computed once, during the initialisation period. 
+
+Variable are considered to vary at block speed. This means that expressions depending of external variables are computed every block.
+
+
+\paragraph{include file}
+In declaring foreign functions one as also to specify the include file. It allows the Faust compiler to add the corresponding \lstinline'#include...' in the generated code.
+
+
+\begin{rail}
+includefile : '<' (char+) '>' | '"' (char+) '"' ;
+\end{rail}
+
+
+
+%The syntax of these foreign declarations is the following :
+%The foreign function mechanism allows to use external functions, variables and constants. External functions are limited to numerical ones. 
+%  
+
+%\begin{lstlisting}
+%process = ffunction(float toto (), "foo.h", "commentaire");
+%\end{lstlisting}
+
+
+%ffunction are pure math unless no params
+%difference between fconstant and fvariable
+
+%\begin{lstlisting}
+%SR 			= fconstant(int fSamplingFreq, <math.h>);
+%BS          = fvariable(int count, <math.h>);
+%\end{lstlisting}
+
+%\begin{rail}
+%includefile : '<' (char+) '>' | string;
+
+%signature : type identifier '(' (type + ',') ')';
+
+%type : 'int'|'float';
+%\end{rail}
+
+%that take simple numerical parameters and return a number.
+%Foreign functions, variables and constants. Example of foreign function expression : \lstinline'ffunction (float acoshf (float), <math.h>, "")'.
 
 \subsubsection{Applications and Abstractions}
 
