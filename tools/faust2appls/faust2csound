@@ -1,0 +1,64 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#        Compiles a Faust program into a csound opcode              #
+#               (c) Grame, 2009                                     #
+#                                                                   #
+#####################################################################
+
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+for SRC in $FILES; do
+    faust $(VEC) -uim -a csound.cpp $< -o $@.cpp
+    $(CXX) -O3 $(CXXFLAGS) $(LIB) -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
+
+
+    faust  -uim -double -a csound.cpp $OPTIONS "$SRC" -o "$SRC.cpp"
+    ${CXX=g++} ${CXXFLAGS=-O3} $OMP `pkg-config --cflags --libs alsa gtk+-2.0` "$SRC.cpp" -o "${SRC%.dsp}"
+    rm "$SRC.cpp"
+    BINARIES="$BINARIES${SRC%.dsp};"
+done
+
+# return the binaries names
+echo "$BINARIES"
