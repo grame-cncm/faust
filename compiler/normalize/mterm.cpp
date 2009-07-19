@@ -355,15 +355,6 @@ static void combineDivLeft(Tree& R, Tree A)
 	else if (A)		R = sigDiv(tree(1.0f),A);
 }
 
-/**
- * Combine R and A doing R = R*A or R = A
- */
-static void combineMulRight(Tree& R, Tree A)
-{
-	if (R && A) 	R = sigMul(A,R);
-	else if (A)		R = A;
-}
-
 /**	
  * Do M = M * f**q or D = D * f**-q
  */
