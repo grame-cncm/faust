@@ -565,8 +565,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		return exp;
 
 	} else {
-		cout << "ERROR : EVAL don't intercept : " << *exp << endl;
-		exit(1);
+		cerr << "ERROR : EVAL don't intercept : " << *exp << endl;
+		assert(false);
 	}
 }
 
@@ -951,6 +951,26 @@ static Tree iterateProd (Tree id, int num, Tree body, Tree visited, Tree localVa
  * @param outputs sum of outputs of the boxes
  * @return true if outputs is valid, false otherwise
  */
+ #if 1
+static bool boxlistOutputs(Tree boxlist, int* outputs)
+{
+    int ins, outs;
+
+    *outputs = 0;
+    while (!isNil(boxlist))
+    {
+    	if (getBoxType(hd(boxlist), &ins, &outs)) {
+            *outputs += outs;
+      	} else {
+      		// arbitrary output arity set to 1
+      		// when can't be determined
+      		*outputs += 1;
+      	}
+        boxlist = tl(boxlist);
+    }
+    return isNil(boxlist);
+}
+#else
 static bool boxlistOutputs(Tree boxlist, int* outputs)
 {
     int ins, outs;
@@ -962,6 +982,18 @@ static bool boxlistOutputs(Tree boxlist, int* outputs)
     }
     return isNil(boxlist);
 }
+#endif
+
+/**
+ * repeat n times a wire
+ */
+static Tree nwires(int n)
+{
+	Tree l = nil;
+	while (n--) { l = cons(boxWire(), l); }
+	return l;
+}
+
 
 /**
  * Apply a function to a list of arguments. 
@@ -1022,41 +1054,44 @@ static Tree applyList (Tree fun, Tree larg)
 				//return eval(body, nil, localValEnv);
 				return applyList(eval(body, nil, localValEnv), tl(larg));
 			} else {
-				cout << "wrong result from pattern matching (not a closure) : " << boxpp(result) << endl;
+				cerr << "wrong result from pattern matching (not a closure) : " << boxpp(result) << endl;
 				return boxError();
 			}
 		}			
 	}
 	if (!isClosure(fun, abstr, globalDefEnv, visited, localValEnv)) {
-//         int ins, outs;
-//         if (getBoxType(fun, &ins, &outs)) {
-//             cout << "application of non-closure " << ins << "->" << outs << endl;
-//         } else {
-//             cout << "application of untyped expression : " << boxpp(fun) << endl;
-//         }
-// 
-//         // check arity of arg list
-//         if (boxlistOutputs(larg,&outs)) {
-//             cout << "argument list of arity : " << outs << endl;            
-//         } else {
-//             cout << "unknow arity for argument list" << endl;
-//         }
-
-		if (isNil(tl(larg)) && isBoxPrim2(fun, &p2) && (p2 != sigPrefix)) {
-			return boxSeq(boxPar(boxWire(), hd(larg)), fun);
+		// principle : f(a,b,c,...) ==> (a,b,c,...):f
+         int ins, outs;
+         
+         // check arity of function
+         if (!getBoxType(fun, &ins, &outs)) {
+         	// we can't determine the input arity of the expression
+         	// hope for the best
+         	return boxSeq(larg2par(larg), fun);
+         }
+ 
+         // check arity of arg list
+         if (!boxlistOutputs(larg,&outs)) {
+         	// we don't know yet the output arity of larg. Therefore we can't
+         	// do any arity checking nor add _ to reach the required number of arguments
+            // cerr << "warning : can't infere the type of : " << boxpp(larg) << endl;
+         	return boxSeq(larg2par(larg), fun);
+         }
+		
+		if (outs > ins) {
+			cerr << "too much arguments : " << outs << ", instead of : " << ins << endl;
+            cerr << "when applying : " << boxpp(fun) << endl
+                 << "           to : " << boxpp(larg) << endl;
+			assert(false);
+		}
+		
+		if ( (outs == 1) && isBoxPrim2(fun, &p2) && (p2 != sigPrefix)) {
+			// special case : /(3) ==> _,3 : /
+			Tree larg2 = concat(nwires(ins-outs), larg);
+			return boxSeq(larg2par(larg2), fun);
 		} else {
-            
-            if (isNil(tl(larg)) && isBoxPrim2(fun, &p2) && (p2 == sigPrefix)) {
-                return boxSeq(boxPar(hd(larg),boxWire()), fun);
-            }
-            xtended* xt = (xtended*) getUserData(fun);
-            if (xt && isNil(tl(larg)) && (xt->arity() == 2)) {
-                return boxSeq(boxPar(boxWire(), hd(larg)), fun);
-            }
-            // TODO complete with _
-            // cout << "application de : " << boxpp(fun) << endl
-            //      << "           sur : " << boxpp(larg) << endl;
-		    return boxSeq(larg2par(larg), fun);
+			Tree larg2 = concat(larg, nwires(ins-outs));
+            return boxSeq(larg2par(larg2), fun);
         }
 	}
 
