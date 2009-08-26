@@ -30,15 +30,19 @@
 // Declaration of implementation
 static Tree calcDeBruijn2Sym (Tree t);
 static Tree substitute(Tree t, int n, Tree id);
+static Tree calcsubstitute(Tree t, int level, Tree id);
 static Tree liftn(Tree t, int threshold);
+static Tree calcliftn(Tree t, int threshold);
 
 // recursive trees
 
 Sym 	DEBRUIJN 	= symbol ("DEBRUIJN");
 Sym 	DEBRUIJNREF = symbol ("DEBRUIJNREF");
+Sym 	SUBSTITUTE  = symbol ("SUBSTITUTE");
 
 Sym 	SYMREC 		= symbol ("SYMREC");
 Sym 	SYMRECREF 	= symbol ("SYMRECREF");
+Sym 	SYMLIFTN 	= symbol ("LIFTN");
 
 //Tree	NOVAR		= tree("NOVAR");
 
@@ -161,7 +165,21 @@ static Tree liftn(Tree t, int threshold)
 }
 #endif
 
+
 static Tree liftn(Tree t, int threshold)
+{
+	Tree L 	= tree( Node(SYMLIFTN), tree(Node(threshold)) );
+	Tree t2 = t->getProperty(L);
+
+	if (!t2) {
+		t2 = calcliftn(t, threshold);
+		t->setProperty(L, t2);
+	}
+	return t2;
+	
+}
+
+static Tree calcliftn(Tree t, int threshold)
 {
 	int		n;
 	Tree	u;
@@ -251,6 +269,19 @@ static Tree calcDeBruijn2Sym (Tree t)
 }
 
 static Tree substitute(Tree t, int level, Tree id)
+{
+	Tree S 	= tree( Node(SUBSTITUTE), tree(Node(level)), id );
+	Tree t2 = t->getProperty(S);
+
+	if (!t2) {
+		t2 = calcsubstitute(t, level, id);
+		t->setProperty(S, t2);
+	}
+	return t2;
+	
+}
+
+static Tree calcsubstitute(Tree t, int level, Tree id)
 {
 	int 	l;
 	Tree	body;
