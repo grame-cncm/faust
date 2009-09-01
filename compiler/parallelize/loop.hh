@@ -60,7 +60,8 @@ struct Loop
     // fields concerned by absorbsion
     set<Tree>           fRecDependencies;   ///< Loops having recursive dependencies must be merged
     set<Loop*>          fLoopDependencies;  ///< Loops that must be computed before this one
-    list<string>        fExecCode;          ///< code to execute at the begin of the loop
+    list<string>        fPreCode;           ///< code to execute at the begin of the loop
+    list<string>        fExecCode;          ///< code to execute in the loop
     list<string>        fPostCode;          ///< code to execute at the end of the loop
     // for topological sort
     int                 fOrder;             ///< used during topological sort
@@ -74,9 +75,11 @@ public:
     void addRecDependency(Tree t);          ///< Check for a recursive dependecy and add it if needed
     bool findRecDefinition(Tree t);         ///< indicates a dependency with an enclosing loop 
 
+    void addPreCode (const string& str);   ///< add a line of C++ code pre code
     void addExecCode (const string& str);   ///< add a line of C++ code
     void addPostCode (const string& str);   ///< add a line of C++ post code 
     void println (int n, ostream& fout);    ///< print the loop
+    void printoneln (int n, ostream& fout);    ///< print the loop in scalar mode
 
     void absorb(Loop* l);                   ///< absorb a loop inside this one
 };

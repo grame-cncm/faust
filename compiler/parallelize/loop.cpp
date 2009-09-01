@@ -97,9 +97,17 @@ bool Loop::findRecDefinition(Tree t)
     return l != 0;
 }
 
+/**
+ * Add a line of pre code  (begin of the loop)
+ */
+void Loop::addPreCode (const string& str)    
+{ 
+   // cerr << this << "->addExecCode " << str << endl;
+    fPreCode.push_back(str); 
+}
 
 /**
- * Add a line of exec code  (begin of the loop)
+ * Add a line of exec code 
  */
 void Loop::addExecCode (const string& str)    
 { 
@@ -136,6 +144,7 @@ void Loop::absorb (Loop* l)
     fLoopDependencies.insert(l->fLoopDependencies.begin(), l->fLoopDependencies.end());  
 
     // add the line of code of the absorbed loop
+    fPreCode.insert(fPreCode.end(), l->fPreCode.begin(), l->fPreCode.end());
     fExecCode.insert(fExecCode.end(), l->fExecCode.begin(), l->fExecCode.end());
     fPostCode.insert(fPostCode.begin(), l->fPostCode.begin(), l->fPostCode.end());
 }
@@ -148,13 +157,47 @@ void Loop::absorb (Loop* l)
  */
 void Loop::println(int n, ostream& fout)
 {
-    if (fExecCode.size()+fPostCode.size() > 0) {
+    if (fPreCode.size()+fExecCode.size()+fPostCode.size() > 0) {
+/*        if (gVectorSwitch) {
+            tab(n,fout); 
+            fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
+        }*/
+        
+        if (fPreCode.size()>0) {
+            tab(n,fout); fout << "// pre processing";
+            printlines(n, fPreCode, fout);
+        }
+            
+        tab(n,fout); fout << "// exec code";
+        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        printlines(n+1, fExecCode, fout);
+        tab(n,fout); fout << "}";
+        
+        if (fPostCode.size()>0) {
+            tab(n,fout); fout << "// post processing";
+            printlines(n, fPostCode, fout);
+        }
+    }
+}
+
+/**
+ * Print a single loop (unless it is empty)
+ * @param n number of tabs of indentation  
+ * @param fout output stream  
+ */
+void Loop::printoneln(int n, ostream& fout)
+{
+    if (fPreCode.size()+fExecCode.size()+fPostCode.size() > 0) {
 /*        if (gVectorSwitch) {
             tab(n,fout); 
             fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
         }*/
             
         tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        if (fPreCode.size()>0) {
+            tab(n+1,fout); fout << "// pre processing";
+            printlines(n+1, fPreCode, fout);
+        }
         printlines(n+1, fExecCode, fout);
         if (fPostCode.size()>0) {
             tab(n+1,fout); fout << "// post processing";
@@ -163,3 +206,4 @@ void Loop::println(int n, ostream& fout)
         tab(n,fout); fout << "}";
     }
 }
+

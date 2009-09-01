@@ -18,7 +18,7 @@ static int pow2limit(int x)
  * @param l the loop where the code will be placed.
  * @param tname the name of the C++ type (float or int)
  * @param dlname the name of the delay line (vector) to be used.
- * @param delay the maximun delay
+ * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression 
  */
 void  vectorLoop (Klass* k, const string& tname, const string& vecname, const string& cexp) 
@@ -38,7 +38,7 @@ void  vectorLoop (Klass* k, const string& tname, const string& vecname, const st
  * @param l the loop where the code will be placed.
  * @param tname the name of the C++ type (float or int)
  * @param dlname the name of the delay line (vector) to be used.
- * @param delay the maximun delay
+ * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression 
  */
 void  dlineLoop (Klass* k, const string& tname, const string& dlname, int delay, const string& cexp) 
@@ -70,15 +70,14 @@ void  dlineLoop (Klass* k, const string& tname, const string& dlname, int delay,
         k->addFirstPrivateDecl(dlname);
         k->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
 
-
         // -- copy the stored samples to the delay line
-        k->addZone4(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
+        k->addPreCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
                     
         // -- compute the new samples
         k->addExecCode(subst("$0[i] = $1;", dlname, cexp));
             
         // -- copy back to stored samples
-        k->addZone5(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        k->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
 
     } else {
 
@@ -90,22 +89,26 @@ void  dlineLoop (Klass* k, const string& tname, const string& dlname, int delay,
         string  mask    = T(delay-1);
 
         // create names for temporary and permanent storage  
-        string  idx = subst("$0_idx", dlname);          
+        string  idx = subst("$0_idx", dlname);
+        string  idx_save = subst("$0_idx_save", dlname);
             
         // allocate permanent storage for delayed samples
         k->addDeclCode(subst("$0 \t$1[$2];", tname, dlname, dsize));
         k->addDeclCode(subst("int \t$0;", idx));
+        k->addDeclCode(subst("int \t$0;", idx_save));
             
         // init permanent memory
         k->addInitCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", dlname, dsize)); 
-        k->addInitCode(subst("$0 = 0;", idx)); 
+        k->addInitCode(subst("$0 = 0;", idx));
+        k->addInitCode(subst("$0 = 0;", idx_save));
+
+        // -- update index
+        k->addPreCode(subst("$0 = ($0+$1)&$2;", idx, idx_save, mask));
                     
         // -- compute the new samples
         k->addExecCode(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask));
-            
-        // -- update index
-        k->addZone5(subst("$0 = ($0+count)&$1;", idx, mask));
 
-
+        // -- save index
+        k->addPostCode(subst("$0 = count;", idx_save));
     }
 }

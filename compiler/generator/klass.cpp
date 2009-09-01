@@ -227,8 +227,6 @@ void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
     tab(n,fout); fout << "}" << endl;
 }
 
-
-
 /**
  * Print the loop graph as a serie of
  * parallel loops
@@ -254,6 +252,14 @@ void Klass::printLoopGraph(int n, ostream& fout)
     }
 }
 
+/*
+ * Print the loop graph as a serie of
+ * parallel loops
+ */
+void Klass::printOneLoop(int n, ostream& fout)
+{
+    fTopLoop->printoneln(n, fout);
+}
 
 /**
  * returns true if all the loops are non recursive
@@ -275,7 +281,7 @@ void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
     if (nonRecursiveLevel(L) && L.size()==1) {
         for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
             if ((*p)->isEmpty() == false) {
-                tab(n, fout); fout << "#pragma omp for ";
+                tab(n, fout); fout << "#pragma omp single ";
                 (*p)->println(n, fout);
             }
         }
@@ -285,7 +291,9 @@ void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
         tab(n, fout); fout << "{ ";
         for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
             tab(n+1, fout); fout << "#pragma omp section ";
-            (*p)->println(n+1, fout);
+            tab(n+1, fout); fout << "{";
+            (*p)->println(n+2, fout);
+            tab(n+1, fout); fout << "} ";
         }
         tab(n, fout); fout << "} ";
 
@@ -399,9 +407,7 @@ void Klass::printComputeMethodScalar (int n, ostream& fout)
         printlines (n+2, fZone2Code, fout);
         printlines (n+2, fZone2bCode, fout);
         printlines (n+2, fZone3Code, fout);
-        printlines (n+2, fZone4Code, fout);
-        printLoopGraph (n+2,fout);
-        printlines (n+2, fZone5Code, fout);
+        printOneLoop (n+2,fout);
     tab(n+1,fout); fout << "}";
 }
 
@@ -424,18 +430,14 @@ void Klass::printComputeMethodVectorFaster (int n, ostream& fout)
             tab(n+3,fout); fout << "// compute by blocks of " << gVecSize << " samples";
             tab(n+3,fout); fout << "const int count = " << gVecSize << ";";
             printlines (n+3, fZone3Code, fout);
-            printlines (n+3, fZone4Code, fout);
             printLoopGraph (n+3,fout);
-            printlines (n+3, fZone5Code, fout);
         tab(n+2,fout); fout << "}";
 
         tab(n+2,fout); fout << "if (index < fullcount) {";
             tab(n+3,fout); fout << "// compute the remaining samples if any";
             tab(n+3,fout); fout << "int count = fullcount-index;";
             printlines (n+3, fZone3Code, fout);
-            printlines (n+3, fZone4Code, fout);
             printLoopGraph (n+3,fout);
-            printlines (n+3, fZone5Code, fout);
         tab(n+2,fout); fout << "}";
     tab(n+1,fout); fout << "}";
 }
@@ -455,9 +457,7 @@ void Klass::printComputeMethodVectorSimple (int n, ostream& fout)
         tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
             tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
             printlines (n+3, fZone3Code, fout);
-            printlines (n+3, fZone4Code, fout);
             printLoopGraph (n+3,fout);
-            printlines (n+3, fZone5Code, fout);
         tab(n+2,fout); fout << "}";
     tab(n+1,fout); fout << "}";
 }
@@ -476,17 +476,13 @@ void Klass::printComputeMethodVectorFix0 (int n, ostream& fout)
                 tab(n+4,fout); fout << "// compute by blocks of " << gVecSize << " samples";
                 tab(n+4,fout); fout << "const int count = " << gVecSize << ";"; // temporaire
                 printlines (n+4, fZone3Code, fout);
-                printlines (n+4, fZone4Code, fout);
                 printLoopGraph (n+4,fout);
-                printlines (n+4, fZone5Code, fout);
             tab(n+3,fout); fout << "} else if (fullcount > index) {";
                 //tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
                 tab(n+4,fout); fout << "// compute the remaining samples";
                 tab(n+4,fout); fout << "int count = fullcount-index;" ;
                 printlines (n+4, fZone3Code, fout);
-                printlines (n+4, fZone4Code, fout);
                 printLoopGraph (n+4,fout);
-                printlines (n+4, fZone5Code, fout);
             tab(n+3,fout); fout << "}";
         tab(n+2,fout); fout << "}";
     tab(n+1,fout); fout << "}";
@@ -507,9 +503,7 @@ void Klass::printComputeMethodVectorFix1 (int n, ostream& fout)
             tab(n+3,fout); fout << "const int index = block*" << gVecSize << ";";
             tab(n+3,fout); fout << "const int count = " << gVecSize << ";"; // temporaire
             printlines (n+3, fZone3Code, fout);
-            printlines (n+3, fZone4Code, fout);
             printLoopGraph (n+3,fout);
-            printlines (n+3, fZone5Code, fout);
         tab(n+2,fout); fout << "}";
 
         tab(n+2,fout); fout << "if (fullcount%" << gVecSize << " != 0) {";
@@ -518,9 +512,7 @@ void Klass::printComputeMethodVectorFix1 (int n, ostream& fout)
             tab(n+3,fout); fout << "const int index = block*" << gVecSize << ";";
             tab(n+3,fout); fout << "int count = fullcount%" << gVecSize << ";" ;
             printlines (n+3, fZone3Code, fout);
-            printlines (n+3, fZone4Code, fout);
             printLoopGraph (n+3,fout);
-            printlines (n+3, fZone5Code, fout);
         tab(n+2,fout); fout << "}";
     tab(n+1,fout); fout << "}";
 }*/
@@ -547,23 +539,8 @@ void Klass::printComputeMethodOpenMP (int n, ostream& fout)
             tab(n+4,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
 
             printlines (n+4, fZone3Code, fout);
-
-            if (!fZone4Code.empty()) {
-                tab(n+4,fout); fout << "#pragma omp single";
-                tab(n+4,fout); fout << "{";
-                    printlines (n+5, fZone4Code, fout);
-                tab(n+4,fout); fout << "}";
-            }
-
+            
             printLoopGraph (n+4,fout);
-
-
-            if (!fZone5Code.empty()) {
-                tab(n+4,fout); fout << "#pragma omp single";
-                tab(n+4,fout); fout << "{";
-                    printlines (n+5, fZone5Code, fout);
-                tab(n+4,fout); fout << "}";
-            }
 
             tab(n+3,fout); fout << "}";
 
@@ -605,9 +582,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
             printlines (n+2, fZone2Code, fout);
             printlines (n+2, fZone2bCode, fout);
             printlines (n+2, fZone3Code, fout);
-            printlines (n+2, fZone4Code, fout);
             printLoopGraph (n+2,fout);
-            printlines (n+2, fZone5Code, fout);
 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
@@ -647,10 +622,8 @@ void SigFloatGenKlass::println(int n, ostream& fout)
             printlines (n+2, fZone2Code, fout);
             printlines (n+2, fZone2bCode, fout);
             printlines (n+2, fZone3Code, fout);
-            printlines (n+2, fZone4Code, fout);
             printLoopGraph (n+2,fout);
-            printlines (n+2, fZone5Code, fout);
-		tab(n+1,fout); fout << "}";
+ 		tab(n+1,fout); fout << "}";
 
 	tab(n,fout); fout << "};\n" << endl;
 }

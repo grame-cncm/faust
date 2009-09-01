@@ -1189,8 +1189,6 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     }
 }
 
-
-
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
@@ -1236,8 +1234,6 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
     }
 }
-
-
 
 /**
  * Generate code for a unique IOTA variable increased at each sample

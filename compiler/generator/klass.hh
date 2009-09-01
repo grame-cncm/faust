@@ -91,15 +91,11 @@ class Klass //: public Target
     list<string>        fZone2Code;              ///< first private
     list<string>        fZone2bCode;             ///< single once per block
     list<string>        fZone3Code;              ///< private every sub block
-    list<string>        fZone4Code;              ///< single every sub block pre-graph
-    list<string>        fZone5Code;              ///< single every sub block post-graph
-
 
     Loop*               fTopLoop;               ///< active loops currently open
     property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
 
     bool                 vec;
-
 
  public:
 
@@ -117,8 +113,6 @@ class Klass //: public Target
 
     void    setLoopProperty(Tree sig, Loop* l);     ///< Store the loop used to compute a signal
     bool    getLoopProperty(Tree sig, Loop*& l);    ///< Returns the loop used to compute a signal
-
-
 
     Loop*   topLoop()   { return fTopLoop; }
 
@@ -155,11 +149,9 @@ class Klass //: public Target
     void addZone2 (const string& str)  { fZone2Code.push_back(str); }
     void addZone2b (const string& str)  { fZone2bCode.push_back(str); }
     void addZone3 (const string& str)  { fZone3Code.push_back(str); }
-    void addZone4 (const string& str)  { fZone4Code.push_back(str); }
-    void addZone5 (const string& str)  { fZone5Code.push_back(str); }
-
+ 
+    void addPreCode ( const string& str)   { fTopLoop->addPreCode(str); }
     void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
-
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
 	virtual void println(int n, ostream& fout);
@@ -171,6 +163,7 @@ class Klass //: public Target
     virtual void printComputeMethodOpenMP (int n, ostream& fout);
 
     virtual void printLoopGraph(int n, ostream& fout);
+    virtual void printOneLoop(int n, ostream& fout);
     virtual void printLoopLevel(int n, int lnum, const lset& L, ostream& fout);
 
     virtual void printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout);
