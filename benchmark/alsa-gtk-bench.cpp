@@ -176,6 +176,11 @@ double rdtsc2sec( unsigned long long int clk)
 	return double(clk) / double(rdtscpersec());
 }
 
+double rdtsc2sec( double clk)
+{
+	return clk / double(rdtscpersec());
+}
+
     
 /**
  * Converts RDTSC clocks into Megabytes/seconds according to the
@@ -188,6 +193,17 @@ double megapersec(int frames, int chans, unsigned long long int clk)
 }
 
     
+/**
+ * Compute the mean value of a vector of measures
+ */
+static unsigned long long int meanValue( vector<unsigned long long int>::const_iterator a, vector<unsigned long long int>::const_iterator b)
+{
+	unsigned long long int r = 0;
+	unsigned int n = 0;
+	while (a!=b) { r += *a++; n++; }
+	return (n>0) ? r/n : 0;
+}   
+
 /**
  * Print the median value (in Megabytes/second) of KMESURE
  * throughputs measurements
@@ -202,13 +218,16 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
     }
 
     sort(V.begin(), V.end());
-    unsigned long long int median = (  *(V.begin() + V.size()/2 - 1)
-                                     + *(V.begin() + V.size()/2) ) / 2;
-
-    cout << megapersec(bsize, ochans, median) << "\tMB/s"
+  
+    // Mean of 10 best values (gives relatively stable results)
+    unsigned long long int meavalx = meanValue(V.begin(), V.begin() + 10);			
+  
+    //printing
+    cout << megapersec(bsize, ichans+ochans, meavalx) << "\tMB/s"
          << '\t' << applname
          << '\t' << "(clocks/sec : " << rdtscpersec() << ")"
          << endl;
+    
 }
 
 #else
