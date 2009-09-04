@@ -227,6 +227,34 @@ void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
     tab(n,fout); fout << "}" << endl;
 }
 
+
+inline bool isElement(const set<Loop*>& S, Loop* l)
+{
+	return S.find(l)!= S.end();
+}
+
+
+/**
+ * Print a loop graph deep first
+ */
+void Klass::printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visited)
+{
+	// avoid printing already printed loops
+	if (isElement(visited, l)) return;
+	
+	// remember we have printed this loop
+	visited.insert(l);
+	
+	// print the dependencies loops (that need to be computed before this one)
+	for (lset::const_iterator p =l->fLoopDependencies.begin(); p!=l->fLoopDependencies.end(); p++) {
+        printLoopDeepFirst(n, fout, *p, visited);
+    }
+    // the print the loop itself
+    tab(n, fout); 
+    tab(n, fout); fout << "// LOOP " << l << ", ORDER " << l->fOrder << endl;
+    l->println(n+1, fout);
+}
+
 /**
  * Print the loop graph as a serie of
  * parallel loops
@@ -235,7 +263,17 @@ void Klass::printLoopGraph(int n, ostream& fout)
 {
     lgraph G;
     sortGraph(fTopLoop, G);
+    
     if (!gOpenMPSwitch) {
+    	#if 1
+    	// EXPERIMENTAL
+    	if (gVectorSwitch) {
+    		set<Loop*> visited;
+    		printLoopDeepFirst(n, fout, fTopLoop, visited);
+    		return;
+    	} 
+    	#endif
+    
         // normal mode (non openMP)
         for (int l=G.size()-1; l>=0; l--) {
             if (gVectorSwitch) { tab(n, fout); fout << "// SECTION : " << G.size() - l; }

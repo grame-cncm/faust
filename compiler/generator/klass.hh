@@ -163,6 +163,9 @@ class Klass //: public Target
     virtual void printComputeMethodOpenMP (int n, ostream& fout);
 
     virtual void printLoopGraph(int n, ostream& fout);
+    // experimental
+	virtual void printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visited);
+
     virtual void printOneLoop(int n, ostream& fout);
     virtual void printLoopLevel(int n, int lnum, const lset& L, ostream& fout);
 
