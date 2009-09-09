@@ -72,7 +72,7 @@ bool Loop::hasRecDependencies()
  */
 bool Loop::isEmpty()                  
 { 
-    return fExecCode.empty() && fPostCode.empty() && (fExtraLoops.begin()==fExtraLoops.end()); 
+    return fPreCode.empty() && fExecCode.empty() && fPostCode.empty() && (fExtraLoops.begin()==fExtraLoops.end()); 
 }
 
 
