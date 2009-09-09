@@ -69,8 +69,8 @@ public:
 	Description*		getDescription()					{ return fDescription; }
 
 protected:
-  virtual Tree 		prepare (Tree L0);
-  virtual Tree 		prepare2 (Tree L0);
+  virtual Tree 		prepare (Tree L0) = 0;
+  virtual Tree 		prepare2 (Tree L0) = 0;
 
 // gestion des includes et librairies
 	void 		addIncludeFile (const string& str) 	{ fClass->addIncludeFile(str); 	}

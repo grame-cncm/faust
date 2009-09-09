@@ -108,35 +108,6 @@ Compiler::~Compiler()
 {}
 
 
-/*****************************************************************************
-				      Prepare signal for compilation
-*****************************************************************************/
-
-Tree Compiler::prepare (Tree L0)
-{
-startTiming("Compiler::prepare");
-
-//	fprintf(stderr, "L0 = "); printSignal(L0, stderr); fputs("\n", stderr);
-	Tree L1 = simplify(L0);			// simplify by executing every computable operation
-	//fprintf(stderr, "L1 = "); printSignal(L1, stderr); fputs("\n", stderr);
-	Tree L2a = deBruijn2Sym(L1);
-	Tree L2 = simplify(L2a);			// simplify by executing every computable operation
-	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
-	updateAperture(L3);
-	typeAnnotation(L3);
-	
-endTiming("Compiler::prepare");
-
-	return L3;
-}
-
-Tree Compiler::prepare2 (Tree L0)
-{
-	Tree L3 = L0;
-	return L3;
-}
-
-
 
 /*****************************************************************************
 							user interface elements
