@@ -50,10 +50,12 @@
 
 
 extern bool gVectorSwitch;
+extern bool gDeepFirstSwitch;
 extern bool gOpenMPSwitch;
 extern int  gVecSize;
 extern bool gUIMacroSwitch;
 extern int  gVectorLoopVariant;
+extern bool	gGroupTaskSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 
@@ -255,19 +257,62 @@ void Klass::printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visite
     l->println(n+1, fout);
 }
 
+
+/**
+ * Compute how many time each loop is used in a DAG
+ */
+static void computeUseCount(Loop* l)
+{
+	l->fUseCount++;
+	if (l->fUseCount == 1) {
+		for (lset::iterator p =l->fLoopDependencies.begin(); p!=l->fLoopDependencies.end(); p++) {
+		    computeUseCount(*p);
+		}
+	}
+}
+
+
+/**
+ * Group together sequences of loops
+ */
+static void groupSeqLoops(Loop* l)
+{
+	int n = l->fLoopDependencies.size();
+	if (n==0) {
+		return;
+	} else if (n==1) {
+		Loop* f = *(l->fLoopDependencies.begin());
+		if (f->fUseCount ==  1) {
+			l->concat(f);
+			groupSeqLoops(l);
+		} else {
+			groupSeqLoops(f);
+		}
+		return;
+	} else if (n > 1) {
+		for (lset::iterator p =l->fLoopDependencies.begin(); p!=l->fLoopDependencies.end(); p++) {
+			groupSeqLoops(*p);
+		}
+	}
+}
+
+
+
 /**
  * Print the loop graph as a serie of
  * parallel loops
  */
 void Klass::printLoopGraph(int n, ostream& fout)
 {
+	computeUseCount(fTopLoop);
+	if (gGroupTaskSwitch) groupSeqLoops(fTopLoop);
     lgraph G;
     sortGraph(fTopLoop, G);
     
     if (!gOpenMPSwitch) {
     	#if 1
     	// EXPERIMENTAL
-    	if (gVectorSwitch) {
+    	if (gVectorSwitch && gDeepFirstSwitch) {
     		set<Loop*> visited;
     		printLoopDeepFirst(n, fout, fTopLoop, visited);
     		return;
@@ -320,7 +365,9 @@ void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
         for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
             if ((*p)->isEmpty() == false) {
                 tab(n, fout); fout << "#pragma omp single ";
-                (*p)->println(n, fout);
+ 				tab(n, fout); fout << "{ ";
+                (*p)->println(n+1, fout);
+ 				tab(n, fout); fout << "} ";
             }
         }
 
@@ -342,7 +389,7 @@ void Klass::printLoopLevel(int n, int lnum, const lset& L, ostream& fout)
                 (*p)->println(n+1, fout);
             }
         tab(n, fout); fout << "} ";
-    }
+    } 
 }
 
 
