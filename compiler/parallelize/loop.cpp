@@ -49,7 +49,8 @@ Loop::Loop( Tree recsymbol, Loop* encl, const string& size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1)
+        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), 
+          fOrder(-1), fUseCount(0)
 {}
 
 
@@ -71,7 +72,7 @@ bool Loop::hasRecDependencies()
  */
 bool Loop::isEmpty()                  
 { 
-    return fExecCode.empty() && fPostCode.empty(); 
+    return fExecCode.empty() && fPostCode.empty() && (fExtraLoops.begin()==fExtraLoops.end()); 
 }
 
 
@@ -157,12 +158,17 @@ void Loop::absorb (Loop* l)
  */
 void Loop::println(int n, ostream& fout)
 {
+    for (list<Loop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
+    	(*s)->println(n, fout);
+    }
+
     if (fPreCode.size()+fExecCode.size()+fPostCode.size() > 0) {
 /*        if (gVectorSwitch) {
             tab(n,fout); 
             fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
         }*/
         
+        tab(n,fout); fout << "// LOOP " << this ;
         if (fPreCode.size()>0) {
             tab(n,fout); fout << "// pre processing";
             printlines(n, fPreCode, fout);
@@ -177,6 +183,7 @@ void Loop::println(int n, ostream& fout)
             tab(n,fout); fout << "// post processing";
             printlines(n, fPostCode, fout);
         }
+        tab(n,fout);
     }
 }
 
@@ -207,3 +214,13 @@ void Loop::printoneln(int n, ostream& fout)
     }
 }
 
+//-------------------------------------------------------
+void Loop::concat(Loop* l)
+{
+	assert(l->fUseCount==1);
+	assert(fLoopDependencies.size()==1);
+	assert((*fLoopDependencies.begin()) == l);
+	
+	fExtraLoops.push_front(l);
+	fLoopDependencies = l->fLoopDependencies;	
+}

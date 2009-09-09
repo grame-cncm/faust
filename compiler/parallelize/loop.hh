@@ -65,6 +65,9 @@ struct Loop
     list<string>        fPostCode;          ///< code to execute at the end of the loop
     // for topological sort
     int                 fOrder;             ///< used during topological sort
+    // new fields
+    int					fUseCount;			///< how many loops depend on this one
+    list<Loop*>			fExtraLoops;		///< extra loops that where in sequences				
 
 public:
     Loop(Tree recsymbol, Loop* encl, const string& size);   ///< create a recursive loop
@@ -82,6 +85,8 @@ public:
     void printoneln (int n, ostream& fout);    ///< print the loop in scalar mode
 
     void absorb(Loop* l);                   ///< absorb a loop inside this one
+    // new method
+    void concat(Loop* l);
 };
 
 #endif
