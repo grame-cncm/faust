@@ -39,7 +39,7 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param size the number of iterations of the loop
  */
 Loop::Loop( Tree recsymbol, Loop* encl, const string& size) 
-        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1) 
+        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fUseCount(0) 
 {}
 
 
