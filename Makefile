@@ -1,4 +1,4 @@
-version := 0.9.9.6b3
+version := 0.9.9.6b9
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -86,7 +86,6 @@ archive :
 	cp -r documentation $(vname)
 	cp -r syntax-highlighting $(vname)
 	cp -r tools $(vname)
-	cp -r windows $(vname)
 	find $(vname) -name "*~" | xargs rm -rf
 	tar czfv $(vname).tar.gz $(vname)
 	rm -rf $(vname)
