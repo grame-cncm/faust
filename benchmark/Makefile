@@ -1,11 +1,11 @@
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
 MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
 
-VSIZE := 3968
+VSIZE := 2048
 
 all : icc gcc
-icc : ialsascal ialsavec ialsaomp
-gcc : galsascal galsavec galsaomp
+icc : ialsascal ialsavec ialsavec1 ialsavec2 ialsavec3 ialsaomp ialsaomp2
+gcc : galsascal galsavec galsavec1 galsavec2 galsavec3 galsaomp galsaomp2
 
 
 ### intel-compiler single-precision x {scalar, vector and openMP}
@@ -18,9 +18,25 @@ ialsavec :
 	install -d ialsavecdir
 	$(MAKE) DEST='ialsavecdir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
+ialsavec1 :
+	install -d ialsavec1dir
+	$(MAKE) DEST='ialsavec1dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ialsavec2 :
+	install -d ialsavec2dir
+	$(MAKE) DEST='ialsavec2dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -dfs -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ialsavec3 :
+	install -d ialsavec3dir
+	$(MAKE) DEST='ialsavec3dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
 ialsaomp :
 	install -d ialsaompdir
 	$(MAKE) DEST='ialsaompdir/' ARCH='alsa-gtk-bench.cpp' VEC='-omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
+
+ialsaomp2 :
+	install -d ialsaomp2dir
+	$(MAKE) DEST='ialsaomp2dir/' ARCH='alsa-gtk-bench.cpp' VEC='-omp -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
 
 
 
@@ -34,9 +50,25 @@ galsavec :
 	install -d galsavecdir
 	$(MAKE) DEST='galsavecdir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
+galsavec1 :
+	install -d galsavec1dir
+	$(MAKE) DEST='galsavec1dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+galsavec2 :
+	install -d galsavec2dir
+	$(MAKE) DEST='galsavec2dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -dfs -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+galsavec3 :
+	install -d galsavec3dir
+	$(MAKE) DEST='galsavec3dir/' ARCH='alsa-gtk-bench.cpp' VEC='-vec -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
 galsaomp :
 	install -d galsaompdir
 	$(MAKE) DEST='galsaompdir/' ARCH='alsa-gtk-bench.cpp' VEC='-omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
+
+galsaomp2 :
+	install -d galsaomp2dir
+	$(MAKE) DEST='galsaomp2dir/' ARCH='alsa-gtk-bench.cpp' VEC='-omp -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
 
 
 
