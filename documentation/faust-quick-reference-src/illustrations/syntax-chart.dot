@@ -1,34 +1,34 @@
  
 strict digraph faustflow {
     root=syntax;
+    ordering=out;
     
+    simple[label="3.1 Simple"];
+    fundef[label="3.2 Function"];
+    patdef[label="3.3 Pattern"];
     
-    simple[label="Simple"];
-    fundef[label="Variable"];
-    patdef[label="Pattern"];
+    diag[label="4.1 Diag."];
+    math[label="4.2.1 Math"];
+    bit[label="4.2.2 Bitwise"];
+    cmp[label="4.2.3 Compare"];
     
-    diag[label="Diag."];
-    math[label="Math"];
-    bit[label="Bitwise"];
-    cmp[label="Compare"];
-    
-    time[label="Time"];
-    env[label="Lexical"];
-    foreign[label="Foreign"];
-    prog[label="Lambda"];
+    time[label="4.3 Time"];
+    env[label="4.4 Lexical"];
+    foreign[label="4.5 Foreign"];
+    prog[label="4.6 Lambda"];
 
 
 
     node[shape=box, color=blue, fillcolor=lightblue, style=filled];
-    syntax[label="Syntax"];
-    program[label="Statements"];
-    definition[label="Definitions"];
-    expr[label="Expressions"];
-    prim[label="Primitives"];
-    infix[label="Numerical"];
+    syntax[label="1 Program"];
+    statement[label="2 Statements"];
+    definition[label="3 Definitions"];
+    expr[label="4 Expressions"];
+    prim[label="5 Primitives"];
+    infix[label="4.2 Numericals"];
   
 
-    syntax->program;
+    syntax->statement;
     syntax->definition;
     syntax->expr;
     syntax->prim;
@@ -39,13 +39,14 @@ strict digraph faustflow {
 
     expr->diag;		{rank=same; expr simple}
     expr->infix;
-    expr->time;
-    expr->env;
-    expr->foreign;
-    expr->prog;
     
     infix->math;
     infix->bit;
     infix->cmp;
+
+    expr->time;
+    expr->env;
+    expr->foreign;
+    expr->prog;
     
 }
