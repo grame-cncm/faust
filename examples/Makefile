@@ -190,6 +190,37 @@ jackconsole :
 	install -d jackconsoledir
 	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
 
+help:
+	@echo "make alsagtk       : compile examples as ALSA applications with a GTK Graphical User Interface"
+	@echo "make alsaqt        : compile examples as ALSA applications with a QT4 Graphical User Interface"
+	@echo "make sndfile       : compile examples as sound file processors with a Command line User Interface"
+	@echo "make jackconsole   : compile examples as JACK applications with a Command line User Interface"
+	@echo "make jackgtk       : compile examples as JACK applications with a GTK Graphical User Interface"
+	@echo "make jackqt        : compile examples as JACK applications with a QT4 Graphical User Interface"
+	@echo "make jackwx        : compile examples as JACK applications with a wxWindows Graphical User Interface"
+	@echo "make ossgtk        : compile examples as OSS applications with a GTK Graphical User Interface"
+	@echo "make osswx         : compile examples as OSS applications with a wxWindows Graphical User Interface"
+	@echo "make pagtk         : compile examples as PortAudio applications with a GTK Graphical User Interface"
+	@echo "make paqt          : compile examples as PortAudio applications with a QT4 Graphical User Interface"
+	@echo "make pawx          : compile examples as PortAudio applications with a wxWindows Graphical User Interface"
+	@echo "make caqt          : compile examples as CoreAudio applications with a QT4 Graphical User Interface"
+	@echo "--------------------------------------------"
+	@echo "make ladspa        : compile examples as LADSPA plugins"
+	@echo "make csound        : compile examples as CSOUND opcodes"
+	@echo "make csounddouble  : compile examples as double precision CSOUND opcodes"
+	@echo "make maxmsp        : compile examples as Max/MSP externals"
+	@echo "make vst           : compile examples as native VST plugins"
+	@echo "make w32vst        : crosscompile examples as windows VST plugins"
+	@echo "make supercollider : compile examples as Supercollider plugins"
+	@echo "make puredata      : compile examples as Puredata externals"
+	@echo "make q             : compile examples as Q plugins"
+	@echo "--------------------------------------------"
+	@echo "make svg 		  : generate the examples block-diagrams in SVG format "
+	@echo "make bench 		  : compile examples as command line benchmarks "
+	@echo "make plot 		  : compile examples as command line programs that prints samples on the standard output "
+	@echo "make plot 		  : compile examples as command line programs that plot samples with matlab "
+	@echo "--------------------------------------------"
+	@echo "make clean : remove all object files"
 
 clean :
 	rm -rf *dir
