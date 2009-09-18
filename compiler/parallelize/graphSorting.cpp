@@ -47,4 +47,14 @@ void sortGraph(Loop* root, lgraph& V)
         setLevel(level, T1, T2, V); 
         T1=T2; T2.clear(); level++;
     } while (T1.size()>0);
+    
+    // Erase empty levels
+    lgraph::iterator p = V.begin();
+    while (p != V.end()) {
+        if ((*p).size() == 1 && (*(*p).begin())->isEmpty()) {
+            p = V.erase(p);
+        } else {
+            p++; 
+        }
+    }
 }
