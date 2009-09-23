@@ -1,4 +1,4 @@
-\documentclass{book}
+\documentclass[a4paper]{book}
 
 \usepackage{latexsym, amssymb}
 \usepackage{graphicx}
@@ -67,17 +67,19 @@
 
 This document is a quick-reference to the FAUST programming language (version 0.9.9.6). The name FAUST stands for \textit{Functional Audio Stream} and denotes a functional programming language for real-time signal processing and synthesis.  FAUST targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards. 
 
-Its main characteristics are :
+\section{Design Principles}
+
+Various principles have guided the design of Faust :
 
 \begin{itemize}
 
-\item Faust is a \textit{specification language} free, as much as possible, from implementation details. It aims at providing an adequate notation to describe signal processors from a mathematical point of view.
+\item Faust is a \textit{specification language}. It aims at providing an adequate notation to describe \textit{signal processors} from a mathematical point of view. It is, as much as possible, free from implementation details. 
 
-\item Faust programs are fully compiled, not interpreted. The FAUST compiler takes in charge the implementation. It translates FAUST programs into equivalent C++ programs taking care of generating the most efficient code. The result can generally compete with, and sometimes even outperform, C++ code written by seasoned programmers. 
+\item Faust programs are fully compiled, not interpreted. The compiler translates FAUST programs into equivalent C++ programs taking care of generating the most efficient code. The result can generally compete with, and sometimes even outperform, C++ code written by seasoned programmers. 
 
 \item The generated code works at the sample level. It is therefore suited to implement low-level DSP functions like recursive filters. Moreover the code can be easily embedded. It is self-contained and doesn't depend of any DSP library or runtime system. It has a very deterministic behavior and a constant memory footprint. 
 
-\item The semantic of FAUST is very simple and well defined. This is not just of academic interest. It allows the FAUST compiler to be \emph{semantically driven}. Instead of compiling a program literally, it compiles the mathematical function it denotes. This feature is useful for example to promote components reuse while preserving optimal performance.  
+\item The semantic of FAUST is simple and well defined. This is not just of academic interest. It allows the FAUST compiler to be \emph{semantically driven}. Instead of compiling a program literally, it compiles the mathematical function it denotes. This feature is useful for example to promote components reuse while preserving optimal performance.  
 
 \item FAUST is a textual language but nevertheless block-diagram oriented. It actually combines two approaches: \textit{functional programming} and \textit{algebraic block-diagrams}. The key idea is to view block-diagram construction as function composition. For that purpose, FAUST relies on a \emph{block-diagram algebra} of five composition operations (\lstinline': , ~ <: :>').
 
@@ -85,16 +87,16 @@ Its main characteristics are :
 
 \end{itemize}
 
-%% semantique
-As already said, a FAUST program describes a \emph{signal processor}. The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
+\section{Semantic}
+A FAUST program describes a \emph{signal processor}. The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
 
 More precisely :
 
 \begin{itemize}
 
-\item A \emph{signal} $s$ is a discrete function of time
-$s:\mathbb{N}\rightarrow\mathbb{R}$. The value of signal $s$ at time $t$
-is written $s(t)$. We denote by $\mathbb{S}=\mathbb{N}\rightarrow\mathbb{R}$ the set of all possible  signals.
+\item A \emph{signal} $s$ is a discrete function of time $s:\mathbb{N}\rightarrow\mathbb{R}$. 
+The value of signal $s$ at time $t$ is written $s(t)$. 
+The set $\mathbb{S}=\mathbb{N}\rightarrow\mathbb{R}$ is the set of all possible  signals.
 
 \item A group of $n$ signals (a \emph{n}-tuple of signals) is written
 $(s_{1},\ldots,s_{n})\in \mathbb{S}^{n}$.
@@ -102,7 +104,7 @@ The \emph{empty tuple}, single element of $\mathbb{S}^{0}$ is notated  $()$.
 
 \item A \emph{signal processors} $p$, is a function from
 \emph{n}-tuples of signals to \emph{m}-tuples of signals
-$p:\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}$. We notate $\mathbb{P}=\bigcup_{n,m}\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}$ the
+$p:\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}$. The set $\mathbb{P}=\bigcup_{n,m}\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}$ is the
 set of all possible signal processors.
 
 \end{itemize}
@@ -134,7 +136,7 @@ The resulting  \lstinline'faust-0.9.9.6/' folder should contain the following el
 \end{tabular}
 
 \section{Compilation}
-Faust has no dependencies outside standard libraries. Therefore there is no configuration phase. To compile the Faust compiler simply do :
+Faust has no dependencies outside standard libraries. Therefore the compilation should be straightforward. There is no configuration phase, to compile the Faust compiler simply do :
 \begin{lstlisting}
 	cd faust-0.9.9.6/
 	make
@@ -174,7 +176,7 @@ depending on your system.
 
 
 \section{Compilation of the examples}
-Once Faust correctly installed you can have a look at the examples are provided in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\footnote{an architecture file provides the code to connect a signal processor to the outside world (audio communications and user interface)}, either standalone audio applications or plugins.
+Once Faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\footnote{an architecture file provides the code to connect a signal processor to the outside world (audio communications and user interface)}, either standalone audio applications or plugins.
 
 The command \lstinline'make help' will list the available targets. Before using a specific target, make sure you have the appropriate development tools, libraries and headers installed. For example to compile the examples as ALSA applications with a GTK user interface do a \lstinline'make alsagtk'. This will create a \lstinline'alsagtkdir/' subfolder with all the binaries. 
 
