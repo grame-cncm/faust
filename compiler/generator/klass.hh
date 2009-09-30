@@ -56,13 +56,13 @@ class Klass //: public Target
 {
 
  protected:
+    
 	string			fKlassName;
 	string			fSuperKlassName;
 	int				fNumInputs;
 	int				fNumOutputs;
     int             fNumActives;                ///< number of active controls in the UI (sliders, buttons, etc.)
     int             fNumPassives;               ///< number of passive widgets in the UI (bargraphs, etc.)
-
 
 
 	set<string>			fIncludeFileSet;
@@ -84,25 +84,25 @@ class Klass //: public Target
     list<string>        fSlowCode;
     list<string>        fEndCode;
 #endif
-    list<string>        fSharedDecl;             ///< shared declarations
-    list<string>        fFirstPrivateDecl;       ///< first private declarations
+    list<string>        fSharedDecl;            ///< shared declarations
+    list<string>        fFirstPrivateDecl;      ///< first private declarations
 
-    list<string>        fZone1Code;              ///< shared vectors
-    list<string>        fZone2Code;              ///< first private
-    list<string>        fZone2bCode;             ///< single once per block
-    list<string>        fZone3Code;              ///< private every sub block
+    list<string>        fZone1Code;             ///< shared vectors
+    list<string>        fZone2Code;             ///< first private
+    list<string>        fZone2bCode;            ///< single once per block
+    list<string>        fZone3Code;             ///< private every sub block
 
     Loop*               fTopLoop;               ///< active loops currently open
     property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
 
-    bool                 vec;
+    bool                fVec;
 
  public:
 
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
 	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
             fNumActives(0), fNumPassives(0),
-            fTopLoop(new Loop(0, "count")), vec(__vec)
+            fTopLoop(new Loop(0, "count")), fVec(__vec)
 	{}
 
 	virtual ~Klass() 						{}
@@ -155,19 +155,22 @@ class Klass //: public Target
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
 
 	virtual void println(int n, ostream& fout);
+    
     virtual void printComputeMethod (int n, ostream& fout);
     virtual void printComputeMethodScalar (int n, ostream& fout);
     virtual void printComputeMethodVectorFaster (int n, ostream& fout);
     virtual void printComputeMethodVectorSimple (int n, ostream& fout);
-
     virtual void printComputeMethodOpenMP (int n, ostream& fout);
 
-    virtual void printLoopGraph(int n, ostream& fout);
+    virtual void printLoopGraphScalar(int n, ostream& fout);
+    virtual void printLoopGraphVector(int n, ostream& fout);
+    virtual void printLoopGraphOpenMP(int n, ostream& fout);
+    virtual void printLoopGraphInternal(int n, ostream& fout);
+    
     // experimental
 	virtual void printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visited);
 
-    virtual void printOneLoop(int n, ostream& fout);
-    virtual void printLoopLevel(int n, int lnum, const lset& L, ostream& fout);
+    virtual void printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout);
 
     virtual void printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout);
 
@@ -180,6 +183,7 @@ class Klass //: public Target
 };
 
 class SigIntGenKlass : public Klass {
+    
  public:
 
 	SigIntGenKlass (const string& name) : Klass(name, "", 0, 1, false)	{}
@@ -188,6 +192,7 @@ class SigIntGenKlass : public Klass {
 };
 
 class SigFloatGenKlass : public Klass {
+    
  public:
 
 	SigFloatGenKlass (const string& name) : Klass(name, "", 0, 1, false)	{}
