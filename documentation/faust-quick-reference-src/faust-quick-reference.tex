@@ -65,7 +65,7 @@
 
 \chapter{Introduction}
 
-This document is a quick-reference to the FAUST programming language (version 0.9.9.6). The name FAUST stands for \textit{Functional Audio Stream} and denotes a functional programming language for real-time signal processing and synthesis.  FAUST targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards. 
+FAUST (\textit{Functional Audio Stream}) is a functional programming language specifically designed for real-time signal processing and synthesis.  FAUST targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards. 
 
 \section{Design Principles}
 
@@ -325,13 +325,14 @@ expression : diagram | numerical | time | lexical | foreign | lambda;
   
 \subsection{Diagram Expressions}
 
-\subsubsection{Diagram expressions} are assembled from primitive ones using either binary composition operations or high level iterative constructions.
+Diagram expressions are assembled from primitive ones using either binary composition operations or high level iterative constructions.
  
 \begin{rail}
 diagramexp : diagcomposition | diagiteration;
 \end{rail}
 
-\subsubsection{Five composition operations} are available : \textit{recursion}, \textit{parallel}, \textit{sequential}, \textit{split} and \textit{merge} composition.
+\subsubsection{Diagram composition operations} 
+Five binary composition operations are available to combine block-diagrams : \textit{recursion}, \textit{parallel}, \textit{sequential}, \textit{split} and \textit{merge} composition.
 
 \begin{rail}
 diagcomposition : expression (recur|','|':'|'<:'|':>') expression;
@@ -355,27 +356,87 @@ Among these operations, recursion (\lstinline'~') has the highest priority and s
 	\caption{Block-Diagram composition operation priorities}   
   	\label{table:composition}
 \end{table}
+ 
 
 
-Let's see these composition operations in action with two simple examples (figure \ref{fig:integrator}). 
+\paragraph{Parallel Composition}
+The \emph{parallel composition}  \lstinline$A,B$ (figure \ref{figure:par1}) is probably the simplest one. It places the two block-dia\-grams one on top of the other, without connections. The inputs of the resulting block-diagram are the inputs of \lstinline$A$ and \lstinline$B$. The outputs of the resulting block-diagram are the outputs of \lstinline$A$ and \lstinline$B$.
 
-The first example uses the recursive composition operator (\lstinline'~'). It is an integrator \lstinline'process = +~_;' that produces an output signal $Y$ such that $Y(t)=X(t)+Y(t-1)$.
-
-\begin{figure}[t]
-  \centering
-  \begin{tabular}{ccc}
-    \includegraphics[scale=1]{illustrations/integrator}&
-    \includegraphics[scale=1]{illustrations/ms}
-  \end{tabular}
-  \caption{a) integrator, b) mid/side stereo matrix}   
-  \label{fig:integrator}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.7]{images/par1}
+\caption{Example of parallel composition  \lstinline'(10,*)'}
+\label{figure:par1}
 \end{figure}
 
 
-The second example uses the parallel (\lstinline',') and split (\lstinline'<:') composition operators. It implements a Mid/Side stereophonic matrix: \lstinline'process = _,_<:+,-;' that produces two output signals $Y_0$ and $Y_1$ such that $Y_0(t)=X_0(t)+X_1(t)$ and $Y_1(t)=X_0(t)-X_1(t)$
+\paragraph{Sequential Composition}
+The \emph{sequential composition}  \lstinline$A:B$ (figure \ref{figure:seq1}) connects the outputs of  $A$ to the inputs of  $B$.  $A[0]$ is connected to $[0]B$,   $A[1]$ is connected to $[1]B$, and so on. 
+
+\begin{figure}[h]
+\centering 
+\includegraphics[scale=0.7]{images/seq1}
+\caption{Example of sequential composition  \lstinline'((*,/):+)' } 
+\label{figure:seq1}
+\end{figure}
+
+
+\paragraph{Split Composition}
+The \emph{split composition}  \lstinline$A<:B$ (figure \ref{figure:split1}) operator is used to distribute the outputs
+of $A$ to the inputs of $B$
+
+\begin{figure}[h]
+\centering 
+\includegraphics[scale=0.7]{images/split1} 
+\caption{example of split composition   \lstinline'((10,20) <: (+,*,/))'}  
+\label{figure:split1}
+\end{figure}
+
+
+\paragraph{Merge Composition}
+The \emph{merge composition}  \lstinline$A:>B$ (figure \ref{figure:merge1})is used to connect several outputs
+of  $A$ to the same inputs of $B$. 
+
+\begin{figure}[h]
+\centering 
+\includegraphics[scale=0.7]{images/merge1} 
+\caption{example of merge composition \lstinline'((10,20,30,40) :> *)'}  
+\label{figure:merge1}
+\end{figure}
  
+
+\paragraph{Recursive Composition}
+    The \emph{recursive composition} \lstinline'A~B' (figure \ref{figure:rec1})is used to create cycles in the block-diagram in order to express recursive computations.
+    
+    \begin{figure}[h]
+    \centering 
+    \includegraphics[scale=0.7]{images/rec1} 
+    \caption{example of recursive composition \lstinline'+(12345) ~ *(1103515245)'}  
+    \label{figure:rec1}
+    \end{figure}
  
-\subsubsection{Iterations} are analog to \lstinline'for(...)' loops and provide a convenient way to automate some complex block-diagram constructions. 
+
+
+%Let's see these composition operations in action with two simple examples (figure \ref{fig:integrator}). 
+
+%The first example uses the recursive composition operator (\lstinline'~'). It is an integrator \lstinline'process = +~_;' that produces an output signal $Y$ such that $Y(t)=X(t)+Y(t-1)$.
+
+%\begin{figure}[t]
+%  \centering
+%  \begin{tabular}{ccc}
+%    \includegraphics[scale=0.7]{illustrations/integrator}&
+%    \includegraphics[scale=0.7]{illustrations/ms}
+%  \end{tabular}
+%  \caption{a) integrator, b) mid/side stereo matrix}   
+%  \label{fig:integrator}
+%\end{figure}
+
+
+%The second example uses the parallel (\lstinline',') and split (\lstinline'<:') composition operators. It implements a Mid/Side stereophonic matrix: \lstinline'process = _,_<:+,-;' that produces two output signals $Y_0$ and $Y_1$ such that $Y_0(t)=X_0(t)+X_1(t)$ and $Y_1(t)=X_0(t)-X_1(t)$
+
+ 
+\subsubsection{Iterations} 
+Iterations are analog to \lstinline'for(...)' loops and provide a convenient way to automate some complex block-diagram constructions. 
  
       
 \begin{rail}
