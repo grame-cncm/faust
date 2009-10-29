@@ -339,7 +339,7 @@ void Klass::printLoopGraphInternal(int n, ostream& fout)
     for (int l=G.size()-1; l>=0; l--) {
         if (gVectorSwitch) { tab(n, fout); fout << "// SECTION : " << G.size() - l; }
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
-            (*p)->println(n, fout);
+            (*p)->printoneln(n, fout);
         }
     }
 }
