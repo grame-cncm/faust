@@ -87,7 +87,7 @@ Various principles have guided the design of Faust :
 
 \end{itemize}
 
-\section{Semantic}
+\section{Signal Processor Semantic}
 A FAUST program describes a \emph{signal processor}. The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
 
 More precisely :
@@ -109,7 +109,9 @@ set of all possible signal processors.
 
 \end{itemize}
 
-As an example, let's express the semantic of the FAUST primitive \lstinline'+' : $\mathbb{S}^{2}\rightarrow\mathbb{S}$. Like any FAUST expression, it is a signal processor. It that takes two input signals $X_0$ and $X_1$ and produce an output signal $Y$ such that $Y(t) = X_0(t)+X_1(t)$.
+As an example, let's express the semantic of the FAUST primitive \lstinline'+'. Like any FAUST expression, it is a signal processor. Its signature is $\mathbb{S}^{2}\rightarrow\mathbb{S}$. It takes two input signals $X_0$ and $X_1$ and produce an output signal $Y$ such that $Y(t) = X_0(t)+X_1(t)$. 
+
+Numbers are signal processors too. For example the number $3$ has signature  $\mathbb{S}^{0}\rightarrow\mathbb{S}$.  It takes no input signals and produce an output signal $Y$ such that $Y(t) = 3$. 
 
 \chapter{Compiling and installing Faust}
 
