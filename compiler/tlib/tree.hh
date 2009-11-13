@@ -236,14 +236,13 @@ void updateAperture (Tree t);				////< update aperture field of a tree in symbol
 class Tabber
 {
 	int fIndent;
-	int fReserve;
   public:
-	Tabber(int n=0)			{ fIndent = n; }
-	Tabber& operator++() 	{ fIndent++; return *this;}
-	Tabber& operator--() 	{ assert(fIndent > 0); fIndent--; return *this; }
+	Tabber(int n=0) : fIndent(n)	{}
+	Tabber& operator++() 			{ fIndent++; return *this;}
+	Tabber& operator--() 			{ assert(fIndent > 0); fIndent--; return *this; }
 
 	ostream& print (ostream& fout)
-						{ fIndent += fReserve; fReserve = 0; for (int i=0; i<fIndent; i++) fout << '\t'; return fout; }
+						{ for (int i=0; i<fIndent; i++) fout << '\t'; return fout; }
 };
 
 //printing
