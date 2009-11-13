@@ -74,7 +74,10 @@ class schema
  	 		fOutputs(outputs),
  	 		fWidth(width),
  	 		fHeight(height),
- 	 		fPlaced(false)
+ 	 		fPlaced(false),
+			fX(0),
+			fY(0),
+			fOrientation(0)
  	{}
   	virtual ~schema() {}
 
