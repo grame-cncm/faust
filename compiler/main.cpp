@@ -363,7 +363,7 @@ void printheader(ostream& dst)
         if (selectedKeys.count(i->first)) {
             dst << "// " << *(i->first);
             const char* sep = ": ";
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
                 dst << sep << **j;
                 sep = ", ";
             }
@@ -543,7 +543,8 @@ int main (int argc, char* argv[])
 
 	if (gPrintXMLSwitch) {
 		Description* 	D = C->getDescription(); assert(D);
-		ostream* 		xout = new ofstream(subst("$0.xml", gMasterDocument).c_str());
+		//ostream* 		xout = new ofstream(subst("$0.xml", gMasterDocument).c_str());
+		ofstream 		xout(subst("$0.xml", gMasterDocument).c_str());
 
         if(gMetaDataSet.count(tree("name"))>0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
         if(gMetaDataSet.count(tree("author"))>0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
@@ -554,7 +555,7 @@ int main (int argc, char* argv[])
 		D->inputs(C->getClass()->inputs());
 		D->outputs(C->getClass()->outputs());
 
-		D->print(0, *xout);
+		D->print(0, xout);
 	}
 
 
@@ -599,6 +600,7 @@ int main (int argc, char* argv[])
 		C->getClass()->printIncludeFile(*dst);
 		C->getClass()->println(0,*dst);
 	}
-
+	
+	delete C;
 	return 0;
 }
