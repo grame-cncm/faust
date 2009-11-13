@@ -166,7 +166,10 @@ Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 	fData = 0;
 }
 
-
+Symbol::~Symbol ()
+{
+	delete [] fName;
+}
 
 ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a stream
 {
