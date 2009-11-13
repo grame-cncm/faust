@@ -64,7 +64,7 @@ ostream& mterm::print(ostream& dst) const
 int mterm::complexity() const
 {
 	int c = isOne(fCoef) ? 0 : 1;
-	for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
+	for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); ++p) {
 		c += (1+getSigOrder(p->first))*abs(p->second);
 	}
 	return c;
