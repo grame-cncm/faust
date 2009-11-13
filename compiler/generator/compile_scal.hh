@@ -55,7 +55,9 @@ class ScalarCompiler : public Compiler
         fHasIota(false)
 	{}
 	
-	ScalarCompiler ( Klass* k) : Compiler(k)
+	ScalarCompiler ( Klass* k) : 
+		Compiler(k),
+        fHasIota(false)
 	{}
 	
 	virtual void 		compileMultiSignal  (Tree lsig);

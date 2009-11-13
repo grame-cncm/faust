@@ -51,6 +51,7 @@ class Compiler
 {
 protected:
 	Klass*			fClass;
+	bool			fNeedToDeleteClass;
 	Tree			fUIRoot;
 	Description*	fDescription;
 
@@ -58,7 +59,7 @@ public:
 	Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec);
 	Compiler (Klass* k);
 
-        virtual ~Compiler();
+	virtual ~Compiler();
 
 	virtual void		compileMultiSignal  (Tree lsig) = 0;
 	virtual void		compileSingleSignal (Tree lsig) = 0;

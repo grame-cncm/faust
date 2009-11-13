@@ -93,19 +93,23 @@ extern string 	gMasterName;
 
 Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec)
 		: fClass(new Klass(name, super, numInputs, numOutputs, vec)),
+		  fNeedToDeleteClass(true), 
 		  fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", gMasterName))))),
 		  fDescription(0)
 {}
 
 Compiler::Compiler(Klass* k)
 		: fClass(k),
+		  fNeedToDeleteClass(false), 
 		  fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", gMasterName))))),
 		  fDescription(0)
 {}
 
 
 Compiler::~Compiler()
-{}
+{ 
+	if (fNeedToDeleteClass) delete fClass;
+}
 
 
 
