@@ -14,8 +14,8 @@
  */
 static string rmWhiteSpaces(const string& s)
 {
-    unsigned int i = s.find_first_not_of(" \t");
-    unsigned int j = s.find_last_not_of(" \t");
+    size_t i = s.find_first_not_of(" \t");
+    size_t j = s.find_last_not_of(" \t");
 
     if ( (i != string::npos) & (j != string::npos) ) {
         return s.substr(i, 1+j-i);
@@ -33,7 +33,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
     int state = kLabel; int deep = 0;
     string key, value;
 
-    for (unsigned int i=0; i < fulllabel.size(); i++) {
+    for (size_t i=0; i < fulllabel.size(); i++) {
         char c = fulllabel[i];
         switch (state) {
             case kLabel :
@@ -133,7 +133,7 @@ static string xmlize(const string& fullsrc)
 
     extractMetadata(fullsrc, src, metadata);
     
-    for (unsigned int i=0; i<src.size(); i++) {
+    for (size_t i=0; i<src.size(); i++) {
         if (src[i] == '"' & (i==0 | i==src.size()-1)) {
             // nothing to do just skip the quotes
         } else {
