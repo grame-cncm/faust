@@ -102,7 +102,7 @@ else
 
 		# compile c++ to binary
 		(
-			${CXX=g++} ${CXXFLAGS=-O3} $OMP `pkg-config --cflags --libs jack gtk+-2.0` "$f.cpp" -o "${f%.dsp}"
+			${CXX=g++} ${CXXFLAGS=-O3} $OMP "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` -o "${f%.dsp}"
 		) > /dev/null
 		rm "$f.cpp"
 
