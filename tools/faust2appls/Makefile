@@ -14,4 +14,5 @@ install:
 	install faust2jackserver $(prefix)/bin
 	install faust2coreaudio $(prefix)/bin
 	install faust2puredata $(prefix)/bin
+	install faust2doc $(prefix)/bin
 
