@@ -1,4 +1,4 @@
-version := 0.9.9.6b10
+version := 0.9.9.6b11doc2
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -107,3 +107,4 @@ zip :
 
 log :
 	cvs2cl --fsf
+# DO NOT DELETE
