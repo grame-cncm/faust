@@ -1,0 +1,51 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[usenames]{color}
+\usepackage{listings}
+\usepackage{supertabular}
+\usepackage{amsmath}
+\usepackage{latexsym, amssymb}
+\usepackage{breqn}
+
+% No indent
+\setlength{\parindent}{0pt}
+
+% Make LaTeX output a dot when typing an asterisk
+\DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
+
+% lstlistings setup
+\definecolor{yobg}{rgb}{0.9,0.9,1}
+\definecolor{yotxt}{rgb}{0.01,0.01,0.52} % a dark blue.
+\definecolor{mylstbg}{rgb}{0.98,0.98,0.98} % a really pale grey.
+\definecolor{mylstcmt}{rgb}{0.01,0.52,0.01} % a dark green.
+\definecolor{mylstdoc}{rgb}{0.60,0.60,0.60} % a medium grey.
+
+\lstset{%
+  language=C++, 
+  numbers=left,%none,
+  tabsize=4, 
+  frame=single, 
+  breaklines=true, 
+  numberstyle=\tiny\ttfamily, 
+  backgroundcolor=\color{mylstbg}, 
+  basicstyle=\scriptsize\ttfamily, 
+  commentstyle=\slshape\color{mylstcmt}, %\itshape,
+  frameround=tttt, 
+  columns=flexible, %fixed, 
+  showstringspaces=false,
+  emptylines=2,
+  inputencoding=utf8,
+  emph={component, declare, environment, import, library, process},
+  emph={[2]ffunction, fconstant, fvariable},
+  emph={[3]button, checkbox, vslider, hslider, nentry, vgroup, hgroup, tgroup, vbargraph, hbargraph, attach},
+  emphstyle=\color{yotxt}, %\underline, %\bfseries,
+  morecomment=[s][\color{mylstdoc}]{<doc>}{</doc>},
+  rulecolor=\color{black}
+}
+
+
+\begin{document}
+
+

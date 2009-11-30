@@ -1,0 +1,54 @@
+// Notice default text file for Faust compiler
+// Copyright (C) 2009 GRAME, Centre National de Creation Musicale
+// Karim Barkati
+
+// Remark : 
+// double quotes are useful to visualize spaces and tabulations
+// at the beginning or at the end of strings.
+
+
+:compilstamp1	"This documentation was generated with Faust version "
+:compilstamp2	", on "
+:compilstamp3	"."
+
+:causality  	"$\forall \, s(t) \in \mathbb{S}$, $s(t\!<\!0) = 0$."
+:svgdir			"Eventual sub-block-diagrams may be found in the "svg" sub-directory (only top-level block-diagrams are represented in this documentation)."
+:nameconflicts  "Warning: symbolic names eventually used inside block-diagrams have NO direct relation with signal names used in formulas ("$x(t)$", "$y(t)$", ...). Moreover, the computation may be simplified and reorganised."
+
+:fsamp			"$f_S$ is the sampling frequency (or sampling rate)."
+:foreignfun		""ff" prefix in some function name stands for C++ "foreign function"."
+:cdot			"The middle dot operator "$\cdot$" denotes multiplication in formulas."
+
+:intcast
+"$\forall \, x \in \mathbb{R}$, "
+"	\begin{displaymath}"
+"		\mathrm{int}(x) ="
+"		\left\{\begin{array}{cl}"
+"			\lfloor x \rfloor & \mbox{if \,} x > 0 \\"
+"			\lceil x \rceil & \mbox{if \,} x < 0 \\"
+"			0 & \mbox{if \,} x = 0 \\"
+"		\end{array}\right.."
+"	\end{displaymath}"
+
+:intplus		"The circled plus operator "$\oplus$" denotes an integer addition."
+:intminus		"The circled minus operator "$\ominus$" denotes an integer substraction."
+:intmult		"The circled dot operator "$\odot$" denotes an integer multiplication."
+:intdiv			"The circled slash operator "$\oslash$" denotes an integer division."
+
+:inputsig		"$x(t)$ denotes an input signal."
+:inputsigs  	"$x_i(t)$ denote input signals."
+:outputsig  	"$y(t)$ denotes an output signal."
+:outputsigs  	"$y_i(t)$ denote output signals."
+:constsigs  	"$k_i$ denote constant signals."
+:paramsigs  	"$p_i(t)$ denote parameter signals (running at "block rate")."
+:storedsigs  	"$s_i(t)$ denote stored signals (running at sampling rate)."
+
+:buttonsigs  	"${u_b}_i(t)$ denote user interface signals of buttons."
+:checkboxsigs  	"${u_c}_i(t)$ denote user interface signals of checkboxes."
+:slidersigs  	"${u_s}_i(t)$ denote user interface signals of sliders."
+:nentrysigs  	"${u_n}_i(t)$ denote numeric user interface signals (numeric boxes)."
+:tablesigs  	"$w_i(t)$ denote table signals (often waveforms)."
+:recursigs  	"$r_i(t)$ denote recursive signals (delayed as $r_i(t\!-\!d)$)."
+:prefixsigs  	"$m_i(t)$ denote prefix-delayed signals."
+:selectionsig  	"$q_i(t)$ denote selection signals."
+:selectionsigs  "$q_i(t)$ denote selection signals."
