@@ -958,7 +958,7 @@ string DocCompiler::generatePrefix (Tree sig, Tree x, Tree e, int priority)
 	ltqPrefixDef += "\\left\\{\\begin{array}{ll}\n";
 	ltqPrefixDef += subst("$0 & \\mbox{, when \\,} t = 0\\\\\n", exp0);
 	ltqPrefixDef += subst("$0 & \\mbox{, when \\,} t > 0\n", subst("$0(t\\!-\\!1)", vecname));
-	ltqPrefixDef += "\\end{array}\\right.\n";
+	ltqPrefixDef += "\\end{array}\\right.";
 	
 	fLateq->addPrefixSigFormula(ltqPrefixDef);
 	gDocNoticeFlagMap["prefixsigs"] = true;

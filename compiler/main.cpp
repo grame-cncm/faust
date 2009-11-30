@@ -619,7 +619,7 @@ int main (int argc, char* argv[])
 			string projname = gMasterDocument;
 			if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
 				projname = gMasterDocument.substr(0, gMasterDocument.length()-4); }
-			printDoc( subst("$0-doc", projname).c_str(), "tex", FAUSTVERSION );
+			printDoc( subst("$0-math", projname).c_str(), "tex", FAUSTVERSION );
 		}
 	}
 

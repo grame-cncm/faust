@@ -202,11 +202,11 @@ bool isDocLst(Tree t)				{ return isTree(t, DOCLST); 	}
 /**
  * @brief The entry point to generate faust doc files.
  *
- * The entry point to generate the output LaTeX file, stored in the directory "<projname>-doc/".
+ * The entry point to generate the output LaTeX file, stored in the directory "<projname>-math/".
  * This file eventually references images for diagrams, generated in SVG subdirectories.
  * The device system was adapted from drawSchema's device system.
  *
- * @param[in]	projname		Basename of the new doc directory ("*-doc").
+ * @param[in]	projname		Basename of the new doc directory ("*-math").
  * @param[in]	docdev			The doc device; only ".tex" is supported for the moment.
  * @param[in]	faustversion	The current version of this Faust compiler.
  */
@@ -443,7 +443,7 @@ static void printfaustdocstamp(const string& faustversion, ostream& docout)
  *
  * This function simulates a default documentation : 
  * if no <doc> tag was found in the input faust file,
- * and yet the '-doc' option was called, 
+ * and yet the '-math' option was called, 
  * then print a complete 'process' doc. 
  */
 static void declareAutoDoc() 
@@ -493,7 +493,7 @@ static void declareAutoDoc()
  * - DOCEQN expressions printing calls 'printDocEqn' after an important preparing work 
  *   has been done by 'prepareDocEqns'.
  *
- * @param[in]	projname		Basename of the new doc directory ("*-doc").
+ * @param[in]	projname		Basename of the new doc directory ("*-math").
  * @param[in]	docVector		Contains all <doc> parsed content (as boxes).
  * @param[in]	faustversion	The current version of this Faust compiler.
  * @param[out]	docout			The output file to print into.
@@ -878,7 +878,7 @@ static void printDocEqn(Lateq* ltq, ostream& docout)
  * 3. print latex figure code with the appropriate directory reference
  *
  * @param[in]	expr		Parsed input expression, as boxes tree.
- * @param[in]	svgtopdir	Basename of the new doc directory ("*-doc/svg").
+ * @param[in]	svgtopdir	Basename of the new doc directory ("*-math/svg").
  * @param[out]	docout		The output file to print into.
  */
 static void printDocDgm(const Tree expr, const char* svgtopdir, ostream& docout, int i)
@@ -1064,7 +1064,7 @@ static string rmExternalDoubleQuotes(const string& s)
 /** 
  * Copy all Faust source files into an 'src' subdirectory.
  *
- * @param[in]	projname		Basename of the new doc directory ("*-doc").
+ * @param[in]	projname		Basename of the new doc directory ("*-math").
  * @param[in]	pathnames		The paths list of the source files to copy.
  */
 static void copyFaustSources(const char* projname, const vector<string>& pathnames)

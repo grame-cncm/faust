@@ -35,12 +35,6 @@ doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
 
 # DO NOT DELETE
 
-faustparser_yacc.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh tlib/num.hh tlib/list.hh
-faustparser_yacc.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
-faustparser_yacc.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
-faustparser_yacc.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh boxes/boxes.hh
-faustparser_yacc.o: signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh documentator/doc.hh evaluate/eval.hh
-faustparser_yacc.o: boxes/ppbox.hh
 main.o: tlib/compatibility.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
