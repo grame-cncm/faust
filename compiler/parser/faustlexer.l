@@ -1,3 +1,5 @@
+/* -*- Mode: C++; tab-width: 4; c-basic-offset: 4 -*- */
+
 /* Scanner for the Faust language */
 
 %{
@@ -10,20 +12,41 @@ extern int isatty (int );
 DIGIT    [0-9]
 ID       [a-zA-Z][_a-zA-Z0-9]*
 LETTER   [a-zA-Z]
+NUMBER   ({DIGIT}+"."{DIGIT}*|"."{DIGIT}+|{DIGIT}+)
+WSPACE   [ \t\n]
+TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 
 %option yylineno
 %x comment
+%x doc
+
 
 %%
 
-"/*"         			BEGIN(comment);
-<comment>[^*\x0a\x0d]*        /* eat anything that's not a '*' 		*/
-<comment>"*"+[^*/\x0a\x0d]*   /* eat up '*'s not followed by '/'s 	*/
-<comment>\x0a\x0d             /* no need to increment yylineno here 	*/
-<comment>\x0a             /* no need to increment yylineno here 	*/
-<comment>\x0d             /* no need to increment yylineno here 	*/
-<comment>"*"+"/"        BEGIN(INITIAL);
+
+"/*"							BEGIN(comment);
+<comment>[^*\x0a\x0d]*			/* eat anything that's not a '*' 		*/
+<comment>"*"+[^*/\x0a\x0d]*		/* eat up '*'s not followed by '/'s 	*/
+<comment>\x0a\x0d				/* no need to increment yylineno here 	*/
+<comment>\x0a					/* no need to increment yylineno here 	*/
+<comment>\x0d					/* no need to increment yylineno here 	*/
+<comment>"*"+"/"				BEGIN(INITIAL);
  
+"<doc>"							{ BEGIN(doc); return BDOC; }
+<doc>.							return DOCCHAR; /* char by char, may be slow ?? */
+<doc>\n							return DOCCHAR; /* keep newline chars */
+<doc>"<notice>"					return NOTICE;  /* autoclosing tag */
+<doc>"<notice/>"				return NOTICE;  /* autoclosing tag */
+<doc>"<notice />"				return NOTICE;  /* autoclosing tag */
+<doc>"<listing>"				return LISTING; /* autoclosing tag */
+<doc>"<listing/>"				return LISTING; /* autoclosing tag */
+<doc>"<listing />"				return LISTING; /* autoclosing tag */
+<doc>"<equation>"				{ BEGIN(INITIAL); 	return BEQN; }
+"</equation>"					{ BEGIN(doc); 		return EEQN; }
+<doc>"<diagram>"				{ BEGIN(INITIAL); 	return BDGM; }
+"</diagram>"					{ BEGIN(doc); 		return EDGM; }
+<doc>"</doc>"					{ BEGIN(INITIAL); 	return EDOC; }
+
 
 {DIGIT}+    		return INT;
 
@@ -145,7 +168,6 @@ LETTER   [a-zA-Z]
 "case"		return CASE;
 "=>"		return ARROW;
 
-
 _{ID}   	return IDENT;
 {ID}   		return IDENT;
 
@@ -155,13 +177,14 @@ _{ID}   	return IDENT;
 "<"{LETTER}*">"				return FSTRING;
 
 
-"//"[^\x0a\x0d]*    	/* eat up one-line comments 	*/
+"//"[^\x0a\x0d]*	/* eat up one-line comments */
 
-[ \t\x0a\x0d]+        /* eat up whitespace */
-		
+[ \t\x0a\x0d]+		/* eat up whitespace */
+
 <<EOF>>		yyterminate();
 
 .           printf("extra text is : %s\n", yytext); return EXTRA;
+
 
 %%
 int yywrap() { return 1; }

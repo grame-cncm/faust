@@ -62,7 +62,15 @@ class AbsPrim : public xtended
 			return subst("abs($0)", args[0]);
 		}
 	}
-
+	
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	{
+		assert (args.size() == arity());
+		assert (types.size() == arity());
+		
+		Type t = infereSigType(types);
+		return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
+	}
 };
 
 

@@ -19,37 +19,45 @@
  ************************************************************************
  ************************************************************************/
  
-#ifndef __EVALBOXES__
-#define __EVALBOXES__
+#ifndef __NAMES__
+#define __NAMES__
  
- 
+#include "tlib.hh"
+#include "propagate.hh"
+#include <string>
+
+using namespace std;
+
  
 /** 						
- * \file eval.hh 
+ * \file names.hh 
  *
- * Interface of the block diagram evaluator.
- *
- * A strict lambda-calculus evaluator for block diagram expressions.
+ * Interface for names management.
  *
  **/
  
  
-
-#include "boxes.hh"
-#include "sourcereader.hh"
 
 
 /**
- * Eval the definition of 'process'.
- * 
- * Eval the definition of 'process' in the environment passed as argument
- * @param eqlist the global environment (a list of definitions)
- * @return the 'process' block diagram in normal form that is
+ * Indicates the identifier (if any) the expression was a definition of.
+ * @param t the expression 
+ * @param id reference to the identifier 
+ * @return true if the expression t was a definition of id
  **/
  
-Tree evalprocess (Tree eqlist);
-Tree evaldocexpr (Tree docexpr, Tree eqlist);
+bool 	getDefNameProperty(Tree t, Tree& id);
 
+void 	setDefNameProperty(Tree t, Tree id);
+void 	setDefNameProperty(Tree t, const string& name);
+
+//bool getSigListNickName (Tree t, Tree& id);
+//void setSigListNickName (const siglist&  lsig, const string& nickname);
+
+void setSigListNickName (Tree lsig, const string& nickname);
+
+void setSigNickname(Tree t, const string& id);
+bool getSigNickname(Tree t, Tree& id);
 
 /**
  * Search the environment for the definition of a symbol

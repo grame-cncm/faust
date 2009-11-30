@@ -40,6 +40,7 @@
 #include "xtended.hh"
 #include "loopDetector.hh"
 #include "property.hh"
+#include "names.hh"
 
 
 #include <assert.h>
@@ -102,6 +103,15 @@ Tree evalprocess (Tree eqlist)
 {
 	return a2sb(eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlist, nil, nil)));
 }
+
+
+/* Eval a documentation expression. */
+
+Tree evaldocexpr (Tree docexpr, Tree eqlist)
+{
+	return a2sb(eval(docexpr, nil, pushMultiClosureDefs(eqlist, nil, nil)));
+}
+
 
 
 // Private Implementation
@@ -210,51 +220,6 @@ static Tree real_a2sb(Tree exp)
         if (modified) {
 		return replaceBoxNumeric(CTree::make(exp->node(), exp->arity(), B));*/
 	}
-}
-
-/**
- * Definition name property : a property to keep track of the definition name
- * of an expression. Whenever an identifier is evaluated, it is attached as a
- * property of its definitionObviously there is no perfect solution since a same
- * definition quand be given to different names.
- */
-Tree DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
-
-void setDefNameProperty(Tree t, Tree id)
-{
-	//cerr << "setDefNameProperty : " << *id << " FOR " << t << "#" << boxpp(t) << endl;
-	setProperty(t, DEFNAMEPROPERTY, id);
-}
-
-void setDefNameProperty(Tree t, const string& name)
-{
-	//cerr << "setDefNameProperty : " << name << " FOR " << t << "#" << boxpp(t) << endl;
-	int		n = name.size();
-	int 	m = (gMaxNameSize>1023) ? 1023 : gMaxNameSize;
-	if (n > m) {
-		// the name is too long we reduce it to 2/3 of maxsize
-		char 	buf[1024];
-		int i = 0;
-		// copy first third
-		for (; i < m/3; i++) { buf[i] = name[i]; }
-		// add ...
-		buf[i++] = '.';
-		buf[i++] = '.';
-		buf[i++] = '.';
-		// copy last third
-		for (int c = n-m/3; c<n; c++, i++) { buf[i] = name[c]; }
-		buf[i] = 0;
-		setProperty(t, DEFNAMEPROPERTY, tree(buf));
-	} else {
-		setProperty(t, DEFNAMEPROPERTY, tree(name.c_str()));
-	}
-
-}
-
-bool getDefNameProperty(Tree t, Tree& id)
-{
-	//cerr << "getDefNameProperty of : " << t << endl;
-	return getProperty(t, DEFNAMEPROPERTY, id);
 }
 
 static bool autoName(Tree exp , Tree& id)

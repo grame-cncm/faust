@@ -32,8 +32,8 @@
 /**
  * boxPropagateSig : box listOfSignal-> listOfSignal'
  *
- * Propage une liste de signaux de l'entrée vers la sortie d'une boite
- * La boite à été annotée aec son type
+ * Propage une liste de signaux de l'entrÃˆe vers la sortie d'une boite
+ * La boite â€¡ ÃˆtÃˆ annotÃˆe aec son type
  */
 ///////////////////////////////////////////////////////////////////////
 using namespace std;
@@ -43,6 +43,10 @@ typedef vector<Tree> siglist;
 siglist makeSigInputList (int n);
 Tree boxPropagateSig (Tree path, Tree box, const siglist& lsig);
 
+//bool getSigListNickName (Tree t, Tree& id);
+//void setSigListNickName (const siglist&  lsig, const string& nickname);
+
+
 //siglist makeSigProjList (Tree t, int n);
 //siglist lrepeat(int n, const siglist& l);
 //siglist lmerge(int nbelems, int nblignes, Tree src);
@@ -51,7 +55,7 @@ Tree boxPropagateSig (Tree path, Tree box, const siglist& lsig);
 /*
 	exemple :
 	Pour calculer 'lsig' la liste des signaux de sortie d'une boite 'box' 
-	à n entrées on utilisera :
+	â€¡ n entrÃˆes on utilisera :
 		lsig =  boxPropagateSig(box, makeSigInputList(n));
 */
 #endif

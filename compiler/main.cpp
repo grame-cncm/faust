@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.6b10"
+#define FAUSTVERSION "0.9.9.6b11doc2"
 
 #include <stdio.h>
 #include <string.h>
@@ -44,6 +44,7 @@
 #include "eval.hh"
 #include "description.hh"
 #include "floats.hh"
+#include "doc.hh"
 
 #include <map>
 #include <string>
@@ -84,6 +85,7 @@ Tree 			gResult2;
 SourceReader	gReader;
 
 map<Tree, set<Tree> > gMetaDataSet;
+extern vector<Tree> gDocVector;
 
 
 /****************************************************************
@@ -91,11 +93,14 @@ map<Tree, set<Tree> > gMetaDataSet;
 *****************************************************************/
 
 //-- globals
+string          gFaustSuperSuperDirectory;
 string          gFaustSuperDirectory;
 string          gFaustDirectory;
 string          gMasterDocument;
 string          gMasterDirectory;
 string          gMasterName;
+string          gDocName;
+Tree			gExpandedDefList;
 
 //-- command line arguments
 
@@ -106,6 +111,9 @@ bool            gShadowBlur     = false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
+bool            gPrintDocSwitch = false;
+bool            gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
+bool			gStripDocSwitch = false;	// Strip <doc> content from doc listings.
 int            	gBalancedSwitch = 0;
 int            	gFoldThreshold 	= 25;
 int            	gMaxNameSize 	= 40;
@@ -113,7 +121,6 @@ bool			gSimpleNames 	= false;
 bool            gSimplifyDiagrams = false;
 bool			gLessTempSwitch = false;
 int				gMaxCopyDelay	= 16;
-
 string			gArchFile;
 string			gOutputFile;
 list<string>	gInputFiles;
@@ -133,6 +140,8 @@ bool            gUIMacroSwitch  = false;
 int             gTimeout        = 0;            // time out to abort compiler
 
 int             gFloatSize = 1;
+
+bool			gPrintFileListSwitch = false;
 
 //-- command line tools
 
@@ -268,7 +277,19 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
             gFloatSize = 3;
             i += 1;
-
+			
+        } else if (isCmd(argv[i], "-doc", "--documentation")) {
+            gPrintDocSwitch = true;
+            i += 1;
+			
+        } else if (isCmd(argv[i], "-flist", "--file-list")) {
+            gPrintFileListSwitch = true;
+            i += 1;
+			
+        } else if (isCmd(argv[i], "-stripdoc", "--strip-doc")) {
+            gStripDocSwitch = true;
+            i += 1;
+			
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -317,6 +338,7 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
     cout << "-svg \t\tprint block-diagram --svg file\n";
+    cout << "-doc \t\tprint faust --documentation of comments (<doc>) and included compiled signals (<equation> and <diagram>) as a latex file\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -340,6 +362,7 @@ void printhelp()
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
+    cout << "-flist \t\tuse --file-list used to eval process\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";
@@ -375,6 +398,7 @@ void printheader(ostream& dst)
     dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
     dst << "//-----------------------------------------------------" << endl;
 }
+
 
 
 
@@ -419,14 +443,17 @@ static void initFaustDirectories()
     dirname(s);
     gFaustDirectory = s;
 	gFaustSuperDirectory = dirname(gFaustDirectory);
+	gFaustSuperSuperDirectory = dirname(gFaustSuperDirectory);
     if (gInputFiles.empty()) {
         gMasterDocument = "Unknown";
         gMasterDirectory = ".";
 		gMasterName = "faustfx";
+		gDocName = "faustdoc";
     } else {
         gMasterDocument = *gInputFiles.begin();
         gMasterDirectory = dirname(gMasterDocument);
 		gMasterName = fxname(gMasterDocument);
+		gDocName = fxname(gMasterDocument);
     }
 }
 
@@ -455,6 +482,7 @@ int main (int argc, char* argv[])
 	*****************************************************************/
 
 	startTiming("parser");
+
 	
 	list<string>::iterator s;
 	gResult2 = nil;
@@ -472,6 +500,7 @@ int main (int argc, char* argv[])
 		//fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
 		exit(1);
 	}
+	gExpandedDefList = gReader.expandlist(gResult2);
 
 	endTiming("parser");
 	
@@ -481,7 +510,8 @@ int main (int argc, char* argv[])
 	
 	startTiming("evaluation");
 
-	Tree process = evalprocess(gReader.expandlist(gResult2));
+
+	Tree process = evalprocess(gExpandedDefList);
 	if (gErrorCount > 0) {
        // cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n";
         cerr << "Total of " << gErrorCount << " errors during the compilation of  " << gMasterDocument << ";\n";
@@ -491,9 +521,14 @@ int main (int argc, char* argv[])
 
 	if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
-	if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps",  gMasterDocument).c_str(), "ps" ); }
-	if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", gMasterDocument).c_str(), "svg" ); }
-
+	if (gDrawPSSwitch or gDrawSVGSwitch) {
+		string projname = gMasterDocument;
+		if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
+			projname = gMasterDocument.substr(0, gMasterDocument.length()-4); 
+		}
+		if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps",  projname).c_str(), "ps" ); }
+		if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", projname).c_str(), "svg" ); }
+	}
 
 	int numInputs, numOutputs;
 	if (!getBoxType(process, &numInputs, &numOutputs)) {
@@ -505,15 +540,29 @@ int main (int argc, char* argv[])
 	if (gDetailsSwitch) {
         cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
     }
-
+	
 	endTiming("evaluation");
+
+
+	/****************************************************************
+	 3.5 - output file list is needed
+	*****************************************************************/
+	if (gPrintFileListSwitch) {
+		cout << "******* ";
+		// print the pathnames of the files used to evaluate process
+		vector<string> pathnames = gReader.listSrcFiles();
+		for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << ' ';
+		cout << endl;
+
+	}
 	
-	
+
 	/****************************************************************
 	 4 - compute output signals of 'process'
 	*****************************************************************/
 	
 	startTiming("propagation");
+
 
 	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
 	if (gDetailsSwitch) { cerr << "output signals are : " << endl;  printSignal(lsignals, stderr); }
@@ -532,6 +581,7 @@ int main (int argc, char* argv[])
 	else 				C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
 
 	if (gPrintXMLSwitch) C->setDescription(new Description());
+	if (gPrintDocSwitch) C->setDescription(new Description());
 
 	C->compileMultiSignal(lsignals);
 
@@ -560,7 +610,24 @@ int main (int argc, char* argv[])
 
 
 	/****************************************************************
-	 7 - generate output file
+	 7 - generate documentation from Faust comments (if required)
+	*****************************************************************/
+
+
+	if (gPrintDocSwitch) {
+		if (gLatexDocSwitch) {
+			string projname = gMasterDocument;
+			if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
+				projname = gMasterDocument.substr(0, gMasterDocument.length()-4); }
+			printDoc( subst("$0-doc", projname).c_str(), "tex", FAUSTVERSION );
+		}
+	}
+
+
+
+
+	/****************************************************************
+	 8 - generate output file
 	*****************************************************************/
 
 	ostream* dst;
@@ -572,7 +639,6 @@ int main (int argc, char* argv[])
 	} else {
 		dst = &cout;
 	}
-
 
 	if (gArchFile != "") {
 		if ( (enrobage = open_arch_stream(gArchFile.c_str())) ) {

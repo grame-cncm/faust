@@ -42,7 +42,17 @@ class CeilPrim : public xtended
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
-        return subst("ceil$1($0)", args[0], isuffix());
+		assert (types.size() == arity());
+        
+		return subst("ceil$1($0)", args[0], isuffix());
+	}
+	
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	{
+		assert (args.size() == arity());
+		assert (types.size() == arity());
+        
+		return subst("\\left\\lceil $0 \\right\\rceil", args[0]);
 	}
 	
 };

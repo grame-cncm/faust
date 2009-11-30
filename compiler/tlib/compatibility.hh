@@ -30,7 +30,7 @@ void getFaustPathname(char* str, unsigned int size);
 #include <windows.h>
 #define snprintf _snprintf
 //#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
-//#define PATH_MAX 1024
+//#define FAUST_PATH_MAX 1024
 #define getcwd(buffer,len) GetCurrentDirectory(len,buffer)
 #define chdir(path) (!SetCurrentDirectory(path))
 #define mkdir(path,attribute) CreateDirectory(path,NULL)
@@ -45,7 +45,7 @@ void getFaustPathname(char* str, unsigned int size);
 #include <windows.h>
 #define snprintf _snprintf
 #define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
-#define PATH_MAX 1024
+#define FAUST_PATH_MAX 1024
 #define getcwd(buffer,len) GetCurrentDirectory(len,buffer)
 #define chdir(path) (!SetCurrentDirectory(path))
 #define mkdir(path,attribute) CreateDirectory(path,NULL)
@@ -59,6 +59,7 @@ void getFaustPathname(char* str, unsigned int size);
 
 #include <unistd.h>
 #define DIRSEP '/'
+#define FAUST_PATH_MAX 1024
 
 #endif
 

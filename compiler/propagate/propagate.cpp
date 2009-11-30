@@ -27,15 +27,23 @@
 #include "ppbox.hh"
 #include "xtended.hh"
 #include "labels.hh"
+#include "Text.hh"
+#include "ppsig.hh"
+#include "names.hh"
+
+//extern bool gPrintDocSwitch;
+//static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
+
 
 ////////////////////////////////////////////////////////////////////////
 /**
  * propagate : box listOfSignal-> listOfSignal'
  *
- * Propage une liste de signaux de l'entr�e vers la sortie d'une boite
- * La boite � �t� annot�e aec son type 
+ * Propage une liste de signaux de l'entrée vers la sortie d'une boite
+ * La boite a été annotée aec son type 
  */
 ///////////////////////////////////////////////////////////////////////
+
 
 //! mix une liste de signaux sur n bus				
 siglist mix(const siglist& lsig, int nbus)
@@ -67,7 +75,7 @@ siglist split(const siglist& inputs, int nbus)
 	return outputs;
 }			
 
-//! Fabrique une liste de n projections d'un groupe r�cursif
+//! Fabrique une liste de n projections d'un groupe récursif
 siglist makeSigProjList (Tree t, int n)
 {
 	siglist l(n);
@@ -75,7 +83,7 @@ siglist makeSigProjList (Tree t, int n)
 	return l;
 }
 
-//! Fabrique une liste de n mem projections d'un groupe r�cursif
+//! Fabrique une liste de n mem projections d'un groupe récursif
 siglist makeMemSigProjList (Tree t, int n)
 {
 	siglist l(n);
@@ -84,7 +92,7 @@ siglist makeMemSigProjList (Tree t, int n)
 }
 
 
-//! Fabrique une liste de n entr�es
+//! Fabrique une liste de n entrées
 siglist makeSigInputList (int n)
 {
 	siglist l(n);
@@ -166,6 +174,25 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 }
 */
 
+/**
+ * Old try for names propagation.
+ */
+//siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
+//{
+//	siglist S = realPropagate(slotenv, path, box, lsig);
+//
+//	if (gPrintDocSwitch) {
+//		Tree	id;
+//		if (lsig.size()==0 && getDefNameProperty(box, id)) {
+//			string nickname = defName2NickName(tree2str(id));
+//			//setSigListNickName(S, nickname);
+//		}
+//	}
+//
+//	return S;
+//}
+
+//siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 {
 	int		i;

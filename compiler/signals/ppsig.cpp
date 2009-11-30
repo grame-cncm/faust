@@ -209,7 +209,7 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ printfun(fout, "select3", sel, x, y, z); }
 	
 	else if ( isSigIntCast(sig, x) ) 				{ printfun(fout, "int", x); }
-	else if ( isSigFloatCast(sig, x) ) 			{ printfun(fout, "float", x);  }
+	else if ( isSigFloatCast(sig, x) )				{ printfun(fout, "float", x);  }
 	
 	else if ( isSigButton(sig, label) ) 			{ printui(fout, "button", label); }
 	else if ( isSigCheckbox(sig, label) ) 			{ printui(fout, "checkbox", label);  }

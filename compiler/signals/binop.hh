@@ -49,6 +49,7 @@ struct BinOp
 };
 
 extern BinOp* gBinOpTable[];
+extern BinOp* gBinOpLateqTable[];
 
 
 enum {

@@ -11,7 +11,6 @@ using namespace std;
  */
 static void tab (int n, ostream& fout)
 {
-
     fout << '\n';
     while (n--) fout << '\t';
 }

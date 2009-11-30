@@ -50,13 +50,14 @@
 #include "devLib.h"
 #include "ppbox.hh"
 #include "xtended.hh"
-#include "eval.hh"
 #include "occurrences.hh"
 #include "boxcomplexity.h"
 
 #include "schema.h"
 #include "drawschema.hh"
 #include "compatibility.hh"
+#include "names.hh"
+
 
 #if 0
 #define linkcolor "#b3d1dc"
@@ -209,7 +210,7 @@ static bool pendingDrawing(Tree& t)
 
 /**
  * Write a top level diagram. A top level diagram
- * is decorated with is definition name property
+ * is decorated with its definition name property
  * and is drawn in an individual file
  */
 static void writeSchemaFile(Tree bd)

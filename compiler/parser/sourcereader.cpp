@@ -19,6 +19,8 @@ using namespace std;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 extern string gMasterDocument;
+extern vector<Tree> gDocVector;
+extern bool gLatexDocSwitch;
 
 /****************************************************************
  						Parser variables
@@ -135,7 +137,7 @@ static Tree makeDefinition(list<Tree>& variants)
 
 /**
  * Formats a list of raw definitions represented by triplets
- * <name,arglit,body> into abstractions or pattern 
+ * <name,arglist,body> into abstractions or pattern 
  * matching rules when appropriate.
  * 
  * @param rldef list of raw definitions in reverse order
@@ -183,10 +185,12 @@ Tree formatDefinitions(Tree rldef)
 
 Tree SourceReader::parse(string fname)
 {
+	string	fullpath;
+	
 	yyerr = 0;
 	
 	yyfilename = fname.c_str();
-	yyin = fopensearch(yyfilename);
+	yyin = fopensearch(yyfilename, fullpath);
 	if (yyin == NULL) {
 		fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
 		exit(1);
@@ -202,6 +206,8 @@ Tree SourceReader::parse(string fname)
 		exit(1);
 	}
 
+	// we have parsed a valid file
+	fFilePathnames.push_back(fullpath);
 	return gResult;
 }
 
@@ -233,6 +239,25 @@ Tree SourceReader::getlist(string fname)
 	}
     if (fFileCache[fname] == 0) exit(1);
     return fFileCache[fname];
+}
+
+ 
+/**
+ * Return a vector of pathnames representing the list 
+ * of all the source files that have been required
+ * to evaluate process (those in fFileCache)
+ */
+
+vector<string> SourceReader::listSrcFiles()
+{
+//	vector<string> 						srcfiles;
+
+//	for (map<string, Tree>::const_iterator p = fFileCache.begin(); p != fFileCache.end(); p++) {
+//		srcfiles.push_back(p->first);
+//	}
+
+//	return srcfiles;	
+	return fFilePathnames;
 }
 
  
@@ -288,7 +313,13 @@ void declareMetadata(Tree key, Tree value)
     }
 }
 /*
- cout << "toto "; }
+	}
     cout << "Master " << gMasterDocument  << ", file " << yyfilename <<  " : declare " << *key << "," << *value << endl;
     gMetaDataSet[key].insert(value);
 }		*/
+
+void declareDoc(Tree t)
+{
+	//gLatexDocSwitch = true;
+	gDocVector.push_back(t);
+}

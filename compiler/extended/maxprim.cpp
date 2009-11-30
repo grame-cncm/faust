@@ -78,6 +78,15 @@ class MaxPrim : public xtended
 		} 			
 	}
 	
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	{
+		assert (args.size() == arity());
+		assert (types.size() == arity());
+		
+		Type t = infereSigType(types);
+		return subst("\\max\\left( $0, $1 \\right)", args[0], args[1]);
+	}
+	
 };
 
 

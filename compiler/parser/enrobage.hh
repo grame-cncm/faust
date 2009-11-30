@@ -23,6 +23,7 @@
  
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include <fstream>
 #include <iostream>
 
@@ -41,8 +42,9 @@ void streamCopyUntilEnd(istream& src, ostream& dst);
 
 ifstream* open_arch_stream (const char* filename);
 
-FILE* fopensearch(const char* filename);
+FILE* fopensearch(const char* filename, string& fullpath);
 
 bool check_file(const char* filename);
 		
-		
+const char* filebasename(const char* name);
+

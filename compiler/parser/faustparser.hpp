@@ -134,7 +134,16 @@
      EXTRA = 350,
      DECLARE = 351,
      CASE = 352,
-     ARROW = 353
+     ARROW = 353,
+     BDOC = 354,
+     EDOC = 355,
+     BEQN = 356,
+     EEQN = 357,
+     BDGM = 358,
+     EDGM = 359,
+     DOCCHAR = 360,
+     NOTICE = 361,
+     LISTING = 362
    };
 #endif
 /* Tokens.  */
@@ -234,18 +243,28 @@
 #define DECLARE 351
 #define CASE 352
 #define ARROW 353
+#define BDOC 354
+#define EDOC 355
+#define BEQN 356
+#define EEQN 357
+#define BDGM 358
+#define EDGM 359
+#define DOCCHAR 360
+#define NOTICE 361
+#define LISTING 362
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 58 "parser/faustparser.y"
+#line 64 "parser/faustparser.y"
 {
 	CTree* 	exp;
+	char* str;
 }
 /* Line 1489 of yacc.c.  */
-#line 249 "parser/faustparser.hpp"
+#line 268 "parser/faustparser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

@@ -116,6 +116,9 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 			assert(d2>=0);
 			incOcc(env, v0, r0, d2, x);
 			incOcc(env, v0, r0, 0, y);
+		} else if (isSigPrefix(t,y,x)) {
+			incOcc(env, v0, r0, 1, x);
+			incOcc(env, v0, r0, 0, y);
 		} else {
 			vector<Tree> br;
 			int n = getSubSignals(t, br);

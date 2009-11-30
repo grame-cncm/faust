@@ -41,7 +41,18 @@ class Atan2Prim : public xtended
 		
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
 	{
+		assert (args.size() == arity());
+		assert (types.size() == arity());
+		
         return subst("atan2$2($0,$1)", args[0], args[1], isuffix());
+	}
+	
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	{
+		assert (args.size() == arity());
+		assert (types.size() == arity());
+		
+        return subst("\\arctan\\frac{$0}{$1}", args[0], args[1]);
 	}
 	
 };

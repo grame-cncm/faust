@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 4; c-basic-offset: 4 -*- */
 
 /* Parser for the Faust language */
 
@@ -10,6 +11,8 @@
 #include "signals.hh"
 #include "errormsg.hh"
 #include "sourcereader.hh"
+#include "doc.hh"
+#include "ppbox.hh"
 
 #include <string>
 #include <list>
@@ -25,6 +28,9 @@ extern int 			yyerr;
 extern Tree 		gResult;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
+extern vector<Tree> gDocVector;
+static string doctxtString = "";
+
 
 int yylex();
 
@@ -57,6 +63,7 @@ Tree unquote(char* str)
 
 %union {
 	CTree* 	exp;
+	char* str;
 }
 
 %start program
@@ -178,6 +185,18 @@ Tree unquote(char* str)
 %token ARROW
 
 
+ /* Begin and End tags for documentations, equations and diagrams */
+%token BDOC
+%token EDOC
+%token BEQN
+%token EEQN
+%token BDGM
+%token EDGM
+%token <str> DOCCHAR
+%token NOTICE
+%token LISTING
+
+
 %type <exp> program
 
 %type <exp> stmtlist
@@ -189,6 +208,7 @@ Tree unquote(char* str)
 %type <exp> params
 
 %type <exp> expression
+
 %type <exp> defname
 %type <exp> infixexp
 %type <exp> primitive
@@ -229,306 +249,337 @@ Tree unquote(char* str)
 %type <exp> rule
 %type <exp> rulelist
 
-
-
-
-
+%type <exp> doc
+%type <exp> docelem
+%type <str> doctxt
+%type <exp> doceqn
+%type <exp> docdgm
+%type <exp> docntc
+%type <exp> doclst
 
 
 
 
 %% /* grammar rules and actions follow */
 
-program         : stmtlist 						{$$ = $1; gResult = formatDefinitions($$); }
+program         : stmtlist 						{ $$ = $1; gResult = formatDefinitions($$); }
 				;
 
-stmtlist        : /*empty*/                     {$$ = nil; }
-                | stmtlist statement            {$$ = cons ($2,$1); }
+stmtlist        : /*empty*/                     { $$ = nil; }
+				| stmtlist statement            { $$ = cons ($2,$1); }
 
-deflist          : /*empty*/                     {$$ = nil; }
-                | deflist definition             {$$ = cons ($2,$1); }
-                ;
-
-statement       : IMPORT LPAR uqstring RPAR ENDDEF              {$$ = importFile($3); }
-                | DECLARE name string  ENDDEF                   {declareMetadata($2,$3); $$ = nil; }
-                | definition                                    {$$ = $1; }
-                ;
-
-definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{$$ = cons($1,cons($3,$6)); }
-				| defname DEF expression ENDDEF					{$$ = cons($1,cons(nil,$3)); }
-				| error ENDDEF									{$$ = nil; yyerr++;}
-               	;
-
-defname			: ident 						{$$=$1; setDefProp($1, yyfilename, yylineno); }
+deflist         : /*empty*/                     { $$ = nil; }
+				| deflist definition            { $$ = cons ($2,$1); }
 				;
 
-params			: ident							{$$ = cons($1,nil); }
-				| params PAR ident				{$$ = cons($3,$1); }
+statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
+				| DECLARE name string  ENDDEF		   	{ declareMetadata($2,$3); $$ = nil; }
+				| definition						   	{ $$ = $1; }
+				| BDOC doc EDOC						   	{ declareDoc($2); $$ = nil; cout << "Yacc : doc : " << *$2 << endl ; doctxtString = "";  }
                 ;
 
-expression		: expression WITH LBRAQ deflist RBRAQ	{$$ = boxWithLocalDef($1,formatDefinitions($4)); }
-				| expression PAR expression  			{$$ = boxPar($1,$3);}
-				| expression SEQ expression  			{$$ = boxSeq($1,$3);}
-				| expression SPLIT  expression 		    {$$ = boxSplit($1,$3);}
-				| expression MIX expression 			{$$ = boxMerge($1,$3);}
-				| expression REC expression  			{$$ = boxRec($1,$3);}
-				| infixexp					            {$$ = $1; }
+doc             : /* empty */						   	{ $$ = nil; }
+				| doc docelem						   	{ $$ = cons ($2,$1); }
 				;
 
-infixexp		: infixexp ADD infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd)); }
-				| infixexp SUB infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigSub)); }
-				| infixexp MUL infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigMul)); }
-				| infixexp DIV infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
-                | infixexp MOD infixexp     {$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
-                | infixexp POWOP infixexp   {$$ = boxSeq(boxPar($1,$3),gPowPrim->box()); }
-                | infixexp FDELAY infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
-				| infixexp DELAY1  			{$$ = boxSeq($1,boxPrim1(sigDelay1)); }
-				| infixexp DOT ident  		{$$ = boxAccess($1,$3); }
+docelem         : doctxt 							   	{ $$ = docTxt(doctxtString.c_str()); }
+				| doceqn 							   	{ $$ = docEqn($1); }
+				| docdgm 							   	{ $$ = docDgm($1); }
+				| docntc 							   	{ $$ = $1; }
+                | doclst 							   	{ $$ = $1; }
+				;
 
-				| infixexp AND infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
-				| infixexp OR infixexp 		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
-				| infixexp XOR infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigXOR)); }
+doceqn          : BEQN expression EEQN			   	   	{ $$ = $2; doctxtString = ""; }
+				;
 
-				| infixexp LSH infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLeftShift)); }
-				| infixexp RSH infixexp 	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigRightShift)); }
+docdgm          : BDGM expression EDGM		   	   		{ $$ = $2; doctxtString = ""; }
+				;
 
-				| infixexp LT infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLT)); }
-				| infixexp LE infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigLE)); }
-				| infixexp GT infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGT)); }
-				| infixexp GE infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigGE)); }
-				| infixexp EQ infixexp  	{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
-				| infixexp NE infixexp		{$$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
+doctxt          : /* empty */				   		   	{ }
+				| doctxt DOCCHAR					   	{ (doctxtString += yytext); }
+				;
 
-				| infixexp LPAR arglist RPAR %prec APPL	{$$ = buildBoxAppl($1,$3); }
+docntc          : NOTICE								{ $$ = docNtc(); }
+				;
+
+doclst          : LISTING								{ $$ = docLst(); }
+				;
+
+definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); }
+				| defname DEF expression ENDDEF		   	{ $$ = cons($1,cons(nil,$3)); }
+				| error ENDDEF				   		   	{ $$ = nil; yyerr++; }
+				;
+
+defname			: ident 								{ $$=$1; setDefProp($1, yyfilename, yylineno); }
+				;
+
+params			: ident					   				{ $$ = cons($1,nil); }
+				| params PAR ident				   		{ $$ = cons($3,$1); }
+                ;
+
+expression		: expression WITH LBRAQ deflist RBRAQ	{ $$ = boxWithLocalDef($1,formatDefinitions($4)); }
+				| expression PAR expression  			{ $$ = boxPar($1,$3); }
+				| expression SEQ expression  			{ $$ = boxSeq($1,$3); }
+				| expression SPLIT  expression 		    { $$ = boxSplit($1,$3); }
+				| expression MIX expression 			{ $$ = boxMerge($1,$3); }
+				| expression REC expression  			{ $$ = boxRec($1,$3); }
+				| infixexp					            { $$ = $1; }
+				;
+
+infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd)); }
+				| infixexp SUB infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigSub)); }
+				| infixexp MUL infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigMul)); }
+				| infixexp DIV infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
+                | infixexp MOD infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
+                | infixexp POWOP infixexp   { $$ = boxSeq(boxPar($1,$3),gPowPrim->box()); }
+                | infixexp FDELAY infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
+				| infixexp DELAY1  			{ $$ = boxSeq($1,boxPrim1(sigDelay1)); }
+				| infixexp DOT ident  		{ $$ = boxAccess($1,$3); }
+
+				| infixexp AND infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
+				| infixexp OR infixexp 		{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigOR)); }
+				| infixexp XOR infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigXOR)); }
+
+				| infixexp LSH infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLeftShift)); }
+				| infixexp RSH infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigRightShift)); }
+
+				| infixexp LT infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLT)); }
+				| infixexp LE infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLE)); }
+				| infixexp GT infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigGT)); }
+				| infixexp GE infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigGE)); }
+				| infixexp EQ infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
+				| infixexp NE infixexp		{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
+
+				| infixexp LPAR arglist RPAR %prec APPL	{ $$ = buildBoxAppl($1,$3); }
 				
-				| primitive						{$$ = $1;}
+				| primitive						{ $$ = $1; }
 				;
 
-primitive		: INT   						{$$ = boxInt(atoi(yytext));}
-				| FLOAT 						{$$ = boxReal(atof(yytext));}
+primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
+				| FLOAT 						{ $$ = boxReal(atof(yytext)); }
 
-				| ADD INT   					{$$ = boxInt (atoi(yytext));}
-				| ADD FLOAT 					{$$ = boxReal(atof(yytext));}
+				| ADD INT   					{ $$ = boxInt (atoi(yytext)); }
+				| ADD FLOAT 					{ $$ = boxReal(atof(yytext)); }
 
-				| SUB INT   					{$$ = boxInt ( -atoi(yytext) );}
-				| SUB FLOAT 					{$$ = boxReal( -atof(yytext) );}
+				| SUB INT   					{ $$ = boxInt ( -atoi(yytext) ); }
+				| SUB FLOAT 					{ $$ = boxReal( -atof(yytext) ); }
 
-				| WIRE   						{$$ = boxWire();}
-				| CUT   						{$$ = boxCut();}
+				| WIRE   						{ $$ = boxWire(); }
+				| CUT   						{ $$ = boxCut(); }
 
-				| MEM   						{$$ = boxPrim1(sigDelay1);}
-				| PREFIX   						{$$ = boxPrim2(sigPrefix);}
+				| MEM   						{ $$ = boxPrim1(sigDelay1); }
+				| PREFIX   						{ $$ = boxPrim2(sigPrefix); }
 
-				| INTCAST   					{$$ = boxPrim1(sigIntCast);}
-				| FLOATCAST   					{$$ = boxPrim1(sigFloatCast);}
+				| INTCAST   					{ $$ = boxPrim1(sigIntCast); }
+				| FLOATCAST   					{ $$ = boxPrim1(sigFloatCast); }
 
-				| ADD							{$$ = boxPrim2(sigAdd);}
-				| SUB 							{$$ = boxPrim2(sigSub);}
-				| MUL  							{$$ = boxPrim2(sigMul);}
-				| DIV							{$$ = boxPrim2(sigDiv);}
-				| MOD							{$$ = boxPrim2(sigRem);}
-				| FDELAY						{$$ = boxPrim2(sigFixDelay);}
+				| ADD							{ $$ = boxPrim2(sigAdd); }
+				| SUB 							{ $$ = boxPrim2(sigSub); }
+				| MUL  							{ $$ = boxPrim2(sigMul); }
+				| DIV							{ $$ = boxPrim2(sigDiv); }
+				| MOD							{ $$ = boxPrim2(sigRem); }
+				| FDELAY						{ $$ = boxPrim2(sigFixDelay); }
 
-				| AND							{$$ = boxPrim2(sigAND);}
-				| OR 							{$$ = boxPrim2(sigOR);}
-				| XOR  							{$$ = boxPrim2(sigXOR);}
+				| AND							{ $$ = boxPrim2(sigAND); }
+				| OR 							{ $$ = boxPrim2(sigOR); }
+				| XOR  							{ $$ = boxPrim2(sigXOR); }
 
-				| LSH							{$$ = boxPrim2(sigLeftShift);}
-				| RSH 							{$$ = boxPrim2(sigRightShift);}
+				| LSH							{ $$ = boxPrim2(sigLeftShift); }
+				| RSH 							{ $$ = boxPrim2(sigRightShift); }
 
-				| LT							{$$ = boxPrim2(sigLT);}
-				| LE							{$$ = boxPrim2(sigLE);}
-				| GT							{$$ = boxPrim2(sigGT);}
-				| GE							{$$ = boxPrim2(sigGE);}
-				| EQ							{$$ = boxPrim2(sigEQ);}
-				| NE							{$$ = boxPrim2(sigNE);}
+				| LT							{ $$ = boxPrim2(sigLT); }
+				| LE							{ $$ = boxPrim2(sigLE); }
+				| GT							{ $$ = boxPrim2(sigGT); }
+				| GE							{ $$ = boxPrim2(sigGE); }
+				| EQ							{ $$ = boxPrim2(sigEQ); }
+				| NE							{ $$ = boxPrim2(sigNE); }
 
-				| ATTACH						{$$ = boxPrim2(sigAttach);}
+				| ATTACH						{ $$ = boxPrim2(sigAttach); }
 
-				| ACOS							{$$ = gAcosPrim->box(); }
-				| ASIN							{$$ = gAsinPrim->box(); }
-				| ATAN							{$$ = gAtanPrim->box(); }
-				| ATAN2							{$$ = gAtan2Prim->box(); }
-				| COS							{$$ = gCosPrim->box(); }
-				| SIN							{$$ = gSinPrim->box(); }
-				| TAN							{$$ = gTanPrim->box(); }
+				| ACOS							{ $$ = gAcosPrim->box(); }
+				| ASIN							{ $$ = gAsinPrim->box(); }
+				| ATAN							{ $$ = gAtanPrim->box(); }
+				| ATAN2							{ $$ = gAtan2Prim->box(); }
+				| COS							{ $$ = gCosPrim->box(); }
+				| SIN							{ $$ = gSinPrim->box(); }
+				| TAN							{ $$ = gTanPrim->box(); }
 
-				| EXP							{$$ = gExpPrim->box(); }
-				| LOG							{$$ = gLogPrim->box(); }
-				| LOG10							{$$ = gLog10Prim->box(); }
-                | POWOP                         {$$ = gPowPrim->box(); }
-                | POWFUN                        {$$ = gPowPrim->box(); }
-				| SQRT							{$$ = gSqrtPrim->box(); }
+				| EXP							{ $$ = gExpPrim->box(); }
+				| LOG							{ $$ = gLogPrim->box(); }
+				| LOG10							{ $$ = gLog10Prim->box(); }
+                | POWOP                         { $$ = gPowPrim->box(); }
+                | POWFUN                        { $$ = gPowPrim->box(); }
+				| SQRT							{ $$ = gSqrtPrim->box(); }
 
-				| ABS							{$$ = gAbsPrim->box(); }
-				| MIN							{$$ = gMinPrim->box(); }
-				| MAX							{$$ = gMaxPrim->box(); }
+				| ABS							{ $$ = gAbsPrim->box(); }
+				| MIN							{ $$ = gMinPrim->box(); }
+				| MAX							{ $$ = gMaxPrim->box(); }
 
-				| FMOD							{$$ = gFmodPrim->box(); }
-				| REMAINDER						{$$ = gRemainderPrim->box(); }
+				| FMOD							{ $$ = gFmodPrim->box(); }
+				| REMAINDER						{ $$ = gRemainderPrim->box(); }
 
-				| FLOOR							{$$ = gFloorPrim->box(); }
-				| CEIL							{$$ = gCeilPrim->box(); }
-				| RINT							{$$ = gRintPrim->box(); }
+				| FLOOR							{ $$ = gFloorPrim->box(); }
+				| CEIL							{ $$ = gCeilPrim->box(); }
+				| RINT							{ $$ = gRintPrim->box(); }
 
 
-				| RDTBL 						{$$ = boxPrim3(sigReadOnlyTable);}
-				| RWTBL							{$$ = boxPrim5(sigWriteReadTable);}
+				| RDTBL 						{ $$ = boxPrim3(sigReadOnlyTable); }
+				| RWTBL							{ $$ = boxPrim5(sigWriteReadTable); }
 
-				| SELECT2 						{$$ = boxPrim3(sigSelect2);}
-				| SELECT3						{$$ = boxPrim4(sigSelect3);}
+				| SELECT2 						{ $$ = boxPrim3(sigSelect2); }
+				| SELECT3						{ $$ = boxPrim4(sigSelect3); }
 
-				| ident 						{$$ = $1;}
-                | SUB ident                     {$$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub));}
+				| ident 						{ $$ = $1; }
+                | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
 
-				| LPAR expression RPAR				{$$ = $2;}
+				| LPAR expression RPAR				{ $$ = $2; }
 				| LAMBDA LPAR params RPAR DOT LPAR expression RPAR
-												{$$ = buildBoxAbstr($3,$7);}
+												{ $$ = buildBoxAbstr($3,$7); }
 
-				| CASE LBRAQ rulelist RBRAQ		{$$ = boxCase(checkRulelist($3));}
+				| CASE LBRAQ rulelist RBRAQ		{ $$ = boxCase(checkRulelist($3)); }
 				
-				| ffunction						{$$ = boxFFun($1); }
-                | fconst                        {$$ = $1;}
-                | fvariable                     {$$ = $1;}
-                | COMPONENT LPAR uqstring RPAR  {$$ = boxComponent($3); }
-                | LIBRARY LPAR uqstring RPAR    {$$ = boxLibrary($3); }
-                | ENVIRONMENT LBRAQ deflist RBRAQ {$$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
+				| ffunction						{ $$ = boxFFun($1); }
+                | fconst                        { $$ = $1; }
+                | fvariable                     { $$ = $1; }
+                | COMPONENT LPAR uqstring RPAR  { $$ = boxComponent($3); }
+                | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
+                | ENVIRONMENT LBRAQ deflist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
 
-				| button						{$$ = $1;}
-				| checkbox						{$$ = $1;}
-				| vslider						{$$ = $1;}
-				| hslider						{$$ = $1;}
-				| nentry						{$$ = $1;}
-				| vgroup						{$$ = $1;}
-				| hgroup						{$$ = $1;}
-				| tgroup						{$$ = $1;}
-				| vbargraph						{$$ = $1;}
-				| hbargraph						{$$ = $1;}
+				| button						{ $$ = $1; }
+				| checkbox						{ $$ = $1; }
+				| vslider						{ $$ = $1; }
+				| hslider						{ $$ = $1; }
+				| nentry						{ $$ = $1; }
+				| vgroup						{ $$ = $1; }
+				| hgroup						{ $$ = $1; }
+				| tgroup						{ $$ = $1; }
+				| vbargraph						{ $$ = $1; }
+				| hbargraph						{ $$ = $1; }
 
-				| fpar							{$$ = $1;}
-				| fseq							{$$ = $1;}
-				| fsum							{$$ = $1;}
-				| fprod							{$$ = $1;}
+				| fpar							{ $$ = $1; }
+				| fseq							{ $$ = $1; }
+				| fsum							{ $$ = $1; }
+				| fprod							{ $$ = $1; }
 				;
 
 
-ident			: IDENT							{$$ = boxIdent(yytext);}
+ident			: IDENT							{ $$ = boxIdent(yytext); }
 				;
 
-name			: IDENT							{$$ = tree(yytext);}
+name			: IDENT							{ $$ = tree(yytext); }
 				;
 
 
 
-arglist			: argument						{$$ = cons($1,nil); }
-				| arglist PAR argument			{$$ = cons($3,$1); }
+arglist			: argument						{ $$ = cons($1,nil); }
+				| arglist PAR argument			{ $$ = cons($3,$1); }
 				;
 
-argument		: argument SEQ argument  		{$$ = boxSeq($1,$3);}
-				| argument SPLIT argument 		{$$ = boxSplit($1,$3);}
-				| argument MIX argument 		{$$ = boxMerge($1,$3);}
-				| argument REC argument  		{$$ = boxRec($1,$3);}
-				| infixexp					{$$ = $1;}
+argument		: argument SEQ argument  		{ $$ = boxSeq($1,$3); }
+				| argument SPLIT argument 		{ $$ = boxSplit($1,$3); }
+				| argument MIX argument 		{ $$ = boxMerge($1,$3); }
+				| argument REC argument  		{ $$ = boxRec($1,$3); }
+				| infixexp					{ $$ = $1; }
 				;
 
-string			: STRING						{$$ = tree(yytext); }
+string			: STRING						{ $$ = tree(yytext); }
 				;
 
-uqstring		: STRING						{$$ = unquote(yytext); }
+uqstring		: STRING						{ $$ = unquote(yytext); }
 				;
 
-fstring			: STRING						{$$ = tree(yytext); }
-				| FSTRING						{$$ = tree(yytext); }
+fstring			: STRING						{ $$ = tree(yytext); }
+				| FSTRING						{ $$ = tree(yytext); }
 				;
 
 /* description of iterative expressions */
 
 fpar			: IPAR LPAR ident PAR argument PAR expression RPAR
-												{$$ = boxIPar($3,$5,$7);}
+												{ $$ = boxIPar($3,$5,$7); }
 				;
 
 fseq			: ISEQ LPAR ident PAR argument PAR expression RPAR
-												{$$ = boxISeq($3,$5,$7);}
+												{ $$ = boxISeq($3,$5,$7); }
 				;
 
 fsum			: ISUM LPAR ident PAR argument PAR expression RPAR
-												{$$ = boxISum($3,$5,$7);}
+												{ $$ = boxISum($3,$5,$7); }
 				;
 
 fprod			: IPROD LPAR ident PAR argument PAR expression RPAR
-												{$$ = boxIProd($3,$5,$7);}
+												{ $$ = boxIProd($3,$5,$7); }
 				;
 
 
 /* description of foreign functions */
 
 ffunction		: FFUNCTION LPAR signature PAR fstring PAR string RPAR
-												{$$ = ffunction($3,$5,$7);}
+												{ $$ = ffunction($3,$5,$7); }
 				;
 
 fconst          : FCONSTANT LPAR type name PAR fstring RPAR
-                                                {$$ = boxFConst($3,$4,$6);}
+                                                { $$ = boxFConst($3,$4,$6); }
 
 fvariable       : FVARIABLE LPAR type name PAR fstring RPAR
-                                                {$$ = boxFVar($3,$4,$6);}
+                                                { $$ = boxFVar($3,$4,$6); }
 				;
 
 /* Description of user interface building blocks */
-button			: BUTTON LPAR uqstring RPAR		{$$ = boxButton($3); }
+button			: BUTTON LPAR uqstring RPAR		{ $$ = boxButton($3); }
 				;
 
-checkbox		: CHECKBOX LPAR uqstring RPAR		{$$ = boxCheckbox($3); }
+checkbox		: CHECKBOX LPAR uqstring RPAR		{ $$ = boxCheckbox($3); }
 				;
 
 vslider			: VSLIDER LPAR uqstring PAR argument PAR argument PAR argument PAR argument RPAR
-												{$$ = boxVSlider($3,$5,$7,$9,$11); }
+												{ $$ = boxVSlider($3,$5,$7,$9,$11); }
 				;
 hslider			: HSLIDER LPAR uqstring PAR argument PAR argument PAR argument PAR argument RPAR
-												{$$ = boxHSlider($3,$5,$7,$9,$11); }
+												{ $$ = boxHSlider($3,$5,$7,$9,$11); }
 				;
 nentry			: NENTRY LPAR uqstring PAR argument PAR argument PAR argument PAR argument RPAR
-												{$$ = boxNumEntry($3,$5,$7,$9,$11); }
+												{ $$ = boxNumEntry($3,$5,$7,$9,$11); }
 				;
 vgroup			: VGROUP LPAR uqstring PAR expression RPAR
-												{$$ = boxVGroup($3, $5); }
+												{ $$ = boxVGroup($3, $5); }
 				;
 hgroup			: HGROUP LPAR uqstring PAR expression RPAR
-												{$$ = boxHGroup($3, $5); }
+												{ $$ = boxHGroup($3, $5); }
 				;
 tgroup			: TGROUP LPAR uqstring PAR expression RPAR
-												{$$ = boxTGroup($3, $5); }
+												{ $$ = boxTGroup($3, $5); }
 				;
 
 vbargraph		: VBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
-												{$$ = boxVBargraph($3,$5,$7); }
+												{ $$ = boxVBargraph($3,$5,$7); }
 				;
 hbargraph		: HBARGRAPH LPAR string PAR argument PAR argument RPAR
-												{$$ = boxHBargraph($3,$5,$7); }
+												{ $$ = boxHBargraph($3,$5,$7); }
 				;
 
 /* Description of foreign functions */
 
-signature		: type fun LPAR typelist RPAR	{$$ = cons($1, cons($2, $4)); }
-				| type fun LPAR RPAR			{$$ = cons($1, cons($2, nil)); }
+signature		: type fun LPAR typelist RPAR	{ $$ = cons($1, cons($2, $4)); }
+				| type fun LPAR RPAR			{ $$ = cons($1, cons($2, nil)); }
 				;
 
-fun				: IDENT							{$$ = tree(yytext);}
+fun				: IDENT							{ $$ = tree(yytext); }
 				;
 
-typelist		: type							{$$ = cons($1,nil); }
-				| typelist PAR type				{$$ = cons($3,$1); }
+typelist		: type							{ $$ = cons($1,nil); }
+				| typelist PAR type				{ $$ = cons($3,$1); }
                 ;
 
-rulelist		: rule							{$$ = cons($1,nil); }
-				| rulelist rule					{$$ = cons($2,$1); }
+rulelist		: rule							{ $$ = cons($1,nil); }
+				| rulelist rule					{ $$ = cons($2,$1); }
 				;
 
 rule			: LPAR arglist RPAR ARROW expression ENDDEF
-												{$$ = cons($2,$5); }
+												{ $$ = cons($2,$5); }
 				;
 
-type			: INTCAST						{$$ = tree(0); }
-				| FLOATCAST						{$$ = tree(1); }
+type			: INTCAST						{ $$ = tree(0); }
+				| FLOATCAST						{ $$ = tree(1); }
 				;
 
 %%

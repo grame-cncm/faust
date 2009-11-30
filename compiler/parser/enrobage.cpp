@@ -23,11 +23,12 @@
  
 #include "enrobage.hh"
 #include <string>
-#include <cstdlib>
-#include <climits>
-#include <assert.h>
+#include <limits.h>
+#include <stdlib.h>
 #include "compatibility.hh"
+#include <climits>
 
+extern string gFaustSuperSuperDirectory;
 extern string gFaustSuperDirectory;
 extern string gFaustDirectory;
 extern string gMasterDirectory;
@@ -59,32 +60,41 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
  */
 ifstream* open_arch_stream(const char* filename)
 {
-	char	old[PATH_MAX];
-	
-    assert(getcwd (old, PATH_MAX) != 0) ;
+	char	buffer[FAUST_PATH_MAX];
+    char*	old = getcwd (buffer, FAUST_PATH_MAX);
+	int		err;
 
     {
 	    ifstream* f = new ifstream();
 	    f->open(filename, ifstream::in); if (f->is_open()) return f; else delete f;
     }
 	if ( (chdir(gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+		//cout << "enrobage.cpp : 'architecture' directory found in gFaustDirectory" << endl;
         ifstream* f = new ifstream();
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
-	assert(chdir(old) == 0);
+	err = chdir(old);
 	if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+		//cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
         ifstream* f = new ifstream();
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
-	assert(chdir(old) == 0);
+	err = chdir(old);
+	if ((chdir(gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+		//cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
+        ifstream* f = new ifstream();
+		f->open(filename, ifstream::in);
+		if (f->good()) return f; else delete f;
+	}
+	err = chdir(old);
 	if (chdir("/usr/local/lib/faust")==0) {
         ifstream* f = new ifstream();
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
-	assert(chdir(old) == 0);
+	err = chdir(old);
 	if (chdir("/usr/lib/faust")==0) {
         ifstream* f = new ifstream();
 		f->open(filename); 
@@ -117,82 +127,180 @@ bool check_file(const char* filename)
 		
 
 /**
- * Try to open the file 'dir/filename'
+ * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
+ * of the file into <fullpath>
  */
-static FILE* fopenat(const char* dir, const char* filename)
+static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
 {
-    char        olddir[PATH_MAX];
+	int 		err; 
+    char        olddirbuffer[FAUST_PATH_MAX];
+    char        newdirbuffer[FAUST_PATH_MAX];
     
-    assert(getcwd (olddir, PATH_MAX) != 0) ;
-    //getcwd (olddir, PATH_MAX);
+    char* 		olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
+
     if (chdir(dir) == 0) {           
         FILE* f = fopen(filename, "r");
-        assert(chdir(olddir) == 0);
-    	//chdir(olddir);
+		fullpath = getcwd (newdirbuffer, FAUST_PATH_MAX);
+		fullpath += '/';
+		fullpath += filename;
+        err = chdir(olddir);
         return f;
     }
-	assert(chdir(olddir) == 0);
-    //chdir(olddir);
+    err = chdir(olddir);
     return 0;
 }
 
 /**
- * Try to open the file 'dir/filename'
+ * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
+ * of the file into <fullpath>
  */
-static FILE* fopenat(const string& dir, const char* filename)
+static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
 {
-    return fopenat(dir.c_str(), filename);
+    return fopenat(fullpath, dir.c_str(), filename);
 }
 
 /**
- * Try to open the file 'dir/path/filename'
+ * Try to open the file '<dir>/<path>/<filename>'. If it succeed, it stores the full pathname
+ * of the file into <fullpath>
  */
-static FILE* fopenat(const string& dir, const char* path, const char* filename)
+static FILE* fopenat(string& fullpath, const string& dir, const char* path, const char* filename)
 {
-    char        olddir[PATH_MAX];
+	int			err;
+    char        olddirbuffer[FAUST_PATH_MAX];
+    char        newdirbuffer[FAUST_PATH_MAX];
     
-    assert(getcwd (olddir, PATH_MAX) != 0) ;
-    //getcwd (olddir, PATH_MAX);
+    char* 		olddir = getcwd (olddirbuffer, FAUST_PATH_MAX);
     if (chdir(dir.c_str()) == 0) {
         if (chdir(path) == 0) {            
             FILE* f = fopen(filename, "r");
-            assert(chdir(olddir) == 0);
-    		//chdir(olddir);
+			fullpath = getcwd (newdirbuffer, FAUST_PATH_MAX);
+			fullpath += '/';
+			fullpath += filename;
+            err = chdir(olddir);
             return f;
         }
     }
-    assert(chdir(olddir) == 0);
-    //chdir(olddir);
+    err = chdir(olddir);
     return 0;
 }
 
 
 /**
- * Try to open the file searching in various directories
+ * Build a full pathname of <filename>.
+ * <fullpath> = <currentdir>/<filename>
+ */
+static void buildFullPathname(string& fullpath, const char* filename)
+{
+	char	old[FAUST_PATH_MAX];
+    
+    fullpath = getcwd (old, FAUST_PATH_MAX);
+    fullpath += '/';
+    fullpath += filename;
+}
+
+/**
+ * Try to open the file <filename> searching in various directories. If succesful
+ *  place its full pathname in the string <fullpath>
  */
 
 #ifdef WIN32
-FILE* fopensearch(const char* filename)
+FILE* fopensearch(const char* filename, string& fullpath)
 {   
     FILE* f;
 
-    if ((f = fopen(filename, "r"))) return f;
-    if ((f = fopenat(gMasterDirectory, filename))) return f;
-    if ((f = fopenat(gFaustDirectory, "architecture", filename))) return f;
-    if ((f = fopenat(gFaustSuperDirectory, "architecture", filename))) return f;
+    if ((f = fopen(filename, "r"))) { 
+    	buildFullPathname(fullpath, filename); 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gFaustSuperDirectory, "architecture", filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gFaustSuperSuperDirectory, "architecture", filename))) { 
+    	return f;
+    }
     return 0;
 }
 #else
-FILE* fopensearch(const char* filename)
+FILE* fopensearch(const char* filename, string& fullpath)
 {   
     FILE* f;
 
-    if ((f = fopen(filename, "r"))) return f;
-    if ((f = fopenat(gMasterDirectory, filename))) return f;
-    if ((f = fopenat(gFaustDirectory, "architecture", filename))) return f;
-    if ((f = fopenat(gFaustSuperDirectory, "architecture", filename))) return f;
-    if ((f = fopenat("/usr/local/lib/faust", filename))) return f;
-    if ((f = fopenat("/usr/lib/faust", filename))) return f;
+
+    if ((f = fopen(filename, "r"))) { 
+    	buildFullPathname(fullpath, filename); 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gFaustSuperDirectory, "architecture", filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, gFaustSuperSuperDirectory, "architecture", filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, "/usr/local/lib/faust", filename))) { 
+    	return f;
+    }
+    if ((f = fopenat(fullpath, "/usr/lib/faust", filename))) { 
+    	return f;
+    }
     return 0;
 }
 #endif
+
+
+/** 
+ * filebasename returns the basename of a path.
+ * (adapted by kb from basename.c)
+ *
+ * @param[in]	The path to parse.
+ * @return		The last component of the given path.
+ */
+#ifndef DIR_SEPARATOR
+#define DIR_SEPARATOR '/'
+#endif
+
+#ifdef WIN32
+#define HAVE_DOS_BASED_FILE_SYSTEM
+#ifndef DIR_SEPARATOR_2 
+#define DIR_SEPARATOR_2 '\\'
+#endif
+#endif
+
+/* Define IS_DIR_SEPARATOR.  */
+#ifndef DIR_SEPARATOR_2
+# define IS_DIR_SEPARATOR(ch) ((ch) == DIR_SEPARATOR)
+#else /* DIR_SEPARATOR_2 */
+# define IS_DIR_SEPARATOR(ch) \
+(((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
+#endif /* DIR_SEPARATOR_2 */
+
+const char* filebasename(const char* name)
+{
+#if defined (HAVE_DOS_BASED_FILE_SYSTEM)
+	/* Skip over the disk name in MSDOS pathnames. */
+	if (isalpha(name[0]) && name[1] == ':') 
+		name += 2;
+#endif
+
+	const char* base;
+	for (base = name; *name; name++)
+    {
+		if (IS_DIR_SEPARATOR (*name))
+		{
+			base = name + 1;
+		}
+    }
+	return base;
+}
+
