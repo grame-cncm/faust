@@ -278,7 +278,7 @@ bool process_cmdline(int argc, char* argv[])
             gFloatSize = 3;
             i += 1;
 			
-        } else if (isCmd(argv[i], "-doc", "--documentation")) {
+        } else if (isCmd(argv[i], "-m", "--math")) {
             gPrintDocSwitch = true;
             i += 1;
 			
@@ -338,7 +338,7 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
     cout << "-svg \t\tprint block-diagram --svg file\n";
-    cout << "-doc \t\tprint faust --documentation of comments (<doc>) and included compiled signals (<equation> and <diagram>) as a latex file\n";
+    cout << "-m \t\tprint --math semantic of a Faust program in Latx format\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
