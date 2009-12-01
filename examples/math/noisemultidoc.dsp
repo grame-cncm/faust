@@ -5,7 +5,7 @@ declare license 	"BSD";
 declare copyright 	"(c)GRAME 2009";
 
 //-----------------------------------------------
-// 	Demo file for the Faust documentation.
+// Demo file for the Faust math documentation.
 //-----------------------------------------------
 
 
@@ -22,7 +22,7 @@ noise   = random/2147483647;
 Moreover, its sound level is controlled by a user interface element, finally giving the following equation : <equation>process</equation>
 </doc>
 
-<doc>This process is illustrated with <diagram>process</diagram>.</doc>
+<doc>This process is illustrated with figure 1.<diagram>process</diagram></doc>
 
 
 process = noise * vslider("volume", 0, 0, 1, 0.1);
