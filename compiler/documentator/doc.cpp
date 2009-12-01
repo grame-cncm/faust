@@ -449,24 +449,29 @@ static void declareAutoDoc()
 	Tree autodoc = nil;
 	Tree process = boxIdent("process");
 	
-	string autoEquationTxt = "\n\\section{Equations of process}\n\nThis program calls a \\emph{process}, which mathematical description follows.\n";
+	string autoEquationTxt = "\n\\section{Equations of process}\n\n";
+	autoEquationTxt += "This program calls a \\emph{process}, which mathematical description follows:\n";
 	autodoc = cons(docTxt(autoEquationTxt.c_str()), autodoc);
 	autodoc = cons(docEqn(process), autodoc);
 	
-	string autoDiagramTxt = "\n\\section{Block-diagram schema of process}\n\nThe block-diagram schema of \\emph{process} is shown on ";
+	string autoDiagramTxt = "\n\\section{Block-diagram schema of process}\n\n";
+	autoDiagramTxt += "The block-diagram schema of \\emph{process} is shown on figure \\ref{figure1}.\n";
 	autodoc = cons(docTxt(autoDiagramTxt.c_str()), autodoc);
 	autodoc = cons(docDgm(process), autodoc);	
 	
-	string autoNoticeTxt = "\n\\section{Notice of this documentation}\n\nYou might be careful of certain information and naming conventions used in this documentation:\n";
+	string autoNoticeTxt = "\n\\section{Notice of this documentation}\n\n";
+	autoNoticeTxt += "You might be careful of certain information and naming conventions used in this documentation:\n";
 	autodoc = cons(docTxt(autoNoticeTxt.c_str()), autodoc);
 	autodoc = cons(docNtc(), autodoc);
 	
 	string autoListingTxt;
 	vector<string> pathnames = gReader.listSrcFiles();
 	if(pathnames.size() > 1) {
-		autoListingTxt = "\n\\section{Complete listings of the input code}\n\nThe following listings show the Faust code parsed to compile this documentation.\n";
+		autoListingTxt = "\n\\section{Complete listings of the input code}\n\n";
+		autoListingTxt += "The following listings show the Faust code parsed to compile this documentation.\n";
 	} else {
-		autoListingTxt = "\n\\section{Complete listing of the input code}\n\nThe following listing shows the Faust code parsed to compile this documentation.\n";
+		autoListingTxt = "\n\\section{Complete listing of the input code}\n\n";
+		autoListingTxt += "The following listing shows the Faust code parsed to compile this documentation.\n";
 	}
 	autodoc = cons(docTxt(autoListingTxt.c_str()), autodoc);
 	autodoc = cons(docLst(), autodoc);
@@ -902,7 +907,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
 	/** 3. Print LaTeX figure code. */
 	char temp[1024];
 	const string dgmfilename = legalFileName(docdgm, 1024, temp);
-	docout << "figure \\ref{figure" << i << "}";
+	//docout << "figure \\ref{figure" << i << "}";
 	docout << "\\begin{figure}[ht!]" << endl;
 	docout << "\t\\centering" << endl;
 	docout << "\t\\includegraphics[width=\\textwidth]{" << subst("../svg/svg-$0/", dgmid) << dgmfilename << "}" << endl;

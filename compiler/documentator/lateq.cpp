@@ -101,9 +101,7 @@ void Lateq::println(ostream& docout)
 	printMath		("", fSelectSigsFormulas, docout);
 	printMath		("", fPrefixSigsFormulas, docout);
 	
-	docout << "\\end{enumerate}" << endl;
-	docout << "\\hspace{.44\\textwidth}***" << endl;
-	docout << "\\bigskip" << endl << endl;
+	docout << "\\end{enumerate}" << endl << endl;
 }
 
 
