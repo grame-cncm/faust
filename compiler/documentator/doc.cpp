@@ -115,10 +115,10 @@ static void		printlatexheader(istream& latexheader, ostream& docout);
 static void		printfaustlistings(ostream& docout);
 static void		printfaustlisting(string& path, ostream& docout);
 static void		printlatexfooter(ostream& docout);
-static void		printdoccontent(const char* svgtopdir, const vector<Tree>& docVector, const string& faustversion, ostream& docout);
+static void		printdoccontent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout);
 static void		printfaustdocstamp(const string& faustversion, ostream& docout);
 static void		printDocEqn(Lateq* ltq, ostream& docout);
-static void		printDocDgm(const Tree expr, const char* svgtopdir, ostream& docout, int i);
+static void		printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout, int i);
 
 /* Primary sub-functions for <equation> handling */
 static void	prepareDocEqns( const vector<Tree>& docBoxes, vector<Lateq*>& docCompiledEqnsVector );		///< Caller function.
@@ -223,9 +223,9 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	cout << "Documentator : printDoc : Creating directory '" << projname << "'" << endl;
 	makedir(projname); 			// create a top directory to store files
 	
-	string svgtopdir = subst("$0/svg", projname);
-	cout << "Documentator : printDoc : Creating directory '" << svgtopdir << "'" << endl;
-	makedir(svgtopdir.c_str()); // create a directory to store svg-* subdirectories.
+	string svgTopDir = subst("$0/svg", projname);
+	cout << "Documentator : printDoc : Creating directory '" << svgTopDir << "'" << endl;
+	makedir(svgTopDir.c_str()); // create a directory to store svg-* subdirectories.
 	
 	string cppdir = subst("$0/cpp", projname);
 	cout << "Documentator : printDoc : Creating directory '" << cppdir << "'" << endl;
@@ -248,7 +248,7 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	ofstream docout(subst("$0.$1", gDocName, docdev).c_str());
 	cholddir();					// return to current directory
 	
-	/** Simulate a default doc if needed. */
+	/** Simulate a default doc if no <doc> tag detected. */
 	if (gDocVector.empty()) { declareAutoDoc(); } 
 	
 	/** 
@@ -272,9 +272,7 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	istream* latexheader = openArchFile(gLatexheaderfilename);
 	printlatexheader(*latexheader, docout);							///< Static LaTeX header (packages and setup).
 	printdocheader(docout);											///< Dynamic visible header (maketitle).
-	printdoccontent(svgtopdir.c_str(), gDocVector, faustversion, docout);		///< Generate contents (main stuff!).
-	printfaustlistings(docout);										///< Faust source listings.
-//	printDocNotice(faustversion, docout);							///< Notice of printed formulas (after printdoccontent).
+	printdoccontent(svgTopDir.c_str(), gDocVector, faustversion, docout);		///< Generate math contents (main stuff!).
 	printlatexfooter(docout);										///< Static LaTeX footer.
 	
 }
@@ -498,7 +496,7 @@ static void declareAutoDoc()
  * @param[in]	faustversion	The current version of this Faust compiler.
  * @param[out]	docout			The output file to print into.
  **/
-static void printdoccontent(const char* svgtopdir, const vector<Tree>& docVector, const string& faustversion, ostream& docout)
+static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout)
 {
 	cout << endl << "Documentator : printdoccontent : " << docVector.size() << " <doc> tags read." << endl;
 	
@@ -522,7 +520,7 @@ static void printdoccontent(const char* svgtopdir, const vector<Tree>& docVector
 				printDocEqn(*eqn_it++, docout);
 			}
 			else if ( isDocDgm(hd(L), expr) ) { 
-				printDocDgm(expr, svgtopdir, docout, i++);
+				printDocDgm(expr, svgTopDir, docout, i++);
 			}
 			else if ( isDocTxt(hd(L)) ) { 
 				docout << *hd(L)->branch(0) << endl; // Directly print registered doc text.
@@ -534,7 +532,7 @@ static void printdoccontent(const char* svgtopdir, const vector<Tree>& docVector
 				printfaustlistings(docout);
 			}
 			else { 
-				cout << "ERROR : " << *hd(L) << " is not a documentation type." << endl; 
+				cerr << "ERROR : " << *hd(L) << " is not a documentation type." << endl; 
 			}
 			L = tl(L);
 		}
@@ -878,10 +876,10 @@ static void printDocEqn(Lateq* ltq, ostream& docout)
  * 3. print latex figure code with the appropriate directory reference
  *
  * @param[in]	expr		Parsed input expression, as boxes tree.
- * @param[in]	svgtopdir	Basename of the new doc directory ("*-math/svg").
+ * @param[in]	svgTopDir	Basename of the new doc directory ("*-math/svg").
  * @param[out]	docout		The output file to print into.
  */
-static void printDocDgm(const Tree expr, const char* svgtopdir, ostream& docout, int i)
+static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout, int i)
 {
 	/** 1. Evaluate expression. */
 	Tree docdgm = evaldocexpr(expr, gExpandedDefList);
@@ -896,7 +894,7 @@ static void printDocDgm(const Tree expr, const char* svgtopdir, ostream& docout,
 	 */
 	char dgmid[MAXIDCHARS+1];
 	sprintf(dgmid, "%02d", i);
-	string thisdgmdir = subst("$0/svg-$1", svgtopdir, dgmid);
+	string thisdgmdir = subst("$0/svg-$1", svgTopDir, dgmid);
 	cout << "Documentator : printDocDgm : drawSchema in '" << gCurrentDir << "/" << thisdgmdir << "'" << endl;
 	
 	drawSchema( docdgm, thisdgmdir.c_str(), "svg" );
