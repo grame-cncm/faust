@@ -144,7 +144,7 @@ string scientific2tenpow (double n);
 //	return substitution (model, args);
 //}
 
-
+#if 0
 /**
  * Suppress trailing zero in a string representating a floating point number.
  * example : 1.00000  -> 1.0
@@ -160,6 +160,7 @@ static void zdel(char* c)
     while ( l>1 && c[l-1] != '.' && c[l] == '0')  c[l--] = 0;
     if (f) c[++l] = 'f';    // restaure trailing f if needed
 }
+#endif
 
 string docT (char* c) 	{ return string(c); }
 string docT (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
