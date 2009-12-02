@@ -275,7 +275,7 @@ deflist         : /*empty*/                     { $$ = nil; }
 statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
 				| DECLARE name string  ENDDEF		   	{ declareMetadata($2,$3); $$ = nil; }
 				| definition						   	{ $$ = $1; }
-				| BDOC doc EDOC						   	{ declareDoc($2); $$ = nil; cout << "Yacc : doc : " << *$2 << endl ; doctxtString = "";  }
+				| BDOC doc EDOC						   	{ declareDoc($2); $$ = nil; /*cerr << "Yacc : doc : " << *$2 << endl ; doctxtString = ""; */ }
                 ;
 
 doc             : /* empty */						   	{ $$ = nil; }

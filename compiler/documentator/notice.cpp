@@ -73,7 +73,7 @@ void printDocNotice(const string& faustversion, ostream& docout) {
 	
 	if (! gDocNoticeStringMap.empty() ) {
 		
-		cerr << "Documentator : printDocNotice : printing..." << endl;
+		//cerr << "Documentator : printDocNotice : printing..." << endl;
 		
 		docout << endl << "\\begin{itemize}" << endl;
 		
@@ -129,6 +129,7 @@ void printDocNotice(const string& faustversion, ostream& docout) {
 		
 		docout << "\\end{itemize}" << endl << endl;
 	}
+	//cerr << "  ... Documentator : printDocNotice : end of printing." << endl;
 }
 
 
@@ -186,7 +187,7 @@ void loadDocNoticeFile(const string& noticefilename) {
 				/* Capture and check the keyword. */
 				key = s.substr(pk1, pk2-1);
 				if (gDocNoticeKeySet.find(key) == gDocNoticeKeySet.end()) {
-					cerr << "Documentator : loadDocNoticeFile : " << "error : key not found (\"" << key << "\")";
+					cerr << "Documentator : loadDocNoticeFile : " << "warning : key not found (\"" << key << "\")";
 				}
 				/* Prepare text capture. */
 				pt1 = s.find_first_of("\"", pk2);
@@ -209,7 +210,7 @@ void loadDocNoticeFile(const string& noticefilename) {
 		/* Store the current pair. */
 		if(!key.empty() && !text.empty()) {
 			gDocNoticeStringMap[key] = text;
-			//cerr << "key = '" << key << "', " << "gDocNoticeStringMap[key] = '" << gDocNoticeStringMap[key] << "'" << endl;
+			//cerr << "gDocNoticeStringMap[\"" << key << "\"] = \"" << gDocNoticeStringMap[key] << "\"" << endl;
 		}
 	}
 	printDocNoticeStringMapContent();
@@ -284,11 +285,14 @@ static void initDocNoticeFlagMap() {
  * Simple trace function.
  */
 static void printDocNoticeStringMapContent() {
-	cout << "gDocNoticeStringMap.size() = " << gDocNoticeStringMap.size() << endl;
-	map<string,string>::iterator it;
-	int i = 1;
-	for(it = gDocNoticeStringMap.begin(); it!=gDocNoticeStringMap.end(); ++it)
-		cout << i++ << ".\tgDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;	
+	bool trace = false;
+	if(trace) {
+		cout << "gDocNoticeStringMap.size() = " << gDocNoticeStringMap.size() << endl;
+		map<string,string>::iterator it;
+		int i = 1;
+		for(it = gDocNoticeStringMap.begin(); it!=gDocNoticeStringMap.end(); ++it)
+			cout << i++ << ".\tgDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
+	}
 }
 
 
@@ -305,7 +309,7 @@ static istream* openArchFile (const string& filename)
 	istream* file;
 	getCurrentDir();	// Save the current directory.
 	if ( (file = open_arch_stream(filename.c_str())) ) {
-		cout << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
+		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
 	} else {
 		cerr << "ERROR : can't open architecture file " << filename << endl;
 		exit(1);

@@ -14,7 +14,7 @@ all : math copy
 
 
 compile :
-	$(MAKE) -C ../../compiler
+	$(MAKE) -C ../../compiler Makefile.unix
 
 install :
 	sudo $(MAKE) -C ../.. install

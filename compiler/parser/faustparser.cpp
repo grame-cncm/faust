@@ -1924,7 +1924,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 278 "parser/faustparser.y"
-    { declareDoc((yyvsp[(2) - (3)].exp)); (yyval.exp) = nil; cout << "Yacc : doc : " << *(yyvsp[(2) - (3)].exp) << endl ; doctxtString = "";  ;}
+    { declareDoc((yyvsp[(2) - (3)].exp)); (yyval.exp) = nil; /*cerr << "Yacc : doc : " << *$2 << endl ; doctxtString = ""; */ ;}
     break;
 
   case 11:

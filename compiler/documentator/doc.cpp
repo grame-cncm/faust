@@ -215,24 +215,24 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	gDocDevSuffix = docdev;
 	
 	/** File stuff : create doc directories and a tex file. */
-	cout << "Documentator : printDoc : gFaustDirectory = '" << gFaustDirectory << "'" << endl;
-	cout << "Documentator : printDoc : gFaustSuperDirectory = '" << gFaustSuperDirectory << "'" << endl;
-	cout << "Documentator : printDoc : gFaustSuperSuperDirectory = '" << gFaustSuperSuperDirectory << "'" << endl;
-	cout << "Documentator : printDoc : gCurrentDir = '" << gCurrentDir << "'" << endl;
+	//cerr << "Documentator : printDoc : gFaustDirectory = '" << gFaustDirectory << "'" << endl;
+	//cerr << "Documentator : printDoc : gFaustSuperDirectory = '" << gFaustSuperDirectory << "'" << endl;
+	//cerr << "Documentator : printDoc : gFaustSuperSuperDirectory = '" << gFaustSuperSuperDirectory << "'" << endl;
+	//cerr << "Documentator : printDoc : gCurrentDir = '" << gCurrentDir << "'" << endl;
 	
-	cout << "Documentator : printDoc : Creating directory '" << projname << "'" << endl;
+	//cerr << "Documentator : printDoc : Creating directory '" << projname << "'" << endl;
 	makedir(projname); 			// create a top directory to store files
 	
 	string svgTopDir = subst("$0/svg", projname);
-	cout << "Documentator : printDoc : Creating directory '" << svgTopDir << "'" << endl;
+	//cerr << "Documentator : printDoc : Creating directory '" << svgTopDir << "'" << endl;
 	makedir(svgTopDir.c_str()); // create a directory to store svg-* subdirectories.
 	
 	string cppdir = subst("$0/cpp", projname);
-	cout << "Documentator : printDoc : Creating directory '" << cppdir << "'" << endl;
+	//cerr << "Documentator : printDoc : Creating directory '" << cppdir << "'" << endl;
 	makedir(cppdir.c_str());	// create a cpp directory.
 	
 	string pdfdir = subst("$0/pdf", projname);
-	cout << "Documentator : printDoc : Creating directory '" << pdfdir << "'" << endl;
+	//cerr << "Documentator : printDoc : Creating directory '" << pdfdir << "'" << endl;
 	makedir(pdfdir.c_str());	// create a pdf directory.
 	
 	/* Copy all Faust source files into an 'src' sub-directory. */
@@ -240,9 +240,9 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	copyFaustSources(projname, pathnames);
 	
 	string texdir = subst("$0/tex", projname);
-	cout << "Documentator : printDoc : Creating directory '" << texdir << "'" << endl;
+	//cerr << "Documentator : printDoc : Creating directory '" << texdir << "'" << endl;
 	mkchdir(texdir.c_str()); 	// create a directory and move into.
-	cout << "Documentator : printDoc : Creating file '" << subst("$0.$1", gDocName, docdev) << "' in '" << texdir << "'" << endl;
+	//cerr << "Documentator : printDoc : Creating file '" << subst("$0.$1", gDocName, docdev) << "' in '" << texdir << "'" << endl;
 
 	 /** Create the doc file. */
 	ofstream docout(subst("$0.$1", gDocName, docdev).c_str());
@@ -377,7 +377,7 @@ static void printfaustlisting(string& faustfile, ostream& docout)
 	string	s;
 	ifstream src;
 	
-	cout << "Documentator : printfaustlisting : Opening file '" << faustfile << "'" << endl;
+	//cerr << "Documentator : printfaustlisting : Opening file '" << faustfile << "'" << endl;
 	src.open(faustfile.c_str(), ifstream::in);
 	
 	docout << endl << "\\bigskip\\bigskip" << endl;
@@ -503,7 +503,7 @@ static void declareAutoDoc()
  **/
 static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout)
 {
-	cout << endl << "Documentator : printdoccontent : " << docVector.size() << " <doc> tags read." << endl;
+	//cerr << endl << "Documentator : printdoccontent : " << docVector.size() << " <doc> tags read." << endl;
 	
 	/** Equations need to be prepared (named and compiled) before printing. */
 	vector<Lateq*>  docCompiledEqnsVector;
@@ -537,7 +537,7 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 				printfaustlistings(docout);
 			}
 			else { 
-				cerr << "ERROR : " << *hd(L) << " is not a documentation type." << endl; 
+				cerr << "ERROR : " << *hd(L) << " is not a valid documentation type." << endl; 
 			}
 			L = tl(L);
 		}
@@ -602,7 +602,7 @@ static void collectDocEqns(const vector<Tree>& docBoxes, vector<Tree>& eqBoxes)
 			L = tl(L);
 		}
 	}
-	cout << "Documentator : collectDocEqns : " << nbdoceqn << " <equation> tags found." << endl;
+	//cerr << "Documentator : collectDocEqns : " << nbdoceqn << " <equation> tags found." << endl;
 }
 
 
@@ -615,13 +615,13 @@ static void collectDocEqns(const vector<Tree>& docBoxes, vector<Tree>& eqBoxes)
  */
 static void mapEvalDocEqn(const vector<Tree>& eqBoxes, const Tree& env, vector<Tree>& evalEqBoxes)
 {
-	cout << "###\n# Documentator : mapEvalDocEqn" << endl;
+	//cerr << "###\n# Documentator : mapEvalDocEqn" << endl;
 	
 	for ( vector<Tree>::const_iterator eq=eqBoxes.begin(); eq < eqBoxes.end(); eq++)
 	{
 		evalEqBoxes.push_back(evaldocexpr( *eq, env ));
 	}
-	cout << "Documentator : end of mapEvalDocEqn\n---" << endl;
+	//cerr << "Documentator : end of mapEvalDocEqn\n---" << endl;
 }
 
 
@@ -633,7 +633,7 @@ static void mapEvalDocEqn(const vector<Tree>& eqBoxes, const Tree& env, vector<T
  */
 static void mapGetEqName(const vector<Tree>& evalEqBoxes, vector<string>& eqNames)
 {
-	cout << "###\n# Documentator : mapGetEqName" << endl;
+	//cerr << "###\n# Documentator : mapGetEqName" << endl;
 	
 	int i = 1;
 	for( vector<Tree>::const_iterator eq = evalEqBoxes.begin(); eq < evalEqBoxes.end(); eq++, i++ ) {
@@ -648,7 +648,7 @@ static void mapGetEqName(const vector<Tree>& evalEqBoxes, vector<string>& eqName
 		}		
 		eqNames.push_back( s ) ;
 	}
-	cout << "Documentator : end of mapGetEqName\n---" << endl;
+	//cerr << "Documentator : end of mapGetEqName\n---" << endl;
 }
 
 
@@ -663,7 +663,7 @@ static void mapGetEqName(const vector<Tree>& evalEqBoxes, vector<string>& eqName
  */
 static void calcEqnsNicknames(const vector<string>& eqNames, vector<string>& eqNicknames)
 {
-	cout << "###\n# Documentator : calcEqnsNicknames" << endl;
+	//cerr << "###\n# Documentator : calcEqnsNicknames" << endl;
 	
 	vector<string> v;
 	
@@ -671,24 +671,25 @@ static void calcEqnsNicknames(const vector<string>& eqNames, vector<string>& eqN
 		string init = calcDocEqnInitial(*eq);
 		v.push_back(init);
 		/** Check duplicates */
-		for( vector<string>::iterator it = v.begin(); it < v.end()-1; ++it ) {
-			if (init == *it)
-				cerr << "!! Warning Documentator : calcEqnsNicknames : duplicates \"" << init << "\"" << endl;
-		}
-//		cout << "• " << *eq << endl;
-//		char c1 = 'A'; char c2 = c1 + 1;
-//		cout << "•• c1 = " << c1 << " c2 = " << c2 << endl;
+//		for( vector<string>::iterator it = v.begin(); it < v.end()-1; ++it ) {
+//			if (init == *it) {
+//				//cerr << "!! Warning Documentator : calcEqnsNicknames : duplicates \"" << init << "\"" << endl;
+//			}
+//		}
 		eqNicknames.push_back(init);
 	}
 	
-	for( vector<string>::const_iterator eq = eqNames.begin(); eq < eqNames.end(); eq++ ) {
-		int c = 0;
-		c = count_if(eqNames.begin(), eqNames.end(), bind2nd(equal_to<string>(), *eq));
-		if (c > 0) cout << "• Duplicate nickname !! " << *eq << endl;
-		else cout << "(no duplicate) " << *eq << endl;
-	}
+//	for( vector<string>::const_iterator eq = eqNames.begin(); eq < eqNames.end(); eq++ ) {
+//		int c = 0;
+//		c = count_if(eqNames.begin(), eqNames.end(), bind2nd(equal_to<string>(), *eq));
+//		if (c > 0) { 
+//			cerr << "- Duplicate nickname !! " << *eq << endl; 
+//		} else {
+//			cerr << "(no duplicate) " << *eq << endl;
+//		}
+//	}
 	
-	cout << "Documentator : end of calcEqnsNicknames\n---" << endl;
+	//cerr << "Documentator : end of calcEqnsNicknames\n---" << endl;
 }
 
 
@@ -702,18 +703,18 @@ static void calcEqnsNicknames(const vector<string>& eqNames, vector<string>& eqN
  */
 static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInputs, vector<int>& eqOutputs, vector<Tree>& eqSigs)
 {
-	cout << "###\n# Documentator : mapPrepareEqSig" << endl;
+	//cerr << "###\n# Documentator : mapPrepareEqSig" << endl;
 	
 	for( vector<Tree>::const_iterator eq = evalEqBoxes.begin(); eq < evalEqBoxes.end(); eq++ ) {
 		
 		int numInputs, numOutputs;
 		getBoxInputsAndOutputs(*eq, numInputs, numOutputs);
-		cout << numInputs <<" ins and " << numOutputs <<" outs" << endl;
+		//cerr << numInputs <<" ins and " << numOutputs <<" outs" << endl;
 		eqInputs.push_back(numInputs);
 		eqOutputs.push_back(numOutputs);
 		
 		Tree lsig1 = boxPropagateSig( nil, *eq , makeSigInputList(numInputs) );
-		if (gDetailsSwitch) { cerr << "output signals are : " << endl;  printSignal(lsig1, stderr); }	
+		//cerr << "output signals are : " << endl;  printSignal(lsig1, stderr);
 		
 		Tree lsig2 = deBruijn2Sym(lsig1);   ///< Convert debruijn recursion into symbolic recursion
 		Tree lsig3 = simplify(lsig2);		///< Simplify by executing every computable operation
@@ -721,7 +722,7 @@ static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInpu
 		
 		eqSigs.push_back(lsig4);
 	}
-	cout << "Documentator : end of mapPrepareEqSig\n---" << endl;
+	//cerr << "Documentator : end of mapPrepareEqSig\n---" << endl;
 }
 
 
@@ -734,14 +735,14 @@ static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInpu
  */
 static void mapSetSigNickname(const vector<string>& eqNicknames, const vector<int>& eqInputs, const vector<Tree>& eqSigs)
 {
-	cout << "###\n# Documentator : mapSetSigNickname" << endl;
+	//cerr << "###\n# Documentator : mapSetSigNickname" << endl;
 
 //	Do nothing for the moment...
 //	for( unsigned int i=0; i < eqSigs.size(); i++ ) {
 //		if (eqInputs[i] == 0) // Only "generators" should be finally named with user equation (nick)name.
 //			setSigListNickName(eqSigs[i], eqNicknames[i]);
 //	}
-	cout << "Documentator : end of mapSetSigNickname\n---" << endl;
+	//cerr << "Documentator : end of mapSetSigNickname\n---" << endl;
 }
 
 
@@ -753,16 +754,16 @@ static void mapSetSigNickname(const vector<string>& eqNicknames, const vector<in
  */
 static void collectEqSigs(const vector<Tree>& eqSigs, Tree& superEqList)
 {
-	cout << "###\n# Documentator : collectEqSigs" << endl;
+	//cerr << "###\n# Documentator : collectEqSigs" << endl;
 	
 	superEqList = nil;
 	
 	for( vector<Tree>::const_iterator it = eqSigs.begin(); it < eqSigs.end(); ++it ) {
 		superEqList = cons( *it, superEqList );
 	}
-	printSignal(superEqList, stdout, 0);
+	//printSignal(superEqList, stdout, 0);
 	
-	cout << endl << "Documentator : end of collectEqSigs\n---" << endl;
+	//cerr << endl << "Documentator : end of collectEqSigs\n---" << endl;
 }
 
 
@@ -797,7 +798,7 @@ static void	annotateSuperList(DocCompiler* DC, Tree superEqList)
  */
 static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& eqInputs, const vector<int>& eqOutputs, DocCompiler* DC, vector<Lateq*>& docCompiledEqnsVector)
 {
-	cout << "###\n# Documentator : mapCompileDocEqnSigs" << endl;
+	//cerr << "###\n# Documentator : mapCompileDocEqnSigs" << endl;
 	
 	for( unsigned int i=0; i < eqSigs.size(); i++ ) {
 		
@@ -805,7 +806,7 @@ static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& 
 		docCompiledEqnsVector.push_back( DC->compileLateq(eqSigs[i], new Lateq(eqInputs[i], eqOutputs[i])) );
 	}
 	
-	cout << "Documentator : end of mapCompileDocEqnSigs\n---" << endl;
+	//cerr << "Documentator : end of mapCompileDocEqnSigs\n---" << endl;
 }
 
 
@@ -849,9 +850,7 @@ static void getBoxInputsAndOutputs(const Tree t, int& numInputs, int& numOutputs
 		cerr << "ERROR during the evaluation of t : " << boxpp(t) << endl;
 		exit(1);
 	}
-	if (gDetailsSwitch) {
-		cerr << "Documentator : " << numInputs <<" inputs and " << numOutputs <<" outputs for box : " << boxpp(t) << endl;
-	}
+	//cerr << "Documentator : " << numInputs <<" inputs and " << numOutputs <<" outputs for box : " << boxpp(t) << endl;
 }
 
 
@@ -864,7 +863,7 @@ static void getBoxInputsAndOutputs(const Tree t, int& numInputs, int& numOutputs
 static void printDocEqn(Lateq* ltq, ostream& docout) 
 {
 	ltq->println(docout);
-	//cerr << "Documentator : printDocEqn : "; ltq->println(cerr); cout << endl;
+	//cerr << "Documentator : printDocEqn : "; ltq->println(cerr); cerr << endl;
 }
 
 
@@ -900,7 +899,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
 	char dgmid[MAXIDCHARS+1];
 	sprintf(dgmid, "%02d", i);
 	string thisdgmdir = subst("$0/svg-$1", svgTopDir, dgmid);
-	cout << "Documentator : printDocDgm : drawSchema in '" << gCurrentDir << "/" << thisdgmdir << "'" << endl;
+	//cerr << "Documentator : printDocDgm : drawSchema in '" << gCurrentDir << "/" << thisdgmdir << "'" << endl;
 	
 	drawSchema( docdgm, thisdgmdir.c_str(), "svg" );
 	
@@ -1000,9 +999,9 @@ static istream* openArchFile (const string& filename)
 {
 	istream* file;
 	getCurrentDir();	// Save the current directory.
-	cout << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
+	//cerr << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
 	if ( (file = open_arch_stream(filename.c_str())) ) {
-		cout << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
+		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
 	} else {
 		cerr << "ERROR : can't open architecture file " << filename << endl;
 		exit(1);
@@ -1073,7 +1072,7 @@ static string rmExternalDoubleQuotes(const string& s)
 static void copyFaustSources(const char* projname, const vector<string>& pathnames)
 {
 	string srcdir = subst("$0/src", projname);
-	cout << "Documentator : copyFaustSources : Creating directory '" << srcdir << "'" << endl;
+	//cerr << "Documentator : copyFaustSources : Creating directory '" << srcdir << "'" << endl;
 	makedir(srcdir.c_str());	// create a directory.
 		
 	for (unsigned int i=0; i< pathnames.size(); i++) {
@@ -1081,8 +1080,8 @@ static void copyFaustSources(const char* projname, const vector<string>& pathnam
 		ofstream dst;
 		string faustfile = pathnames[i];
 		string copy = subst("$0/$1", srcdir, filebasename(faustfile.c_str()));
-		cout << "Documentator : copyFaustSources : Opening input file  '" << faustfile << "'" << endl;
-		cout << "Documentator : copyFaustSources : Opening output file '" << copy << "'" << endl;
+		//cerr << "Documentator : copyFaustSources : Opening input file  '" << faustfile << "'" << endl;
+		//cerr << "Documentator : copyFaustSources : Opening output file '" << copy << "'" << endl;
 		src.open(faustfile.c_str(), ifstream::in);
 		dst.open(copy.c_str(), ofstream::out);
 		string	s;
