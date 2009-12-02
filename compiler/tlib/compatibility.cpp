@@ -20,16 +20,45 @@
  ************************************************************************/
  
 
-
-
 #if defined( __MINGW32__) || defined (WIN32)
-#include <windows.h>
-    int isatty(int file) {return 0;}
+	// Simulate some Unix fonctions on Windows
 
-    void getFaustPathname(char* str, unsigned int size)
-    {
-        GetModuleFileName(NULL, str, size);
-    }
+	#include <windows.h>
+
+	bool chdir(const char* path)
+	{
+		wchar_t	wstr[2048];
+		mbstowcs(wstr,path,2048);
+		return !SetCurrentDirectory(wstr);
+	}
+
+	int mkdir(const char* path, unsigned int attribute)
+	{
+		wchar_t	wstr[2048];
+		mbstowcs(wstr,path,2048);
+		return CreateDirectory(wstr,NULL);
+	}
+
+	char* getcwd(char* str, unsigned int size)
+	{
+		wchar_t	wstr[2048];
+		GetCurrentDirectory(2048, wstr);
+		wcstombs(str,wstr,size);
+		return str;
+	}
+
+	int isatty(int file)
+	{
+		return 0;
+	}
+
+	void getFaustPathname(char* str, unsigned int size)
+	{
+		wchar_t	wstr[2048];
+		GetModuleFileName(NULL, wstr, 2048);
+		wcstombs(str,wstr,size);
+	}
+
 
 #else // Linux
 

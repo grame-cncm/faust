@@ -23,33 +23,23 @@
 #ifndef     __COMPATIBILITY__
 #define     __COMPATIBILITY__
 
-void getFaustPathname(char* str, unsigned int size);
 
-#if defined( __MINGW32__)
+#if defined (WIN32)
 
 #include <windows.h>
+
+bool	chdir(const char* path);
+int		mkdir(const char* path, unsigned int attribute);
+char*	getcwd(char* str, unsigned int size);
+int		isatty(int file);
+void	getFaustPathname(char* str, unsigned int size);
+
+
 #define snprintf _snprintf
 //#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
-//#define FAUST_PATH_MAX 1024
-#define getcwd(buffer,len) GetCurrentDirectory(len,buffer)
-#define chdir(path) (!SetCurrentDirectory(path))
-#define mkdir(path,attribute) CreateDirectory(path,NULL)
-//#define S_IRWXU 0
-#define S_IRWXG 0
-#define S_IROTH 0
-#define S_IXOTH 0
-#define DIRSEP '\\'
-
-#elif defined (WIN32)
-
-#include <windows.h>
-#define snprintf _snprintf
-#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
 #define FAUST_PATH_MAX 1024
-#define getcwd(buffer,len) GetCurrentDirectory(len,buffer)
-#define chdir(path) (!SetCurrentDirectory(path))
-#define mkdir(path,attribute) CreateDirectory(path,NULL)
-#define S_IRWXU 0
+
+//#define S_IRWXU 0
 #define S_IRWXG 0
 #define S_IROTH 0
 #define S_IXOTH 0
@@ -60,6 +50,8 @@ void getFaustPathname(char* str, unsigned int size);
 #include <unistd.h>
 #define DIRSEP '/'
 #define FAUST_PATH_MAX 1024
+
+void getFaustPathname(char* str, unsigned int size);
 
 #endif
 
