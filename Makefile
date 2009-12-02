@@ -3,6 +3,8 @@ version := 0.9.9.6b11doc2
 DESTDIR ?= 
 PREFIX ?= /usr/local
 
+MAKEFILE := Makefile.unix
+
 prefix := $(DESTDIR)$(PREFIX)
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
@@ -10,7 +12,7 @@ vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
 all :
-	$(MAKE) -C compiler
+	$(MAKE) -C compiler -f $(MAKEFILE)
 
 
 .PHONY: clean depend install ininstall dist parser help
@@ -27,18 +29,18 @@ help :
 	@echo "make zip : make a windows binary distribution"
 
 parser :
-	$(MAKE) -C compiler parser
+	$(MAKE) -C compiler -f $(MAKEFILE) parser
 
 clean :
-	$(MAKE) -C compiler clean
+	$(MAKE) -C compiler -f $(MAKEFILE) clean
 	$(MAKE) -C examples clean
 
 depend :
-	$(MAKE) -C compiler depend
+	$(MAKE) -C compiler -f $(MAKEFILE) depend
 
 
 doc :
-	$(MAKE) -C compiler doc
+	$(MAKE) -C compiler -f $(MAKEFILE) doc
 
 
 install :
@@ -57,7 +59,7 @@ uninstall :
 	rm -f $(prefix)/bin/faust
 
 dist :
-	$(MAKE) -C compiler clean
+	$(MAKE) -C compiler -f $(MAKEFILE) clean
 	$(MAKE) -C examples clean
 	mkdir -p faust-$(version)
 	cp README COPYING Makefile faust-$(version)
@@ -76,7 +78,7 @@ dist :
 	rm -rf faust-$(version)
 
 archive :
-	$(MAKE) -C compiler clean
+	$(MAKE) -C compiler -f $(MAKEFILE) clean
 	$(MAKE) -C examples clean
 	mkdir -p $(vname)
 	cp README COPYING Makefile $(vname)
