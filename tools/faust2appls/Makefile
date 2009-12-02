@@ -15,4 +15,5 @@ install:
 	install faust2coreaudio $(prefix)/bin
 	install faust2puredata $(prefix)/bin
 	install faust2math $(prefix)/bin
+	install faust2mathviewer $(prefix)/bin
 
