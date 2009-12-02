@@ -77,8 +77,8 @@ public:
 	/** Top-level method to print a whole set of compiled LaTeX formulas. */
 	void println(ostream& docout);
 	
-	const int inputs()  const	{ return fNumInputs; }
-	const int outputs() const 	{ return fNumOutputs; }
+    int inputs()  const     { return fNumInputs; }
+    int outputs() const 	{ return fNumOutputs; }
 	
 	
 private:
