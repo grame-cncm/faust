@@ -1,12 +1,11 @@
 #!/bin/bash
 
-# faust2doc.sh
+# faust2mathdoc.sh
 #
 # Generate a full Faust documentation, in a '*-doc' top directory.
 #
 # Karim Barkati
 # November 2009
-# Grame - Centre National de Creation Musicale
 #
 #   Warning : this script requires several things to be installed :
 # - svg2pdf, from the Cairo 2D graphics library;
@@ -18,7 +17,7 @@
 # Usage.
 print_usage() 
 {
-    echo Usage : args of faust2doc should be a \'.dsp\' file, or a list of \'.dsp\' files.
+    echo Usage : args of faust2mathdoc should be a \'.dsp\' file, or a list of \'.dsp\' files.
 }
 
 
@@ -48,7 +47,7 @@ convert_svgdirs2pdf()
 
 
 #    Main loop of this script :
-# 1. Compile `faust -doc` to generate the TeX file and SVG block-diagrams.
+# 1. Compile `faust --mathdoc` to generate the TeX file and SVG block-diagrams.
 # 2. Move to the "${FILEPATH%.dsp}-doc" directory created by faust.
 # 3. Convert SVG files into PDF files recursively (with svg2pdf).
 # 4. Compile pdflatex twice (including the top-level block-diagram).
@@ -58,7 +57,7 @@ for FILEPATH in $@ ; do
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
-		faust -o ${FILEPATH%.dsp}.cpp -doc $FILEPATH &&
+		faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
 		cd ${FILEPATH%.dsp}-doc/ && 
 		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
 		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
