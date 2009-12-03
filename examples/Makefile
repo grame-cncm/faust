@@ -5,6 +5,7 @@ VSIZE := 1024
 
 SC_SOURCE_DIR = ../../supercollider
 
+
 all : jackgtk
 
 test: ijackgtk ijackvec ijackomp gjackgtk gjackvec gjackomp
@@ -34,7 +35,7 @@ gjackomp :
 	$(MAKE) DEST='gjackompdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs $(VSIZE) -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
 
 svg:
-	$(MAKE) -f Makefile.svg
+	$(MAKE) -f Makefile.svgcompile
 	
 puredata :
 	install -d puredatadir
@@ -190,6 +191,9 @@ jackconsole :
 	install -d jackconsoledir
 	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
 
+mathdoc :
+	$(MAKE) -f Makefile.mathdoc
+
 help:
 	@echo "make alsagtk       : compile examples as ALSA applications with a GTK Graphical User Interface"
 	@echo "make alsaqt        : compile examples as ALSA applications with a QT4 Graphical User Interface"
@@ -215,12 +219,14 @@ help:
 	@echo "make puredata      : compile examples as Puredata externals"
 	@echo "make q             : compile examples as Q plugins"
 	@echo "--------------------------------------------"
-	@echo "make svg 		  : generate the examples block-diagrams in SVG format "
-	@echo "make bench 		  : compile examples as command line benchmarks "
-	@echo "make plot 		  : compile examples as command line programs that prints samples on the standard output "
-	@echo "make plot 		  : compile examples as command line programs that plot samples with matlab "
+	@echo "make svg           : generate the examples block-diagrams in SVG format "
+	@echo "make mathdoc       : generate the examples math documentation in TEX and PDF formats "
+	@echo "make bench         : compile examples as command line benchmarks "
+	@echo "make plot          : compile examples as command line programs that prints samples on the standard output "
+	@echo "make plot          : compile examples as command line programs that plot samples with matlab "
 	@echo "--------------------------------------------"
-	@echo "make clean : remove all object files"
+	@echo "make clean         : remove all object files"
 
 clean :
 	rm -rf *dir
+	$(MAKE) -f Makefile.mathdoc clean
