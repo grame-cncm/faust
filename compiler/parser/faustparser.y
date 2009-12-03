@@ -285,8 +285,12 @@ doc             : /* empty */						   	{ $$ = nil; }
 docelem         : doctxt 							   	{ $$ = docTxt(doctxtString.c_str()); }
 				| doceqn 							   	{ $$ = docEqn($1); }
 				| docdgm 							   	{ $$ = docDgm($1); }
-				| docntc 							   	{ $$ = $1; }
-                | doclst 							   	{ $$ = $1; }
+				| docntc 							   	{ $$ = docNtc(); }
+                | doclst 							   	{ $$ = docLst(); }
+				;
+
+doctxt          : /* empty */				   		   	{ }
+				| doctxt DOCCHAR					   	{ (doctxtString += yytext); }
 				;
 
 doceqn          : BEQN expression EEQN			   	   	{ $$ = $2; doctxtString = ""; }
@@ -295,14 +299,10 @@ doceqn          : BEQN expression EEQN			   	   	{ $$ = $2; doctxtString = ""; }
 docdgm          : BDGM expression EDGM		   	   		{ $$ = $2; doctxtString = ""; }
 				;
 
-doctxt          : /* empty */				   		   	{ }
-				| doctxt DOCCHAR					   	{ (doctxtString += yytext); }
+docntc          : NOTICE								{ doctxtString = ""; }
 				;
 
-docntc          : NOTICE								{ $$ = docNtc(); }
-				;
-
-doclst          : LISTING								{ $$ = docLst(); }
+doclst          : LISTING								{ doctxtString = ""; }
 				;
 
 definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); }

@@ -84,15 +84,15 @@ void Lateq::println(ostream& docout)
 	string sInternals	= (internalSigsCount) > 1 ? "s" : "";
 	
 	/* Successively print each Lateq field containing LaTeX formulas, with a title. */
-	printOneLine	(subst("\\item Input signal$0 : ", sInputs), fInputSigsFormulas, docout);
-	printDGroup		(subst("\\item Output signal$0 : ", sOutputs), fOutputSigsFormulas, docout);
-	printDGroup		(subst("\\item Constant$0 : ", sConstants), fConstSigsFormulas, docout);
-	printHierarchy	(subst("\\item User interface element$0 : ", sUIElements), fUISigsFormulas, docout);
-	printDGroup		(subst("\\item Parameter signal$0 : ", sParameters), fParamSigsFormulas, docout);
+	printOneLine	(subst("\\item Input signal$0: ", sInputs), fInputSigsFormulas, docout);
+	printDGroup		(subst("\\item Output signal$0: ", sOutputs), fOutputSigsFormulas, docout);
+	printDGroup		(subst("\\item Constant$0: ", sConstants), fConstSigsFormulas, docout);
+	printHierarchy	(subst("\\item User interface element$0: ", sUIElements), fUISigsFormulas, docout);
+	printDGroup		(subst("\\item Parameter signal$0: ", sParameters), fParamSigsFormulas, docout);
 	
 	/* The "Internal signals" item gather several fields, like a "super-item"... */
 	if( internalSigsCount > 0 ) {
-		docout << subst("\\item Internal signal$0 : ", sInternals);
+		docout << subst("\\item Internal signal$0: ", sInternals);
 	}
 	fStoreSigsFormulas.sort(compLateqIndexes);
 	printDGroup		("", fStoreSigsFormulas, docout);

@@ -2,7 +2,7 @@
 // Copyright (C) 2009 GRAME, Centre National de Creation Musicale
 // Karim Barkati
 
-// Remark : 
+// Remark: 
 // double quotes are useful to visualize spaces and tabulations
 // at the beginning or at the end of strings.
 
@@ -13,7 +13,7 @@
 
 :causality  	"$\forall \, s(t) \in \mathbb{S}$, $s(t\!<\!0) = 0$."
 :svgdir			"Eventual sub-block-diagrams may be found in the "svg" sub-directory (only top-level block-diagrams are represented in this documentation)."
-:nameconflicts  "Warning: symbolic names eventually used inside block-diagrams have NO direct relation with signal names used in formulas ("$x(t)$", "$y(t)$", ...). Moreover, the computation may be simplified and reorganised."
+:nameconflicts  "Warning: symbolic names eventually used inside block-diagrams have NO direct relation with signal names used in formulas ("$x(t)$", "$y(t)$", ...). Moreover, the computation may be simplified and reorganized."
 
 :fsamp			"$f_S$ is the sampling frequency (or sampling rate)."
 :foreignfun		""ff" prefix in some function name stands for C++ "foreign function"."
