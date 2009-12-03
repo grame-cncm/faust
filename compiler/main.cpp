@@ -278,7 +278,7 @@ bool process_cmdline(int argc, char* argv[])
             gFloatSize = 3;
             i += 1;
 			
-        } else if (isCmd(argv[i], "-m", "--math")) {
+        } else if (isCmd(argv[i], "-md", "--mathdoc")) {
             gPrintDocSwitch = true;
             i += 1;
 			
@@ -338,7 +338,7 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
     cout << "-svg \t\tprint block-diagram --svg file\n";
-    cout << "-m \t\tprint --math semantic of a Faust program in Latx format\n";
+    cout << "-md \t\tprint --mathdoc (semantic) of a Faust program in LaTeX format\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -619,7 +619,7 @@ int main (int argc, char* argv[])
 			string projname = gMasterDocument;
 			if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
 				projname = gMasterDocument.substr(0, gMasterDocument.length()-4); }
-			printDoc( subst("$0-math", projname).c_str(), "tex", FAUSTVERSION );
+			printDoc( subst("$0-doc", projname).c_str(), "tex", FAUSTVERSION );
 		}
 	}
 

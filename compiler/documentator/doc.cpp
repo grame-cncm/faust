@@ -529,8 +529,6 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 			}
 			else if ( isDocTxt(hd(L)) ) { 
 				docout << *hd(L)->branch(0) << endl; // Directly print registered doc text.
-				static unsigned int i = 0;
-				cerr << "docTxt" << ++i << " = \"" << *hd(L)->branch(0) << "\"" << endl; // Directly print registered doc text.
 			}
 			else if ( isDocNtc(hd(L)) ) { 
 				printDocNotice(faustversion, docout);
