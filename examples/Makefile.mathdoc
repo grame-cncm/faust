@@ -19,29 +19,29 @@ mathdoc :
 	faust2mathdoc *.dsp
 
 copypdfs :
-	mkdir -p all-pdfs
-	cp $(PDF) all-pdfs/
+	mkdir -p allmathpdfs
+	cp $(PDF) allmathpdfs/
 
 copyall :
-	mkdir -p all-dsps
-	mkdir -p all-texs
-	mkdir -p all-pdfs
-	cp $(DSP) all-dsps/
-	cp $(TEX) all-texs/
-	cp $(PDF) all-pdfs/
+	mkdir -p allmathdsps
+	mkdir -p allmathtexs
+	mkdir -p allmathpdfs
+	cp $(DSP) allmathdsps/
+	cp $(TEX) allmathtexs/
+	cp $(PDF) allmathpdfs/
 
 help :
-	@echo "make or make all : compile math documentation of all examples, then copy resulting pdf files into \"all-pdfs\" directory."
-	@echo "make clean    : remove \"*-doc\" and \"all-*\" directories."
+	@echo "make or make all : compile math documentation of all examples, then copy resulting pdf files into \"allmathpdfs\" directory."
+	@echo "make clean    : remove \"*-doc\" and \"allmath*\" directories."
 	@echo "make compile  : compile the faust compiler."
 	@echo "make install  : install the faust compiler and faust2appls scripts."
 	@echo "make mathdoc  : generate math documentation of all examples (with faust2mathdoc)."
-	@echo "make copypdfs : copy pdf files into \"all-pdfs\" directory."
-	@echo "make copyall  : copy dsp, pdf, and tex files into \"all-dsps\", \"all-pdfs\", and \"all-texs\" directories."
+	@echo "make copypdfs : copy pdf files into \"allmathpdfs\" directory."
+	@echo "make copyall  : copy dsp, pdf, and tex files into \"allmathdsps\", \"allmathpdfs\", and \"allmathtexs\" directories."
 	@echo "make total    : clean, compile faust, install faust and faust2appls, compile math docs, and copy files."
 
 clean :
-	rm -rf all-*
+	rm -rf allmath*
 	rm -rf *-doc
 
 total : clean compile install mathdoc copyall
