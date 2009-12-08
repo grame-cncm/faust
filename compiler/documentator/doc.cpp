@@ -103,7 +103,6 @@ extern string 					gDocName;				///< Contains the filename for out documentation
 static const char* 				gDocDevSuffix;			///< ".tex" (or .??? - used to choose output device).
 static string 					gCurrentDir;			///< Room to save current directory name.
 static const string				gLatexheaderfilename = "latexheader.tex";
-static const string				gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
 vector<Tree> 					gDocVector;				///< Contains <doc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
 
@@ -241,24 +240,12 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	string texdir = subst("$0/tex", projname);
 	mkchdir(texdir.c_str()); 	// create a directory and move into.
 
-	 /** Create the mathdoc tex file. */
+	 /** Create THE mathdoc tex file. */
 	ofstream docout(subst("$0.$1", gDocName, docdev).c_str());
 	cholddir();					// return to current directory
 	
-	/** Init and load translation files. */
-	initDocMath();
-	initDocNotice();
-	initDocAutodoc();
-	
-	if (gDocLang == "fr") {
-		importDocStrings("mathdoctexts-fr.txt");
-	}
-//	else if (gDocLang == "it") {
-//		importDocStrings("mathdoctexts-it.txt");
-//	}
-	else {
-		importDocStrings(gDocTextsDefaultFile);
-	}
+	/** Init and load translation file. */
+	loadTranslationFile(gDocLang);
 	
 	/** Simulate a default doc if no <doc> tag detected. */
 	if (gDocVector.empty()) { declareAutoDoc(); } 	

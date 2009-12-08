@@ -32,8 +32,7 @@
 
 using namespace std;
 
-
-void importDocStrings(const string& filename);
+void loadTranslationFile(const string& lang);
 
 
 #endif

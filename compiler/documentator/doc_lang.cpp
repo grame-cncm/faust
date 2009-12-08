@@ -31,6 +31,7 @@
 #include "doc_lang.hh"
 #include "doc_notice.hh"
 #include "doc_autodoc.hh"
+#include "lateq.hh"
 #include "enrobage.hh"
 #include "compatibility.hh"
 
@@ -45,10 +46,18 @@ extern set<string>			gDocAutodocKeySet;
 extern map<string, string>	gDocMathStringMap;
 extern set<string>			gDocMathKeySet;
 
+static const string			gDocTextsDefaultFile = "mathdoctexts-default.txt";
+
+static void			importDocStrings(const string& filename);
+static void			getKey(string& s, string& key, size_t& pt1);
+static void			getText(string& s, size_t& pt1, string& text);
+static void			storePair(const string& key, const string& text);
+
 static void			printStringMapContent(map<string,string>& map, const string& name);
+
+static istream*		openArchFile (const string& filename);
 static void			getCurrentDir();
 static int			cholddir();
-static istream*		openArchFile (const string& filename);
 
 static string 		gCurrentDir;	///< Room to save current directory name.
 
@@ -58,6 +67,74 @@ static string 		gCurrentDir;	///< Room to save current directory name.
 /*****************************************************************************
 							Public functions
  *****************************************************************************/
+
+
+void loadTranslationFile(const string& lang)
+{
+	initDocMath();
+	initDocNotice();
+	initDocAutodoc();
+	
+	importDocStrings(gDocTextsDefaultFile); // First ensure that the default file is loaded.
+	
+	if (lang == "fr") {
+		importDocStrings("mathdoctexts-fr.txt");
+	}
+	else if (lang == "it") {
+		importDocStrings("mathdoctexts-it.txt");
+	}
+}
+
+
+
+/*****************************************************************************
+								Static functions
+ *****************************************************************************/
+
+
+
+/**
+ * @brief Feed the content of doc texts maps from a file.
+ *
+ * This mecchanism allows to load different files for translation.
+ *
+ * "mathdoctexts" files must have been formatted as follows :
+ * - a line beginning by ':' immediately declares a keyword,
+ * - a line beginning by '"' contains text until the last '"',
+ * - text can directly follow a keyword, if separated by one or
+ * many separator characters (space or tab).
+ * - a direct line break between two double quoted strings
+ * will insert a '\n' line break in the resulting notice string.
+ */
+static void importDocStrings(const string& filename)
+{	
+	string s;
+	string key, text;
+	istream* file = openArchFile(filename);
+	
+	while ( getline(*file, s) ) {
+		size_t pt1; // Text pointer.
+		
+		/* The first character determines whether will follow a key or a text. */
+		switch (s[0]) {
+			case ':':
+				text = "";
+				getKey(s, key, pt1);
+				if (pt1==string::npos) continue;
+				break;
+			case '\"':
+				pt1 = 0;
+				break;
+			default:
+				continue;
+		}
+		getText(s, pt1, text);
+		storePair(key, text);
+	}
+	printStringMapContent(gDocNoticeStringMap, "gDocNoticeStringMap");
+	printStringMapContent(gDocAutodocStringMap, "gDocAutodocStringMap");
+	printStringMapContent(gDocMathStringMap, "gDocMathStringMap");
+}
 
 
 static void getKey(string& s, string& key, size_t& pt1) 
@@ -73,7 +150,7 @@ static void getKey(string& s, string& key, size_t& pt1)
 	
 	/* Capture and check the keyword. */
 	key = s.substr(pk1, pk2-1);
-
+	
 	/* Prepare text capture. */
 	pt1 = s.find_first_of("\"", pk2);
 }
@@ -111,56 +188,6 @@ static void storePair(const string& key, const string& text)
 		//cerr << "gDocNoticeStringMap[\"" << key << "\"] = \"" << gDocNoticeStringMap[key] << "\"" << endl;
 	}
 }
-
-
-/**
- * @brief Feed the content of doc texts maps from a file.
- *
- * This mecchanism allows to load different files for translation.
- *
- * "mathdoctexts" files must have been formatted as follows :
- * - a line beginning by ':' immediately declares a keyword,
- * - a line beginning by '"' contains text until the last '"',
- * - text can directly follow a keyword, if separated by one or
- * many separator characters (space or tab).
- * - a direct line break between two double quoted strings
- * will insert a '\n' line break in the resulting notice string.
- */
-void importDocStrings(const string& filename)
-{	
-	string s;
-	string key, text;
-	istream* file = openArchFile(filename);
-	
-	while ( getline(*file, s) ) {
-		size_t pt1; // Text pointer.
-		
-		/* The first character determines whether will follow a key or a text. */
-		switch (s[0]) {
-			case ':':
-				text = "";
-				getKey(s, key, pt1);
-				if (pt1==string::npos) continue;
-				break;
-			case '\"':
-				pt1 = 0;
-				break;
-			default:
-				continue;
-		}
-		getText(s, pt1, text);
-		storePair(key, text);
-	}
-	printStringMapContent(gDocNoticeStringMap, "gDocNoticeStringMap");
-	printStringMapContent(gDocAutodocStringMap, "gDocAutodocStringMap");
-	printStringMapContent(gDocMathStringMap, "gDocMathStringMap");
-}
-
-
-
-/*****************************************************************************
-								Static functions
- *****************************************************************************/
 
 
 /** 
