@@ -1,4 +1,4 @@
-// Notice default text file for Faust compiler
+// Default texts for the math documentator of the Faust compiler.
 // Copyright (C) 2009 GRAME, Centre National de Creation Musicale
 // Karim Barkati
 
@@ -6,6 +6,9 @@
 // double quotes are useful to visualize spaces and tabulations
 // at the beginning or at the end of strings.
 
+
+
+// Notice section.
 
 :compilstamp1	"This documentation was generated with Faust version "
 :compilstamp2	", on "
@@ -52,3 +55,43 @@
 :prefixsigs  	"$m_i(t)$ denote prefix-delayed signals."
 :selectionsig  	"$q_i(t)$ denote selection signals."
 :selectionsigs  "$q_i(t)$ denote selection signals."
+
+
+
+// Auto-documentation section.
+
+:autoeqntitle	"\section{Equations of process}"
+:autoeqntext	"This program calls a \emph{process}, which mathematical description follows:"
+
+:autodgmtitle	"\section{Block-diagram schema of process}"
+:autodgmtext	"The block-diagram schema of \emph{process} is shown on figure \ref{figure1}."
+
+:autontctitle	"\section{Notice of this documentation}"
+:autontctext	"You might be careful of certain information and naming conventions used in this documentation:"
+
+:autolsttitle1	"\section{Complete listing of the input code}"
+:autolsttext1	"The following listing shows the Faust code parsed to compile this documentation."
+
+:autolsttitle2	"\section{Complete listings of the input code}"
+:autolsttext2	"The following listings show the Faust code parsed to compile this documentation."
+
+
+
+// Titles for each type of formulas.
+
+:inputsigtitle1		"Input signal"
+:inputsigtitle2		"Input signals"
+:outputsigtitle1	"Output signal"
+:outputsigtitle2	"Output signals"
+:constsigtitle1		"Constant signal"
+:constsigtitle2		"Constant signals"
+:uisigtitle1		"User interface element"
+:uisigtitle2		"User interface elements"
+:paramsigtitle1		"Parameter signal"
+:paramsigtitle2		"Parameter signals"
+:internalsigtitle1	"Internal signal"
+:internalsigtitle2	"Internal signals"
+
+:lateqcomment		"% Set of Faust formulas (corresponding to an <equation> tag)."
+:emptyformulafield	"none"
+:defaultvalue		"default value"

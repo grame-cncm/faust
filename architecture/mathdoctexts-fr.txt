@@ -1,0 +1,98 @@
+// Default texts for the math documentator of the Faust compiler.
+// Copyright (C) 2009 GRAME, Centre National de Creation Musicale
+// Karim Barkati
+
+// Remark: 
+// double quotes are useful to visualize spaces and tabulations
+// at the beginning or at the end of strings.
+
+
+
+// Notice section.
+
+:compilstamp1	"Cette documentation a été générée par Faust, version "
+:compilstamp2	", le "
+:compilstamp3	"."
+
+:causality  	"$\forall \, s(t) \in \mathbb{S}$, $s(t\!<\!0) = 0$."
+:svgdir			"Seul les blocs-diagrammes de plus haut niveau sont représentés ici, mais des blocs-diagrammes de niveau inférieur peuvent se trouver dans le sous-répertoire "svg"."
+
+:nameconflicts  "Attention: les noms symboliques éventuellement utilisés dans les blocs-diagrammes n'ont PAS de relation directe avec les noms de signaux utilisés dans les équations ("$x(t)$", "$y(t)$", ...). De plus, les calculs sont susceptibles d'être simplifiés et réorganisés."
+
+:fsamp			"$f_S$ représente la fréquence d'échantillonnage (\emph{sampling frequency})."
+:foreignfun		"Le préfixe "ff" utilisé dans certains noms de fonction indique indique une fonction C++ "étrangère" à Faust (\emph{foreign function})."
+:cdot			"Le point central "$\cdot$" utilisé dans les équations désigne une multiplication."
+
+:intcast
+"$\forall \, x \in \mathbb{R}$, "
+"	\begin{displaymath}"
+"		\mathrm{int}(x) ="
+"		\left\{\begin{array}{cl}"
+"			\lfloor x \rfloor & \mbox{if \,} x > 0 \\"
+"			\lceil x \rceil & \mbox{if \,} x < 0 \\"
+"			0 & \mbox{if \,} x = 0 \\"
+"		\end{array}\right.."
+"	\end{displaymath}"
+
+:intplus		"Le symbole "$\oplus$" (plus encerclé) désigne une addition entière."
+:intminus		"Le symbole "$\ominus$" (moins encerclé) désigne une soustraction entière."
+:intmult		"Le symbole "$\odot$" (point central encerclé) désigne une multiplication entière."
+:intdiv			"Le symbole "$\oslash$" (oblique encerclée) désigne une division entière."
+
+:inputsig		"$x(t)$ désigne un signal d'entrée."
+:inputsigs  	"Les $x_i(t)$ désignent des signaux d'entrée."
+:outputsig  	"$y(t)$ désigne un signal de sortie."
+:outputsigs  	"Les $y_i(t)$ désignent des signaux de sortie."
+:constsigs  	"Les $k_i$ désignent des signaux constants."
+:paramsigs  	"Les $p_i(t)$ désignent des signaux "paramètres" (échantillonnés par blocs)."
+:storedsigs  	"Les $s_i(t)$ désignent des signaux enregistrés (à l'échantillon, \emph{stored})."
+
+:buttonsigs  	"Les ${u_b}_i(t)$ désignent des signaux d'interface-utilisateur de boutons."
+:checkboxsigs  	"Les ${u_c}_i(t)$ désignent des signaux d'interface-utilisateur de boîtes à cocher (\emph{checkboxes})."
+:slidersigs  	"Les ${u_s}_i(t)$ désignent des signaux d'interface-utilisateur de curseurs (\emph{sliders})."
+:nentrysigs  	"Les ${u_n}_i(t)$ désignent des signaux d'interface-utilisateur de boîtes numériques."
+:tablesigs  	"Les $w_i(t)$ désignent des signaux de tables (\emph{waveforms})."
+:recursigs  	"Les $r_i(t)$ désignent des signaux récursifs (retardés sous la forme $r_i(t\!-\!d)$)."
+:prefixsigs  	"Les $m_i(t)$  désignent des signaux retardés par un préfixe."
+:selectionsig  	"$q(t)$ désigne un signal de séléction."
+:selectionsigs  "Les $q_i(t)$ désignent des signaux de sélection."
+
+
+
+// Auto-documentation section.
+
+:autoeqntitle	"\section{Équations du signal "process"}"
+:autoeqntext	"Ce programme appelle un processeur de signal nommé \emph{process}, et dont la description mathématique est la suivante:"
+
+:autodgmtitle	"\section{Bloc-diagramme du signal "process"}"
+:autodgmtext	"La figure 1 représente le schéma du bloc-diagramme du signal "process"."
+
+:autontctitle	"\section{Notice de cette documentation}"
+:autontctext	"Voici plusieurs informations potentiellement importantes pour la lecture de cette documentation, dont les conventions de nommage utilisées."
+
+:autolsttitle1	"\section{Code d'entrée complet}"
+:autolsttext1	"Le code suivant montre le contenu du fichier-source qui a été compilé par Faust pour produire cette documentation."
+
+:autolsttitle2	"\section{Codes d'entrée complets}"
+:autolsttext2	"Les codes suivants montrent le contenu des fichiers-sources qui ont été compilés par Faust pour produire cette documentation."
+
+
+
+// Titles for each type of formulas.
+
+:inputsigtitle1		"Signal d'entrée"
+:inputsigtitle2		"Signaux d'entrée"
+:outputsigtitle1	"Signal de sortie"
+:outputsigtitle2	"Signaux de sortie"
+:constsigtitle1		"Signal constant"
+:constsigtitle2		"Signaux constants"
+:uisigtitle1		"Élement d'interface-utilisateur"
+:uisigtitle2		"Élements d'interface-utilisateur"
+:paramsigtitle1		"Signal {"paramètre"}"
+:paramsigtitle2		"Signaux {"paramètres"}"
+:internalsigtitle1	"Signal interne"
+:internalsigtitle2	"Signaux internes"
+
+:lateqcomment		"% Ensemble d'équations Faust (correspondant à une balise <equation>)."
+:emptyformulafield	"aucun"
+:defaultvalue		"valeur par défaut"
