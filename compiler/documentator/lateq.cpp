@@ -41,13 +41,18 @@
 #include <stdio.h>
 #include <iostream>
 #include <cstdlib>
+#include <set>
 
 #include "lateq.hh"
 #include "Text.hh"
 
 
+map<string, string>		gDocMathStringMap;
+set<string>				gDocMathKeySet;
+
 static int	getLateqIndex(const string& s);
 static bool compLateqIndexes(const string& s1, const string& s2);
+static void initDocMathKeySet();
 
 
 
@@ -71,28 +76,29 @@ static bool compLateqIndexes(const string& s1, const string& s2);
  */
 void Lateq::println(ostream& docout)
 {	
-	docout << endl << "% Set of Faust formulas (corresponding to an <equation> tag)." << endl;
+	docout << endl << gDocMathStringMap["lateqcomment"] << endl;
 	docout << "\\begin{enumerate}" << endl << endl;
 	
 	/* Plural handling for titles of sub-sets of formulas. */
-	string sInputs		= fInputSigsFormulas.size()	> 1 ? "s" : "";
-	string sOutputs		= fOutputSigsFormulas.size()	> 1 ? "s" : "";
-	string sConstants	= fConstSigsFormulas.size()	> 1 ? "s" : "";
-	string sUIElements	= fUISigsFormulas.size()		> 1 ? "s" : "";
-	string sParameters	= fParamSigsFormulas.size()	> 1 ? "s" : "";
+	string sInputs		= fInputSigsFormulas.size()	> 1 ? gDocMathStringMap["inputsigtitle2"] : gDocMathStringMap["inputsigtitle1"];
+	string sOutputs		= fOutputSigsFormulas.size()	> 1 ? gDocMathStringMap["outputsigtitle2"] : gDocMathStringMap["outputsigtitle1"];
+	string sConstants	= fConstSigsFormulas.size()	> 1 ? gDocMathStringMap["constsigtitle2"] : gDocMathStringMap["constsigtitle1"];
+	string sUIElements	= fUISigsFormulas.size()	> 1 ? gDocMathStringMap["uisigtitle2"] : gDocMathStringMap["uisigtitle1"];
+	string sParameters	= fParamSigsFormulas.size()	> 1 ? gDocMathStringMap["paramsigtitle2"] : gDocMathStringMap["paramsigtitle1"];
+
 	unsigned int internalSigsCount = fStoreSigsFormulas.size() + fRecurSigsFormulas.size() + fTableSigsFormulas.size() + fSelectSigsFormulas.size() + fPrefixSigsFormulas.size();
-	string sInternals	= (internalSigsCount) > 1 ? "s" : "";
+	string sInternals	= internalSigsCount	> 1 ? gDocMathStringMap["internalsigtitle2"] : gDocMathStringMap["internalsigtitle1"];
 	
 	/* Successively print each Lateq field containing LaTeX formulas, with a title. */
-	printOneLine	(subst("\\item Input signal$0: ", sInputs), fInputSigsFormulas, docout);
-	printDGroup		(subst("\\item Output signal$0: ", sOutputs), fOutputSigsFormulas, docout);
-	printDGroup		(subst("\\item Constant$0: ", sConstants), fConstSigsFormulas, docout);
-	printHierarchy	(subst("\\item User interface element$0: ", sUIElements), fUISigsFormulas, docout);
-	printDGroup		(subst("\\item Parameter signal$0: ", sParameters), fParamSigsFormulas, docout);
+	printOneLine	(subst("\\item $0: ", sInputs), fInputSigsFormulas, docout);
+	printDGroup		(subst("\\item $0: ", sOutputs), fOutputSigsFormulas, docout);
+	printDGroup		(subst("\\item $0: ", sConstants), fConstSigsFormulas, docout);
+	printHierarchy	(subst("\\item $0: ", sUIElements), fUISigsFormulas, docout);
+	printDGroup		(subst("\\item $0: ", sParameters), fParamSigsFormulas, docout);
 	
 	/* The "Internal signals" item gather several fields, like a "super-item"... */
 	if( internalSigsCount > 0 ) {
-		docout << subst("\\item Internal signal$0: ", sInternals);
+		docout << subst("\\item $0: ", sInternals);
 	}
 	fStoreSigsFormulas.sort(compLateqIndexes);
 	printDGroup		("", fStoreSigsFormulas, docout);
@@ -132,7 +138,7 @@ void Lateq::printOneLine(const string& section, list<string>& field, ostream& do
 			sep = ", ";
 		}
 	} else {
-		docout << section << "\t none" << endl << endl;
+		docout << section << "\t" << gDocMathStringMap["emptyformulafield"] << endl << endl;
 	}
 }
 
@@ -294,6 +300,15 @@ bool Lateq::hasNotOnlyEmptyKeys(multimap<string,string>& mm)
 
 
 
+/** 
+ * Dispatch initialization of autodoc container.
+ */
+void initDocMath() 
+{
+	initDocMathKeySet();
+}
+
+
 /****************************************************************
 				Internal static functions.
  *****************************************************************/
@@ -339,3 +354,25 @@ static int getLateqIndex(const string& s)
 	return atoi(sIndex.c_str());
 }
 
+
+/** 
+ * Initialize gDocMathKeySet, a set containing all the keywords.
+ */
+static void initDocMathKeySet()
+{
+	gDocMathKeySet.insert("inputsigtitle1");
+	gDocMathKeySet.insert("inputsigtitle2");
+	gDocMathKeySet.insert("outputsigtitle1");
+	gDocMathKeySet.insert("outputsigtitle2");
+	gDocMathKeySet.insert("constsigtitle1");
+	gDocMathKeySet.insert("constsigtitle2");
+	gDocMathKeySet.insert("uisigtitle1");
+	gDocMathKeySet.insert("uisigtitle2");
+	gDocMathKeySet.insert("paramsigtitle1");
+	gDocMathKeySet.insert("paramsigtitle2");
+	gDocMathKeySet.insert("internalsigtitle1");
+	gDocMathKeySet.insert("internalsigtitle2");
+	gDocMathKeySet.insert("lateqcomment");
+	gDocMathKeySet.insert("emptyformulafield");
+	gDocMathKeySet.insert("defaultvalue");
+}

@@ -86,6 +86,7 @@ SourceReader	gReader;
 
 map<Tree, set<Tree> > gMetaDataSet;
 extern vector<Tree> gDocVector;
+extern string gDocLang;
 
 
 /****************************************************************
@@ -282,12 +283,16 @@ bool process_cmdline(int argc, char* argv[])
             gPrintDocSwitch = true;
             i += 1;
 			
-        } else if (isCmd(argv[i], "-flist", "--file-list")) {
-            gPrintFileListSwitch = true;
+        } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang")) {
+            gDocLang = argv[i+1];
+            i += 2;
+			
+        } else if (isCmd(argv[i], "-stripdoc", "--strip-doc-tags")) {
+            gStripDocSwitch = true;
             i += 1;
 			
-        } else if (isCmd(argv[i], "-stripdoc", "--strip-doc")) {
-            gStripDocSwitch = true;
+        } else if (isCmd(argv[i], "-flist", "--file-list")) {
+            gPrintFileListSwitch = true;
             i += 1;
 			
 		} else if (argv[i][0] != '-') {
@@ -338,7 +343,9 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
     cout << "-svg \t\tprint block-diagram --svg file\n";
-    cout << "-md \t\tprint --mathdoc (semantic) of a Faust program in LaTeX format\n";
+    cout << "-md \t\tprint --mathdoc of a Faust program in LaTeX format\n";
+    cout << "-mdlang \t\tload --mathdoc-lang if translation file exists (en, fr)\n";
+    cout << "-stripdoc \t\tapply --strip-doc-tags when printing Faust listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";

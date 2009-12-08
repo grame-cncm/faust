@@ -64,17 +64,18 @@
 #include "doc_Text.hh"
 #include "sigprint.hh"
 #include "propagate.hh"
-#include "doc_compile.hh"
 #include "enrobage.hh"
 #include "drawschema.hh"
 #include "names.hh"
 #include "simplify.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
-#include "lateq.hh"
-//#include "doc_sharing.hh"
 #include "sourcereader.hh"
-#include "notice.hh"
+#include "lateq.hh"
+#include "doc_compile.hh"
+#include "doc_lang.hh"
+#include "doc_notice.hh"
+#include "doc_autodoc.hh"
 #include "compatibility.hh"
 
 
@@ -102,12 +103,14 @@ extern string 					gDocName;				///< Contains the filename for out documentation
 static const char* 				gDocDevSuffix;			///< ".tex" (or .??? - used to choose output device).
 static string 					gCurrentDir;			///< Room to save current directory name.
 static const string				gLatexheaderfilename = "latexheader.tex";
+static const string				gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
 vector<Tree> 					gDocVector;				///< Contains <doc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
 
 static struct tm				gCompilationDate;
 
-
+enum { langEN, langFR, langIT };
+string				gDocLang;
 
 /* Printing functions */
 static void		printdocheader(ostream& docout);
@@ -151,7 +154,7 @@ static istream* openArchFile (const string& filename);
 static char*	legalFileName(const Tree t, int n, char* dst);
 static string	rmExternalDoubleQuotes(const string& s);
 static void		copyFaustSources(const char* projname, const vector<string>& pathnames);
-static void		declareAutoDoc();
+//static void		declareAutoDoc();
 
 
 
@@ -220,19 +223,15 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	//cerr << "Documentator : printDoc : gFaustSuperSuperDirectory = '" << gFaustSuperSuperDirectory << "'" << endl;
 	//cerr << "Documentator : printDoc : gCurrentDir = '" << gCurrentDir << "'" << endl;
 	
-	//cerr << "Documentator : printDoc : Creating directory '" << projname << "'" << endl;
 	makedir(projname); 			// create a top directory to store files
 	
 	string svgTopDir = subst("$0/svg", projname);
-	//cerr << "Documentator : printDoc : Creating directory '" << svgTopDir << "'" << endl;
 	makedir(svgTopDir.c_str()); // create a directory to store svg-* subdirectories.
 	
 	string cppdir = subst("$0/cpp", projname);
-	//cerr << "Documentator : printDoc : Creating directory '" << cppdir << "'" << endl;
 	makedir(cppdir.c_str());	// create a cpp directory.
 	
 	string pdfdir = subst("$0/pdf", projname);
-	//cerr << "Documentator : printDoc : Creating directory '" << pdfdir << "'" << endl;
 	makedir(pdfdir.c_str());	// create a pdf directory.
 	
 	/* Copy all Faust source files into an 'src' sub-directory. */
@@ -240,32 +239,29 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	copyFaustSources(projname, pathnames);
 	
 	string texdir = subst("$0/tex", projname);
-	//cerr << "Documentator : printDoc : Creating directory '" << texdir << "'" << endl;
 	mkchdir(texdir.c_str()); 	// create a directory and move into.
-	//cerr << "Documentator : printDoc : Creating file '" << subst("$0.$1", gDocName, docdev) << "' in '" << texdir << "'" << endl;
 
-	 /** Create the doc file. */
+	 /** Create the mathdoc tex file. */
 	ofstream docout(subst("$0.$1", gDocName, docdev).c_str());
 	cholddir();					// return to current directory
 	
-	/** Simulate a default doc if no <doc> tag detected. */
-	if (gDocVector.empty()) { declareAutoDoc(); } 
-	
-	/** 
-	 * Notice's stuff. 
-	 * @todo	Future place to load translation files. 
-	 */
+	/** Init and load translation files. */
+	initDocMath();
 	initDocNotice();
-//	enum { langFR, langIT };
-//	switch(gDocLang) {
-//		case langFR:
-//			loadDocNoticeFile("notice-fr.txt");
-//			break;
-//		case langIT:
-//			loadDocNoticeFile("notice-it.txt");
-//			break;
-//	}
+	initDocAutodoc();
 	
+	if (gDocLang == "fr") {
+		importDocStrings("mathdoctexts-fr.txt");
+	}
+//	else if (gDocLang == "it") {
+//		importDocStrings("mathdoctexts-it.txt");
+//	}
+	else {
+		importDocStrings(gDocTextsDefaultFile);
+	}
+	
+	/** Simulate a default doc if no <doc> tag detected. */
+	if (gDocVector.empty()) { declareAutoDoc(); } 	
 	
 	/** Printing stuff : in the '.tex' ouptut file, eventually including SVG files. */
 	printfaustdocstamp(faustversion, docout);						///< Faust version and compilation date (comment).
@@ -433,50 +429,6 @@ static void printfaustdocstamp(const string& faustversion, ostream& docout)
 	docout << "%% This documentation was generated with Faust version " << faustversion << endl;
 	docout << "%% " << datebuf << endl;
 	docout << "%% http://faust.grame.fr" << endl << endl;
-}
-
-
-/** 
- * @brief Declare an automatic documentation.
- *
- * This function simulates a default documentation : 
- * if no <doc> tag was found in the input faust file,
- * and yet the '-math' option was called, 
- * then print a complete 'process' doc. 
- */
-static void declareAutoDoc() 
-{
-	Tree autodoc = nil;
-	Tree process = boxIdent("process");
-	
-	string autoEquationTxt = "\n\\section{Equations of process}\n\n";
-	autoEquationTxt += "This program calls a \\emph{process}, which mathematical description follows:\n";
-	autodoc = cons(docTxt(autoEquationTxt.c_str()), autodoc);
-	autodoc = cons(docEqn(process), autodoc);
-	
-	string autoDiagramTxt = "\n\\section{Block-diagram schema of process}\n\n";
-	autoDiagramTxt += "The block-diagram schema of \\emph{process} is shown on figure \\ref{figure1}.\n";
-	autodoc = cons(docTxt(autoDiagramTxt.c_str()), autodoc);
-	autodoc = cons(docDgm(process), autodoc);	
-	
-	string autoNoticeTxt = "\n\\section{Notice of this documentation}\n\n";
-	autoNoticeTxt += "You might be careful of certain information and naming conventions used in this documentation:\n";
-	autodoc = cons(docTxt(autoNoticeTxt.c_str()), autodoc);
-	autodoc = cons(docNtc(), autodoc);
-	
-	string autoListingTxt;
-	vector<string> pathnames = gReader.listSrcFiles();
-	if(pathnames.size() > 1) {
-		autoListingTxt = "\n\\section{Complete listings of the input code}\n\n";
-		autoListingTxt += "The following listings show the Faust code parsed to compile this documentation.\n";
-	} else {
-		autoListingTxt = "\n\\section{Complete listing of the input code}\n\n";
-		autoListingTxt += "The following listing shows the Faust code parsed to compile this documentation.\n";
-	}
-	autodoc = cons(docTxt(autoListingTxt.c_str()), autodoc);
-	autodoc = cons(docLst(), autodoc);
-
-	declareDoc(autodoc);
 }
 
 

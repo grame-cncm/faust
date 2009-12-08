@@ -50,12 +50,12 @@
 #include "names.hh"
 #include "doc.hh"
 #include "tlib.hh"
-#include "notice.hh"
-
+#include "doc_notice.hh"
 
 
 extern bool		gLessTempSwitch;
 extern int		gMaxCopyDelay;
+extern map<string, string>		gDocMathStringMap;
 
 extern bool		getSigListNickName(Tree t, Tree& id);
 
@@ -1251,9 +1251,10 @@ string DocCompiler::prepareBinaryUI(const string& name, Tree path)
 	string s = "";
 	label = (label.size()>0) ? ("\\textsf{\""+label+"\"} :") : "";
 	unit = (unit.size()>0) ? ("\\,\\mathrm{"+unit+"}") : "";
-	s += label + " & ";
-	s += "$" + name + "$" + " & ";
-	s += "$\\in$ & $\\left\\{\\,0" + unit + ", 1" + unit +"\\,\\right\\}$ & $(\\mbox{default value} = 0" + unit + ")$\\\\";
+	s += label;
+	s += " & $" + name + "$";
+	s += " & $\\in$ & $\\left\\{\\,0" + unit + ", 1" + unit +"\\,\\right\\}$";
+	s += " & $(\\mbox{" + gDocMathStringMap["defaultvalue"] + "} = 0" + unit + ")$\\\\";
 	return s;
 }
 
@@ -1284,11 +1285,10 @@ string DocCompiler::prepareIntervallicUI(const string& name, Tree path, Tree tcu
 	string s = "";
 	label = (label.size()>0) ? ("\\textsf{\""+label+"\"} :") : "";
 	unit = (unit.size()>0) ? ("\\,\\mathrm{"+unit+"}") : "";
-	s += label + " & ";
-	s += "$" + name + "$" + " & ";
-	s += "$\\in$ & $\\left[\\," + min + unit + ", ";
-	s += max + unit +"\\,\\right]$ & ";
-	s += "$(\\mbox{default value} = " + cur + unit + ")$\\\\";
+	s += label;
+	s += " & $" + name + "$";
+	s += " & $\\in$ & $\\left[\\," + min + unit + ", " + max + unit +"\\,\\right]$";
+	s += " & $(\\mbox{" + gDocMathStringMap["defaultvalue"] + "} = " + cur + unit + ")$\\\\";
 	return s;
 }
 

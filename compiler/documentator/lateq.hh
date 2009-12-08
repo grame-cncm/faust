@@ -107,4 +107,7 @@ private:
 	void tab(int n, ostream& docout) const;
 };
 
+void initDocMath();
+
+
 #endif
