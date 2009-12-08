@@ -42,7 +42,6 @@ extern map<string, bool> gDocNoticeFlagMap;
 
 
 void initDocNotice();
-void loadDocNoticeFile(const string& noticefilename);
 void printDocNotice(const string& faustversion, ostream& docout);
 
 
