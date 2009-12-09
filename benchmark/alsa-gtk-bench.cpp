@@ -28,6 +28,34 @@
 
 using namespace std;
 
+// handle 32/64 bits int size issues
+
+#ifdef __x86_64__
+
+#define uint32	unsigned int
+#define uint64	unsigned long int
+
+#define int32	int
+#define int64	long int
+
+#else
+
+#define uint32	unsigned int
+#define uint64	unsigned long long int
+
+#define int32	int
+#define int64	long long int
+#endif
+
+// check 32/64 bits issues are correctly handled
+
+#define CHECKINTSIZE \
+	assert(sizeof(int32)==4);\
+	assert(sizeof(int64)==8);
+
+
+
+
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
 #ifdef __SSE__
@@ -104,11 +132,16 @@ bool setRealtimePriority ()
  * Returns the number of clock cycles elapsed since the last reset
  * of the processor
  */
-static __inline__ unsigned long long int rdtsc(void)
+static __inline__ uint64 rdtsc(void)
 {
-  unsigned long long int x;
-     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-     return x;
+	union {
+		uint32 i32[2];
+		uint64 i64;
+	} count;
+	
+	__asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
+
+     return count.i64;
 }
 
 #define KSKIP 20
@@ -117,53 +150,50 @@ static __inline__ unsigned long long int rdtsc(void)
 int mesure = 0;
 
 // these values are used to determine the number of clocks in a second
-unsigned long long int firstRDTSC;
-unsigned long long int firstSECOND;
-unsigned long long int lastRDTSC;
-unsigned long long int lastSECOND;
+uint64 firstRDTSC;
+uint64 lastRDTSC;
 
 // these tables contains the last KMESURE in clocks
-unsigned long long int starts[KMESURE];
-unsigned long long int stops [KMESURE];
+uint64 starts[KMESURE];
+uint64 stops [KMESURE];
 
 #define STARTMESURE starts[mesure%KMESURE] = rdtsc();
 #define STOPMESURE stops[mesure%KMESURE] = rdtsc(); mesure = mesure+1;
 
+struct timeval 		tv1;
+struct timeval 		tv2;
+
 void openMesure()
 {
-	struct timeval 		tv;
 	struct timezone 	tz;
-	gettimeofday(&tv, &tz);
+	gettimeofday(&tv1, &tz);
 	firstRDTSC  = rdtsc();
-	firstSECOND = tv.tv_sec;
 }
 
 void closeMesure()
 {
-	struct timeval 		tv;
 	struct timezone 	tz;
-	gettimeofday(&tv, &tz);
+	gettimeofday(&tv2, &tz);
 	lastRDTSC  = rdtsc();
-	lastSECOND = tv.tv_sec;
 }
 	
 /**
  * return the number of RDTSC clocks per seconds
  */
-long long int rdtscpersec()
+int64 rdtscpersec()
 {
 	// If the environment variable CLOCKSPERSEC is defined
 	// we use it instead of our own measurement
 	char* str = getenv("CLOCKSPERSEC");
     if (str) {
-	    long long int cps = atoll(str);
+	    int64 cps = (int64) atoll(str);
         if (cps > 1000000000) {
 		    return cps;
 	    } else {
-		    return (lastRDTSC-firstRDTSC) / (lastSECOND-firstSECOND) ;
+		    return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
 	    }
     } else {
-        return (lastRDTSC-firstRDTSC) / (lastSECOND-firstSECOND) ;
+        return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
     }   
 }
 
@@ -171,7 +201,7 @@ long long int rdtscpersec()
 /**
  * Converts a duration, expressed in RDTSC clocks, into seconds
  */
-double rdtsc2sec( unsigned long long int clk)
+double rdtsc2sec( uint64 clk)
 {
 	return double(clk) / double(rdtscpersec());
 }
@@ -187,7 +217,7 @@ double rdtsc2sec( double clk)
  * number of frames processed during the period, the number of channels
  * and 4 bytes samples.
  */
-double megapersec(int frames, int chans, unsigned long long int clk)
+double megapersec(int frames, int chans, uint64 clk)
 {
 	return double(frames*chans*4)/double(1024*1024*rdtsc2sec(clk));
 }
@@ -196,9 +226,9 @@ double megapersec(int frames, int chans, unsigned long long int clk)
 /**
  * Compute the mean value of a vector of measures
  */
-static unsigned long long int meanValue( vector<unsigned long long int>::const_iterator a, vector<unsigned long long int>::const_iterator b)
+static uint64 meanValue( vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
 {
-	unsigned long long int r = 0;
+	uint64 r = 0;
 	unsigned int n = 0;
 	while (a!=b) { r += *a++; n++; }
 	return (n>0) ? r/n : 0;
@@ -211,7 +241,7 @@ static unsigned long long int meanValue( vector<unsigned long long int>::const_i
 void printstats(const char* applname, int bsize, int ichans, int ochans)
 {
     assert(mesure > KMESURE);
-    vector<unsigned long long int> V(KMESURE);
+    vector<uint64> V(KMESURE);
 
     for (int i = 0; i<KMESURE; i++) {
         V[i] = stops[i] - starts[i];
@@ -220,7 +250,7 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
     sort(V.begin(), V.end());
   
     // Mean of 10 best values (gives relatively stable results)
-    unsigned long long int meavalx = meanValue(V.begin(), V.begin() + 10);			
+    uint64 meavalx = meanValue(V.begin(), V.begin() + 10);			
   
     //printing
     cout << megapersec(bsize, ichans+ochans, meavalx) << "\tMB/s"
@@ -497,14 +527,18 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
 
-				long* 	buffer32b = (long*) fInputCardBuffer;
+				int* 	buffer32b = (int*) fInputCardBuffer;
 				for (int s = 0; s < fBuffering; s++) {
 					for (unsigned int c = 0; c < fCardInputs; c++) {
-						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(LONG_MAX));
+						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(INT_MAX));
 					}
 				}
+			} else {
+
+				printf("unrecognized input sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 			
 		} else if (fSampleAccess == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
@@ -525,14 +559,18 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32) { 
 
 				for (unsigned int c = 0; c < fCardInputs; c++) {
-					long* 	chan32b = (long*) fInputCardChannels[c];
+					int* 	chan32b = (int*) fInputCardChannels[c];
 					for (int s = 0; s < fBuffering; s++) {
-						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(LONG_MAX));
+						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(INT_MAX));
 					}
 				}
+			} else {
+
+				printf("unrecognized input sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 			
 		} else {
@@ -563,15 +601,19 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32)  {
 
-				long* buffer32b = (long*) fOutputCardBuffer;
+				int* buffer32b = (int*) fOutputCardBuffer;
 				for (int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer32b[c + f*fCardOutputs] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+						buffer32b[c + f*fCardOutputs] = int( max(min(x,1.0),-1.0) * float(INT_MAX) ) ;
 					}
 				}
+			} else {
+
+				printf("unrecognized output sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 
 			int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering); 	
@@ -595,15 +637,20 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32) { 
 
 				for (unsigned int c = 0; c < fCardOutputs; c++) {
-					long* chan32b = (long*) fOutputCardChannels[c];
+					int* chan32b = (int*) fOutputCardChannels[c];
 					for (int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan32b[f] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+						chan32b[f] = int( max(min(x,1.0),-1.0) * float(INT_MAX) ) ;
 					}
 				}
+
+			} else {
+
+				printf("unrecognized output sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 
 			int count = snd_pcm_writen(fOutputDevice, fOutputCardChannels, fBuffering); 	
@@ -1495,14 +1542,15 @@ void GTKUI::run()
 class dsp {
  protected:
 	int fSamplingFreq;
+        int fThreadNum;
  public:
 	dsp() {}
 	virtual ~dsp() {}
 	
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int samplingRate) 							= 0;
+    virtual void buildUserInterface(UI* interface) 					= 0;
+    virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
  	virtual void conclude() 										{}
 };
@@ -1571,6 +1619,8 @@ void* run_ui(void* ptr)
 
 int main(int argc, char *argv[] )
 {
+	CHECKINTSIZE;
+
 	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
 	
 	// compute rcfilename to (re)store application state
@@ -1590,8 +1640,8 @@ int main(int argc, char *argv[] )
 	AVOIDDENORMALS;
 	audio.open();
 	
-	DSP.init(audio.frequency());
-	DSP.buildUserInterface(interface);
+    DSP.init(audio.frequency());
+    DSP.buildUserInterface(interface);
 	
 	interface->recallState(rcfilename);
 
