@@ -27,16 +27,26 @@
 #include "delayline.hh"
 
 extern int gVecSize;
+extern bool gSchedulerSwitch;
 
 void VectorCompiler::compileMultiSignal (Tree L)
 {
     //contextor recursivness(0);
     L = prepare(L);     // optimize, share and annotate expression
+    
     for (int i = 0; i < fClass->inputs(); i++) {
-        fClass->addZone3(subst("$1* input$0 = &input[$0][index];", T(i), xfloat()));
+        if (gSchedulerSwitch) {
+            fClass->addZone3(subst("$1* input$0 = &input[$0][fIndex];", T(i), xfloat()));
+        } else {
+            fClass->addZone3(subst("$1* input$0 = &input[$0][index];", T(i), xfloat()));
+        }
     }
     for (int i = 0; i < fClass->outputs(); i++) {
-        fClass->addZone3(subst("$1* output$0 = &output[$0][index];", T(i), xfloat()));
+        if (gSchedulerSwitch) {
+            fClass->addZone3(subst("$1* output$0 = &output[$0][fIndex];", T(i), xfloat()));
+        } else {
+            fClass->addZone3(subst("$1* output$0 = &output[$0][index];", T(i), xfloat()));
+        }
     }
                 
     fClass->addSharedDecl("fullcount"); 
@@ -49,9 +59,15 @@ void VectorCompiler::compileMultiSignal (Tree L)
         fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
         fClass->closeLoop();
     }
+    
+    if (gSchedulerSwitch) {
+        // Build tasks list 
+        fClass->buildTasksList();
+    }
+    
     generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
  	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
-   if (fDescription) {
+    if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
     }
 }
@@ -79,8 +95,8 @@ string  VectorCompiler::CS (Tree sig)
         if (isProj(sig, &i, x) && tl->findRecDefinition(x)) {
             tl->addRecDependency(x);
         } else if (fClass->getLoopProperty(sig,ls)) {
-            //cerr << "in CS : fLoopDependencies.insert : " << tl << " --dependson--> " << ls << endl;
-            tl->fLoopDependencies.insert(ls);
+            //cerr << "in CS : fBackwardLoopDependencies.insert : " << tl << " --dependson--> " << ls << endl;
+            tl->fBackwardLoopDependencies.insert(ls);
         } else {
            //cerr << "in CS :  no loop property for : " << ppsig(sig) << endl;
 

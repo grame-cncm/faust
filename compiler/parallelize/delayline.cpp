@@ -3,6 +3,7 @@
 
 extern int gVecSize;
 extern int gMaxCopyDelay;
+extern int gSchedulerSwitch;
 
 
 static int pow2limit(int x)
@@ -25,7 +26,13 @@ void  vectorLoop (Klass* k, const string& tname, const string& vecname, const st
 {  
     // -- declare the vector
     k->addSharedDecl(vecname);
-    k->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
+      
+    // -- variables moved as class fields...
+    if (gSchedulerSwitch) {
+        k->addDeclCode(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
+    } else {
+        k->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
+    }
        
     // -- compute the new samples
     k->addExecCode(subst("$0[i] = $1;", vecname, cexp));
@@ -65,7 +72,13 @@ void  dlineLoop (Klass* k, const string& tname, const string& dlname, int delay,
             
         // -- declare a buffer and a "shifted" vector
         k->addSharedDecl(buf);
-        k->addZone1(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
+      
+        // -- variables moved as class fields...
+        if (gSchedulerSwitch) {
+            k->addDeclCode(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
+        } else {
+            k->addZone1(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
+        }
 
         k->addFirstPrivateDecl(dlname);
         k->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));

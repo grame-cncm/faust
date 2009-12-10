@@ -39,6 +39,7 @@ void copyFile(FILE* file, FILE* dst);
 
 void streamCopyUntil(istream& src, ostream& dst, const string& until);
 void streamCopyUntilEnd(istream& src, ostream& dst);
+void streamCopy(istream& src, ostream& dst);
 
 ifstream* open_arch_stream (const char* filename);
 

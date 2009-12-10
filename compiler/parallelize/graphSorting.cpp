@@ -19,7 +19,7 @@ static void setLevel(int order, const lset& T1, lset& T2, lgraph& V)
 {
     for (lset::const_iterator p = T1.begin(); p!=T1.end(); p++) {
         setOrder(*p, order, V);
-        T2.insert((*p)->fLoopDependencies.begin(), (*p)->fLoopDependencies.end());
+        T2.insert((*p)->fBackwardLoopDependencies.begin(), (*p)->fBackwardLoopDependencies.end());
     }
 }
 
@@ -27,7 +27,7 @@ static void setLevel(int order, const lset& T1, lset& T2, lgraph& V)
 static void resetOrder(Loop* l)
 {
     l->fOrder = -1;
-    for (lset::const_iterator p = l->fLoopDependencies.begin(); p!=l->fLoopDependencies.end(); p++) {
+    for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
         resetOrder(*p);
     }
 }

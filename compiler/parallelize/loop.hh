@@ -40,10 +40,7 @@ using namespace std;
 #include <stack>
 #include <set>
 #include <map>
-//#include "sigtype.hh"
-//#include "smartpointer.hh"
 #include "tlib.hh"
-//#include "uitree.hh"
 
 #define kMaxCategory 32
 
@@ -59,12 +56,14 @@ struct Loop
     const string        fSize;              ///< number of iterations of the loop
     // fields concerned by absorbsion
     set<Tree>           fRecDependencies;   ///< Loops having recursive dependencies must be merged
-    set<Loop*>          fLoopDependencies;  ///< Loops that must be computed before this one
+    set<Loop*>          fBackwardLoopDependencies;  ///< Loops that must be computed before this one
+    set<Loop*>          fForwardLoopDependencies;   ///< Loops that will be computed after this one
     list<string>        fPreCode;           ///< code to execute at the begin of the loop
     list<string>        fExecCode;          ///< code to execute in the loop
     list<string>        fPostCode;          ///< code to execute at the end of the loop
     // for topological sort
     int                 fOrder;             ///< used during topological sort
+    int                 fIndex;             ///< used during scheduler mode code generation
     // new fields
     int					fUseCount;			///< how many loops depend on this one
     list<Loop*>			fExtraLoops;		///< extra loops that where in sequences				

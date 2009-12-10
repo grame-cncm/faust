@@ -87,10 +87,13 @@ class Klass //: public Target
     list<string>        fSharedDecl;            ///< shared declarations
     list<string>        fFirstPrivateDecl;      ///< first private declarations
 
-    list<string>        fZone1Code;             ///< shared vectors
-    list<string>        fZone2Code;             ///< first private
-    list<string>        fZone2bCode;            ///< single once per block
+    list<string>        fZone1Code;              ///< shared vectors
+    list<string>        fZone2Code;              ///< first private
+    list<string>        fZone2bCode;             ///< single once per block
+    list<string>        fZone2cCode;             ///< single once per block
     list<string>        fZone3Code;             ///< private every sub block
+    list<string>        fZone6Code;              ///< for input buffers in Scheduler mode
+    list<string>        fZone7Code;              ///< for output buffers in Scheduler mode 
 
     Loop*               fTopLoop;               ///< active loops currently open
     property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
@@ -115,7 +118,9 @@ class Klass //: public Target
     bool    getLoopProperty(Tree sig, Loop*& l);    ///< Returns the loop used to compute a signal
 
     Loop*   topLoop()   { return fTopLoop; }
-
+    
+    void buildTasksList();
+    
 	void addIncludeFile (const string& str) { fIncludeFileSet.insert(str); }
 
 	void addLibrary (const string& str) 	{ fLibrarySet.insert(str); }
@@ -148,8 +153,11 @@ class Klass //: public Target
     void addZone1 (const string& str)  { fZone1Code.push_back(str); }
     void addZone2 (const string& str)  { fZone2Code.push_back(str); }
     void addZone2b (const string& str)  { fZone2bCode.push_back(str); }
+    void addZone2c (const string& str)  { fZone2cCode.push_back(str); }
     void addZone3 (const string& str)  { fZone3Code.push_back(str); }
- 
+    void addZone6 (const string& str)  { fZone6Code.push_back(str); }
+    void addZone7 (const string& str)  { fZone7Code.push_back(str); }
+
     void addPreCode ( const string& str)   { fTopLoop->addPreCode(str); }
     void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
@@ -161,15 +169,20 @@ class Klass //: public Target
     virtual void printComputeMethodVectorFaster (int n, ostream& fout);
     virtual void printComputeMethodVectorSimple (int n, ostream& fout);
     virtual void printComputeMethodOpenMP (int n, ostream& fout);
+    virtual void printComputeMethodScheduler (int n, ostream& fout);
 
     virtual void printLoopGraphScalar(int n, ostream& fout);
     virtual void printLoopGraphVector(int n, ostream& fout);
     virtual void printLoopGraphOpenMP(int n, ostream& fout);
+    virtual void printLoopGraphScheduler(int n, ostream& fout);
     virtual void printLoopGraphInternal(int n, ostream& fout);
     
     // experimental
 	virtual void printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visited);
 
+    virtual void printLastLoopLevelScheduler(int n, int lnum, const lset& L, ostream& fout);
+    virtual void printLoopLevelScheduler(int n, int lnum, const lset& L, ostream& fout);
+    virtual void printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout);
     virtual void printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout);
 
     virtual void printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout);

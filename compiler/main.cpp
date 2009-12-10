@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.6b11doc2"
+#define FAUSTVERSION "0.9.9.6b13sched"
 
 #include <stdio.h>
 #include <string.h>
@@ -134,6 +134,7 @@ int             gVecSize        = 32;
 int             gVectorLoopVariant = 0;
 
 bool            gOpenMPSwitch   = false;
+bool            gSchedulerSwitch   = false;
 bool			gGroupTaskSwitch= false;
 
 bool            gUIMacroSwitch  = false;
@@ -251,7 +252,11 @@ bool process_cmdline(int argc, char* argv[])
             i += 2;
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
-			gOpenMPSwitch = true;
+            gOpenMPSwitch = true;
+         	i += 1;
+
+        } else if (isCmd(argv[i], "-sch", "--scheduler")) {
+			gSchedulerSwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
@@ -309,7 +314,7 @@ bool process_cmdline(int argc, char* argv[])
 	}
 
     // adjust related options
-    if (gOpenMPSwitch) gVectorSwitch = true;
+    if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
 
 	return err == 0;
 }
@@ -362,9 +367,10 @@ void printhelp()
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
+    cout << "-omp    \t--OpenMP generate OpenMP pragmas, activates --vectorize option\n";
+    cout << "-sch    \t--scheduler generate tasks and used Thread pool based scheduler, activates --vectorize option\n";
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together\n";
-    cout << "-omp    \t--openMP generate openMP pragmas, activates --vectorize option\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -654,9 +660,18 @@ int main (int argc, char* argv[])
 			C->getClass()->printIncludeFile(*dst);
 
 			streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+            
 // 			if ( gVectorSwitch && (intrinsic = open_arch_stream("intrinsic.hh")) ) {
 // 				streamCopyUntilEnd(*intrinsic, *dst);
 // 			}
+            
+            if (gSchedulerSwitch) {
+                istream* scheduler_include = open_arch_stream("scheduler.h");
+                if (scheduler_include) {
+                    streamCopy(*scheduler_include, *dst);
+                }
+            }
+            
 			streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
             printfloatdef(*dst);
             

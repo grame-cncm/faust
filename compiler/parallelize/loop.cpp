@@ -1,4 +1,3 @@
-#include <set>
 #include "loop.hh"
 extern bool gVectorSwitch;
 
@@ -38,7 +37,7 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param size the number of iterations of the loop
  */
 Loop::Loop( Tree recsymbol, Loop* encl, const string& size) 
-        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fUseCount(0) 
+        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0) 
 {}
 
 
@@ -48,8 +47,7 @@ Loop::Loop( Tree recsymbol, Loop* encl, const string& size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), 
-          fOrder(-1), fUseCount(0)
+        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0)
 {}
 
 
@@ -136,12 +134,12 @@ void Loop::absorb (Loop* l)
     // the loops must have the same number of iterations
     assert(fSize == l->fSize); 
 
-    // update recursive dependecies by adding those from the absorbed loop
+    // update recursive dependencies by adding those from the absorbed loop
     fRecDependencies.insert(l->fRecDependencies.begin(), l->fRecDependencies.end());  
     if (fIsRecursive) fRecDependencies.erase(fRecSymbol); 
 
-    // update loop dependecies by adding those from the absorbed loop
-    fLoopDependencies.insert(l->fLoopDependencies.begin(), l->fLoopDependencies.end());  
+    // update loop dependencies by adding those from the absorbed loop
+    fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(), l->fBackwardLoopDependencies.end());  
 
     // add the line of code of the absorbed loop
     fPreCode.insert(fPreCode.end(), l->fPreCode.begin(), l->fPreCode.end());
@@ -216,10 +214,10 @@ void Loop::printoneln(int n, ostream& fout)
 //-------------------------------------------------------
 void Loop::concat(Loop* l)
 {
-	assert(l->fUseCount==1);
-	assert(fLoopDependencies.size()==1);
-	assert((*fLoopDependencies.begin()) == l);
+	assert(l->fUseCount == 1);
+	assert(fBackwardLoopDependencies.size() == 1);
+	assert((*fBackwardLoopDependencies.begin()) == l);
 	
 	fExtraLoops.push_front(l);
-	fLoopDependencies = l->fLoopDependencies;	
+	fBackwardLoopDependencies = l->fBackwardLoopDependencies;	
 }

@@ -44,6 +44,14 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
 	while ( getline(src,s) && (s != until) ) dst << s << endl;
 }
 
+/**
+ * Copy src to dst.
+ */
+void streamCopy(istream& src, ostream& dst)
+{ 
+	string	s;
+	while ( getline(src,s)) dst << s << endl;
+}
 
 /**
  * Copy src to dst until end

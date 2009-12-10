@@ -50,7 +50,8 @@
 #include "ppsig.hh"
 
 extern bool	gLessTempSwitch;
-extern int		gMaxCopyDelay;
+extern bool gSchedulerSwitch;
+extern int	gMaxCopyDelay;
 
 static Klass* signal2klass (const string& name, Tree sig)
 {
@@ -129,12 +130,14 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 {
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
-	for (int i = 0; i < fClass->inputs(); i++) {
+    
+    for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
-	}
-	for (int i = 0; i < fClass->outputs(); i++) {
+    }
+    for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
-	}
+    }
+    
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
 		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
