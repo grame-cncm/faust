@@ -349,7 +349,7 @@ void printhelp()
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
     cout << "-svg \t\tprint block-diagram --svg file\n";
     cout << "-md \t\tprint --mathdoc of a Faust program in LaTeX format\n";
-    cout << "-mdlang \t\tload --mathdoc-lang if translation file exists (en, fr)\n";
+    cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
     cout << "-stripdoc \t\tapply --strip-doc-tags when printing Faust listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
