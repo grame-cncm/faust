@@ -57,7 +57,7 @@ for FILEPATH in $@ ; do
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
-		faust -o ${FILEPATH%.dsp}.cpp --math $FILEPATH &&
+		faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
 		cd ${FILEPATH%.dsp}-math/ && 
 		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
 		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
