@@ -1,11 +1,12 @@
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
 MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
 
-VSIZE := 2048
+VSIZE := 1024
 
 all : icc gcc
-icc : ialsascal ialsavec ialsavec1 ialsavec2 ialsavec3 ialsaomp ialsaomp2
-gcc : galsascal galsavec galsavec1 galsavec2 galsavec3 galsaomp galsaomp2
+icc : ialsascal ialsavec ialsaomp2 ialsasch ialsasch2
+gcc : galsascal galsavec galsaomp2 galsasch galsasch2
+
 
 
 ### intel-compiler single-precision x {scalar, vector and openMP}
@@ -13,6 +14,14 @@ gcc : galsascal galsavec galsavec1 galsavec2 galsavec3 galsaomp galsaomp2
 ialsascal :
 	install -d ialsascaldir
 	$(MAKE) DEST='ialsascaldir/' ARCH='alsa-gtk-bench.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ialsasch :
+	install -d ialsaschdir
+	$(MAKE) DEST='ialsaschdir/' ARCH='alsa-gtk-bench.cpp' VEC='-sch -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
+ialsasch2 :
+	install -d ialsasch2dir
+	$(MAKE) DEST='ialsasch2dir/' ARCH='alsa-gtk-bench.cpp' VEC='-sch -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 ialsavec :
 	install -d ialsavecdir
@@ -45,6 +54,14 @@ ialsaomp2 :
 galsascal :
 	install -d galsascaldir
 	$(MAKE) DEST='galsascaldir/' ARCH='alsa-gtk-bench.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+galsasch :
+	install -d galsaschdir
+	$(MAKE) DEST='galsaschdir/' ARCH='alsa-gtk-bench.cpp' VEC='-sch -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+galsasch2 :
+	install -d galsasch2dir
+	$(MAKE) DEST='galsasch2dir/' ARCH='alsa-gtk-bench.cpp' VEC='-sch -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 galsavec :
 	install -d galsavecdir
