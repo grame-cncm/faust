@@ -92,9 +92,7 @@ class Klass //: public Target
     list<string>        fZone2bCode;             ///< single once per block
     list<string>        fZone2cCode;             ///< single once per block
     list<string>        fZone3Code;             ///< private every sub block
-    list<string>        fZone6Code;              ///< for input buffers in Scheduler mode
-    list<string>        fZone7Code;              ///< for output buffers in Scheduler mode 
-
+  
     Loop*               fTopLoop;               ///< active loops currently open
     property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
 
@@ -155,9 +153,7 @@ class Klass //: public Target
     void addZone2b (const string& str)  { fZone2bCode.push_back(str); }
     void addZone2c (const string& str)  { fZone2cCode.push_back(str); }
     void addZone3 (const string& str)  { fZone3Code.push_back(str); }
-    void addZone6 (const string& str)  { fZone6Code.push_back(str); }
-    void addZone7 (const string& str)  { fZone7Code.push_back(str); }
-
+ 
     void addPreCode ( const string& str)   { fTopLoop->addPreCode(str); }
     void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
