@@ -40,6 +40,34 @@ Some default parameters of Faust's ALSA applications are controlled by the follo
 
 using namespace std;
 
+// handle 32/64 bits int size issues
+
+#ifdef __x86_64__
+
+#define uint32	unsigned int
+#define uint64	unsigned long int
+
+#define int32	int
+#define int64	long int
+
+#else
+
+#define uint32	unsigned int
+#define uint64	unsigned long long int
+
+#define int32	int
+#define int64	long long int
+#endif
+
+// check 32/64 bits issues are correctly handled
+
+#define CHECKINTSIZE \
+	assert(sizeof(int32)==4);\
+	assert(sizeof(int64)==8);
+
+
+
+
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
 #ifdef __SSE__
@@ -422,14 +450,18 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
 
-				long* 	buffer32b = (long*) fInputCardBuffer;
+				int* 	buffer32b = (int*) fInputCardBuffer;
 				for (int s = 0; s < fBuffering; s++) {
 					for (unsigned int c = 0; c < fCardInputs; c++) {
-						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(LONG_MAX));
+						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(INT_MAX));
 					}
 				}
+			} else {
+
+				printf("unrecognized input sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 			
 		} else if (fSampleAccess == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
@@ -450,14 +482,18 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32) { 
 
 				for (unsigned int c = 0; c < fCardInputs; c++) {
-					long* 	chan32b = (long*) fInputCardChannels[c];
+					int* 	chan32b = (int*) fInputCardChannels[c];
 					for (int s = 0; s < fBuffering; s++) {
-						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(LONG_MAX));
+						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(INT_MAX));
 					}
 				}
+			} else {
+
+				printf("unrecognized input sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 			
 		} else {
@@ -488,15 +524,19 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32)  {
 
-				long* buffer32b = (long*) fOutputCardBuffer;
+				int* buffer32b = (int*) fOutputCardBuffer;
 				for (int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer32b[c + f*fCardOutputs] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+						buffer32b[c + f*fCardOutputs] = int( max(min(x,1.0),-1.0) * float(INT_MAX) ) ;
 					}
 				}
+			} else {
+
+				printf("unrecognized output sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 
 			int count = snd_pcm_writei(fOutputDevice, fOutputCardBuffer, fBuffering); 	
@@ -520,15 +560,20 @@ class AudioInterface : public AudioParam
 					}
 				}
 
-			} else { // SND_PCM_FORMAT_S32
+			} else if (fSampleFormat == SND_PCM_FORMAT_S32) { 
 
 				for (unsigned int c = 0; c < fCardOutputs; c++) {
-					long* chan32b = (long*) fOutputCardChannels[c];
+					int* chan32b = (int*) fOutputCardChannels[c];
 					for (int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan32b[f] = long( max(min(x,1.0),-1.0) * float(LONG_MAX) ) ;
+						chan32b[f] = int( max(min(x,1.0),-1.0) * float(INT_MAX) ) ;
 					}
 				}
+
+			} else {
+
+				printf("unrecognized output sample format : %u\n", fSampleFormat);
+				exit(1);
 			}
 
 			int count = snd_pcm_writen(fOutputDevice, fOutputCardChannels, fBuffering); 	
@@ -1805,14 +1850,15 @@ void GTKUI::run()
 class dsp {
  protected:
 	int fSamplingFreq;
+        int fThreadNum;
  public:
 	dsp() {}
 	virtual ~dsp() {}
 	
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int samplingRate) 							= 0;
+    virtual void buildUserInterface(UI* interface) 					= 0;
+    virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
  	virtual void conclude() 										{}
 };
@@ -1909,6 +1955,8 @@ static const char* getDefaultEnv(const char* name, const char* defval)
 
 int main(int argc, char *argv[] )
 {
+	CHECKINTSIZE;
+
 	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
 	
 	// compute rcfilename to (re)store application state
@@ -1928,8 +1976,8 @@ int main(int argc, char *argv[] )
 	AVOIDDENORMALS;
 	audio.open();
 	
-	DSP.init(audio.frequency());
-	DSP.buildUserInterface(interface);
+    DSP.init(audio.frequency());
+    DSP.buildUserInterface(interface);
 	
 	interface->recallState(rcfilename);
 
