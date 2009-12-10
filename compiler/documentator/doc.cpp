@@ -104,7 +104,7 @@ static const char* 				gDocDevSuffix;			///< ".tex" (or .??? - used to choose ou
 static string 					gCurrentDir;			///< Room to save current directory name.
 static const string				gLatexheaderfilename = "latexheader.tex";
 
-vector<Tree> 					gDocVector;				///< Contains <doc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
+vector<Tree> 					gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
 
 static struct tm				gCompilationDate;
 
@@ -247,7 +247,7 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	/** Init and load translation file. */
 	loadTranslationFile(gDocLang);
 	
-	/** Simulate a default doc if no <doc> tag detected. */
+	/** Simulate a default doc if no <mdoc> tag detected. */
 	if (gDocVector.empty()) { declareAutoDoc(); } 	
 	
 	/** Printing stuff : in the '.tex' ouptut file, eventually including SVG files. */
@@ -350,7 +350,7 @@ static void printfaustlistings(ostream& docout)
 
 /** 
  * Print a listing of the Faust code, in a LaTeX "listing" environment.
- * Strip content of <doc> tags.
+ * Strip content of <mdoc> tags.
  *
  * @param[in]	faustfile	The source file containing the Faust code.
  * @param[out]	docout		The LaTeX output file to print into.
@@ -369,14 +369,14 @@ static void printfaustlisting(string& faustfile, ostream& docout)
 	bool isInsideDoc = false;
 	
 	if (faustfile != "" && src.good()) {
-		while(getline(src, s)) { /** We suppose there's only one <doc> tag per line. */
-			size_t foundopendoc  = s.find("<doc>");
+		while(getline(src, s)) { /** We suppose there's only one <mdoc> tag per line. */
+			size_t foundopendoc  = s.find("<mdoc>");
 			if (foundopendoc != string::npos && gStripDocSwitch) isInsideDoc = true;
 			
 			if (isInsideDoc == false)
 				docout << s << endl;
 			
-			size_t foundclosedoc = s.find("</doc>");
+			size_t foundclosedoc = s.find("</mdoc>");
 			if (foundclosedoc != string::npos && gStripDocSwitch) isInsideDoc = false;
 		}
 	} else {
@@ -427,8 +427,8 @@ static void printfaustdocstamp(const string& faustversion, ostream& docout)
 /**
  * @brief Main documentator loop.
  *
- * First loop on gDocVector, which contains the faust <doc> trees.
- * Second loop for each of these <doc> trees, which contain parsed input expressions of 3 types :
+ * First loop on gDocVector, which contains the faust <mdoc> trees.
+ * Second loop for each of these <mdoc> trees, which contain parsed input expressions of 3 types :
  * DOCEQN for <equation> tags, DOCDGM for <diagram> tags, and DOCTXT for direct LaTeX text (no tag).
  * - DOCTXT expressions printing is trivial.
  * - DOCDGM expressions printing calls 'printDocDgm' to generate SVG files and print LaTeX "figure" code.
@@ -436,13 +436,13 @@ static void printfaustdocstamp(const string& faustversion, ostream& docout)
  *   has been done by 'prepareDocEqns'.
  *
  * @param[in]	projname		Basename of the new doc directory ("*-math").
- * @param[in]	docVector		Contains all <doc> parsed content (as boxes).
+ * @param[in]	docVector		Contains all <mdoc> parsed content (as boxes).
  * @param[in]	faustversion	The current version of this Faust compiler.
  * @param[out]	docout			The output file to print into.
  **/
 static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout)
 {
-	//cerr << endl << "Documentator : printdoccontent : " << docVector.size() << " <doc> tags read." << endl;
+	//cerr << endl << "Documentator : printdoccontent : " << docVector.size() << " <mdoc> tags read." << endl;
 	
 	/** Equations need to be prepared (named and compiled) before printing. */
 	vector<Lateq*>  docCompiledEqnsVector;
@@ -455,9 +455,9 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 	for (vector<Tree>::const_iterator doc=docVector.begin(); doc<docVector.end(); doc++) {
 		
 		Tree L = reverse(*doc);
-		//cerr << "Entering into <doc> parsing..." << endl; 
+		//cerr << "Entering into <mdoc> parsing..." << endl; 
 		
-		/** Second level printing loop, on each <doc>. */
+		/** Second level printing loop, on each <mdoc>. */
 		while (isList(L)) {
 			Tree expr;
 			if ( isDocEqn(hd(L), expr) ) { ///< After equations are well prepared and named.
@@ -480,7 +480,7 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 			}
 			L = tl(L);
 		}
-		//cerr << " ...end of <doc> parsing." << endl; 
+		//cerr << " ...end of <mdoc> parsing." << endl; 
 	}
 }
 
@@ -497,7 +497,7 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
  * in a "source / destination" manner, 
  * the "destination" being declared before the function call. 
  *
- * @param[in]	docBoxes				The <doc> boxes to collect and prepare.
+ * @param[in]	docBoxes				The <mdoc> boxes to collect and prepare.
  * @param[out]	docCompiledEqnsVector	The place to store compiled equations.
  */
 static void prepareDocEqns(const vector<Tree>& docBoxes, vector<Lateq*>& docCompiledEqnsVector)
@@ -521,9 +521,9 @@ static void prepareDocEqns(const vector<Tree>& docBoxes, vector<Lateq*>& docComp
 
 
 /**
- * #0. Collect every <equation> found in all <doc> faust comments.
+ * #0. Collect every <equation> found in all <mdoc> faust comments.
  *
- * @param[in]	docBoxes	The <doc> boxes to filter.
+ * @param[in]	docBoxes	The <mdoc> boxes to filter.
  * @param[out]	eqBoxes		The place to store only <equation> boxes.
  */
 static void collectDocEqns(const vector<Tree>& docBoxes, vector<Tree>& eqBoxes)

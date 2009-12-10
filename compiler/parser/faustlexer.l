@@ -32,20 +32,20 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 <comment>\x0d					/* no need to increment yylineno here 	*/
 <comment>"*"+"/"				BEGIN(INITIAL);
  
-"<doc>"							{ BEGIN(doc); return BDOC; }
-<doc>.							return DOCCHAR; /* char by char, may be slow ?? */
-<doc>\n							return DOCCHAR; /* keep newline chars */
-<doc>"<notice>"					return NOTICE;  /* autoclosing tag */
-<doc>"<notice/>"				return NOTICE;  /* autoclosing tag */
-<doc>"<notice />"				return NOTICE;  /* autoclosing tag */
-<doc>"<listing>"				return LISTING; /* autoclosing tag */
-<doc>"<listing/>"				return LISTING; /* autoclosing tag */
-<doc>"<listing />"				return LISTING; /* autoclosing tag */
-<doc>"<equation>"				{ BEGIN(INITIAL); 	return BEQN; }
+"<mdoc>"							{ BEGIN(doc); return BDOC; }
+<mdoc>.							return DOCCHAR; /* char by char, may be slow ?? */
+<mdoc>\n							return DOCCHAR; /* keep newline chars */
+<mdoc>"<notice>"					return NOTICE;  /* autoclosing tag */
+<mdoc>"<notice/>"				return NOTICE;  /* autoclosing tag */
+<mdoc>"<notice />"				return NOTICE;  /* autoclosing tag */
+<mdoc>"<listing>"				return LISTING; /* autoclosing tag */
+<mdoc>"<listing/>"				return LISTING; /* autoclosing tag */
+<mdoc>"<listing />"				return LISTING; /* autoclosing tag */
+<mdoc>"<equation>"				{ BEGIN(INITIAL); 	return BEQN; }
 "</equation>"					{ BEGIN(doc); 		return EEQN; }
-<doc>"<diagram>"				{ BEGIN(INITIAL); 	return BDGM; }
+<mdoc>"<diagram>"				{ BEGIN(INITIAL); 	return BDGM; }
 "</diagram>"					{ BEGIN(doc); 		return EDGM; }
-<doc>"</doc>"					{ BEGIN(INITIAL); 	return EDOC; }
+<mdoc>"</mdoc>"					{ BEGIN(INITIAL); 	return EDOC; }
 
 
 {DIGIT}+    		return INT;

@@ -51,7 +51,7 @@ static void				initDocAutodocKeySet();
  * @brief Declare an automatic documentation.
  *
  * This function simulates a default documentation : 
- * if no <doc> tag was found in the input faust file,
+ * if no <mdoc> tag was found in the input faust file,
  * and yet the '-math' option was called, 
  * then print a complete 'process' doc. 
  */

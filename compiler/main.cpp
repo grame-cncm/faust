@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.6b14mdoc"
+#define FAUSTVERSION "0.9.9.6b15mdoc"
 
 #include <stdio.h>
 #include <string.h>
@@ -114,7 +114,7 @@ bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
 bool            gPrintDocSwitch = false;
 bool            gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
-bool			gStripDocSwitch = false;	// Strip <doc> content from doc listings.
+bool			gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
 int            	gBalancedSwitch = 0;
 int            	gFoldThreshold 	= 25;
 int            	gMaxNameSize 	= 40;
