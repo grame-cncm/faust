@@ -51,8 +51,8 @@ struct Meta : map<const char*, const char*>
 // Generic min and max using gcc extensions
 //-------------------------------------------------------------------
 
-#define max(x,y) ((x)>?(y))
-#define min(x,y) ((x)<?(y))
+#define max(x,y) (((x)>(y)) ? (x) : (y))
+#define min(x,y) (((x)<(y)) ? (x) : (y))
 
 //abs(x) should be already predefined
 
@@ -424,7 +424,7 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	
 	/* Multi out */
 	for (int i = 0; i< x->dsp->getNumOutputs(); i++) 
-		outlet_new((t_pxobject *)x, "signal");
+		outlet_new((t_pxobject *)x, (char*)"signal");
 	
 	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
 	return x;
@@ -447,7 +447,7 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 			#else
 				std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 			#endif
-				post("------------------");
+				post((char*)"------------------");
 				for (mspUI::iterator it = x->dspUI->begin(); it != x->dspUI->end(); ++it) {
 					char param[64];
 					it->second->toString(param);
@@ -505,10 +505,9 @@ int main()
 {
 	setup((t_messlist **)&faust_class, (method)faust_new, (method)faust_free, 
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
-
+   
 	dsp *thedsp = new mydsp();
 	mspUI *dspUI= new mspUI();
-	thedsp->init(long(sys_getsr()));
 	thedsp->buildUserInterface(dspUI);
 	
 	// Add the same method for every parameters and use the symbol as a selector 
@@ -518,10 +517,13 @@ int main()
 		addmess((method)faust_method, name, A_GIMME, 0);
 	}
 	
-	addmess((method)faust_dsp, "dsp", A_CANT, 0);
-	addmess((method)faust_assist, "assist", A_CANT, 0);
+	addmess((method)faust_dsp, (char*)"dsp", A_CANT, 0);
+	addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
 	dsp_initclass();
-	post("Faust DSP object");
+    
+    delete(dspUI);
+    delete(thedsp);
+	post((char*)"Faust DSP object");
 	return 0;
 }
 
