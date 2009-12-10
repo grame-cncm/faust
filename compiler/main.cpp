@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.9.6b13sched"
+#define FAUSTVERSION "0.9.9.6b14mdoc"
 
 #include <stdio.h>
 #include <string.h>
@@ -284,7 +284,7 @@ bool process_cmdline(int argc, char* argv[])
             gFloatSize = 3;
             i += 1;
 			
-        } else if (isCmd(argv[i], "-md", "--mathdoc")) {
+        } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
             gPrintDocSwitch = true;
             i += 1;
 			
@@ -292,7 +292,7 @@ bool process_cmdline(int argc, char* argv[])
             gDocLang = argv[i+1];
             i += 2;
 			
-        } else if (isCmd(argv[i], "-stripdoc", "--strip-doc-tags")) {
+        } else if (isCmd(argv[i], "-stripmdoc", "--strip-mdoc-tags")) {
             gStripDocSwitch = true;
             i += 1;
 			
@@ -347,10 +347,10 @@ void printhelp()
 	cout << "-v \t\tprint compiler --version information\n";
 	cout << "-d \t\tprint compilation --details\n";
 	cout << "-ps \t\tprint block-diagram --postscript file\n";
-    cout << "-svg \t\tprint block-diagram --svg file\n";
-    cout << "-md \t\tprint --mathdoc of a Faust program in LaTeX format\n";
+    cout << "-svg \tprint block-diagram --svg file\n";
+    cout << "-mdoc \tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
     cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc \t\tapply --strip-doc-tags when printing Faust listings\n";
+    cout << "-stripdoc \t\tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -632,7 +632,7 @@ int main (int argc, char* argv[])
 			string projname = gMasterDocument;
 			if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
 				projname = gMasterDocument.substr(0, gMasterDocument.length()-4); }
-			printDoc( subst("$0-doc", projname).c_str(), "tex", FAUSTVERSION );
+			printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
 		}
 	}
 

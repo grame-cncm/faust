@@ -2,7 +2,7 @@
 
 # faust2math.sh
 #
-# Generate a full Faust documentation, in a '*-math' top directory.
+# Generate a full Faust documentation, in a '*-mdoc' top directory.
 #
 # Karim Barkati
 # November 2009
@@ -47,8 +47,8 @@ convert_svgdirs2pdf()
 
 
 #    Main loop of this script :
-# 1. Compile `faust -math` to generate the TeX file and SVG block-diagrams.
-# 2. Move to the "${FILEPATH%.dsp}-math" directory created by faust.
+# 1. Compile `faust -mdoc` to generate the TeX file and SVG block-diagrams.
+# 2. Move to the "${FILEPATH%.dsp}-mdoc" directory created by faust.
 # 3. Convert SVG files into PDF files recursively (with svg2pdf).
 # 4. Compile pdflatex twice (including the top-level block-diagram).
 # 5. Copy some important files where needed.
@@ -58,12 +58,12 @@ for FILEPATH in $@ ; do
 	case $FILENAME in
 	    *.dsp )  
 		faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
-		cd ${FILEPATH%.dsp}-math/ && 
+		cd ${FILEPATH%.dsp}-mdoc/ && 
 		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
 		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
 		mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
 		mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
-		xdg-open tex/${FILENAME%.dsp}.pdf &&
+		open tex/${FILENAME%.dsp}.pdf &&
 		cd ..
 		;;
 	    * )

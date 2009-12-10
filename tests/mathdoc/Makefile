@@ -4,8 +4,8 @@
 
 
 DSP = $(wildcard *.dsp)
-TEX = $(wildcard *-doc/tex/*.tex)
-PDF = $(wildcard *-doc/pdf/*.pdf)
+TEX = $(wildcard *-mdoc/tex/*.tex)
+PDF = $(wildcard *-mdoc/pdf/*.pdf)
 
 all : mathdoc copy
 
@@ -33,7 +33,7 @@ copy :
 
 help :
 	@echo "make or make all : compile math documentation of all examples, then copy resulting pdf files into \"allmathpdfs\" directory."
-	@echo "make clean   : remove \"*-doc\" and \"allmath*\" directories."
+	@echo "make clean   : remove \"*-mdoc\" and \"allmath*\" directories."
 	@echo "make compile : compile the faust compiler."
 	@echo "make install : install the faust compiler and faust2appls scripts."
 	@echo "make mathdoc    : generate math documentation of all examples (with faust2mathdoc)."
@@ -41,7 +41,7 @@ help :
 	@echo "make total   : clean, compile faust, install faust and faust2appls, compile math docs, and copy files."
 
 clean :
-	rm -rf *-doc
+	rm -rf *-mdoc
 	rm -rf allmath*
 
 total : clean compile install mathdoc copy
