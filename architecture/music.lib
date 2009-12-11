@@ -103,7 +103,7 @@ osci(freq)	= s1 + d * (s2 - s1)
 // a,d,s,r = attack (#samples), decay (sec), sustain (percentage), release (sec)
 // t       = trigger signal
 
-adsr(a,d,s,r,t) = env ~ (_,_) : ! // the 2 'state' signals are fed back
+adsr(a,d,s,r,t) = env ~ (_,_) : (!,_) // the 2 'state' signals are fed back
 with {
     env (p2,y) =
         (t>0) & (p2|(y>=1)),          // p2 = decay-sustain phase
