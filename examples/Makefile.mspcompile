@@ -3,24 +3,28 @@ cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=~.mxo))
 processor := $(shell uname -p)
 
+CC=g++
+#CC=/Developer/usr/bin/llvm-g++
+
 INC	:= -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes
 
 all :  $(appl)
 
 $(DEST)%~.mxo : %.dsp Info.plist.template
 	install -d $@/Contents/MacOS
-	faust $(VEC) -a $(ARCH) $< -o $@/$(<:.dsp=.cpp)
+	faust $(VEC) -g -vs 2048 -a $(ARCH) $< -o $@/$(<:.dsp=.cpp)
+	#faust -sch -g -vs 2048 $(VEC) -a $(ARCH) $< -o $@/$(<:.dsp=.cpp)
 ifeq ($(processor), i386)
-	g++ -arch i386 -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.i386.o)
-	g++  -framework MaxAPI -framework Carbon -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle $@/$(<:.dsp=.i386.o) -o $@/$(<:.dsp=.i386~) 
-	g++ -arch ppc -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.ppc.o)
-	g++  -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle $@/$(<:.dsp=.ppc.o) -o $@/$(<:.dsp=.ppc~)
+	$(CC) -arch i386 -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.i386.o)
+	$(CC) -framework MaxAPI -framework Carbon -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle $@/$(<:.dsp=.i386.o) -o $@/$(<:.dsp=.i386~) 
+	$(CC) -arch ppc -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.ppc.o)
+	$(CC) -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle $@/$(<:.dsp=.ppc.o) -o $@/$(<:.dsp=.ppc~)
 	sed s/FOO/$(<:.dsp=~)/ <Info.plist.template >$@/Contents/Info.plist
 	lipo -create $@/$(<:.dsp=.i386~) $@/$(<:.dsp=.ppc~) -output $@/Contents/MacOS/$(<:.dsp=~)
 	rm -f $@/$(<:.dsp=.ppc~) $@/$(<:.dsp=.ppc.o) $@/$(<:.dsp=.i386.o) $@/$(<:.dsp=.i386~)
 else
 	g++ -arch ppc -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.ppc.o)
-	g++  -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle $@/$(<:.dsp=.ppc.o) -o $@/$(<:.dsp=.ppc~)
+	g++ -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle $@/$(<:.dsp=.ppc.o) -o $@/$(<:.dsp=.ppc~)
 	sed s/FOO/$(<:.dsp=~)/ <Info.plist.template >$@/Contents/Info.plist
 	lipo -create $@/$(<:.dsp=.ppc~) -output $@/Contents/MacOS/$(<:.dsp=~)
 	rm -f $@/$(<:.dsp=.ppc~) $@/$(<:.dsp=.ppc.o)
