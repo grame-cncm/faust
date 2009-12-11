@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# faust2math.sh
+# faust2mathviewer.sh
 #
-# Generate a full Faust documentation, in a '*-mdoc' top directory.
+# Generate a full Faust documentation, in a '*-mdoc' top directory 
+# and open the resulting pdf file
 #
 # Karim Barkati
 # November 2009
@@ -17,7 +18,7 @@
 # Usage.
 print_usage() 
 {
-    echo Usage : args of faust2math should be a \'.dsp\' file, or a list of \'.dsp\' files.
+    echo Usage : args of faust2mathviewer should be a \'.dsp\' file, or a list of \'.dsp\' files.
 }
 
 
@@ -52,18 +53,25 @@ convert_svgdirs2pdf()
 # 3. Convert SVG files into PDF files recursively (with svg2pdf).
 # 4. Compile pdflatex twice (including the top-level block-diagram).
 # 5. Copy some important files where needed.
+
+if [[ $(uname) == Darwin ]]; then
+    OPEN=open
+else
+	OPEN=xdg-open
+fi
+
 for FILEPATH in $@ ; do
     if [ -f $FILEPATH ] ; then
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
 		faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
-		cd ${FILEPATH%.dsp}-mdoc/ && 
+		cd ${FILEPATH%.dsp}-doc/ && 
 		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
 		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
 		mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
 		mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
-		open tex/${FILENAME%.dsp}.pdf &&
+		${OPEN} tex/${FILENAME%.dsp}.pdf &&
 		cd ..
 		;;
 	    * )
