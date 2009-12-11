@@ -553,7 +553,7 @@ tgroup			: TGROUP LPAR uqstring PAR expression RPAR
 vbargraph		: VBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
 												{ $$ = boxVBargraph($3,$5,$7); }
 				;
-hbargraph		: HBARGRAPH LPAR string PAR argument PAR argument RPAR
+hbargraph		: HBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
 												{ $$ = boxHBargraph($3,$5,$7); }
 				;
 
