@@ -1,0 +1,48 @@
+#N canvas 363 282 562 379 10;
+#X obj 38 65 fact~;
+#X obj 67 111 snapshot~;
+#X floatatom 67 141 10 0 0 0 - - -;
+#X obj 85 65 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X obj 199 29 phasor~ 1;
+#X obj 156 84 serial~;
+#X obj 200 112 snapshot~;
+#X floatatom 200 142 7 0 0 0 - - -;
+#X obj 218 84 metro 100;
+#X obj 218 53 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 320 27 loadbang;
+#X msg 320 55 \; pd dsp 1;
+#X obj 171 229 sum~;
+#X obj 196 294 dac~;
+#X obj 195 261 *~ 0;
+#X obj 218 230 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#N canvas 0 0 450 300 (subpatch) 0;
+#X array scope 1920 float 2;
+#X coords 0 1 1920 -1 200 140 1;
+#X restore 271 200 graph;
+#X obj 69 262 tabwrite~ scope;
+#X obj 69 229 metro 40;
+#X obj 69 206 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X msg 171 203 vol \$1;
+#X obj 174 178 hsl 64 15 0 1 0 0 empty empty empty -2 -8 0 10 -262144
+-1 -1 0 1;
+#X connect 0 1 1 0;
+#X connect 1 0 2 0;
+#X connect 3 0 1 0;
+#X connect 4 0 5 1;
+#X connect 5 1 6 0;
+#X connect 6 0 7 0;
+#X connect 8 0 6 0;
+#X connect 9 0 8 0;
+#X connect 10 0 11 0;
+#X connect 12 1 14 0;
+#X connect 12 1 17 0;
+#X connect 14 0 13 0;
+#X connect 15 0 14 1;
+#X connect 18 0 17 0;
+#X connect 19 0 18 0;
+#X connect 20 0 12 0;
+#X connect 21 0 20 0;

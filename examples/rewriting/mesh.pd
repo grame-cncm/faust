@@ -1,0 +1,37 @@
+#N canvas 678 191 450 300 10;
+#X floatatom 79 41 5 0 0 0 - x1 -;
+#X floatatom 154 42 5 0 0 0 - x2 -;
+#X floatatom 228 43 5 0 0 0 - x3 -;
+#X floatatom 42 122 5 0 0 0 - y2 -;
+#X floatatom 42 98 5 0 0 0 - y1 -;
+#X obj 114 112 mesh~;
+#X obj 356 218 tgl 15 0 sample empty empty 17 7 0 10 -262144 -1 -1
+0 1;
+#X msg 356 243 \; pd dsp \$1;
+#X obj 373 111 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X msg 373 136 \; val \$1;
+#X obj 79 18 tgl 15 0 x1 val empty 17 7 0 10 -262144 -1 -1 0 1;
+#X obj 154 19 tgl 15 0 x2 val empty 17 7 0 10 -262144 -1 -1 0 1;
+#X obj 228 21 tgl 15 0 x3 val empty 17 7 0 10 -262144 -1 -1 0 1;
+#X obj 21 97 tgl 15 0 y1 val empty 17 7 0 10 -262144 -1 -1 0 1;
+#X obj 21 121 tgl 15 0 y2 val empty 17 7 0 10 -262144 -1 -1 0 1;
+#X obj 216 180 sample;
+#X obj 279 88 sample;
+#X obj 280 129 sample;
+#X obj 141 180 sample;
+#X obj 71 180 sample;
+#X obj 356 192 loadbang;
+#X connect 0 0 5 3;
+#X connect 1 0 5 4;
+#X connect 2 0 5 5;
+#X connect 3 0 5 2;
+#X connect 4 0 5 1;
+#X connect 5 1 19 0;
+#X connect 5 2 18 0;
+#X connect 5 3 15 0;
+#X connect 5 4 17 0;
+#X connect 5 5 16 0;
+#X connect 6 0 7 0;
+#X connect 8 0 9 0;
+#X connect 20 0 6 0;

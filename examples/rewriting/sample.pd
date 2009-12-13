@@ -1,0 +1,12 @@
+#N canvas 337 294 450 300 10;
+#X obj 112 62 metro 100;
+#X floatatom 3 18 5 0 0 0 - - -;
+#X obj 112 35 tgl 15 0 empty sample empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 55 62 inlet~;
+#X obj 56 104 snapshot~;
+#X connect 0 0 4 0;
+#X connect 2 0 0 0;
+#X connect 3 0 4 0;
+#X connect 4 0 1 0;
+#X coords 0 -1 1 1 65 35 1 0 0;
