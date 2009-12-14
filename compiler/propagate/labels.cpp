@@ -32,52 +32,58 @@ bool isPathCurrent(Tree t)			{ return isTree(t, PATHCURRENT); }
 /**
  * analyze name for "H:name" | "V:name" etc
  */
- 
-static Tree encodeName(const string& name)
+
+static Tree encodeName(char g, const string& name)
 {
-	if (name.size()>2) {
-		if (name[1] == ':') {
-			switch (name[0]) {
-				case 'v': 
-				case 'V': return cons(tree(0), tree(name.substr(2)));
-				
-				case 'h': 
-				case 'H': return cons(tree(1), tree(name.substr(2)));
-				
-				case 't': 
-				case 'T': return cons(tree(2), tree(name.substr(2)));
-				
-				default : return tree(name);
-			}
-		} else {
-			return tree(name);
-		}
-	} else {
-		return tree(name);
-	}
+    switch (g) {
+        case 'v':
+        case 'V': return cons(tree(0), tree(name));
+
+        case 'h':
+        case 'H': return cons(tree(1), tree(name));
+
+        case 't':
+        case 'T': return cons(tree(2), tree(name));
+
+        default : return cons(tree(0), tree(name));
+    }
 }
-				
+
 
 /**
  * Analyzes a label and converts it as a path
  */
- 
+
 static Tree label2path(const char* label)
 {
-	//cout << "label2path of " << label << endl;
-	int i = 0;
-	if (label[i] == 0) return nil;
-	if (label[i] == '/') return cons(pathRoot(), label2path(&label[i+1]));
-	else {
-		string name;
-		while ((label[i] != 0) && (label[i] != '/')) {
-			name.push_back(label[i]);
-			i++;
-		}
-		if (label[i] == '/') i++;
-		return cons(encodeName(name), label2path(&label[i]));
-	}
+    if (label[0] == 0) {
+        return cons(tree(""), nil);
+
+    } else if (label[0] == '/') {
+        return cons(pathRoot(), label2path(&label[1]));
+
+    } else if ((label[0] == '.') && (label[1] == '/')) {
+        return label2path(&label[2]);
+
+    } else if ((label[0] == '.') && (label[1] == '.') && (label[2] == '/')) {
+        return cons(pathParent(), label2path(&label[3]));
+
+    } else if (label[1] == ':') {
+        char    g = label[0];
+        string  s;
+        int     i = 2;
+        while ((label[i] != 0) && (label[i] != '/')) {
+            s.push_back(label[i]);
+            i++;
+        }
+        if (label[i] == '/') i++;
+        return cons(encodeName(g,s), label2path(&label[i]));
+
+    } else {
+        return cons(tree(label),nil);
+    }
 }
+
 
 /**
  * Concatenate the relative path to the absolute path
@@ -125,11 +131,14 @@ static Tree normalizeLabel(Tree label, Tree path)
 
 Tree normalizePath(Tree path)
 {
-	//cout << "Normalize Path : " << *path << endl;
+    //cout << "Normalize Path [[" << *path << "]]" << endl;
 	Tree npath;
-	if (isNil(path)) npath = path;
-	else npath = normalizeLabel(hd(path), normalizePath(tl(path)));	
-	//cout << "              -> " << *npath << endl;
+    if (isNil(path)) {
+        npath = path;
+    } else {
+        npath = normalizeLabel(hd(path), normalizePath(tl(path)));
+    }
+    //cout << "              -> [[" << *npath << "]]" << endl;
 	return npath;
 }
 
