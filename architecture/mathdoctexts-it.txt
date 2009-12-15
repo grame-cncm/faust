@@ -1,0 +1,97 @@
+// Testi standard per opzione di documentazione del compilatore Faust.
+// Copyright (C) 2009 GRAME, Centre National de Creation Musicale
+// Karim Barkati
+
+// Note: 
+// sono usate le doppie virgolette per visualizzare spazi e tabulazioni
+// all'inizio o alla fine delle stringhe.
+
+
+
+// Sezione Note.
+
+:compilstamp1	"Documentazione generata con il compilatore Faust versione "
+:compilstamp2	", on "
+:compilstamp3	"."
+
+:causality  	"$\forall \, s(t) \in \mathbb{S}$, $s(t\!<\!0) = 0$."
+:svgdir		"Eventuali sotto-diagrammi a blocchi possono essere trovati nella sotto-cartella "svg" (solo i diagrammi di piu' alto livello sono rappresentati in questa documentazione)."
+:nameconflicts  "Attenzione: nomi simbolici eventualmente usati all'interno di diagrammi a blocchi NON hanno relazione diretta con i nomi dei segnali usati nelle formule ("$x(t)$", "$y(t)$", ...). Inoltre, il calcolo puo' essere semplificato e riorganizzato."
+
+:fsamp			"$f_S$ e' la frequenza di campionamento."
+:foreignfun		"Il prefisso "ff" nel nome di alcune funzioni sta per "foreign function" del C++."
+:cdot			"L'operatore punto "$\cdot$" rappresenta la moltiplicazione nelle formule."
+
+:intcast
+"$\forall \, x \in \mathbb{R}$, "
+"	\begin{displaymath}"
+"		\mathrm{int}(x) ="
+"		\left\{\begin{array}{cl}"
+"			\lfloor x \rfloor & \mbox{if \,} x > 0 \\"
+"			\lceil x \rceil & \mbox{if \,} x < 0 \\"
+"			0 & \mbox{if \,} x = 0 \\"
+"		\end{array}\right.."
+"	\end{displaymath}"
+
+:intplus	"L'operatore piu' cerchiato "$\oplus$" rappresenta una addizione tra interi."
+:intminus	"L'operatore meno cerchiato "$\ominus$" rappresenta una sottrazione tra interi."
+:intmult	"L'operatore punto cerchiato "$\odot$" rappresenta una moltiplicazione tra interi."
+:intdiv		"L'operatore barra cerchiato "$\oslash$" rappresenta una divisione tra interi."
+
+:inputsig	"$x(t)$ rappresenta un segnale di ingresso."
+:inputsigs  	"$x_i(t)$ rappresentano segnali di ingresso multipli."
+:outputsig  	"$y(t)$ rappresenta un segnale di uscita."
+:outputsigs  	"$y_i(t)$ rappresentano segnali di uscita multipli."
+:constsigs  	"$k_i$ rappresentano segnali costanti."
+:paramsigs  	"$p_i(t)$ rappresentano dei segnali di parametro (alla frequenza del blocco)."
+:storedsigs  	"$s_i(t)$ rappresentano dei segnali memorizzati (alla frequenza di campionamento)."
+
+:buttonsigs  	"${u_b}_i(t)$ rappresentano i segnali dell'interfaccia utente per i bottoni."
+:checkboxsigs  	"${u_c}_i(t)$ rappresentano i segnali dell'interfaccia utente per le caselle di spunta."
+:slidersigs  	"${u_s}_i(t)$ rappresentano i segnali dell'interfaccia utente per i cursori."
+:nentrysigs  	"${u_n}_i(t)$ rappresentano i segnali dell'interfaccia utente per gli input numerici."
+:tablesigs  	"$w_i(t)$ rappresentano tabelle di segnale (spesso forme d'onda)."
+:recursigs  	"$r_i(t)$ rappresentano segnali ricorsivi (ritardati di $r_i(t\!-\!d)$)."
+:prefixsigs  	"$m_i(t)$ rappresentano segnali ritardati con prefisso."
+:selectionsig  	"$q_i(t)$ rappresenta un segnali di selezione."
+:selectionsigs  "$q_i(t)$ rappresentano segnali di selezione."
+
+
+
+// Sezione di Auto-documentazione.
+
+:autoeqntitle	"\section{Equazioni del processo}"
+:autoeqntext	"Questo programma chiama \emph{process}, segue la relativa descrizione matematica:"
+
+:autodgmtitle	"\section{Diagramma a blocchi del processo}"
+:autodgmtext	"Il diagramma a blocchi di \emph{process} e' mostrato nella figura \ref{figure1}."
+
+:autontctitle	"\section{Informazioni sulla documentazione}"
+:autontctext	"Prestare attenzione ad alcune informazioni e convenzioni di nomenclatura usate nella presente documentazione:"
+
+:autolsttitle1	"\section{Listato completo del codice in ingresso}"
+:autolsttext1	"Il seguente listato mostra il codice sorgente, in linguaggio Faust, usato per compilare la presente documentazione."
+
+:autolsttitle2	"\section{Listati completi del codice in ingresso}"
+:autolsttext2	"Il seguenti listati mostrano il codice sorgente, in linguaggio Faust, usato per compilare la presente documentazione."
+
+
+
+// Titoli per ogni tipo di formula.
+
+:inputsigtitle1		"Segnale di ingresso"
+:inputsigtitle2		"Segnali di ingresso"
+:outputsigtitle1	"Segnale di uscita"
+:outputsigtitle2	"Segnali di uscita"
+:constsigtitle1		"Segnale costante"
+:constsigtitle2		"Segnali costanti"
+:uisigtitle1		"Elemento dell'interfaccia utente"
+:uisigtitle2		"Elementi dell'interfaccia utente"
+:paramsigtitle1		"Segnale parametro"
+:paramsigtitle2		"Segnali parametro"
+:internalsigtitle1	"Segnale interno"
+:internalsigtitle2	"Segnali interni"
+
+:lateqcomment		"% Insieme di formule di Faust (corrispondenti all'identificqtivo di <equation>)."
+:emptyformulafield	"vuoto"
+:defaultvalue		"valore standard"

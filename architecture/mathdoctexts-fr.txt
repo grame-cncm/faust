@@ -1,14 +1,14 @@
-// Default texts for the math documentator of the Faust compiler.
-// Copyright (C) 2009 GRAME, Centre National de Creation Musicale
+// Textes en français pour le documentateur mathématique du compilateur Faust.
+// Tous droits réservés (C) 2009 GRAME, Centre National de Création Musicale
 // Karim Barkati
 
-// Remark: 
-// double quotes are useful to visualize spaces and tabulations
-// at the beginning or at the end of strings.
+// Remarque: 
+// les guillemets sont importantes pour visualiser les espaces et les tabulations
+// qui peuvent se trouver au début ou à la fin des chaînes de caractères.
 
 
 
-// Notice section.
+// Section Notice.
 
 :compilstamp1	"Cette documentation a été générée par Faust, version "
 :compilstamp2	", le "
@@ -59,7 +59,7 @@
 
 
 
-// Auto-documentation section.
+// Section Auto-documentation.
 
 :autoeqntitle	"\section{Équations du signal "process"}"
 :autoeqntext	"Ce programme appelle un processeur de signal nommé \emph{process}, et dont la description mathématique est la suivante:"
@@ -78,7 +78,7 @@
 
 
 
-// Titles for each type of formulas.
+// Section Titres des équations.
 
 :inputsigtitle1		"Signal d'entrée"
 :inputsigtitle2		"Signaux d'entrée"
