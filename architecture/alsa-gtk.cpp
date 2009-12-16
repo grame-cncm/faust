@@ -138,32 +138,43 @@ bool setRealtimePriority ()
 
 
 #ifdef BENCHMARKMODE
-// mesuring jack performances
-static __inline__ unsigned long long int rdtsc(void)
+
+/**
+ * Returns the number of clock cycles elapsed since the last reset
+ * of the processor
+ */
+static __inline__ uint64 rdtsc(void)
 {
-  unsigned long long int x;
-     __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-     return x;
+	union {
+		uint32 i32[2];
+		uint64 i64;
+	} count;
+	
+	__asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
+
+     return count.i64;
 }
 
 #define KSKIP 10
 #define KMESURE 1024
+
 int mesure = 0;
-unsigned long long int starts[KMESURE];
-unsigned long long int stops [KMESURE];
+
+uint64 starts[KMESURE];
+uint64 stops [KMESURE];
 
 #define STARTMESURE starts[mesure%KMESURE] = rdtsc();
 #define STOPMESURE stops[mesure%KMESURE] = rdtsc(); mesure = mesure+1;
 
 void printstats()
 {
-    unsigned long long int low, hi, tot;
+    uint64 low, hi, tot;
     low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
 
     if (mesure < KMESURE) {
     
         for (int i = KSKIP+1; i<mesure; i++) {
-            unsigned long long int m = stops[i] - starts[i];
+            uint64 m = stops[i] - starts[i];
             if (m<low) low = m;
             if (m>hi) hi = m;
             tot += m;
@@ -173,7 +184,7 @@ void printstats()
     } else {
     
         for (int i = KSKIP+1; i<KMESURE; i++) {
-            unsigned long long int m = stops[i] - starts[i];
+            uint64 m = stops[i] - starts[i];
             if (m<low) low = m;
             if (m>hi) hi = m;
             tot += m;
@@ -452,7 +463,7 @@ class AudioInterface : public AudioParam
 
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
 
-				int* 	buffer32b = (int*) fInputCardBuffer;
+				int32* 	buffer32b = (int32*) fInputCardBuffer;
 				for (int s = 0; s < fBuffering; s++) {
 					for (unsigned int c = 0; c < fCardInputs; c++) {
 						fInputSoftChannels[c][s] = float(buffer32b[c + s*fCardInputs])*(1.0/float(INT_MAX));
@@ -485,7 +496,7 @@ class AudioInterface : public AudioParam
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) { 
 
 				for (unsigned int c = 0; c < fCardInputs; c++) {
-					int* 	chan32b = (int*) fInputCardChannels[c];
+					int32* 	chan32b = (int32*) fInputCardChannels[c];
 					for (int s = 0; s < fBuffering; s++) {
 						fInputSoftChannels[c][s] = float(chan32b[s])*(1.0/float(INT_MAX));
 					}
@@ -526,7 +537,7 @@ class AudioInterface : public AudioParam
 
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32)  {
 
-				int* buffer32b = (int*) fOutputCardBuffer;
+				int32* buffer32b = (int32*) fOutputCardBuffer;
 				for (int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
@@ -563,7 +574,7 @@ class AudioInterface : public AudioParam
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) { 
 
 				for (unsigned int c = 0; c < fCardOutputs; c++) {
-					int* chan32b = (int*) fOutputCardChannels[c];
+					int32* chan32b = (int32*) fOutputCardChannels[c];
 					for (int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
 						chan32b[f] = int( max(min(x,1.0),-1.0) * float(INT_MAX) ) ;
