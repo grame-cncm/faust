@@ -29,6 +29,7 @@
 #include <AudioToolbox/AudioConverter.h>
 #include <CoreAudio/CoreAudio.h>
 #include <AudioUnit/AudioUnit.h>
+#include <CoreServices/CoreServices.h>
 
 #include "faustqt.h"
 
@@ -337,7 +338,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
     long in_nChannels, out_nChannels;
     
-    printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld", inChan, outChan, bufferSize, samplerate);
+    printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
 	
 	if (GetDefaultDevice(inChan, outChan, &fDeviceID) != noErr) {
 		printf("Cannot open default device\n");
@@ -378,14 +379,14 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 
     err1 = OpenAComponent(HALOutput, &fAUHAL);
     if (err1 != noErr) {
-		printf("Error calling OpenAComponent");
+		printf("Error calling OpenAComponent\n");
         printError(err1);
         goto error;
 	}
 
     err1 = AudioUnitInitialize(fAUHAL);
     if (err1 != noErr) {
-		printf("Cannot initialize AUHAL unit");
+		printf("Cannot initialize AUHAL unit\n");
 		printError(err1);
         goto error;
 	}
@@ -488,54 +489,58 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         }
     }
 	
-	outSize = sizeof(AudioStreamBasicDescription);
-	err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &srcFormat, &outSize);
-    if (err1 != noErr) {
-        printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Input\n");
-        printError(err1);
+    if (inChan > 0) {
+        outSize = sizeof(AudioStreamBasicDescription);
+        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &srcFormat, &outSize);
+        if (err1 != noErr) {
+            printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
+            printError(err1);
+        }
+        PrintStreamDesc(&srcFormat);
+        
+        srcFormat.mSampleRate = samplerate;
+        srcFormat.mFormatID = kAudioFormatLinearPCM;
+        srcFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
+        srcFormat.mBytesPerPacket = sizeof(float);
+        srcFormat.mFramesPerPacket = 1;
+        srcFormat.mBytesPerFrame = sizeof(float);
+        srcFormat.mChannelsPerFrame = inChan;
+        srcFormat.mBitsPerChannel = 32;
+        
+        PrintStreamDesc(&srcFormat);
+        
+        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
+        if (err1 != noErr) {
+            printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
+            printError(err1);
+        }
     }
-	PrintStreamDesc(&srcFormat);
 	
-	outSize = sizeof(AudioStreamBasicDescription);
-	err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &dstFormat, &outSize);
-    if (err1 != noErr) {
-        printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-        printError(err1);
-    }
-	PrintStreamDesc(&dstFormat);
-    
-    srcFormat.mSampleRate = samplerate;
-    srcFormat.mFormatID = kAudioFormatLinearPCM;
-    srcFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
-    srcFormat.mBytesPerPacket = sizeof(float);
-    srcFormat.mFramesPerPacket = 1;
-    srcFormat.mBytesPerFrame = sizeof(float);
-    srcFormat.mChannelsPerFrame = outChan;
-    srcFormat.mBitsPerChannel = 32;
-		
-	PrintStreamDesc(&srcFormat);
+    if (outChan > 0) {
+        outSize = sizeof(AudioStreamBasicDescription);
+        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1, &dstFormat, &outSize);
+        if (err1 != noErr) {
+            printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
+            printError(err1);
+        }
+        PrintStreamDesc(&dstFormat);
+        
+        dstFormat.mSampleRate = samplerate;
+        dstFormat.mFormatID = kAudioFormatLinearPCM;
+        dstFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
+        dstFormat.mBytesPerPacket = sizeof(float);
+        dstFormat.mFramesPerPacket = 1;
+        dstFormat.mBytesPerFrame = sizeof(float);
+        dstFormat.mChannelsPerFrame = outChan;
+        dstFormat.mBitsPerChannel = 32;
+        
+        PrintStreamDesc(&dstFormat);
 
-    err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &srcFormat, sizeof(AudioStreamBasicDescription));
-    if (err1 != noErr) {
-        printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Input\n");
-        printError(err1);
-    }
-	
-    dstFormat.mSampleRate = samplerate;
-    dstFormat.mFormatID = kAudioFormatLinearPCM;
-    dstFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
-    dstFormat.mBytesPerPacket = sizeof(float);
-    dstFormat.mFramesPerPacket = 1;
-    dstFormat.mBytesPerFrame = sizeof(float);
-    dstFormat.mChannelsPerFrame = inChan;
-    dstFormat.mBitsPerChannel = 32;
-	
-	PrintStreamDesc(&dstFormat);
-
-    err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &dstFormat, sizeof(AudioStreamBasicDescription));
-    if (err1 != noErr) {
-        printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
-        printError(err1);
+        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
+        if (err1 != noErr) {
+            printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
+            printError(err1);
+        }
     }
 
     if (inChan > 0 && outChan == 0) {
