@@ -75,7 +75,7 @@ paqt :
 
 caqt :
 	install -d caqtdir
-	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit' -f Makefile.qtcompile
+	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices' -f Makefile.qtcompile
 
 alsaqt :
 	install -d alsaqtdir
