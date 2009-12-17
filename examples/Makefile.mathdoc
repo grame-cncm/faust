@@ -9,11 +9,11 @@ all : mathdoc copypdfs
 
 
 compile :
-	$(MAKE) -C ../../compiler -f Makefile.unix
+	$(MAKE) -C ..
 
 install :
-	sudo $(MAKE) -C ../.. install
-	sudo $(MAKE) -C ../../tools/faust2appls install
+	sudo $(MAKE) -C .. install
+	sudo $(MAKE) -C ../tools/faust2appls install
 
 mathdoc :
 	faust2mathdoc *.dsp
