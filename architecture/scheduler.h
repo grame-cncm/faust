@@ -55,7 +55,7 @@ static INLINE int atomic_xadd(volatile int* atomic, int val)
 
 
 /*
-static INLINE long INC_ATOMIC(volatile int* val)
+static INLINE int INC_ATOMIC(volatile int* val)
 {
     int actual;
     do {
@@ -64,7 +64,7 @@ static INLINE long INC_ATOMIC(volatile int* val)
     return actual;
 }
 
-static INLINE long DEC_ATOMIC(volatile int* val)
+static INLINE int DEC_ATOMIC(volatile int* val)
 {
     int actual;
     do {
@@ -74,12 +74,12 @@ static INLINE long DEC_ATOMIC(volatile int* val)
 }
 */
 
-static INLINE long INC_ATOMIC(volatile int* val)
+static INLINE int INC_ATOMIC(volatile int* val)
 {
     return atomic_xadd(val, 1);
 }
  
-static INLINE long DEC_ATOMIC(volatile int* val)
+static INLINE int DEC_ATOMIC(volatile int* val)
 {
     return atomic_xadd(val, -1);
 }
@@ -93,7 +93,7 @@ struct AtomicCounter
             short fTail;	
         }
         scounter;
-        long fValue;
+        int fValue;
     }info;
     
 	INLINE AtomicCounter()
@@ -631,7 +631,7 @@ struct DSPThread {
         fRunnable = runnable;
         fRealTime = false;
         
-        sprintf(fName, "faust_sem_%d_%ld", GetPID(), long(this));
+        sprintf(fName, "faust_sem_%d_%ld", GetPID(), int(this));
         
         if ((fSemaphore = sem_open(fName, O_CREAT, 0777, 0)) == (sem_t*)SEM_FAILED) {
             printf("Allocate: can't check in named semaphore name = %s err = %s", fName, strerror(errno));
