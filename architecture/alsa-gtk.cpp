@@ -38,6 +38,7 @@ Some default parameters of Faust's ALSA applications are controlled by the follo
 #include <fstream>
 
 
+
 using namespace std;
 
 // handle 32/64 bits int size issues
@@ -135,7 +136,6 @@ bool setRealtimePriority ()
 
 
 <<includeIntrinsic>>
-
 
 #ifdef BENCHMARKMODE
 
