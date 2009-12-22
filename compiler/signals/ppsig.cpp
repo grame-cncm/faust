@@ -52,7 +52,12 @@ ostream& ppsig::printfun (ostream& fout, const string& funame, Tree x, Tree y, T
 
 ostream& ppsig::printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const
 {
-	return fout << funame << '(' << ppsig(x,fEnv) << ',' << ppsig(y,fEnv) << ',' << ppsig(z,fEnv) << ',' << ppsig(zz,fEnv) << ')';
+    return fout << funame << '(' << ppsig(x,fEnv) << ',' << ppsig(y,fEnv) << ',' << ppsig(z,fEnv) << ',' << ppsig(zz,fEnv) << ')';
+}
+
+ostream& ppsig::printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const
+{
+    return fout << funame << '(' << ppsig(x,fEnv) << ',' << ppsig(y,fEnv) << ',' << ppsig(z,fEnv) << ',' << ppsig(z2,fEnv) << ',' << ppsig(z3,fEnv) << ')';
 }
 
 ostream& ppsig::printui (ostream& fout, const string& funame, Tree label) const
@@ -174,7 +179,7 @@ ostream& ppsig::print (ostream& fout) const
 {
 	int 	i;
 	double	r;
-	Tree 	c, sel, x, y, z, var, le, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file;
 
 		  if ( isList(sig) ) 						{ printlist(fout, sig); }
 	else if ( isProj(sig, &i, x) ) 					{ fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';	}
@@ -204,7 +209,11 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigWRTbl(sig, id, x, y, z) )		{ printfun(fout, "write", x, y, z);	}
 	else if ( isSigRDTbl(sig, x, y) )				{ printfun(fout, "read", x, y);	}
 	else if ( isSigGen(sig, x) ) 					{ fout << ppsig(x, fEnv, fPriority); }
-	
+
+    else if ( isSigDocConstantTbl(sig, x, y) )      { printfun(fout, "docConstantTbl", x, y);	}
+    else if ( isSigDocWriteTbl(sig, x, y, z, u) )   { printfun(fout, "docWriteTbl", x, y, z, u);	}
+    else if ( isSigDocAccessTbl(sig, x, y) )        { printfun(fout, "docAccessTbl", x, y);	}
+
 	else if ( isSigSelect2(sig, sel, x, y) ) 		{ printfun(fout, "select2", sel, x, y); }
 	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ printfun(fout, "select3", sel, x, y, z); }
 	

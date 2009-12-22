@@ -22,7 +22,7 @@
 
 /*****************************************************************************
 	HISTORY
-	22/01/05 : added int cast in se"lect2 and select3 selection signal
+    22/01/05 : added int cast in select2 and select3 selection signal
 *****************************************************************************/
 
 
@@ -32,8 +32,8 @@
 
 ////////////////////////////////////////////////////////////////////////
 /**
- * Les Signaux.
- * Les diff�ents constructeurs et deconstructeurs de signaux
+ * Signals
+ *
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -70,6 +70,8 @@ Tree  sigIota(Tree t0)								{ return tree(SIGIOTA, t0); 		}
 bool  isSigIota(Tree t, Tree& t0)					{ return isTree(t, SIGIOTA, t0); 	}
 
 
+// Read only and read write tables
+
 Sym SIGRDTBL = symbol ("SigRDTbl");
 Tree sigRDTbl (Tree t, Tree i)						{ return tree(SIGRDTBL, t, i); 	}
 bool isSigRDTbl (Tree s, Tree& t, Tree& i)			{ return isTree(s, SIGRDTBL, t, i); 	}
@@ -82,7 +84,30 @@ Sym SIGTABLE = symbol ("SigTable");
 Tree sigTable (Tree id, Tree n, Tree sig)				{ return tree(SIGTABLE, id, n, sig); 		}
 bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig)	{ return isTree(t, SIGTABLE, id, n, sig); 	}
 
-// selection d'un signal parmis plusieurs
+// Signal used to generate the initial content of a table
+
+Sym SIGGEN = symbol ("SigGen");
+Tree sigGen (Tree s)							{ return tree(SIGGEN, s); 		}
+bool isSigGen (Tree t, Tree& x)					{ return isTree(t, SIGGEN, x); 	}
+bool isSigGen (Tree t)							{ return t->node()== Node(SIGGEN); 	}
+
+
+// Documentator Tables : special version of tables only for documentation purposes
+
+Sym SIGDOCONSTANTTBL = symbol ("SigDocConstantTbl");
+Tree   sigDocConstantTbl    (Tree n, Tree sig)                  { return tree(SIGDOCONSTANTTBL, n, sig);        }
+bool isSigDocConstantTbl    (Tree t, Tree& n, Tree& sig)        { return isTree(t, SIGDOCONSTANTTBL, n, sig); 	}
+
+Sym SIGDOCWRITETBL = symbol ("SigDocWriteTbl");
+Tree   sigDocWriteTbl   (Tree n, Tree sig, Tree widx, Tree wsig)                { return tree(SIGDOCWRITETBL, n, sig, widx, wsig); 		}
+bool isSigDocWriteTbl   (Tree t, Tree& n, Tree& sig, Tree& widx, Tree& wsig)    { return isTree(t, SIGDOCWRITETBL, n, sig, widx, wsig); 	}
+
+Sym SIGDOCACCESSTBL = symbol ("SigDocAccessTbl");
+Tree   sigDocAccessTbl   (Tree tbl, Tree ridx)                  { return tree(SIGDOCACCESSTBL, tbl, ridx); 		}
+bool isSigDocAccessTbl   (Tree t, Tree& tbl, Tree& ridx)        { return isTree(t, SIGDOCACCESSTBL, tbl, ridx); 	}
+
+
+// Select on signal among severals
 
 Sym SIGSELECT2 = symbol ("SigSelect2");
 Sym SIGSELECT3 = symbol ("SigSelect3");
@@ -94,7 +119,7 @@ Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIG
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
 
 
-// operations arithm�iques
+// Arithmetical operations
 
 Sym SIGBINOP = symbol ("SigBinOp");
 Tree sigBinOp(int op, Tree x, Tree y) 					{ return tree(SIGBINOP, tree(op), x, y); }
@@ -118,13 +143,6 @@ Sym SIGFVAR = symbol ("SigFVar");
 Tree sigFVar      (Tree type, Tree name, Tree file)               { return tree(SIGFVAR, type, name, file);           }
 bool isSigFVar    (Tree s)                                        { Tree t,n,f; return isTree(s, SIGFVAR, t, n, f);   }
 bool isSigFVar    (Tree s, Tree& type, Tree& name, Tree& file)    { return isTree(s, SIGFVAR, type, name, file);      }
-
-// Generateur de signal (compil�en tant que classe C++)
-
-Sym SIGGEN = symbol ("SigGen");
-Tree sigGen (Tree s)							{ return tree(SIGGEN, s); 		}
-bool isSigGen (Tree t, Tree& x)					{ return isTree(t, SIGGEN, x); 	}
-bool isSigGen (Tree t)							{ return t->node()== Node(SIGGEN); 	}
 
 // nouvelle version utilisant rec et ref
 

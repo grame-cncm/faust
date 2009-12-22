@@ -34,12 +34,13 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////
 /**
- * Les Signaux.
- * Les diff�ents constructeurs de signaux
+ * Signals
+ * Block-diagrams are converted into signal expressions via
+ * symbolic propagation
  */
 ///////////////////////////////////////////////////////////////////////
 
-// les constantes
+// Constant signals : for all t, x(t)=n
 Tree sigInt(int n);
 Tree sigReal(double n);
 
@@ -47,7 +48,7 @@ bool  isSigInt(Tree t, int* i);
 bool  isSigReal(Tree t, double* r);
 
 
-// les entr�s sorties
+// Inputs and outputs
 Tree sigInput(int i);
 Tree sigOutput(int i, Tree t);
 
@@ -101,6 +102,18 @@ inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 	return sigRDTbl(sigTable(nil, n, sigGen(init)), ridx);
 }
 
+
+// Tables for documentator
+// used to replace real tables for documentation purposes only
+
+Tree sigDocConstantTbl(Tree n, Tree init);
+Tree sigDocWriteTbl(Tree n, Tree init, Tree widx, Tree wsig);
+Tree sigDocAccessTbl(Tree doctbl, Tree ridx);
+
+bool isSigDocConstantTbl(Tree s, Tree& n, Tree& init);
+bool isSigDocWriteTbl(Tree s, Tree& n, Tree& init, Tree& widx, Tree& wsig);
+bool isSigDocAccessTbl(Tree s, Tree& doctbl, Tree& ridx);
+
 // selectors
 
 Tree sigSelect2 (Tree selector, Tree s1, Tree s2);
@@ -110,10 +123,12 @@ bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
 // arithmetical operations 
+
 Tree sigBinOp	(int op, Tree x, Tree y);
 bool isSigBinOp	(Tree s, int* op, Tree& x, Tree& y);
 
 // Foreign Functions
+
 Tree sigFFun (Tree ff, Tree largs);
 bool isSigFFun	(Tree s, Tree& ff, Tree& largs);
 

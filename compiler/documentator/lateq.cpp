@@ -86,7 +86,7 @@ void Lateq::println(ostream& docout)
 	string sUIElements	= fUISigsFormulas.size()	> 1 ? gDocMathStringMap["uisigtitle2"] : gDocMathStringMap["uisigtitle1"];
 	string sParameters	= fParamSigsFormulas.size()	> 1 ? gDocMathStringMap["paramsigtitle2"] : gDocMathStringMap["paramsigtitle1"];
 
-	unsigned int internalSigsCount = fStoreSigsFormulas.size() + fRecurSigsFormulas.size() + fTableSigsFormulas.size() + fSelectSigsFormulas.size() + fPrefixSigsFormulas.size();
+	unsigned int internalSigsCount = fStoreSigsFormulas.size() + fRecurSigsFormulas.size() + fRDTblSigsFormulas.size() + fRWTblSigsFormulas.size() + fSelectSigsFormulas.size() + fPrefixSigsFormulas.size();
 	string sInternals	= internalSigsCount	> 1 ? gDocMathStringMap["internalsigtitle2"] : gDocMathStringMap["internalsigtitle1"];
 	
 	/* Successively print each Lateq field containing LaTeX formulas, with a title. */
@@ -103,7 +103,8 @@ void Lateq::println(ostream& docout)
 	fStoreSigsFormulas.sort(compLateqIndexes);
 	printDGroup		("", fStoreSigsFormulas, docout);
 	printDGroup		("", fRecurSigsFormulas, docout);
-	printDGroup		("", fTableSigsFormulas, docout);
+	printDGroup		("", fRDTblSigsFormulas, docout);
+	printMath		("", fRWTblSigsFormulas, docout);
 	printMath		("", fSelectSigsFormulas, docout);
 	printMath		("", fPrefixSigsFormulas, docout);
 	

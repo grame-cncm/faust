@@ -68,7 +68,8 @@ public:
 	void addParamSigFormula (const string& str)		{ fParamSigsFormulas.push_back(str); }
 	void addStoreSigFormula (const string& str)		{ fStoreSigsFormulas.push_back(str); }
 	void addRecurSigFormula (const string& str)		{ fRecurSigsFormulas.push_back(str); }
-	void addTableSigFormula (const string& str)		{ fTableSigsFormulas.push_back(str); }
+	void addRDTblSigFormula (const string& str)		{ fRDTblSigsFormulas.push_back(str); }
+	void addRWTblSigFormula (const string& str)		{ fRWTblSigsFormulas.push_back(str); }
 	void addSelectSigFormula (const string& str)	{ fSelectSigsFormulas.push_back(str); }
 	void addPrefixSigFormula (const string& str)	{ fPrefixSigsFormulas.push_back(str); }
 	void addOutputSigFormula (const string& str)	{ fOutputSigsFormulas.push_back(str); }
@@ -92,7 +93,8 @@ private:
 	list<string>			fParamSigsFormulas;
 	list<string>			fStoreSigsFormulas;
 	list<string>			fRecurSigsFormulas;
-	list<string>			fTableSigsFormulas;
+	list<string>			fRDTblSigsFormulas;
+	list<string>			fRWTblSigsFormulas;
 	list<string>			fSelectSigsFormulas;
 	list<string>			fPrefixSigsFormulas;
 	list<string>			fOutputSigsFormulas;

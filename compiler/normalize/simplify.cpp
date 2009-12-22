@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "sigorderrules.hh"
@@ -197,4 +198,44 @@ static Tree sigMap (Tree key, tfun f, Tree t)
 	}
 }
 
+/**
+ * Converts regular tables into doc tables in order to
+ * facilitate the mathematical documentation generation
+ */
 
+Tree DOCTABLES = tree(symbol("DocTablesProp"));
+
+static Tree docTableConverter (Tree sig);
+
+Tree docTableConvertion (Tree sig)
+{
+    return sigMap(DOCTABLES, docTableConverter, sig);
+}
+
+
+// Implementation
+
+static Tree docTableConverter (Tree sig)
+{
+    Tree tbl, tbl2, id, id2, size, igen, isig, ridx, widx, wsig;
+
+    if (isSigRDTbl(sig, tbl, ridx)) {
+        // we are in a table to convert
+        if (isSigTable(tbl, id, size, igen)) {
+            // it's a read only table
+            assert(isSigGen(igen, isig));
+            return sigDocAccessTbl(sigDocConstantTbl(size,isig),ridx);
+        } else {
+            // it's a read write table
+            assert(isSigWRTbl(tbl,id,tbl2,widx,wsig));
+            assert(isSigTable(tbl2, id2, size, igen));
+            assert(isSigGen(igen, isig));
+
+            return sigDocAccessTbl(sigDocWriteTbl(size,isig,widx,wsig),ridx);
+        }
+
+    } else {
+        // nothing to convert
+        return sig;
+    }
+}

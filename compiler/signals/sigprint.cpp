@@ -86,7 +86,7 @@ void printSignal(Tree sig, FILE* out, int prec)
 {
 	int 	i;
 	double	r;
-	Tree 	 x, y, z, le, id;
+    Tree 	 x, y, z, u, le, id;
 	    
 		 if ( isSigInt(sig, &i) ) 			{ fprintf(out, "%d", i); 	}
 	else if ( isSigReal(sig, &r) ) 			{ fprintf(out, "%f", r); 	}
@@ -108,7 +108,7 @@ void printSignal(Tree sig, FILE* out, int prec)
 	}
 
 	else if ( isProj(sig, &i, x) ) 			{ printSignal(x,out,prec); fprintf(out, "#%d", i); 		}
-	else if ( isRef(sig, i) ) 				{ fprintf(out, "$%d", i);		}
+    else if ( isRef(sig, i) ) 				{ fprintf(out, "$%d", i);	}
 	else if ( isRef(sig, x) ) 				{ print(x, out); 			}
 	else if ( isRec(sig, le))				{ fputs("\\_.", out); printSignal(le, out, prec);	}
 	else if ( isRec(sig, x, le))			{ fputs("\\", out); print(x,out); fputs(".", out); printSignal(le, out, prec);	}
@@ -116,7 +116,19 @@ void printSignal(Tree sig, FILE* out, int prec)
 	else if ( isSigTable(sig, id, x, y) ) 	{ fputs("table(", out); printSignal(x,out,0); fputc(',', out); printSignal(y,out,0); fputc(')', out);   }
 	else if ( isSigWRTbl(sig, id, x, y, z) ){ printSignal(x,out,0); fputc('[',out); printSignal(y,out,0); fputs("] := (", out); printSignal(z,out,0); fputc(')', out);   }
 	else if ( isSigRDTbl(sig, x, y) ) 		{ printSignal(x,out,0); fputc('[', out); printSignal(y,out,0); fputc(']', out);   }
-	
+
+    else if (isSigDocConstantTbl(sig,x,y)) 	{ fputs("sigDocConstantTbl(", out); printSignal(x,out,0); fputc(',', out);
+                                                                                printSignal(y,out,0); fputc(')', out);   }
+
+    else if (isSigDocWriteTbl(sig,x,y,z,u)) { fputs("sigDocWriteTbl(", out);    printSignal(x,out,0); fputc(',', out);
+                                                                                printSignal(y,out,0); fputc(',', out);
+                                                                                printSignal(z,out,0); fputc(',', out);
+                                                                                printSignal(u,out,0); fputc(')', out);   }
+
+    else if (isSigDocAccessTbl(sig,x,y)) 	{ fputs("sigDocAccessTbl(", out);   printSignal(x,out,0); fputc(',', out);
+                                                                                printSignal(y,out,0); fputc(')', out);   }
+
+
 	else if ( isSigGen(sig, x) ) 			{ printSignal(x,out,prec); 				}
  
 	else if ( isSigIntCast(sig, x) ) 		{ fputs("int(", out); printSignal(x,out,0); fputs(")", out);		}

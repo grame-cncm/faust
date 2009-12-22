@@ -108,6 +108,8 @@ class DocCompiler
 	void 		sharingAnalysis(Tree t);
 	void 		sharingAnnotation(int vctxt, Tree t);
 	
+	bool		isShortEnough(string& s, unsigned int max);
+
 	
 	/* Code generation. */
 	
@@ -121,14 +123,13 @@ class DocCompiler
 	
 	string 		generateInput 		(Tree sig, const string& idx);
 	string 		generateOutput		(Tree sig, const string& idx, const string& arg1);
-	
-	string 		generateTable 		(Tree sig, Tree tsize, Tree content, int priority);
-	string 		generateStaticTable	(Tree sig, Tree tsize, Tree content);
-	string 		generateWRTbl 		(Tree sig, Tree tbl, Tree idx, Tree data, int priority);
-	string 		generateRDTbl 		(Tree sig, Tree tbl, Tree idx, int priority);
-	string 		generateSigGen		(Tree sig, Tree content);
-	string		generateStaticSigGen(Tree sig, Tree content);
-	
+
+//    string      generateDocReadOnlyTbl  (Tree sig, Tree size, Tree content, Tree ridx);
+//    string      generateDocReadWriteTbl (Tree sig, Tree size, Tree content, Tree widx, Tree wsig, Tree ridx);
+    string      generateDocConstantTbl  (Tree sig, Tree size, Tree content);
+    string      generateDocWriteTbl     (Tree sig, Tree size, Tree content, Tree widx, Tree wsig);
+    string      generateDocAccessTbl    (Tree sig, Tree tbl, Tree ridx);
+
 	string 		generateSelect2 	(Tree sig, Tree sel, Tree s1, Tree s2, int priority);
 	string 		generateSelect3 	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3, int priority);
 	

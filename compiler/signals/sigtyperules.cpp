@@ -47,6 +47,9 @@ static Type infereReadTableType(Type tbl, Type ri);
 static Type infereWriteTableType(Type tbl, Type wi, Type wd);
 static Type infereProjType(Type t, int i, int vec);
 static Type infereXType(Tree sig, Tree env);
+static Type infereDocConstantTblType(Type size, Type init);
+static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
+static Type infereDocAccessTblType(Type tbl, Type ridx);
 
 //static Tree addEnv(Tree var, Tree tt, Tree env);
 //static void markSigType(Tree sig, Tree env);
@@ -273,7 +276,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
 	int 		i;
 	double 		r;
-	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
+    Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file;
 	Tree		label, cur, min, max, step;
 
 
@@ -372,6 +375,10 @@ static Type infereSigType(Tree sig, Tree env)
 	else if (isSigRDTbl(sig, s1, s2)) 			return infereReadTableType(T(s1,env), T(s2,env));
 
 	else if (isSigGen(sig, s1)) 				return T(s1,NULLENV);
+
+    else if ( isSigDocConstantTbl(sig, x, y) )	return infereDocConstantTblType(T(x,env), T(y,env));
+    else if ( isSigDocWriteTbl(sig,x,y,z,u) )	return infereDocWriteTblType(T(x,env), T(y,env), T(z,env), T(u,env));
+    else if ( isSigDocAccessTbl(sig, x, y) )    return infereDocAccessTblType(T(x,env), T(y,env));
 
 	else if (isSigSelect2(sig,sel,s1,s2)) 		{
 
@@ -516,6 +523,36 @@ static Type infereReadTableType(Type tbl, Type ri)
 }
 
 
+static Type infereDocConstantTblType(Type size, Type init)
+{
+    checkKonst(checkInt(checkInit(size)));
+
+    return init;
+}
+
+static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
+{
+    checkKonst(checkInt(checkInit(size)));
+
+    Type temp =  init
+      ->promoteVariability(kSamp)       // difficult to tell, therefore kSamp to be safe
+      ->promoteComputability(widx->computability()|wsig->computability())
+      ->promoteVectorability(kScal)     // difficult to tell, therefore kScal to be safe
+      ->promoteNature(wsig->nature())   // nature of the initial and written signal
+      ->promoteBoolean(wsig->boolean()) // booleanity of the initial and written signal
+      ;
+    return temp;
+}
+
+static Type infereDocAccessTblType(Type tbl, Type ridx)
+{
+    Type temp =  tbl
+      ->promoteVariability(ridx->variability())
+      ->promoteComputability(ridx->computability())
+      ->promoteVectorability(ridx->vectorability())
+      ;
+    return temp;
+}
 
 /**
  *	Compute an initial type solution for a recursive block

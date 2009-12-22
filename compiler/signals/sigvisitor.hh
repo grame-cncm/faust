@@ -55,7 +55,11 @@ struct sigvisitor
 	virtual void visitWRTbl		(Tree sig, Tree id, Tree s1, Tree s2, Tree s3) = 0;
 	virtual void visitRDTbl		(Tree sig, Tree s1, Tree s2) = 0;  
 	virtual void visitGen		(Tree sig, Tree s1) = 0;
-	
+
+    virtual void visitDocConstantTbl	(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitDocWriteTbl		(Tree sig, Tree s1, Tree s2, Tree s3, Tree s4) = 0;
+    virtual void visitDocAccessTbl		(Tree sig, Tree s1, Tree s2) = 0;
+
 	// Selectors
 	virtual void visitSelect2	(Tree sig, Tree sel, Tree s1, Tree s2) = 0; 
 	virtual void visitSelect3	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3) = 0; 

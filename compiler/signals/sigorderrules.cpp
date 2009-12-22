@@ -85,7 +85,7 @@ static int infereSigOrder(Tree sig)
 {
 	int 		i;
 	double 		r;
-	Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, var, body, type, name, file;
+    Tree		sel, s1, s2, s3, s4, ff, id, ls, l, x, y, var, body, type, name, file;
 
 	xtended* xt = (xtended*) getUserData(sig);
 	// primitive elements
@@ -152,9 +152,15 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigWRTbl(sig, id, s1, s2, s3)) 	return 3; 
 			
-	else if (isSigRDTbl(sig, s1, s2)) 			return 3;  
-		
-	else if (isSigGen(sig, s1)) 				return 3;
+    else if (isSigRDTbl(sig, s1, s2)) 			return 3;
+
+    else if (isSigDocConstantTbl(sig, s1, s2)) 	return 3;
+
+    else if (isSigDocWriteTbl(sig,s1,s2,s3,s4)) return 3;
+
+    else if (isSigDocAccessTbl(sig,s1,s2))         return 3;
+
+    else if (isSigGen(sig, s1)) 				return 3;
 		
 	else if (isSigSelect2(sig,sel,s1,s2)) 		return 3;
 		

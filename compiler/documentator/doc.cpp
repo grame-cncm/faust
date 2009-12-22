@@ -657,8 +657,10 @@ static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInpu
 		
 		Tree lsig2 = deBruijn2Sym(lsig1);   ///< Convert debruijn recursion into symbolic recursion
 		Tree lsig3 = simplify(lsig2);		///< Simplify by executing every computable operation
-		Tree lsig4 = privatise(lsig3);		///< Un-share tables with multiple writers
-		
+        //Tree lsig4 = privatise(lsig3);		///< Un-share tables with multiple writers
+        Tree lsig4 = docTableConvertion(lsig3);		///< convert regular tables into special doctables
+                                                    ///< (regular tables are difficult to translate to equations)
+
 		eqSigs.push_back(lsig4);
 	}
 	//cerr << "Documentator : end of mapPrepareEqSig\n---" << endl;

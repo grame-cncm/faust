@@ -62,6 +62,9 @@ extern bool		getSigListNickName(Tree t, Tree& id);
 static void		extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata);
 static string	rmWhiteSpaces(const string& s);
 
+static const unsigned int MAX_RIGHT_MEMBER	= 20;
+static const unsigned int MAX_SUB_EXPR		= 10;
+
 
 /*****************************************************************************
 						getFreshID
@@ -194,7 +197,7 @@ string	DocCompiler::generateCode (Tree sig, int priority)
 {
 	int 	i;
 	double	r;
-	Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, u, label, ff, largs, type, name, file;
 	
 	if ( getUserData(sig) )							{ printGCCall(sig,"generateXtended");	return generateXtended	(sig, priority);		}
 	else if ( isSigInt(sig, &i) ) 					{ printGCCall(sig,"generateNumber");	return generateNumber	(sig, docT(i));			}
@@ -211,14 +214,15 @@ string	DocCompiler::generateCode (Tree sig, int priority)
     else if ( isSigFConst(sig, type, name, file) )  { printGCCall(sig,"generateFConst");	return generateFConst	(sig, tree2str(file), tree2str(name)); }
     else if ( isSigFVar(sig, type, name, file) )    { printGCCall(sig,"generateFVar");		return generateFVar		(sig, tree2str(file), tree2str(name)); }
 	
-	else if ( isSigTable(sig, id, x, y) ) 			{ printGCCall(sig,"generateTable");		return generateTable	(sig, x, y, priority);			}
-	else if ( isSigWRTbl(sig, id, x, y, z) )		{ printGCCall(sig,"generateWRTbl");		return generateWRTbl	(sig, x, y, z, priority);		}
-	else if ( isSigRDTbl(sig, x, y) ) 				{ printGCCall(sig,"generateRDTbl");		return generateRDTbl	(sig, x, y, priority);			}
-	
+    // new special tables for documentation purposes
+
+    else if ( isSigDocConstantTbl(sig, x, y) )      { printGCCall(sig,"generateDocConstantTbl");    return generateDocConstantTbl (sig, x, y);	}
+    else if ( isSigDocWriteTbl(sig,x,y,z,u) )       { printGCCall(sig,"generateDocWriteTbl");       return generateDocWriteTbl (sig, x, y, z, u); }
+    else if ( isSigDocAccessTbl(sig, x, y) )        { printGCCall(sig, "generateDocAccessTbl");     return generateDocAccessTbl(sig, x, y); }
+
+
 	else if ( isSigSelect2(sig, sel, x, y) ) 		{ printGCCall(sig,"generateSelect2");	return generateSelect2 	(sig, sel, x, y, priority); 	}
 	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ printGCCall(sig,"generateSelect3");	return generateSelect3 	(sig, sel, x, y, z, priority); 	}
-	
-	else if ( isSigGen(sig, x) ) 					{ printGCCall(sig,"generateSigGen");	return generateSigGen	(sig, x); 				}
 	
     else if ( isProj(sig, &i, x) )                  { printGCCall(sig,"generateRecProj");	return generateRecProj	(sig, x, i, priority);	}
 	
@@ -236,11 +240,10 @@ string	DocCompiler::generateCode (Tree sig, int priority)
 	else if ( isSigAttach(sig, x, y) )				{ printGCCall(sig,"generateAttach");	return generateAttach	(sig, x, y, priority); }
 	
 	else {
-		printf("Error in compiling signal, unrecognized signal : ");
-		print(sig);
-		printf("\n");
-		exit(1);
+        cerr << "Error in d signal, unrecognized signal : " << *sig << endl;
+        exit(1);
 	}
+    assert(0);
 	return "error in generate code";
 }
 
@@ -735,123 +738,131 @@ string DocCompiler::generateAttach (Tree sig, Tree x, Tree y, int priority)
 
 /*****************************************************************************
 							   	    TABLES
+ (note : tables here are siplified versions different from the ones used to 
+  generate c++ code)
 *****************************************************************************/
 
+/**
+ * Generate the equation of a constant table (its content is time constant).
+ * Returns the name of the table
+ */
+string DocCompiler::generateDocConstantTbl (Tree /*tbl*/, Tree size, Tree isig)
+{	
+	string 	vname, ctype;
+    string 	init = CS(isig,0);
 
+    int     n;
+    if (!isSigInt(size, &n)) {
+        cerr << "error in DocCompiler::generateDocConstantTbl() : "
+             << *size
+             << " is not an integer expression and can't be used as a table size' "
+             << endl;
+    }
 
-/*----------------------------------------------------------------------------
-						sigGen : initial table content
-----------------------------------------------------------------------------*/
-
-string DocCompiler::generateSigGen(Tree sig, Tree content)
-{
-	string ltqname = getFreshID("table");
+    // allocate a name v_i for the table
+    getTypedNames(getSigType(isig), "v", ctype, vname);
 	
-	//cerr << "!!! generateSigGen : " << endl;
-	//cerr << "  * sig = " << ppsig(sig) << endl;
-	//cerr << "  * content = " << ppsig(content) << endl;
-
-	return "\\mathrm{"+ltqname+"}";
-}
-
-string DocCompiler::generateStaticSigGen(Tree sig, Tree content)
-{
-	string ltqname = getFreshID("table");
-
-	//return CS(content, 0);
-	return "\\mathrm{"+ltqname+"}";
-}
-
-
-/*----------------------------------------------------------------------------
-						sigTable : table declaration
-----------------------------------------------------------------------------*/
-
-string DocCompiler::generateTable(Tree sig, Tree tsize, Tree content, int priority)
-{
-	string 		generator(CS(content, priority));
-	string		ctype, vname;
-	int 		size;
-
-	if (!isSigInt(tsize, &size)) {
-		//fprintf(stderr, "error in DocCompiler::generateTable()\n"); exit(1);
-		cerr << "error in DocCompiler::generateTable() : "
-			 << *tsize
-			 << " is not an integer expression "
-			 << endl;
-	}
-	// definition du nom et du type de la table
-	// A REVOIR !!!!!!!!!
-	Type t = getSigType(content);//, tEnv);
-	if (t->nature() == kInt) {
-		vname = getFreshID("itbl");
-		ctype = "int";
-	} else {
-		vname = getFreshID("ftbl");
-		ctype = ifloat();
-	}
-
-	// on retourne le nom de la table
-	return vname;
-}
-
-
-string DocCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
-{
-	//cerr << "??? generateStaticTable : " << endl;
-	//cerr << "  * sig = " << ppsig(sig) << endl;
-	//cerr << "  * content = " << ppsig(content) << endl;
-	
-	string 		exp = CS(content,0);
-	string		vname, ctype;
-	Type        t = getSigType(content);
-
-	if (!getVectorNameProperty(content, vname)) {
-		getTypedNames(t, "w", ctype, vname);
+    // add a comment on tables in the notice
 		gDocNoticeFlagMap["tablesigs"] = true;
-		fLateq->addStoreSigFormula(subst("$0(t) = $1", vname, exp));
-		setVectorNameProperty(content, vname);
-		setVectorNameProperty(sig, vname);
-	}
-	return vname;
+	
+    // add equation v[t] = isig(t)
+        fLateq->addRDTblSigFormula(subst("$0[t] = $1 \\condition{when $$t \\in [0,$2]$$} ", vname, init, T(n-1)));
+	
+    // note that the name of the table can never be used outside an sigDocTableAccess
+    return vname;
 }
 
 
-/*----------------------------------------------------------------------------
-						sigWRTable : table assignement
-----------------------------------------------------------------------------*/
-
-string DocCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data, int priority)
+/**
+ * tests if a charactere is a word separator
+ */
+static bool isSeparator(char c)
 {
-	string tblName(CS(tbl, priority));
-	fLateq->addTableSigFormula(subst("$0[$1] = $2", tblName, CS(idx, priority), CS(data, priority)));
-	return tblName;
+    bool w = (  ((c >= 'a') && (c <='z'))
+            ||  ((c >= 'A') && (c <='Z'))
+            ||  ((c >= '0') && (c <='9'))
+            );
+
+    return ! w;
 }
 
 
-/*----------------------------------------------------------------------------
-						sigRDTable : table access
-----------------------------------------------------------------------------*/
-
-string DocCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx, int priority)
+/**
+ * Replaces the occurences of 't' in a formula with another character
+ */
+static string replaceTimeBy(const string& src, char r)
 {
-	// YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
-	// et donc le code était dupliqué (dans tester.dsp par exemple)
-	//return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
+    string  dst;
+    char    pre = 0;
+    for (size_t i=0; i < src.size(); i++)
+    {
+        char x = src[i];
+        if ((x=='t') && isSeparator(pre) && ((i == src.size()-1) || isSeparator(src[i+1]))) {
+            dst.push_back(r);
+        } else {
+            dst.push_back(x);
+        }
+        pre = x;
+    }
+    return dst;
+}
 
-	//cerr << "generateRDTable " << *sig << endl;
-	// test the special case of a read only table that can be compiled
-	// has a static member
-	Tree 	id, size, content;
-	if(	isSigTable(tbl, id, size, content) ) {
-		string tblname;
-		if (!getCompiledExpression(tbl, tblname)) {
-			tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));
-		}
-		return generateCacheCode(sig, subst("$0($1)", tblname, CS(idx, priority)));
-	} else {
-		return generateCacheCode(sig, subst("$0($1)", CS(tbl, priority), CS(idx, priority)));
-	}
+/**
+ * Generate the equation of a write table, which content is time dependent.
+ * It is basically a signal of vectors.
+ */
+string DocCompiler::generateDocWriteTbl (Tree /*tbl*/, Tree size, Tree isig, Tree widx, Tree wsig)
+{
+	string	vname, ctype;
+    string 	init = CS(isig,0);
+    int     n;
+    if (!isSigInt(size, &n)) {
+        cerr << "error in DocCompiler::generateDocWriteTbl() : "
+             << *size
+             << " is not an integer expression and can't be used as a table size' "
+             << endl;
+    }
+
+
+    // allocate a name w_i for the table
+    getTypedNames(getSigType(isig), "w", ctype, vname);
+
+    // add a comment on tables in the notice
+    gDocNoticeFlagMap["tablesigs"] = true;
+
+    // describe the table equation
+    string ltqRWTableDef;
+    ltqRWTableDef += subst("$0(t)[i] = \n", vname);
+    ltqRWTableDef += "\\left\\{\\begin{array}{ll}\n";
+    ltqRWTableDef += subst("$0 & \\mbox{if \\,} t < 0 \\mbox{\\, and \\,}  i \\in [0,$1] \\\\\n", 	replaceTimeBy(init,'i'), T(n-1));
+    ltqRWTableDef += subst("$0 & \\mbox{if \\,} i = $1 \\\\\n", CS(wsig,0), CS(widx,0));
+    ltqRWTableDef += subst("$0(t\\!-\\!1)[i] & \\mbox{otherwise} \\\\\n", vname);
+    ltqRWTableDef += "\\end{array}\\right.";
+		
+    // add the table equation
+		fLateq->addRWTblSigFormula(ltqRWTableDef); //w(t) = initsig(t)
+	
+    // note that the name of the table can never be used outside an sigDocTableAccess
+    return vname;
+}
+
+
+/**
+ * Generate the equation of a write table, which content is time dependent.
+ * It is basically a signal of vectors.
+ */
+string DocCompiler::generateDocAccessTbl (Tree sig, Tree tbl, Tree ridx)
+{
+    // the compilation of a table always returns its name
+    string	vname = CS(tbl, 0);
+    string result = subst("$0[$1]", vname, CS(ridx,0) );
+
+    return generateCacheCode(sig, result);
+}
+
+bool DocCompiler::isShortEnough(string& s, unsigned int max)
+{	
+	return (s.length() <= max);
 }
 
 
@@ -977,6 +988,7 @@ string DocCompiler::generateIota (Tree sig, Tree n)
 {
 	int size;
 	if (!isSigInt(n, &size)) { fprintf(stderr, "error in generateIota\n"); exit(1); }
+	//cout << "iota !" << endl;
 	return subst(" t \\bmod{$0} ", docT(size));
 }
 
@@ -991,21 +1003,23 @@ string DocCompiler::generateIota (Tree sig, Tree n)
 string DocCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2, int priority)
 {
     string var  = getFreshID("q");
-	string expsel = CS(sel, priority);
-	string exps1 = CS(s1, priority);
-	string exps2 = CS(s2, priority);
+	string expsel = CS(sel, 0);
+	string exps1 = CS(s1, 0);
+	string exps2 = CS(s2, 0);
 	
 	string ltqSelDef;
 	ltqSelDef += subst("$0(t) = \n", var);
 	ltqSelDef += "\\left\\{\\begin{array}{ll}\n";
-	ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 0\\\\\n", generateVariableStore(s1, exps1), expsel);
-	ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 1\n", generateVariableStore(s2, exps2), expsel);
+	ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 0\\\\\n", exps1, expsel);
+	ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 1\n", exps2, expsel);
 	ltqSelDef += "\\end{array}\\right.";
 	
 	fLateq->addSelectSigFormula(ltqSelDef);
 	gDocNoticeFlagMap["selectionsigs"] = true;
 	
-	return generateCacheCode(sig, subst("$0(t)", var));
+    //return generateCacheCode(sig, subst("$0(t)", var));
+    setVectorNameProperty(sig, var);
+    return subst("$0(t)", var);
 }
 
 
@@ -1015,10 +1029,10 @@ string DocCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2, int 
 string DocCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, Tree s3, int priority)
 {
 	string var  = getFreshID("q");
-	string expsel = CS(sel, priority);
-	string exps1 = CS(s1, priority);
-	string exps2 = CS(s2, priority);
-	string exps3 = CS(s3, priority);
+	string expsel = CS(sel, 0);
+	string exps1 = CS(s1, 0);
+	string exps2 = CS(s2, 0);
+	string exps3 = CS(s3, 0);
 	
 	string ltqSelDef;
 	ltqSelDef += subst("$0(t) = \n", var);
@@ -1031,7 +1045,9 @@ string DocCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, Tree
 	fLateq->addSelectSigFormula(ltqSelDef);
 	gDocNoticeFlagMap["selectionsigs"] = true;
 	
-	return generateCacheCode(sig, subst("$0(t)", var));
+    //return generateCacheCode(sig, subst("$0(t)", var));
+    setVectorNameProperty(sig, var);
+    return subst("$0(t)", var);
 }
 
 

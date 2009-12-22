@@ -61,8 +61,9 @@ private:
 	ostream& printfun (ostream& fout, const string& funame, Tree x) const;
 	ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y) const;
 	ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z) const;
-	ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const;
-	ostream& printout (ostream& fout, int i, Tree x) const;
+    ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const;
+    ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const;
+    ostream& printout (ostream& fout, int i, Tree x) const;
 	ostream& printlist (ostream& fout, Tree largs) const;
 	ostream& printff (ostream& fout, Tree ff, Tree largs) const;
 	ostream& printrec (ostream& fout, Tree var, Tree lexp, bool hide) const;

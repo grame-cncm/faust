@@ -18,7 +18,7 @@ void sigvisitor::visit(Tree sig)
 {
 	int 		i;
 	double 		r;
-	Tree		sel, s1, s2, s3, ff, id, ls, l, var, body, type, name, file, cur, min, max, step;
+    Tree		sel, s1, s2, s3, s4, ff, id, ls, l, var, body, type, name, file, cur, min, max, step;
 	
 	assert(sig);
 	
@@ -89,7 +89,14 @@ void sigvisitor::visit(Tree sig)
 	else if (isSigRDTbl(sig, s1, s2)) 			visitRDTbl(sig, s1, s2);  
 		
 	else if (isSigGen(sig, s1)) 				visitGen(sig, s1);
-		
+
+
+    else if (isSigDocConstantTbl(sig, s1, s2)) 	visitDocConstantTbl(sig, s1, s2);
+
+    else if (isSigDocWriteTbl(sig,s1,s2,s3,s4)) visitDocWriteTbl(sig,s1,s2,s3,s4);
+
+    else if (isSigDocAccessTbl(sig,s1,s2)) 		visitDocAccessTbl(sig,s1,s2);
+
 	
 	//----------------------------                                               
 				

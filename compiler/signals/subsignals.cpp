@@ -13,7 +13,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 
 	int 	i;
 	double	r;
-	Tree 	c, sel, x, y, z, var, le, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file;
 
 		 if ( getUserData(sig) ) 					{ for (int i=0; i<sig->arity(); i++) { vsigs.push_back(sig->branch(i)); }
 													  return sig->arity(); }
@@ -25,7 +25,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigDelay1(sig, x) ) 				{ vsigs.push_back(x); return 1;	}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
-	else if ( isSigPrefix(sig, x, y) ) 			{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
+    else if ( isSigPrefix(sig, x, y) )              { vsigs.push_back(x); vsigs.push_back(y); return 2;	}
 	else if ( isSigIota(sig, x) ) 					{ vsigs.push_back(x); return 1; }
 
 	else if ( isSigBinOp(sig, &i, x, y) )			{ vsigs.push_back(x); vsigs.push_back(y); return 2; }
@@ -37,13 +37,18 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigWRTbl(sig, id, x, y, z) )		{ vsigs.push_back(x); vsigs.push_back(y); vsigs.push_back(z); return 3;	}
 	else if ( isSigRDTbl(sig, x, y) ) 				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
 
+    else if ( isSigDocConstantTbl(sig, x, y) )      { vsigs.push_back(x); vsigs.push_back(y); return 2;	}
+    else if ( isSigDocWriteTbl(sig, x, y, u, v) )	{ vsigs.push_back(x); vsigs.push_back(y); vsigs.push_back(u); vsigs.push_back(v); return 4;	}
+    else if ( isSigDocAccessTbl(sig, x, y) )        { vsigs.push_back(x); vsigs.push_back(y); return 2;	}
+
+
 	else if ( isSigSelect2(sig, sel, x, y) ) 		{ vsigs.push_back(sel); vsigs.push_back(x); vsigs.push_back(y); return 3; }
 	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ vsigs.push_back(sel); vsigs.push_back(x); vsigs.push_back(y); vsigs.push_back(z); return 4; }
 
 	else if ( isSigGen(sig, x) ) 					{ if (visitgen) { vsigs.push_back(x); return 1;} else { return 0; } }
 
-	else if ( isProj(sig, &i, x) ) 				{ vsigs.push_back(x); return 1;	}
-	else if ( isRec(sig, var, le) )				{ vsigs.push_back(le); return 1; }
+    else if ( isProj(sig, &i, x) )                  { vsigs.push_back(x); return 1;	}
+    else if ( isRec(sig, var, le) )                 { vsigs.push_back(le); return 1; }
 
 	else if ( isSigIntCast(sig, x) ) 				{ vsigs.push_back(x); return 1; }
 	else if ( isSigFloatCast(sig, x) ) 				{ vsigs.push_back(x); return 1; }
@@ -57,7 +62,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigAttach(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
-	else if ( isList(sig) )						{ int n = 0; while (!isNil(sig)) { vsigs.push_back(hd(sig)); sig = tl(sig); n++; } return n; }
+    else if ( isList(sig) )                         { int n = 0; while (!isNil(sig)) { vsigs.push_back(hd(sig)); sig = tl(sig); n++; } return n; }
 
 	else {
 		cerr << "ERROR, unrecognized signal : " << *sig << endl;
