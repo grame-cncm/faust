@@ -8,7 +8,7 @@
 
 1/ Introduction
 ----------------
-Faust is a functional programming language specifically designed for realtime audio applications and plugins. The syntax of the language is block diagram oriented. The faust compiler translate signal processing specifications into optimized C++ code for signal processing applications.
+Faust is a functional programming language specifically designed for realtime audio applications and plugins. The syntax of the language is block diagram oriented. The Faust compiler translate signal processing specifications into optimized C++ code for signal processing applications.
 
 The generated code can be wrapped into an 'architecture file' in order to create for example a standalone jack/gtk application, a VST plugin, etc. Several architecture file are provided and additional contributions are welcome.
 
@@ -16,31 +16,40 @@ The generated code can be wrapped into an 'architecture file' in order to create
 2/ Organisation of the distribution
 -----------------------------------
 architecture		: the architecture files currently supported
+benchmark			: tools to measure the impact of various compiler options
 compiler			: sources of the Faust compiler
-examples			: examples of Faust programs
-syntax-highlighting	: support for syntax highlighting for several editors
 documentation 		: Faust developer's documentation
-tools				: Additional tools for pd and sc plugins
-windows				: Visual C++ project
+examples			: examples of Faust programs with makefiles for various audio targets
+syntax-highlighting	: support for syntax highlighting for several editors
+tools				: Additional easy-to-use scripts to produce binaries and plugins
 
 
 3/ Compilation and installation
 --------------------------------
-There is no configuration phase. To compile and install the Faust compiler do :
+To compile and install the Faust compiler on Linux and MacOSX : 
 
 	make
 	su
 	make install
 
+On Windows :
+
+	Download and install the QT4.6 SDK : http://qt.nokia.com/downloads/sdk-windows-cpp
+	use the project file 'compiler.pro' in the compiler folder
+
 
 2/ Compilation of the examples
 -------------------------------
-Several faust examples are provided in the example folder. To compile and test the examples with Jack do :
+Several faust examples are provided in the example folder. To compile and test the examples with Jack/GTK do :
 
 	cd examples
 	make jackgtk
 
 This will create a subfolder jackgtkdir with all the jack applications. You can also create alsa applications (make alsagtk) as well as other formats.
+
+To list for possible targets
+
+	make help
 
 The supported architectures are the following :
 
@@ -71,22 +80,28 @@ Other architecture files are also available :
 
 3/ Limitations
 --------------
-The SIMD code generator is outdated and will be replaced in future versions. The generation of postscript files (-ps) doesn't work very well and have to be updated
+- doc
+- -sch en 64 bits
 
 
 4/ Acknowledgments
 ------------------
 Several persons have contributed to the project, in particular :
 
+	- Tiziano Bole	
 	- Thomas Charbonnel
+	- Damien Cramet
 	- Etienne Gaudrin
 	- Albert Graef
 	- Stefan Kersten
+	- Victor Lazzarini
+	- Matthieu Leberre
 	- Mathieu Leroi
 	- Remy Muller
 	- Nicolas Scaringella
+	- Julius Smith
 
-as well as my colleagues Dominique Fober and Stephane Letz
+as well as my colleagues Dominique Fober, Stephane Letz and Karim Barkati
 
 
 5/ Questions and suggestions

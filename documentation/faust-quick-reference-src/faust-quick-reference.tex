@@ -2,10 +2,13 @@
 
 \usepackage{latexsym, amssymb}
 \usepackage{graphicx}
-\usepackage{tabularx}
+%\usepackage{longtable}
+\usepackage{supertabular}
+%\usepackage{tabularx}
+%\usepackage{tabulary}
 %\usepackage{rail}
 %\railoptions{-t -h}
-\usepackage{syntax}
+\usepackage[rounded]{syntax}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage[usenames]{color} 
@@ -34,7 +37,7 @@
 
 \title{Faust Quick Reference}
 \author{Yann Orlarey\\Grame, Centre National de Creation Musicale}
-\date{June 2008}
+\date{December 2009}
 
 
 % \railalias{recur}{$\sim$}
@@ -117,18 +120,19 @@ Numbers are signal processors too. For example the number $3$ has signature  $\m
 
 \chapter{Compiling and installing Faust}
 
-The Faust source distribution \lstinline'faust-0.9.9.6.tar.gz' can be downloaded from sourceforge (\url{http://sourceforge.net/projects/faudiostream/}).
+The Faust source distribution \lstinline'faust-0.9.10.tar.gz' can be downloaded from sourceforge (\url{http://sourceforge.net/projects/faudiostream/}).
 
 \section{Organization of the distribution}
 The first thing is to decompress the downloaded archive. 
 \begin{lstlisting}
-	tar xzf faust-0.9.9.6.tar.gz
+	tar xzf faust-0.9.10.tar.gz
 \end{lstlisting}
 
-The resulting  \lstinline'faust-0.9.9.6/' folder should contain the following elements:
+The resulting  \lstinline'faust-0.9.10/' folder should contain the following elements:
 
 \begin{tabular}{ll}
 	\lstinline'architecture/' 		&Faust libraries and architecture files\\
+	\lstinline'benchmark'			&tools to measure the efficiency of the generated code\\
 	\lstinline'compiler/'			&sources of the Faust compiler\\
 	\lstinline'examples/'			&examples of Faust programs\\
 	\lstinline'syntax-highlighting/'&	support for syntax highlighting for several editors\\
@@ -142,24 +146,24 @@ The resulting  \lstinline'faust-0.9.9.6/' folder should contain the following el
 \section{Compilation}
 Faust has no dependencies outside standard libraries. Therefore the compilation should be straightforward. There is no configuration phase, to compile the Faust compiler simply do :
 \begin{lstlisting}
-	cd faust-0.9.9.6/
+	cd faust-0.9.10/
 	make
 \end{lstlisting}
 
 If the compilation was successful you can test the compiler before installing it:
 \begin{lstlisting}
-	[cd faust-0.9.9.6/]
+	[cd faust-0.9.10/]
 	./compiler/faust -v
 \end{lstlisting}
 It should output:
 \begin{lstlisting}
-	FAUST, DSP to C++ compiler, Version 0.9.9.6
+	FAUST, DSP to C++ compiler, Version 0.9.10
 	Copyright (C) 2002-2010, GRAME - Centre... 
 \end{lstlisting}
 
 Then you can also try to compile one of the examples :
 \begin{lstlisting}
-	[cd faust-0.9.9.6/]
+	[cd faust-0.9.10/]
 	./compiler/faust examples/noise.dsp
 \end{lstlisting}
 It should produce some C++ code on the standard output
@@ -167,12 +171,12 @@ It should produce some C++ code on the standard output
 \section{Installation}
 You can install Faust with:
 \begin{lstlisting}
-	[cd faust-0.9.9.6/]
+	[cd faust-0.9.10/]
 	sudo make install
 \end{lstlisting}
 or
 \begin{lstlisting}
-	[cd faust-0.9.9.6/]
+	[cd faust-0.9.10/]
 	su
 	make install
 \end{lstlisting}
@@ -1239,19 +1243,136 @@ These signals can be freely combined with other audio signals.
 \end{tabular}
 
 \vspace{5 mm}
+\subsubsection{Labels}
+Every user interface widget has a label (a string) that identifies it and informs the user of its purpose. There are three important meccanisms associated with labels : \textit{variable parts}, \textit{pathnames} and \textit{metadata}.
 
-\textbf{note} : The \emph{str} string used in widgets can contain variable parts.
-These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable.
-For example \texttt{par(i,8,hslider("Voice \%i", 0.9, 0, 1, 0.01))} creates 8 different sliders in parallel :
-\texttt{hslider("Voice 0", 0.9, 0, 1, 0.01),}
-\texttt{hslider("Voice 1", 0.9, 0, 1, 0.01),} \ldots
-\texttt{,hslider("Voice 7", 0.9, 0, 1, 0.01)}.
+\paragraph{Variable parts.}
+Labels can contain variable parts. These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. 
+For example \lstinline'par(i,8,hslider("Voice %i", 0.9, 0, 1, 0.01))' creates 8 different sliders in parallel :
+
+\begin{lstlisting}
+hslider("Voice 0", 0.9, 0, 1, 0.01),
+hslider("Voice 1", 0.9, 0, 1, 0.01),
+...
+hslider("Voice 7", 0.9, 0, 1, 0.01).
+\end{lstlisting}
+
+while \lstinline'par(i,8,hslider("Voice", 0.9, 0, 1, 0.01))' would have created only one slider and duplicated its output 8 times.
+
 
 An escape mechanism is provided.
-If the sign '\texttt{\%}' is followed by itself, it will be included in the resulting string.
-For example \texttt{"feedback (\%\%)"} will result in \texttt{"feedback (\%)"}.
+If the sign \lstinline'%' is followed by itself, it will be included in the resulting string.
+For example \lstinline'"feedback (%%)"' will result in \lstinline'"feedback (%)"'.
 
-\textbf{Description of label's metadata is missing}
+\paragraph{Pathnames.}
+Thanks to horizontal, vertical and tabs groups, user interfaces have a hierarchical structure analog to a hierarchical file system. Each widget has an associated \textit{pathname} obtained by concatenating the labels of all its surounding groups with its own label.
+
+In the following example :
+\begin{lstlisting}
+hgroup("Foo",
+	...
+	vgroup("Faa", 
+		...
+		hslider("volume",...)
+		...
+	)
+	...
+)
+\end{lstlisting}
+the volume slider has pathname \lstinline'/h:Foo/v:Faa/volume'.
+
+In order to give more flexibility to the design of user interfaces, it is possible to explicitely specify the absolute or relative pathname of a widget directly in its label. 
+
+In our previous example the pathname of :
+\begin{lstlisting}
+	hslider("../volume",...)
+\end{lstlisting}
+would have been \lstinline'/h:Foo/volume', while the pathname of :
+\begin{lstlisting}
+	hslider("t:Fii/volume",...)
+\end{lstlisting}
+would have been : 
+\lstinline'/h:Foo/v:Faa/t:Fii/volume'.
+
+The grammar for labels with pathnames is the following:
+\begin{grammar}
+  <label> ::= 
+  \begin{syntdiag}
+	<path> <name>
+  \end{syntdiag}
+\end{grammar}
+%
+\begin{grammar}
+ <path> ::= 
+  \begin{syntdiag}
+	\begin{stack} \\ "/" \end{stack} 
+	\begin{stack} \\ \begin{rep} <folder> "/" \end{rep} \end{stack} 
+ \end{syntdiag}
+\end{grammar}
+%
+\begin{grammar}
+ <folder> ::= 
+  \begin{syntdiag}
+	\begin{stack}
+		".." \\ 
+		\begin{stack} "h:" \\ "v:" \\ "t:" \end{stack} <name>
+	\end{stack}
+ \end{syntdiag}
+\end{grammar}
+
+
+
+\paragraph{Metadata}
+Widget labels can contain metadata enclosed in square brakets. These metadata associate a key with a value and are used to provide additional information to the architecture file.  They are tipically used to improve the look and feel of the user interface. 
+The Faust code :
+\begin{lstlisting}
+process = *(hslider("foo [key1: val 1][key2: val 2]", 
+					0, 0, 1, 0.1));
+\end{lstlisting}
+
+will produce and the corresponding C++ code :
+
+\begin{lstlisting}
+class mydsp : public dsp {
+	...
+	virtual void buildUserInterface(UI* interface) {
+	    interface->openVerticalBox("m");
+	    interface->declare(&fslider0, "key1", "val 1");
+	    interface->declare(&fslider0, "key2", "val 2");
+	    interface->addHorizontalSlider("foo", &fslider0, 
+								0.0f, 0.0f, 1.0f, 0.1f);
+	    interface->closeBox();
+	}
+...
+};
+\end{lstlisting}
+
+All the metadata are removed from the label by the compiler and 
+transformed in calls to the \lstinline'UI::declare()' method. All these 
+\lstinline'UI::declare()' calls will always take place before the \lstinline'UI::AddSomething()' 
+call that creates the User Interface element. This allows the 
+\lstinline'UI::AddSomething()'  method to make full use of the available metadata.
+
+It is the role of the architecture file to decide what to do with these 
+metadata. The \lstinline'jack-qt.cpp' architecture file for example implements the 
+following :
+\begin{enumerate}
+\item \lstinline'"...[type:knob]..."' creates a rotative knob instead of a regular 
+slider or nentry.
+\item \lstinline'"...[type:led]..."' in a bargraph's label creates a small LED instead 
+of a full bargraph
+\item \lstinline'"...[unit:dB]..."' in a bargraph's label creates a more realistic 
+bargraph with colors ranging from green to red depending of the level of 
+the value
+\item \lstinline'"...[unit:xx]..."' in a widget postfix the value displayed with xx
+\item \lstinline'"...[tooltip:bla bla]..."' add a tooltip to the widget
+\end{enumerate}
+
+Moreover starting a label with a number option like in \lstinline'"[1]..."' provide 
+a convenient mean to control the alphabetical order of the widgets
+
+
+
 
 
 
@@ -1284,10 +1405,29 @@ Compilation options are listed in the following table :
 \vspace{5 mm}
 
 \small
-\begin{tabularx}{\textwidth}[t]{|l|l|X|}
+%%\begin{tabularx}{\textwidth}[t]{|l|l|X|}
+
+\tablefirsthead{
 \hline
 \textbf{Short} 				& \textbf{long} 					& \textbf{Description}   \\
 \hline
+}
+\tablehead{
+\hline
+\textbf{Short} 				& \textbf{long} 					& \textbf{Description}   \\
+\hline
+}
+\tabletail{
+  \hline
+  \multicolumn{3}{|r|}{\small\sl continued on next page}\\
+  \hline
+}
+\tablelasttail{
+  \hline
+}
+
+
+\begin{supertabular}{|p{1.5cm}|p{4cm}|p{5cm}|}  
 \texttt{-h} 				& \texttt{--help} 					& print the help message  \\
 \texttt{-v} 				& \texttt{--version} 				& print version information  \\
 \texttt{-d} 				& \texttt{--details} 				& print compilation details  \\
@@ -1295,35 +1435,40 @@ Compilation options are listed in the following table :
 \texttt{-svg} 				& \texttt{--svg} 					& generate block-diagram svg files  \\
 \texttt{-blur} 				& \texttt{--shadow-blur} 			& add a blur to boxes shadows  \\
 \texttt{-sd} 				& \texttt{--simplify-diagrams} 		& simplify block-diagram before drawing them  \\
-\texttt{-f \farg{n}} 		& \texttt{--fold \farg{n}}  		& max complexity of svg diagrams before splitting\\
-							&									& into several files (default 25 boxes)  \\
+\texttt{-f \farg{n}} 		& \texttt{--fold \farg{n}}  		& max complexity of svg diagrams before splitting into several files (default 25 boxes)  \\
 \texttt{-mns \farg{n}} 		& \texttt{--max-name-size \farg{n}} & max character size used in svg diagram labels\\
-\texttt{-sn}             	& \texttt{--simple-names}			& use simple names (without arguments) \\
-							&									& for block-diagram (default max size : 40 chars) \\
+\texttt{-sn}             	& \texttt{--simple-names}			& use simple names (without arguments) for block-diagram (default max size : 40 chars) \\
 \texttt{-xml} 				& \texttt{--xml} 					& generate an additional description file in xml format  \\
-\texttt{-uim} 				& \texttt{---user-interface-macros} & add user interface macro definitions to the C++ code  \\
+\texttt{-uim} 				& \texttt{--user-interface-macros} 	& add user interface macro definitions to the C++ code  \\
+\texttt{-flist} 			& \texttt{--file-list} 				& list all the source files and libraries implied in a compilation  \\
+\hline
 \texttt{-lb}	 			& \texttt{--left-balanced} 			& generate left-balanced expressions  \\
 \texttt{-mb} 				& \texttt{--mid-balanced} 			& generate mid-balanced expressions (default)  \\
 \texttt{-rb} 				& \texttt{--right-balanced}			& generate right-balanced expressions  \\
 \texttt{-lt} 				& \texttt{--less-temporaries}		& generate less temporaries in compiling delays  \\
-\texttt{-mcd \farg{n}}		& \texttt{--max-copy-delay \farg{n}}& threshold between copy and ring buffer delays\\
-							&									& (default 16 samples)  \\
+\texttt{-mcd \farg{n}}		& \texttt{--max-copy-delay \farg{n}}& threshold between copy and ring buffer delays (default 16 samples)\\
+\hline
 \texttt{-vec} 				& \texttt{--vectorize}				& generate easier to vectorize code  \\
 \texttt{-vs \farg{n}}		& \texttt{--vec-size \farg{n}}		& size of the vector (default 32 samples) when -vec \\
 \texttt{-lv \farg{n}}		& \texttt{--loop-variant \farg{n}}	& loop variant [0:fastest (default), 1:simple] when -vec\\
 \texttt{-dfs} 				& \texttt{--deepFirstScheduling}	& schedule vector loops in deep first order when -vec \\
-							&									& \\
+\hline
 \texttt{-omp} 				& \texttt{--openMP}					& generate parallel code using openMP (implies -vec)  \\
+\texttt{-sch} 				& \texttt{--scheduler}				& generate parallel code using threads directly (implies -vec)  \\
 \texttt{-g} 				& \texttt{--groupTasks}				& group sequential tasks together when -omp  \\
-							&									& \\
+\hline
 \texttt{-single} 			& \texttt{--single-precision-floats} & use floats for internal computations (default)  \\
 \texttt{-double} 			& \texttt{--double-precision-floats} & use doubles for internal computations  \\
 \texttt{-quad} 				& \texttt{--quad-precision-floats}	&  use extended for internal computations  \\
-							&									&   \\
-\texttt{-a \farg{file}} 	&  									& architecture file to use  \\
-\texttt{-o \farg{file}} 	&  									& C++ output file  \\
 \hline
-\end{tabularx}
+\texttt{-mdoc} 				& \texttt{--mathdoc}				& generates the full mathematical description of a Faust program \\
+\texttt{-mdlang l}			& \texttt{--mathdoc-lang l} 		& choose the language of the mathematical description (l = en, fr, ...) \\
+\texttt{-stripdoc} 			& \texttt{--strip-mdoc-tags}		& remove documentation tags when printing Faust listings\\
+\hline
+\texttt{-a \farg{file}} 	&  									& architecture file to use  \\
+\texttt{-o \farg{file}} 	&  									& C++ output file\\
+%%\end{tabularx} 
+\end{supertabular} 
 \normalsize
 
 \vspace{5 mm}
@@ -1376,7 +1521,27 @@ Here is an example of compilation command that generates the C++ source code of 
 \vspace{5 mm}
 
 \chapter{Acknowledgments}
-\textbf{Acknowledgments are missing}
+Many persons are contributing to the Faust project by providing code for the compiler, architecture files, libraries, examples, documentation, scripts, bug reports, ideas, etc. I would like in particular to thanks :
+
+\begin{itemize}
+\item[-]Tiziano Bole	
+\item[-]Thomas Charbonnel
+\item[-]Damien Cramet
+\item[-]Etienne Gaudrin
+\item[-]Albert Graef
+\item[-]Stefan Kersten
+\item[-]Victor Lazzarini
+\item[-]Matthieu Leberre
+\item[-]Mathieu Leroi
+\item[-]Remy Muller
+\item[-]Nicolas Scaringella
+\item[-]Julius Smith
+\end{itemize}
+
+as well as my colleagues Dominique Fober, Stephane Letz and Karim Barkati.
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
