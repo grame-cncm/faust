@@ -1,3 +1,11 @@
+This folder contains several examples of Faust programs as well as
+Makefiles to compile them for various audio architectures. 
+
+	cd examples
+	make help 
+
+will give you the main targets
+
 Compilation of MAX/MSP externals on OSX
 ========================================
 
