@@ -1,0 +1,32 @@
+ 
+strict digraph faustflow {
+    root=dsp;
+    dsp[label="fx.dsp"];
+    cpp[label="fx.cpp"];
+    pd[label="fx.pd"];
+    xml[label="fx.xml"];
+    bin[label="fx~.pd_linux"];
+    arch[label="puredata.cpp"];
+    svgfolder[shape=box, label="fx.dsp-svg/"];
+    svg[label="process.svg"];
+
+    node[shape=box, color=blue, fillcolor=lightblue, style=filled];
+    FAUST[label="faust"];
+    GCC[label="g++", shape=box, color=blue, fillcolor=lightblue, style=filled];
+    F2PD[label="faust2pd", shape=box, color=blue, fillcolor=lightblue, style=filled];
+
+    FAUST->svgfolder[label="-svg",weight=5];
+    svgfolder->svg;
+
+    dsp->FAUST[weight=10];
+    FAUST->cpp[label="-o",weight=10];
+    cpp->GCC[weight=10];
+    GCC->bin[weight=10];
+
+    arch->FAUST[label="-a"]; {rank=same; arch FAUST}
+
+
+    FAUST->xml[label="-xml"];
+    xml->F2PD->pd;
+
+}

@@ -1,0 +1,19 @@
+ 
+strict digraph loopgraph {
+    rankdir=BT;
+    node[color=blue, fillcolor=lightblue, style=filled];
+
+    L1->L4->L8;
+    L2->L4->L6->L8; L6->L9;
+    L3->L5->L7->L9;
+    L1->L7;
+    node Rank0;
+    node Rank1;
+    node Rank2;
+
+    {rank=same; Rank0 L1 L2 L3}
+    {rank=same; Rank1 L4 L5}
+    {rank=same; Rank2 L6 L7}
+    
+
+}

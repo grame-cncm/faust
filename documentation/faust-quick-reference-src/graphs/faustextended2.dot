@@ -1,0 +1,17 @@
+ 
+strict digraph faustflow {
+    root=dsp;
+    dsp[label="fx.dsp"];
+    scalar[label="fx.cpp\nscalar"];
+    vector[label="fx.cpp\nvector"];
+    openmp[label="fx.cpp\nOpenMP",style=invis];
+
+    node[shape=box, color=blue, fillcolor=lightblue, style=filled];
+    FAUST[label="faust"];
+
+    dsp->FAUST[weight=10];
+    FAUST->scalar[weight=10];
+    FAUST->vector[label="-vec"];
+    FAUST->openmp[label="",style=invis];
+
+}
