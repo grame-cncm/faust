@@ -1838,6 +1838,17 @@ There are three main goals, or uses, of this mathematical documentation:
 \item to give a new teaching support, as a bridge between code and formulas for signal processing.
 \end{enumerate}
 
+\section{Installation requirements}
+\label{sec:inst-requ}
+
+\begin{itemize}
+\item faust
+\item pdflatex
+\item svg2pdf
+\item breqn
+\end{itemize}
+
+
 \section{Generating the mathdoc}
 \label{sec:generating-mdoc}
 
@@ -1869,8 +1880,8 @@ At this stage:
 The \lstinline!faust2mathdoc! script calls \lstinline!faust --mathdoc! first, then it finishes the work:
 \begin{itemize}
 \item moving the output C++ file into \lstinline!cpp/!,
-\item converting all \textsc{Svg} files into pdf files (you must have a \lstinline!svg2pdf! installed, from the Cairo 2D graphics library),
-\item lauching \lstinline!pdflatex! on the \latex file (you must have both \lstinline!pdflatex! and the \lstinline!breqn! package installed),
+\item converting all \textsc{Svg} files into pdf files (you must have \lstinline!svg2pdf! installed, from the Cairo 2D graphics library),
+\item launching \lstinline!pdflatex! on the \latex file (you must have both \lstinline!pdflatex! and the \lstinline!breqn! package installed),
 \item moving the resulting pdf file into \lstinline!pdf/!.
 \end{itemize}
 
@@ -1910,8 +1921,8 @@ You can specify yourself the documentation instead of using the automatic mode, 
 Here are the five specific tags:
 \begin{itemize}
 \item \lstinline!<mdoc></mdoc>!, to open a documentation field in your \faust code,
-\item \lstinline!<equation></equation>!, to get equations of this specific \faust item,
-\item \lstinline!<diagram></diagram>!, to get the top-level block-diagram of this specific \faust item,
+\item \lstinline!<equation></equation>!, to get equations of this specific \faust expression,
+\item \lstinline!<diagram></diagram>!, to get the top-level block-diagram of this specific \faust expression,
 \item \lstinline!<notice>!, to insert the "adaptive'' notice all formulas actually printed,
 \item \lstinline!<listing>!, to insert the complete listings of all \faust files called.
 \end{itemize}
