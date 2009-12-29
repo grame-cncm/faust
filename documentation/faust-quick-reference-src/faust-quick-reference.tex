@@ -8,6 +8,7 @@
 %\usepackage{tabulary}
 %\usepackage{rail}
 %\railoptions{-t -h}
+\usepackage{xspace}
 \usepackage[rounded]{syntax}
 \usepackage{hyperref}
 \usepackage{listings}
@@ -19,6 +20,7 @@
 
 \definecolor{yobg}{rgb}{0.9,0.9,1}
 \definecolor{yotxt}{rgb}{0.01,0.01,0.52}
+\definecolor{mylstcmt}{rgb}{0.01,0.52,0.01} % a dark green.
 %%\newcommand{\farg}[1]{\textrm{\textit{#1}}}
 
 % parameters for listings
@@ -30,13 +32,14 @@
     basicstyle=\ttfamily\color{yotxt},
     numbers=none,
     stepnumber=2,
+  commentstyle=\slshape\color{mylstcmt},
     %%frame=single,
     backgroundcolor=\color{yobg},
     captionpos=b
 }
 
-\title{Faust Quick Reference}
-\author{Yann Orlarey\\Grame, Centre National de Creation Musicale}
+\title{\faust Quick Reference}
+\author{Yann Orlarey\\\textsc{Grame} -- Centre National de Cr\'eation Musicale}
 \date{December 2009}
 
 
@@ -62,6 +65,9 @@
 \newcommand{\semantic}[1]{\ldbrack #1 \rdbrack}
 \newcommand{\dbrackC}[1]{\ldbrack #1 \rdbrackC}
 
+\newcommand{\faust}{\textsc{Faust}\xspace}
+\newcommand{\latex}{\LaTeX\xspace}
+
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
 
@@ -70,30 +76,30 @@
 
 \chapter{Introduction}
 
-FAUST (\textit{Functional Audio Stream}) is a functional programming language specifically designed for real-time signal processing and synthesis.  FAUST targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards. 
+\faust (\textit{Functional Audio Stream}) is a functional programming language specifically designed for real-time signal processing and synthesis.  \faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards. 
 
 \section{Design Principles}
 
-Various principles have guided the design of Faust :
+Various principles have guided the design of \faust :
 
 \begin{itemize}
 
-\item Faust is a \textit{specification language}. It aims at providing an adequate notation to describe \textit{signal processors} from a mathematical point of view. It is, as much as possible, free from implementation details. 
+\item \faust is a \textit{specification language}. It aims at providing an adequate notation to describe \textit{signal processors} from a mathematical point of view. It is, as much as possible, free from implementation details. 
 
-\item Faust programs are fully compiled, not interpreted. The compiler translates FAUST programs into equivalent C++ programs taking care of generating the most efficient code. The result can generally compete with, and sometimes even outperform, C++ code written by seasoned programmers. 
+\item \faust programs are fully compiled, not interpreted. The compiler translates \faust programs into equivalent C++ programs taking care of generating the most efficient code. The result can generally compete with, and sometimes even outperform, C++ code written by seasoned programmers. 
 
 \item The generated code works at the sample level. It is therefore suited to implement low-level DSP functions like recursive filters. Moreover the code can be easily embedded. It is self-contained and doesn't depend of any DSP library or runtime system. It has a very deterministic behavior and a constant memory footprint. 
 
-\item The semantic of FAUST is simple and well defined. This is not just of academic interest. It allows the FAUST compiler to be \emph{semantically driven}. Instead of compiling a program literally, it compiles the mathematical function it denotes. This feature is useful for example to promote components reuse while preserving optimal performance.  
+\item The semantic of \faust is simple and well defined. This is not just of academic interest. It allows the \faust compiler to be \emph{semantically driven}. Instead of compiling a program literally, it compiles the mathematical function it denotes. This feature is useful for example to promote components reuse while preserving optimal performance.  
 
-\item FAUST is a textual language but nevertheless block-diagram oriented. It actually combines two approaches: \textit{functional programming} and \textit{algebraic block-diagrams}. The key idea is to view block-diagram construction as function composition. For that purpose, FAUST relies on a \emph{block-diagram algebra} of five composition operations (\lstinline': , ~ <: :>').
+\item \faust is a textual language but nevertheless block-diagram oriented. It actually combines two approaches: \textit{functional programming} and \textit{algebraic block-diagrams}. The key idea is to view block-diagram construction as function composition. For that purpose, \faust relies on a \emph{block-diagram algebra} of five composition operations (\lstinline': , ~ <: :>').
 
-\item Thanks to the notion of \textit{architecture}, FAUST programs can be easily deployed on a large variety of audio platforms and plugin formats without any change to the FAUST code.
+\item Thanks to the notion of \textit{architecture}, \faust programs can be easily deployed on a large variety of audio platforms and plugin formats without any change to the \faust code.
 
 \end{itemize}
 
 \section{Signal Processor Semantic}
-A FAUST program describes a \emph{signal processor}. The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
+A \faust program describes a \emph{signal processor}. The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
 
 More precisely :
 
@@ -114,13 +120,13 @@ set of all possible signal processors.
 
 \end{itemize}
 
-As an example, let's express the semantic of the FAUST primitive \lstinline'+'. Like any FAUST expression, it is a signal processor. Its signature is $\mathbb{S}^{2}\rightarrow\mathbb{S}$. It takes two input signals $X_0$ and $X_1$ and produce an output signal $Y$ such that $Y(t) = X_0(t)+X_1(t)$. 
+As an example, let's express the semantic of the \faust primitive \lstinline'+'. Like any \faust expression, it is a signal processor. Its signature is $\mathbb{S}^{2}\rightarrow\mathbb{S}$. It takes two input signals $X_0$ and $X_1$ and produce an output signal $Y$ such that $Y(t) = X_0(t)+X_1(t)$. 
 
 Numbers are signal processors too. For example the number $3$ has signature  $\mathbb{S}^{0}\rightarrow\mathbb{S}$.  It takes no input signals and produce an output signal $Y$ such that $Y(t) = 3$. 
 
-\chapter{Compiling and installing Faust}
+\chapter{Compiling and installing \faust}
 
-The Faust source distribution \lstinline'faust-0.9.10.tar.gz' can be downloaded from sourceforge (\url{http://sourceforge.net/projects/faudiostream/}).
+The \faust source distribution \lstinline'faust-0.9.10.tar.gz' can be downloaded from sourceforge (\url{http://sourceforge.net/projects/faudiostream/}).
 
 \section{Organization of the distribution}
 The first thing is to decompress the downloaded archive. 
@@ -131,20 +137,20 @@ The first thing is to decompress the downloaded archive.
 The resulting  \lstinline'faust-0.9.10/' folder should contain the following elements:
 
 \begin{tabular}{ll}
-	\lstinline'architecture/' 		&Faust libraries and architecture files\\
+	\lstinline'architecture/' 		&\faust libraries and architecture files\\
 	\lstinline'benchmark'			&tools to measure the efficiency of the generated code\\
-	\lstinline'compiler/'			&sources of the Faust compiler\\
-	\lstinline'examples/'			&examples of Faust programs\\
+	\lstinline'compiler/'			&sources of the \faust compiler\\
+	\lstinline'examples/'			&examples of \faust programs\\
 	\lstinline'syntax-highlighting/'&	support for syntax highlighting for several editors\\
-	\lstinline'documentation/' 		&Faust's documentation, including this manual\\
+	\lstinline'documentation/' 		&\faust's documentation, including this manual\\
 	\lstinline'tools/'				&tools to produce audio applications and plugins\\
 	\lstinline'COPYING'				&license information\\
-	\lstinline'Makefile'			&Makefile used to build and install Faust\\
-	\lstinline'README'				&instructions on how to build and install Faust
+	\lstinline'Makefile'			&Makefile used to build and install \faust\\
+	\lstinline'README'				&instructions on how to build and install \faust
 \end{tabular}
 
 \section{Compilation}
-Faust has no dependencies outside standard libraries. Therefore the compilation should be straightforward. There is no configuration phase, to compile the Faust compiler simply do :
+\faust has no dependencies outside standard libraries. Therefore the compilation should be straightforward. There is no configuration phase, to compile the \faust compiler simply do :
 \begin{lstlisting}
 	cd faust-0.9.10/
 	make
@@ -169,7 +175,7 @@ Then you can also try to compile one of the examples :
 It should produce some C++ code on the standard output
 
 \section{Installation}
-You can install Faust with:
+You can install \faust with:
 \begin{lstlisting}
 	[cd faust-0.9.10/]
 	sudo make install
@@ -184,27 +190,27 @@ depending on your system.
 
 
 \section{Compilation of the examples}
-Once Faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\footnote{an architecture file provides the code to connect a signal processor to the outside world (audio communications and user interface)}, either standalone audio applications or plugins.
+Once \faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\footnote{an architecture file provides the code to connect a signal processor to the outside world (audio communications and user interface)}, either standalone audio applications or plugins.
 
 The command \lstinline'make help' will list the available targets. Before using a specific target, make sure you have the appropriate development tools, libraries and headers installed. For example to compile the examples as ALSA applications with a GTK user interface do a \lstinline'make alsagtk'. This will create a \lstinline'alsagtkdir/' subfolder with all the binaries. 
 
 
-\chapter{Faust syntax}
+\chapter{\faust syntax}
 
-This section describes the syntax of Faust. Figure \ref{fig:syntax} gives an overview of the various concepts and where they are defined in this section. 
+This section describes the syntax of \faust. Figure \ref{fig:syntax} gives an overview of the various concepts and where they are defined in this section. 
 
 \begin{figure}[ht!]
 \centering
 \includegraphics[scale=0.45]{illustrations/syntax-chart}
-\caption{Overview of Faust syntax}
+\caption{Overview of \faust syntax}
 \label{fig:syntax}
 \end{figure}
 
 As we will see, \textit{definitions} and \textit{expressions} have a central role.
 
-\section{Faust program}
+\section{\faust program}
 
-A Faust program is essentially a list of \textit{statements}. These statements can be \textit{declarations}, \textit{imports} and \textit{definitions}, with optional C++ style (//... and /*...*/) comments.
+A \faust program is essentially a list of \textit{statements}. These statements can be \textit{declarations}, \textit{imports} and \textit{definitions}, with optional C++ style (//... and /*...*/) comments.
  
 \begin{grammar}
   <program> ::= 
@@ -215,7 +221,7 @@ A Faust program is essentially a list of \textit{statements}. These statements c
   \end{syntdiag}
 \end{grammar}
 
-Here is a short Faust program that implements of a simple noise generator. It exhibits the various kind of statements : two \textit{declarations}, an \textit{import}, a \textit{comment} and a \textit{definition}.
+Here is a short \faust program that implements of a simple noise generator. It exhibits the various kind of statements : two \textit{declarations}, an \textit{import}, a \textit{comment} and a \textit{definition}.
 
 \begin{lstlisting}
 declare name       "noise";
@@ -227,12 +233,12 @@ import("music.lib");
 process = noise * vslider("volume", 0, 0, 1, 0.1);
 \end{lstlisting}
  
-The keyword \lstinline'process' is the equivalent of \lstinline'main' in C/C++. Any FAUST program, to be valid, must at least define \lstinline'process'.
+The keyword \lstinline'process' is the equivalent of \lstinline'main' in C/C++. Any \faust program, to be valid, must at least define \lstinline'process'.
 
 
 \section{Statements}
 
-The \textit{statements} of a Faust program are of three kinds : \textit{metadata declarations}, \textit{file imports} and \textit{definitions}. All statements end with a semicolon (\lstinline';'). 
+The \textit{statements} of a \faust program are of three kinds : \textit{metadata declarations}, \textit{file imports} and \textit{definitions}. All statements end with a semicolon (\lstinline';'). 
 
 \begin{grammar}
   <statement> ::= 
@@ -248,7 +254,7 @@ The \textit{statements} of a Faust program are of three kinds : \textit{metadata
 
 \subsection{Declarations}
 
-Meta-data declarations (for example \lstinline'declare name "noise";') are optional and typically used to document a Faust project. 
+Meta-data declarations (for example \lstinline'declare name "noise";') are optional and typically used to document a \faust project. 
 
 \begin{grammar}
   <declaration> ::= 
@@ -370,7 +376,7 @@ Please note that this last definition is a convenient alternative to the more ve
   
 \section{Expressions}
 
-Despite its textual syntax, Faust is conceptually a block-diagram language. Faust expressions represent DSP block-diagrams and are assembled from primitive ones using various \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally Faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
+Despite its textual syntax, \faust is conceptually a block-diagram language. \faust expressions represent DSP block-diagrams and are assembled from primitive ones using various \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally \faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
 
 \begin{grammar}
   <expression> ::= 
@@ -620,7 +626,7 @@ process = @(hslider("delay",0, 0, 100, 1));
 \end{lstlisting}
 
 \subsection{Environment expressions}
-Each Faust expression has an associated lexical environment : a list of dictionaries where to look for definitions. The following expressions allow to create and access such environments.
+Each \faust expression has an associated lexical environment : a list of dictionaries where to look for definitions. The following expressions allow to create and access such environments.
 
 \begin{grammar}
   <envexp> ::= 
@@ -721,7 +727,7 @@ For example \lstinline'library("filter.lib")' represents the lexical environment
 obtained by reading the file "filter.lib". It works like \lstinline'import("filter.lib")' but all the read definitions are stored in a new separate lexical environment.
 
 
-\subsubsection{Component} is a powerful construction that allows to reuse a full Faust program as a simple expression.
+\subsubsection{Component} is a powerful construction that allows to reuse a full \faust program as a simple expression.
 
 \begin{grammar}
   <component> ::= 
@@ -757,7 +763,7 @@ Reference to external C \textit{functions}, \textit{variables} and \textit{const
 
 
 \subsubsection{function} An external C function is declared by indicating its name and signature as well as the required include file.
-The file \lstinline'"math.lib"' of the Faust distribution contains several foreign function definitions, for example the inverse hyperbolic sine function \lstinline'asinh':
+The file \lstinline'"math.lib"' of the \faust distribution contains several foreign function definitions, for example the inverse hyperbolic sine function \lstinline'asinh':
 
 \begin{lstlisting}
 asinh = ffunction(float asinhf (float), <math.h>, "");
@@ -813,7 +819,7 @@ Variable are considered to vary at block speed. This means that expressions depe
 
 
 \subsubsection{include file}
-In declaring foreign functions one as also to specify the include file. It allows the Faust compiler to add the corresponding \lstinline'#include...' in the generated code.
+In declaring foreign functions one as also to specify the include file. It allows the \faust compiler to add the corresponding \lstinline'#include...' in the generated code.
 
 \begin{grammar}
   <includefile> ::= 
@@ -950,7 +956,7 @@ The compiler will start by replacing \lstinline'mono' by its definition:
 	\(fx).(_ <: fx :> _)(harmonizer)
 \end{lstlisting}
 
-Whenever the Faust compiler find an application of an abstraction it replaces the variable part with the argument \footnote{This is called $\beta$-reduction in Lambda-Calculus}. The resulting expression is as expected:
+Whenever the \faust compiler find an application of an abstraction it replaces the variable part with the argument \footnote{This is called $\beta$-reduction in Lambda-Calculus}. The resulting expression is as expected:
 \begin{lstlisting}
 	(_ <: harmonizer :> _)
 \end{lstlisting}
@@ -1017,13 +1023,13 @@ Please note that patterns are evaluated before the pattern matching operation. T
 \section{Primitives}
 %--------------------------------------------------------------------------------------------------------------
 \label{primitives}
-The primitive signal processing operations represent the built-in functionalities of Faust, that is the atomic operations on signals provided by the language. All these primitives denote \emph{signal processors}, functions transforming \emph{input signals} into \emph{output signals}.
+The primitive signal processing operations represent the built-in functionalities of \faust, that is the atomic operations on signals provided by the language. All these primitives denote \emph{signal processors}, functions transforming \emph{input signals} into \emph{output signals}.
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{Numbers}
 %--------------------------------------------------------------------------------------------------------------
 
-Faust considers two types of numbers : \textit{integers} and \textit{floats}. Integers are implemented as 32-bits integers, and floats are implemented either with a simple, double or extended precision depending of the compiler options.
+\faust considers two types of numbers : \textit{integers} and \textit{floats}. Integers are implemented as 32-bits integers, and floats are implemented either with a simple, double or extended precision depending of the compiler options.
 
 \begin{grammar}
   <int> ::= 
@@ -1056,9 +1062,9 @@ Faust considers two types of numbers : \textit{integers} and \textit{floats}. In
 \end{grammar}
 
 
-\vspace{5 mm}
+\bigskip
 
-Like any other Faust expression, numbers are signal processors. For example the number $0.95$ is a signal processor of type $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ that transforms an empty tuple of signals $()$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=0.95$.
+Like any other \faust expression, numbers are signal processors. For example the number $0.95$ is a signal processor of type $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ that transforms an empty tuple of signals $()$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=0.95$.
 
 %\begin{tabular}{|l|l|l|}
 %\hline
@@ -1074,10 +1080,10 @@ Like any other Faust expression, numbers are signal processors. For example the 
 \subsection{C-equivalent primitives}
 %--------------------------------------------------------------------------------------------------------------
 
-Most Faust primitives are analogue to their C counterpart but lifted to signal processing.
+Most \faust primitives are analogue to their C counterpart but lifted to signal processing.
 For example $+$ is a function of type $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ that transforms a pair of signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)+x_{2}(t)$.
 
-\vspace{5 mm}
+\bigskip
 
 \begin{tabular}{|l|l|l|}
 \hline
@@ -1118,7 +1124,7 @@ $n.m$ & $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ & floating point number: $y(t)
 
 \end{tabular}
 
-\vspace{5 mm}
+\bigskip
 
 
 %--------------------------------------------------------------------------------------------------------------
@@ -1127,7 +1133,7 @@ $n.m$ & $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ & floating point number: $y(t)
 
 Most of the C \texttt{math.h} functions are also built-in as primitives (the others are defined as external functions in file \texttt{math.lib}).
 
-\vspace{5 mm}
+\bigskip
 \begin{tabular}{|l|l|l|}
 \hline
 \textbf{Syntax} & \textbf{Type}  & \textbf{Description} \\
@@ -1160,7 +1166,7 @@ Most of the C \texttt{math.h} functions are also built-in as primitives (the oth
 
 \hline
 \end{tabular}
-\vspace{5 mm}
+\bigskip
 
 
 
@@ -1172,7 +1178,7 @@ Most of the C \texttt{math.h} functions are also built-in as primitives (the oth
 
 The following primitives allow to define fixed delays, read-only and read-write tables and 2 or 3-ways selectors (see figure \ref{fig:delays}).
 
-\vspace{5 mm}
+\bigskip
 \begin{tabular}{|l|l|l|}
 \hline
 \textbf{Syntax} & \textbf{Type}  & \textbf{Description} \\
@@ -1190,7 +1196,7 @@ The following primitives allow to define fixed delays, read-only and read-write 
 
 \hline
 \end{tabular}
-\vspace{5 mm}
+\bigskip
 
 
 \begin{figure}
@@ -1208,7 +1214,7 @@ The following primitives allow to define fixed delays, read-only and read-write 
 %--------------------------------------------------------------------------------------------------------------
 
 
-Faust user interface widgets allow an abstract description of the user interface from within the Faust code. This description is
+\faust user interface widgets allow an abstract description of the user interface from within the \faust code. This description is
 independent of any GUI toolkits. It is based on \emph{buttons}, \emph{checkboxes}, \emph{sliders}, etc. that are grouped together vertically and
 horizontally using appropriate grouping schemes.
 
@@ -1223,7 +1229,7 @@ These signals can be freely combined with other audio signals.
 \end{figure}
 
 
-\vspace{5 mm}
+\bigskip
 
 \begin{tabular}{|l|l|}
 \hline
@@ -1242,7 +1248,7 @@ These signals can be freely combined with other audio signals.
 \hline
 \end{tabular}
 
-\vspace{5 mm}
+\bigskip
 \subsubsection{Labels}
 Every user interface widget has a label (a string) that identifies it and informs the user of its purpose. There are three important meccanisms associated with labels : \textit{variable parts}, \textit{pathnames} and \textit{metadata}.
 
@@ -1324,7 +1330,7 @@ The grammar for labels with pathnames is the following:
 
 \paragraph{Metadata}
 Widget labels can contain metadata enclosed in square brakets. These metadata associate a key with a value and are used to provide additional information to the architecture file.  They are tipically used to improve the look and feel of the user interface. 
-The Faust code :
+The \faust code :
 \begin{lstlisting}
 process = *(hslider("foo [key1: val 1][key2: val 2]", 
 					0, 0, 1, 0.1));
@@ -1381,17 +1387,17 @@ a convenient mean to control the alphabetical order of the widgets
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\chapter{Invoking the Faust compiler}
-The Faust compiler is invoked using the \texttt{faust} command. It translate Faust programs into C++ code.
+\chapter{Invoking the \faust compiler}
+The \faust compiler is invoked using the \texttt{faust} command. It translate \faust programs into C++ code.
 The generated code can be wrapped into an optional \emph{architecture file} allowing to directly produce a fully operational program.
 
 \begin{syntdiag}
-compiler : "faust" (|options) ( file +);
+compiler : "faust" (options) (file +)
 \end{syntdiag}
 
 For example \lstinline'faust noise.dsp' will compile \lstinline'noise.dsp' and output the corresponding C++ code on the standard output.  The option \lstinline'-o' allows to choose the output file : \lstinline'faust noise.dsp -o noise.cpp'. The option \lstinline'-a' allows to choose the architecture file : \lstinline'faust -a alsa-gtk.cpp noise.dsp'. 
 
-To compile a Faust program into an ALSA application on Linux you can use the following commands: 
+To compile a \faust program into an ALSA application on Linux you can use the following commands: 
 \begin{lstlisting}
 	faust -a alsa-gtk.cpp noise.dsp -o noise.cpp
 	g++ -lpthread -lasound  
@@ -1402,19 +1408,19 @@ To compile a Faust program into an ALSA application on Linux you can use the fol
 
 Compilation options are listed in the following table :
 
-\vspace{5 mm}
+\bigskip
 
 \small
 %%\begin{tabularx}{\textwidth}[t]{|l|l|X|}
 
 \tablefirsthead{
 \hline
-\textbf{Short} 				& \textbf{long} 					& \textbf{Description}   \\
+\textbf{Short} 				& \textbf{Long} 					& \textbf{Description}   \\
 \hline
 }
 \tablehead{
 \hline
-\textbf{Short} 				& \textbf{long} 					& \textbf{Description}   \\
+\textbf{Short} 				& \textbf{Long} 					& \textbf{Description}   \\
 \hline
 }
 \tabletail{
@@ -1461,9 +1467,9 @@ Compilation options are listed in the following table :
 \texttt{-double} 			& \texttt{--double-precision-floats} & use doubles for internal computations  \\
 \texttt{-quad} 				& \texttt{--quad-precision-floats}	&  use extended for internal computations  \\
 \hline
-\texttt{-mdoc} 				& \texttt{--mathdoc}				& generates the full mathematical description of a Faust program \\
-\texttt{-mdlang l}			& \texttt{--mathdoc-lang l} 		& choose the language of the mathematical description (l = en, fr, ...) \\
-\texttt{-stripdoc} 			& \texttt{--strip-mdoc-tags}		& remove documentation tags when printing Faust listings\\
+\texttt{-mdoc} 				& \texttt{--mathdoc}				& generates the full mathematical description of a \faust program \\
+\texttt{-mdlang \farg{l}}			& \texttt{--mathdoc-lang \farg{l}} 		& choose the language of the mathematical description (\farg{l} = en, fr, ...) \\
+\texttt{-stripdoc} 			& \texttt{--strip-mdoc-tags}		& remove documentation tags when printing \faust listings\\
 \hline
 \texttt{-a \farg{file}} 	&  									& architecture file to use  \\
 \texttt{-o \farg{file}} 	&  									& C++ output file\\
@@ -1471,11 +1477,11 @@ Compilation options are listed in the following table :
 \end{supertabular} 
 \normalsize
 
-\vspace{5 mm}
+\bigskip
 
 The main available architecture files are :
 
-\vspace{5 mm}
+\bigskip
 
 \begin{tabular}{|l|l|l|}
 \hline
@@ -1512,25 +1518,25 @@ The main available architecture files are :
 \hline
 \end{tabular}
 
-\vspace{5 mm}
+\bigskip
 
 Here is an example of compilation command that generates the C++ source code of a Jack application using the GTK graphic toolkit:
 
 \texttt{faust -a jack-gtk.cpp -o freeverb.cpp freeverb.dsp}.
 
-\vspace{5 mm}
+\bigskip
 
 \chapter{Controlling the code generation}
-Several options of the Faust compiler allow to control how the C++ code generated. By default the computations are done sample by sample in a single loop. But the compiler can also generate \textit{vector} and \textit{parallel} code.
+Several options of the \faust compiler allow to control how the C++ code generated. By default the computations are done sample by sample in a single loop. But the compiler can also generate \textit{vector} and \textit{parallel} code.
 
 
 \section{Vector Code generation}
-Modern C++ compilers are able to do autovectorization, that is to use SIMD instructions to speedup the code. These instructions can typically operate in parallel on short vectors of 4 simple precision floating point numbers thus leading to a theoretical speedup of x4. 
-Autovectorization of C/C+ programs is a difficult task. Current compilers are very sensitive to the way the code is arranged. In particular too complex loops can prevent autovectorization. The goal of the vector code generation is to rearrange the C++ code in a way that facilitates the autovectorization job of the C++ compiler. Instead of generating a single sample computation loop, it splits the computation into several simpler loops that communicates by vectors.
+Modern C++ compilers are able to do autovectorization, that is to use SIMD instructions to speedup the code. These instructions can typically operate in parallel on short vectors of 4 simple precision floating point numbers thus leading to a theoretical speedup of $\times4$. 
+Autovectorization of C/C++ programs is a difficult task. Current compilers are very sensitive to the way the code is arranged. In particular too complex loops can prevent autovectorization. The goal of the vector code generation is to rearrange the C++ code in a way that facilitates the autovectorization job of the C++ compiler. Instead of generating a single sample computation loop, it splits the computation into several simpler loops that communicates by vectors.
 
-The vector code generation is activated by passing the \lstinline!--vectorize! (or \lstinline!-vec!) option to the Faust compiler. Two additional options are available:  \lstinline!--vec-size <n>! controls the size of the vector (by default 32 samples) and \lstinline!--loop-variant 0/1! gives some additional control on the loops.  
+The vector code generation is activated by passing the \lstinline!--vectorize! (or \lstinline!-vec!) option to the \faust compiler. Two additional options are available:  \lstinline!--vec-size <n>! controls the size of the vector (by default 32 samples) and \lstinline!--loop-variant 0/1! gives some additional control on the loops.  
 
-To illustrate the difference between scalar code and vector code, let's take the computation of the RMS (Root Mean Square) value of a signal.  Here is the Faust code that computes the Root Mean Square of a sliding window of 1000 samples:
+To illustrate the difference between scalar code and vector code, let's take the computation of the RMS (Root Mean Square) value of a signal.  Here is the \faust code that computes the Root Mean Square of a sliding window of 1000 samples:
 \label{rms}
 \begin{lstlisting}
 // Root Mean Square of n consecutive samples
@@ -1623,7 +1629,7 @@ While the second version of the code is more complex, it turns out to be much ea
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.75]{images/compiler-stack}
-  \caption{Faust's stack of code generators}   
+  \caption{\faust's stack of code generators}   
   \label{fig:stack}
 \end{figure}
 
@@ -1642,7 +1648,7 @@ The result is a directed graph in which each node is a computation loop (see Fig
 
 \section{Parallel Code generation}
 
-The parallel code generation is activated by passing the \lstinline!--openMP! (or \lstinline!-omp!) option to the Faust compiler. It implies the \lstinline!-vec! options as the parallel code generation is built on top of the vector code generation by inserting appropriate OpenMP directives in the C++ code.  
+The parallel code generation is activated by passing the \lstinline!--openMP! (or \lstinline!-omp!) option to the \faust compiler. It implies the \lstinline!-vec! options as the parallel code generation is built on top of the vector code generation by inserting appropriate OpenMP directives in the C++ code.  
 
 \subsection{The OpenMP API}
 
@@ -1722,7 +1728,7 @@ otherwise it generates a \lstinline!single! construct so that only one thread wi
 \end{lstlisting}
 
 \subsection{Example of parallel code}
-To illustrate how Faust uses the OpenMP directives, here is a very simple example, two 1-pole filters in parallel connected to an adder (see figure \ref{fig:parfilter} the corresponding block-diagram):
+To illustrate how \faust uses the OpenMP directives, here is a very simple example, two 1-pole filters in parallel connected to an adder (see figure \ref{fig:parfilter} the corresponding block-diagram):
 
 \begin{lstlisting}
 filter(c) = *(1-c) : + ~ *(c);
@@ -1818,8 +1824,109 @@ This code appeals for some comments:
 \end{enumerate}
 
 
+\chapter{Mathematical Documentation}
+
+The \faust compiler provides a mecchanism to produce a self-describing documentation of the mathematical semantic of a \faust program, essentially as a pdf file. The corresponding options are \lstinline!-mdoc! (short) or \lstinline!--mathdoc! (long).
+
+\section{Goals of the mathdoc}
+\label{sec:goals-of-mdoc}
+
+There are three main goals, or uses, of this mathematical documentation:
+\begin{enumerate}
+\item to preserve signal processors, independently from any computer langage but only under a mathematical form;
+\item to bring some help for debugging tasks, by showing the formulas as they are really computed after the compilation stage;
+\item to give a new teaching support, as a bridge between code and formulas for signal processing.
+\end{enumerate}
+
+\section{Generating the mathdoc}
+\label{sec:generating-mdoc}
+
+The easiest way to generate the complete mathematical documentation is to call the \lstinline!faust2mathdoc! script on a \faust file (for example: \lstinline!faust2mathdoc noise.dsp!), as the \lstinline!-mdoc! option leave the documentation production unfinished.
+
+\subsection{Invoking the -mdoc option}
+\label{sec:invoking-mdoc}
+
+Calling directly \lstinline!faust -mdoc! does only the first part of the work, generating:
+\begin{itemize}
+\item a top-level directory, suffixed with "\texttt{-mdoc}",
+\item 5 subdirectories (\lstinline!cpp/!, \lstinline!pdf/!, \lstinline!src/!, \lstinline!svg/!, \lstinline!tex/!),
+\item a \latex file containing the formulas,
+\item \textsc{Svg} files for block-diagrams.
+\end{itemize}
+
+At this stage:
+\begin{itemize}
+\item \lstinline!cpp/! remains empty,
+\item \lstinline!pdf/! remains empty,
+\item \lstinline!src/! contains all \faust sources used (even libraries),
+\item \lstinline!svg/! contains \textsc{Svg} block-diagram files,
+\item \lstinline!tex/! contains the generated latex file.
+\end{itemize}
+
+\subsection{Invoking faust2mathdoc}
+\label{sec:invok-faust2m}
+
+The \lstinline!faust2mathdoc! script calls \lstinline!faust --mathdoc! first, then it finishes the work:
+\begin{itemize}
+\item moving the output C++ file into \lstinline!cpp/!,
+\item converting all \textsc{Svg} files into pdf files (you must have a \lstinline!svg2pdf! installed, from the Cairo 2D graphics library),
+\item lauching \lstinline!pdflatex! on the \latex file (you must have both \lstinline!pdflatex! and the \lstinline!breqn! package installed),
+\item moving the resulting pdf file into \lstinline!pdf/!.
+\end{itemize}
+
+\subsection{Examples}
+\label{sec:mdoc-examples}
+
+To have an idea of the results of this mathematical documentation, which captures the mathematical semantic of \faust programs, you can look at two pdf files online:
+\begin{itemize}
+\item \url{http://faust.grame.fr/pdf/karplus.pdf}, for automatic documentation,
+\item \url{http://faust.grame.fr/pdf/noise.pdf}, for "manual" documentation.
+\end{itemize}
+
+You can also generate all "mdoc" pdfs at once, simply invoking the \lstinline!make mathdoc! command inside the "examples" directory: 
+\begin{itemize}
+\item a complete "\lstinline!%-mdoc!" directory will be generated for each "\lstinline!%.dsp!" file,
+\item a single \lstinline!allmathpdfs! directory will gather all the generated pdf files.
+\end{itemize}
+
+
+\section{Automatic documentation}
+\label{sec:auto-docum}
+
+By default, the \lstinline!-mdoc! option generates a \latex file with four sections:
+\begin{enumerate}
+\item ''Equations of process'', gathering all formulas needed for process,
+\item ''Block-diagram schema of process'', showing (only) the top-level block-diagram of process,
+\item ''Notice of this documentation'', summing up generation and conventions information,
+\item ''Complete listing of the input code'', listing all needed input files (including librairies).
+\end{enumerate}
+
+
+\section{Manual documentation}
+\label{sec:manual-mdoc}
+
+You can specify yourself the documentation instead of using the automatic mode, with five xml-like tags. That permits you to modify the presentation and to add your own comments, not only on \lstinline!process!, but also about any sub-process you'd like to. Note that as soon as you declare an \lstinline!<mdoc>! tag inside your \faust file, the default structure of the automatic mode is ignored, and all the \latex stuff becomes up to you!
+
+Here are the five specific tags:
+\begin{itemize}
+\item \lstinline!<mdoc></mdoc>!, to open a documentation field in your \faust code,
+\item \lstinline!<equation></equation>!, to get equations of this specific \faust item,
+\item \lstinline!<diagram></diagram>!, to get the top-level block-diagram of this specific \faust item,
+\item \lstinline!<notice>!, to insert the "adaptative'' notice all formulas actually printed,
+\item \lstinline!<listing>!, to insert the complete listings of all \faust files called.
+\end{itemize}
+
+
+\section{Localization of mathdoc results}
+\label{sec:localization-mdoc}
+
+By default, texts used by the documentator are in english, but you can specify another language (french and italian for the moment), using the \lstinline!-mdlang! option.
+
+If you'd like to contribute to the localization effort, feel free to translate the texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.).
+
+
 \chapter{Acknowledgments}
-Many persons are contributing to the Faust project by providing code for the compiler, architecture files, libraries, examples, documentation, scripts, bug reports, ideas, etc. I would like in particular to thanks :
+Many persons are contributing to the \faust project by providing code for the compiler, architecture files, libraries, examples, documentation, scripts, bug reports, ideas, etc. I would like in particular to thank :
 
 \begin{itemize}
 \item[-]Tiziano Bole	
@@ -1837,7 +1944,7 @@ Many persons are contributing to the Faust project by providing code for the com
 \end{itemize}
 
 
-Many developments of the Faust project are now taking place within the ASTREE project (ANR 2008 CORD 003 02) . I would like to thank my ASTREE's partners :
+Many developments of the \faust project are now taking place within the ASTREE project (ANR 2008 CORD 003 02) . I would like to thank my ASTREE's partners :
 \begin{itemize}
 \item[-]J\'er\^ome Barth\'elemy (IRCAM)
 \item[-]Alain Bonardi (IRCAM)
