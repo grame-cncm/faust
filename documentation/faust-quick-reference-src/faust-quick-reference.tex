@@ -1807,7 +1807,7 @@ This code appeals for some comments:
 \begin{enumerate}
 \item The parallel construct \lstinline!#pragma omp parallel! is the fundamental construct that starts parallel execution. The number of parallel threads is generally the number of CPU cores but it can be controlled in several ways.
 
-\item Variables external to the parallel region are shared by default. The \lstinline!firstprivate(fRec0,fRec1)! clause indicates that each thread should have its private copy of fRec0 and fRec1. The reason is that accessing shared variables requires an indirection and is quite inefficient compared to private copies.
+\item Variables external to the parallel region are shared by default. The pragma \lstinline!firstprivate(fRec0,fRec1)! indicates that each thread should have its private copy of fRec0 and fRec1. The reason is that accessing shared variables requires an indirection and is quite inefficient compared to private copies.
 
 \item The top level loop \lstinline!for (int index = 0;...)...! is executed by all threads simultaneously. The subsequent work-sharing directives inside the loop will indicate how the work must be shared between the threads. 
 
