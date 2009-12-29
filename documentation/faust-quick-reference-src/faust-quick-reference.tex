@@ -813,7 +813,7 @@ SR 			= fconstant(int fSamplingFreq, <math.h>);
 BS          = fvariable(int count, <math.h>);
 \end{lstlisting}
 
-Foreign constants are not supposed to vary. Therefore expressions involving only foreign constants are only computed once, during the initialisation period. 
+Foreign constants are not supposed to vary. Therefore expressions involving only foreign constants are only computed once, during the initialization period. 
 
 Variable are considered to vary at block speed. This means that expressions depending of external variables are computed every block.
 
@@ -1250,7 +1250,7 @@ These signals can be freely combined with other audio signals.
 
 \bigskip
 \subsubsection{Labels}
-Every user interface widget has a label (a string) that identifies it and informs the user of its purpose. There are three important meccanisms associated with labels : \textit{variable parts}, \textit{pathnames} and \textit{metadata}.
+Every user interface widget has a label (a string) that identifies it and informs the user of its purpose. There are three important mechanisms associated with labels : \textit{variable parts}, \textit{pathnames} and \textit{metadata}.
 
 \paragraph{Variable parts.}
 Labels can contain variable parts. These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. 
@@ -1271,7 +1271,7 @@ If the sign \lstinline'%' is followed by itself, it will be included in the resu
 For example \lstinline'"feedback (%%)"' will result in \lstinline'"feedback (%)"'.
 
 \paragraph{Pathnames.}
-Thanks to horizontal, vertical and tabs groups, user interfaces have a hierarchical structure analog to a hierarchical file system. Each widget has an associated \textit{pathname} obtained by concatenating the labels of all its surounding groups with its own label.
+Thanks to horizontal, vertical and tabs groups, user interfaces have a hierarchical structure analog to a hierarchical file system. Each widget has an associated \textit{pathname} obtained by concatenating the labels of all its surrounding groups with its own label.
 
 In the following example :
 \begin{lstlisting}
@@ -1287,7 +1287,7 @@ hgroup("Foo",
 \end{lstlisting}
 the volume slider has pathname \lstinline'/h:Foo/v:Faa/volume'.
 
-In order to give more flexibility to the design of user interfaces, it is possible to explicitely specify the absolute or relative pathname of a widget directly in its label. 
+In order to give more flexibility to the design of user interfaces, it is possible to explicitly specify the absolute or relative pathname of a widget directly in its label. 
 
 In our previous example the pathname of :
 \begin{lstlisting}
@@ -1329,7 +1329,7 @@ The grammar for labels with pathnames is the following:
 
 
 \paragraph{Metadata}
-Widget labels can contain metadata enclosed in square brakets. These metadata associate a key with a value and are used to provide additional information to the architecture file.  They are tipically used to improve the look and feel of the user interface. 
+Widget labels can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file.  They are tipically used to improve the look and feel of the user interface. 
 The \faust code :
 \begin{lstlisting}
 process = *(hslider("foo [key1: val 1][key2: val 2]", 
@@ -1712,7 +1712,7 @@ As all the loops of a given set $S_n$ can be computed in parallel, the compiler 
   }
 \end{lstlisting}
  
-If a given set constains only one loop, then the compiler checks to see if the loop can be parallelized (no recursive dependencies) or not. If it can be parallelized, it generates:
+If a given set contains only one loop, then the compiler checks to see if the loop can be parallelized (no recursive dependencies) or not. If it can be parallelized, it generates:
 \begin{lstlisting}
   #pragma omp for
   for (...) {
@@ -1826,14 +1826,14 @@ This code appeals for some comments:
 
 \chapter{Mathematical Documentation}
 
-The \faust compiler provides a mecchanism to produce a self-describing documentation of the mathematical semantic of a \faust program, essentially as a pdf file. The corresponding options are \lstinline!-mdoc! (short) or \lstinline!--mathdoc! (long).
+The \faust compiler provides a mechanism to produce a self-describing documentation of the mathematical semantic of a \faust program, essentially as a pdf file. The corresponding options are \lstinline!-mdoc! (short) or \lstinline!--mathdoc! (long).
 
 \section{Goals of the mathdoc}
 \label{sec:goals-of-mdoc}
 
 There are three main goals, or uses, of this mathematical documentation:
 \begin{enumerate}
-\item to preserve signal processors, independently from any computer langage but only under a mathematical form;
+\item to preserve signal processors, independently from any computer language but only under a mathematical form;
 \item to bring some help for debugging tasks, by showing the formulas as they are really computed after the compilation stage;
 \item to give a new teaching support, as a bridge between code and formulas for signal processing.
 \end{enumerate}
@@ -1898,7 +1898,7 @@ By default, the \lstinline!-mdoc! option generates a \latex file with four secti
 \item ''Equations of process'', gathering all formulas needed for process,
 \item ''Block-diagram schema of process'', showing (only) the top-level block-diagram of process,
 \item ''Notice of this documentation'', summing up generation and conventions information,
-\item ''Complete listing of the input code'', listing all needed input files (including librairies).
+\item ''Complete listing of the input code'', listing all needed input files (including libraries).
 \end{enumerate}
 
 
@@ -1912,7 +1912,7 @@ Here are the five specific tags:
 \item \lstinline!<mdoc></mdoc>!, to open a documentation field in your \faust code,
 \item \lstinline!<equation></equation>!, to get equations of this specific \faust item,
 \item \lstinline!<diagram></diagram>!, to get the top-level block-diagram of this specific \faust item,
-\item \lstinline!<notice>!, to insert the "adaptative'' notice all formulas actually printed,
+\item \lstinline!<notice>!, to insert the "adaptive'' notice all formulas actually printed,
 \item \lstinline!<listing>!, to insert the complete listings of all \faust files called.
 \end{itemize}
 
@@ -1920,7 +1920,7 @@ Here are the five specific tags:
 \section{Localization of mathdoc results}
 \label{sec:localization-mdoc}
 
-By default, texts used by the documentator are in english, but you can specify another language (french and italian for the moment), using the \lstinline!-mdlang! option.
+By default, texts used by the documentator are in English, but you can specify another language (French and Italian for the moment), using the \lstinline!-mdlang! option.
 
 If you'd like to contribute to the localization effort, feel free to translate the texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.).
 
@@ -1957,7 +1957,7 @@ as well as my colleagues at Grame, in particular : Dominique Fober, Stephane Let
 
 I would like also to thank for their financial support :
 \begin{itemize}
-\item[-]the French Ministery of Culture
+\item[-]the French Ministry of Culture
 \item[-]the Rh\^one-Alpes Region
 \item[-]the City of Lyon
 \item[-]the French National Research Agency (ANR)
