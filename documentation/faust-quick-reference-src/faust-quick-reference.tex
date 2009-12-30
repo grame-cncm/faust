@@ -9,6 +9,7 @@
 %\usepackage{rail}
 %\railoptions{-t -h}
 \usepackage{xspace}
+\usepackage{pdfpages}
 \usepackage[rounded]{syntax}
 \usepackage{hyperref}
 \usepackage{listings}
@@ -21,22 +22,35 @@
 \definecolor{yobg}{rgb}{0.9,0.9,1}
 \definecolor{yotxt}{rgb}{0.01,0.01,0.52}
 \definecolor{mylstcmt}{rgb}{0.01,0.52,0.01} % a dark green.
+%\definecolor{mylstdoc}{rgb}{0.60,0.60,0.60} % a medium grey.
+\definecolor{mylstdoc}{rgb}{0.80,0.30,0.80} % a medium pink.
+%\definecolor{mylsteqn}{rgb}{0.80,0.80,0.30} % a medium pink.
+\definecolor{mylstkey}{rgb}{0.52,0.01,0.01} % a dark red.
 %%\newcommand{\farg}[1]{\textrm{\textit{#1}}}
 
 % parameters for listings
 \lstset{
-	tabsize=4,
-	showspaces=false,
-	showstringspaces=false,
-    language=C++, 
-    basicstyle=\ttfamily\color{yotxt},
-    numbers=none,
-    stepnumber=2,
+  tabsize=4,
+  showspaces=false,
+  showstringspaces=false,
+  language=C++, 
+  basicstyle=\ttfamily\color{yotxt},
+  numbers=none,
+  stepnumber=2,
   commentstyle=\slshape\color{mylstcmt},
-    %%frame=single,
-    backgroundcolor=\color{yobg},
-    captionpos=b
+  breaklines=true, 
+  emph={component, declare, environment, import, library, process},
+  emph={[2]ffunction, fconstant, fvariable},
+  emph={[3]button, checkbox, vslider, hslider, nentry, vgroup, hgroup, tgroup, vbargraph, hbargraph, attach},
+  emphstyle=\color{mylstkey},
+%  morecomment=[s][\color{mylsteqn}]{<equation>}{</equation>},
+  morecomment=[s][\color{mylstdoc}]{<mdoc>}{</mdoc>},
+  %% frame=single,
+  backgroundcolor=\color{yobg},
+  captionpos=b
 }
+
+\lstloadlanguages{C++,[LaTeX]TeX}
 
 \title{\faust Quick Reference}
 \author{Yann Orlarey\\\textsc{Grame} -- Centre National de Cr\'eation Musicale}
@@ -69,6 +83,8 @@
 \newcommand{\latex}{\LaTeX\xspace}
 \newcommand{\ircam}{\textsc{Ircam}\xspace}
 \newcommand{\astree}{\textsc{Astree}\xspace}
+\newcommand{\svg}{\textsc{Svg}\xspace}
+
 
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
@@ -1907,10 +1923,10 @@ There are three main goals, or uses, of this mathematical documentation:
 \label{sec:inst-requ}
 
 \begin{itemize}
-\item faust
-\item pdflatex
-\item svg2pdf
-\item breqn
+\item \lstinline!faust!, of course!
+\item \lstinline!svg2pdf! (from the Cairo 2D graphics library), to convert block-diagrams, as \latex doesn't eat \svg directly yet...
+\item \lstinline!breqn!, a \latex package to handle automatic breaking of long equations,
+\item \lstinline!pdflatex!, to compile the \latex output file.
 \end{itemize}
 
 
@@ -1927,7 +1943,7 @@ Calling directly \lstinline!faust -mdoc! does only the first part of the work, g
 \item a top-level directory, suffixed with "\texttt{-mdoc}",
 \item 5 subdirectories (\lstinline!cpp/!, \lstinline!pdf/!, \lstinline!src/!, \lstinline!svg/!, \lstinline!tex/!),
 \item a \latex file containing the formulas,
-\item \textsc{Svg} files for block-diagrams.
+\item \svg files for block-diagrams.
 \end{itemize}
 
 At this stage:
@@ -1935,8 +1951,8 @@ At this stage:
 \item \lstinline!cpp/! remains empty,
 \item \lstinline!pdf/! remains empty,
 \item \lstinline!src/! contains all \faust sources used (even libraries),
-\item \lstinline!svg/! contains \textsc{Svg} block-diagram files,
-\item \lstinline!tex/! contains the generated latex file.
+\item \lstinline!svg/! contains \svg block-diagram files,
+\item \lstinline!tex/! contains the generated \latex file.
 \end{itemize}
 
 \subsection{Invoking faust2mathdoc}
@@ -1945,7 +1961,7 @@ At this stage:
 The \lstinline!faust2mathdoc! script calls \lstinline!faust --mathdoc! first, then it finishes the work:
 \begin{itemize}
 \item moving the output C++ file into \lstinline!cpp/!,
-\item converting all \textsc{Svg} files into pdf files (you must have \lstinline!svg2pdf! installed, from the Cairo 2D graphics library),
+\item converting all \svg files into pdf files (you must have \lstinline!svg2pdf! installed, from the Cairo 2D graphics library),
 \item launching \lstinline!pdflatex! on the \latex file (you must have both \lstinline!pdflatex! and the \lstinline!breqn! package installed),
 \item moving the resulting pdf file into \lstinline!pdf/!.
 \end{itemize}
@@ -1969,12 +1985,12 @@ You can also generate all "mdoc" pdfs at once, simply invoking the \lstinline!ma
 \section{Automatic documentation}
 \label{sec:auto-docum}
 
-By default, the \lstinline!-mdoc! option generates a \latex file with four sections:
+By default, when no \lstinline!<mdoc>! tag can be found in the input \faust file, the \lstinline!-mdoc! option automatically generates a \latex file with four sections:
 \begin{enumerate}
-\item ''Equations of process'', gathering all formulas needed for process,
-\item ''Block-diagram schema of process'', showing (only) the top-level block-diagram of process,
-\item ''Notice of this documentation'', summing up generation and conventions information,
-\item ''Complete listing of the input code'', listing all needed input files (including libraries).
+\item ''\textbf{Equations of process}'', gathering all formulas needed for process,
+\item ''\textbf{Block-diagram schema of process}'', showing the top-level block-diagram of process,
+\item ''\textbf{Notice of this documentation}'', summing up generation and conventions information,
+\item ''\textbf{Complete listing of the input code}'', listing all needed input files (including libraries).
 \end{enumerate}
 
 
@@ -1997,12 +2013,75 @@ Here are the five specific tags:
   \end{itemize}
 \end{itemize}
 
-\subsection{The mdoc tags}
+\subsection{The mdoc top-level tags}
 \label{sec:mdoc-tag}
 
 The \lstinline!<mdoc></mdoc>! tags are the top-level delimiters for \faust mathematical documentation sections. This means that the four other documentation tags can't be used outside these pairs (see section \ref{sec:documentation}).
 
-In addition of the four inner tags, \lstinline!<mdoc></mdoc>! tags accept text, formatted as \latex text, including standard macros (like \lstinline!\section!, \lstinline!\emph!, etc.), allowing to manage the presentation of resulting tex file.
+In addition of the four inner tags, \lstinline!<mdoc></mdoc>! tags accept free \latex text, including its standard macros (like \lstinline!\section!, \lstinline!\emph!, etc.). This allows to manage the presentation of resulting tex file directly from within the input \faust file. 
+
+The \latex packages automatically included can be found in \lstinline!architecture/latexheader.tex!.
+
+\subsection{Examples of mathdoc manual content}
+\label{sec:ex-mathd-cont}
+
+\footnotesize
+\begin{lstlisting}
+declare name 		"Noise";
+declare version 	"1.1";
+declare author 		"Grame";
+declare license 	"BSD";
+declare copyright 	"(c)GRAME 2009";
+
+//------------------------------------------------------
+// Demo noise generator for the Faust math documentation
+//------------------------------------------------------
+
+<mdoc>
+\section{Presentation of the "noise.dsp" Faust program}
+This program describes a white noise generator with an interactive volume, using a random function.
+
+\subsection{The random function}
+The \texttt{random} function describes a generator of random numbers, which equation follows. You should notice hereby the use of an integer arithmetic on 32 bits, relying on integer wrapping for big numbers.
+<equation>random</equation>
+
+\subsection{The noise function}
+The white noise then corresponds to:
+<equation>noise</equation>
+</mdoc>
+
+random  = +(12345)~*(1103515245);
+noise   = random/2147483647.0;
+
+<mdoc>
+\subsection{Just add a user interface element to play volume!}
+Endly, the sound level of this program is controlled by a user slider, which gives the following equation: 
+<equation>process</equation>
+</mdoc>
+
+<mdoc>
+\section{Block-diagram schema of process}
+This process is illustrated on figure 1.
+<diagram>process</diagram>
+</mdoc>
+
+process = noise * vslider("Volume[style:knob]", 0, 0, 1, 0.1);
+
+<mdoc>
+\section{Notice of this documentation}
+You might be careful of certain information and naming conventions used in this documentation:
+<notice>
+
+\section{Listing of the input code}
+The following listing shows the input Faust code, parsed to compile this mathematical documentation.
+<listing>
+</mdoc>
+\end{lstlisting}
+\normalsize
+
+The following page shows the four resulting pdf pages.
+
+\includepdf[pages=-, frame=true, nup=2x2]{images/noise}
 
 
 \section{Localization of mathdoc results}
