@@ -15,6 +15,15 @@
 \usepackage{listings}
 \usepackage[usenames]{color} 
 
+\hypersetup{%
+            colorlinks = true, %true, false
+            linkcolor = black,
+            citecolor = blue,
+            urlcolor = blue,
+}
+\urlstyle{sf} %rm
+\newcommand{\myurl}[1]{\textcolor{blue}{\underbar{\url{#1}}}}
+
 \relax
 
 \begin{document}
@@ -144,7 +153,7 @@ Numbers are signal processors too. For example the number $3$ has signature  $\m
 
 \chapter{Compiling and installing \faust}
 
-The \faust source distribution \lstinline'faust-0.9.10.tar.gz' can be downloaded from sourceforge (\url{http://sourceforge.net/projects/faudiostream/}).
+The \faust source distribution \lstinline'faust-0.9.10.tar.gz' can be downloaded from sourceforge (\myurl{http://sourceforge.net/projects/faudiostream/}).
 
 \section{Organization of the distribution}
 The first thing is to decompress the downloaded archive. 
@@ -1549,7 +1558,7 @@ Compilation options are listed in the following table :
 \hline
 \texttt{-mdoc} 				& \texttt{--mathdoc}				& generates the full mathematical description of a \faust program \\
 \texttt{-mdlang \farg{l}}			& \texttt{--mathdoc-lang \farg{l}} 		& choose the language of the mathematical description (\farg{l} = en, fr, ...) \\
-\texttt{-stripdoc} 			& \texttt{--strip-mdoc-tags}		& remove documentation tags when printing \faust listings\\
+\texttt{-stripmdoc} 			& \texttt{--strip-mdoc-tags}		& remove documentation tags when printing \faust listings\\
 \hline
 \texttt{-a \farg{file}} 	&  									& architecture file to use  \\
 \texttt{-o \farg{file}} 	&  									& C++ output file\\
@@ -1904,6 +1913,7 @@ This code appeals for some comments:
 \end{enumerate}
 
 
+
 \chapter{Mathematical Documentation}
 \label{chapter:mdoc}
 
@@ -1933,7 +1943,10 @@ There are three main goals, or uses, of this mathematical documentation:
 \section{Generating the mathdoc}
 \label{sec:generating-mdoc}
 
-The easiest way to generate the complete mathematical documentation is to call the \lstinline!faust2mathdoc! script on a \faust file (for example: \lstinline!faust2mathdoc noise.dsp!), as the \lstinline!-mdoc! option leave the documentation production unfinished.
+The easiest way to generate the complete mathematical documentation is to call the \lstinline!faust2mathdoc! script on a \faust file, as the \lstinline!-mdoc! option leave the documentation production unfinished. For example: 
+\begin{lstlisting}
+faust2mathdoc noise.dsp
+\end{lstlisting}
 
 \subsection{Invoking the -mdoc option}
 \label{sec:invoking-mdoc}
@@ -1971,8 +1984,8 @@ The \lstinline!faust2mathdoc! script calls \lstinline!faust --mathdoc! first, th
 
 To have an idea of the results of this mathematical documentation, which captures the mathematical semantic of \faust programs, you can look at two pdf files online:
 \begin{itemize}
-\item \url{http://faust.grame.fr/pdf/karplus.pdf} (automatic documentation),
-\item \url{http://faust.grame.fr/pdf/noise.pdf} (manual documentation).
+\item \myurl{http://faust.grame.fr/pdf/karplus.pdf} (automatic documentation),
+\item \myurl{http://faust.grame.fr/pdf/noise.pdf} (manual documentation).
 \end{itemize}
 
 You can also generate all \emph{mdoc} pdfs at once, simply invoking the \lstinline!make mathdoc! command inside the \lstinline!examples/! directory: 
@@ -1987,8 +2000,8 @@ You can also generate all \emph{mdoc} pdfs at once, simply invoking the \lstinli
 
 By default, when no \lstinline!<mdoc>! tag can be found in the input \faust file, the \lstinline!-mdoc! option automatically generates a \latex file with four sections:
 \begin{enumerate}
-\item ''\textbf{Equations of process}'', gathering all formulas needed for process,
-\item ''\textbf{Block-diagram schema of process}'', showing the top-level block-diagram of process,
+\item ''\textbf{Equations of process}'', gathering all formulas needed for \lstinline!process!,
+\item ''\textbf{Block-diagram schema of process}'', showing the top-level block-diagram of \lstinline!process!,
 \item ''\textbf{Notice of this documentation}'', summing up generation and conventions information,
 \item ''\textbf{Complete listing of the input code}'', listing all needed input files (including libraries).
 \end{enumerate}
@@ -1997,7 +2010,7 @@ By default, when no \lstinline!<mdoc>! tag can be found in the input \faust file
 \section{Manual documentation}
 \label{sec:manual-mdoc}
 
-You can specify yourself the documentation instead of using the automatic mode, with five xml-like tags. That permits you to modify the presentation and to add your own comments, not only on \lstinline!process!, but also about any sub-process you'd like to. Note that as soon as you declare an \lstinline!<mdoc>! tag inside your \faust file, the default structure of the automatic mode is ignored, and all the \latex stuff becomes up to you!
+You can specify yourself the documentation instead of using the automatic mode, with five xml-like tags. That permits you to modify the presentation and to add your own comments, not only on \lstinline!process!, but also about any expression you'd like to. Note that as soon as you declare an \lstinline!<mdoc>! tag inside your \faust file, the default structure of the automatic mode is ignored, and all the \latex stuff becomes up to you!
 
 \subsection{Five tags}
 \label{sec:five-tags}
@@ -2020,7 +2033,7 @@ The \lstinline!<mdoc></mdoc>! tags are the top-level delimiters for \faust mathe
 
 In addition of the four inner tags, \lstinline!<mdoc></mdoc>! tags accept free \latex text, including its standard macros (like \lstinline!\section!, \lstinline!\emph!, etc.). This allows to manage the presentation of resulting tex file directly from within the input \faust file. 
 
-The \latex packages automatically included can be found in \lstinline!architecture/latexheader.tex!.
+The complete list of the \latex packages included by \faust can be found in the file \lstinline!architecture/latexheader.tex!.
 
 \subsection{An example of manual mathdoc}
 \label{sec:ex-mathdoc}
@@ -2079,15 +2092,13 @@ The following listing shows the input Faust code, parsed to compile this mathema
 \end{lstlisting}
 \normalsize
 
-The following graphic gather the four resulting pages of \lstinline!noise.pdf!, in small size, to give an idea.
-
-\includepdf[pages=-, frame=true, nup=2x2]{images/noise}
+The next page gather the four resulting pages of \lstinline!noise.pdf!, in small size, to give an idea.
 
 
-\subsection{The -stripdoc option}
+\subsection{The -stripmdoc option}
 \label{sec:striping-option}
 
-As you can see on the resulting file \lstinline!noise.pdf! on pages 3 and 4, the listing of the input code (section\,4) contains all the mathdoc text (here coloured in grey). As it may be unneeded for certain uses (see Goals, section \ref{sec:goals-of-mdoc}), we provide an option to strip mathdoc contents directly at compilation stage: \lstinline!-stripdoc! (short) or \lstinline!--strip-mdoc-tags! (long).
+As you can see on the resulting file \lstinline!noise.pdf! on its pages 3 and 4, the listing of the input code (section\,4) contains all the mathdoc text (here coloured in grey). As it may be unneeded for certain uses (see Goals, section \ref{sec:goals-of-mdoc}), we provide an option to strip mathdoc contents directly at compilation stage: \lstinline!-stripmdoc! (short) or \lstinline!--strip-mdoc-tags! (long).
 
 
 \section{Localization of mathdoc results}
@@ -2095,7 +2106,18 @@ As you can see on the resulting file \lstinline!noise.pdf! on pages 3 and 4, the
 
 By default, texts used by the documentator are in English, but you can specify another language (French and Italian for the moment), using the \lstinline!-mdlang! (or \lstinline!--mathdoc-lang!) option with a two-letters argument (\lstinline!en!, \lstinline!fr!, \lstinline!it!, etc.).
 
-If you'd like to contribute to the localization effort, feel free to translate the texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.).
+If you'd like to contribute to the localization effort, feel free to translate the mathdoc texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.).
+
+
+\section{Summary of the mathdoc generation steps}
+\label{sec:mdoc-summary}
+
+\begin{enumerate}
+\item first, simply call \lstinline!faust2mathdoc myfaustfile.dsp! to get the full mathematical documentation stuff done on your faust file,
+\item then simply open the pdf file \lstinline!myfaustfile-mdoc/pdf/myfaustfile.pdf!.
+\end{enumerate}
+
+\includepdf[pages=-, frame=true, nup=2x2]{images/noise}
 
 
 
