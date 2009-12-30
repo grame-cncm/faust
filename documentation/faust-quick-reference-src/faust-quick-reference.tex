@@ -1966,19 +1966,19 @@ The \lstinline!faust2mathdoc! script calls \lstinline!faust --mathdoc! first, th
 \item moving the resulting pdf file into \lstinline!pdf/!.
 \end{itemize}
 
-\subsection{Examples}
+\subsection{Online examples}
 \label{sec:mdoc-examples}
 
 To have an idea of the results of this mathematical documentation, which captures the mathematical semantic of \faust programs, you can look at two pdf files online:
 \begin{itemize}
-\item \url{http://faust.grame.fr/pdf/karplus.pdf}, for automatic documentation,
-\item \url{http://faust.grame.fr/pdf/noise.pdf}, for "manual" documentation.
+\item \url{http://faust.grame.fr/pdf/karplus.pdf} (automatic documentation),
+\item \url{http://faust.grame.fr/pdf/noise.pdf} (manual documentation).
 \end{itemize}
 
-You can also generate all "mdoc" pdfs at once, simply invoking the \lstinline!make mathdoc! command inside the "examples" directory: 
+You can also generate all \emph{mdoc} pdfs at once, simply invoking the \lstinline!make mathdoc! command inside the \lstinline!examples/! directory: 
 \begin{itemize}
-\item a complete "\lstinline!%-mdoc!" directory will be generated for each "\lstinline!%.dsp!" file,
-\item a single \lstinline!allmathpdfs! directory will gather all the generated pdf files.
+\item for each \lstinline!%.dsp! file, a complete \lstinline!%-mdoc! directory will be generated,
+\item a single \lstinline!allmathpdfs/! directory will gather all the generated pdf files.
 \end{itemize}
 
 
@@ -2022,8 +2022,8 @@ In addition of the four inner tags, \lstinline!<mdoc></mdoc>! tags accept free \
 
 The \latex packages automatically included can be found in \lstinline!architecture/latexheader.tex!.
 
-\subsection{Examples of mathdoc manual content}
-\label{sec:ex-mathd-cont}
+\subsection{An example of manual mathdoc}
+\label{sec:ex-mathdoc}
 
 \footnotesize
 \begin{lstlisting}
@@ -2079,17 +2079,24 @@ The following listing shows the input Faust code, parsed to compile this mathema
 \end{lstlisting}
 \normalsize
 
-The following page shows the four resulting pdf pages.
+The following graphic gather the four resulting pages of \lstinline!noise.pdf!, in small size, to give an idea.
 
 \includepdf[pages=-, frame=true, nup=2x2]{images/noise}
+
+
+\subsection{The -stripdoc option}
+\label{sec:striping-option}
+
+As you can see on the resulting file \lstinline!noise.pdf! on pages 3 and 4, the listing of the input code (section\,4) contains all the mathdoc text (here coloured in grey). As it may be unneeded for certain uses (see Goals, section \ref{sec:goals-of-mdoc}), we provide an option to strip mathdoc contents directly at compilation stage: \lstinline!-stripdoc! (short) or \lstinline!--strip-mdoc-tags! (long).
 
 
 \section{Localization of mathdoc results}
 \label{sec:localization-mdoc}
 
-By default, texts used by the documentator are in English, but you can specify another language (French and Italian for the moment), using the \lstinline!-mdlang! option.
+By default, texts used by the documentator are in English, but you can specify another language (French and Italian for the moment), using the \lstinline!-mdlang! (or \lstinline!--mathdoc-lang!) option with a two-letters argument (\lstinline!en!, \lstinline!fr!, \lstinline!it!, etc.).
 
 If you'd like to contribute to the localization effort, feel free to translate the texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.).
+
 
 
 \chapter{Acknowledgments}
