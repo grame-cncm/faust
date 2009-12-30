@@ -17,7 +17,8 @@
 # Usage.
 print_usage() 
 {
-    echo Usage : args of faust2mathdoc should be a \'.dsp\' file, or a list of \'.dsp\' files.
+    echo "usage: faust2mathdoc [-l LANG] faust_file.dsp ..."
+    echo " LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
 }
 
 
@@ -71,6 +72,23 @@ convert_svgdirs2pdf()
     done
 }
 
+if [ $# -eq 0 ]
+then 
+    print_usage
+    exit 1
+fi
+
+MDLANGOPT=""
+if [ $1 = "-mdlang" ] || [ $1 = "--mathdoc-lang" ] || [ $1 = "-l" ]
+then
+    if [ $# -eq 2 ]
+    then 
+	print_usage
+	exit 1
+    fi
+    MDLANGOPT="-mdlang $2"
+    shift 2
+fi
 
 #    Main loop of this script :
 # 1. Compile `faust --mathdoc` to generate the TeX file and SVG block-diagrams.
@@ -83,7 +101,7 @@ for FILEPATH in $@ ; do
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
-		faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
+		faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
 		cd ${FILEPATH%.dsp}-mdoc/ && 
 		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
 		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
