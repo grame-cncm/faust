@@ -210,7 +210,7 @@ As we will see, \textit{definitions} and \textit{expressions} have a central rol
 
 \section{\faust program}
 
-A \faust program is essentially a list of \textit{statements}. These statements can be \textit{declarations}, \textit{imports} and \textit{definitions}, with optional C++ style (//... and /*...*/) comments.
+A \faust program is essentially a list of \textit{statements}. These statements can be \textit{declarations}, \textit{imports}, \textit{definitions} and \textit{documentation tags}, with optional C++ style (//... and /*...*/) comments.
  
 \begin{grammar}
   <program> ::= 
@@ -246,11 +246,11 @@ The \textit{statements} of a \faust program are of three kinds : \textit{metadat
     \begin{stack}
       <declaration>\\
       <fileimport>\\
-      <definition>
+      <definition>\\
+      <documentation>
     \end{stack}
   \end{syntdiag}
 \end{grammar}
-
 
 \subsection{Declarations}
 
@@ -283,6 +283,69 @@ File imports allow to import definitions from other source files.
 \end{grammar}
 
 For example \lstinline{import("math.lib");} imports the definitions of the \lstinline{math.lib} library, a set of additional mathematical functions provided as foreign functions.
+
+
+\subsection{Documentation}
+
+Documentation statements are optional and typically used to control the generation of the mathematical documentation of a \faust program. This documentation system is detailed chapter \ref{chapter:mdoc}. In this section we will essentially describe the documentation statements syntax.
+
+A documentation statement starts with an opening \lstinline'<mdoc>' tag and ends with a closing \lstinline'</mdoc>' tag. Free text content, typically in \latex format, can be placed in between these two tags. 
+
+\begin{grammar}
+  <documentation> ::= 
+  \begin{syntdiag}
+    "<mdoc>"     
+	\begin{stack}
+      <free text>\\
+      <equation>\\
+      <diagram>\\
+      <notice>\\
+	  <listing>
+    \end{stack}
+    "</mdoc>"
+  \end{syntdiag}
+\end{grammar}
+
+Moreover optional sub-tags can be inserted in the text content itself to require the generation, at the insertion point, of mathematical \textit{equations}, graphical \textit{block-diagrams}, \faust source code \textit{listing} and explanation \textit{notice}.
+
+\begin{grammar}
+  <equation> ::= 
+  \begin{syntdiag}
+    "<equation>" <expression> "</equation>"
+  \end{syntdiag}
+\end{grammar}
+
+The generation of the mathematical equations of a \faust expression can be requested by placing this expression between an opening \lstinline'<equation>' and a closing \lstinline'</equation>' tag. The expression is evaluated within the lexical context of the \faust program.
+
+\begin{grammar}
+  <diagram> ::= 
+  \begin{syntdiag}
+    "<diagram>" <expression> "</diagram>"
+  \end{syntdiag}
+\end{grammar}
+
+Similarly the generation of the graphical block-diagram of a \faust expression can be requested by placing this expression between an opening \lstinline'<diagram>' and a closing \lstinline'</diagram>' tag. The expression is evaluated within the lexical context of the \faust program.
+
+
+
+\begin{grammar}
+  <notice> ::= 
+  \begin{syntdiag}
+    "<notice>"
+  \end{syntdiag}
+\end{grammar}
+
+The \lstinline'<notice>' tag is used to generate the conventions used in the mathematical equations
+
+\begin{grammar}
+  <listing> ::= 
+  \begin{syntdiag}
+    "<listing>"
+  \end{syntdiag}
+\end{grammar}
+
+The \lstinline'<listing>' tag is used to generate the full listing of the \faust program with all its dependencies.
+
 
 
 \section{Definitions}
@@ -1825,6 +1888,7 @@ This code appeals for some comments:
 
 
 \chapter{Mathematical Documentation}
+\label{chapter:mdoc}
 
 The \faust compiler provides a mechanism to produce a self-describing documentation of the mathematical semantic of a \faust program, essentially as a pdf file. The corresponding options are \lstinline!-mdoc! (short) or \lstinline!--mathdoc! (long).
 
