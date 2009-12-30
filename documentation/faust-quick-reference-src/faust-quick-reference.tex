@@ -67,6 +67,8 @@
 
 \newcommand{\faust}{\textsc{Faust}\xspace}
 \newcommand{\latex}{\LaTeX\xspace}
+\newcommand{\ircam}{\textsc{Ircam}\xspace}
+\newcommand{\astree}{\textsc{Astree}\xspace}
 
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
@@ -286,6 +288,7 @@ For example \lstinline{import("math.lib");} imports the definitions of the \lsti
 
 
 \subsection{Documentation}
+\label{sec:documentation}
 
 Documentation statements are optional and typically used to control the generation of the mathematical documentation of a \faust program. This documentation system is detailed chapter \ref{chapter:mdoc}. In this section we will essentially describe the documentation statements syntax.
 
@@ -1980,14 +1983,26 @@ By default, the \lstinline!-mdoc! option generates a \latex file with four secti
 
 You can specify yourself the documentation instead of using the automatic mode, with five xml-like tags. That permits you to modify the presentation and to add your own comments, not only on \lstinline!process!, but also about any sub-process you'd like to. Note that as soon as you declare an \lstinline!<mdoc>! tag inside your \faust file, the default structure of the automatic mode is ignored, and all the \latex stuff becomes up to you!
 
+\subsection{Five tags}
+\label{sec:five-tags}
+
 Here are the five specific tags:
 \begin{itemize}
-\item \lstinline!<mdoc></mdoc>!, to open a documentation field in your \faust code,
-\item \lstinline!<equation></equation>!, to get equations of this specific \faust expression,
-\item \lstinline!<diagram></diagram>!, to get the top-level block-diagram of this specific \faust expression,
-\item \lstinline!<notice>!, to insert the "adaptive'' notice all formulas actually printed,
-\item \lstinline!<listing>!, to insert the complete listings of all \faust files called.
+\item \lstinline!<mdoc></mdoc>!, to open a documentation field in the \faust code,
+  \begin{itemize}
+  \item \lstinline!<equation></equation>!, to get equations of a \faust expression,
+  \item \lstinline!<diagram></diagram>!, to get the top-level block-diagram of a \faust expression,
+  \item \lstinline!<notice>!, to insert the "adaptive'' notice all formulas actually printed,
+  \item \lstinline!<listing>!, to insert the complete listings of all \faust files called.
+  \end{itemize}
 \end{itemize}
+
+\subsection{The mdoc tags}
+\label{sec:mdoc-tag}
+
+The \lstinline!<mdoc></mdoc>! tags are the top-level delimiters for \faust mathematical documentation sections. This means that the four other documentation tags can't be used outside these pairs (see section \ref{sec:documentation}).
+
+In addition of the four inner tags, \lstinline!<mdoc></mdoc>! tags accept text, formatted as \latex text, including standard macros (like \lstinline!\section!, \lstinline!\emph!, etc.), allowing to manage the presentation of resulting tex file.
 
 
 \section{Localization of mathdoc results}
@@ -1999,41 +2014,41 @@ If you'd like to contribute to the localization effort, feel free to translate t
 
 
 \chapter{Acknowledgments}
-Many persons are contributing to the \faust project by providing code for the compiler, architecture files, libraries, examples, documentation, scripts, bug reports, ideas, etc. I would like in particular to thank :
+Many persons are contributing to the \faust project, by providing code for the compiler, architecture files, libraries, examples, documentation, scripts, bug reports, ideas, etc. I would like in particular to thank:
 
 \begin{itemize}
 \item[-]Tiziano Bole	
 \item[-]Thomas Charbonnel
 \item[-]Damien Cramet
-\item[-]Etienne Gaudrin
-\item[-]Albert Graef
+\item[-]\'Etienne Gaudrin
+\item[-]Albert Gr\"af
 \item[-]Stefan Kersten
 \item[-]Victor Lazzarini
 \item[-]Matthieu Leberre
 \item[-]Mathieu Leroi
-\item[-]Remy Muller
+\item[-]R\'emy Muller
 \item[-]Nicolas Scaringella
 \item[-]Julius Smith
 \end{itemize}
 
 
-Many developments of the \faust project are now taking place within the ASTREE project (ANR 2008 CORD 003 02) . I would like to thank my ASTREE's partners :
+Many developments of the \faust project are now taking place within the \astree project (ANR 2008 CORD 003 02). I would like to thank my \astree's partners:
 \begin{itemize}
-\item[-]J\'er\^ome Barth\'elemy (IRCAM)
-\item[-]Alain Bonardi (IRCAM)
-\item[-]Raffaele Ciavarella (IRCAM)
-\item[-]Pierre Jouvelot (Ecole des Mines/Paristech)
+\item[-]J\'er\^ome Barth\'elemy (\ircam)
+\item[-]Alain Bonardi (\ircam)
+\item[-]Raffaele Ciavarella (\ircam)
+\item[-]Pierre Jouvelot (\'Ecole des Mines/ParisTech)
 \item[-]Laurent Pottier (U. Saint-Etienne)
 \end{itemize}
-as well as my colleagues at Grame, in particular : Dominique Fober, Stephane Letz and Karim Barkati.
+as well as my colleagues at \textsc{Grame}, in particular : Dominique Fober, St\'ephane Letz and Karim Barkati.
 
 
-I would like also to thank for their financial support :
+I would like also to thank for their financial support:
 \begin{itemize}
 \item[-]the French Ministry of Culture
 \item[-]the Rh\^one-Alpes Region
 \item[-]the City of Lyon
-\item[-]the French National Research Agency (ANR)
+\item[-]the French National Research Agency (\textsc{Anr})
 \end{itemize}
 
 
