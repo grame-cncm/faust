@@ -306,7 +306,7 @@ A documentation statement starts with an opening \lstinline'<mdoc>' tag and ends
   \end{syntdiag}
 \end{grammar}
 
-Moreover optional sub-tags can be inserted in the text content itself to require the generation, at the insertion point, of mathematical \textit{equations}, graphical \textit{block-diagrams}, \faust source code \textit{listing} and explanation \textit{notice}.
+Moreover, optional sub-tags can be inserted in the text content itself to require the generation, at the insertion point, of mathematical \textit{equations}, graphical \textit{block-diagrams}, \faust source code \textit{listing} and explanation \textit{notice}.
 
 \begin{grammar}
   <equation> ::= 
@@ -324,9 +324,7 @@ The generation of the mathematical equations of a \faust expression can be reque
   \end{syntdiag}
 \end{grammar}
 
-Similarly the generation of the graphical block-diagram of a \faust expression can be requested by placing this expression between an opening \lstinline'<diagram>' and a closing \lstinline'</diagram>' tag. The expression is evaluated within the lexical context of the \faust program.
-
-
+Similarly, the generation of the graphical block-diagram of a \faust expression can be requested by placing this expression between an opening \lstinline'<diagram>' and a closing \lstinline'</diagram>' tag. The expression is evaluated within the lexical context of the \faust program.
 
 \begin{grammar}
   <notice> ::= 
@@ -335,7 +333,7 @@ Similarly the generation of the graphical block-diagram of a \faust expression c
   \end{syntdiag}
 \end{grammar}
 
-The \lstinline'<notice>' tag is used to generate the conventions used in the mathematical equations
+The \lstinline'<notice>' tag is used to generate the conventions used in the mathematical equations.
 
 \begin{grammar}
   <listing> ::= 
@@ -344,7 +342,7 @@ The \lstinline'<notice>' tag is used to generate the conventions used in the mat
   \end{syntdiag}
 \end{grammar}
 
-The \lstinline'<listing>' tag is used to generate the full listing of the \faust program with all its dependencies.
+The \lstinline'<listing>' tag is used to generate the full listing of the \faust program, with all its dependencies.
 
 
 
