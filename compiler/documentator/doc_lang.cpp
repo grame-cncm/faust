@@ -84,14 +84,9 @@ void loadTranslationFile(const string& lang)
 	importDocStrings(gDocTextsDefaultFile);
 	
 	/** Then try and load the target file. */
-	importDocStrings( "mathdoctexts-" + lang + ".txt" );
-
-//	if (lang == "fr") {
-//		importDocStrings("mathdoctexts-fr.txt");
-//	}
-//	else if (lang == "it") {
-//		importDocStrings("mathdoctexts-it.txt");
-//	}
+	if ( ! lang.empty() ) {
+		importDocStrings( "mathdoctexts-" + lang + ".txt" );
+	}
 }
 
 

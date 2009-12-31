@@ -1,0 +1,106 @@
+// Default texts for the math documentator of the Faust compiler.
+// Copyright (C) 2009 GRAME, Centre National de Creation Musicale
+// Karim Barkati
+
+// Remark: 
+// double quotes are useful to visualize spaces and tabulations
+// at the beginning or at the end of strings.
+
+
+
+// Metadatas section.
+
+:name		"name"
+:author		"author"
+:copyright	"copyright"
+:license	"license"
+:version	"version"
+
+
+// Notice section.
+
+:compilstamp1	"This documentation was generated with Faust version "
+:compilstamp2	", on "
+:compilstamp3	"."
+
+:causality  	"$\forall \, s(t) \in \mathbb{S}$, $s(t\!<\!0) = 0$."
+:svgdir			"Eventual sub-block-diagrams may be found in the "svg" sub-directory (only top-level block-diagrams are represented in this documentation)."
+:nameconflicts  "Warning: symbolic names eventually used inside block-diagrams have NO direct relation with signal names used in formulas ("$x(t)$", "$y(t)$", ...). Moreover, the computation may be simplified and reorganized."
+
+:fsamp			"$f_S$ is the sampling frequency (or sampling rate)."
+:foreignfun		""ff" prefix in some function name stands for C++ "foreign function"."
+:cdot			"The middle dot operator "$\cdot$" denotes multiplication in formulas."
+
+:intcast
+"$\forall \, x \in \mathbb{R}$, "
+"	\begin{displaymath}"
+"		\mathrm{int}(x) ="
+"		\left\{\begin{array}{cl}"
+"			\lfloor x \rfloor & \mbox{if \,} x > 0 \\"
+"			\lceil x \rceil & \mbox{if \,} x < 0 \\"
+"			0 & \mbox{if \,} x = 0 \\"
+"		\end{array}\right.."
+"	\end{displaymath}"
+
+:intplus		"The circled plus operator "$\oplus$" denotes an integer addition."
+:intminus		"The circled minus operator "$\ominus$" denotes an integer substraction."
+:intmult		"The circled dot operator "$\odot$" denotes an integer multiplication."
+:intdiv			"The circled slash operator "$\oslash$" denotes an integer division."
+
+:inputsig		"$x(t)$ denotes an input signal."
+:inputsigs  	"$x_i(t)$ denote input signals."
+:outputsig  	"$y(t)$ denotes an output signal."
+:outputsigs  	"$y_i(t)$ denote output signals."
+:constsigs  	"$k_i$ denote constant signals."
+:paramsigs  	"$p_i(t)$ denote parameter signals (running at "block rate")."
+:storedsigs  	"$s_i(t)$ denote stored signals (running at sampling rate)."
+
+:buttonsigs  	"${u_b}_i(t)$ denote user interface signals of buttons."
+:checkboxsigs  	"${u_c}_i(t)$ denote user interface signals of checkboxes."
+:slidersigs  	"${u_s}_i(t)$ denote user interface signals of sliders."
+:nentrysigs  	"${u_n}_i(t)$ denote numeric user interface signals (numeric boxes)."
+:tablesigs  	"$w_i(t)$ denote table signals (often waveforms)."
+:recursigs  	"$r_i(t)$ denote recursive signals (delayed as $r_i(t\!-\!d)$)."
+:prefixsigs  	"$m_i(t)$ denote prefix-delayed signals."
+:selectionsig  	"$q_i(t)$ denote selection signals."
+:selectionsigs  "$q_i(t)$ denote selection signals."
+
+
+
+// Auto-documentation section.
+
+:autoeqntitle	"\section{Equations of process}"
+:autoeqntext	"This program calls a \emph{process}, which mathematical description follows:"
+
+:autodgmtitle	"\section{Block-diagram schema of process}"
+:autodgmtext	"The block-diagram schema of \emph{process} is shown on figure \ref{figure1}."
+
+:autontctitle	"\section{Notice of this documentation}"
+:autontctext	"You might be careful of certain information and naming conventions used in this documentation:"
+
+:autolsttitle1	"\section{Complete listing of the input code}"
+:autolsttext1	"The following listing shows the Faust code parsed to compile this documentation."
+
+:autolsttitle2	"\section{Complete listings of the input code}"
+:autolsttext2	"The following listings show the Faust code parsed to compile this documentation."
+
+
+
+// Titles for each type of formulas.
+
+:inputsigtitle1		"Input signal"
+:inputsigtitle2		"Input signals"
+:outputsigtitle1	"Output signal"
+:outputsigtitle2	"Output signals"
+:constsigtitle1		"Constant signal"
+:constsigtitle2		"Constant signals"
+:uisigtitle1		"User interface element"
+:uisigtitle2		"User interface elements"
+:paramsigtitle1		"Parameter signal"
+:paramsigtitle2		"Parameter signals"
+:internalsigtitle1	"Internal signal"
+:internalsigtitle2	"Internal signals"
+
+:lateqcomment		"% Set of Faust formulas (corresponding to an <equation> tag)."
+:emptyformulafield	"none"
+:defaultvalue		"default value"

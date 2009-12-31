@@ -8,7 +8,7 @@
 
 
 
-// Sezione Metadatas.
+// Sezione Metadati.
 
 :name		"nome"
 :author		"autore"
