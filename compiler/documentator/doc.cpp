@@ -91,6 +91,7 @@ using namespace std ;
 
 extern Tree						gExpandedDefList;
 extern map<Tree, set<Tree> > 	gMetaDataSet;
+extern map<string, string>		gDocMetadatasStringMap;
 extern bool            			gDetailsSwitch;
 extern bool            			gStripDocSwitch;
 extern string					gFaustDirectory;
@@ -314,7 +315,9 @@ static void printdocheader(ostream& docout)
 		docout << "\t\\hline" << endl;
 		for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
 			if (selectedKeys.count(i->first)) {
-				docout << "\t\\textbf{" << *(i->first);
+				//docout << "\t\\textbf{" << *(i->first);
+				cout << "gDocMetadatasStringMap[tree2str(" << *(i->first) << ")] = " << gDocMetadatasStringMap[tree2str(i->first)] << endl;
+				docout << "\t\\textbf{" << gDocMetadatasStringMap[tree2str(i->first)];
 				const char* sep = "} & ";
 				for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
 					docout << sep << rmExternalDoubleQuotes(tree2str(*j));

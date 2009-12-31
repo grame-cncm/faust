@@ -31,6 +31,7 @@
 #include "doc_lang.hh"
 #include "doc_notice.hh"
 #include "doc_autodoc.hh"
+#include "doc_metadatas.hh"
 #include "lateq.hh"
 #include "enrobage.hh"
 #include "compatibility.hh"
@@ -45,6 +46,9 @@ extern set<string>			gDocAutodocKeySet;
 
 extern map<string, string>	gDocMathStringMap;
 extern set<string>			gDocMathKeySet;
+
+extern map<string, string>	gDocMetadatasStringMap;
+extern set<string>			gDocMetadatasKeySet;
 
 static const string			gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
@@ -74,9 +78,12 @@ void loadTranslationFile(const string& lang)
 	initDocMath();
 	initDocNotice();
 	initDocAutodoc();
+	initDocMetadatas();
 	
-	importDocStrings(gDocTextsDefaultFile); // First ensure that the default file is loaded.
+	/** First ensure that the default file is loaded a least. */
+	importDocStrings(gDocTextsDefaultFile);
 	
+	/** Then try and load the target file. */
 	if (lang == "fr") {
 		importDocStrings("mathdoctexts-fr.txt");
 	}
@@ -134,6 +141,7 @@ static void importDocStrings(const string& filename)
 	printStringMapContent(gDocNoticeStringMap, "gDocNoticeStringMap");
 	printStringMapContent(gDocAutodocStringMap, "gDocAutodocStringMap");
 	printStringMapContent(gDocMathStringMap, "gDocMathStringMap");
+	printStringMapContent(gDocMetadatasStringMap, "gDocMetadatasStringMap");
 }
 
 
@@ -181,6 +189,9 @@ static void storePair(const string& key, const string& text)
 		}
 		else if (gDocMathKeySet.find(key) != gDocMathKeySet.end()) {
 			gDocMathStringMap[key] = text;
+		}
+		else if (gDocMetadatasKeySet.find(key) != gDocMetadatasKeySet.end()) {
+			gDocMetadatasStringMap[key] = text;
 		}
 		else {
 			cerr << "Documentator : importDocStings : " << "warning : unknown key \"" << key << "\"" << endl;

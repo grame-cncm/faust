@@ -8,6 +8,15 @@
 
 
 
+// Sezione Metadatas.
+
+:name		"nome"
+:author		"autore"
+:copyright	"copyright"
+:license	"licenza"
+:version	"versione"
+
+
 // Sezione Note.
 
 :compilstamp1	"Documentazione generata con il compilatore Faust versione "

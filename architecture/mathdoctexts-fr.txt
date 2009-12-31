@@ -8,6 +8,15 @@
 
 
 
+// Metadatas section.
+
+:name		"nom"
+:author		"auteur"
+:copyright	"copyright"
+:license	"licence"
+:version	"version"
+
+
 // Section Notice.
 
 :compilstamp1	"Cette documentation a été générée par Faust, version "
