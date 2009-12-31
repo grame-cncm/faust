@@ -316,7 +316,6 @@ static void printdocheader(ostream& docout)
 		for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
 			if (selectedKeys.count(i->first)) {
 				//docout << "\t\\textbf{" << *(i->first);
-				cout << "gDocMetadatasStringMap[tree2str(" << *(i->first) << ")] = " << gDocMetadatasStringMap[tree2str(i->first)] << endl;
 				docout << "\t\\textbf{" << gDocMetadatasStringMap[tree2str(i->first)];
 				const char* sep = "} & ";
 				for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
