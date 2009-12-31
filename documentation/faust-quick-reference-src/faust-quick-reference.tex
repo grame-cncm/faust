@@ -2102,23 +2102,30 @@ The next page gather the four resulting pages of \lstinline!noise.pdf!, in small
 As you can see on the resulting file \lstinline!noise.pdf! on its pages 3 and 4, the listing of the input code (section\,4) contains all the mathdoc text (here coloured in grey). As it may be unneeded for certain uses (see Goals, section \ref{sec:goals-of-mdoc}), we provide an option to strip mathdoc contents directly at compilation stage: \lstinline!-stripmdoc! (short) or \lstinline!--strip-mdoc-tags! (long).
 
 
-\section{Localization of mathdoc results}
+\section{Localization of mathdoc files}
 \label{sec:localization-mdoc}
 
 By default, texts used by the documentator are in English, but you can specify another language (French and Italian for the moment), using the \lstinline!-mdlang! (or \lstinline!--mathdoc-lang!) option with a two-letters argument (\lstinline!en!, \lstinline!fr!, \lstinline!it!, etc.).
 
-If you'd like to contribute to the localization effort, feel free to translate the mathdoc texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.).
+The \lstinline!faust2mathdoc! script also supports this option, plus a third short form with \lstinline!-l!:
+\begin{lstlisting}
+faust2mathdoc -l fr myfaustfile.dsp
+\end{lstlisting}
+
+If you'd like to contribute to the localization effort, feel free to translate the mathdoc texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.). As these files are dynamically loaded, simply adding a new file with an appropriate name should work.
+
+\includepdf[pages=-, frame=true, nup=2x2]{images/noise}
 
 
 \section{Summary of the mathdoc generation steps}
 \label{sec:mdoc-summary}
 
 \begin{enumerate}
-\item first, simply call \lstinline!faust2mathdoc myfaustfile.dsp! to get the full mathematical documentation stuff done on your faust file,
-\item then simply open the pdf file \lstinline!myfaustfile-mdoc/pdf/myfaustfile.pdf!.
+\item First, to get the full mathematical documentation stuff done on your faust file, call \lstinline!faust2mathdoc myfaustfile.dsp!.
+\item Then, open the pdf file \lstinline!myfaustfile-mdoc/pdf/myfaustfile.pdf!.
+\item That's all !
 \end{enumerate}
 
-\includepdf[pages=-, frame=true, nup=2x2]{images/noise}
 
 
 
