@@ -59,7 +59,7 @@
 :checkboxsigs  	"${u_c}_i(t)$ rappresentano i segnali dell'interfaccia utente per le caselle di spunta."
 :slidersigs  	"${u_s}_i(t)$ rappresentano i segnali dell'interfaccia utente per i cursori."
 :nentrysigs  	"${u_n}_i(t)$ rappresentano i segnali dell'interfaccia utente per gli input numerici."
-:tablesigs  	"$w_i(t)$ rappresentano tabelle di segnale (spesso forme d'onda)."
+:tablesigs  	"$v_i(t)$ e $w_i(t)$ rappresentano tabelle di segnale ($i(t)$ per le indici)."
 :recursigs  	"$r_i(t)$ rappresentano segnali ricorsivi (ritardati di $r_i(t\!-\!d)$)."
 :prefixsigs  	"$m_i(t)$ rappresentano segnali ritardati con prefisso."
 :selectionsig  	"$q_i(t)$ rappresenta un segnali di selezione."

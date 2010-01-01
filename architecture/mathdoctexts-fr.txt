@@ -60,7 +60,7 @@
 :checkboxsigs  	"Les ${u_c}_i(t)$ désignent des signaux d'interface-utilisateur de boîtes à cocher (\emph{checkboxes})."
 :slidersigs  	"Les ${u_s}_i(t)$ désignent des signaux d'interface-utilisateur de curseurs (\emph{sliders})."
 :nentrysigs  	"Les ${u_n}_i(t)$ désignent des signaux d'interface-utilisateur de boîtes numériques."
-:tablesigs  	"Les $w_i(t)$ désignent des signaux de tables (\emph{waveforms})."
+:tablesigs  	"Les $v_i(t)$ et les $w_i(t)$ désignent des signaux de tables ($i(t)$ pour les index)."
 :recursigs  	"Les $r_i(t)$ désignent des signaux récursifs (retardés sous la forme $r_i(t\!-\!d)$)."
 :prefixsigs  	"Les $m_i(t)$  désignent des signaux retardés par un préfixe."
 :selectionsig  	"$q(t)$ désigne un signal de séléction."

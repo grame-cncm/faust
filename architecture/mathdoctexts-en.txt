@@ -59,7 +59,7 @@
 :checkboxsigs  	"${u_c}_i(t)$ denote user interface signals of checkboxes."
 :slidersigs  	"${u_s}_i(t)$ denote user interface signals of sliders."
 :nentrysigs  	"${u_n}_i(t)$ denote numeric user interface signals (numeric boxes)."
-:tablesigs  	"$w_i(t)$ denote table signals (often waveforms)."
+:tablesigs  	"$v_i(t)$ and $w_i(t)$ denote table signals ($i(t)$ for indexes)."
 :recursigs  	"$r_i(t)$ denote recursive signals (delayed as $r_i(t\!-\!d)$)."
 :prefixsigs  	"$m_i(t)$ denote prefix-delayed signals."
 :selectionsig  	"$q_i(t)$ denote selection signals."
