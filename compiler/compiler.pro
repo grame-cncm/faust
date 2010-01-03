@@ -56,6 +56,7 @@ HEADERS += boxes/boxcomplexity.h \
            documentator/doc_compile.hh \
            documentator/doc_lang.hh \
            documentator/doc_notice.hh \
+		   documentator/doc_metadatas.hh \
            documentator/doc_Text.hh \
            documentator/lateq.hh \
            draw/drawschema.hh \
@@ -137,6 +138,7 @@ SOURCES += main.cpp \
            documentator/doc_autodoc.cpp \
            documentator/doc_compile.cpp \
            documentator/doc_lang.cpp \
+		   documentator/doc_metadatas.cpp \
            documentator/doc_notice.cpp \
            documentator/doc_sharing.cpp \
            documentator/doc_Text.cpp \
