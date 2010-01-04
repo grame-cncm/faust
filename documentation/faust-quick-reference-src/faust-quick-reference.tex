@@ -1549,7 +1549,7 @@ Compilation options are listed in the following table :
 \texttt{-lv \farg{n}}		& \texttt{--loop-variant \farg{n}}	& loop variant [0:fastest (default), 1:simple] when -vec\\
 \texttt{-dfs} 				& \texttt{--deepFirstScheduling}	& schedule vector loops in deep first order when -vec \\
 \hline
-\texttt{-omp} 				& \texttt{--openMP}					& generate parallel code using openMP (implies -vec)  \\
+\texttt{-omp} 				& \texttt{--openMP}					& generate parallel code using OpenMP (implies -vec)  \\
 \texttt{-sch} 				& \texttt{--scheduler}				& generate parallel code using threads directly (implies -vec)  \\
 \texttt{-g} 				& \texttt{--groupTasks}				& group sequential tasks together when -omp  \\
 \hline
@@ -1738,9 +1738,10 @@ The result is a directed graph in which each node is a computation loop (see Fig
 
 \section{Parallel Code generation}
 
-The parallel code generation is activated by passing the \lstinline!--openMP! (or \lstinline!-omp!) option to the \faust compiler. It implies the \lstinline!-vec! options as the parallel code generation is built on top of the vector code generation by inserting appropriate OpenMP directives in the C++ code.  
+The parallel code generation is activated by passing either the \lstinline!--openMP! (or \lstinline!-omp!) option or the \lstinline!--scheduler! (or \lstinline!-sch!) option. It implies the \lstinline!-vec! options as the parallel code generation is built on top of the vector code generation by reorganizing the C++ code.  
 
-\subsection{The OpenMP API}
+
+\subsection{The OpenMP code generator}
 
 \begin{figure}[htb]
   \centering
@@ -1749,7 +1750,7 @@ The parallel code generation is activated by passing the \lstinline!--openMP! (o
   \label{fig:openmp}
 \end{figure}
 
-OpenMP (http://wwww.openmp.org) is a well established API that is used to explicitly define direct multi-threaded, shared memory parallelism. It is based on a fork-join model of parallelism (see figure \ref{fig:openmp}). 
+The \lstinline!--openMP! (or \lstinline!-omp!) option given to the \faust compiler will insert appropriate OpenMP directives in the C++ code. OpenMP (http://wwww.openmp.org) is a well established API that is used to explicitly define direct multi-threaded, shared memory parallelism. It is based on a fork-join model of parallelism (see figure \ref{fig:openmp}). 
 Parallel regions are delimited by using the \lstinline!#pragma omp parallel! construct. At the entrance of a parallel region a team of parallel threads is activated. The code within a parallel region is executed by each thread of the parallel team until the end of the region. 
 
 \begin{lstlisting}
@@ -1817,7 +1818,7 @@ otherwise it generates a \lstinline!single! construct so that only one thread wi
   }
 \end{lstlisting}
 
-\subsection{Example of parallel code}
+\subsection{Example of parallel OpenMP code}
 To illustrate how \faust uses the OpenMP directives, here is a very simple example, two 1-pole filters in parallel connected to an adder (see figure \ref{fig:parfilter} the corresponding block-diagram):
 
 \begin{lstlisting}
@@ -1913,8 +1914,121 @@ This code appeals for some comments:
 
 \end{enumerate}
 
+\subsection{The scheduler code generator}
+ With the \lstinline!--scheduler! (or \lstinline!-sch!) option given to the \faust compiler, the computation graph is cut into separated computation loops (called "tasks"), and a new "Work Stealing Scheduler" is used to activate and execute them following their dependancies. A pool of worked threads is created and each thread uses it's own local WSQ (Work Stealing Queue) of tasks. A WSQ is a special queue with a Push operation, a "private" LIFO Pop operation and a "public" FIFO Pop operation.
+
+Starting from a ready task, each thread follows the dependancies, possibly pushing ready sub-tasks into it's own local WSQ. When not more tasks can be activated on a given computation path, the thread pops a task from it's local WSQ. If the WSQ is empty, then the thread is allowed to "steal" tasks from other threads WSQ.
+
+The local LIFO Pop operation allows better cache locality and the FIFO steal Pop "larger chuck" of work to be done. The reason for this is that many work stealing workloads are divide-and-conquer in nature, stealing one of the oldest task implicitly also steals a (potentially) large subtree of computations that will unfold once that piece of work is stolen and run.
+
+Compared to the OpenMP model (-omp) the new model is worse for simple \faust  programs and usually starts to behave comparable or sometimes better for "complex enough" \faust  programs. In any case, since OpenMP does not behave so well with GCC compilers (only quite recent versions like GCC 4.4 start to show some improvements), and is unusable on OSX in real-time contexts, this new scheduler option has it's own value.  We plan to improve it adding a "pipelining" idea in the future.
+
+\subsection{Example of parallel scheduler code}
+To illustrate how \faust generates the scheduler code, here is a very simple example, two 1-pole filters in parallel connected to an adder (see figure \ref{fig:parfilter} the corresponding block-diagram):
+
+\begin{lstlisting}
+filter(c) = *(1-c) : + ~ *(c);
+process = filter(0.9), filter(0.9) : +; 
+\end{lstlisting}
 
 
+The corresponding compute() and computeThread() methods obtained using the -sch option are the following:
+\begin{lstlisting}
+
+virtual void compute (int fullcount, 
+                      float** input, 
+                      float** output) 
+{
+	GetRealTime();
+	this->input = input;
+	this->output = output;
+	StartMeasure();
+	for (fIndex = 0; fIndex < fullcount; fIndex += 32) {
+		fFullCount = min (32, fullcount-fIndex);
+		TaskQueue::Init();
+		// Initialize end task
+		fGraph.InitTask(1,1);
+		// Only initialize tasks with inputs
+		fGraph.InitTask(4,2);
+		fIsFinished = false;
+		fThreadPool.SignalAll(fDynamicNumThreads - 1);
+		computeThread(0);
+		while (!fThreadPool.IsFinished()) {}
+	}
+	StopMeasure(fStaticNumThreads, 
+		fDynamicNumThreads);
+}
+void computeThread (int cur_thread) {
+	float* 	fRec0 = &fRec0_tmp[4];
+	float* 	fRec1 = &fRec1_tmp[4];
+	// Init graph state
+	{
+		TaskQueue taskqueue;
+		int tasknum = -1;
+		int count = fFullCount;
+		// Init input and output
+		FAUSTFLOAT* input0 = &input[0][fIndex];
+		FAUSTFLOAT* input1 = &input[1][fIndex];
+		FAUSTFLOAT* output0 = &output[0][fIndex];
+		int task_list_size = 2;
+		int task_list[2] = {2,3};
+		taskqueue.InitTaskList(task_list_size, task_list, fDynamicNumThreads, cur_thread, tasknum);
+		while (!fIsFinished) {
+			switch (tasknum) {
+				case WORK_STEALING_INDEX: { 
+					tasknum = TaskQueue::GetNextTask(cur_thread);
+					break;
+				} 
+				case LAST_TASK_INDEX: { 
+					fIsFinished = true;
+					break;
+				} 
+				// SECTION : 1
+				case 2: { 
+					// LOOP 0x101111680
+					// pre processing
+					for (int i=0; i<4; i++) fRec0_tmp[i]=fRec0_perm[i];
+					// exec code
+					for (int i=0; i<count; i++) {
+						fRec0[i] = ((1.000000e-01f * (float)input1[i]) + (0.9f * fRec0[i-1]));
+					}
+					// post processing
+					for (int i=0; i<4; i++) fRec0_perm[i]=fRec0_tmp[count+i];
+					
+					fGraph.ActivateOneOutputTask(taskqueue, 4, tasknum);
+					break;
+				} 
+				case 3: { 
+					// LOOP 0x1011125e0
+					// pre processing
+					for (int i=0; i<4; i++) fRec1_tmp[i]=fRec1_perm[i];
+					// exec code
+					for (int i=0; i<count; i++) {
+						fRec1[i] = ((1.000000e-01f * (float)input0[i]) + (0.9f * fRec1[i-1]));
+					}
+					// post processing
+					for (int i=0; i<4; i++) fRec1_perm[i]=fRec1_tmp[count+i];
+					
+					fGraph.ActivateOneOutputTask(taskqueue, 4, tasknum);
+					break;
+				} 
+				case 4: { 
+					// LOOP 0x101111580
+					// exec code
+					for (int i=0; i<count; i++) {
+						output0[i] = (FAUSTFLOAT)(fRec1[i] + fRec0[i]);
+					}
+					
+					tasknum = LAST_TASK_INDEX;
+					break;
+				} 
+			}
+		}
+	}
+}
+
+\end{lstlisting}
+ 
 \chapter{Mathematical Documentation}
 \label{chapter:mdoc}
 

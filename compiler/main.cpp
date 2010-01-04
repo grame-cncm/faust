@@ -367,7 +367,7 @@ void printhelp()
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
-    cout << "-omp    \t--OpenMP generate OpenMP pragmas, activates --vectorize option\n";
+    cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
     cout << "-sch    \t--scheduler generate tasks and used Thread pool based scheduler, activates --vectorize option\n";
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together\n";
