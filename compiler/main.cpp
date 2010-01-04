@@ -370,7 +370,7 @@ void printhelp()
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
     cout << "-sch    \t--scheduler generate tasks and used Thread pool based scheduler, activates --vectorize option\n";
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
-    cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together\n";
+    cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";

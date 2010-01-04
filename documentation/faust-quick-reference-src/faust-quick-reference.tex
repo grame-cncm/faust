@@ -1551,7 +1551,7 @@ Compilation options are listed in the following table :
 \hline
 \texttt{-omp} 				& \texttt{--openMP}					& generate parallel code using OpenMP (implies -vec)  \\
 \texttt{-sch} 				& \texttt{--scheduler}				& generate parallel code using threads directly (implies -vec)  \\
-\texttt{-g} 				& \texttt{--groupTasks}				& group sequential tasks together when -omp  \\
+\texttt{-g} 				& \texttt{--groupTasks}				& group sequential tasks together when -omp or -sch is used \\
 \hline
 \texttt{-single} 			& \texttt{--single-precision-floats} & use floats for internal computations (default)  \\
 \texttt{-double} 			& \texttt{--double-precision-floats} & use doubles for internal computations  \\
@@ -1577,6 +1577,7 @@ The main available architecture files are :
 \hline
 \textbf{File name}			& \textbf{Description}   \\
 \hline
+\texttt{ca-qt.cpp} 		& CoreAudio QT4 standalone application  \\
 \texttt{jack-gtk.cpp} 		& Jack GTK standalone application  \\
 \texttt{jack-qt.cpp} 		& Jack QT4 standalone application  \\
 \texttt{jack-console.cpp} 	& Jack command line application  \\
@@ -1915,7 +1916,7 @@ This code appeals for some comments:
 \end{enumerate}
 
 \subsection{The scheduler code generator}
- With the \lstinline!--scheduler! (or \lstinline!-sch!) option given to the \faust compiler, the computation graph is cut into separated computation loops (called "tasks"), and a new "Work Stealing Scheduler" is used to activate and execute them following their dependancies. A pool of worked threads is created and each thread uses it's own local WSQ (Work Stealing Queue) of tasks. A WSQ is a special queue with a Push operation, a "private" LIFO Pop operation and a "public" FIFO Pop operation.
+ With the \lstinline!--scheduler! (or \lstinline!-sch!) option given to the \faust compiler, the computation graph is cut into separated computation loops (called "tasks"), and a "Work Stealing Scheduler" is used to activate and execute them following their dependancies. A pool of worked threads is created and each thread uses it's own local WSQ (Work Stealing Queue) of tasks. A WSQ is a special queue with a Push operation, a "private" LIFO Pop operation and a "public" FIFO Pop operation.
 
 Starting from a ready task, each thread follows the dependancies, possibly pushing ready sub-tasks into it's own local WSQ. When not more tasks can be activated on a given computation path, the thread pops a task from it's local WSQ. If the WSQ is empty, then the thread is allowed to "steal" tasks from other threads WSQ.
 
@@ -1932,7 +1933,7 @@ process = filter(0.9), filter(0.9) : +;
 \end{lstlisting}
 
 
-The corresponding compute() and computeThread() methods obtained using the -sch option are the following:
+When \lstinline!-sch! option is used, the content of the additional \textit{architecture/scheduler.h} file is inserted in the generated code. It contains code to deal with WSQ and thread management. The compute() and computeThread() methods are the following:
 \begin{lstlisting}
 
 virtual void compute (int fullcount, 
