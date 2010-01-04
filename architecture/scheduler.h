@@ -476,6 +476,20 @@ INLINE void SetRealTime()
 
 #ifdef __linux__
 
+
+// handle 32/64 bits int size issues
+
+#ifdef __x86_64__
+
+#define UInt32	unsigned int
+#define UInt64	unsigned long int
+
+#else
+
+#define UInt32	unsigned int
+#define UInt64	unsigned long long int
+#endif
+
 static int faust_sched_policy = -1;
 static struct sched_param faust_rt_param; 
 
@@ -497,11 +511,20 @@ INLINE void SetRealTime()
 
 #endif
 
-static INLINE unsigned long long int DSP_rdtsc(void)
+/**
+ * Returns the number of clock cycles elapsed since the last reset
+ * of the processor
+ */
+static INLINE UInt64 DSP_rdtsc(void)
 {
-    unsigned long long int x;
-    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-    return x;
+	union {
+		UInt32 i32[2];
+		UInt64 i64;
+	} count;
+	
+	__asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
+
+     return count.i64;
 }
 
 #define KDSPMESURE 50
@@ -631,7 +654,7 @@ struct DSPThread {
         fRunnable = runnable;
         fRealTime = false;
         
-        sprintf(fName, "faust_sem_%d_%ld", GetPID(), int(this));
+        sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
         
         if ((fSemaphore = sem_open(fName, O_CREAT, 0777, 0)) == (sem_t*)SEM_FAILED) {
             printf("Allocate: can't check in named semaphore name = %s err = %s", fName, strerror(errno));
