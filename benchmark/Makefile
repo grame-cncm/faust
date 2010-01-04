@@ -4,8 +4,8 @@ MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -f
 VSIZE := 1024
 
 all : icc gcc
-icc : ialsascal ialsavec ialsaomp2 ialsasch ialsasch2
-gcc : galsascal galsavec galsaomp2 galsasch galsasch2
+icc : ialsascal ialsavec ialsavec2 ialsaomp2 ialsasch ialsasch2
+gcc : galsascal galsavec galsavec2 galsaomp2 galsasch galsasch2
 
 
 

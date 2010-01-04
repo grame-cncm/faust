@@ -1,5 +1,5 @@
 #!/bin/bash
-AOPT="-b 2048 -p 2 -d hw:1"
+AOPT="-b 1024 -p 3 -d hw:0"
 DST=results-$(date +%y%m%d.%H%M%S)
 
 echo "Faust ALSA Benchmark : " $AOPT > $DST
