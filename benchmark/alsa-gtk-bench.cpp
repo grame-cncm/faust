@@ -103,8 +103,8 @@ bool setRealtimePriority ()
     uid = getuid ();
     pw = getpwnam ("root");
     setuid (pw->pw_uid); 
-    param.sched_priority = 50; /* 0 to 99  */
-    err = sched_setscheduler(0, SCHED_RR, &param); 
+    param.sched_priority = 99; /* 0 to 99  */
+    err = sched_setscheduler(0, SCHED_FIFO, &param); 
     setuid (uid);
     return (err != -1);
 }
