@@ -1135,12 +1135,12 @@ static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
     printf("- - - - - - - - - - - - - - - - - - - -\n");
     printf("  Sample Rate:%f\n", inDesc->mSampleRate);
     printf("  Format ID:%.*s\n", (int) sizeof(inDesc->mFormatID), (char*)&inDesc->mFormatID);
-    printf("  Format Flags:%lX\n", inDesc->mFormatFlags);
-    printf("  Bytes per Packet:%ld\n", inDesc->mBytesPerPacket);
-    printf("  Frames per Packet:%ld\n", inDesc->mFramesPerPacket);
-    printf("  Bytes per Frame:%ld\n", inDesc->mBytesPerFrame);
-    printf("  Channels per Frame:%ld\n", inDesc->mChannelsPerFrame);
-    printf("  Bits per Channel:%ld\n", inDesc->mBitsPerChannel);
+    printf("  Format Flags:%X\n", inDesc->mFormatFlags);
+    printf("  Bytes per Packet:%d\n", inDesc->mBytesPerPacket);
+    printf("  Frames per Packet:%d\n", inDesc->mFramesPerPacket);
+    printf("  Bytes per Frame:%d\n", inDesc->mBytesPerFrame);
+    printf("  Channels per Frame:%d\n", inDesc->mChannelsPerFrame);
+    printf("  Bits per Channel:%d\n", inDesc->mBitsPerChannel);
     printf("- - - - - - - - - - - - - - - - - - - -\n");
 }
 
@@ -1253,7 +1253,7 @@ OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, AudioDevi
 			*id = inDefault;
 			return noErr;
 		} else {
-			printf("GetDefaultDevice : error input = %ld and output = %ld are not the same\n", inDefault, outDefault);
+			printf("GetDefaultDevice : error input = %d and output = %d are not the same\n", inDefault, outDefault);
 			return kAudioHardwareBadDeviceError;
 		}
 	} else if (inChan > 0) {
