@@ -1,5 +1,12 @@
+system	:= $(shell uname -s)
+
+ifeq ($(system), Darwin)
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
+else
 MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
+endif
+
+MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
 
 VSIZE := 1024
 
@@ -87,7 +94,29 @@ galsaomp2 :
 	install -d galsaomp2dir
 	$(MAKE) DEST='galsaomp2dir/' ARCH='alsa-gtk-bench.cpp' VEC='-omp -g -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
 
+gcoreaudioscal :
+	install -d gcoreaudioscaldir
+	$(MAKE) DEST='gcoreaudioscaldir/' ARCH='coreaudio-gtk-bench.cpp' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
+gcoreaudiovec1 :
+	install -d gcoreaudiovec1dir
+	$(MAKE) DEST='gcoreaudiovec1dir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gcoreaudiovec2 :
+	install -d gcoreaudiovec2dir
+	$(MAKE) DEST='gcoreaudiovec2dir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-vec -dfs -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gcoreaudiovec3 :
+	install -d gcoreaudiovec3dir
+	$(MAKE) DEST='gcoreaudiovec3dir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-vec -g -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gcoreaudiosch :
+	install -d gcoreaudioschdir
+	$(MAKE) DEST='gcoreaudioschdir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-sch -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+gcoreaudiosch2 :
+	install -d gcoreaudiosch2dir
+	$(MAKE) DEST='gcoreaudiosch2dir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-sch -g -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 ### intel-compiler double-precision x {scalar, vector and openMP}
 
