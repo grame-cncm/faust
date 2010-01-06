@@ -228,4 +228,5 @@ help:
 
 clean :
 	rm -rf *dir
+	rm -rf *-svg
 	$(MAKE) -f Makefile.mathdoc clean
