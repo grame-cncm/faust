@@ -139,7 +139,7 @@ static int GetPID()
 #define IncTail(e) (e).info.scounter.fTail++
 #define DecTail(e) (e).info.scounter.fTail--
 
-#define THREAD_SIZE 512
+#define THREAD_SIZE 32
 #define QUEUE_SIZE 512
 
 #define WORK_STEALING_INDEX 0
@@ -554,10 +554,7 @@ struct Runnable {
     
     Runnable():fCounter(0), fOldMean(1000000000.f), fOldfDynamicNumThreads(1)
     {
-        for (int i = 0; i < KDSPMESURE; i++) {
-            fTiming[i] = 0;
-        }
-        
+    	memset(fTiming, 0, sizeof(long long int ) * KDSPMESURE);
         fDynAdapt = getenv("OMP_DYN_THREAD") ? atoi(getenv("OMP_DYN_THREAD")) : false;
     }
     
@@ -669,7 +666,7 @@ struct DSPThread {
     
     void Run()
     {
-        sem_wait(fSemaphore);
+        while (sem_wait(fSemaphore) != 0) {}
         fRunnable->computeThread(fNum + 1);
         fThreadPool->SignalOne();
     }
@@ -835,6 +832,6 @@ bool DSPThreadPool::IsFinished()
 
 // Globals
 volatile int TaskQueue::gNumQueue = 0;
-TaskQueue* TaskQueue::gTaskQueueList[QUEUE_SIZE] = {0};
+TaskQueue* TaskQueue::gTaskQueueList[THREAD_SIZE] = {0};
 
 
