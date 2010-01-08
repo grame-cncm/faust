@@ -496,11 +496,8 @@ static struct sched_param faust_rt_param;
 INLINE void GetRealTime()
 {
     if (faust_sched_policy == -1) {
-        pthread_attr_t attributes;
-        pthread_attr_init(&attributes);
         memset(&faust_rt_param, 0, sizeof(faust_rt_param));
-        pthread_attr_getschedpolicy(&attributes, &faust_sched_policy);
-        pthread_attr_getschedparam(&attributes, &faust_rt_param);
+    	pthread_getschedparam(pthread_self(), &faust_sched_policy, &faust_rt_param);
     }
 }
 
@@ -674,7 +671,7 @@ struct DSPThread {
     static void* ThreadHandler(void* arg)
     {
         DSPThread* thread = static_cast<DSPThread*>(arg);
-         
+        
         // One "dummy" cycle to setup thread
         if (thread->fRealTime) {
             thread->Run();
