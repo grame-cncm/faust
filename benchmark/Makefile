@@ -1,12 +1,13 @@
 system	:= $(shell uname -s)
 
 ifeq ($(system), Darwin)
-MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
+MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
 else
 MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
 endif
 
-MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize'
+MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
+
 
 VSIZE := 1024
 
