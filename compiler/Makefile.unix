@@ -84,7 +84,10 @@ documentator/doc.o: signals/sigtyperules.hh generator/occurences.hh tlib/propert
 documentator/doc.o: generator/description.hh generator/uitree.hh documentator/doc_lang.hh documentator/doc_notice.hh
 documentator/doc.o: documentator/doc_autodoc.hh tlib/compatibility.hh
 documentator/doc_lang.o: documentator/doc_lang.hh documentator/doc_notice.hh documentator/doc_autodoc.hh
-documentator/doc_lang.o: documentator/lateq.hh parser/enrobage.hh tlib/compatibility.hh
+documentator/doc_lang.o: documentator/doc_metadatas.hh documentator/lateq.hh parser/enrobage.hh tlib/compatibility.hh
+documentator/doc_metadatas.o: documentator/doc_metadatas.hh documentator/doc.hh tlib/tlib.hh tlib/symbol.hh
+documentator/doc_metadatas.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh evaluate/eval.hh
+documentator/doc_metadatas.o: boxes/boxes.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
 documentator/doc_notice.o: documentator/doc_notice.hh documentator/doc_lang.hh parser/enrobage.hh tlib/compatibility.hh
 documentator/doc_sharing.o: documentator/doc_compile.hh signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh
 documentator/doc_sharing.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
@@ -268,12 +271,11 @@ normalize/privatise.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.
 normalize/privatise.o: signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 normalize/privatise.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtyperules.hh
 normalize/privatise.o: normalize/privatise.hh
-normalize/simplify.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigtyperules.hh
 normalize/simplify.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigorderrules.hh signals/sigprint.hh
-normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
-normalize/simplify.o: parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh
-normalize/simplify.o: normalize/normalize.hh
+normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+normalize/simplify.o: signals/sigtyperules.hh signals/sigorderrules.hh signals/sigprint.hh normalize/simplify.hh
+normalize/simplify.o: extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
+normalize/simplify.o: parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 parallelize/delayline.o: parallelize/delayline.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
