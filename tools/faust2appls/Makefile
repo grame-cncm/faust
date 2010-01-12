@@ -12,7 +12,8 @@ install:
 	install faust2firefox $(prefix)/bin
 	install faust2jackinternal $(prefix)/bin
 	install faust2jackserver $(prefix)/bin
-	install faust2coreaudio $(prefix)/bin
+	install faust2caqt $(prefix)/bin
+	install faust2net $(prefix)/bin
 	install faust2puredata $(prefix)/bin
 	install faust2mathdoc $(prefix)/bin
 	install faust2mathviewer $(prefix)/bin
