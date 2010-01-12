@@ -12,7 +12,7 @@ if [[ $(uname) == Darwin ]]; then
 
 		faust -a ca-qt.cpp $f -o $TMP/${f%.dsp}.cpp
 		
-		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-framework CoreAudio -framework AudioUnit" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
+		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
 		cd $TMP; qmake -spec macx-g++
 		cd $TMP; make 
 		cd $CUR; rm -rf ${f%.dsp}.app
