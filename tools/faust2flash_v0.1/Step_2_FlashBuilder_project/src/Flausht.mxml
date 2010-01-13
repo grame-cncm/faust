@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/halo" minWidth="250" minHeight="300" width="366" height="337" backgroundColor="#D9DFEF">
+	<fx:Script>
+		<![CDATA[
+			// UI and event includes
+			import mx.events.SliderEvent;
+			import mx.controls.sliderClasses.Slider;
+			import spark.components.CheckBox;
+			import spark.components.Button;
+			import flashx.textLayout.formats.Float;
+			import mx.controls.Label;
+			import spark.components.HGroup;
+			import spark.components.HSlider;
+		
+			// random flash includes I needed along the way
+			import flash.display.*;
+			import flash.events.*;
+			import flash.media.*;
+			import flash.net.*;
+			
+			// Alchemy includes
+			import cmodule.faustalchemy.CLibInit;
+			
+			private var sound:Sound = new Sound();
+			
+			private var inputSound:Sound;
+			private var inputSoundOn:Boolean = false;
+			private var inputSoundBuffer:ByteArray = new ByteArray();
+			private var inputSoundPosition:Number = 0;
+			
+			private var samples:ByteArray = new ByteArray();
+			private var tick_:Number = 0;
+			private var f_:int = 440;
+			
+			// C++ API
+			private var faust_loader:CLibInit;
+			private var faust:Object;  // api methods are exposed as properties of this obejct
+			private var faustOK:Boolean = false;  // true if library loaded.
+
+			public function initFaust():void {
+				faust_loader = new CLibInit();
+				faust = faust_loader.init();
+				// Initialize UI controls
+				// This changed at the last minute and may not be up-to-date in the writeup.
+				// Instead of calling back into actionscript, faust_init returns an
+				// array of Objects that allows us to set up the UI as .dsp files want.
+				var uistuff:Array = faust.api_init();
+				for (var i:int = 0; i < uistuff.length; ++i) {
+					var item:Object = uistuff[i];
+					var type:Number = item['type'];
+					var id:Number = item['id'];
+					var label:String = item['label'];
+					var min:Number = item['min'];
+					var max:Number = item['max'];
+					var init:Number = item['init'];
+					var step:Number = item['step'];
+					if (type == 0) {
+						ui_addButton(label, id);
+					}
+					if (type == 1) {
+						ui_addCheckButton(label, id);
+					}
+					if (type == 2) {
+						ui_addHorizontalSlider(label, id, init, min, max, step);
+					}
+				}
+
+				faustOK = true;
+			}
+    		
+    		// This function gets called by Flash when it needs more audio data.
+    		public function soundCallback(event:SampleDataEvent):void {
+				// sample length can be anywhere from 2048 to 8192.
+				if (!faustOK) return;
+				
+				// We need to pass mp3 input to Faust if
+				// If we're not processing input, save cycles.
+				if (inputSoundOn) {
+					if (inputSoundPosition + 8192 > (inputSound.length*44100/1000)) {
+						// ran out of buffer
+						inputSoundPosition = 0;
+					}
+					
+					inputSoundBuffer.position = 0;
+					inputSound.extract(inputSoundBuffer, 8192, inputSoundPosition);
+					inputSoundBuffer.position = 0;
+				    faust.api_tick(8192, 1, inputSoundBuffer, event.data);
+					inputSoundPosition += 8192;
+				    
+				    // uncomment this section to debug in case calling C++ isn't working:
+				    // just copy the mp3 data directly to the output buffer.
+				    /*
+				    inputSound.extract(event.data, 8192, inputSoundPosition);
+				    inputSoundPosition += (8192);
+				    */
+				} else {
+					faust.api_tick(8192, 0, inputSoundBuffer, event.data);
+				}
+			}
+
+			// "Start" button callback.
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				initFaust();
+				dbgtext.text = "Playback started.";
+				sound.addEventListener(SampleDataEvent.SAMPLE_DATA, soundCallback);
+				sound.play();
+			}
+
+			public function onControlChange(id:int, val:Number):void {
+				if (!faustOK) return;
+				faust.api_onControlChange(id, val);
+			}
+    		
+    		// UI Hooks
+    		public function ui_addButton(label:String, id:int):void {
+    			var b:Button = new Button();
+    			b.label = label;
+    			b.addEventListener("click", function(evt:Event):void {
+    				onControlChange(id, 1.0);
+    			});
+    			addElement(b);
+    		}
+    		    		
+    		public function ui_addToggleButton(label:String, id:int):void {
+    			// toggle/check buttons seem to be identical.
+    			return ui_addCheckButton(label, id);
+    		}
+ 
+    		public function ui_addCheckButton(label:String, id:int):void {
+    			var cb:CheckBox = new CheckBox();
+    			cb.label = label;
+    			cb.addEventListener("change",
+    				function(evt:SliderEvent):void {
+    					var checked_val:int = cb.selected ? 1.0 : 0.0;
+    					onControlChange(id, checked_val);
+    				});
+    		}
+    	
+
+    		public function ui_addVerticalSlider(label:String, id:int, init:Number, min:Number, max:Number, step:Number):void {
+    			// Just call HSlider since we have a vertical cascade of controls.
+    			return ui_addHorizontalSlider(label, id, init, min, max, step);
+    		}
+    		
+    		public function ui_addHorizontalSlider(label:String, id:int, init:Number, min:Number, max:Number, step:Number):void {
+    			var compGroup:HGroup = new HGroup();
+				// Text label
+           		var compLabel:Label = new Label();
+           		compLabel.text = label;
+				// Actual control
+           		var compSlider:spark.components.HSlider = new spark.components.HSlider();
+           		compSlider.minimum = min;
+           		compSlider.maximum = max;
+           		compSlider.liveDragging = true; // update faust params while dragging the slider
+           		compSlider.value = init;
+           		compSlider.valueInterval = step;
+           		compSlider.width = 200;
+
+           		compSlider.addEventListener("change",
+           			function(evt:Event):void {
+						onControlChange(id, compSlider.value);
+           			});
+				// wire everything up
+           		compGroup.addElement(compLabel);
+           		compGroup.addElement(compSlider);
+                addElement(compGroup);
+    		}
+    		    		
+    		public function ui_addNumEntry(label:String, id:int, init:Number, min:Number, max:Number, step:Number):void {
+    			// TODO: A proper text box requires validation.
+    			// Also, slider controls could probably benefit from numeric input too...
+    			// Create a unified control for {VSlider, HSlider, NumEntry}
+    			return ui_addHorizontalSlider(label, id, init, min, max, step); 
+    		}
+
+    		
+    		// Layout management 
+    		// These are "nice to have" functions but aren't critical.
+    		// It doesn't look like they're widely used.
+    		// TODO: if using Flex, these should be easy enough to implement.
+    		public function ui_openFrameBox(label:String):void { }
+    		public function ui_openTabBox(label:String):void { }
+    		public function ui_openHorizontalBox(label:String):void { }
+    		public function ui_openVerticalBox(label:String):void { }
+    		public function ui_closeBox():void { }
+    		// We don't need a run() notification since we call into Faust code directly.
+    		public function ui_run():void { }
+    		
+    		
+    		// "Load input sound" button callback
+    		protected function button2_clickHandler(evt:MouseEvent):void {
+    			inputSoundOn = false;
+    			if (!inputSound)
+    			  inputSound = new Sound();
+				var urlReq:URLRequest = new URLRequest(mp3path.text);
+				inputSound.load(urlReq);
+				inputSound.addEventListener(Event.COMPLETE, 
+					function(evt:Event):void {
+						dbgtext.text = "sound finished loading.";
+						inputSoundOn = true;
+						inputSoundPosition = 0;
+					});
+    		}
+    		
+    		
+			//"Stop input sound" button callback
+			protected function button3_clickHandler(event:MouseEvent):void
+			{
+				dbgtext.text = "sound stopped.";
+				inputSoundOn = false;
+				inputSoundPosition = 0;
+			}
+
+		]]>
+		
+	</fx:Script>
+	<s:Button label="Start" click="button1_clickHandler(event)"/>
+	<s:TextArea width="322" height="19" text="Click Start to begin." id="dbgtext"/>
+	<s:TextInput text="http://ccrma.stanford.edu/~travissk/faustflash/helterskelter.mp3" id="mp3path" width="359"/>
+	<s:HGroup width="237" height="28">
+		<s:Button label="Load Sound" click="button2_clickHandler(event)"/>
+		<s:Button label="Stop Sound" click="button3_clickHandler(event)"/>
+	</s:HGroup>
+
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+</s:Application>
