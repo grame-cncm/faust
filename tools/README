@@ -29,3 +29,6 @@ Currently the following tools are available :
 - faust2ck is a wrapper-generator for ChucK Ugens. It allows to create
   ChucK-compatible C++ code that can be placed in the Chuck source tree
   to extend the language.
+
+- faust2flash allows to convert Faust programs into Flash .swf files
+  that can be published in web pages.
