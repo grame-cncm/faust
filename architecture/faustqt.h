@@ -1,5 +1,3 @@
-//#include <assert.h>
-//#include <math.h>
 
 #include <cassert>
 #include <cmath>
@@ -994,22 +992,26 @@ class UI
 	// debut remplacement '= 0;' par '{}'
 	// -- active widgets
 	
-	virtual void addButton(const char*, float*) = 0;
-	virtual void addCheckButton(const char*, float*) = 0;
-	virtual void addVerticalSlider(const char*, float*, float, float, float, float) = 0;
-	virtual void addHorizontalSlider(const char*, float*, float, float, float, float) = 0;
-	virtual void addNumEntry(const char*, float*, float, float, float, float) = 0;
+	virtual void addButton(const char* label, float* zone) = 0;
+	virtual void addToggleButton(const char* label, float* zone) = 0;
+	virtual void addCheckButton(const char* label, float* zone) = 0;
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;	
 	
 	// -- passive widgets
 	
-	virtual void addHorizontalBargraph(const char*, float*, float, float) = 0;
-	virtual void addVerticalBargraph(const char*, float*, float, float) = 0;
+	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
-	// -- widget's layouts
+    // -- widget's layouts
 	
-	virtual void openTabBox(const char*) = 0;
-	virtual void openHorizontalBox(const char*) = 0;
-	virtual void openVerticalBox(const char*) = 0;
+	virtual void openFrameBox(const char* label) = 0;
+	virtual void openTabBox(const char* label) = 0;
+	virtual void openHorizontalBox(const char* label) = 0;
+	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
 	
 	virtual void run() = 0;
@@ -1427,7 +1429,6 @@ class QTGUI : public QObject, public UI
         }
     }
 
-
     /**
     * Check if a knob is required
     */
@@ -1436,16 +1437,15 @@ class QTGUI : public QObject, public UI
         return fKnobSet.count(zone) > 0;
     }
 
-
 	void openBox(const char* fulllabel, QLayout* layout)
 	{
         map<string, string> metadata;
         string label;
         extractMetadata(fulllabel, label, metadata);
-
-		layout->setMargin(5);
+  		layout->setMargin(5);
 		QWidget* box;
-		if (isTabContext()) {
+               
+        if (isTabContext()) {
 			box = new QWidget();
             // set background color
             QPalette pal = box->palette();
@@ -1461,15 +1461,14 @@ class QTGUI : public QObject, public UI
 			layout->setMargin(0);
 			box = new QWidget();
 		}
-		box->setLayout(layout);
-
+               
+        box->setLayout(layout);
         if (metadata.count("tooltip")) {
             box->setToolTip(metadata["tooltip"].c_str());
         }
-
-		insert(label.c_str(), box);
-		fGroupStack.push(box);
-	}
+        insert(label.c_str(), box);
+        fGroupStack.push(box);
+    }
 
 	void openTab(const char* label) 
 	{
@@ -1649,8 +1648,12 @@ class QTGUI : public QObject, public UI
 
 	virtual void openHorizontalBox(const char* label) { openBox(label, new QHBoxLayout()); }
 
-	virtual void openVerticalBox(const char* label) 	{ openBox(label, new QVBoxLayout()); }
+	virtual void openVerticalBox(const char* label) 	{
+        printf("openVerticalBox  %s\n", label);
+        openBox(label, new QVBoxLayout()); 
+    }
 
+    virtual void openFrameBox(const char* ) 		{ }
 	virtual void openTabBox(const char* label) 		{ openTab(label); }
 
 	virtual void closeBox()
@@ -1672,6 +1675,9 @@ class QTGUI : public QObject, public UI
 		QObject::connect(w, SIGNAL(released()), c, SLOT(released()));
         checkForTooltip(zone, w);
 	}
+    
+    virtual void addToggleButton(const char* , float* )
+    {}
 
 	virtual void addCheckButton(const char* label , float* zone)
 	{
@@ -1764,8 +1770,6 @@ class QTGUI : public QObject, public UI
         checkForTooltip(zone, w);
 	}
 
-
-
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// SLIDERS
@@ -1810,10 +1814,13 @@ class QTGUI : public QObject, public UI
         checkForTooltip(zone, w);
 	}
 
-
-
 	// ------------------------- passive widgets -----------------------------------
 
+    virtual void addNumDisplay(const char*, float*, int)
+    {}
+    
+	virtual void addTextDisplay(const char*, float*, const char* [], float, float)
+    {}
     
     virtual void addHorizontalBargraph(const char* label , float* zone, float min, float max)
     {
@@ -1865,8 +1872,6 @@ class QTGUI : public QObject, public UI
         closeBox();
         checkForTooltip(zone, bargraph);
     }
-
-
 
 };
 
