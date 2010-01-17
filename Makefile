@@ -64,15 +64,16 @@ dist :
 	mkdir -p faust-$(version)
 	cp README COPYING Makefile faust-$(version)
 	cp -r architecture faust-$(version)
+	cp -r benchmark faust-$(version)
 	cp -r compiler faust-$(version)
-	cp -r examples faust-$(version)
 	cp -r documentation faust-$(version)
+	cp -r examples faust-$(version)
 	cp -r syntax-highlighting faust-$(version)
 	cp -r tools faust-$(version)
-	cp -r windows faust-$(version)
 	find faust-$(version) -name CVS | xargs rm -rf
 	find faust-$(version) -name "*~" | xargs rm -rf
 	find faust-$(version) -name ".#*" | xargs rm -rf
+	find faust-$(version) -name "*.o" | xargs rm -rf
 	rm -f faust-$(version).tar.gz
 	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
@@ -83,9 +84,10 @@ archive :
 	mkdir -p $(vname)
 	cp README COPYING Makefile $(vname)
 	cp -r architecture $(vname)
+	cp -r benchmark $(vname)
 	cp -r compiler $(vname)
-	cp -r examples $(vname)
 	cp -r documentation $(vname)
+	cp -r examples $(vname)
 	cp -r syntax-highlighting $(vname)
 	cp -r tools $(vname)
 	find $(vname) -name "*~" | xargs rm -rf
