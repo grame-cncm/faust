@@ -3,6 +3,6 @@ faust-quick-reference.pdf : faust-quick-reference.tex
 	pdflatex faust-quick-reference.tex
 	
 clean :
-	rm -f *.aux *.dvi *.rai *.rao *.log *~
+	rm -f *.out *.toc *.pdf *.aux *.dvi *.rai *.rao *.log *~
 	
 	
