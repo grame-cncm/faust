@@ -17,4 +17,5 @@ install:
 	install faust2puredata $(prefix)/bin
 	install faust2mathdoc $(prefix)/bin
 	install faust2mathviewer $(prefix)/bin
+	install faust2msp $(prefix)/bin
 

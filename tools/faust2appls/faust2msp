@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to jack-qt                  #
-#               (c) Grame, 2009                                     #
+#               Compiles Faust programs to Max/MSP                  #
+#               (c) Grame, 2010                                     #
 #                                                                   #
 #####################################################################
 
@@ -52,13 +52,16 @@ done
 #
 if [[ $(uname) == Darwin ]]; then
     SPEC="-spec macx-g++"
-    EXT=".app"
+    EXT="~.mxo"
 fi
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
 for p in $FILES; do
+
+    #INC=-I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes
+    CC=g++
 
     CUR=$(pwd)
     f=$(basename "$p")
@@ -70,17 +73,27 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -a jack-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -a max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
-	    cd "$TMP"
-        qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-ljack" "HEADERS+=/usr/local/lib/faust/faustqt.h"
-	    qmake $SPEC
-        make
+	cd "$TMP"
+	install -d "${f%.dsp}$EXT/Contents/MacOS"
+	$CC -arch i386 -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.i386.o" 
+       	$CC -framework MaxAPI -framework Carbon -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.i386.o" -o "${f%.dsp}.i386~"  
+	$CC -arch ppc -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.ppc.o" 
+	$CC -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle "${f%.dsp}.ppc.o"  -o "${f%.dsp}.ppc~" 
+	sed s/FOO/"${f%.dsp}~"/ <../../Info.plist.template >"${f%.dsp}$EXT/Contents/Info.plist"
+	lipo -create "${f%.dsp}.i386~" "${f%.dsp}.ppc~"  -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+
     ) > /dev/null
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
+
+    # Keep .dsp and .cpp files in the plug-in
+    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"   
+    cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
+
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
 
