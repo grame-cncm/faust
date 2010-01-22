@@ -8,20 +8,39 @@
 
 1/ Introduction
 ----------------
-Faust is a functional programming language specifically designed for realtime audio applications and plugins. The syntax of the language is block diagram oriented. The Faust compiler translate signal processing specifications into optimized C++ code for signal processing applications.
+FAUST (Functional Audio Stream) is a functional programming
+language specifically designed for real-time signal processing and
+synthesis. A distinctive characteristic of FAUST is to be fully
+compiled. 
 
-The generated code can be wrapped into an 'architecture file' in order to create for example a standalone jack/gtk application, a VST plugin, etc. Several architecture file are provided and additional contributions are welcome.
+The FAUST compiler translates DSP specifications into
+very efficient C++ code that works at sample level. It targets
+high-performance signal processing applications, libraries and
+audio plug-ins for a variety of audio platforms and standards. A
+same FAUST specification can be used to easily generate native
+JACK or ALSA applications, as well as CSOUND, LADSPA, MAX/MSP, PD,
+Q, SC and VST plugins. 
 
 
 2/ Organisation of the distribution
 -----------------------------------
-architecture		: the architecture files currently supported
-benchmark			: tools to measure the impact of various compiler options
-compiler			: sources of the Faust compiler
-documentation 		: Faust developer's documentation
-examples			: examples of Faust programs with makefiles for various audio targets
-syntax-highlighting	: support for syntax highlighting for several editors
-tools				: Additional easy-to-use scripts to produce binaries and plugins
+The Faust distribution can be downloaded at:
+	http://sourceforge.net/projects/faudiostream
+
+It's organisation is the following :
+
+	architecture/		: the architecture files and libraries 
+						  currently supported
+	benchmark/			: tools to measure the impact of various 
+                          compiler options
+	compiler/			: sources of the Faust compiler
+	documentation /		: Faust developer's documentation
+	examples/			: examples of Faust programs with makefiles
+						  for various audio targets
+	syntax-highlighting/: support for syntax highlighting for 
+						  several editors
+	tools/				: Additional easy-to-use scripts to 
+						  produce binaries and plugins
 
 
 3/ Compilation and installation
@@ -34,80 +53,84 @@ To compile and install the Faust compiler on Linux and MacOSX :
 
 On Windows :
 
-	Download and install the QT4.6 SDK : http://qt.nokia.com/downloads/sdk-windows-cpp
-	use the project file 'compiler.pro' in the compiler folder
+	Download and install the QT4.6 SDK : 
+		http://qt.nokia.com/downloads/sdk-windows-cpp
+	use the project file 'compiler.pro' in the compiler folder.
+	You will have to use MSYS to run the makefiles.
 
 
 2/ Compilation of the examples
 -------------------------------
-Several faust examples are provided in the example folder. To compile and test the examples with Jack/GTK do :
+Several FAUST examples are provided in the example folder. To
+compile and test the examples with Jack/GTK do :
 
 	cd examples
 	make jackgtk
 
-This will create a subfolder jackgtkdir with all the jack applications. You can also create alsa applications (make alsagtk) as well as other formats.
+This will create a subfolder jackgtkdir with all the jack
+applications. You can also create alsa applications (make alsagtk)
+as well as other formats.
 
-To list for possible targets
+In order to compile your own applications, you can simply place you
+files in the example folder and use the existing makefiles.
+
+To list for possible audio targets :
 
 	make help
 
-The supported architectures are the following :
+About 20 different audio plateforms are supported : 
 
-	jack-gtk.cpp
-	jack-qt.cpp
-	alsa-gtk.cpp
-	alsa-qt.cpp
-	q.cpp
-	vst.cpp
-	ladspa.cpp
-	supercollider.cpp
-	max-msp.cpp
-	sndfile.cpp
+- Action Script
+- Alsa
+- ChucK
+- CoreAudio
+- CSOUND
+- Jack
+- LADSPA
+- Matlab
+- MaxMSP
+- Octave
+- OSS
+- PortAudio
+- Pure
+- PureData
+- Q
+- Sndfile
+- Snd-RT
+- SuperCollider
+- SynthFile
+- VST
+- VSTi (mono)
 
-Other architecture files are also available :
-
-	oss-gtk.cpp
-    plot.cpp
-    matlabplot.cpp
-	bench.cpp
-	oss-wx.cpp
-	minimal.cpp
-	pa-gtk.cpp
-	jack-wx.cpp
-	module.cpp
-	pa-wx.cpp
-
-
-3/ Limitations
---------------
-- doc
-- -sch en 64 bits
-
+For all these audio platforms you may have to install the related
+SDK and/or development libraries.
 
 4/ Acknowledgments
 ------------------
-Several persons have contributed to the project, in particular :
 
-	- Tiziano Bole	
-	- Thomas Charbonnel
-	- Damien Cramet
-	- Etienne Gaudrin
-	- Albert Graef
-	- Stefan Kersten
-	- Victor Lazzarini
-	- Matthieu Leberre
-	- Mathieu Leroi
-	- Remy Muller
-	- Nicolas Scaringella
-	- Julius Smith
+Many persons have been contributing to the FAUST project by
+providing code for the compiler, architecture files, libraries,
+examples, documentation, scripts, bug reports, ideas, etc. 
 
-as well as my colleagues Dominique Fober, Stephane Letz and Karim Barkati
+I would like to thank them and especially: Fons Adriaensen, Tiziano
+Bole, Thomas Charbonnel, Damien Cramet, Etienne Gaudrin, Albert
+Graef, Stefan Kersten, Victor Lazzarini, Matthieu Leberre, Mathieu
+Leroi, Kjetil Matheussen, Remy Muller, Nicolas Scaringella, Stephen
+Sinclair, Travis Skare, Julius Smith, as well as my colleagues at
+GRAME, in particular : Dominique Fober, Stephane Letz and Karim
+Barkati, and from the ASTREE project : Jerome Barthelemy (IRCAM),
+Alain Bonardi (IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot
+(Ecole des Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
 
 
 5/ Questions and suggestions
 ----------------------------
 
-If you have questions suggestions and comments, or if you want to contribute to the project, you can contact me by email : orlarey@grame.fr
+If you have questions suggestions and comments, or if you want to 
+contribute to the project, two mailing lists are available:
+https://lists.sourceforge.net/lists/listinfo/faudiostream-devel
+https://lists.sourceforge.net/lists/listinfo/faudiostream-users
+
 
 
 
