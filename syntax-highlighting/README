@@ -1,22 +1,26 @@
 Faust Syntax Highlighting Files
 -------------------------------
 
-This folder contains syntax highlighting files for various editors. The editors currently supported are : KDE Kate/Kwrite, Macintosh TextWrangler, and highlight
+This folder contains syntax highlighting files for various editors. The editors currently supported are : KDE Kate/Kwrite, GNOME gedit, Macintosh TextWrangler, highlight and vim
 
 1) KDE Kate/Kwrite
 install the file 'faust.xml' into Kate syntax folder ('/opt/kde3/share/apps/katepart/syntax' on suse 10.0)
 ('/usr/share/apps/katepart/syntax' on mandriva and ubuntu)
 
-2) TextWrangler
+2) gedit
+Install the file 'faust.lang' into gedit syntax folder ('/usr/share/gtksourceview-2.0/language-specs' on Ubuntu 9.10)
+
+
+3) TextWrangler
 install the file Faust.plist 
 
-3) Highlight
+4) Highlight
 install dsp.lang into /usr/share/highlight/langDefs/
 Examples using highlight :
 	highlight --latex -l -t 4 -i karplus.dsp -o karplus.dsp.tex
 	highlight -l -t 4 -i mixer.dsp -o mixer.dsp.html
 
-4) VIM
+5) VIM
 'faust.vim' is a syntax file for VIM contributed by Björn Lindig
 - install the file 'faust.vim' into vim syntax folder ('~/.vim/syntax/')
 - add the following lines to the file 'filetype.vim' in the '~/.vim' directory (if its not there, you have to create it):
