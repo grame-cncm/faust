@@ -472,6 +472,13 @@ INLINE void SetRealTime()
     SetThreadToPriority(pthread_self(), 96, true, period, computation, constraint);
 }
 
+void CancelThread(pthread_t fThread)
+{
+    mach_port_t machThread = pthread_mach_thread_np(fThread);
+    thread_terminate(machThread);
+}
+
+
 #endif
 
 #ifdef __linux__
@@ -504,6 +511,12 @@ INLINE void GetRealTime()
 INLINE void SetRealTime()
 {
     pthread_setschedparam(pthread_self(), faust_sched_policy, &faust_rt_param);
+}
+
+void CancelThread(pthread_t fThread)
+{
+    pthread_cancel(fThread);
+    pthread_join(fThread, NULL);
 }
 
 #endif
@@ -757,10 +770,9 @@ struct DSPThread {
         sem_post(fSemaphore);
     }
     
-    void Cancel()
+    void Stop()
     {
-        pthread_cancel(fThread);
-        pthread_join(fThread, NULL);
+        CancelThread(fThread);
     }
 
 };
@@ -802,7 +814,7 @@ void DSPThreadPool::StopAll()
 {
     for (int i = 0; i < fThreadCount; i++) {
         assert(fThreadPool[i]);
-        fThreadPool[i]->Cancel();
+        fThreadPool[i]->Stop();
     }
 }
 
