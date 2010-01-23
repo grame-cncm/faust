@@ -1,21 +1,23 @@
 prefix := /usr/local
 
 install:
-	install faust2jack $(prefix)/bin
-	install faust2jaqt $(prefix)/bin
 	install faust2alsa $(prefix)/bin
-	install faust2plot $(prefix)/bin
-	install faust2svg $(prefix)/bin
-	install faust2png $(prefix)/bin
+	install faust2caqt $(prefix)/bin
+	install faust2csound $(prefix)/bin
 	install faust2eps $(prefix)/bin
-	install faust2octave $(prefix)/bin
 	install faust2firefox $(prefix)/bin
+	install faust2jack $(prefix)/bin
 	install faust2jackinternal $(prefix)/bin
 	install faust2jackserver $(prefix)/bin
-	install faust2caqt $(prefix)/bin
-	install faust2net $(prefix)/bin
-	install faust2puredata $(prefix)/bin
+	install faust2jaqt $(prefix)/bin
 	install faust2mathdoc $(prefix)/bin
 	install faust2mathviewer $(prefix)/bin
 	install faust2msp $(prefix)/bin
+	install faust2octave $(prefix)/bin
+	install faust2paqt $(prefix)/bin
+	install faust2pdf $(prefix)/bin
+	install faust2plot $(prefix)/bin
+	install faust2png $(prefix)/bin
+	install faust2puredata $(prefix)/bin
+	install faust2svg $(prefix)/bin
 
