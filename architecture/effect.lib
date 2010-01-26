@@ -135,7 +135,7 @@ with {
 //  2. Output signal from allpass chain
 //
 // USAGE:
-//  pianodispersionfilter(1,B,f0) : +(totalDelay) : fdelay(maxDelay)
+//  pianodispersionfilter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay)
 //
 // Reference: 
 //   "Dispersion Modeling in Waveguide Piano Synthesis
