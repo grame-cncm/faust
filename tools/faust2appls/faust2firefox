@@ -2,14 +2,14 @@
 if [[ $(uname) == Darwin ]]; then
 	APPL='open -a Safari'
 else
-	APPL=firefox
+	APPL=xdg-open
 fi
 
 faust2svg $@
-$APPL $1-svg/process.svg&
+$APPL ${1%.dsp}-svg/process.svg&
 shift
 for f in $@; do
     sleep 1
-    $APPL $f-svg/process.svg&
+    $APPL ${f%.dsp}-svg/process.svg&
 done
 
