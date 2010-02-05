@@ -11,7 +11,8 @@ VST=../vstsdk2.4
 
 #------------------------------------------------------------------------------
 # 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
-CROSS=i386-mingw32-
+#CROSS=i386-mingw32-
+CROSS=i586-mingw32msvc-
 CXX=$(CROSS)g++
 CXXFLAGS=-I$(VST) -I$(VST)/public.sdk/source/vst2.x -DBUILDING_DLL -mno-cygwin
 LDFLAGS=
