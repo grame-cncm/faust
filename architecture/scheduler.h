@@ -140,7 +140,7 @@ static int GetPID()
 #define DecTail(e) (e).info.scounter.fTail--
 
 #define THREAD_SIZE 64
-#define QUEUE_SIZE 2048
+#define QUEUE_SIZE 4096
 
 #define WORK_STEALING_INDEX 0
 #define LAST_TASK_INDEX 1
