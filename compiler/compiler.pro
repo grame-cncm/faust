@@ -3,11 +3,11 @@
 ######################################################################
 
 TEMPLATE = app
-CONFIG += console
+CONFIG += console debug
 TARGET = faust
 OBJECTS_DIR = binaries
 QT -= core gui
-VERSION = -0.9.9.6
+VERSION = -0.9.10.1
 QMAKE_CXXFLAGS_WARN_ON += -Wno-parentheses -Wno-unused-parameter
 
 DEPENDPATH += . \
@@ -152,7 +152,7 @@ SOURCES += main.cpp \
            extended/acosprim.cpp \
            extended/asinprim.cpp \
            extended/atan2prim.cpp \
-           extended/atanprim.cpp \
+		   extended/atanprim.cpp \
            extended/ceilprim.cpp \
            extended/cosprim.cpp \
            extended/expprim.cpp \

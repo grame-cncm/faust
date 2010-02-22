@@ -873,63 +873,21 @@ string ScalarCompiler::generateIota (Tree sig, Tree n)
 
 string ScalarCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2)
 {
-    Type t  = getSigType(sig);
-    Type t1 = getSigType(s1);
-    Type t2 = getSigType(s2);
-    Type w  = min(t1,t2);
-
-    string type = cType(t);
-    string var  = getFreshID("S");
-
-    switch (w->variability())
-    {
-        case kKonst :
-            fClass->addDeclCode(subst("$0 \t$1[2];", type, var));
-            break;
-        case kBlock :
-            //fClass->addLocalDecl(type, subst("$0[2]", var));
-            //fClass->addLocalVecDecl(type, var, 2);
-            fClass->addSharedDecl(var);
-            fClass->addZone1(subst("$0 \t$1[2];", type, var));
-            break;
-        case kSamp :
-            fClass->addExecCode(subst("$0 \t$1[2];", type, var));
-            break;
-    }
-
-    switch (t1->variability())
-    {
-        case kKonst :
-            fClass->addInitCode(subst("$0[0] = $1;", var, CS(s1)));
-            break;
-        case kBlock :
-            fClass->addZone2b(subst("$0[0] = $1;", var, CS(s1)));
-            break;
-        case kSamp :
-            fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
-            break;
-    }
-
-    switch (t2->variability())
-    {
-        case kKonst :
-            fClass->addInitCode(subst("$0[1] = $1;", var, CS(s2)));
-            break;
-        case kBlock :
-            fClass->addZone2b(subst("$0[1] = $1;", var, CS(s2)));
-            break;
-        case kSamp :
-            fClass->addExecCode(subst("$0[1] = $1;", var, CS(s2)));
-            break;
-    }
-
-    return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
+    return generateCacheCode(sig, subst( "(($0)?$1:$2)", CS(sel), CS(s2), CS(s1) ) );
 }
 
 
 /**
- * Generate a select3 code
+ * Generate a select3 code (using if-then-else)
+ * ((int n = sel==0)? s0 : ((sel==1)? s1 : s2))
+ * int nn; ((nn=sel) ? ((nn==1)? s1 : s2) : s0);
  */
+string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
+{
+    return generateCacheCode(sig, subst( "(($0==0)? $1 : (($0==1)?$2:$3) )", CS(sel), CS(s1), CS(s2), CS(s3) ) );
+}
+
+#if 0
 string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
     Type t  = getSigType(sig);
@@ -998,7 +956,7 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
 
     return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
 }
-
+#endif
 
 /**
  * retrieve the type annotation of sig
