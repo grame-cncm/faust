@@ -1,6 +1,7 @@
 #include "mterm.hh"
 #include "signals.hh"
 #include "ppsig.hh"
+#include "xtended.hh"
 #include <assert.h>
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
@@ -70,6 +71,30 @@ int mterm::complexity() const
 	return c;
 }
 
+/**
+ * match x^p with p:int
+ */
+static bool isSigPow(Tree sig, Tree& x, int& n)
+{
+	//cerr << "isSigPow("<< *sig << ')' << endl;
+	xtended* p = (xtended*) getUserData(sig);
+	if (p == gPowPrim) {
+		if (isSigInt(sig->branch(1), &n)) {
+			x = sig->branch(0);
+			//cerr << "factor of isSigPow " << *x << endl;
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * produce x^p with p:int
+ */
+static Tree sigPow(Tree x, int p)
+{
+	return tree(gPowPrim->symbol(), x, sigInt(p));
+}
 
 /**
  * Multiple a mterm by an expression tree t. Go down recursively looking 
@@ -77,7 +102,7 @@ int mterm::complexity() const
  */
 const mterm& mterm::operator *= (Tree t)
 {
-	int		op;
+	int		op, n;
 	Tree	x,y;
 
 	assert(t!=0);
@@ -94,8 +119,11 @@ const mterm& mterm::operator *= (Tree t)
 		*this /= y;
 
 	} else {
-		Tree tnorm = t; //= simplify(t);
-		fFactors[tnorm] += 1;
+		if (isSigPow(t,x,n)) {
+			fFactors[x] += n;
+		} else {
+			fFactors[t] += 1;
+		}
 	}
     return *this;
 }
@@ -107,7 +135,7 @@ const mterm& mterm::operator *= (Tree t)
 const mterm& mterm::operator /= (Tree t)
 {
 	//cerr << "division en place : " << *this << " / " << ppsig(t) << endl;
-	int		op;
+	int		op,n;
 	Tree	x,y;
 
 	assert(t!=0);
@@ -124,7 +152,11 @@ const mterm& mterm::operator /= (Tree t)
 		*this *= y;
 
 	} else {
-		fFactors[t] -= 1;
+		if (isSigPow(t,x,n)) {
+			fFactors[x] -= n;
+		} else {
+			fFactors[t] -= 1;
+		}
 	}
     return *this;
 }
@@ -331,10 +363,11 @@ static Tree buildPowTerm(Tree f, int q)
 {
 	assert(f);
 	assert(q>0);
-	Tree r = f;
-	for (int c=2; c<=q; c++) { r = sigMul(r,f); }
-	assert(r);
-	return r;
+	if (q>1) {
+		return sigPow(f, q);
+	} else {
+		return f;
+	}
 }
 
 /**
