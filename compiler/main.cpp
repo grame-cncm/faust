@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.11"
+#define FAUSTVERSION "0.9.12"
 
 #include <stdio.h>
 #include <string.h>
@@ -658,6 +658,7 @@ int main (int argc, char* argv[])
             printheader(*dst);
 			C->getClass()->printLibrary(*dst);
 			C->getClass()->printIncludeFile(*dst);
+            C->getClass()->printAdditionalCode(*dst);
 
 			streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
             
@@ -685,8 +686,9 @@ int main (int argc, char* argv[])
         printheader(*dst);
         printfloatdef(*dst);
 		C->getClass()->printLibrary(*dst);
-		C->getClass()->printIncludeFile(*dst);
-		C->getClass()->println(0,*dst);
+        C->getClass()->printIncludeFile(*dst);
+        C->getClass()->printAdditionalCode(*dst);
+        C->getClass()->println(0,*dst);
 	}
 	
 	delete C;

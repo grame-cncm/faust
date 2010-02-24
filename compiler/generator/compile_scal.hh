@@ -45,7 +45,7 @@ class ScalarCompiler : public Compiler
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
 	OccMarkup					fOccMarkup;
-	bool						fHasIota;
+    bool						fHasIota;
 
 
   public:

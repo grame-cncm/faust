@@ -18,8 +18,9 @@ class PowPrim : public xtended
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == arity());
-		return castInterval(floatCast(args[0]|args[1]), interval()); // temporary !!!
-	}
+        //return castInterval(floatCast(args[0]|args[1]), interval()); // temporary !!!
+        return castInterval(args[0]|args[1], interval()); // temporary !!!
+    }
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	
 	
@@ -43,9 +44,14 @@ class PowPrim : public xtended
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());
-        
-		return subst("pow$2($0,$1)", args[0], args[1], isuffix());
-	}
+
+        if (types[1]->nature() == kInt) {
+            klass->rememberNeedPowerDef();
+            return subst("faustpower<$1>($0)", args[0], args[1]);
+        } else {
+            return subst("pow$2($0,$1)", args[0], args[1], isuffix());
+        }
+    }
 	
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{

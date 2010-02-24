@@ -176,17 +176,34 @@ void Klass::printLibrary(ostream& fout)
  */
 void Klass::printIncludeFile(ostream& fout)
 {
-	set<string> S;
-	set<string>::iterator f;
+    set<string> S;
+    set<string>::iterator f;
 
     if (gOpenMPSwitch) {
         fout << "#include <omp.h>" << "\n";
     }
-    
- 	collectIncludeFile(S);
-	for (f = S.begin(); f != S.end(); f++) 	{
-		fout << "#include " << *f << "\n";
-	}
+
+    collectIncludeFile(S);
+    for (f = S.begin(); f != S.end(); f++) 	{
+        fout << "#include " << *f << "\n";
+    }
+}
+
+/**
+ * Print additional functions required by the generated code
+ */
+void Klass::printAdditionalCode(ostream& fout)
+{
+    if (fNeedPowerDef) {
+        // Add faustpower definition to C++ code
+        fout << "#include <cmath>" << endl;
+        fout << "template <int N> inline float faustpower(float x) 		{ return powf(x,N); } " << endl;
+        fout << "template <int N> inline double faustpower(double x) 	{ return pow(x,N); }"  << endl;
+        fout << "template <int N> inline int faustpower(int x) 			{ return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
+        fout << "template <> 	 inline int faustpower<0>(int x) 		{ return 1; }" << endl;
+        fout << "template <> 	 inline int faustpower<1>(int x) 		{ return x; }" << endl;
+    }
+
 }
 
 /**

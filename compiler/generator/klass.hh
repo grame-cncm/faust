@@ -63,7 +63,7 @@ class Klass //: public Target
 	int				fNumOutputs;
     int             fNumActives;                ///< number of active controls in the UI (sliders, buttons, etc.)
     int             fNumPassives;               ///< number of passive widgets in the UI (bargraphs, etc.)
-
+    bool            fNeedPowerDef;              ///< true when faustpower definition is needed
 
 	set<string>			fIncludeFileSet;
 	set<string>			fLibrarySet;
@@ -102,7 +102,7 @@ class Klass //: public Target
 
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
 	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
-            fNumActives(0), fNumPassives(0),
+            fNumActives(0), fNumPassives(0), fNeedPowerDef(false),
             fTopLoop(new Loop(0, "count")), fVec(__vec)
 	{}
 
@@ -122,6 +122,8 @@ class Klass //: public Target
 	void addIncludeFile (const string& str) { fIncludeFileSet.insert(str); }
 
 	void addLibrary (const string& str) 	{ fLibrarySet.insert(str); }
+
+    void rememberNeedPowerDef ()            { fNeedPowerDef = true; }
 
 	void collectIncludeFile(set<string>& S);
 
@@ -186,6 +188,7 @@ class Klass //: public Target
 	virtual void printIncludeFile(ostream& fout);
 
   	virtual void printLibrary(ostream& fout);
+    virtual void printAdditionalCode(ostream& fout);
 
 	int	inputs() 	{ return fNumInputs; }
 	int outputs()	{ return fNumOutputs; }
