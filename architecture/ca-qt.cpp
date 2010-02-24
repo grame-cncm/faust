@@ -491,7 +491,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	
     if (inChan > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
-        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &srcFormat, &outSize);
+        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
         if (err1 != noErr) {
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
@@ -518,7 +518,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	
     if (outChan > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
-        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1, &dstFormat, &outSize);
+        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
         if (err1 != noErr) {
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
