@@ -48,6 +48,10 @@ install :
 	mkdir -p $(prefix)/bin/
 	install compiler/faust $(prefix)/bin/
 	install -m 0644 $(arch) $(prefix)/lib/faust/
+	rm -rf $(prefix)/lib/faust/VST
+	cp -r architecture/VST $(prefix)/lib/faust/
+	rm -rf $(prefix)/lib/faust/iPhone
+	cp -r architecture/iPhone $(prefix)/lib/faust/
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 
