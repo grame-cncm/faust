@@ -135,6 +135,10 @@ vst :
 	install -d vstdir
 	$(MAKE) DEST='vstdir/' ARCH='vst.cpp' LIB='' -f Makefile.vstcompile
 
+iphone :
+	install -d iphonedir
+	$(MAKE) DEST='iphonedir/' ARCH='iphone-cocoa.cpp' LIB='' -f Makefile.iphonecompile
+
 bench :
 	install -d benchdir
 	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' LIB='' -f Makefile.compile
@@ -189,7 +193,7 @@ supercollider :
 
 jackconsole :
 	install -d jackconsoledir
-	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
+	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' VEC='-vec -vs $(VSIZE)' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
 
 mathdoc :
 	$(MAKE) -f Makefile.mathdoc
