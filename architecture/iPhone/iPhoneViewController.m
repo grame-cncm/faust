@@ -30,11 +30,6 @@
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
     [super viewDidLoad];
-    //self.wantsFullScreenLayout = YES;
-    UIScrollView* scrollview = [[[UIScrollView alloc] initWithFrame: CGRectMake(0, 0, 320, 480)] autorelease];
-    scrollview.backgroundColor = [UIColor lightGrayColor];
-    self.view = scrollview;
-
 }
 */
 
