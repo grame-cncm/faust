@@ -219,6 +219,7 @@ help:
 	@echo "make maxmsp        : compile examples as Max/MSP externals"
 	@echo "make vst           : compile examples as native VST plugins"
 	@echo "make w32vst        : crosscompile examples as windows VST plugins"
+	@echo "make iphone        : compile examples for Apple iPhone/iPod"
 	@echo "make supercollider : compile examples as Supercollider plugins"
 	@echo "make puredata      : compile examples as Puredata externals"
 	@echo "make q             : compile examples as Q plugins"
