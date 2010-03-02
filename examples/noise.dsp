@@ -43,9 +43,9 @@ process = noise * vslider("Volume[style:knob]", 0, 0, 1, 0.1);
 <mdoc>
 \section{Notice of this documentation}
 You might be careful of certain information and naming conventions used in this documentation:
-<notice>
+<notice/>
 
 \section{Listing of the input code}
 The following listing shows the input Faust code, parsed to compile this mathematical documentation.
-<listing>
+<listing/>
 </mdoc>
