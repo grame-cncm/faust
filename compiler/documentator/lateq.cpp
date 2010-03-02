@@ -42,6 +42,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <set>
+#include <sstream>
 
 #include "lateq.hh"
 #include "Text.hh"
@@ -54,6 +55,14 @@ static int	getLateqIndex(const string& s);
 static bool compLateqIndexes(const string& s1, const string& s2);
 static void initDocMathKeySet();
 
+
+template <class T>
+inline std::string to_string (const T& t)
+{
+	std::stringstream ss;
+	ss << t;
+	return ss.str();
+}
 
 
 /****************************************************************
@@ -70,47 +79,211 @@ static void initDocMathKeySet();
  * These formulas must have been previously compiled, 
  * via the DocCompile class,
  * and stored in Lateq fields as LaTeX strings.
- * 
- * @remark 
- * A printed set of formulas is terminated by three printed stars.
  */
 void Lateq::println(ostream& docout)
 {	
+	/* 1. Make titles of sub-sets of formulas. */
+	string suchthat		= gDocMathStringMap["suchthat"];
+	
+	string sInputs		= makeItemTitle(fInputSigsFormulas.size(), "inputsigtitle") + makeSignamesList(fInputSigsFormulas, "");
+	string sOutputs		= makeItemTitle(fOutputSigsFormulas.size(), "outputsigtitle") + makeSignamesList(fOutputSigsFormulas, suchthat);
+	string sConstants	= makeItemTitle(fConstSigsFormulas.size(), "constsigtitle") + makeSignamesList(fConstSigsFormulas, suchthat);
+	
+	vector<list<string> > UISignamesVector = makeUISignamesVector(fUISigsFormulas);
+	string sUIElements	= makeItemTitle(fUISigsFormulas.size(), "uisigtitle") + makeSignamesList(UISignamesVector, suchthat);
+
+	unsigned int internalSigsCount = fParamSigsFormulas.size() + fStoreSigsFormulas.size() + fRecurSigsFormulas.size() + fRDTblSigsFormulas.size() + fRWTblSigsFormulas.size() + fSelectSigsFormulas.size() + fPrefixSigsFormulas.size();
+	
+	vector<list<string> > internalSigsFormulasList;
+	if( ! fParamSigsFormulas.empty() )	internalSigsFormulasList.push_back(fParamSigsFormulas);
+	if( ! fStoreSigsFormulas.empty() )	internalSigsFormulasList.push_back(fStoreSigsFormulas);
+	if( ! fRecurSigsFormulas.empty() )	internalSigsFormulasList.push_back(fRecurSigsFormulas);
+	if( ! fRDTblSigsFormulas.empty() )	internalSigsFormulasList.push_back(fRDTblSigsFormulas);
+	if( ! fRWTblSigsFormulas.empty() )	internalSigsFormulasList.push_back(fRWTblSigsFormulas);
+	if( ! fSelectSigsFormulas.empty() )	internalSigsFormulasList.push_back(fSelectSigsFormulas);
+	if( ! fPrefixSigsFormulas.empty() )	internalSigsFormulasList.push_back(fPrefixSigsFormulas);
+	
+	string sInternals	= makeItemTitle(internalSigsCount, "intermedsigtitle") + makeSignamesList(internalSigsFormulasList, suchthat);
+	
+	/* 2. Successively print each Lateq field containing LaTeX formulas, with a title. */
+	
 	docout << endl << gDocMathStringMap["lateqcomment"] << endl;
 	docout << "\\begin{enumerate}" << endl << endl;
 	
-	/* Plural handling for titles of sub-sets of formulas. */
-	string sInputs		= fInputSigsFormulas.size()	> 1 ? gDocMathStringMap["inputsigtitle2"] : gDocMathStringMap["inputsigtitle1"];
-	string sOutputs		= fOutputSigsFormulas.size()	> 1 ? gDocMathStringMap["outputsigtitle2"] : gDocMathStringMap["outputsigtitle1"];
-	string sConstants	= fConstSigsFormulas.size()	> 1 ? gDocMathStringMap["constsigtitle2"] : gDocMathStringMap["constsigtitle1"];
-	string sUIElements	= fUISigsFormulas.size()	> 1 ? gDocMathStringMap["uisigtitle2"] : gDocMathStringMap["uisigtitle1"];
-	string sParameters	= fParamSigsFormulas.size()	> 1 ? gDocMathStringMap["paramsigtitle2"] : gDocMathStringMap["paramsigtitle1"];
-
-	unsigned int internalSigsCount = fStoreSigsFormulas.size() + fRecurSigsFormulas.size() + fRDTblSigsFormulas.size() + fRWTblSigsFormulas.size() + fSelectSigsFormulas.size() + fPrefixSigsFormulas.size();
-	string sInternals	= internalSigsCount	> 1 ? gDocMathStringMap["internalsigtitle2"] : gDocMathStringMap["internalsigtitle1"];
-	
-	/* Successively print each Lateq field containing LaTeX formulas, with a title. */
-	printOneLine	(subst("\\item $0: ", sInputs), fInputSigsFormulas, docout);
-	printDGroup		(subst("\\item $0: ", sOutputs), fOutputSigsFormulas, docout);
-	printDGroup		(subst("\\item $0: ", sConstants), fConstSigsFormulas, docout);
-	printHierarchy	(subst("\\item $0: ", sUIElements), fUISigsFormulas, docout);
-	printDGroup		(subst("\\item $0: ", sParameters), fParamSigsFormulas, docout);
+	printDGroup		(sOutputs, fOutputSigsFormulas, docout);
+	printOneLine	(sInputs, docout);
+	const string outputsTitle = "\\item " + sOutputs + "\\ $y_i$\\ " + gDocMathStringMap["for"] + " $i \\in [1," + to_string(fOutputSigsFormulas.size()) + "]$: ";
+	printHierarchy	(sUIElements, fUISigsFormulas, docout);
 	
 	/* The "Internal signals" item gather several fields, like a "super-item"... */
 	if( internalSigsCount > 0 ) {
-		docout << subst("\\item $0: ", sInternals);
+		docout << sInternals;
 	}
 	fStoreSigsFormulas.sort(compLateqIndexes);
+	printDGroup		("", fParamSigsFormulas, docout);
 	printDGroup		("", fStoreSigsFormulas, docout);
 	printDGroup		("", fRecurSigsFormulas, docout);
 	printDGroup		("", fRDTblSigsFormulas, docout);
 	printMath		("", fRWTblSigsFormulas, docout);
 	printMath		("", fSelectSigsFormulas, docout);
 	printMath		("", fPrefixSigsFormulas, docout);
+
+	printDGroup		(sConstants, fConstSigsFormulas, docout);
 	
 	docout << "\\end{enumerate}" << endl << endl;
 }
 
+
+
+/****************************************************************
+				Item title making functions (public).
+ *****************************************************************/
+
+
+string Lateq::makeItemTitle(const unsigned int formulasListSize, const string& titleName)
+{
+	string item		= "\\item ";
+	
+	/* Plural handling for titles of sub-sets of formulas. */
+	string title	= formulasListSize > 1 ? gDocMathStringMap[titleName + "2"] : gDocMathStringMap[titleName + "1"];
+	
+	return item + title;
+}
+
+
+string Lateq::makeSigDomain(const list<string>& formulasList)
+{
+	string signame = "";
+	string sigDomain = "";
+	
+	if (formulasList.size() > 0) {
+		string firstEq = *(formulasList.begin());
+		signame = getSigName(firstEq);
+		
+		if(formulasList.size() > 1) {
+			sigDomain = " $" + signame + "_i$ " + gDocMathStringMap["for"] + " $i \\in [1," + to_string(formulasList.size()) + "]$";
+		} else {
+			if(signame == "x" || signame == "y") {
+				sigDomain = " $" + signame + "$"; ///< No indices for single input neither single output.
+			} else {
+				sigDomain = " $" + signame + "_1$"; ///< Indices "1" for all other single signal.
+			}
+		}
+	} else {
+		sigDomain = gDocMathStringMap["emptyformulafield"];
+	}
+	return sigDomain;
+}
+
+
+string Lateq::makeSignamesList(const list<string>& formulasList, const string& ending)
+{
+	if (formulasList.size() > 0) {
+		return makeSigDomain(formulasList) + " " + ending;
+	} else {
+		return " (" + gDocMathStringMap["emptyformulafield"] + ")";
+	}
+}
+
+
+string Lateq::makeSignamesList(const vector<list<string> >& formulasListsVector, const string& ending)
+{
+	if (formulasListsVector.size() > 0) {
+		vector<list<string> >::const_iterator it;
+		string signames = "";
+		string sep = " ";
+		for (it = formulasListsVector.begin(); it != formulasListsVector.end(); ++it) {
+			signames += sep + makeSigDomain(*it);
+			(it != (formulasListsVector.end() - 2)) ? sep = ", " : sep = " " + gDocMathStringMap["and"] + " ";
+		}
+		return signames + " " + ending;
+	} else {
+		return " (" + gDocMathStringMap["emptyformulafield"] + ")";
+	}
+}
+
+
+string Lateq::getSigName(const string& s)
+{
+	size_t found;
+	string signame;
+	
+	found = s.find(" =");
+	if (found != string::npos) { ///< Looking for a left member.
+		signame = s.substr (0, found);
+	}
+	found = s.find("(t)");
+	if (found != string::npos) { ///< Strip "(t)" argument if exists.
+		signame = s.substr (0, found);
+	}
+	found = signame.find("[t]");
+	if (found != string::npos) { ///< Strip "[t]" argument if exists (for tables).
+		signame = s.substr (0, found);
+	}
+	found = signame.find_last_of("_");
+	if (found != string::npos) { ///< Strip indice if exists.
+		signame = signame.substr (0, found);
+	}
+	
+	return signame;
+}
+
+
+vector<list<string> > Lateq::makeUISignamesVector(const multimap<string,string>& field)
+{
+	map<char,unsigned int> uiTypesMap;
+	vector<list<string> > uiSignamesVector;
+	unsigned int vIndex = 0;
+	
+	multimap<string,string>::const_iterator it;
+	
+	for (it = field.begin(); it != field.end(); ++it) {
+		char type		= getUISigType(it->second);
+		string signame	= getUISigName(it->second);
+		
+		map<char,unsigned int>::iterator uiTypesIt;
+		uiTypesIt = uiTypesMap.find(type);
+		if( uiTypesIt != uiTypesMap.end()) {
+			uiSignamesVector[uiTypesMap[uiTypesIt->second]].push_back(signame);
+		} else {
+			++vIndex;
+			uiTypesMap.insert(pair<char,unsigned int>(type, vIndex));
+			list<string>* tmpList = new(list<string>);
+			tmpList->push_back(signame);
+			uiSignamesVector.push_back(*tmpList);
+		}
+	}
+	
+	return uiSignamesVector;
+}
+
+
+string Lateq::getUISigName(const string& s)
+{
+	size_t found;
+	string signame;
+	
+	found = s.find("${u_");
+	if (found != string::npos) { ///< Looking for a UI signal name "{u_?}_{i}(t)".
+		signame = s.substr (found+1, 12);
+	}
+	
+	return signame;
+}
+
+
+char Lateq::getUISigType(const string& s)
+{
+	size_t found;
+	char sigtype = '0';
+	
+	found = s.find("${u_");
+	if (found != string::npos) { ///< Looking for a UI signal name "{u_?}_{i}".
+		sigtype = s.at (found+4);
+	}
+	
+	return sigtype;
+}
 
 
 
@@ -120,27 +293,15 @@ void Lateq::println(ostream& docout)
 
 
 /**
- * Print a sorted list of input signals names ("x_i(t)"),
+ * Print a sorted list of input signals names ("x_i"),
  * on a single line, separated by commas.
  *
  * @param[in]	section		The title to print for these formulas.
- * @param[in]	field		The list of LaTeX input signals names.
  * @param[out]	docout		The LaTeX output file to print into.
  */
-void Lateq::printOneLine(const string& section, list<string>& field, ostream& docout)
+void Lateq::printOneLine(const string& section, ostream& docout)
 {
-	if (field.size() > 0) {
-		field.sort(compLateqIndexes);
-		docout << section << "\t ";
-		list<string>::const_iterator s;
-		string sep = "";
-		for (s = field.begin(); s != field.end(); ++s) {
-			docout << sep << "$" << *s << "$" << endl;
-			sep = ", ";
-		}
-	} else {
-		docout << section << "\t" << gDocMathStringMap["emptyformulafield"] << endl << endl;
-	}
+	docout << section << endl << endl;
 }
 
 
@@ -228,11 +389,11 @@ void Lateq::printHierarchy(const string& section, multimap<string,string>& field
 					if (it->first != "") {
 						tab(n+0,docout); docout << "\\item \\textsf{" << it->first << "}" << endl;
 					} else { 
-						tab(n+0,docout); docout << "\\item \\textit{" << "(at root level)" << "}" << endl;
+						tab(n+0,docout); docout << "\\item \\emph{" << gDocMathStringMap["rootlevel"] << "}" << endl;
 					}
 				}
 				tab(n+1,docout); docout << "\\begin{center}" << endl;
-				tab(n+2,docout); docout << "\\begin{supertabular}{rllll}" << endl;
+				tab(n+2,docout); docout << "\\begin{supertabular}{lll}" << endl;
 			}
 			/* Print the current formula. */
 			tab(n+3,docout); docout << it->second << endl;
@@ -369,11 +530,17 @@ static void initDocMathKeySet()
 	gDocMathKeySet.insert("constsigtitle2");
 	gDocMathKeySet.insert("uisigtitle1");
 	gDocMathKeySet.insert("uisigtitle2");
-	gDocMathKeySet.insert("paramsigtitle1");
-	gDocMathKeySet.insert("paramsigtitle2");
-	gDocMathKeySet.insert("internalsigtitle1");
-	gDocMathKeySet.insert("internalsigtitle2");
+	gDocMathKeySet.insert("intermedsigtitle1");
+	gDocMathKeySet.insert("intermedsigtitle2");
 	gDocMathKeySet.insert("lateqcomment");
 	gDocMathKeySet.insert("emptyformulafield");
 	gDocMathKeySet.insert("defaultvalue");
+	gDocMathKeySet.insert("suchthat");
+	gDocMathKeySet.insert("and");
+	gDocMathKeySet.insert("for");
+	gDocMathKeySet.insert("rootlevel");
+
+	gDocMathKeySet.insert("dgmcaption");
 }
+
+

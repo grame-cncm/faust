@@ -32,7 +32,10 @@
 #include "doc.hh"
 
 
-extern SourceReader		gReader;
+extern SourceReader				gReader;
+extern string					gDocName;
+extern map<Tree, set<Tree> > 	gMetaDataSet;
+extern map<string, string>		gDocMetadatasStringMap;
 
 map<string, string>		gDocAutodocStringMap;
 set<string>				gDocAutodocKeySet;
@@ -52,13 +55,74 @@ static void				initDocAutodocKeySet();
  *
  * This function simulates a default documentation : 
  * if no <mdoc> tag was found in the input faust file,
- * and yet the '-math' option was called, 
+ * and yet the '-mdoc' option was called, 
  * then print a complete 'process' doc. 
  */
 void declareAutoDoc() 
 {
 	Tree autodoc = nil;
 	Tree process = boxIdent("process");
+	
+	/** Autodoc's "head", with title, author, date, and metadatas. */
+	
+	/** The latex title macro is bound to the metadata "name" if it exists,
+	 (corresponding to "declare name") or else just to the file name. */
+	autodoc = cons(docTxt("\\title{"), autodoc);
+	if (gMetaDataSet.count(tree("name"))) {
+		autodoc = cons(docMtd(tree("name")), autodoc);
+	} else {
+		autodoc = cons(docTxt(gDocName.c_str()), autodoc);
+	}
+	autodoc = cons(docTxt("}\n"), autodoc);
+	
+	/** The latex author macro is bound to the metadata "author" if it exists,
+	 (corresponding to "declare author") or else no author item is printed. */
+	if (gMetaDataSet.count(tree("author"))) {
+		autodoc = cons(docTxt("\\author{"), autodoc);
+		autodoc = cons(docMtd(tree("author")), autodoc);
+		autodoc = cons(docTxt("}\n"), autodoc);
+	}
+	
+	/** The latex date macro is bound to the metadata "date" if it exists,
+	 (corresponding to "declare date") or else to the today latex macro. */
+	autodoc = cons(docTxt("\\date{"), autodoc);
+	if (gMetaDataSet.count(tree("date"))) {
+		autodoc = cons(docMtd(tree("date")), autodoc);
+	} else {
+		autodoc = cons(docTxt("\\today"), autodoc);
+	}
+	autodoc = cons(docTxt("}\n"), autodoc);
+	
+	/** The latex maketitle macro. */
+	autodoc = cons(docTxt("\\maketitle\n"), autodoc);
+
+	
+	/** Insert all declared metadatas in a latex tabular environment. */
+	if (! gMetaDataSet.empty()) {
+		autodoc = cons(docTxt("\\begin{tabular}{ll}\n"), autodoc);
+		autodoc = cons(docTxt("\t\\hline\n"), autodoc);
+		for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+			string mtdkey = tree2str(i->first);
+			string mtdTranslatedKey = gDocMetadatasStringMap[mtdkey];
+			if (mtdTranslatedKey.empty()) {
+				mtdTranslatedKey = mtdkey;
+			}
+			autodoc = cons(docTxt("\t\\textbf{"), autodoc);
+			autodoc = cons(docTxt(mtdTranslatedKey.c_str()), autodoc);
+			autodoc = cons(docTxt("} & "), autodoc);
+			autodoc = cons(docMtd(tree(mtdkey.c_str())), autodoc);
+			autodoc = cons(docTxt(" \\\\\n"), autodoc);
+		}
+		autodoc = cons(docTxt("\t\\hline\n"), autodoc);
+		autodoc = cons(docTxt("\\end{tabular}\n"), autodoc);
+		autodoc = cons(docTxt("\\bigskip\n"), autodoc);
+	}
+
+
+	/** Autodoc's "body", with equation and diagram of process, and notice and listing. */
+	
+	string autoPresentationTxt = "\n\\bigskip\n" + gDocAutodocStringMap["thisdoc"] + "\n\n";
+	autodoc = cons(docTxt(autoPresentationTxt.c_str()), autodoc);
 	
 	string autoEquationTxt = "\n" + gDocAutodocStringMap["autoeqntitle"] + "\n\n";
 	autoEquationTxt += gDocAutodocStringMap["autoeqntext"] + "\n";
@@ -71,7 +135,7 @@ void declareAutoDoc()
 	autodoc = cons(docDgm(process), autodoc);	
 	
 	string autoNoticeTxt = "\n" + gDocAutodocStringMap["autontctitle"] + "\n\n";
-	autoNoticeTxt += gDocAutodocStringMap["autontctext"] + "\n";
+//	autoNoticeTxt += gDocAutodocStringMap["autontctext"] + "\n";
 	autodoc = cons(docTxt(autoNoticeTxt.c_str()), autodoc);
 	autodoc = cons(docNtc(), autodoc);
 	
@@ -111,6 +175,8 @@ void initDocAutodoc()
  */
 static void initDocAutodocKeySet() {
 	
+	gDocAutodocKeySet.insert("thisdoc");
+
 	gDocAutodocKeySet.insert("autoeqntitle");
 	gDocAutodocKeySet.insert("autoeqntext");
 	

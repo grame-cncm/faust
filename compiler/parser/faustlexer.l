@@ -19,6 +19,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 %option yylineno
 %x comment
 %x doc
+%x lst
 
 
 %%
@@ -35,17 +36,25 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "<mdoc>"						{ BEGIN(doc); return BDOC; }
 <doc>.							return DOCCHAR; /* char by char, may be slow ?? */
 <doc>\n							return DOCCHAR; /* keep newline chars */
-<doc>"<notice>"					return NOTICE;  /* autoclosing tag */
 <doc>"<notice/>"				return NOTICE;  /* autoclosing tag */
 <doc>"<notice />"				return NOTICE;  /* autoclosing tag */
-<doc>"<listing>"				return LISTING; /* autoclosing tag */
-<doc>"<listing/>"				return LISTING; /* autoclosing tag */
-<doc>"<listing />"				return LISTING; /* autoclosing tag */
+<doc>"<listing"					{ BEGIN(lst);		return BLST; } /* autoclosing tag */
 <doc>"<equation>"				{ BEGIN(INITIAL); 	return BEQN; }
 "</equation>"					{ BEGIN(doc); 		return EEQN; }
 <doc>"<diagram>"				{ BEGIN(INITIAL); 	return BDGM; }
 "</diagram>"					{ BEGIN(doc); 		return EDGM; }
+<doc>"<metadata>"				{ BEGIN(INITIAL); 	return BMETADATA; }
+"</metadata>"					{ BEGIN(doc); 		return EMETADATA; }
 <doc>"</mdoc>"					{ BEGIN(INITIAL); 	return EDOC; }
+
+<lst>"true"						return LSTTRUE;
+<lst>"false"					return LSTFALSE;
+<lst>"dependencies"				return LSTDEPENDENCIES;
+<lst>"mdoctags"					return LSTMDOCTAGS;
+<lst>"distributed"				return LSTDISTRIBUTED;
+<lst>"="						return LSTEQ;
+<lst>"\""						return LSTQ;
+<lst>"/>"						{ BEGIN(doc); 	return ELST; }
 
 
 {DIGIT}+    		return INT;

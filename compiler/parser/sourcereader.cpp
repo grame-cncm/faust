@@ -311,12 +311,9 @@ void declareMetadata(Tree key, Tree value)
         fkey += tree2str(key);
         gMetaDataSet[tree(fkey.c_str())].insert(value);
     }
+    //cout << "Master " << gMasterDocument  << ", file " << yyfilename <<  " : declare " << *key << "," << *value << endl;
 }
-/*
-	}
-    cout << "Master " << gMasterDocument  << ", file " << yyfilename <<  " : declare " << *key << "," << *value << endl;
-    gMetaDataSet[key].insert(value);
-}		*/
+
 
 void declareDoc(Tree t)
 {

@@ -38,14 +38,12 @@ map<string, bool>	gDocNoticeFlagMap;
 map<string, string>	gDocNoticeStringMap;
 set<string>			gDocNoticeKeySet;
 
+extern map<string, string>		gDocAutodocStringMap;
+
+extern string		gMasterName;
+
 static void			initDocNoticeKeySet();
 static void			initDocNoticeFlagMap();
-static void			initCompilationDate();
-static void			printDocNoticeStringMapContent();
-
-static struct tm*	getCompilationDate();
-static struct tm	gCompilationDate;
-
 
 
 
@@ -73,56 +71,52 @@ void printDocNotice(const string& faustversion, ostream& docout) {
 		
 		docout << endl << "\\begin{itemize}" << endl;
 		
-		/* Faust "compilation stamp" : version and date. */
-		if(gDocNoticeFlagMap["compilstamp1"] && gDocNoticeFlagMap["compilstamp2"] && gDocNoticeFlagMap["compilstamp3"]) {
-			char datebuf [150];
-			strftime (datebuf, 150, "%B %d, %Y", getCompilationDate());
-			docout << "\t\\item " << gDocNoticeStringMap["compilstamp1"] << faustversion;
-			docout << gDocNoticeStringMap["compilstamp2"] << datebuf;
-			docout << gDocNoticeStringMap["compilstamp3"] << endl;
-		}
-		
-		/* Various warnings and remarks. */
-		if(gDocNoticeFlagMap["svgdir"])			docout << "\t\\item " << gDocNoticeStringMap["svgdir"]	<< endl;
-		if(gDocNoticeFlagMap["nameconflicts"])	docout << "\t\\item " << gDocNoticeStringMap["nameconflicts"]	<< endl;
-		if(gDocNoticeFlagMap["causality"])		docout << "\t\\item " << gDocNoticeStringMap["causality"]	<< endl;
+		/* Presentations. */
+		docout << "\t\\item " << gDocAutodocStringMap["autontctext"]	<< endl;
+		if(gDocNoticeFlagMap["faustapply"])			docout << "\t\\item " << gDocNoticeStringMap["faustapply"]	<< endl;
+		if(gDocNoticeFlagMap["faustpresentation"])	docout << "\t\\item " << gDocNoticeStringMap["faustpresentation"]	<< endl;
+		if(gDocNoticeFlagMap["causality"])			docout << "\t\\item " << gDocNoticeStringMap["causality"]	<< endl;
+		if(gDocNoticeFlagMap["blockdiagrams"])		docout << "\t\\item " << gDocNoticeStringMap["blockdiagrams"]	<< endl;
 		
 		/* Naming conventions of variables and functions. */
-		if(gDocNoticeFlagMap["fsamp"])			docout << "\t\\item " << gDocNoticeStringMap["fsamp"]	<< endl;
 		if(gDocNoticeFlagMap["foreignfun"])		docout << "\t\\item " << gDocNoticeStringMap["foreignfun"]	<< endl;
 		if(gDocNoticeFlagMap["intcast"])		docout << "\t\\item " << gDocNoticeStringMap["intcast"]	<< endl;
-		if(gDocNoticeFlagMap["cdot"])			docout << "\t\\item " << gDocNoticeStringMap["cdot"]	<< endl;
 		
-		/* Integer arithmetic. */
+		/* Integer arithmetic into a tabular environment. */
 		if(gDocNoticeFlagMap["intplus"] || 
 		   gDocNoticeFlagMap["intminus"] || 
 		   gDocNoticeFlagMap["intmult"] || 
-		   gDocNoticeFlagMap["intdiv"]) 
+		   gDocNoticeFlagMap["intdiv"] || 
+		   gDocNoticeFlagMap["intand"] || 
+		   gDocNoticeFlagMap["intor"] || 
+		   gDocNoticeFlagMap["intxor"])
 		{
-			if(gDocNoticeFlagMap["intplus"])	docout << "\t\\item " << gDocNoticeStringMap["intplus"]	<< endl;
-			if(gDocNoticeFlagMap["intminus"])	docout << "\t\\item " << gDocNoticeStringMap["intminus"]	<< endl;
-			if(gDocNoticeFlagMap["intmult"])	docout << "\t\\item " << gDocNoticeStringMap["intmult"]	<< endl;
-			if(gDocNoticeFlagMap["intdiv"])		docout << "\t\\item " << gDocNoticeStringMap["intdiv"]	<< endl;
+			gDocNoticeFlagMap["operators"]		= true;
+			gDocNoticeFlagMap["optabtitle"]		= true;
+			gDocNoticeFlagMap["integerops"]		= true;
+			
+			docout << "\t\\item " << endl;
+			docout << "\t\t" << gDocNoticeStringMap["operators"] << endl;
+			docout << "\t\\begin{center}" << endl;
+			docout << "\t\\begin{tabular}{|c|l|l|} " << endl;
+			docout << "\t\t\\hline " << endl;
+			docout << "\t\t" << gDocNoticeStringMap["optabtitle"]	<< endl;
+			docout << "\t\t\\hline " << endl;
+			if(gDocNoticeFlagMap["intplus"])	docout << "\t\t" << gDocNoticeStringMap["intplus"]	<< endl;
+			if(gDocNoticeFlagMap["intminus"])	docout << "\t\t" << gDocNoticeStringMap["intminus"]	<< endl;
+			if(gDocNoticeFlagMap["intmult"])	docout << "\t\t" << gDocNoticeStringMap["intmult"]	<< endl;
+			if(gDocNoticeFlagMap["intdiv"])		docout << "\t\t" << gDocNoticeStringMap["intdiv"]	<< endl;
+			if(gDocNoticeFlagMap["intand"])		docout << "\t\t" << gDocNoticeStringMap["intand"]	<< endl;
+			if(gDocNoticeFlagMap["intor"])		docout << "\t\t" << gDocNoticeStringMap["intor"]	<< endl;
+			if(gDocNoticeFlagMap["intxor"])		docout << "\t\t" << gDocNoticeStringMap["intxor"]	<< endl;
+			docout << "\t\t\\hline " << endl;
+			docout << "\t\\end{tabular} " << endl;
+			docout << "\t\\end{center}" << endl;
+			docout << "\t\t" << gDocNoticeStringMap["integerops"]	<< endl;
 		}
-		
-		/* Signals naming conventions. */
-		if(gDocNoticeFlagMap["inputsig"])		docout << "\t\\item " << gDocNoticeStringMap["inputsig"]	<< endl;
-		if(gDocNoticeFlagMap["inputsigs"])		docout << "\t\\item " << gDocNoticeStringMap["inputsigs"]	<< endl;
-		if(gDocNoticeFlagMap["outputsig"])		docout << "\t\\item " << gDocNoticeStringMap["outputsig"]	<< endl;
-		if(gDocNoticeFlagMap["outputsigs"])		docout << "\t\\item " << gDocNoticeStringMap["outputsigs"]	<< endl;
-		if(gDocNoticeFlagMap["constsigs"])		docout << "\t\\item " << gDocNoticeStringMap["constsigs"]	<< endl;
-		if(gDocNoticeFlagMap["paramsigs"])		docout << "\t\\item " << gDocNoticeStringMap["paramsigs"]	<< endl;
-		if(gDocNoticeFlagMap["storedsigs"])		docout << "\t\\item " << gDocNoticeStringMap["storedsigs"]	<< endl;
-		if(gDocNoticeFlagMap["buttonsigs"])		docout << "\t\\item " << gDocNoticeStringMap["buttonsigs"]	<< endl;
-		if(gDocNoticeFlagMap["checkboxsigs"])	docout << "\t\\item " << gDocNoticeStringMap["checkboxsigs"]	<< endl;
-		if(gDocNoticeFlagMap["slidersigs"])		docout << "\t\\item " << gDocNoticeStringMap["slidersigs"]	<< endl;
-		if(gDocNoticeFlagMap["nentrysigs"])		docout << "\t\\item " << gDocNoticeStringMap["nentrysigs"]	<< endl;
-		if(gDocNoticeFlagMap["tablesigs"])		docout << "\t\\item " << gDocNoticeStringMap["tablesigs"]	<< endl;
-		if(gDocNoticeFlagMap["recursigs"])		docout << "\t\\item " << gDocNoticeStringMap["recursigs"]	<< endl;
-		if(gDocNoticeFlagMap["prefixsigs"])		docout << "\t\\item " << gDocNoticeStringMap["prefixsigs"]	<< endl;
-		if(gDocNoticeFlagMap["selectionsig"])	docout << "\t\\item " << gDocNoticeStringMap["selectionsig"]	<< endl;
-		if(gDocNoticeFlagMap["selectionsigs"])	docout << "\t\\item " << gDocNoticeStringMap["selectionsigs"]	<< endl;
-		
+
+		if(gDocNoticeFlagMap["faustdocdir"])		docout << "\t\\item " << gDocNoticeStringMap["faustdocdir"]	<< endl;
+
 		docout << "\\end{itemize}" << endl << endl;
 	}
 	//cerr << "  ... Documentator : printDocNotice : end of printing." << endl;
@@ -156,40 +150,25 @@ void initDocNotice()
  */
 static void initDocNoticeKeySet() {
 	
+	gDocNoticeKeySet.insert("faustpresentation");
+	gDocNoticeKeySet.insert("faustapply");
+	gDocNoticeKeySet.insert("faustdocdir");
 	gDocNoticeKeySet.insert("causality");
-	gDocNoticeKeySet.insert("compilstamp1");
-	gDocNoticeKeySet.insert("compilstamp2");
-	gDocNoticeKeySet.insert("compilstamp3");
-	gDocNoticeKeySet.insert("nameconflicts");
-	gDocNoticeKeySet.insert("svgdir");
+	gDocNoticeKeySet.insert("blockdiagrams");
 	
-	gDocNoticeKeySet.insert("fsamp");
 	gDocNoticeKeySet.insert("foreignfun");
-	gDocNoticeKeySet.insert("cdot");
 	gDocNoticeKeySet.insert("intcast");
 	
+	gDocNoticeKeySet.insert("operators");
+	gDocNoticeKeySet.insert("optabtitle");
+	gDocNoticeKeySet.insert("integerops");
 	gDocNoticeKeySet.insert("intplus");
 	gDocNoticeKeySet.insert("intminus");
 	gDocNoticeKeySet.insert("intmult");
 	gDocNoticeKeySet.insert("intdiv");
-	
-	gDocNoticeKeySet.insert("inputsig");
-	gDocNoticeKeySet.insert("inputsigs");
-	gDocNoticeKeySet.insert("outputsig");
-	gDocNoticeKeySet.insert("outputsigs");
-	gDocNoticeKeySet.insert("constsigs");
-	gDocNoticeKeySet.insert("paramsigs");
-	gDocNoticeKeySet.insert("storedsigs");
-	gDocNoticeKeySet.insert("recursigs");
-	gDocNoticeKeySet.insert("prefixsigs");
-	gDocNoticeKeySet.insert("selectionsig");
-	gDocNoticeKeySet.insert("selectionsigs");
-	
-	gDocNoticeKeySet.insert("buttonsigs");
-	gDocNoticeKeySet.insert("checkboxsigs");
-	gDocNoticeKeySet.insert("slidersigs");
-	gDocNoticeKeySet.insert("nentrysigs");
-	gDocNoticeKeySet.insert("tablesigs");
+	gDocNoticeKeySet.insert("intand");
+	gDocNoticeKeySet.insert("intor");
+	gDocNoticeKeySet.insert("intxor");
 }
 
 
@@ -201,45 +180,10 @@ static void initDocNoticeFlagMap() {
 	for (set<string>::iterator it=gDocNoticeKeySet.begin(); it != gDocNoticeKeySet.end() ; ++it ) {
 		gDocNoticeFlagMap[*it] = false;
 	}
-	
-	gDocNoticeFlagMap["compilstamp1"]	= true;
-	gDocNoticeFlagMap["compilstamp2"]	= true;
-	gDocNoticeFlagMap["compilstamp3"]	= true;
-	gDocNoticeFlagMap["causality"]		= true;
-}
-
-
-/** 
- * Simple trace function.
- */
-static void printDocNoticeStringMapContent() {
-	bool trace = false;
-	if(trace) {
-		cout << "gDocNoticeStringMap.size() = " << gDocNoticeStringMap.size() << endl;
-		map<string,string>::iterator it;
-		int i = 1;
-		for(it = gDocNoticeStringMap.begin(); it!=gDocNoticeStringMap.end(); ++it)
-			cout << i++ << ".\tgDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
-	}
-}
-
-
-
-//------------------------ date managment -------------------------
-
-
-static struct tm* getCompilationDate()
-{
-	initCompilationDate();
-	return &gCompilationDate;
-}
-
-
-static void initCompilationDate()
-{
-	time_t now;
-	
-	time(&now);
-	gCompilationDate = *localtime(&now);
+	gDocNoticeFlagMap["faustpresentation"]	= true;
+	gDocNoticeFlagMap["faustapply"]			= true;
+	gDocNoticeFlagMap["faustdocdir"]		= true;
+	gDocNoticeFlagMap["causality"]			= true;
+	gDocNoticeFlagMap["blockdiagrams"]		= true;
 }
 

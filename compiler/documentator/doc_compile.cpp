@@ -308,7 +308,7 @@ string DocCompiler::generateFConst (Tree sig, const string& file, const string& 
     }
 	
 	if (exp == "fSamplingFreq") {
-		gDocNoticeFlagMap["fsamp"] = true;
+		//gDocNoticeFlagMap["fsamp"] = true;
 		return "f_S";
 	}
 	
@@ -449,9 +449,9 @@ string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, in
 		s = subst("$0$1 $2 $3$4", lpar, CS(arg1, thisPriority), op, CS(arg2, thisPriority), rpar);
 	}
 	
-	if (opcode == kMul) {
-		gDocNoticeFlagMap["cdot"] = true;
-	}
+//	if (opcode == kMul) {
+//		gDocNoticeFlagMap["cdot"] = true;
+//	}
 	
 	return generateCacheCode(sig, s);
 }
@@ -1251,8 +1251,8 @@ string DocCompiler::getUIDir(Tree pathname)
 /**
  * @brief Prepare binary user interface elements (button, checkbox).
  *
- * - Format a LaTeX output string as a supertabular row with 5 columns :
- * "\begin{supertabular}{rllll}". @see Lateq::printHierarchy
+ * - Format a LaTeX output string as a supertabular row with 3 columns :
+ * "\begin{supertabular}{lll}". @see Lateq::printHierarchy
  * - The UI range is only a set of two values : {0, 1}.
  * - The UI current value is automatically 0.
  * 
@@ -1265,12 +1265,12 @@ string DocCompiler::prepareBinaryUI(const string& name, Tree path)
 	string label, unit;
 	getUIDocInfos(path, label, unit);
 	string s = "";
-	label = (label.size()>0) ? ("\\textsf{\""+label+"\"} :") : "";
-	unit = (unit.size()>0) ? ("\\,\\mathrm{"+unit+"}") : "";
-	s += label;
+	label = (label.size()>0) ? ("\\textsf{\""+label+"\"} ") : "";
+	unit = (unit.size()>0) ? ("\\ ("+unit+")") : "";
+	s += label + unit;
 	s += " & $" + name + "$";
-	s += " & $\\in$ & $\\left\\{\\,0" + unit + ", 1" + unit +"\\,\\right\\}$";
-	s += " & $(\\mbox{" + gDocMathStringMap["defaultvalue"] + "} = 0" + unit + ")$\\\\";
+	s += " $\\in$ $\\left\\{\\,0, 1\\,\\right\\}$";
+	s += " & $(\\mbox{" + gDocMathStringMap["defaultvalue"] + "} = 0)$\\\\";
 	return s;
 }
 
@@ -1278,8 +1278,8 @@ string DocCompiler::prepareBinaryUI(const string& name, Tree path)
 /**
  * @brief Prepare "intervallic" user interface elements (sliders, nentry).
  *
- * - Format a LaTeX output string as a supertabular row with 5 columns :
- * "\begin{supertabular}{rllll}". @see Lateq::printHierarchy
+ * - Format a LaTeX output string as a supertabular row with 3 columns :
+ * "\begin{supertabular}{lll}". @see Lateq::printHierarchy
  * - The UI range is an bounded interval : [tmin, tmax].
  * - The UI current value is tcur.
  * 
@@ -1299,12 +1299,12 @@ string DocCompiler::prepareIntervallicUI(const string& name, Tree path, Tree tcu
 	max = docT(tree2float(tmax));
 	
 	string s = "";
-	label = (label.size()>0) ? ("\\textsf{\""+label+"\"} :") : "";
-	unit = (unit.size()>0) ? ("\\,\\mathrm{"+unit+"}") : "";
-	s += label;
+	label = (label.size()>0) ? ("\\textsf{\""+label+"\"} ") : "";
+	unit = (unit.size()>0) ? ("\\ ("+unit+")") : "";
+	s += label + unit;
 	s += " & $" + name + "$";
-	s += " & $\\in$ & $\\left[\\," + min + unit + ", " + max + unit +"\\,\\right]$";
-	s += " & $(\\mbox{" + gDocMathStringMap["defaultvalue"] + "} = " + cur + unit + ")$\\\\";
+	s += " $\\in$ $\\left[\\," + min + ", " + max + "\\,\\right]$";
+	s += " & $(\\mbox{" + gDocMathStringMap["defaultvalue"] + "} = " + cur + ")$\\\\";
 	return s;
 }
 

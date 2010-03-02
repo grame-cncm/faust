@@ -49,6 +49,7 @@ using namespace std;
 
 #include <string>
 #include <list>
+#include <vector>
 #include <map>
 
 
@@ -100,7 +101,16 @@ private:
 	list<string>			fOutputSigsFormulas;
 	multimap<string,string>	fUISigsFormulas;
 	
-	void printOneLine	(const string& section, list<string>& field, ostream& docout);
+	string makeItemTitle(const unsigned int formulasListSize, const string& titleName);
+	string makeSignamesList(const list<string>& formulasList, const string& ending);
+	string makeSignamesList(const vector<list<string> >& formulasListsVector, const string& ending); ///< For all "internal" signals.
+	string getSigName(const string& s);
+	string makeSigDomain(const list<string>& formulasList);
+	string getUISigName(const string& s);
+	char   getUISigType(const string& s);
+	vector<list<string> > makeUISignamesVector(const multimap<string,string>& field);
+	
+	void printOneLine	(const string& section, ostream& docout);
 	void printHierarchy		(const string& section, multimap<string,string>& field, ostream& docout);
 	void printDGroup		(const string& section, list<string>& field, ostream& docout);
 	void printMath		(const string& section, list<string>& field, ostream& docout);

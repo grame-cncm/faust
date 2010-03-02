@@ -141,9 +141,20 @@
      EEQN = 357,
      BDGM = 358,
      EDGM = 359,
-     DOCCHAR = 360,
-     NOTICE = 361,
-     LISTING = 362
+     BLST = 360,
+     ELST = 361,
+     BMETADATA = 362,
+     EMETADATA = 363,
+     DOCCHAR = 364,
+     NOTICE = 365,
+     LISTING = 366,
+     LSTTRUE = 367,
+     LSTFALSE = 368,
+     LSTDEPENDENCIES = 369,
+     LSTMDOCTAGS = 370,
+     LSTDISTRIBUTED = 371,
+     LSTEQ = 372,
+     LSTQ = 373
    };
 #endif
 
@@ -154,15 +165,17 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 64 "parser/faustparser.y"
+#line 69 "parser/faustparser.y"
 
 	CTree* 	exp;
 	char* str;
+	string* cppstr;
+	bool b;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 166 "parser/faustparser.hpp"
+#line 179 "parser/faustparser.hpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

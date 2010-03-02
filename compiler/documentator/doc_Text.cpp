@@ -105,9 +105,10 @@ string scientific2tenpow (double n)
 	string s;
 	string::size_type ps;
 	
-	snprintf(tmp, 63, "%g", n);
+	snprintf(tmp, 63, "%.15g", n); // Warning: over 15 decimals, results are wrong !!
+//	snprintf(tmp, 63, "%f", n);
 	
-	//cerr << "doc_Text.cpp : scientific2tenpow : " << n << " -> \"" << tmp << "\"" << endl;
+//	cerr << "doc_Text.cpp : scientific2tenpow : " << n << " -> \"" << tmp << "\"" << endl;
 	s = tmp;
 	ps = s.find('e');
 	

@@ -20,16 +20,21 @@
 #define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 #define YYMAXDEPTH	100000
+	
+using namespace std;
 
 extern char* 		yytext;
 extern const char* 	yyfilename;
 extern int 			yylineno;
 extern int 			yyerr;
 extern Tree 		gResult;
-
+extern bool         gStripDocSwitch;
+extern bool         gLstDependenciesSwitch;
+extern bool         gLstDistributedSwitch;
+extern bool        	gLstMdocTagsSwitch;
+	
 extern map<Tree, set<Tree> > gMetaDataSet;
 extern vector<Tree> gDocVector;
-static string doctxtString = "";
 
 
 int yylex();
@@ -64,6 +69,8 @@ Tree unquote(char* str)
 %union {
 	CTree* 	exp;
 	char* str;
+	string* cppstr;
+	bool b;
 }
 
 %start program
@@ -192,9 +199,21 @@ Tree unquote(char* str)
 %token EEQN
 %token BDGM
 %token EDGM
-%token <str> DOCCHAR
+%token BLST
+%token ELST
+%token BMETADATA
+%token EMETADATA
+%token <cppstr> DOCCHAR
 %token NOTICE
 %token LISTING
+
+%token LSTTRUE
+%token LSTFALSE
+%token LSTDEPENDENCIES
+%token LSTMDOCTAGS
+%token LSTDISTRIBUTED
+%token LSTEQ
+%token LSTQ
 
 
 %type <exp> program
@@ -251,11 +270,17 @@ Tree unquote(char* str)
 
 %type <exp> doc
 %type <exp> docelem
-%type <str> doctxt
+%type <cppstr> doctxt
 %type <exp> doceqn
 %type <exp> docdgm
 %type <exp> docntc
 %type <exp> doclst
+%type <exp> docmtd
+
+%type <exp> lstattrlist
+%type <exp> lstattrdef
+%type <b> lstattrval
+
 
 
 
@@ -275,34 +300,51 @@ deflist         : /*empty*/                     { $$ = nil; }
 statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
 				| DECLARE name string  ENDDEF		   	{ declareMetadata($2,$3); $$ = nil; }
 				| definition						   	{ $$ = $1; }
-				| BDOC doc EDOC						   	{ declareDoc($2); $$ = nil; /*cerr << "Yacc : doc : " << *$2 << endl ; doctxtString = ""; */ }
+				| BDOC doc EDOC						   	{ declareDoc($2); $$ = nil; /* cerr << "Yacc : doc : " << *$2 << endl; */ }
                 ;
 
 doc             : /* empty */						   	{ $$ = nil; }
 				| doc docelem						   	{ $$ = cons ($2,$1); }
 				;
 
-docelem         : doctxt 							   	{ $$ = docTxt(doctxtString.c_str()); }
+docelem         : doctxt 							   	{ $$ = docTxt($1->c_str()); delete $1; }
 				| doceqn 							   	{ $$ = docEqn($1); }
 				| docdgm 							   	{ $$ = docDgm($1); }
 				| docntc 							   	{ $$ = docNtc(); }
                 | doclst 							   	{ $$ = docLst(); }
+				| docmtd 							   	{ $$ = docMtd($1); }
 				;
 
-doctxt          : /* empty */				   		   	{ }
-				| doctxt DOCCHAR					   	{ (doctxtString += yytext); }
+doctxt          : /* empty */				   		   	{ $$ = new string(); }
+				| doctxt DOCCHAR					   	{ $$ = &($1->append(yytext)); }
 				;
 
-doceqn          : BEQN expression EEQN			   	   	{ $$ = $2; doctxtString = ""; }
+doceqn          : BEQN expression EEQN			   	   	{ $$ = $2; }
 				;
 
-docdgm          : BDGM expression EDGM		   	   		{ $$ = $2; doctxtString = ""; }
+docdgm          : BDGM expression EDGM		   	   		{ $$ = $2; }
 				;
 
-docntc          : NOTICE								{ doctxtString = ""; }
+docntc          : NOTICE								{ }
 				;
 
-doclst          : LISTING								{ doctxtString = ""; }
+doclst          : BLST lstattrlist ELST					{ }
+				;
+
+lstattrlist		: /* empty */							{ }
+				| lstattrlist lstattrdef				{ }
+				;
+
+lstattrdef		: LSTDEPENDENCIES LSTEQ LSTQ lstattrval LSTQ	{ gLstDependenciesSwitch = $4; }
+				| LSTMDOCTAGS LSTEQ LSTQ lstattrval LSTQ		{ gStripDocSwitch = $4; gStripDocSwitch==true ? gStripDocSwitch=false : gStripDocSwitch=true; }
+				| LSTDISTRIBUTED LSTEQ LSTQ lstattrval LSTQ		{ gLstDistributedSwitch = $4; }
+				;
+
+lstattrval		: LSTTRUE								{ $$ = true; }
+				| LSTFALSE								{ $$ = false; }
+				;
+
+docmtd          : BMETADATA name EMETADATA				{ $$ = $2; }
 				;
 
 definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); }
