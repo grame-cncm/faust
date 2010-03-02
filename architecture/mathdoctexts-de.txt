@@ -1,0 +1,112 @@
+// Default texts for the math documentator of the Faust compiler.
+// Copyright (C) 2009 GRAME, Centre National de Creation Musicale
+// Karim Barkati
+
+// German translation by Albert Gräf, Dept. of Music Informatics,
+// Johannes Gutenberg University Mainz, Feb 15, 2010. (UTF8)
+
+// Remark: 
+// double quotes are useful to visualize spaces and tabulations
+// at the beginning or at the end of strings.
+
+
+
+// Metadatas section.
+
+:name		"Name"
+:author		"Autor"
+:copyright	"Copyright"
+:license	"Licenz"
+:version	"Version"
+
+
+// Notice section.
+
+:faustapply		"Der Wert eines Faust-Programms ist das Resultat der Anwendung des Signalumwandlers, der durch den an den Bezeichner \texttt{process} gebundenen Ausdruck gegeben ist, auf Eingabe-Signale mit der durch $f_S$ gegebenen Abtastfrequenz."
+
+:faustpresentation "Faust (\emph{Functional Audio Stream}) ist eine funktionale Programmiersprache, die für die synchrone Echtzeit-Verarbeitung und Synthese-Anwendungen entworfen wurde. Ein Faust-Programm ist eine Menge von Bindungen von Bezeichnern an Ausdrücke, die Signalumwandler bezeichnen. Ein Signal $s$ in $S$ bildet diskrete Zeitwerte $t \in \mathbb{Z}$ auf Werte $s(t) \in \mathbb{R}$ ab\footnote{Faust nimmt an, dass $\forall \, s \in S, \forall \, t \in \mathbb{Z}, s(t) = 0 \mathrm{\ falls\ } t < 0$.}, während ein Signalumwandler eine Funktion von $S^n$ in $S^m$ ist, wobei $n,m\in \mathbb{N}$. Siehe das Faust-Handbuch für weitere Informationen (\textsf{http://faust.grame.fr})."
+
+:causality		"Für jede aus einem Faust-Ausdruck abgeleitete mathematische Formel wird in diesem Dokument angenommen, das sie (in einer im\-ple\-men\-tie\-rungs\-ab\-hän\-gi\-gen Weise) durch den Faust-Compiler normalisiert wurde."
+
+:blockdiagrams "Ein Blockdiagramm ist eine graphische Repräsentation der Faust-Bindung eines Bezeichners I an einen Ausdruck E; jeder Graph wird in eine mit I etikettierte Box gesetzt. Unterausdrücke von E werden rekursiv angezeigt, solange das gesamte Bild auf eine Seite passt."
+
+:faustdocdir	"Das \texttt{\faustdocdir/}-Verzeichnis kann auch die folgenden Unterverzeichnisse enthalten:"
+"\begin{itemize}"
+"	\item	\texttt{cpp/} für Faust-kompilierten Code; "
+"	\item	\texttt{pdf/} enthält dieses Dokument; "
+"	\item	\texttt{src/} für alle verwendeten Faust-Quellen (auch Bibliotheken); "
+"	\item	\texttt{svg/} für Blockdiagramme, die im Scalable Vector Graphics-Format kodiert sind (\textsf{http://www.w3.org/Graphics/SVG/});"
+"	\item	\texttt{tex/} für die \LaTeX-Quellen dieses Dokuments."
+"\end{itemize}"
+
+:foreignfun		"die "ff"-Präfix in einem Funktionsnamen steht für C++ "foreign function"."
+
+:intcast
+"$\forall \, x \in \mathbb{R}$, "
+"	\begin{displaymath}"
+"		\mathrm{int}(x) ="
+"		\left\{\begin{array}{cl}"
+"			\lfloor x \rfloor & \mbox{falls \,} x > 0 \\"
+"			\lceil x \rceil & \mbox{falls \,} x < 0 \\"
+"			0 & \mbox{falls \,} x = 0 \\"
+"		\end{array}\right.."
+"	\end{displaymath}"
+
+:operators		"Dieses Dokument verwendet die folgenden Ganzzahl-Operatoren: "
+:optabtitle		"\emph{Operator} & \emph{Name} & \emph{Semantik} \\"
+:intplus		"$\oplus$ & umkreistes Plus & ganzzahlige Addition \\"
+:intminus		"$\ominus$ & umkreistes Minus & ganzzahlige Substraktion \\"
+:intmult		"$\odot$ & umkreister Punkt & ganzzahlige Multiplikation \\"
+:intdiv			"$\oslash$ & umkreister Schrägstrich & ganzzahlige Division \\"
+:intand			"$\wedge$ & Wedge & bitweises \texttt{\&} (und) \\"
+:intor			"$\vee$ & Vee & bitweises \texttt{|} (oder) \\"
+:intxor			"$\veebar$ & unterstrichenes Vee & bitweises \texttt{\^} (exklusives oder) \\"
+
+
+// Auto-documentation section.
+
+:thisdoc		"Dieses Dokument bietet eine mathematische Beschreibung des in der \texttt{\faustfilename}-Datei gespeicherten Faust-Programmtextes. Siehe die Anmerkungen in Abschnitt\,\ref{notice} (Seite\,\pageref{notice}) für weitere Einzelheiten."
+
+:autoeqntitle	"\section{Mathematische Definition von \texttt{process}}"
+"\label{equation}"
+:autoeqntext	"Das \emph{\faustprogname}-Programm wertet den durch \texttt{process} bezeichneten Signalumwandler aus, der wie folgt mathematisch definiert ist:"
+
+:autodgmtitle	"\section{Blockdiagramm von \texttt{process}}"
+"\label{diagram}"
+:autodgmtext	"Das Blockdiagramm von \texttt{process} wird in Abbildung\,\ref{figure1} (Seite\,\pageref{figure1}) gezeigt."
+
+:autontctitle	"\section{Anmerkungen}"
+"\label{notice}"
+:autontctext	"Dieses Dokument wurde mit Faust Version \faustversion\ am \faustdocdate\ generiert."
+
+:autolsttitle1	"\section{Liste des Faust-Programmcodes}"
+"\label{listing}"
+:autolsttext1	"Dieser Abschnitt enthält die Auflistung des Faust-Programmcodes, der zur Generierung dieses Dokuments verwendet wurde."
+
+:autolsttitle2	"\section{Listen des Faust-Programmcodes}"
+"\label{listing}"
+:autolsttext2	"Dieser Abschnitt enthält die Auflistungen des Faust-Programmcodes, der zur Generierung dieses Dokuments verwendet wurde, inklusive Abhängigkeiten."
+
+
+// Titles for each type of formulas.
+
+:inputsigtitle1		"Eingabe-Signal"
+:inputsigtitle2		"Eingabe-Signale"
+:outputsigtitle1	"Ausgabe-Signal"
+:outputsigtitle2	"Ausgabe-Signale"
+:constsigtitle1		"Konstante"
+:constsigtitle2		"Konstanten"
+:uisigtitle1		"Benutzerschnittstellen-Eingabe-Signal"
+:uisigtitle2		"Benutzerschnittstellen-Eingabe-Signale"
+:intermedsigtitle1	"Zwischen-Signal"
+:intermedsigtitle2	"Zwischen-Signale"
+
+:lateqcomment		"% Menge von Faust-Formeln (entsprechend einer <equation>-Markierung)."
+:emptyformulafield	"keines"
+:defaultvalue		"Defaultwert"
+:suchthat			"mit"
+:and				"und"
+:for				"für"
+:rootlevel			"(auf Top-Ebene)"
+
+:dgmcaption			"Blockdiagramm von"

@@ -19,17 +19,24 @@
 
 // Notice section.
 
-:compilstamp1	"This documentation was generated with Faust version "
-:compilstamp2	", on "
-:compilstamp3	"."
+:faustapply		"The value of a Faust program is the result of applying the signal transformer denoted by the expression to which the \texttt{process} identifier is bound to input signals, running at the $f_S$ sampling frequency."
 
-:causality  	"$\forall \, s(t) \in \mathbb{S}$, $s(t\!<\!0) = 0$."
-:svgdir			"Eventual sub-block-diagrams may be found in the "svg" sub-directory (only top-level block-diagrams are represented in this documentation)."
-:nameconflicts  "Warning: symbolic names eventually used inside block-diagrams have NO direct relation with signal names used in formulas ("$x(t)$", "$y(t)$", ...). Moreover, the computation may be simplified and reorganized."
+:faustpresentation "Faust (\emph{Functional Audio Stream}) is a functional programming language designed for synchronous real-time signal processing and synthesis applications. A Faust program is a set of bindings of identifiers to expressions that denote signal transformers. A signal $s$ in $S$ is a function mapping\footnote{Faust assumes that $\forall \, s \in S, \forall \, t \in \mathbb{Z}, s(t) = 0 \mathrm{\ when\ } t < 0$.} times $t \in \mathbb{Z}$ to values $s(t) \in \mathbb{R}$, while a signal transformer is a function from $S^n$ to $S^m$, where $n,m\in \mathbb{N}$. See the Faust manual for additional information (\textsf{http://faust.grame.fr})."
 
-:fsamp			"$f_S$ is the sampling frequency (or sampling rate)."
+:causality		"Every mathematical formula derived from a Faust expression is assumed, in this document, to having been normalized (in an implementation-depen\-dent manner) by the Faust compiler."
+
+:blockdiagrams "A block diagram is a graphical representation of the Faust binding of an identifier I to an expression E; each graph is put in a box labeled by I. Subexpressions of E are recursively displayed as long as the whole picture fits in one page."
+
+:faustdocdir	"The \texttt{\faustdocdir/} directory may also include the following subdirectories:"
+"\begin{itemize}"
+"	\item	\texttt{cpp/} for Faust compiled code; "
+"	\item	\texttt{pdf/} which contains this document; "
+"	\item	\texttt{src/} for all Faust sources used (even libraries); "
+"	\item	\texttt{svg/} for block diagrams, encoded using the Scalable Vector Graphics format (\textsf{http://www.w3.org/Graphics/SVG/});"
+"	\item	\texttt{tex/} for the \LaTeX\ source of this document."
+"\end{itemize}"
+
 :foreignfun		""ff" prefix in some function name stands for C++ "foreign function"."
-:cdot			"The middle dot operator "$\cdot$" denotes multiplication in formulas."
 
 :intcast
 "$\forall \, x \in \mathbb{R}$, "
@@ -42,48 +49,42 @@
 "		\end{array}\right.."
 "	\end{displaymath}"
 
-:intplus		"The circled plus operator "$\oplus$" denotes an integer addition."
-:intminus		"The circled minus operator "$\ominus$" denotes an integer substraction."
-:intmult		"The circled dot operator "$\odot$" denotes an integer multiplication."
-:intdiv			"The circled slash operator "$\oslash$" denotes an integer division."
+:operators		"This document uses the following integer operations:"
+:optabtitle		"\emph{operation} & \emph{name} & \emph{semantics} \\"
+:intplus		"$\oplus$ & circled plus & integer addition \\"
+:intminus		"$\ominus$ & circled minus & integer substraction \\"
+:intmult		"$\odot$ & circled dot & integer multiplication \\"
+:intdiv			"$\oslash$ & circled slash & integer division \\"
 
-:inputsig		"$x(t)$ denotes an input signal."
-:inputsigs  	"$x_i(t)$ denote input signals."
-:outputsig  	"$y(t)$ denotes an output signal."
-:outputsigs  	"$y_i(t)$ denote output signals."
-:constsigs  	"$k_i$ denote constant signals."
-:paramsigs  	"$p_i(t)$ denote parameter signals (running at "block rate")."
-:storedsigs  	"$s_i(t)$ denote stored signals (running at sampling rate)."
-
-:buttonsigs  	"${u_b}_i(t)$ denote user interface signals of buttons."
-:checkboxsigs  	"${u_c}_i(t)$ denote user interface signals of checkboxes."
-:slidersigs  	"${u_s}_i(t)$ denote user interface signals of sliders."
-:nentrysigs  	"${u_n}_i(t)$ denote numeric user interface signals (numeric boxes)."
-:tablesigs  	"$v_i(t)$ and $w_i(t)$ denote table signals ($i(t)$ for indexes)."
-:recursigs  	"$r_i(t)$ denote recursive signals (delayed as $r_i(t\!-\!d)$)."
-:prefixsigs  	"$m_i(t)$ denote prefix-delayed signals."
-:selectionsig  	"$q_i(t)$ denote selection signals."
-:selectionsigs  "$q_i(t)$ denote selection signals."
-
+:integerops		"Integer operations in Faust are inspired by the semantics of operations on the n-bit two's complement representation of integer numbers; they are internal composition laws on the subset $[\,-2^{n-1}, 2^{n-1}\!-\!1\,]$ of $\mathbb{Z}$, with $n = 32$. For any integer binary operation $\times$ on $\mathbb{Z}$, the $\otimes$ operation is defined as: $i \otimes j = \mathrm{normalize}(i \times j)$, with "
+"$$\mathrm{normalize}(i) = i - N\cdot\mathrm{sign}(i) \cdot \left\lfloor \frac{|i|+N/2+(\mathrm{sign}(i)\!-\!1)/2}{N} \right\rfloor , $$"
+" where $N = 2^n$ and $\mathrm{sign}(i) = 0 \mathrm{\ if\ } i=0 \mathrm{\ and\ } i / |i| \mathrm{\ otherwise}.$"
+"Unary integer operations are defined likewise."
 
 
 // Auto-documentation section.
 
-:autoeqntitle	"\section{Equations of process}"
-:autoeqntext	"This program calls a \emph{process}, which mathematical description follows:"
+:thisdoc		"This document provides a mathematical description of the Faust program text stored in the \texttt{\faustfilename} file. See the notice in Section\,\ref{notice} (page\,\pageref{notice}) for details."
 
-:autodgmtitle	"\section{Block-diagram schema of process}"
-:autodgmtext	"The block-diagram schema of \emph{process} is shown on figure \ref{figure1}."
+:autoeqntitle	"\section{Mathematical definition of \texttt{process}}"
+"\label{equation}"
+:autoeqntext	"The \emph{\faustprogname} program evaluates the signal transformer denoted by \texttt{process}, which is mathematically defined as follows:"
 
-:autontctitle	"\section{Notice of this documentation}"
-:autontctext	"You might be careful of certain information and naming conventions used in this documentation:"
+:autodgmtitle	"\section{Block diagram of \texttt{process}}"
+"\label{diagram}"
+:autodgmtext	"The block diagram of \texttt{process} is shown on Figure\,\ref{figure1} (page\,\pageref{figure1})."
 
-:autolsttitle1	"\section{Complete listing of the input code}"
-:autolsttext1	"The following listing shows the Faust code parsed to compile this documentation."
+:autontctitle	"\section{Notice}"
+"\label{notice}"
+:autontctext	"This document was generated using Faust version \faustversion\ on \faustdocdate."
 
-:autolsttitle2	"\section{Complete listings of the input code}"
-:autolsttext2	"The following listings show the Faust code parsed to compile this documentation."
+:autolsttitle1	"\section{Faust code listing}"
+"\label{listing}"
+:autolsttext1	"This section provides the listing of the Faust code used to generate this document."
 
+:autolsttitle2	"\section{Faust code listings}"
+"\label{listing}"
+:autolsttext2	"This section provides the listings of the Faust code used to generate this document, including dependencies."
 
 
 // Titles for each type of formulas.
@@ -92,15 +93,19 @@
 :inputsigtitle2		"Input signals"
 :outputsigtitle1	"Output signal"
 :outputsigtitle2	"Output signals"
-:constsigtitle1		"Constant signal"
-:constsigtitle2		"Constant signals"
-:uisigtitle1		"User interface element"
-:uisigtitle2		"User interface elements"
-:paramsigtitle1		"Parameter signal"
-:paramsigtitle2		"Parameter signals"
-:internalsigtitle1	"Internal signal"
-:internalsigtitle2	"Internal signals"
+:constsigtitle1		"Constant"
+:constsigtitle2		"Constants"
+:uisigtitle1		"User-interface input signal"
+:uisigtitle2		"User-interface input signals"
+:intermedsigtitle1	"Intermediate signal"
+:intermedsigtitle2	"Intermediate signals"
 
 :lateqcomment		"% Set of Faust formulas (corresponding to an <equation> tag)."
 :emptyformulafield	"none"
 :defaultvalue		"default value"
+:suchthat			"such that"
+:and				"and"
+:for				"for"
+:rootlevel			"(at root level)"
+
+:dgmcaption			"Block diagram of"

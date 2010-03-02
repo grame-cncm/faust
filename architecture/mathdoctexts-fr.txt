@@ -19,72 +19,72 @@
 
 // Section Notice.
 
-:compilstamp1	"Cette documentation a été générée par Faust, version "
-:compilstamp2	", le "
-:compilstamp3	"."
+:faustapply		"La valeur d'un programme Faust est le résultat de l'application aux signaux d'entrée du transformateur de signaux dénoté par l'expression liée à l'identifiant \texttt{process}. Les signaux sont échantillonnés à la fréquence $f_S$."
 
-:causality  	"$\forall \, s(t) \in \mathbb{S}$, $s(t\!<\!0) = 0$."
-:svgdir			"Seul les blocs-diagrammes de plus haut niveau sont représentés ici, mais des blocs-diagrammes de niveau inférieur peuvent se trouver dans le sous-répertoire "svg"."
+:faustpresentation "Faust (\emph{Functional Audio Stream}) est un langage de programmation fonctionnelle conçu pour des applications synchrones de traitement du signal en temps réel et de synthèse sonore. Un programme Faust est un ensemble de liaisons entre un identifiant et une expression dénotant un transformateur de signaux. Un signal $s$ de $S$ est une fonction\footnote{Faust suppose que $\forall \, s \in S, \forall \, t \in \mathbb{Z}, s(t) = 0 \mathrm{\ quand\ } t < 0$.} du temps $t \in \mathbb{Z}$ vers des valeurs $s(t) \in \mathbb{R}$, tandis qu'un transformateur de signaux est une fonction de $S^n$ vers $S^m$, pour $n,m\in \mathbb{N}$. Se reporter au manuel de Faust pour des informations complémentaires (\textsf{http://faust.grame.fr})."
 
-:nameconflicts  "Attention: les noms symboliques éventuellement utilisés dans les blocs-diagrammes n'ont PAS de relation directe avec les noms de signaux utilisés dans les équations ("$x(t)$", "$y(t)$", ...). De plus, les calculs sont susceptibles d'être simplifiés et réorganisés."
+:causality		"Dans ce document, les équations mathématiques dérivées d'une expression Faust ont été normalisées par le compilateur Faust (d'une façon dépendante de l'implémentation)."
 
-:fsamp			"$f_S$ représente la fréquence d'échantillonnage (\emph{sampling frequency})."
-:foreignfun		"Le préfixe "ff" utilisé dans certains noms de fonction indique indique une fonction C++ "étrangère" à Faust (\emph{foreign function})."
-:cdot			"Le point central "$\cdot$" utilisé dans les équations désigne une multiplication."
+:blockdiagrams "Un bloc-diagramme est une représentation graphique d'une liaison entre un identifiant Faust I et une expression E\,; chaque graphe est placé dans une boîte étiquetée par I. Les sous-expressions de E sont affichées récursivement tant que l'image tient sur une page."
+
+:faustdocdir	"Le répertoire \texttt{\faustdocdir/} peut aussi inclure les répertoires suivants\,:"
+"\begin{itemize}"
+"	\item	\texttt{cpp/} pour le code Faust compilé\,; "
+"	\item	\texttt{pdf/}, qui contient ce document\,; "
+"	\item	\texttt{src/} pour toutes les sources Faust utilisées (y compris les bibliothèques)\,; "
+"	\item	\texttt{svg/} pour les blocs-diagrammes, encodés en SVG (\emph{Scalable Vector Graphics}, \textsf{http://www.w3.org/Graphics/SVG/})\,;"
+"	\item	\texttt{tex/} pour le source \LaTeX\ de ce document."
+"\end{itemize}"
+
+:foreignfun		"Le préfixe "ff" utilisé dans certains noms de fonction indique qu'il s'agit d'une fonction C++ "étrangère" importée dans Faust (\emph{foreign function})."
 
 :intcast
 "$\forall \, x \in \mathbb{R}$, "
 "	\begin{displaymath}"
 "		\mathrm{int}(x) ="
 "		\left\{\begin{array}{cl}"
-"			\lfloor x \rfloor & \mbox{if \,} x > 0 \\"
-"			\lceil x \rceil & \mbox{if \,} x < 0 \\"
-"			0 & \mbox{if \,} x = 0 \\"
+"			\lfloor x \rfloor & \mbox{si \,} x > 0 \\"
+"			\lceil x \rceil & \mbox{si \,} x < 0 \\"
+"			0 & \mbox{si \,} x = 0 \\"
 "		\end{array}\right.."
 "	\end{displaymath}"
 
-:intplus		"Le symbole "$\oplus$" (plus encerclé) désigne une addition entière."
-:intminus		"Le symbole "$\ominus$" (moins encerclé) désigne une soustraction entière."
-:intmult		"Le symbole "$\odot$" (point central encerclé) désigne une multiplication entière."
-:intdiv			"Le symbole "$\oslash$" (oblique encerclée) désigne une division entière."
+:operators		"Ce document utilise les opérateurs entiers suivants\,: "
+:optabtitle		"\emph{opérateur} & \emph{nom} & \emph{sémantique} \\"
+:intplus		"$\oplus$ & plus encerclé & addition entière \\"
+:intminus		"$\ominus$ & moins encerclé & soustraction entière \\"
+:intmult		"$\odot$ & point encerclé & multiplication entière \\"
+:intdiv			"$\oslash$ & oblique encerclée & division entière \\"
 
-:inputsig		"$x(t)$ désigne un signal d'entrée."
-:inputsigs  	"Les $x_i(t)$ désignent des signaux d'entrée."
-:outputsig  	"$y(t)$ désigne un signal de sortie."
-:outputsigs  	"Les $y_i(t)$ désignent des signaux de sortie."
-:constsigs  	"Les $k_i$ désignent des signaux constants."
-:paramsigs  	"Les $p_i(t)$ désignent des signaux "paramètres" (échantillonnés par blocs)."
-:storedsigs  	"Les $s_i(t)$ désignent des signaux enregistrés (à l'échantillon, \emph{stored})."
-
-:buttonsigs  	"Les ${u_b}_i(t)$ désignent des signaux d'interface-utilisateur de boutons."
-:checkboxsigs  	"Les ${u_c}_i(t)$ désignent des signaux d'interface-utilisateur de boîtes à cocher (\emph{checkboxes})."
-:slidersigs  	"Les ${u_s}_i(t)$ désignent des signaux d'interface-utilisateur de curseurs (\emph{sliders})."
-:nentrysigs  	"Les ${u_n}_i(t)$ désignent des signaux d'interface-utilisateur de boîtes numériques."
-:tablesigs  	"Les $v_i(t)$ et les $w_i(t)$ désignent des signaux de tables ($i(t)$ pour les index)."
-:recursigs  	"Les $r_i(t)$ désignent des signaux récursifs (retardés sous la forme $r_i(t\!-\!d)$)."
-:prefixsigs  	"Les $m_i(t)$  désignent des signaux retardés par un préfixe."
-:selectionsig  	"$q(t)$ désigne un signal de séléction."
-:selectionsigs  "Les $q_i(t)$ désignent des signaux de sélection."
-
+:integerops		"Les opérations entières de Faust sont inspirées de la sémantique des opérations sur la représentation des nombres entiers en complément à deux sur $n$ bits; elles sont des lois de composition interne sur le sous-ensemble $[\,-2^{n-1}, 2^{n-1}\!-\!1\,]$ de $\mathbb{Z}$, avec $n = 32$. Pour toute opération entière binaire $\times$ sur $\mathbb{Z}$, l'opération $\otimes$ est définie comme~: $i \otimes j = \mathrm{normalize}(i \times j)$, avec "
+"$$\mathrm{normalize}(i) = i - N\cdot\mathrm{sign}(i) \cdot \left\lfloor \frac{|i|+N/2+(\mathrm{sign}(i)\!-\!1)/2}{N} \right\rfloor , $$"
+" où $N = 2^n$ et $\mathrm{sign}(i) = 0 \mathrm{\ si\ } i=0 \mathrm{\ et\ } i / |i| \mathrm{\ sinon}.$"
+"Les opérations entières unaires sont définies de la même façon."
 
 
 // Section Auto-documentation.
 
-:autoeqntitle	"\section{Équations du signal "process"}"
-:autoeqntext	"Ce programme appelle un processeur de signal nommé \emph{process}, et dont la description mathématique est la suivante:"
+:thisdoc		"Ce document fournit une description mathématique du texte du programme Faust enregistré dans le fichier \texttt{\faustfilename}. Pour davantage d'informations, se reporter à la notice, section\,\ref{notice} (page\,\pageref{notice})."
 
-:autodgmtitle	"\section{Bloc-diagramme du signal "process"}"
-:autodgmtext	"La figure 1 représente le schéma du bloc-diagramme du signal "process"."
+:autoeqntitle	"\section{Définition mathématique de \texttt{process}}"
+"\label{equation}"
+:autoeqntext	"Le programme \emph{\faustprogname} évalue le transformateur de signaux dénoté par \texttt{process}, mathématiquement définit comme suit\,:"
 
-:autontctitle	"\section{Notice de cette documentation}"
-:autontctext	"Voici plusieurs informations potentiellement importantes pour la lecture de cette documentation, dont les conventions de nommage utilisées."
+:autodgmtitle	"\section{Bloc-diagramme de \texttt{process}}"
+"\label{diagram}"
+:autodgmtext	"La figure\,\ref{figure1} (page\,\pageref{figure1}) représente le bloc-diagramme de \texttt{process}."
 
-:autolsttitle1	"\section{Code d'entrée complet}"
-:autolsttext1	"Le code suivant montre le contenu du fichier-source qui a été compilé par Faust pour produire cette documentation."
+:autontctitle	"\section{Notice}"
+"\label{notice}"
+:autontctext	"Ce document a été généré par Faust version \faustversion\ (\faustdocdate)."
 
-:autolsttitle2	"\section{Codes d'entrée complets}"
-:autolsttext2	"Les codes suivants montrent le contenu des fichiers-sources qui ont été compilés par Faust pour produire cette documentation."
+:autolsttitle1	"\section{Code Faust}"
+"\label{listing}"
+:autolsttext1	"Cette section contient le code Faust utilisé pour générer ce document."
 
+:autolsttitle2	"\section{Code Faust}"
+"\label{listing}"
+:autolsttext2	"Cette section contient le code des différents fichiers Faust qui ont été utilisés pour générer ce document."
 
 
 // Section Titres des équations.
@@ -93,15 +93,19 @@
 :inputsigtitle2		"Signaux d'entrée"
 :outputsigtitle1	"Signal de sortie"
 :outputsigtitle2	"Signaux de sortie"
-:constsigtitle1		"Signal constant"
-:constsigtitle2		"Signaux constants"
-:uisigtitle1		"Élement d'interface-utilisateur"
-:uisigtitle2		"Élements d'interface-utilisateur"
-:paramsigtitle1		"Signal {"paramètre"}"
-:paramsigtitle2		"Signaux {"paramètres"}"
-:internalsigtitle1	"Signal interne"
-:internalsigtitle2	"Signaux internes"
+:constsigtitle1		"Constante"
+:constsigtitle2		"Constantes"
+:uisigtitle1		"Signal d'interface-utilisateur entrant"
+:uisigtitle2		"Signaux d'interface-utilisateur entrants"
+:intermedsigtitle1	"Signal intermédiaire"
+:intermedsigtitle2	"Signaux intermédiaires"
 
 :lateqcomment		"% Ensemble d'équations Faust (correspondant à une balise <equation>)."
 :emptyformulafield	"aucun"
 :defaultvalue		"valeur par défaut"
+:suchthat			"avec"
+:and				"et"
+:for				"pour"
+:rootlevel			"(à la racine)"
+
+:dgmcaption			"Bloc-diagramme de"

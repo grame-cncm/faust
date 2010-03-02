@@ -76,7 +76,7 @@
 :autodgmtext	"Il diagramma a blocchi di \emph{process} e' mostrato nella figura \ref{figure1}."
 
 :autontctitle	"\section{Informazioni sulla documentazione}"
-:autontctext	"Prestare attenzione ad alcune informazioni e convenzioni di nomenclatura usate nella presente documentazione:"
+:autontctext	"Prestare attenzione ad alcune informazioni e convenzioni di nomenclatura usate nella presente documentazione."
 
 :autolsttitle1	"\section{Listato completo del codice in ingresso}"
 :autolsttext1	"Il seguente listato mostra il codice sorgente, in linguaggio Faust, usato per compilare la presente documentazione."
