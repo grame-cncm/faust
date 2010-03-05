@@ -454,10 +454,11 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 	
 	vector<Tree>::const_iterator doc;
 	vector<string>::const_iterator code;
-	code=docMasterCodeMap.begin();
+	code = docMasterCodeMap.begin();
 	
 	if(doesFileBeginWithCode(gMasterDocument) && (! docMasterCodeMap.empty()) && gLstDistributedSwitch ) {
 		printdocCodeSlices(*code, docout);
+		code++;
 	}
 	
 	/** First level printing loop, on docVector. */
