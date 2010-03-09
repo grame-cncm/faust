@@ -435,6 +435,7 @@ string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, in
 			case kDiv:
 				op = "\\oslash";
 				gDocNoticeFlagMap["intdiv"] = true;
+				gDocNoticeFlagMap["intcast"] = true; // "$normalize(int(i/j))$" in the notice.
 				break;
 			default:
 				op = gBinOpLateqTable[opcode]->fName;
