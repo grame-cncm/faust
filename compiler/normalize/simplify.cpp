@@ -198,6 +198,32 @@ static Tree sigMap (Tree key, tfun f, Tree t)
 	}
 }
 
+static void eraseProperties (Tree key, Tree t)
+{
+	//printf("start sigMap\n");
+	Tree p,id,body;
+
+	if (getProperty(t, key, p)) {
+		// already erased, nothing to do
+
+	} else if (isRec(t, id, body)) {
+		t->clearProperties();
+		setProperty(t, key, nil);	// avoid infinite loop
+		eraseProperties(key, body);
+
+	} else {
+
+		for (int i=0; i<t->arity(); i++) {
+			eraseProperties(key,t->branch(i));
+		}
+	}
+}
+
+void eraseAllProperties(Tree t)
+{
+	eraseProperties(tree(Node(unique("erase_"))), t);
+}
+
 /**
  * Converts regular tables into doc tables in order to
  * facilitate the mathematical documentation generation
@@ -209,6 +235,7 @@ static Tree docTableConverter (Tree sig);
 
 Tree docTableConvertion (Tree sig)
 {
+	eraseAllProperties(sig);
     return sigMap(DOCTABLES, docTableConverter, sig);
 }
 
