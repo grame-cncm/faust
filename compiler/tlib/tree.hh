@@ -157,6 +157,7 @@ class CTree
 	// Property list of a tree
 	void		setProperty(Tree key, Tree value) { fProperties[key] = value; }
 	void		clearProperty(Tree key) { fProperties.erase(key); }
+	void		clearProperties()		{ fProperties = plist(); }
 	Tree		getProperty(Tree key) {
 		plist::iterator i = fProperties.find(key);
 		if (i==fProperties.end()) {
