@@ -51,10 +51,10 @@
 
 :operators		"Ce document utilise les opérateurs entiers suivants\,: "
 :optabtitle		"\emph{opérateur} & \emph{nom} & \emph{sémantique} \\"
-:intplus		"$\oplus$ & plus encerclé & addition entière \\"
-:intminus		"$\ominus$ & moins encerclé & soustraction entière \\"
-:intmult		"$\odot$ & point encerclé & multiplication entière \\"
-:intdiv			"$\oslash$ & oblique encerclée & division entière \\"
+:intplus		"$i \oplus j$ & addition entière & $\mathrm{normalize}(i+j), \mathrm{~dans~} \mathbb{Z}$ \\"
+:intminus		"$i \ominus j$ & soustraction entière & $\mathrm{normalize}(i-j), \mathrm{~dans~} \mathbb{Z}$ \\"
+:intmult		"$i \odot j$ & multiplication entière & $\mathrm{normalize}(i \cdot j), \mathrm{~dans~} \mathbb{Z}$ \\"
+:intdiv			"$i \oslash j$ & division entière & $\mathrm{normalize}(\mathrm{int}(i/j)), \mathrm{~dans~} \mathbb{Q}$ \\"
 
 :integerops		"Les opérations entières de Faust sont inspirées de la sémantique des opérations sur la représentation des nombres entiers en complément à deux sur $n$ bits; elles sont des lois de composition interne sur le sous-ensemble $[\,-2^{n-1}, 2^{n-1}\!-\!1\,]$ de $\mathbb{Z}$, avec $n = 32$. Pour toute opération entière binaire $\times$ sur $\mathbb{Z}$, l'opération $\otimes$ est définie comme~: $i \otimes j = \mathrm{normalize}(i \times j)$, avec "
 "$$\mathrm{normalize}(i) = i - N\cdot\mathrm{sign}(i) \cdot \left\lfloor \frac{|i|+N/2+(\mathrm{sign}(i)\!-\!1)/2}{N} \right\rfloor , $$"

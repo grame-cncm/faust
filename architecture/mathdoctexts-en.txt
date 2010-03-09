@@ -51,10 +51,10 @@
 
 :operators		"This document uses the following integer operations:"
 :optabtitle		"\emph{operation} & \emph{name} & \emph{semantics} \\"
-:intplus		"$\oplus$ & circled plus & integer addition \\"
-:intminus		"$\ominus$ & circled minus & integer substraction \\"
-:intmult		"$\odot$ & circled dot & integer multiplication \\"
-:intdiv			"$\oslash$ & circled slash & integer division \\"
+:intplus		"$i \oplus j$ & integer addition & $\mathrm{normalize}(i+j), \mathrm{~in~} \mathbb{Z}$ \\"
+:intminus		"$i \ominus j$ & integer substraction & $\mathrm{normalize}(i-j), \mathrm{~in~} \mathbb{Z}$ \\"
+:intmult		"$i \odot j$ & integer multiplication & $\mathrm{normalize}(i \cdot j), \mathrm{~in~} \mathbb{Z}$ \\"
+:intdiv			"$i \oslash j$ & integer division & $\mathrm{normalize}(\mathrm{int}(i/j)), \mathrm{~in~} \mathbb{Q}$ \\"
 
 :integerops		"Integer operations in Faust are inspired by the semantics of operations on the n-bit two's complement representation of integer numbers; they are internal composition laws on the subset $[\,-2^{n-1}, 2^{n-1}\!-\!1\,]$ of $\mathbb{Z}$, with $n = 32$. For any integer binary operation $\times$ on $\mathbb{Z}$, the $\otimes$ operation is defined as: $i \otimes j = \mathrm{normalize}(i \times j)$, with "
 "$$\mathrm{normalize}(i) = i - N\cdot\mathrm{sign}(i) \cdot \left\lfloor \frac{|i|+N/2+(\mathrm{sign}(i)\!-\!1)/2}{N} \right\rfloor , $$"
