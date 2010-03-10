@@ -222,7 +222,13 @@ static void writeSchemaFile(Tree bd)
 
 	gOccurrences = new Occurrences(bd);
 
-	bool hasname = getDefNameProperty(bd, id); assert(hasname);
+	bool hasname = getDefNameProperty(bd, id); 
+
+	//assert(hasname);
+	if (!hasname) {
+		// create an arbitrary name 
+		id = tree(Node(unique("diagram_")));
+	}
 
 	// generate legal file name for the schema
 	stringstream s1; s1 << legalFileName(bd, 1024, temp) << "." << gDevSuffix;
