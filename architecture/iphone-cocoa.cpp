@@ -155,6 +155,9 @@ class TiPhoneCoreAudioRenderer
         TiPhoneCoreAudioRenderer(int input, int output)
             :fDevNumInChans(input), fDevNumOutChans(output)
         {
+            memset(fInChannel, 0, sizeof(float*) * MAX_CHANNELS);
+            memset(fOutChannel, 0, sizeof(float*) * MAX_CHANNELS);
+            
             for (int i = 0; i < fDevNumInChans; i++) {
                 fInChannel[i] = new float[8192];
             }
