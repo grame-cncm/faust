@@ -25,6 +25,7 @@
 #include <assert.h>
 #include "signals.hh"
 #include "sigtype.hh"
+#include "recursivness.hh"
 #include "sigtyperules.hh"
 #include "sigorderrules.hh"
 #include "sigprint.hh"
@@ -208,6 +209,8 @@ static void eraseProperties (Tree key, Tree t)
 
 	} else if (isRec(t, id, body)) {
 		t->clearProperties();
+        Tree r=rec(id, body);
+        assert(r==t);
 		setProperty(t, key, nil);	// avoid infinite loop
 		eraseProperties(key, body);
 
@@ -221,7 +224,9 @@ static void eraseProperties (Tree key, Tree t)
 
 void eraseAllProperties(Tree t)
 {
+    cerr << "begin eraseAllProperties" << endl;
 	eraseProperties(tree(Node(unique("erase_"))), t);
+    cerr << "end eraseAllProperties" << endl;
 }
 
 /**
@@ -235,8 +240,10 @@ static Tree docTableConverter (Tree sig);
 
 Tree docTableConvertion (Tree sig)
 {
-	eraseAllProperties(sig);
-    return sigMap(DOCTABLES, docTableConverter, sig);
+    Tree r  = sigMap(DOCTABLES, docTableConverter, sig);
+   // eraseAllProperties(r);
+    //recursivnessAnnotation(r);
+    return r;
 }
 
 
