@@ -20,15 +20,15 @@ mathdoc :
 
 copypdfs :
 	mkdir -p allmathpdfs
-	cp $(PDF) allmathpdfs/
+	cp $(wildcard *-mdoc/pdf/*.pdf) allmathpdfs/
 
 copyall :
 	mkdir -p allmathdsps
 	mkdir -p allmathtexs
 	mkdir -p allmathpdfs
-	cp $(DSP) allmathdsps/
-	cp $(TEX) allmathtexs/
-	cp $(PDF) allmathpdfs/
+	cp $(wildcard *.dsp) allmathdsps/
+	cp $(wildcard *-mdoc/tex/*.tex) allmathtexs/
+	cp $(wildcard *-mdoc/pdf/*.pdf) allmathpdfs/
 
 help :
 	@echo "make or make all : compile math documentation of all examples, then copy resulting pdf files into \"allmathpdfs\" directory."
