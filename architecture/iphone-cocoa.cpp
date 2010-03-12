@@ -138,6 +138,8 @@ class TiPhoneCoreAudioRenderer
         int fHWNumInChans;
         int fHWNumOutChans;
      
+        AudioBufferList* fCAInputData;
+     
         float* fInChannel[MAX_CHANNELS];
         float* fOutChannel[MAX_CHANNELS];
 	
@@ -153,7 +155,7 @@ class TiPhoneCoreAudioRenderer
     public:
 
         TiPhoneCoreAudioRenderer(int input, int output)
-            :fDevNumInChans(input), fDevNumOutChans(output)
+            :fDevNumInChans(input), fDevNumOutChans(output), fCAInputData(NULL)
         {
             memset(fInChannel, 0, sizeof(float*) * MAX_CHANNELS);
             memset(fOutChannel, 0, sizeof(float*) * MAX_CHANNELS);
@@ -166,6 +168,7 @@ class TiPhoneCoreAudioRenderer
                 fOutChannel[i] = new float[8192];
             }
         }
+        
         virtual ~TiPhoneCoreAudioRenderer()
         {
             for (int i = 0; i < fDevNumInChans; i++) {
@@ -174,6 +177,13 @@ class TiPhoneCoreAudioRenderer
     
             for (int i = 0; i < fDevNumOutChans; i++) {
                 delete[] fOutChannel[i]; 
+            }
+            
+            if (fCAInputData) {
+                for (int i = 0; i < fDevNumInChans; i++) {
+                    free(fCAInputData->mBuffers[i].mData);
+                }
+                free(fCAInputData);
             }
         }
 
@@ -248,7 +258,7 @@ OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
                                          AudioBufferList *ioData)
 {
     TiPhoneCoreAudioRendererPtr renderer = (TiPhoneCoreAudioRendererPtr)inRefCon;
-    AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData);
+    AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fCAInputData);
     
     float coef = float(LONG_MAX);
     float inv_coef = 1.f/float(LONG_MAX);
@@ -257,13 +267,13 @@ OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
         // Mono ==> stereo
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
             for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = float(((long*)ioData->mBuffers[0].mData)[frame]) * inv_coef;
+                renderer->fInChannel[chan][frame] = float(((int*)renderer->fCAInputData->mBuffers[0].mData)[frame]) * inv_coef;
             }
         }
     } else {
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
             for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = float(((long*)ioData->mBuffers[chan].mData)[frame]) * inv_coef;
+                renderer->fInChannel[chan][frame] = float(((int*)renderer->fCAInputData->mBuffers[chan].mData)[frame]) * inv_coef;
             }
         }
     }
@@ -522,6 +532,15 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
             printError(err1);
             goto error;
         }
+    }
+    
+    // Prepare buffers
+    fCAInputData = (AudioBufferList*)malloc(sizeof(UInt32) + fDevNumInChans * sizeof(AudioBuffer));
+    fCAInputData->mNumberBuffers = fDevNumInChans;
+    for (int i = 0; i < fDevNumInChans; i++) {
+        fCAInputData->mBuffers[i].mNumberChannels = 1;
+        fCAInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(int);
+        fCAInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(int));
     }
 
     return NO_ERR;
