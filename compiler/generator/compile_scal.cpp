@@ -335,11 +335,12 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
     Occurences* o = fOccMarkup.retrieve(sig);
 
     addIncludeFile(file);
-
+/*
     if (o->getMaxDelay()>0) {
         getTypedNames(getSigType(sig), "Vec", ctype, vname);
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
     }
+    */
     return generateCacheCode(sig, exp);
 }
 
@@ -390,7 +391,7 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         sep = ", ";
     }
     code += ')';
-    return code;
+    return generateCacheCode(sig, code);
 }
 
 
@@ -1058,7 +1059,11 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 	int 	mxd, d;
 	string 	vecname;
 
-	CS(exp); // ensure exp is compiled to have a vector name
+    //cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
+    //cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
+    //cerr << "ScalarCompiler::generateFixDelay del = " << *delay << endl;
+
+    CS(exp); // ensure exp is compiled to have a vector name
 
 	mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
