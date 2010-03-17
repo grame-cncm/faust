@@ -161,5 +161,51 @@ TF2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
 	};
 
 
+/*************************** Break Point Functions ***************************
+
+bpf is an environment (a group of related definitions) tha can be used to 
+create break-point functions. It contains three functions : 
+  - start(x,y) to start a break-point function
+  - end(x,y) to end a break-point function
+  - point(x,y) to add intermediate points to a break-point function
+
+A minimal break-point function must contain at least a start and an end point :
+
+  f = bpf.start(x0,y0) : bpf.end(x1,y1);
+
+A more involved break-point function can contains any number of intermediate 
+points
+
+  f = bpf.start(x0,y0) : bpf.point(x1,y1) : bpf.point(x2,y2) : bpf.end(x3,y3);
+
+In any case the x_{i} must be in increasing order (for all i, x_{i} < x_{i+1})
+
+For example the following definition :
+
+  f = bpf.start(x0,y0) : ... : bpf.point(xi,yi) : ... : bpf.end(xn,yn);
+
+implements a break-point function f such that :
+
+  f(x) = y_{0} when x < x_{0}
+  f(x) = y_{n} when x > x_{n}
+  f(x) = y_{i} + (y_{i+1}-y_{i})*(x-x_{i})/(x_{i+1}-x_{i}) when x_{i} <= x and x < x_{i+1} 
+
+******************************************************************************/
+
+bpf = environment 
+{
+  // Start a break-point function
+  start(x0,y0) = \(x).(x0,y0,x,y0);
+
+  // Add a break-point
+  point(x1,y1) = \(x0,y0,x,y).(x1, y1, x , if (x < x0, y, if (x < x1, y0 + (x-x0)*(y1-y0)/(x1-x0), y1)));
+
+  // End a break-point function
+  end  (x1,y1) = \(x0,y0,x,y).(if (x < x0, y, if (x < x1, y0 + (x-x0)*(y1-y0)/(x1-x0), y1)));
+
+  // definition of if
+  if (c,t,e) = select2(c,e,t);
+};
+
 
 
