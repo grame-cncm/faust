@@ -236,7 +236,6 @@ generator/compile_vect.o: tlib/shlysis.hh signals/binop.hh generator/klass.hh si
 generator/compile_vect.o: signals/interval.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
 generator/compile_vect.o: parallelize/graphSorting.hh generator/Text.hh generator/description.hh
 generator/compile_vect.o: signals/sigtyperules.hh generator/occurences.hh generator/floats.hh signals/ppsig.hh
-generator/compile_vect.o: parallelize/delayline.hh
 generator/contextor.o: generator/contextor.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/smartpointer.hh
@@ -281,10 +280,6 @@ normalize/simplify.o: extended/xtended.hh generator/klass.hh generator/uitree.hh
 normalize/simplify.o: parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-parallelize/delayline.o: parallelize/delayline.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-parallelize/delayline.o: generator/klass.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-parallelize/delayline.o: tlib/list.hh tlib/shlysis.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
-parallelize/delayline.o: parallelize/graphSorting.hh generator/Text.hh
 parallelize/graphSorting.o: parallelize/graphSorting.hh parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 parallelize/graphSorting.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 parallelize/loop.o: parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh

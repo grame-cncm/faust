@@ -50,7 +50,6 @@
 #include "ppsig.hh"
 
 extern bool	gLessTempSwitch;
-extern bool gSchedulerSwitch;
 extern int	gMaxCopyDelay;
 
 static Klass* signal2klass (const string& name, Tree sig)

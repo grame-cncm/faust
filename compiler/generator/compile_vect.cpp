@@ -24,10 +24,8 @@
 #include "compile_vect.hh"
 #include "floats.hh"
 #include "ppsig.hh"
-#include "delayline.hh"
 
 extern int gVecSize;
-extern bool gSchedulerSwitch;
 
 void VectorCompiler::compileMultiSignal (Tree L)
 {
@@ -35,18 +33,10 @@ void VectorCompiler::compileMultiSignal (Tree L)
     L = prepare(L);     // optimize, share and annotate expression
     
     for (int i = 0; i < fClass->inputs(); i++) {
-        if (gSchedulerSwitch) {
-            fClass->addZone3(subst("$1* input$0 = &input[$0][fIndex];", T(i), xfloat()));
-        } else {
-            fClass->addZone3(subst("$1* input$0 = &input[$0][index];", T(i), xfloat()));
-        }
+        fClass->addZone3(subst("$1* input$0 = &input[$0][index];", T(i), xfloat()));
     }
     for (int i = 0; i < fClass->outputs(); i++) {
-        if (gSchedulerSwitch) {
-            fClass->addZone3(subst("$1* output$0 = &output[$0][fIndex];", T(i), xfloat()));
-        } else {
-            fClass->addZone3(subst("$1* output$0 = &output[$0][index];", T(i), xfloat()));
-        }
+        fClass->addZone3(subst("$1* output$0 = &output[$0][index];", T(i), xfloat()));
     }
                 
     fClass->addSharedDecl("fullcount"); 
@@ -58,11 +48,6 @@ void VectorCompiler::compileMultiSignal (Tree L)
         fClass->openLoop("count");
         fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
         fClass->closeLoop();
-    }
-    
-    if (gSchedulerSwitch) {
-        // Build tasks list 
-        fClass->buildTasksList();
     }
     
     generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
@@ -207,9 +192,6 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
     }
 }
 
-
-
-
 /**
  * Test if a signal need to be compiled in a separate loop.
  * @param sig the signal expression to test.
@@ -252,18 +234,14 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     return b;
 }
 
-
-
-
 void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp)
 {
     if (mxd == 0) {
-        vectorLoop(fClass, ctype, vname, exp);
+        vectorLoop(ctype, vname, exp);
     } else {
-        dlineLoop(fClass, ctype, vname, mxd, exp);
+        dlineLoop(ctype, vname, mxd, exp);
     }
 }
-
 
 string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
 {
@@ -272,7 +250,7 @@ string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
     if (getSigType(sig)->variability() == kSamp) {
         string      vname, ctype;
         getTypedNames(t, "Vector", ctype, vname);
-        vectorLoop(fClass, ctype, vname, exp);
+        vectorLoop(ctype, vname, exp);
         return subst("$0[i]", vname);
     } else {
         return ScalarCompiler::generateVariableStore(sig, exp);
@@ -352,4 +330,116 @@ string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     }
 }
 
+
+static int pow2limit(int x)
+{
+    int n = 2;
+    while (n < x) { n = 2*n; }
+    return n;
+}
+
+/**
+ * Generate the code for a (short) delay line
+ * @param k the c++ class where the delay line will be placed.
+ * @param l the loop where the code will be placed.
+ * @param tname the name of the C++ type (float or int)
+ * @param dlname the name of the delay line (vector) to be used.
+ * @param delay the maximum delay
+ * @param cexp the content of the signal as a C++ expression 
+ */
+void  VectorCompiler::vectorLoop (const string& tname, const string& vecname, const string& cexp) 
+{  
+    // -- declare the vector
+    fClass->addSharedDecl(vecname);
+    
+    // -- variables moved as class fields...
+    fClass->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
+    
+    // -- compute the new samples
+    fClass->addExecCode(subst("$0[i] = $1;", vecname, cexp));
+}
+
+
+/**
+ * Generate the code for a (short) delay line
+ * @param k the c++ class where the delay line will be placed.
+ * @param l the loop where the code will be placed.
+ * @param tname the name of the C++ type (float or int)
+ * @param dlname the name of the delay line (vector) to be used.
+ * @param delay the maximum delay
+ * @param cexp the content of the signal as a C++ expression 
+ */
+void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int delay, const string& cexp) 
+{
+    if (delay < gMaxCopyDelay) {
+        
+        // Implementation of a copy based delayline
+        
+	    // create names for temporary and permanent storage  
+	    string  buf = subst("$0_tmp", dlname); 			
+        string  pmem= subst("$0_perm", dlname);
+        
+        // constraints delay size to be multiple of 4
+        delay = (delay+3)&-4;
+        
+        // allocate permanent storage for delayed samples
+        string  dsize   = T(delay);
+        fClass->addDeclCode(subst("$0 \t$1[$2];", tname, pmem, dsize));
+        
+        // init permanent memory
+        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", pmem, dsize)); 
+        
+        // compute method
+        
+        // -- declare a buffer and a "shifted" vector
+        fClass->addSharedDecl(buf);
+        
+        // -- variables moved as class fields...
+        fClass->addZone1(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
+        
+        fClass->addFirstPrivateDecl(dlname);
+        fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
+        
+        // -- copy the stored samples to the delay line
+        fClass->addPreCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
+        
+        // -- compute the new samples
+        fClass->addExecCode(subst("$0[i] = $1;", dlname, cexp));
+        
+        // -- copy back to stored samples
+        fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        
+    } else {
+        
+        // Implementation of a ring-buffer delayline
+        
+        // the size should be large enough and aligned on a power of two
+        delay   = pow2limit(delay + gVecSize);
+        string  dsize   = T(delay);
+        string  mask    = T(delay-1);
+        
+        // create names for temporary and permanent storage  
+        string  idx = subst("$0_idx", dlname);
+        string  idx_save = subst("$0_idx_save", dlname);
+        
+        // allocate permanent storage for delayed samples
+        fClass->addDeclCode(subst("$0 \t$1[$2];", tname, dlname, dsize));
+        fClass->addDeclCode(subst("int \t$0;", idx));
+        fClass->addDeclCode(subst("int \t$0;", idx_save));
+        
+        // init permanent memory
+        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", dlname, dsize)); 
+        fClass->addInitCode(subst("$0 = 0;", idx));
+        fClass->addInitCode(subst("$0 = 0;", idx_save));
+        
+        // -- update index
+        fClass->addPreCode(subst("$0 = ($0+$1)&$2;", idx, idx_save, mask));
+        
+        // -- compute the new samples
+        fClass->addExecCode(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask));
+        
+        // -- save index
+        fClass->addPostCode(subst("$0 = count;", idx_save));
+    }
+}
 

@@ -37,6 +37,8 @@
 
 #include "compile_scal.hh"
 #include "compile_vect.hh"
+#include "compile_sched.hh"
+
 #include "propagate.hh"
 #include "errormsg.hh"
 #include "ppbox.hh"
@@ -590,8 +592,9 @@ int main (int argc, char* argv[])
 	startTiming("compilation");
 
 	Compiler* C;
-    if (gVectorSwitch)  C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
-	else 				C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
+    if (gSchedulerSwitch)   C = new SchedulerCompiler("mydsp", "dsp", numInputs, numOutputs);
+    else if (gVectorSwitch) C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
+	else                    C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
 
 	if (gPrintXMLSwitch) C->setDescription(new Description());
 	if (gPrintDocSwitch) C->setDescription(new Description());

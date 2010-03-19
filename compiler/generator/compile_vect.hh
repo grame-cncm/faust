@@ -58,9 +58,11 @@ protected:
     virtual string      generateVariableStore(Tree sig, const string& exp);
     virtual string      generateFixDelay (Tree sig, Tree exp, Tree delay);
     virtual string      generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    virtual void        vectorLoop (const string& tname, const string& dlname, const string& cexp);
+    virtual void        dlineLoop ( const string& tname, const string& dlname, int delay, const string& cexp);
 
     bool    needSeparateLoop(Tree sig);
-
+    
 };
 
 
