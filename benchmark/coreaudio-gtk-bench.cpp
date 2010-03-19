@@ -1097,35 +1097,35 @@ float* 	gOutChannel[256];
 
 class TCoreAudioRenderer
 {
-    
-private:
-    
-    AudioBufferList* fInputData;
-    AudioDeviceID fDeviceID;
-    AudioUnit fAUHAL;
-    
-    OSStatus GetDefaultDevice(int inChan, int outChan, AudioDeviceID* id);
-    
-    static	OSStatus Render(void *inRefCon,
-                            AudioUnitRenderActionFlags *ioActionFlags,
-                            const AudioTimeStamp *inTimeStamp,
-                            UInt32 inBusNumber,
-                            UInt32 inNumberFrames,
-                            AudioBufferList *ioData);
-    
-public:
-    
-    TCoreAudioRenderer()
-    {}
-    virtual ~TCoreAudioRenderer()
-    {}
-    
-    long OpenDefault(long inChan, long outChan, long bufferSize, long sampleRate);
-    long Close();
-    
-    long Start();
-    long Stop();
-    
+
+    private:
+
+		AudioBufferList* fInputData;
+		AudioDeviceID fDeviceID;
+		AudioUnit fAUHAL;
+		
+		OSStatus GetDefaultDevice(int inChan, int outChan, AudioDeviceID* id);
+  
+		static	OSStatus Render(void *inRefCon,
+                               AudioUnitRenderActionFlags *ioActionFlags,
+                               const AudioTimeStamp *inTimeStamp,
+                               UInt32 inBusNumber,
+                               UInt32 inNumberFrames,
+                               AudioBufferList *ioData);
+
+    public:
+
+        TCoreAudioRenderer()
+        {}
+        virtual ~TCoreAudioRenderer()
+        {}
+
+        long OpenDefault(long inChan, long outChan, long bufferSize, long sampleRate);
+        long Close();
+
+        long Start();
+        long Stop();
+
 };
 
 typedef TCoreAudioRenderer * TCoreAudioRendererPtr;
@@ -1135,12 +1135,12 @@ static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
     printf("- - - - - - - - - - - - - - - - - - - -\n");
     printf("  Sample Rate:%f\n", inDesc->mSampleRate);
     printf("  Format ID:%.*s\n", (int) sizeof(inDesc->mFormatID), (char*)&inDesc->mFormatID);
-    printf("  Format Flags:%X\n", inDesc->mFormatFlags);
-    printf("  Bytes per Packet:%d\n", inDesc->mBytesPerPacket);
-    printf("  Frames per Packet:%d\n", inDesc->mFramesPerPacket);
-    printf("  Bytes per Frame:%d\n", inDesc->mBytesPerFrame);
-    printf("  Channels per Frame:%d\n", inDesc->mChannelsPerFrame);
-    printf("  Bits per Channel:%d\n", inDesc->mBitsPerChannel);
+    printf("  Format Flags:%lX\n", inDesc->mFormatFlags);
+    printf("  Bytes per Packet:%ld\n", inDesc->mBytesPerPacket);
+    printf("  Frames per Packet:%ld\n", inDesc->mFramesPerPacket);
+    printf("  Bytes per Frame:%ld\n", inDesc->mBytesPerFrame);
+    printf("  Channels per Frame:%ld\n", inDesc->mChannelsPerFrame);
+    printf("  Bits per Channel:%ld\n", inDesc->mBitsPerChannel);
     printf("- - - - - - - - - - - - - - - - - - - -\n");
 }
 
@@ -1208,11 +1208,11 @@ static void printError(OSStatus err)
 }
 
 OSStatus TCoreAudioRenderer::Render(void *inRefCon,
-                                    AudioUnitRenderActionFlags *ioActionFlags,
-                                    const AudioTimeStamp *inTimeStamp,
-                                    UInt32,
-                                    UInt32 inNumberFrames,
-                                    AudioBufferList *ioData)
+                                     AudioUnitRenderActionFlags *ioActionFlags,
+                                     const AudioTimeStamp *inTimeStamp,
+                                     UInt32,
+                                     UInt32 inNumberFrames,
+                                     AudioBufferList *ioData)
 {
     TCoreAudioRendererPtr renderer = (TCoreAudioRendererPtr)inRefCon;
     AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fInputData);
@@ -1222,12 +1222,7 @@ OSStatus TCoreAudioRenderer::Render(void *inRefCon,
     for (int i = 0; i < gDevNumOutChans; i++) {
         gOutChannel[i] = (float*)ioData->mBuffers[i].mData;
     }
-    STARTMESURE
     DSP.compute((int)inNumberFrames, gInChannel, gOutChannel);
-    STOPMESURE
-    
-    running = mesure <= (KMESURE + KSKIP);
-    
 	return 0;
 }
 
@@ -1237,11 +1232,11 @@ OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, AudioDevi
     AudioDeviceID inDefault;
     AudioDeviceID outDefault;
 	OSStatus res;
-    
+
     if ((res = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultInputDevice,
                                         &theSize, &inDefault)) != noErr)
         return res;
-    
+
     if ((res = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice,
                                         &theSize, &outDefault)) != noErr)
         return res;
@@ -1253,7 +1248,7 @@ OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, AudioDevi
 			*id = inDefault;
 			return noErr;
 		} else {
-			printf("GetDefaultDevice : error input = %d and output = %d are not the same\n", inDefault, outDefault);
+			printf("GetDefaultDevice : error input = %ld and output = %ld are not the same\n", inDefault, outDefault);
 			return kAudioHardwareBadDeviceError;
 		}
 	} else if (inChan > 0) {
@@ -1294,7 +1289,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err);
         return OPEN_ERR;
     }
-    
+
     // Setting sample rate
     outSize = sizeof(AudioStreamBasicDescription);
     err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyStreamFormat, &outSize, &sampleRate);
@@ -1303,7 +1298,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err);
         return OPEN_ERR;
     }
-    
+
     if (samplerate != long(sampleRate.mSampleRate)) {
         sampleRate.mSampleRate = (Float64)(samplerate);
         err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyStreamFormat, outSize, &sampleRate);
@@ -1313,18 +1308,18 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             return OPEN_ERR;
         }
     }
-    
+
     // AUHAL
     ComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_HALOutput, kAudioUnitManufacturer_Apple, 0, 0};
     Component HALOutput = FindNextComponent(NULL, &cd);
-    
+
     err1 = OpenAComponent(HALOutput, &fAUHAL);
     if (err1 != noErr) {
 		printf("Error calling OpenAComponent\n");
         printError(err1);
         goto error;
 	}
-    
+
     err1 = AudioUnitInitialize(fAUHAL);
     if (err1 != noErr) {
 		printf("Cannot initialize AUHAL unit\n");
@@ -1354,52 +1349,52 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err1);
         goto error;
     }
-    
+
     err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1, (UInt32*)&bufferSize, sizeof(UInt32));
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
         printError(err1);
         goto error;
     }
-    
+
     err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, (UInt32*)&bufferSize, sizeof(UInt32));
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
         printError(err1);
         goto error;
     }
-    
+
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Input, 1, &outSize, &isWritable);
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap-INFO 1\n");
         printError(err1);
     }
-    
+
     in_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
     printf("in_nChannels = %ld\n", in_nChannels);
-    
+
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap-INFO 0\n");
         printError(err1);
     }
-    
+
     out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
     printf("out_nChannels = %ld\n", out_nChannels);
-    
+
     /*
-     Just ignore this case : seems to work without any further change...
+    Just ignore this case : seems to work without any further change...
      
-     if (outChan > out_nChannels) {
-     printf("This device hasn't required output channels\n");
-     goto error;
-     }
-     if (inChan > in_nChannels) {
-     printf("This device hasn't required input channels\n");
-     goto error;
-     }
-     */
-    
+    if (outChan > out_nChannels) {
+        printf("This device hasn't required output channels\n");
+        goto error;
+    }
+    if (inChan > in_nChannels) {
+        printf("This device hasn't required input channels\n");
+        goto error;
+    }
+    */
+
     if (outChan < out_nChannels) {
         SInt32 chanArr[out_nChannels];
         for (int i = 0;	i < out_nChannels; i++) {
@@ -1414,7 +1409,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             printError(err1);
         }
     }
-    
+
     if (inChan < in_nChannels) {
         SInt32 chanArr[in_nChannels];
         for (int i = 0; i < in_nChannels; i++) {
@@ -1432,7 +1427,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	
     if (inChan > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
-        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &srcFormat, &outSize);
+        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
         if (err1 != noErr) {
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
@@ -1459,7 +1454,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	
     if (outChan > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
-        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1, &dstFormat, &outSize);
+        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
         if (err1 != noErr) {
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
@@ -1476,14 +1471,14 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         dstFormat.mBitsPerChannel = 32;
         
         PrintStreamDesc(&dstFormat);
-        
+
         err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
         }
     }
-    
+
     if (inChan > 0 && outChan == 0) {
         AURenderCallbackStruct output;
         output.inputProc = Render;
@@ -1505,14 +1500,14 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             goto error;
         }
     }
-    
+
     fInputData = (AudioBufferList*)malloc(sizeof(UInt32) + inChan * sizeof(AudioBuffer));
     if (fInputData == 0) {
 		printf("Cannot allocate memory for input buffers\n");
         goto error;
 	}
     fInputData->mNumberBuffers = inChan;
-    
+
     // Prepare buffers
     for (int i = 0; i < inChan; i++) {
         fInputData->mBuffers[i].mNumberChannels = 1;
@@ -1521,7 +1516,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     }
  	
     return NO_ERR;
-    
+
 error:
     AudioUnitUninitialize(fAUHAL);
     CloseComponent(fAUHAL);
@@ -1542,7 +1537,7 @@ long TCoreAudioRenderer::Close()
 long TCoreAudioRenderer::Start()
 {
 	OSStatus err = AudioOutputUnitStart(fAUHAL);
-    
+  
     if (err != noErr) {
         printf("Error while opening device : device open error \n");
         return OPEN_ERR;
@@ -1554,7 +1549,7 @@ long TCoreAudioRenderer::Start()
 long TCoreAudioRenderer::Stop()
 {
     OSStatus err = AudioOutputUnitStop(fAUHAL);
-    
+
     if (err != noErr) {
         printf("Error while closing device : device close error \n");
         return OPEN_ERR;
