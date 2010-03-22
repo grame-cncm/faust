@@ -40,9 +40,10 @@ main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/sm
 main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
 main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh tlib/property.hh
 main.o: parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh generator/description.hh
-main.o: generator/occurences.hh generator/compile_vect.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh
-main.o: boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh generator/floats.hh
-main.o: documentator/doc.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh
+main.o: generator/occurences.hh generator/compile_vect.hh generator/compile_sched.hh propagate/propagate.hh
+main.o: boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
+main.o: generator/floats.hh documentator/doc.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
+main.o: errors/timing.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
@@ -230,6 +231,13 @@ generator/compile_scal.o: generator/Text.hh generator/description.hh signals/sig
 generator/compile_scal.o: errors/timing.hh generator/floats.hh signals/sigprint.hh signals/recursivness.hh
 generator/compile_scal.o: normalize/simplify.hh normalize/privatise.hh signals/prim2.hh extended/xtended.hh
 generator/compile_scal.o: signals/sigvisitor.hh documentator/lateq.hh tlib/compatibility.hh signals/ppsig.hh
+generator/compile_sched.o: generator/compile_sched.hh generator/compile_vect.hh generator/compile_scal.hh
+generator/compile_sched.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
+generator/compile_sched.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh
+generator/compile_sched.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh
+generator/compile_sched.o: tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh
+generator/compile_sched.o: generator/description.hh signals/sigtyperules.hh generator/occurences.hh generator/floats.hh
+generator/compile_sched.o: signals/ppsig.hh
 generator/compile_vect.o: generator/compile_vect.hh generator/compile_scal.hh generator/compile.hh signals/signals.hh
 generator/compile_vect.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/compile_vect.o: tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -273,11 +281,12 @@ normalize/privatise.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.
 normalize/privatise.o: signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 normalize/privatise.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtyperules.hh
 normalize/privatise.o: normalize/privatise.hh
-normalize/simplify.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+normalize/simplify.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh signals/signals.hh tlib/tlib.hh tlib/num.hh
 normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-normalize/simplify.o: signals/sigtyperules.hh signals/sigorderrules.hh signals/sigprint.hh normalize/simplify.hh
-normalize/simplify.o: extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
-normalize/simplify.o: parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh normalize/normalize.hh
+normalize/simplify.o: signals/recursivness.hh signals/sigtyperules.hh signals/sigorderrules.hh signals/sigprint.hh
+normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
+normalize/simplify.o: parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh
+normalize/simplify.o: normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 parallelize/graphSorting.o: parallelize/graphSorting.hh parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh

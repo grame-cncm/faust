@@ -68,6 +68,7 @@ HEADERS += boxes/boxcomplexity.h \
            generator/compile.hh \
            generator/compile_scal.hh \
            generator/compile_vect.hh \
+           generator/compile_sched.hh \
            generator/contextor.hh \
            generator/description.hh \
            generator/floats.hh \
@@ -81,7 +82,6 @@ HEADERS += boxes/boxcomplexity.h \
            normalize/privatise.hh \
            normalize/simplify.hh \
            parallelize/colorize.h \
-           parallelize/delayline.hh \
            parallelize/graphSorting.hh \
            parallelize/loop.hh \
            parser/enrobage.hh \
@@ -171,6 +171,7 @@ SOURCES += main.cpp \
            generator/compile.cpp \
            generator/compile_scal.cpp \
            generator/compile_vect.cpp \
+           generator/compile_sched.cpp \
            generator/contextor.cpp \
            generator/description.cpp \
            generator/floats.cpp \
@@ -185,7 +186,6 @@ SOURCES += main.cpp \
            normalize/privatise.cpp \
            normalize/simplify.cpp \
            parallelize/colorize.cpp \
-           parallelize/delayline.cpp \
            parallelize/graphSorting.cpp \
            parallelize/loop.cpp \
            parser/enrobage.cpp \
