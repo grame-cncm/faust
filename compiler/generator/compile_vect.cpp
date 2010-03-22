@@ -151,15 +151,22 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             return ScalarCompiler::generateCacheCode(sig,exp);
 
         } else {
-            // it is a non-sample but used delayed
+            // it is a non-sample expressions but used delayed
             // we need a delay line
-            getTypedNames(getSigType(sig), "Xec", ctype, vname);
-            generateDelayLine(ctype, vname, d, exp);
-            setVectorNameProperty(sig, vname);
-            if (verySimple(sig)) {
-                return exp;
+			getTypedNames(getSigType(sig), "Vec", ctype, vname);
+            if ((sharing > 1) && !verySimple(sig)) {
+                // first cache this expression because it
+                // it is shared and complex
+                string cachedexp =  generateVariableStore(sig, exp);
+                generateDelayLine(ctype, vname, d, cachedexp);
+                setVectorNameProperty(sig, vname);
+                return cachedexp;
             } else {
-                return subst("$0[i]", vname);
+                // no need to cache this expression because
+                // it is either not shared or very simple
+                generateDelayLine(ctype, vname, d, exp);
+                setVectorNameProperty(sig, vname);
+                return exp;
             }
         }
     } else {
@@ -179,7 +186,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             // not delayed
             if ( sharing > 1 && ! verySimple(sig) ) {
                 // shared and not simple : we need a vector
-               // cerr << "ZEC : " << ppsig(sig) << endl;
+                // cerr << "ZEC : " << ppsig(sig) << endl;
                 getTypedNames(getSigType(sig), "Zec", ctype, vname);
                 generateDelayLine(ctype, vname, d, exp);
                 setVectorNameProperty(sig, vname);
