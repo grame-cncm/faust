@@ -331,15 +331,8 @@ string ScalarCompiler::generateFConst (Tree sig, const string& file, const strin
 string ScalarCompiler::generateFVar (Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
-
+    
     addIncludeFile(file);
-/*
-    if (o->getMaxDelay()>0) {
-        getTypedNames(getSigType(sig), "Vec", ctype, vname);
-        generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
-    }
-    */
     return generateCacheCode(sig, exp);
 }
 
