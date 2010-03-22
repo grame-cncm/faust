@@ -22,6 +22,10 @@ ijackomp :
 	install -d ijackompdir
 	$(MAKE) DEST='ijackompdir/' ARCH='jack-gtk.cpp' VEC='-vs $(VSIZE) -omp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
 
+ijacksch :
+	install -d ijackschdir
+	$(MAKE) DEST='ijackschdir/' ARCH='jack-gtk.cpp' VEC='-sch -vs $(VSIZE)' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+
 gjackgtk :
 	install -d gjackgtkdir
 	$(MAKE) DEST='gjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
@@ -56,6 +60,10 @@ ialsavec :
 ialsaomp :
 	install -d ialsaompdir
 	$(MAKE) DEST='ialsaompdir/' ARCH='alsa-gtk.cpp' VEC='-omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
+
+ialsasch :
+	install -d ialsaschdir
+	$(MAKE) DEST='ialsaschdir/' ARCH='alsa-gtk.cpp' VEC='-sch -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 jackgtk :
 	install -d jackgtkdir
