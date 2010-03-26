@@ -368,7 +368,7 @@ void Klass::buildTasksList()
         }
         
         addZone3("} else {");
-        addZone3("    tasknum = TaskQueue::GetNextTask(cur_thread);");
+        addZone3("    tasknum = TaskQueue::GetNextTask(cur_thread, fDynamicNumThreads);");
         addZone3("}");
     
     } else {
@@ -1008,7 +1008,7 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         tab(n+2,fout); fout << "// Init graph state";
         
         tab(n+2,fout); fout << "{";
-            tab(n+3,fout); fout << "TaskQueue taskqueue;";
+            tab(n+3,fout); fout << "TaskQueue taskqueue(cur_thread);";
             tab(n+3,fout); fout << "int tasknum = -1;";
             tab(n+3,fout); fout << "int count = fFullCount;";
        
@@ -1021,7 +1021,7 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
                         
                     // Work stealing task
                     tab(n+5, fout); fout << "case WORK_STEALING_INDEX: { ";
-                        tab(n+6, fout); fout << "tasknum = TaskQueue::GetNextTask(cur_thread);";
+                        tab(n+6, fout); fout << "tasknum = TaskQueue::GetNextTask(cur_thread, fDynamicNumThreads);";
                         tab(n+6, fout); fout << "break;";
                     tab(n+5, fout); fout << "} ";
     

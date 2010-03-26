@@ -154,18 +154,12 @@ class TaskQueue
     
     public:
   
-        INLINE TaskQueue()
+        INLINE TaskQueue(int cur_thread)
         {
             for (int i = 0; i < QUEUE_SIZE; i++) {
                 fTaskList[i] = -1;
             }
-            
-            int val;
-            do {
-                val = gNumQueue;
-                gTaskQueueList[val] = this;
-            } while (!CAS1(&gNumQueue, val, val + 1));
-            
+            gTaskQueueList[cur_thread] = this;
         }
          
         INLINE void PushHead(int item)
@@ -210,12 +204,11 @@ class TaskQueue
             return fTaskList[Tail(old_val)];
         }
         
-        static INLINE int GetNextTask(int thread)
+        static INLINE int GetNextTask(int thread, int num_threads)
         {
             int tasknum;
-            int numqueue = gNumQueue;   // Important : use local variable
-            for (int i = 0; i < numqueue; i++) {
-                if ((i != thread) && (tasknum = gTaskQueueList[i]->PopTail()) != WORK_STEALING_INDEX) {
+            for (int i = 0; i < num_threads; i++) {
+                if ((i != thread) && gTaskQueueList[i] && (tasknum = gTaskQueueList[i]->PopTail()) != WORK_STEALING_INDEX) {
                     return tasknum;    // Task is found
                 }
             }
@@ -263,13 +256,11 @@ class TaskQueue
         
         static INLINE void Init()
         {
-            gNumQueue = 0;
             for (int i = 0; i < THREAD_SIZE; i++) {
                 gTaskQueueList[i] = 0;
             }
         }
          
-        static volatile int gNumQueue;
         static TaskQueue* gTaskQueueList[THREAD_SIZE];
      
 };
@@ -840,7 +831,6 @@ bool DSPThreadPool::IsFinished()
 }
 
 // Globals
-volatile int TaskQueue::gNumQueue = 0;
 TaskQueue* TaskQueue::gTaskQueueList[THREAD_SIZE] = {0};
 
 
