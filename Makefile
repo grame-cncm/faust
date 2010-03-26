@@ -1,4 +1,4 @@
-version := 0.9.15
+version := 0.9.16
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -12,7 +12,7 @@ vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
 all :
-	$(MAKE) -C compiler -f $(MAKEFILE)
+	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 
 
 .PHONY: clean depend install ininstall dist parser help

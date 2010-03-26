@@ -96,6 +96,14 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
+#ifdef INSTALL_PREFIX
+	err = chdir(old);
+	if (chdir(INSTALL_PREFIX "/lib/faust")==0) {
+        ifstream* f = new ifstream();
+		f->open(filename); 
+		if (f->good()) return f; else delete f;
+	}
+#endif
 	err = chdir(old);
 	if (chdir("/usr/local/lib/faust")==0) {
         ifstream* f = new ifstream();
@@ -276,6 +284,11 @@ FILE* fopensearch(const char* filename, string& fullpath)
     if ((f = fopenat(fullpath, gFaustSuperSuperDirectory, "architecture", filename))) { 
     	return f;
     }
+#ifdef INSTALL_PREFIX
+    if ((f = fopenat(fullpath, INSTALL_PREFIX "/lib/faust", filename))) { 
+    	return f;
+    }
+#endif
     if ((f = fopenat(fullpath, "/usr/local/lib/faust", filename))) { 
     	return f;
     }
