@@ -782,7 +782,6 @@ DSPThreadPool::~DSPThreadPool()
     StopAll();
     
     for (int i = 0; i < fThreadCount; i++) {
-        assert(fThreadPool[i]);
         delete(fThreadPool[i]);
         fThreadPool[i] = NULL;
     }
@@ -795,7 +794,7 @@ void DSPThreadPool::StartAll(int num, bool realtime, Runnable* runnable)
     if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
         for (int i = 0; i < num; i++) {
             fThreadPool[i] = new DSPThread(i, runnable, this);
-            assert(fThreadPool[i]->Start(realtime) == 0);
+            fThreadPool[i]->Start(realtime);
             fThreadCount++;
         }
     }
@@ -804,18 +803,15 @@ void DSPThreadPool::StartAll(int num, bool realtime, Runnable* runnable)
 void DSPThreadPool::StopAll()
 {
     for (int i = 0; i < fThreadCount; i++) {
-        assert(fThreadPool[i]);
         fThreadPool[i]->Stop();
     }
 }
 
 void DSPThreadPool::SignalAll(int num)
 {
-    assert(num <= fThreadCount);
     fCurThreadCount = num;
         
     for (int i = 0; i < num; i++) {  // Important : use local num here...
-        assert(fThreadPool[i]);
         fThreadPool[i]->Signal(false);
     }
 }
