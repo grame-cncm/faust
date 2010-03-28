@@ -22,6 +22,7 @@
 
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "Text.hh"
 #include "compatibility.hh"
@@ -179,40 +180,27 @@ string T (float n)
 #endif
 
 /**
- * Add a trailing f when converting double-precision numbers to text
- * if single-precision is required
+ * Convert a double-precision float into a string.
+ * Adjusts the precision to the needs. Add a trailing
+ * f if single-precision is required.
  */
-string T (double n)
+
+string T(double n)
 {
     char c[64];
-    if  (n <  0.1 && n > -0.1 && n != 0.0) {
-        snprintf(c, 63, "%e%s", n, inumix());
-    } else {
-        snprintf(c, 63, "%f%s", n, inumix());
-        zdel(c);
-    }
+
+    // first try a simple representation
+    // in order to avoid useless decimals
+    snprintf(c, 63, "%f%s", n, inumix());
+    zdel(c);
+    if (atof(c) == n) return string(c);
+
+    // simple representation has failed
+    // we use the full precision representation
+    snprintf(c, 63, "%.30g", n);
     return string(c);
 }
-/*
-string T (double n)
-{
-    char c[64];
-    if  (n <  0.1 && n > -0.1 && n != 0.0) {
-        if (gInternDoubleSwitch) {
-            snprintf(c, 63, "%e", n);
-        } else {
-            snprintf(c, 63, "%ef", n);
-        }
-    } else {
-        if (gInternDoubleSwitch) {
-            snprintf(c, 63, "%f", n);
-        } else {
-            snprintf(c, 63, "%ff", n);
-        }
-        zdel(c);
-    }
-    return string(c);
-}*/
+
 
 /**
  * remove quotes from a string
