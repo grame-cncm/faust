@@ -147,6 +147,27 @@ gain7(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g);
 gain8(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g),*(g);
 
 
+//------------------------------------------------------
+//
+// 					    GMEM SPAT
+//	n-outputs spatializer
+//	implementation of L. Pottier 
+//
+//------------------------------------------------------
+// 
+//  n = number of outputs
+//	r = rotation (between 0 et 1)
+// 	d = distance of the source (between 0 et 1)
+//
+//------------------------------------------------------
+spat(n,a,d)	= _ <: par(i, n, *( scaler(i, n, a, d) : smooth(0.9999) ))
+	with {
+		scaler(i,n,a,d) = (d/2.0+0.5) 
+						* sqrt( max(0.0, 1.0 - abs(fmod(a+0.5+float(n-i)/n, 1.0) - 0.5) * n * d) );
+		smooth(c) = *(1-c) : +~*(c);
+	};
+
+
 
 //--------------- Second Order Generic Transfert Function -------------------------
 // TF2(b0,b1,b2,a1,a2)
