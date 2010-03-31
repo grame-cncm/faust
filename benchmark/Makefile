@@ -111,6 +111,10 @@ gcoreaudiovec3 :
 	install -d gcoreaudiovec3dir
 	$(MAKE) DEST='gcoreaudiovec3dir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-vec -g -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
+gcoreaudiovec4 :
+	install -d gcoreaudiovec4dir
+	$(MAKE) DEST='gcoreaudiovec4dir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-vec -dfs -g -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
 gcoreaudiosch :
 	install -d gcoreaudioschdir
 	$(MAKE) DEST='gcoreaudioschdir/' ARCH='coreaudio-gtk-bench.cpp' VEC='-sch -vs $(VSIZE)' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile

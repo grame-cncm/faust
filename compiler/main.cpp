@@ -370,7 +370,7 @@ void printhelp()
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
-    cout << "-sch    \t--scheduler generate tasks and use a thread pool based scheduler, activates --vectorize option\n";
+    cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";

@@ -93,6 +93,10 @@ ladspa :
 	install -d ladspadir
 	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
 
+ladspasch :
+	install -d ladspaschdir
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+
 csound :
 	install -d csounddir
 	$(MAKE) DEST='csounddir/' -f Makefile.csound

@@ -317,7 +317,7 @@ void Klass::buildTasksList()
     addDeclCode("volatile bool fIsFinished;");
     addDeclCode("int fFullCount;");
     addDeclCode("int fIndex;");
-    addDeclCode("DSPThreadPool fThreadPool;");
+    addDeclCode("DSPThreadPool* fThreadPool;");
     addDeclCode("int fStaticNumThreads;");
     addDeclCode("int fDynamicNumThreads;");
     
@@ -406,7 +406,8 @@ void Klass::buildTasksList()
     
     addInitCode("fStaticNumThreads = get_max_cpu();");
     addInitCode("fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
-    addInitCode("fThreadPool.StartAll(fStaticNumThreads - 1, false, this);");
+    addInitCode("fThreadPool = DSPThreadPool::Init();");
+    addInitCode("fThreadPool->StartAll(fStaticNumThreads - 1, false);");
     
     gTaskCount = 0;
 }
@@ -692,6 +693,13 @@ void Klass::println(int n, ostream& fout)
 	tab(n,fout); fout << "  public:";
 
     printMetadata(n+1, gMetaDataSet, fout);
+    
+    if (gSchedulerSwitch) {
+        tab(n+1,fout); fout << "virtual ~mydsp() \t{ "
+                            << "DSPThreadPool::Destroy()"
+                            << "; }";
+    }
+    
     tab(n+1,fout); fout     << "virtual int getNumInputs() \t{ "
                     << "return " << fNumInputs
                     << "; }";
@@ -991,9 +999,9 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         printlines (n+3, fZone2cCode, fout);
     
         tab(n+3,fout); fout << "fIsFinished = false;"; 
-        tab(n+3,fout); fout << "fThreadPool.SignalAll(fDynamicNumThreads - 1);"; 
+        tab(n+3,fout); fout << "fThreadPool->SignalAll(fDynamicNumThreads - 1, this);"; 
         tab(n+3,fout); fout << "computeThread(0);"; 
-        tab(n+3,fout); fout << "while (!fThreadPool.IsFinished()) {}"; 
+        tab(n+3,fout); fout << "while (!fThreadPool->IsFinished()) {}"; 
     
         tab(n+2,fout); fout << "}";
     

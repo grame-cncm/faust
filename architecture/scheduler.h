@@ -15,6 +15,21 @@
 
 using namespace std;
 
+// Globals
+
+#define THREAD_SIZE 64
+#define QUEUE_SIZE 4096
+
+#define WORK_STEALING_INDEX 0
+#define LAST_TASK_INDEX 1
+
+class TaskQueue;
+struct DSPThreadPool;
+
+extern TaskQueue* gTaskQueueList[THREAD_SIZE];
+extern DSPThreadPool* gThreadPool;
+extern int gClientCount;
+
 #ifdef __ICC
 #define INLINE __forceinline
 #else
@@ -139,11 +154,6 @@ static int GetPID()
 #define IncTail(e) (e).info.scounter.fTail++
 #define DecTail(e) (e).info.scounter.fTail--
 
-#define THREAD_SIZE 64
-#define QUEUE_SIZE 4096
-
-#define WORK_STEALING_INDEX 0
-#define LAST_TASK_INDEX 1
 
 class TaskQueue 
 {
@@ -260,8 +270,6 @@ class TaskQueue
                 gTaskQueueList[i] = 0;
             }
         }
-         
-        static TaskQueue* gTaskQueueList[THREAD_SIZE];
      
 };
 
@@ -626,12 +634,15 @@ struct DSPThreadPool {
     DSPThreadPool();
     ~DSPThreadPool();
     
-    void StartAll(int num, bool realtime, Runnable* runnable);
+    void StartAll(int num, bool realtime);
     void StopAll();
-    void SignalAll(int num);
+    void SignalAll(int num, Runnable* runnable);
     
     void SignalOne();
     bool IsFinished();
+    
+    static DSPThreadPool* Init();
+    static void Destroy();
     
 };
 
@@ -645,11 +656,11 @@ struct DSPThread {
     bool fRealTime;
     int fNum;
     
-    DSPThread(int num, Runnable* runnable, DSPThreadPool* pool)
+    DSPThread(int num, DSPThreadPool* pool)
     {
         fNum = num;
         fThreadPool = pool;
-        fRunnable = runnable;
+        fRunnable = NULL;
         fRealTime = false;
         
         sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
@@ -756,8 +767,9 @@ struct DSPThread {
         return 0;
     }
     
-    void Signal(bool stop)
+    void Signal(bool stop, Runnable* runnable)
     {
+        fRunnable = runnable;
         sem_post(fSemaphore);
     }
     
@@ -789,11 +801,11 @@ DSPThreadPool::~DSPThreadPool()
     fThreadCount = 0;
  }
 
-void DSPThreadPool::StartAll(int num, bool realtime, Runnable* runnable)
+void DSPThreadPool::StartAll(int num, bool realtime)
 {
     if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
         for (int i = 0; i < num; i++) {
-            fThreadPool[i] = new DSPThread(i, runnable, this);
+            fThreadPool[i] = new DSPThread(i, this);
             fThreadPool[i]->Start(realtime);
             fThreadCount++;
         }
@@ -807,12 +819,12 @@ void DSPThreadPool::StopAll()
     }
 }
 
-void DSPThreadPool::SignalAll(int num)
+void DSPThreadPool::SignalAll(int num, Runnable* runnable)
 {
     fCurThreadCount = num;
         
     for (int i = 0; i < num; i++) {  // Important : use local num here...
-        fThreadPool[i]->Signal(false);
+        fThreadPool[i]->Signal(false, runnable);
     }
 }
 
@@ -826,7 +838,28 @@ bool DSPThreadPool::IsFinished()
     return (fCurThreadCount == 0);
 }
 
-// Globals
-TaskQueue* TaskQueue::gTaskQueueList[THREAD_SIZE] = {0};
+DSPThreadPool* DSPThreadPool::Init()
+{
+    if (gClientCount++ == 0 && !gThreadPool) {
+        gThreadPool = new DSPThreadPool();
+    }
+    return gThreadPool;
+}
 
+void DSPThreadPool::Destroy()
+{
+    if (--gClientCount == 0 && gThreadPool) {
+        delete gThreadPool;
+        gThreadPool = NULL;
+    }
+}
+
+#ifndef PLUG_IN
+
+// Globals
+TaskQueue* gTaskQueueList[THREAD_SIZE] = {0};
+DSPThreadPool* gThreadPool = 0;
+int gClientCount = 0;
+
+#endif
 
