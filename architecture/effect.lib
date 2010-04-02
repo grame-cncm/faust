@@ -167,3 +167,50 @@ with {
  polydel(a) = atan(sin(wT)/(a+cos(wT)))/wT;
  Df0 = polydel(a1) - polydel(1.0/a1);
 };
+
+//------- flangermono, flangerstereo, flangerstereoapp -------
+// The flanging effect
+//
+// USAGE:
+//   flangermono(dmax,curdel,depth,fb,invert);
+//   flangerstereo(dmax,curdel1,curdel2,depth,fb,invert);
+//
+// ARGUMENTS:
+//   dmax   = maximum delay-line length (power of 2) - 10 ms typical
+//   curdel = current dynamic delay (not to exceed dmax)
+//   depth  = effect strength between 0 and 1 (1 typical)
+//   fb     = feedback gain between 0 and 1 (0 typical)
+//   invert = 0 for normal, 1 to invert sign of flanging sum
+//
+// Reference: 
+//    https://ccrma.stanford.edu/~jos/pasp/Flanging.html
+//
+flangermono(dmax,curdel,depth,fb,invert)
+  = _ <: _, (-:fdelay(dmax,curdel)) ~ *(fb) : _, 
+  *(select2(invert,depth,0-depth)) 
+  : + : *(0.5);
+
+flangerstereo(dmax,curdel1,curdel2,depth,fb,invert)
+  =  flangermono(dmax,curdel1,depth,fb,invert),
+     flangermono(dmax,curdel2,depth,fb,invert);
+
+// Standalone flanger app or plugin
+//
+// USAGE: 
+//   process = component("effect.lib").flangerstereoapp;
+//
+flangerstereoapp = *(level),*(level) : flangerstereo(dmax,curdel1,curdel2,depth,fb,invert)
+with {
+  lfol = component("osc.lib").oscrs; // sine for left channel
+  lfor = component("osc.lib").oscrc; // cosine for right channel
+  dmax = 2048;
+  dflange = 0.001 * SR * hslider("flange delay [unit:ms]", 10, 0, 20, 0.001);
+  odflange = 0.001 * SR * hslider("flange delay offset [unit:ms]", 1, 0, 20, 0.001);
+  freq	 = hslider("LFO freq [unit:Hz]", 0.2, 0, 5, 0.001);
+  depth	 = hslider("depth", 1, 0, 1, 0.001);
+  fb	 = hslider("feedback gain", 0, 0, 1, 0.001);
+  invert   = checkbox("invert");
+  level	 = hslider("level [unit:dB]", 0, -60, 10, 0.1) : db2linear;
+  curdel1 = odflange+dflange*(1 + lfol(freq))/2; 
+  curdel2 = odflange+dflange*(1 + lfor(freq))/2; 
+};
