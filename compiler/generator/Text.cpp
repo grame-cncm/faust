@@ -180,25 +180,38 @@ string T (float n)
 #endif
 
 /**
+ * If needed add a trailing '.0' to the
+ * the textual representation of a floating point number
+ * to avoid confusions with an int.
+ */
+static void ensureFloat(char* c)
+{
+    bool isInt = true;
+    while (*c != 0) { 
+        if ((*c == '.') | (*c == 'e'))  isInt = false; 
+        c++; 
+    }
+
+    if (isInt) {
+        *c++ = '.';
+        *c++ = '0';
+        *c   = 0;
+    }
+}
+
+/**
  * Convert a double-precision float into a string.
- * Adjusts the precision to the needs. Add a trailing
+ * Adjusts the precision p to the needs. Add a trailing
  * f if single-precision is required.
  */
-
 string T(double n)
 {
-    char c[64];
-
-    // first try a simple representation
-    // in order to avoid useless decimals
-    snprintf(c, 63, "%f%s", n, inumix());
-    zdel(c);
-    if (atof(c) == n) return string(c);
-
-    // simple representation has failed
-    // we use the full precision representation
-    snprintf(c, 63, "%.30g", n);
-    return string(c);
+    char    c[64];
+    int     p = 1;
+    
+    do { snprintf(c, 32, "%.*g", p++, n); } while (atof(c) != n);
+    ensureFloat(c);
+    return string(c)+inumix();
 }
 
 
