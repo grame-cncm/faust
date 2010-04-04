@@ -236,6 +236,16 @@ bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXW
 
 
 /*****************************************************************************
+                        Boxes modif local definitions
+*****************************************************************************/
+Sym BOXMODIFLOCALDEF 	= symbol ("BoxModifLocalDef");
+
+
+Tree boxModifLocalDef (Tree body, Tree ldef)                { return tree(BOXMODIFLOCALDEF, body, ldef); }
+bool isBoxModifLocalDef (Tree t, Tree& body, Tree& ldef)	{ return isTree(t, BOXMODIFLOCALDEF, body, ldef); }
+
+
+/*****************************************************************************
 							 Modules
 *****************************************************************************/
 
