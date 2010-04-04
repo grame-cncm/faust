@@ -168,6 +168,8 @@ Tree unquote(char* str)
 %token RPAR
 %token LBRAQ
 %token RBRAQ
+%token LCROC
+%token RCROC
 %token WITH
 %token DEF
 
@@ -392,7 +394,8 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 				| infixexp EQ infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
 				| infixexp NE infixexp		{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
 
-				| infixexp LPAR arglist RPAR %prec APPL	{ $$ = buildBoxAppl($1,$3); }
+				| infixexp LPAR arglist RPAR 	%prec APPL	{ $$ = buildBoxAppl($1,$3); }
+				| infixexp LCROC deflist RCROC	%prec APPL	{ $$ = boxModifLocalDef($1,formatDefinitions($3)); }
 				
 				| primitive						{ $$ = $1; }
 				;

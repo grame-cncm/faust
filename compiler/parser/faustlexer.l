@@ -105,6 +105,8 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 ")"			return RPAR;
 "{"			return LBRAQ;
 "}"			return RBRAQ;
+"["			return LCROC;
+"]"			return RCROC;
 
 "\\"		return LAMBDA;
 "."			return DOT;
