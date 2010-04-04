@@ -37,7 +37,7 @@
 
 #include "boxes.hh"
 #include "sourcereader.hh"
-
+#include "environment.hh"
 
 /**
  * Eval the definition of 'process'.

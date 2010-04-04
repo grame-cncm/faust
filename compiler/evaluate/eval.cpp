@@ -68,7 +68,6 @@ static int 		eval2int (Tree exp, Tree visited, Tree localValEnv);
 static double   eval2double (Tree exp, Tree visited, Tree localValEnv);
 static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
 
-static Tree 	pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
 static Tree		evalIdDef(Tree id, Tree visited, Tree env);
 
 
@@ -357,15 +356,33 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	// Modules
 	//--------
 
-	} else if (isBoxAccess(exp, body, var)) {
-		Tree val = eval(body, visited, localValEnv);
-		if (isClosure(val, exp2, notused, visited2, lenv2)) {
-			// it is a closure, we have an environment to access
-			return eval(closure(var,notused,visited2,lenv2), visited, localValEnv);
-		} else {
-			evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
-			exit(1);
-		}
+    } else if (isBoxAccess(exp, body, var)) {
+        Tree val = eval(body, visited, localValEnv);
+        if (isClosure(val, exp2, notused, visited2, lenv2)) {
+            // it is a closure, we have an environment to access
+            return eval(closure(var,notused,visited2,lenv2), visited, localValEnv);
+        } else {
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
+            exit(1);
+        }
+
+//////////////////////en chantier////////////////////////////
+
+    } else if (isBoxModifLocalDef(exp, body, ldef)) {
+        Tree val = eval(body, visited, localValEnv);
+        if (isClosure(val, exp2, notused, visited2, lenv2)) {
+            // we rebuild the closure using a copy of the original environment
+            // modified with some new definitions
+            Tree lenv3 = copyEnvReplaceDefs(lenv2, ldef, visited2, localValEnv);
+            return eval(closure(exp2,notused,visited2,lenv3), visited, localValEnv);
+        } else {
+
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "not a closure ", val);
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
+            exit(1);
+        }
+
+///////////////////////////////////////////////////////////////////
 
     } else if (isBoxComponent(exp, label)) {
         string  fname   = tree2str(label);
@@ -1128,113 +1145,6 @@ static Tree larg2par (Tree larg)
 	return boxPar(hd(larg), larg2par(tl(larg)));
 }
 
-
-
-//-----------------------new environment management----------------------------
-//
-// The environement is made of layers. Each layer contains a set of definitions
-// stored as properties of the layer. Each definition can refers to other
-// definitions of the same layer or of subsequent layers. Recursive
-// definitions are not allowed. Multiple defintions of the same symbol
-// in a layer is allowed but generate a warning when the definition is
-// different
-//-----------------------------------------------------------------------------
-
-
-
-/**
- * Push a new (unique) empty layer (where multiple definitions can be stored)
- * on top of an existing environment.
- * @param lenv the old environment
- * @return the new environment
-*/
-static Tree pushNewLayer(Tree lenv)
-{
-	return tree(unique("ENV_LAYER"), lenv);
-}
-
-
-/**
- * Add a definition (as a property) to the current top level layer. Check
- * and warn for multiple definitions.
- * @param id the symbol id to be defined
- * @param def the definition to be binded to the symbol id
- * @param lenv the environment where to add this new definition
-*/
-static void addLayerDef(Tree id, Tree def, Tree lenv)
-{
-	// check for multiple definitions of a symbol in the same layer
-	Tree olddef;
-	if (getProperty(lenv, id, olddef)) {
-		if (def == olddef) {
-			evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
-		} else {
-            fprintf(stderr, "%s:%d: ERROR: redefinition of symbols are not allowed : ", getDefFileProp(id), getDefLineProp(id)); 
-            print(id,stderr); 
-            fprintf(stderr, " is already defined in file \"%s\" line %d \n", getDefFileProp(id), getDefLineProp(id)); 
-            gErrorCount++;
-		}
-	}
-	setProperty(lenv, id, def);
-}
-
-
-/**
- * Push a new layer and add a single definition.
- * @param id the symbol id to be defined
- * @param def the definition to be binded to the symbol id
- * @param lenv the environment where to push the layer and add the definition
- * @return the new environment
- */
-Tree pushValueDef(Tree id, Tree def, Tree lenv)
-{
-	Tree lenv2 = pushNewLayer(lenv);
-	addLayerDef(id, def, lenv2);
-	return lenv2;
-}
-
-
-/**
- * Push a new layer with multiple definitions creating the appropriate closures
- * @param ldefs list of pairs (symbol id x definition) to be binded to the symbol id
- * @param visited set of visited symbols (used for recursive definition detection)
- * @param lenv the environment where to push the layer and add all the definitions
- * @return the new environment
-*/
-static Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
-{
-	Tree lenv2 = pushNewLayer(lenv);
-	while (!isNil(ldefs)) {
-		Tree def = hd(ldefs);
-		Tree id = hd(def);
-		Tree rhs= tl(def);
-		Tree cl = closure(tl(def),nil,visited,lenv2);
-		stringstream s; s << boxpp(id);
-		if (!isBoxCase(rhs)) setDefNameProperty(cl,s.str());
-		addLayerDef( id, cl, lenv2 );
-		ldefs = tl(ldefs);
-	}
-	return lenv2;
-}
-
-
-/**
- * Search the environment for the definition of a symbol
- * ID and return it. 
- * @param id the symbol ID to search
- * @param def where to store the definition if any
- * @param lenv the environment
- * @return true if a definition was found
- */
-bool searchIdDef(Tree id, Tree& def, Tree lenv)
-{
-	// search the environment until a definition is found
-	// or nil (the empty environment) is reached
-	while (!isNil(lenv) && !getProperty(lenv, id, def)) {
-		lenv = lenv->branch(0);
-	}
-	return !isNil(lenv);
-}
 
 
 
