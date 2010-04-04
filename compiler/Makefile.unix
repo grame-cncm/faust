@@ -42,8 +42,8 @@ main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh genera
 main.o: parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh generator/description.hh
 main.o: generator/occurences.hh generator/compile_vect.hh generator/compile_sched.hh propagate/propagate.hh
 main.o: boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
-main.o: generator/floats.hh documentator/doc.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
-main.o: errors/timing.hh
+main.o: evaluate/environment.hh generator/floats.hh documentator/doc.hh draw/schema/schema.h draw/device/device.h
+main.o: draw/drawschema.hh errors/timing.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
@@ -64,7 +64,7 @@ boxes/ppbox.o: tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh 
 boxes/ppbox.o: documentator/lateq.hh
 documentator/doc_autodoc.o: documentator/doc_autodoc.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 documentator/doc_autodoc.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
-documentator/doc_autodoc.o: documentator/doc.hh evaluate/eval.hh parser/sourcereader.hh
+documentator/doc_autodoc.o: documentator/doc.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
 documentator/doc_compile.o: documentator/doc_compile.hh signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh
 documentator/doc_compile.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 documentator/doc_compile.o: signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
@@ -74,21 +74,22 @@ documentator/doc_compile.o: signals/sigprint.hh signals/recursivness.hh normaliz
 documentator/doc_compile.o: signals/prim2.hh extended/xtended.hh generator/klass.hh parallelize/loop.hh
 documentator/doc_compile.o: parallelize/graphSorting.hh signals/sigvisitor.hh tlib/compatibility.hh signals/ppsig.hh
 documentator/doc_compile.o: utils/names.hh propagate/propagate.hh boxes/boxes.hh documentator/doc.hh evaluate/eval.hh
-documentator/doc_compile.o: parser/sourcereader.hh documentator/doc_notice.hh
+documentator/doc_compile.o: parser/sourcereader.hh evaluate/environment.hh documentator/doc_notice.hh
 documentator/doc.o: boxes/ppbox.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 documentator/doc.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
 documentator/doc.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh documentator/doc.hh evaluate/eval.hh
-documentator/doc.o: parser/sourcereader.hh errors/errormsg.hh documentator/doc_Text.hh signals/sigprint.hh
-documentator/doc.o: propagate/propagate.hh parser/enrobage.hh draw/drawschema.hh utils/names.hh normalize/simplify.hh
-documentator/doc.o: normalize/privatise.hh signals/recursivness.hh documentator/lateq.hh documentator/doc_compile.hh
-documentator/doc.o: signals/sigtyperules.hh generator/occurences.hh tlib/property.hh generator/Text.hh
-documentator/doc.o: generator/description.hh generator/uitree.hh documentator/doc_lang.hh documentator/doc_notice.hh
-documentator/doc.o: documentator/doc_autodoc.hh tlib/compatibility.hh
+documentator/doc.o: parser/sourcereader.hh evaluate/environment.hh errors/errormsg.hh documentator/doc_Text.hh
+documentator/doc.o: signals/sigprint.hh propagate/propagate.hh parser/enrobage.hh draw/drawschema.hh utils/names.hh
+documentator/doc.o: normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh documentator/lateq.hh
+documentator/doc.o: documentator/doc_compile.hh signals/sigtyperules.hh generator/occurences.hh tlib/property.hh
+documentator/doc.o: generator/Text.hh generator/description.hh generator/uitree.hh documentator/doc_lang.hh
+documentator/doc.o: documentator/doc_notice.hh documentator/doc_autodoc.hh tlib/compatibility.hh
 documentator/doc_lang.o: documentator/doc_lang.hh documentator/doc_notice.hh documentator/doc_autodoc.hh
 documentator/doc_lang.o: documentator/doc_metadatas.hh documentator/lateq.hh parser/enrobage.hh tlib/compatibility.hh
 documentator/doc_metadatas.o: documentator/doc_metadatas.hh documentator/doc.hh tlib/tlib.hh tlib/symbol.hh
 documentator/doc_metadatas.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh evaluate/eval.hh
 documentator/doc_metadatas.o: boxes/boxes.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
+documentator/doc_metadatas.o: evaluate/environment.hh
 documentator/doc_notice.o: documentator/doc_notice.hh documentator/doc_lang.hh parser/enrobage.hh tlib/compatibility.hh
 documentator/doc_sharing.o: documentator/doc_compile.hh signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh
 documentator/doc_sharing.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
@@ -107,9 +108,12 @@ draw/drawschema.o: draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 errors/errormsg.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
 errors/timing.o: errors/timing.hh
+evaluate/environment.o: evaluate/environment.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+evaluate/environment.o: tlib/list.hh tlib/shlysis.hh errors/errormsg.hh boxes/boxes.hh signals/signals.hh
+evaluate/environment.o: signals/binop.hh boxes/ppbox.hh utils/names.hh propagate/propagate.hh
 evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
-evaluate/eval.o: errors/errormsg.hh boxes/ppbox.hh normalize/simplify.hh propagate/propagate.hh
+evaluate/eval.o: evaluate/environment.hh errors/errormsg.hh boxes/ppbox.hh normalize/simplify.hh propagate/propagate.hh
 evaluate/eval.o: patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh tlib/smartpointer.hh
 evaluate/eval.o: signals/interval.hh generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
 evaluate/eval.o: parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh evaluate/loopDetector.hh
@@ -300,13 +304,14 @@ parser/faustparser.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smart
 parser/faustparser.o: generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
 parser/faustparser.o: parallelize/graphSorting.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
 parser/faustparser.o: documentator/lateq.hh boxes/boxes.hh signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh
-parser/faustparser.o: documentator/doc.hh evaluate/eval.hh boxes/ppbox.hh
+parser/faustparser.o: documentator/doc.hh evaluate/eval.hh evaluate/environment.hh boxes/ppbox.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/enrobage.hh
 parser/sourcereader.o: boxes/ppbox.hh
 patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 patternmatcher/patternmatcher.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
-patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh patternmatcher/patternmatcher.hh
+patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
+patternmatcher/patternmatcher.o: patternmatcher/patternmatcher.hh
 propagate/labels.o: propagate/labels.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 propagate/labels.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 propagate/propagate.o: propagate/propagate.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
