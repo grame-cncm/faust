@@ -393,3 +393,17 @@ void* getUserData(Tree t)
 	}
 }
 
+
+/**
+ * export the properties of a CTree as two vectors, one for the keys
+ * and one for the associated values
+ */
+
+void CTree::exportProperties(vector<Tree>& keys, vector<Tree>& values)
+{
+    for (plist::const_iterator p = fProperties.begin(); p != fProperties.end(); p++) {
+        keys.push_back(p->first);
+        values.push_back(p->second);
+    }
+}
+

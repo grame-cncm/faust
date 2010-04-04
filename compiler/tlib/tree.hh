@@ -158,6 +158,9 @@ class CTree
 	void		setProperty(Tree key, Tree value) { fProperties[key] = value; }
 	void		clearProperty(Tree key) { fProperties.erase(key); }
 	void		clearProperties()		{ fProperties = plist(); }
+
+	void		exportProperties(vector<Tree>& keys, vector<Tree>& values);
+
 	Tree		getProperty(Tree key) {
 		plist::iterator i = fProperties.find(key);
 		if (i==fProperties.end()) {
