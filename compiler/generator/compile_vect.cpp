@@ -91,7 +91,7 @@ string  VectorCompiler::CS (Tree sig)
 					tl->fBackwardLoopDependencies.insert(ls);
 				} else {
 					//cerr << "IMPOSSIBLE (dans l'etat des connaissances)" << endl;
-					exit(1);
+					//exit(1);
 				}
 			} else {
 				//cerr << "in CS :  no loop property for : " << ppsig(sig) << endl;
