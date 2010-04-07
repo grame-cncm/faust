@@ -68,10 +68,10 @@ string  VectorCompiler::CS (Tree sig)
     int         i;
     Tree        x;
     string      code;
-
+	//cerr << "ENTER CS : "<< ppsig(sig) << endl;
     if (!getCompiledExpression(sig, code)) {
         code = generateCode(sig);
-        //cerr << "CS : " << code << " for " << ppsig(sig) << endl;
+		//cerr << "CS : " << code << " for " << ppsig(sig) << endl;
         setCompiledExpression(sig, code);
     } else {
         // check for recursive dependencies
@@ -79,15 +79,27 @@ string  VectorCompiler::CS (Tree sig)
         Loop*   tl = fClass->topLoop();
         if (isProj(sig, &i, x) && tl->findRecDefinition(x)) {
             tl->addRecDependency(x);
-        } else if (fClass->getLoopProperty(sig,ls)) {
-            //cerr << "in CS : fBackwardLoopDependencies.insert : " << tl << " --dependson--> " << ls << endl;
-            tl->fBackwardLoopDependencies.insert(ls);
-        } else {
-           //cerr << "in CS :  no loop property for : " << ppsig(sig) << endl;
-
+			//cerr << "in CS : add rec dependency : " << tl << " --symbol--> " << x << endl;
+		} else if (fClass->getLoopProperty(sig,ls)) {
+			//cerr << "in CS : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
+			tl->fBackwardLoopDependencies.insert(ls);
+		} else {
+			Tree	x,d;
+			if (isSigFixDelay(sig, x, d)) {
+				if (fClass->getLoopProperty(x,ls)) {
+					//cerr << "in CS : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+					tl->fBackwardLoopDependencies.insert(ls);
+				} else {
+					//cerr << "IMPOSSIBLE (dans l'etat des connaissances)" << endl;
+					exit(1);
+				}
+			} else {
+				//cerr << "in CS :  no loop property for : " << ppsig(sig) << endl;
+			}
         }
     }
-    return code;
+	//cerr << "EXIT CS : "<< ppsig(sig) << "---code---> " << code << endl;
+	return code;
 }
 
 /**
@@ -337,13 +349,14 @@ string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     }
 }
 
-
+#if 0
 static int pow2limit(int x)
 {
     int n = 2;
     while (n < x) { n = 2*n; }
     return n;
 }
+#endif
 
 /**
  * Generate the code for a (short) delay line
