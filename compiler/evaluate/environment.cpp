@@ -116,7 +116,7 @@ bool searchIdDef(Tree id, Tree& def, Tree lenv)
  */
 static void updateClosures(vector<Tree>& clos, Tree oldEnv, Tree newEnv)
 {
-    for (int i=0; i < clos.size(); i++) {
+	for (unsigned int i=0; i < clos.size(); i++) {
         Tree exp, genv, visited, lenv;
         if (isClosure(clos[i], exp, genv, visited, lenv)) {
             if (lenv == oldEnv) {
@@ -143,7 +143,7 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv)
     copyEnv = pushNewLayer(anEnv->branch(0));       // create new environment with same stack
     updateClosures(clos, anEnv, copyEnv);           // update the closures replacing oldEnv with newEnv
 
-    for (int i=0; i < clos.size(); i++) {           // transfers the updated definitions to the new environment
+	for (unsigned int i=0; i < clos.size(); i++) {           // transfers the updated definitions to the new environment
         setProperty(copyEnv, ids[i], clos[i]);
     }
 
