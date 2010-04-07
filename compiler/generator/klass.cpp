@@ -47,6 +47,7 @@
 #include "uitree.hh"
 #include "Text.hh"
 #include "signals.hh"
+#include "ppsig.hh"
 
 extern bool gVectorSwitch;
 extern bool gDeepFirstSwitch;
@@ -89,6 +90,7 @@ bool Klass::getLoopProperty(Tree sig, Loop*& l)
 void Klass::openLoop(const string& size)
 {
     fTopLoop = new Loop(fTopLoop, size);
+	//cerr << "openLoop(" << size << ") ----> " << fTopLoop << endl;
 }
 
 /**
@@ -99,7 +101,7 @@ void Klass::openLoop(const string& size)
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
     fTopLoop = new Loop(recsymbol, fTopLoop, size);
-    //cerr << "open loop :" << fTopLoop << endl;
+	//cerr << "openLoop(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 
 /**
@@ -112,15 +114,22 @@ void Klass::closeLoop(Tree sig)
     Loop* l = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     assert(fTopLoop);
-    //cerr << "close loop :" << l << endl;
+	//cerr << "close loop :" << l << endl;
 
     if (l->isEmpty() || l->hasRecDependencies()) {
         // empty or dependent loop -> absorbed by enclosing one
+		//cerr << "absorbtion : " << fTopLoop << "----absorb----> " << l << endl;
         fTopLoop->absorb(l);
         delete l;
     } else {
         // we have an independent loop
-        if (sig) setLoopProperty(sig,l);     // associate the signal
+		if (sig) {
+			setLoopProperty(sig,l);     // associate the signal
+			//cerr << "setLoopProperty : "<< ppsig(sig) << "----loop prop---> "<< l << endl;
+		} else {
+			//cerr << "***ETRANGE**** no signal for loop "<< l << endl;
+		}
+		//cerr << "backward dependency added : " << fTopLoop << "----depends on----> " << l << endl;
         fTopLoop->fBackwardLoopDependencies.insert(l);
     }
 }
