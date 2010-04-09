@@ -37,6 +37,20 @@ extern int gClientCount;
 #endif
 
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+#include <xmmintrin.h>
+#ifdef __SSE2__
+#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+#else
+#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+#endif
+#else
+#define AVOIDDENORMALS 
+#endif
+
+
 #if defined(__i386__) || defined(__x86_64__)
 
 #define LOCK "lock ; "
@@ -686,6 +700,8 @@ struct DSPThread {
     static void* ThreadHandler(void* arg)
     {
         DSPThread* thread = static_cast<DSPThread*>(arg);
+        
+        AVOIDDENORMALS
         
         // One "dummy" cycle to setup thread
         if (thread->fRealTime) {
