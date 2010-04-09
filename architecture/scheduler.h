@@ -701,7 +701,7 @@ struct DSPThread {
     {
         DSPThread* thread = static_cast<DSPThread*>(arg);
         
-        AVOIDDENORMALS
+        AVOIDDENORMALS;
         
         // One "dummy" cycle to setup thread
         if (thread->fRealTime) {
