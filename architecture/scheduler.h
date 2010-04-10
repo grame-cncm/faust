@@ -302,6 +302,13 @@ struct TaskGraph
     {
         gTaskList[task] = val;
     }
+    
+    void Display()
+    {
+        for (int i = 0; i < QUEUE_SIZE; i++) {
+            printf("Task = %d activation = %d\n", i, gTaskList[i]);
+        } 
+    }
       
     INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
     {
@@ -314,13 +321,6 @@ struct TaskGraph
         }    
     }
       
-    INLINE void GetReadyTask(TaskQueue& queue, int& tasknum)
-    {
-        if (tasknum == WORK_STEALING_INDEX) {
-            tasknum = queue.PopHead();
-        }
-    }
-    
     INLINE void ActivateOutputTask(TaskQueue& queue, int task)
     {
         if (DEC_ATOMIC(&gTaskList[task]) == 1) {
@@ -336,7 +336,16 @@ struct TaskGraph
             tasknum = queue.PopHead(); 
         }
     }
+    
+    INLINE void GetReadyTask(TaskQueue& queue, int& tasknum)
+    {
+        if (tasknum == WORK_STEALING_INDEX) {
+            tasknum = queue.PopHead();
+        }
+    }
+ 
 };
+
 
 #define THREAD_POOL_SIZE 16
 #define JACK_SCHED_POLICY SCHED_FIFO

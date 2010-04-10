@@ -621,7 +621,7 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
     } else {
         
         Loop* keep = NULL;
-        // Find one output with no backward dependencies
+        // Find one output with only one backward dependencies
         for (lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin(); p1!=(*p)->fForwardLoopDependencies.end(); p1++) {
             if ((*p1)->fBackwardLoopDependencies.size () == 1) {
                 keep = *p1;
@@ -992,6 +992,10 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
 
 void Klass::printComputeMethodScheduler (int n, ostream& fout)
 {
+    tab(n+1,fout); fout << "void display() {";
+        tab(n+2,fout); fout << "fGraph.Display();"; 
+    tab(n+1,fout); fout << "}";
+
     tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
     
         tab(n+2,fout); fout << "GetRealTime();";
