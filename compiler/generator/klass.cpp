@@ -498,6 +498,36 @@ void Klass::printLoopGraphScheduler(int n, ostream& fout)
     printLastLoopLevelScheduler(n, G.size(), G[0], fout);
 }
 
+
+/**
+ * Print the loop graph in dot format
+ */
+void Klass::printGraphDotFormat(ostream& fout)
+{
+    lgraph G;
+    sortGraph(fTopLoop, G);
+
+    fout << "strict digraph loopgraph {" << endl;
+    fout << '\t' << "rankdir=LR;" << endl;
+    fout << '\t' << "node[color=blue, fillcolor=lightblue, style=filled, fontsize=9];" << endl;
+
+    int lnum = 0;       // used for loop numbers
+    // for each level of the graph
+    for (int l=G.size()-1; l>=0; l--) {
+        // for each task in the level
+        for (lset::const_iterator t =G[l].begin(); t!=G[l].end(); t++) {
+            // print task label "Lxxx : 0xffffff"
+            fout << '\t' << 'L'<<(*t)<<"[label=<<font face=\"verdana,bold\">L"<<lnum++<<"</font> : "<<(*t)<<">];"<<endl;
+            // for each source of the task
+            for (lset::const_iterator src = (*t)->fBackwardLoopDependencies.begin(); src!=(*t)->fBackwardLoopDependencies.end(); src++) {
+                // print the connection Lxxx -> Lyyy;
+                fout << '\t' << 'L'<<(*src)<<"->"<<'L'<<(*t)<<';'<<endl;
+            }
+        }
+    }
+    fout << "}" << endl;
+}
+
 /**
  * Print the loop graph (used for internals classes)
  */
@@ -515,7 +545,7 @@ void Klass::printLoopGraphInternal(int n, ostream& fout)
     }
 }
 
-/*
+/**
  * Print the loop graph (scalar mode)
  */
 void Klass::printLoopGraphScalar(int n, ostream& fout)

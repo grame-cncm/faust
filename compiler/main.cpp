@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.20"
+#define FAUSTVERSION "0.9.21"
 
 #include <stdio.h>
 #include <string.h>
@@ -111,6 +111,7 @@ bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
 bool            gShadowBlur     = false;
+bool            gGraphSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
 bool            gPrintXMLSwitch = false;
@@ -191,6 +192,10 @@ bool process_cmdline(int argc, char* argv[])
 
         } else if (isCmd(argv[i], "-xml", "--xml")) {
             gPrintXMLSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-tg", "--task-graph")) {
+            gGraphSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
@@ -348,7 +353,8 @@ void printhelp()
 	cout << "-h \t\tprint this --help message\n";
 	cout << "-v \t\tprint compiler --version information\n";
 	cout << "-d \t\tprint compilation --details\n";
-	cout << "-ps \t\tprint block-diagram --postscript file\n";
+    cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
+    cout << "-ps \t\tprint block-diagram --postscript file\n";
     cout << "-svg \tprint block-diagram --svg file\n";
     cout << "-mdoc \tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
     cout << "-mdlang <l>\t\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
@@ -693,6 +699,19 @@ int main (int argc, char* argv[])
         C->getClass()->printAdditionalCode(*dst);
         C->getClass()->println(0,*dst);
 	}
+
+
+    /****************************************************************
+     9 - generate the task graph file in dot format
+    *****************************************************************/
+
+    if (gGraphSwitch) {
+        ofstream dotfile(subst("$0.dot", gMasterDocument).c_str());
+        C->getClass()->printGraphDotFormat(dotfile);
+    }
+
+
+
 	
 	delete C;
 	return 0;

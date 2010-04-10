@@ -174,7 +174,8 @@ class Klass //: public Target
     virtual void printLoopGraphOpenMP(int n, ostream& fout);
     virtual void printLoopGraphScheduler(int n, ostream& fout);
     virtual void printLoopGraphInternal(int n, ostream& fout);
-    
+    virtual void printGraphDotFormat(ostream& fout);
+
     // experimental
 	virtual void printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visited);
 
