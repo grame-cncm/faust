@@ -30,7 +30,7 @@ all : $(appls)
 ### Darwin 
 $(DEST)%.app : %.dsp
 	install -d $(TMP)
-	faust -a $(ARCH) $< -o $(TMP)/$<.cpp
+	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
 	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
 	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)
@@ -43,7 +43,7 @@ $(DEST)%.app : %.dsp
 $(DEST)% : %.dsp
 	rm -rf $(TMP)
 	install -d $(TMP)
-	faust -a $(ARCH) $< -o $(TMP)/$<.cpp
+	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
 	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
 	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)

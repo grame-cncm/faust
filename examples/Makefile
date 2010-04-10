@@ -77,6 +77,10 @@ jackqt :
 	install -d jackqtdir
 	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack' -f Makefile.qtcompile
 
+jackqtsch :
+	install -d jackqtschdir
+	$(MAKE) DEST='jackqtschdir/' ARCH='jack-qt.cpp' VEC='-sch -vs $(VSIZE)' LIB='-ljack' -f Makefile.qtcompile
+
 paqt :
 	install -d paqtdir
 	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio' -f Makefile.qtcompile
@@ -150,6 +154,10 @@ vst :
 iphone :
 	install -d iphonedir
 	$(MAKE) DEST='iphonedir/' ARCH='iphone-cocoa.cpp' LIB='' -f Makefile.iphonecompile
+
+iphonenet :
+	install -d iphonenetdir
+	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
 bench :
 	install -d benchdir
