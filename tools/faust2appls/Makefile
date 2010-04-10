@@ -20,4 +20,5 @@ install:
 	install faust2png $(prefix)/bin
 	install faust2puredata $(prefix)/bin
 	install faust2svg $(prefix)/bin
+	install faust2graph $(prefix)/bin
 

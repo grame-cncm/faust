@@ -1,0 +1,7 @@
+#!/bin/bash
+for f in $@; do
+    faust -vec -tg $f -o /dev/null
+	dot -Tpdf $f.dot -o $f.graph.pdf
+	rm $f.dot
+done
+
