@@ -398,14 +398,18 @@ void Klass::buildTasksList()
     }
   
     // Last stage connected to end task
-    addZone2c("// Initialize end task");
-    addZone2c(subst("fGraph.InitTask($0,$1);", T(LAST_TASK_INDEX), T((int)G[0].size())));
+    if (G[0].size() > 1) {
+        addZone2c("// Initialize end task, if more than one input");
+        addZone2c(subst("fGraph.InitTask($0,$1);", T(LAST_TASK_INDEX), T((int)G[0].size())));
+    } else {
+        addZone2c("// End task has only one input, so will be directly activated");
+    }
     
     // Compute init section
-    addZone2c("// Only initialize tasks with inputs");
+    addZone2c("// Only initialize taks with more than one input");
     for (int l=G.size()-1; l>=0; l--) {
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
-            if ((*p)->fBackwardLoopDependencies.size() > 0)  { // Only itialize taks with inputs
+            if ((*p)->fBackwardLoopDependencies.size() > 1)  { // Only initialize taks with more than 1 input, since taks with one input are "directly" activated.
                 addZone2c(subst("fGraph.InitTask($0,$1);", T(START_TASK_INDEX + gTaskCount++), T((int)(*p)->fBackwardLoopDependencies.size())));
             } else {
                 gTaskCount++;
