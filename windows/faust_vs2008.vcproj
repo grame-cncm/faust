@@ -433,6 +433,14 @@
 			Name="evaluate"
 			>
 			<File
+				RelativePath="..\compiler\evaluate\environment.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\compiler\evaluate\environment.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\compiler\evaluate\eval.cpp"
 				>
 			</File>
@@ -557,6 +565,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\compiler\generator\compile_sched.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\compiler\generator\compile_sched.hh"
+				>
+			</File>
+			<File
 				RelativePath="..\compiler\generator\compile_vect.cpp"
 				>
 			</File>
@@ -678,14 +694,6 @@
 			</File>
 			<File
 				RelativePath="..\compiler\parallelize\colorize.h"
-				>
-			</File>
-			<File
-				RelativePath="..\compiler\parallelize\delayline.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\compiler\parallelize\delayline.hh"
 				>
 			</File>
 			<File

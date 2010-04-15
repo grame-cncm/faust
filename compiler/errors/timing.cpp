@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cassert>
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 #include "timing.hh"
 
 using namespace std;

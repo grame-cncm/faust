@@ -27,23 +27,17 @@
 
 	bool chdir(const char* path)
 	{
-		wchar_t	wstr[2048];
-		mbstowcs(wstr,path,2048);
-		return !SetCurrentDirectory(wstr);
+		return !SetCurrentDirectory(path);
 	}
 
 	int mkdir(const char* path, unsigned int attribute)
 	{
-		wchar_t	wstr[2048];
-		mbstowcs(wstr,path,2048);
-		return CreateDirectory(wstr,NULL);
+		return CreateDirectory(path,NULL);
 	}
 
 	char* getcwd(char* str, unsigned int size)
 	{
-		wchar_t	wstr[2048];
-		GetCurrentDirectory(2048, wstr);
-		wcstombs(str,wstr,size);
+		GetCurrentDirectory(size, str);
 		return str;
 	}
 
@@ -54,11 +48,19 @@
 
 	void getFaustPathname(char* str, unsigned int size)
 	{
-		wchar_t	wstr[2048];
-		GetModuleFileName(NULL, wstr, 2048);
-		wcstombs(str,wstr,size);
+		GetModuleFileName(NULL, str, size);
 	}
 
+	double	remainder(double numerator, double denominator)
+	{
+		// TODO: This function must be implemented
+		return 1.0;
+	}
+
+	char*	dirname(char *path)
+	{
+		return path;
+	}
 
 #else // Linux
 

@@ -28,7 +28,7 @@ class aterm
  public:
     aterm ();									///< create an empty aterm (equivalent to 0)
     aterm (Tree t);								///< create a aterm from an additive exp
-    aterm (const aterm& a);						///< create a copy of an aterm
+    //aterm (const aterm& a);						///< create a copy of an aterm
 
     const aterm& operator += (Tree t);			///< add in place an additive expression tree
     const aterm& operator -= (Tree t);			///< add in place an additive expression tree

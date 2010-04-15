@@ -1332,7 +1332,7 @@ void DocCompiler::getUIDocInfos(Tree path, string& label, string& unit)
 	for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
 		const string& key = i->first;
 		const set<string>& values = i->second;
-		for (set<string>::iterator j = values.begin(); j != values.end(); j++) {
+		for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
 			if(key == "unit") unit += *j;
 		}
 	}

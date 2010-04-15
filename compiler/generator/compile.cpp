@@ -336,7 +336,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
     for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
         const string& key = i->first;
         const set<string>& values = i->second;
-        for (set<string>::iterator j = values.begin(); j != values.end(); j++) {
+        for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
             fClass->addUICode(subst("interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key) ,wdel(*j)));
         }
     }

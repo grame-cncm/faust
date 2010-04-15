@@ -23,9 +23,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <sys/time.h>
 
+#ifndef WIN32
+#include <sys/time.h>
 #include "libgen.h"
+#endif
 
 #include "compatibility.hh"
 #include "signals.hh"
@@ -542,7 +544,7 @@ int main (int argc, char* argv[])
 
 	if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
-	if (gDrawPSSwitch or gDrawSVGSwitch) {
+	if (gDrawPSSwitch || gDrawSVGSwitch) {
 		string projname = gMasterDocument;
 		if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
 			projname = gMasterDocument.substr(0, gMasterDocument.length()-4); 
