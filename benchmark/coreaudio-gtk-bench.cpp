@@ -1222,7 +1222,10 @@ OSStatus TCoreAudioRenderer::Render(void *inRefCon,
     for (int i = 0; i < gDevNumOutChans; i++) {
         gOutChannel[i] = (float*)ioData->mBuffers[i].mData;
     }
+    STARTMESURE
     DSP.compute((int)inNumberFrames, gInChannel, gOutChannel);
+    STOPMESURE	 
+ 	running = mesure <= (KMESURE + KSKIP);
 	return 0;
 }
 
@@ -1626,7 +1629,7 @@ int main(int argc, char *argv[] )
 	CHECKINTSIZE;
 
 	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
-	
+ 	
 	// compute rcfilename to (re)store application state
 	char	rcfilename[256];
 	char* 	home = getenv("HOME");

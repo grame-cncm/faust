@@ -14,7 +14,7 @@ VSIZE := 1024
 all : icc gcc
 icc : ialsascal ialsavec ialsavec2 ialsaomp2 ialsasch ialsasch2
 gcc : galsascal galsavec galsavec2 galsaomp2 galsasch galsasch2
-
+osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiovec3 gcoreaudiovec4 gcoreaudiosch gcoreaudiosch2
 
 
 ### intel-compiler single-precision x {scalar, vector and openMP}
