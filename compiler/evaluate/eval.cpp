@@ -41,6 +41,7 @@
 #include "loopDetector.hh"
 #include "property.hh"
 #include "names.hh"
+#include "compatibility.hh"
 
 
 #include <assert.h>

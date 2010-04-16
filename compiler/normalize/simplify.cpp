@@ -34,6 +34,7 @@
 #include "num.hh"
 #include "xtended.hh"
 #include <map>
+#include "compatibility.hh"
 
 #include "normalize.hh"
 

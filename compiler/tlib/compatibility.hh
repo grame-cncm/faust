@@ -42,6 +42,11 @@ void	getFaustPathname(char* str, unsigned int size);
 double	remainder(double numerator, double denominator);
 char*	dirname(char *path);
 
+#include <assert.h>
+#ifdef  NDEBUG
+#undef assert
+#define assert(_Expression) do { bool bTest = (_Expression) != 0; } while (0)
+#endif
 
 #define snprintf _snprintf
 //#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))

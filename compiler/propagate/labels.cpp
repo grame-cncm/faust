@@ -1,4 +1,5 @@
 #include "labels.hh"
+#include "compatibility.hh"
 
 //=========================== PATHNAME ===============================
 
