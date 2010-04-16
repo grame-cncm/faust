@@ -24,6 +24,7 @@
 	// Simulate some Unix fonctions on Windows
 
 	#include <windows.h>
+	#include "math.h"
 
 	bool chdir(const char* path)
 	{
@@ -51,10 +52,91 @@
 		GetModuleFileName(NULL, str, size);
 	}
 
-	double	remainder(double numerator, double denominator)
+	typedef union
 	{
-		// TODO: This function must be implemented
-		return 1.0;
+		double value;
+		struct
+		{
+			unsigned int lsw;
+			unsigned int msw;
+		} parts;
+	} ieee_double_shape_type;
+
+
+#define EXTRACT_WORDS(ix0,ix1,d)				\
+	do {								\
+	ieee_double_shape_type ew_u;					\
+	ew_u.value = (d);						\
+	(ix0) = ew_u.parts.msw;					\
+	(ix1) = ew_u.parts.lsw;					\
+	} while (0)
+
+	/* Get the more significant 32 bit int from a double.  */
+
+#define GET_HIGH_WORD(i,d)					\
+	do {								\
+	ieee_double_shape_type gh_u;					\
+	gh_u.value = (d);						\
+	(i) = gh_u.parts.msw;						\
+	} while (0)
+
+	/* Get the less significant 32 bit int from a double.  */
+
+#define GET_LOW_WORD(i,d)					\
+	do {								\
+	ieee_double_shape_type gl_u;					\
+	gl_u.value = (d);						\
+	(i) = gl_u.parts.lsw;						\
+	} while (0)
+
+#define SET_HIGH_WORD(d,v)					\
+	do {								\
+	ieee_double_shape_type sh_u;					\
+	sh_u.value = (d);						\
+	sh_u.parts.msw = (v);						\
+	(d) = sh_u.value;						\
+	} while (0)
+
+	double remainder(double x, double p)
+	{
+		int hx,hp;
+		unsigned int sx,lx,lp;
+		double p_half;
+
+		EXTRACT_WORDS(hx,lx,x);
+		EXTRACT_WORDS(hp,lp,p);
+		sx = hx&0x80000000;
+		hp &= 0x7fffffff;
+		hx &= 0x7fffffff;
+
+		/* purge off exception values */
+		if((hp|lp)==0) return (x*p)/(x*p); 	/* p = 0 */
+		if((hx>=0x7ff00000)||			/* x not finite */
+			((hp>=0x7ff00000)&&			/* p is NaN */
+			(((hp-0x7ff00000)|lp)!=0)))
+			return (x*p)/(x*p);
+
+
+		static const double zero = 0.0;
+		if (hp<=0x7fdfffff) x = fmod(x,p+p);	/* now x < 2p */
+		if (((hx-hp)|(lx-lp))==0) return zero*x;
+		x  = fabs(x);
+		p  = fabs(p);
+		if (hp<0x00200000) {
+			if(x+x>p) {
+				x-=p;
+				if(x+x>=p) x -= p;
+			}
+		} else {
+			p_half = 0.5*p;
+			if(x>p_half) {
+				x-=p;
+				if(x>=p_half) x -= p;
+			}
+		}
+		GET_HIGH_WORD(hx,x);
+		SET_HIGH_WORD(x,hx^sx);
+		return x;
 	}
 
 	char*	dirname(char *path)
