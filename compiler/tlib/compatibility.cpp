@@ -52,6 +52,8 @@
 		GetModuleFileName(NULL, str, size);
 	}
 
+#if !defined(__MINGW32__)
+
 	typedef union
 	{
 		double value;
@@ -138,7 +140,7 @@
 		SET_HIGH_WORD(x,hx^sx);
 		return x;
 	}
-
+#endif
 	char*	dirname(char *path)
 	{
 		return path;

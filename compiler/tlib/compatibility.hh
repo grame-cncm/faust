@@ -39,7 +39,6 @@ char*	getcwd(char* str, unsigned int size);
 int		isatty(int file);
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
-double	remainder(double numerator, double denominator);
 char*	dirname(char *path);
 
 #include <assert.h>
@@ -52,7 +51,11 @@ char*	dirname(char *path);
 //#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))
 #define FAUST_PATH_MAX 1024
 
-#define S_IRWXU 0
+#if !defined(__MINGW32__)
+	double	remainder(double numerator, double denominator);
+	#define S_IRWXU 0
+#endif
+
 #define S_IRWXG 0
 #define S_IROTH 0
 #define S_IXOTH 0
