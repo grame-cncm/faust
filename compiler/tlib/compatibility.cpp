@@ -26,6 +26,7 @@
 	#include <windows.h>
 	#include "math.h"
 
+#ifdef _MBCS
 	bool chdir(const char* path)
 	{
 		return !SetCurrentDirectory(path);
@@ -41,15 +42,45 @@
 		GetCurrentDirectory(size, str);
 		return str;
 	}
-
-	int isatty(int file)
+	void getFaustPathname(char* str, unsigned int size)
 	{
-		return 0;
+		GetModuleFileName(NULL, str, size);
+	}
+#else
+	bool chdir(const char* path)
+	{
+		wchar_t	wstr[2048];
+		mbstowcs(wstr,path,2048);
+		return !SetCurrentDirectory(wstr);
+	}
+
+	int mkdir(const char* path, unsigned int attribute)
+	{
+		wchar_t	wstr[2048];
+		mbstowcs(wstr,path,2048);
+		return CreateDirectory(wstr,NULL);
+	}
+
+	char* getcwd(char* str, unsigned int size)
+	{
+		wchar_t	wstr[2048];
+		GetCurrentDirectory(2048, wstr);
+		wcstombs(str,wstr,size);
+		return str;
 	}
 
 	void getFaustPathname(char* str, unsigned int size)
 	{
-		GetModuleFileName(NULL, str, size);
+		wchar_t	wstr[2048];
+		GetModuleFileName(NULL, wstr, 2048);
+		wcstombs(str,wstr,size);
+	}
+
+#endif
+
+	int isatty(int file)
+	{
+		return 0;
 	}
 
 #if !defined(__MINGW32__)
