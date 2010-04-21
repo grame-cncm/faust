@@ -199,7 +199,7 @@ class TaskQueue
             
             do {
                 old_val = fCounter;
-                new_val = fCounter;
+                new_val = old_val;
                 if (Head(old_val) == Tail(old_val)) {
                     return WORK_STEALING_INDEX;
                 } else {
@@ -217,7 +217,7 @@ class TaskQueue
             
             do {
                 old_val = fCounter;
-                new_val = fCounter;
+                new_val = old_val;
                 if (Head(old_val) == Tail(old_val)) {
                    return WORK_STEALING_INDEX;
                 } else {
