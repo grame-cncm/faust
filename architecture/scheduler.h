@@ -30,6 +30,8 @@ extern TaskQueue* gTaskQueueList[THREAD_SIZE];
 extern DSPThreadPool* gThreadPool;
 extern int gClientCount;
 
+void Yield();
+
 #ifdef __ICC
 #define INLINE __forceinline
 #else
@@ -50,7 +52,37 @@ extern int gClientCount;
 #define AVOIDDENORMALS 
 #endif
 
-INLINE void Yield();
+#ifdef __linux__
+
+// handle 32/64 bits int size issues
+#ifdef __x86_64__
+#define UInt32	unsigned int
+#define UInt64	unsigned long int
+#else
+#define UInt32	unsigned int
+#define UInt64	unsigned long long int
+#endif
+
+#endif
+
+#ifdef __APPLE__
+#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+#endif
+
+/**
+ * Returns the number of clock cycles elapsed since the last reset
+ * of the processor
+ */
+static INLINE UInt64 DSP_rdtsc(void)
+{
+	union {
+		UInt32 i32[2];
+		UInt64 i64;
+	} count;
+	
+	__asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
+     return count.i64;
+}
 
 #if defined(__i386__) || defined(__x86_64__)
 
@@ -169,8 +201,8 @@ static int GetPID()
 #define IncTail(e) (e).info.scounter.fTail++
 #define DecTail(e) (e).info.scounter.fTail--
 
-#define MAX_STEAL_COUNT 1000
-
+#define MAX_STEAL_DUR 50                   // in usec
+#define DEFAULT_CLOCKSPERSEC 2500000000     // in cycles (2,5 Ghz)
 
 class TaskQueue 
 {
@@ -178,19 +210,21 @@ class TaskQueue
     
         int fTaskList[QUEUE_SIZE];
         volatile AtomicCounter fCounter;
-		int fSlealingCount;
-		int fMaxSlealingCount;
+	    
+        UInt64 fStealingStart;
+        UInt64 fMaxStealing;
     
     public:
   
         INLINE TaskQueue(int cur_thread)
         {
+            int clock_per_microsec = (getenv("CLOCKSPERSEC") ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) : DEFAULT_CLOCKSPERSEC) / 1000000;
             for (int i = 0; i < QUEUE_SIZE; i++) {
                 fTaskList[i] = -1;
             }
-            gTaskQueueList[cur_thread] = this;		
-			fMaxSlealingCount = getenv("OMP_YIELD_COUNT") ? atoi(getenv("OMP_YIELD_COUNT")) : MAX_STEAL_COUNT;
-			fSlealingCount = 0;
+            gTaskQueueList[cur_thread] = this;	
+            fMaxStealing = getenv("OMP_STEALING_DUR") ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec: MAX_STEAL_DUR * clock_per_microsec;
+            fStealingStart = 0;
         }
          
         INLINE void PushHead(int item)
@@ -235,17 +269,19 @@ class TaskQueue
             return fTaskList[Tail(old_val)];
         }
 
-		INLINE void IncStealingCount()
+		INLINE void MeasureStealingDur()
 		{
-			if (++fSlealingCount > fMaxSlealingCount) {
-				fSlealingCount = 0;
-				Yield();
-			}
+            // Takes first timetamp
+            if (fStealingStart == 0) {
+                fStealingStart = DSP_rdtsc();
+            } else if ((DSP_rdtsc() - fStealingStart) > fMaxStealing) {
+                Yield();
+            }
 		}
 
-		INLINE void ResetStealingCount()
+		INLINE void ResetStealingDur()
 		{
-			fSlealingCount = 0;
+            fStealingStart = 0;
 		}
         
         static INLINE int GetNextTask(int thread, int num_threads)
@@ -253,7 +289,9 @@ class TaskQueue
             int tasknum;
             for (int i = 0; i < num_threads; i++) {
                 if ((i != thread) && gTaskQueueList[i] && (tasknum = gTaskQueueList[i]->PopTail()) != WORK_STEALING_INDEX) {
-					gTaskQueueList[thread]->ResetStealingCount();
+                #ifdef __linux__
+					gTaskQueueList[thread]->ResetStealingDur();
+                #endif
                     return tasknum;    // Task is found
                 }
             }
@@ -264,7 +302,9 @@ class TaskQueue
                 res += 10;
             }
             */
-			gTaskQueueList[thread]->IncStealingCount();
+        #ifdef __linux__
+			gTaskQueueList[thread]->MeasureStealingDur();
+        #endif
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
         
@@ -379,7 +419,7 @@ struct TaskGraph
 
 #ifdef __APPLE__
 
-#import <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
 
@@ -531,20 +571,6 @@ INLINE void Yield()
 
 #ifdef __linux__
 
-
-// handle 32/64 bits int size issues
-
-#ifdef __x86_64__
-
-#define UInt32	unsigned int
-#define UInt64	unsigned long int
-
-#else
-
-#define UInt32	unsigned int
-#define UInt64	unsigned long long int
-#endif
-
 static int faust_sched_policy = -1;
 static struct sched_param faust_rt_param; 
 
@@ -575,22 +601,6 @@ INLINE void Yield()
 
 #endif
 
-/**
- * Returns the number of clock cycles elapsed since the last reset
- * of the processor
- */
-static INLINE UInt64 DSP_rdtsc(void)
-{
-	union {
-		UInt32 i32[2];
-		UInt64 i64;
-	} count;
-	
-	__asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
-
-     return count.i64;
-}
-
 #define KDSPMESURE 50
 
 static INLINE int Range(int min, int max, int val)
@@ -606,9 +616,9 @@ static INLINE int Range(int min, int max, int val)
 
 struct Runnable {
     
-    unsigned long long int fTiming[KDSPMESURE];
-    unsigned long long int fStart;
-    unsigned long long int fStop;
+    UInt64 fTiming[KDSPMESURE];
+    UInt64 fStart;
+    UInt64 fStop;
     int fCounter;
     float fOldMean;
     int fOldfDynamicNumThreads;
@@ -619,7 +629,7 @@ struct Runnable {
     Runnable():fCounter(0), fOldMean(1000000000.f), fOldfDynamicNumThreads(1)
     {
     	memset(fTiming, 0, sizeof(long long int ) * KDSPMESURE);
-        fDynAdapt = getenv("OMP_DYN_THREAD") ? atoi(getenv("OMP_DYN_THREAD")) : false;
+        fDynAdapt = getenv("OMP_DYN_THREAD") ? strtol(getenv("OMP_DYN_THREAD"), NULL, 10) : false;
     }
     
     INLINE float ComputeMean()
@@ -769,7 +779,7 @@ struct DSPThread {
         if (realtime) {
             fRealTime = true;
         }else {
-            fRealTime = getenv("OMP_REALTIME") ? atoi(getenv("OMP_REALTIME")) : true;
+            fRealTime = getenv("OMP_REALTIME") ? strtol(getenv("OMP_REALTIME"), NULL, 10) : true;
         }
                                
         if ((res = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE))) {
