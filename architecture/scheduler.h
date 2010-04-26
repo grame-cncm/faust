@@ -201,7 +201,7 @@ static int GetPID()
 #define IncTail(e) (e).info.scounter.fTail++
 #define DecTail(e) (e).info.scounter.fTail--
 
-#define MAX_STEAL_DUR 50                   // in usec
+#define MAX_STEAL_DUR 50                    // in usec
 #define DEFAULT_CLOCKSPERSEC 2500000000     // in cycles (2,5 Ghz)
 
 class TaskQueue 
@@ -218,12 +218,18 @@ class TaskQueue
   
         INLINE TaskQueue(int cur_thread)
         {
-            int clock_per_microsec = (getenv("CLOCKSPERSEC") ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) : DEFAULT_CLOCKSPERSEC) / 1000000;
+            int clock_per_microsec = (getenv("CLOCKSPERSEC") 
+                ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) 
+                : DEFAULT_CLOCKSPERSEC) / 1000000;
+                
+            fMaxStealing = getenv("OMP_STEALING_DUR") 
+                ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec 
+                : MAX_STEAL_DUR * clock_per_microsec;
+                
             for (int i = 0; i < QUEUE_SIZE; i++) {
                 fTaskList[i] = -1;
             }
             gTaskQueueList[cur_thread] = this;	
-            fMaxStealing = getenv("OMP_STEALING_DUR") ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec: MAX_STEAL_DUR * clock_per_microsec;
             fStealingStart = 0;
         }
          
