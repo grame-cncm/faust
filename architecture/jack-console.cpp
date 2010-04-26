@@ -261,6 +261,12 @@ class dsp {
 mydsp	DSP;
 
 
+static void signal_handler(int sig)
+{
+	DSP.display();
+	exit(0);
+}
+
 /******************************************************************************
 *******************************************************************************
 
@@ -358,6 +364,11 @@ int main(int argc, char *argv[] )
 	    snprintf(buf, 256, "out_%d", i); 
 	    output_ports[i] = jack_port_register(client, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 	}
+    
+    signal(SIGQUIT, signal_handler);
+	signal(SIGTERM, signal_handler);
+	signal(SIGHUP, signal_handler);
+	signal(SIGINT, signal_handler);
 	
 	DSP.init(jack_get_sample_rate(client));
 	DSP.buildUserInterface(interface);

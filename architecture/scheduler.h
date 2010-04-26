@@ -50,6 +50,7 @@ extern int gClientCount;
 #define AVOIDDENORMALS 
 #endif
 
+INLINE void Yield();
 
 #if defined(__i386__) || defined(__x86_64__)
 
@@ -168,7 +169,7 @@ static int GetPID()
 #define IncTail(e) (e).info.scounter.fTail++
 #define DecTail(e) (e).info.scounter.fTail--
 
-#define MAX_STEAL_COUNT 100
+#define MAX_STEAL_COUNT 1000
 
 
 class TaskQueue 
@@ -238,7 +239,7 @@ class TaskQueue
 		{
 			if (++fSlealingCount > fMaxSlealingCount) {
 				fSlealingCount = 0;
-				pthread_yield();
+				Yield();
 			}
 		}
 
@@ -521,6 +522,10 @@ void CancelThread(pthread_t fThread)
     thread_terminate(machThread);
 }
 
+INLINE void Yield()
+{
+    //sched_yield();
+}
 
 #endif
 
@@ -561,6 +566,12 @@ void CancelThread(pthread_t fThread)
     pthread_cancel(fThread);
     pthread_join(fThread, NULL);
 }
+
+INLINE void Yield()
+{
+    pthread_yield();
+}
+
 
 #endif
 
