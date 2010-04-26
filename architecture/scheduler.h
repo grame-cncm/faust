@@ -168,6 +168,8 @@ static int GetPID()
 #define IncTail(e) (e).info.scounter.fTail++
 #define DecTail(e) (e).info.scounter.fTail--
 
+#define MAX_STEAL_COUNT 100
+
 
 class TaskQueue 
 {
@@ -175,6 +177,8 @@ class TaskQueue
     
         int fTaskList[QUEUE_SIZE];
         volatile AtomicCounter fCounter;
+		int fSlealingCount;
+		int fMaxSlealingCount;
     
     public:
   
@@ -183,7 +187,9 @@ class TaskQueue
             for (int i = 0; i < QUEUE_SIZE; i++) {
                 fTaskList[i] = -1;
             }
-            gTaskQueueList[cur_thread] = this;
+            gTaskQueueList[cur_thread] = this;		
+			fMaxSlealingCount = getenv("OMP_YIELD_COUNT") ? atoi(getenv("OMP_YIELD_COUNT")) : MAX_STEAL_COUNT;
+			fSlealingCount = 0;
         }
          
         INLINE void PushHead(int item)
@@ -227,12 +233,26 @@ class TaskQueue
             
             return fTaskList[Tail(old_val)];
         }
+
+		INLINE void IncStealingCount()
+		{
+			if (++fSlealingCount > fMaxSlealingCount) {
+				fSlealingCount = 0;
+				pthread_yield();
+			}
+		}
+
+		INLINE void ResetStealingCount()
+		{
+			fSlealingCount = 0;
+		}
         
         static INLINE int GetNextTask(int thread, int num_threads)
         {
             int tasknum;
             for (int i = 0; i < num_threads; i++) {
                 if ((i != thread) && gTaskQueueList[i] && (tasknum = gTaskQueueList[i]->PopTail()) != WORK_STEALING_INDEX) {
+					gTaskQueueList[thread]->ResetStealingCount();
                     return tasknum;    // Task is found
                 }
             }
@@ -243,7 +263,7 @@ class TaskQueue
                 res += 10;
             }
             */
-            
+			gTaskQueueList[thread]->IncStealingCount();
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
         
@@ -349,6 +369,7 @@ struct TaskGraph
 
 #define THREAD_POOL_SIZE 16
 #define JACK_SCHED_POLICY SCHED_FIFO
+//#define JACK_SCHED_POLICY SCHED_RR
 
 /* use 512KB stack per thread - the default is way too high to be feasible
  * with mlockall() on many systems */
