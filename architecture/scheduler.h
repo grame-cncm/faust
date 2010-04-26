@@ -23,14 +23,6 @@ using namespace std;
 #define WORK_STEALING_INDEX 0
 #define LAST_TASK_INDEX 1
 
-class TaskQueue;
-struct DSPThreadPool;
-
-extern TaskQueue* gTaskQueueList[THREAD_SIZE];
-extern DSPThreadPool* gThreadPool;
-extern int gClientCount;
-
-void Yield();
 
 #ifdef __ICC
 #define INLINE __forceinline
@@ -68,6 +60,16 @@ void Yield();
 #ifdef __APPLE__
 #include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
 #endif
+
+class TaskQueue;
+struct DSPThreadPool;
+
+extern TaskQueue* gTaskQueueList[THREAD_SIZE];
+extern DSPThreadPool* gThreadPool;
+extern int gClientCount;
+extern UInt64 gMaxStealing;
+    
+void Yield();
 
 /**
  * Returns the number of clock cycles elapsed since the last reset
@@ -210,22 +212,12 @@ class TaskQueue
     
         int fTaskList[QUEUE_SIZE];
         volatile AtomicCounter fCounter;
-	    
         UInt64 fStealingStart;
-        UInt64 fMaxStealing;
-    
+     
     public:
   
         INLINE TaskQueue(int cur_thread)
         {
-            int clock_per_microsec = (getenv("CLOCKSPERSEC") 
-                ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) 
-                : DEFAULT_CLOCKSPERSEC) / 1000000;
-                
-            fMaxStealing = getenv("OMP_STEALING_DUR") 
-                ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec 
-                : MAX_STEAL_DUR * clock_per_microsec;
-                
             for (int i = 0; i < QUEUE_SIZE; i++) {
                 fTaskList[i] = -1;
             }
@@ -280,7 +272,7 @@ class TaskQueue
             // Takes first timetamp
             if (fStealingStart == 0) {
                 fStealingStart = DSP_rdtsc();
-            } else if ((DSP_rdtsc() - fStealingStart) > fMaxStealing) {
+            } else if ((DSP_rdtsc() - fStealingStart) > gMaxStealing) {
                 Yield();
             }
 		}
@@ -931,8 +923,17 @@ void DSPThreadPool::Destroy()
 
 // Globals
 TaskQueue* gTaskQueueList[THREAD_SIZE] = {0};
+
 DSPThreadPool* gThreadPool = 0;
 int gClientCount = 0;
+
+int clock_per_microsec = (getenv("CLOCKSPERSEC") 
+                ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) 
+                : DEFAULT_CLOCKSPERSEC) / 1000000;
+                
+UInt64  gMaxStealing = getenv("OMP_STEALING_DUR") 
+                ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec 
+                : MAX_STEAL_DUR * clock_per_microsec;
 
 #endif
 
