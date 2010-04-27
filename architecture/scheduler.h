@@ -90,6 +90,10 @@ static INLINE UInt64 DSP_rdtsc(void)
 
 #define LOCK "lock ; "
 
+static INLINE void NOP(void)
+{
+	__asm__ __volatile__("nop \n\t");
+}
 
 static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 {
@@ -203,6 +207,8 @@ static int GetPID()
 #define IncTail(e) (e).info.scounter.fTail++
 #define DecTail(e) (e).info.scounter.fTail--
 
+#define MASTER_THREAD 0
+
 #define MAX_STEAL_DUR 50                    // in usec
 #define DEFAULT_CLOCKSPERSEC 2500000000     // in cycles (2,5 Ghz)
 
@@ -288,20 +294,16 @@ class TaskQueue
             for (int i = 0; i < num_threads; i++) {
                 if ((i != thread) && gTaskQueueList[i] && (tasknum = gTaskQueueList[i]->PopTail()) != WORK_STEALING_INDEX) {
                 #ifdef __linux__
-					gTaskQueueList[thread]->ResetStealingDur();
+					//if (thread != MASTER_THREAD)
+						gTaskQueueList[thread]->ResetStealingDur();
                 #endif
                     return tasknum;    // Task is found
                 }
             }
-            
-            /*
-            int res, i = 0;
-            while (i++ < 10000) {
-                res += 10;
-            }
-            */
-        #ifdef __linux__
-			gTaskQueueList[thread]->MeasureStealingDur();
+            NOP();
+          #ifdef __linux__
+			//if (thread != MASTER_THREAD)
+				gTaskQueueList[thread]->MeasureStealingDur();
         #endif
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
@@ -408,7 +410,6 @@ struct TaskGraph
 
 #define THREAD_POOL_SIZE 16
 #define JACK_SCHED_POLICY SCHED_FIFO
-//#define JACK_SCHED_POLICY SCHED_RR
 
 /* use 512KB stack per thread - the default is way too high to be feasible
  * with mlockall() on many systems */
@@ -582,6 +583,7 @@ INLINE void GetRealTime()
 
 INLINE void SetRealTime()
 {
+	faust_rt_param.sched_priority--;
     pthread_setschedparam(pthread_self(), faust_sched_policy, &faust_rt_param);
 }
 
