@@ -36,28 +36,14 @@
 
 extern bool gInternDoubleSwitch;
 
-static string substitution (const string& model, const vector<string>& args)
-{
-	char 	c;
-	int 	i=0, ilast = model.length()-1;
-	string 	result;
+static string substitution (const string& model, const vector<string>& args);
 
-	while (i < ilast) {
-		c = model[i++];
-		if (c != '$') {
-			result += c;
-		} else {
-			c = model[i++];
-			if (c >= '0' && c <= '9') {
-				result += args[c - '0'];
-			} else {
-				result += c;
-			}
-		}
-	}
-	if (i == ilast) result += model[i];
-	return result;
-}
+/**
+ * Text substitution. Creates a string by replacing all the $n 
+ * occurences in the model string, with the corresponding arguments. 
+ * Example :
+ * 		subst("float $0 = $1;", "var", T(10.2))
+ */ 
 string subst (const string& model, const vector<string>& args)
 {
 	return substitution(model, args);
@@ -145,39 +131,34 @@ string subst (const string& model, const string& a0, const string& a1, const str
 }
 
 
-/**
- * Suppress trailing zero in a string representating a floating point number.
- * example : 1.00000  -> 1.0
- * example : 1.00000f -> 1.0f
- */
-
-static void zdel(char* c)
+static string substitution (const string& model, const vector<string>& args)
 {
-    int     l = strlen(c) - 1;
-    bool    f = (c[l] == 'f');
+    char 	c;
+    int 	i=0, ilast = model.length()-1;
+    string 	result;
 
-    if (f) c[l--] = 0;      // remove trailing if any f
-    while ( l>1 && c[l-1] != '.' && c[l] == '0')  c[l--] = 0;
-    if (f) c[++l] = 'f';    // restaure trailing f if needed
+    while (i < ilast) {
+        c = model[i++];
+        if (c != '$') {
+            result += c;
+        } else {
+            c = model[i++];
+            if (c >= '0' && c <= '9') {
+                result += args[c - '0'];
+            } else {
+                result += c;
+            }
+        }
+    }
+    if (i == ilast) result += model[i];
+    return result;
 }
+
 
 string T (char* c) 	{ return string(c); }
 string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
 string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
 
-#if 0
-string T (float n)
-{
-    char c[64];
-    if  (n <  0.1 && n > -0.1 && n != 0.0) {
-        snprintf(c, 63, "%ef", n);
-    } else {
-        snprintf(c, 63, "%ff", n);
-        zdel(c);
-    }
-    return string(c);
-}
-#endif
 
 /**
  * If needed add a trailing '.0' to the
