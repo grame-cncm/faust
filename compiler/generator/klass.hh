@@ -55,6 +55,12 @@ using namespace std;
 class Klass //: public Target
 {
 
+protected:
+    // we make it global because several classes may need
+    // power def but we want the code to be generated only once
+    static bool     fNeedPowerDef;              ///< true when faustpower definition is needed
+
+
  protected:
     
 	string			fKlassName;
@@ -63,9 +69,8 @@ class Klass //: public Target
 	int				fNumOutputs;
     int             fNumActives;                ///< number of active controls in the UI (sliders, buttons, etc.)
     int             fNumPassives;               ///< number of passive widgets in the UI (bargraphs, etc.)
-    bool            fNeedPowerDef;              ///< true when faustpower definition is needed
 
-	set<string>			fIncludeFileSet;
+    set<string>			fIncludeFileSet;
 	set<string>			fLibrarySet;
 
 	list<Klass* >		fSubClassList;
@@ -102,7 +107,7 @@ class Klass //: public Target
 
 	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
 	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
-            fNumActives(0), fNumPassives(0), fNeedPowerDef(false),
+            fNumActives(0), fNumPassives(0),
             fTopLoop(new Loop(0, "count")), fVec(__vec)
 	{}
 

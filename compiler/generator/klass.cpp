@@ -67,6 +67,8 @@ void tab (int n, ostream& fout)
 	while (n--)	fout << '\t';
 }
 
+bool Klass::fNeedPowerDef = false;
+
 /**
  * Store the loop used to compute a signal
  */
