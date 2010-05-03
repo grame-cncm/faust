@@ -60,6 +60,11 @@ class PowPrim : public xtended
         
 		return subst("{$0}^{$1}", args[0], args[1]);
 	}
+
+    // power is now used as an infix binary operator, we return true to
+    // indicate that we want ^(n) to be equivalent to _^n
+    virtual bool    isSpecialInfix()    { return true; }
+
 	
 };
 

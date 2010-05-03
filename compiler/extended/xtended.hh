@@ -38,6 +38,8 @@ class xtended
 	virtual Type 	infereSigType (const vector<Type>& args) = 0;
 	virtual Tree	computeSigOutput (const vector<Tree>& args) = 0;
 	virtual bool	needCache () = 0;
+
+    virtual bool    isSpecialInfix()    { return false; }   ///< generaly false, but true for binary op # such that #(x) == _#x
 };
 
 // -- Trigonometric Functions
