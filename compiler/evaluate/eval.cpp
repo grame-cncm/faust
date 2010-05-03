@@ -1068,11 +1068,16 @@ static Tree applyList (Tree fun, Tree larg)
 			assert(false);
 		}
 		
-		if ( (outs == 1) && isBoxPrim2(fun, &p2) && (p2 != sigPrefix)) {
-			// special case : /(3) ==> _,3 : /
-			Tree larg2 = concat(nwires(ins-outs), larg);
-			return boxSeq(larg2par(larg2), fun);
-		} else {
+        if (    (outs == 1)
+            &&
+                (  ( isBoxPrim2(fun, &p2) && (p2 != sigPrefix) )
+                || ( getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix() ) ) ) {
+            // special case : /(3) ==> _,3 : /
+            Tree larg2 = concat(nwires(ins-outs), larg);
+            return boxSeq(larg2par(larg2), fun);
+
+        } else {
+
 			Tree larg2 = concat(larg, nwires(ins-outs));
             return boxSeq(larg2par(larg2), fun);
         }
