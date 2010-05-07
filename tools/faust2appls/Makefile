@@ -21,4 +21,5 @@ install:
 	install faust2puredata $(prefix)/bin
 	install faust2svg $(prefix)/bin
 	install faust2graph $(prefix)/bin
+	install faust2graphviewer $(prefix)/bin
 

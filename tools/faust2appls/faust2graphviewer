@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Usage.
+print_usage() 
+{
+    echo Usage : args of faust2graphviewer should be a \'.dsp\' file, or a list of \'.dsp\' files.
+}
+
+
+#    prepare how we are going to open .pdf files
+if [[ $(uname) == Darwin ]]; then
+    OPEN=open
+else
+	OPEN=xdg-open
+fi
+
+
+
+#    Main loop of this script :
+for FILEPATH in $@ ; do
+    if [ -f $FILEPATH ] ; then
+	FILENAME=`basename $FILEPATH` &&
+	case $FILENAME in
+	    *.dsp )  
+		faust -o /dev/null -vec --task-graph $FILEPATH &&
+		dot -Tpdf $FILEPATH.dot -o ${FILEPATH%.dsp}-graph.pdf &&
+		rm $FILEPATH.dot &&
+		${OPEN} ${FILEPATH%.dsp}-graph.pdf 
+		;;
+	    * )
+		echo error : \'$FILEPATH\' does not have a \'.dsp\' extension.
+		exit 2
+		;;
+	esac	
+    else
+	print_usage
+	exit 1
+    fi
+done
+exit 0
+
