@@ -640,6 +640,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;
+        exit(1);
 	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
@@ -677,12 +678,13 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 		cexp = setCompiledExpression(content, generateStaticSigGen(content, g));
 	}
 
-	if (!isSigInt(tsize, &size)) {
+    if (!isSigInt(tsize, &size)) {
 		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
 		cerr << "error in ScalarCompiler::generateTable() : "
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;
+        exit(1);
 	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
