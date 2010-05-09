@@ -98,8 +98,6 @@ with {
   b2 = b0;
 };
 
-notch(fb) = notchw(70,fb); // 70 Hz default width (like dcblocker)
-
 //========================= Comb Filters ===============================
 
 //------------------------- ffcombfilter ---------------------------
@@ -438,6 +436,9 @@ highshelf(Bpi,fx,x) = x + Bpi*highpass1(fx,x);
 // (specifically faust-pd-0.9.9.2 in Planet CCRMA)
 // which was released under the BSD license.
 //---------------------------------------------------------------------
+// FIXME: ToDo: Reimplement this using peakingEQ in maxmsp.lib or delete.
+//        ToDo: Document maxmsp functions at least as well as this one.
+//        URL : http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
 pareq(Q,F,G) = TF2(  (1 +  K/Q + K*K) / D,
                2 * (K*K - 1)          / D,
               (1 - K/Q + K*K)         / D,
