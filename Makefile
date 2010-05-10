@@ -1,4 +1,4 @@
-version := 0.9.23
+version := 0.9.24
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -72,6 +72,7 @@ dist :
 	cp -r examples faust-$(version)
 	cp -r syntax-highlighting faust-$(version)
 	cp -r tools faust-$(version)
+	cp -r windows faust-$(version)
 	find faust-$(version) -name CVS | xargs rm -rf
 	find faust-$(version) -name "*~" | xargs rm -rf
 	find faust-$(version) -name ".#*" | xargs rm -rf
@@ -92,6 +93,7 @@ archive :
 	cp -r examples $(vname)
 	cp -r syntax-highlighting $(vname)
 	cp -r tools $(vname)
+	cp -r windows $(vname)
 	find $(vname) -name "*~" | xargs rm -rf
 	tar czfv $(vname).tar.gz $(vname)
 	rm -rf $(vname)
@@ -100,11 +102,13 @@ zip :
 	mkdir -p $(zname)
 	cp README COPYING Makefile $(zname)
 	cp -r architecture $(zname)
+	cp -r benchmark $(zname)
 	cp    compiler/faust.exe $(zname)
 	cp -r examples $(zname)
 	cp -r documentation $(zname)
 	cp -r syntax-highlighting $(zname)
 	cp -r tools $(zname)
+	cp -r windows $(zname)
 	find $(zname) -name "*~" | xargs rm -rf
 	find $(zname) -name CVS | xargs rm -rf
 	find $(zname) -name ".#*" | xargs rm -rf
