@@ -214,3 +214,24 @@ with {
   curdel1 = odflange+dflange*(1 + lfol(freq))/2; 
   curdel2 = odflange+dflange*(1 + lfor(freq))/2; 
 };
+
+//------------------------- stereowidth(w) ---------------------------
+// Stereo Width effect using the Blumlein Shuffler technique.
+//
+// USAGE: "_,_ : stereowidth(w) : _,_", where
+//   w = stereo width between 0 and 1
+//
+// At w=0, the output signal is mono ((left+right)/2 in both channels).
+// At w=1, there is no effect (original stereo image).
+// Thus, w between 0 and 1 varies stereo width from 0 to "original".
+//
+// Reference:
+// "Applications of Blumlein Shuffling to Stereo Microphone Techniques"
+// Michael A. Gerzon, JAES vol. 42, no. 6, June 1994
+// 
+stereowidth(w) = _,_ <: shuffle : *(mgain),*(sgain) <: shuffle :> _,_
+with {
+     shuffle =  +,-; // normally scaled by 1/sqrt(2) for orthonormality,
+     mgain = 1-w/2;  // but we pick up the needed normalization here.
+     sgain = w/2;
+};
