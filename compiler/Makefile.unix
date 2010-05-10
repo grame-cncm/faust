@@ -117,7 +117,7 @@ evaluate/eval.o: evaluate/environment.hh errors/errormsg.hh boxes/ppbox.hh norma
 evaluate/eval.o: patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh tlib/smartpointer.hh
 evaluate/eval.o: signals/interval.hh generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
 evaluate/eval.o: parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh evaluate/loopDetector.hh
-evaluate/eval.o: utils/names.hh
+evaluate/eval.o: utils/names.hh tlib/compatibility.hh
 evaluate/loopDetector.o: evaluate/loopDetector.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 evaluate/loopDetector.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 evaluate/loopDetector.o: parser/sourcereader.hh boxes/ppbox.hh
@@ -256,7 +256,7 @@ generator/floats.o: generator/floats.hh
 generator/klass.o: generator/floats.hh tlib/smartpointer.hh generator/klass.hh signals/sigtype.hh signals/interval.hh
 generator/klass.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/klass.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
-generator/klass.o: generator/Text.hh signals/signals.hh signals/binop.hh
+generator/klass.o: generator/Text.hh signals/signals.hh signals/binop.hh signals/ppsig.hh
 generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/occurences.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/occurences.hh
 generator/occurences.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigtyperules.hh
@@ -290,7 +290,7 @@ normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/s
 normalize/simplify.o: signals/recursivness.hh signals/sigtyperules.hh signals/sigorderrules.hh signals/sigprint.hh
 normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
 normalize/simplify.o: parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh
-normalize/simplify.o: normalize/normalize.hh
+normalize/simplify.o: tlib/compatibility.hh normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 parallelize/graphSorting.o: parallelize/graphSorting.hh parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
@@ -313,7 +313,7 @@ patternmatcher/patternmatcher.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.
 patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
 patternmatcher/patternmatcher.o: patternmatcher/patternmatcher.hh
 propagate/labels.o: propagate/labels.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-propagate/labels.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
+propagate/labels.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh tlib/compatibility.hh
 propagate/propagate.o: propagate/propagate.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 propagate/propagate.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
 propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh boxes/ppbox.hh extended/xtended.hh
