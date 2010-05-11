@@ -64,6 +64,14 @@ db2linear(x)	= pow(10, x/20.0);
 linear2db(x)	= 20*log10(x);
 
 
+
+
+
+//===============================================
+// 			Random and Noise generators
+//===============================================
+
+
 //-----------------------------------------------
 // 			noise : Noise generator
 //-----------------------------------------------
@@ -72,6 +80,29 @@ random 		= +(12345) ~ *(1103515245);
 RANDMAX		= 2147483647.0;
 
 noise 		= random / RANDMAX;
+
+
+//-----------------------------------------------
+// Generates multiple decorrelated random numbers 
+// in parallel. Expects n>0.
+//-----------------------------------------------
+
+multirandom(n) = randomize(n) ~_
+with {
+	randomize (1) 	= +(12345) : *(1103515245);
+	randomize (n) 	= randomize(1) <: randomize(n-1),_;
+};
+
+
+//-----------------------------------------------
+// Generates multiple decorrelated noises
+// in parallel. Expects n>0.
+//-----------------------------------------------
+
+multinoise(n) = randomize(n) ~_ : par(i,n,/(RANDMAX)) 
+with { 
+	RANDMAX = 2147483647.0; 
+};
 
 
 
