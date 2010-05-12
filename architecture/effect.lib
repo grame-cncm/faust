@@ -229,9 +229,9 @@ with {
 // "Applications of Blumlein Shuffling to Stereo Microphone Techniques"
 // Michael A. Gerzon, JAES vol. 42, no. 6, June 1994
 // 
-stereowidth(w) = _,_ <: shuffle : *(mgain),*(sgain) <: shuffle :> _,_
+stereowidth(w) = shuffle : *(mgain),*(sgain) : shuffle
 with {
-     shuffle =  +,-; // normally scaled by 1/sqrt(2) for orthonormality,
+     shuffle =  _,_ <: +,-; // normally scaled by 1/sqrt(2) for orthonormality,
      mgain = 1-w/2;  // but we pick up the needed normalization here.
      sgain = w/2;
 };
