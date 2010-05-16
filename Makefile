@@ -64,7 +64,7 @@ dist :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean
 	$(MAKE) -C examples clean
 	mkdir -p faust-$(version)
-	cp README COPYING Makefile faust-$(version)
+	cp README WHATSNEW COPYING Makefile faust-$(version)
 	cp -r architecture faust-$(version)
 	cp -r benchmark faust-$(version)
 	cp -r compiler faust-$(version)

@@ -50,13 +50,24 @@ To compile and install the Faust compiler on Linux and MacOSX :
 	make
 	su
 	make install
+or
+	sudo make install
+
+It could be also useful to install additional tools, for example :
+
+	cd tools/faust2appls/
+	sudo make install
 
 On Windows :
 
-	Download and install the QT4.6 SDK : 
-		http://qt.nokia.com/downloads/sdk-windows-cpp
-	use the project file 'compiler.pro' in the compiler folder.
-	You will have to use MSYS to run the makefiles.
+The first option is to use the Visual Studio 2008 solution
+/faust/compiler/windows/faust_vs2008.sln. Open the solution with
+the Visual Studio 2008 environment and run Build. Both
+Debug/Release targets are supported.
+
+The second solution is to download and install the QT4.6 SDK : 
+	http://qt.nokia.com/downloads/sdk-windows-cpp
+and use the project file 'compiler.pro' in the compiler folder.
 
 
 2/ Compilation of the examples
@@ -85,6 +96,7 @@ About 20 different audio plateforms are supported :
 - ChucK
 - CoreAudio
 - CSOUND
+- iPhone
 - Jack
 - LADSPA
 - Matlab
@@ -113,14 +125,15 @@ providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc. 
 
 I would like to thank them and especially: Fons Adriaensen, Tiziano
-Bole, Thomas Charbonnel, Damien Cramet, Etienne Gaudrin, Albert
-Graef, Stefan Kersten, Victor Lazzarini, Matthieu Leberre, Mathieu
-Leroi, Kjetil Matheussen, Remy Muller, Nicolas Scaringella, Stephen
-Sinclair, Travis Skare, Julius Smith, as well as my colleagues at
-GRAME, in particular : Dominique Fober, Stephane Letz and Karim
-Barkati, and from the ASTREE project : Jerome Barthelemy (IRCAM),
-Alain Bonardi (IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot
-(Ecole des Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
+Bole, Baktery Chanka, Thomas Charbonnel, Damien Cramet, Etienne
+Gaudrin, Albert Graef, Stefan Kersten, Victor Lazzarini, Matthieu
+Leberre, Mathieu Leroi, Kjetil Matheussen, Remy Muller, Sampo
+Savolainen, Nicolas Scaringella, Stephen Sinclair, Travis Skare,
+Julius Smith, as well as my colleagues at GRAME, in particular :
+Dominique Fober, Stephane Letz and Karim Barkati, and from the
+ASTREE project : Jerome Barthelemy (IRCAM), Alain Bonardi (IRCAM),
+Raffaele Ciavarella (IRCAM), Pierre Jouvelot (Ecole des
+Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
 
 
 5/ Questions and suggestions
