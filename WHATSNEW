@@ -1,0 +1,143 @@
+
+							================
+							| FAUST 0.9.24 |
+							================
+
+GRAME - Centre National de Creation Musicale - is happy to announce
+the release of FAUST 0.9.24. This version fixes several bugs,
+and introduces some new possibilities in the language.
+
+-------------
+About FAUST :
+-------------
+
+FAUST (Functional Audio Stream) is a functional programming
+language specifically designed for real-time signal processing and
+synthesis. A distinctive characteristic of FAUST is to be fully
+compiled. The FAUST compiler translates DSP specifications into
+very efficient C++ code that works at sample level. It targets
+high-performance signal processing applications, libraries and
+audio plug-ins for a variety of audio platforms and standards. A
+same FAUST specification can be used to easily generate native
+JACK or ALSA applications, as well as CSOUND, LADSPA, MAX/MSP, PD,
+Q, SC and VST plugins.  
+
+The Faust distribution can be downloaded at:
+http://sourceforge.net/projects/faudiostream
+
+Two mailing lists are available:
+https://lists.sourceforge.net/lists/listinfo/faudiostream-devel
+https://lists.sourceforge.net/lists/listinfo/faudiostream-users
+
+In order to test FAUST without installing it, please refer to the
+Online Faust Compiler: 
+http://faust.grame.fr
+
+
+------------
+What's new :
+------------
+
+- Explicit substitutions. The language has been extended with new
+expressions type : exp[x1=def1; x2=def2; ...] allowing explicit
+substitutions in the lexical environment of an expression. This
+extension allows for instance, to customize an existing component
+by replacing some of its internal definitions without having to
+modify its source code. This extension is particularly useful to
+promote better code reuse.
+
+- Improved mathematical description (--mathdoc option) and support
+for two new languages : German (-mdlang de) and Italian (-mdlang
+it)
+
+- Support for floating point numbers in scientific notation and
+better precision for floating point constants. The precision used
+to print a floating point constant in the generated C++ code is no
+more limited to 6 digits. It is now dynamically adjusted to find
+the minimal number of digits that will produce the same internal
+representation when read back. This approach guarantees accuracy
+without sacrificing for readability.
+
+- All expressions are now systematically represented in polynomial
+forms. For example x*x will be replaced by x^2. If x is a complex
+expression the later form has several advantages, in particular to
+limit CSE.
+
+- Lazy semantics to select2 and select3 : the code generated for
+select2 and select3 is now based on conditional expressions
+((cond)?exp1:exp0 ) instead of tables. The resulting code is more
+efficient as the stateless parts of the branches are not computed
+every time but only when really needed.
+
+- new --task-graph option. It produces a graphical representation
+of the internal DAG of task in dot format (Graphviz
+http://www.graphviz.org/). This DAG is useful for example to
+understand the potential parallelism of a program as analyzed by
+the Faust compiler
+
+- Two new tools : faust2graph and faust2graphviewer. These tools
+make use of the --task-graph option in order to produce the
+graphical representation, as a PDF file, of the internal DAG of
+tasks of a Faust program (require Graphviz).
+
+- new reduce.lib library. It provides various operations on block
+of samples based on a high order 'reduce(op, n)' fold-like
+function. Moreover the music.lib library has been extended with
+break-point functions and multiple decorrelated random and noise
+generators. New flanger and stereowidth control have been added to
+the effect.lib library.
+
+- new iPhone architecture. It consists in a iphone-cocoa.cpp
+architecture file and an Xcode template project to be used to
+produce the applications. Use "make iphone" in the example folder
+to build the examples for the iPhone.
+
+- improved cross plateform compatibility and brand new visual
+studio 2008 project to build Faust on windows machines.
+
+
+----------
+Bug Fixes:
+----------
+
+- Report error when non-integer table size is detected during
+compilation
+
+- Corrected partial application of power operator. Now ^(n) is
+equivalent to \(x).(x^n) and not anymore to \(x).(n^x)
+
+- Added missing faustpower definition when power function is
+used only in table content.
+
+- Fixed lock-free implementations of PopHead and PopTail functions on
+work stealing queues in --scheduler mode
+
+- Corrected missing dependencies in the internal DAG of tasks
+
+- Added missing cache code to slow shared expressions used delayed
+
+- Added missing cache code to foreign functions
+
+
+----------------
+Acknowledgments:
+----------------
+
+Many persons have been contributing to the FAUST project by
+providing code for the compiler, architecture files, libraries,
+examples, documentation, scripts, bug reports, ideas, etc. 
+
+I would like to thank them and especially: Fons Adriaensen, Tiziano
+Bole, Baktery Chanka, Thomas Charbonnel, Damien Cramet, Etienne
+Gaudrin, Albert Graef, Stefan Kersten, Victor Lazzarini, Matthieu
+Leberre, Mathieu Leroi, Kjetil Matheussen, Remy Muller, Sampo
+Savolainen, Nicolas Scaringella, Stephen Sinclair, Travis Skare,
+Julius Smith, as well as my colleagues at GRAME, in particular :
+Dominique Fober, Stephane Letz and Karim Barkati, and from the
+ASTREE project : Jerome Barthelemy (IRCAM), Alain Bonardi (IRCAM),
+Raffaele Ciavarella (IRCAM), Pierre Jouvelot (Ecole des
+Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
+
+Yann Orlarey
+GRAME
+
