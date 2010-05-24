@@ -6,7 +6,7 @@ declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 //incomplete at the moment, but coverage is planned:
 //declare reference "http://ccrma.stanford.edu/~jos/pasp/";
 
-import("music.lib");
+import("music.lib");  // SR, ...
 import("filter.lib"); // wgr, nlf2
 
 //---------------------- Virtual Analog Oscillators ------------------------
@@ -14,7 +14,7 @@ import("filter.lib"); // wgr, nlf2
 // Simple sawtooth waveform oscillator between 0 and period in samples:
 rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 
-// Simple sawtooth waveform oscillator between 0 and 1s
+// Simple sawtooth waveform oscillator between 0 and 1
 sawpos(freq) = rawsaw(periodsamps) / periodsamps
 with {
   periodsamps = float(SR)/freq; // period in samples (not nec. integer)
@@ -29,6 +29,18 @@ sawtooth = saw1;
 // Differentiated Parabolic Wave (DPW) sawtooth (less aliasing)
 // Reference: Välimäki, IEEE Signal Processing Letters, March 2005
 saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*SR/freq);
+
+//------------------- Pulse-Train and Square-Wave Oscillators -------------
+// In all cases, the first pulse jumps to 1 at time 0.
+
+// Basic unit-amplitude nonnegative pulse train with duty cycle between 0 and 1:
+pulsetrainpos(freq,duty) = float(sawpos(freq) <= duty);
+
+// Positive square wave = pulse train with 50% duty cycle:
+squarewavepos(freq) = pulsetrainpos(freq,0.5);
+
+// Unit amplitude square wave = zero-mean pulse train with 50% duty cycle:
+squarewave(freq) = 2*squarewavepos(freq) - 1;
 
 //----------------------- Filter-Based Oscillators ------------------------
 

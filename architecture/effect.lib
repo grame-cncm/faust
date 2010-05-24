@@ -7,7 +7,6 @@ declare reference "http://ccrma.stanford.edu/realsimple/faust_strings/";
 
 import("filter.lib"); // dcblocker*, lowpass4, ...
 
-
 //--------------- levelfilter, levelfilterN -----------------------
 // Dynamic level lowpass filter:
 // USAGE: levelfilter(L,freq), where
@@ -234,4 +233,65 @@ with {
      shuffle =  _,_ <: +,-; // normally scaled by 1/sqrt(2) for orthonormality,
      mgain = 1-w/2;  // but we pick up the needed normalization here.
      sgain = w/2;
+};
+
+//-------------------- ampfollower, ampfollowerdb ---------------------
+// Classic analog audio envelope follower with different up and down time-constants
+//
+// USAGE: 
+//    _ : ampfollower(att,rel) : _
+// or
+//    _ : ampfollowerdb(att,rel) : _
+//
+// where
+//  att = attack time = amplitude-envelope time constant (sec) going up
+//  rel = release time = amplitude-envelope time constant (sec) going down
+//
+// For audio, att should be faster (smaller) than rel (e.g., 0.001 and 0.01)
+
+ampfollower(att,rel) = abs <: envUp,envDown : max with {
+  envUp = smooth(tau2pole(att));
+  envDown = smooth(tau2pole(rel));
+};
+
+ampfollowerdb(att,rel) = ampfollower(att,rel) : linear2db;
+
+//----------------- compressormono, compressorstereo -------------------
+// Mono and stereo dynamic range compressors
+//
+// USAGE: 
+//    _ : compressormono(ratio,thresh,att,rel)   : _
+// or
+//  _,_ : compressorstereo(ratio,thresh,att,rel) : _,_
+//
+// where
+//  ratio  = compression ratio (1 = no compression, >1 means "ratio to 1 compression")
+//  thresh = dB level threshold above which compression kicks in
+//  att    = attack time = compression adaptation time constant (sec) when level going up
+//  rel    = release time = compression-gain time constant (sec) when level going down
+//
+// Reference: http://en.wikipedia.org/wiki/Dynamic_range_compression
+// Reference: Albert Graef's <faust2pd>/examples/synth/compressor.dsp
+// 
+
+compressormono(ratio,thresh,att,rel,x) = x * compressiongainmono(ratio,thresh,att,rel,x);
+
+compressormonoandgain(ratio,thresh,att,rel,x) = 
+       compressormono(ratio,thresh,att,rel,x), 
+  (compressiongainmono(ratio,thresh,att,rel,x) : linear2db); // sometimes nice to see
+
+compressorstereo(ratio,thresh,att,rel,x,y) = cgm*x, cgm*y with {
+  cgm = compressiongainmono(ratio,thresh,att,rel,abs(x)+abs(y));
+};
+
+compressiongainmono(ratio,thresh,att,rel) = 
+  ampfollowerdb(att,rel) : outminusindb(ratio,thresh) : kneesmooth(att) : db2linear 
+with {
+  // Note that kneesmooth(att) installs a "knee" in the dynamic-range compression,
+  // where knee smoothness is set equal to half that of the compression-attack.
+  // A general 'knee' parameter could be used instead of tying it to att/2:
+  kneesmooth(att)  = smooth(tau2pole(att/2.0));
+  // compression gain in dB:
+  outminusindb(ratio,thresh,level) = max(level-thresh,0) * (1/float(ratio)-1);
+  // Note: "float(ratio)" REQUIRED when ratio is integer!
 };
