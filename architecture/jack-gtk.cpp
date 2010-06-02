@@ -560,7 +560,8 @@ GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
 
 void GTKUI::pushBox(int mode, GtkWidget* w)
 {
-    assert(++fTop < stackSize);
+    ++fTop;
+    assert(fTop < stackSize);
     fMode[fTop]     = mode;
     fBox[fTop]      = w;
 }
@@ -583,7 +584,8 @@ void GTKUI::adjustStack(int n)
 
 void GTKUI::closeBox()
 {
-    assert(--fTop >= 0);
+    --fTop;
+    assert(fTop >= 0);
 }
 
 
