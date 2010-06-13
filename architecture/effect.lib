@@ -208,11 +208,11 @@ with {
   dmax = 2048;
   dflange = 0.001 * SR * hslider("flange delay [unit:ms]", 10, 0, 20, 0.001);
   odflange = 0.001 * SR * hslider("flange delay offset [unit:ms]", 1, 0, 20, 0.001);
-  freq	 = hslider("LFO freq [unit:Hz]", 0.2, 0, 5, 0.001);
-  depth	 = hslider("depth", 1, 0, 1, 0.001) * (1-checkbox("bypass"));
-  fb	 = hslider("feedback gain", 0, 0, 1, 0.001);
+  freq   = hslider("LFO freq [unit:Hz]", 0.2, 0, 5, 0.001);
+  depth  = hslider("depth", 1, 0, 1, 0.001) * (1-checkbox("Flanger Bypass"));
+  fb     = hslider("feedback gain", 0, 0, 1, 0.001);
   invert   = checkbox("invert");
-  level	 = hslider("level [unit:dB]", 0, -60, 10, 0.1) : db2linear;
+  level  = hslider("level [unit:dB]", 0, -60, 10, 0.1) : db2linear;
   curdel1 = odflange+dflange*(1 + lfol(freq))/2; 
   curdel2 = odflange+dflange*(1 + lfor(freq))/2; 
 };
@@ -268,6 +268,45 @@ amp_follower(rel) = abs : env with {
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
+//--------------------------- cross2, bypass2 ---------------------------
+// These utilities (or equivalents) probably belong in music.lib:
+cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
+bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : cross2 : select2(cbp), select2(cbp); 
+
+//----------------- gate_mono, gate_stereo -------------------
+// Mono and stereo signal gates
+//
+// USAGE: 
+//    _ : gate_mono(thresh,att,hold,rel)   : _
+// or
+//  _,_ : gate_stereo(thresh,att,hold,rel) : _,_
+//
+// where
+//  thresh = dB level threshold above which gate opens (e.g., -60 dB)
+//  att    = attack time = time constant (sec) for gate to open (e.g., 0.0001 s = 0.1 ms)
+//  hold   = hold time = time (sec) gate stays open after signal level < thresh (e.g., 0.1 s)
+//  rel    = release time = time constant (sec) for gate to close (e.g., 0.020 s = 20 ms)
+//
+// References: 
+// - http://en.wikipedia.org/wiki/Noise_gate
+// - http://www.soundonsound.com/sos/apr01/articles/advanced.asp
+// - http://en.wikipedia.org/wiki/Gating_(sound_engineering)
+
+gate_mono(thresh,att,hold,rel,x) = x * gate_gain_mono(thresh,att,hold,rel,x);
+
+gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
+  ggm = gate_gain_mono(thresh,att,hold,rel,abs(x)+abs(y));
+};
+
+gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,rel) with {
+  extendedrawgate = max(rawgatesig,holdsig);
+  rawgatesig = inlevel(x) > db2linear(thresh);
+  inlevel(x) = amp_follower_ud(att/2,rel/2,x);
+  holdsig = ((max(holdreset & holdsamps,_) ~-(1)) > 0);
+  holdreset = rawgatesig > rawgatesig'; // reset hold when raw gate falls
+  holdsamps = int(hold*SR);
+};
+
 //----------------- compressor_mono, compressor_stereo -------------------
 // Mono and stereo dynamic range compressor_s
 //
@@ -298,7 +337,7 @@ compression_gain_mono(ratio,thresh,att,rel) =
   amp_follower_ud(att,rel) : linear2db : outminusindb(ratio,thresh) : 
   kneesmooth(att) : db2linear 
 with {
-  // Note that kneesmooth(att) installs a "knee" in the dynamic-range compression,
+  // kneesmooth(att) installs a "knee" in the dynamic-range compression,
   // where knee smoothness is set equal to half that of the compression-attack.
   // A general 'knee' parameter could be used instead of tying it to att/2:
   kneesmooth(att)  = smooth(tau2pole(att/2.0));
@@ -307,36 +346,79 @@ with {
   // Note: "float(ratio)" REQUIRED when ratio is an integer > 1!
 };
 
-//-------------------------------- compressor_demo -----------------------------
+//---------------------------- gate_demo -------------------------
+// USAGE: 
+//   process = component("effect.lib").gate_demo;
+//
+gate_demo = bypass2(gbp,gate_stereo_demo) with {
+
+   gate_group(x)  = vgroup("[0] GATE", x);
+   meter_group(x) = gate_group(hgroup("[0]", x));
+   knob_group(x)  = gate_group(hgroup("[1]", x));
+
+   gbp = meter_group(checkbox("[0] Bypass"));
+
+   gateview = gate_gain_mono(gatethr,gateatt,gatehold,gaterel) : linear2db :
+     meter_group(hbargraph("[1] Gain [unit:dB]",-50,+10)); // [style:led]
+
+   gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y : 
+     gate_stereo(gatethr,gateatt,gatehold,gaterel);
+
+   gatethr = knob_group(vslider("[1] Threshold [unit:db] [style:knob]", 
+     -30, -120, 0, 0.1));
+
+   gateatt = knob_group(vslider("[2] Attack [unit:us] [style:knob]", 
+     10, 10, 10000, 1)) : *(0.000001) : max(1/SR);
+
+   gatehold = knob_group(vslider("[3] Hold [unit:ms] [style:knob]", 
+     200, 0, 1000, 1)) : *(0.001) : max(1/SR);
+
+   gaterel = knob_group(vslider("[4] Release [unit:ms] [style:knob]", 
+     100, 0, 1000, 1)) : *(0.001) : max(1/SR);
+};
+
+//---------------------------- compressor_demo -------------------------
 // USAGE: 
 //   process = component("effect.lib").compressor_demo;
 //
-compressor_demo = vgroup("Compressor_",		     
-  select2stereo(bypass,compressor_stereo_demo,(_,_))) with {
+compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
-  select2stereo(bypass,s1,s2) = _,_ <: s1, s2 : crossstereo : 
-    select2(bypass), select2(bypass); 
+   comp_group(x) = vgroup("[1] COMPRESSOR", x); // [1] should be decided above
+   meter_group(x)  = comp_group(hgroup("[0]", x));
+   knob_group(x)  = comp_group(hgroup("[1]", x));
 
-  crossstereo = _,_,_,_ <: _,!,_,!,!,_,!,_;
+   cbp = meter_group(checkbox("[0] Bypass"));
 
-  gainview(a) = a : compression_gain_mono(ratio,threshold,attack,release) : linear2db :
-   hbargraph("Compression Gain [unit:dB]",-70,+10);
+   gainview = compression_gain_mono(ratio,threshold,attack,release) : 
+     linear2db : meter_group(hbargraph("[1] Compressor Gain [unit:dB]",
+     -50,+10));
 
-  compressor_stereo_demo(x,y) = attach(x,gainview(abs(x)+abs(y))),y :
-   compressor_stereo(ratio,threshold,attack,release) : *(makeupgain), *(makeupgain);
+   compressor_stereo_demo(x,y) = attach(x,gainview(abs(x)+abs(y))),y :
+     compressor_stereo(ratio,threshold,attack,release) : 
+     *(makeupgain), *(makeupgain);
 
-  bypass = checkbox("bypass");
-  //Usage example following Albert Graef's <faust2pd>/examples/synth:
-  comp_group(x)	= hgroup("[1] compression", x);
-  env_group(x)	= vgroup("[2] envelope", x);
-  gain_group(x)	= vgroup("[3] gain", x);
+   ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 
-  ratio = comp_group(hslider("ratio", 5, 1, 20, 0.1));
-  threshold = comp_group(hslider("threshold [unit:db]", -80, -100, 10, 0.1));
-  attack = env_group(hslider("attack [unit:ms]", 100, 0, 500, 0.1)) 
-           : *(0.001) : max(1/SR);
-  release = env_group(hslider("release [unit:ms]", 500, 0, 1000, 0.1)) 
-           : *(0.001) : max(1/SR);
-  makeupgain = gain_group(hslider("makeup gain [unit:db]", 40, -96, 96, 0.1)) 
-           : db2linear;
+   ratio = ctl_group(vslider("[0] Ratio [style:knob]", 
+     5, 1, 20, 0.1));
+
+   threshold = ctl_group(vslider("[1] Threshold [unit:db] [style:knob]",
+     -30, -100, 10, 0.1));
+
+   env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
+
+   attack = env_group(vslider("[1] Attack [unit:ms] [style:knob]",
+     50, 0, 500, 0.1)) : *(0.001) : max(1/SR);
+
+   release = env_group(vslider("[2] Release [unit:ms] [style: knob]",
+     500, 0, 1000, 0.1)) : *(0.001) : max(1/SR);
+
+   makeupgain = comp_group(hslider("[5] Makeup Gain [unit:db]",
+     40, -96, 96, 0.1)) : db2linear;
 };
+
+//------------------------ gate_compressor_demo ----------------------
+// USAGE: 
+//   process = component("effect.lib").gate_compressor_demo;
+//
+gate_compressor_demo = gate_demo : compressor_demo;

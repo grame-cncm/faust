@@ -1367,7 +1367,8 @@ class QTGUI : public QObject, public UI
         else if (strcmp(key,"unit")==0) {
             fUnit[zone] = value ;
         }
-        else if (strcmp(key,"style")==0) {
+	else if (strcmp(key,"style")==0) {
+	// else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
             if (strcmp(value,"knob") == 0) {
 				fKnobSet.insert(zone);
 			} else if (strcmp(value,"led") == 0) {
