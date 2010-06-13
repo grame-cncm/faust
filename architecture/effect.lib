@@ -13,7 +13,7 @@ import("filter.lib"); // dcblocker*, lowpass4, ...
 //  L    = desired level (in dB) at Nyquist limit (SR/2), e.g., -60
 //  freq = corner frequency (-3dB point) usually set to fundamental freq
 //
-// Reference: 
+// REFERENCE: 
 // http://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html
 //
 levelfilter(L,freq,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
@@ -50,7 +50,7 @@ speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
 // USAGE: cubicnl(drive,offset), where
 //   drive  = distortion amount, between 0 and 1
 //   offset = constant added before nonlinearity to give even harmonics
-// Reference:
+// REFERENCE:
 // http://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html#18254
 //
 cubicnl(drive,offset) =
@@ -70,7 +70,7 @@ with {
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
 //   Q  = corner-resonance quality factor Q
 // Requires filter.lib.
-// Reference "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
+// REFERENCE: "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
 moogvcf(Q,fr) = (+ : pole(p) : pole(p) 
                    : pole(p) : pole(p) : *(scale(p))) ~ *(mk)
@@ -84,7 +84,7 @@ with {
 //-------------------------- wah4(fr) -------------------------------
 // Wah effect, 4th order
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
-// Reference "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
+// REFERENCE "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
 wah4(fr) = moogvcf(3.8,fr); // Q fixed at ~ 3.8 (set to taste)
 
@@ -93,7 +93,7 @@ wah4(fr) = moogvcf(3.8,fr); // Q fixed at ~ 3.8 (set to taste)
 // Digitized CryBaby wah pedal
 // USAGE: crybaby(wah), where wah = "pedal angle" from 0 to 1.
 // Requires filter.lib.
-// Reference "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
+// REFERENCE "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 //
 crybaby(wah) = *(gs(s)) : tf2(1,-1,0,a1s(s),a2s(s))
 with {
@@ -136,7 +136,7 @@ with {
 // USAGE:
 //  piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay)
 //
-// Reference: 
+// REFERENCE: 
 //   "Dispersion Modeling in Waveguide Piano Synthesis
 //    Using Tunable Allpass Filters",
 //   by Jukka Rauhala and Vesa Valimaki, DAFX-2006, pp. 71-76
@@ -182,7 +182,7 @@ with {
 //   fb     = feedback gain between 0 and 1 (0 typical)
 //   invert = 0 for normal, 1 to invert sign of flanging sum
 //
-// Reference: 
+// REFERENCE: 
 //    https://ccrma.stanford.edu/~jos/pasp/Flanging.html
 //
 flanger_mono(dmax,curdel,depth,fb,invert)
@@ -227,7 +227,7 @@ with {
 // At w=1, there is no effect (original stereo image).
 // Thus, w between 0 and 1 varies stereo width from 0 to "original".
 //
-// Reference:
+// REFERENCE:
 // "Applications of Blumlein Shuffling to Stereo Microphone Techniques"
 // Michael A. Gerzon, JAES vol. 42, no. 6, June 1994
 // 
@@ -287,7 +287,7 @@ bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : cross2 : select2(cbp), selec
 //  hold   = hold time = time (sec) gate stays open after signal level < thresh (e.g., 0.1 s)
 //  rel    = release time = time constant (sec) for gate to close (e.g., 0.020 s = 20 ms)
 //
-// References: 
+// REFERENCES: 
 // - http://en.wikipedia.org/wiki/Noise_gate
 // - http://www.soundonsound.com/sos/apr01/articles/advanced.asp
 // - http://en.wikipedia.org/wiki/Gating_(sound_engineering)
@@ -307,7 +307,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
   holdsamps = int(hold*SR);
 };
 
-//----------------- compressor_mono, compressor_stereo -------------------
+//-------------------- compressor_mono, compressor_stereo ----------------------
 // Mono and stereo dynamic range compressor_s
 //
 // USAGE: 
@@ -316,12 +316,12 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
 //  _,_ : compressor_stereo(ratio,thresh,att,rel) : _,_
 //
 // where
-//  ratio  = compression ratio (1 = no compression, >1 means "ratio to 1 compression")
+//  ratio  = compression ratio (1 = no compression, >1 means compression")
 //  thresh = dB level threshold above which compression kicks in
-//  att    = attack time = compression adaptation time constant (sec) when level going up
-//  rel    = release time = compression-gain time constant (sec) when level going down
+//  att    = attack time = time constant (sec) when level & compression going up
+//  rel    = release time = time constant (sec) coming out of compression 
 //
-// References: 
+// REFERENCES: 
 // - http://en.wikipedia.org/wiki/Dynamic_range_compression
 // - https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html
 // - Albert Graef's <faust2pd>/examples/synth/compressor_.dsp
@@ -359,7 +359,7 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
    gbp = meter_group(checkbox("[0] Bypass"));
 
    gateview = gate_gain_mono(gatethr,gateatt,gatehold,gaterel) : linear2db :
-     meter_group(hbargraph("[1] Gain [unit:dB]",-50,+10)); // [style:led]
+     meter_group(hbargraph("[1] Gate Gain [unit:dB]",-50,+10)); // [style:led]
 
    gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y : 
      gate_stereo(gatethr,gateatt,gatehold,gaterel);
@@ -417,8 +417,27 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
      40, -96, 96, 0.1)) : db2linear;
 };
 
-//------------------------ gate_compressor_demo ----------------------
+//------------------------------- limiter_* ------------------------------------
 // USAGE: 
-//   process = component("effect.lib").gate_compressor_demo;
+//     _ : limiter_1176_R4_mono   : _;
+//   _,_ : limiter_1176_R4_stereo : _,_;
 //
-gate_compressor_demo = gate_demo : compressor_demo;
+// DESCRIPTION:
+//   A limiter guards against hard-clipping.  It can be can be
+//   implemented a compressor having a high threshold (near the
+//   clipping level), fast attack and release, and high ratio.  Since
+//   the ratio is so high ("hard limiting"), some knee smoothing is
+//   desirable ("soft limiting").  This example is intended
+//   merely to get you started using compressor_* as a limiter
+//   (hence all parameters are hardwired to nominal values here).
+//
+// REFERENCE: http://en.wikipedia.org/wiki/1176_Peak_Limiter
+//   Ratios: 4, 8, 12, or 20 to 1
+//   Att: 20-800 MICROseconds
+//   Rel: 50-1100 ms
+//   Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) 
+//     Faster attack gives "more bite" (e.g. on vocals)
+//     He hears a bright, clear eq effect as well (not implemented here)
+//
+limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
+limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
