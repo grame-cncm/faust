@@ -63,7 +63,7 @@
 
 \title{\faust Quick Reference}
 \author{\textsc{Grame}\\Centre National de Cr\'eation Musicale}
-\date{December 2009}
+\date{June 2010}
 
 
 % \railalias{recur}{$\sim$}
@@ -750,7 +750,9 @@ process = @(hslider("delay",0, 0, 100, 1));
 \end{lstlisting}
 
 \subsection{Environment expressions}
-Each \faust expression has an associated lexical environment : a list of dictionaries where to look for definitions. The following expressions allow to create and access such environments.
+An \textit{environment} is a kind of dictionnary used to keep track of the definitions of a set of symbols. Some \faust expressions, like \textit{functions}, are bounded to their lexical environment in a structure called a \textit{closure}. Closures allow functions to keep their original meaning independently of where they are used. 
+
+The following constructions allow to explicitely create and access such environments.
 
 \begin{grammar}
   <envexp> ::= 
@@ -758,29 +760,35 @@ Each \faust expression has an associated lexical environment : a list of diction
     \begin{stack}
       <expression> "with" "\{"
         \begin{rep}
-          <defintion>
+          <definition>
         \end{rep}
         "\}" \\ 
       "environment" "\{"
         \begin{rep}
-          <defintion>
+          <definition>
         \end{rep}
         "\}" \\ 
       <expression> "." <ident> \\
       "library" "(" <filename> ")" \\
-      "component" "(" <filename> ")"
+      "component" "(" <filename> ")" \\ 
+      <expression> "["
+        \begin{rep}
+          <definition>
+        \end{rep}
+        "]"
     \end{stack}
   \end{syntdiag}
 \end{grammar}
 
-\subsubsection{With expression}allows to specify a \textit{local environment}, a private list of definition that will be used to evaluate the left hand expression
+\subsubsection{With} 
+The \lstinline'with' construction allows to specify a \textit{local environment}, a private list of definition that will be used to evaluate the left hand expression
 
 \begin{grammar}
   <withexpression> ::= 
   \begin{syntdiag}
       <expression> "with" "\{"
         \begin{rep}
-          <defintion>
+          <definition>
         \end{rep}
         "\}"
   \end{syntdiag}
@@ -796,22 +804,30 @@ pink = f : + ~ g with {
 		 - 0.80257737639225*x';
 };
 \end{lstlisting}
-the definitions of \lstinline'f(x)' and \lstinline'g(x)' are local to the expression \lstinline'f : + ~ g':
+the definitions of \lstinline'f(x)' and \lstinline'g(x)' are local to \lstinline'f : + ~ g'.
 
-\subsubsection{Environment expression} allows to create an explicit environment: like a \lstinline'with', but without a left hand expression. It is a convenient way to group together related definitions, to isolate groups of definitions and to create a name space hierarchy. 
+Please note that \lstinline'with' is left associative and has the lowest priority:
+\begin{itemize} 
+\item[-] \lstinline'f : + ~ g with {...}' is equivalent to \lstinline'(f : + ~ g)  with {...}'. 
+\item[-] \lstinline'f : + ~ g with {...} with {...}' is equivalent to \lstinline'((f : + ~ g)  with {...})  with {...}'. 
+\end{itemize}
+
+\subsubsection{Environment} 
+
+The \lstinline'environment' construction allows to create an explicit environment. It is like a \lstinline'with', but without the left hand expression. It is a convenient way to group together related definitions, to isolate groups of definitions and to create a name space hierarchy. 
 
 \begin{grammar}
   <environment> ::= 
   \begin{syntdiag}
       "environment" "\{"
         \begin{rep}
-          <defintion>
+          <definition>
         \end{rep}
         "\}"
   \end{syntdiag}
 \end{grammar}
 
-In the following example an environment is used to group together some constant definitions :
+In the following example an \lstinline'environment' construction is used to group together some constant definitions :
 
 \begin{lstlisting}
 constant = environment {
@@ -820,8 +836,10 @@ constant = environment {
 	...
 };
 \end{lstlisting}
+The  \lstinline'.' construction allows to access the definitions of an environment (see next paragraph).
 
-\subsubsection{Access} Definitions inside an environment can be accessed using 
+\subsubsection{Access} 
+Definitions inside an environment can be accessed using 
 the '.' construction. 
 
 \begin{grammar}
@@ -831,14 +849,15 @@ the '.' construction.
   \end{syntdiag}
 \end{grammar}
 
-For example \lstinline'constant.pi' refers to the definition of \lstinline'pi' in the environment above.
+For example \lstinline'constant.pi' refers to the definition of \lstinline'pi' in the above \lstinline'constant' environment.
 
 Please note that environment don't have to be named. We could have written directly 
 \lstinline'environment{pi = 3.14159; e = 2,718;....}.pi'
 
 
 
-\subsubsection{Library} allows to create an environment by reading the definitions from a file.
+\subsubsection{Library} 
+The \lstinline'library' construct allows to create an environment by reading the definitions from a file.
 
 \begin{grammar}
   <library> ::= 
@@ -847,11 +866,12 @@ Please note that environment don't have to be named. We could have written direc
   \end{syntdiag}
 \end{grammar}
 
-For example \lstinline'library("filter.lib")' represents the lexical environment 
-obtained by reading the file "filter.lib". It works like \lstinline'import("filter.lib")' but all the read definitions are stored in a new separate lexical environment.
+For example \lstinline'library("filter.lib")' represents the environment 
+obtained by reading the file "filter.lib". It works like \lstinline'import("filter.lib")' but all the read definitions are stored in a new separate lexical environment. Individual definitions can be accessed as described in the previous paragraph. For example \lstinline'library("filter.lib").lowpass2' denotes the function \lstinline'lowpass2' as defined in the file \lstinline'"filter.lib"'.
 
 
-\subsubsection{Component} is a powerful construction that allows to reuse a full \faust program as a simple expression.
+\subsubsection{Component} 
+The \lstinline'component(...)' construction allows to reuse a full \faust program as a simple expression.
 
 \begin{grammar}
   <component> ::= 
@@ -870,6 +890,28 @@ obtained by reading the file "filter.lib". It works like \lstinline'import("filt
  Please note that \lstinline'component("freeverb.dsp")' is equivalent to \lstinline'library("freeverb.dsp").process'.
 
 
+\subsubsection{Explicit substitution} 
+
+Explicit substitution can be used to customize a component or any expression with a lexical environment by replacing some of its internal definitions, without having to modify it.
+
+\begin{grammar}
+  <explicitsubst> ::= 
+  \begin{syntdiag}
+      <expression> "["
+        \begin{rep}
+          <definition>
+        \end{rep}
+        "]"
+  \end{syntdiag}
+\end{grammar}
+
+For example we can create a customized version of \lstinline'component("freeverb.dsp")', with a different definition of \lstinline'foo(x)', by writing :
+\begin{lstlisting}
+...component("freeverb.dsp")[foo(x) = ...;]...
+};
+\end{lstlisting}
+
+
 \subsection{Foreign expressions}
 
 Reference to external C \textit{functions}, \textit{variables} and \textit{constants} can be introduced using the \textit{foreign function} mechanism.
@@ -886,7 +928,8 @@ Reference to external C \textit{functions}, \textit{variables} and \textit{const
 \end{grammar}
 
 
-\subsubsection{function} An external C function is declared by indicating its name and signature as well as the required include file.
+\subsubsection{ffunction} 
+An external C function is declared by indicating its name and signature as well as the required include file.
 The file \lstinline'"math.lib"' of the \faust distribution contains several foreign function definitions, for example the inverse hyperbolic sine function \lstinline'asinh':
 
 \begin{lstlisting}
@@ -1487,9 +1530,9 @@ It is the role of the architecture file to decide what to do with these
 metadata. The \lstinline'jack-qt.cpp' architecture file for example implements the 
 following :
 \begin{enumerate}
-\item \lstinline'"...[type:knob]..."' creates a rotative knob instead of a regular 
+\item \lstinline'"...[style:knob]..."' creates a rotative knob instead of a regular 
 slider or nentry.
-\item \lstinline'"...[type:led]..."' in a bargraph's label creates a small LED instead 
+\item \lstinline'"...[style:led]..."' in a bargraph's label creates a small LED instead 
 of a full bargraph
 \item \lstinline'"...[unit:dB]..."' in a bargraph's label creates a more realistic 
 bargraph with colors ranging from green to red depending of the level of 
