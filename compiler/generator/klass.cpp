@@ -1088,7 +1088,7 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
                         tab(n+6, fout); fout << "break;";
                     tab(n+5, fout); fout << "} "; 
     
-                    gTaskCount = START_TASK_INDEX ;
+                    gTaskCount = START_TASK_INDEX;
                                 
                     // DSP tasks
                     printLoopGraphScheduler (n+5,fout);

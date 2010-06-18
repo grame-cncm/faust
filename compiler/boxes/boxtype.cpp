@@ -221,10 +221,10 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 			cerr 	<< "Connection error in : " << boxpp(t) << endl;
 			if (x > v) cerr << "The number of outputs " << v 
 							<< " of the first expression should be greater or equal \n  to the number of inputs " << x 
-							<< " of the second exepression" << endl;
+							<< " of the second expression" << endl;
 			if (y > u) cerr	<< "The number of inputs " << u
 							<< " of the first expression should be greater or equal \n  to the number of outputs " << y
-							<< " of the second exepression" << endl;
+							<< " of the second expression" << endl;
 			exit(1);
 		}
 		*inum = max(0,u-y); *onum = v;
