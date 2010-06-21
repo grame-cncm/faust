@@ -17,6 +17,9 @@
 
 using namespace std;
 
+void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata);
+string extractName(Tree fulllabel);
+
 class Description
 {
 	string 			fName;

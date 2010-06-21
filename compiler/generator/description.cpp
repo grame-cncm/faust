@@ -27,7 +27,7 @@ static string rmWhiteSpaces(const string& s)
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
-static void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
+void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
 {
     enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
     int state = kLabel; int deep = 0;
@@ -119,6 +119,17 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
         }
     }
     label = rmWhiteSpaces(label);
+}
+
+//------------------------ specific schema -------------------------
+
+string extractName(Tree fulllabel)
+{
+    string name;
+    map<string, set<string> >   metadata;
+
+    extractMetadata(tree2str(fulllabel), name, metadata);
+    return name;
 }
 
 
