@@ -57,6 +57,8 @@
 #include "drawschema.hh"
 #include "compatibility.hh"
 #include "names.hh"
+#include "description.hh"
+
 
 
 #if 0
@@ -403,13 +405,13 @@ static schema* generateInsideSchema(Tree t)
 	else if (isBoxHBargraph(t))		{ return generateBargraphSchema(t); }
 
 	// don't draw group rectangle when labels are empty (ie "")
-	else if (isBoxVGroup(t,l,a))	{ 	stringstream s; s << "vgroup(" << tree2str(l) << ")";
+    else if (isBoxVGroup(t,l,a))	{ 	stringstream s; s << "vgroup(" << extractName(l) << ")";
 										schema* r = generateDiagramSchema(a);
 									  	return makeDecorateSchema(r, 10, s.str()); }
-	else if (isBoxHGroup(t,l,a))	{ 	stringstream s; s << "hgroup(" << tree2str(l) << ")";
+    else if (isBoxHGroup(t,l,a))	{ 	stringstream s; s << "hgroup(" << extractName(l) << ")";
 										schema* r = generateDiagramSchema(a);
 									  	return makeDecorateSchema(r, 10, s.str()); }
-	else if (isBoxTGroup(t,l,a))	{ 	stringstream s; s << "tgroup(" << tree2str(l) << ")";
+    else if (isBoxTGroup(t,l,a))	{ 	stringstream s; s << "tgroup(" << extractName(l) << ")";
 										schema* r = generateDiagramSchema(a);
 									  	return makeDecorateSchema(r, 10, s.str()); }
 
@@ -437,7 +439,67 @@ static schema* generateInsideSchema(Tree t)
 	}
 }
 
-//------------------------ specific schema -------------------------
+/**
+ * Convert User interface element into a textual representation
+ */
+static void UserInterfaceDescription(Tree box, string& d)
+{
+    Tree    t1, label, cur, min, max, step;
+    stringstream 	fout;
+    // user interface
+         if (isBoxButton(box, label))	fout << "button(" << extractName(label) << ')';
+    else if (isBoxCheckbox(box, label))	fout << "checkbox(" << extractName(label) << ')';
+    else if (isBoxVSlider(box, label, cur, min, max, step)) 	{
+        fout << "vslider("
+             << extractName(label) << ", "
+             << boxpp(cur) << ", "
+             << boxpp(min) << ", "
+             << boxpp(max) << ", "
+             << boxpp(step)<< ')';
+    }
+    else if (isBoxHSlider(box, label, cur, min, max, step)) 	{
+        fout << "hslider("
+             << extractName(label) << ", "
+             << boxpp(cur) << ", "
+             << boxpp(min) << ", "
+             << boxpp(max) << ", "
+             << boxpp(step)<< ')';
+    }
+    else if (isBoxVGroup(box, label, t1)) {
+        fout << "vgroup(" << extractName(label) << ", " << boxpp(t1, 0) << ')';
+    }
+    else if (isBoxHGroup(box, label, t1)) {
+        fout << "hgroup(" << extractName(label) << ", " << boxpp(t1, 0) << ')';
+    }
+    else if (isBoxTGroup(box, label, t1)) {
+        fout << "tgroup(" << extractName(label) << ", " << boxpp(t1, 0) << ')';
+    }
+    else if (isBoxHBargraph(box, label, min, max)) 	{
+        fout << "hbargraph("
+             << extractName(label) << ", "
+             << boxpp(min) << ", "
+             << boxpp(max) << ')';
+    }
+    else if (isBoxVBargraph(box, label, min, max)) 	{
+        fout << "vbargraph("
+             << extractName(label) << ", "
+             << boxpp(min) << ", "
+             << boxpp(max) << ')';
+    }
+    else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{
+        fout << "nentry("
+             << extractName(label) << ", "
+             << boxpp(cur) << ", "
+             << boxpp(min) << ", "
+             << boxpp(max) << ", "
+             << boxpp(step)<< ')';
+    }
+    else {
+        cerr << "INTERNAL ERROR : unknow user interface element " << endl;
+        exit(0);
+    }
+    d = fout.str();
+}
 
 
 /**
@@ -445,12 +507,9 @@ static schema* generateInsideSchema(Tree t)
  */
 static schema* 	generateUserInterfaceSchema(Tree t)
 {
-	stringstream 	s;
-	s << boxpp(t);
-
-	return makeBlockSchema(0, 1, s.str(), uicolor, "");
+    string s; UserInterfaceDescription(t,s);
+    return makeBlockSchema(0, 1, s, uicolor, "");
 }
-
 
 
 /**
@@ -458,10 +517,8 @@ static schema* 	generateUserInterfaceSchema(Tree t)
  */
 static schema* generateBargraphSchema(Tree t)
 {
-	stringstream 	s;
-	s << boxpp(t);
-
-	return makeBlockSchema(1, 1, s.str(), uicolor, "");
+    string s; UserInterfaceDescription(t,s);
+    return makeBlockSchema(1, 1, s, uicolor, "");
 }
 
 
