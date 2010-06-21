@@ -523,6 +523,28 @@ bool                        GTKUI::fInitialized = false;
 map<float*, float>          GTKUI::fGuiSize;
 map<float*, string>         GTKUI::fTooltip;
 
+/**
+* Format tooltip string by replacing some white spaces by 
+* return characters so that line width doesn't exceed n.
+* Limitation : long words exceeding n are not cut 
+*/
+static string formatTooltip(int n, const string& tt)
+{
+	string  ss = tt;	// ss string we are going to format
+	int		lws = 0;	// last white space encountered
+	int 	lri = 0;	// last return inserted
+	for (int i=0; i<tt.size(); i++) {
+		if (tt[i] == ' ') lws = i;
+		if (((i-lri) >= n) && (lws > lri)) {
+			// insert return here
+			ss[lws] = '\n';
+			lri = lws;
+		}
+	}
+	cout << ss;
+	return ss;
+}
+
 
 
 static gint delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
@@ -599,7 +621,7 @@ void GTKUI::declare(float* zone, const char* key, const char* value)
         fGuiSize[zone]=atof(value);
     }
     else if (strcmp(key,"tooltip")==0) {
-        fTooltip[zone] = value ;
+        fTooltip[zone] = formatTooltip(30,value) ;
     }
 }
         
