@@ -59,9 +59,6 @@ extern map<string, string>		gDocMathStringMap;
 
 extern bool		getSigListNickName(Tree t, Tree& id);
 
-static void		extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata);
-static string	rmWhiteSpaces(const string& s);
-
 static const unsigned int MAX_RIGHT_MEMBER	= 20;
 static const unsigned int MAX_SUB_EXPR		= 10;
 
@@ -1336,121 +1333,6 @@ void DocCompiler::getUIDocInfos(Tree path, string& label, string& unit)
 			if(key == "unit") unit += *j;
 		}
 	}
-}
-
-
-/**
- * Extracts metadata from a UI label : 'vol [unit: dB]' -> 'vol' + metadata map.
- */
-static void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)
-{
-    enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
-    int state = kLabel; int deep = 0;
-    string key, value;
-	
-    for (unsigned int i=0; i < fulllabel.size(); i++) {
-        char c = fulllabel[i];
-        switch (state) {
-            case kLabel :
-                assert (deep == 0);
-                switch (c) {
-                    case '\\' : state = kEscape1; break;
-                    case '[' : state = kKey; deep++; break;
-                    default : label += c;
-                }
-                break;
-				
-            case kEscape1 :
-                label += c;
-                state = kLabel;
-                break;
-				
-            case kEscape2 :
-                key += c;
-                state = kKey;
-                break;
-				
-            case kEscape3 :
-                value += c;
-                state = kValue;
-                break;
-				
-            case kKey :
-                assert (deep > 0);
-                switch (c) {
-                    case '\\' :  state = kEscape2;
-						break;
-						
-                    case '[' :  deep++;
-						key += c;
-						break;
-						
-                    case ':' :  if (deep == 1) {
-						state = kValue;
-					} else {
-						key += c;
-					}
-						break;
-                    case ']' :  deep--;
-						if (deep < 1) {
-							metadata[rmWhiteSpaces(key)].insert("");
-							state = kLabel;
-							key="";
-							value="";
-						} else {
-							key += c;
-						}
-						break;
-                    default :   key += c;
-                }
-                break;
-				
-            case kValue :
-                assert (deep > 0);
-                switch (c) {
-                    case '\\' : state = kEscape3;
-						break;
-						
-                    case '[' :  deep++;
-						value += c;
-						break;
-						
-                    case ']' :  deep--;
-						if (deep < 1) {
-							metadata[rmWhiteSpaces(key)].insert(rmWhiteSpaces(value));
-							state = kLabel;
-							key="";
-							value="";
-						} else {
-							value += c;
-						}
-						break;
-                    default :   value += c;
-                }
-                break;
-				
-            default :
-                cerr << "ERROR unrecognized state (in extractMetadata) : " << state << endl;
-        }
-    }
-    label = rmWhiteSpaces(label);
-}
-
-
-/**
- * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
- * (but not those in the middle of the string)
- */
-static string rmWhiteSpaces(const string& s)
-{
-    size_t i = s.find_first_not_of(" \t");
-    size_t j = s.find_last_not_of(" \t");
-	
-    if ( (i != string::npos) & (j != string::npos) ) {
-        return s.substr(i, 1+j-i);
-    } else {
-        return "";
-    }
 }
 
 
