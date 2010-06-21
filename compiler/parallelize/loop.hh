@@ -78,10 +78,12 @@ public:
     void addRecDependency(Tree t);          ///< Check for a recursive dependecy and add it if needed
     bool findRecDefinition(Tree t);         ///< indicates a dependency with an enclosing loop 
 
-    void addPreCode (const string& str);   ///< add a line of C++ code pre code
-    void addExecCode (const string& str);   ///< add a line of C++ code
-    void addPostCode (const string& str);   ///< add a line of C++ post code 
-    void println (int n, ostream& fout);    ///< print the loop
+    void addPreCode (const string& str);        ///< add a line of C++ code pre code
+    void addExecCode (const string& str);       ///< add a line of C++ code
+    void addPostCode (const string& str);       ///< add a line of C++ post code
+    void println (int n, ostream& fout);        ///< print the loop
+    void printParLoopln(int n, ostream& fout);  ///< print the loop with a #pragma omp loop
+
     void printoneln (int n, ostream& fout);    ///< print the loop in scalar mode
 
     void absorb(Loop* l);                   ///< absorb a loop inside this one

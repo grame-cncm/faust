@@ -1,5 +1,7 @@
 #include "loop.hh"
 extern bool gVectorSwitch;
+extern bool gOpenMPSwitch;
+extern bool gOpenMPLoop;
 
 using namespace std;
 
@@ -150,35 +152,79 @@ void Loop::absorb (Loop* l)
 
 /**
  * Print a loop (unless it is empty)
- * @param n number of tabs of indentation  
- * @param fout output stream  
+ * @param n number of tabs of indentation
+ * @param fout output stream
  */
 void Loop::println(int n, ostream& fout)
 {
     for (list<Loop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
-    	(*s)->println(n, fout);
+        (*s)->println(n, fout);
     }
 
     if (fPreCode.size()+fExecCode.size()+fPostCode.size() > 0) {
 /*        if (gVectorSwitch) {
-            tab(n,fout); 
+            tab(n,fout);
             fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
         }*/
-        
+
         tab(n,fout); fout << "// LOOP " << this ;
         if (fPreCode.size()>0) {
             tab(n,fout); fout << "// pre processing";
             printlines(n, fPreCode, fout);
         }
-            
+
         tab(n,fout); fout << "// exec code";
         tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
         printlines(n+1, fExecCode, fout);
         tab(n,fout); fout << "}";
-        
+
         if (fPostCode.size()>0) {
             tab(n,fout); fout << "// post processing";
             printlines(n, fPostCode, fout);
+        }
+        tab(n,fout);
+    }
+}
+
+
+/**
+ * Print a parallel loop (unless it is empty). Should be called only for loop
+ * without pre and post processing
+ * @param n number of tabs of indentation
+ * @param fout output stream
+ */
+void Loop::printParLoopln(int n, ostream& fout)
+{
+    for (list<Loop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
+        tab(n,fout); fout << "#pragma omp single";
+        tab(n,fout); fout << "{";
+        (*s)->println(n+1, fout);
+        tab(n,fout); fout << "}";
+    }
+
+    if (fPreCode.size()+fExecCode.size()+fPostCode.size() > 0) {
+
+        tab(n,fout); fout << "// LOOP " << this ;
+        if (fPreCode.size()>0) {
+            tab(n,fout); fout << "#pragma omp single";
+            tab(n,fout); fout << "{";
+            tab(n+1,fout); fout << "// pre processing";
+            printlines(n+1, fPreCode, fout);
+            tab(n,fout); fout << "}";
+        }
+
+        tab(n,fout); fout << "// exec code";
+        tab(n,fout); fout << "#pragma omp for";
+        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        printlines(n+1, fExecCode, fout);
+        tab(n,fout); fout << "}";
+
+        if (fPostCode.size()>0) {
+            tab(n,fout); fout << "#pragma omp single";
+            tab(n,fout); fout << "{";
+            tab(n+1,fout); fout << "// post processing";
+            printlines(n+1, fPostCode, fout);
+            tab(n,fout); fout << "}";
         }
         tab(n,fout);
     }
