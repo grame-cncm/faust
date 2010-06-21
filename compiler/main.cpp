@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.24"
+#define FAUSTVERSION "0.9.25"
 
 #include <stdio.h>
 #include <string.h>
@@ -139,6 +139,7 @@ int             gVecSize        = 32;
 int             gVectorLoopVariant = 0;
 
 bool            gOpenMPSwitch   = false;
+bool            gOpenMPLoop     = false;
 bool            gSchedulerSwitch   = false;
 bool			gGroupTaskSwitch= false;
 
@@ -262,7 +263,11 @@ bool process_cmdline(int argc, char* argv[])
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
             gOpenMPSwitch = true;
-         	i += 1;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-pl", "--par-loop")) {
+            gOpenMPLoop = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-sch", "--scheduler")) {
 			gSchedulerSwitch = true;
@@ -378,6 +383,7 @@ void printhelp()
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
+    cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";

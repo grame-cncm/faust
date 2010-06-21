@@ -52,6 +52,7 @@
 extern bool gVectorSwitch;
 extern bool gDeepFirstSwitch;
 extern bool gOpenMPSwitch;
+extern bool gOpenMPLoop;
 extern bool gSchedulerSwitch;
 extern int  gVecSize;
 extern bool gUIMacroSwitch;
@@ -575,10 +576,14 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout)
     if (nonRecursiveLevel(L) && L.size()==1) {
         for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
             if ((*p)->isEmpty() == false) {
-                tab(n, fout); fout << "#pragma omp single ";
- 				tab(n, fout); fout << "{ ";
-                (*p)->println(n+1, fout);
- 				tab(n, fout); fout << "} ";
+                if (gOpenMPLoop) {
+                    (*p)->printParLoopln(n, fout);
+                } else {
+                    tab(n, fout); fout << "#pragma omp single ";
+                    tab(n, fout); fout << "{ ";
+                    (*p)->println(n+1, fout);
+                    tab(n, fout); fout << "} ";
+                }
             }
         }
 
