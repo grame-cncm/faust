@@ -1353,6 +1353,29 @@ class QTGUI : public QObject, public UI
 
 
     /**
+    * Format tooltip string by replacing some white spaces by 
+	* return characters so that line width doesn't exceed n.
+	* Limitation : long words exceeding n are not cut 
+    */
+	virtual string formatTooltip(int n, const string& tt)
+	{
+		string  ss = tt;	// ss string we are going to format
+		int		lws = 0;	// last white space encountered
+		int 	lri = 0;	// last return inserted
+		for (int i=0; i<tt.size(); i++) {
+			if (tt[i] == ' ') lws = i;
+			if (((i-lri) >= n) && (lws > lri)) {
+				// insert return here
+				ss[lws] = '\n';
+				lri = lws;
+			}
+		}
+		cout << ss;
+		return ss;
+	}
+
+
+    /**
     * Analyses the widget zone metadata declarations and takes
     * appropriate actions
     */
@@ -1362,13 +1385,13 @@ class QTGUI : public QObject, public UI
             fGuiSize[zone]=atof(value);
         }
         else if (strcmp(key,"tooltip")==0) {
-            fTooltip[zone] = value ;
+            fTooltip[zone] = formatTooltip(30, value) ;
         }
         else if (strcmp(key,"unit")==0) {
             fUnit[zone] = value ;
         }
-	else if (strcmp(key,"style")==0) {
-	// else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
+		else if (strcmp(key,"style")==0) {
+		// else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
             if (strcmp(value,"knob") == 0) {
 				fKnobSet.insert(zone);
 			} else if (strcmp(value,"led") == 0) {
