@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.5";
+declare version "1.6";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/~jos/filters/";
 
@@ -216,11 +216,11 @@ with {
 // and a frequency-scaling parameter.  Digitization via the
 // bilinear transform is built in.
 //
-// USAGE: tf2s(b1,b0,a1,a0,w1), where 
+// USAGE: tf2s(b2,b1,b0,a1,a0,w1), where 
 //
-//            b1 s + b0
-// H(s) = -----------------
-//         s^2 + a1 s + a0
+//         b2 s^2 + b1 s + b0
+// H(s) = --------------------
+//            s^2 + a1 s + a0
 //
 // and w1 is the desired digital frequency (in radians/second)
 // corresponding to analog frequency 1 rad/sec (i.e., s = j).
@@ -234,30 +234,34 @@ with {
 //         s^2 + a1 s + 1
 //
 // where a1 = sqrt(2).  Therefore, a DIGITAL Butterworth lowpass 
-// cutting off at SR/4 is specified as tf2s(0,1,sqrt(2),1,PI*SR/2);
+// cutting off at SR/4 is specified as tf2s(0,0,1,sqrt(2),1,PI*SR/2);
 //
-tf2s(b1,b0,a1,a0,w1) = tf2(b0d,b1d,b2d,a1d,a2d)
+// METHOD: Bilinear transform scaled for exact mapping of w1.
+// REFERENCE: 
+//   http://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
+//
+tf2s(b2,b1,b0,a1,a0,w1) = tf2(b0d,b1d,b2d,a1d,a2d)
 with {
-  a   = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
-  asq = a*a;
-  d   = a0 + a1*a + asq;
-  b0d = (b1 * a + b0)/d;
-  b1d = 2*b0/d;
-  b2d = (b0 - a * b1)/d;
-  a1d = 2 * (a0 - asq)/d;
-  a2d = (a0 - a1*a + asq)/d;
+  c   = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
+  csq = c*c;
+  d   = a0 + a1 * c + csq;
+  b0d = (b0 + b1 * c + b2 * csq)/d;
+  b1d = 2 * (b0 - b2 * csq)/d;
+  b2d = (b0 - b1 * c + b2 * csq)/d;
+  a1d = 2 * (a0 - csq)/d;
+  a2d = (a0 - a1*c + csq)/d;
 };
 
 //----------------------------- tf1s --------------------------------
-// First-order direct-form analog filter,
+// First-order direct-form digital filter,
 // specified by ANALOG transfer-function polynomials B(s)/A(s),
 // and a frequency-scaling parameter.
 //
-// USAGE: tf1s(b0,a0,w1), where 
+// USAGE: tf1s(b1,b0,a0,w1), where 
 //
-//           b0
-// H(s) = --------
-//         s + a0
+//        b1 s + b0
+// H(s) = ----------
+//           s + a0
 //
 // and w1 is the desired digital frequency (in radians/second)
 // corresponding to analog frequency 1 rad/sec (i.e., s = j).
@@ -270,25 +274,33 @@ with {
 // H(s) = -------
 //         s + 1
 //
-// so b0 = a0 = 1.  Therefore, a DIGITAL first-order Butterworth lowpass 
-// with gain -3dB at SR/4 is specified as tf1s(1,1,PI*SR/2);
+// so b0 = a0 = 1 and b1 = 0.  Therefore, a DIGITAL first-order 
+// Butterworth lowpass with gain -3dB at SR/4 is specified as 
 //
-tf1s(b0,a0,w1) = *(b0d) : zero(-1) : (+ ~ *(pole))
+// tf1s(0,1,1,PI*SR/2); // digital half-band order 1 Butterworth
+//
+// METHOD: Bilinear transform scaled for exact mapping of w1.
+// REFERENCE: 
+//   http://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
+//
+tf1s(b1,b0,a0,w1) = tf1(b0d,b1d,a1d)
 with {
-  a    = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
-  d    = a0 + a;
-  b0d  = b0 / d;
-  pole = (a - a0) / d;
+  c   = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
+  d   = a0 + c;
+  b1d = (b0 - b1*c) / d;
+  b0d = (b0 + b1*c) / d;
+  a1d = (a0 - c) / d;
 };
 
 //====================== Simple Resonator Filters ======================
 
 // resonlp = 2nd-order lowpass with corner resonance:
-resonlp(fc,Q,gain) = tf2s(b1,b0,a1,a0,wc)
+resonlp(fc,Q,gain) = tf2s(b2,b1,b0,a1,a0,wc)
 with {
      wc = 2*PI*fc;
      a1 = 2/Q;
      a0 = 1;
+     b2 = 0;
      b1 = 0;
      b0 = gain;
 };
@@ -297,11 +309,12 @@ with {
 resonhp(fc,Q,gain,x) = gain*x-resonlp(fc,Q,gain,x);
 
 // resonbp = 2nd-order bandpass
-resonbp(fc,Q,gain) = tf2s(b1,b0,a1,a0,wc) 
+resonbp(fc,Q,gain) = tf2s(b2,b1,b0,a1,a0,wc) 
 with {
      wc = 2*PI*fc;
      a1 = 2/Q;
      a0 = 1;
+     b2 = 0;
      b1 = gain;
      b0 = 0;
 };
@@ -316,21 +329,21 @@ with {
 // USAGE: lowpass1(fc), where 
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //
-lowpass1(fc) = tf1s(1,1,2*PI*fc);
+lowpass1(fc) = tf1s(0,1,1,2*PI*fc);
 
 //----------------------------- lowpass2 ------------------------------
 // Second-order Butterworth lowpass filter
 // USAGE: lowpass2(fc), where 
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //
-lowpass2(fc) = tf2s(0,1,sqrt(2),1,2*PI*fc);
+lowpass2(fc) = tf2s(0,0,1,sqrt(2),1,2*PI*fc);
 
 //----------------------------- lowpass3 ------------------------------
 // Third-order Butterworth lowpass filter
 // USAGE: lowpass3(fc), where 
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //
-lowpass3(fc) = tf2s(0,1,1,1,w1) : tf1s(1,1,w1)
+lowpass3(fc) = tf2s(0,0,1,1,1,w1) : tf1s(0,1,1,w1)
 with { w1 = 2*PI*fc; };
 
 //----------------------------- lowpass4 ------------------------------
@@ -338,7 +351,7 @@ with { w1 = 2*PI*fc; };
 // USAGE: lowpass4(fc), where 
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //
-lowpass4(fc) = tf2s(0,1,a11s,1,w1) : tf2s(0,1,a21s,1,w1)
+lowpass4(fc) = tf2s(0,0,1,a11s,1,w1) : tf2s(0,0,1,a21s,1,w1)
 with {
   a11s = 1.847759065022573; // -2*real(pole1)
   a21s = 0.765366864730180; // -2*real(pole2)
@@ -352,51 +365,16 @@ with {
 // USAGE: highpassN(fc), where
 // fc = desired cut-off frequency (-3dB frequency) in Hz
 //  N = desired filter order (1,2,3, or 4)
-//
-// Note, another method is "highpassN(fc,x) = x - lowpassN(fc,x)",
-// but this gives a Butterworth highpass only for N=1.
 
-// Method: Design a Butterworth lowpass cutting off at 0.5*SR - fc,
-// and rotate the z-plane 180 degrees to convert lowpass to highpass.
-
-// tf1spr is identical to tf1s except its pole & zero are PI-rotated,
-// and its frequency-scaling parameter w1 is reflected wrt PI.
-// We could add a +/- 1 argument to tf1s, where +1 means lowpass
-// and -1 means highpass, but who would want to look at that?
-tf1spr(b0,a0,w1) = *(b0d) : zero(1) : (+ ~ *(-pole))
-with {
-  w1i = PI*SR - w1;
-  a    = 1/tan((w1i)*0.5/SR); // bilinear-transform scale-factor
-  d    = a0 + a;
-  b0d  = b0 / d;
-  pole = (a - a0) / d;
-};
-
-// tf1spr is identical to tf1s except odd-order coefficients are negated,
-// and its frequency-scaling parameter w1 is reflected wrt PI.
-tf2spr(b1,b0,a1,a0,w1) = tf2(b0d,-b1d,b2d,-a1d,a2d)
-with {
-  w1i = PI*SR - w1;
-  a   = 1/tan((w1i)*0.5/SR); // bilinear-transform scale-factor
-  asq = a*a;
-  d   = a0 + a1*a + asq;
-  b0d = (b1 * a + b0)/d;
-  b1d = 2*b0/d;
-  b2d = (b0 - a * b1)/d;
-  a1d = 2 * (a0 - asq)/d;
-  a2d = (a0 - a1*a + asq)/d;
-};
-
-highpass1(fc) = tf1spr(1,1,2*PI*fc);
-highpass2(fc) = tf2spr(0,1,sqrt(2),1,2*PI*fc);
-highpass3(fc) = tf2spr(0,1,1,1,2*PI*fc) : tf1spr(1,1,2*PI*fc);
-highpass4(fc) = tf2spr(0,1,a11s,1,w1)   : tf2spr(0,1,a21s,1,w1)
+highpass1(fc) = tf1s(1,0,1,2*PI*fc);
+highpass2(fc) = tf2s(1,0,0,sqrt(2),1,2*PI*fc);
+highpass3(fc) = tf2s(1,0,0,1,1,2*PI*fc) : tf1s(1,0,1,2*PI*fc);
+highpass4(fc) = tf2s(1,0,0,a11s,1,w1)   : tf2s(1,0,0,a21s,1,w1)
 with {
   a11s = 1.847759065022573; // -2*real(pole1)
   a21s = 0.765366864730180; // -2*real(pole2)
   w1 = 2*PI*fc;
 };
-
 
 //===================== Shelf Filters =====================
 
@@ -423,8 +401,9 @@ lowshelf(B0,fx,x) = x + B0*lowpass1(fx,x);
 //
 highshelf(Bpi,fx,x) = x + Bpi*highpass1(fx,x);
 
-
 //===================== Peaking Equalizer =====================
+
+// FIXME: Move this doc to maxmsp.lib and delete these here:
 
 //----------------------------- pareq ---------------------------------
 // second order Parametric Equalizer section ("peaking equalizer")
@@ -436,9 +415,7 @@ highshelf(Bpi,fx,x) = x + Bpi*highpass1(fx,x);
 // (specifically faust-pd-0.9.9.2 in Planet CCRMA)
 // which was released under the BSD license.
 //---------------------------------------------------------------------
-// FIXME: ToDo: Reimplement this using peakingEQ in maxmsp.lib or delete.
-//        ToDo: Document maxmsp functions at least as well as this one.
-//        URL : http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+// REFERENCE: http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
 pareq(Q,F,G) = TF2(  (1 +  K/Q + K*K) / D,
                2 * (K*K - 1)          / D,
               (1 - K/Q + K*K)         / D,
