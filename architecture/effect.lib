@@ -390,12 +390,13 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
    cbp = meter_group(checkbox("[0] Bypass [tooltip: When this is checked, the compressor has no effect]"));
 
-   gainview = abs,abs : + : 
+   gainview = 
      compression_gain_mono(ratio,threshold,attack,release) : linear2db : 
-     meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: This bargraph shows the current gain of the compressor in dB]",
-     -50,+10));
+     meter_group(hbargraph("[1] Compressor Gain [unit:dB] 
+      [tooltip: This bargraph shows the current gain of the compressor in dB]",
+      -50,+10));
 
-   displaygain = _ <: _, gainview : attach;
+   displaygain = _,_ <: (abs,abs:+),_,_:gainview,_,_:attach,_;
 
    compressor_stereo_demo = 
      displaygain(compressor_stereo(ratio,threshold,attack,release)) : 
