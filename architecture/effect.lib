@@ -1,7 +1,7 @@
 declare name "Faust Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.1";
+declare version "1.19";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "http://ccrma.stanford.edu/realsimple/faust_strings/";
 
@@ -9,6 +9,7 @@ import("filter.lib"); // dcblocker*, lowpass4, ...
 
 //--------------- levelfilter, levelfilterN -----------------------
 // Dynamic level lowpass filter:
+//
 // USAGE: levelfilter(L,freq), where
 //  L    = desired level (in dB) at Nyquist limit (SR/2), e.g., -60
 //  freq = corner frequency (-3dB point) usually set to fundamental freq
@@ -47,9 +48,11 @@ speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
 
 //--------------------- cubicnl(drive,offset) -----------------------
 // Cubic nonlinearity distortion
+//
 // USAGE: cubicnl(drive,offset), where
 //   drive  = distortion amount, between 0 and 1
 //   offset = constant added before nonlinearity to give even harmonics
+//
 // REFERENCE:
 // http://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html#18254
 //
@@ -70,6 +73,7 @@ with {
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
 //   Q  = corner-resonance quality factor Q
 // Requires filter.lib.
+//
 // REFERENCE: "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
 moogvcf(Q,fr) = (+ : pole(p) : pole(p) 
@@ -167,13 +171,18 @@ with {
  Df0 = polydel(a1) - polydel(1.0/a1);
 };
 
+//--------------------------- cross2, bypass2 ---------------------------
+// These utilities (or equivalents) probably belong in music.lib:
+cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
+bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : cross2 : select2(cbp), select2(cbp); 
+
 //------- flanger_mono, flanger_stereo, flanger_demo -------
-// The flanging effect
+// Flanging effect
 //
 // USAGE:
 //     _ : flanger_mono(dmax,curdel,depth,fb,invert) : _;
 //   _,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_;
-//         flanger_demo;
+//   _,_ : flanger_demo : _,_;
 //
 // ARGUMENTS:
 //   dmax   = maximum delay-line length (power of 2) - 10 ms typical
@@ -197,24 +206,142 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
 // Standalone flanger app or plugin
 //
 // USAGE: 
-//   process = component("effect.lib").flanger_demo;
+//   process = _,_ : component("effect.lib").flanger_demo : _,_;
 //
-flanger_demo = 
-vgroup("Flanger",
-  *(level),*(level) : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert))
+flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
+   flanger_group(x) = 
+    vgroup("[1] FLANGER [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
+   meter_group(x) = flanger_group(hgroup("[0]", x));
+   ctl_group(x)  = flanger_group(hgroup("[1]", x));
+   del_group(x)  = flanger_group(hgroup("[2] Delay Controls", x));
+   lvl_group(x)  = flanger_group(hgroup("[3]", x));
+
+   fbp = meter_group(checkbox(
+         "[0] Bypass  [tooltip: When this is checked, the flanger has no effect]"));
+   invert = meter_group(checkbox("[1] Invert Flange Sum"));
+
+   // FIXME: This should be an amplitude-response display:
+   flangeview = lfor(freq) + lfol(freq) : meter_group(hbargraph(
+      "[2] Flange LFO [style: led] [tooltip: Display sum of flange delays]", -1.5,+1.5));
+
+   flanger_stereo_demo(x,y) = attach(x,flangeview),y : 
+     *(level),*(level) : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
+
+   lfol = component("osc.lib").oscrs; // sine for left channel
+   lfor = component("osc.lib").oscrc; // cosine for right channel
+   dmax = 2048;
+   dflange = 0.001 * SR * 
+     del_group(hslider("[1] Flange Delay [unit:ms] [style:knob]", 10, 0, 20, 0.001));
+   odflange = 0.001 * SR * 
+     del_group(hslider("[2] Delay Offset [unit:ms] [style:knob]", 1, 0, 20, 0.001));
+   freq   = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.01));
+   depth  = ctl_group(hslider("[2] Depth [style:knob]", 1, 0, 1, 0.001));
+   fb     = ctl_group(hslider("[3] Feedback [style:knob]", 0, -0.999, 0.999, 0.001));
+   level  = lvl_group(hslider("Level [unit:dB]", 0, -60, 10, 0.1)) : db2linear;
+   curdel1 = odflange+dflange*(1 + lfol(freq))/2; 
+   curdel2 = odflange+dflange*(1 + lfor(freq))/2; 
+};
+
+//------- phaser2_mono, phaser2_stereo, phaser2_demo -------
+// Phasing effect
+//
+// USAGE:
+//   _ : phaser2_mono(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;
+// _,_ : phaser2_stereo(") : _,_;
+// _,_ : phaser2_demo : _,_;
+//
+// ARGUMENTS:
+//   Notches = number of spectral notches (MACRO ARGUMENT - not a signal)
+//   width  = approximate width of spectral notches in Hz
+//   frqmin = approximate minimum frequency of first spectral notch in Hz
+//   fratio = ratio of adjacent notch frequencies
+//   frqmax = approximate maximum frequency of first spectral notch in Hz
+//   speed  = LFO frequency in Hz (rate of periodic notch sweep cycles)
+//   depth  = effect strength between 0 and 1 (1 typical) (aka "intensity")
+//            when depth=2, "vibrato mode" is obtained (pure allpass chain)
+//   fb     = feedback gain between -1 and 1 (0 typical)
+//   invert = 0 for normal, 1 to invert sign of flanging sum
+//
+// REFERENCES:
+//    https://ccrma.stanford.edu/~jos/pasp/Phasing.html
+//    http://www.geofex.com/Article_Folders/phasers/phase.html
+//    'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III, 
+//    Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.
+//    CCRMA Tech. Report STAN-M-21: https://ccrma.stanford.edu/STANM/stanms/stanm21/
+
+vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) = 
+ (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
 with {
-  lfol = component("osc.lib").oscrs; // sine for left channel
-  lfor = component("osc.lib").oscrc; // cosine for right channel
-  dmax = 2048;
-  dflange = 0.001 * SR * hslider("flange delay [unit:ms]", 10, 0, 20, 0.001);
-  odflange = 0.001 * SR * hslider("flange delay offset [unit:ms]", 1, 0, 20, 0.001);
-  freq   = hslider("LFO freq [unit:Hz]", 0.2, 0, 5, 0.001);
-  depth  = hslider("depth", 1, 0, 1, 0.001) * (1-checkbox("Flanger Bypass"));
-  fb     = hslider("feedback gain", 0, 0, 1, 0.001);
-  invert   = checkbox("invert");
-  level  = hslider("level [unit:dB]", 0, -60, 10, 0.1) : db2linear;
-  curdel1 = odflange+dflange*(1 + lfol(freq))/2; 
-  curdel2 = odflange+dflange*(1 + lfor(freq))/2; 
+     tf2 = component("filter.lib").tf2;
+     // second-order resonant digital allpass given pole radius and angle:
+     ap2p(R,th) = tf2(a2,a1,1,a1,a2) with {
+       a2 = R^2;
+       a1 = -2*R*cos(th);
+     };
+     SR = component("music.lib").SR;
+     R = exp(-pi*width/SR);
+     cososc = component("osc.lib").oscrc;
+     sinosc = component("osc.lib").oscrs;
+     osc = cososc(speed) * phase01 + sinosc(speed) * (1-phase01);
+     lfo = (1-osc)/2; // in [0,1]
+     pi = 4*atan(1);
+     thmin = 2*pi*frqmin/SR;
+     thmax = 2*pi*frqmax/SR;
+     th1 = thmin + (thmax-thmin)*lfo;
+     th(i) = (fratio^(i+1))*th1;
+};
+
+phaser2_mono(Notches,phase01,width,frqmin,fratio,frqmax,speed,depth,fb,invert) = 
+      _ <: *(g1) + g2mi*vibrato2_mono(Notches,phase01,fb,width,frqmin,fratio,frqmax,speed)
+with {               // depth=0 => direct-signal only
+     g1 = 1-depth/2; // depth=1 => phaser mode (equal sum of direct and allpass-chain)
+     g2 = depth/2;   // depth=2 => vibrato mode (allpass-chain signal only)
+     g2mi = select2(invert,g2,-g2); // inversion negates the allpass-chain signal
+};
+
+phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert)
+   = phaser2_mono(Notches,0,width,frqmin,fratio,frqmax,speed,depth,fb,invert),
+     phaser2_mono(Notches,1,width,frqmin,fratio,frqmax,speed,depth,fb,invert);
+
+// Standalone phaser2 app or plugin
+//
+// USAGE: 
+//   process = _,_ : component("effect.lib").phaser2_demo : _,_;
+//
+phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
+   phaser2_group(x) = 
+    vgroup("[2] PHASER2 [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
+   meter_group(x) = phaser2_group(hgroup("[0]", x));
+   ctl_group(x)  = phaser2_group(hgroup("[1]", x));
+   nch_group(x)  = phaser2_group(hgroup("[2]", x));
+   lvl_group(x)  = phaser2_group(hgroup("[3]", x));
+
+   pbp = meter_group(checkbox(
+         "[0] Bypass  [tooltip: When this is checked, the phaser has no effect]"));
+   invert = meter_group(checkbox("[1] Invert Internal Phaser Sum"));
+   vibr   = meter_group(checkbox("[2] Vibrato Mode")); // In this mode you can hear any "Doppler"
+
+   // FIXME: This should be an amplitude-response display:
+   //flangeview = phaser2_amp_resp : meter_group(hspectrumview("[2] Phaser Amplitude Response", 0,1));
+   //phaser2_stereo_demo(x,y) = attach(x,flangeview),y : ...
+
+   phaser2_stereo_demo = *(level),*(level) : 
+     phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,mdepth,fb,invert);
+
+   Notches = 4; // Compile-time parameter: 2 is typical for analog phaser stomp-boxes
+
+   speed  = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.001));
+   depth  = ctl_group(hslider("[2] Notch Depth (Intensity) [style:knob]", 1, 0, 1, 0.001));
+   fb     = ctl_group(hslider("[3] Feedback Gain [style:knob]", 0, -0.999, 0.999, 0.001));
+
+   width  = nch_group(hslider("[1] Notch width [unit:Hz] [style:knob]", 1000, 10, 5000, 1));
+   frqmin = nch_group(hslider("[2] Min Notch1 Freq [unit:Hz] [style:knob]", 100, 20, 5000, 1));
+   fratio = nch_group(hslider("[3] Notch Freq Ratio [style:knob]", 1.5, 1.1, 4, 0.001));
+   frqmax = nch_group(hslider("[4] Max Notch1 Freq [unit:Hz] [style:knob]", 800, 20, 10000, 1)) : max(frqmin);
+
+   level  = lvl_group(hslider("Level [unit:dB]", 0, -60, 10, 0.1)) : component("music.lib").db2linear;
+
+   mdepth = select2(vibr,depth,2); // Improve "ease of use"
 };
 
 //------------------------- stereo_width(w) ---------------------------
@@ -249,6 +376,10 @@ with {
 // where
 //  rel = release time = amplitude-envelope time-constant (sec) going down
 //
+// REFERENCES:
+//  Musical Engineer's Handbook, Bernie Hutchins, Ithaca NY, 1975
+//  Elecronotes Newsletter, Bernie Hutchins
+
 amp_follower(rel) = abs : env with {
  p = tau2pole(rel);
  env(x) = x * (1.0 - p) : + ~ max(x,_) * p;
@@ -267,12 +398,6 @@ amp_follower(rel) = abs : env with {
 // For audio, att should be faster (smaller) than rel (e.g., 0.001 and 0.01)
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
-
-//--------------------------- cross2, bypass2 ---------------------------
-// These utilities (or equivalents) probably belong in music.lib:
-// cross = _,_ <: !,_,_,!;
-cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
-bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : cross2 : select2(cbp), select2(cbp); 
 
 //----------------- gate_mono, gate_stereo -------------------
 // Mono and stereo signal gates
@@ -349,51 +474,52 @@ with {
 
 //---------------------------- gate_demo -------------------------
 // USAGE: 
-//   process = component("effect.lib").gate_demo;
+//   process = _,_ : component("effect.lib").gate_demo : _,_;
 //
 gate_demo = bypass2(gbp,gate_stereo_demo) with {
 
-   gate_group(x)  = vgroup("[0] GATE [tooltip: Reference: http://en.wikipedia.org/wiki/Noise_gate]", x);
+   gate_group(x)  = vgroup("[0] GATE  [tooltip: Reference: http://en.wikipedia.org/wiki/Noise_gate]", x);
    meter_group(x) = gate_group(hgroup("[0]", x));
    knob_group(x)  = gate_group(hgroup("[1]", x));
 
-   gbp = meter_group(checkbox("[0] Bypass [tooltip: When this is checked, the gate has no effect]"));
+   gbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the gate has no effect]"));
 
    gateview = gate_gain_mono(gatethr,gateatt,gatehold,gaterel) : linear2db :
-     meter_group(hbargraph("[1] Gate Gain [unit:dB] [tooltip: This bargraph shows the current gain of the gate in dB]",
-     -50,+10)); // [style:led]
+     meter_group(hbargraph("[1] Gate Gain [unit:dB]  [tooltip: Current gain of the gate in dB]",
+      -50,+10)); // [style:led]
 
    gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y : 
      gate_stereo(gatethr,gateatt,gatehold,gaterel);
 
-   gatethr = knob_group(vslider("[1] Threshold [unit:db] [style:knob] [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]", 
+   gatethr = knob_group(vslider("[1] Threshold [unit:db] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]", 
      -30, -120, 0, 0.1));
 
-   gateatt = knob_group(vslider("[2] Attack [unit:us] [style:knob] [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
+   gateatt = knob_group(vslider("[2] Attack [unit:us] [style:knob]  [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
      10, 10, 10000, 1)) : *(0.000001) : max(1/SR);
 
-   gatehold = knob_group(vslider("[3] Hold [unit:ms] [style:knob] [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
+   gatehold = knob_group(vslider("[3] Hold [unit:ms] [style:knob]  [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
      200, 0, 1000, 1)) : *(0.001) : max(1/SR);
 
-   gaterel = knob_group(vslider("[4] Release [unit:ms] [style:knob] [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]", 
+   gaterel = knob_group(vslider("[4] Release [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]", 
      100, 0, 1000, 1)) : *(0.001) : max(1/SR);
 };
 
 //---------------------------- compressor_demo -------------------------
 // USAGE: 
-//   process = component("effect.lib").compressor_demo;
+//   process = _,_ : component("effect.lib").compressor_demo : _,_;
 //
 compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
-   comp_group(x) = vgroup("[1] COMPRESSOR [tooltip: Reference: http://en.wikipedia.org/wiki/Dynamic_range_compression]", x); // [1] should be decided above
+   comp_group(x) = vgroup("[3] COMPRESSOR  [tooltip: Reference: http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
+
    meter_group(x)  = comp_group(hgroup("[0]", x));
    knob_group(x)  = comp_group(hgroup("[1]", x));
 
-   cbp = meter_group(checkbox("[0] Bypass [tooltip: When this is checked, the compressor has no effect]"));
+   cbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the compressor has no effect]"));
 
    gainview = 
      compression_gain_mono(ratio,threshold,attack,release) : linear2db : 
-     meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: This bargraph shows the current gain of the compressor in dB]",
+     meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain of the compressor in dB]",
       -50,+10));
 
    displaygain = _,_ <: _,_,(abs,abs:+) : _,_,gainview : _,attach;
@@ -404,21 +530,21 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 
-   ratio = ctl_group(vslider("[0] Ratio [style:knob] [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]", 
+   ratio = ctl_group(vslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]", 
      5, 1, 20, 0.1));
 
-   threshold = ctl_group(vslider("[1] Threshold [unit:db] [style:knob] [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
+   threshold = ctl_group(vslider("[1] Threshold [unit:db] [style:knob]  [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
      -30, -100, 10, 0.1));
 
    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
 
-   attack = env_group(vslider("[1] Attack [unit:ms] [style:knob] [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression 'kicking in')]",
+   attack = env_group(vslider("[1] Attack [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression `kicking in')]",
      50, 0, 500, 0.1)) : *(0.001) : max(1/SR);
 
-   release = env_group(vslider("[2] Release [unit:ms] [style: knob] [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new higher target level (the compression 'releasing')]",
+   release = env_group(vslider("[2] Release [unit:ms] [style: knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new higher target level (the compression 'releasing')]",
      500, 0, 1000, 0.1)) : *(0.001) : max(1/SR);
 
-   makeupgain = comp_group(hslider("[5] Makeup Gain [unit:db] [tooltip: The compressed-signal output level is increased by this amount (in dB) to make up for the level lost due to compression]",
+   makeupgain = comp_group(hslider("[5] Makeup Gain [unit:db]  [tooltip: The compressed-signal output level is increased by this amount (in dB) to make up for the level lost due to compression]",
      40, -96, 96, 0.1)) : db2linear;
 };
 
@@ -429,12 +555,12 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 //
 // DESCRIPTION:
 //   A limiter guards against hard-clipping.  It can be can be
-//   implemented a compressor having a high threshold (near the
+//   implemented as a compressor having a high threshold (near the
 //   clipping level), fast attack and release, and high ratio.  Since
-//   the ratio is so high ("hard limiting"), some knee smoothing is
+//   the ratio is so high, some knee smoothing is
 //   desirable ("soft limiting").  This example is intended
-//   merely to get you started using compressor_* as a limiter
-//   (hence all parameters are hardwired to nominal values here).
+//   to get you started using compressor_* as a limiter, so all
+//   parameters are hardwired to nominal values here.
 //
 // REFERENCE: http://en.wikipedia.org/wiki/1176_Peak_Limiter
 //   Ratios: 4, 8, 12, or 20 to 1
