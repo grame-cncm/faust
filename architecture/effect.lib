@@ -270,6 +270,7 @@ amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
 //--------------------------- cross2, bypass2 ---------------------------
 // These utilities (or equivalents) probably belong in music.lib:
+// cross = _,_ <: !,_,_,!;
 cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
 bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : cross2 : select2(cbp), select2(cbp); 
 
@@ -392,11 +393,10 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
    gainview = 
      compression_gain_mono(ratio,threshold,attack,release) : linear2db : 
-     meter_group(hbargraph("[1] Compressor Gain [unit:dB] 
-      [tooltip: This bargraph shows the current gain of the compressor in dB]",
+     meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: This bargraph shows the current gain of the compressor in dB]",
       -50,+10));
 
-   displaygain = _,_ <: (abs,abs:+),_,_:gainview,_,_:attach,_;
+   displaygain = _,_ <: _,_,(abs,abs:+) : _,_,gainview : _,attach;
 
    compressor_stereo_demo = 
      displaygain(compressor_stereo(ratio,threshold,attack,release)) : 
