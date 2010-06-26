@@ -39,6 +39,15 @@ extern vector<Tree> gDocVector;
 
 int yylex();
 
+//----------------------------------------------------------
+// unquote() : remove enclosing quotes and carriage return 
+// characters from string. Returns a Tree 
+//----------------------------------------------------------
+char replaceCR(char c)
+{
+	return (c!='\n') ? c : ' ';
+}
+
 Tree unquote(char* str)
 {
 	//-----------copy unquoted filename-------------
@@ -48,13 +57,13 @@ Tree unquote(char* str)
 	if (str[0] == '"') {
 		//it is a quoted string, we remove the quotes
 		for (int i=1; j<511 && str[i];) {
-			buf[j++] = str[i++];
+			buf[j++] = replaceCR(str[i++]);
 		}
 		// remove last quote
 		if (j>0) buf[j-1] = 0;
 	} else {
 		for (int i=0; j<511 && str[i];) {
-			buf[j++] = str[i++];
+			buf[j++] = replaceCR(str[i++]);
 		}
 	}
 	buf[j] = 0;
