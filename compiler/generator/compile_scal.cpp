@@ -768,7 +768,7 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
         generateRec(r, var, le);
         assert(getVectorNameProperty(sig, vname));
     }
-    return subst("$0[0]", vname);
+    return "[[UNUSED EXP]]";    // make sure the resulting expression is never used in the generated code
 }
 
 
