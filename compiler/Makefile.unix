@@ -105,6 +105,7 @@ draw/drawschema.o: draw/device/SVGDev.h draw/device/device.h draw/device/PSDev.h
 draw/drawschema.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 draw/drawschema.o: signals/sigvisitor.hh documentator/lateq.hh tlib/occurrences.hh boxes/boxcomplexity.h
 draw/drawschema.o: draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh utils/names.hh propagate/propagate.hh
+draw/drawschema.o: generator/description.hh
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 errors/errormsg.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
 errors/timing.o: errors/timing.hh
