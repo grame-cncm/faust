@@ -91,7 +91,7 @@ Tree unquote(char* str)
 /*%left SEQ SPLIT MIX*/
 %left SPLIT MIX
 %left SEQ
-%left PAR
+%right PAR
 %left REC
 
 /* Primitive boxes */
