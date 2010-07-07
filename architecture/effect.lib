@@ -89,12 +89,12 @@ cubicnl_demo = bypass1(bp, cubicnl(drive,offset)) with {
    offset = slider_group(vslider("[2] Offset [style: knob] [tooltip: Brings in even harmonics]", 0.0, 0, 1.0, 0.01));
 };
 
-//------------------------- moog_vcf(R,fr) ---------------------------
+//------------------------- moog_vcf(res,fr) ---------------------------
 // Moog "Voltage Controlled Filter" (VCF)
 //
-// USAGE: moog_vcf(R,fr), where
+// USAGE: moog_vcf(res,fr), where
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
-//   R  = Normalized amount of corner-resonance between 0 and 1 
+//   res  = Normalized amount of corner-resonance between 0 and 1 
 //        (0 is no resonance, 1 is infinite Q)
 // Requires filter.lib.
 //
@@ -102,12 +102,12 @@ cubicnl_demo = bypass1(bp, cubicnl(drive,offset)) with {
 //  https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
 //  https://ccrma.stanford.edu/~jos/pasp/vegf.html
 // 
-moog_vcf(R,fr) = (+ : seq(i,4,(*(1-p):pole(p))) : *(unitygain(p))) ~ *(mk)
+moog_vcf(res,fr) = (+ : seq(i,4,(*(1-p):pole(p))) : *(unitygain(p))) ~ *(mk)
 with {
      p = 1.0 - fr * 2.0 * PI / SR; // good approximation for fr << SR
 //     unitygain(p) = pow(1.0-p,4.0); // one-pole unity-gain factors
      unitygain(p) = 1; // debugging...
-     mk = 0-4.0*max(0,min(R,0.999999)); // need mk > -4 for stability
+     mk = 0-4.0*max(0,min(res,0.999999)); // need mk > -4 for stability
 };
 
 //------------------------- moog_vcf_demo ---------------------------
@@ -118,11 +118,11 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 
    freq = mvcf_group(hslider(
      "[1] Corner Frequency [unit:PK] [style:knob] [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above it.]", 
-     25, 1, 88, 0.01));
+     25, 1, 88, 0.01) : pianokey2hz);
   
-   R = mvcf_group(hslider("[2] Resonance [style:knob] [tooltip: Amount of resonance near lowpass-filter corner frequency between 0 and 1]", 0.7, 0, 1, 0.01));
+   res = mvcf_group(hslider("[2] Resonance [style:knob] [tooltip: Amount of resonance near lowpass-filter corner frequency between 0 and 1]", 0.9, 0, 1, 0.01));
 
-   vcf = moog_vcf(R,freq);
+   vcf = moog_vcf(res,freq);
 };
 
 //-------------------------- wah4(fr) -------------------------------
