@@ -1,11 +1,20 @@
-declare name "Faust Effect Library";
+declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
 declare version "1.19";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
-declare reference "http://ccrma.stanford.edu/realsimple/faust_strings/";
+declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
 import("filter.lib"); // dcblocker*, lowpass4, ...
+
+//----------------------- cross2, bypass1, bypass2 ------------------------
+// These utilities (or equivalents) probably belong in music.lib:
+midikey2hz(x) = 440.0*pow(2.0, (x-69.0)/12); // MIDI key 69 = A440
+pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440
+bypass1(bpc,e) = _ <: select2(bpc,inswitch:e,_) with {inswitch = select2(1-bpc,0,_);};
+bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : 
+                           cross2 : select2(cbp), select2(cbp); 
+cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
 
 //--------------- levelfilter, levelfilterN -----------------------
 // Dynamic level lowpass filter:
@@ -15,7 +24,7 @@ import("filter.lib"); // dcblocker*, lowpass4, ...
 //  freq = corner frequency (-3dB point) usually set to fundamental freq
 //
 // REFERENCE: 
-// http://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html
+// https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html
 //
 levelfilter(L,freq,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
 with {
@@ -52,12 +61,13 @@ speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
 // USAGE: cubicnl(drive,offset), where
 //   drive  = distortion amount, between 0 and 1
 //   offset = constant added before nonlinearity to give even harmonics
+//            Note: offset can introduce a nonzero mean - feed
+//            cubicnl output to dcblocker to remove this.
 //
 // REFERENCE:
-// http://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html#18254
+// https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html
 //
-cubicnl(drive,offset) =
-   +(offset) : *(pregain) : clip(-1,1) : cubic : dcblocker
+cubicnl(drive,offset) = *(pregain) : +(offset) : clip(-1,1) : cubic
 with {
     pregain = pow(10.0,2*drive);
     clip(lo,hi) = min(hi) : max(lo);
@@ -65,39 +75,69 @@ with {
     postgain = max(1.0,1.0/pregain); // unity gain when nearly linear
 };
 
-
-//------------------------- moogvcf(Q,fr) ---------------------------
-// Moog "Voltage Controlled Filter" (VCF)
+//--------------------------- cubicnl_demo --------------------------
 //
-// USAGE: moogvcf(Q,fr), where
-//   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
-//   Q  = corner-resonance quality factor Q
-// Requires filter.lib.
+// USAGE: 
+//    _ : cubicnl_demo : _;
 //
-// REFERENCE: "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
-// 
-moogvcf(Q,fr) = (+ : pole(p) : pole(p) 
-                   : pole(p) : pole(p) : *(scale(p))) ~ *(mk)
-with {
-     p = 1.0 - fr * 2.0 * PI / SR; // approx for fr << SR
-     scale(p) = pow(1-p,4);
-     mk = 0-Q;
+cubicnl_demo = bypass1(bp, cubicnl(drive,offset)) with {
+   cnl_group(x)  = vgroup("CUBIC NONLINEARITY CUBICNL [tooltip: Reference: ...]", x);
+   bypass_group(x) = cnl_group(hgroup("[0]", x));
+   slider_group(x)  = cnl_group(hgroup("[1]", x));
+   bp = bypass_group(checkbox("[0] Bypass  [tooltip: When this is checked, the nonlinearity has no effect]"));
+   drive = slider_group(vslider("[1] Drive [style: knob] [tooltip: Amount of distortion]", 0, 0, 1.0, 0.01));
+   offset = slider_group(vslider("[2] Offset [style: knob] [tooltip: Brings in even harmonics]", 0.0, 0, 1.0, 0.01));
 };
 
+//------------------------- moog_vcf(R,fr) ---------------------------
+// Moog "Voltage Controlled Filter" (VCF)
+//
+// USAGE: moog_vcf(R,fr), where
+//   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
+//   R  = Normalized amount of corner-resonance between 0 and 1 
+//        (0 is no resonance, 1 is infinite Q)
+// Requires filter.lib.
+//
+// REFERENCES:
+//  https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
+//  https://ccrma.stanford.edu/~jos/pasp/vegf.html
+// 
+moog_vcf(R,fr) = (+ : seq(i,4,(*(1-p):pole(p))) : *(unitygain(p))) ~ *(mk)
+with {
+     p = 1.0 - fr * 2.0 * PI / SR; // good approximation for fr << SR
+//     unitygain(p) = pow(1.0-p,4.0); // one-pole unity-gain factors
+     unitygain(p) = 1; // debugging...
+     mk = 0-4.0*max(0,min(R,0.999999)); // need mk > -4 for stability
+};
+
+//------------------------- moog_vcf_demo ---------------------------
+moog_vcf_demo = bypass1(bp,vcf) with {
+   mvcf_group(x)  = hgroup("MOOG 'Voltage Controlled Filter' (VCF)  [tooltip: Reference: https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf]", x);
+
+   bp = mvcf_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
+
+   freq = mvcf_group(hslider(
+     "[1] Corner Frequency [unit:PK] [style:knob] [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above it.]", 
+     25, 1, 88, 0.01));
+  
+   R = mvcf_group(hslider("[2] Resonance [style:knob] [tooltip: Amount of resonance near lowpass-filter corner frequency between 0 and 1]", 0.7, 0, 1, 0.01));
+
+   vcf = moog_vcf(R,freq);
+};
 
 //-------------------------- wah4(fr) -------------------------------
 // Wah effect, 4th order
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
-// REFERENCE "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
+// REFERENCE "https://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
-wah4(fr) = moogvcf(3.8,fr); // Q fixed at ~ 3.8 (set to taste)
+wah4(fr) = moog_vcf((3.8/4),fr); // feedback fixed at -3.8 (set to taste)
 
 
 //------------------------ crybaby(wah) -----------------------------
 // Digitized CryBaby wah pedal
 // USAGE: crybaby(wah), where wah = "pedal angle" from 0 to 1.
 // Requires filter.lib.
-// REFERENCE "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
+// REFERENCE: https://ccrma.stanford.edu/~jos/pasp/vegf.html
 //
 crybaby(wah) = *(gs(s)) : tf2(1,-1,0,a1s(s),a2s(s))
 with {
@@ -117,6 +157,13 @@ with {
   a1s(s) = a1 : smooth(s);
   a2s(s) = a2 : smooth(s);
   gs(s) =  g  : smooth(s);
+};
+
+//------------------------- crybaby_demo ---------------------------
+crybaby_demo = bypass1(bp, crybaby(wah)) with {
+   crybaby_group(x)  = hgroup("CRYBABY [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/vegf.html]", x);
+   bp = crybaby_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah pedal has no effect]"));
+   wah = crybaby_group(hslider("[1] Wah [tooltip: wah pedal angle between 0 (rocked back) and 1 (rocked forward)]",0.8,0,1,0.01));
 };
 
 //------------ piano_dispersion_filter(M,B,f0) ---------------
@@ -171,11 +218,6 @@ with {
  Df0 = polydel(a1) - polydel(1.0/a1);
 };
 
-//--------------------------- cross2, bypass2 ---------------------------
-// These utilities (or equivalents) probably belong in music.lib:
-cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
-bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : cross2 : select2(cbp), select2(cbp); 
-
 //------- flanger_mono, flanger_stereo, flanger_demo -------
 // Flanging effect
 //
@@ -210,7 +252,7 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
 //
 flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
    flanger_group(x) = 
-    vgroup("[1] FLANGER [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
+    vgroup("FLANGER [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
    meter_group(x) = flanger_group(hgroup("[0]", x));
    ctl_group(x)  = flanger_group(hgroup("[1]", x));
    del_group(x)  = flanger_group(hgroup("[2] Delay Controls", x));
@@ -310,7 +352,7 @@ phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert)
 //
 phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
    phaser2_group(x) = 
-    vgroup("[2] PHASER2 [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
+    vgroup("PHASER2 [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
    meter_group(x) = phaser2_group(hgroup("[0]", x));
    ctl_group(x)  = phaser2_group(hgroup("[1]", x));
    nch_group(x)  = phaser2_group(hgroup("[2]", x));
@@ -330,14 +372,15 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
 
    Notches = 4; // Compile-time parameter: 2 is typical for analog phaser stomp-boxes
 
+   // FIXME: Add tooltips
    speed  = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.001));
    depth  = ctl_group(hslider("[2] Notch Depth (Intensity) [style:knob]", 1, 0, 1, 0.001));
    fb     = ctl_group(hslider("[3] Feedback Gain [style:knob]", 0, -0.999, 0.999, 0.001));
 
    width  = nch_group(hslider("[1] Notch width [unit:Hz] [style:knob]", 1000, 10, 5000, 1));
    frqmin = nch_group(hslider("[2] Min Notch1 Freq [unit:Hz] [style:knob]", 100, 20, 5000, 1));
-   fratio = nch_group(hslider("[3] Notch Freq Ratio [style:knob]", 1.5, 1.1, 4, 0.001));
-   frqmax = nch_group(hslider("[4] Max Notch1 Freq [unit:Hz] [style:knob]", 800, 20, 10000, 1)) : max(frqmin);
+   frqmax = nch_group(hslider("[3] Max Notch1 Freq [unit:Hz] [style:knob]", 800, 20, 10000, 1)) : max(frqmin);
+   fratio = nch_group(hslider("[4] Notch Freq Ratio: NotchFreq(n+1)/NotchFreq(n)  [style:knob]", 1.5, 1.1, 4, 0.001));
 
    level  = lvl_group(hslider("Level [unit:dB]", 0, -60, 10, 0.1)) : component("music.lib").db2linear;
 
@@ -478,7 +521,7 @@ with {
 //
 gate_demo = bypass2(gbp,gate_stereo_demo) with {
 
-   gate_group(x)  = vgroup("[0] GATE  [tooltip: Reference: http://en.wikipedia.org/wiki/Noise_gate]", x);
+   gate_group(x)  = vgroup("GATE  [tooltip: Reference: http://en.wikipedia.org/wiki/Noise_gate]", x);
    meter_group(x) = gate_group(hgroup("[0]", x));
    knob_group(x)  = gate_group(hgroup("[1]", x));
 
@@ -491,7 +534,7 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
    gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y : 
      gate_stereo(gatethr,gateatt,gatehold,gaterel);
 
-   gatethr = knob_group(vslider("[1] Threshold [unit:db] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]", 
+   gatethr = knob_group(vslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]", 
      -30, -120, 0, 0.1));
 
    gateatt = knob_group(vslider("[2] Attack [unit:us] [style:knob]  [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
@@ -510,7 +553,7 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
 //
 compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
-   comp_group(x) = vgroup("[3] COMPRESSOR  [tooltip: Reference: http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
+   comp_group(x) = vgroup("COMPRESSOR  [tooltip: Reference: http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
 
    meter_group(x)  = comp_group(hgroup("[0]", x));
    knob_group(x)  = comp_group(hgroup("[1]", x));
@@ -533,7 +576,7 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
    ratio = ctl_group(vslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]", 
      5, 1, 20, 0.1));
 
-   threshold = ctl_group(vslider("[1] Threshold [unit:db] [style:knob]  [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
+   threshold = ctl_group(vslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
      -30, -100, 10, 0.1));
 
    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
@@ -544,7 +587,7 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
    release = env_group(vslider("[2] Release [unit:ms] [style: knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new higher target level (the compression 'releasing')]",
      500, 0, 1000, 0.1)) : *(0.001) : max(1/SR);
 
-   makeupgain = comp_group(hslider("[5] Makeup Gain [unit:db]  [tooltip: The compressed-signal output level is increased by this amount (in dB) to make up for the level lost due to compression]",
+   makeupgain = comp_group(hslider("[5] Makeup Gain [unit:dB]  [tooltip: The compressed-signal output level is increased by this amount (in dB) to make up for the level lost due to compression]",
      40, -96, 96, 0.1)) : db2linear;
 };
 

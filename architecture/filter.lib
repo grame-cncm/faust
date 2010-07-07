@@ -5,14 +5,14 @@ declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
 declare version "1.6";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
-declare reference "http://ccrma.stanford.edu/~jos/filters/";
+declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
 import("music.lib"); // delay, frac and, from math.lib, SR and PI
 
 //---------------------- zero(z) --------------------------
 // z = location of zero along real axis in z-plane
 // Difference equation: y(n) = x(n) - z * x(n-1)
-// Reference: http://ccrma.stanford.edu/~jos/filters/One_Zero.html
+// Reference: https://ccrma.stanford.edu/~jos/filters/One_Zero.html
 
 zero(z) =  _ <: _,mem : _,*(z) : -;
 
@@ -20,7 +20,7 @@ zero(z) =  _ <: _,mem : _,*(z) : -;
 // p = pole location = feedback coefficient
 // Could also be called a "leaky integrator".
 // Difference equation: y(n) = x(n) + p * y(n-1)
-// Reference: http://ccrma.stanford.edu/~jos/filters/One_Pole.html
+// Reference: https://ccrma.stanford.edu/~jos/filters/One_Pole.html
 
 pole(p) = + ~ *(p);
 
@@ -48,7 +48,7 @@ tau2pole(tau) = exp(-1.0/(tau*SR));
 // The exponential time-constant is approximately 
 // 1/(1-s) samples, when s is close to (but less than) 1.
 // Reference: 
-// http://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html
+// https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html
 
 smooth(s) = *(1.0 - s) : + ~ *(s);
 
@@ -61,7 +61,7 @@ smooth(s) = *(1.0 - s) : + ~ *(s);
 // by the low-frequency-matching bilinear transform method
 // (i.e., the standard frequency-scaling constant 2*SR).
 // Reference:
-// http://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
+// https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
 
 dcblockerat(fb) = *(b0) : zero(1) : pole(p)
 with {
@@ -80,7 +80,7 @@ dcblocker = zero(1) : pole(0.995);
 // width = "notch width" in Hz (approximate)
 // freq  = "notch frequency" in Hz
 // Reference:
-// http://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html
+// https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html
 
 notchw(width,freq) = tf2(b0,b1,b2,a1,a2)
 with {
@@ -109,7 +109,7 @@ with {
 //   g = gain applied to delay-line output
 //
 // Reference: 
-//   http://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html
+//   https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html
 
 ffcombfilter(maxdel,del,g) = _ <: _,(delay(maxdel,del) : *(g)) : + ;
 
@@ -125,7 +125,7 @@ ffcombfilter(maxdel,del,g) = _ <: _,(delay(maxdel,del) : *(g)) : + ;
 //   ffbcombfilter(maxdel,del,g), where del is (non-int) delay
 //
 // Reference: 
-//   http://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html
+//   https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html
 
 fbcombfilter(maxdel,intdel,g) = (+ : delay(maxdel,intdel)) ~ *(g);
 ffbcombfilter(maxdel,del,g) = (+ : fdelay(maxdel,del)) ~ *(g);
@@ -179,7 +179,7 @@ with {
 //        (set to 1 to make a numerically stable oscillator)
 //
 // Reference:
-// http://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
+// https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
 //
 wgr(f,r,x) = (*(G),_<:_,((+:*(C))<:_,_),_:+,_,_:+(x),-) ~ cross : _,*(0-gi)
 with { 
@@ -197,7 +197,7 @@ with {
 //        (set to 1 to make a sinusoidal oscillator)
 //
 // Reference:
-// http://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html
+// https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html
 //
 nlf2(f,r,x) = ((_<:_,_),(_<:_,_) : (*(s),*(c),*(c),*(0-s)) :> 
               (*(r),+(x))) ~ cross
@@ -238,7 +238,7 @@ with {
 //
 // METHOD: Bilinear transform scaled for exact mapping of w1.
 // REFERENCE: 
-//   http://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
+//   https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
 //
 tf2s(b2,b1,b0,a1,a0,w1) = tf2(b0d,b1d,b2d,a1d,a2d)
 with {
@@ -281,7 +281,7 @@ with {
 //
 // METHOD: Bilinear transform scaled for exact mapping of w1.
 // REFERENCE: 
-//   http://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
+//   https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html
 //
 tf1s(b1,b0,a0,w1) = tf1(b0d,b1d,a1d)
 with {
@@ -320,9 +320,8 @@ with {
 };
 
 //===================== Butterworth Lowpass Filters =====================
-//
 // Reference: 
-// http://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html
+// https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html
 //
 //----------------------------- lowpass1 -----------------------------
 // First-order Butterworth lowpass filter
@@ -377,11 +376,10 @@ with {
 };
 
 //===================== Shelf Filters =====================
-
 // References:
-// [1] Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999
+// [1] Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
 // [2] http://www.harmony-central.com/Computer/Programming/Audio-EQ-Cookbook.txt
-// [3] http://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html
+// [3] https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html
 
 //----------------------------- lowshelf -----------------------------
 // First-order "low shelf" filter (a gain boost around dc)
@@ -402,7 +400,10 @@ lowshelf(B0,fx,x) = x + B0*lowpass1(fx,x);
 highshelf(Bpi,fx,x) = x + Bpi*highpass1(fx,x);
 
 //===================== Peaking Equalizer =====================
-
+// References:
+// [1] Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999
+// [2] http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+// [3] https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html
 // FIXME: Move this doc to maxmsp.lib and delete these here:
 
 //----------------------------- pareq ---------------------------------
@@ -429,9 +430,8 @@ with {
 };
 
 //========================= Lagrange Interpolation ========================
-
 // Reference:
-// http://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html
+// https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html
 // 
 //------------------ fdelay1, fdelay2, fdelay3, fdelay4 ---------------
 // Delay lines interpolated using Lagrange interpolation
@@ -520,9 +520,8 @@ with {
 };
 
 //====================== Thiran Allpass Interpolation =====================
-//
 // Reference:
-// http://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html
+// https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html
 // 
 //---------------- fdelay1a, fdelay2a, fdelay3a, fdelay4a -------------
 // Delay lines interpolated using Thiran allpass interpolation
@@ -601,4 +600,3 @@ with {
   a3 = 4*a3o4;
   a4 = a3o4*(1-fd)/(4+fd);
 };
-

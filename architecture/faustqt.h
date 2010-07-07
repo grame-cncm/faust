@@ -1360,9 +1360,9 @@ class QTGUI : public QObject, public UI
 	virtual string formatTooltip(int n, const string& tt)
 	{
 		string  ss = tt;	// ss string we are going to format
-		int		lws = 0;	// last white space encountered
+		int	lws = 0;	// last white space encountered
 		int 	lri = 0;	// last return inserted
-		for (int i=0; i<tt.size(); i++) {
+		for (int i=0; i< (int)tt.size(); i++) {
 			if (tt[i] == ' ') lws = i;
 			if (((i-lri) >= n) && (lws > lri)) {
 				// insert return here
