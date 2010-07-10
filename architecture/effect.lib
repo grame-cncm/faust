@@ -1,20 +1,24 @@
 declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.19";
+declare version "1.22";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
 import("filter.lib"); // dcblocker*, lowpass4, ...
 
-//----------------------- cross2, bypass1, bypass2 ------------------------
-// These utilities (or equivalents) probably belong in music.lib:
+// The following utilities (or equivalents) probably belong in music.lib:
+//----------------------- midikey2hz,pianokey2hz ------------------------
 midikey2hz(x) = 440.0*pow(2.0, (x-69.0)/12); // MIDI key 69 = A440
 pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440
-bypass1(bpc,e) = _ <: select2(bpc,inswitch:e,_) with {inswitch = select2(1-bpc,0,_);};
-bypass2(cbp,stereoblock) = _,_ <: stereoblock,_,_ : 
-                           cross2 : select2(cbp), select2(cbp); 
+//---------------------- cross2, bypass1, bypass2 ----------------------
 cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
+bypass1(bpc,e) = _ <: select2(bpc,inswitch:e,_) 
+                 with {inswitch = select2(bpc,_,0);};
+bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
+  inswitch = _,_ : select2(bpc,_,0), select2(bpc,_,0) : _,_;
+  select2stereo(bpc) = _,_,_,_ : cross2 : select2(bpc), select2(bpc) : _,_;
+};
 
 //--------------- levelfilter, levelfilterN -----------------------
 // Dynamic level lowpass filter:
@@ -64,8 +68,9 @@ speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
 //            Note: offset can introduce a nonzero mean - feed
 //            cubicnl output to dcblocker to remove this.
 //
-// REFERENCE:
-// https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html
+// REFERENCES:
+//   https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html
+//   https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html
 //
 cubicnl(drive,offset) = *(pregain) : +(offset) : clip(-1,1) : cubic
 with {
@@ -81,7 +86,7 @@ with {
 //    _ : cubicnl_demo : _;
 //
 cubicnl_demo = bypass1(bp, cubicnl(drive,offset)) with {
-   cnl_group(x)  = vgroup("CUBIC NONLINEARITY CUBICNL [tooltip: Reference: ...]", x);
+   cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
    bypass_group(x) = cnl_group(hgroup("[0]", x));
    slider_group(x)  = cnl_group(hgroup("[1]", x));
    bp = bypass_group(checkbox("[0] Bypass  [tooltip: When this is checked, the nonlinearity has no effect]"));
@@ -102,27 +107,32 @@ cubicnl_demo = bypass1(bp, cubicnl(drive,offset)) with {
 //  https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
 //  https://ccrma.stanford.edu/~jos/pasp/vegf.html
 // 
-moog_vcf(res,fr) = (+ : seq(i,4,(*(1-p):pole(p))) : *(unitygain(p))) ~ *(mk)
+moog_vcf(res,fr) = (+ : seq(i,4,pole(p)) : *(unitygain(p))) ~ *(mk)
 with {
      p = 1.0 - fr * 2.0 * PI / SR; // good approximation for fr << SR
-//     unitygain(p) = pow(1.0-p,4.0); // one-pole unity-gain factors
-     unitygain(p) = 1; // debugging...
+     unitygain(p) = pow(1.0-p,4.0); // one-pole unity-gain scaling
      mk = 0-4.0*max(0,min(res,0.999999)); // need mk > -4 for stability
 };
 
 //------------------------- moog_vcf_demo ---------------------------
 moog_vcf_demo = bypass1(bp,vcf) with {
-   mvcf_group(x)  = hgroup("MOOG 'Voltage Controlled Filter' (VCF)  [tooltip: Reference: https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf]", x);
+   mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)  [tooltip: Reference: https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf]", x);
 
-   bp = mvcf_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
+//   bp = mvcf_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
+
+   meter_group(x) = mvcf_group(vgroup("[0]",x));
+   bp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
+   levelview = meter_group(hbargraph("[1] Moog VCF Output Level [unit: dB] [tooltip: VCF output signal level]",-120.0,10.0)); // [style: led]
+
+   displaylevel = _ <: _, (abs:smooth(0.999):linear2db) : _, levelview : attach;
 
    freq = mvcf_group(hslider(
      "[1] Corner Frequency [unit:PK] [style:knob] [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above it.]", 
      25, 1, 88, 0.01) : pianokey2hz);
   
-   res = mvcf_group(hslider("[2] Resonance [style:knob] [tooltip: Amount of resonance near lowpass-filter corner frequency between 0 and 1]", 0.9, 0, 1, 0.01));
+   res = mvcf_group(hslider("[2] Corner Resonance [style:knob] [tooltip: Amount of resonance near VCF corner frequency (specified between 0 and 1)]", 0.9, 0, 1, 0.01));
 
-   vcf = moog_vcf(res,freq);
+   vcf = displaylevel(moog_vcf(res,freq:smooth(0.99)));
 };
 
 //-------------------------- wah4(fr) -------------------------------
@@ -606,9 +616,10 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 //   parameters are hardwired to nominal values here.
 //
 // REFERENCE: http://en.wikipedia.org/wiki/1176_Peak_Limiter
-//   Ratios: 4, 8, 12, or 20 to 1
-//   Att: 20-800 MICROseconds
-//   Rel: 50-1100 ms
+//   Ratios: 4 (moderate compression), 8 (severe compression), 
+//          12 (mild limiting), or 20 to 1 (hard limiting)
+//   Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176)
+//   Rel: 50-1100 ms (Note: scaled by ratio in the 1176)
 //   Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) 
 //     Faster attack gives "more bite" (e.g. on vocals)
 //     He hears a bright, clear eq effect as well (not implemented here)

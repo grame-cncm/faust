@@ -60,14 +60,14 @@ sawtooth = saw2; // default choice
 //-------------------------- sawtooth_demo ---------------------------
 
 sawtooth_demo = signal with { 
-  osc_group(x) = vgroup("SAWTOOTH [tooltip: Reference: Välimäki, IEEE-SPL, March 2005]",x);
+  osc_group(x) = vgroup("[0] SAWTOOTH Oscillator [tooltip: Reference: Välimäki, IEEE-SPL, March 2005]",x);
   knob_group(x)  = osc_group(hgroup("[1]", x));
   ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth waveform amplitude]",
     -20,-120,10,0.1));
-  amp = ampdb : db2linear;
+  amp = ampdb : smooth(0.999) : db2linear;
   freq = knob_group(
   vslider("[2] Frequency [unit:PK] [style:knob] [tooltip: Sawtooth frequency as a Piano Key (PK) number (A440 = key 49)]",49,1,88,0.01) : pianokey2hz);
-  pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440
+  pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440 (also defined in effect.lib)
   detune1 = 1 + 0.01 * knob_group(
     vslider("[3] Detuning 1 [unit:%%] [style:knob] [tooltip: Percentange frequency-shift up or down for second oscillator]",
     -0.1,-10,10,0.01));
@@ -76,7 +76,7 @@ sawtooth_demo = signal with {
     +0.1,-10,10,0.01));
   portamento = knob_group(
     vslider("[5] Portamento [unit:sec] [style:knob] [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-    0.1,0,1,0.001));
+    0.1,0.01,1,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
   signal = (amp/3) * 
     (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
@@ -129,18 +129,20 @@ saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 // Quick Guide (more complete documentation forthcoming):
 //
-//    USAGE: osc*(f), where f = frequency in Hz.
+//    USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
 //
-// oscb: fastest, amplitude varies with frequency, avoid dc
-// oscr: 2nd fastest, amplitude unchanging with frequency, dc ok, 
-//       amp slowly drifts,
-//       sine and cosine outputs available (exact phase quadrature)
-// oscs: 3rd fastest, amplitude varies slightly with frequency, dc ok, 
-//       no amp drift, likely optimizable to be the fastest no-drift case
-// oscw: 4th fastest, amplitude steady with frequency, no amp drift,
-//       sine and cosine outputs available (exact phase quadrature),
-//       numerical difficulty below 10 Hz,
-//       likely optimizable to be best (above 10 Hz) for custom silicon.
+//  oscb: fastest, amplitude varies with frequency, avoid dc
+//  oscr: 2nd fastest, amplitude unchanging with frequency, dc ok, 
+//        amp slowly drifts,
+//        sine and cosine outputs available (exact phase quadrature)
+// oscrs: sine output of oscr
+// oscrc: cosine output of oscr
+//  oscs: 3rd fastest, amplitude varies slightly with frequency, dc ok, 
+//        no amp drift, likely optimizable to be the fastest no-drift case
+//  oscw: 4th fastest, amplitude steady with frequency, no amp drift,
+//        sine and cosine outputs available (exact phase quadrature),
+//        numerical difficulty below 10 Hz,
+//        likely optimizable to be best (above 10 Hz) for custom silicon.
 
 impulse = 1-1'; // used to start filter-based oscillators
 
@@ -197,17 +199,30 @@ oscw = oscwc;
 //-------------------------- oscrs_demo ---------------------------
 
 oscrs_demo = signal with { 
-  osc_group(x) = vgroup("OSCRS [tooltip: Sine oscillator based on 2D vector rotation]",x);
+  osc_group(x) = vgroup("[0] OSCRS [tooltip: Sine oscillator based on 2D vector rotation]",x);
   knob_group(x)  = osc_group(hgroup("[1]", x));
   ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth waveform amplitude]",
     -20,-120,10,0.1));
   amp = ampdb : smooth(0.999) : db2linear;
   freq = knob_group(
   vslider("[2] Frequency [unit:PK] [style:knob] [tooltip: Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)]",49,1,88,0.01) : pianokey2hz);
-  pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440
+  pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440 (also defined in effect.lib)
   portamento = knob_group(
     vslider("[3] Portamento [unit:sec] [style:knob] [tooltip: Portamento (frequency-glide) time-constant in seconds]",
     0.1,0,1,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
   signal = amp * oscrs(sfreq);
 };
+
+//--------------------------- pink_noise --------------------------
+// Pink noise (1/f noise) generator (third-order approximation)
+//
+// USAGE: pink_noise : _;
+//
+// Reference:
+//  https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html
+//
+
+pink_noise = noise : 
+   tf3(0.049922035, -0.095993537, 0.050612699, -0.004408786, 
+                    -2.494956002, 2.017265875, -0.522189400);
