@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.6";
+declare version "1.15";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
@@ -345,6 +345,17 @@ lowpass2(fc) = tf2s(0,0,1,sqrt(2),1,2*PI*fc);
 lowpass3(fc) = tf2s(0,0,1,1,1,w1) : tf1s(0,1,1,w1)
 with { w1 = 2*PI*fc; };
 
+//-------------------- lowpass3_plus|minus_highpass3 ------------------
+// This special allpass filter is needed by filterbank3 et al. below.
+// It is equivalent to lowpass3(fc)+highpass3(fc), but with the canceling
+// pole-zero pair removed:
+
+lowpass3_plus_highpass3(fc) = tf2s(1,-1,1,1,1,w1)
+with { w1 = 2*PI*fc; };
+
+lowpass3_minus_highpass3(fc) = tf1s(1,-1,1,w1) // (more efficient)
+with { w1 = 2*PI*fc; };
+
 //----------------------------- lowpass4 ------------------------------
 // Fourth-order Butterworth lowpass filter
 // USAGE: lowpass4(fc), where 
@@ -615,56 +626,23 @@ with {
 //
 // where N = number of octave band-splits.
 // Number of filter bands = N+1 (N octaves plus a dc band).
+// At SR=44.1 kHz, N=10 gives crossovers (Hz) near 21.5, 43, 86, ...
 //
 // ACKNOWLEDGMENT: 
-//  Improved by Yann Orlarey in response to initial version by jos.
+//  Recursive formulation improved by Yann Orlarey.
 
 octave_filterbank3(Noct) = _ <: bsplit(Noct) with {
   fc(n) = (SR/2) * 2^(n-Noct-1); // -3dB freq for filters at stage n
   lp(n) = lowpass3(fc(n));
-  hp(n) = highpass3(fc(n));
+  hp(n) = highpass3(fc(n)); // Note: sign-inverting here enables use of:
+  ap(n) = lowpass3_plus_highpass3(fc(n)); // 'minus' here (order 2 -> 1).
   bsplit(0)  = _;  bsplit(i) = (hp(i) : delayeq(i-1)), (lp(i) <: bsplit(i-1));
   delayeq(0) = _;  delayeq(i) = ap(i) : delayeq(i-1); // allpass chain
-  ap(j) = _ <: hp(j), lp(j) :> _; // ToDo: remove pole-zero cancellations
 };
 
-//------------------------ octave_filterbank3_[stereo_]demo ----------------------
-// USAGE: 
-//   process =   _ : component("filter.lib").octave_filterbank3_demo : _;
-//   process = _,_ : component("filter.lib").octave_filterbank3_stereo_demo : _,_;
-//
+//------------------------ octave_filterbank3_demo ----------------------
 
-// The following version supporting any number of input channels and any number
-// of octaves needs further work:
-octave_filterbank3_demo_NM(Nchans,Noct) = bypassNchans(bp,octavefilterbank3demo) 
-with {
-   // FIXME: Is there some way to do this?:
-   bypassNchans(bpc,e) = par(i,Nchans,_<:select2(bpc,ei(i),_)) with {
-     // ei(i) = !,...,!,_,!,...,!; // where _ is in the i'th position
-     // Does not compile: ei(i) = par(j,i-1,!),_,par(j,N-1-i,!);
-     // Try supporting only mono and stereo:
-     ei(i) = select2(Nchans-1,e,select2(i,(_,!:e),(!,_:e)));
-   };
-   ofb_group(x)  = vgroup("OCTAVE FILTER BANK [tooltip: Reference: Vaidyanathan 1993]", x);
-   bypass_group(x) = ofb_group(hgroup("[0]", x));
-   slider_group(x)  = ofb_group(hgroup("[1]", x));
-   octavefilterbank3demo = par(j,Nchans,chan);
-   chan = octave_filterbank3(Noct) : par(i,Noct+1,(*(db2linear(fader(Noct+1-i))))) :> _;
-   // FIXME: Find a way to display these bandlimits:
-   fcl(i) = (SR/2) * 2^(i-Noct-1); // lower bandlimit
-   fcu(i) = (SR/2) * 2^(i-Noct); // upper bandlimit
-   // Note: Require Nocts<10 for the following "[%i]" method of ordering the sliders on screen:
-   fader(i) = slider_group(vslider("[%i] Band %i [unit:dB] [tooltip: Filter Band gain in dB]", -10, -120, 10, 0.1));
-   bp = bypass_group(checkbox("[0] Bypass  [tooltip: When this is checked, the filter bank has no effect]"));
-};
-
-//Not working yet: octave_filterbank3_demo = octave_filterbank3_demo_NM(1,8);
-octave_filterbank3_demo = octave_filterbank3_demo_18; // written separately below
-
-//Not working yet: octave_filterbank3_stereo_demo = _,_ <: octave_filterbank3_demo_NM(2,8);
-octave_filterbank3_stereo_demo = _,_ <: octave_filterbank3_demo_28; // written separately below
-
-octave_filterbank3_demo_18 = bp1(bp,octavefilterbank3demo) with {
+octave_filterbank3_demo = bp1(bp,octavefilterbank3demo) with {
    bp1 = component("effect.lib").bypass1;
    ofb_group(x)  = vgroup("OCTAVE FILTER BANK [tooltip: Reference: Vaidyanathan 1993]", x);
    bypass_group(x) = ofb_group(hgroup("[0]", x));
@@ -672,18 +650,9 @@ octave_filterbank3_demo_18 = bp1(bp,octavefilterbank3demo) with {
    Noct = 8; // 8 octaves => 9-band graphic equalizer, constant-Q in bands 2-9
    octavefilterbank3demo = chan;
    chan = octave_filterbank3(Noct) : par(i,Noct+1,(*(db2linear(fader(Noct+1-i))))) :> _;
-   fader(i) = slider_group(vslider("Band %i [unit:dB] [tooltip: Filter Band gain in dB]", -10, -120, 10, 0.1));
-   bp = bypass_group(checkbox("[0] Bypass  [tooltip: When this is checked, the filter bank has no effect]"));
+   fader(i) = slider_group(vslider("Band %i [unit:dB] 
+              [tooltip: Filter Band gain in dB]", -10, -120, 10, 0.1));
+   bp = bypass_group(checkbox("[0] Bypass  
+              [tooltip: When this is checked, the filter bank has no effect]"));
 };
 
-octave_filterbank3_demo_28 = bp2(bp,octavefilterbank3demo) with {
-   bp2 = component("effect.lib").bypass2;
-   ofb_group(x)  = vgroup("OCTAVE FILTER BANK octave_filterbank3 [tooltip: Reference: Vaidyanathan 1993]", x);
-   bypass_group(x) = ofb_group(hgroup("[0]", x));
-   slider_group(x)  = ofb_group(hgroup("[1]", x));
-   Noct = 8; // 8 octaves => 9-band graphic equalizer, constant-Q in bands 2-9
-   octavefilterbank3demo = chan,chan;
-   chan = octave_filterbank3(Noct) : par(i,Noct+1,(*(db2linear(fader(Noct+1-i))))) :> _;
-   fader(i) = slider_group(vslider("Band %i [unit:dB] [tooltip: Filter Band gain in dB]", -10, -120, 10, 0.1));
-   bp = bypass_group(checkbox("[0] Bypass  [tooltip: When this is checked, the filter bank has no effect]"));
-};
