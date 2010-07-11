@@ -833,14 +833,14 @@ static const char * evalLabel (const char* label, Tree visited, Tree localValEnv
  */
 static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-	assert (num>0);
+    assert (num>0);
 
-	Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
-	for (int i = 1; i < num; i++) {
-		res = boxPar(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv)));
-	}
+    Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
+    for (int i = num-2; i >= 0; i--) {
+        res = boxPar(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
+    }
 
-	return res;
+    return res;
 }
 
 
