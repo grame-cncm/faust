@@ -80,13 +80,16 @@ with {
     postgain = max(1.0,1.0/pregain); // unity gain when nearly linear
 };
 
+cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : dcblocker;
+
 //--------------------------- cubicnl_demo --------------------------
 //
 // USAGE: 
 //    _ : cubicnl_demo : _;
 //
-cubicnl_demo = bypass1(bp, cubicnl(drive,offset)) with {
-   cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
+cubicnl_demo = bypass1(bp, cubicnl_nodc(drive:smooth(0.999),offset:smooth(0.999))) with {
+   cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl 
+        [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
    bypass_group(x) = cnl_group(hgroup("[0]", x));
    slider_group(x)  = cnl_group(hgroup("[1]", x));
    bp = bypass_group(checkbox("[0] Bypass  [tooltip: When this is checked, the nonlinearity has no effect]"));
@@ -140,8 +143,16 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
 // REFERENCE "https://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
-wah4(fr) = moog_vcf((3.8/4),fr); // feedback fixed at -3.8 (set to taste)
+wah4(fr) = moog_vcf((3.8/4),fr:smooth(0.999)); // feedback fixed at -3.8 (set to taste)
 
+//------------------------- wah4_demo ---------------------------
+wah4_demo = bypass1(bp, wah4(fr)) with {
+  wah4_group(x)  = hgroup("WAH4 [tooltip: Fourth-order wah effect made using moog_vcf]", x);
+  bp = wah4_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah pedal has no effect]"));
+  fr = wah4_group(hslider("[1] Resonance Frequency [tooltip: wah resonance frequency in Hz]",
+     200,100,1200,1)); // Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
+                       // Also, avoid very high resonance frequencies (e.g., 5kHz or above).
+};
 
 //------------------------ crybaby(wah) -----------------------------
 // Digitized CryBaby wah pedal

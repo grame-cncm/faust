@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.15";
+declare version "1.16";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
@@ -292,6 +292,47 @@ with {
   a1d = (a0 - c) / d;
 };
 
+//----------------------------- tf2sb --------------------------------
+// Bandpass mapping of tf2s: In addition to a frequency-scaling parameter
+// w1 (set to HALF the desired passband width in rad/sec),
+// there is a desired center-frequency parameter wc (also in rad/s).
+// Thus, tf2sb implements a fourth-order digital bandpass filter section
+// specified by the coefficients of a second-order analog lowpass prototpe
+// section.  Such sections can be combined in series for higher orders.
+// The order of mappings is (1) frequency scaling (to set lowpass cutoff w1),
+// (2) bandpass mapping to wc, then (3) the bilinear transform, with the 
+// usual scale parameter 2*SR.
+//
+tf2sb(b2,b1,b0,a1,a0,w1,wc) = 
+  tf4(b0d/a0d,b1d/a0d,b2d/a0d,b3d/a0d,b4d/a0d,a1d/a0d,a2d/a0d,a3d/a0d,a4d/a0d) with {
+  T = 1.0/float(SR);
+  b0d = (4*b0*w1^2+8*b2*wc^2)*T^2+8*b1*w1*T+16*b2;
+  b1d = 4*b2*wc^4*T^4+4*b1*wc^2*w1*T^3-16*b1*w1*T-64*b2;
+  b2d = 6*b2*wc^4*T^4+(-8*b0*w1^2-16*b2*wc^2)*T^2+96*b2;
+  b3d = 4*b2*wc^4*T^4-4*b1*wc^2*w1*T^3+16*b1*w1*T-64*b2;
+  b4d = (b2*wc^4*T^4-2*b1*wc^2*w1*T^3+(4*b0*w1^2+8*b2*wc^2)*T^2-8*b1*w1*T +16*b2)
+        + b2*wc^4*T^4+2*b1*wc^2*w1*T^3;
+  a0d = wc^4*T^4+2*a1*wc^2*w1*T^3+(4*a0*w1^2+8*wc^2)*T^2+8*a1*w1*T+16;
+  a1d = 4*wc^4*T^4+4*a1*wc^2*w1*T^3-16*a1*w1*T-64;
+  a2d = 6*wc^4*T^4+(-8*a0*w1^2-16*wc^2)*T^2+96;
+  a3d = 4*wc^4*T^4-4*a1*wc^2*w1*T^3+16*a1*w1*T-64;
+  a4d = wc^4*T^4-2*a1*wc^2*w1*T^3+(4*a0*w1^2+8*wc^2)*T^2-8*a1*w1*T+16;
+};
+
+//----------------------------- tf1sb --------------------------------
+// First-to-second-order lowpass-to-bandpass section mapping,
+// analogous to tf2sb above.
+//
+tf1sb(b1,b0,a0,w1,wc) = tf2(b0d/a0d,b1d/a0d,b2d/a0d,a1d/a0d,a2d/a0d) with {
+  T = 1.0/float(SR);
+  a0d = wc^2*T^2+2*a0*w1*T+4;
+  b0d = b1*wc^2*T^2 +2*b0*w1*T+4*b1;
+  b1d = 2*b1*wc^2*T^2-8*b1;
+  b2d = b1*wc^2*T^2-2*b0*w1*T+4*b1;
+  a1d = 2*wc^2*T^2-8;
+  a2d = wc^2*T^2-2*a0*w1*T+4;
+};
+
 //====================== Simple Resonator Filters ======================
 
 // resonlp = 2nd-order lowpass with corner resonance:
@@ -350,10 +391,10 @@ with { w1 = 2*PI*fc; };
 // It is equivalent to lowpass3(fc)+highpass3(fc), but with the canceling
 // pole-zero pair removed:
 
-lowpass3_plus_highpass3(fc) = tf2s(1,-1,1,1,1,w1)
+highpass3_plus_lowpass3(fc) = tf2s(1,-1,1,1,1,w1)
 with { w1 = 2*PI*fc; };
 
-lowpass3_minus_highpass3(fc) = tf1s(1,-1,1,w1) // (more efficient)
+highpass3_minus_lowpass3(fc) = tf1s(-1,1,1,w1) // (more efficient)
 with { w1 = 2*PI*fc; };
 
 //----------------------------- lowpass4 ------------------------------
@@ -384,6 +425,35 @@ with {
   a11s = 1.847759065022573; // -2*real(pole1)
   a21s = 0.765366864730180; // -2*real(pole2)
   w1 = 2*PI*fc;
+};
+
+//===================== Bandpass Filters ======================
+
+//----------------------------- bandpass6 ------------------------------
+// Sixth-order Butterworth bandpass filter made using the transformation
+// s <- s + wc^2/s on lowpass3, where wc is the desired bandpass center 
+// frequency.  The lowpass3 cutoff w1 is half the desired bandpass width.
+//
+// USAGE: bandpass6(fl,fu), where 
+//   fl = lower -3dB frequency in Hz
+//   fu = upper -3dB frequency in Hz
+// Thus, the passband width is fu-fl, and its center frequency is (fl+fu)/2.
+//
+// REFERENCE: 
+//   http://cnx.org/content/m16913/latest/
+//
+bandpass6(fl,fu) = tf2sb(0,0,1,1,1,w1,wc) : tf1sb(0,1,1,w1,wc) 
+// (recall: lowpass3 prototype is tf2s(0,0,1,1,1,w1) : tf1s(0,1,1,w1))
+with { 
+   wl = 2*PI*fl; // digital (z-plane) lower passband edge
+   wu = 2*PI*fu; // digital (z-plane) upper passband edge
+
+   c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
+   wla = c*tan(wl/c); // analog (s-splane) lower cutoff
+   wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+
+   wc = sqrt(wla*wua); // s-plane center frequency
+   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
 };
 
 //===================== Shelf Filters =====================
@@ -612,33 +682,82 @@ with {
   a4 = a3o4*(1-fd)/(4+fd);
 };
 
-//========================== Filter Banks ============================
-// Reference:
-// "Multirate Systems and Filter Banks", P. P. Vaidyanathan, 
-// Prentice-Hall, 1993
+//========================== Octave Filter Banks ============================
+// Octave filter-banks based on a third-order Butterworth lowpass-highpass band-split
+// Note that the octave split is trivially modified to be any other repeated split
+// (such as third-octave or semitone).
 //
-//------------------------ octave_filterbank3 -------------------------
-// Octave filter-bank based on a third-order Butterworth
-// lowpass-highpass band-split
+// REFERENCES
+// - "Tree-structured complementary filter banks using all-pass sections",
+//   Regalia et al., IEEE Trans. Circuits and Systems, CAS-34:1470-1484, Dec. 1987.
+// - "Multirate Systems and Filter Banks", P. P. Vaidyanathan, Prentice-Hall, 1993
+// - https://ccrma.stanford.edu/~jos/filters/
 //
-// USAGE: 
-//    _ : octave_filterbank3(N) : bus<N+1>;
+// USAGE
+//    _ : octave_filterbank3_nodeq(N)    : par(i,N+1,_);
+//    _ : octave_filterbank3(N)          : par(i,N+1,_);
+//    _ : octave_filterbank3_invertdc(N) : par(i,N+1,_);
 //
 // where N = number of octave band-splits.
 // Number of filter bands = N+1 (N octaves plus a dc band).
 // At SR=44.1 kHz, N=10 gives crossovers (Hz) near 21.5, 43, 86, ...
+// In 32-bit floating point, N=10 and higher are noticeably numerically stressed.
 //
-// ACKNOWLEDGMENT: 
+// INCREASING CHANNEL ISOLATION
+//   This bandsplitting method yields real filters for odd-order lowpass prototypes.
+//   Thus, the next higher order real case would be octave_filterbank5 based on lowpass5/highpass5.
+//   The method can also use Chebyshev and Elliptic (Cauer) filters instead of Butterworth.
+//
+// ACKNOWLEDGMENT
 //  Recursive formulation improved by Yann Orlarey.
 
-octave_filterbank3(Noct) = _ <: bsplit(Noct) with {
+//-------------------------- octave_filterbank3_nodeq ----------------------------
+// No delay-equalizer - appropriate when filter-bank output will not be summed.
+// Used, for example, in spectrum analyzer applications (output only displayed).
+
+octave_filterbank3_nodeq(Noct) = _ <: bsplit(Noct) with {
+  fc(n) = (SR/2) * 2^(n-Noct-1); // -3dB freq for filters at stage n
+  lp(n) = lowpass3(fc(n)); // 3rd-order Butterworth
+  hp(n) = highpass3(fc(n));
+  bsplit(0)  = _; 
+  bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
+};
+
+//----------------------------- octave_filterbank3 -------------------------------
+// Delay-equalized filter bank - needed when filter-bank output is summed.
+// Used, for example, in graphic equalizer applications (outputs scaled and summed).
+
+octave_filterbank3(Noct) = octave_filterbank3_nodeq(Noct) : delayeq(Noct) with {
+  fc(n) = (SR/2) * 2^(n-Noct-1); // -3dB freq for filters at stage n
+  ap(n) = highpass3_plus_lowpass3(fc(n));
+  delayeq(Noct) = par(i,Noct-1,apchain(i+1)), _, _;
+  apchain(i) = seq(j,Noct-i,ap(j+1));
+};
+
+//------------------------- octave_filterbank3_invertdc --------------------------
+// DC inverted.  Allowing this cuts the delay-equalizer order in half!
+// Note that if the input signal is negated, then the DC band is noninverting
+// and all of the higher bands are sign inverted (if preferred).
+
+octave_filterbank3_invertdc(Noct) = octave_filterbank3_nodeq(Noct) : delayeq(Noct) with {
+  fc(n) = (SR/2) * 2^(n-Noct-1); // -3dB freq for filters at stage n
+  ap(n) = highpass3_minus_lowpass3(fc(n));
+  delayeq(Noct) = par(i,Noct-1,apchain(i+1)), _, *(-1.0);
+  apchain(i) = seq(j,Noct-i,ap(j+1));
+};
+
+// Previous version to be deleted after testing is compelete:
+octave_filterbank3_prv_DELETE_ME(Noct) = _ <: bsplit(Noct) with {
   fc(n) = (SR/2) * 2^(n-Noct-1); // -3dB freq for filters at stage n
   lp(n) = lowpass3(fc(n));
-  hp(n) = highpass3(fc(n)); // Note: sign-inverting here enables use of:
-  ap(n) = lowpass3_plus_highpass3(fc(n)); // 'minus' here (order 2 -> 1).
-  bsplit(0)  = _;  bsplit(i) = (hp(i) : delayeq(i-1)), (lp(i) <: bsplit(i-1));
-  delayeq(0) = _;  delayeq(i) = ap(i) : delayeq(i-1); // allpass chain
+  hp(n) = -highpass3(fc(n)); // negating the highpass band...
+  ap(n) = highpass3_minus_lowpass3(fc(n)); // reduces allpass order by half
+  bsplit(0)  = _;  
+  bsplit(i) = (hp(i) : delayeq(i-1)), (lp(i) <: bsplit(i-1));
+  delayeq(0) = _;  
+  delayeq(i) = ap(i) : delayeq(i-1); // allpass chain
 };
+
 
 //------------------------ octave_filterbank3_demo ----------------------
 
@@ -649,10 +768,123 @@ octave_filterbank3_demo = bp1(bp,octavefilterbank3demo) with {
    slider_group(x)  = ofb_group(hgroup("[1]", x));
    Noct = 8; // 8 octaves => 9-band graphic equalizer, constant-Q in bands 2-9
    octavefilterbank3demo = chan;
-   chan = octave_filterbank3(Noct) : par(i,Noct+1,(*(db2linear(fader(Noct+1-i))))) :> _;
+   chan = octave_filterbank3(Noct) : sum(i,Noct+1,(*(db2linear(fader(Noct+1-i)))));
    fader(i) = slider_group(vslider("Band %i [unit:dB] 
               [tooltip: Filter Band gain in dB]", -10, -120, 10, 0.1));
    bp = bypass_group(checkbox("[0] Bypass  
               [tooltip: When this is checked, the filter bank has no effect]"));
 };
 
+//======================= Octave Spectrum Analyzer =========================
+// This simple application of octave_filterbank3_nodeq simply displays the 
+// level of each band.
+
+//-------------------------- octave_analyzer3 ----------------------------
+// Elementary bar spectrograph based on filterbank3 above.
+
+octave_analyzer3(NBands,tau,dB_offset) = _ <: _,octave_filterbank3_nodeq(NBands-1) : 
+				       _,(display:>_):attach with {
+  display = par(i,NBands,dbmeter(i));
+  // tau = spectral display averaging-time (time constant) in seconds
+  dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : meter(NBands-i-1);
+  meter(i) = specanal_group(vbargraph("%i [unit:dB] 
+		[tooltip: Spectral Band Level in dB]", -50, 10));
+  specanal_group(x)  = hgroup("OCTAVE ANALYZER 3", x);
+};
+
+//------------------------ octave_analyzer3_demo --------------------------
+octave_analyzer3_demo = octave_analyzer3(NBands,tau,dB_offset) with {
+  NBands = 10; 
+  ctl_group(x)  = hgroup("OCTAVE ANALYZER 3", x);
+  tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] [tooltip: band level averaging time]",
+        0.1,0,5,0.01)); 
+  dB_offset = ctl_group(vslider("[1] dB Offset [unit:dB] [style:knob] [tooltip: Level offset in decibels]",
+        50,0,100,1)); 
+};
+
+//======================= General Filter Banks ===========================
+// These are similar to the octave filter banks above, except that the
+// band-split frequencies are passed explicitly as arguments.  The technique
+// for passing and processing a variable number of signal arguments was written
+// by Yann Orlarey.
+
+// USAGE: 
+//    _ : filterbank3_nodeq(freqs)    : par(i,N+1,_);
+//    _ : filterbank3(freqs)          : par(i,N+1,_);
+//    _ : filterbank3_invertdc(freqs) : par(i,N+1,_);
+//
+// where freqs = (fc1,fc2,...,fcN) [in numerically ascending order!]
+// N = number of octave band-splits, so N+1 = number of outputs (bands).
+// If frequencies are listed as arguments, enclose them in parens, e.g.,
+//
+//    _ : filterbank3((fc1,fc2)) : _,_,_
+
+//----------------------------- filterbank3 -------------------------------
+
+filterbank3_nodeq(lfreqs) = _ <: bsplit(nb) with
+{
+   nb = count(lfreqs);
+
+   count ((xs, xxs)) = 1 + count(xxs);
+   count (xx) = 1;
+
+   take(1, (freq, lfreq)) = freq;
+   take(1, freq) = freq;
+   take(n, (freq, lfreq)) = take(n-1, lfreq);
+
+   fc(n) = take(n, lfreqs);
+
+   lp(n) = lowpass3(fc(n));  // 3rd-order Butterworth
+   hp(n) = highpass3(fc(n));
+
+   bsplit(0) = _;
+   bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
+};
+
+filterbank3(lfreqs) = _ <: bsplit(nb) with
+{
+   nb = count(lfreqs);
+
+   count ((xs, xxs)) = 1 + count(xxs);
+   count (xx) = 1;
+
+   take(1, (freq, lfreq)) = freq;
+   take(1, freq) = freq;
+   take(n, (freq, lfreq)) = take(n-1, lfreq);
+
+   fc(n) = take(n, lfreqs);
+
+   lp(n) = lowpass3(fc(n));  // 3rd-order Butterworth
+   hp(n) = highpass3(fc(n));
+   ap(n) = highpass3_plus_lowpass3(fc(n));
+
+   bsplit(0) = _;
+   bsplit(i) = (hp(i) : delayeq(i-1)), (lp(i) <: bsplit(i-1));
+
+   delayeq(0) = _;
+   delayeq(i) =  ap(i) : delayeq(i-1);
+};
+
+filterbank3_invertdc(lfreqs) = _ <: bsplit(nb) with
+{
+   nb = count(lfreqs);
+
+   count ((xs, xxs)) = 1 + count(xxs);
+   count (xx) = 1;
+
+   take(1, (freq, lfreq)) = freq;
+   take(1, freq) = freq;
+   take(n, (freq, lfreq)) = take(n-1, lfreq);
+
+   fc(n) = take(n, lfreqs);
+
+   lp(n) = lowpass3(fc(n));  // 3rd-order Butterworth
+   hp(n) = highpass3(fc(n));
+   ap(n) = highpass3_minus_lowpass3(fc(n));
+
+   bsplit(0) = *(-1.0);
+   bsplit(i) = (hp(i) : delayeq(i-1)), (lp(i) <: bsplit(i-1));
+
+   delayeq(0) = _; // moving the *(-1) here inverts all outputs BUT dc
+   delayeq(i) =  ap(i) : delayeq(i-1);
+};
