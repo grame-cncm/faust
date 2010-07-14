@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.16";
+declare version "1.17";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
@@ -301,7 +301,7 @@ with {
 // section.  Such sections can be combined in series for higher orders.
 // The order of mappings is (1) frequency scaling (to set lowpass cutoff w1),
 // (2) bandpass mapping to wc, then (3) the bilinear transform, with the 
-// usual scale parameter 2*SR.
+// usual scale parameter 2*SR.  Algebra carried out in maxima and pasted here.
 //
 tf2sb(b2,b1,b0,a1,a0,w1,wc) = 
   tf4(b0d/a0d,b1d/a0d,b2d/a0d,b3d/a0d,b4d/a0d,a1d/a0d,a2d/a0d,a3d/a0d,a4d/a0d) with {
@@ -386,10 +386,113 @@ lowpass2(fc) = tf2s(0,0,1,sqrt(2),1,2*PI*fc);
 lowpass3(fc) = tf2s(0,0,1,1,1,w1) : tf1s(0,1,1,w1)
 with { w1 = 2*PI*fc; };
 
+//----------------------------- lowpass3e -----------------------------
+// Third-order Elliptic (Cauer) lowpass filter
+// USAGE: lowpass3e(fc), where fc = -3dB frequency in Hz
+// REFERENCE: ncauer (and ellip) functions in Octave
+// DESIGN: For spectral band-slice level display (see octave_analyzer3e):
+//   [z,p,g] = ncauer(Rp,Rs,3);  % analog zeros, poles, and gain, where
+//   Rp = 60  % dB ripple in stopband
+//   Rs = 0.2 % dB ripple in passband
+//
+lowpass3e(fc) = tf2s(b21,b11,b01,a11,a01,w1) : tf1s(0,1,a02,w1)
+with { 
+  a11 = 0.802636764161030; // format long; poly(p(1:2)) % in octave
+  a01 = 1.412270893774204;
+  a02 = 0.822445908998816; // poly(p(3)) % in octave
+  b21 = 0.019809144837789; // poly(z)
+  b11 = 0;
+  b01 = 1.161516418982696;
+  w1 = 2*PI*fc; 
+};
+
+//----------------------------- lowpass6e -----------------------------
+// Sixth-order Elliptic/Cauer lowpass filter
+// USAGE: lowpass6e(fc), where fc = -3dB frequency in Hz
+// REFERENCE: ellip function in Octave
+// DESIGN: For spectral band-slice level display (see octave_analyzer6e):
+//   [z,p,g] = ncauer(Rp,Rs,6);  % analog zeros, poles, and gain, where
+//   Rp = 80  % dB ripple in stopband
+//   Rs = 0.2 % dB ripple in passband
+//
+lowpass6e(fc) = 
+	      tf2s(b21,b11,b01,a11,a01,w1) :
+	      tf2s(b22,b12,b02,a12,a02,w1) :
+	      tf2s(b23,b13,b03,a13,a03,w1)
+with { 
+  b21 = 0.000099999997055;
+  a21 = 1;
+  b11 = 0;
+  a11 = 0.782413046821645;
+  b01 = 0.000433227200555;
+  a01 = 0.245291508706160;
+  b22 = 1;
+  a22 = 1;
+  b12 = 0;
+  a12 = 0.512478641889141;
+  b02 = 7.621731298870603;
+  a02 = 0.689621364484675;
+  b23 = 1;
+  a23 = 1;
+  b13 = 0;
+  a13 = 0.168404871113589;
+  b03 = 53.536152954556727;
+  a03 = 1.069358407707312;
+  w1 = 2*PI*fc; 
+};
+
+//----------------------------- highpass3e -----------------------------
+// Third-order Elliptic (Cauer) highpass filter
+// USAGE: highpass3e(fc), where fc = -3dB frequency in Hz
+// DESIGN: Inversion of lowpass3e wrt unit circle in s plane (s <- 1/s)
+//
+highpass3e(fc) = tf2s(b01/a01,b11/a01,b21/a01,a11/a01,1/a01,w1) : 
+                 tf1s(1/a02,0,1/a02,w1)
+with { 
+  a11 = 0.802636764161030;
+  a01 = 1.412270893774204;
+  a02 = 0.822445908998816;
+  b21 = 0.019809144837789;
+  b11 = 0;
+  b01 = 1.161516418982696;
+  w1 = 2*PI*fc; 
+};
+
+//----------------------------- highpass6e -----------------------------
+// Sixth-order Elliptic/Cauer highpass filter
+// USAGE: highpass6e(fc), where fc = -3dB frequency in Hz
+// DESIGN: Inversion of lowpass3e wrt unit circle in s plane (s <- 1/s)
+//
+highpass6e(fc) = 
+	      tf2s(b01/a01,b11/a01,b21/a01,a11/a01,1/a01,w1) :
+	      tf2s(b02/a02,b12/a02,b22/a02,a12/a02,1/a02,w1) :
+	      tf2s(b03/a03,b13/a03,b23/a03,a13/a03,1/a03,w1)
+with { 
+  b21 = 0.000099999997055;
+  a21 = 1;
+  b11 = 0;
+  a11 = 0.782413046821645;
+  b01 = 0.000433227200555;
+  a01 = 0.245291508706160;
+  b22 = 1;
+  a22 = 1;
+  b12 = 0;
+  a12 = 0.512478641889141;
+  b02 = 7.621731298870603;
+  a02 = 0.689621364484675;
+  b23 = 1;
+  a23 = 1;
+  b13 = 0;
+  a13 = 0.168404871113589;
+  b03 = 53.536152954556727;
+  a03 = 1.069358407707312;
+  w1 = 2*PI*fc; 
+};
+
 //-------------------- lowpass3_plus|minus_highpass3 ------------------
-// This special allpass filter is needed by filterbank3 et al. below.
-// It is equivalent to lowpass3(fc)+highpass3(fc), but with the canceling
-// pole-zero pair removed:
+// These special allpass filters are needed by filterbank3 et al. below.
+// They are equivalent to lowpass3(fc) +|- highpass3(fc), but with 
+// canceling pole-zero pairs removed:
 
 highpass3_plus_lowpass3(fc) = tf2s(1,-1,1,1,1,w1)
 with { w1 = 2*PI*fc; };
@@ -430,7 +533,7 @@ with {
 //===================== Bandpass Filters ======================
 
 //----------------------------- bandpass6 ------------------------------
-// Sixth-order Butterworth bandpass filter made using the transformation
+// Order 6 Butterworth bandpass filter made using the transformation
 // s <- s + wc^2/s on lowpass3, where wc is the desired bandpass center 
 // frequency.  The lowpass3 cutoff w1 is half the desired bandpass width.
 //
@@ -443,7 +546,7 @@ with {
 //   http://cnx.org/content/m16913/latest/
 //
 bandpass6(fl,fu) = tf2sb(0,0,1,1,1,w1,wc) : tf1sb(0,1,1,w1,wc) 
-// (recall: lowpass3 prototype is tf2s(0,0,1,1,1,w1) : tf1s(0,1,1,w1))
+// Recall: lowpass3 prototype is tf2s(0,0,1,1,1,w1) : tf1s(0,1,1,w1)
 with { 
    wl = 2*PI*fl; // digital (z-plane) lower passband edge
    wu = 2*PI*fu; // digital (z-plane) upper passband edge
@@ -453,7 +556,68 @@ with {
    wua = c*tan(wu/c); // analog (s-splane) upper cutoff
 
    wc = sqrt(wla*wua); // s-plane center frequency
-   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
+   w1 = wua - wc^2/wua; // s-plane lowpass prototype cutoff
+};
+
+//----------------------------- bandpass6e -----------------------------
+// Order 12 elliptic bandpass filter analogous to bandpass6 above.
+//
+bandpass6e(fl,fu) = tf2sb(b21,b11,b01,a11,a01,w1,wc) : tf1sb(0,1,a02,w1,wc)
+with { 
+  a11 = 0.802636764161030; // In octave: format long; poly(p(1:2))
+  a01 = 1.412270893774204;
+  a02 = 0.822445908998816; // poly(p(3))
+  b21 = 0.019809144837789; // poly(z)
+  b11 = 0;
+  b01 = 1.161516418982696;
+
+  wl = 2*PI*fl; // digital (z-plane) lower passband edge
+  wu = 2*PI*fu; // digital (z-plane) upper passband edge
+
+  c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
+  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+
+  wc = sqrt(wla*wua); // s-plane center frequency
+  w1 = wua - wc^2/wua; // s-plane lowpass cutoff
+};
+
+//----------------------------- bandpass12e -----------------------------
+// Sixth-order Elliptic bandpass filter analogous to bandpass6 above.
+//
+bandpass12e(fl,fu) = 
+	      tf2sb(b21,b11,b01,a11,a01,w1,wc) :
+	      tf2sb(b22,b12,b02,a12,a02,w1,wc) :
+	      tf2sb(b23,b13,b03,a13,a03,w1,wc)
+with { // octave script output:
+  b21 = 0.000099999997055;
+  a21 = 1;
+  b11 = 0;
+  a11 = 0.782413046821645;
+  b01 = 0.000433227200555;
+  a01 = 0.245291508706160;
+  b22 = 1;
+  a22 = 1;
+  b12 = 0;
+  a12 = 0.512478641889141;
+  b02 = 7.621731298870603;
+  a02 = 0.689621364484675;
+  b23 = 1;
+  a23 = 1;
+  b13 = 0;
+  a13 = 0.168404871113589;
+  b03 = 53.536152954556727;
+  a03 = 1.069358407707312;
+
+  wl = 2*PI*fl; // digital (z-plane) lower passband edge
+  wu = 2*PI*fu; // digital (z-plane) upper passband edge
+
+  c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
+  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+
+  wc = sqrt(wla*wua); // s-plane center frequency
+  w1 = wua - wc^2/wua; // s-plane lowpass cutoff
 };
 
 //===================== Shelf Filters =====================
@@ -695,6 +859,8 @@ with {
 //
 // USAGE
 //    _ : octave_filterbank3_nodeq(N)    : par(i,N+1,_);
+//    _ : octave_filterbank3e_nodeq(N)   : par(i,N+1,_);
+//    _ : octave_filterbank6e_nodeq(N)   : par(i,N+1,_);
 //    _ : octave_filterbank3(N)          : par(i,N+1,_);
 //    _ : octave_filterbank3_invertdc(N) : par(i,N+1,_);
 //
@@ -721,6 +887,32 @@ octave_filterbank3_nodeq(Noct) = _ <: bsplit(Noct) with {
   hp(n) = highpass3(fc(n));
   bsplit(0)  = _; 
   bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
+};
+
+//-------------------------- octave_filterbank3e_nodeq -------------------------
+// Elliptic filterbank variant for spectrum analyzer applications 
+// (output displayed and not summed).
+
+octave_filterbank3e_nodeq(Noct) = _ <: 
+     highpass3e(fl(0)),
+     par(i,Noct-1,bandpass6e(fl(i+1),fu(i+1))),
+     lowpass3e(fu(Noct))
+with {
+  fu(i) = (0.5*SR) * (0.5)^i;     // upper bandedge frequencies
+  fl(i) = (0.5*SR) * (0.5)^(i+1); // lower bandedge frequencies
+};
+
+//-------------------------- octave_filterbank6e_nodeq -------------------------
+// Elliptic filterbank variant for spectrum analyzer applications 
+// (output displayed and not summed).
+
+octave_filterbank6e_nodeq(Noct) = _ <: 
+     highpass6e(fl(0)),
+     par(i,Noct-1,bandpass12e(fl(i+1),fu(i+1))),
+     lowpass6e(fu(Noct))
+with {
+  fu(i) = (0.5*SR) * (0.5)^i;     // upper bandedge frequencies
+  fl(i) = (0.5*SR) * (0.5)^(i+1); // lower bandedge frequencies
 };
 
 //----------------------------- octave_filterbank3 -------------------------------
@@ -763,7 +955,8 @@ octave_filterbank3_prv_DELETE_ME(Noct) = _ <: bsplit(Noct) with {
 
 octave_filterbank3_demo = bp1(bp,octavefilterbank3demo) with {
    bp1 = component("effect.lib").bypass1;
-   ofb_group(x)  = vgroup("OCTAVE FILTER BANK [tooltip: Reference: Vaidyanathan 1993]", x);
+   ofb_group(x)  = vgroup("OCTAVE FILTER BANK 3 
+                   [tooltip: Reference: Vaidyanathan 1993]", x);
    bypass_group(x) = ofb_group(hgroup("[0]", x));
    slider_group(x)  = ofb_group(hgroup("[1]", x));
    Noct = 8; // 8 octaves => 9-band graphic equalizer, constant-Q in bands 2-9
@@ -776,16 +969,26 @@ octave_filterbank3_demo = bp1(bp,octavefilterbank3demo) with {
 };
 
 //======================= Octave Spectrum Analyzer =========================
-// This simple application of octave_filterbank3_nodeq simply displays the 
-// level of each band.
+// Display the level of each spectral band in a vbargraph
+
+// USAGE
+//    _ : octave_analyzer3(NBands,tau,dB_offset)
+//    _ : octave_analyzer3e(NBands,tau,dB_offset)
+//    _ : octave_analyzer6e(NBands,tau,dB_offset)
+//
+// where 
+//    NBands = number of passbands (including dc band),
+//    tau = spectral display averaging-time (time constant) in seconds,
+//    dB_offset = constant dB offset in all band level meters.
+//
 
 //-------------------------- octave_analyzer3 ----------------------------
-// Elementary bar spectrograph based on filterbank3 above.
+// Elementary bar spectrograph based on octave_filterbank3_nodeq above.
 
-octave_analyzer3(NBands,tau,dB_offset) = _ <: _,octave_filterbank3_nodeq(NBands-1) : 
-				       _,(display:>_):attach with {
+octave_analyzer3(NBands,tau,dB_offset) = _ <: 
+     _,octave_filterbank3_nodeq(NBands-1) : 
+     _,(display:>_):attach with {
   display = par(i,NBands,dbmeter(i));
-  // tau = spectral display averaging-time (time constant) in seconds
   dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : meter(NBands-i-1);
   meter(i) = specanal_group(vbargraph("%i [unit:dB] 
 		[tooltip: Spectral Band Level in dB]", -50, 10));
@@ -794,11 +997,64 @@ octave_analyzer3(NBands,tau,dB_offset) = _ <: _,octave_filterbank3_nodeq(NBands-
 
 //------------------------ octave_analyzer3_demo --------------------------
 octave_analyzer3_demo = octave_analyzer3(NBands,tau,dB_offset) with {
-  NBands = 10; 
+  NBands = 10; // higher than this results in bargraphs out of order (first-digit sort)
   ctl_group(x)  = hgroup("OCTAVE ANALYZER 3", x);
-  tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] [tooltip: band level averaging time]",
+  tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] 
+        [tooltip: band level averaging time]",
         0.1,0,5,0.01)); 
-  dB_offset = ctl_group(vslider("[1] dB Offset [unit:dB] [style:knob] [tooltip: Level offset in decibels]",
+  dB_offset = ctl_group(vslider("[1] dB Offset [unit:dB] [style:knob] 
+        [tooltip: Level offset in decibels]",
+        50,0,100,1)); 
+};
+
+//-------------------------- octave_analyzer3e ----------------------------
+// Improved-resolution bar spectrograph based on octave_filterbank3e_nodeq above
+
+octave_analyzer3e(NBands,tau,dB_offset) = _ <: 
+      _,octave_filterbank3e_nodeq(NBands-1) : 
+      _,(display:>_):attach with {
+  display = par(i,NBands,dbmeter(i));
+  dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : meter(NBands-i-1);
+  meter(i) = specanal_group(vbargraph("%i [unit:dB] 
+		[tooltip: Spectral Band Level in dB]", -50, 10));
+  specanal_group(x)  = hgroup("OCTAVE ANALYZER 3E", x);
+};
+
+//------------------------ octave_analyzer3e_demo --------------------------
+octave_analyzer3e_demo = octave_analyzer3e(NBands,tau,dB_offset) with {
+  NBands = 8; // higher than this has numerical troubles in lowest non-dc band (Macbook Pro, core duo)
+  ctl_group(x)  = hgroup("OCTAVE ANALYZER 3E", x);
+  tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] 
+        [tooltip: band level averaging time]",
+        0.1,0,5,0.01)); 
+  dB_offset = ctl_group(vslider("[1] dB Offset [unit:dB] [style:knob] 
+        [tooltip: Level offset in decibels]",
+        50,0,100,1)); 
+};
+
+//-------------------------- octave_analyzer6e ----------------------------
+// Further improved-resolution bar spectrograph
+
+octave_analyzer6e(NBands,tau,dB_offset) = _ <: 
+    _,octave_filterbank6e_nodeq(NBands-1) : 
+    _,(display:>_):attach with {
+  display = par(i,NBands,dbmeter(i));
+  dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : 
+     meter(NBands-i-1);
+  meter(i) = specanal_group(vbargraph("%i [unit:dB] 
+     [tooltip: Spectral Band Level in dB]", -50, 10));
+  specanal_group(x)  = hgroup("OCTAVE ANALYZER 6E", x);
+};
+
+//------------------------ octave_analyzer6e_demo --------------------------
+octave_analyzer6e_demo = octave_analyzer6e(NBands,tau,dB_offset) with {
+  NBands = 7; // higher than this has numerical troubles in lowest non-dc band (Macbook Pro, core duo)
+  ctl_group(x)  = hgroup("OCTAVE ANALYZER 6E", x);
+  tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] 
+        [tooltip: band level averaging time]",
+        0.1,0,5,0.01)); 
+  dB_offset = ctl_group(vslider("[1] dB Offset [unit:dB] [style:knob] 
+        [tooltip: Level offset in decibels]",
         50,0,100,1)); 
 };
 
