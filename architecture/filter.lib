@@ -893,26 +893,24 @@ octave_filterbank3_nodeq(Noct) = _ <: bsplit(Noct) with {
 // Elliptic filterbank variant for spectrum analyzer applications 
 // (output displayed and not summed).
 
-octave_filterbank3e_nodeq(Noct) = _ <: 
-     highpass3e(fl(0)),
-     par(i,Noct-1,bandpass6e(fl(i+1),fu(i+1))),
-     lowpass3e(fu(Noct))
-with {
-  fu(i) = (0.5*SR) * (0.5)^i;     // upper bandedge frequencies
-  fl(i) = (0.5*SR) * (0.5)^(i+1); // lower bandedge frequencies
+octave_filterbank3e_nodeq(Noct) = _ <: bsplit(Noct) with {
+  fc(n) = (SR/2) * 2^(n-Noct-1); // -3dB freq for filters at stage n
+  lp(n) = lowpass3e(fc(n)); // 3rd-order elliptic
+  hp(n) = highpass3e(fc(n));
+  bsplit(0)  = _; 
+  bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
 };
 
 //-------------------------- octave_filterbank6e_nodeq -------------------------
 // Elliptic filterbank variant for spectrum analyzer applications 
 // (output displayed and not summed).
 
-octave_filterbank6e_nodeq(Noct) = _ <: 
-     highpass6e(fl(0)),
-     par(i,Noct-1,bandpass12e(fl(i+1),fu(i+1))),
-     lowpass6e(fu(Noct))
-with {
-  fu(i) = (0.5*SR) * (0.5)^i;     // upper bandedge frequencies
-  fl(i) = (0.5*SR) * (0.5)^(i+1); // lower bandedge frequencies
+octave_filterbank6e_nodeq(Noct) = _ <: bsplit(Noct) with {
+  fc(n) = (SR/2) * 2^(n-Noct-1); // -3dB freq for filters at stage n
+  lp(n) = lowpass6e(fc(n)); // 6th-order elliptic
+  hp(n) = highpass6e(fc(n));
+  bsplit(0)  = _; 
+  bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
 };
 
 //----------------------------- octave_filterbank3 -------------------------------
@@ -997,7 +995,7 @@ octave_analyzer3(NBands,tau,dB_offset) = _ <:
 
 //------------------------ octave_analyzer3_demo --------------------------
 octave_analyzer3_demo = octave_analyzer3(NBands,tau,dB_offset) with {
-  NBands = 10; // higher than this results in bargraphs out of order (first-digit sort)
+  NBands = 10; // higher than this => bargraphs out of order (first-digit sort)
   ctl_group(x)  = hgroup("OCTAVE ANALYZER 3", x);
   tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] 
         [tooltip: band level averaging time]",
@@ -1022,7 +1020,7 @@ octave_analyzer3e(NBands,tau,dB_offset) = _ <:
 
 //------------------------ octave_analyzer3e_demo --------------------------
 octave_analyzer3e_demo = octave_analyzer3e(NBands,tau,dB_offset) with {
-  NBands = 8; // higher than this has numerical troubles in lowest non-dc band (Macbook Pro, core duo)
+  NBands = 10;
   ctl_group(x)  = hgroup("OCTAVE ANALYZER 3E", x);
   tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] 
         [tooltip: band level averaging time]",
@@ -1048,7 +1046,7 @@ octave_analyzer6e(NBands,tau,dB_offset) = _ <:
 
 //------------------------ octave_analyzer6e_demo --------------------------
 octave_analyzer6e_demo = octave_analyzer6e(NBands,tau,dB_offset) with {
-  NBands = 7; // higher than this has numerical troubles in lowest non-dc band (Macbook Pro, core duo)
+  NBands = 10;
   ctl_group(x)  = hgroup("OCTAVE ANALYZER 6E", x);
   tau = ctl_group(vslider("[0] Averaging time [unit:sec] [style:knob] 
         [tooltip: band level averaging time]",
