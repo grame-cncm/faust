@@ -960,7 +960,7 @@ octave_filterbank3_demo = bp1(bp,octavefilterbank3demo) with {
    Noct = 8; // 8 octaves => 9-band graphic equalizer, constant-Q in bands 2-9
    octavefilterbank3demo = chan;
    chan = octave_filterbank3(Noct) : sum(i,Noct+1,(*(db2linear(fader(Noct+1-i)))));
-   fader(i) = slider_group(vslider("Band %i [unit:dB] 
+   fader(i) = slider_group(vslider("Band %2i [unit:dB] 
               [tooltip: Filter Band gain in dB]", -10, -120, 10, 0.1));
    bp = bypass_group(checkbox("[0] Bypass  
               [tooltip: When this is checked, the filter bank has no effect]"));
@@ -988,7 +988,7 @@ octave_analyzer3(NBands,tau,dB_offset) = _ <:
      _,(display:>_):attach with {
   display = par(i,NBands,dbmeter(i));
   dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : meter(NBands-i-1);
-  meter(i) = specanal_group(vbargraph("%i [unit:dB] 
+  meter(i) = specanal_group(vbargraph("%2i [unit:dB] 
 		[tooltip: Spectral Band Level in dB]", -50, 10));
   specanal_group(x)  = hgroup("OCTAVE ANALYZER 3", x);
 };
@@ -1013,7 +1013,7 @@ octave_analyzer3e(NBands,tau,dB_offset) = _ <:
       _,(display:>_):attach with {
   display = par(i,NBands,dbmeter(i));
   dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : meter(NBands-i-1);
-  meter(i) = specanal_group(vbargraph("%i [unit:dB] 
+  meter(i) = specanal_group(vbargraph("%2i [unit:dB] 
 		[tooltip: Spectral Band Level in dB]", -50, 10));
   specanal_group(x)  = hgroup("OCTAVE ANALYZER 3E", x);
 };
@@ -1039,7 +1039,7 @@ octave_analyzer6e(NBands,tau,dB_offset) = _ <:
   display = par(i,NBands,dbmeter(i));
   dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : 
      meter(NBands-i-1);
-  meter(i) = specanal_group(vbargraph("%i [unit:dB] 
+  meter(i) = specanal_group(vbargraph("%2i [unit:dB] 
      [tooltip: Spectral Band Level in dB]", -50, 10));
   specanal_group(x)  = hgroup("OCTAVE ANALYZER 6E", x);
 };
