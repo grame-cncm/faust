@@ -58,6 +58,7 @@ saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*SR/freq);
 sawtooth = saw2; // default choice
 
 //-------------------------- sawtooth_demo ---------------------------
+// USAGE:  sawtooth_demo : _
 
 sawtooth_demo = signal with { 
   osc_group(x) = vgroup("[0] SAWTOOTH Oscillator [tooltip: Reference: Välimäki, IEEE-SPL, March 2005]",x);
@@ -78,8 +79,10 @@ sawtooth_demo = signal with {
     vslider("[5] Portamento [unit:sec] [style:knob] [tooltip: Portamento (frequency-glide) time-constant in seconds]",
     0.1,0.01,1,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
-  signal = (amp/3) * 
+  tone = (amp/3) * 
     (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
+  signal = amp * select2(ss, tone, pink_noise);
+  ss = osc_group(checkbox("[6] Pink Noise Instead"));
 };
 
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
@@ -199,20 +202,30 @@ oscw = oscwc;
 //-------------------------- oscrs_demo ---------------------------
 
 oscrs_demo = signal with { 
-  osc_group(x) = vgroup("[0] OSCRS [tooltip: Sine oscillator based on 2D vector rotation]",x);
+  osc_group(x) = vgroup("[0] SINE WAVE OSCILLATOR oscrs 
+                 [tooltip: Sine oscillator based on 2D vector rotation]",x);
   knob_group(x)  = osc_group(hgroup("[1]", x));
-  ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth waveform amplitude]",
+//  ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] 
+  ampdb  = knob_group(hslider("[1] Amplitude [unit:dB]
+                     [tooltip: Sawtooth waveform amplitude]",
     -20,-120,10,0.1));
   amp = ampdb : smooth(0.999) : db2linear;
   freq = knob_group(
-  vslider("[2] Frequency [unit:PK] [style:knob] [tooltip: Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)]",49,1,88,0.01) : pianokey2hz);
-  pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440 (also defined in effect.lib)
+//  vslider("[2] Frequency [unit:PK] [style:knob] 
+  hslider("[2] Frequency [unit:PK]
+     [tooltip: Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)]",
+     49,1,88,0.01) : pianokey2hz);
+  pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // (also defined in effect.lib)
   portamento = knob_group(
-    vslider("[3] Portamento [unit:sec] [style:knob] [tooltip: Portamento (frequency-glide) time-constant in seconds]",
-    0.1,0,1,0.001));
+//    vslider("[3] Portamento [unit:sec] [style:knob] 
+    hslider("[3] Portamento [unit:sec]
+            [tooltip: Portamento (frequency-glide) time-constant in seconds]",
+            0.1,0,1,0.001));
   sfreq = freq : smooth(tau2pole(portamento));
   signal = amp * oscrs(sfreq);
 };
+
+oscr_demo = oscrs_demo; // synonym
 
 //--------------------------- pink_noise --------------------------
 // Pink noise (1/f noise) generator (third-order approximation)

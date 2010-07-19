@@ -1,7 +1,7 @@
 declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.23";
+declare version "1.24";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
@@ -83,18 +83,27 @@ with {
 cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : dcblocker;
 
 //--------------------------- cubicnl_demo --------------------------
+// USAGE: _ : cubicnl_demo : _;
 //
-// USAGE: 
-//    _ : cubicnl_demo : _;
-//
-cubicnl_demo = bypass1(bp, cubicnl_nodc(drive:smooth(0.999),offset:smooth(0.999))) with {
+cubicnl_demo = bypass1(bp, 
+   cubicnl_nodc(drive:smooth(0.999),offset:smooth(0.999))) 
+with {
    cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl 
-        [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
-   bypass_group(x) = cnl_group(hgroup("[0]", x));
+        [tooltip: Reference: 
+         https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
+//   bypass_group(x) = cnl_group(hgroup("[0]", x));
    slider_group(x)  = cnl_group(hgroup("[1]", x));
-   bp = bypass_group(checkbox("[0] Bypass  [tooltip: When this is checked, the nonlinearity has no effect]"));
-   drive = slider_group(vslider("[1] Drive [style: knob] [tooltip: Amount of distortion]", 0, 0, 1.0, 0.01));
-   offset = slider_group(vslider("[2] Offset [style: knob] [tooltip: Brings in even harmonics]", 0.0, 0, 1.0, 0.01));
+//   bp = bypass_group(checkbox("[0] Bypass  
+   bp = slider_group(checkbox("[0] Bypass  
+        [tooltip: When this is checked, the nonlinearity has no effect]"));
+//   drive = slider_group(vslider("[1] Drive [style: knob] 
+   drive = slider_group(hslider("[1] Drive
+                       [tooltip: Amount of distortion]", 
+                       0, 0, 1, 0.01));
+//   offset = slider_group(vslider("[2] Offset [style: knob] 
+   offset = slider_group(hslider("[2] Offset
+                       [tooltip: Brings in even harmonics]", 
+                       0, 0, 1, 0.01));
 };
 
 //------------------------- moog_vcf(res,fr) ---------------------------
@@ -118,6 +127,8 @@ with {
 };
 
 //------------------------- moog_vcf_demo ---------------------------
+// USAGE: _ : moog_vcf_demo : _;
+
 moog_vcf_demo = bypass1(bp,vcf) with {
    mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)  [tooltip: Reference: https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf]", x);
 
@@ -146,23 +157,28 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 wah4(fr) = moog_vcf((3.8/4),fr:smooth(0.999)); // feedback fixed at -3.8 (set to taste)
 
 //------------------------- wah4_demo ---------------------------
+// USAGE: _ : wah4_demo : _;
+
 wah4_demo = bypass1(bp, wah4(fr)) with {
-  wah4_group(x)  = hgroup("WAH4 [tooltip: Fourth-order wah effect made using moog_vcf]", x);
-  bp = wah4_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah pedal has no effect]"));
-  fr = wah4_group(hslider("[1] Resonance Frequency [tooltip: wah resonance frequency in Hz]",
-     200,100,1200,1)); // Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
-                       // Also, avoid very high resonance frequencies (e.g., 5kHz or above).
+  wah4_group(x)  = hgroup("WAH4 
+       [tooltip: Fourth-order wah effect made using moog_vcf]", x);
+  bp = wah4_group(checkbox("[0] Bypass 
+       [tooltip: When this is checked, the wah pedal has no effect]"));
+  fr = wah4_group(hslider("[1] Resonance Frequency 
+       [tooltip: wah resonance frequency in Hz]",
+     200,100,1200,1)); 
+// Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
+// Also, avoid very high resonance frequencies (e.g., 5kHz or above).
 };
 
 //------------------------ crybaby(wah) -----------------------------
 // Digitized CryBaby wah pedal
-// USAGE: crybaby(wah), where wah = "pedal angle" from 0 to 1.
-// Requires filter.lib.
+// USAGE: _ : crybaby(wah) : _;
+// where wah = "pedal angle" from 0 to 1.
 // REFERENCE: https://ccrma.stanford.edu/~jos/pasp/vegf.html
 //
-crybaby(wah) = *(gs(s)) : tf2(1,-1,0,a1s(s),a2s(s))
+crybaby(wah) = *(gs) : tf2(1,-1,0,a1s,a2s)
 with {
-  s = 0.999; // smoothing parameter (one-pole pole location)
   Q  = pow(2.0,(2.0*(1.0-wah)+1.0)); // Resonance "quality factor"
   fr = 450.0*pow(2.0,2.3*wah);       // Resonance tuning
   g  = 0.1*pow(4.0,wah);             // gain (optional)
@@ -175,12 +191,17 @@ with {
   a2 = R*R;                // biquad coeff
 
   // dezippering of slider-driven signals:
-  a1s(s) = a1 : smooth(s);
-  a2s(s) = a2 : smooth(s);
-  gs(s) =  g  : smooth(s);
+  s = 0.999; // smoothing parameter (one-pole pole location)
+  a1s = a1 : smooth(s);
+  a2s = a2 : smooth(s);
+  gs =  g  : smooth(s);
+
+  tf2 = component("filter.lib").tf2;
 };
 
 //------------------------- crybaby_demo ---------------------------
+// USAGE: _ : crybaby_demo : _ ;
+
 crybaby_demo = bypass1(bp, crybaby(wah)) with {
    crybaby_group(x)  = hgroup("CRYBABY [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/vegf.html]", x);
    bp = crybaby_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah pedal has no effect]"));
@@ -266,10 +287,8 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
   =  flanger_mono(dmax,curdel1,depth,fb,invert),
      flanger_mono(dmax,curdel2,depth,fb,invert);
 
-// Standalone flanger app or plugin
-//
-// USAGE: 
-//   process = _,_ : component("effect.lib").flanger_demo : _,_;
+//------------------------- flanger_demo ---------------------------
+// USAGE:  _,_ : flanger_demo : _,_;
 //
 flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
    flanger_group(x) = 
@@ -300,7 +319,7 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
    freq   = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.01));
    depth  = ctl_group(hslider("[2] Depth [style:knob]", 1, 0, 1, 0.001));
    fb     = ctl_group(hslider("[3] Feedback [style:knob]", 0, -0.999, 0.999, 0.001));
-   level  = lvl_group(hslider("Level [unit:dB]", 0, -60, 10, 0.1)) : db2linear;
+   level  = lvl_group(hslider("Flanger Output Level [unit:dB]", 0, -60, 10, 0.1)) : db2linear;
    curdel1 = odflange+dflange*(1 + lfol(freq))/2; 
    curdel2 = odflange+dflange*(1 + lfor(freq))/2; 
 };
@@ -366,10 +385,8 @@ phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert)
    = phaser2_mono(Notches,0,width,frqmin,fratio,frqmax,speed,depth,fb,invert),
      phaser2_mono(Notches,1,width,frqmin,fratio,frqmax,speed,depth,fb,invert);
 
-// Standalone phaser2 app or plugin
-//
-// USAGE: 
-//   process = _,_ : component("effect.lib").phaser2_demo : _,_;
+//------------------------- phaser2_demo ---------------------------
+// USAGE:  _,_ : phaser2_demo : _,_;
 //
 phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
    phaser2_group(x) = 
@@ -403,7 +420,7 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
    frqmax = nch_group(hslider("[3] Max Notch1 Freq [unit:Hz] [style:knob]", 800, 20, 10000, 1)) : max(frqmin);
    fratio = nch_group(hslider("[4] Notch Freq Ratio: NotchFreq(n+1)/NotchFreq(n)  [style:knob]", 1.5, 1.1, 4, 0.001));
 
-   level  = lvl_group(hslider("Level [unit:dB]", 0, -60, 10, 0.1)) : component("music.lib").db2linear;
+   level  = lvl_group(hslider("Phaser Output Level [unit:dB]", 0, -60, 10, 0.1)) : component("music.lib").db2linear;
 
    mdepth = select2(vibr,depth,2); // Improve "ease of use"
 };
@@ -537,8 +554,7 @@ with {
 };
 
 //---------------------------- gate_demo -------------------------
-// USAGE: 
-//   process = _,_ : component("effect.lib").gate_demo : _,_;
+// USAGE: _,_ : gate_demo : _,_;
 //
 gate_demo = bypass2(gbp,gate_stereo_demo) with {
 
@@ -569,8 +585,7 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
 };
 
 //---------------------------- compressor_demo -------------------------
-// USAGE: 
-//   process = _,_ : component("effect.lib").compressor_demo : _,_;
+// USAGE: _,_ : compressor_demo : _,_;
 //
 compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
