@@ -230,8 +230,8 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
 	
 	else {
-		cerr << "ERROR, ppsig doesn't recognize signal : " << *sig << endl;
-		exit(1);
+        cerr << "NOT A SIGNAL : " << *sig << endl;
+        //exit(1);
 	}
 	return fout;
 }
