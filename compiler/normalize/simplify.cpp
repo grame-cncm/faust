@@ -30,6 +30,7 @@
 #include "sigtyperules.hh"
 #include "sigorderrules.hh"
 #include "sigprint.hh"
+#include "ppsig.hh"
 #include "simplify.hh"
 #include "num.hh"
 #include "xtended.hh"
@@ -50,7 +51,7 @@ static Tree traced_simplification(Tree sig)
 {
 	assert(sig);
 #ifdef TRACE
-	cerr << ++TABBER << "Start simplification of : " << *sig << endl;
+    cerr << ++TABBER << "Start simplification of : " << ppsig(sig) << endl;
 	/*
 	fprintf(stderr, "\nStart simplification of : ");
 	printSignal(sig, stderr);
@@ -60,7 +61,7 @@ static Tree traced_simplification(Tree sig)
 	Tree r = simplification(sig);
 	assert(r!=0);
 #ifdef TRACE
-	cerr << --TABBER << "Simplification of : " << *sig << " Returns : " << *r << endl;
+    cerr << --TABBER << "Simplification of : " << ppsig(sig) << " Returns : " << ppsig(r) << endl;
 	/*
 	fprintf(stderr, "Simplification of : ");
 	printSignal(sig, stderr);
