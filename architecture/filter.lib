@@ -504,7 +504,7 @@ with {
   w1 = 2*PI*fc;
 };
 
-//----------------------------- lowpass5 ------------------------------
+//----------------------------- highpass5 ------------------------------
 // Fifth-order Butterworth highpass filter
 // USAGE: highpass5(fc), where fc = -3dB frequency
 // METHOD: Inversion of lowpass5 wrt unit circle in s plane (s <- 1/s)
@@ -1230,13 +1230,6 @@ filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 //    to Yann Orlarey (as is the entire Faust framework!)
 //
 //----------------------------- filterbank3 -------------------------------
-
-// Perhaps these general-purpose utilities should go in math.lib?
-count ((xs, xxs)) = 1 + count(xxs);
-count (xx) = 1;
-take(1, (freq, lfreq)) = freq;
-take(1, freq) = freq;
-take(n, (freq, lfreq)) = take(n-1, lfreq);
 
 analyzer3(lfreqs) = _ <: bsplit(nb) with
 {

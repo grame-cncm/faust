@@ -12,6 +12,7 @@
 
 // -- Utilities and constants
 
+//SR 			= min(192000, max(1, fconstant(int fSamplingFreq, <math.h>)));
 SR 			= fconstant(int fSamplingFreq, <math.h>);
 BS          = fvariable(int count, <math.h>);
 
@@ -96,5 +97,18 @@ fmin = min;
 
 isnan 		= ffunction(int isnan (float),<math.h>,"");
 nextafter	= ffunction(float nextafter(float, float),<math.h>,"");
+
+// Pattern matching functions to count and access the elements of a list
+// USAGE : 	count ((10,20,30,40)) 	-> 4  
+//			take  (3,(10,20,30,40)) -> 30
+// 
+
+count ((xs, xxs)) = 1 + count(xxs);
+count (xx) = 1;
+
+take (1, (xs, xxs)) 	= xs;
+take (1, xs) 			= xs;
+take (nn, (xs, xxs)) 	= take (nn-1, xxs);
+
 
 
