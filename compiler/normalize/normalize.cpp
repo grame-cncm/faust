@@ -85,18 +85,18 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 
 	if (isZero(d) && ! isProj(s, &i, r)) {
 
-		return s;
+        return s;
 
 	} else if (isZero(s)) {
 
-		return s;
+        return s;
 
 	} else if (isSigMul(s, x, y)) {
 
 		if (getSigOrder(x) < 2) {
-			return simplify(sigMul(x,normalizeFixedDelayTerm(y,d)));
+            return /*simplify*/(sigMul(x,normalizeFixedDelayTerm(y,d)));
 		} else if (getSigOrder(y) < 2) {
-			return simplify(sigMul(y,normalizeFixedDelayTerm(x,d)));
+            return /*simplify*/(sigMul(y,normalizeFixedDelayTerm(x,d)));
 		} else {
 			return sigFixDelay(s,d);
 		}
@@ -104,7 +104,7 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 	} else if (isSigDiv(s, x, y)) {
 
 		if (getSigOrder(y) < 2) {
-			return simplify(sigDiv(normalizeFixedDelayTerm(x,d),y));
+            return /*simplify*/(sigDiv(normalizeFixedDelayTerm(x,d),y));
 		} else {
 			return sigFixDelay(s,d);
 		}
