@@ -1,7 +1,7 @@
 declare name "Faust Oscillator Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.8";
+declare version "1.10";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 //incomplete at the moment, but coverage is planned:
 //declare reference "https://ccrma.stanford.edu/~jos/pasp/";
@@ -81,8 +81,12 @@ sawtooth_demo = signal with {
   sfreq = freq : smooth(tau2pole(portamento));
   tone = (amp/3) * 
     (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
-  signal = amp * select2(ss, tone, pink_noise);
-  ss = osc_group(checkbox("[6] Pink Noise Instead"));
+  signal = amp * select2(ei, select2(ss, tone, pink_noise), _);
+  checkbox_group(x) = knob_group(vgroup("[6] Alternate Signals",x));
+  ss = checkbox_group(checkbox(
+      "[0] Pink Noise Instead (uses only Amplitude control to the left)"));
+  ei = checkbox_group(checkbox(
+      "[1] External Input Instead (overrides Sawtooth/Noise selection)"));
 };
 
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----

@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.19";
+declare version "1.23";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
@@ -755,18 +755,32 @@ high_shelf5(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass5(fx,x);
 //     fx = peak frequency (Hz)
 //      B = bandwidth (B) of peak in Hz
 //
-peak_eq(Lfx,fx,B) = tf2s(1,b1,1,a1,1,wx) with {
-  a1 = 2*PI*(B/2)/fx;
+peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
+  T = float(1.0/SR);
+  Bw = B*T/sin(wx*T); // prewarp s-bandwidth for more accuracy in z-plane
+  a1 = PI*Bw;
   b1 = g*a1;
-  g = db2linear(Lfx);
+  g = db2linear(abs(Lfx));
+  b1s = select2(Lfx>0,a1,b1); // When Lfx>0, pole dominates bandwidth
+  a1s = select2(Lfx>0,b1,a1); // When Lfx<0, zero dominates
   wx = 2*PI*fx;
 };  
+
+//------------------------------- peak_eq_cq -----------------------------------
+// Constant-Q second order "peaking equalizer" section 
+// USAGE: _ : peak_eq_cq(Lfx,fx,Q) : _;
+// where
+//    Lfx = level (dB) at fx
+//     fx = peak frequency (Hz)
+//      Q = "Quality factor" = fx/B where B = bandwidth of peak in Hz
+//
+peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 
 //-------------------------- parametric_eq_demo --------------------------------
 // USAGE: _ : parametric_eq_demo: _ ;
 parametric_eq_demo = // input_signal : 
 	low_shelf(LL,FL) :
-	peak_eq(LP,FP,BP) :
+        peak_eq(LP,FP,BP) :
 	high_shelf(LH,FH)
 // Recommended: 
 //       : mth_octave_spectral_level_demo(2) // half-octave spectrum analyzer
@@ -779,21 +793,24 @@ with {
                 [tooltip: Amount of low-frequency boost or cut in decibels]",
                 0,-40,40,0.1));
   FL = ls_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob]
-                [tooltip: Transition frequency from boost (cut) to unity gain]",
-                200,1,10000,1));
+                [tooltip: Transition-frequency from boost (cut) to unity gain]",
+                200,1,5000,1));
 
   pq_group(x) = eq_group(vgroup("[2] Low Shelf, Peaking Equalizer, High Shelf
                 [tooltip: Parametric Equalizer sections from filter.lib]",x));
   LP = pq_group(hslider("[0] Peak Boost|Cut [unit:dB] [style:knob]
                 [tooltip: Amount of local boost or cut in decibels]",
                 0,-40,40,0.1));
-  FP = pq_group(hslider("[1] Peak Frequency [unit:Hz] [style:knob]
-                [tooltip: ]",
-                500,1,10000,1));
-   Q = pq_group(hslider("[2] Peak Q [style:knob]
-                [tooltip: ]",
-                40,0,100,0.1)) : db2linear;
-  BP = FP/Q; // rough bandwidth calculation from Q
+  FP = pq_group(hslider("[1] Peak Frequency [unit:PK] [style:knob]
+       [tooltip: Peak Frequency in Piano Key (PK) units (A-440= 49 PK)]",
+                49,1,100,1)) : smooth(0.999) : pianokey2hz 
+		with { pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); };
+
+  Q = pq_group(hslider("[2] Peak Q [style:knob]
+              [tooltip: Quality (Q) of the peak = center-frequency/bandwidth]",
+              40,0,50,0.1));
+
+  BP = FP/Q;
 
   hs_group(x) = eq_group(vgroup("[3] High Shelf 
                 [tooltip: A high shelf provides a boost or cut 
@@ -802,9 +819,8 @@ with {
                 [tooltip: Amount of high-frequency boost or cut in decibels]",
                 0,-40,40,.1));
   FH = hs_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob]
-                [tooltip: ]",
-                8000,1,10000,1));
-
+                [tooltip: Transition-frequency from boost (cut) to unity gain]",
+                8000,20,10000,1));
 };
 
 //========================= Lagrange Interpolation ========================
@@ -813,7 +829,7 @@ with {
 // 
 //------------------ fdelay1, fdelay2, fdelay3, fdelay4 ---------------
 // Delay lines interpolated using Lagrange interpolation
-// USAGE: fdelayN(maxdelay, delay, inputsignal) 
+// USAGE: _ : fdelayN(maxdelay, delay, inputsignal) : _
 //        (exactly like fdelay in music.lib)
 // where N=1,2,3, or 4 is the order of the Lagrange interpolation polynomial.
 //
