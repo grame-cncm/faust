@@ -785,8 +785,8 @@ parametric_eq_demo = // input_signal :
 // Recommended: 
 //       : mth_octave_spectral_level_demo(2) // half-octave spectrum analyzer
 with {
-  eq_group(x) = hgroup("[0] Parametric EQ Sections 
-                [tooltip: See Faust's filter.lib for info and pointers",x);
+  eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS 
+                [tooltip: See Faust's filter.lib for info and pointers]",x);
 
   ls_group(x) = eq_group(vgroup("[1] Low Shelf",x));
   LL = ls_group(hslider("[0] Low Boost|Cut [unit:dB] [style:knob]
@@ -796,7 +796,7 @@ with {
                 [tooltip: Transition-frequency from boost (cut) to unity gain]",
                 200,1,5000,1));
 
-  pq_group(x) = eq_group(vgroup("[2] Low Shelf, Peaking Equalizer, High Shelf
+  pq_group(x) = eq_group(vgroup("[2] Peaking Equalizer
                 [tooltip: Parametric Equalizer sections from filter.lib]",x));
   LP = pq_group(hslider("[0] Peak Boost|Cut [unit:dB] [style:knob]
                 [tooltip: Amount of local boost or cut in decibels]",
@@ -807,8 +807,8 @@ with {
 		with { pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); };
 
   Q = pq_group(hslider("[2] Peak Q [style:knob]
-              [tooltip: Quality (Q) of the peak = center-frequency/bandwidth]",
-              40,0,50,0.1));
+              [tooltip: Quality factor (Q) of the peak = center-frequency/bandwidth]",
+              40,1,50,0.1));
 
   BP = FP/Q;
 
@@ -1149,15 +1149,15 @@ mth_octave_spectral_level6e(M,ftop,N,tau,dB_offset) = _<:
   display = par(i,N,dbmeter(i));
   dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : 
      meter(N-i-1);
-  meter(i) = speclevel_group(vbargraph("%2i [unit:dB] 
+    meter(i) = speclevel_group(vbargraph("[unit:dB] 
      [tooltip: Spectral Band Level in dB]", -50, 10));
   // Can M be included in the label string somehow?
-  speclevel_group(x)  = hgroup("CONSTANT-Q SPECTRUM ANALYZER (6E)
-                   [tooltip: See Faust filter.lib for documentation]", x);
+  speclevel_group(x)  = hgroup("[0] CONSTANT-Q SPECTRUM ANALYZER (6E)
+     [tooltip: See Faust's filter.lib for documentation and references]", x);
 };
 
-mth_octave_spectral_level = mth_octave_spectral_level6e; // default
-spectral_level = mth_octave_spectral_level(2,10000,20);  // high-level default
+mth_octave_spectral_level = mth_octave_spectral_level6e; // default choice
+spectral_level = mth_octave_spectral_level(2,10000,20);  // simplest case
 
 //---------------------- mth_octave_spectral_level_demo ------------------------
 // Demonstrate mth_octave_spectral_level in a standalone GUI.
@@ -1169,18 +1169,18 @@ mth_octave_spectral_level_demo(M) =
 with {
   // Span nearly 10 octaves so that lowest band-edge is at 
   // ftop*2^(-Noct+2) = 40 Hz when ftop=10 kHz:
-  N = 10*M;
+  N = int(10*M); // without 'int()', segmentation fault observed for M=1.67
   ftop = 10000;
-  ctl_group(x)  = hgroup("SPECTRUM ANALYZER CONTROLS", x);
+  ctl_group(x)  = hgroup("[1] SPECTRUM ANALYZER CONTROLS", x);
   tau = ctl_group(hslider("[0] Level Averaging Time [unit:sec]
-        [tooltip: band-level averaging time]",
+        [tooltip: band-level averaging time in seconds]",
         0.1,0,1,0.01)); 
   dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
         [tooltip: Level offset in decibels]",
         50,0,100,1)); 
 };
 
-spectral_level_demo = mth_octave_spectral_level_demo(1); // octave analyzer
+spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 
 //---------------- (third|half)_octave_(analyzer|filterbank) -------------------
 
@@ -1218,8 +1218,8 @@ mth_octave_filterbank_demo(M) = bp1(bp,mthoctavefilterbankdemo) with {
    ftop = 10000;
    mthoctavefilterbankdemo = chan;
    chan = mth_octave_filterbank(M,ftop,N) : sum(i,N,(*(db2linear(fader(N-i)))));
-   fader(i) = slider_group(vslider("Band %2i [unit:dB]
-              [tooltip: Filter Band gain in dB]", -10, -120, 10, 0.1)) : 
+   fader(i) = slider_group(vslider("[unit:dB]
+              [tooltip: Bandpass filter gain in dB]", -10, -120, 10, 0.1)) : 
               smooth(0.999);
    bp = bypass_group(checkbox("[0] Bypass  
               [tooltip: When this is checked, the filter-bank has no effect]"));

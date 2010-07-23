@@ -130,9 +130,8 @@ with {
 // USAGE: _ : moog_vcf_demo : _;
 
 moog_vcf_demo = bypass1(bp,vcf) with {
-   mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)  [tooltip: Reference: https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf]", x);
-
-//   bp = mvcf_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
+   mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)  
+      [tooltip: See Faust's filter.lib for info and references]",x);
 
    meter_group(x) = mvcf_group(vgroup("[0]",x));
    bp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
@@ -140,13 +139,23 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 
    displaylevel = _ <: _, (abs:smooth(0.999):linear2db) : _, levelview : attach;
 
-   freq = mvcf_group(hslider(
-     "[1] Corner Frequency [unit:PK] [style:knob] [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above it.]", 
-     25, 1, 88, 0.01) : pianokey2hz);
-  
-   res = mvcf_group(hslider("[2] Corner Resonance [style:knob] [tooltip: Amount of resonance near VCF corner frequency (specified between 0 and 1)]", 0.9, 0, 1, 0.01));
+   freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob] 
+	  [tooltip: The VCF resonates at the corner frequency (specified in
+	   PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat
+	   below the corner frequency, and rolls off -24 dB per octave above.]",
+          25, 1, 88, 0.01) : pianokey2hz);
 
-   vcf = displaylevel(moog_vcf(res,freq:smooth(0.99)));
+   res = mvcf_group(hslider("[2] Corner Resonance [style:knob] 
+         [tooltip: Amount of resonance near VCF corner frequency 
+         (specified between 0 and 1)]", 
+         0.9, 0, 1, 0.01));
+
+   outgain  = meter_group(hslider("VCF Output Level [unit:dB] 
+              [tooltip: output level in decibels]",
+              5, -60, 20, 0.1)) : component("music.lib").db2linear;
+
+   vcf = displaylevel(outgain * moog_vcf(res,freq:smooth(0.99)));
+
 };
 
 //-------------------------- wah4(fr) -------------------------------
@@ -154,7 +163,7 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
 // REFERENCE "https://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // 
-wah4(fr) = moog_vcf((3.8/4),fr:smooth(0.999)); // feedback fixed at -3.8 (set to taste)
+wah4(fr) = 4*moog_vcf((3.2/4),fr:smooth(0.999));
 
 //------------------------- wah4_demo ---------------------------
 // USAGE: _ : wah4_demo : _;
