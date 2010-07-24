@@ -134,10 +134,8 @@ moog_vcf_demo = bypass1(bp,vcf) with {
       [tooltip: See Faust's filter.lib for info and references]",x);
 
    meter_group(x) = mvcf_group(vgroup("[0]",x));
-   bp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
-   levelview = meter_group(hbargraph("[1] Moog VCF Output Level [unit: dB] [tooltip: VCF output signal level]",-120.0,10.0)); // [style: led]
 
-   displaylevel = _ <: _, (abs:smooth(0.999):linear2db) : _, levelview : attach;
+   bp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
 
    freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob] 
 	  [tooltip: The VCF resonates at the corner frequency (specified in
@@ -150,11 +148,11 @@ moog_vcf_demo = bypass1(bp,vcf) with {
          (specified between 0 and 1)]", 
          0.9, 0, 1, 0.01));
 
-   outgain  = meter_group(hslider("VCF Output Level [unit:dB] 
+   outgain  = meter_group(hslider("[1] VCF Output Level [unit:dB] 
               [tooltip: output level in decibels]",
               5, -60, 20, 0.1)) : component("music.lib").db2linear;
 
-   vcf = displaylevel(outgain * moog_vcf(res,freq:smooth(0.99)));
+   vcf = outgain * moog_vcf(res,freq:smooth(0.99));
 
 };
 

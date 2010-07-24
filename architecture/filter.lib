@@ -1219,7 +1219,7 @@ mth_octave_filterbank_demo(M) = bp1(bp,mthoctavefilterbankdemo) with {
    mthoctavefilterbankdemo = chan;
    chan = mth_octave_filterbank(M,ftop,N) : sum(i,N,(*(db2linear(fader(N-i)))));
    fader(i) = slider_group(vslider("[%2i] [unit:dB]
-              [tooltip: Bandpass filter gain in dB]", -10, -120, 10, 0.1)) : 
+              [tooltip: Bandpass filter gain in dB]", -10, -70, 10, 0.1)) : 
               smooth(0.999);
    bp = bypass_group(checkbox("[0] Bypass  
               [tooltip: When this is checked, the filter-bank has no effect]"));
