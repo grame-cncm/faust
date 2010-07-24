@@ -1149,7 +1149,7 @@ mth_octave_spectral_level6e(M,ftop,N,tau,dB_offset) = _<:
   display = par(i,N,dbmeter(i));
   dbmeter(i) = abs : smooth(tau2pole(tau)) : linear2db : +(dB_offset) : 
      meter(N-i-1);
-    meter(i) = speclevel_group(vbargraph("[unit:dB] 
+    meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB] 
      [tooltip: Spectral Band Level in dB]", -50, 10));
   // Can M be included in the label string somehow?
   speclevel_group(x)  = hgroup("[0] CONSTANT-Q SPECTRUM ANALYZER (6E)
@@ -1210,15 +1210,15 @@ octave_analyzer(N) = mth_octave_analyzer(1,10000,N);
 
 mth_octave_filterbank_demo(M) = bp1(bp,mthoctavefilterbankdemo) with {
    bp1 = component("effect.lib").bypass1;
-   mofb_group(x)  = vgroup("CONSTANT-Q FILTER BANK (Butterworth)
-                   [tooltip: See Faust filter.lib for documentation]", x);
+   mofb_group(x)  = vgroup("CONSTANT-Q FILTER BANK (Butterworth dyadic tree)
+     [tooltip: See Faust's filter.lib for documentation and references]", x);
    bypass_group(x) = mofb_group(hgroup("[0]", x));
    slider_group(x)  = mofb_group(hgroup("[1]", x));
    N = 10*M; // total number of bands (highpass band, octave-bands, dc band)
    ftop = 10000;
    mthoctavefilterbankdemo = chan;
    chan = mth_octave_filterbank(M,ftop,N) : sum(i,N,(*(db2linear(fader(N-i)))));
-   fader(i) = slider_group(vslider("[unit:dB]
+   fader(i) = slider_group(vslider("[%2i] [unit:dB]
               [tooltip: Bandpass filter gain in dB]", -10, -120, 10, 0.1)) : 
               smooth(0.999);
    bp = bypass_group(checkbox("[0] Bypass  

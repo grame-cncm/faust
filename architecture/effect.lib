@@ -175,7 +175,7 @@ wah4_demo = bypass1(bp, wah4(fr)) with {
        [tooltip: When this is checked, the wah pedal has no effect]"));
   fr = wah4_group(hslider("[1] Resonance Frequency 
        [tooltip: wah resonance frequency in Hz]",
-     200,100,1200,1)); 
+     200,100,2000,1)); 
 // Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
 // Also, avoid very high resonance frequencies (e.g., 5kHz or above).
 };
