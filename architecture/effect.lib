@@ -1,11 +1,11 @@
 declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.24";
+declare version "1.29";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
-import("filter.lib"); // dcblocker*, lowpass4, ...
+import("filter.lib"); // dcblocker*, lowpass, ...
 
 // The following utilities (or equivalents) probably belong in music.lib:
 //----------------------- midikey2hz,pianokey2hz ------------------------
@@ -56,7 +56,7 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 //
 // Requires filter.lib
 //
-speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass4(f2);
+speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass(4,f2);
 
 
 //--------------------- cubicnl(drive,offset) -----------------------
@@ -578,16 +578,16 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
    gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y : 
      gate_stereo(gatethr,gateatt,gatehold,gaterel);
 
-   gatethr = knob_group(vslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]", 
+   gatethr = knob_group(hslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]", 
      -30, -120, 0, 0.1));
 
-   gateatt = knob_group(vslider("[2] Attack [unit:us] [style:knob]  [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
+   gateatt = knob_group(hslider("[2] Attack [unit:us] [style:knob]  [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
      10, 10, 10000, 1)) : *(0.000001) : max(1/SR);
 
-   gatehold = knob_group(vslider("[3] Hold [unit:ms] [style:knob]  [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
+   gatehold = knob_group(hslider("[3] Hold [unit:ms] [style:knob]  [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
      200, 0, 1000, 1)) : *(0.001) : max(1/SR);
 
-   gaterel = knob_group(vslider("[4] Release [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]", 
+   gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]", 
      100, 0, 1000, 1)) : *(0.001) : max(1/SR);
 };
 
@@ -616,18 +616,18 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 
-   ratio = ctl_group(vslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]", 
+   ratio = ctl_group(hslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]", 
      5, 1, 20, 0.1));
 
-   threshold = ctl_group(vslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
+   threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
      -30, -100, 10, 0.1));
 
    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
 
-   attack = env_group(vslider("[1] Attack [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression `kicking in')]",
+   attack = env_group(hslider("[1] Attack [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression `kicking in')]",
      50, 0, 500, 0.1)) : *(0.001) : max(1/SR);
 
-   release = env_group(vslider("[2] Release [unit:ms] [style: knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new higher target level (the compression 'releasing')]",
+   release = env_group(hslider("[2] Release [unit:ms] [style: knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new higher target level (the compression 'releasing')]",
      500, 0, 1000, 0.1)) : *(0.001) : max(1/SR);
 
    makeupgain = comp_group(hslider("[5] Makeup Gain [unit:dB]  [tooltip: The compressed-signal output level is increased by this amount (in dB) to make up for the level lost due to compression]",

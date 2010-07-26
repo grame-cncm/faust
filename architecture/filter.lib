@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.23";
+declare version "1.27";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
@@ -360,65 +360,88 @@ with {
      b0 = 0;
 };
 
-//====================== Butterworth Lowpass Filters ======================
-// Reference: 
-// https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html
+//================ Butterworth Lowpass/Highpass Filters ======================
+// Nth-order Butterworth lowpass or highpass filters
 //
-//----------------------------- lowpass1 -----------------------------
-// First-order Butterworth lowpass filter
-// USAGE: lowpass1(fc), where 
-// fc = desired cut-off frequency (-3dB frequency) in Hz
-//
-lowpass1(fc) = tf1s(0,1,1,2*PI*fc);
+// USAGE: 
+//   _ : lowpass(N,fc) : _
+//   _ : highpass(N,fc) : _
+// where
+//   N = filter order (number of poles) [nonnegative integer]
+//   fc = desired cut-off frequency (-3dB frequency) in Hz
+// REFERENCE: 
+//  https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html
+//  'butter' function in Octave ("[z,p,g] = butter(N,1,'s');")
+// ACKNOWLEDGMENT
+//  Generalized recursive formulation initiated by Yann Orlarey.
 
-//----------------------------- lowpass2 ------------------------------
-// Second-order Butterworth lowpass filter
-// USAGE: lowpass2(fc), where 
-// fc = desired cut-off frequency (-3dB frequency) in Hz
-//
-lowpass2(fc) = tf2s(0,0,1,sqrt(2),1,2*PI*fc);
-
-//----------------------------- lowpass3 ------------------------------
-// Third-order Butterworth lowpass filter
-// USAGE: lowpass3(fc), where 
-// fc = desired cut-off frequency (-3dB frequency) in Hz
-//
-lowpass3(fc) = tf2s(0,0,1,1,1,w1) : tf1s(0,1,1,w1)
-with { w1 = 2*PI*fc; };
-
-//----------------------------- lowpass4 ------------------------------
-// Fourth-order Butterworth lowpass filter
-// USAGE: lowpass4(fc), where 
-// fc = desired cut-off frequency (-3dB frequency) in Hz
-//
-lowpass4(fc) = tf2s(0,0,1,a11s,1,w1) : tf2s(0,0,1,a21s,1,w1)
+lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
+highpass(N,fc) = lowpass0_highpass1(1,N,fc);
+lowpass0_highpass1(s,N,fc) = lphpr(s,N,N,fc)
 with {
-  a11s = 1.847759065022573; // -2*real(pole1)
-  a21s = 0.765366864730180; // -2*real(pole2)
-  w1 = 2*PI*fc;
+  lphpr(s,0,N,fc) = _;
+  lphpr(s,1,N,fc) = tf1s(s,1-s,1,2*PI*fc);
+  lphpr(s,O,N,fc) = lphpr(s,(O-2),N,fc) : tf2s(s,0,1-s,a1s,1,w1) with {
+    parity = N % 2;
+    S = (O-parity)/2; // current section number
+    a1s = -2*cos(-PI + (1-parity)*PI/(2*N) + (S-1+parity)*PI/N);
+    w1 = 2*PI*fc;
+  };
 };
 
-//----------------------------- lowpass5 ------------------------------
-// Fifth-order Butterworth lowpass filter
-// USAGE: lowpass5(fc), where 
-// fc = desired cut-off frequency (-3dB frequency) in Hz
+//========== Special Filter-Bank Delay-Equalizing Allpass Filters ===========
 //
-lowpass5(fc) = 
-              tf1s(0,1,1,w1) :
-              tf2s(0,0,1,a11,1,w1) :
-              tf2s(0,0,1,a12,1,w1)
-with {
+// These special allpass filters are needed by filterbank et al. below.
+// They are equivalent to (lowpass(N,fc) +|- highpass(N,fc))/2, but with 
+// canceling pole-zero pairs removed (which occurs for odd N).
+
+//-------------------- lowpass_plus|minus_highpass ------------------
+
+highpass_plus_lowpass(3,fc) = tf2s(1,-1,1,1,1,w1) with { w1 = 2*PI*fc; };
+highpass_minus_lowpass(3,fc) = tf1s(-1,1,1,w1) with { w1 = 2*PI*fc; };
+highpass_plus_lowpass(5,fc) = tf2s(1,-a11,1,a11,1,w1)
+with { 
   a11 = 1.618033988749895;
-  a12 = 0.618033988749895;
-  w1 = 2*PI*fc;
+  w1 = 2*PI*fc; 
 };
+highpass_minus_lowpass(5,fc) = tf1s(1,-1,1,w1) : tf2s(1,-a12,1,a12,1,w1)
+with { 
+  a12 = 0.618033988749895;
+  w1 = 2*PI*fc; 
+};
+
+// Catch-all definitions for generality - even order is done:
+
+highpass_plus_lowpass(N,fc) = switch_odd_even(N%2,N,fc) with {
+  switch_odd_even(0,N,fc) = highpass_plus_lowpass_even(N,fc);
+  switch_odd_even(1,N,fc) = highpass_plus_lowpass_odd(N,fc);
+};
+
+highpass_minus_lowpass(N,fc) = switch_odd_even(N%2,N,fc) with {
+  switch_odd_even(0,N,fc) = highpass_minus_lowpass_even(N,fc);
+  switch_odd_even(1,N,fc) = highpass_minus_lowpass_odd(N,fc);
+};
+
+highpass_plus_lowpass_even(N,fc) = highpass(N,fc) + lowpass(N,fc);
+highpass_minus_lowpass_even(N,fc) = highpass(N,fc) - lowpass(N,fc);
+
+// FIXME: Rewrite the following, as for orders 3 and 5 above,
+//        to eliminate pole-zero cancellations:
+highpass_plus_lowpass_odd(N,fc) = highpass(N,fc) + lowpass(N,fc);
+highpass_minus_lowpass_odd(N,fc) = highpass(N,fc) - lowpass(N,fc);
 
 //===================== Elliptic (Cauer) Lowpass Filters ===================
+// USAGE: 
+//   _ : lowpass3e(fc) : _
+//   _ : lowpass6e(fc) : _
+// where fc = -3dB frequency in Hz
+//
+// REFERENCES:
+//   http://en.wikipedia.org/wiki/Elliptic_filter
+//   functions 'ncauer' and 'ellip' in Octave
 
 //----------------------------- lowpass3e -----------------------------
 // Third-order Elliptic (Cauer) lowpass filter
-// USAGE: lowpass3e(fc), where fc = -3dB frequency in Hz
-// REFERENCE: ncauer (and ellip) functions in Octave
 // DESIGN: For spectral band-slice level display (see octave_analyzer3e):
 //   [z,p,g] = ncauer(Rp,Rs,3);  % analog zeros, poles, and gain, where
 //   Rp = 60  % dB ripple in stopband
@@ -435,26 +458,8 @@ with {
   w1 = 2*PI*fc; 
 };
 
-//----------------------------- lowpass6 -----------------------------
-// Sixth-order Butterworth lowpass filter
-// USAGE: lowpass6(fc), where fc = -3dB frequency in Hz
-// REFERENCE: butter function in Octave ("[z,p,g] = butter(N,1,'s');")
-//
-lowpass6(fc) = 
-              tf2s(0,0,1,a11,1,w1) :
-              tf2s(0,0,1,a12,1,w1) :
-              tf2s(0,0,1,a13,1,w1)
-with { 
-  a11 = 1.931851652578136;
-  a12 = 1.414213562373095;
-  a13 = 0.517638090205041;
-  w1 = 2*PI*fc; 
-};
-
 //----------------------------- lowpass6e -----------------------------
 // Sixth-order Elliptic/Cauer lowpass filter
-// USAGE: lowpass6e(fc), where fc = -3dB frequency in Hz
-// REFERENCE: ellip function in Octave
 // DESIGN: For spectral band-slice level display (see octave_analyzer6e):
 //   [z,p,g] = ncauer(Rp,Rs,6);  % analog zeros, poles, and gain, where
 //   Rp = 80  % dB ripple in stopband
@@ -486,62 +491,14 @@ with {
   w1 = 2*PI*fc; 
 };
 
-//===================== Highpass Filters =====================
-//
-//--------------------------- highpass1-4 -----------------------------
-// Butterworth highpass filters, orders 1 through 4.
-// USAGE: highpassN(fc), where
-// fc = desired cut-off frequency (-3dB frequency) in Hz
-//  N = desired filter order (1,2,3, or 4)
-
-highpass1(fc) = tf1s(1,0,1,2*PI*fc);
-highpass2(fc) = tf2s(1,0,0,sqrt(2),1,2*PI*fc);
-highpass3(fc) = tf2s(1,0,0,1,1,2*PI*fc) : tf1s(1,0,1,2*PI*fc);
-highpass4(fc) = tf2s(1,0,0,a11s,1,w1)   : tf2s(1,0,0,a21s,1,w1)
-with {
-  a11s = 1.847759065022573; // -2*real(pole1)
-  a21s = 0.765366864730180; // -2*real(pole2)
-  w1 = 2*PI*fc;
-};
-
-//----------------------------- highpass5 ------------------------------
-// Fifth-order Butterworth highpass filter
-// USAGE: highpass5(fc), where fc = -3dB frequency
-// METHOD: Inversion of lowpass5 wrt unit circle in s plane (s <- 1/s)
-//         Since the poles are on the unit circle, only the zeros move.
-// fc = desired cut-off frequency (-3dB frequency) in Hz
-//
-highpass5(fc) = 
-              tf1s(1,0,1,w1) :
-              tf2s(1,0,0,a11,1,w1) :
-              tf2s(1,0,0,a12,1,w1)
-with {
-  a12 = 0.618033988749895;
-  a11 = 1+a12;
-  w1 = 2*PI*fc;
-};
-
-//----------------------------- highpass6 -----------------------------
-// Sixth-order Butterworth highpass filter
-// USAGE: highpass6(fc), where fc = -3dB frequency in Hz
-// REFERENCE: butter function in Octave
-//
-lowpass6(fc) = 
-              tf2s(1,0,0,a11,1,w1) :
-              tf2s(1,0,0,a12,1,w1) :
-              tf2s(1,0,0,a13,1,w1)
-with { 
-  a11 = 1.931851652578136;
-  a12 = 1.414213562373095;
-  a13 = 0.517638090205041;
-  w1 = 2*PI*fc; 
-};
-
 //===================== Elliptic Highpass Filters =====================
+// USAGE: 
+//   _ : highpass3e(fc) : _
+//   _ : highpass6e(fc) : _
+// where fc = -3dB frequency in Hz
 
 //----------------------------- highpass3e -----------------------------
 // Third-order Elliptic (Cauer) highpass filter
-// USAGE: highpass3e(fc), where fc = -3dB frequency in Hz
 // DESIGN: Inversion of lowpass3e wrt unit circle in s plane (s <- 1/s)
 //
 highpass3e(fc) = tf2s(b01/a01,b11/a01,b21/a01,a11/a01,1/a01,w1) : 
@@ -558,7 +515,6 @@ with {
 
 //----------------------------- highpass6e -----------------------------
 // Sixth-order Elliptic/Cauer highpass filter
-// USAGE: highpass6e(fc), where fc = -3dB frequency in Hz
 // METHOD: Inversion of lowpass3e wrt unit circle in s plane (s <- 1/s)
 //
 highpass6e(fc) = 
@@ -587,69 +543,55 @@ with {
   w1 = 2*PI*fc; 
 };
 
-//=========== Special Filter-Bank Delay-Equalizing Allpass Filters =============
-
-// These special allpass filters are needed by filterbank3 et al. below.
-// They are equivalent to lowpassN(fc) +|- highpassN(fc), but with 
-// canceling pole-zero pairs removed.
-
-// For Butterworth filters, lowpassN + highpassN = (s^N+1)/LHP(s^(2*N)+1),
-// where LHP(D(s)) means "left-half-plane roots of D(s)".  Therefore, every
-// other pole is canceled by a zero.
-
-//-------------------- lowpass3_plus|minus_highpass3 ------------------
-
-highpass3_plus_lowpass3(fc) = tf2s(1,-1,1,1,1,w1)
-with { w1 = 2*PI*fc; };
-
-highpass3_minus_lowpass3(fc) = tf1s(-1,1,1,w1) // (more efficient)
-with { w1 = 2*PI*fc; };
-
-//-------------------- lowpass5_plus|minus_highpass5 ------------------
-
-highpass5_plus_lowpass5(fc) = tf2s(1,-a11,1,a11,1,w1)
-with { 
-  a11 = 1.618033988749895;
-  w1 = 2*PI*fc; 
-};
-
-highpass5_minus_lowpass5(fc) = tf1s(1,-1,1,w1) : tf2s(1,-a12,1,a12,1,w1)
-with { 
-  a12 = 0.618033988749895;
-  w1 = 2*PI*fc; 
-};
-
-//===================== Bandpass Filters ======================
-
-//----------------------------- bandpass6 ------------------------------
-// Order 6 Butterworth bandpass filter made using the transformation
-// s <- s + wc^2/s on lowpass3, where wc is the desired bandpass center 
-// frequency.  The lowpass3 cutoff w1 is half the desired bandpass width.
+//================== Butterworth Bandpass/Bandstop Filters =====================
+// Order 2*Nh Butterworth bandpass filter made using the transformation
+// s <- s + wc^2/s on lowpass(Nh), where wc is the desired bandpass center 
+// frequency.  The lowpass(Nh) cutoff w1 is half the desired bandpass width.
 //
-// USAGE: bandpass6(fl,fu), where 
+// USAGE: 
+//   _ : bandpass(Nh,fl,fu) : _
+//   _ : bandstop(Nh,fl,fu) : _
+// where 
+//   Nh = HALF the desired bandpass/bandstop order (which is therefore even)
 //   fl = lower -3dB frequency in Hz
 //   fu = upper -3dB frequency in Hz
-// Thus, the passband width is fu-fl, and its center frequency is (fl+fu)/2.
+// Thus, the passband (stopband) width is fu-fl, 
+//       and its center frequency is (fl+fu)/2.
 //
 // REFERENCE: 
 //   http://cnx.org/content/m16913/latest/
 //
-bandpass6(fl,fu) = tf2sb(0,0,1,1,1,w1,wc) : tf1sb(0,1,1,w1,wc) 
-//      lowpass3 is tf2s(0,0,1,1,1,w1)    :  tf1s(0,1,1,w1)
-with { 
-   wl = 2*PI*fl; // digital (z-plane) lower passband edge
-   wu = 2*PI*fu; // digital (z-plane) upper passband edge
+bandpass(Nh,fl,fu) = bandpass0_bandstop1(0,Nh,fl,fu);
+bandstop(Nh,fl,fu) = bandpass0_bandstop1(1,Nh,fl,fu);
+bandpass0_bandstop1(s,Nh,fl,fu) = bpbsr(s,Nh,Nh,fl,fu) 
+with {
+  wl = 2*PI*fl; // digital (z-plane) lower passband edge
+  wu = 2*PI*fu; // digital (z-plane) upper passband edge
 
-   c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
-   wla = c*tan(wl/c); // analog (s-splane) lower cutoff
-   wua = c*tan(wu/c); // analog (s-splane) upper cutoff
+  c = 2.0*SR; // bilinear transform scaling used in tf2sb, tf1sb
+  wla = c*tan(wl/c); // analog (s-splane) lower cutoff
+  wua = c*tan(wu/c); // analog (s-splane) upper cutoff
 
-   wc = sqrt(wla*wua); // s-plane center frequency
-   w1 = wua - wc^2/wua; // s-plane lowpass prototype cutoff
+  wc = sqrt(wla*wua); // s-plane center frequency
+  w1 = wua - wc^2/wua; // s-plane lowpass prototype cutoff
+
+  bpbsr(s,0,Nh,fl,fu) = _;
+  bpbsr(s,1,Nh,fl,fu) = tf1sb(s,1-s,1,w1,wc);
+  bpbsr(s,O,Nh,fl,fu) = bpbsr(s,O-2,Nh,fl,fu) : tf2sb(s,0,(1-s),a1s,1,w1,wc)
+  with {
+    parity = Nh % 2;
+    S = (O-parity)/2; // current section number
+    a1s = -2*cos(-PI + (1-parity)*PI/(2*Nh) + (S-1+parity)*PI/Nh);
+  };
 };
 
+// Named special case for (temporary) backward compatibility:
+bandpass6(fl,fu) = bandpass(3,fl,fu);
+  
+//======================= Elliptic Bandpass Filters ============================
+
 //----------------------------- bandpass6e -----------------------------
-// Order 12 elliptic bandpass filter analogous to bandpass6 above.
+// Order 12 elliptic bandpass filter analogous to bandpass(6) above.
 //
 bandpass6e(fl,fu) = tf2sb(b21,b11,b01,a11,a01,w1,wc) : tf1sb(0,1,a02,w1,wc)
 with { 
@@ -672,8 +614,7 @@ with {
 };
 
 //----------------------------- bandpass12e -----------------------------
-// Sixth-order Elliptic bandpass filter analogous to bandpass6 above.
-//
+
 bandpass12e(fl,fu) = 
               tf2sb(b21,b11,b01,a11,a01,w1,wc) :
               tf2sb(b22,b12,b02,a12,a02,w1,wc) :
@@ -709,7 +650,7 @@ with { // octave script output:
   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
 };
 
-//================= Parametric Equalizers (Shelf, Peaking)  ====================
+//================= Parametric Equalizers (Shelf, Peaking)  ==================
 // REFERENCES
 // - http://en.wikipedia.org/wiki/Equalization
 // - Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
@@ -720,7 +661,7 @@ with { // octave script output:
 // - maxmsp.lib in the Faust distribution
 // - bandfilter.dsp in the faust2pd distribution 
 
-//----------------------------- low_shelf --------------------------------------
+//----------------------------- low_shelf ------------------------------------
 // First-order "low shelf" filter (gain boost|cut between dc and some frequency)
 // USAGE: lowshelf(L0,fx), where
 //  L0 = desired boost (dB) between dc and fx
@@ -728,11 +669,11 @@ with { // octave script output:
 // The gain at SR/2 is constrained to be 1.
 //
 low_shelf = low_shelf3; // default
-low_shelf1(L0,fx,x) = x + (db2linear(L0)-1)*lowpass1(fx,x);
-low_shelf3(L0,fx,x) = x + (db2linear(L0)-1)*lowpass3(fx,x);
-low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass5(fx,x);
+low_shelf1(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(1,fx,x);
+low_shelf3(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(3,fx,x);
+low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(5,fx,x);
 
-//----------------------------- high_shelf ------------------------------------
+//----------------------------- high_shelf -----------------------------------
 // First-order "high shelf" filter (gain boost|cut above some frequency)
 //
 // USAGE: high_shelf(Lpi,fx), where
@@ -741,11 +682,11 @@ low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass5(fx,x);
 // The gain at dc is constrained to be 1
 //
 high_shelf=high_shelf3; //default
-high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass1(fx,x);
-high_shelf3(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass3(fx,x);
-high_shelf5(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass5(fx,x);
+high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x);
+high_shelf3(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(3,fx,x);
+high_shelf5(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(5,fx,x);
 
-//-------------------------------- peak_eq ------------------------------------
+//-------------------------------- peak_eq -----------------------------------
 // second order "peaking equalizer" section 
 // (gain boost or cut near some frequency)
 //   Also called a "parametric equalizer" section
@@ -766,7 +707,7 @@ peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
   wx = 2*PI*fx;
 };  
 
-//------------------------------- peak_eq_cq -----------------------------------
+//------------------------------- peak_eq_cq ---------------------------------
 // Constant-Q second order "peaking equalizer" section 
 // USAGE: _ : peak_eq_cq(Lfx,fx,Q) : _;
 // where
@@ -776,7 +717,7 @@ peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
 //
 peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 
-//-------------------------- parametric_eq_demo --------------------------------
+//-------------------------- parametric_eq_demo ------------------------------
 // USAGE: _ : parametric_eq_demo: _ ;
 parametric_eq_demo = // input_signal : 
 	low_shelf(LL,FL) :
@@ -995,7 +936,7 @@ with {
   a4 = a3o4*(1-fd)/(4+fd);
 };
 
-//================= Mth-Octave Filter-Banks and Spectrum-Analyzers =============
+//================ Mth-Octave Filter-Banks and Spectrum-Analyzers ============
 // Mth-octave filter-banks and spectrum-analyzers split the input signal into a
 // bank of parallel signals, one for each spectral band. The parameters are
 //
@@ -1043,19 +984,14 @@ with {
 //------------------------- mth_octave_analyzer ----------------------------
 //
 // USAGE
-//    _ : mth_octave_analyzer  (M,ftop,N) : par(i,N,_); // default analyzer
-//    _ : mth_octave_analyzer3 (M,ftop,N) : par(i,N,_); // 3rd-order Butterworth
-//    _ : mth_octave_analyzer5 (M,ftop,N) : par(i,N,_); // 5th-order Butterworth
-//    _ : mth_octave_analyzer6e(M,ftop,N) : par(i,N,_); // 6th-order elliptic
+//  _ : mth_octave_analyzer(O,M,ftop,N) : par(i,N,_); // Oth-order Butterworth
+//  _ : mth_octave_analyzer6e(M,ftop,N) : par(i,N,_); // 6th-order elliptic
 //
 // where 
+//   O = order of filter used to split each frequency band into two
 //   M = number of band-slices per octave
 //   ftop = highest band-split crossover frequency (e.g., 20 kHz)
 //   N = total number of bands (including dc and Nyquist)
-//
-// The suffix '5'  means fifth-order Butterworth band-splitters.
-// The suffix '6e' means sixth-order elliptic band-splitters.
-// No-suffix means "default", which may change in future versions.
 //
 // ACKNOWLEDGMENT
 //  Recursive band-splitting formulation improved by Yann Orlarey.
@@ -1068,48 +1004,41 @@ mth_octave_analyzer6e(M,ftop,N) = _ <: bsplit(N-1) with {
   bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
 };
 
-// The following Butterworth analyzers may be cascaded with allpass
+// Butterworth analyzers may be cascaded with allpass
 // delay-equalizers to make (allpass-complementary) filter banks:
 
-mth_octave_analyzer3(M,ftop,N) = _ <: bsplit(N-1) with {
+mth_octave_analyzer(O,M,ftop,N) = _ <: bsplit(N-1) with {
   fc(n) = ftop * 2^(float(n-N+1)/float(M));
-  lp(n) = lowpass3(fc(n)); // 3rd-order Butterworth
-  hp(n) = highpass3(fc(n));
+  lp(n) = lowpass(O,fc(n)); // Order O Butterworth
+  hp(n) = highpass(O,fc(n));
   bsplit(0)  = _; 
   bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
 };
 
-mth_octave_analyzer5(M,ftop,N) = _ <: bsplit(N-1) with {
-  fc(n) = ftop * 2^(float(n-N+1)/float(M));
-  lp(n) = lowpass5(fc(n)); // 5th-order Butterworth
-  hp(n) = highpass5(fc(n));
-  bsplit(0)  = _; 
-  bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
-};
+mth_octave_analyzer3(M,ftop,N) = mth_octave_analyzer(3,M,ftop,N);
+mth_octave_analyzer5(M,ftop,N) = mth_octave_analyzer(5,M,ftop,N);
+mth_octave_analyzer_default = mth_octave_analyzer6e; // default analyzer
 
-mth_octave_analyzer = mth_octave_analyzer6e; // default analyzer
-
-//---------------------- mth_octave_filterbank[3|3i|5] ------------------------
+//------------------------ mth_octave_filterbank -------------------------
 // Allpass-complementary filter banks based on Butterworth band-splitting.
 // For Butterworth band-splits, the needed delay equalizer is easily found.
 
-mth_octave_filterbank3(M,ftop,N) = 
-    mth_octave_analyzer3(M,ftop,N) : 
+mth_octave_filterbank(O,M,ftop,N) = 
+    mth_octave_analyzer(O,M,ftop,N) : 
     delayeq(N) with {
   fc(n) = ftop * 2^(float(n-N+1)/float(M)); // -3dB crossover frequencies
-  ap(n) = highpass3_plus_lowpass3(fc(n)); // delay-equalizing allpass
+  ap(n) = highpass_plus_lowpass(O,fc(n));   // delay-equalizing allpass
   delayeq(N) = par(i,N-2,apchain(i+1)), _, _;
   apchain(i) = seq(j,N-1-i,ap(j+1));
 };
 
-// dc-inverted version.  This cuts the delay-equalizer order in half.
-// Note that you can negate the input signal so that the dc band is noninverting
-// and all higher bands become sign-inverted (if preferred).
-mth_octave_filterbank3i(M,ftop,N) = 
-    mth_octave_analyzer3(M,ftop,N) : 
-    delayeqi(N) with {
+// dc-inverted version.  This reduces the delay-equalizer order for odd O.
+// Negating the input signal makes the dc band noninverting
+//   and all higher bands sign-inverted (if preferred).
+mth_octave_filterbank_alt(O,M,ftop,N) = 
+    mth_octave_analyzer(O,M,ftop,N) : delayeqi(O,N) with {
   fc(n) = ftop * 2^(float(n-N+1)/float(M)); // -3dB crossover frequencies
-  ap(n) = highpass3_minus_lowpass3(fc(n)); // half the order of 'plus' case
+  ap(n) = highpass_minus_lowpass(O,fc(n)); // half the order of 'plus' case
   delayeqi(N) = par(i,N-2,apchain(i+1)), _, *(-1.0);
   apchain(i) = seq(j,N-1-i,ap(j+1));
 };
@@ -1117,18 +1046,10 @@ mth_octave_filterbank3i(M,ftop,N) =
 // Note that even-order cases require complex coefficients.
 // See Vaidyanathan 1993 and papers cited there for more info.
 
-mth_octave_filterbank5(M,ftop,N) = 
-    mth_octave_analyzer5(M,ftop,N) : 
-    delayeq(N) with {
-  fc(n) = ftop * 2^(float(n-N+1)/float(M)); // -3dB crossover frequencies
-  ap5(n) = highpass5_plus_lowpass5(fc(n)); // delay-equalizing allpass
-  delayeq(N) = par(i,N-2,apchain(i+1)), _, _;
-  apchain(i) = seq(j,N-1-i,ap5(j+1));
-};
+mth_octave_filterbank3(M,ftop,N) = mth_octave_filterbank_alt(3,M,ftop,N);
+mth_octave_filterbank5(M,ftop,N) = mth_octave_filterbank(5,M,ftop,N);
 
-// No dc-inverted '5i' version, because the noninverted version is more efficient
-
-mth_octave_filterbank = mth_octave_filterbank5;  // default filterbank
+mth_octave_filterbank_default = mth_octave_filterbank5;
 
 //======================= Mth-Octave Spectral Level =========================
 // Spectral Level: Display (in bar graphs) the average signal level in each 
@@ -1156,16 +1077,16 @@ mth_octave_spectral_level6e(M,ftop,N,tau,dB_offset) = _<:
      [tooltip: See Faust's filter.lib for documentation and references]", x);
 };
 
-mth_octave_spectral_level = mth_octave_spectral_level6e; // default choice
+mth_octave_spectral_level_default = mth_octave_spectral_level6e;
 spectral_level = mth_octave_spectral_level(2,10000,20);  // simplest case
 
-//---------------------- mth_octave_spectral_level_demo ------------------------
+//---------------------- mth_octave_spectral_level_demo ----------------------
 // Demonstrate mth_octave_spectral_level in a standalone GUI.
 //
 // USAGE:  _ : mth_octave_spectral_level_demo(BandsPerOctave);
 
 mth_octave_spectral_level_demo(M) = 
-  mth_octave_spectral_level(M,ftop,N,tau,dB_offset) 
+  mth_octave_spectral_level_default(M,ftop,N,tau,dB_offset) 
 with {
   // Span nearly 10 octaves so that lowest band-edge is at 
   // ftop*2^(-Noct+2) = 40 Hz when ftop=10 kHz:
@@ -1182,12 +1103,12 @@ with {
 
 spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 
-//---------------- (third|half)_octave_(analyzer|filterbank) -------------------
+//---------------- (third|half)_octave_(analyzer|filterbank) -----------------
 
 // Named special cases of mth_octave_* with defaults filled in:
 
-third_octave_analyzer(N) = mth_octave_analyzer(3,10000,N);
-third_octave_filterbank(N) = mth_octave_filterbank(3,10000,N);
+third_octave_analyzer(N) = mth_octave_analyzer_default(3,10000,N);
+third_octave_filterbank(N) = mth_octave_filterbank_default(3,10000,N);
 // Third-Octave Filter-Banks have been used in audio for over a century.
 // See, e.g.,
 //   Acoustics [the book], by L. L. Beranek
@@ -1196,17 +1117,18 @@ third_octave_filterbank(N) = mth_octave_filterbank(3,10000,N);
 
 // Third-octave bands across the audio spectrum are too wide for current
 // typical computer screens, so half-octave bands are the default:
-half_octave_analyzer(N) = mth_octave_analyzer(2,10000,N);
-half_octave_filterbank(N) = mth_octave_filterbank(2,10000,N);
+half_octave_analyzer(N) = mth_octave_analyzer_default(2,10000,N);
+half_octave_filterbank(N) = mth_octave_filterbank_default(2,10000,N);
 
-octave_filterbank(N) = mth_octave_filterbank(1,10000,N); // yet more compact
-octave_analyzer(N) = mth_octave_analyzer(1,10000,N);
+octave_filterbank(N) = mth_octave_filterbank_default(1,10000,N);
+octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);
 
-//=========================== Filter-Bank Demos ===============================
+//=========================== Filter-Bank Demos ==============================
 // Graphic Equalizer: Each filter-bank output signal routes through a fader.
 //
-// USAGE: _ : mth_octave_filterbank_demo(M) : _; 
-// where M = number of bands per octave
+// USAGE: _ : mth_octave_filterbank_demo(M) : _
+// where 
+//   M = number of bands per octave
 
 mth_octave_filterbank_demo(M) = bp1(bp,mthoctavefilterbankdemo) with {
    bp1 = component("effect.lib").bypass1;
@@ -1217,7 +1139,8 @@ mth_octave_filterbank_demo(M) = bp1(bp,mthoctavefilterbankdemo) with {
    N = 10*M; // total number of bands (highpass band, octave-bands, dc band)
    ftop = 10000;
    mthoctavefilterbankdemo = chan;
-   chan = mth_octave_filterbank(M,ftop,N) : sum(i,N,(*(db2linear(fader(N-i)))));
+   chan = mth_octave_filterbank_default(M,ftop,N) : 
+          sum(i,N,(*(db2linear(fader(N-i)))));
    fader(i) = slider_group(vslider("[%2i] [unit:dB]
               [tooltip: Bandpass filter gain in dB]", -10, -70, 10, 0.1)) : 
               smooth(0.999);
@@ -1227,77 +1150,66 @@ mth_octave_filterbank_demo(M) = bp1(bp,mthoctavefilterbankdemo) with {
 
 filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 
-//=========== Arbritary-Crossover Filter-Banks and Spectrum Analyzers ==========
+//=========== Arbritary-Crossover Filter-Banks and Spectrum Analyzers ========
 // These are similar to the Mth-octave filter-banks above, except that the
 // band-split frequencies are passed explicitly as arguments. 
 //
 // USAGE:
-//    _ : filterbank3 (freqs) : par(i,N,_);
-//    _ : filterbank3i(freqs) : par(i,N,_);
-//    _ : filterbank5 (freqs) : par(i,N,_);
-//    _ : analyzer3   (freqs) : par(i,N,_);
-//    _ : analyzer5   (freqs) : par(i,N,_);
+//    _ : filterbank (O,freqs) : par(i,N,_); // Butterworth band-splits
+//    _ : filterbanki(O,freqs) : par(i,N,_); // Inverted-dc version 
+//    _ : analyzer   (O,freqs) : par(i,N,_); // No delay equalizer
 //
-// where freqs = (fc1,fc2,...,fcNs) [in numerically ascending order], and
-// Ns=N-1 is the number of octave band-splits (total number of bands N=Ns+1). If
-// frequencies are listed explicitly as arguments, enclose them in parens, e.g.,
+// where 
+//   O     = band-split filter order (ODD integer required for filterbank[i])
+//   freqs = (fc1,fc2,...,fcNs) [in numerically ascending order], where
+//           Ns=N-1 is the number of octave band-splits 
+//           (total number of bands N=Ns+1). 
+// 
+// If frequencies are listed explicitly as arguments, enclose them in parens:
 //
-//    _ : filterbank3((fc1,fc2)) : _,_,_
+//    _ : filterbank(3,(fc1,fc2)) : _,_,_
 //
 // ACKNOWLEDGMENT
 //    Technique for processing a variable number of signal arguments due
 //    to Yann Orlarey (as is the entire Faust framework!)
 //
-//----------------------------- filterbank3 -------------------------------
-
-analyzer3(lfreqs) = _ <: bsplit(nb) with
+//------------------------------ analyzer --------------------------------------
+analyzer(O,lfreqs) = _ <: bsplit(nb) with
 {
    nb = count(lfreqs);
    fc(n) = take(n, lfreqs);
-   lp(n) = lowpass3(fc(n));  // 3rd-order Butterworth
-   hp(n) = highpass3(fc(n));
+   lp(n) = lowpass(O,fc(n));
+   hp(n) = highpass(O,fc(n));
    bsplit(0) = _;
    bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
 };
 
-filterbank3(lfreqs) = analyzer3(lfreqs) : delayeq with
+//----------------------------- filterbank -------------------------------------
+filterbank(O,lfreqs) = analyzer(O,lfreqs) : delayeq with
 {
    nb = count(lfreqs);
    fc(n) = take(n, lfreqs);
-   ap(n) = highpass3_plus_lowpass3(fc(n));
+   ap(n) = highpass_plus_lowpass(O,fc(n));
    delayeq = par(i,nb-1,apchain(nb-1-i)),_,_;
    apchain(0) = _;
    apchain(i) =  ap(i) : apchain(i-1);
 };
 
-filterbank3i(lfreqs) = _ <: bsplit(nb) with
+//----------------------------- filterbanki ------------------------------------
+filterbanki(O,lfreqs) = _ <: bsplit(nb) with
 {
    fc(n) = take(n, lfreqs);
-   lp(n) = lowpass3(fc(n));  // 3rd-order Butterworth
-   hp(n) = highpass3(fc(n));
-   ap(n) = highpass3_minus_lowpass3(fc(n));
+   lp(n) = lowpass(O,fc(n));
+   hp(n) = highpass(O,fc(n));
+   ap(n) = highpass_minus_lowpass(O,fc(n));
    bsplit(0) = *(-1.0);
    bsplit(i) = (hp(i) : delayeq(i-1)), (lp(i) <: bsplit(i-1));
    delayeq(0) = _; // moving the *(-1) here inverts all outputs BUT dc
    delayeq(i) =  ap(i) : delayeq(i-1);
 };
 
-analyzer5(lfreqs) = _ <: bsplit(nb) with
-{
-   nb = count(lfreqs);
-   fc(n) = take(n, lfreqs);
-   lp(n) = lowpass5(fc(n));  // 5th-order Butterworth
-   hp(n) = highpass5(fc(n));
-   bsplit(0) = _;
-   bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
-};
-
-filterbank5(lfreqs) = analyzer5(lfreqs) : delayeq with
-{
-   nb = count(lfreqs);
-   fc(n) = take(n, lfreqs);
-   ap(n) = highpass5_plus_lowpass5(fc(n));
-   delayeq = par(i,nb-1,apchain(nb-1-i)),_,_;
-   apchain(0) = _;
-   apchain(i) =  ap(i) : apchain(i-1);
-};
+//--- named special cases for (temporary) backward compatibility:
+analyzer3(lfreqs) = analyzer(3,lfreqs);
+analyzer5(lfreqs) = analyzer(5,lfreqs);
+filterbank3(lfreqs) = filterbank(3,lfreqs);
+filterbank5(lfreqs) = filterbank(5,lfreqs);
