@@ -39,10 +39,10 @@ struct interval
 	double	lo;				///< minimal value
 	double	hi;				///< maximal value
 	
-	interval ()						: valid(false), lo(-HUGE_VAL), hi(HUGE_VAL) { }
-	interval (double n) 			: valid(true), lo(n), hi(n) { }
+    interval ()						: valid(false), lo(-HUGE_VAL), hi(HUGE_VAL) {}
+    interval (double n) 			: valid(true), lo(n), hi(n) {}
 	interval (double n, double m) 	: valid(true), lo(min(n,m)), hi(max(n,m)) {}
-	interval (const interval& r)	: valid(r.valid), lo(r.lo), hi(r.hi) { }
+    interval (const interval& r)	: valid(r.valid), lo(r.lo), hi(r.hi) {}
 	
 	bool isconst() { return valid & (lo == hi); }
 };
@@ -108,7 +108,14 @@ inline interval operator%(const interval& x, const interval& y)
 			: interval();
 }
 
-inline int bitmask (double x)	{ return (1 << (int(log2(x))+1)) - 1; }
+/**
+ * Convert a number 1bbb..b into a bit mask 1111..1 of same width
+ */
+inline int bitmask (double x)	{
+    int v = int(x);
+    for (int i=1; i<32; i*=2)   { v |= v>>i; }
+    return v;
+}
 
 //----------------------booleans&bits--------------------------------------
 
