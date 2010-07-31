@@ -68,14 +68,14 @@ SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 	fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 %f %f\" width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n", largeur, hauteur, largeur*gScale, hauteur*gScale);
 
     if (gShadowBlur) {
-     fprintf(fic_repr,
-        "<defs>\n"
-        "   <filter id=\"filter\" filterRes=\"50\" x=\"0\" y=\"0\">\n"
-        "     <feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"1.5\"/>\n"
-        "     <feOffset dx=\"1\" dy=\"1\"/>\n"
-        "   </filter>\n"
-        "</defs>\n"
-        );
+		 fprintf(fic_repr,
+		    "<defs>\n"
+		    "   <filter id=\"filter\" filterRes=\"18\" x=\"0\" y=\"0\">\n"
+		    "     <feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"1.55\" result=\"blur\"/>\n"
+		    "     <feOffset in=\"blur\" dx=\"3\" dy=\"3\"/>\n"
+		    "   </filter>\n"
+		    "</defs>\n"
+		    );
     }
 
 }
@@ -95,7 +95,7 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
 	}
 	// draw the shadow
     if (gShadowBlur) {
-        fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:#888888;;filter:url(#filter);\"/>\n",x+1,y+1,l,h);
+        fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0.1\" ry=\"0.1\" style=\"stroke:none;fill:#aaaaaa;;filter:url(#filter);\"/>\n",x+1,y+1,l,h);
     } else {
         fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:#cccccc;\"/>\n",x+1,y+1,l,h);
     }
