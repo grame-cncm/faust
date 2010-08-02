@@ -558,7 +558,7 @@ Automaton *make_pattern_matcher(Tree R)
     }
   }
 #ifdef DEBUG
-  cout << "automaton " << A << endl << *A << "end automaton" << endl;
+  cerr << "automaton " << A << endl << *A << "end automaton" << endl;
 #endif
   return A;
 }
@@ -609,7 +609,7 @@ static int apply_pattern_matcher_internal(Automaton *A, int s, Tree X,
 	if (X==x) {
 	  /* transition on constant */
 #ifdef DEBUG
-	  cout << "state " << s << ", " << *x << ": goto state " << t->state->s << endl;
+      cerr << "state " << s << ", " << *x << ": goto state " << t->state->s << endl;
 #endif
 	  add_subst(subst, A, s);
 	  s = t->state->s;
@@ -620,7 +620,7 @@ static int apply_pattern_matcher_internal(Automaton *A, int s, Tree X,
 	if (isBoxPatternOp(X, op1, x0, x1) && op == op1) {
 	  /* transition on operation symbol */
 #ifdef DEBUG
-	  cout << "state " << s << ", " << op << ": goto state " << t->state->s << endl;
+      cerr << "state " << s << ", " << op << ": goto state " << t->state->s << endl;
 #endif
 	  add_subst(subst, A, s);
 	  s = t->state->s;
@@ -637,13 +637,13 @@ static int apply_pattern_matcher_internal(Automaton *A, int s, Tree X,
     t = A->trans(s).begin();
     if (t->is_var_trans()) {
 #ifdef DEBUG
-	  cout << "state " << s << ", _: goto state " << t->state->s << endl;
+      cerr << "state " << s << ", _: goto state " << t->state->s << endl;
 #endif
       add_subst(subst, A, s);
       s = t->state->s;
     } else {
 #ifdef DEBUG
-      cout << "state " << s << ", *** match failed ***" << endl;
+      cerr << "state " << s << ", *** match failed ***" << endl;
 #endif
       s = -1;
     }
@@ -667,7 +667,7 @@ int apply_pattern_matcher(Automaton *A,		// automaton
   vector<Subst> subst(n, Subst());
   /* perform matching, record variable substitutions */
 #ifdef DEBUG
-  cout << "automaton " << A << ", state " << s << ", start match on arg: " << *X << endl;
+  cerr << "automaton " << A << ", state " << s << ", start match on arg: " << *X << endl;
 #endif
   s = apply_pattern_matcher_internal(A, s, X, subst);
   C = nil;
@@ -686,7 +686,7 @@ int apply_pattern_matcher(Automaton *A,		// automaton
 	  if (Z != Z1) {
 	    /* failed nonlinearity, add to the set of nonviable rules */
 #ifdef DEBUG
-	  cout << "state " << s << ", rule #" << r->r << ": " <<
+      cerr << "state " << s << ", rule #" << r->r << ": " <<
 	    *assoc->id << " := " << *Z1 << " *** failed *** old value: " <<
 	    *Z << endl;
 #endif
@@ -695,7 +695,7 @@ int apply_pattern_matcher(Automaton *A,		// automaton
 	} else {
 	  /* bind a variable for the current rule */
 #ifdef DEBUG
-	  cout << "state " << s << ", rule #" << r->r << ": " <<
+      cerr << "state " << s << ", rule #" << r->r << ": " <<
 	    *assoc->id << " := " << *Z1 << endl;
 #endif
 	  E[r->r] = pushValueDef(assoc->id, Z1, E[r->r]);
@@ -711,19 +711,19 @@ int apply_pattern_matcher(Automaton *A,		// automaton
 	/* return the rhs of the matched rule */
 	C = closure(A->rhs[r->r], nil, nil, E[r->r]);
 #ifdef DEBUG
-	cout << "state " << s << ", complete match yields rhs #" << r->r <<
+    cerr << "state " << s << ", complete match yields rhs #" << r->r <<
 	  ": " << *A->rhs[r->r] << endl;
 #endif
 	return s;
       }
     /* if none of the rules were matched then declare a failed match */
 #ifdef DEBUG
-    cout << "state " << s << ", *** match failed ***" << endl;
+    cerr << "state " << s << ", *** match failed ***" << endl;
 #endif
     return -1;
   }
 #ifdef DEBUG
-  cout << "state " << s << ", successful incomplete match" << endl;
+  cerr << "state " << s << ", successful incomplete match" << endl;
 #endif
   return s;
 }
