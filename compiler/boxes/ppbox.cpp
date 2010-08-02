@@ -267,7 +267,7 @@ ostream& boxpp::print (ostream& fout) const
 		while (!isNil(rules)) { printRule(fout, hd(rules)); rules = tl(rules); }
 		fout << "}";	 
 	}
-#if 0
+#if 1
 	// more useful for debugging output
 	else if (isBoxPatternVar(box, ident)) {
 		fout << "<" << boxpp(ident) << ">";	
