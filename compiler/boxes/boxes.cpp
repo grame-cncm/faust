@@ -46,6 +46,7 @@
 #include "boxes.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
+#include "xtended.hh"
 
 
 /*****************************************************************************
@@ -382,8 +383,6 @@ bool isBoxVSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& ste
 	}
 }
 
-
-
 Sym BOXNUMENTRY = symbol ("BoxNumEntry");
 Tree boxNumEntry   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 											{ return tree(BOXNUMENTRY, lbl, list4(cur,min,max,step));		}
@@ -442,9 +441,148 @@ Sym BOXCASE 		= symbol ("BoxCase");
 Sym BOXPATMATCHER 	= symbol ("BoxPatMatcher");
 Sym BOXPATVAR 		= symbol ("BoxPatVar");
 
-Tree boxCase 	 (Tree rules)				{ return tree(BOXCASE, rules); 					}
+/**
+ * Prepare a "pattern" by replacing variables x by special
+ * pattern variables ?x.
+ *
+ * P[x]     -> ?x
+ * P[x(e)]  -> x(P[e])
+ * P[e(f)]  -> P[e](P[f])
+ * P[e:f]   -> P[e]:P[f]
+ * etc.
+ */
+static Tree preparePattern(Tree box)
+{
+//    cerr << "preparePattern(" << boxpp(box) << ")" << endl;
+
+        int		id;
+        double	r;
+        prim0	p0;
+        prim1	p1;
+        prim2	p2;
+        prim3	p3;
+        prim4	p4;
+        prim5	p5;
+
+        Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg,
+                body, fun, args, ldef, slot,
+                ident, rules;
+
+        xtended* xt = (xtended*) getUserData(box);
+
+
+        // primitive elements
+             if (xt) 						return box;
+        else if (isBoxIdent(box))           return boxPatternVar(box);
+        else if (isBoxAppl(box, fun, args))	{
+                if (isBoxIdent(fun))        return boxAppl( fun, lmap(preparePattern,args));
+                else                        return boxAppl( preparePattern(fun), lmap(preparePattern,args));
+            }
+        else if (isBoxAbstr(box,arg,body))	return box;
+        else if (isBoxInt(box))             return box;
+        else if (isBoxReal(box, &r))		return box;
+        else if (isBoxCut(box))				return box;
+        else if (isBoxWire(box))			return box;
+        else if (isBoxPrim0(box, &p0))		return box;
+        else if (isBoxPrim1(box, &p1))		return box;
+        else if (isBoxPrim2(box, &p2))		return box;
+        else if (isBoxPrim3(box, &p3))		return box;
+        else if (isBoxPrim4(box, &p4))		return box;
+        else if (isBoxPrim5(box, &p5))		return box;
+
+        else if (isBoxWithLocalDef(box, body, ldef))	return boxWithLocalDef(preparePattern(body), ldef);
+
+
+        // foreign elements
+        else if (isBoxFFun(box, ff))		return box;
+        else if (isBoxFConst(box, type, name, file))
+                                            return box;
+        else if (isBoxFVar(box, type, name, file))
+                                            return box;
+
+        // block diagram binary operator
+        else if (isBoxSeq(box, t1, t2))		return boxSeq( preparePattern(t1), preparePattern(t2) );
+        else if (isBoxSplit(box, t1, t2))	return boxSplit( preparePattern(t1), preparePattern(t2) );
+        else if (isBoxMerge(box, t1, t2)) 	return boxMerge( preparePattern(t1), preparePattern(t2) );
+        else if (isBoxPar(box, t1, t2)) 	return boxPar( preparePattern(t1), preparePattern(t2) );
+        else if (isBoxRec(box, t1, t2)) 	return boxRec( preparePattern(t1), preparePattern(t2) );
+
+        // iterative block diagram construction
+        else if (isBoxIPar(box, t1, t2, t3)) 	return boxIPar ( t1, t2, preparePattern(t3) );
+        else if (isBoxISeq(box, t1, t2, t3)) 	return boxISeq ( t1, t2, preparePattern(t3) );
+        else if (isBoxISum(box, t1, t2, t3)) 	return boxISum ( t1, t2, preparePattern(t3) );
+        else if (isBoxIProd(box, t1, t2, t3)) 	return boxIProd( t1, t2, preparePattern(t3) );
+
+        // user interface
+        else if (isBoxButton(box, label))       return box;
+        else if (isBoxCheckbox(box, label))     return box;
+
+        else if (isBoxVSlider(box, label, cur, min, max, step)) 	return box;
+        else if (isBoxHSlider(box, label, cur, min, max, step)) 	return box;
+
+        else if (isBoxVGroup(box, label, t1))   return boxVGroup(label, preparePattern(t1));
+        else if (isBoxHGroup(box, label, t1))   return boxHGroup(label, preparePattern(t1));
+        else if (isBoxTGroup(box, label, t1))   return boxTGroup(label, preparePattern(t1));
+
+        else if (isBoxHBargraph(box, label, min, max))              return box;
+        else if (isBoxVBargraph(box, label, min, max))              return box;
+        else if (isBoxNumEntry(box, label, cur, min, max, step))    return box;
+
+        else if (isNil(box))                    return box;
+        else if (isList(box))                   return lmap(preparePattern, box);
+        else if (isBoxEnvironment(box))         return box;
+        /* not expected
+        else if (isClosure(box, abstr, genv, vis, lenv)) {
+            fout << "closure[" << boxpp(abstr)
+                << ", genv = " << envpp(genv)
+                << ", lenv = " << envpp(lenv)
+                << "]";
+        }
+        */
+        else if (isBoxComponent(box, label))        return box;
+        else if (isBoxAccess(box, t1, t2))          return box;
+
+        /* not expected
+        else if (isImportFile(box, label)) {
+            fout << "import("
+                << tree2str(label) << ')';
+        }
+        */
+
+
+        else if (isBoxSlot(box, &id))               return box;
+        else if (isBoxSymbolic(box, slot, body))    return box;
+
+        // Pattern Matching Extensions
+        else if (isBoxCase(box, rules))             return box;
+        else if (isBoxPatternVar(box, ident))       return box;
+
+
+        // None of the previous tests succeded, then it is not a valid box
+        else {
+            cerr << "Error in preparePattern() : " << *box << " is not a valid box" << endl;
+            exit(1);
+        }
+
+
+   return box;
+}
+
+static Tree prepareRule(Tree rule)
+{
+    return cons (lmap(preparePattern,hd(rule)), tl(rule));
+}
+
+static Tree prepareRules(Tree rules) {
+    return lmap(prepareRule, rules);
+}
+
+Tree boxCaseInternal 	 (Tree rules)       { return tree(BOXCASE, rules); 					}
+Tree boxCase    (Tree rules)				{ return boxCaseInternal(prepareRules(rules));  }
+
 bool isBoxCase (Tree s)						{ Tree rules; return isTree(s, BOXCASE, rules);	}
 bool isBoxCase (Tree s, Tree& rules)		{ return isTree(s, BOXCASE, rules);				}
+
 
 Tree boxPatternVar	(Tree id)				{ return tree(BOXPATVAR, id); 					}
 bool isBoxPatternVar(Tree s, Tree& id)		{ return isTree(s, BOXPATVAR, id);				}
