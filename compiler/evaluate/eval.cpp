@@ -47,7 +47,6 @@
 #include <assert.h>
 extern SourceReader	gReader;
 extern int  gMaxNameSize;
-extern bool gPatternEvalMode;
 extern bool	gSimpleNames;
 extern bool gSimplifyDiagrams;
 // History
@@ -284,11 +283,10 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	LD.detect(cons(exp,localValEnv));
 	
 	if (!getEvalProperty(exp, localValEnv, result)) {
+        //cerr << "ENTER eval("<< *exp << ") with env " << *localValEnv << endl;
 		result = realeval(exp, visited, localValEnv);
 		setEvalProperty(exp, localValEnv, result);
-		
-		
-		
+        //cerr << "EXIT eval(" << *exp << ") IS " << *result << " with env " << *localValEnv << endl;
 		if (getDefNameProperty(exp, id)) {
 			setDefNameProperty(result, id);		// propagate definition name property 
 		}
@@ -319,7 +317,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	Tree	id;
 
 	//cerr << "EVAL " << *exp << " (visited : " << *visited << ")" << endl;
-	//cerr << "REALEVAL of " << boxpp(exp) << endl;
+    //cerr << "REALEVAL of " << *exp << endl;
 	
 	xtended* xt = (xtended*) getUserData(exp);
 
@@ -483,8 +481,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		return eval(body, visited, pushMultiClosureDefs(ldef, visited, localValEnv));
 	
 	} else if (isBoxAppl(exp, fun, arg)) {
-		return applyList(	eval(fun, visited, localValEnv),
-							revEvalList(arg, visited, localValEnv) );
+        return applyList( eval(fun, visited, localValEnv),
+						  revEvalList(arg, visited, localValEnv) );
 
     } else if (isBoxAbstr(exp)) {
         // it is an abstraction : return a closure
@@ -538,7 +536,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	//---------------------------
 	
 	} else if (isBoxCase(exp, rules)) {
-		return evalCase(rules, localValEnv);
+        return evalCase(rules, localValEnv);
 
 	} else if (isBoxPatternVar(exp, id)) {
 		return exp;
@@ -1007,6 +1005,8 @@ static Tree applyList (Tree fun, Tree larg)
 
 	prim2	p2;
 
+    //cerr << "applyList (" << *fun << ", " << *larg << ")" << endl;
+
 	if (isNil(larg)) return fun;
 
 	if (isBoxError(fun) || isBoxError(larg)) {
@@ -1019,7 +1019,9 @@ static Tree applyList (Tree fun, Tree larg)
 		vector<Tree>	envVect;
 		
 		list2vec(envList, envVect);
+        //cerr << "applyList/apply_pattern_matcher(" << automat << "," << state << "," << *hd(larg) << ")" << endl;
 		state2 = apply_pattern_matcher(automat, state, hd(larg), result, envVect);
+        //cerr << "state2 = " << state2 << "; result = " << *result << endl;
 		if (state2 >= 0 && isNil(result)) {
 			// we need to continue the pattern matching
 			return applyList(
@@ -1123,11 +1125,15 @@ static Tree applyList (Tree fun, Tree larg)
  */
 static Tree revEvalList (Tree lexp, Tree visited, Tree localValEnv)
 {
-	Tree result = nil;
-	while (!isNil(lexp)) {
+    Tree result = nil;
+    //Tree lexp_orig = lexp;
+    //cerr << "ENTER revEvalList(" << *lexp_orig << ", env:" << *localValEnv << ")" << endl;
+    while (!isNil(lexp)) {
 		result = cons(eval(hd(lexp), visited, localValEnv), result);
 		lexp = tl(lexp);
 	}
+
+    //cerr << "EXIT revEvalList(" << *lexp_orig << ", env:" << *localValEnv << ") -> " << *result << endl;
 	return result;
 }
 
@@ -1175,13 +1181,12 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
 	// check that the definition exists
 	if (isNil(lenv)) {
-		if (gPatternEvalMode) return boxPatternVar(id);
-		cerr << "undefined symbol " << *id << endl;
+        cerr << "undefined symbol " << *id << endl;
 		evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol ", id);
 		exit(1);
-//		return id;
 	}
 
+    //cerr << "Id definition is " << *def << endl;
 	// check that it is not a recursive definition
 	Tree p = cons(id,lenv);
 	// set the definition name property
@@ -1239,8 +1244,8 @@ static Tree	evalCase(Tree rules, Tree env)
 	Tree pm;
 	if (!getPMProperty(rules, env, pm)) {
 		Automaton*	a = make_pattern_matcher(evalRuleList(rules, env));
-		pm = boxPatternMatcher(a, 0, listn(len(rules), env), rules, nil);
-		setPMProperty(rules, env, pm);
+        pm = boxPatternMatcher(a, 0, listn(len(rules), pushEnvBarrier(env)), rules, nil);
+        setPMProperty(rules, env, pm);
 	}
 	return pm;
 }		
@@ -1251,6 +1256,7 @@ static Tree	evalCase(Tree rules, Tree env)
  */
 static Tree	evalRuleList(Tree rules, Tree env)
 {
+    //cerr << "evalRuleList "<< *rules << " in " << *env << endl;
 	if (isNil(rules)) return nil;
 	else return cons(evalRule(hd(rules), env), evalRuleList(tl(rules), env));
 }
@@ -1261,6 +1267,7 @@ static Tree	evalRuleList(Tree rules, Tree env)
  */
 static Tree	evalRule(Tree rule, Tree env)
 {
+    //cerr << "evalRule "<< *rule << " in " << *env << endl;
 	return cons(evalPatternList(left(rule), env), right(rule));
 }
 
@@ -1280,16 +1287,13 @@ static Tree	evalPatternList(Tree patterns, Tree env)
 
 
 /**
- * Evaluates a pattern using a special mode
- * so that free variables are wrapped into a boxPatternVar 
+ * Evaluates a pattern and simplify it to numerical value 
+ * if possible 
  */
 static Tree	evalPattern(Tree pattern, Tree env)
 {
-	bool saveMode = gPatternEvalMode;
-	gPatternEvalMode = true;
-	Tree p = eval(pattern, nil, env);
-	gPatternEvalMode = saveMode;
-	return patternSimplification(p);
+    Tree p = eval(pattern, nil, env);
+    return patternSimplification(p);
 }
 
 
