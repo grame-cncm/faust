@@ -59,16 +59,6 @@ void setSigListNickName (Tree lsig, const string& nickname);
 void setSigNickname(Tree t, const string& id);
 bool getSigNickname(Tree t, Tree& id);
 
-/**
- * Search the environment for the definition of a symbol
- * ID and return it. 
- * @param id the symbol ID to search
- * @param def where to store the definition if any
- * @param lenv the environment
- * @return true if a definition was found
- */
-bool searchIdDef(Tree id, Tree& def, Tree lenv);
-
 
 /**
  * Push a new layer and add a single definition.
