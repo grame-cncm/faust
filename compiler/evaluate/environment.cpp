@@ -29,6 +29,36 @@ static Tree pushNewLayer(Tree lenv)
 }
 
 
+
+/**
+ * Push a new environment barrier on top of an existing environment so
+ * that searchIdDef (used by the pattern matcher) will not look after
+ * the barrier. This barrier will not any influence on regular environment
+ * lookup.
+ * @param lenv the old environment
+ * @return the new environment
+*/
+Sym BARRIER = symbol ("BARRIER");
+
+Tree pushEnvBarrier(Tree lenv)
+{
+    return tree(BARRIER, lenv);
+}
+
+
+/**
+ * Test if the environment is a barrier (or nil) so
+ * that searchIdDef will know where to stop when searching
+ * an environment.
+ * @param lenv the environment to test
+ * @return true is barrier reached
+*/
+bool isEnvBarrier(Tree lenv)
+{
+    return isNil(lenv) || (lenv->node() == Node(BARRIER));
+}
+
+
 /**
  * Add a definition (as a property) to the current top level layer. Check
  * and warn for multiple definitions.
@@ -94,8 +124,9 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
 
 
 /**
- * Search the environment for the definition of a symbol
- * ID and return it.
+ * Search the environment (until first barrier) for
+ * the definition of a symbol ID and return it. Used by the
+ * pattern matcher.
  * @param id the symbol ID to search
  * @param def where to store the definition if any
  * @param lenv the environment
@@ -104,11 +135,12 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
 bool searchIdDef(Tree id, Tree& def, Tree lenv)
 {
     // search the environment until a definition is found
-    // or nil (the empty environment) is reached
-    while (!isNil(lenv) && !getProperty(lenv, id, def)) {
+    // or a barrier (or nil) is reached
+
+    while (!isEnvBarrier(lenv) && !getProperty(lenv, id, def)) {
         lenv = lenv->branch(0);
     }
-    return !isNil(lenv);
+    return !isEnvBarrier(lenv);
 }
 
 /**

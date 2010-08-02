@@ -12,4 +12,9 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv);
 
 Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv);
 
+bool isEnvBarrier(Tree t);
+
+Tree pushEnvBarrier(Tree lenv);
+
+
 #endif // ENVIRONMENT_HH
