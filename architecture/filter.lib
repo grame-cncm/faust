@@ -389,6 +389,10 @@ with {
   };
 };
 
+//--- named special cases for (temporary) backward compatibility:
+lowpass1 = lowpass(1);
+highpass1 = highpass(1);
+
 //========== Special Filter-Bank Delay-Equalizing Allpass Filters ===========
 //
 // These special allpass filters are needed by filterbank et al. below.
@@ -547,6 +551,7 @@ with {
 // Order 2*Nh Butterworth bandpass filter made using the transformation
 // s <- s + wc^2/s on lowpass(Nh), where wc is the desired bandpass center 
 // frequency.  The lowpass(Nh) cutoff w1 is half the desired bandpass width.
+// A notch-like "bandstop" filter is similarly made from highpass(Nh).
 //
 // USAGE: 
 //   _ : bandpass(Nh,fl,fu) : _
