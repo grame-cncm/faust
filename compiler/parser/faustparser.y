@@ -89,8 +89,8 @@ Tree unquote(char* str)
 
 /* Block Diagram Algebra */
 /*%left SEQ SPLIT MIX*/
-%left SPLIT MIX
-%left SEQ
+%right SPLIT MIX
+%right SEQ
 %right PAR
 %left REC
 

@@ -820,7 +820,7 @@ static const char * evalLabel (const char* label, Tree visited, Tree localValEnv
  * Iterate a parallel construction
  *
  * Iterate a parallel construction such that :
- * par(i,10,E) --> E(i<-0),E(i<-1),...,E(i<-9)
+ * par(i,10,E) --> E(i<-0),(E(i<-1),...,E(i<-9))
  * @param id the formal parameter of the iteration
  * @param num the number of iterartions
  * @param body the body expression of the iteration
@@ -847,7 +847,7 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localVal
  * Iterate a sequential construction
  *
  * Iterate a sequential construction such that :
- * seq(i,10,E) --> E(i<-0):E(i<-1):...:E(i<-9)
+ * seq(i,10,E) --> E(i<-0):(E(i<-1):...:E(i<-9))
  * @param id the formal parameter of the iteration
  * @param num the number of iterartions
  * @param body the body expression of the iteration
@@ -859,11 +859,10 @@ static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localVal
 {
 	assert (num>0);
 
-	Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
-
-	for (int i = 1; i < num; i++) {
-		res = boxSeq(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv)));
-	}
+    Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
+    for (int i = num-2; i >= 0; i--) {
+        res = boxSeq(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
+    }
 
 	return res;
 }

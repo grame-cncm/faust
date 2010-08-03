@@ -6,7 +6,7 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS := -O3 -Wall -Wuninitialized -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS := -g -Wall -Wuninitialized -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 all : faust
 
@@ -51,7 +51,9 @@ boxes/boxcomplexity.o: parallelize/graphSorting.hh signals/sigvisitor.hh signals
 boxes/boxcomplexity.o: documentator/lateq.hh boxes/boxcomplexity.h boxes/boxes.hh
 boxes/boxes.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxes.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
-boxes/boxes.o: tlib/smartpointer.hh signals/interval.hh
+boxes/boxes.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
+boxes/boxes.o: tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh
+boxes/boxes.o: documentator/lateq.hh
 boxes/boxtype.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxtype.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
 boxes/boxtype.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
@@ -289,9 +291,9 @@ normalize/privatise.o: normalize/privatise.hh
 normalize/simplify.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh signals/signals.hh tlib/tlib.hh tlib/num.hh
 normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 normalize/simplify.o: signals/recursivness.hh signals/sigtyperules.hh signals/sigorderrules.hh signals/sigprint.hh
-normalize/simplify.o: normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
-normalize/simplify.o: parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh
-normalize/simplify.o: tlib/compatibility.hh normalize/normalize.hh
+normalize/simplify.o: signals/ppsig.hh normalize/simplify.hh extended/xtended.hh generator/klass.hh generator/uitree.hh
+normalize/simplify.o: tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh signals/sigvisitor.hh
+normalize/simplify.o: documentator/lateq.hh tlib/compatibility.hh normalize/normalize.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 parallelize/graphSorting.o: parallelize/graphSorting.hh parallelize/loop.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
