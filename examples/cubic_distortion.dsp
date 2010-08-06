@@ -1,8 +1,8 @@
-import("osc.lib");
-import("filter.lib");
-import("effect.lib");
+ol = library("osc.lib");
+fl = library("filter.lib");
+el = library("effect.lib");
 process = 
-// oscr_demo : cubicnl_demo : spectral_level_demo <: _,_;
-   vgroup("[1]",oscr_demo) : 
-   vgroup("[2]",cubicnl_demo) : 
-   vgroup("[3]",spectral_level_demo) <: _,_;
+// ol.oscr_demo : el.cubicnl_demo : fl.spectral_level_demo <: _,_;
+   vgroup("[1]",ol.oscr_demo) : 
+   vgroup("[2]",el.cubicnl_demo) : 
+   vgroup("[3]",fl.spectral_level_demo) <: _,_;

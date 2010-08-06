@@ -1,11 +1,12 @@
-import("osc.lib");
-import("filter.lib");
-import("effect.lib");
+ol = library("osc.lib");
+el = library("effect.lib");
+fl = library("filter.lib");
 
 process = 
-// sawtooth_demo <: gate_demo : compressor_demo :> spectral_level_demo <: _,_;
-   vgroup("[1]",sawtooth_demo) <:
-   vgroup("[2]",gate_demo) : 
-   vgroup("[3]",compressor_demo) :>
-   vgroup("[4]",spectral_level_demo) <:
+// ol.sawtooth_demo <: 
+//      el.gate_demo : el.compressor_demo :> fl.spectral_level_demo <: _,_;
+   vgroup("[1]", ol.sawtooth_demo) <:
+   vgroup("[2]", el.gate_demo) : 
+   vgroup("[3]", el.compressor_demo) :>
+   vgroup("[4]", fl.spectral_level_demo) <:
     _,_;

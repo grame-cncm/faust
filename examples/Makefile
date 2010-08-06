@@ -247,7 +247,8 @@ help:
 	@echo "make svg           : generate the examples block-diagrams in SVG format "
 	@echo "make mathdoc       : generate the examples math documentation in TEX and PDF formats "
 	@echo "make bench         : compile examples as command line benchmarks "
-	@echo "make plot          : compile examples as command line programs that plot samples with matlab "
+	@echo "make plot          : compile examples as command line programs that print samples for plotting  with, e.g., gnuplot"
+	@echo "make matlabplot    : compile examples as command line programs that print samples in matlab input format"
 	@echo "--------------------------------------------"
 	@echo "make clean         : remove all object files"
 

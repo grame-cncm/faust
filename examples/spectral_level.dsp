@@ -1,5 +1,6 @@
 // Spectrum analyzer
 
-import("filter.lib");
+fl = library("filter.lib");
+
 BandsPerOctave = 3; // third-octave filter bank
-process = mth_octave_spectral_level_demo(BandsPerOctave) <: _,_;
+process = fl.mth_octave_spectral_level_demo(BandsPerOctave) <: _,_;

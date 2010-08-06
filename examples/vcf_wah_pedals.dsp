@@ -1,11 +1,14 @@
-import("osc.lib");
-import("filter.lib");
-import("effect.lib");
-// process = sawtooth_demo : crybaby_demo : moog_vcf_demo : wah4_demo : spectral_level_demo <: _,_;
+ol = library("osc.lib");
+fl = library("filter.lib");
+el = library("effect.lib");
+
+// process = ol.sawtooth_demo : 
+//    el.crybaby_demo : el.moog_vcf_demo : el.wah4_demo : 
+//    fl.spectral_level_demo <: _,_;
 process = 
- vgroup("[1]",sawtooth_demo) : 
- vgroup("[2]",crybaby_demo) : 
- vgroup("[3]",wah4_demo) : 
- vgroup("[4]",moog_vcf_demo) : 
- vgroup("[5]",spectral_level_demo) <:
+ vgroup("[1]", ol.sawtooth_demo) : 
+ vgroup("[2]", el.crybaby_demo) : 
+ vgroup("[3]", el.wah4_demo) : 
+ vgroup("[4]", el.moog_vcf_demo) : 
+ vgroup("[5]", fl.spectral_level_demo) <:
   _,_;
