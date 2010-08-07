@@ -1,6 +1,7 @@
-\documentclass[a4paper]{book}
+\documentclass[a4paper,10pt]{book}
 
-\usepackage{latexsym, amssymb}
+%\usepackage{latexsym, amssymb}
+\usepackage{latexsym}
 \usepackage{graphicx}
 %\usepackage{longtable}
 \usepackage{supertabular}
@@ -11,9 +12,26 @@
 \usepackage{xspace}
 \usepackage{pdfpages}
 \usepackage[rounded]{syntax}
-\usepackage{hyperref}
+\usepackage{hyperref} 
 \usepackage{listings}
-\usepackage[usenames]{color} 
+\usepackage[usenames,dvipsnames]{color} 
+
+\usepackage[tc]{titlepic}
+\usepackage{sectsty}
+% \usepackage{times}
+\usepackage[urw-garamond]{mathdesign}
+\usepackage{fncychap}
+\usepackage{fancyhdr}
+
+\fancyhead{} % clear all header fields
+\fancyheadoffset[LE,RO]{\marginparsep+\marginparwidth}
+\fancyhead[RO,LE]{\thepage}
+\fancyhead[LO]{\rightmark}
+\fancyhead[RE]{\leftmark}
+\renewcommand{\headrulewidth}{0.1pt}
+
+\fancyfoot{}
+
 
 \hypersetup{%
             colorlinks = true, %true, false
@@ -24,10 +42,11 @@
 \urlstyle{sf} %rm
 \newcommand{\myurl}[1]{\textcolor{blue}{\underbar{\url{#1}}}}
 
-\relax
+%%% MY COLORS
+\definecolor{yoheader}{rgb}{0.71,0.01,0.0}
 
-\begin{document}
-
+%%%% margin par
+\definecolor{margincolor}{rgb}{0.52,0.02,0.02} % grey red.
 \definecolor{yobg}{rgb}{0.9,0.9,1}
 \definecolor{yotxt}{rgb}{0.01,0.01,0.52}
 \definecolor{mylstcmt}{rgb}{0.01,0.52,0.01} % a dark green.
@@ -36,6 +55,33 @@
 %\definecolor{mylsteqn}{rgb}{0.80,0.80,0.30} % a medium pink.
 \definecolor{mylstkey}{rgb}{0.52,0.01,0.01} % a dark red.
 %%\newcommand{\farg}[1]{\textrm{\textit{#1}}}
+
+\setlength{\marginparwidth}{1.2in}
+\let\oldmarginpar\marginpar
+\renewcommand\marginpar[1]{\-\oldmarginpar[\raggedleft\color{margincolor}\footnotesize #1]%
+{\raggedright\color{margincolor}\footnotesize #1}}
+
+
+
+% \relax
+
+\begin{document} 
+\ChRuleWidth{1pt}
+% \ChNumVar{\raggedleft\fontsize{80}{82}\sffamily\bfseries\color{yoheader}}
+\ChNumVar{\raggedleft\Huge\color{yoheader}}
+%\ChTitleVar{\raggedleft\fontsize{60}{62}\sffamily\it\color{yoheader}}
+\ChTitleVar{\raggedleft\sffamily\fontsize{30}{32}\bf\color{yoheader}}
+
+%\chapterfont{\sffamily\color{yoheader}}
+%\sectionfont{\sffamily\color{yoheader}}
+%\subsectionfont{\sffamily\color{yoheader}}
+%\subsubsectionfont{\sffamily\color{yoheader}}
+
+\chapterfont{\color{yoheader}}
+\sectionfont{\color{yoheader}}
+\subsectionfont{\color{yoheader}}
+\subsubsectionfont{\color{yoheader}}
+
 
 % parameters for listings
 \lstset{
@@ -61,9 +107,12 @@
 
 \lstloadlanguages{C++,[LaTeX]TeX}
 
-\title{\faust Quick Reference}
+\titlepic{
+  \includegraphics[width=3cm]{images/logo-faust-v5}
+}
+\title{\Huge\color{yoheader}FAUST Quick Reference\\\Large(version 0.9.29)}
 \author{\textsc{Grame}\\Centre National de Cr\'eation Musicale}
-\date{June 2010}
+\date{August 2010}
 
 
 % \railalias{recur}{$\sim$}
@@ -112,7 +161,7 @@ Various principles have guided the design of \faust :
 
 \begin{itemize}
 
-\item \faust is a \textit{specification language}. It aims at providing an adequate notation to describe \textit{signal processors} from a mathematical point of view. It is, as much as possible, free from implementation details. 
+\item \faust is a \textit{specification language}. It aims at providing an adequate notation to describe \textit{signal processors} from a mathematical point of view. \faust is, as much as possible, free from implementation details. 
 
 \item \faust programs are fully compiled, not interpreted. The compiler translates \faust programs into equivalent C++ programs taking care of generating the most efficient code. The result can generally compete with, and sometimes even outperform, C++ code written by seasoned programmers. 
 
@@ -127,13 +176,17 @@ Various principles have guided the design of \faust :
 \end{itemize}
 
 \section{Signal Processor Semantic}
-A \faust program describes a \emph{signal processor}. The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
+A \faust program describes a \emph{signal processor}. 
+The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
+Most audio equipments can be modeled as \emph{signal processors}. 
+They have audio inputs, audio outputs as well as control signals interfaced with sliders, knobs, vu-meters, etc. 
 
 More precisely :
 
 \begin{itemize}
 
-\item A \emph{signal} $s$ is a discrete function of time $s:\mathbb{N}\rightarrow\mathbb{R}$. 
+\item A \emph{signal} $s$ is a discrete function of time $s:\mathbb{N}\rightarrow\mathbb{R}$
+\marginpar{\faust considers two type of signals: \emph{integer signals} ($s:\mathbb{N}\rightarrow\mathbb{Z}$) and \emph{floating point signals} ($s:\mathbb{N}\rightarrow\mathbb{Q}$). Exchanges with the outside world are, by convention, made using floating point signals. The full range is represented by sample values between -1.0 and +1.0.}. 
 The value of signal $s$ at time $t$ is written $s(t)$. 
 The set $\mathbb{S}=\mathbb{N}\rightarrow\mathbb{R}$ is the set of all possible  signals.
 
@@ -154,15 +207,15 @@ Numbers are signal processors too. For example the number $3$ has signature  $\m
 
 \chapter{Compiling and installing \faust}
 
-The \faust source distribution \lstinline'faust-0.9.10.tar.gz' can be downloaded from sourceforge (\myurl{http://sourceforge.net/projects/faudiostream/}).
+The \faust source distribution \lstinline'faust-0.9.29.tar.gz' can be downloaded from sourceforge (\myurl{http://sourceforge.net/projects/faudiostream/}).
 
 \section{Organization of the distribution}
 The first thing is to decompress the downloaded archive. 
 \begin{lstlisting}
-	tar xzf faust-0.9.10.tar.gz
+	tar xzf faust-0.9.29.tar.gz
 \end{lstlisting}
 
-The resulting  \lstinline'faust-0.9.10/' folder should contain the following elements:
+The resulting  \lstinline'faust-0.9.29/' folder should contain the following elements:
 
 \begin{tabular}{ll}
 	\lstinline'architecture/' 		&\faust libraries and architecture files\\
@@ -180,24 +233,24 @@ The resulting  \lstinline'faust-0.9.10/' folder should contain the following ele
 \section{Compilation}
 \faust has no dependencies outside standard libraries. Therefore the compilation should be straightforward. There is no configuration phase, to compile the \faust compiler simply do :
 \begin{lstlisting}
-	cd faust-0.9.10/
+	cd faust-0.9.29/
 	make
 \end{lstlisting}
 
 If the compilation was successful you can test the compiler before installing it:
 \begin{lstlisting}
-	[cd faust-0.9.10/]
+	[cd faust-0.9.29/]
 	./compiler/faust -v
 \end{lstlisting}
 It should output:
 \begin{lstlisting}
-	FAUST, DSP to C++ compiler, Version 0.9.10
+	FAUST, DSP to C++ compiler, Version 0.9.29
 	Copyright (C) 2002-2010, GRAME - Centre... 
 \end{lstlisting}
 
 Then you can also try to compile one of the examples :
 \begin{lstlisting}
-	[cd faust-0.9.10/]
+	[cd faust-0.9.29/]
 	./compiler/faust examples/noise.dsp
 \end{lstlisting}
 It should produce some C++ code on the standard output
@@ -205,12 +258,12 @@ It should produce some C++ code on the standard output
 \section{Installation}
 You can install \faust with:
 \begin{lstlisting}
-	[cd faust-0.9.10/]
+	[cd faust-0.9.29/]
 	sudo make install
 \end{lstlisting}
 or
 \begin{lstlisting}
-	[cd faust-0.9.10/]
+	[cd faust-0.9.29/]
 	su
 	make install
 \end{lstlisting}
@@ -218,7 +271,7 @@ depending on your system.
 
 
 \section{Compilation of the examples}
-Once \faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\footnote{an architecture file provides the code to connect a signal processor to the outside world (audio communications and user interface)}, either standalone audio applications or plugins.
+Once \faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\marginpar{an architecture file provides the code to connect a signal processor to the outside world (audio communications and user interface)}, either standalone audio applications or plugins.
 
 The command \lstinline'make help' will list the available targets. Before using a specific target, make sure you have the appropriate development tools, libraries and headers installed. For example to compile the examples as ALSA applications with a GTK user interface do a \lstinline'make alsagtk'. This will create a \lstinline'alsagtkdir/' subfolder with all the binaries. 
 
@@ -484,17 +537,29 @@ Moreover, formal parameters can also be full expressions representing patterns.
 
 This powerful mechanism allows to algorithmically create and manipulate block diagrams expressions. Let's say that you want to describe a function to duplicate an expression several times in parallel:
 \begin{lstlisting}
- duplicate(1,exp) = exp;
- duplicate(n,exp) = exp, duplicate(n-1,exp);
+ duplicate(1,x) = x;
+ duplicate(n,x) = x, duplicate(n-1,x);
 \end{lstlisting}
 
 Please note that this last definition is a convenient alternative to the more verbose :
 \begin{lstlisting}
  duplicate = case { 
-               (1,exp) => exp; 
-               (n,exp) => duplicate(n-1,exp); 
+               (1,x) => x; 
+               (n,x) => duplicate(n-1,x); 
              };
 \end{lstlisting}
+
+Here is another example to count the number of elements of a list. Please note that we simulate lists using parallel composition : (1,2,3,5,7,11). The main limitation of this approach is that there is no empty list. Moreover lists of only one element are represented by this element :
+\begin{lstlisting}
+ count((x,xs)) = 1+count(xs);
+ count(x) = 1;
+\end{lstlisting}
+
+If we now write \lstinline'count(duplicate(10,666))' the expression will be evaluated to \lstinline'10'.
+
+
+
+
 
  
   
@@ -548,15 +613,15 @@ Among these operations, recursion (\lstinline'~') has the highest priority and s
  
 \begin{table}[ht]
 	\centering
-	\begin{tabular}{|l|l|l|}
+	\begin{tabular}{|l|l|l|l|}
 		\hline
-		\textbf{Syntax} & \textbf{Pri.}  & \textbf{Description} \\
+		\textbf{Syntax} & \textbf{Pri.}  & \textbf{Assoc.}  & \textbf{Description} \\
 		\hline
-		\texttt{\farg{expression}\ $\sim$\ \farg{expression}}		& 4 & recursive composition     \\
-		\texttt{\farg{expression}\ ,\ \farg{expression}}			& 3 & parallel composition      \\
-		\texttt{\farg{expression}\ :\ \farg{expression}}			& 2 & sequential composition    \\
-		\texttt{\farg{expression}\ <:\ \farg{expression}}			& 1 & split composition      	\\
-		\texttt{\farg{expression}\ :>\ \farg{expression}}			& 1 & merge composition      	\\
+		\texttt{\farg{expression}\ $\sim$\ \farg{expression}}		& 4 & left & recursive composition     \\
+		\texttt{\farg{expression}\ ,\ \farg{expression}}			& 3 & right &  parallel composition      \\
+		\texttt{\farg{expression}\ :\ \farg{expression}}			& 2 & right & sequential composition    \\
+		\texttt{\farg{expression}\ <:\ \farg{expression}}			& 1 & right & split composition      	\\
+		\texttt{\farg{expression}\ :>\ \farg{expression}}			& 1 & right & merge composition      	\\
 		\hline
 	\end{tabular}
 	\caption{Block-Diagram composition operation priorities}   
@@ -566,7 +631,9 @@ Among these operations, recursion (\lstinline'~') has the highest priority and s
 
 
 \paragraph{Parallel Composition}
-The \emph{parallel composition}  \lstinline$A,B$ (figure \ref{figure:par1}) is probably the simplest one. It places the two block-dia\-grams one on top of the other, without connections. The inputs of the resulting block-diagram are the inputs of \lstinline$A$ and \lstinline$B$. The outputs of the resulting block-diagram are the outputs of \lstinline$A$ and \lstinline$B$.
+The \emph{parallel composition}  \lstinline'(A,B)' (figure \ref{figure:par1}) is probably the simplest one. It places the two block-dia\-grams one on top of the other, without connections. The inputs of the resulting block-diagram are the inputs of \lstinline$A$ and \lstinline$B$. The outputs of the resulting block-diagram are the outputs of \lstinline$A$ and \lstinline$B$. 
+
+\emph{Parallel composition} is an associative operation : \lstinline$(A,(B,C))$ and \lstinline$((A,B),C)$ are equivalents. When no parenthesis are used : \lstinline'A,B,C,D', \faust uses right associativity and therefore build internaly the expression \lstinline$(A,(B,(C,D)))$. This organization is important to know when using pattern matching techniques on parallel compositions. 
 
 \begin{figure}[h]
 \centering
@@ -577,7 +644,7 @@ The \emph{parallel composition}  \lstinline$A,B$ (figure \ref{figure:par1}) is p
 
 
 \paragraph{Sequential Composition}
-The \emph{sequential composition}  \lstinline$A:B$ (figure \ref{figure:seq1}) connects the outputs of  $A$ to the inputs of  $B$.  $A[0]$ is connected to $[0]B$,   $A[1]$ is connected to $[1]B$, and so on. 
+The \emph{sequential composition}  \lstinline$A:B$ (figure \ref{figure:seq1}) connects the outputs of  $A$ to the corresponding inputs of  $B$.  $A[0]$ is connected to $[0]B$,   $A[1]$ is connected to $[1]B$, and so on. 
 
 \begin{figure}[h]
 \centering 
@@ -586,10 +653,11 @@ The \emph{sequential composition}  \lstinline$A:B$ (figure \ref{figure:seq1}) co
 \label{figure:seq1}
 \end{figure}
 
+\emph{Sequential composition} is an associative operation : \lstinline$(A:(B:C))$ and \lstinline$((A:B):C)$ are equivalents. When no parenthesis are used, like in \lstinline$A:B:C:D$, \faust uses right associativity and therefore build internaly the expression \lstinline$(A:(B:(C:D)))$.
 
 \paragraph{Split Composition}
 The \emph{split composition}  \lstinline$A<:B$ (figure \ref{figure:split1}) operator is used to distribute the outputs
-of $A$ to the inputs of $B$
+of $A$ to the inputs of $B$.
 
 \begin{figure}[h]
 \centering 
@@ -598,9 +666,11 @@ of $A$ to the inputs of $B$
 \label{figure:split1}
 \end{figure}
 
+For the operation to be valid the number of inputs of $B$ must be a multiple of the number of outputs of $A$. To explain how the connections are made, let says that $\mathrm{inputs}(B) = k.\mathrm{outputs}(A)$. Each input $i$ of $B$ is connected to the output $i \bmod k$ of $A$ : $A[i \bmod k]\rightarrow\ [i]B$.
+
 
 \paragraph{Merge Composition}
-The \emph{merge composition}  \lstinline$A:>B$ (figure \ref{figure:merge1})is used to connect several outputs
+The \emph{merge composition}  \lstinline$A:>B$ (figure \ref{figure:merge1}) is used to connect several outputs
 of  $A$ to the same inputs of $B$. 
 
 \begin{figure}[h]
@@ -610,9 +680,11 @@ of  $A$ to the same inputs of $B$.
 \label{figure:merge1}
 \end{figure}
  
+For the operation to be valid the number of outputs of $A$ must be a multiple of the number of inputs of $B$. To explain how the connections are made, let says that $\mathrm{outputs}(A) = k.\mathrm{inputs}(B)$. Each output $i$ of $A$ is connected to the input $i \bmod k$ of $B$ : $A[i]\rightarrow\ [i \bmod k]B$.
+
 
 \paragraph{Recursive Composition}
-    The \emph{recursive composition} \lstinline'A~B' (figure \ref{figure:rec1})is used to create cycles in the block-diagram in order to express recursive computations.
+    The \emph{recursive composition} \lstinline'A~B' (figure \ref{figure:rec1}) is used to create cycles in the block-diagram in order to express recursive computations.
     
     \begin{figure}[h]
     \centering 
@@ -621,6 +693,7 @@ of  $A$ to the same inputs of $B$.
     \label{figure:rec1}
     \end{figure}
  
+
 
 
 %Let's see these composition operations in action with two simple examples (figure \ref{fig:integrator}). 
@@ -750,9 +823,9 @@ process = @(hslider("delay",0, 0, 100, 1));
 \end{lstlisting}
 
 \subsection{Environment expressions}
-An \textit{environment} is a kind of dictionnary used to keep track of the definitions of a set of symbols. Some \faust expressions, like \textit{functions}, are bounded to their lexical environment in a structure called a \textit{closure}. Closures allow functions to keep their original meaning independently of where they are used. 
+\faust is a lexically scoped language. The meaning of a \faust expression is determined by its context of definition (its lexical environment) and not by its context of use. 
 
-The following constructions allow to explicitely create and access such environments.
+To keep their original meaning, \faust expressions are bounded to their lexical environment in structures called \textit{closures}. The following constructions allow to explicitely create and access such environments. Moreover they provide powerful means to reuse existing code and promote modular design.
 
 \begin{grammar}
   <envexp> ::= 
@@ -1123,7 +1196,7 @@ The compiler will start by replacing \lstinline'mono' by its definition:
 	\(fx).(_ <: fx :> _)(harmonizer)
 \end{lstlisting}
 
-Whenever the \faust compiler find an application of an abstraction it replaces the variable part with the argument \footnote{This is called $\beta$-reduction in Lambda-Calculus}. The resulting expression is as expected:
+Whenever the \faust compiler find an application of an abstraction it replaces\marginpar{Replacing the \emph{variable part} with the argument is called $\beta$-reduction in Lambda-Calculus} the \emph{variable part} with the argument. The resulting expression is as expected:
 \begin{lstlisting}
 	(_ <: harmonizer :> _)
 \end{lstlisting}
@@ -2330,7 +2403,7 @@ As you can see on the resulting file \lstinline!noisemetadata.pdf! on its pages 
 \section{Localization of mathdoc files}
 \label{sec:localization-mdoc}
 
-By default, texts used by the documentator are in English, but you can specify another language (French and Italian for the moment), using the \lstinline!-mdlang! (or \lstinline!--mathdoc-lang!) option with a two-letters argument (\lstinline!en!, \lstinline!fr!, \lstinline!it!, etc.).
+By default, texts used by the documentator are in English, but you can specify another language (French, German and Italian for the moment), using the \lstinline!-mdlang! (or \lstinline!--mathdoc-lang!) option with a two-letters argument (\lstinline!en!, \lstinline!fr!, \lstinline!it!, etc.).
 
 The \lstinline!faust2mathdoc! script also supports this option, plus a third short form with \lstinline!-l!:
 \begin{lstlisting}
@@ -2339,7 +2412,7 @@ faust2mathdoc -l fr myfaustfile.dsp
 
 If you'd like to contribute to the localization effort, feel free to translate the mathdoc texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.). As these files are dynamically loaded, simply adding a new file with an appropriate name should work.
 
-\includepdf[pages=-, frame=true, nup=2x2]{images/noisemetadata}
+\includepdf[pages=-, frame=true, deltax=20mm, angle=-90, scale=0.75, nup=1x2]{images/noisemetadata}
 
 
 \section{Summary of the mathdoc generation steps}
