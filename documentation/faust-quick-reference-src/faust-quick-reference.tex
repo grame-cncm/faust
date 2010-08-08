@@ -7,21 +7,22 @@
 \usepackage{supertabular}
 %\usepackage{tabularx}
 %\usepackage{tabulary}
-%\usepackage{rail}
-%\railoptions{-t -h}
 \usepackage{xspace}
 \usepackage{pdfpages}
-\usepackage[rounded]{syntax}
+%\usepackage[rounded]{syntax}
 \usepackage{hyperref} 
 \usepackage{listings}
 \usepackage[usenames,dvipsnames]{color} 
 
-\usepackage[tc]{titlepic}
+\usepackage[cc]{titlepic}
 \usepackage{sectsty}
 % \usepackage{times}
 \usepackage[urw-garamond]{mathdesign}
 \usepackage{fncychap}
 \usepackage{fancyhdr}
+
+\usepackage{rail}
+\railoptions{-t -h}
 
 \fancyhead{} % clear all header fields
 \fancyheadoffset[LE,RO]{\marginparsep+\marginparwidth}
@@ -107,27 +108,27 @@
 
 \lstloadlanguages{C++,[LaTeX]TeX}
 
-\titlepic{
-  \includegraphics[width=3cm]{images/logo-faust-v5}
-}
+% \titlepic{
+%   \includegraphics[width=15cm]{images/bandeau-faust}
+% }
 \title{\Huge\color{yoheader}FAUST Quick Reference\\\Large(version 0.9.29)}
 \author{\textsc{Grame}\\Centre National de Cr\'eation Musicale}
 \date{August 2010}
 
 
-% \railalias{recur}{$\sim$}
-% \railalias{lbrace}{\{}
-% \railalias{rbrace}{\}}
-% \railalias{dollar}{\$}
-% \railalias{mod}{\%}
-% \railalias{arobase}{@}
-% \railalias{ampersand}{\&}
-% \railalias{hat}{$\land$}
-% \railalias{kot}{'}
-% \railalias{pipe}{$|$}
-% \railalias{fdelay}{}
-% \railalias{backslash}{\char"5C}
-% \railterm{recur,lbrace,rbrace,dollar,mod,kot,arobase,ampersand,backslash,fdelay, pipe, hat}
+\railalias{recur}{$\sim$}
+\railalias{lbrace}{\{}
+\railalias{rbrace}{\}}
+\railalias{dollar}{\$}
+\railalias{mod}{\%}
+\railalias{arobase}{@}
+\railalias{ampersand}{\&}
+\railalias{hat}{$\land$}
+\railalias{kot}{'}
+\railalias{pipe}{$|$}
+\railalias{fdelay}{}
+\railalias{backslash}{\char"5C}
+\railterm{recur,lbrace,rbrace,dollar,mod,kot,arobase,ampersand,backslash,fdelay, pipe, hat}
 
 \newcommand{\farg}[1]{\textrm{\textit{#1}}}
 \newcommand{\ldbrack}{[\![ \,}
@@ -271,7 +272,7 @@ depending on your system.
 
 
 \section{Compilation of the examples}
-Once \faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\marginpar{an architecture file provides the code to connect a signal processor to the outside world (audio communications and user interface)}, either standalone audio applications or plugins.
+Once \faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\marginpar{An architecture file provides the code needed to connect a signal processor to the outside world. It typically defines the audio communications and user interface.}, either standalone audio applications or plugins.
 
 The command \lstinline'make help' will list the available targets. Before using a specific target, make sure you have the appropriate development tools, libraries and headers installed. For example to compile the examples as ALSA applications with a GTK user interface do a \lstinline'make alsagtk'. This will create a \lstinline'alsagtkdir/' subfolder with all the binaries. 
 
@@ -293,16 +294,11 @@ As we will see, \textit{definitions} and \textit{expressions} have a central rol
 
 A \faust program is essentially a list of \textit{statements}. These statements can be \textit{declarations}, \textit{imports}, \textit{definitions} and \textit{documentation tags}, with optional C++ style (//... and /*...*/) comments.
  
-\begin{grammar}
-  <program> ::= 
-  \begin{syntdiag}
-    \begin{rep}
-      <statement>
-    \end{rep}
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+program : (statement)+;
+\end{rail}
 
-Here is a short \faust program that implements of a simple noise generator. It exhibits the various kind of statements : two \textit{declarations}, an \textit{import}, a \textit{comment} and a \textit{definition}.
+Here is a short \faust program that implements of a simple noise generator. It exhibits various kind of statements : two \textit{declarations}, an \textit{import}, a \textit{comment} and a \textit{definition}. We will see later on \textit{documentation} statements (\ref{sec:documentation}).
 
 \begin{lstlisting}
 declare name       "noise";
@@ -319,49 +315,70 @@ The keyword \lstinline'process' is the equivalent of \lstinline'main' in C/C++. 
 
 \section{Statements}
 
-The \textit{statements} of a \faust program are of three kinds : \textit{metadata declarations}, \textit{file imports} and \textit{definitions}. All statements end with a semicolon (\lstinline';'). 
+The \textit{statements} of a \faust program are of three kinds : \textit{metadata declarations}, \textit{file imports},  \textit{definitions} and \textit{documentation}. All statements but documentation end with a semicolon (\lstinline';'). 
+% 
+% \begin{grammar}
+%   <statement> ::= 
+%   \begin{syntdiag}
+%     \begin{stack}
+%       <declaration>\\
+%       <fileimport>\\
+%       <definition>\\
+%       <documentation>
+%     \end{stack}
+%   \end{syntdiag}
+% \end{grammar}
 
-\begin{grammar}
-  <statement> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <declaration>\\
-      <fileimport>\\
-      <definition>\\
-      <documentation>
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+statement : declaration | fileimport | definition | documentation;
+\end{rail}
 
 \subsection{Declarations}
 
 Meta-data declarations (for example \lstinline'declare name "noise";') are optional and typically used to document a \faust project. 
 
-\begin{grammar}
-  <declaration> ::= 
-  \begin{syntdiag}
-    "declare" <key> <string> ";"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <declaration> ::= 
+%   \begin{syntdiag}
+%     "declare" <key> <string> ";"
+%   \end{syntdiag}
+% \end{grammar}
+% 
+% \begin{grammar}
+%   <key> ::= 
+%     <identifier>
+% \end{grammar}
 
-\begin{grammar}
-  <key> ::= 
-    <identifier>
-\end{grammar}
+\begin{rail}
+declaration : "declare" key string ';';
+key : identifier;
+\end{rail}
 
-Contrary to regular comments, these declarations will appear in the C++ code generated by the compiler.
+Contrary to regular comments, these declarations will appear in the C++ code generated by the compiler. A good practice is to start a \faust program with some standard declarations:
+\begin{lstlisting}
+declare name "MyProgram";
+declare author "MySelf";
+declare copyright "MyCompany";
+declare version "1.00";
+declare license "BSD"; 
+\end{lstlisting}
+
 
 
 \subsection{Imports}
 
 File imports allow to import definitions from other source files.  
 
-\begin{grammar}
-  <fileimport> ::= 
-  \begin{syntdiag}
-    "import"  "(" <filename> ")" ";"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <fileimport> ::= 
+%   \begin{syntdiag}
+%     "import"  "(" <filename> ")" ";"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+fileimport : "import" '(' filename ')' ';';
+\end{rail}
 
 For example \lstinline{import("math.lib");} imports the definitions of the \lstinline{math.lib} library, a set of additional mathematical functions provided as foreign functions.
 
@@ -373,93 +390,120 @@ Documentation statements are optional and typically used to control the generati
 
 A documentation statement starts with an opening \lstinline'<mdoc>' tag and ends with a closing \lstinline'</mdoc>' tag. Free text content, typically in \latex format, can be placed in between these two tags. 
 
-\begin{grammar}
-  <documentation> ::= 
-  \begin{syntdiag}
-    "<mdoc>"     
-    \begin{stack}
-      <free text>\\
-      <equation>\\
-      <diagram>\\
-      <metadata>\\
-      <notice>\\
-      <listing>
-    \end{stack}
-    "</mdoc>"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <documentation> ::= 
+%   \begin{syntdiag}
+%     "<mdoc>"     
+%     \begin{stack}
+%       <free text>\\
+%       <equation>\\
+%       <diagram>\\
+%       <metadata>\\
+%       <notice>\\
+%       <listing>
+%     \end{stack}
+%     "</mdoc>"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+documentation : "<mdoc>" ((freetext|equation|diagram|metadata|notice|listing)+) "</mdoc>";
+\end{rail}
+
 
 Moreover, optional sub-tags can be inserted in the text content itself to require the generation, at the insertion point, of mathematical \textit{equations}, graphical \textit{block-diagrams}, \faust source code \textit{listing} and explanation \textit{notice}.
 
-\begin{grammar}
-  <equation> ::= 
-  \begin{syntdiag}
-    "<equation>" <expression> "</equation>"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <equation> ::= 
+%   \begin{syntdiag}
+%     "<equation>" <expression> "</equation>"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+equation : "<equation>" expression "</equation>";
+\end{rail}
 
 The generation of the mathematical equations of a \faust expression can be requested by placing this expression between an opening \lstinline'<equation>' and a closing \lstinline'</equation>' tag. The expression is evaluated within the lexical context of the \faust program.
 
-\begin{grammar}
-  <diagram> ::= 
-  \begin{syntdiag}
-    "<diagram>" <expression> "</diagram>"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <diagram> ::= 
+%   \begin{syntdiag}
+%     "<diagram>" <expression> "</diagram>"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+diagram : "<diagram>" expression "</diagram>";
+\end{rail}
 
 Similarly, the generation of the graphical block-diagram of a \faust expression can be requested by placing this expression between an opening \lstinline'<diagram>' and a closing \lstinline'</diagram>' tag. The expression is evaluated within the lexical context of the \faust program.
 
-\begin{grammar}
-  <diagram> ::= 
-  \begin{syntdiag}
-    "<metadata>" <keyword> "</metadata>"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <diagram> ::= 
+%   \begin{syntdiag}
+%     "<metadata>" <keyword> "</metadata>"
+%   \end{syntdiag}
+% \end{grammar}
+
+
+\begin{rail}
+metadata : "<metadata>" keyword "</metadata>";
+\end{rail}
+
 
 The \lstinline'<metadata>' tags allow to reference \faust metadatas (cf. declarations), calling the corresponding keyword.
 
-\begin{grammar}
-  <notice> ::= 
-  \begin{syntdiag}
-    "<notice />"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <notice> ::= 
+%   \begin{syntdiag}
+%     "<notice />"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+notice : "<notice />";
+\end{rail}
 
 The \lstinline'<notice />' empty-element tag is used to generate the conventions used in the mathematical equations.
+% 
+% \begin{grammar}
+%   <listing> ::= 
+%   \begin{syntdiag}
+%     "<listing " 
+%     \begin{stack}
+%       \\
+%       \begin{rep}
+%         <listingattribute>
+%       \end{rep}
+%     \end{stack}
+%     " />"
+%   \end{syntdiag}
+% \end{grammar}
 
-\begin{grammar}
-  <listing> ::= 
-  \begin{syntdiag}
-    "<listing " 
-    \begin{stack}
-      \\
-      \begin{rep}
-        <listingattribute>
-      \end{rep}
-    \end{stack}
-    " />"
-  \end{syntdiag}
-\end{grammar}
-
-
-\begin{grammar}
-  <listingattribute> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      "mdoctags" \\
-      "dependencies" \\
-      "distributed"
-    \end{stack}
-    "=" "\""
-    \begin{stack}
-      "true" \\ "false"
-    \end{stack}
-    "\""
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+listing : "<listing" (listingattribute*) " />";
+listingattribute : ("mdoctags" | "dependencies" | "distributed") "=" ('"true"' | '"false"');
+\end{rail}
 
 
-The \lstinline'<listing />' empty-element tag is used to generate the listing of the \faust program. Its three attributes \lstinline'mdoctags', \lstinline'dependencies' and \lstinline'distributed' enable or disable repectively \lstinline'<mdoc>' tags, other files dependencies and distribution of interleaved faust code between \lstinline'<mdoc>' sections.
+% \begin{grammar}
+%   <listingattribute> ::= 
+%   \begin{syntdiag}
+%     \begin{stack}
+%       "mdoctags" \\
+%       "dependencies" \\
+%       "distributed"
+%     \end{stack}
+%     "=" "\""
+%     \begin{stack}
+%       "true" \\ "false"
+%     \end{stack}
+%     "\""
+%   \end{syntdiag}
+% \end{grammar}
+
+The \lstinline'<listing />' empty-element tag is used to generate the listing of the \faust program. Its three attributes \lstinline'mdoctags', \lstinline'dependencies' and \lstinline'distributed' enable or disable respectively \lstinline'<mdoc>' tags, other files dependencies and distribution of interleaved faust code between \lstinline'<mdoc>' sections.
 
 
 \section{Definitions}
@@ -472,12 +516,9 @@ Definitions are essentially a convenient shortcut avoiding to type long expressi
 
 The syntax of a simple definition is:
 
-\begin{grammar}
-  <definition> ::= 
-  \begin{syntdiag}
-    <identifier> "=" <expression> ";"
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+definition  : identifier '=' expression ';';
+\end{rail} 
 
 For example here is the definition of \lstinline'random', a simple pseudo-random number generator:
 
@@ -490,17 +531,9 @@ For example here is the definition of \lstinline'random', a simple pseudo-random
 
 Definitions with formal parameters correspond to functions definitions.
 
-
-\begin{grammar}
-  <definition> ::= 
-  \begin{syntdiag}
-    <identifier> "(" 
-    \begin{rep}
-      <parameter> \\ ","
-    \end{rep}
-    ")" "=" <expression> ";"
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+definition  : identifier '(' (parameter + ',')  ')' '=' expression ';';
+\end{rail} 
 
 For example the definition of \lstinline'linear2db', a function that converts linear values to decibels, is :
 
@@ -518,22 +551,10 @@ Please note that this notation is only a convenient alternative to the direct us
 \subsection{Definitions with pattern matching}
 
 Moreover, formal parameters can also be full expressions representing patterns. 
-
-\begin{grammar}
-  <definition> ::= 
-  \begin{syntdiag}
-    <identifier> "(" 
-    \begin{rep}
-      <pattern> \\ ","
-    \end{rep}
-    ")" "=" <expression> ";"
-  \end{syntdiag}
-\end{grammar}
-
-\begin{grammar}
-  <pattern> ::= 
-    <identifier> |  <expression>
-\end{grammar}
+\begin{rail}
+definition  : identifier '(' (pattern + ',')  ')' '=' expression ';';
+pattern : identifier | expression; 
+\end{rail}
 
 This powerful mechanism allows to algorithmically create and manipulate block diagrams expressions. Let's say that you want to describe a function to duplicate an expression several times in parallel:
 \begin{lstlisting}
@@ -567,49 +588,30 @@ If we now write \lstinline'count(duplicate(10,666))' the expression will be eval
 
 Despite its textual syntax, \faust is conceptually a block-diagram language. \faust expressions represent DSP block-diagrams and are assembled from primitive ones using various \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally \faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
 
-\begin{grammar}
-  <expression> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <diagram>\\
-      <numerical>\\
-      <time>\\
-      <lexical>\\
-      <foreign>\\
-      <lambda>
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+expression : diagram | numerical | time | lexical | foreign | lambda;
+\end{rail}
   
 \subsection{Diagram Expressions}
 
 Diagram expressions are assembled from primitive ones using either binary composition operations or high level iterative constructions.
  
-\begin{grammar}
-  <diagramexp> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <diagcomposition>\\
-      <diagiteration>
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+diagramexp : diagcomposition | diagiteration;
+\end{rail}
 
 \subsubsection{Diagram composition operations} 
-Five binary composition operations are available to combine block-diagrams : \textit{recursion}, \textit{parallel}, \textit{sequential}, \textit{split} and \textit{merge} composition.
+Five binary \emph{composition operations} are available to combine block-diagrams : \textit{recursion}, \textit{parallel}, \textit{sequential}, \textit{split} and \textit{merge} composition. One can think of each  of these composition operations as a particular way to connect two block diagrams. 
 
-\begin{grammar}
-  <diagcomposition> ::= 
-  \begin{syntdiag}
-    <expression>
-    \begin{stack}
-      "~" \\ "," \\ ":" \\ "<:" \\ ":>"
-    \end{stack}
-    <expression>
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+diagcomposition : expression (recur|','|':'|'<:'|':>') expression;
+\end{rail}
 
-Among these operations, recursion (\lstinline'~') has the highest priority and split (\lstinline'<:') and merge (\lstinline':>') the lowest (see table \ref{table:composition}).
+To describe precisely how these connections are done, we have to introduce some notation.  The number of inputs and outputs of a bloc-diagram $A$ are notated $\mathrm{inputs}(A)$ and $\mathrm{outputs}(A)$ . The inputs and outputs themselves are respectively notated : $[0]A$, $[1]A$, $[2]A$, $\ldots$ and $A[0]$, $A[1]$, $A[2]$, etc.. 
+
+For each composition operation between two block-diagrams $A$ and $B$ we will describe the connections $A[i]\rightarrow [j]B$ that are created and the constraints on their relative numbers of inputs and outputs.
+
+The priority and associativity of this five operations are given table \ref{table:composition}.
  
 \begin{table}[ht]
 	\centering
@@ -630,10 +632,11 @@ Among these operations, recursion (\lstinline'~') has the highest priority and s
  
 
 
+
 \paragraph{Parallel Composition}
 The \emph{parallel composition}  \lstinline'(A,B)' (figure \ref{figure:par1}) is probably the simplest one. It places the two block-dia\-grams one on top of the other, without connections. The inputs of the resulting block-diagram are the inputs of \lstinline$A$ and \lstinline$B$. The outputs of the resulting block-diagram are the outputs of \lstinline$A$ and \lstinline$B$. 
 
-\emph{Parallel composition} is an associative operation : \lstinline$(A,(B,C))$ and \lstinline$((A,B),C)$ are equivalents. When no parenthesis are used : \lstinline'A,B,C,D', \faust uses right associativity and therefore build internaly the expression \lstinline$(A,(B,(C,D)))$. This organization is important to know when using pattern matching techniques on parallel compositions. 
+\emph{Parallel composition} is an associative operation : \lstinline$(A,(B,C))$ and \lstinline$((A,B),C)$ are equivalents. When no parenthesis are used : \lstinline'A,B,C,D', \faust uses right associativity and therefore build internally the expression \lstinline$(A,(B,(C,D)))$. This organization is important to know when using pattern matching techniques on parallel compositions. 
 
 \begin{figure}[h]
 \centering
@@ -644,7 +647,14 @@ The \emph{parallel composition}  \lstinline'(A,B)' (figure \ref{figure:par1}) is
 
 
 \paragraph{Sequential Composition}
-The \emph{sequential composition}  \lstinline$A:B$ (figure \ref{figure:seq1}) connects the outputs of  $A$ to the corresponding inputs of  $B$.  $A[0]$ is connected to $[0]B$,   $A[1]$ is connected to $[1]B$, and so on. 
+The \emph{sequential composition}  \lstinline$A:B$ (figure \ref{figure:seq1}) expects:
+\begin{equation}
+\mathrm{outputs}(A)=\mathrm{inputs}(B)
+\end{equation}  
+It connects each output of  $A$ to the corresponding input of $B$: 
+\begin{equation}
+A[i]\rightarrow[i]B
+\end{equation}  
 
 \begin{figure}[h]
 \centering 
@@ -653,7 +663,7 @@ The \emph{sequential composition}  \lstinline$A:B$ (figure \ref{figure:seq1}) co
 \label{figure:seq1}
 \end{figure}
 
-\emph{Sequential composition} is an associative operation : \lstinline$(A:(B:C))$ and \lstinline$((A:B):C)$ are equivalents. When no parenthesis are used, like in \lstinline$A:B:C:D$, \faust uses right associativity and therefore build internaly the expression \lstinline$(A:(B:(C:D)))$.
+\emph{Sequential composition} is an associative operation : \lstinline$(A:(B:C))$ and \lstinline$((A:B):C)$ are equivalents. When no parenthesis are used, like in \lstinline$A:B:C:D$, \faust uses right associativity and therefore build internally the expression \lstinline$(A:(B:(C:D)))$.
 
 \paragraph{Split Composition}
 The \emph{split composition}  \lstinline$A<:B$ (figure \ref{figure:split1}) operator is used to distribute the outputs
@@ -666,12 +676,21 @@ of $A$ to the inputs of $B$.
 \label{figure:split1}
 \end{figure}
 
-For the operation to be valid the number of inputs of $B$ must be a multiple of the number of outputs of $A$. To explain how the connections are made, let says that $\mathrm{inputs}(B) = k.\mathrm{outputs}(A)$. Each input $i$ of $B$ is connected to the output $i \bmod k$ of $A$ : $A[i \bmod k]\rightarrow\ [i]B$.
+For the operation to be valid the number of inputs of $B$ must be a multiple of the number of outputs of $A$ : \begin{equation}
+\mathrm{outputs}(A).k=\mathrm{inputs}(B)                                                                                                                                                         \end{equation}
+Each input $i$ of $B$ is connected to the output $i \bmod k$ of $A$ : 
+\begin{equation}
+A[i \bmod k]\rightarrow\ [i]B                                                                                                                                                                                                                                                                                                                       \end{equation}
 
 
 \paragraph{Merge Composition}
-The \emph{merge composition}  \lstinline$A:>B$ (figure \ref{figure:merge1}) is used to connect several outputs
-of  $A$ to the same inputs of $B$. 
+The \emph{merge composition}  \lstinline$A:>B$ (figure \ref{figure:merge1}) is the dual of the \emph{split composition}. The number of outputs of $A$ must be a multiple of the number of inputs of $B$ : 
+\begin{equation}
+\mathrm{outputs}(A)=k.\mathrm{inputs}(B)                                                                                                                                                                                                                                                  \end{equation}
+Each output $i$ of $A$ is connected to the input $i \bmod k$ of $B$ : 
+\begin{equation}
+A[i]\rightarrow\ [i \bmod k]B                                                                                                   \end{equation} 
+The $k$ incoming signals of an input of $B$ are summed together.
 
 \begin{figure}[h]
 \centering 
@@ -679,20 +698,32 @@ of  $A$ to the same inputs of $B$.
 \caption{example of merge composition \lstinline'((10,20,30,40) :> *)'}  
 \label{figure:merge1}
 \end{figure}
- 
-For the operation to be valid the number of outputs of $A$ must be a multiple of the number of inputs of $B$. To explain how the connections are made, let says that $\mathrm{outputs}(A) = k.\mathrm{inputs}(B)$. Each output $i$ of $A$ is connected to the input $i \bmod k$ of $B$ : $A[i]\rightarrow\ [i \bmod k]B$.
 
 
 \paragraph{Recursive Composition}
-    The \emph{recursive composition} \lstinline'A~B' (figure \ref{figure:rec1}) is used to create cycles in the block-diagram in order to express recursive computations.
-    
-    \begin{figure}[h]
-    \centering 
-    \includegraphics[scale=0.7]{images/rec1} 
-    \caption{example of recursive composition \lstinline'+(12345) ~ *(1103515245)'}  
-    \label{figure:rec1}
-    \end{figure}
+The \emph{recursive composition} \lstinline'A~B' (figure \ref{figure:rec1}) is used to create cycles in the block-diagram in order to express recursive computations. It is the most complex operation in terms of connections.
+
+To be applicable it requires that :
+\begin{equation}
+\mathrm{outputs}(A) \geq \mathrm{inputs}(B) and \mathrm{inputs}(A) \geq \mathrm{outputs}(B)                                                                                               \end{equation}
+Each input of $B$ is connected to the corresponding output of $A$ via an implicit 1-sample delay : 
+\begin{equation}
+A[i]\stackrel{Z^{-1}}{\rightarrow}[i]B
+\end{equation} 
+and each output of $B$ is connected to the corresponding input of $A$:
+\begin{equation}
+B[i]\rightarrow [i]A
+\end{equation} 
+
+The inputs of the resulting block diagram are the remaining unconnected inputs of $A$. The outputs are all the outputs of $A$.
  
+\begin{figure}[h]
+\centering 
+\includegraphics[scale=0.7]{images/rec1} 
+\caption{example of recursive composition \lstinline'+(12345) ~ *(1103515245)'}  
+\label{figure:rec1}
+\end{figure}
+
 
 
 
@@ -717,17 +748,24 @@ For the operation to be valid the number of outputs of $A$ must be a multiple of
 \subsubsection{Iterations} 
 Iterations are analogous to \lstinline'for(...)' loops and provide a convenient way to automate some complex block-diagram constructions. 
 
-\begin{grammar}
-  <diagiteration> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-       "par" "(" <ident> "," <numiter> "," <expression> ")"\\
-      "seq" "(" <ident> "," <numiter> "," <expression> ")"\\
-      "sum" "(" <ident> "," <numiter> "," <expression> ")"\\
-      "prod" "(" <ident> "," <numiter> "," <expression> ")"
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <diagiteration> ::= 
+%   \begin{syntdiag}
+%     \begin{stack}
+%        "par" "(" <ident> "," <numiter> "," <expression> ")"\\
+%       "seq" "(" <ident> "," <numiter> "," <expression> ")"\\
+%       "sum" "(" <ident> "," <numiter> "," <expression> ")"\\
+%       "prod" "(" <ident> "," <numiter> "," <expression> ")"
+%     \end{stack}
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+diagiteration: "par" '(' ident ',' numiter ',' expression ')'
+           | "seq" '(' ident ',' numiter ',' expression ')'
+           | "sum" '(' ident ',' numiter ',' expression ')'
+           | "prod" '(' ident ',' numiter ',' expression ')';
+\end{rail}
 
 The following example shows the usage of  \lstinline'seq' to create a 10-bands filter:
 
@@ -739,11 +777,11 @@ process  =	seq(i, 10,
 			);
 \end{lstlisting}
 
-       
-\begin{grammar}
-  <numiter> ::= <expression>
-\end{grammar}
 
+           
+\begin{rail}
+numiter : expression;
+\end{rail}
 The number of iterations must be a constant expression. 
 
 
@@ -751,121 +789,104 @@ The number of iterations must be a constant expression.
 
 Numerical expressions are essentially syntactic sugar allowing to use a familiar infix notation to express mathematical expressions, bitwise operations and to compare signals. Please note that is this section only built-in primitives with an infix syntax are presented. A complete description of all the build-ins is available in the primitive section (see \ref{primitives}). 
 
-\begin{grammar}
-  <numerical> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <math>\\
-      <bitwise>\\
-      <comparison>
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+numerical : math | bitwise | comparison;
+\end{rail}
 
 \subsubsection{Mathematical expressions} are the familiar 4 operations as well as the modulo and power operations
-
-\begin{grammar}
-  <math> ::= 
-  \begin{syntdiag}
-    <expression>
-    \begin{stack}
-      "+" \\ "-" \\ "*" \\ "/" \\ "\%" \\ "^"
-    \end{stack}
-    <expression>
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+math : expression ('+'|'-'|'*'|'/'|'\%'|hat) expression;
+\end{rail}
+ 
 
 \subsubsection{Bitwise expressions} are the boolean operations and the left and right arithmetic shifts.
 
-\begin{grammar}
-  <bitwise> ::= 
-  \begin{syntdiag}
-    <expression>
-    \begin{stack}
-      "|" \\ "\&" \\ "xor" \\ "<<" \\ ">>"
-    \end{stack}
-    <expression>
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+bitwise : expression (pipe|ampersand|'xor'|'<<' |'>>') expression;
+\end{rail}
 
 \subsubsection{Comparison} operations allow to compare signals and result in a boolean signal that is 1 when the condition is true and 0 when the condition is false.
 
-\begin{grammar}
-  <bitwise> ::= 
-  \begin{syntdiag}
-    <expression>
-    \begin{stack}
-      "<" \\ "<=" \\ ">" \\ ">=" \\ "==" \\ "!="
-    \end{stack}
-    <expression>
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+comparison : expression ('<'|'<='|'>'|'>='|'=='|'!=') expression;
+\end{rail}
+
 
 
 \subsection{Time expressions}
 
 Time expressions are used to express delays. The notation \lstinline'X@10' represent the signal \lstinline'X' delayed by 10 samples. The notation \lstinline"X'" represent the signal X delayed by one sample and is therefore equivalent to \lstinline'X@1'.
 
-\begin{grammar}
-  <time> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <expression> "@" <expression> \\ 
-      <expression> "'"
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+time : expression arobase expression|expression kot; 
+\end{rail}
 
-The delay don't have to be fixed, but it must be positive and bounded. The values of a slider are perfectcly acceptable as in the following example:
+The delay don't have to be fixed, but it must be positive and bounded. The values of a slider are perfectly acceptable as in the following example:
 
 \begin{lstlisting}
-process = @(hslider("delay",0, 0, 100, 1));
+process = _ @ hslider("delay",0, 0, 100, 1);
 \end{lstlisting}
 
 \subsection{Environment expressions}
 \faust is a lexically scoped language. The meaning of a \faust expression is determined by its context of definition (its lexical environment) and not by its context of use. 
 
-To keep their original meaning, \faust expressions are bounded to their lexical environment in structures called \textit{closures}. The following constructions allow to explicitely create and access such environments. Moreover they provide powerful means to reuse existing code and promote modular design.
+To keep their original meaning, \faust expressions are bounded to their lexical environment in structures called \textit{closures}. The following constructions allow to explicitly create and access such environments. Moreover they provide powerful means to reuse existing code and promote modular design.
 
-\begin{grammar}
-  <envexp> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <expression> "with" "\{"
-        \begin{rep}
-          <definition>
-        \end{rep}
-        "\}" \\ 
-      "environment" "\{"
-        \begin{rep}
-          <definition>
-        \end{rep}
-        "\}" \\ 
-      <expression> "." <ident> \\
-      "library" "(" <filename> ")" \\
-      "component" "(" <filename> ")" \\ 
-      <expression> "["
-        \begin{rep}
-          <definition>
-        \end{rep}
-        "]"
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <envexp> ::= 
+%   \begin{syntdiag}
+%     \begin{stack}
+%       <expression> "with" "\{"
+%         \begin{rep}
+%           <definition>
+%         \end{rep}
+%         "\}" \\ 
+%       "environment" "\{"
+%         \begin{rep}
+%           <definition>
+%         \end{rep}
+%         "\}" \\ 
+%       <expression> "." <ident> \\
+%       "library" "(" <filename> ")" \\
+%       "component" "(" <filename> ")" \\ 
+%       <expression> "["
+%         \begin{rep}
+%           <definition>
+%         \end{rep}
+%         "]"
+%     \end{stack}
+%   \end{syntdiag}
+% \end{grammar}
+
+
+
+\begin{rail}
+envexp :    expression 'with' lbrace (definition+) rbrace
+          | 'environment' lbrace (definition+) rbrace
+		  | expression '.' ident
+          | 'library' '(' filename ')'
+          | 'component' '(' filename ')'
+          | expression '[' (definition+) ']';         
+\end{rail}
 
 \subsubsection{With} 
 The \lstinline'with' construction allows to specify a \textit{local environment}, a private list of definition that will be used to evaluate the left hand expression
 
-\begin{grammar}
-  <withexpression> ::= 
-  \begin{syntdiag}
-      <expression> "with" "\{"
-        \begin{rep}
-          <definition>
-        \end{rep}
-        "\}"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <withexpression> ::= 
+%   \begin{syntdiag}
+%       <expression> "with" "\{"
+%         \begin{rep}
+%           <definition>
+%         \end{rep}
+%         "\}"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+withexpression : expression 'with' lbrace (definition+) rbrace;
+\end{rail}
+
 
 In the following example :
 \begin{lstlisting}
@@ -889,16 +910,20 @@ Please note that \lstinline'with' is left associative and has the lowest priorit
 
 The \lstinline'environment' construction allows to create an explicit environment. It is like a \lstinline'with', but without the left hand expression. It is a convenient way to group together related definitions, to isolate groups of definitions and to create a name space hierarchy. 
 
-\begin{grammar}
-  <environment> ::= 
-  \begin{syntdiag}
-      "environment" "\{"
-        \begin{rep}
-          <definition>
-        \end{rep}
-        "\}"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <environment> ::= 
+%   \begin{syntdiag}
+%       "environment" "\{"
+%         \begin{rep}
+%           <definition>
+%         \end{rep}
+%         "\}"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+environment : 'environment' lbrace (definition+) rbrace; 
+\end{rail}
 
 In the following example an \lstinline'environment' construction is used to group together some constant definitions :
 
@@ -915,12 +940,16 @@ The  \lstinline'.' construction allows to access the definitions of an environme
 Definitions inside an environment can be accessed using 
 the '.' construction. 
 
-\begin{grammar}
-  <access> ::= 
-  \begin{syntdiag}
-      <expression> "." <ident>
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <access> ::= 
+%   \begin{syntdiag}
+%       <expression> "." <ident>
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+access :    expression '.' ident;       
+\end{rail}
 
 For example \lstinline'constant.pi' refers to the definition of \lstinline'pi' in the above \lstinline'constant' environment.
 
@@ -932,26 +961,40 @@ Please note that environment don't have to be named. We could have written direc
 \subsubsection{Library} 
 The \lstinline'library' construct allows to create an environment by reading the definitions from a file.
 
-\begin{grammar}
-  <library> ::= 
-  \begin{syntdiag}
-      "library" "(" <filename> ")"
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+library :    'library' '(' filename ')';
+\end{rail}
 
 For example \lstinline'library("filter.lib")' represents the environment 
-obtained by reading the file "filter.lib". It works like \lstinline'import("filter.lib")' but all the read definitions are stored in a new separate lexical environment. Individual definitions can be accessed as described in the previous paragraph. For example \lstinline'library("filter.lib").lowpass2' denotes the function \lstinline'lowpass2' as defined in the file \lstinline'"filter.lib"'.
+obtained by reading the file "filter.lib". It works like \lstinline'import("filter.lib")' but all the read definitions are stored in a new separate lexical environment. Individual definitions can be accessed as described in the previous paragraph. For example \lstinline'library("filter.lib").lowpass' denotes the function \lstinline'lowpass' as defined in the file \lstinline'"filter.lib"'.
+
+To avoid name conflicts when importing libraries it is recommended to prefer \lstinline'library' to \lstinline'import'. So instead of :
+
+\begin{lstlisting}
+import("filter.lib");
+  ...
+...lowpass....
+	...
+};
+\end{lstlisting}
+the following will ensure an absence of conflicts : 
+\begin{lstlisting}
+fl = library("filter.lib");
+  ...
+...fl.lowpass....
+	...
+};
+\end{lstlisting}
+
+
 
 
 \subsubsection{Component} 
 The \lstinline'component(...)' construction allows to reuse a full \faust program as a simple expression.
 
-\begin{grammar}
-  <component> ::= 
-  \begin{syntdiag}
-    "component" "(" <filename> ")"
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+component :    'component' '(' filename ')';
+\end{rail}
 
  For example \lstinline'component("freeverb.dsp")' denotes the signal processor defined in file "freeverb.dsp". 
  
@@ -967,16 +1010,20 @@ The \lstinline'component(...)' construction allows to reuse a full \faust progra
 
 Explicit substitution can be used to customize a component or any expression with a lexical environment by replacing some of its internal definitions, without having to modify it.
 
-\begin{grammar}
-  <explicitsubst> ::= 
-  \begin{syntdiag}
-      <expression> "["
-        \begin{rep}
-          <definition>
-        \end{rep}
-        "]"
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <explicitsubst> ::= 
+%   \begin{syntdiag}
+%       <expression> "["
+%         \begin{rep}
+%           <definition>
+%         \end{rep}
+%         "]"
+%   \end{syntdiag}
+% \end{grammar}
+
+\begin{rail}
+explicitsubst : expression "[" (definition+) "]";
+\end{rail}
 
 For example we can create a customized version of \lstinline'component("freeverb.dsp")', with a different definition of \lstinline'foo(x)', by writing :
 \begin{lstlisting}
@@ -988,17 +1035,12 @@ For example we can create a customized version of \lstinline'component("freeverb
 \subsection{Foreign expressions}
 
 Reference to external C \textit{functions}, \textit{variables} and \textit{constants} can be introduced using the \textit{foreign function} mechanism.
-
-\begin{grammar}
-  <foreignexp> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      "ffunction" "(" <signature> "," <includefile> "," <comment> ")" \\
-      "fvariable" "(" <type> <identifier> "," <includefile> ")" \\
-      "fconstant" "(" <type> <identifier> "," <includefile> ")" 
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+ 
+\begin{rail}
+foreignexp : 'ffunction' '(' signature ',' includefile ',' comment ')' 
+          | 'fvariable' '(' type identifier ',' includefile ')' 
+          | 'fconstant' '(' type identifier ',' includefile ')' ;
+\end{rail}
 
 
 \subsubsection{ffunction} 
@@ -1017,33 +1059,17 @@ Exceptions are functions with no input parameters. A typical example is the C \l
 \subsubsection{signature} 
 The signature part (\lstinline'float asinhf (float)' in our previous example) describes the prototype of the C function : return type, function name and list of parameter types. 
 
-\begin{grammar}
-  <signature> ::= 
-  \begin{syntdiag}
-    <type> <identifier> "("
-    \begin{rep}
-      <type> \\ ","
-    \end{rep}
-    ")"
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+signature : type identifier '(' (type + ',') ')';
+\end{rail}
+
 
 \subsubsection{types}
 Note that currently only numerical functions involving simple int and float parameters are allowed. No vectors, tables or data structures can be passed as parameters or returned.
 
-\begin{grammar}
-  <type> ::= 
-      <int> | <float>
-\end{grammar}
-
-% \begin{grammar}
-%   <type> ::= 
-%   \begin{syntdiag}
-%     \begin{stack}
-%       "int" \\ "float"
-%     \end{stack}
-%   \end{syntdiag}
-% \end{grammar}
+\begin{rail}
+type : 'int'|'float';
+\end{rail}
 
 \subsubsection{variables and constants} 
 External variables and constants can also be declared with a similar syntax. In the same \lstinline'"math.lib"' file we can found the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' :
@@ -1061,23 +1087,11 @@ Variable are considered to vary at block speed. This means that expressions depe
 \subsubsection{include file}
 In declaring foreign functions one as also to specify the include file. It allows the \faust compiler to add the corresponding \lstinline'#include...' in the generated code.
 
-\begin{grammar}
-  <includefile> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      "<"
-      \begin{rep}
-        <char>
-      \end{rep}
-      ">" \\ 
-      "\""
-      \begin{rep}
-        <char>
-      \end{rep}
-      "\""
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+
+\begin{rail}
+includefile : '<' (char+) '>' | '"' (char+) '"' ;
+\end{rail}
+
 
 
 %The syntax of these foreign declarations is the following :
@@ -1112,38 +1126,48 @@ In declaring foreign functions one as also to specify the include file. It allow
 
 \textit{Abstractions} and \textit{applications} are fundamental programming constructions directly inspired by the Lambda-Calculus. These constructions provide powerful ways to describe and transform block-diagrams algorithmically.
 
-\begin{grammar}
-  <progexp> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <abstraction> \\ <application>
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <progexp> ::= 
+%   \begin{syntdiag}
+%     \begin{stack}
+%       <abstraction> \\ <application>
+%     \end{stack}
+%   \end{syntdiag}
+% \end{grammar}
 
+\begin{rail}
+progexp : abstraction|application;
+\end{rail}   
+ 
 \subsubsection{Abstractions}
 
 Abstractions correspond to functions definitions and allow to generalize a block-diagram by \textit{making variable} some of its parts. 
 
-\begin{grammar}
-  <abstraction> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      <lambdaabstraction> \\ <patternabstraction>
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <abstraction> ::= 
+%   \begin{syntdiag}
+%     \begin{stack}
+%       <lambdaabstraction> \\ <patternabstraction>
+%     \end{stack}
+%   \end{syntdiag}
+% \end{grammar}
+% 
+% \begin{grammar}
+%   <lambdaabstraction> ::= 
+%   \begin{syntdiag}
+%     "\\" "(" 
+%     \begin{rep}
+%       <ident> \\ ","
+%     \end{rep}
+%     ")" "." "(" <expression> ")"
+%   \end{syntdiag}
+% \end{grammar}
 
-\begin{grammar}
-  <lambdaabstraction> ::= 
-  \begin{syntdiag}
-    "\\" "(" 
-    \begin{rep}
-      <ident> \\ ","
-    \end{rep}
-    ")" "." "(" <expression> ")"
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+abstraction : lambdaabstraction | patternabstraction; 
+ 
+lambdaabstraction :  backslash '(' (ident + ',') ')' '.' '(' expression ')';
+\end{rail}
 
 Let's say you want to transform a stereo reverb, \lstinline'freeverb' for instance, into a mono effect. You can write the following expression: 
 \begin{lstlisting}
@@ -1172,19 +1196,14 @@ Or even use a more traditional, but equivalent, notation:
 \end{lstlisting}
 
 
+
+
 \subsubsection{Applications}
 Applications correspond to function calls and allow to replace the variable parts of an abstraction with the specified arguments.
 
-\begin{grammar}
-  <application> ::= 
-  \begin{syntdiag}
-    <expression> "(" 
-    \begin{rep}
-      <expression> \\ ","
-    \end{rep}
-    ")"
-  \end{syntdiag}
-\end{grammar}
+\begin{rail}
+application : expression '(' (expression + ',') ')';
+\end{rail}   
 
 For example you can apply the previous abstraction to transform your stereo harmonizer:
 \begin{lstlisting}
@@ -1205,43 +1224,11 @@ Whenever the \faust compiler find an application of an abstraction it replaces\m
 
 \subsubsection{Pattern Matching}
 Pattern matching rules provide an effective way to analyze and transform block-diagrams algorithmically.
-
-\begin{grammar}
-  <patternabstraction> ::= 
-  \begin{syntdiag} 
-    "case" "\{"
-    \begin{rep}
-      <rule>
-    \end{rep}
-    "\}"
-  \end{syntdiag}
-\end{grammar}
-
-\begin{grammar}
-  <rule> ::= 
-  \begin{syntdiag} 
-    "("
-    \begin{rep}
-      <pattern> \\ ","
-    \end{rep}
-    ")" "=>" <expression> ";"
-  \end{syntdiag}
-\end{grammar}
-
-\begin{grammar}
-  <pattern> ::= 
-    <ident> | <expression>
-\end{grammar}
-
-% \begin{grammar}
-%   <pattern> ::= 
-%   \begin{syntdiag} 
-%     \begin{stack}
-%     <ident> \\
-%     <expression>
-%     \end{stack}
-%   \end{syntdiag}
-% \end{grammar}
+\begin{rail}
+patternabstraction :  "case" lbrace (rule +) rbrace ;
+Rule : '(' (pattern + ',') ')' "=>" expression ';';
+Pattern : ident | expression;
+\end{rail}
 
 For example \lstinline'case{ (x:y) => y:x; (x) => x; }' contains two rules. The first one will match a sequential expression and invert the two part. The second one will match all remaining expressions and leave it untouched. Therefore the application:
 
@@ -1254,6 +1241,9 @@ will produce:
 \begin{lstlisting}
 	(harmonizer:freeverb)
 \end{lstlisting}
+
+
+
 
 Please note that patterns are evaluated before the pattern matching operation. Therefore only variables that appear free in the pattern are binding variables during pattern matching. 
 
@@ -1269,37 +1259,14 @@ The primitive signal processing operations represent the built-in functionalitie
 \subsection{Numbers}
 %--------------------------------------------------------------------------------------------------------------
 
-\faust considers two types of numbers : \textit{integers} and \textit{floats}. Integers are implemented as 32-bits integers, and floats are implemented either with a simple, double or extended precision depending of the compiler options.
+\faust considers two types of numbers : \textit{integers} and \textit{floats}. Integers are implemented as 32-bits integers, and floats are implemented either with a simple, double or extended precision depending of the compiler options. Floats are available in decimal or scientific notation. 
 
-\begin{grammar}
-  <int> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      \\ "+" \\ "-"
-    \end{stack}
-    \begin{rep}
-      <digit>
-    \end{rep}
-  \end{syntdiag}
-\end{grammar}
-
-\begin{grammar}
-  <float> ::= 
-  \begin{syntdiag}
-    \begin{stack}
-      \\ "+" \\ "-"
-    \end{stack}
-    \begin{stack}
-      \begin{rep}<digit>\end{rep} "." \begin{stack} \begin{rep}<digit>\end{rep} \\ \end{stack} \\
-      \begin{stack} \begin{rep}<digit>\end{rep} \\ \end{stack} "." \begin{rep}<digit>\end{rep}
-    \end{stack}
-  \end{syntdiag}
-\end{grammar}
-
-\begin{grammar}
-  <digit> ::= 
-  0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-\end{grammar}
+  \begin{rail}
+  int : (|'+'|'-')(digit+) ;
+  float : (|'+'|'-')( ((digit+)'.'(digit*)) | ((digit*) '.' (digit+)) )(|exponent);
+  exponent : 'e'(|'+'|'-')(digit+);
+  digit : "0--9";
+  \end{rail}
 
 
 \bigskip
@@ -1490,7 +1457,7 @@ These signals can be freely combined with other audio signals.
 
 \bigskip
 \subsubsection{Labels}
-Every user interface widget has a label (a string) that identifies it and informs the user of its purpose. There are three important mechanisms associated with labels : \textit{variable parts}, \textit{pathnames} and \textit{metadata}.
+Every user interface widget has a label (a string) that identifies it and informs the user of its purpose. There are three important mechanisms associated with labels (and coded inside the string): \textit{variable parts}, \textit{pathnames} and \textit{metadata}.
 
 \paragraph{Variable parts.}
 Labels can contain variable parts. These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. 
@@ -1505,6 +1472,9 @@ hslider("Voice 7", 0.9, 0, 1, 0.01).
 
 while \lstinline'par(i,8,hslider("Voice", 0.9, 0, 1, 0.01))' would have created only one slider and duplicated its output 8 times.
 
+
+The variable part can have an optional format digit. 
+For example \lstinline'"Voice %2i"' would indicate to use two digit when inserting the value of i in the string.
 
 An escape mechanism is provided.
 If the sign \lstinline'%' is followed by itself, it will be included in the resulting string.
@@ -1533,43 +1503,48 @@ In our previous example the pathname of :
 \begin{lstlisting}
 	hslider("../volume",...)
 \end{lstlisting}
-would have been \lstinline'/h:Foo/volume', while the pathname of :
+would have been \lstinline'"/h:Foo/volume"', while the pathname of :
 \begin{lstlisting}
 	hslider("t:Fii/volume",...)
 \end{lstlisting}
 would have been : 
-\lstinline'/h:Foo/v:Faa/t:Fii/volume'.
+\lstinline'"/h:Foo/v:Faa/t:Fii/volume"'.
 
 The grammar for labels with pathnames is the following:
-\begin{grammar}
-  <label> ::= 
-  \begin{syntdiag}
-	<path> <name>
-  \end{syntdiag}
-\end{grammar}
-%
-\begin{grammar}
- <path> ::= 
-  \begin{syntdiag}
-	\begin{stack} \\ "/" \end{stack} 
-	\begin{stack} \\ \begin{rep} <folder> "/" \end{rep} \end{stack} 
- \end{syntdiag}
-\end{grammar}
-%
-\begin{grammar}
- <folder> ::= 
-  \begin{syntdiag}
-	\begin{stack}
-		".." \\ 
-		\begin{stack} "h:" \\ "v:" \\ "t:" \end{stack} <name>
-	\end{stack}
- \end{syntdiag}
-\end{grammar}
+% \begin{grammar}
+%   <label> ::= 
+%   \begin{syntdiag}
+% 	<path> <name>
+%   \end{syntdiag}
+% \end{grammar}
+% %
+% \begin{grammar}
+%  <path> ::= 
+%   \begin{syntdiag}
+% 	\begin{stack} \\ "/" \end{stack} 
+% 	\begin{stack} \\ \begin{rep} <folder> "/" \end{rep} \end{stack} 
+%  \end{syntdiag}
+% \end{grammar}
+% %
+% \begin{grammar}
+%  <folder> ::= 
+%   \begin{syntdiag}
+% 	\begin{stack}
+% 		".." \\ 
+% 		\begin{stack} "h:" \\ "v:" \\ "t:" \end{stack} <name>
+% 	\end{stack}
+%  \end{syntdiag}
+% \end{grammar}
 
+\begin{rail}
+ label : path name;
+ path : (| '/') (| (folder '/')+);
+ folder : (".." | ("h:" | "v:" | "t:" ) name);
+\end{rail}
 
 
 \paragraph{Metadata}
-Widget labels can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file.  They are tipically used to improve the look and feel of the user interface. 
+Widget labels can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file.  They are typically used to improve the look and feel of the user interface. 
 The \faust code :
 \begin{lstlisting}
 process = *(hslider("foo [key1: val 1][key2: val 2]", 
@@ -1631,9 +1606,9 @@ a convenient means to control the alphabetical order of the widgets.
 The \faust compiler is invoked using the \texttt{faust} command. It translate \faust programs into C++ code.
 The generated code can be wrapped into an optional \emph{architecture file} allowing to directly produce a fully operational program.
 
-\begin{syntdiag}
-compiler : "faust" (options) (file +)
-\end{syntdiag}
+\begin{rail}
+compiler : "faust" (options) (file +);
+\end{rail}
 
 For example \lstinline'faust noise.dsp' will compile \lstinline'noise.dsp' and output the corresponding C++ code on the standard output.  The option \lstinline'-o' allows to choose the output file : \lstinline'faust noise.dsp -o noise.cpp'. The option \lstinline'-a' allows to choose the architecture file : \lstinline'faust -a alsa-gtk.cpp noise.dsp'. 
 
@@ -2412,7 +2387,7 @@ faust2mathdoc -l fr myfaustfile.dsp
 
 If you'd like to contribute to the localization effort, feel free to translate the mathdoc texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.). As these files are dynamically loaded, simply adding a new file with an appropriate name should work.
 
-\includepdf[pages=-, frame=true, deltax=20mm, angle=-90, scale=0.75, nup=1x2]{images/noisemetadata}
+\includepdf[pages=-, frame=true, angle=-90, scale=0.75, nup=1x2]{images/noisemetadata}
 
 
 \section{Summary of the mathdoc generation steps}
