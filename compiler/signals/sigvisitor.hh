@@ -16,7 +16,7 @@ struct sigvisitor
 	//---------------abstract methods---------------
 	// numbers
 	virtual void visitInt		(Tree sig, int i) = 0;
-	virtual void visitReal		(Tree sig, float r) = 0;
+	virtual void visitReal		(Tree sig, double r) = 0;
 	
 	// audio inputs-outputs
 	virtual void visitInput		(Tree sig, int i) = 0;
@@ -76,7 +76,7 @@ struct fullvisitor : sigvisitor
 {
 	// numbers
 	virtual void visitInt		(Tree sig, int i) 								{}
-	virtual void visitReal		(Tree sig, float r) 							{}
+	virtual void visitReal		(Tree sig, double r) 							{}
 	
 	// audio inputs-outputs
 	virtual void visitInput		(Tree sig, int i)								{}
