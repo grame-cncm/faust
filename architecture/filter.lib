@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.27";
+declare version "1.28";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
@@ -100,35 +100,90 @@ with {
 
 //========================= Comb Filters ===============================
 
-//------------------------- ffcombfilter ---------------------------
+//----------------------- ff_comb, ff_fcomb ----------------------------
 // Feed-Forward Comb Filter
 // 
-// USAGE: ffcombfilter(maxdel,del,g), where
+// USAGE: 
+//   _ : ff_comb(maxdel,intdel,b0,bM) : _
+//   _ : ff_fcomb(maxdel,del,b0,bM) : _
+// where
 //   maxdel = maximum delay (a power of 2)
-//   del = current comb-filter delay between 0 and maxdel
-//   g = gain applied to delay-line output
+//   intdel = current (integer) comb-filter delay between 0 and maxdel
+//   del = current (float) comb-filter delay between 0 and maxdel
+//   b0 = gain applied to delay-line input
+//   bM = gain applied to delay-line output and then summed with input
 //
-// Reference: 
+// Note that ff_comb requires integer delays  (uses delay()  internally)
+// while ff_fcomb takes floating-point delays (uses fdelay() internally).
+//
+// REFERENCE: 
 //   https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html
 
-ffcombfilter(maxdel,del,g) = _ <: _,(delay(maxdel,del) : *(g)) : + ;
+ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  delay(maxdel,M) : + ;
+ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * fdelay(maxdel,M) : + ;
 
-//------------------- fbcombfilter, ffbcombfilter -------------------
+// TEMPORARILY PROVIDED FOR BACKWARD COMPATIBILITY:
+ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
+
+//----------------------- fb_comb, fb_fcomb, rev1 -----------------------
 // Feed-Back Comb Filter
 //
-// USAGE: fbcombfilter(maxdel,intdel,g), where
+// USAGE: 
+//   _ : fb_comb(maxdel,intdel,b0,aN) : _
+//   _ : fb_fcomb(maxdel,del,b0,aN) : _
+//   _ : rev1(maxdel,del,-aN) : _
+// where
 //   maxdel = maximum delay (a power of 2)
-//   intdel = current comb-filter delay between 0 and maxdel
-//   g = gain applied to delay-line output = feedback gain
-//
-// or, if fractional delay is needed,
-//   ffbcombfilter(maxdel,del,g), where del is (non-int) delay
+//   intdel = current (integer) comb-filter delay between 0 and maxdel
+//   del = current (float) comb-filter delay between 0 and maxdel
+//   b0 = gain applied to delay-line input and forwarded to output
+//   aN = minus the gain applied to delay-line output before
+//        summing with the input and feeding to the delay line
 //
 // Reference: 
 //   https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html
 
+fb_comb (maxdel,N,b0,aN) = (+ <:  delay(maxdel,N),_) ~ *(-aN) : !,*(b0);
+fb_fcomb(maxdel,N,b0,aN) = (+ <: fdelay(maxdel,N),_) ~ *(-aN) : !,*(b0);
+
+// The "rev1 section" dates back to the 1960s in computer-music reverberation.
+// See the jcrev and brassrev in effect.lib for usage examples.
+rev1(maxdel,N,g) = fb_comb (maxdel,N,1,-g);
+
+// TEMPORARILY PROVIDED FOR BACKWARD COMPATIBILITY:
 fbcombfilter(maxdel,intdel,g) = (+ : delay(maxdel,intdel)) ~ *(g);
 ffbcombfilter(maxdel,del,g) = (+ : fdelay(maxdel,del)) ~ *(g);
+
+//------------------- allpass_comb, allpass_fcomb, rev2 -----------------
+// Schroeder Allpass Comb Filter
+//
+// USAGE: 
+//   _ : allpass_comb (maxdel,intdel,aN) : _
+//   _ : allpass_fcomb(maxdel,del,aN) : _
+//   _ : rev2(maxdel,del,-aN) : _
+// where
+//   maxdel = maximum delay (a power of 2)
+//   intdel = current (integer) comb-filter delay between 0 and maxdel
+//   del = current (float) comb-filter delay between 0 and maxdel
+//   aN = minus the feedback gain
+//
+// Note that allpass_comb(maxlen,len,aN) = 
+//    ff_comb(maxlen,len,aN,1) : 
+//    fb_comb(maxlen,len-1,1,aN);
+// which is a direct-form-1 implementation, requiring two delay lines.
+// The implementation here is direct-form-2 requiring only one delay line.
+// 
+// REFERENCES: 
+//   https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html
+//   https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html
+//   https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html
+
+allpass_comb(maxdel,N,aN) = (+ <: 
+   delay(maxdel,N-1),*(aN)) ~ *(-aN)
+   : mem,_ : + ;
+
+// The "rev2 section" dates back to the 1960s in computer-music reverberation:
+rev2(maxlen,len,g) = allpass_comb(maxlen,len,-g);
 
 //================ Second Order Digital Filter Sections ================
 

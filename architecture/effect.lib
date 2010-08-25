@@ -1,7 +1,7 @@
 declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.29";
+declare version "1.30";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
@@ -659,3 +659,87 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 //
 limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
 limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
+
+//------------------------------ jcrev,brassrev ------------------------------
+// USAGE: 
+//     _ :    jcrev : _,_,_,_
+//     _ : brassrev : _,_
+//
+// DESCRIPTION:
+//   These artificial reverberators take a mono signal and output stereo
+//   (brassrev) and quad (jcrev).  They were implemented by John Chowning
+//   in the MUS10 computer-music language (descended from Music V by Max
+//   Mathews).  They are Schroeder Reverberators, well tuned for their size.
+
+// This reverberator, from a SAIL DART tape, dated April 14, 1972, is a listing
+// of RV, a reverberator that John Chowning thinks might have become JCREV:
+
+jcrev = _ : allpass_chain <: comb_bank :> _ <: mix_mtx with {
+
+  rev1N = component("filter.lib").rev1;
+
+  rev12(len,g) = rev1N(2048,len,g);
+  rev14(len,g) = rev1N(4096,len,g);
+
+  allpass_chain = 
+    rev2(512,347,0.7) : 
+    rev2(128,113,0.7) : 
+    rev2( 64, 37,0.7);
+
+  comb_bank = 
+    rev12(1601,.802),
+    rev12(1867,.773),
+    rev14(2053,.753),
+    rev14(2251,.733);
+
+  mix_mtx = _,_,_,_ <: psum, (psum:*(-1)),asum,(asum:*(-1)) with {
+    psum = _,_,_,_ :> _;
+    asum = *(-1),_,*(-1),_ :> _;
+  };
+};
+
+// This reverberator, from a SAIL DART tape, dated May 15, 1971, is a listing
+// of SATREV, a reverberator that John Chowning thinks might have been used
+// for his often-heard brass canon sound examples, one of which can be found at
+// https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav
+
+brassrev = _ <: comb_bank :> allpass_chain <: _,*(-1) with {
+
+  rev1N = component("filter.lib").rev1;
+
+  rev11(len,g) = rev1N(1024,len,g);
+  rev12(len,g) = rev1N(2048,len,g);
+
+  comb_bank = 
+    rev11( 778,.827),
+    rev11( 901,.805),
+    rev11(1011,.783),
+    rev12(1123,.764);
+
+  rev2N = component("filter.lib").rev2;
+
+  allpass_chain = 
+    rev2N(128,125,0.7) : 
+    rev2N( 64, 42,0.7) : 
+    rev2N( 16, 12,0.7);
+};
+
+//------------------------- reverb_demo ---------------------------
+// USAGE: _,_ : reverb_demo : _,_ ;
+
+reverb_demo = reverbs with {
+
+//   reverbs = _,_ <: (_,_ :> jcrev :> _,_) , (_,_ :> brassrev) :> _,_;
+   reverbs = _,_ <: 
+        bypass2(1-ck1, (_,_ :> jcrev :> _,_)),
+        bypass2(1-ck2, (_,_ :> brassrev))
+   :> _,_;
+      
+   reverb_group(x)  = vgroup("REVERBS 
+     [tooltip: See Faust's effect.lib for documentation and references]", x);
+
+   ck1 = reverb_group(checkbox("[1] JCREV
+    [tooltip: When this is checked,  the JCREV reverberator is in effect]"));
+   ck2 = reverb_group(checkbox("[2] BRASSREV
+    [tooltip: When this is checked,  the BRASSREV reverberator is in effect]"));
+};
