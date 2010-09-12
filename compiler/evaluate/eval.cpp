@@ -594,6 +594,7 @@ static Tree replaceBoxNumeric (Tree exp)
 	} else if (getNumericProperty(exp, out)) {
 		return out;
 	} else {
+        //cerr << "TRACEPOINT 2" << endl;
 		if ( getBoxType(exp, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {
 			// potential numerical expression
 			Tree lsignals = boxPropagateSig(nil, exp , makeSigInputList(numInputs) );
@@ -692,7 +693,7 @@ static Tree patternSimplification (Tree pattern)
  */
 static double eval2double (Tree exp, Tree visited, Tree localValEnv)
 {
-	Tree diagram = eval(exp, visited, localValEnv);
+    Tree diagram = a2sb(eval(exp, visited, localValEnv)); // pour getBoxType
 	int numInputs, numOutputs;
 	getBoxType(diagram, &numInputs, &numOutputs);
 	if ( (numInputs > 0) || (numOutputs != 1) ) {
@@ -721,7 +722,7 @@ static double eval2double (Tree exp, Tree visited, Tree localValEnv)
  */
 static int eval2int (Tree exp, Tree visited, Tree localValEnv)
 {
-	Tree diagram = eval(exp, visited, localValEnv);
+    Tree diagram = a2sb(eval(exp, visited, localValEnv));   // pour getBoxType()
 	int numInputs, numOutputs;
 	getBoxType(diagram, &numInputs, &numOutputs);
 	if ( (numInputs > 0) || (numOutputs != 1) ) {
@@ -939,7 +940,8 @@ static bool boxlistOutputs(Tree boxlist, int* outputs)
     *outputs = 0;
     while (!isNil(boxlist))
     {
-    	if (getBoxType(hd(boxlist), &ins, &outs)) {
+        Tree b = a2sb(hd(boxlist)); // for getBoxType, suppose list of evaluated boxes
+        if (getBoxType(b, &ins, &outs)) {
             *outputs += outs;
       	} else {
       		// arbitrary output arity set to 1
@@ -1048,7 +1050,9 @@ static Tree applyList (Tree fun, Tree larg)
          int ins, outs;
          
          // check arity of function
-         if (!getBoxType(fun, &ins, &outs)) {
+         Tree efun = a2sb(fun);
+         //cerr << "TRACEPOINT 1 : " << boxpp(efun) << endl;
+         if (!getBoxType(efun, &ins, &outs)) { // on laisse comme ca pour le moment
          	// we can't determine the input arity of the expression
          	// hope for the best
          	return boxSeq(larg2par(larg), fun);
