@@ -1,26 +1,32 @@
 declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.30";
+declare version "1.31";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
 import("filter.lib"); // dcblocker*, lowpass, ...
 
-// The following utilities (or equivalents) probably belong in music.lib:
+// The following utilities (or equivalents) could go in music.lib:
+
 //----------------------- midikey2hz,pianokey2hz ------------------------
 midikey2hz(x) = 440.0*pow(2.0, (x-69.0)/12); // MIDI key 69 = A440
 pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440
-//---------------------- cross2, bypass1, bypass2 ----------------------
+
+//---------------- cross2, bypass1, bypass2, select2stereo --------------
+// 
 cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
-bypass1(bpc,e) = _ <: select2(bpc,inswitch:e,_) 
+
+bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_) 
                  with {inswitch = select2(bpc,_,0);};
+
 bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
-  inswitch = _,_ : select2(bpc,_,0), select2(bpc,_,0) : _,_;
-  select2stereo(bpc) = _,_,_,_ : cross2 : select2(bpc), select2(bpc) : _,_;
+  inswitch = _,_ : (select2(bpc,_,0), select2(bpc,_,0)) : _,_;
 };
 
-//--------------- levelfilter, levelfilterN -----------------------
+select2stereo(bpc) = cross2 : select2(bpc), select2(bpc) : _,_;
+
+//---------------------- levelfilter, levelfilterN ----------------------
 // Dynamic level lowpass filter:
 //
 // USAGE: levelfilter(L,freq), where
@@ -660,21 +666,24 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
 limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 
-//------------------------------ jcrev,brassrev ------------------------------
+//------------------------------ jcrev,satrev ------------------------------
 // USAGE: 
-//     _ :    jcrev : _,_,_,_
-//     _ : brassrev : _,_
+//     _ :  jcrev : _,_,_,_
+//     _ : satrev : _,_
 //
 // DESCRIPTION:
 //   These artificial reverberators take a mono signal and output stereo
-//   (brassrev) and quad (jcrev).  They were implemented by John Chowning
+//   (satrev) and quad (jcrev).  They were implemented by John Chowning
 //   in the MUS10 computer-music language (descended from Music V by Max
 //   Mathews).  They are Schroeder Reverberators, well tuned for their size.
+//   Nowadays, freeverb is more commonly used (see Faust examples directory).
 
-// This reverberator, from a SAIL DART tape, dated April 14, 1972, is a listing
-// of RV, a reverberator that John Chowning thinks might have become JCREV:
+// The reverb below was made from a listing of "RV", dated April 14, 1972,
+// which was recovered from an old SAIL DART backup tape.
+// John Chowning thinks this might be the one that became the 
+// well known and often copied JCREV:
 
-jcrev = _ : allpass_chain <: comb_bank :> _ <: mix_mtx with {
+jcrev = *(0.06) : allpass_chain <: comb_bank :> _ <: mix_mtx with {
 
   rev1N = component("filter.lib").rev1;
 
@@ -692,18 +701,19 @@ jcrev = _ : allpass_chain <: comb_bank :> _ <: mix_mtx with {
     rev14(2053,.753),
     rev14(2251,.733);
 
-  mix_mtx = _,_,_,_ <: psum, (psum:*(-1)),asum,(asum:*(-1)) with {
+    mix_mtx = _,_,_,_ <: psum, -psum, asum, -asum : _,_,_,_ with {
     psum = _,_,_,_ :> _;
     asum = *(-1),_,*(-1),_ :> _;
   };
 };
 
-// This reverberator, from a SAIL DART tape, dated May 15, 1971, is a listing
-// of SATREV, a reverberator that John Chowning thinks might have been used
-// for his often-heard brass canon sound examples, one of which can be found at
+// The reverb below was made from a listing of "SATREV", dated May 15, 1971,
+// which was recovered from an old SAIL DART backup tape.
+// John Chowning thinks this might be the one used on his
+// often-heard brass canon sound examples, one of which can be found at
 // https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav
 
-brassrev = _ <: comb_bank :> allpass_chain <: _,*(-1) with {
+satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 
   rev1N = component("filter.lib").rev1;
 
@@ -725,21 +735,26 @@ brassrev = _ <: comb_bank :> allpass_chain <: _,*(-1) with {
 };
 
 //------------------------- reverb_demo ---------------------------
-// USAGE: _,_ : reverb_demo : _,_ ;
+// USAGE: _ : reverb_demo : _,_ ;
 
-reverb_demo = reverbs with {
+reverb_demo(x) = reverbs(x) with {
 
-//   reverbs = _,_ <: (_,_ :> jcrev :> _,_) , (_,_ :> brassrev) :> _,_;
-   reverbs = _,_ <: 
-        bypass2(1-ck1, (_,_ :> jcrev :> _,_)),
-        bypass2(1-ck2, (_,_ :> brassrev))
-   :> _,_;
+   reverb_group(y)  = hgroup("VINTAGE SCHROEDER-CHOWNING ARTIFICIAL REVERBERATORS
+     [tooltip: See Faust's effect.lib for documentation and references]", y);
+   jcrev_group(y)  = reverb_group(vgroup("[1] JCREV",y));
+   sat_group(y)  = reverb_group(vgroup("[2] SATREV",y));
+
+   direct = _ <: _,_;
+
+   tp1 = 100*(i1-i1')>0;
+   tp2 = 100*(i2-i2')>0;
+
+   reverbs(x) = (x*g0:direct), (x*g1+tp1:jcrev), (x*g2+tp2:satrev) :> _,_;
+   // Consider including a library version of freeverb from Faust examples
       
-   reverb_group(x)  = vgroup("REVERBS 
-     [tooltip: See Faust's effect.lib for documentation and references]", x);
-
-   ck1 = reverb_group(checkbox("[1] JCREV
-    [tooltip: When this is checked,  the JCREV reverberator is in effect]"));
-   ck2 = reverb_group(checkbox("[2] BRASSREV
-    [tooltip: When this is checked,  the BRASSREV reverberator is in effect]"));
+   g0 = reverb_group(checkbox("[0] Direct Signal [tooltip:Enable direct signal]"));
+   g1 = jcrev_group(checkbox("[1] JCRev [tooltip:Enable JCRev]"));
+   i1 = jcrev_group(button("[2] Test [tooltip:Feed an impulse to JCRev]"));
+   g2 = sat_group(checkbox("[1] SATRev [tooltip:Enable SATRev]"));
+   i2 = sat_group(button("[2] Test [tooltip:Feed an impulse to SATRev]"));
 };
