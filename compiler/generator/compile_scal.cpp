@@ -638,7 +638,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
 		cerr << "error in ScalarCompiler::generateTable() : "
 			 << *tsize
-			 << " is not an integer expression "
+             << " is not a constant integer table size expression "
 			 << endl;
         exit(1);
 	}
@@ -682,7 +682,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
 		cerr << "error in ScalarCompiler::generateTable() : "
 			 << *tsize
-			 << " is not an integer expression "
+             << " is not a constant integer table size expression "
 			 << endl;
         exit(1);
 	}
