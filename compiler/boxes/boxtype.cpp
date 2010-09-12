@@ -89,9 +89,13 @@ bool getBoxType (Tree box, int* inum, int* onum)
 
 /**
  * Infere the type (number of inputs and outputs) of a box.
+ * The box expression is assumed to be in 'propagation normal form'
+ * that is to have been evaluated and residual abstractions to have been
+ * converted to symbolic boxes (using a2sb()).
  * \param box the box we want to know the type
  * \param inum the place to return the number of inputs
  * \param onum the place to return the number of outputs
+ * \return true if the box expression has a type
  */
 
 static bool infereBoxType (Tree t, int* inum, int* onum)
@@ -107,10 +111,12 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxWire(t)) 		{ *inum = 1; *onum = 1; }
 	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; } 
 
-	else if (isBoxSlot(t)) 		{ *inum = 0; *onum = 1; } 
+    else if (isBoxSlot(t))          { *inum = 0; *onum = 1; }
 	else if (isBoxSymbolic(t,s,b)) 	{ if (!getBoxType(b, inum, onum)) return false; *inum += 1; } 
 	
-	else if (isBoxPrim0(t)) 	{ *inum = 0; *onum = 1; } 
+    else if (isBoxPatternVar(t,a))  { return false; }
+
+    else if (isBoxPrim0(t)) 	{ *inum = 0; *onum = 1; }
 	else if (isBoxPrim1(t)) 	{ *inum = 1; *onum = 1; } 
 	else if (isBoxPrim2(t)) 	{ *inum = 2; *onum = 1; } 
 	else if (isBoxPrim3(t)) 	{ *inum = 3; *onum = 1; } 
@@ -126,9 +132,9 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxVSlider(t)) 	{ *inum = 0; *onum = 1; } 
 	else if (isBoxHSlider(t)) 	{ *inum = 0; *onum = 1; } 
 	else if (isBoxNumEntry(t)) 	{ *inum = 0; *onum = 1; } 
-	else if (isBoxVGroup(t,l,a)){ if (!getBoxType(a, inum, onum)) return false; } 
-	else if (isBoxHGroup(t,l,a)){ if (!getBoxType(a, inum, onum)) return false; } 
-	else if (isBoxTGroup(t,l,a)){ if (!getBoxType(a, inum, onum)) return false; } 
+    else if (isBoxVGroup(t,l,a)){ return getBoxType(a, inum, onum); }
+    else if (isBoxHGroup(t,l,a)){ return getBoxType(a, inum, onum); }
+    else if (isBoxTGroup(t,l,a)){ return getBoxType(a, inum, onum); }
 	
 	else if (isBoxVBargraph(t)) 	{ *inum = 1; *onum = 1; } 
 	else if (isBoxHBargraph(t)) 	{ *inum = 1; *onum = 1; } 
@@ -230,10 +236,11 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		*inum = max(0,u-y); *onum = v;
 		
     } else if (isBoxEnvironment(t)) {
-        cerr << "An environment is not a block-diagram : " << boxpp(t) << endl;
-        return false;
+        cerr << "Connection error : an environment is not a block-diagram : " << boxpp(t) << endl;
+        exit(1);
     } else {
-	  return false;
+        cerr << "boxType() internal error : unrecognized box expression " << boxpp(t) << endl;
+        exit(1);
 	}
 	return true;
 }	
