@@ -676,7 +676,8 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 //   (satrev) and quad (jcrev).  They were implemented by John Chowning
 //   in the MUS10 computer-music language (descended from Music V by Max
 //   Mathews).  They are Schroeder Reverberators, well tuned for their size.
-//   Nowadays, freeverb is more commonly used (see Faust examples directory).
+//   Nowadays, the more expensive freeverb is more commonly used (see the
+//   Faust examples directory).
 
 // The reverb below was made from a listing of "RV", dated April 14, 1972,
 // which was recovered from an old SAIL DART backup tape.

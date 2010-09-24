@@ -226,9 +226,24 @@ with {
   sub(x,y)                = y-x;
 };
 
+//----------------------------- fir ---------------------------------
+// FIR filter (convolution of FIR filter coefficients with a signal)
+// USAGE: 
+//   _ : fir(B) : _
+// where B = B0,B1,...,BN is a parallel bank of coefficient signals.
+// NOTE: B is processed using pattern-matching at compile time, 
+//       so it must have this normal form (parallel signals).
+// EXAMPLE: Smoothing white noise with a five-point moving average:
+//   B = .2,.2,.2,.2,.2;
+//   process = noise : fir(B);
+
+fir(B,x) = sum(i,count(B),take(i+1,B)*(x@i)); // count & take in math.lib
+
 //----------------------------- wgr ---------------------------------
 // Second-order transformer-normalized digital waveguide resonator
-// USAGE: wgr(f,r), where
+// USAGE: 
+//   _ : wgr(f,r) : _
+// where
 //   f : resonance frequency (Hz)
 //   r : loss factor for exponential decay 
 //        (set to 1 to make a numerically stable oscillator)
@@ -246,7 +261,9 @@ with {
 
 //----------------------------- nlf2 --------------------------------
 // Second order normalized digital waveguide resonator
-// USAGE: nlf2(f,r), where
+// USAGE: 
+//   _ : nlf2(f,r) : _
+// where
 //   f : resonance frequency (Hz)
 //   r : loss factor for exponential decay 
 //        (set to 1 to make a sinusoidal oscillator)
