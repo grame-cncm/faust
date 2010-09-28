@@ -1,17 +1,17 @@
 //-------------------------------------------------------------------
 // FAUST architecture file for SuperCollider.
 // Copyright (C) 2005-2008 Stefan Kersten.
-// 
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
 // published by the Free Software Foundation; either version 2 of the
 // License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -76,7 +76,7 @@ inline double   min (long a, double b)      { return (a<b) ? a : b; }
 inline double   min (double a, long b)      { return (a<b) ? a : b; }
 inline double   min (float a, double b)     { return (a<b) ? a : b; }
 inline double   min (double a, float b)     { return (a<b) ? a : b; }
-        
+
 inline int      lsr (int x, int n)          { return int(((unsigned int)x) >> n); }
 inline int      int2pow2 (int x)            { int r=0; while ((1<<r)<x) r++; return r; }
 
@@ -124,8 +124,8 @@ struct Meta : std::map<std::string, std::string>
 //----------------------------------------------------------------------------
 // Abstract user interface
 //----------------------------------------------------------------------------
-        
-class UI 
+
+class UI
 {
 public:
     virtual ~UI() { }
@@ -137,13 +137,13 @@ public:
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-    
+
     // passive widgets
     virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
     virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-    
+
     // layout widgets
     virtual void openFrameBox(const char* label) = 0;
     virtual void openTabBox(const char* label) = 0;
@@ -157,7 +157,7 @@ public:
 //----------------------------------------------------------------------------
 // Control counter
 //----------------------------------------------------------------------------
-        
+
 class ControlCounter : public UI
 {
 public:
@@ -169,7 +169,7 @@ public:
     size_t getNumControls() const { return getNumControlInputs(); }
     size_t getNumControlInputs() const { return mNumControlInputs; }
     size_t getNumControlOutputs() const { return mNumControlOutputs; }
-    
+
     // active widgets
     virtual void addButton(const char* label, float* zone)
     { addControlInput(); }
@@ -183,13 +183,13 @@ public:
     { addControlInput(); }
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
     { addControlInput(); }
-    
+
     // passive widgets
     virtual void addNumDisplay(const char* label, float* zone, int precision) { addControlOutput(); }
     virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) { addControlOutput(); }
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) { addControlOutput(); }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) { addControlOutput(); }
-    
+
     // layout widgets
     virtual void openFrameBox(const char* label) { }
     virtual void openTabBox(const char* label) { }
@@ -209,20 +209,20 @@ private:
 //----------------------------------------------------------------------------
 // UI control
 //----------------------------------------------------------------------------
-        
+
 struct Control
 {
     typedef void (*UpdateFunction)(Control* self, float value);
-    
+
     UpdateFunction updateFunction;
     float min, max, step;
     float* zone;
-    
+
     inline void update(float value)
     {
         (*updateFunction)(this, value);
     }
-    
+
     static void simpleUpdate(Control* self, float value)
     {
         *self->zone = value;
@@ -236,7 +236,7 @@ struct Control
 //----------------------------------------------------------------------------
 // Control allocator
 //----------------------------------------------------------------------------
-        
+
 class ControlAllocator : public UI
 {
 public:
@@ -263,7 +263,7 @@ public:
     virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) { }
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) { }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) { }
-    
+
     // layout widgets
     virtual void openFrameBox(const char* label) { }
     virtual void openTabBox(const char* label) { }
@@ -306,7 +306,7 @@ private:
 //----------------------------------------------------------------------------
 // Abstract DSP interface
 //----------------------------------------------------------------------------
-        
+
 class dsp
 {
 public:
@@ -326,7 +326,7 @@ dsp::~dsp() { }
 //----------------------------------------------------------------------------
 // FAUST generated code
 //----------------------------------------------------------------------------
-        
+
 <<includeclass>>
 
 
@@ -352,7 +352,7 @@ struct Faust : public Unit
     // The unit allocates additional memory according to the number
     // of controls.
     Control     mControls[0];
-    
+
     int getNumAudioInputs() { return mDSP.getNumInputs(); }
 };
 
@@ -360,27 +360,27 @@ struct Faust : public Unit
 
 static size_t       g_numControls; // Number of controls
 static const char*  g_unitName;    // Unit name
-    
+
 // Initialize the global state with unit name and sample rate.
 void initState(const std::string& name, int sampleRate);
 
 // Return the unit size in bytes, including static fields and controls.
 static size_t unitSize();
-    
+
 // Convert a file name to a valid unit name.
 static std::string fileNameToUnitName(const std::string& fileName);
 
 void initState(const std::string& name, int sampleRate)
 {
     g_unitName = strdup(name.c_str());
-    
+
     mydsp* dsp = new mydsp;
     ControlCounter* cc = new ControlCounter;
-    
+
     dsp->classInit(sampleRate);
     dsp->buildUserInterface(cc);
     g_numControls = cc->getNumControls();
-    
+
     delete dsp;
     delete cc;
 }
@@ -474,7 +474,7 @@ void Faust_next_copy(Faust* unit, int inNumSamples)
 
 void Faust_next_clear(Faust* unit, int inNumSamples)
 {
-    ClearUnitOutputs(unit, inNumSamples);   
+    ClearUnitOutputs(unit, inNumSamples);
 }
 
 void Faust_Ctor(Faust* unit)
@@ -488,14 +488,14 @@ void Faust_Ctor(Faust* unit)
     unit->mDSP.buildUserInterface(&ca);
     unit->mInBufCopy  = 0;
     unit->mInBufValue = 0;
-    
+
     // check input/output channel configuration
     const size_t numInputs  = unit->mDSP.getNumInputs() + unit->mNumControls;
     const size_t numOutputs = unit->mDSP.getNumOutputs();
-    
+
     bool channelsValid =   (numInputs  == unit->mNumInputs)
                         && (numOutputs == unit->mNumOutputs);
-    
+
     if (channelsValid) {
         bool rateValid = true;
         for (int i = 0; i < unit->getNumAudioInputs(); ++i) {
@@ -522,14 +522,14 @@ void Faust_Ctor(Faust* unit)
                 mem += BUFLENGTH;
             }
             SETCALC(Faust_next_copy);
-        }       
+        }
 #if !defined(NDEBUG)
         Print("Faust[%s]:\n", g_unitName);
         Print("    Inputs:   %d\n"
               "    Outputs:  %d\n"
               "    Callback: %s\n",
               numInputs, numOutputs,
-              unit->mCalcFunc == Faust_next ? "zero-copy" : "copy");
+              unit->mCalcFunc == (UnitCalcFunc)Faust_next ? "zero-copy" : "copy");
 #endif
     } else {
         Print("Faust[%s]:\n", g_unitName);
@@ -540,7 +540,7 @@ void Faust_Ctor(Faust* unit)
               numOutputs, unit->mNumOutputs);
         Print("    Generating silence ...\n");
         SETCALC(Faust_next_clear);
-    }   
+    }
 }
 
 void Faust_Dtor(Faust* unit)
@@ -563,7 +563,7 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     Meta meta;
     mydsp::metadata(&meta);
     std::string name(meta["name"]);
-    
+
     if (name.empty()) {
         name = fileNameToUnitName(__FILE__);
     }
@@ -578,7 +578,7 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     // Initialize global data
     // TODO: Use correct sample rate
     initState(name, 48000);
-    
+
     // Register ugen
     (*ft->fDefineUnit)(
         (char*)name.c_str(),
