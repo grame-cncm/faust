@@ -35,28 +35,18 @@ Compile a list of FAUST signals into a C++ class .
 ******************************************************************************
 *****************************************************************************/
 
-
-
 #include "timing.hh"
 #include "compile.hh"
 #include "floats.hh"
 #include "sigtype.hh"
 
 #include <stdio.h>
-//#include <iostream>
-
 #include "sigprint.hh"
 #include "ppsig.hh"
 
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "privatise.hh"
-//#include "factorize.hh"
-
-//#include "grouper.hh"
-//#include "sigvisitor.hh"
-
-
 
 
 /*****************************************************************************
@@ -69,9 +59,6 @@ Compile a list of FAUST signals into a C++ class .
 
 extern int 		gDetailsSwitch;
 extern string 	gMasterName;
-
-
-
 
 /*****************************************************************************
 ******************************************************************************
@@ -105,13 +92,10 @@ Compiler::Compiler(Klass* k)
 		  fDescription(0)
 {}
 
-
 Compiler::~Compiler()
 { 
 	if (fNeedToDeleteClass) delete fClass;
 }
-
-
 
 /*****************************************************************************
 							user interface elements
@@ -124,7 +108,6 @@ void Compiler::addUIWidget(Tree path, Tree widget)
 {
 	fUIRoot = putSubFolder(fUIRoot, path, widget);
 }
-
 
 /**
  * Remove fake root folder if not needed (that is if the UI
@@ -154,8 +137,6 @@ static string wdel(const string& s)
     return s.substr(i,j-i);
 }
 
-
-
 /**
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
  * (but not those in the middle of the string)
@@ -172,7 +153,6 @@ static string rmWhiteSpaces(const string& s)
     }
 }
 
-
 //================================= BUILD USER INTERFACE METHOD =================================
 
 /**
@@ -186,19 +166,10 @@ void Compiler::generateUserInterfaceTree(Tree t)
 	if (isUiFolder(t, label, elements)) {
 		const int		orient = tree2int(left(label));
 		const char * 	str = tree2str(right(label));
-		const char * 	model;
-
-		switch (orient) {
-			case 0 : model = "interface->openVerticalBox(\"$0\");"; break;
-			case 1 : model = "interface->openHorizontalBox(\"$0\");"; break;
-			case 2 : model = "interface->openTabBox(\"$0\");"; break;
-			default :
-					fprintf(stderr, "error in user interface generation 1\n");
-				exit(1);
-		}
-		fClass->addUICode(subst(model, str));
-		generateUserInterfaceElements(elements);
-		fClass->addUICode("interface->closeBox();");
+	
+        fClass->openBox(orient, str);
+     	generateUserInterfaceElements(elements);
+	    fClass->closeBox();
 
 	} else if (isUiWidget(t, label, varname, sig)) {
 
@@ -240,64 +211,31 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         const string& key = i->first;
         const set<string>& values = i->second;
         for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-            fClass->addUICode(subst("interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key) ,wdel(*j)));
+            fClass->addMetaDeclare(tree2str(varname), wdel(key), wdel(*j));
         }
     }
 
 	if ( isSigButton(sig, path) ) 					{
-        fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addButton(\"$0\", &$1);", label, tree2str(varname)));
+        fClass->addButton(label, tree2str(varname));
 
 	} else if ( isSigCheckbox(sig, path) ) 			{
-        fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addCheckButton(\"$0\", &$1);", label, tree2str(varname)));
+    	fClass->addCheckButton(label, tree2str(varname));
 
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
-        fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",
-				label,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+    	fClass->addVerticalSlider(label, tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)), T(tree2float(z)));
 
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
-        fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",
-				label,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+        fClass->addHorizontalSlider(label, tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)), T(tree2float(z)));
 
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
-        fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);",
-				label,
-				tree2str(varname),
-				T(tree2float(c)),
-				T(tree2float(x)),
-				T(tree2float(y)),
-				T(tree2float(z))));
+        fClass->addNumEntry(label, tree2str(varname), T(tree2float(c)), T(tree2float(x)), T(tree2float(y)), T(tree2float(z)));
 
 	} else if ( isSigVBargraph(sig, path,x,y,z) )	{
-        fClass->incUIPassiveCount();
-		fClass->addUICode(subst("interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
-				label,
-				tree2str(varname),
-				T(tree2float(x)),
-				T(tree2float(y))));
+        fClass->addHorizontalBargraph(label, tree2str(varname), T(tree2float(x)), T(tree2float(y)));
 
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
-        fClass->incUIPassiveCount();
-		fClass->addUICode(subst("interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
-                label,
-				tree2str(varname),
-				T(tree2float(x)),
-				T(tree2float(y))));
-
+ 		fClass->addVerticalBargraph(label, tree2str(varname), T(tree2float(x)), T(tree2float(y)));
+        
 	} else {
 		fprintf(stderr, "Error in generating widget code\n");
 		exit(1);
@@ -345,7 +283,6 @@ void Compiler::generateMacroInterfaceElements(const string& pathname, Tree eleme
 	}
 }
 
-
 /**
  * Generate user interface macros corresponding 
  * to a user interface widget
@@ -360,7 +297,6 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
 
     //string pathlabel = pathname+unquote(label);
 	string pathlabel = pathname+label;
-
 
 	if ( isSigButton(sig, path) ) 					{
 		fClass->addUIMacro(subst("FAUST_ADDBUTTON(\"$0\", $1);", pathlabel, tree2str(varname)));

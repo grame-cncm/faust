@@ -9,6 +9,15 @@
 #include <vector>
 #include "lateq.hh"
 
+#include <llvm/Value.h>
+#include <llvm/Support/IRBuilder.h>
+#include "instructions.hh"
+
+typedef llvm::Value* LlvmValue;
+
+class CodeGen;
+class CodeContainer;
+
 class xtended 
 {
 	Symbol*		fSymbol;	///< the symbol the xtended is attached to
@@ -32,7 +41,10 @@ class xtended
 	
 	// virtual method to be implemented by subclasses
 	virtual unsigned int 	arity () = 0;
+    
 	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types) = 0;
+    virtual ValueInst* 	generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type >& types) = 0;
+    
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types) = 0;
 	virtual int 	infereSigOrder (const vector<int>& args) = 0;
 	virtual Type 	infereSigType (const vector<Type>& args) = 0;
@@ -102,3 +114,4 @@ extern xtended* gMaxPrim;
 extern xtended* gMinPrim;
 
 #endif
+

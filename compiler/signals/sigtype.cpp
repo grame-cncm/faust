@@ -293,3 +293,9 @@ string cType (Type t)
 {
 	return (t->nature() == kInt) ? "int" : "float";
 }
+
+Typed::VarType ctType (Type t)
+{
+	return (t->nature() == kInt) ? Typed::kInt : Typed::kFloat;
+}
+

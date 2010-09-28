@@ -88,11 +88,8 @@ protected:
     void        generateMacroInterfaceElements(const string& pathname, Tree elements);
     void        generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
 
-
 };
+
 #define generateEquivRecGroup generateRecGroup
-
-
-void compileSignals (const string& name, const string& super, int numInputs, int numOutputs, Tree lsig);
 
 #endif

@@ -70,7 +70,6 @@ static Klass* signal2klass (const string& name, Tree sig)
 	}
 }
 
-
 /*****************************************************************************
 						getFreshID
 *****************************************************************************/
@@ -86,7 +85,6 @@ string ScalarCompiler::getFreshID(const string& prefix)
 	fIDCounters[prefix] = n+1;
 	return subst("$0$1", prefix, T(n));
 }
-
 
 /*****************************************************************************
 						    prepare
@@ -148,7 +146,6 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	}
 }
 
-
 /*****************************************************************************
 						    compileSingleSignal
 *****************************************************************************/
@@ -164,7 +161,6 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
 }
-
 
 /*****************************************************************************
 							 CS : compile a signal
@@ -205,7 +201,8 @@ string  ScalarCompiler::CS (Tree sig)
 
     if (!getCompiledExpression(sig, code)) {
         // not compiled yet
-/*        if (getRecursivness(sig) != contextRecursivness.get()) {
+        /*        
+        if (getRecursivness(sig) != contextRecursivness.get()) {
             contextRecursivness.set(getRecursivness(sig));
         }*/
         code = generateCode(sig);
@@ -227,7 +224,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 {
 #if 0
 	fprintf(stderr, "CALL generateCode(");
-        printSignal(sig, stderr);
+    printSignal(sig, stderr);
 	fprintf(stderr, ")\n");
 #endif
 
@@ -285,11 +282,9 @@ string	ScalarCompiler::generateCode (Tree sig)
 	return "error in generate code";
 }
 
-
 /*****************************************************************************
 							   NUMBERS
 *****************************************************************************/
-
 
 string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 {
@@ -307,7 +302,6 @@ string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 /*****************************************************************************
                                FOREIGN CONSTANTS
 *****************************************************************************/
-
 
 string ScalarCompiler::generateFConst (Tree sig, const string& file, const string& exp)
 {
@@ -327,7 +321,6 @@ string ScalarCompiler::generateFConst (Tree sig, const string& file, const strin
                                FOREIGN VARIABLES
 *****************************************************************************/
 
-
 string ScalarCompiler::generateFVar (Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
@@ -340,12 +333,10 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 							   INPUTS - OUTPUTS
 *****************************************************************************/
 
-
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
 	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
 }
-
 
 string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string& arg)
 {
@@ -353,7 +344,6 @@ string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string
 	fClass->addExecCode(subst("$0 = $2$1;", dst, arg, xcast()));
 	return dst;
 }
-
 
 /*****************************************************************************
 							   BINARY OPERATION
@@ -363,7 +353,6 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
 	return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
 }
-
 
 /*****************************************************************************
 							   Primitive Operations
@@ -385,7 +374,6 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     code += ')';
     return generateCacheCode(sig, code);
 }
-
 
 /*****************************************************************************
 							   CACHE CODE
@@ -410,9 +398,15 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     if (getCompiledExpression(sig, code)) {
         return code;
     }
+    
+    /*
+    printf("generateCacheCode getMaxDelay %d\n", o->getMaxDelay() );
+    print(sig);
+    printf("\n");
+    */
 
 	// check for expression occuring in delays
-	if (o->getMaxDelay()>0) {
+	if (o->getMaxDelay() > 0) {
 
         getTypedNames(getSigType(sig), "Vec", ctype, vname);
         if (sharing>1) {
@@ -428,6 +422,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	} else if (sharing > 1) {
 
         return generateVariableStore(sig, exp);
+        //return exp;
 
 	} else {
         cerr << "Error in sharing count (" << sharing << ") for " << *sig << endl;
@@ -473,7 +468,6 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 							   	    CASTING
 *****************************************************************************/
 
-
 string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 {
 	return generateCacheCode(sig, subst("int($0)", CS(x)));
@@ -506,7 +500,6 @@ string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
 	return generateCacheCode(sig, varname);
 }
 
-
 string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
 {
 	string varname = getFreshID("fslider");
@@ -534,7 +527,6 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
 	return generateCacheCode(sig, varname);
 }
 
-
 string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
 	string varname = getFreshID("fbargraph");
@@ -560,7 +552,6 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
 	//return varname;
     return generateCacheCode(sig, varname);
 }
-
 
 string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
@@ -589,13 +580,9 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 }
 
 
-
-
 /*****************************************************************************
 							   	    TABLES
 *****************************************************************************/
-
-
 
 /*----------------------------------------------------------------------------
 						sigGen : initial table content
@@ -622,7 +609,6 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 	return signame;
 }
-
 
 /*----------------------------------------------------------------------------
 						sigTable : table declaration
@@ -710,7 +696,6 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 	return vname;
 }
 
-
 /*----------------------------------------------------------------------------
 						sigWRTable : table assignement
 ----------------------------------------------------------------------------*/
@@ -721,7 +706,6 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 	fClass->addExecCode(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
 	return tblName;
 }
-
 
 /*----------------------------------------------------------------------------
 						sigRDTable : table access
@@ -735,8 +719,8 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 
 	//cerr << "generateRDTable " << *sig << endl;
 	// test the special case of a read only table that can be compiled
-	// has a static member
-	Tree 	id, size, content;
+	// as a static member
+	Tree id, size, content;
 	if(	isSigTable(tbl, id, size, content) ) {
 		string tblname;
 		if (!getCompiledExpression(tbl, tblname)) {
@@ -748,12 +732,9 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 	}
 }
 
-
-
 /*****************************************************************************
 							   RECURSIONS
 *****************************************************************************/
-
 
 /**
  * Generate code for a projection of a group of mutually recursive definitions
@@ -763,14 +744,13 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
     string  vname;
     Tree    var, le;
 
-    if ( ! getVectorNameProperty(sig, vname)) {
+    if (!getVectorNameProperty(sig, vname)) {
         assert(isRec(r, var, le));
         generateRec(r, var, le);
         assert(getVectorNameProperty(sig, vname));
     }
     return "[[UNUSED EXP]]";    // make sure the resulting expression is never used in the generated code
 }
-
 
 /**
  * Generate code for a group of mutually recursive definitions
@@ -808,7 +788,6 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     }
 }
 
-
 /*****************************************************************************
 							   PREFIX, DELAY A PREFIX VALUE
 *****************************************************************************/
@@ -829,7 +808,6 @@ string ScalarCompiler::generatePrefix (Tree sig, Tree x, Tree e)
 	fClass->addExecCode(subst("$0 = $1;", vperm, CS(e)));
 	return vtemp;
 }
-
 
 /*****************************************************************************
 							   IOTA(n)
@@ -857,10 +835,7 @@ string ScalarCompiler::generateIota (Tree sig, Tree n)
 	return vperm;
 }
 
-
-
 // a revoir en utilisant la lecture de table et en partageant la construction de la paire de valeurs
-
 
 /**
  * Generate a select2 code
@@ -870,7 +845,6 @@ string ScalarCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2)
 {
     return generateCacheCode(sig, subst( "(($0)?$1:$2)", CS(sel), CS(s2), CS(s1) ) );
 }
-
 
 /**
  * Generate a select3 code (using if-then-else)
@@ -975,11 +949,6 @@ string ScalarCompiler::generateXtended 	(Tree sig)
 	}
 }
 
-
-
-//------------------------------------------------------------------------------------------------
-
-
 /*****************************************************************************
 						vector name property
 *****************************************************************************/
@@ -993,9 +962,8 @@ string ScalarCompiler::generateXtended 	(Tree sig)
  */
 void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 {
-        fVectorProperty.set(sig, vecname);
+    fVectorProperty.set(sig, vecname);
 }
-
 
 /**
  * Get the vector name property of a signal, the name of the vector used to
@@ -1009,7 +977,6 @@ bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
 {
     return fVectorProperty.get(sig, vecname);
 }
-
 
 /**
  * Compute the minimal power of 2 greater than x
@@ -1085,7 +1052,6 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 	}
 }
 
-
 /**
  * Generate code for the delay mecchanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
@@ -1133,7 +1099,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
     } else {
 
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int     N = pow2limit(mxd+1);
+        int N = pow2limit(mxd+1);
 
         // we need a iota index
         ensureIotaCode();
@@ -1161,7 +1127,6 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         // no need for a real vector
         fClass->addExecCode(subst("$0 \t$1 = $2;", ctype, vname, exp));
 
-
     } else if (mxd < gMaxCopyDelay) {
 
         // short delay : we copy
@@ -1181,7 +1146,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     } else {
 
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
-        int     N = pow2limit(mxd+1);
+        int N = pow2limit(mxd+1);
 
         // we need a iota index
         ensureIotaCode();

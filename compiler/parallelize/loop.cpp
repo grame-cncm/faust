@@ -1,36 +1,14 @@
 #include "loop.hh"
+#include "Text.hh"
+
 extern bool gVectorSwitch;
+extern bool	gLLVMSwitch;
 extern bool gOpenMPSwitch;
 extern bool gOpenMPLoop;
 
 using namespace std;
 
-/**
- * Print n tabs (for indentation purpose)
- * @param n number of tabs to print
- * @param fout output stream
- */
-static void tab (int n, ostream& fout)
-{
-    fout << '\n';
-    while (n--) fout << '\t';
-}
-
-
-/**
- * Print a list of lines
- * @param n number of tabs of indentation
- * @param lines list of lines to be printed
- * @param fout output stream
- */
-static void printlines (int n, list<string>& lines, ostream& fout)
-{
-    list<string>::iterator s;
-    for (s = lines.begin(); s != lines.end(); s++) {
-        tab(n, fout); fout << *s;
-    }
-}
-
+int Loop::fLoopCounter = 0;
 
 /**
  * Create a recursive loop
@@ -39,7 +17,7 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param size the number of iterations of the loop
  */
 Loop::Loop( Tree recsymbol, Loop* encl, const string& size) 
-        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0) 
+        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(fLoopCounter++), fUseCount(0) 
 {}
 
 
@@ -49,7 +27,7 @@ Loop::Loop( Tree recsymbol, Loop* encl, const string& size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0)
+        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(fLoopCounter++), fUseCount(0)
 {}
 
 
@@ -111,7 +89,7 @@ void Loop::addPreCode (const string& str)
  */
 void Loop::addExecCode (const string& str)    
 { 
-   // cerr << this << "->addExecCode " << str << endl;
+    // cerr << this << "->addExecCode " << str << endl;
     fExecCode.push_back(str); 
 }
 
@@ -121,8 +99,11 @@ void Loop::addExecCode (const string& str)
  */
 void Loop::addPostCode (const string& str)    
 { 
-   // cerr << this << "->addPostCode " << str << endl;
-    fPostCode.push_front(str); 
+    // cerr << this << "->addPostCode " << str << endl;
+    //fPostCode.push_front(str);
+    
+    // steph : why push_front ??
+    fPostCode.push_back(str); 
 }
 
 
@@ -172,7 +153,7 @@ void Loop::println(int n, ostream& fout)
             tab(n,fout); fout << "// pre processing";
             printlines(n, fPreCode, fout);
         }
-
+        
         tab(n,fout); fout << "// exec code";
         tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
         printlines(n+1, fExecCode, fout);

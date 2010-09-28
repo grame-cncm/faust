@@ -276,6 +276,8 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen=true);
  */
 bool verySimple(Tree exp);
 
-
+// steph
+extern Sym SIGINTCAST;
+extern Sym SIGFLOATCAST;
 
 #endif

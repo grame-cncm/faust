@@ -4,6 +4,8 @@
 #include "sigtyperules.hh"
 
 #include "floats.hh"
+#include "code_gen.hh"
+#include "code_container.hh"
 
 class AbsPrim : public xtended
 {
@@ -31,7 +33,6 @@ class AbsPrim : public xtended
 		assert (args.size() == arity());
 		return args[0];
 	}
-
 
 	virtual Tree	computeSigOutput (const vector<Tree>& args)
 	{
@@ -62,7 +63,30 @@ class AbsPrim : public xtended
 			return subst("abs($0)", args[0]);
 		}
 	}
-	
+    
+    virtual ValueInst* generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
+    {
+        assert (args.size() == arity());
+		assert (types.size() == arity());
+        
+        Typed::VarType result_type;
+        if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
+        vector<Typed::VarType> arg_types;
+        vector< ::Type>::const_iterator it;
+        for (it = types.begin(); it != types.end(); it++) {
+            Typed::VarType t1;
+            if (((*it)->nature() == kInt)) t1 = Typed::kInt; else t1 = itfloat();
+            arg_types.push_back(t1);
+        }
+        
+        Type t = infereSigType(types);
+		if (t->nature() == kReal) {
+            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
+        } else {
+            return container->pushFunction("abs", result_type, arg_types, args);
+        }
+    }
+
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());

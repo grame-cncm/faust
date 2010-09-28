@@ -1277,7 +1277,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
     long in_nChannels, out_nChannels;
     
-    printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
+    //printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
 	
 	if (GetDefaultDevice(inChan, outChan, &fDeviceID) != noErr) {
 		printf("Cannot open default device\n");
@@ -1374,7 +1374,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     }
 
     in_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-    printf("in_nChannels = %ld\n", in_nChannels);
+    //printf("in_nChannels = %ld\n", in_nChannels);
 
     err1 = AudioUnitGetPropertyInfo(fAUHAL, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Output, 0, &outSize, &isWritable);
     if (err1 != noErr) {
@@ -1383,7 +1383,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
     }
 
     out_nChannels = (err1 == noErr) ? outSize / sizeof(SInt32) : 0;
-    printf("out_nChannels = %ld\n", out_nChannels);
+    //printf("out_nChannels = %ld\n", out_nChannels);
 
     /*
     Just ignore this case : seems to work without any further change...
@@ -1435,7 +1435,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
         }
-        PrintStreamDesc(&srcFormat);
+        //PrintStreamDesc(&srcFormat);
         
         srcFormat.mSampleRate = samplerate;
         srcFormat.mFormatID = kAudioFormatLinearPCM;
@@ -1446,7 +1446,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         srcFormat.mChannelsPerFrame = inChan;
         srcFormat.mBitsPerChannel = 32;
         
-        PrintStreamDesc(&srcFormat);
+        //PrintStreamDesc(&srcFormat);
         
         err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {
@@ -1462,7 +1462,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
         }
-        PrintStreamDesc(&dstFormat);
+        //PrintStreamDesc(&dstFormat);
         
         dstFormat.mSampleRate = samplerate;
         dstFormat.mFormatID = kAudioFormatLinearPCM;
@@ -1473,7 +1473,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         dstFormat.mChannelsPerFrame = outChan;
         dstFormat.mBitsPerChannel = 32;
         
-        PrintStreamDesc(&dstFormat);
+        //PrintStreamDesc(&dstFormat);
 
         err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {

@@ -115,14 +115,22 @@ Sym SIGSELECT3 = symbol ("SigSelect3");
 Tree sigSelect2 (Tree selector, Tree s1, Tree s2)							{ return tree(SIGSELECT2, sigIntCast(selector), s1, s2); }
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)				{ return isTree(t, SIGSELECT2, selector, s1, s2); }
 
-Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIGSELECT3, sigIntCast(selector), s1, s2, s3); }
+//Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIGSELECT3, sigIntCast(selector), s1, s2, s3); }
+
+// Exprimer le "select3" avec le "select2" ?
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return sigSelect2(selector, sigSelect2(selector, s2, s3), s1); }
+
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
 
 
 // Arithmetical operations
 
 Sym SIGBINOP = symbol ("SigBinOp");
-Tree sigBinOp(int op, Tree x, Tree y) 					{ return tree(SIGBINOP, tree(op), x, y); }
+
+Tree sigBinOp(int op, Tree x, Tree y) 					
+{ 
+    return tree(SIGBINOP, tree(op), x, y); 
+}
 bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y) 		{ Tree t; return isTree(s, SIGBINOP, t, x, y) && isInt(t->node(),op); }
 
 

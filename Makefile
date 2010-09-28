@@ -15,7 +15,7 @@ all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 
 
-.PHONY: clean depend install ininstall dist parser help
+.PHONY: clean depend install uninstall dist parser help
 
 help :
 	@echo "make or make all : compiler the faust compiler"
@@ -117,4 +117,5 @@ zip :
 
 log :
 	cvs2cl --fsf
+
 # DO NOT DELETE

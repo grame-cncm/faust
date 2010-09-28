@@ -50,19 +50,12 @@ struct Meta : map<const char*, const char*>
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
  
-	
-
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
 
 
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
-
-inline int 		int2pow2 (int x)	        { int r=0; while ((1<<r)<x) r++; return r; }
+inline int	lsr(int x, int n)	{ return int(((unsigned int)x) >> n); }
+inline int 	int2pow2 (int x)    { int r=0; while ((1<<r)<x) r++; return r; }
 
 /******************************************************************************
 *******************************************************************************
@@ -72,13 +65,7 @@ inline int 		int2pow2 (int x)	        { int r=0; while ((1<<r)<x) r++; return r;
 *******************************************************************************
 *******************************************************************************/
 
-
-
 <<includeIntrinsic>>
-
-
-
-
 
 
 /******************************************************************************
@@ -164,49 +151,48 @@ class UI
 		}
 	}
         
-        // -- active widgets
-        
-        virtual void addButton(const char* label, float* zone) = 0;
-        virtual void addToggleButton(const char* label, float* zone) = 0;
-        virtual void addCheckButton(const char* label, float* zone) = 0;
-        virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        
-        // -- passive widgets
-        
-        virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-        virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
-        virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-        virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-        
-        void addCallback(float* zone, uiCallback foo, void* data);
-        
-        // -- widget's layouts
-        
-        virtual void openFrameBox(const char* label) = 0;
-        virtual void openTabBox(const char* label) = 0;
-        virtual void openHorizontalBox(const char* label) = 0;
-        virtual void openVerticalBox(const char* label) = 0;
-
-        // -- extra widget's layouts
+    // -- active widgets
     
-        virtual void openDialogBox(const char* label, float* zone) = 0;
-        virtual void openEventBox(const char* label) = 0;
-        virtual void openHandleBox(const char* label) = 0;
-        virtual void openExpanderBox(const char* label, float* zone) = 0;
+    virtual void addButton(const char* label, float* zone) = 0;
+    virtual void addToggleButton(const char* label, float* zone) = 0;
+    virtual void addCheckButton(const char* label, float* zone) = 0;
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    
+    // -- passive widgets
+    
+    virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+    
+    void addCallback(float* zone, uiCallback foo, void* data);
+    
+    // -- widget's layouts
+    
+    virtual void openFrameBox(const char* label) = 0;
+    virtual void openTabBox(const char* label) = 0;
+    virtual void openHorizontalBox(const char* label) = 0;
+    virtual void openVerticalBox(const char* label) = 0;
 
-        virtual void closeBox() = 0;
-        
-        virtual void show() {};
-        virtual void run() {};
+    // -- extra widget's layouts
+
+    virtual void openDialogBox(const char* label, float* zone) = 0;
+    virtual void openEventBox(const char* label) = 0;
+    virtual void openHandleBox(const char* label) = 0;
+    virtual void openExpanderBox(const char* label, float* zone) = 0;
+
+    virtual void closeBox() = 0;
+    
+    virtual void show() {};
+    virtual void run() {};
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
     virtual void declare(float* zone, const char* key, const char* value) {}
 };
-
 
 /**
  * User Interface Item: abstract definition
@@ -217,8 +203,8 @@ class uiItem
   protected :
 		  
 	UI*		fGUI;
-	float*		fZone;
-	float		fCache;
+	float*	fZone;
+	float	fCache;
 	
 	uiItem (UI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
@@ -241,7 +227,6 @@ class uiItem
 	float			cache()			{ return fCache; }
 	virtual void 	reflectZone() 	= 0;	
 };
-
 
 /**
  * Callback Item
@@ -276,7 +261,6 @@ inline void UI::updateZone(float* z)
 		if ((*c)->cache() != v) (*c)->reflectZone();
 	}
 }
-
 
 /**
  * Update all user items not up to date
@@ -313,7 +297,6 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 #define stackSize 256
 
 // Insertion modes
-
 #define kSingleMode 0
 #define kBoxMode 1
 #define kTabMode 2
@@ -333,7 +316,6 @@ static string rmWhiteSpaces(const string& s)
         return "";
     }
 }
-
 
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
@@ -432,7 +414,6 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
     label = rmWhiteSpaces(label);
 }
 
-
 class GTKUI : public UI
 {
  private :
@@ -504,8 +485,6 @@ class GTKUI : public UI
     
 };
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -545,8 +524,6 @@ static string formatTooltip(int n, const string& tt)
 	return ss;
 }
 
-
-
 static gint delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
 {
     return FALSE; 
@@ -557,7 +534,6 @@ static void destroy_event( GtkWidget *widget, gpointer data )
     gtk_main_quit ();
 }
 
-         
 GTKUI::GTKUI(char * name, int* pargc, char*** pargv) 
 {
     if (!fInitialized) {
@@ -588,7 +564,6 @@ void GTKUI::pushBox(int mode, GtkWidget* w)
     fBox[fTop]      = w;
 }
 
-
 /**
  * Remove n levels from the stack S before the top level
  * adjustStack(n): S -> S' with S' = S(0),S(n+1),S(n+2),...
@@ -610,7 +585,6 @@ void GTKUI::closeBox()
     assert(fTop >= 0);
 }
 
-
 /**
  * Analyses the widget zone metadata declarations and takes
  * appropriate actions 
@@ -625,8 +599,6 @@ void GTKUI::declare(float* zone, const char* key, const char* value)
     }
 }
         
-        
-
 /**
  * Analyses a full label and activates the relevant options. returns a simplified
  * label (without options) and an amount of stack adjustement (in case additional
@@ -660,7 +632,6 @@ void GTKUI::checkForTooltip(float* zone, GtkWidget* widget)
     }
 }
 
-
 // les differentes boites
 
 void GTKUI::openFrameBox(const char* label)
@@ -670,7 +641,6 @@ void GTKUI::openFrameBox(const char* label)
             
     pushBox(kSingleMode, addWidget(label, box));
 }
-
 
 void GTKUI::openTabBox(const char* fullLabel)
 {
@@ -684,7 +654,6 @@ void GTKUI::openTabBox(const char* fullLabel)
     // adjust stack because otherwise Handlebox will remain open
     adjustStack(adjust);
 }
-
 
 void GTKUI::openHorizontalBox(const char* fullLabel)
 {   
@@ -707,7 +676,6 @@ void GTKUI::openHorizontalBox(const char* fullLabel)
     adjustStack(adjust);
 }
 
-
 void GTKUI::openVerticalBox(const char* fullLabel)
 {
     string  label;
@@ -729,7 +697,6 @@ void GTKUI::openVerticalBox(const char* fullLabel)
     adjustStack(adjust);
 }
 
-
 void GTKUI::openHandleBox(const char* label)
 {
     GtkWidget * box = gtk_hbox_new (homogene, 4);
@@ -747,7 +714,6 @@ void GTKUI::openHandleBox(const char* label)
     }
 }
 
-
 void GTKUI::openEventBox(const char* label)
 {
     GtkWidget * box = gtk_hbox_new (homogene, 4);
@@ -764,7 +730,6 @@ void GTKUI::openEventBox(const char* label)
         pushBox(kBoxMode, addWidget(label, box));
     }
 }
-
 
 struct uiExpanderBox : public uiItem
 {
@@ -808,8 +773,6 @@ void GTKUI::openExpanderBox(const char* label, float* zone)
         pushBox(kBoxMode, addWidget(label, box));
     }
 }
-
-
 
 GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
 { 
@@ -898,8 +861,6 @@ void GTKUI::addToggleButton(const char* label, float* zone)
     checkForTooltip(zone, button);
 }
 
-
-
 void show_dialog(GtkWidget *widget, gpointer data)
 {
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(widget)) == TRUE)
@@ -915,7 +876,7 @@ void show_dialog(GtkWidget *widget, gpointer data)
 
 static gboolean deleteevent( GtkWidget *widget, gpointer   data )
 {
-return TRUE;
+    return TRUE;
 } 
 
 void GTKUI::openDialogBox(const char* label, float* zone)
@@ -945,9 +906,6 @@ void GTKUI::openDialogBox(const char* label, float* zone)
     gtk_widget_show(box);
     pushBox(kBoxMode, box);
 }
-
-
-
 
 // ---------------------------  Check Button ---------------------------
 
@@ -982,7 +940,6 @@ void GTKUI::addCheckButton(const char* label, float* zone)
 
     checkForTooltip(zone, button);
 }
-
 
 // ---------------------------  Adjustmenty based widgets ---------------------------
 
@@ -1069,7 +1026,6 @@ void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, floa
     checkForTooltip(zone, slider);
 }
 
-
 // ------------------------------ Num Entry -----------------------------------
 
 void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
@@ -1091,9 +1047,7 @@ void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, f
     checkForTooltip(zone, spinner);
 }
 
-
 // ==========================   passive widgets ===============================
-
 
 // ------------------------------ Progress Bar -----------------------------------
 
@@ -1116,8 +1070,6 @@ struct uiBargraph : public uiItem
     }
 };
 
-    
-
 void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float hi)
 {
     GtkWidget* pb = gtk_progress_bar_new();
@@ -1131,7 +1083,6 @@ void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float 
     checkForTooltip(zone, pb);
 }
     
-
 void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, float hi)
 {
     GtkWidget* pb = gtk_progress_bar_new();
@@ -1144,7 +1095,6 @@ void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, floa
 
     checkForTooltip(zone, pb);
 }
-
 
 // ------------------------------ Num Display -----------------------------------
 
@@ -1173,7 +1123,6 @@ struct uiNumDisplay : public uiItem
     }
 };
     
-
 void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 {
     GtkWidget* lw = gtk_label_new("");
@@ -1185,23 +1134,22 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
     checkForTooltip(zone, lw);
 }
 
-
 // ------------------------------ Text Display -----------------------------------
 
 struct uiTextDisplay : public uiItem
 {
-        GtkLabel*           fLabel;
-        const char**    fNames;
-        float               fMin;
-        float               fMax;
-        int                         fNum;
+    GtkLabel*       fLabel;
+    const char**    fNames;
+    float           fMin;
+    float           fMax;
+    int             fNum;
         
-        
-        uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
-                        : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
-        {
-                fNum = 0;
-                while (fNames[fNum] != 0) fNum++;
+    
+    uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
+                    : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
+    {
+            fNum = 0;
+            while (fNames[fNum] != 0) fNum++;
     }
 
     virtual void reflectZone()  
@@ -1218,7 +1166,6 @@ struct uiTextDisplay : public uiItem
     }
 };
     
-
 void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], float lo, float hi )
 {
     GtkWidget* lw = gtk_label_new("");
@@ -1230,15 +1177,12 @@ void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], 
     checkForTooltip(zone, lw);
 }
 
-
-
 void GTKUI::show() 
 {
     assert(fTop == 0);
     gtk_widget_show  (fBox[0]);
     gtk_widget_show  (fWindow);
 }
-
 
 /**
  * Update all user items reflecting zone z
@@ -1250,7 +1194,6 @@ static gboolean callUpdateAllGuis(gpointer)
     return TRUE;
 }
 
-
 void GTKUI::run() 
 {
     assert(fTop == 0);
@@ -1261,9 +1204,6 @@ void GTKUI::run()
     stop();
 }
 
-
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -1271,10 +1211,6 @@ void GTKUI::run()
 
 *******************************************************************************
 *******************************************************************************/
-
-
-
-
 
 //----------------------------------------------------------------
 //  Definition of an abstract signal processor
@@ -1294,19 +1230,13 @@ class dsp {
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
 		
-
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 		
 <<includeclass>>
 		
-				
 mydsp	DSP;
-
-
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -1316,15 +1246,12 @@ mydsp	DSP;
 *******************************************************************************
 *******************************************************************************/
 
-
-
 //----------------------------------------------------------------------------
 // 	number of input and output channels
 //----------------------------------------------------------------------------
 
 int		gNumInChans;
 int		gNumOutChans;
-
 
 //----------------------------------------------------------------------------
 // Jack ports
@@ -1426,7 +1353,6 @@ int process (jack_nframes_t nframes, void *arg)
 	return 0;
 }
 
-
 /******************************************************************************
 *******************************************************************************
 
@@ -1434,7 +1360,6 @@ int process (jack_nframes_t nframes, void *arg)
 
 *******************************************************************************
 *******************************************************************************/
-	
 	
 //-------------------------------------------------------------------------
 // 									MAIN

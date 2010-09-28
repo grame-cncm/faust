@@ -1,5 +1,6 @@
 #include <set>
 #include "graphSorting.hh"
+#include "code_container.hh"
 
 /**
  * Set the order of a loop and place it to appropriate set
@@ -22,7 +23,6 @@ static void setLevel(int order, const lset& T1, lset& T2, lgraph& V)
         T2.insert((*p)->fBackwardLoopDependencies.begin(), (*p)->fBackwardLoopDependencies.end());
     }
 }
-
 
 static void resetOrder(Loop* l)
 {
@@ -58,3 +58,41 @@ void sortGraph(Loop* root, lgraph& V)
         }
     }
 }
+
+/**
+ * Compute how many time each loop is used in a DAG
+ */
+void computeUseCount(Loop* l)
+{
+	l->fUseCount++;
+	if (l->fUseCount == 1) {
+		for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
+		    computeUseCount(*p);
+		}
+	}
+}
+
+/**
+ * Group together sequences of loops
+ */
+void groupSeqLoops(Loop* l)
+{
+	int n = l->fBackwardLoopDependencies.size();
+	if (n == 0) {
+		return;
+	} else if (n == 1) {
+		Loop* f = *(l->fBackwardLoopDependencies.begin());
+		if (f->fUseCount ==  1) {
+			l->concat(f);
+			groupSeqLoops(l);
+		} else {
+			groupSeqLoops(f);
+		}
+		return;
+	} else if (n > 1) {
+		for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
+			groupSeqLoops(*p);
+		}
+	}
+}
+

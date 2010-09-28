@@ -29,7 +29,7 @@
 #include <iostream>
 #include "smartpointer.hh"
 #include "interval.hh"
-
+#include "instructions.hh"
 
 /*********************************************************************
 *
@@ -436,6 +436,6 @@ int checkDelayInterval(Type t);		///< Check if the interval of t is appropriate 
 // conversion de type
 
 string cType (Type t);
-
+Typed::VarType ctType (Type t);
 
 #endif

@@ -61,7 +61,8 @@ protected:
     static bool     fNeedPowerDef;              ///< true when faustpower definition is needed
 
 
- protected:
+ //protected:
+ public:
     
 	string			fKlassName;
 	string			fSuperKlassName;
@@ -105,17 +106,17 @@ protected:
 
  public:
 
-	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false)
+	Klass (const string& name, const string& super, int numInputs, int numOutputs, bool __vec = false, Loop* loop = new Loop(0, "count"))
 	  : 	fKlassName(name), fSuperKlassName(super), fNumInputs(numInputs), fNumOutputs(numOutputs),
             fNumActives(0), fNumPassives(0),
-            fTopLoop(new Loop(0, "count")), fVec(__vec)
+            fTopLoop(loop), fVec(__vec)
 	{}
-
+ 
 	virtual ~Klass() 						{}
 
-    void    openLoop(const string& size);
-    void    openLoop(Tree recsymbol, const string& size);
-    void    closeLoop(Tree sig=0);
+    virtual void    openLoop(const string& size);
+    virtual void    openLoop(Tree recsymbol, const string& size);
+    virtual void    closeLoop(Tree sig=0);
 
     void    setLoopProperty(Tree sig, Loop* l);     ///< Store the loop used to compute a signal
     bool    getLoopProperty(Tree sig, Loop*& l);    ///< Returns the loop used to compute a signal
@@ -164,7 +165,88 @@ protected:
     void addPreCode ( const string& str)   { fTopLoop->addPreCode(str); }
     void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
 	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
+    
+    // Declarations
+    
+    virtual void addConstant (const string& str)
+    {}
+    string addStringConstant (const string& str)
+    {
+        return "";
+    }
+    
+    virtual void addSimpleTypeDecl(const string& name, const string& type)
+    {
+        // TODO
+    }
+    virtual void addSimpleTypeInitCode(const string& name, const string& type, const string& exp)
+    {
+        // TODO
+    }
+    
+    virtual void addArrayTypeDecl(const string& name, const string& type, int size)
+    {
+        // TODO
+    }
+    virtual void addArrayTypeInitCode(const string& name, const string& type, const string& exp, int size)
+    {
+        // TODO
+    }
+    
+    virtual void ensureIotaCode()
+    {}
+    
+    virtual string compileFieldLoad(list<string>& liste, const string& name, const string& type, const string& array_index)
+    {
+        return "";
+    }
+    
+     virtual string compileFieldLoad(const string& name, const string& type, const string& array_index)
+    {
+        return "";
+    }
 
+    virtual string compileFieldStore(list<string>& liste, const string& name, const string& type, const string& array_index, const string& exp)
+    {
+        return "";
+    }
+    
+    virtual string compileFieldStore(const string& name, const string& type, const string& array_index)
+    {
+        return "";
+    }
+    
+    virtual void generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp)
+    {}
+    
+    virtual string compileIOTA(const string& vname, const string& delay,  const string& size)
+    {
+        return "";
+    }
+
+    virtual void compileIOTA1(const string& vname, const string& delay,  const string& exp)
+    {}
+    
+    virtual string generateDelayVecNoTempAux1(const string& exp, const string& ctype, const string& vname, int mxd)
+    {
+        return "";
+    }
+    
+    // UI construction
+    virtual void openBox(int orient, const string& name);
+    virtual void closeBox();
+    
+    virtual void addMetaDeclare(const string& zone, const string& key, const string& value);
+    
+    virtual void addButton(const string& label, const string& zone);
+    virtual void addCheckButton(const string& label, const string& zone);
+    virtual void addVerticalSlider(const string& label, const string& zone, const string& init, const string& min, const string& max, const string& step);
+    virtual void addHorizontalSlider(const string& label, const string& zone, const string& init, const string& min, const string& max, const string& step);
+    virtual void addNumEntry(const string& label, const string& zone, const string& init, const string& min, const string& max, const string& step);
+    virtual void addVerticalBargraph(const string& label, const string& zone, const string& min, const string& max);
+    virtual void addHorizontalBargraph(const string& label, const string& zone, const string& min, const string& max);
+		
+    // Code generation
 	virtual void println(int n, ostream& fout);
     
     virtual void printComputeMethod (int n, ostream& fout);

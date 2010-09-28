@@ -38,19 +38,19 @@ extern bool gVectorSwitch;
 //--------------------------------------------------------------------------
 // addEnv : add a new binding to a type environment
 
-Tree addEnv(Tree var, Type tp, Tree env);
+Tree addEnv(Tree var, ::Type tp, Tree env);
 
 
 //--------------------------------------------------------------------------
 // searchEnv : search var binding in env
 
-Type searchEnv(Tree env, Tree var);
+::Type searchEnv(Tree env, Tree var);
 
 
 //--------------------------------------------------------------------------
 //	getSigType : return or infere the type of a term
 
-Type getSigType(Tree term);
+::Type getSigType(Tree term);
 
 
 //--------------------------------------------------------------------------

@@ -255,7 +255,7 @@ int tree2int (Tree t)
 	}
 	return i;
 }	
-    
+        
 // if t has a node of type float, return it otherwise error
 double tree2float (Tree t)
 {

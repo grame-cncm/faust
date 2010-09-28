@@ -1,4 +1,5 @@
-#include <signals.hh>
+
+#include "signals.hh"
 /**
  * Extract the sub signals of a signal expression, that is not
  * necesseraly all the subtrees.

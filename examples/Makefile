@@ -1,5 +1,6 @@
 MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2' 
-MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+#MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 #MYGCCFLAGS := '-O3'
 VSIZE := 1024
 
@@ -67,7 +68,17 @@ ialsasch :
 
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' CXXFLAGS=$(MYGCCFLAGS) VEC=' -vec -lv 1 -vs 64 -fun'  ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+
+jackgtkllvm :
+	install -d jackgtkdirllvm
+	$(MAKE) DEST='jackgtkdirllvm/' ARCH='llvm-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs`' -f Makefile.llvmcompile
+
+jackgtkc :
+	install -d jackgtkdirc
+	$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -sch -vs 64' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -vec -lv 1 -vs 64 ' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir
@@ -158,6 +169,13 @@ iphone :
 iphonenet :
 	install -d iphonenetdir
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
+
+llvm-loader:
+	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -o llvm-jack-gtk-loader
+
+#../architecture/scheduler.cpp 
+
+#-Wl,-flat_namespace,-undefined,dynamic_lookup 
 
 bench :
 	install -d benchdir

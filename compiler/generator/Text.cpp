@@ -219,3 +219,47 @@ string quote(const string& s)
 	return q;
 }
 
+
+/**
+ * Print n tabs (for indentation purpose)
+ * @param n number of tabs to print
+ * @param fout output stream
+ */
+void tab(int n, ostream& fout)
+{
+    fout << '\n';
+    while (n--) fout << '\t';
+}
+
+/**
+ * Print a list of lines
+ * @param n number of tabs of indentation
+ * @param lines list of lines to be printed
+ * @param fout output stream
+ */
+void printlines(int n, list<string>& lines, ostream& fout, string sep)
+{
+    list<string>::iterator s;
+    for (s = lines.begin(); s != lines.end(); s++) {
+        if (s == lines.begin()) {
+            tab(n, fout); fout << *s;  // No separator before first one
+        } else {
+            tab(n, fout); fout << sep << *s;
+        }
+    }
+}
+
+string checkFloat(float val)
+{
+    stringstream num; num << val;
+    string str = num.str();
+    
+    bool dot = false;
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] == '.' || str[i] == 'e') {
+           dot = true;
+           break;
+        }
+    }
+    return (dot) ? (str + "f") : (str + ".f");
+}

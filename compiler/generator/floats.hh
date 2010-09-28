@@ -25,11 +25,17 @@
 #define _FAUSTFLOATS_
 
 #include <iostream>
+#include "instructions.hh"
+
+#define FLOATMACRO "FAUSTFLOAT"
+#define FLOATMACROPTR "FAUSTFLOAT*"
+#define FLOATCAST "(" FLOATMACRO ")"
 
 const char* isuffix();
 const char* inumix();
 
 const char* ifloat();
+const Typed::VarType itfloat();
 const char* icast();
 
 const char* xfloat();

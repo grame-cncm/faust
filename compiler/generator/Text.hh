@@ -34,8 +34,9 @@
 ***********************************************************************/
 #include <string>
 #include <vector>
-using namespace std;
+#include <list>
 
+using namespace std;
 
 string subst (const string& m, const string& a0);
 string subst (const string& m, const vector<string>& vargs);
@@ -56,5 +57,8 @@ string T (double n);
 string unquote(const string& s);
 string quote(const string& s);
 
+void tab(int n, ostream& fout);
+void printlines(int n, list<string>& lines, ostream& fout, string sep = "");
+string checkFloat(float val);
 
 #endif

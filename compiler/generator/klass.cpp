@@ -62,12 +62,6 @@ extern bool	gGroupTaskSwitch;
 extern map<Tree, set<Tree> > gMetaDataSet;
 static int gTaskCount = 0;
 
-void tab (int n, ostream& fout)
-{
-	fout << '\n';
-	while (n--)	fout << '\t';
-}
-
 bool Klass::fNeedPowerDef = false;
 
 /**
@@ -138,20 +132,9 @@ void Klass::closeLoop(Tree sig)
 }
 
 /**
- * Print a list of lines.
- */
-void printlines(int n, list<string>& lines, ostream& fout)
-{
-    list<string>::iterator s;
-    for (s = lines.begin(); s != lines.end(); s++) {
-        tab(n, fout); fout << *s;
-    }
-}
-
-/**
  * Print a list of elements (e1, e2,...)
  */
-void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
+static void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
 {
     if (!content.empty()) {
         list<string>::iterator s;
@@ -244,7 +227,7 @@ void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 
 inline bool isElement(const set<Loop*>& S, Loop* l)
 {
-	return S.find(l)!= S.end();
+	return S.find(l) != S.end();
 }
 
 /**
@@ -268,47 +251,9 @@ void Klass::printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visite
     l->println(n+1, fout);
 }
 
-/**
- * Compute how many time each loop is used in a DAG
- */
-static void computeUseCount(Loop* l)
-{
-	l->fUseCount++;
-	if (l->fUseCount == 1) {
-		for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
-		    computeUseCount(*p);
-		}
-	}
-}
-
-/**
- * Group together sequences of loops
- */
-static void groupSeqLoops(Loop* l)
-{
-	int n = l->fBackwardLoopDependencies.size();
-	if (n==0) {
-		return;
-	} else if (n==1) {
-		Loop* f = *(l->fBackwardLoopDependencies.begin());
-		if (f->fUseCount ==  1) {
-			l->concat(f);
-			groupSeqLoops(l);
-		} else {
-			groupSeqLoops(f);
-		}
-		return;
-	} else if (n > 1) {
-		for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
-			groupSeqLoops(*p);
-		}
-	}
-}
-
 #define WORK_STEALING_INDEX 0
 #define LAST_TASK_INDEX 1
 #define START_TASK_INDEX LAST_TASK_INDEX + 1
-
 #define START_TASK_MAX 2
 
 void Klass::buildTasksList()
@@ -409,7 +354,7 @@ void Klass::buildTasksList()
     }
     
     // Compute init section
-    addZone2c("// Only initialize taks with more than one input");
+    addZone2c("// Only initialize tasks with more than one input");
     for (int l=G.size()-1; l>=0; l--) {
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() > 1)  { // Only initialize taks with more than 1 input, since taks with one input are "directly" activated.
@@ -877,61 +822,6 @@ void Klass::printComputeMethodVectorSimple(int n, ostream& fout)
     tab(n+1,fout); fout << "}";
 }
 
-/*
-void Klass::printComputeMethodVectorFix0 (int n, ostream& fout)
-{
-    // in vector mode we need to split loops in smaller pieces not larger
-    // than gVecSize
-    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-        printlines(n+2, fZone1Code, fout);
-        printlines(n+2, fZone2Code, fout);
-        printlines(n+2, fZone2bCode, fout);
-        tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
-            tab(n+3,fout); fout << "if (fullcount >= index + " << gVecSize << ") {";
-                tab(n+4,fout); fout << "// compute by blocks of " << gVecSize << " samples";
-                tab(n+4,fout); fout << "const int count = " << gVecSize << ";"; // temporaire
-                printlines(n+4, fZone3Code, fout);
-                printLoopGraph (n+4,fout);
-            tab(n+3,fout); fout << "} else if (fullcount > index) {";
-                //tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-                tab(n+4,fout); fout << "// compute the remaining samples";
-                tab(n+4,fout); fout << "int count = fullcount-index;" ;
-                printlines(n+4, fZone3Code, fout);
-                printLoopGraph (n+4,fout);
-            tab(n+3,fout); fout << "}";
-        tab(n+2,fout); fout << "}";
-    tab(n+1,fout); fout << "}";
-}
-
-void Klass::printComputeMethodVectorFix1 (int n, ostream& fout)
-{
-    // in vector mode we need to split loops in smaller pieces not larger
-    // than gVecSize
-    tab(n+1,fout); fout << "virtual void compute (int fullcount, float** input, float** output) {";
-        printlines(n+2, fZone1Code, fout);
-        printlines(n+2, fZone2Code, fout);
-        printlines(n+2, fZone2bCode, fout);
-
-        tab(n+2,fout); fout << "int \tblock;";
-        tab(n+2,fout); fout << "for (block = 0; block < fullcount/" << gVecSize << "; block++) {";
-            tab(n+3,fout); fout << "// compute by blocks of " << gVecSize << " samples";
-            tab(n+3,fout); fout << "const int index = block*" << gVecSize << ";";
-            tab(n+3,fout); fout << "const int count = " << gVecSize << ";"; // temporaire
-            printlines(n+3, fZone3Code, fout);
-            printLoopGraph (n+3,fout);
-        tab(n+2,fout); fout << "}";
-
-        tab(n+2,fout); fout << "if (fullcount%" << gVecSize << " != 0) {";
-            //tab(n+3,fout); fout << "int count = min ("<< gVecSize << ", fullcount-index);";
-            tab(n+3,fout); fout << "// compute the remaining samples";
-            tab(n+3,fout); fout << "const int index = block*" << gVecSize << ";";
-            tab(n+3,fout); fout << "int count = fullcount%" << gVecSize << ";" ;
-            printlines(n+3, fZone3Code, fout);
-            printLoopGraph (n+3,fout);
-        tab(n+2,fout); fout << "}";
-    tab(n+1,fout); fout << "}";
-}*/
-
 void Klass::printComputeMethodOpenMP(int n, ostream& fout)
 {
     // in openMP mode we need to split loops in smaller pieces not larger
@@ -961,75 +851,6 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
         tab(n+2,fout); fout << "}";
     tab(n+1,fout); fout << "}";
 }
-
-/*
-void Klass::printComputeMethodScheduler (int n, ostream& fout)
-{
-    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
-        printlines (n+2, fZone1Code, fout);
-        printlines (n+2, fZone2Code, fout);
-        
-        // Init input and output
-        tab(n+2,fout); fout << "// Init input and output";
-        printlines (n+2, fZone3aCode, fout);
-        printlines (n+2, fZone3bCode, fout);
-        
-        tab(n+2,fout); fout << "// Init graph state";
-        tab(n+2,fout); fout << "initState(fTasksList);"; 
-        tab(n+2,fout); fout << "bool is_finished = false;"; 
-        tab(n+2,fout); fout << "unsigned int index_in = 0;"; 
-        tab(n+2,fout); fout << "unsigned int index_out = 0;"; 
-        tab(n+2,fout); fout << "int count = min ("<< gVecSize << ", fullcount);";
-        
-        tab(n+2,fout); fout << "InitSchedulingMap();";
-        tab(n+2,fout); fout << "#pragma omp parallel";
-        printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
-        
-        tab(n+2,fout); fout << "{";
-            tab(n+3,fout); fout << "while (!is_finished) {";
-                tab(n+4,fout); fout << "Task* task = searchTaskToAcquire(fTasksList);";
-                tab(n+4,fout); fout << "if (task != NULL) {";
-                    tab(n+5,fout); fout << "bool last_cycle_for_thread = false;";
-                    tab(n+5,fout); fout << "do {";
-                        tab(n+6,fout); fout << "AddTaskToScheduling(task);";
-                        tab(n+6,fout); fout << "switch (task->fNum) {";
-                        
-                            // DSP tasks
-                            printLoopGraph (n+7,fout);
-                        
-                            // Input task
-                            tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
-                            printlines (n+8, fZone6Code, fout);
-                            tab(n+8, fout); fout << "index_in += count;";
-                            tab(n+8, fout); fout << "last_cycle_for_thread = (index_in > fullcount);";
-                            tab(n+8, fout); fout << "break;";
-                            tab(n+7, fout); fout << "} ";
-                            
-                            // Output task
-                            tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
-                            printlines (n+8, fZone7Code, fout);
-                            tab(n+8, fout); fout << "index_out += count;";
-                            tab(n+8, fout); fout << "last_cycle_for_thread = (index_out > fullcount);";
-                            tab(n+8, fout); fout << "break;";
-                            tab(n+7, fout); fout << "} ";   
-                            
-                            // End task      
-                            tab(n+7, fout); fout << "case " << gTaskCount++ << ": { "; 
-                            tab(n+8, fout); fout << "is_finished = ((index_in >= fullcount) && (index_out >= fullcount));";
-                            tab(n+8, fout); fout << "break;";
-                            tab(n+7, fout); fout << "} ";                 
-                        
-                        tab(n+6,fout); fout << "}";
-                        tab(n+6,fout); fout << "if (last_cycle_for_thread) break;";
-                     
-                    tab(n+5,fout); fout << "} while ((task = task->concludeAndTryToAcquireNext()) != NULL);";
-                tab(n+4,fout); fout << "}";
-            tab(n+3,fout); fout << "}";          
-        tab(n+2,fout); fout << "}";
-        tab(n+2,fout); fout << "PrintSchedulingMap();";
-    tab(n+1,fout); fout << "}";
-}
-*/
 
 void Klass::printComputeMethodScheduler (int n, ostream& fout)
 {
@@ -1202,3 +1023,73 @@ void Klass::collectLibrary(set<string>& S)
 	for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->collectLibrary(S);
 	merge(S, fLibrarySet);
 }
+
+// UI construction
+    
+void Klass::openBox(int orient, const string& name)
+{
+    const char * model;
+    switch (orient) {
+        case 0 : model = "interface->openVerticalBox(\"$0\");"; break;
+        case 1 : model = "interface->openHorizontalBox(\"$0\");"; break;
+        case 2 : model = "interface->openTabBox(\"$0\");"; break;
+        default :
+            fprintf(stderr, "error in user interface generation 1\n");
+            exit(1);
+    }
+    
+    addUICode(subst(model, name));
+}
+
+void Klass::closeBox()
+{
+    addUICode("interface->closeBox();");
+}
+
+void Klass::addMetaDeclare(const string& zone, const string& key, const string& value)
+{
+    addUICode(subst("interface->declare(&$0, \"$1\", \"$2\");", zone, key, value));
+}
+
+void Klass::addButton(const string& label, const string& zone)
+{
+     incUIActiveCount();
+     addUICode(subst("interface->addButton(\"$0\", &$1, $2, $3, $4, $5);",label, zone));
+}
+
+void Klass::addCheckButton(const string& label, const string& zone)
+{
+    incUIActiveCount();
+    addUICode(subst("interface->addCheckButton(\"$0\", &$1);", label, zone));
+}
+
+void Klass::addVerticalSlider(const string& label, const string& zone, const string& init, const string& min, const string& max, const string& step)
+{
+    incUIActiveCount();
+    addUICode(subst("interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",label, zone, init, min, max, step));
+}
+
+void Klass::addHorizontalSlider(const string& label, const string& zone, const string& init, const string& min, const string& max, const string& step)
+{
+    incUIActiveCount();
+    addUICode(subst("interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",label, zone, init, min, max, step));
+}
+
+void Klass::addNumEntry(const string& label, const string& zone, const string& init, const string& min, const string& max, const string& step)
+{
+    incUIActiveCount();
+    addUICode(subst("interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);", label,  zone, init, min, max, step));
+}
+
+void Klass::addVerticalBargraph(const string& label, const string& zone, const string& min, const string& max)
+{
+    incUIActiveCount();
+    addUICode(subst("interface->addVerticalBargraph(\"$0\", &$1, $2, $3);", label, zone, min, max));
+}
+
+void Klass::addHorizontalBargraph(const string& label, const string& zone, const string& min, const string& max)
+{
+    incUIActiveCount();
+    addUICode(subst("interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);", label, zone, min, max));
+}
+

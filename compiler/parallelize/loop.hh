@@ -67,7 +67,9 @@ struct Loop
     int                 fIndex;             ///< used during scheduler mode code generation
     // new fields
     int					fUseCount;			///< how many loops depend on this one
-    list<Loop*>			fExtraLoops;		///< extra loops that where in sequences				
+    list<Loop*>			fExtraLoops;		///< extra loops that where in sequences		
+    
+    static int fLoopCounter;
 
 public:
     Loop(Tree recsymbol, Loop* encl, const string& size);   ///< create a recursive loop
@@ -83,7 +85,6 @@ public:
     void addPostCode (const string& str);       ///< add a line of C++ post code
     void println (int n, ostream& fout);        ///< print the loop
     void printParLoopln(int n, ostream& fout);  ///< print the loop with a #pragma omp loop
-
     void printoneln (int n, ostream& fout);    ///< print the loop in scalar mode
 
     void absorb(Loop* l);                   ///< absorb a loop inside this one
