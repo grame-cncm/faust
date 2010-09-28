@@ -1,0 +1,1673 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+#ifndef _INSTRUCTIONS_H
+#define _INSTRUCTIONS_H
+
+/**********************************************************************
+			- code_gen.h : generic code generator (projet FAUST) -
+
+
+		Historique :
+		-----------
+
+***********************************************************************/
+
+using namespace std;
+
+#include <string>
+#include <list>
+#include <set>
+#include <map>
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include <assert.h>
+#include <stdio.h>
+
+#include "binop.hh"
+
+// ============================
+// Generic instruction visitor
+// ============================
+
+struct Printable;
+struct NullInst;
+struct DeclareVarInst;
+struct DeclareFunInst;
+struct LoadVarInst;
+struct LoadVarAddressInst;
+struct StoreVarInst;
+struct FloatNumInst;
+struct IntNumInst;
+struct BoolNumInst;
+struct DoubleNumInst;
+struct BinopInst;
+struct CastNumInst;
+struct RetInst;
+struct DropInst;
+
+struct FunCallInst;
+struct Select2Inst;
+struct IfInst;
+struct ForLoopInst;
+struct WhileLoopInst;
+struct BlockInst;
+struct SwitchInst;
+
+// User interface
+struct AddMetaDeclareInst;
+struct OpenboxInst;
+struct CloseboxInst;
+struct AddButtonInst;
+struct AddSliderInst;
+struct AddBargraphInst;
+struct LabelInst;
+
+struct Typed;
+struct Address;
+struct ValueInst;
+struct StatementInst;
+
+struct BasicTyped;
+struct NamedTyped;
+struct FunTyped;
+struct ArrayTyped;
+struct VectorTyped;
+
+struct NamedAddress;
+struct IndexedAddress;
+
+// Globals
+extern map<string, Typed*> gVarTable;
+
+// =========
+// Visitors
+// =========
+
+class InstVisitor {
+
+    public:
+    
+        InstVisitor()
+        {}
+        virtual ~InstVisitor()
+        {}
+        
+        virtual void visit(Printable* inst) {}
+        virtual void visit(NullInst* inst) {}
+        
+        // Declarations
+        virtual void visit(DeclareVarInst* inst) {}
+        virtual void visit(DeclareFunInst* inst) {}
+        
+        // Memory
+        virtual void visit(LoadVarInst* inst) {}
+        virtual void visit(LoadVarAddressInst* inst) {}
+        virtual void visit(StoreVarInst* inst) {}
+        
+        // Addresses
+        virtual void visit(NamedAddress* address) {}
+        virtual void visit(IndexedAddress* address) {}
+        
+        // Primitives : numbers
+        virtual void visit(FloatNumInst* inst) {}
+        virtual void visit(IntNumInst* inst) {}
+        virtual void visit(BoolNumInst* inst) {}
+        virtual void visit(DoubleNumInst* inst) {}
+        
+        // Numerical computation
+        virtual void visit(BinopInst* inst) {}
+        virtual void visit(CastNumInst* inst) {}
+        
+        // Function call
+        virtual void visit(FunCallInst* inst) {}
+        virtual void visit(RetInst* inst) {}
+        virtual void visit(DropInst* inst) {}
+       
+        // Conditionnal
+        virtual void visit(Select2Inst* inst) {}
+        virtual void visit(IfInst* inst) {}
+        virtual void visit(SwitchInst* inst) {}
+        
+        // Loops 
+        virtual void visit(ForLoopInst* inst) {}
+        virtual void visit(WhileLoopInst* inst) {}
+        
+        // Block
+        virtual void visit(BlockInst* inst) {}
+        
+        // User interface
+        virtual void visit(AddMetaDeclareInst* inst) {}
+        virtual void visit(OpenboxInst* inst) {}
+        virtual void visit(CloseboxInst* inst) {}
+        virtual void visit(AddButtonInst* inst) {}
+        virtual void visit(AddSliderInst* inst) {}
+        virtual void visit(AddBargraphInst* inst) {}
+        
+        virtual void visit(LabelInst* inst) {}
+        
+};
+
+class CloneVisitor {
+
+    public:
+    
+        CloneVisitor()
+        {}
+        virtual ~CloneVisitor()
+        {}
+        
+        virtual ValueInst* visit(NullInst* inst) = 0;
+         
+        // Declarations
+        virtual StatementInst* visit(DeclareVarInst* inst) = 0;
+        virtual StatementInst* visit(DeclareFunInst* inst) = 0;
+        
+        // Memory
+        virtual ValueInst* visit(LoadVarInst* inst) = 0;
+        virtual ValueInst* visit(LoadVarAddressInst* inst) = 0;
+        virtual StatementInst* visit(StoreVarInst* inst) = 0;
+        
+        // Addresses
+        virtual Address* visit(NamedAddress* address) = 0;
+        virtual Address* visit(IndexedAddress* address) = 0;
+        
+        // Primitives : numbers
+        virtual ValueInst* visit(FloatNumInst* inst) = 0;
+        virtual ValueInst* visit(IntNumInst* inst) = 0;
+        virtual ValueInst* visit(BoolNumInst* inst) = 0;
+        virtual ValueInst* visit(DoubleNumInst* inst) = 0;
+        
+        // Numerical computation
+        virtual ValueInst* visit(BinopInst* inst) = 0;
+        virtual ValueInst* visit(CastNumInst* inst) = 0;
+        
+        // Function call
+        virtual ValueInst* visit(FunCallInst* inst) = 0;
+        virtual StatementInst* visit(RetInst* inst) = 0;
+        virtual StatementInst* visit(DropInst* inst) = 0;
+       
+        // Conditionnal
+        virtual ValueInst* visit(Select2Inst* inst) = 0;
+        virtual StatementInst* visit(IfInst* inst) = 0;
+        virtual StatementInst* visit(SwitchInst* inst) = 0;
+        
+        // Loops 
+        virtual StatementInst* visit(ForLoopInst* inst) = 0;
+        virtual StatementInst* visit(WhileLoopInst* inst) = 0;
+        
+        // Block
+        virtual StatementInst* visit(BlockInst* inst) = 0;
+        
+        // User interface
+        virtual StatementInst* visit(AddMetaDeclareInst* inst) = 0;
+        virtual StatementInst* visit(OpenboxInst* inst) = 0;
+        virtual StatementInst* visit(CloseboxInst* inst) = 0;
+        virtual StatementInst* visit(AddButtonInst* inst) = 0;
+        virtual StatementInst* visit(AddSliderInst* inst) = 0;
+        virtual StatementInst* visit(AddBargraphInst* inst) = 0;
+        virtual StatementInst* visit(LabelInst* inst) = 0;
+        
+        // Types 
+        virtual Typed* visit(BasicTyped* type) = 0;
+        virtual Typed* visit(NamedTyped* type) = 0;
+        virtual Typed* visit(FunTyped* type) = 0;
+        virtual Typed* visit(ArrayTyped* type) = 0;
+        virtual Typed* visit(VectorTyped* type) = 0;
+};
+
+// ============================
+// Base class for instructions
+// ============================
+
+struct Printable 
+{
+    static std::ostream* fOut;
+    
+    int fTab;
+
+    Printable()
+    {}
+    virtual ~Printable() 						
+    {}
+    
+};
+
+struct Vectorizable
+{
+    int fSize;
+
+    Vectorizable(int size = 1)
+        :fSize(size)
+    {}
+    virtual ~Vectorizable() 						
+    {}
+ 
+};
+
+// Added in compilation environment
+struct StatementInst : public Printable
+{
+    virtual void accept(InstVisitor* visitor) = 0;
+    
+    virtual StatementInst* clone(CloneVisitor* cloner) = 0;
+};
+
+// Results from the compilation
+struct ValueInst : public Printable
+{
+    virtual void accept(InstVisitor* visitor) = 0;
+    
+    virtual ValueInst* clone(CloneVisitor* cloner) = 0;
+};
+
+// ==================
+// Null instruction
+// ==================
+
+struct NullInst : public ValueInst
+{
+    NullInst()
+    {
+        // Not supposed to happen
+        assert(false);
+    }
+    virtual ~NullInst() 						
+    {}
+    
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// ==========================
+//  Instruction with a type
+// ==========================
+
+struct Typed : public Printable
+{
+    enum VarType {kFloatMacro, kFloatMacro_ptr, kFloat, kFloat_ptr, kFloat_vec, kFloat_vec_ptr,
+                kInt, kInt_ptr, kInt_vec, kInt_vec_ptr,
+                kDouble, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
+                kQuad, kQuad_ptr,
+                kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
+                kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr};
+     
+    //static map <VarType, string> gTypeDirectTable;
+    //static map <string, VarType> gInvertTypeTable;
+    
+    Typed()
+    {}
+    
+    virtual ~Typed()
+    {}
+        
+    virtual VarType getType() = 0;
+     
+    // Returns the pointer type version of a primitive type
+    static VarType getPtrFromType(VarType type)
+    {
+        switch (type) {
+            case kFloatMacro:
+                return kFloatMacro_ptr;
+            case kFloat:
+                return kFloat_ptr;
+            case kFloat_vec:
+                return kFloat_vec_ptr;
+            case kInt:
+                return kInt_ptr;
+            case kInt_vec:
+                return kInt_vec_ptr;
+            case kDouble:
+                return kDouble_ptr; 
+            case kDouble_vec:
+                return kDouble_vec_ptr; 
+            case kQuad:
+                return kQuad_ptr; 
+            case kBool:
+                return kBool_ptr;
+            case kBool_vec:
+                return kBool_vec_ptr;
+            case kVoid:
+                return kVoid_ptr;
+            case kVoid_ptr:
+                return kVoid_ptr_ptr;
+            default:
+                // Not supposed to happen
+                cerr << "getPtrFromType " << type << endl;
+                assert(false);
+                return kVoid; 
+        }
+    }
+    
+    // Returns the vector type version of a primitive type
+    static VarType getVecFromType(VarType type)
+    {
+        switch (type) {
+            case kFloat:
+                return kFloat_vec;
+            case kInt:
+                return kInt_vec;
+            case kDouble:
+                return kDouble_vec; 
+            case kBool:
+                return kBool_vec;
+            default:
+                // Not supposed to happen
+                cerr << "getVecFromType " << type << endl;
+                assert(false);
+                return kVoid; 
+        }
+    }
+    
+    // Returns the type version from pointer on a primitive type
+    static VarType getTypeFromPtr(VarType type)
+    {
+        switch (type) {
+            case kFloatMacro_ptr:
+                return kFloatMacro;
+            case kFloat_ptr:
+                return kFloat;
+            case kFloat_vec_ptr:
+                return kFloat_vec;
+            case kInt_ptr:
+                return kInt;
+            case kInt_vec_ptr:
+                return kInt_vec;
+            case kDouble_ptr:
+                return kDouble; 
+            case kQuad_ptr:
+                return kQuad; 
+            case kDouble_vec_ptr:
+                return kDouble_vec; 
+            case kBool_ptr:
+                return kBool; 
+            case kBool_vec_ptr:
+                return kBool_vec;
+            case kVoid_ptr:
+                return kVoid;
+            case kVoid_ptr_ptr:
+                return kVoid_ptr;
+            default:
+                // Not supposed to happen
+                cerr << "getTypeFromPtr " << type << endl;
+                assert(false);
+                return kVoid; 
+        }
+    }
+    
+    // Returns the type version from vector on a primitive type
+    static VarType getTypeFromVec(VarType type)
+    {
+        switch (type) {
+            case kFloat_vec:
+                return kFloat;
+            case kInt_vec:
+                return kInt;
+            case kDouble_vec:
+                return kDouble; 
+            case kBool_vec:
+                return kBool; 
+            default:
+                // Not supposed to happen
+                cerr << "getTypeFromVec " << type << endl;
+                assert(false);
+                return kVoid; 
+        }
+    }
+
+    virtual Typed* clone(CloneVisitor* cloner) = 0;
+};
+
+struct BasicTyped : public Typed {
+
+    VarType fType;
+    
+    static map<VarType, BasicTyped*> gTypeTable;
+     
+    BasicTyped(VarType type)
+        :fType(type)
+    {}
+    virtual ~BasicTyped()
+    {}
+      
+    VarType getType() { return fType; }
+    
+    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+};
+
+struct NamedTyped : public Typed {
+
+    string fName;
+    Typed* fType;
+     
+    NamedTyped(const string& name, Typed* type)
+        :fName(name), fType(type)
+    {}
+    virtual ~NamedTyped()
+    {}
+    
+    VarType getType() { return fType->getType(); }
+    
+    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+};
+
+struct FunTyped : public Typed {
+
+    list<NamedTyped*> fArgsTypes;
+    BasicTyped* fResult;
+    
+    FunTyped(const list<NamedTyped*>& args, BasicTyped* result)
+        :fArgsTypes(args), fResult(result)
+    {}
+    virtual ~FunTyped()
+    {}
+    
+    VarType getType() { assert(false); return fResult->getType(); }
+    
+    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+};
+
+struct ArrayTyped : public Typed {
+
+    Typed* fType;
+    int fSize;
+    
+    ArrayTyped(Typed* type, int size)
+        :fType(type), fSize(size)
+    {}
+    virtual ~ArrayTyped()
+    {}
+    
+    VarType getType() { return getPtrFromType(fType->getType()); }
+    
+    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct VectorTyped : public Typed {
+
+    BasicTyped* fType;
+    int fSize;
+    
+    VectorTyped(BasicTyped* type, int size)
+        :fType(type), fSize(size)
+    {}
+    virtual ~VectorTyped()
+    {}
+     
+    VarType getType() { return getVecFromType(fType->getType()); }
+    
+    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// ============
+//  Addresses
+// ============
+
+struct Address : public Printable {
+
+    enum AccessType {
+        kStruct = 0x1, 
+        kStaticStruct = 0x2, 
+        kFunArgs = 0x4, 
+        kStack = 0x8, 
+        kGlobal = 0x10, 
+        kLink = 0x20, 
+        kLoop = 0x40,
+        kVolatile = 0x80
+    };
+     
+    Address() 
+    {}
+    virtual ~Address()
+    {}
+    
+    virtual void setAccess(Address::AccessType type) = 0;
+    virtual Address::AccessType getAccess() = 0;
+    
+    virtual void setName(const string& name) = 0;
+    virtual string getName() = 0;
+     
+    static void dump(AccessType access)
+    {
+        if (access & kStruct) {
+            *fOut << "kStruct";
+        } else if (access & kStaticStruct) {
+            *fOut << "kStaticStruct";
+        } else if (access & kFunArgs) {
+            *fOut << "kFunArgs";
+        } else if (access & kStack) {
+            *fOut << "kStack";
+        } else if (access & kGlobal) {
+            *fOut << "kGlobal";
+        } else if (access & kLink) {
+            *fOut << "kLink";
+        } else if (access & kLoop) {
+            *fOut << "kLoop";
+        } else if (access & kVolatile) {
+            *fOut << "kVolatile";
+        }
+    }
+    
+    virtual Address* clone(CloneVisitor* cloner) = 0;
+    
+    virtual void accept(InstVisitor* visitor) = 0;
+};
+
+struct NamedAddress : public Address {
+   
+    string fName;
+    AccessType fAccess;
+    
+    NamedAddress(const string& name, AccessType access) 
+        :fName(name), fAccess(access)
+    {}
+    virtual ~NamedAddress()
+    {}
+     
+    void setAccess(Address::AccessType type) { fAccess = type; }
+    Address::AccessType getAccess() { return fAccess; }
+    
+    void setName(const string& name) { fName = name; }
+    string getName() {return fName; }
+    
+    Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+};
+
+struct IndexedAddress : public Address {
+    
+    Address* fAdress;
+    ValueInst* fIndex;
+    
+    IndexedAddress(Address* address, ValueInst* index) 
+        :fAdress(address), fIndex(index) 
+    {}
+    virtual ~IndexedAddress()
+    {}
+    
+    void setAccess(Address::AccessType type) { fAdress->setAccess(type); }
+    Address::AccessType getAccess() { return fAdress->getAccess(); }
+    
+    void setName(const string& name) { fAdress->setName(name); }
+    string getName() {return fAdress->getName(); }
+       
+    Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+};
+
+// ===============
+// User interface
+// ===============
+
+struct AddMetaDeclareInst : public StatementInst
+{
+    string fZone;
+    string fKey;
+    string fValue;
+     
+    AddMetaDeclareInst(const string& zone, const string& key, const string& value)
+        :fZone(zone), fKey(key), fValue(value) 
+    {}
+     
+    virtual ~AddMetaDeclareInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct OpenboxInst : public StatementInst
+{
+    int fOrient;
+    string fName;
+     
+    OpenboxInst(int orient, const string& name)
+        :fOrient(orient), fName(name)
+    {}
+     
+    virtual ~OpenboxInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct CloseboxInst : public StatementInst
+{
+    CloseboxInst()
+    {}
+     
+    virtual ~CloseboxInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct AddButtonInst : public StatementInst
+{
+    enum ButtonType {kDefaultButton, kCheckbutton};
+    
+    string fLabel;
+    string fZone;
+    ButtonType fType;
+     
+    AddButtonInst(const string& label, const string& zone, ButtonType type)
+        :fLabel(label), fZone(zone), fType(type)
+    {}
+     
+    virtual ~AddButtonInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct AddSliderInst : public StatementInst
+{
+    enum SliderType {kHorizontal, kVertical, kNumEntry};
+    
+    string fLabel;
+    string fZone;
+    double fInit;
+    double fMin;
+    double fMax;
+    double fStep;
+    SliderType fType;
+     
+    AddSliderInst(const string& label, const string& zone, double init, double min, double max, double step, SliderType type)
+        :fLabel(label), fZone(zone), fInit(init), fMin(min), fMax(max), fStep(step), fType(type)
+    {}
+     
+    virtual ~AddSliderInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct AddBargraphInst : public StatementInst
+{
+     enum BargraphType {kHorizontal, kVertical};
+    
+    string fLabel;
+    string fZone;
+    double fMin;
+    double fMax;
+    BargraphType fType;
+     
+    AddBargraphInst(const string& label, const string& zone, double min, double max, BargraphType type)
+        :fLabel(label), fZone(zone), fMin(min), fMax(max), fType(type)
+    {}
+     
+    virtual ~AddBargraphInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct LabelInst : public StatementInst
+{
+    string fLabel;
+    
+    LabelInst(const string& label)
+        :fLabel(label)
+    {}
+     
+    virtual ~LabelInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// =============
+// Declarations
+// =============
+
+struct DeclareVarInst : public StatementInst
+{
+    string fName;
+    Typed* fTyped;
+    Address::AccessType fAccess;
+    ValueInst* fValue;
+         
+    DeclareVarInst(const string& name, Typed* typed, Address::AccessType access, ValueInst* value)
+        :fName(name), fTyped(typed), fAccess(access), fValue(value)
+    {
+        if (gVarTable.find(fName) == gVarTable.end()) {
+            gVarTable[fName] = typed;
+        }
+    }
+    
+    virtual ~DeclareVarInst() 						
+    {
+        gVarTable.erase(fName);
+    }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// ==============
+// Memory access
+// ==============
+
+struct DropInst : public StatementInst
+{
+    ValueInst* fResult;
+    
+    DropInst(ValueInst* result = NULL)
+        :fResult(result)
+    {}
+    virtual ~DropInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+
+struct LoadVarInst : public ValueInst
+{
+    Address* fAddress;
+    
+    LoadVarInst(Address* address)
+        :fAddress(address)
+    {}
+    virtual ~LoadVarInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct LoadVarAddressInst : public ValueInst
+{
+    Address* fAddress;
+    
+    LoadVarAddressInst(Address* address)
+        :fAddress(address)
+    {}
+    virtual ~LoadVarAddressInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct StoreVarInst : public StatementInst
+{
+    Address* fAddress;
+    ValueInst* fValue;
+        
+    StoreVarInst(Address* address, ValueInst* value)
+        :fAddress(address), fValue(value)
+    {}
+    virtual ~StoreVarInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+       
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// ========
+// Numbers
+// ========
+
+struct FloatNumInst : public ValueInst, public Vectorizable
+{
+    float fNum;
+
+    FloatNumInst(float num, int size = 1)
+        :Vectorizable(size), fNum(num)
+    {}
+    virtual ~FloatNumInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct DoubleNumInst : public ValueInst, public Vectorizable
+{
+    double fNum;
+
+    DoubleNumInst(double num, int size = 1)
+        :Vectorizable(size), fNum(num)
+    {}
+    virtual ~DoubleNumInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+       
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct IntNumInst : public ValueInst, public Vectorizable
+{
+    int fNum;
+    
+    IntNumInst(int num, int size = 1)
+        :Vectorizable(size), fNum(num)
+    {}
+    virtual ~IntNumInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+ 
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct BoolNumInst : public ValueInst, public Vectorizable
+{
+    int fNum;
+        
+    BoolNumInst(bool num, int size = 1)
+        :Vectorizable(size), fNum(num)
+    {}
+    virtual ~BoolNumInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct BinopInst : public ValueInst
+{
+    int fOpcode;
+    ValueInst* fInst1;
+    ValueInst* fInst2;
+
+    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
+        :fOpcode(opcode), fInst1(inst1), fInst2(inst2)
+    {}
+    virtual ~BinopInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct CastNumInst : public ValueInst
+{
+    BasicTyped* fTyped;
+    ValueInst* fInst;
+  
+    CastNumInst(ValueInst* inst, BasicTyped* typed)
+        :fTyped(typed), fInst(inst)
+    {}
+    virtual ~CastNumInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+       
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// ==============
+// Control flow
+// ===============
+
+struct BlockInst : public StatementInst
+{
+    list<StatementInst*> fCode;
+    bool fIndent;
+    
+    BlockInst(list<StatementInst*> code)
+        :fCode(code), fIndent(false)
+    {}
+    
+    BlockInst()
+        :fIndent(false)
+    {}
+    
+    virtual ~BlockInst()
+    {}
+    
+    void setIndent(bool indent) { fIndent = indent; }
+    bool getIndent() { return fIndent; }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    void pushFrontInst(StatementInst* inst)
+    {
+        fCode.push_front(inst);
+    }
+    
+    void pushBackInst(StatementInst* inst)
+    {
+        fCode.push_back(inst);
+    }
+};
+
+struct Select2Inst : public ValueInst
+{
+    ValueInst* fCond;
+    ValueInst* fThen;
+    ValueInst* fElse;
+
+    Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
+        :fCond(cond_inst), fThen(then_inst), fElse(else_inst)
+    {}
+    virtual ~Select2Inst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct IfInst : public StatementInst
+{
+    ValueInst* fCond;
+    BlockInst* fThen;
+    BlockInst* fElse;
+
+    IfInst(ValueInst* cond_inst, BlockInst* then_inst, BlockInst* else_inst)
+        :fCond(cond_inst), fThen(then_inst), fElse(else_inst)
+    {}
+    
+    IfInst(ValueInst* cond_inst, BlockInst* then_inst)
+        :fCond(cond_inst), fThen(then_inst), fElse(new BlockInst())
+    {}
+
+    virtual ~IfInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct SwitchInst : public StatementInst
+{
+    ValueInst* fCond;
+    list<pair<int, BlockInst*> > fCode;
+    
+    SwitchInst(ValueInst* cond, const list<pair<int, BlockInst*> >& code)
+        :fCond(cond), fCode(code)
+    {}
+    
+    SwitchInst(ValueInst* cond)
+        :fCond(cond)
+    {}
+    
+    virtual ~SwitchInst()
+    {}
+    
+    void addCase(int value, BlockInst* block) { fCode.push_back(make_pair(value, block)); }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct RetInst : public StatementInst
+{
+    ValueInst* fResult;
+    
+    RetInst(ValueInst* result = NULL)
+        :fResult(result)
+    {}
+    virtual ~RetInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct FunCallInst : public ValueInst
+{
+    string fName;
+    list<ValueInst*> fArgs;   // List of arguments
+    bool fMethod;
+
+    FunCallInst(const string& name, const list<ValueInst*>& args, bool method = false)
+        :fName(name), fArgs(args), fMethod(method)
+    {}
+   
+    virtual ~FunCallInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+       
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct DeclareFunInst : public StatementInst
+{
+    string fName; 
+    FunTyped* fType;
+    BlockInst* fCode;    // Code is a list of StatementInst*
+    
+    DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
+        :fName(name), fType(type), fCode(code)
+    {}
+    DeclareFunInst(const string& name, FunTyped* type)
+        :fName(name), fType(type), fCode(new BlockInst())
+    {}
+
+    virtual ~DeclareFunInst() 						
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+     
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// ======
+// Loops
+// ======
+
+struct ForLoopInst : public StatementInst
+{
+    StatementInst* fInit;
+    ValueInst* fEnd;
+    StatementInst* fIncrement;
+    BlockInst* fCode;
+   
+    ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code)
+        :fInit(init), fEnd(end), fIncrement(increment), fCode(code)
+    {}
+    ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment)
+        :fInit(init), fEnd(end), fIncrement(increment), fCode(new BlockInst())
+    {}
+ 
+    virtual ~ForLoopInst() 						
+    {}
+    
+    void pushFrontInst(StatementInst* inst)
+    {
+        fCode->pushFrontInst(inst);
+    }
+    
+    void pushBackInst(StatementInst* inst)
+    {
+        fCode->pushBackInst(inst);
+    }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+       
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct WhileLoopInst : public StatementInst
+{
+    ValueInst* fCond;
+    BlockInst* fCode;
+   
+    WhileLoopInst(ValueInst* cond, BlockInst* code)
+        :fCond(cond), fCode(code)
+    {}
+ 
+    virtual ~WhileLoopInst() 						
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+      
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// =====================
+// Basic clone visitor
+// =====================
+
+class BasicCloneVisitor : public CloneVisitor {
+
+    public:
+    
+        BasicCloneVisitor()
+        {}
+        virtual ~BasicCloneVisitor()
+        {}
+        
+        virtual NullInst* visit(NullInst* inst) { return new NullInst(); }
+        
+        // Declarations
+        virtual StatementInst* visit(DeclareVarInst* inst) 
+        { 
+            return (inst->fValue)
+                ? new DeclareVarInst(inst->fName, inst->fTyped->clone(this), inst->fAccess, inst->fValue->clone(this))
+                : new DeclareVarInst(inst->fName, inst->fTyped->clone(this), inst->fAccess, NULL); 
+        }
+        virtual StatementInst* visit(DeclareFunInst* inst)
+        { 
+            return new DeclareFunInst(inst->fName, dynamic_cast<FunTyped*>(inst->fType->clone(this)), dynamic_cast<BlockInst*>(inst->fCode->clone(this))); 
+        }
+        
+        // Memory
+        virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this)); }
+        virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
+        virtual StatementInst* visit(StoreVarInst* inst) { return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
+        
+        // Addresses
+        virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, address->fAccess); }
+        virtual Address* visit(IndexedAddress* address) { return new IndexedAddress(address->fAdress->clone(this), address->fIndex->clone(this)); }
+        
+        // Primitives : numbers and string
+        virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, inst->fSize); }
+        
+        // Numerical computation
+        virtual ValueInst* visit(BinopInst* inst) 
+        { 
+            return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this));
+        }
+        
+        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this),  dynamic_cast<BasicTyped*>(inst->fTyped->clone(this))); }
+        
+        // Function call
+        virtual ValueInst* visit(FunCallInst* inst)
+        { 
+            list<ValueInst*> cloned;
+            list<ValueInst*>::const_iterator it;
+            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
+                cloned.push_back((*it)->clone(this));
+            }
+            return new FunCallInst(inst->fName, cloned, inst->fMethod); 
+        }
+        virtual StatementInst* visit(RetInst* inst) { return new RetInst((inst->fResult) ? inst->fResult->clone(this) : NULL); }
+        virtual StatementInst* visit(DropInst* inst) { return new DropInst((inst->fResult) ? inst->fResult->clone(this) : NULL); }
+       
+        // Conditionnal
+        virtual ValueInst* visit(Select2Inst* inst) { return new Select2Inst(inst->fCond->clone(this), inst->fThen->clone(this), inst->fElse->clone(this)); }
+        virtual StatementInst* visit(IfInst* inst) 
+        { 
+            return new IfInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fThen->clone(this)), dynamic_cast<BlockInst*>(inst->fElse->clone(this)));
+        }
+        virtual StatementInst* visit(SwitchInst* inst) 
+        { 
+            SwitchInst* cloned = new SwitchInst(inst->fCond->clone(this));
+            list<pair <int, BlockInst*> >::const_iterator it;
+            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+                cloned->addCase((*it).first, dynamic_cast<BlockInst*>(((*it).second)->clone(this)));
+            }
+            return cloned;
+        }
+        
+        // Loop 
+        virtual StatementInst* visit(ForLoopInst* inst)
+        { 
+            return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this), dynamic_cast<BlockInst*>(inst->fCode->clone(this))); 
+        }
+        
+        virtual StatementInst* visit(WhileLoopInst* inst)
+        { 
+            return new WhileLoopInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fCode->clone(this))); 
+        }
+        
+        // Block 
+        virtual StatementInst* visit(BlockInst* inst)
+         { 
+            list<StatementInst*> cloned;
+            list<StatementInst*>::const_iterator it;
+            for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+                cloned.push_back((*it)->clone(this));
+            }
+            return new BlockInst(cloned); 
+        }
+        
+        // User interface
+        virtual StatementInst* visit(AddMetaDeclareInst* inst) {return new AddMetaDeclareInst(inst->fZone, inst->fKey, inst->fValue); }
+        virtual StatementInst* visit(OpenboxInst* inst) { return new OpenboxInst(inst->fOrient, inst->fName); }
+        virtual StatementInst* visit(CloseboxInst* inst) { return new CloseboxInst(); }
+        virtual StatementInst* visit(AddButtonInst* inst) { return new AddButtonInst(inst->fLabel, inst->fZone, inst->fType); }
+        virtual StatementInst* visit(AddSliderInst* inst) { return new AddSliderInst(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep, inst->fType); }
+        virtual StatementInst* visit(AddBargraphInst* inst) { return new AddBargraphInst(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, inst->fType); }
+        virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
+        
+        // Typed
+        virtual Typed* visit(BasicTyped* typed) { return typed->gTypeTable[typed->fType]; }
+        virtual Typed* visit(NamedTyped* typed) { return new NamedTyped(typed->fName, typed->fType); }
+        virtual Typed* visit(FunTyped* typed) 
+        { 
+            list<NamedTyped*> cloned;
+            list<NamedTyped*>::const_iterator it;
+            for (it = typed->fArgsTypes.begin(); it != typed->fArgsTypes.end(); it++) {
+                cloned.push_back(dynamic_cast<NamedTyped*>((*it)->clone(this)));
+            }
+            return new FunTyped(cloned, dynamic_cast<BasicTyped*>(typed->fResult->clone(this))); 
+        }
+        virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
+        virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(dynamic_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
+
+};
+
+// ========================
+// Basic dispatch visitor
+// ========================
+
+struct DispatchVisitor : public InstVisitor {
+
+    virtual void visit(DeclareVarInst* inst) 
+    { 
+        if (inst->fValue)
+            inst->fValue->accept(this); 
+    }
+
+    virtual void visit(DeclareFunInst* inst) 
+    { 
+        inst->fCode->accept(this);
+    }
+
+    virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
+    virtual void visit(LoadVarAddressInst* inst) { inst->fAddress->accept(this); }
+    virtual void visit(StoreVarInst* inst) 
+    { 
+        inst->fAddress->accept(this); 
+        inst->fValue->accept(this); 
+    }
+
+    virtual void visit(IndexedAddress* address) 
+    { 
+        address->fAdress->accept(this); 
+        address->fIndex->accept(this); 
+    }
+
+    virtual void visit(BinopInst* inst) 
+    { 
+        inst->fInst1->accept(this); 
+        inst->fInst2->accept(this);
+    }
+
+    virtual void visit(CastNumInst* inst) { inst->fInst->accept(this); }
+
+    virtual void visit(FunCallInst* inst)
+    { 
+        list<ValueInst*>::const_iterator it;
+        for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
+            (*it)->accept(this);
+        }
+    }
+
+    virtual void visit(RetInst* inst) 
+    { 
+        if (inst->fResult)
+            inst->fResult->accept(this); 
+    }
+
+    virtual void visit(DropInst* inst)
+    { 
+        if (inst->fResult)
+            inst->fResult->accept(this); 
+    }
+
+    virtual void visit(Select2Inst* inst)  
+    { 
+        inst->fCond->accept(this);
+        inst->fThen->accept(this);
+        inst->fElse->accept(this);
+    }
+    
+    virtual void visit(IfInst* inst)  
+    { 
+        inst->fCond->accept(this);
+        inst->fThen->accept(this);
+        inst->fElse->accept(this);
+    }
+
+    virtual void visit(ForLoopInst* inst)
+    {
+        inst->fInit->accept(this);
+        inst->fEnd->accept(this);
+        inst->fIncrement->accept(this);
+        inst->fCode->accept(this);
+    }
+    
+     virtual void visit(WhileLoopInst* inst)
+    {
+        inst->fCond->accept(this);
+        inst->fCode->accept(this);
+    }
+    
+    virtual void visit(SwitchInst* inst) 
+    { 
+        inst->fCond->accept(this);
+        list<pair <int, BlockInst*> >::const_iterator it;
+        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+            ((*it).second)->accept(this);
+        }
+    }
+    
+    virtual void visit(BlockInst* inst)
+    {
+        list<StatementInst*>::const_iterator it;
+        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+            (*it)->accept(this);
+        } 
+    }
+};
+
+// =======================
+// Instruction generator
+// =======================
+
+struct InstBuilder 
+{
+    // User interface
+    static AddMetaDeclareInst* genAddMetaDeclareInst(const string& zone, const string& key, const string& value)
+        { return new AddMetaDeclareInst(zone, key, value); }
+        
+    static OpenboxInst* genOpenboxInst(int orient, const string& name)
+        { return new OpenboxInst(orient, name); }
+    
+    static CloseboxInst* genCloseboxInst()
+        { return new CloseboxInst(); }
+
+    static AddButtonInst* genAddButtonInst(const string& label, const string& zone)
+        { return new AddButtonInst(label, zone, AddButtonInst::kDefaultButton); }
+        
+    static AddButtonInst* genAddCheckbuttonInst(const string& label, const string& zone)
+        { return new AddButtonInst(label, zone, AddButtonInst::kCheckbutton); }
+   
+    static AddSliderInst* genAddHorizontalSliderInst(const string& label, const string& zone, double init, double min, double max, double step)
+        { return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kHorizontal); }
+        
+    static AddSliderInst* genAddVerticalSliderInst(const string& label, const string& zone, double init, double min, double max, double step)
+        { return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kVertical); }
+        
+    static AddSliderInst* genAddNumEntryInst(const string& label, const string& zone, double init, double min, double max, double step)
+        { return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kNumEntry); }
+   
+    static AddBargraphInst* genAddHorizontalBargraphInst(const string& label, const string& zone, double min, double max)
+        { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal); }
+   
+    static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
+        { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical); }
+        
+     static LabelInst* genLabelInst(const string& label)
+        { return new LabelInst(label); }
+
+    // Null instruction
+    static NullInst* genNullInst() { return new NullInst(); }
+    
+    // Declarations
+    static DeclareVarInst* genDeclareVarInst(const string& name, Typed* typed, Address::AccessType access, ValueInst* value = NULL) 
+        { return new DeclareVarInst(name, typed, access, value); }
+        
+    static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed, BlockInst* code) 
+        {return new DeclareFunInst(name, typed, code);}
+     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed) 
+        {return new DeclareFunInst(name, typed);}
+    
+    // Memory
+    static LoadVarInst* genLoadVarInst(Address* address) { return new LoadVarInst(address); }
+    static LoadVarAddressInst* genLoadVarAddressInst(Address* address) { return new LoadVarAddressInst(address); }
+    static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value) {return new StoreVarInst(address, value); }
+    
+    // Numbers
+    static FloatNumInst* genFloatNumInst(float num, int size = 1) { return new FloatNumInst(num, size);}
+    static DoubleNumInst* genDoubleNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }
+    static DoubleNumInst* genQuadNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }  // Use DoubleNumInst
+      
+    static ValueInst* genRealNumInst(Typed::VarType ctype, double num) 
+    {
+        if (ctype == Typed::kFloat) {
+            return new FloatNumInst(num); 
+        } else if (ctype == Typed::kFloatMacro) {
+            return genCastNumInst(new DoubleNumInst(num), genBasicTyped(Typed::kFloatMacro));
+        } else if (ctype == Typed::kDouble) {
+            return new DoubleNumInst(num); 
+        } else if (ctype == Typed::kQuad) {
+            return new DoubleNumInst(num);  // Use DoubleNumInst
+        } else {
+            assert(false);
+        }
+    }
+    
+    static IntNumInst* genIntNumInst(int num, int size = 1) { return new IntNumInst(num); }
+    static BoolNumInst* genBoolNumInst(bool num, int size = 1) { return new BoolNumInst(num); }
+  
+    // Numerical computation
+    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2) { return new BinopInst(opcode, inst1, inst2); }
+    
+    static ValueInst* genCastNumInst(ValueInst* inst, BasicTyped* typed)
+    {
+        IntNumInst* int_num = dynamic_cast<IntNumInst*>(inst);
+        FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
+        DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
+        
+        if (typed->getType() == Typed::kFloat) {
+            if (int_num) {
+                // Simple float cast of integer
+                return InstBuilder::genFloatNumInst(float(int_num->fNum)); 
+            } else if (float_num) {
+                // No cast needed
+                return inst;
+            } else if (double_num) {
+                return InstBuilder::genFloatNumInst(float(double_num->fNum)); 
+            } else {
+                // Default case
+                return new CastNumInst(inst, typed);
+            }
+        } else if (typed->getType() == Typed::kDouble || typed->getType() == Typed::kQuad) {
+            if (int_num) {
+                // Simple double cast of integer
+                return InstBuilder::genDoubleNumInst(double(int_num->fNum)); 
+            } else if (float_num) {
+                return InstBuilder::genDoubleNumInst(double(float_num->fNum));
+            } else if (double_num) {
+                // No cast needed
+                return inst;
+            } else {
+                // Default case
+                return new CastNumInst(inst, typed);
+            }
+        } else if (typed->getType() == Typed::kInt) {
+             if (int_num) {
+                // No cast needed
+                return inst;
+            } else if (float_num) {
+                // Simple int cast of float
+                return InstBuilder::genIntNumInst(int(float_num->fNum));
+            } else if (double_num) {
+                // Simple int cast of double
+                return InstBuilder::genIntNumInst(int(double_num->fNum));
+            } else {
+                // Default case
+                return new CastNumInst(inst, typed);
+            }
+        } else {
+            // Default case
+            return new CastNumInst(inst, typed);
+        }
+    }
+
+    // Control flow
+    static RetInst* genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
+    static DropInst* genDropInst(ValueInst* result) { return new DropInst(result); }
+    
+    // Conditionnal
+    static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst) { return new Select2Inst(cond_inst, then_inst, else_inst); }
+    static IfInst* genIfInst(ValueInst* cond_inst, BlockInst* then_inst, BlockInst* else_inst) { return new IfInst(cond_inst, then_inst, else_inst); }
+    static IfInst* genIfInst(ValueInst* cond_inst, BlockInst* then_inst) { return new IfInst(cond_inst, then_inst); }
+    static SwitchInst* genSwitchInst(ValueInst* cond) { return new SwitchInst(cond); }
+  
+    // Function management
+    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool internal = false) 
+        { return new FunCallInst(name, args, internal); }
+    
+    // Loop 
+    static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code) 
+        { return new ForLoopInst(init, end, increment, code); }
+    static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment) 
+        { return new ForLoopInst(init, end, increment); }
+        
+    static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code) 
+        { return new WhileLoopInst(cond, code); }
+   
+    static BlockInst* genBlockInst(const list<StatementInst*>& code) 
+        { return new BlockInst(code); }
+    static BlockInst* genBlockInst() 
+        { return new BlockInst(); }
+        
+    // Types
+    static BasicTyped* genBasicTyped(Typed::VarType type) 
+    { 
+        BasicTyped* result;
+        if (BasicTyped::gTypeTable.find(type) != BasicTyped::gTypeTable.end()) {
+            result = BasicTyped::gTypeTable[type]; // Already allocated
+        } else {
+            result = new BasicTyped(type); 
+            BasicTyped::gTypeTable[type] = result; 
+        }
+        return result;
+    }
+    
+    static NamedTyped* genNamedTyped(const string& name, Typed* type) { return new NamedTyped(name, type); }
+    
+    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result) { return new FunTyped(args, result); }
+    static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
+    static ArrayTyped* genArrayTyped(Typed* type, int size) { return new ArrayTyped(type, size); }
+    
+    // Addresses
+    static NamedAddress* genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }
+    static IndexedAddress* genIndexedAddress(Address* address, ValueInst* index) { return new IndexedAddress(address, index); }
+    
+};
+
+#endif
+
+/*
+
+Name := sequence of char
+
+Size := digits
+
+Opcode := + | - | * | / |...etc...
+
+Access := kGlobal | kStruct | kStaticStruct | kFunArgs | kStack | kLoop
+
+Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size)  si Size = 0, alors équivalent à pointeur sur type
+
+Address := Access Name | Address index
+
+Statement   := DeclareVar (Name, Type, Access, Value)
+            | Loop (Name, Value, Statement*)
+            | Store (Address, Value)
+            | DeclareFun (Name, Type, Statement*) 
+            | Drop Value   
+            | Return Value
+            
+Value       := Load (Address)
+            | Float | Int | Double 
+            | Binop (Opcode, Value1, Value2)
+            | Cast (Value, Type)
+            | If (Value1, Value2, Value3)
+            | FunCall (Name, Value*)
+            
+
+Réécriture de code :
+
+Pour WSS:
+
+1) changer l'accès de toutes les variables tableau kStack en kStruct
+
+
+Mettre les boucles dans des fonctions (compilation plus rapide):
+
+2 méthodes 
+
+I)
+
+1) changer l'accès de toutes les variables kStack en kStruct
+2) transformer Loop (Name, Value, Statement*) en DeclareFun (Name, Type, Statement*) : fonction du type kVoid --> kVoid
+3) dans Compute, remplacer chaque boucle par un appel à la fonction créee
+
+
+II)
+
+1) dans chaque boucle, transformer l'accès de ses vecteurs d'entrée kStack en kFunArgs
+2) transformer Loop (Name, Value, Statement*) en DeclareFun (Name, Type, Statement*) : toutes variables d'entrée deviennent des paramètres de la fonction
+3) dans Compute, remplacer chaque boucle par un appel à la fonction créee en passant les bons paramétres
+
+
+Scalarisation:
+
+1) transformer tous les vecteurs *sans retard* sur la pile (utilisées par les boucles) en scalaire
+2) dans chaque boucle, transformer l'accès de ses vecteurs d'entrée à des accès scalaires (Load/Store)
+3) regrouper tous les "poscode" de toutes les boucles à la fin
+4) Renommage de la variable des boucles dans le nom de la variable de boucle de Compute
+5) extraire le code pour le mettre dans Compute et supprimer les statement Loop (Name, Value, Statement*)  
+
+
+Vision des boucles (count, liste de vecteurs d'entrée, liste de vecteurs de sorties) différente du prototype externe compute(count, float**, float**) ou veut homogenéiser
+
+D'ou:
+
+DAG de boucles au format (count, liste de vecteurs d'entrée, liste de vecteurs de sorties)
+compute(count, float**, float**)  
+
+1) générer le header qui prépare les tableaux d'entrée et de sortie séparés
+2) compiler les boucles
+
+Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard? Avec un nommage spécifique?
+ 
+ 
+TODO : gestion des indices de boucles: 
+
+ - dans IndexedAddress, mettre un ValueInst à la place de fIndex, mettre à jour les visiteurs 
+ 
+ - dans InstructionsCompiler, generer des accès avec "LoadVar (loop-index)
+ 
+ - Dans ForLoopInst, fName devient un "DeclareVarInst" (permet de nommer et d'initialiser l'indice), ajout d'une expression test, ajout de ValueInst fNext, calcul qui utilise fName.
+ 
+ - nouveau type d'accès  kLoop pour les variables de loop
+ 
+ - lors des transformations sur les loops, Loop2FunctionBuider, SeqLoopBuilderVisitor, "désactiver" les statements qui manipulent les indices de la boucle ??
+ (pas besoin, ils n'apparaissent pas dans le corps de le boucle, par contre l'indice de la boucle est utilisée dans le corps de la boucle, il faut le faire correspondre 
+ au nouvel indice de boucle, renommage nécessaire ?)
+  
+ - utiliser le *même* nom d'index dans ForLoopInst est dans le code interne de la loop
+
+*/
+
+
+
