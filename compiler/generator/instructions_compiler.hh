@@ -185,6 +185,9 @@ class InstructionsCompiler {
         void generateMacroInterfaceElements(const string& pathname, Tree elements);
         void generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
 
+        void setDescription(Description* descr)	{ fDescription= descr; }
+        Description* getDescription() { return fDescription; }
+
 };
 
 

@@ -38,7 +38,7 @@
 #include <map>
 #include <vector>
 
-#include "graphSorting.hh"
+#include "tree.hh"
 #include "function_builder.hh"
 
 extern bool gVectorSwitch;
@@ -64,6 +64,11 @@ Scalarisation d'une boucle:
 - transformer les accès (Load/Store) en accès scalaire
         
 */
+
+class CodeLoop;
+
+typedef set<CodeLoop*>  lclset;
+typedef vector<lclset>  lclgraph;  
 
 class CodeLoop {
 

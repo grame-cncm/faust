@@ -37,11 +37,6 @@
 #include "simplify.hh"
 #include "privatise.hh"
 
-#include "compile_scal.hh"
-#include "compile_vect.hh"
-#include "compile_sched.hh"
-#include "code_compile.hh"
-
 #include "propagate.hh"
 #include "errormsg.hh"
 #include "ppbox.hh"
@@ -412,7 +407,7 @@ void printhelp()
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, llvm (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, llvm, fir (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -615,182 +610,166 @@ int main (int argc, char* argv[])
 	/****************************************************************
 	 5 - translate output signals into C, C++, JAVA or LLVM code
 	*****************************************************************/
-
-	Compiler* C = NULL;
-    
+   
     // By default use "cpp" output
     if (gOutputLang == "") gOutputLang = "cpp";
-
-    if (gOutputLang != "") {
     
-        startTiming("compilation");
+    InstructionsCompiler* comp;
+    CodeContainer* container = NULL;
    
-        istream* enrobage;
-        ostream* dst;
-        
-        if (gOutputFile != "") {
-            dst = new ofstream(gOutputFile.c_str());
-        } else {
-            dst = &cout;
+    startTiming("compilation");
+
+    istream* enrobage;
+    ostream* dst;
+    
+    if (gOutputFile != "") {
+        dst = new ofstream(gOutputFile.c_str());
+    } else {
+        dst = &cout;
+    }
+   
+    if (gOutputLang == "llvm") {
+    
+        if (gFloatSize == 3) {
+            cerr << "ERROR : quad format not supported in LLVM mode" << endl;
+            return 1;
         }
-       
-        InstructionsCompiler* comp;
-        CodeContainer* container = NULL;
+        gDSPStruct = true;
         
-        if (gOutputLang == "llvm") {
+        if (gOpenMPSwitch) {
+            cerr << "ERROR : OpenMP not supported for LLVM" << endl;
+            return 1;
+        } else if (gSchedulerSwitch) {
+            container = new LLVMWorkStealingCodeContainer(numInputs, numOutputs);
+            comp = new DAGInstructionsCompiler(container);
+        } else if (gVectorSwitch) {
+            container = new LLVMVectorCodeContainer(numInputs, numOutputs);
+            comp = new DAGInstructionsCompiler(container);
+        } else {
+            container = new LLVMScalarCodeContainer(numInputs, numOutputs);
+            comp = new InstructionsCompiler(container);
+        }
         
-            if (gFloatSize == 3) {
-                cerr << "ERROR : quad format not supported in LLVM mode" << endl;
-                return 1;
-            }
-            LLVMCodeContainer* llvm_container;
+        comp->compileMultiSignal(lsignals);
+        dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
+     
+    } else {
+    
+        if (gOutputLang == "c") {
             gDSPStruct = true;
-            
             if (gOpenMPSwitch) {
-                cerr << "ERROR : OpenMP not supported for LLVM" << endl;
+                container = new COpenMPCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+            } else if (gSchedulerSwitch) {
+                container = new CWorkStealingCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+            } else if (gVectorSwitch) {
+                container = new CVectorCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+            } else {
+                container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+            }
+        } else if (gOutputLang == "cpp") {
+            if (gOpenMPSwitch) {
+                container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            } else if (gSchedulerSwitch) {
+                container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            } else if (gVectorSwitch) {
+                container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            } else {
+                container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            }
+        } else if (gOutputLang == "java") {
+            if (gOpenMPSwitch) {
+                cerr << "ERROR : OpenMP not supported for Java" << endl;
                 return 1;
             } else if (gSchedulerSwitch) {
-                llvm_container = new LLVMWorkStealingCodeContainer(numInputs, numOutputs);
-                comp = new DAGInstructionsCompiler(llvm_container);
+                cerr << "ERROR : Scheduler mode not supported for Java" << endl;
+                return 1;
             } else if (gVectorSwitch) {
-                llvm_container = new LLVMVectorCodeContainer(numInputs, numOutputs);
-                comp = new DAGInstructionsCompiler(llvm_container);
+                container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
-                llvm_container = new LLVMScalarCodeContainer(numInputs, numOutputs);
-                comp = new InstructionsCompiler(llvm_container);
+                container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             }
-            
-            comp->compileMultiSignal(lsignals);
-            llvm_container->produceModule(gOutputFile.c_str());
-         
-        } else {
-        
-            if (gOutputLang == "c") {
-                gDSPStruct = true;
-                if (gOpenMPSwitch) {
-                    container = new COpenMPCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
-                } else if (gSchedulerSwitch) {
-                    container = new CWorkStealingCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
-                } else if (gVectorSwitch) {
-                    container = new CVectorCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
-                } else {
-                    container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
-                }
-            } else if (gOutputLang == "cpp") {
-                if (gOpenMPSwitch) {
-                    container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                } else if (gSchedulerSwitch) {
-                    container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                } else if (gVectorSwitch) {
-                    container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                } else {
-                    container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                }
-            } else if (gOutputLang == "java") {
-                if (gOpenMPSwitch) {
-                    cerr << "ERROR : OpenMP not supported for Java" << endl;
-                    return 1;
-                } else if (gSchedulerSwitch) {
-                    cerr << "ERROR : Scheduler mode not supported for Java" << endl;
-                    return 1;
-                } else if (gVectorSwitch) {
-                    container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                } else {
-                    container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                }
-            } else if (gOutputLang == "fir") {
-                if (gOpenMPSwitch) {
-                    container = new FirOpenMPCodeContainer(numInputs, numOutputs);
-                    comp = new DAGInstructionsCompiler(container);
-                } else if (gSchedulerSwitch) {
-                    container = new FirWorkStealingCodeContainer(numInputs, numOutputs);
-                    comp = new DAGInstructionsCompiler(container);
-                } else if (gVectorSwitch) {
-                    container = new FirVectorCodeContainer(numInputs, numOutputs);
-                    comp = new DAGInstructionsCompiler(container);
-                } else {
-                    container = new FirScalarCodeContainer(numInputs, numOutputs);
-                    comp = new InstructionsCompiler(container);
-                }
-
-                comp->compileMultiSignal(lsignals);
-                container->dump(dst);
-                return 0;
-            }
-            if (!container) {
-                 cerr << "ERROR : cannot file compiler for " << "\"" << gOutputLang  << "\"" << endl;
-                 return 1;
-            }
-            if (gVectorSwitch) {
+        } else if (gOutputLang == "fir") {
+            if (gOpenMPSwitch) {
+                container = new FirOpenMPCodeContainer(numInputs, numOutputs);
+                comp = new DAGInstructionsCompiler(container);
+            } else if (gSchedulerSwitch) {
+                container = new FirWorkStealingCodeContainer(numInputs, numOutputs);
+                comp = new DAGInstructionsCompiler(container);
+            } else if (gVectorSwitch) {
+                container = new FirVectorCodeContainer(numInputs, numOutputs);
                 comp = new DAGInstructionsCompiler(container);
             } else {
+                container = new FirScalarCodeContainer(numInputs, numOutputs);
                 comp = new InstructionsCompiler(container);
             }
+
             comp->compileMultiSignal(lsignals);
-              
-            if (gArchFile != "") {
-                if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
-                    streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-                    streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-                    printfloatdef(*dst);
-                    container->produceClass();
-                    streamCopyUntilEnd(*enrobage, *dst);
-                    if (gSchedulerSwitch) {
-                        istream* scheduler_include = open_arch_stream("scheduler.h");
-                        if (scheduler_include) {
-                            streamCopy(*scheduler_include, *dst);
-                        }
-                    }
-                } else {
-                    cerr << "ERROR : can't open architecture file " << gArchFile << endl;
-                    return 1;
-                }
-            } else {
+            container->dump(dst);
+            return 0;
+        }
+        if (!container) {
+             cerr << "ERROR : cannot file compiler for " << "\"" << gOutputLang  << "\"" << endl;
+             return 1;
+        }
+        if (gVectorSwitch) {
+            comp = new DAGInstructionsCompiler(container);
+        } else {
+            comp = new InstructionsCompiler(container);
+        }
+        
+        if (gPrintXMLSwitch) comp->setDescription(new Description());
+        if (gPrintDocSwitch) comp->setDescription(new Description());
+
+        comp->compileMultiSignal(lsignals);
+          
+        /****************************************************************
+        8 - generate output file
+        *****************************************************************/
+
+        if (gArchFile != "") {
+            if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
+                streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+                streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
                 printfloatdef(*dst);
                 container->produceClass();
+                streamCopyUntilEnd(*enrobage, *dst);
+                if (gSchedulerSwitch) {
+                    istream* scheduler_include = open_arch_stream("scheduler.h");
+                    if (scheduler_include) {
+                        streamCopy(*scheduler_include, *dst);
+                    }
+                }
+            } else {
+                cerr << "ERROR : can't open architecture file " << gArchFile << endl;
+                return 1;
             }
+        } else {
+            printfloatdef(*dst);
+            container->produceClass();
         }
-        endTiming("compilation");
     }
+    endTiming("compilation");
     
-    return 0;
-    
-standard:
-    
-    startTiming("compilation");
-   
-    if (gSchedulerSwitch)   C = new SchedulerCompiler("mydsp", "dsp", numInputs, numOutputs);
-    else if (gVectorSwitch) C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
-    else                    C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
- 
-	if (gPrintXMLSwitch) C->setDescription(new Description());
-	if (gPrintDocSwitch) C->setDescription(new Description());
-
-	C->compileMultiSignal(lsignals);
-
-	endTiming("compilation");
-
 	/****************************************************************
 	 6 - generate XML description (if required)
 	*****************************************************************/
-
+ 
 	if (gPrintXMLSwitch) {
-		Description* 	D = C->getDescription(); assert(D);
-		//ostream* 		xout = new ofstream(subst("$0.xml", gMasterDocument).c_str());
+		Description* 	D = comp->getDescription(); assert(D);
 		ofstream 		xout(subst("$0.xml", gMasterDocument).c_str());
 
-        if(gMetaDataSet.count(tree("name"))>0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
-        if(gMetaDataSet.count(tree("author"))>0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
-        if(gMetaDataSet.count(tree("copyright"))>0)     D->copyright(tree2str(*(gMetaDataSet[tree("copyright")].begin())));
-        if(gMetaDataSet.count(tree("license"))>0)       D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
-        if(gMetaDataSet.count(tree("version"))>0)       D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
+        if (gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
+        if (gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
+        if (gMetaDataSet.count(tree("copyright")) > 0)     D->copyright(tree2str(*(gMetaDataSet[tree("copyright")].begin())));
+        if (gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
+        if (gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
 
-		D->inputs(C->getClass()->inputs());
-		D->outputs(C->getClass()->outputs());
+		D->inputs(container->inputs());
+		D->outputs(container->outputs());
 
 		D->print(0, xout);
 	}
-
+ 
 	/****************************************************************
 	 7 - generate documentation from Faust comments (if required)
 	*****************************************************************/
@@ -798,58 +777,10 @@ standard:
 	if (gPrintDocSwitch) {
 		if (gLatexDocSwitch) {
 			string projname = gMasterDocument;
-			if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
-				projname = gMasterDocument.substr(0, gMasterDocument.length()-4); }
+			if (gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp") {
+				projname = gMasterDocument.substr(0, gMasterDocument.length() - 4); }
 			printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
 		}
-	}
-
-	/****************************************************************
-	 8 - generate output file
-	*****************************************************************/
-
-	ostream* dst;
-	istream* enrobage;
-	//istream* intrinsic;
-
-	if (gOutputFile != "") {
-		dst = new ofstream(gOutputFile.c_str());
-	} else {
-		dst = &cout;
-	}
-
-	if (gArchFile != "") {
-		if ( (enrobage = open_arch_stream(gArchFile.c_str())) ) {
-            printheader(*dst);
-			C->getClass()->printLibrary(*dst);
-			C->getClass()->printIncludeFile(*dst);
-            C->getClass()->printAdditionalCode(*dst);
-
-			streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-            
-            if (gSchedulerSwitch) {
-                istream* scheduler_include = open_arch_stream("scheduler.h");
-                if (scheduler_include) {
-                    streamCopy(*scheduler_include, *dst);
-                }
-            }
-            
-			streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-            printfloatdef(*dst);
-            
-			C->getClass()->println(0,*dst);
-			streamCopyUntilEnd(*enrobage, *dst);
-		} else {
-			cerr << "ERROR : can't open architecture file " << gArchFile << endl;
-			return 1;
-		}
-	} else {
-        printheader(*dst);
-        printfloatdef(*dst);
-		C->getClass()->printLibrary(*dst);
-        C->getClass()->printIncludeFile(*dst);
-        C->getClass()->printAdditionalCode(*dst);
-        C->getClass()->println(0,*dst);
 	}
 
     /****************************************************************
@@ -858,9 +789,8 @@ standard:
     
     if (gGraphSwitch) {
         ofstream dotfile(subst("$0.dot", gMasterDocument).c_str());
-        C->getClass()->printGraphDotFormat(dotfile);
+       container->printGraphDotFormat(dotfile);
     }
   	
-	delete C;
 	return 0;
 }

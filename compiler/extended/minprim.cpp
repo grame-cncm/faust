@@ -4,7 +4,6 @@
 #include "sigtyperules.hh"
 
 #include "floats.hh"
-#include "code_gen.hh"
 #include "code_container.hh"
 
 class MinPrim : public xtended
@@ -34,7 +33,7 @@ class MinPrim : public xtended
 		return max(args[0], args[1]);
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args) 
+	virtual Tree computeSigOutput (const vector<Tree>& args) 
 	{
 		double f,g; int i,j;
 		
@@ -66,18 +65,6 @@ class MinPrim : public xtended
 		}
 	}
 		
-	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
-	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
-		
-		Type t = infereSigType(types);
-		if (t->nature() == kReal) {
-			return subst("min($0, $1)", args[0], args[1]);
-		} else {
-			return subst("min($0, $1)", args[0], args[1]);
-		} 			
-	}
 	
     virtual ValueInst* generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
     {

@@ -81,14 +81,6 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-            
-            /*
-            cerr << "basic_typed " << basic_typed << endl;
-            cerr << "named_typed " << named_typed << endl;
-            cerr << "fun_typed " << fun_typed << endl;
-            cerr << "array_typed " << array_typed << endl;
-            cerr << "vector_typed " << vector_typed << endl;
-            */
         
             if (basic_typed) {
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\"";

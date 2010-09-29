@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include "floats.hh"
-#include "code_gen.hh"
 #include "code_container.hh"
 
 class LogPrim : public xtended
@@ -45,14 +44,6 @@ class LogPrim : public xtended
 		}
 	}
 		
-	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
-	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
-        
-		return subst("log$1($0)", args[0], isuffix());
-	}
-	
     virtual ValueInst* generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
     {
         assert (args.size() == arity());

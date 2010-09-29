@@ -4,7 +4,6 @@
 // xtended
 #include "tlib.hh"
 #include "sigtype.hh"
-#include "klass.hh"
 #include "sigvisitor.hh"
 #include <vector>
 #include "lateq.hh"
@@ -42,7 +41,6 @@ class xtended
 	// virtual method to be implemented by subclasses
 	virtual unsigned int 	arity () = 0;
     
-	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types) = 0;
     virtual ValueInst* 	generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type >& types) = 0;
     
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types) = 0;

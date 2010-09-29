@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include "floats.hh"
-#include "code_gen.hh"
 #include "code_container.hh"
 
 class PowPrim : public xtended
@@ -40,19 +39,6 @@ class PowPrim : public xtended
 			return tree(symbol(), args[0], args[1]);
 		}
 	}
-		
-	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
-	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
-
-        if (types[1]->nature() == kInt) {
-            klass->rememberNeedPowerDef();
-            return subst("faustpower<$1>($0)", args[0], args[1]);
-        } else {
-            return subst("pow$2($0,$1)", args[0], args[1], isuffix());
-        }
-    }
 	
     virtual ValueInst* generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
     {

@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include "floats.hh"
-#include "code_gen.hh"
 #include "code_container.hh"
 
 class FmodPrim : public xtended
@@ -40,14 +39,6 @@ class FmodPrim : public xtended
 		}
 	}
 		
-	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
-	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
-        
-		return subst("fmod$2($0,$1)", args[0], args[1], isuffix());
-	}
-	
     virtual ValueInst* generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
     {
         assert (args.size() == arity());

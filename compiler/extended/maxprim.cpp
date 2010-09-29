@@ -4,7 +4,6 @@
 #include "sigtyperules.hh"
 
 #include "floats.hh"
-#include "code_gen.hh"
 #include "code_container.hh"
 
 class MaxPrim : public xtended
@@ -64,19 +63,6 @@ class MaxPrim : public xtended
 		
 			return tree(symbol(), args[0], args[1]);
 		}
-	}
-		
-	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
-	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
-		
-		Type t = infereSigType(types);
-		if (t->nature() == kReal) {
-			return subst("max($0, $1)", args[0], args[1]);
-		} else {
-			return subst("max($0, $1)", args[0], args[1]);
-		} 			
 	}
     
     virtual ValueInst* generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)

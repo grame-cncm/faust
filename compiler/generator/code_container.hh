@@ -45,7 +45,6 @@
 #include "floats.hh"
 #include "Text.hh"
 #include "property.hh"
-#include "graphSorting.hh"
 
 #include "function_builder.hh"
 #include "code_loop.hh"
@@ -183,6 +182,8 @@ class CodeContainer {
         
         void setLoopProperty(Tree sig, CodeLoop* l);     ///< Store the loop used to compute a signal
         bool getLoopProperty(Tree sig, CodeLoop*& l);    ///< Returns the loop used to compute a signal
+        
+        void printGraphDotFormat(ostream& fout);
        
         // Fill code for each method
         
