@@ -1019,7 +1019,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 //fModule->dump();
             } else if (inst->fAccess & Address::kGlobal || inst->fAccess & Address::kStaticStruct) {  
                 if (!fModule->getGlobalVariable(inst->fName, true)) {
-                    GlobalVariable* global_var;
+                    GlobalVariable* global_var = NULL;
                     
                     if (basic_typed) {
                         global_var = new GlobalVariable(*fModule, fTypeMap[basic_typed->getType()], false, GlobalValue::PrivateLinkage, 0, inst->fName);
