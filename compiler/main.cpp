@@ -649,8 +649,12 @@ int main (int argc, char* argv[])
             container = new LLVMScalarCodeContainer(numInputs, numOutputs);
             comp = new InstructionsCompiler(container);
         }
-        
+           
+        if (gPrintXMLSwitch) comp->setDescription(new Description());
+        if (gPrintDocSwitch) comp->setDescription(new Description());
+
         comp->compileMultiSignal(lsignals);
+        
         dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
      
     } else {
