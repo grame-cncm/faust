@@ -44,10 +44,10 @@ using namespace std;
 #include <sstream>
 #include <algorithm>
 #include <assert.h>
+#include <string.h> 
 
 #include "instructions.hh"
 
-   
 /*
     void compute(int count, float** inputs, float** ouputs) 
     {
