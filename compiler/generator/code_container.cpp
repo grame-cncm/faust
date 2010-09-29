@@ -582,7 +582,7 @@ void CodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, b
     }
 
     // Push n - 1 ready tasks                                                        
-    for (int i = 0; i < task_num.size() - 1; i++) {
+    for (unsigned int i = 0; i < task_num.size() - 1; i++) {
         list<ValueInst*> fun_args;
         fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
         fun_args.push_back(InstBuilder::genIntNumInst(task_num[i]));

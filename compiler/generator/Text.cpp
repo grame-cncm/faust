@@ -255,7 +255,7 @@ string checkFloat(float val)
     string str = num.str();
     
     bool dot = false;
-    for (int i = 0; i < str.size(); i++) {
+    for (unsigned int i = 0; i < str.size(); i++) {
         if (str[i] == '.' || str[i] == 'e') {
            dot = true;
            break;
