@@ -474,12 +474,18 @@ struct NamedTyped : public Typed {
 };
 
 struct FunTyped : public Typed {
-
+    
+    enum FunAttribute {
+        kDefault = 0x1,
+        kLocal = 0x2
+    };
+    
     list<NamedTyped*> fArgsTypes;
     BasicTyped* fResult;
+    FunAttribute fAttribute;
     
-    FunTyped(const list<NamedTyped*>& args, BasicTyped* result)
-        :fArgsTypes(args), fResult(result)
+    FunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunAttribute attribute = kDefault)
+        :fArgsTypes(args), fResult(result), fAttribute(attribute)
     {}
     virtual ~FunTyped()
     {}
@@ -1273,7 +1279,7 @@ class BasicCloneVisitor : public CloneVisitor {
             for (it = typed->fArgsTypes.begin(); it != typed->fArgsTypes.end(); it++) {
                 cloned.push_back(dynamic_cast<NamedTyped*>((*it)->clone(this)));
             }
-            return new FunTyped(cloned, dynamic_cast<BasicTyped*>(typed->fResult->clone(this))); 
+            return new FunTyped(cloned, dynamic_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute); 
         }
         virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
         virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(dynamic_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
@@ -1563,7 +1569,7 @@ struct InstBuilder
     
     static NamedTyped* genNamedTyped(const string& name, Typed* type) { return new NamedTyped(name, type); }
     
-    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result) { return new FunTyped(args, result); }
+    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault) { return new FunTyped(args, result, attribute); }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
     static ArrayTyped* genArrayTyped(Typed* type, int size) { return new ArrayTyped(type, size); }
     

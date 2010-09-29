@@ -405,7 +405,8 @@ void CPPWorkStealingCodeContainer::produceClass()
     CPPCodeContainer::produceClass();
    
     int n = 0; 
-    tab(n, *fOut); *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
+    //tab(n, *fOut); 
+    *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
         tab(n+1, *fOut); *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread(num_thread);";
     tab(n, *fOut); *fOut << "}" << endl;
 }
@@ -444,6 +445,6 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     assert(block);
     block->accept(&fCodeProducer);
     
-    tab(n+1, *fOut); *fOut << "}" << endl;
+    tab(n+1, *fOut); *fOut << "}";
 }
 

@@ -249,14 +249,7 @@ void CCodeContainer::produceClass()
     
     // Compute
     generateCompute(n);
-    
-    // Possibly generate separated functions
-    fCodeProducer.Tab(n);
-    tab(n, *fOut);
-    if (fComputeFunctions->fCode.size() > 0) {    
-        fComputeFunctions->accept(&fCodeProducer);
-    }
-    
+     
     // Generate user interface macros if needed
 	if (gUIMacroSwitch) {
 		tab(n, *fOut); *fOut << "#ifdef FAUST_UIMACROS";
@@ -306,8 +299,22 @@ CVectorCodeContainer::~CVectorCodeContainer()
 
 void CVectorCodeContainer::generateCompute(int n)
 {
-    // Compute declaration
+    // Prepare global loop
+    StatementInst* block = NULL;
+    if (gVectorLoopVariant == 0) {
+        block = generateDAGLoopVariant0();
+    } else {
+        block = generateDAGLoopVariant1();
+    }
+    
+    // Possibly generate separated functions
+    fCodeProducer.Tab(n);
     tab(n, *fOut);
+    if (fComputeFunctions->fCode.size() > 0) {    
+        fComputeFunctions->accept(&fCodeProducer);
+    }
+
+    // Compute declaration
     tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
@@ -317,14 +324,6 @@ void CVectorCodeContainer::generateCompute(int n)
     
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(&fCodeProducer);
-    
-    // Prepare global loop
-    StatementInst* block = NULL;
-    if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0();
-    } else {
-        block = generateDAGLoopVariant1();
-    }
     
     // Generate it
     assert(block);
@@ -340,8 +339,17 @@ COpenMPCodeContainer::COpenMPCodeContainer(const string& name, int numInputs, in
 
 void COpenMPCodeContainer::generateCompute(int n)
 {
-    // Compute declaration
+    // Prepare global loop
+    StatementInst* block = generateDAGLoopOMP();
+    
+    // Possibly generate separated functions
+    fCodeProducer.Tab(n);
     tab(n, *fOut);
+    if (fComputeFunctions->fCode.size() > 0) {    
+        fComputeFunctions->accept(&fCodeProducer);
+    }
+    
+    // Compute declaration
     tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
@@ -354,9 +362,6 @@ void COpenMPCodeContainer::generateCompute(int n)
     
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(&fCodeProducer);
-    
-    // Prepare global loop
-    StatementInst* block = generateDAGLoopOMP();
     
     // Generate it
     assert(block);
@@ -393,15 +398,21 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);
     computeForwardDAG(dag);
+    
+     // Prepare global loop
+    StatementInst* block = generateDAGLoopWSS(dag);
+    
+    // Possibly generate separated functions
+    fCodeProducer.Tab(n);
+    tab(n, *fOut);
+    if (fComputeFunctions->fCode.size() > 0) {    
+        fComputeFunctions->accept(&fCodeProducer);
+    }
    
     // Generates "computeThread" code
-    tab(n, *fOut);
     tab(n, *fOut); *fOut << "void computeThread(" << fPrefix << fStructName << "* dsp, int num_thread) {";
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
-    
-    // Prepare global loop
-    StatementInst* block = generateDAGLoopWSS(dag);
     
     // Generate it
     block->accept(&fCodeProducer);

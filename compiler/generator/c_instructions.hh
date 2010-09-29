@@ -202,6 +202,9 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             }
            
             // Prototype
+            if (inst->fType->fAttribute & FunTyped::kLocal) 
+                 *fOut << "static inline ";
+         
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
