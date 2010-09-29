@@ -9,22 +9,6 @@
 #include "Text.hh"
 
 /**
- * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
- * (but not those in the middle of the string)
- */
-static string rmWhiteSpaces(const string& s)
-{
-    size_t i = s.find_first_not_of(" \t");
-    size_t j = s.find_last_not_of(" \t");
-
-    if ( (i != string::npos) & (j != string::npos) ) {
-        return s.substr(i, 1+j-i);
-    } else {
-        return "";
-    }
-}
-
-/**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
 void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata)

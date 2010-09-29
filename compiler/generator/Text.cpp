@@ -169,7 +169,7 @@ static void ensureFloat(char* c)
 {
     bool isInt = true;
     while (*c != 0) { 
-        if ((*c == '.') | (*c == 'e'))  isInt = false; 
+        if ((*c == '.') | (*c == 'e')) isInt = false; 
         c++; 
     }
 
@@ -246,6 +246,22 @@ void printlines(int n, list<string>& lines, ostream& fout, string sep)
         } else {
             tab(n, fout); fout << sep << *s;
         }
+    }
+}
+
+/**
+ * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
+ * (but not those in the middle of the string)
+ */
+string rmWhiteSpaces(const string& s)
+{
+    size_t i = s.find_first_not_of(" \t");
+    size_t j = s.find_last_not_of(" \t");
+
+    if ( (i != string::npos) & (j != string::npos) ) {
+        return s.substr(i, 1+j-i);
+    } else {
+        return "";
     }
 }
 

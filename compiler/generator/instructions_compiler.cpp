@@ -930,7 +930,7 @@ ValueInst* InstructionsCompiler::generateRecProj(int variability, Tree sig, Tree
 {
     string vname;
     Tree var, le;
-    ValueInst* res;
+    ValueInst* res = NULL;
 
     if (!getVectorNameProperty(sig, vname)) {
         assert(isRec(r, var, le));
@@ -1383,22 +1383,6 @@ static string wdel(const string& s)
     while (i<j && s[i]==' ') i++;
     while (j>i && s[j-1] == ' ') j--;
     return s.substr(i,j-i);
-}
-
-/**
- * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
- * (but not those in the middle of the string)
- */
-static string rmWhiteSpaces(const string& s)
-{
-    size_t i = s.find_first_not_of(" \t");
-    size_t j = s.find_last_not_of(" \t");
-
-    if ( (i != string::npos) & (j != string::npos) ) {
-        return s.substr(i, 1+j-i);
-    } else {
-        return "";
-    }
 }
 
 //================================= BUILD USER INTERFACE METHOD =================================

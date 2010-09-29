@@ -519,7 +519,7 @@ LLVMVectorCodeContainer::~LLVMVectorCodeContainer()
 void LLVMVectorCodeContainer::generateCompute()
 {
     // Prepare global loop
-    StatementInst* block;
+    StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
         block = generateDAGLoopVariant0();
     } else {
@@ -538,6 +538,7 @@ void LLVMVectorCodeContainer::generateCompute()
     fComputeBlockInstructions->accept(fCodeProducer);
        
     // Generate it
+    assert(block);
     block->accept(fCodeProducer);
       
     generateComputeEnd();

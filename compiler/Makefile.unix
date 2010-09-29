@@ -7,18 +7,12 @@ os 	:= $(shell uname)
 
 VPATH = $(subprojects)
 
-#CXXFLAGS := -O3 -Wall -Wuninitialized -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' -I/opt/local/include  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-CXXFLAGS := -g -Wall -Wuninitialized -Wno-parentheses -I`llvm-config --includedir` $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' -I/opt/local/include  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-
+CXXFLAGS := -O3 -Wall -Wuninitialized -Wno-parentheses  -I`llvm-config --includedir` $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 
 all : faust
 
 faust : $(objects)
-ifeq ($(os), Darwin)
-	$(CXX) $(CXXFLAGS) `llvm-config --ldflags --libs all ` $(objects) -o faust
-else
-	$(CXX) $(CXXFLAGS) `llvm-config --ldflags --libs all` -lLLVM-2.7 $(objects) -o faust
-endif
+	$(CXX) $(CXXFLAGS) $(objects) `llvm-config --ldflags --libs all` -o faust
 
 
 .PHONY: clean depend ctags parser

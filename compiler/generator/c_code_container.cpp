@@ -319,7 +319,7 @@ void CVectorCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->accept(&fCodeProducer);
     
     // Prepare global loop
-    StatementInst* block;
+    StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
         block = generateDAGLoopVariant0();
     } else {
@@ -327,6 +327,7 @@ void CVectorCodeContainer::generateCompute(int n)
     }
     
     // Generate it
+    assert(block);
     block->accept(&fCodeProducer);
     
     tab(n, *fOut); *fOut << "}" << endl;
@@ -358,6 +359,7 @@ void COpenMPCodeContainer::generateCompute(int n)
     StatementInst* block = generateDAGLoopOMP();
     
     // Generate it
+    assert(block);
     block->accept(&fCodeProducer);
     
     tab(n, *fOut); *fOut << "}" << endl;

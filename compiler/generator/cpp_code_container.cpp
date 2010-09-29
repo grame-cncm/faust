@@ -328,7 +328,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->accept(&fCodeProducer);
     
     // Prepare global loop
-    StatementInst* block;
+    StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
         block = generateDAGLoopVariant0();
     } else if (gVectorLoopVariant == 1) {
@@ -336,6 +336,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     }
     
     // Generate it
+    assert(block);
     block->accept(&fCodeProducer);
       
     tab(n+1, *fOut); *fOut << "}";
@@ -370,6 +371,7 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
     StatementInst* block = generateDAGLoopOMP();
     
     // Generate it
+    assert(block);
     block->accept(&fCodeProducer);
       
     tab(n+1, *fOut); *fOut << "}";
@@ -439,6 +441,7 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     StatementInst* block = generateDAGLoopWSS(dag);
     
     // Generate it
+    assert(block);
     block->accept(&fCodeProducer);
     
     tab(n+1, *fOut); *fOut << "}" << endl;

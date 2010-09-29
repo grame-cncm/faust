@@ -320,7 +320,7 @@ void JAVAVectorCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->accept(&fCodeProducer);
      
     // Prepare global loop
-    StatementInst* block;
+    StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
         block = generateDAGLoopVariant0();
     } else {
@@ -328,6 +328,7 @@ void JAVAVectorCodeContainer::generateCompute(int n)
     }
     
     // Generate it
+    assert(block);
     block->accept(&fCodeProducer);
     
     tab(n+1, *fOut); *fOut << "}";

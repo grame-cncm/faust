@@ -257,10 +257,10 @@ void CodeContainer::generateParLoopNode(CodeLoop* loop, BlockInst* loop_code, in
         loop->generateVecLoop1(block);
         Loop2FunctionBuider builder(subst("fun$0", T(loop_num)), block, gDSPStruct);
         fComputeFunctions->pushBackInst(builder.fFunctionDef);
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive function $0", T(loop_num)) : subst("// Vectorisable function $0", T(loop_num))));
+        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive function $0", T(loop_num)) : subst("// Vectorizable function $0", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);
     } else {
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorisable loop $0", T(loop_num))));
+        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
         loop->generateVecLoop1(loop_code);
     }
 }
@@ -546,7 +546,7 @@ void CodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, b
     }
     
     BlockInst* gen_code;
-    BlockInst* then_block;
+    BlockInst* then_block = NULL;
     
     if (master_thread) {
         then_block = InstBuilder::genBlockInst();
