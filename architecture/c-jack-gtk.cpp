@@ -1634,7 +1634,7 @@ int main(int argc, char *argv[] )
 {
     UI*                 interface;
     jack_client_t*      client; 
-    char                buf [256];
+    char                buf[256];
     char                rcfilename[256];
     jack_status_t       jackstat;
     const char*         home;
@@ -1693,7 +1693,7 @@ int main(int argc, char *argv[] )
     pname = getenv("FAUST2JACK_INPUTS");
     if (pname && *pname) {
        for (int i = 0; i < gNumInChans; i++) {
-            snprintf(buf, 256, pname, i + 1);
+            snprintf(buf, 256, "%s%d", pname, i + 1);
             jack_connect(client, buf, jack_port_name(input_ports[i]));
         }
     }
@@ -1701,7 +1701,7 @@ int main(int argc, char *argv[] )
     pname = getenv("FAUST2JACK_OUTPUTS");
     if (pname && *pname) {
         for (int i = 0; i < gNumOutChans; i++) {
-            snprintf(buf, 256, pname, i + 1);
+            snprintf(buf, 256, "%s%d", pname, i + 1);
             jack_connect(client, jack_port_name(output_ports[i]), buf);
         }       
     }

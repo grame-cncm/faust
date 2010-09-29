@@ -1369,12 +1369,12 @@ int main(int argc, char *argv[] )
 {
     UI*                 interface;
     jack_client_t*      client; 
-    char                buf [256];
+    char                buf[256];
     char                rcfilename[256];
     jack_status_t       jackstat;
-    const char*                 home;
-    char*                               pname;
-    char*                               jname;
+    const char*         home;
+    char*               pname;
+    char*               jname;
 
     AVOIDDENORMALS;
 
@@ -1382,7 +1382,7 @@ int main(int argc, char *argv[] )
     client = jack_client_open (jname, (jack_options_t) 0, &jackstat);
     if (client == 0) {
         fprintf (stderr, "Can't connect to JACK, is the server running ?\n");
-        exit (1);
+        exit(1);
     }
     if (jackstat & JackNameNotUnique) {
         jname = jack_get_client_name (client);
@@ -1403,7 +1403,7 @@ int main(int argc, char *argv[] )
         output_ports[i] = jack_port_register(client, buf,JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
     }
     
-    interface = new GTKUI (jname, &argc, &argv);
+    interface = new GTKUI(jname, &argc, &argv);
     DSP.init(jack_get_sample_rate(client));
     DSP.buildUserInterface(interface);
 
@@ -1420,7 +1420,7 @@ int main(int argc, char *argv[] )
     pname = getenv("FAUST2JACK_INPUTS");
     if (pname && *pname) {
        for (int i = 0; i < gNumInChans; i++) {
-            snprintf(buf, 256, pname, i + 1);
+            snprintf(buf, 256, "%s%d", pname, i + 1);
             jack_connect(client, buf, jack_port_name(input_ports[i]));
         }
     }
@@ -1428,7 +1428,7 @@ int main(int argc, char *argv[] )
     pname = getenv("FAUST2JACK_OUTPUTS");
     if (pname && *pname) {
         for (int i = 0; i < gNumOutChans; i++) {
-            snprintf(buf, 256, pname, i + 1);
+            snprintf(buf, 256, "%s%d", pname, i + 1);
             jack_connect(client, jack_port_name(output_ports[i]), buf);
         }       
     }
