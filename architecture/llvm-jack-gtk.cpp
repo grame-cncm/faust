@@ -1685,8 +1685,8 @@ int main(int argc, char *argv[] )
 	}
 	
 	interface = new GTKUI(jname, &argc, &argv);
-    DSP.init(jack_get_sample_rate(client));
-    DSP.buildUserInterface(interface);
+    DSP->init(jack_get_sample_rate(client));
+    DSP->buildUserInterface(interface);
 	
 	home = getenv ("HOME");
     if (home == 0) home = ".";

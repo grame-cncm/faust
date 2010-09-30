@@ -6,15 +6,16 @@ all :  $(appl)
 
 $(DEST)% : %.dsp
 	cp /usr/local/lib/faust/$(ARCH) $(DEST)
-	faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
+	#faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
+	faust -sch  -lang llvm  -vs 64 $< -o $@.bc
 	#opt -S -O3 $@.bc -o $@.ll
 	opt -O3 $@.bc -o $@.bc
 	llc -O3 $@.bc -o $@.s
 	llvm-g++ --emit-llvm -S ../architecture/scheduler.cpp -o $@.scheduler.ll
 	opt -O3 $@.scheduler.ll -o $@.scheduler.bc
 	llvm-link $@.scheduler.bc $@.bc -o $@_sch.bc
-	#llvm-g++ ../architecture/scheduler.cpp -g -O1 -I/opt/local -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math -ftree-vectorize  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
-	llvm-g++ -O3 -I/opt/local -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math -ftree-vectorize  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
+	llvm-g++ ../architecture/scheduler.cpp -g -O1 -I/opt/local -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math -ftree-vectorize  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
+	#llvm-g++ -O3 -I/opt/local -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math -ftree-vectorize  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
 
 clean :
 	rm -f $(DEST)
