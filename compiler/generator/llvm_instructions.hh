@@ -1575,17 +1575,26 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             // Compile exp to cast, result in fCurValue
             inst->fInst->accept(this);
-           
-            switch (inst->fTyped->fType) {
             
-                // Takes the type of internal real
-                case Typed::kFloatMacro:
-                    visitAux(itfloat());
-                    break;
-                    
-                default:
-                    visitAux(inst->fTyped->fType);
-                    break;
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
+            
+            if (basic_typed) {
+           
+                switch (basic_typed->fType) {
+                
+                    // Takes the type of internal real
+                    case Typed::kFloatMacro:
+                        visitAux(itfloat());
+                        break;
+                        
+                    default:
+                        visitAux(basic_typed->fType);
+                        break;
+                }
+                
+            } else {
+                // No yet
+                assert(false);
             }
         }
         
