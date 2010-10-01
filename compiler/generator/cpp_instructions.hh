@@ -304,7 +304,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         
         virtual void visit(CastNumInst* inst) 
         {   
-            *fOut << "(" << generateType(inst->fTyped) << ")";
+            *fOut << generateType(inst->fTyped);
             *fOut << "("; inst->fInst->accept(this);  *fOut << ")";
         }
         
