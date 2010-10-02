@@ -1826,7 +1826,7 @@ int main(int argc, char *argv[] )
     pname = getenv("FAUST2JACK_INPUTS");
     if (pname && *pname) {
        for (int i = 0; i < gNumInChans; i++) {
-            snprintf(buf, 256, "%s%d", pname, i + 1);
+            snprintf(buf, 256, pname, i + 1);
             jack_connect(client, buf, jack_port_name(input_ports[i]));
         }
     }
@@ -1834,7 +1834,7 @@ int main(int argc, char *argv[] )
     pname = getenv("FAUST2JACK_OUTPUTS");
     if (pname && *pname) {
         for (int i = 0; i < gNumOutChans; i++) {
-            snprintf(buf, 256, "%s%d", pname, i + 1);
+            snprintf(buf, 256, pname, i + 1);
             jack_connect(client, jack_port_name(output_ports[i]), buf);
         }       
     }
