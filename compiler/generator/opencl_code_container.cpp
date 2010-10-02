@@ -136,6 +136,8 @@ void OpenCLCodeContainer::produceClass()
     
     int n = 0;
     
+    addIncludeFile("<iostream>");
+    addIncludeFile("<fstream>");
     addIncludeFile("<OpenCL/opencl.h>");
      
     // Libraries
@@ -159,12 +161,15 @@ void OpenCLCodeContainer::produceClass()
     *fComputeKernelStream << subst("const char* KernelSource = \"__kernel void computeKernel(const unsigned int count, __global $0** inputs, __global $0** outputs) \n", xfloat());
     tab(n+1, *fComputeKernelStream);
     
+    /*
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(&codeproducer);
     
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->getScalarLoop();
     loop->accept(&codeproducer);
+    */
+    
     tab(n, *fComputeKernelStream);
     *fComputeKernelStream << "\"";
        
@@ -267,18 +272,18 @@ void OpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}";
             
             // Allocate kernel input buffers
-            tab(n+2, *fOut); *fOut << "for (int i = 0; i < fNumInputs; i++) {";
-                tab(n+3, *fOut); *fOut << "fOpenCLInputs[i] = clCreateBuffer(fOpenCLContext, inputs[i], CL_MEM_READ_ONLY, sizeof(float) * 8192, NULL, &err);";
+            tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
+                tab(n+3, *fOut); *fOut << "fOpenCLInputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_READ_ONLY, sizeof(float) * 8192, NULL, &err);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+4, *fOut); *fOut << "cerr << \"Cannot allocate input buffer\";";
+                    tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer\";";
                 tab(n+3, *fOut); *fOut << "}";
             tab(n+2, *fOut); *fOut << "}";
             
             // Allocate kernel output buffers
-            tab(n+2, *fOut); *fOut << "for (int i = 0; i < fNumOutputs; i++) {";
-                tab(n+3, *fOut); *fOut << "fOpenCLOutputs[i] = clCreateBuffer(fOpenCLContext, outputs[i], CL_MEM_WRITE_ONLY, sizeof(float) * 8192, NULL, &err);";
+            tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
+                tab(n+3, *fOut); *fOut << "fOpenCLOutputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_WRITE_ONLY, sizeof(float) * 8192, NULL, &err);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+4, *fOut); *fOut << "cerr << \"Cannot allocate output buffer\";";
+                    tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer\";";
                 tab(n+3, *fOut); *fOut << "}";
             tab(n+2, *fOut); *fOut << "}";
                     
@@ -289,18 +294,16 @@ void OpenCLCodeContainer::produceClass()
         
         tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
             // Free kernel input buffers
-            tab(n+2, *fOut); *fOut << "for (int i = 0; i < fNumInputs; i++) {";
+            tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
                 tab(n+3, *fOut); *fOut << "clReleaseMemObject(fOpenCLInputs[i]);";
             tab(n+2, *fOut); *fOut << "}";
             
             // Free kernel output buffers
-            tab(n+2, *fOut); *fOut << "for (int i = 0; i < fNumOutputs; i++) {";
+            tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
                 tab(n+3, *fOut); *fOut << "clReleaseMemObject(fOpenCLOutputs[i]);";
             tab(n+2, *fOut); *fOut << "}";
             
             // Shutdown and cleanup
-            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fOpenCLInput);";
-            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fOpenCLOutput);";
             tab(n+2, *fOut); *fOut << "clReleaseKernel(fOpenCLKernel);";
             tab(n+2, *fOut); *fOut << "clReleaseCommandQueue(fOpenCLCommands);";
             tab(n+2, *fOut); *fOut << "clReleaseContext(fOpenCLContext);";
@@ -398,10 +401,10 @@ void OpenCLCodeContainer::generateCompute(int n)
     // Copy audio input buffer to kernel buffers
     *fOut << "int err;";
     
-    tab(n+2, *fOut); *fOut << "for (int i = 0; i < fNumInputs; i++) {";
-        tab(n+3, *fOut); *fOut << subst("err = clEnqueueCopyBuffer(fOpenCLCommands, inputs[i], fOpenCLInputs[i], 0, 0, sizeof($0) * count, 0, NULL, NULL);", xfloat());
+    tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
+        tab(n+3, *fOut); *fOut << subst("err = clEnqueueCopyBuffer(fOpenCLCommands, (cl_mem)inputs[i], fOpenCLInputs[i], 0, 0, sizeof($0) * count, 0, NULL, NULL);", xfloat());
         tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-            tab(n+4, *fOut); *fOut << "cerr << \"Cannot copy input\";";
+            tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot copy input\";";
         tab(n+3, *fOut); *fOut << "}";
     tab(n+2, *fOut); *fOut << "}";
     tab(n+2, *fOut);
@@ -412,7 +415,7 @@ void OpenCLCodeContainer::generateCompute(int n)
     tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fOpenCLKernel, 1, sizeof(cl_mem*), &inputs);";
     tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fOpenCLKernel, 2, sizeof(cl_mem*), &outputs);";
     tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-        tab(n+3, *fOut);  *fOut << "cerr << \"Error: Failed to set kernel arguments\";";
+        tab(n+3, *fOut);  *fOut << "std::cerr << \"Error: Failed to set kernel arguments\";";
     tab(n+2, *fOut); *fOut << "}";
     tab(n+2, *fOut);
     
@@ -422,7 +425,7 @@ void OpenCLCodeContainer::generateCompute(int n)
     
     tab(n+2, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(fOpenCLKernel, fOpenCLDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
     tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-        tab(n+3, *fOut);  *fOut << "cerr << \"Error: Failed to set kernel arguments\";";
+        tab(n+3, *fOut);  *fOut << "std::cerr << \"Error: Failed to set kernel arguments\";";
     tab(n+2, *fOut); *fOut << "}";
     tab(n+2, *fOut);
     
@@ -430,7 +433,7 @@ void OpenCLCodeContainer::generateCompute(int n)
     tab(n+2, *fOut); *fOut << "global = count;";
     tab(n+2, *fOut); *fOut << "err = clEnqueueNDRangeKernel(fOpenCLCommands, fOpenCLKernel, 1, NULL, &global, &local, 0, NULL, NULL);";
     tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-        tab(n+3, *fOut);  *fOut << "cerr << \"Error: Failed to set kernel arguments\";";
+        tab(n+3, *fOut);  *fOut << "std::cerr << \"Error: Failed to set kernel arguments\";";
     tab(n+2, *fOut); *fOut << "}";
     tab(n+2, *fOut);
     
@@ -438,10 +441,10 @@ void OpenCLCodeContainer::generateCompute(int n)
     tab(n+2, *fOut); *fOut << "clFinish(fOpenCLCommands);";
      
     // Copy kernel buffers to audio output buffer 
-    tab(n+2, *fOut); *fOut << "for (int i = 0; i < fNumOutputs; i++) {";
-        tab(n+3, *fOut); *fOut << subst("err = clEnqueueCopyBuffer(fOpenCLCommands, fOpenCLOutputs[i], outputs[i], 0, 0, sizeof($0) * count, 0, NULL, NULL);", xfloat());
+    tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
+        tab(n+3, *fOut); *fOut << subst("err = clEnqueueCopyBuffer(fOpenCLCommands, fOpenCLOutputs[i], (cl_mem)outputs[i], 0, 0, sizeof($0) * count, 0, NULL, NULL);", xfloat());
         tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-            tab(n+4, *fOut); *fOut << "cerr << \"Cannot copy output\";";
+            tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot copy output\";";
         tab(n+3, *fOut); *fOut << "}";
     tab(n+2, *fOut); *fOut << "}";
   
