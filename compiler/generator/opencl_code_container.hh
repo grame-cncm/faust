@@ -40,6 +40,7 @@ class OpenCLCodeContainer : public CodeContainer {
     protected:
     
         OpenCLInstVisitor fCodeProducer;
+        std::ostringstream* fComputeKernelStream;
         std::ostream* fOut;
         string fKlassName;
         string fSuperKlassName;
@@ -48,9 +49,13 @@ class OpenCLCodeContainer : public CodeContainer {
     
         OpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
-        {}
+        {
+            fComputeKernelStream = new std::ostringstream();
+        }
         virtual ~OpenCLCodeContainer()
-        {}
+        {
+            delete fComputeKernelStream;
+        }
         
         virtual void produceClass();
         void produceInternal();
