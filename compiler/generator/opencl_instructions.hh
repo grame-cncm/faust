@@ -54,15 +54,12 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
         std::ostream* fOut;
         bool fFinishLine;
         map <string, int> fGlobalTable;
-      
+    
     public:
     
-        OpenCLInstVisitor(std::ostream* out, const string& structname, const string& prefix, int tab = 0)
+        OpenCLInstVisitor(std::ostream* out, int tab = 0)
             :fTab(tab), fOut(out), fFinishLine(true)
-        {
-            fTypeDirectTable[Typed::kObj] = prefix + structname;
-            fTypeDirectTable[Typed::kObj_ptr] = prefix + structname + "*";
-        }
+        {}
         
         virtual ~OpenCLInstVisitor()
         {}
@@ -76,10 +73,10 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
                 tab(fTab, *fOut);
             }
         }
-  
+        
         virtual void visit(AddMetaDeclareInst* inst) 
         {
-            *fOut << "interface->declare(" << "interface->uiInterface, " << "&dsp->" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
+            *fOut << "interface->declare(" << "&" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
         }
         
         virtual void visit(OpenboxInst* inst) 
@@ -93,20 +90,20 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
                 case 2:
                     name = "interface->openTabBox"; break;
             }
-            *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fName << "\"" << ")"; 
+            *fOut << name << "(" << "\"" << inst->fName << "\"" << ")"; 
             EndLine();
         }
         
         virtual void visit(CloseboxInst* inst) 
         {
-            *fOut << "interface->closeBox(interface->uiInterface);"; tab(fTab, *fOut);
+            *fOut << "interface->closeBox();"; tab(fTab, *fOut);
         }
         virtual void visit(AddButtonInst* inst) 
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "interface->addButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")"; EndLine();
+                *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&" << inst->fZone << ")"; EndLine();
             } else {
-                *fOut << "interface->addCheckButton(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ")"; EndLine();
+                *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&" << inst->fZone << ")"; EndLine();
             }
         }
         
@@ -120,12 +117,11 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
                     name = "interface->addVerticalSlider"; break;
                 case AddSliderInst::kNumEntry:
                     name = "interface->addNumEntry"; break;
-            }     
-            if (strcmp(ifloat(), "float") == 0)
-                *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
+            } 
+            if (strcmp(ifloat(), "float") == 0)    
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
             else
-                *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " <<  inst->fMax << ", " << inst->fStep << ")";
-         
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
             EndLine();     
         }
         
@@ -139,9 +135,9 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
                     name = "interface->addVerticalBargraph"; break;
             }     
             if (strcmp(ifloat(), "float") == 0)
-                *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
             else
-                *fOut << name << "(" << "interface->uiInterface, " << "\"" << inst->fLabel << "\"" << ", " << "&dsp->" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";      
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
             EndLine();     
         }
         
@@ -150,7 +146,7 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << inst->fLabel;
             tab(fTab, *fOut);
         }
-        
+                
         virtual void visit(DeclareVarInst* inst) 
         {   
             if (inst->fAccess & Address::kGlobal) {
@@ -194,16 +190,16 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DeclareFunInst* inst) 
         {   
             if (fGlobalTable.find(inst->fName) != fGlobalTable.end())
-                return;  // already declared
-                
+                return;  // Already declared
+              
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
             }
-           
+                
             // Prototype
             if (inst->fType->fAttribute & FunTyped::kLocal) 
-                 *fOut << "static inline ";
+                 *fOut << "inline ";
          
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";
@@ -215,7 +211,7 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
             }
                 
             if (inst->fCode->fCode.size() == 0) {
-                *fOut << ");" << endl;  // Pure prototype
+                *fOut << ");" << endl; ;  // Pure prototype
             } else {
                 // Function body
                 *fOut << ") {";
@@ -230,69 +226,56 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
             
             fGlobalTable[inst->fName] = 1;
         }
-        
+                
         virtual void visit(LoadVarInst* inst)
         {   
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string access = "";
-         
-            if (inst->fAddress->getAccess() & Address::kStruct) 
-                access = "dsp->";
+            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
             
             if (named) {
-                *fOut << access << named->getName();
+                *fOut << named->getName();
             } else {
-                *fOut << access << indexed->getName() << "[";
+                *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "]";
+                *fOut << "]"; 
             }
         }
         
         virtual void visit(LoadVarAddressInst* inst) 
         {
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string access = "&";
-         
-            if (inst->fAddress->getAccess() & Address::kStruct) 
-                access += "dsp->";
+            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
             
             if (named) {
-                *fOut << access << named->getName();
+                *fOut << "&" << named->getName();
             } else {
-                *fOut << access << indexed->getName() << "[";
+                *fOut << "&" << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "]";
+                *fOut << "]"; 
             }
         }
 
         virtual void visit(StoreVarInst* inst)
         {   
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string access = "";
-            
-            if (inst->fAddress->getAccess() & Address::kStruct) 
-                access = "dsp->";
+            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
             
             if (named) {
-                *fOut << access << named->getName() << " = ";
+                *fOut << named->getName() << " = ";
             } else {
-                *fOut << access << indexed->getName() << "[";
+                *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "] = ";
+                *fOut << "] = "; 
             }
-                    
             inst->fValue->accept(this);
             EndLine();
         }
-          
+        
         virtual void visit(FloatNumInst* inst)
         {   
             *fOut << checkFloat(inst->fNum);
-        }    
-            
+        }  
+        
         virtual void visit(IntNumInst* inst)
         {   
             *fOut << inst->fNum;
@@ -307,16 +290,14 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
         {   
             *fOut << inst->fNum;
         }
-         
+          
         virtual void visit(BinopInst* inst) 
         {   
             *fOut << "(";
-            assert(inst->fInst1);
             inst->fInst1->accept(this);
             *fOut << " ";
             *fOut << gBinOpTable[inst->fOpcode]->fName;
             *fOut << " ";
-            assert(inst->fInst2);
             inst->fInst2->accept(this);
             *fOut << ")";
         }
@@ -324,38 +305,37 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(CastNumInst* inst) 
         {   
             *fOut << "(" << generateType(inst->fTyped) << ")";
-            inst->fInst->accept(this);
+            *fOut << "("; inst->fInst->accept(this);  *fOut << ")";
         }
-        
-        void generateFaustPower(ValueInst* arg1, ValueInst* arg2)
-        {}
-        
-         void generateFaustPowerAux(ValueInst* arg1, int arg2)
-        {}
         
         virtual void visit(FunCallInst* inst)
         {
-            if (inst->fName == "faustpower") {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                ValueInst* arg1 = (*it);
-                it++;
-                ValueInst* arg2 = (*it);
-                generateFaustPower(arg1, arg2);
-                return;
-            }
-            
-            *fOut << inst->fName << "(";
-            list<ValueInst*>::const_iterator it;
-            
-            int size = inst->fArgs.size(), i = 0;
-            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                // Compile argument
+            if (inst->fMethod) {
+                list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
+                // Compile object arg
                 (*it)->accept(this); 
-                if (i < size - 1) *fOut << ", ";
+                *fOut << "->" << inst->fName << "(";
+                list<ValueInst*>::const_iterator it1; 
+                int size = inst->fArgs.size() - 1, i = 0;
+                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                    // Compile argument
+                    (*it1)->accept(this); 
+                    if (i < size - 1) *fOut << ", ";
+                }
+                *fOut << ")";
+          } else {
+                *fOut << inst->fName << "(";
+                list<ValueInst*>::const_iterator it;
+                int size = inst->fArgs.size(), i = 0;
+                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                    // Compile argument
+                    (*it)->accept(this); 
+                    if (i < size - 1) *fOut << ", ";
+                }
+                *fOut << ")";
             }
-            *fOut << ")";
         }
-       
+        
         virtual void visit(Select2Inst* inst)
         {   
             *fOut << "(";
@@ -407,8 +387,8 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
                 inst->fCode->accept(this);
                 fTab--;
                 tab(fTab, *fOut); 
-             *fOut << "}"; 
-             tab(fTab, *fOut); 
+            *fOut << "}"; 
+            tab(fTab, *fOut);
         }
         
         virtual void visit(WhileLoopInst* inst) 
@@ -422,7 +402,7 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
              *fOut << "}"; 
              tab(fTab, *fOut);        
         }
-    
+        
         virtual void visit(BlockInst* inst) 
         {
             if (inst->fIndent) {
@@ -468,7 +448,7 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "}";
             tab(fTab, *fOut);
         }
-
+        
 };
 
 #endif

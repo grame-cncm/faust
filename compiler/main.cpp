@@ -698,7 +698,7 @@ int main (int argc, char* argv[])
                 cerr << "ERROR : Not supported in OpenCL mode" << endl;
                 return 1;
             } else {
-                container = new OpenCLCodeContainer("mydsp", numInputs, numOutputs, dst, "opencl_");
+                container = new OpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             }
         } else if (gOutputLang == "fir") {
             if (gOpenMPSwitch) {

@@ -41,13 +41,13 @@ class OpenCLCodeContainer : public CodeContainer {
     
         OpenCLInstVisitor fCodeProducer;
         std::ostream* fOut;
-        string fStructName;
-        string fPrefix;   // Prefix for function name
+        string fKlassName;
+        string fSuperKlassName;
 
     public:
     
-        OpenCLCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "")
-            :CodeContainer(numInputs, numOutputs), fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
+        OpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+            :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
         {}
         virtual ~OpenCLCodeContainer()
         {}
