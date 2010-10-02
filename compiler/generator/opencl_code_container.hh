@@ -47,13 +47,12 @@ class OpenCLCodeContainer : public CodeContainer {
     public:
     
         OpenCLCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "")
-            :OpenCLCodeContainer(numInputs, numOutputs), fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
+            :CodeContainer(numInputs, numOutputs), fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
         {}
         virtual ~OpenCLCodeContainer()
         {}
         
         virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
         void produceInternal();
         
         void generateCompute(int n);

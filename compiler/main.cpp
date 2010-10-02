@@ -66,6 +66,7 @@
 #include "java_code_container.hh"
 #include "llvm_code_container.hh"
 #include "fir_code_container.hh"
+#include "opencl_code_container.hh"
 
 // construction des representations graphiques
 
@@ -407,7 +408,7 @@ void printhelp()
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, llvm, fir (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, llvm, opencl, fir (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -691,6 +692,13 @@ int main (int argc, char* argv[])
                 container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
                 container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            }
+        } else if (gOutputLang == "opencl") {
+            if (gOpenMPSwitch || gSchedulerSwitch || gVectorSwitch) {
+                cerr << "ERROR : Not supported in OpenCL mode" << endl;
+                return 1;
+            } else {
+                container = new OpenCLCodeContainer("mydsp", numInputs, numOutputs, dst, "opencl_");
             }
         } else if (gOutputLang == "fir") {
             if (gOpenMPSwitch) {

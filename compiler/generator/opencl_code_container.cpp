@@ -29,7 +29,7 @@
 ***********************************************************************/
 using namespace std;
 
-#include "c_code_container.hh"
+#include "opencl_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
 #include "function_builder.hh"
@@ -39,12 +39,12 @@ extern bool gUIMacroSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 
-CodeContainer* CCodeContainer::createScalarContainer(const string& name) 
+CodeContainer* OpenCLCodeContainer::createScalarContainer(const string& name) 
 { 
-    return new CScalarCodeContainer("", 0, 1, fOut, name);
+    return new OpenCLCodeContainer("", 0, 1, fOut, name);
 }
 
-void CCodeContainer::produceInternal()
+void OpenCLCodeContainer::produceInternal()
 {
     int n = 0;
     
@@ -119,7 +119,7 @@ void CCodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "};\n" << endl;
 }
         
-void CCodeContainer::produceClass() 
+void OpenCLCodeContainer::produceClass() 
 {
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushGlobalDeclare(InstBuilder::genDeclareVarInst("fSamplingFreq", 
@@ -216,7 +216,7 @@ void CCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "void " << fPrefix << "classInit(int samplingFreq) {";
         if (fStaticInitInstructions->fCode.size() > 0) {
             tab(n+1, *fOut);
-            CInstVisitor codeproducer(fOut, "", "");
+            OpenCLInstVisitor codeproducer(fOut, "", "");
             codeproducer.Tab(n+1);
             fStaticInitInstructions->accept(&codeproducer);
         }
@@ -263,15 +263,7 @@ void CCodeContainer::produceClass()
 	}
 }
 
-// Scalar
-CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
-    :CCodeContainer(name, numInputs, numOutputs, out, prefix)
-{}
-
-CScalarCodeContainer::~CScalarCodeContainer()
-{}
-
-void CScalarCodeContainer::generateCompute(int n)
+void OpenCLCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
@@ -289,153 +281,3 @@ void CScalarCodeContainer::generateCompute(int n)
     tab(n, *fOut); *fOut << "}" << endl;
 }
 
-// Vector
-CVectorCodeContainer::CVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
-    :CCodeContainer(name, numInputs, numOutputs, out, prefix)
-{}
-
-CVectorCodeContainer::~CVectorCodeContainer()
-{}
-
-void CVectorCodeContainer::generateCompute(int n)
-{
-    // Prepare global loop
-    StatementInst* block = NULL;
-    if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0();
-    } else {
-        block = generateDAGLoopVariant1();
-    }
-    
-    // Possibly generate separated functions
-    fCodeProducer.Tab(n);
-    tab(n, *fOut);
-    if (fComputeFunctions->fCode.size() > 0) {    
-        fComputeFunctions->accept(&fCodeProducer);
-    }
-
-    // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
-    
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1); 
-    
-    // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
-    
-    // Generate it
-    assert(block);
-    block->accept(&fCodeProducer);
-    
-    tab(n, *fOut); *fOut << "}" << endl;
-}
-
-// OpenMP
-COpenMPCodeContainer::COpenMPCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
-    :CCodeContainer(name, numInputs, numOutputs, out, prefix)
-{}
-
-void COpenMPCodeContainer::generateCompute(int n)
-{
-    // Prepare global loop
-    StatementInst* block = generateDAGLoopOMP();
-    
-    // Possibly generate separated functions
-    fCodeProducer.Tab(n);
-    tab(n, *fOut);
-    if (fComputeFunctions->fCode.size() > 0) {    
-        fComputeFunctions->accept(&fCodeProducer);
-    }
-    
-    // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
-    
-    // Transform stack array variables in struct variables
-    //MoveStackArray2Struct();
-    
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1); 
-    
-    // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
-    
-    // Generate it
-    assert(block);
-    block->accept(&fCodeProducer);
-    
-    tab(n, *fOut); *fOut << "}" << endl;
-}
-
-COpenMPCodeContainer::~COpenMPCodeContainer()
-{}
-
-// Works stealing scheduler
-CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
-    :CCodeContainer(name, numInputs, numOutputs, out, prefix)
-{}
-
-CWorkStealingCodeContainer::~CWorkStealingCodeContainer()
-{}
-
-void CWorkStealingCodeContainer::produceClass() 
-{
-    // Transform some stack variables in struct variables
-    MoveStack2Struct();
-    
-    // Specific init code
-    CodeContainer::generateDAGLoopWSSAux3();
-       
-    // Inherited method
-    CCodeContainer::produceClass();
-}
-
-void CWorkStealingCodeContainer::generateCompute(int n)
-{
-    lclgraph dag;
-    CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
-    
-     // Prepare global loop
-    StatementInst* block = generateDAGLoopWSS(dag);
-    
-    // Possibly generate separated functions
-    fCodeProducer.Tab(n);
-    tab(n, *fOut);
-    if (fComputeFunctions->fCode.size() > 0) {    
-        fComputeFunctions->accept(&fCodeProducer);
-    }
-   
-    // Generates "computeThread" code
-    tab(n, *fOut); *fOut << "void computeThread(" << fPrefix << fStructName << "* dsp, int num_thread) {";
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
-    
-    // Generate it
-    block->accept(&fCodeProducer);
-    
-    tab(n, *fOut); *fOut << "}\n";
-    
-    // Compute "compute" declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
-    
-    generateDAGLoopWSSAux2(fComputeBlockInstructions);
-    
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1); 
-    
-    // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
-     
-    tab(n, *fOut); *fOut << "}" << endl;
-    
-    tab(n, *fOut); *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
-        tab(n+1, *fOut); *fOut << "computeThread((" << fPrefix << fStructName << "*)dsp, num_thread);";
-    tab(n, *fOut); *fOut << "}" << endl;
-
-}
