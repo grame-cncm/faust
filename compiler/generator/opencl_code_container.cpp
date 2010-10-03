@@ -299,7 +299,7 @@ void OpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "return;" << endl;
                     
         tab(n+1, *fOut); *fOut << "error:";
-            tab(n+2, *fOut); *fOut << "throw std::bad_alloc();" << endl;   
+            tab(n+2, *fOut); *fOut << "throw std::bad_alloc();";   
         tab(n+1, *fOut); *fOut << "}" << endl;
 
         
@@ -319,9 +319,9 @@ void OpenCLCodeContainer::produceClass()
             }
             
             if (fNumInputs > 0)
-                tab(n+2, *fOut); *fOut << "delete []fOpenCLInputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fOpenCLInputs;";
             if (fNumOutputs > 0)
-                tab(n+2, *fOut); *fOut << "delete []fOpenCLOutputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fOpenCLOutputs;";
             
             // Shutdown and cleanup
             tab(n+2, *fOut); *fOut << "clReleaseKernel(fOpenCLKernel);";
@@ -423,7 +423,7 @@ void OpenCLCodeContainer::generateCompute(int n)
     
     if (fNumInputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << subst("err = clEnqueueCopyBuffer(fOpenCLCommands, (cl_mem)inputs[i], fOpenCLInputs[i], 0, 0, sizeof($0) * count, 0, NULL, NULL);", xfloat());
+            tab(n+3, *fOut); *fOut << subst("err = clEnqueueWriteBuffer(fOpenCLCommands, fOpenCLInputs[i], CL_TRUE, 0, sizeof($0) * count, inputs[i], 0, NULL, NULL);", xfloat());
             tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot copy input\" << endl;";
             tab(n+3, *fOut); *fOut << "}";
@@ -465,7 +465,7 @@ void OpenCLCodeContainer::generateCompute(int n)
     // Copy kernel buffers to audio output buffer 
     if (fNumOutputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << subst("err = clEnqueueCopyBuffer(fOpenCLCommands, fOpenCLOutputs[i], (cl_mem)outputs[i], 0, 0, sizeof($0) * count, 0, NULL, NULL);", xfloat());
+            tab(n+3, *fOut); *fOut << subst("err = clEnqueueReadBuffer(fOpenCLCommands, fOpenCLOutputs[i], CL_TRUE, 0, sizeof($0) * count, outputs[i], 0, NULL, NULL);", xfloat());
             tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot copy output\" << endl;";
             tab(n+3, *fOut); *fOut << "}";
