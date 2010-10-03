@@ -235,10 +235,12 @@ void OpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "int gpu = 1;"; 
             tab(n+2, *fOut); *fOut << "cl_uint num_devices;"; 
             
-            if (fNumInputs > 0)
+            if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "fOpenCLInputs = new cl_mem["<< fNumInputs << "];";
-            if (fNumOutputs > 0)
+            }
+            if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "fOpenCLOutputs = new cl_mem["<< fNumOutputs << "];";
+            }
             
             // Creates device
             tab(n+2, *fOut); *fOut << "err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &fOpenCLDeviceID, NULL);";   
@@ -318,10 +320,12 @@ void OpenCLCodeContainer::produceClass()
                 tab(n+2, *fOut); *fOut << "}";
             }
             
-            if (fNumInputs > 0)
+            if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "delete[] fOpenCLInputs;";
-            if (fNumOutputs > 0)
+            }
+            if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "delete[] fOpenCLOutputs;";
+            }
             
             // Shutdown and cleanup
             tab(n+2, *fOut); *fOut << "clReleaseKernel(fOpenCLKernel);";
