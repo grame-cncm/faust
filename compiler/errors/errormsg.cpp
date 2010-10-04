@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #include "errormsg.hh"
 #include "boxes.hh"
 #include "ppbox.hh"
@@ -31,15 +31,15 @@ const char* yyfilename = "????";
 int 		gErrorCount = 0;
 Tree 		DEFLINEPROP = tree(symbol("DefLineProp"));
 
-void yyerror(char* msg) 
-{ 
-	fprintf(stderr, "%s:%d:%s\n", yyfilename, yylineno, msg); 
+void yyerror(const char* msg)
+{
+	fprintf(stderr, "%s:%d:%s\n", yyfilename, yylineno, msg);
 	gErrorCount++;
 }
 
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
-    fprintf(stderr, "%s:%d: ERROR: %s ", filename, linenum, msg); 
+    fprintf(stderr, "%s:%d: ERROR: %s ", filename, linenum, msg);
     print(exp,stderr); fprintf(stderr, "\n");
     gErrorCount++;
 }
@@ -52,13 +52,13 @@ void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
 {
-	fprintf(stderr, "%s:%d: WARNING: %s ", filename, linenum, msg); 
+	fprintf(stderr, "%s:%d: WARNING: %s ", filename, linenum, msg);
 	print(exp,stderr); fprintf(stderr, "\n");
 }
 
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 {
-	fprintf(stderr, "%s:%d: REMARK: %s ", filename, linenum, msg); 
+	fprintf(stderr, "%s:%d: REMARK: %s ", filename, linenum, msg);
 	print(exp,stderr); fprintf(stderr, "\n");
 }
 

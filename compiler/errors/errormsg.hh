@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _ERRORMSG_
 #define _ERRORMSG_
 
@@ -37,7 +37,7 @@ const char* getDefFileProp(Tree sym);
 int 		getDefLineProp(Tree sym);
 
 // Parsing error
-void 		yyerror(char* msg);
+void 		yyerror(const char* msg);
 
 // three levels or errors, warnings and remarks are provided during evaluation
 void 		evalerror(const char* filename, int linenum, const char* msg, Tree exp);
