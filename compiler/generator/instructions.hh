@@ -312,9 +312,6 @@ struct Typed : public Printable
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
                 kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr};
      
-    //static map <VarType, string> gTypeDirectTable;
-    //static map <string, VarType> gInvertTypeTable;
-    
     Typed()
     {}
     
