@@ -269,6 +269,10 @@ bool process_cmdline(int argc, char* argv[])
             gVectorSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-scal", "--scalar")) {
+            gVectorSwitch = false;
+            i += 1;
+
         } else if (isCmd(argv[i], "-dfs", "--deepFirstScheduling")) {
             gDeepFirstSwitch = true;
             i += 1;
@@ -415,6 +419,7 @@ void printhelp()
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \t architecture file\n";
     cout << "-o <file> \t output file\n";
+    cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
