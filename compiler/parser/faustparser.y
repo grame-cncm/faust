@@ -20,7 +20,7 @@
 #define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 #define YYMAXDEPTH	100000
-	
+
 using namespace std;
 
 extern char* 		yytext;
@@ -32,7 +32,7 @@ extern bool         gStripDocSwitch;
 extern bool         gLstDependenciesSwitch;
 extern bool         gLstDistributedSwitch;
 extern bool        	gLstMdocTagsSwitch;
-	
+
 extern map<Tree, set<Tree> > gMetaDataSet;
 extern vector<Tree> gDocVector;
 
@@ -40,8 +40,8 @@ extern vector<Tree> gDocVector;
 int yylex();
 
 //----------------------------------------------------------
-// unquote() : remove enclosing quotes and carriage return 
-// characters from string. Returns a Tree 
+// unquote() : remove enclosing quotes and carriage return
+// characters from string. Returns a Tree
 //----------------------------------------------------------
 char replaceCR(char c)
 {
@@ -173,12 +173,12 @@ Tree unquote(char* str)
 %token CUT
 %token ENDDEF
 %token VIRG
-%token LPAR
-%token RPAR
-%token LBRAQ
-%token RBRAQ
-%token LCROC
-%token RCROC
+%right LPAR
+%left RPAR
+%right LBRAQ
+%left RBRAQ
+%right LCROC
+%left RCROC
 %token WITH
 %token DEF
 
@@ -405,7 +405,7 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 
 				| infixexp LPAR arglist RPAR 	%prec APPL	{ $$ = buildBoxAppl($1,$3); }
 				| infixexp LCROC deflist RCROC	%prec APPL	{ $$ = boxModifLocalDef($1,formatDefinitions($3)); }
-				
+
 				| primitive						{ $$ = $1; }
 				;
 
@@ -491,7 +491,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 												{ $$ = buildBoxAbstr($3,$7); }
 
 				| CASE LBRAQ rulelist RBRAQ		{ $$ = boxCase(checkRulelist($3)); }
-				
+
 				| ffunction						{ $$ = boxFFun($1); }
                 | fconst                        { $$ = $1; }
                 | fvariable                     { $$ = $1; }
