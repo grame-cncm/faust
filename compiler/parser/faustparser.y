@@ -202,6 +202,10 @@ Tree unquote(char* str)
 %token CASE
 %token ARROW
 
+%token VECTORIZE
+%token SERIALIZE
+%token HASH
+%token RATE
 
  /* Begin and End tags for documentations, equations and diagrams */
 %token BDOC
