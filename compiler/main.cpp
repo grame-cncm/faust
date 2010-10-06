@@ -742,6 +742,14 @@ int main (int argc, char* argv[])
             if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                 streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+                
+                if (gOutputLang == "opencl") {
+                    istream* thread_include = open_arch_stream("thread.h");
+                    if (thread_include) {
+                        streamCopy(*thread_include, *dst);
+                    }
+                }
+                
                 printfloatdef(*dst);
                 container->produceClass();
                 streamCopyUntilEnd(*enrobage, *dst);
@@ -751,6 +759,7 @@ int main (int argc, char* argv[])
                         streamCopy(*scheduler_include, *dst);
                     }
                 }
+                
             } else {
                 cerr << "ERROR : can't open architecture file " << gArchFile << endl;
                 return 1;
