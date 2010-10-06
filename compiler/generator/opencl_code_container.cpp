@@ -307,14 +307,14 @@ void OpenCLCodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
                 tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fOpenCLCommands, dsp->fOpenCLKernel, 1, NULL, &global, &local, 0, NULL, NULL);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+4, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo err = \" << err << endl;";
+                    tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueNDRangeKernel err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
                 
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fOpenCLCommands);";
 
                 if (fNumOutputs > 0) {
-                    tab(n+3, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
+                    tab(n+3, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
                         tab(n+4, *fOut); *fOut << "err = clEnqueueReadBuffer(dsp->fOpenCLCommands, dsp->fOpenCLOutputs[i], CL_FALSE, 0, sizeof(FAUSTFLOAT) * dsp->fCount, dsp->fTempOutputs[i], 0, NULL, NULL);";
                         tab(n+4, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                             tab(n+5, *fOut); *fOut << "std::cerr << \"clEnqueueWriteBuffer err = \" << err << endl;";
