@@ -74,11 +74,15 @@ jackgtkllvm :
 	install -d jackgtkdirllvm
 	$(MAKE) DEST='jackgtkdirllvm/' ARCH='llvm-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs`' -f Makefile.llvmcompile
 
+jackgtkocl :
+	install -d jackgtkdirocl
+	$(MAKE) DEST='jackgtkdirocl/' VEC=' -ocl' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs` -framework OpenCL' -f Makefile.compile
+
 jackgtkc :
 	install -d jackgtkdirc
 	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -sch -vs 64' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
-	$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -vec -lv 1 -vs 64 -fun ' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -vec -lv 1 -vs 64 -fun ' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` ' -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir

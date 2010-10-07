@@ -529,52 +529,85 @@ void CPPOpenCLCodeContainer::produceInternal()
     tab(n, *fOut);
 }
 
+static void tab1(int n, ostream& fout)
+{
+    fout << "  \\n\"  \\\n";
+    fout << "\"";
+    while (n--) fout << '\t';
+}
+        
 void CPPOpenCLCodeContainer::produceClass() 
 {
     
-    struct DSPInstVisitor : public DispatchVisitor, public StringTypeManager {
-    
-        std::ostream* fOut;
-        int fTab;
-        
+    struct DSPInstVisitor : public CPPInstVisitor {
+       
         DSPInstVisitor(std::ostream* out, int tab)
-            :fOut(out), fTab(tab)
+            :CPPInstVisitor(out, tab)
         {}
-
+     
         virtual void visit(DeclareVarInst* inst) 
         {
             if (!(inst->fName.find("fbutton") != string::npos
+                || inst->fName.find("fvbargraph") != string::npos
+                || inst->fName.find("fhbargraph") != string::npos
                 || inst->fName.find("fcheckbox") != string::npos
                 || inst->fName.find("fvslider") != string::npos
                 || inst->fName.find("fhslider") != string::npos
                 || inst->fName.find("fentry") != string::npos))
             {
-                tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
             }
         }
     };
     
-    struct ControlInstVisitor : public DispatchVisitor, public StringTypeManager {
+    struct DSPGPUInstVisitor : public DSPInstVisitor {
     
-        std::ostream* fOut;
-        int fTab;
+        virtual void tab1(int n, ostream& fout)
+        {
+            fout << "  \\n\"  \\\n";
+            fout << "\"";
+            while (n--) fout << '\t';
+        }
+        
+        DSPGPUInstVisitor(std::ostream* out, int tab)
+            :DSPInstVisitor(out, tab)
+        {}
+    };
+    
+    struct ControlInstVisitor : public CPPInstVisitor {
         
         ControlInstVisitor(std::ostream* out, int tab)
-            :fOut(out), fTab(tab)
+            :CPPInstVisitor(out, tab)
         {}
-
+  
         virtual void visit(DeclareVarInst* inst) 
         {
             if (inst->fName.find("fbutton") != string::npos
                 || inst->fName.find("fcheckbox") != string::npos
+                || inst->fName.find("fvbargraph") != string::npos
+                || inst->fName.find("fhbargraph") != string::npos
                 || inst->fName.find("fvslider") != string::npos
                 || inst->fName.find("fhslider") != string::npos
                 || inst->fName.find("fentry") != string::npos)
             {
-                tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
             }
         }
         
+    };
+    
+    struct ControlGPUInstVisitor : public ControlInstVisitor {
+    
+        virtual void tab1(int n, ostream& fout)
+        {
+            fout << "  \\n\"  \\\n";
+            fout << "\"";
+            while (n--) fout << '\t';
+        }
+        
+        ControlGPUInstVisitor(std::ostream* out, int tab)
+            :ControlInstVisitor(out, tab)
+        {}
     };
     
     struct KernelInstVisitor : public CPPInstVisitor {
@@ -583,10 +616,19 @@ void CPPOpenCLCodeContainer::produceClass()
             :CPPInstVisitor(out, tab)
         {}
         
+        virtual void tab1(int n, ostream& fout)
+        {
+            fout << "  \\n\"  \\\n";
+            fout << "\"";
+            while (n--) fout << '\t';
+        }
+        
         bool IsControl(NamedAddress* named)
         {
             return (named->getName().find("fbutton") != string::npos
                 || named->getName().find("fcheckbox") != string::npos
+                || named->getName().find("fvbargraph") != string::npos
+                || named->getName().find("fhbargraph") != string::npos
                 || named->getName().find("fvslider") != string::npos
                 || named->getName().find("fhslider") != string::npos
                 || named->getName().find("fentry") != string::npos);
@@ -595,6 +637,8 @@ void CPPOpenCLCodeContainer::produceClass()
         bool IsControl(IndexedAddress* indexed)
         {
             return (indexed->getName().find("fbutton") != string::npos
+                || indexed->getName().find("fvbargraph") != string::npos
+                || indexed->getName().find("fhbargraph") != string::npos
                 || indexed->getName().find("fcheckbox") != string::npos
                 || indexed->getName().find("fvslider") != string::npos
                 || indexed->getName().find("fhslider") != string::npos
@@ -678,41 +722,40 @@ void CPPOpenCLCodeContainer::produceClass()
     KernelInstVisitor codeproducer(fGPUOut, n);
     //codeproducer.Tab(n+1);
         
-    //*fGPUOut << "const char* KernelSource = \"";
-     
-    tab(n, *fGPUOut);
+    *fGPUOut << "const char* KernelSource = \"";
+     //tab1(n, *fGPUOut);
     
     // Macro definition
-    *fGPUOut << "#ifndef " << FLOATMACRO << std::endl;
-    *fGPUOut << "#define " << FLOATMACRO << " " << "float" << std::endl;
-    *fGPUOut << "#endif  " << std::endl;
+    tab1(n, *fGPUOut); *fGPUOut << "#ifndef " << FLOATMACRO;
+    tab1(n, *fGPUOut); *fGPUOut << "#define " << FLOATMACRO << " " << "float";
+    tab1(n, *fGPUOut); *fGPUOut << "#endif  ";
      
     // Separate control and non-controls fields in 2 structures
-    tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
-        DSPInstVisitor dsp_visitor(fGPUOut, n+1);
+    tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
+        DSPGPUInstVisitor dsp_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&dsp_visitor);
-    tab(n, *fGPUOut); *fGPUOut << "} faustdsp;";
-    tab(n, *fGPUOut);
+    tab1(n, *fGPUOut); *fGPUOut << "} faustdsp;";
+    tab1(n, *fGPUOut);
     
-    tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
-        ControlInstVisitor control_visitor(fGPUOut, n+1);
+    tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
+        ControlGPUInstVisitor control_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&control_visitor);
-    tab(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
-    tab(n, *fGPUOut);
-    tab(n, *fGPUOut);
+    tab1(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
+    tab1(n, *fGPUOut);
+    tab1(n, *fGPUOut);
     
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
         *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global int samplingFreq) {";
-        tab(n+1, *fGPUOut);
+        tab1(n+1, *fGPUOut);
         codeproducer.Tab(n+1);
         fInitInstructions->accept(&codeproducer);
-        tab(n, *fGPUOut);
-        *fGPUOut << "}\n";
+        tab1(n, *fGPUOut);
+        *fGPUOut << "}";
     }
     
     // Generate compute kernel
-    tab(n, *fGPUOut);
+    tab1(n, *fGPUOut);
     *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "__global float* input" << i << ", ";
@@ -727,7 +770,7 @@ void CPPOpenCLCodeContainer::produceClass()
     }
     
     *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
-    tab(n+1, *fGPUOut);
+    tab1(n+1, *fGPUOut);
    
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(&codeproducer);
@@ -736,13 +779,15 @@ void CPPOpenCLCodeContainer::produceClass()
     ForLoopInst* loop = fCurLoop->getScalarLoop();
     loop->accept(&codeproducer);
       
-    tab(n, *fGPUOut);
+    tab1(n, *fGPUOut);
     
     *fGPUOut << "}";
-    fGPUOut->flush();
+    tab1(n, *fGPUOut);
+    *fGPUOut << "\\n\";";
+    //fGPUOut->flush();
     
     //*fGPUOut << "}\";";
-    //tab(n, *fOut); *fOut << fGPUOut->str();
+    tab(n, *fOut); *fOut << fGPUOut->str();
    
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
@@ -920,10 +965,12 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}";
             
             // Creates the compute program from the source buffer
-            //tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&KernelSource, NULL, &err);";  
+            tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&KernelSource, NULL, &err);";  
             
+            /*
             tab(n+2, *fOut); *fOut << "program_src = load_program_source(\"tmp.cl\");"; 
             tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&program_src, NULL, &err);";  
+            */
             
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create program err = \" << err << endl;";
