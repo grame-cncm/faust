@@ -612,12 +612,78 @@ void CPPOpenCLCodeContainer::produceClass()
         // Fields
         if (fDeclarationInstructions->fCode.size() > 0) {
             fCodeProducer.Tab(n+1);
-            tab(n+1, *fOut);
+            //tab(n+1, *fOut);
             
             // Sort arrays to be at the begining
             fDeclarationInstructions->fCode.sort(sortFunction1);
             
-            fDeclarationInstructions->accept(&fCodeProducer);
+            //fDeclarationInstructions->accept(&fCodeProducer);
+            
+            // Separate control and non-controls fields in 2 structures
+            tab(n+1, *fOut); *fOut << "typedef struct {";
+            
+            struct DSPInstVisitor : public DispatchVisitor, public StringTypeManager {
+            
+                std::ostream* fOut;
+                int fTab;
+                
+                DSPInstVisitor(std::ostream* out, int tab)
+                    :fOut(out), fTab(tab)
+                {}
+       
+                virtual void visit(DeclareVarInst* inst) 
+                {
+                    if (!(inst->fName.find("fbutton") != string::npos
+                        || inst->fName.find("fcheckbox") != string::npos
+                        || inst->fName.find("fvslider") != string::npos
+                        || inst->fName.find("fhslider") != string::npos
+                        || inst->fName.find("fentry") != string::npos))
+                    {
+                        tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                    }
+                }
+            };
+            
+            DSPInstVisitor dsp_visitor(fOut, n+2);
+            fDeclarationInstructions->accept(&dsp_visitor);
+            
+            tab(n+1, *fOut); *fOut << "} faustdsp;";
+            
+            tab(n+1, *fOut);
+            
+            tab(n+1, *fOut); *fOut << "typedef struct {";
+            
+            struct ControlInstVisitor : public DispatchVisitor, public StringTypeManager {
+            
+                std::ostream* fOut;
+                int fTab;
+                
+                ControlInstVisitor(std::ostream* out, int tab)
+                    :fOut(out), fTab(tab)
+                {}
+       
+                virtual void visit(DeclareVarInst* inst) 
+                {
+                    if (inst->fName.find("fbutton") != string::npos
+                        || inst->fName.find("fcheckbox") != string::npos
+                        || inst->fName.find("fvslider") != string::npos
+                        || inst->fName.find("fhslider") != string::npos
+                        || inst->fName.find("fentry") != string::npos)
+                    {
+                        tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                    }
+                }
+                
+            };
+            
+            ControlInstVisitor control_visitor(fOut, n+2);
+            fDeclarationInstructions->accept(&control_visitor);
+            
+            tab(n+1, *fOut); *fOut << "} faustcontrol;";
+            tab(n+1, *fOut);
+            tab(n+1, *fOut); *fOut << "faustcontrol fControl;";
+            tab(n+1, *fOut); *fOut << "cl_mem fGPUDSP;";
+            tab(n+1, *fOut); *fOut << "cl_mem fGPUControl;";
         }
         
         tab(n+1, *fOut); *fOut << "cl_device_id fOpenCLDeviceID;";
@@ -676,6 +742,10 @@ void CPPOpenCLCodeContainer::produceClass()
                     tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, " << fNumInputs << "+i+1, sizeof(cl_mem), &dsp->fOpenCLOutputs[i]);";
                 tab(n+2, *fOut); *fOut << "}";
             }
+            
+            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, " << (fNumInputs + fNumOutputs) << "+1, sizeof(cl_mem), &fGPUDSP);";
+            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, " << (fNumInputs + fNumOutputs) << "+2, sizeof(cl_mem), &fGPUControl);";
+        
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
             tab(n+2, *fOut); *fOut << "}";
@@ -786,6 +856,23 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
+            // Get infos
+            tab(n+2, *fOut); *fOut << "size_t local;";
+			tab(n+2, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fOpenCLKernel, dsp->fOpenCLDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
+			tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_WORK_GROUP_SIZE err = \" << err << endl;";
+			tab(n+2, *fOut); *fOut << "} else {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"CL_KERNEL_WORK_GROUP_SIZE = \" << err << local;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+            tab(n+2, *fOut); *fOut << "cl_ulong local_mem;";
+            tab(n+2, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fOpenCLKernel, dsp->fOpenCLDeviceID, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);";
+			tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_LOCAL_MEM_SIZE err = \" << err << endl;";
+			tab(n+2, *fOut); *fOut << "} else {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"CL_KERNEL_LOCAL_MEM_SIZE = \" << err << local_mem;";
+            tab(n+2, *fOut); *fOut << "}";
+            
             // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
@@ -810,6 +897,20 @@ void CPPOpenCLCodeContainer::produceClass()
                     tab(n+3, *fOut); *fOut << "}";
                 tab(n+2, *fOut); *fOut << "}";
             }
+            
+            // Allocate control on CPU, map it on GPU
+            tab(n+2, *fOut); *fOut << "fGPUControl = clCreateBuffer(fOpenCLContext, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(faustcontrol), &fControl, &err);";
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+             // Allocate DSP  on GPU
+            tab(n+2, *fOut); *fOut << "fGPUDSP = clCreateBuffer(fOpenCLContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, &err);";
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
             
             tab(n+2, *fOut); *fOut << "fRunThread = new RunThread();";
             tab(n+2, *fOut); *fOut << "err = fRunThread->Start(true, RunHandler, this);";
@@ -854,6 +955,8 @@ void CPPOpenCLCodeContainer::produceClass()
             }
             
             // Shutdown and cleanup
+            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fGPUControl);";
+            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fGPUDSP);";
             tab(n+2, *fOut); *fOut << "clReleaseKernel(fOpenCLKernel);";
             tab(n+2, *fOut); *fOut << "clReleaseCommandQueue(fOpenCLCommands);";
             tab(n+2, *fOut); *fOut << "clReleaseContext(fOpenCLContext);";
@@ -910,7 +1013,50 @@ void CPPOpenCLCodeContainer::produceClass()
             if (fUserInterfaceInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
-                fUserInterfaceInstructions->accept(&fCodeProducer);
+                
+                struct UIInstVisitor : public CPPInstVisitor {
+            
+                    UIInstVisitor(std::ostream* out, int tab)
+                        :CPPInstVisitor(out, tab)
+                    {}
+           
+                    virtual void visit(AddSliderInst* inst) 
+                    {
+                        string name;
+                        switch (inst->fType) {
+                            case AddSliderInst::kHorizontal:
+                                name = "interface->addHorizontalSlider"; break;
+                            case AddSliderInst::kVertical:
+                                name = "interface->addVerticalSlider"; break;
+                            case AddSliderInst::kNumEntry:
+                                name = "interface->addNumEntry"; break;
+                        } 
+                        if (strcmp(ifloat(), "float") == 0)    
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
+                        else
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+                        EndLine();  
+                    }
+                    
+                    virtual void visit(AddBargraphInst* inst) 
+                    {
+                        string name;
+                        switch (inst->fType) {
+                            case AddBargraphInst::kHorizontal:
+                                name = "interface->addHorizontalBargraph"; break;
+                            case AddBargraphInst::kVertical:
+                                name = "interface->addVerticalBargraph"; break;
+                        }     
+                        if (strcmp(ifloat(), "float") == 0)
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
+                        else
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
+                        EndLine();       
+                    }                    
+                };
+                
+                UIInstVisitor ui_visitor(fOut, n+2);
+                fUserInterfaceInstructions->accept(&ui_visitor);
             }
         tab(n+1, *fOut); *fOut << "}";
         

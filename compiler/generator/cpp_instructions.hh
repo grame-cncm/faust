@@ -48,7 +48,7 @@ using namespace std;
 
 class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
-    private:
+    protected:
     
         int fTab;
         std::ostream* fOut;
