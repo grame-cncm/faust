@@ -289,7 +289,7 @@ bool process_cmdline(int argc, char* argv[])
 			gSchedulerSwitch = true;
 			i += 1;
             
-         } else if (isCmd(argv[i], "-ocl", "--opencl")) {
+         } else if (isCmd(argv[i], "-ocl", "--openCL")) {
 			gOpenCLSwitch = true;
 			i += 1;
 
@@ -357,20 +357,15 @@ bool process_cmdline(int argc, char* argv[])
 	return err == 0;
 }
 
-
-
 /****************************************************************
  					 Help and Version information
 *****************************************************************/
-
-
 
 void printversion()
 {
 	cout << "FAUST: DSP to C, C++, JAVA, LLVM compiler, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2010, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
-
 
 void printhelp()
 {
@@ -428,9 +423,6 @@ void printhelp()
 
 void printheader(ostream& dst)
 {
-    // steph
-    return;
-    
     // defines the metadata we want to print as comments at the begin of in the C++ file
     set<Tree> selectedKeys;
     selectedKeys.insert(tree("name"));

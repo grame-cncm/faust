@@ -142,8 +142,6 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
         void produceInternal();
         
         void generateCompute(int n);
-        
-       // CodeContainer* createScalarContainer(const string& name);
              
 };
 

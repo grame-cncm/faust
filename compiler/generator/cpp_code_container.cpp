@@ -446,13 +446,6 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     tab(n+1, *fOut); *fOut << "}";
 }
 
-/*
-CodeContainer* OpenCLCodeContainer::createScalarContainer(const string& name) 
-{ 
-    return new OpenCLCodeContainer(name, "", 0, 1, fOut);
-}
-*/
-
 void CPPOpenCLCodeContainer::produceInternal()
 {
     int n = 0;
@@ -793,7 +786,7 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
-            // Allocate kernel input buffers
+            // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
                     tab(n+3, *fOut); *fOut << "fTempInputs[i] = new float[sizeof(float) * 8192];";
@@ -805,7 +798,7 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+2, *fOut); *fOut << "}";
             }
             
-            // Allocate kernel output buffers
+            // Allocate kernel output buffers (shared between CPU and GPU)
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
                     tab(n+3, *fOut); *fOut << "fTempOutputs[i] = new float[sizeof(float) * 8192];";
@@ -834,6 +827,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "fRunThread->Stop();";
             tab(n+2, *fOut); *fOut << "delete fRunThread;";
+            
             // Free kernel input buffers
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
