@@ -31,6 +31,7 @@
 
 using namespace std;
 
+extern Sym box_reference;
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -41,15 +42,15 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////
 
 // Constant signals : for all t, x(t)=n
-Tree sigInt(int n);
-Tree sigReal(double n);
+Tree sigInt(int n, Tree box);
+Tree sigReal(double n, Tree box);
 
 bool  isSigInt(Tree t, int* i);
 bool  isSigReal(Tree t, double* r);
 
 
 // Inputs and outputs
-Tree sigInput(int i);
+Tree sigInput(int i, Tree box);
 Tree sigOutput(int i, Tree t);
 
 bool  isSigInput(Tree t, int* i);

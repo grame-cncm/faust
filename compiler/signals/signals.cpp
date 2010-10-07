@@ -37,14 +37,17 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
-Tree  sigInt(int i) 								{ return tree(i); 					}
+Sym box_reference = symbol("box reference");
+static Tree box_sym = tree(box_reference);
+
+Tree  sigInt(int i, Tree box) 						{ return tree(i)->setProperty(box_sym, box);	}
 bool  isSigInt(Tree t, int* i) 						{ return isInt(t->node(), i); 		}
 
-Tree  sigReal(double r) 							{ return tree(r); 					}
+Tree  sigReal(double r, Tree box) 					{ return tree(r)->setProperty(box_sym, box); }
 bool  isSigReal(Tree t, double* r) 					{ return isDouble(t->node(), r); 	}
 
 Sym SIGINPUT = symbol ("sigInput");
-Tree  sigInput(int i)								{ return tree(SIGINPUT, tree(i));	}
+Tree  sigInput(int i, Tree box)                     { return tree(SIGINPUT, tree(i))->setProperty(box_sym, box);	}
 bool  isSigInput(Tree t, int* i) 					{ Tree x; return isTree(t, SIGINPUT, x) && isInt(x->node(),i); 	}
 
 Sym SIGOUTPUT = symbol ("sigOutput");
@@ -52,7 +55,7 @@ Tree  sigOutput(int i, Tree t0)						{ return tree(SIGOUTPUT, tree(i), t0); 	}
 bool  isSigOutput(Tree t, int* i, Tree& t0)			{ Tree x; return isTree(t, SIGOUTPUT, x, t0) && isInt(x->node(),i); 	}
 
 Sym SIGDELAY1 = symbol ("sigDelay1");
-Tree  sigDelay0(Tree t0)							{ return sigFixDelay(t0, sigInt(0));}
+Tree  sigDelay0(Tree t0)							{ return sigFixDelay(t0, sigInt(0, NULL));}
 
 Tree  sigDelay1(Tree t0)							{ return tree(SIGDELAY1, t0); 		}
 bool  isSigDelay1(Tree t, Tree& t0)					{ return isTree(t, SIGDELAY1, t0); 	}
@@ -127,9 +130,9 @@ bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ retur
 
 Sym SIGBINOP = symbol ("SigBinOp");
 
-Tree sigBinOp(int op, Tree x, Tree y) 					
-{ 
-    return tree(SIGBINOP, tree(op), x, y); 
+Tree sigBinOp(int op, Tree x, Tree y)
+{
+    return tree(SIGBINOP, tree(op), x, y);
 }
 bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y) 		{ Tree t; return isTree(s, SIGBINOP, t, x, y) && isInt(t->node(),op); }
 
@@ -164,27 +167,27 @@ bool isProj (Tree t, int* i, Tree& rgroup)		{ Tree x; return isTree(t, SIGPROJ, 
 Sym SIGINTCAST = symbol ("sigIntCast");
 Sym SIGFLOATCAST = symbol ("sigFloatCast");
 
-Tree  sigIntCast(Tree t)						
-{ 
+Tree  sigIntCast(Tree t)
+{
 	Node n = t->node();
-	
-	int i; 		if (isInt(n, &i)) 			return t; 
+
+	int i; 		if (isInt(n, &i)) 			return t;
 	double x;	if (isDouble(n, &x)) 		return tree(int(x));
 				if (isSigIntCast(t))		return t;
-	 
-	return tree(SIGINTCAST, t);   
+
+	return tree(SIGINTCAST, t);
 }
 
-Tree  sigFloatCast(Tree t)						
-{ 
+Tree  sigFloatCast(Tree t)
+{
 	Node n = t->node();
-	
-	int i; 		if (isInt(n, &i)) 			return tree(double(i)); 
+
+	int i; 		if (isInt(n, &i)) 			return tree(double(i));
 	double x;	if (isDouble(n, &x)) 		return t;
 				if (isSigFloatCast(t))		return t;
                 if (isSigInput(t, &i))      return t;
-	 
-	return tree(SIGFLOATCAST, t);   
+
+	return tree(SIGFLOATCAST, t);
 }
 
 //Tree  sigFloatCast(Tree t)						{ return isSigFloatCast(t)? t : tree(SIGFLOATCAST, t); }
@@ -422,8 +425,8 @@ bool verySimple(Tree exp)
 	int		i;
 	double	r;
 	Tree 	type, name, file;
-	
-	return 	isSigInt(exp, &i) 
+
+	return 	isSigInt(exp, &i)
 			|| 	isSigReal(exp, &r)
 			||	isSigInput(exp, &i)
 			||	isSigFConst(exp, type, name, file);
