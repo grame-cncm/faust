@@ -53,7 +53,7 @@ static int GetPID()
 
 #endif
 
-struct CopyThread {
+struct RunThread {
 
     pthread_t fThread;
     sem_t* fSemaphore;
@@ -61,7 +61,7 @@ struct CopyThread {
 
     #ifdef __APPLE__
     
-    void CancelThread()
+    void Cancel()
     {
         mach_port_t machThread = pthread_mach_thread_np(fThread);
         thread_terminate(machThread);
@@ -71,7 +71,7 @@ struct CopyThread {
 
     #ifdef __linux__
 
-    void CancelThread()
+    void Cancel()
     {
         pthread_cancel(fThread);
         pthread_join(fThread, NULL);
@@ -79,7 +79,7 @@ struct CopyThread {
 
     #endif
     
-    CopyThread()
+    RunThread()
     {
         sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
         if ((fSemaphore = sem_open(fName, O_CREAT, 0777, 0)) == (sem_t*)SEM_FAILED) {
@@ -88,7 +88,7 @@ struct CopyThread {
         }
     }
     
-    ~CopyThread()
+    ~RunThread()
     {
         sem_unlink(fName);
         sem_close(fSemaphore);
@@ -110,7 +110,7 @@ struct CopyThread {
         struct sched_param rt_param;
         pthread_attr_init(&attributes);
         
-        int priority = 60; // TODO
+        int priority = 70; // TODO
         int res;
         
         /*
@@ -175,7 +175,7 @@ struct CopyThread {
 
     void Stop()
     {
-        CancelThread();
+        Cancel();
     }
     
 };

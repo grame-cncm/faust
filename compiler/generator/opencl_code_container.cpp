@@ -226,7 +226,7 @@ void OpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "cl_mem* fOpenCLInputs;";
         tab(n+1, *fOut); *fOut << "cl_mem* fOpenCLOutputs;";
         tab(n+1, *fOut); *fOut << "cl_device_id* fDevicesTable;";
-        tab(n+1, *fOut); *fOut << "CopyThread* fCopyThread;";
+        tab(n+1, *fOut); *fOut << "RunThread* fRunThread;";
         tab(n+1, *fOut); *fOut << "int fCount;";
         if (fNumInputs > 0) {
             tab(n+1, *fOut); *fOut << "float** fTempInputs;";
@@ -240,7 +240,7 @@ void OpenCLCodeContainer::produceClass()
     
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut   << "void static metadata(Meta* m) { ";
+        tab(n+1, *fOut); *fOut << "void static metadata(Meta* m) { ";
         
         for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
             if (i->first != tree("author")) {
@@ -258,7 +258,7 @@ void OpenCLCodeContainer::produceClass()
     
         tab(n+1, *fOut); *fOut << "}" << endl;
         
-        tab(n+1, *fOut); *fOut   << "static void* CopyHandler(void* arg) {";
+        tab(n+1, *fOut); *fOut   << "static void* RunHandler(void* arg) {";
         
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
             
@@ -279,18 +279,8 @@ void OpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}";
             
             tab(n+2, *fOut); *fOut << "while (true) {";
-                tab(n+3, *fOut); *fOut << "dsp->fCopyThread->Wait();";
-                
-                // Write input
-                if (fNumInputs > 0) {
-                    tab(n+3, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                        tab(n+4, *fOut); *fOut << "err = clEnqueueWriteBuffer(dsp->fOpenCLCommands, dsp->fOpenCLInputs[i], CL_FALSE, 0, sizeof(FAUSTFLOAT) * dsp->fCount, dsp->fTempInputs[i], 0, NULL, NULL);";
-                        tab(n+4, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                            tab(n+5, *fOut); *fOut << "std::cerr << \"clEnqueueWriteBuffer err = \" << err << endl;";
-                        tab(n+4, *fOut); *fOut << "}";
-                    tab(n+3, *fOut); *fOut << "}";
-                }
-                
+                tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
+                 
                 // Pass variable parameters
                 tab(n+3, *fOut); *fOut << "err = 0;";
                 tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, 0, sizeof(unsigned int), &dsp->fCount);";
@@ -312,16 +302,7 @@ void OpenCLCodeContainer::produceClass()
                 
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fOpenCLCommands);";
-
-                if (fNumOutputs > 0) {
-                    tab(n+3, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                        tab(n+4, *fOut); *fOut << "err = clEnqueueReadBuffer(dsp->fOpenCLCommands, dsp->fOpenCLOutputs[i], CL_FALSE, 0, sizeof(FAUSTFLOAT) * dsp->fCount, dsp->fTempOutputs[i], 0, NULL, NULL);";
-                        tab(n+4, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                            tab(n+5, *fOut); *fOut << "std::cerr << \"clEnqueueWriteBuffer err = \" << err << endl;";
-                        tab(n+4, *fOut); *fOut << "}";
-                    tab(n+3, *fOut); *fOut << "}";
-                }
-            
+             
             tab(n+2, *fOut); *fOut << "}";
             
         tab(n+1, *fOut); *fOut << "}" << endl;
@@ -406,7 +387,8 @@ void OpenCLCodeContainer::produceClass()
             // Allocate kernel input buffers
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "fOpenCLInputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_READ_ONLY, sizeof(float) * 8192, NULL, &err);";
+                    tab(n+3, *fOut); *fOut << "fTempInputs[i] = new float[sizeof(float) * 8192];";
+                    tab(n+3, *fOut); *fOut << "fOpenCLInputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(float) * 8192, fTempInputs[i], &err);";
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << err << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -417,8 +399,9 @@ void OpenCLCodeContainer::produceClass()
             // Allocate kernel output buffers
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "fOpenCLOutputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_WRITE_ONLY, sizeof(float) * 8192, NULL, &err);";
                     tab(n+3, *fOut); *fOut << "fTempOutputs[i] = new float[sizeof(float) * 8192];";
+                    tab(n+3, *fOut); *fOut << "fOpenCLOutputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof(float) * 8192, fTempOutputs[i], &err);";
+                    
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << err << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -426,8 +409,8 @@ void OpenCLCodeContainer::produceClass()
                 tab(n+2, *fOut); *fOut << "}";
             }
             
-            tab(n+2, *fOut); *fOut << "fCopyThread = new CopyThread();";
-            tab(n+2, *fOut); *fOut << "err = fCopyThread->Start(true, CopyHandler, this);";
+            tab(n+2, *fOut); *fOut << "fRunThread = new RunThread();";
+            tab(n+2, *fOut); *fOut << "err = fRunThread->Start(true, RunHandler, this);";
             tab(n+2, *fOut); *fOut << "if (err != 0) {";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
@@ -440,12 +423,13 @@ void OpenCLCodeContainer::produceClass()
 
         
         tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
-            tab(n+2, *fOut); *fOut << "fCopyThread->Stop();";
-            tab(n+2, *fOut); *fOut << "delete fCopyThread;";
+            tab(n+2, *fOut); *fOut << "fRunThread->Stop();";
+            tab(n+2, *fOut); *fOut << "delete fRunThread;";
             // Free kernel input buffers
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
                     tab(n+3, *fOut); *fOut << "clReleaseMemObject(fOpenCLInputs[i]);";
+                     tab(n+3, *fOut); *fOut << "delete[] fTempInputs[i];";
                 tab(n+2, *fOut); *fOut << "}";
             }
             
@@ -459,6 +443,7 @@ void OpenCLCodeContainer::produceClass()
             
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "delete[] fOpenCLInputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fTempInputs;";
             }
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "delete[] fOpenCLOutputs;";
@@ -564,7 +549,7 @@ void OpenCLCodeContainer::generateCompute(int n)
     // Copy audio input buffer to temp buffers
     if (fNumInputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << "fTempInputs[i] = inputs[i];";
+            tab(n+3, *fOut); *fOut << "memcpy(fTempInputs[i], inputs[i], sizeof(float) * count);";
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
@@ -576,6 +561,6 @@ void OpenCLCodeContainer::generateCompute(int n)
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
-    tab(n+2, *fOut); *fOut << "fCopyThread->Signal();";
+    tab(n+2, *fOut); *fOut << "fRunThread->Signal();";
     tab(n+1, *fOut); *fOut << "}";
 }
