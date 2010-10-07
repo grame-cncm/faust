@@ -30,92 +30,92 @@
 		-----------
 
 ***********************************************************************/
-using namespace std;
-
 #include "code_container.hh"
 #include "fir_instructions.hh"
+
+using namespace std;
 
 class FirCodeContainer : public CodeContainer {
 
      public:
-    
+
         FirCodeContainer(int numInputs, int numOutputs)
             :CodeContainer(numInputs, numOutputs)
         {}
         virtual ~FirCodeContainer()
         {}
-        
+
         CodeContainer* createScalarContainer(const string& name);
         void produceInternal() {}
-                  
+
 };
 
 class FirScalarCodeContainer : public FirCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         FirScalarCodeContainer(int numInputs, int numOutputs)
             :FirCodeContainer(numInputs, numOutputs)
         {}
         virtual ~FirScalarCodeContainer()
         {}
-        
+
         void dump(ostream* dst);
-         
+
 };
 
 class FirVectorCodeContainer : public FirCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         FirVectorCodeContainer(int numInputs, int numOutputs)
             :FirCodeContainer(numInputs, numOutputs)
         {}
         virtual ~FirVectorCodeContainer()
         {}
-        
+
         void dump(ostream* dst);
-         
+
 };
 
 class FirOpenMPCodeContainer : public FirCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         FirOpenMPCodeContainer(int numInputs, int numOutputs)
             :FirCodeContainer(numInputs, numOutputs)
         {}
         virtual ~FirOpenMPCodeContainer()
         {}
-        
+
         void dump(ostream* dst);
-         
+
 };
 
 class FirWorkStealingCodeContainer : public FirCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         FirWorkStealingCodeContainer(int numInputs, int numOutputs)
             :FirCodeContainer(numInputs, numOutputs)
         {}
         virtual ~FirWorkStealingCodeContainer()
         {}
-        
+
         void dump(ostream* dst);
-         
+
 };
 
 #endif

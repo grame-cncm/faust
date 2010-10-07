@@ -27,11 +27,11 @@
 		-----------
 
 ***********************************************************************/
-using namespace std;
-
 #include "cpp_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
+
+using namespace std;
 
 extern bool gUIMacroSwitch;
 extern int gVectorLoopVariant;

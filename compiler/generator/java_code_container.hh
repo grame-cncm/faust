@@ -30,92 +30,93 @@
 		-----------
 
 ***********************************************************************/
-using namespace std;
 
 #include "code_container.hh"
 #include "java_instructions.hh"
 
+using namespace std;
+
 class JAVACodeContainer : public CodeContainer {
 
     protected:
-    
+
         JAVAInstVisitor fCodeProducer;
         std::ostream* fOut;
         string fKlassName;
         string fSuperKlassName;
 
     public:
-    
+
         JAVACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
         {}
         virtual ~JAVACodeContainer()
         {}
-        
+
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
-        
+
         void printIncludeFile(ostream& fout);
-        
+
         CodeContainer* createScalarContainer(const string& name);
 };
 
 class JAVAScalarCodeContainer : public JAVACodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~JAVAScalarCodeContainer();
-        
+
         void generateCompute(int tab);
-         
+
 };
 
 class JAVAVectorCodeContainer : public JAVACodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         JAVAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~JAVAVectorCodeContainer();
-        
+
         void generateCompute(int tab);
-        
+
 };
 
 
 class JAVAOpenMPCodeContainer : public JAVACodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         JAVAOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~JAVAOpenMPCodeContainer();
-         
+
         void generateCompute(int tab) {}
-        
+
 };
 
 class JAVAWorkStealingCodeContainer : public JAVACodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         JAVAWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~JAVAWorkStealingCodeContainer();
-         
+
         void generateCompute(int tab) {}
-        
+
 };
 
 #endif

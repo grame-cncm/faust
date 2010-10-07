@@ -30,89 +30,89 @@
 		-----------
 
 ***********************************************************************/
-using namespace std;
-
 #include "code_container.hh"
 #include "cpp_instructions.hh"
+
+using namespace std;
 
 class CPPCodeContainer : public CodeContainer {
 
     protected:
-    
+
         CPPInstVisitor fCodeProducer;
         std::ostream* fOut;
         string fKlassName;
         string fSuperKlassName;
 
     public:
-    
+
         CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
         {}
         virtual ~CPPCodeContainer()
         {}
-        
+
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
         virtual void produceInternal();
-        
+
         CodeContainer* createScalarContainer(const string& name);
-  
+
 };
 
 class CPPScalarCodeContainer : public CPPCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CPPScalarCodeContainer();
-        
+
         void generateCompute(int tab);
-         
+
 };
 
 class CPPVectorCodeContainer : public CPPCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CPPVectorCodeContainer();
-        
+
         void generateCompute(int tab);
-         
+
 };
 
 
 class CPPOpenMPCodeContainer : public CPPCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CPPOpenMPCodeContainer();
-         
+
         void generateCompute(int tab);
-        
+
 };
 
 class CPPWorkStealingCodeContainer : public CPPCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CPPWorkStealingCodeContainer();
-         
+
         void produceClass();
         void generateCompute(int tab);
 

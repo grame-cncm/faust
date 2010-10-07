@@ -30,88 +30,88 @@
 		-----------
 
 ***********************************************************************/
-using namespace std;
-
 #include "code_container.hh"
 #include "c_instructions.hh"
+
+using namespace std;
 
 class CCodeContainer : public CodeContainer {
 
     protected:
-    
+
         CInstVisitor fCodeProducer;
         std::ostream* fOut;
         string fStructName;
         string fPrefix;   // Prefix for function name
 
     public:
-    
+
         CCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "")
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
         {}
         virtual ~CCodeContainer()
         {}
-        
+
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
-        
+
         CodeContainer* createScalarContainer(const string& name);
-             
+
 };
 
 class CScalarCodeContainer : public CCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
         virtual ~CScalarCodeContainer();
-        
+
         void generateCompute(int tab);
-         
+
 };
 
 class CVectorCodeContainer : public CCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         CVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
         virtual ~CVectorCodeContainer();
-        
+
         void generateCompute(int n);
-         
+
 };
 
 class COpenMPCodeContainer : public CCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         COpenMPCodeContainer(const string& name,int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
         virtual ~COpenMPCodeContainer();
-         
+
         void generateCompute(int tab);
-        
+
 };
 
 class CWorkStealingCodeContainer : public CCodeContainer {
 
     protected:
-    
-   
+
+
     public:
-    
+
         CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
         virtual ~CWorkStealingCodeContainer();
-         
+
         void produceClass();
         void generateCompute(int tab);
 };
