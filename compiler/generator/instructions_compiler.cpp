@@ -287,48 +287,29 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("count", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("samplingFreq", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
 
+    /*
     // "input" and "inputs" used as a name convention
     for (int index = 0; index < fContainer->inputs(); index++) {
         string name = subst("input$0", T(index));
 
-        //if (!gVectorSwitch) {
             fContainer->pushComputeBlockMethod(
                 InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
                     InstBuilder::genLoadVarInst(
                         InstBuilder::genIndexedAddress(
                             InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-        /*
-        } else {
-             fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,
-                    InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-        }
-        */
     }
 
     // "output" and "outputs" used as a name convention
     for (int index = 0; index < fContainer->outputs(); index++) {
         string name = subst("output$0", T(index));
 
-        //if (!gVectorSwitch) {
             fContainer->pushComputeBlockMethod(
                 InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
                     InstBuilder::genLoadVarInst(
                         InstBuilder::genIndexedAddress(
                             InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-
-        /*
-        } else {
-             fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,
-                    InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-        }
-        */
     }
+    */
 
 	for (int index = 0; isList(L); L = tl(L), index++) {
 		Tree sig = hd(L);

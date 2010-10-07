@@ -124,18 +124,21 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
     protected:
     
         OpenCLInstVisitor fOpenCLCodeProducer;
-        std::ostringstream* fComputeKernelStream;
+        //std::ostringstream* fGPUOut;
+        ostream* fGPUOut;
+        
      
     public:
     
         CPPOpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CPPCodeContainer(name, super, numInputs, numOutputs, out), fOpenCLCodeProducer(out)
         {
-            fComputeKernelStream = new std::ostringstream();
+            //fGPUOut = new std::ostringstream();
+            fGPUOut = new ofstream("tmp.cl");
         }
         virtual ~CPPOpenCLCodeContainer()
         {
-            delete fComputeKernelStream;
+            delete fGPUOut;
         }
         
         virtual void produceClass();

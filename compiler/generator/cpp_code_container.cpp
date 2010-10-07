@@ -531,9 +531,127 @@ void CPPOpenCLCodeContainer::produceInternal()
 
 void CPPOpenCLCodeContainer::produceClass() 
 {
+    
+    struct DSPInstVisitor : public DispatchVisitor, public StringTypeManager {
+    
+        std::ostream* fOut;
+        int fTab;
+        
+        DSPInstVisitor(std::ostream* out, int tab)
+            :fOut(out), fTab(tab)
+        {}
+
+        virtual void visit(DeclareVarInst* inst) 
+        {
+            if (!(inst->fName.find("fbutton") != string::npos
+                || inst->fName.find("fcheckbox") != string::npos
+                || inst->fName.find("fvslider") != string::npos
+                || inst->fName.find("fhslider") != string::npos
+                || inst->fName.find("fentry") != string::npos))
+            {
+                tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+            }
+        }
+    };
+    
+    struct ControlInstVisitor : public DispatchVisitor, public StringTypeManager {
+    
+        std::ostream* fOut;
+        int fTab;
+        
+        ControlInstVisitor(std::ostream* out, int tab)
+            :fOut(out), fTab(tab)
+        {}
+
+        virtual void visit(DeclareVarInst* inst) 
+        {
+            if (inst->fName.find("fbutton") != string::npos
+                || inst->fName.find("fcheckbox") != string::npos
+                || inst->fName.find("fvslider") != string::npos
+                || inst->fName.find("fhslider") != string::npos
+                || inst->fName.find("fentry") != string::npos)
+            {
+                tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+            }
+        }
+        
+    };
+    
+    struct KernelInstVisitor : public CPPInstVisitor {
+
+        KernelInstVisitor(std::ostream* out, int tab)
+            :CPPInstVisitor(out, tab)
+        {}
+        
+        bool IsControl(NamedAddress* named)
+        {
+            return (named->getName().find("fbutton") != string::npos
+                || named->getName().find("fcheckbox") != string::npos
+                || named->getName().find("fvslider") != string::npos
+                || named->getName().find("fhslider") != string::npos
+                || named->getName().find("fentry") != string::npos);
+        }
+        
+        bool IsControl(IndexedAddress* indexed)
+        {
+            return (indexed->getName().find("fbutton") != string::npos
+                || indexed->getName().find("fcheckbox") != string::npos
+                || indexed->getName().find("fvslider") != string::npos
+                || indexed->getName().find("fhslider") != string::npos
+                || indexed->getName().find("fentry") != string::npos);
+        }
+
+        virtual void visit(LoadVarInst* inst) 
+        {
+            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+            
+            if (named) {
+                if (named->getAccess() == Address::kStruct)
+                    *fOut << (IsControl(named) ? "control->" : "dsp->") << named->getName();
+                else
+                    *fOut << named->getName();
+            } else {
+                if (indexed->getAccess() == Address::kStruct)
+                    *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
+                else
+                    *fOut << indexed->getName() << "[";
+                indexed->fIndex->accept(this);
+                *fOut << "]"; 
+            }
+        }
+
+        virtual void visit(StoreVarInst* inst)
+        {   
+            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+            
+            if (named) {
+                if (named->getAccess() == Address::kStruct)
+                    *fOut << (IsControl(named) ? "control->" : "dsp->")  << named->getName() << " = ";
+                else
+                    *fOut << named->getName() << " = ";
+            } else {
+                 if (indexed->getAccess() == Address::kStruct)
+                    *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
+                else
+                    *fOut << indexed->getName() << "[";
+                indexed->fIndex->accept(this);
+                *fOut << "] = "; 
+            }
+            inst->fValue->accept(this);
+            EndLine();
+        }
+        
+    };
+         
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
+     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
+    pushDeclare(InstBuilder::genDeclareVarInst("fSamplingFreq",
+        InstBuilder::genBasicTyped(Typed::kInt), Address::kStruct));
+   
     pushFrontInitMethod(InstBuilder::genStoreVarInst(
-                            InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal), 
+                            InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), 
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
     
     int n = 0;
@@ -557,28 +675,60 @@ void CPPOpenCLCodeContainer::produceClass()
     }
        
     // Compile OpenCL kernel string
-    OpenCLInstVisitor codeproducer(fComputeKernelStream);
+    //OpenCLInstVisitor codeproducer(fGPUOut);
+    KernelInstVisitor codeproducer(fGPUOut, n);
     codeproducer.Tab(n+1);
+        
+    //*fGPUOut << "const char* KernelSource = \"";
+     
+    tab(n, *fGPUOut);
+    //printfloatdef(*fGPUOut);
     
-    //*fComputeKernelStream << subst("const char* KernelSource = \"__kernel void computeKernel(const unsigned int count, __global $0** inputs, __global $0** outputs) \n", xfloat());
+    *fGPUOut << "#ifndef " << FLOATMACRO << std::endl;
+    *fGPUOut << "#define " << FLOATMACRO << " " << "float" << std::endl;
+    *fGPUOut << "#endif  " << std::endl;
+     
+     // Separate control and non-controls fields in 2 structures
+    tab(n+1, *fGPUOut); *fGPUOut << "typedef struct {";
+        DSPInstVisitor dsp_visitor(fGPUOut, n+2);
+        fDeclarationInstructions->accept(&dsp_visitor);
+    tab(n+1, *fGPUOut); *fGPUOut << "} faustdsp;";
+    tab(n+1, *fGPUOut);
     
-    *fComputeKernelStream << "const char* KernelSource = \"__kernel void computeKernel(const unsigned int count, ";
+    tab(n+1, *fGPUOut); *fGPUOut << "typedef struct {";
+        ControlInstVisitor control_visitor(fGPUOut, n+2);
+        fDeclarationInstructions->accept(&control_visitor);
+    tab(n+1, *fGPUOut); *fGPUOut << "} faustcontrol;";
+    tab(n+1, *fGPUOut);
+    tab(n+1, *fGPUOut);
+    
+    // Generate instanceInit kernel
+    if (fInitInstructions->fCode.size() > 0) {
+        *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global int samplingFreq) {";
+        tab(n+2, *fGPUOut);
+        codeproducer.Tab(n+2);
+        fInitInstructions->accept(&codeproducer);
+        tab(n+1, *fGPUOut);
+        *fGPUOut << "}\n";
+    }
+    
+    // Generate compute kernel
+    tab(n+1, *fGPUOut);
+    *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
     for (int i = 0; i < fNumInputs; i++) {
-        *fComputeKernelStream <<  "__global float* input" << i << ", ";
+        *fGPUOut <<  "__global float* input" << i << ", ";
     }
     
     for (int i = 0; i < fNumOutputs; i++) {
         if (i == fNumOutputs - 1) {
-            *fComputeKernelStream <<  "__global float* output" << i;
-        }else {
-            *fComputeKernelStream <<  "__global float* output" << i << ", ";
+            *fGPUOut << "__global float* output" << i;
+        } else {
+            *fGPUOut << "__global float* output" << i << ", ";
         }    
     }
     
-    *fComputeKernelStream << ") {}\";";
-     
-    tab(n+1, *fComputeKernelStream);
-    
+    *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
+    tab(n+2, *fGPUOut);
    
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(&codeproducer);
@@ -586,16 +736,15 @@ void CPPOpenCLCodeContainer::produceClass()
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->getScalarLoop();
     loop->accept(&codeproducer);
+      
+    tab(n+1, *fGPUOut);
     
-     /*
-    tab(n, *fComputeKernelStream);
-    *fComputeKernelStream << "\"";
-    */
+    *fGPUOut << "}";
+    fGPUOut->flush();
+    
+    //*fGPUOut << "}\";";
        
-    // Generate OpenCL kernel string
-    //tab(n, *fOut); *fOut << fComputeKernelStream->str() << ";";
-    
-    tab(n, *fOut); *fOut << fComputeKernelStream->str();
+    //tab(n, *fOut); *fOut << fGPUOut->str();
    
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
@@ -617,82 +766,33 @@ void CPPOpenCLCodeContainer::produceClass()
             // Sort arrays to be at the begining
             fDeclarationInstructions->fCode.sort(sortFunction1);
             
-            //fDeclarationInstructions->accept(&fCodeProducer);
-            
             // Separate control and non-controls fields in 2 structures
             tab(n+1, *fOut); *fOut << "typedef struct {";
-            
-            struct DSPInstVisitor : public DispatchVisitor, public StringTypeManager {
-            
-                std::ostream* fOut;
-                int fTab;
-                
-                DSPInstVisitor(std::ostream* out, int tab)
-                    :fOut(out), fTab(tab)
-                {}
-       
-                virtual void visit(DeclareVarInst* inst) 
-                {
-                    if (!(inst->fName.find("fbutton") != string::npos
-                        || inst->fName.find("fcheckbox") != string::npos
-                        || inst->fName.find("fvslider") != string::npos
-                        || inst->fName.find("fhslider") != string::npos
-                        || inst->fName.find("fentry") != string::npos))
-                    {
-                        tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
-                    }
-                }
-            };
-            
-            DSPInstVisitor dsp_visitor(fOut, n+2);
-            fDeclarationInstructions->accept(&dsp_visitor);
-            
+                DSPInstVisitor dsp_visitor(fOut, n+2);
+                fDeclarationInstructions->accept(&dsp_visitor);
             tab(n+1, *fOut); *fOut << "} faustdsp;";
-            
             tab(n+1, *fOut);
             
             tab(n+1, *fOut); *fOut << "typedef struct {";
-            
-            struct ControlInstVisitor : public DispatchVisitor, public StringTypeManager {
-            
-                std::ostream* fOut;
-                int fTab;
-                
-                ControlInstVisitor(std::ostream* out, int tab)
-                    :fOut(out), fTab(tab)
-                {}
-       
-                virtual void visit(DeclareVarInst* inst) 
-                {
-                    if (inst->fName.find("fbutton") != string::npos
-                        || inst->fName.find("fcheckbox") != string::npos
-                        || inst->fName.find("fvslider") != string::npos
-                        || inst->fName.find("fhslider") != string::npos
-                        || inst->fName.find("fentry") != string::npos)
-                    {
-                        tab(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
-                    }
-                }
-                
-            };
-            
-            ControlInstVisitor control_visitor(fOut, n+2);
-            fDeclarationInstructions->accept(&control_visitor);
-            
+                ControlInstVisitor control_visitor(fOut, n+2);
+                fDeclarationInstructions->accept(&control_visitor);
             tab(n+1, *fOut); *fOut << "} faustcontrol;";
+            
             tab(n+1, *fOut);
             tab(n+1, *fOut); *fOut << "faustcontrol fControl;";
             tab(n+1, *fOut); *fOut << "cl_mem fGPUDSP;";
             tab(n+1, *fOut); *fOut << "cl_mem fGPUControl;";
         }
         
-        tab(n+1, *fOut); *fOut << "cl_device_id fOpenCLDeviceID;";
-        tab(n+1, *fOut); *fOut << "cl_context fOpenCLContext;";
-        tab(n+1, *fOut); *fOut << "cl_command_queue fOpenCLCommands;";
-        tab(n+1, *fOut); *fOut << "cl_program fOpenCLProgram;";
-        tab(n+1, *fOut); *fOut << "cl_kernel fOpenCLKernel;";
-        tab(n+1, *fOut); *fOut << "cl_mem* fOpenCLInputs;";
-        tab(n+1, *fOut); *fOut << "cl_mem* fOpenCLOutputs;";
+        tab(n+1, *fOut); *fOut << "cl_device_id fDeviceID;";
+        tab(n+1, *fOut); *fOut << "cl_context fContext;";
+        tab(n+1, *fOut); *fOut << "cl_command_queue fCommands;";
+        tab(n+1, *fOut); *fOut << "cl_program fProgram;";
+        tab(n+1, *fOut); *fOut << "cl_kernel fComputeKernel;";
+        tab(n+1, *fOut); *fOut << "cl_kernel fInstanceInitKernel;";
+        
+        tab(n+1, *fOut); *fOut << "cl_mem* fInputs;";
+        tab(n+1, *fOut); *fOut << "cl_mem* fOutputs;";
         tab(n+1, *fOut); *fOut << "cl_device_id* fDevicesTable;";
         tab(n+1, *fOut); *fOut << "RunThread* fRunThread;";
         tab(n+1, *fOut); *fOut << "int fCount;";
@@ -729,51 +829,39 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut   << "static void* RunHandler(void* arg) {";
         
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
-            
-            // Pass parameters that do not change between kernel invocations
-            tab(n+2, *fOut); *fOut << "int err = 0;" << endl;
-            if (fNumInputs > 0) {
-                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, i+1, sizeof(cl_mem), &dsp->fOpenCLInputs[i]);";
-                tab(n+2, *fOut); *fOut << "}";
-            }
-            if (fNumOutputs > 0) {
-                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, " << fNumInputs << "+i+1, sizeof(cl_mem), &dsp->fOpenCLOutputs[i]);";
-                tab(n+2, *fOut); *fOut << "}";
-            }
-            
-            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, " << (fNumInputs + fNumOutputs) << "+1, sizeof(cl_mem), &fGPUDSP);";
-            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, " << (fNumInputs + fNumOutputs) << "+2, sizeof(cl_mem), &fGPUControl);";
-        
-            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
-            tab(n+2, *fOut); *fOut << "}";
+         
             
             tab(n+2, *fOut); *fOut << "while (true) {";
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
                  
                 // Pass variable parameters
-                tab(n+3, *fOut); *fOut << "err = 0;";
-                tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fOpenCLKernel, 0, sizeof(unsigned int), &dsp->fCount);";
+                tab(n+3, *fOut); *fOut << "int err = 0;";
+                tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fComputeKernel, 0, sizeof(unsigned int), &dsp->fCount);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                     tab(n+4, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
                 
                 tab(n+3, *fOut); *fOut << "size_t global, local;";
-                tab(n+3, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fOpenCLKernel, dsp->fOpenCLDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
+                tab(n+3, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fComputeKernel, dsp->fDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                     tab(n+4, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
                 
+                /*
                 tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
-                tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fOpenCLCommands, dsp->fOpenCLKernel, 1, NULL, &global, &local, 0, NULL, NULL);";
+                tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, NULL);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueNDRangeKernel err = \" << err << endl;";
+                    tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueNDRangeKernel compute err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
+                */
                 
+                tab(n+3, *fOut); *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, NULL);";
+                tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueTask compute err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "}";
+		         
                 // Wait for computation end
-                tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fOpenCLCommands);";
+                tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fCommands);";
              
             tab(n+2, *fOut); *fOut << "}";
             
@@ -784,13 +872,14 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "int err;";
             tab(n+2, *fOut); *fOut << "int gpu = 1;"; 
             tab(n+2, *fOut); *fOut << "cl_uint num_devices;"; 
+            tab(n+2, *fOut); *fOut << "char* program_src;"; 
             
             if (fNumInputs > 0) {
-                tab(n+2, *fOut); *fOut << "fOpenCLInputs = new cl_mem["<< fNumInputs << "];";
+                tab(n+2, *fOut); *fOut << "fInputs = new cl_mem["<< fNumInputs << "];";
                 tab(n+2, *fOut); *fOut << "fTempInputs = new float*["<< fNumInputs << "];";
             }
             if (fNumOutputs > 0) {
-                tab(n+2, *fOut); *fOut << "fOpenCLOutputs = new cl_mem["<< fNumOutputs << "];";
+                tab(n+2, *fOut); *fOut << "fOutputs = new cl_mem["<< fNumOutputs << "];";
                 tab(n+2, *fOut); *fOut << "fTempOutputs = new float*["<< fNumOutputs << "];";
             }
             
@@ -809,11 +898,11 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
-            tab(n+2, *fOut); *fOut << "fOpenCLDeviceID = fDevicesTable[0];";
+            tab(n+2, *fOut); *fOut << "fDeviceID = fDevicesTable[0];";
             
             // Print device name
             tab(n+2, *fOut); *fOut << "char cDevName[1024];";
-            tab(n+2, *fOut); *fOut << "err = clGetDeviceInfo(fOpenCLDeviceID, CL_DEVICE_NAME, sizeof(cDevName), &cDevName, NULL);";
+            tab(n+2, *fOut); *fOut << "err = clGetDeviceInfo(fDeviceID, CL_DEVICE_NAME, sizeof(cDevName), &cDevName, NULL);";
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot get CPU devices err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
@@ -822,62 +911,71 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "std::cerr << \"Device name: \" << cDevName << endl;";
             
             // Creates context
-            tab(n+2, *fOut); *fOut << "fOpenCLContext = clCreateContext(0, 1, &fOpenCLDeviceID, NULL, NULL, &err);";   
+            tab(n+2, *fOut); *fOut << "fContext = clCreateContext(0, 1, &fDeviceID, NULL, NULL, &err);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create context err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Creates a command queue
-            tab(n+2, *fOut); *fOut << "fOpenCLCommands = clCreateCommandQueue(fOpenCLContext, fOpenCLDeviceID, 0, &err);";   
+            tab(n+2, *fOut); *fOut << "fCommands = clCreateCommandQueue(fContext, fDeviceID, 0, &err);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create command queue err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Creates the compute program from the source buffer
-            tab(n+2, *fOut); *fOut << "fOpenCLProgram = clCreateProgramWithSource(fOpenCLContext, 1, (const char**)&KernelSource, NULL, &err);";   
+            //tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&KernelSource, NULL, &err);";  
+            tab(n+2, *fOut); *fOut << "program_src = load_program_source(\"tmp.cl\");";   
+            tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&program_src, NULL, &err);";  
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create program err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Build the program executable
-            tab(n+2, *fOut); *fOut << "err = clBuildProgram(fOpenCLProgram, 0, NULL, NULL, NULL, NULL);";   
+            tab(n+2, *fOut); *fOut << "err = clBuildProgram(fProgram, 0, NULL, NULL, NULL, NULL);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot build program err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Create the compute kernel 
-            tab(n+2, *fOut); *fOut << "fOpenCLKernel = clCreateKernel(fOpenCLProgram, \"computeKernel\", &err);";   
+            tab(n+2, *fOut); *fOut << "fComputeKernel = clCreateKernel(fProgram, \"computeKernel\", &err);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create kernel err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create compute kernel err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+            // Create the nstanceInit kernel 
+            tab(n+2, *fOut); *fOut << "fInstanceInitKernel = clCreateKernel(fProgram, \"instanceInitKernel\", &err);";   
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create instanceInit kernel err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Get infos
             tab(n+2, *fOut); *fOut << "size_t local;";
-			tab(n+2, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fOpenCLKernel, dsp->fOpenCLDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
+			tab(n+2, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(fComputeKernel, fDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
 			tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_WORK_GROUP_SIZE err = \" << err << endl;";
 			tab(n+2, *fOut); *fOut << "} else {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"CL_KERNEL_WORK_GROUP_SIZE = \" << err << local;";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"CL_KERNEL_WORK_GROUP_SIZE = \" << err << local << endl;";
             tab(n+2, *fOut); *fOut << "}";
             
             tab(n+2, *fOut); *fOut << "cl_ulong local_mem;";
-            tab(n+2, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fOpenCLKernel, dsp->fOpenCLDeviceID, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);";
+            tab(n+2, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(fComputeKernel, fDeviceID, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);";
 			tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo CL_KERNEL_LOCAL_MEM_SIZE err = \" << err << endl;";
 			tab(n+2, *fOut); *fOut << "} else {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"CL_KERNEL_LOCAL_MEM_SIZE = \" << err << local_mem;";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"CL_KERNEL_LOCAL_MEM_SIZE = \" << err << local_mem << endl;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
                     tab(n+3, *fOut); *fOut << subst("fTempInputs[i] = new $0[sizeof($0) * 8192];", xfloat());
-                    tab(n+3, *fOut); *fOut << subst("fOpenCLInputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempInputs[i], &err);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fInputs[i] = clCreateBuffer(fContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempInputs[i], &err);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << err << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -889,7 +987,7 @@ void CPPOpenCLCodeContainer::produceClass()
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
                     tab(n+3, *fOut); *fOut << subst("fTempOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
-                    tab(n+3, *fOut); *fOut << subst("fOpenCLOutputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempOutputs[i], &err);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fOutputs[i] = clCreateBuffer(fContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempOutputs[i], &err);", xfloat());
                     
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << err << endl;";
@@ -899,17 +997,37 @@ void CPPOpenCLCodeContainer::produceClass()
             }
             
             // Allocate control on CPU, map it on GPU
-            tab(n+2, *fOut); *fOut << "fGPUControl = clCreateBuffer(fOpenCLContext, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(faustcontrol), &fControl, &err);";
+            tab(n+2, *fOut); *fOut << "fGPUControl = clCreateBuffer(fContext, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(faustcontrol), &fControl, &err);";
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
              // Allocate DSP  on GPU
-            tab(n+2, *fOut); *fOut << "fGPUDSP = clCreateBuffer(fOpenCLContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, &err);";
+            tab(n+2, *fOut); *fOut << "fGPUDSP = clCreateBuffer(fContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, &err);";
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+               
+            // Pass parameters that do not change between kernel invocations
+            tab(n+2, *fOut); *fOut << "err = 0;" << endl;
+            if (fNumInputs > 0) {
+                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
+                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, i+1, sizeof(cl_mem), &fInputs[i]);";
+                tab(n+2, *fOut); *fOut << "}";
+            }
+            if (fNumOutputs > 0) {
+                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
+                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << fNumInputs << "+i+1, sizeof(cl_mem), &fOutputs[i]);";
+                tab(n+2, *fOut); *fOut << "}";
+            }
+            
+            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+1, sizeof(cl_mem), &fGPUDSP);";
+            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+2, sizeof(cl_mem), &fGPUControl);";
+        
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
             tab(n+2, *fOut); *fOut << "}";
             
             tab(n+2, *fOut); *fOut << "fRunThread = new RunThread();";
@@ -932,7 +1050,7 @@ void CPPOpenCLCodeContainer::produceClass()
             // Free kernel input buffers
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fOpenCLInputs[i]);";
+                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fInputs[i]);";
                      tab(n+3, *fOut); *fOut << "delete[] fTempInputs[i];";
                 tab(n+2, *fOut); *fOut << "}";
             }
@@ -940,26 +1058,27 @@ void CPPOpenCLCodeContainer::produceClass()
             // Free kernel output buffers
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fOpenCLOutputs[i]);";
+                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fOutputs[i]);";
                     tab(n+3, *fOut); *fOut << "delete[] fTempOutputs[i];";
                 tab(n+2, *fOut); *fOut << "}";
             }
             
             if (fNumInputs > 0) {
-                tab(n+2, *fOut); *fOut << "delete[] fOpenCLInputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fInputs;";
                 tab(n+2, *fOut); *fOut << "delete[] fTempInputs;";
             }
             if (fNumOutputs > 0) {
-                tab(n+2, *fOut); *fOut << "delete[] fOpenCLOutputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fOutputs;";
                 tab(n+2, *fOut); *fOut << "delete[] fTempOutputs;";
             }
             
             // Shutdown and cleanup
             tab(n+2, *fOut); *fOut << "clReleaseMemObject(fGPUControl);";
             tab(n+2, *fOut); *fOut << "clReleaseMemObject(fGPUDSP);";
-            tab(n+2, *fOut); *fOut << "clReleaseKernel(fOpenCLKernel);";
-            tab(n+2, *fOut); *fOut << "clReleaseCommandQueue(fOpenCLCommands);";
-            tab(n+2, *fOut); *fOut << "clReleaseContext(fOpenCLContext);";
+            tab(n+2, *fOut); *fOut << "clReleaseKernel(fComputeKernel);";
+            tab(n+2, *fOut); *fOut << "clReleaseKernel(fInstanceInitKernel);";
+            tab(n+2, *fOut); *fOut << "clReleaseCommandQueue(fCommands);";
+            tab(n+2, *fOut); *fOut << "clReleaseContext(fContext);";
             
             tab(n+2, *fOut); *fOut << "destroy();";
       
@@ -995,9 +1114,28 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); 
         tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
             if (fInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fInitInstructions->accept(&fCodeProducer);
+                
+                // TODO : handle samplingFreq
+                
+                tab(n+2, *fOut); *fOut << "int err = 0;";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fGPUDSP);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fGPUControl);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 2, sizeof(int), &samplingFreq);";
+                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg instanceInit err = \" << err << endl;";
+                tab(n+2, *fOut); *fOut << "}";
+                
+                tab(n+2, *fOut); *fOut << "err = clEnqueueTask(fCommands, fInstanceInitKernel, 0, NULL, NULL);";
+                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+3, *fOut); *fOut << "std::cerr << \"clEnqueueTask instanceInit err = \" << err << endl;";
+                tab(n+2, *fOut); *fOut << "}";
+                
+                // Wait for instanceInit end
+                tab(n+2, *fOut); *fOut << "err = clFinish(fCommands);";
+                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+3, *fOut); *fOut << "std::cerr << \"clFinish instanceInit err = \" << err << endl;";
+                tab(n+2, *fOut); *fOut << "}";
+
             }
         tab(n+1, *fOut); *fOut << "}";
 
@@ -1019,7 +1157,21 @@ void CPPOpenCLCodeContainer::produceClass()
                     UIInstVisitor(std::ostream* out, int tab)
                         :CPPInstVisitor(out, tab)
                     {}
-           
+                    
+                    virtual void visit(AddMetaDeclareInst* inst) 
+                    {
+                        *fOut << "interface->declare(" << "&fControl." << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
+                    }
+                    
+                    virtual void visit(AddButtonInst* inst) 
+                    {
+                        if (inst->fType == AddButtonInst::kDefaultButton) {
+                            *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
+                        } else {
+                            *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
+                        }
+                    }
+
                     virtual void visit(AddSliderInst* inst) 
                     {
                         string name;
@@ -1032,9 +1184,9 @@ void CPPOpenCLCodeContainer::produceClass()
                                 name = "interface->addNumEntry"; break;
                         } 
                         if (strcmp(ifloat(), "float") == 0)    
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
                         else
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
                         EndLine();  
                     }
                     
@@ -1048,9 +1200,9 @@ void CPPOpenCLCodeContainer::produceClass()
                                 name = "interface->addVerticalBargraph"; break;
                         }     
                         if (strcmp(ifloat(), "float") == 0)
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
                         else
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl->" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
+                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
                         EndLine();       
                     }                    
                 };
