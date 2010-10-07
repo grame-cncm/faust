@@ -676,7 +676,7 @@ void CPPOpenCLCodeContainer::produceClass()
        
     // Compile OpenCL kernel string
     KernelInstVisitor codeproducer(fGPUOut, n);
-    codeproducer.Tab(n+1);
+    //codeproducer.Tab(n+1);
         
     //*fGPUOut << "const char* KernelSource = \"";
      
@@ -688,31 +688,31 @@ void CPPOpenCLCodeContainer::produceClass()
     *fGPUOut << "#endif  " << std::endl;
      
     // Separate control and non-controls fields in 2 structures
-    tab(n+1, *fGPUOut); *fGPUOut << "typedef struct {";
-        DSPInstVisitor dsp_visitor(fGPUOut, n+2);
+    tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
+        DSPInstVisitor dsp_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&dsp_visitor);
-    tab(n+1, *fGPUOut); *fGPUOut << "} faustdsp;";
-    tab(n+1, *fGPUOut);
+    tab(n, *fGPUOut); *fGPUOut << "} faustdsp;";
+    tab(n, *fGPUOut);
     
-    tab(n+1, *fGPUOut); *fGPUOut << "typedef struct {";
-        ControlInstVisitor control_visitor(fGPUOut, n+2);
+    tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
+        ControlInstVisitor control_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&control_visitor);
-    tab(n+1, *fGPUOut); *fGPUOut << "} faustcontrol;";
-    tab(n+1, *fGPUOut);
-    tab(n+1, *fGPUOut);
+    tab(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
+    tab(n, *fGPUOut);
+    tab(n, *fGPUOut);
     
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
         *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global int samplingFreq) {";
-        tab(n+2, *fGPUOut);
-        codeproducer.Tab(n+2);
-        fInitInstructions->accept(&codeproducer);
         tab(n+1, *fGPUOut);
+        codeproducer.Tab(n+1);
+        fInitInstructions->accept(&codeproducer);
+        tab(n, *fGPUOut);
         *fGPUOut << "}\n";
     }
     
     // Generate compute kernel
-    tab(n+1, *fGPUOut);
+    tab(n, *fGPUOut);
     *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "__global float* input" << i << ", ";
@@ -727,7 +727,7 @@ void CPPOpenCLCodeContainer::produceClass()
     }
     
     *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
-    tab(n+2, *fGPUOut);
+    tab(n+1, *fGPUOut);
    
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(&codeproducer);
@@ -736,7 +736,7 @@ void CPPOpenCLCodeContainer::produceClass()
     ForLoopInst* loop = fCurLoop->getScalarLoop();
     loop->accept(&codeproducer);
       
-    tab(n+1, *fGPUOut);
+    tab(n, *fGPUOut);
     
     *fGPUOut << "}";
     fGPUOut->flush();
