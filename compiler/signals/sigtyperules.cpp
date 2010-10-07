@@ -86,7 +86,7 @@ Type getSigType(Tree sig)
 		cerr << "ERROR in getSigType : no type information available for signal :" << *sig << endl;
 		exit(1);
 	}
-	return t;	
+	return t;
 }
 
 
@@ -184,8 +184,8 @@ void typeAnnotation(Tree sig)
 Type getInferredType(Tree term, Tree env)
 {
     AudioType* at = (AudioType*) term->getType();
-    if (at) { 
-        return at; 
+    if (at) {
+        return at;
     } else {
         Tree    tt;
 		if (!getProperty(term, env, tt)) {
@@ -254,7 +254,7 @@ static interval __arithmetic (int opcode, const interval& x, const interval& y)
 			cerr << "Unrecognized opcode : " << opcode << endl;
 			exit(1);
 	}
-		
+
 	return interval();
 }
 
@@ -286,29 +286,29 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigReal(sig, &r)) 			return new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
 
-	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1,1));
+	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
 
 	else if (isSigOutput(sig, &i, s1)) 	return sampCast(T(s1,env));
 
-	else if (isSigDelay1(sig, s1)) 			{ 
-		Type t = T(s1,env); 
-		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0))); 
+	else if (isSigDelay1(sig, s1)) 			{
+		Type t = T(s1,env);
+		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0)));
 	}
 
-	else if (isSigPrefix(sig, s1, s2)) 		{ 
-		Type t1 = T(s1,env); 
-		Type t2 = T(s2,env); 
-		checkInit(t1); 
-		return castInterval(sampCast(t1|t2), reunion(t1->getInterval(), t2->getInterval())); 
+	else if (isSigPrefix(sig, s1, s2)) 		{
+		Type t1 = T(s1,env);
+		Type t2 = T(s2,env);
+		checkInit(t1);
+		return castInterval(sampCast(t1|t2), reunion(t1->getInterval(), t2->getInterval()));
 	}
 
-	else if (isSigFixDelay(sig, s1, s2)) 		{ 
-		Type t1 = T(s1,env); 
+	else if (isSigFixDelay(sig, s1, s2)) 		{
+		Type t1 = T(s1,env);
 		Type t2 = T(s2,env);
 		interval i = t2->getInterval();
- 
-/*		cerr << "for sig fix delay : s1 = " 
-				<< t1 << ':' << ppsig(s1) << ", s2 = " 
+
+/*		cerr << "for sig fix delay : s1 = "
+				<< t1 << ':' << ppsig(s1) << ", s2 = "
 				<< t2 << ':' << ppsig(s2) << endl; */
 		if (!i.valid) {
 			cerr << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl;
@@ -321,8 +321,8 @@ static Type infereSigType(Tree sig, Tree env)
 			cerr << "        " << i << endl;
 			exit(1);
 		}
-			
-		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0))); 
+
+		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0)));
 	}
 
 	else if (isSigBinOp(sig, &i, s1, s2)) {
@@ -345,17 +345,17 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigFVar(sig,type,name,file))   return infereFVarType(type);
 
-	else if (isSigButton(sig)) 				return castInterval(TGUI,interval(0,1)); 
+	else if (isSigButton(sig)) 				return castInterval(TGUI,interval(0,1));
 
 	else if (isSigCheckbox(sig))				return castInterval(TGUI,interval(0,1));
 
-	else if (isSigVSlider(sig,label,cur,min,max,step))		
+	else if (isSigVSlider(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
-	else if (isSigHSlider(sig,label,cur,min,max,step))				
+	else if (isSigHSlider(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
-	else if (isSigNumEntry(sig,label,cur,min,max,step))				
+	else if (isSigNumEntry(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
 	else if (isSigHBargraph(sig, l, x, y, s1)) return T(s1,env);
@@ -590,7 +590,7 @@ static Type infereRecType (Tree var, Tree body, Tree env)
 	if (getRecursivness(body) == 1 || env == NULLENV) {
         setSigType(var, t1);
 		T(body, NULLENV);
-	} 
+	}
 	return t1;
 }
 
