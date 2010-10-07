@@ -789,8 +789,8 @@ void CPPOpenCLCodeContainer::produceClass()
             // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "fTempInputs[i] = new float[sizeof(float) * 8192];";
-                    tab(n+3, *fOut); *fOut << "fOpenCLInputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(float) * 8192, fTempInputs[i], &err);";
+                    tab(n+3, *fOut); *fOut << subst("fTempInputs[i] = new $0[sizeof($0) * 8192];", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fOpenCLInputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempInputs[i], &err);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << err << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -801,8 +801,8 @@ void CPPOpenCLCodeContainer::produceClass()
             // Allocate kernel output buffers (shared between CPU and GPU)
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "fTempOutputs[i] = new float[sizeof(float) * 8192];";
-                    tab(n+3, *fOut); *fOut << "fOpenCLOutputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof(float) * 8192, fTempOutputs[i], &err);";
+                    tab(n+3, *fOut); *fOut << subst("fTempOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fOpenCLOutputs[i] = clCreateBuffer(fOpenCLContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempOutputs[i], &err);", xfloat());
                     
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << err << endl;";
@@ -952,7 +952,7 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
     // Copy audio input buffer to temp buffers
     if (fNumInputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << "memcpy(fTempInputs[i], inputs[i], sizeof(float) * count);";
+            tab(n+3, *fOut); *fOut << subst("memcpy(fTempInputs[i], inputs[i], sizeof($0) * count);", xfloat());
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
@@ -960,7 +960,7 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
     // Copy temp buffers to audio output buffers
     if (fNumOutputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << "memcpy(outputs[i], fTempOutputs[i], sizeof(float) * count);";
+            tab(n+3, *fOut); *fOut << subst("memcpy(outputs[i], fTempOutputs[i], sizeof($0) * count);", xfloat());
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
