@@ -66,7 +66,6 @@
 #include "java_code_container.hh"
 #include "llvm_code_container.hh"
 #include "fir_code_container.hh"
-#include "opencl_code_container.hh"
 
 // construction des representations graphiques
 
@@ -149,6 +148,7 @@ int             gVectorLoopVariant = 0;
 bool            gOpenMPSwitch   = false;
 bool            gOpenMPLoop     = false;
 bool            gSchedulerSwitch  = false;
+bool            gOpenCLSwitch  = false;
 bool			gGroupTaskSwitch = false;
 bool			gFunTaskSwitch = false;
 
@@ -288,6 +288,10 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-sch", "--scheduler")) {
 			gSchedulerSwitch = true;
 			i += 1;
+            
+         } else if (isCmd(argv[i], "-ocl", "--opencl")) {
+			gOpenCLSwitch = true;
+			i += 1;
 
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
 			gGroupTaskSwitch = true;
@@ -405,6 +409,7 @@ void printhelp()
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
     cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
+    cout << "-ocl \t--opencl generate tasks with OpenCL \n";
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
@@ -678,6 +683,8 @@ int main (int argc, char* argv[])
                 container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else if (gVectorSwitch) {
                 container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+             } else if (gOpenCLSwitch) {   
+                container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
                 container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             }
@@ -693,14 +700,7 @@ int main (int argc, char* argv[])
             } else {
                 container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             }
-        } else if (gOutputLang == "opencl") {
-            if (gOpenMPSwitch || gSchedulerSwitch || gVectorSwitch) {
-                cerr << "ERROR : Not supported in OpenCL mode" << endl;
-                return 1;
-            } else {
-                container = new OpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-            }
-        } else if (gOutputLang == "fir") {
+       } else if (gOutputLang == "fir") {
             if (gOpenMPSwitch) {
                 container = new FirOpenMPCodeContainer(numInputs, numOutputs);
                 comp = new DAGInstructionsCompiler(container);
@@ -743,7 +743,7 @@ int main (int argc, char* argv[])
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                 streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
                 
-                if (gOutputLang == "opencl") {
+                if (gOpenCLSwitch) {
                     istream* thread_include = open_arch_stream("thread.h");
                     if (thread_include) {
                         streamCopy(*thread_include, *dst);

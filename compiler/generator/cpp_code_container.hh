@@ -32,6 +32,7 @@
 ***********************************************************************/
 #include "code_container.hh"
 #include "cpp_instructions.hh"
+#include "opencl_instructions.hh"
 
 using namespace std;
 
@@ -116,6 +117,34 @@ class CPPWorkStealingCodeContainer : public CPPCodeContainer {
         void produceClass();
         void generateCompute(int tab);
 
+};
+
+class CPPOpenCLCodeContainer : public CPPCodeContainer {
+
+    protected:
+    
+        OpenCLInstVisitor fOpenCLCodeProducer;
+        std::ostringstream* fComputeKernelStream;
+     
+    public:
+    
+        CPPOpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+            :CPPCodeContainer(name, super, numInputs, numOutputs, out), fOpenCLCodeProducer(out)
+        {
+            fComputeKernelStream = new std::ostringstream();
+        }
+        virtual ~CPPOpenCLCodeContainer()
+        {
+            delete fComputeKernelStream;
+        }
+        
+        virtual void produceClass();
+        void produceInternal();
+        
+        void generateCompute(int n);
+        
+       // CodeContainer* createScalarContainer(const string& name);
+             
 };
 
 #endif
