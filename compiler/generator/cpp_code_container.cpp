@@ -632,7 +632,7 @@ void CPPOpenCLCodeContainer::produceClass()
                 else
                     *fOut << named->getName() << " = ";
             } else {
-                 if (indexed->getAccess() == Address::kStruct)
+                if (indexed->getAccess() == Address::kStruct)
                     *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
                 else
                     *fOut << indexed->getName() << "[";
@@ -675,20 +675,19 @@ void CPPOpenCLCodeContainer::produceClass()
     }
        
     // Compile OpenCL kernel string
-    //OpenCLInstVisitor codeproducer(fGPUOut);
     KernelInstVisitor codeproducer(fGPUOut, n);
     codeproducer.Tab(n+1);
         
     //*fGPUOut << "const char* KernelSource = \"";
      
     tab(n, *fGPUOut);
-    //printfloatdef(*fGPUOut);
     
+    // Macro definition
     *fGPUOut << "#ifndef " << FLOATMACRO << std::endl;
     *fGPUOut << "#define " << FLOATMACRO << " " << "float" << std::endl;
     *fGPUOut << "#endif  " << std::endl;
      
-     // Separate control and non-controls fields in 2 structures
+    // Separate control and non-controls fields in 2 structures
     tab(n+1, *fGPUOut); *fGPUOut << "typedef struct {";
         DSPInstVisitor dsp_visitor(fGPUOut, n+2);
         fDeclarationInstructions->accept(&dsp_visitor);
@@ -743,7 +742,6 @@ void CPPOpenCLCodeContainer::produceClass()
     fGPUOut->flush();
     
     //*fGPUOut << "}\";";
-       
     //tab(n, *fOut); *fOut << fGPUOut->str();
    
     tab(n, *fOut);
@@ -761,7 +759,6 @@ void CPPOpenCLCodeContainer::produceClass()
         // Fields
         if (fDeclarationInstructions->fCode.size() > 0) {
             fCodeProducer.Tab(n+1);
-            //tab(n+1, *fOut);
             
             // Sort arrays to be at the begining
             fDeclarationInstructions->fCode.sort(sortFunction1);
@@ -827,9 +824,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}" << endl;
         
         tab(n+1, *fOut); *fOut   << "static void* RunHandler(void* arg) {";
-        
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
-         
             
             tab(n+2, *fOut); *fOut << "while (true) {";
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
@@ -926,8 +921,10 @@ void CPPOpenCLCodeContainer::produceClass()
             
             // Creates the compute program from the source buffer
             //tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&KernelSource, NULL, &err);";  
-            tab(n+2, *fOut); *fOut << "program_src = load_program_source(\"tmp.cl\");";   
+            
+            tab(n+2, *fOut); *fOut << "program_src = load_program_source(\"tmp.cl\");"; 
             tab(n+2, *fOut); *fOut << "fProgram = clCreateProgramWithSource(fContext, 1, (const char**)&program_src, NULL, &err);";  
+            
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create program err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
