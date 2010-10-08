@@ -561,6 +561,7 @@ void CPPOpenCLCodeContainer::produceClass()
         }
     };
     
+    // To be used when generating GPU kernel string
     struct DSPGPUInstVisitor : public DSPInstVisitor {
     
         virtual void tab1(int n, ostream& fout)
@@ -598,6 +599,7 @@ void CPPOpenCLCodeContainer::produceClass()
         
     };
     
+    // To be used when generating GPU kernel string
     struct ControlGPUInstVisitor : public ControlInstVisitor {
     
         virtual void tab1(int n, ostream& fout)
@@ -613,7 +615,7 @@ void CPPOpenCLCodeContainer::produceClass()
     };
  
     // Control fields are preceded with "control->"
-    // Non-conftrol fields are preceded with "dsp->"
+    // Non-confrol fields are preceded with "dsp->"
     struct KernelInstVisitor : public CPPInstVisitor {
 
         map < string, string> fFunctionTable;
@@ -1256,6 +1258,7 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
                 
+                // To access conrol inside fControl field
                 struct UIInstVisitor : public CPPInstVisitor {
             
                     UIInstVisitor(std::ostream* out, int tab)
