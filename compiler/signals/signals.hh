@@ -31,7 +31,9 @@
 
 using namespace std;
 
-extern Sym box_reference;
+extern Tree box_symbol;
+
+#define unknown_box NULL
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -51,28 +53,28 @@ bool  isSigReal(Tree t, double* r);
 
 // Inputs and outputs
 Tree sigInput(int i, Tree box);
-Tree sigOutput(int i, Tree t);
+Tree sigOutput(int i, Tree t, Tree box);
 
 bool  isSigInput(Tree t, int* i);
 bool  isSigOutput(Tree t, int* i, Tree& t0);
 
 // delay
-Tree  sigDelay0(Tree t);
-Tree  sigDelay1(Tree t);
+Tree  sigDelay0(Tree t, Tree box);
+Tree  sigDelay1(Tree t, Tree box);
 bool  isSigDelay1(Tree t, Tree& t0);
 
-Tree  sigFixDelay(Tree t0, Tree t1);
+Tree  sigFixDelay(Tree t0, Tree t1, Tree box = unknown_box);
 bool  isSigFixDelay(Tree t, Tree& t0, Tree& t1);
 
-Tree  sigPrefix(Tree t0, Tree t1);
+Tree  sigPrefix(Tree t0, Tree t1, Tree box);
 bool  isSigPrefix(Tree t, Tree& t0, Tree& t1);
 
-Tree  sigIota(Tree t0);
+Tree  sigIota(Tree t0, Tree box);
 bool  isSigIota(Tree t, Tree& t0);
 
 // Int and Double casting
-Tree  sigIntCast(Tree t);
-Tree  sigFloatCast(Tree t);
+Tree  sigIntCast(Tree t, Tree box);
+Tree  sigFloatCast(Tree t, Tree box);
 
 bool  isSigIntCast(Tree t);
 bool  isSigFloatCast(Tree t);
@@ -82,10 +84,10 @@ bool  isSigFloatCast(Tree t, Tree& x);
 
 
 // tables
-Tree sigRDTbl (Tree t, Tree i);
-Tree sigWRTbl (Tree id, Tree t, Tree i, Tree s);
-Tree sigTable (Tree id, Tree n, Tree sig);
-Tree sigGen   (Tree content);
+Tree sigRDTbl (Tree t, Tree i, Tree box);
+Tree sigWRTbl (Tree id, Tree t, Tree i, Tree s, Tree box);
+Tree sigTable (Tree id, Tree n, Tree sig, Tree box);
+Tree sigGen   (Tree content, Tree box);
 
 bool isSigRDTbl (Tree s, Tree& t, Tree& i);
 bool isSigWRTbl (Tree u, Tree& id, Tree& t, Tree& i, Tree& s);
@@ -93,23 +95,23 @@ bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig);
 bool isSigGen   (Tree t, Tree& content);
 bool isSigGen   (Tree t);
 
-inline Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+inline Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx, Tree box)
 {
-	return sigRDTbl(sigWRTbl(nil, sigTable(nil, n, sigGen(init)), widx, wsig), ridx);
+	return sigRDTbl(sigWRTbl(nil, sigTable(nil, n, sigGen(init, box), box), widx, wsig, box), ridx, box);
 }
 
-inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
+inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx, Tree box)
 {
-	return sigRDTbl(sigTable(nil, n, sigGen(init)), ridx);
+	return sigRDTbl(sigTable(nil, n, sigGen(init, box), box), ridx, box);
 }
 
 
 // Tables for documentator
 // used to replace real tables for documentation purposes only
 
-Tree sigDocConstantTbl(Tree n, Tree init);
-Tree sigDocWriteTbl(Tree n, Tree init, Tree widx, Tree wsig);
-Tree sigDocAccessTbl(Tree doctbl, Tree ridx);
+Tree sigDocConstantTbl(Tree n, Tree init, Tree box);
+Tree sigDocWriteTbl(Tree n, Tree init, Tree widx, Tree wsig, Tree box);
+Tree sigDocAccessTbl(Tree doctbl, Tree ridx, Tree box);
 
 bool isSigDocConstantTbl(Tree s, Tree& n, Tree& init);
 bool isSigDocWriteTbl(Tree s, Tree& n, Tree& init, Tree& widx, Tree& wsig);
@@ -117,32 +119,32 @@ bool isSigDocAccessTbl(Tree s, Tree& doctbl, Tree& ridx);
 
 // selectors
 
-Tree sigSelect2 (Tree selector, Tree s1, Tree s2);
-Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3);
+Tree sigSelect2 (Tree selector, Tree s1, Tree s2, Tree box);
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3, Tree box);
 
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
 // multirate
-inline Tree sigVectorize (Tree s1, Tree s2)
+inline Tree sigVectorize (Tree s1, Tree s2, Tree box)
 {
     printf("vectorize not implemented\n");
     exit(0);
 }
 
-inline Tree sigSerialize (Tree s1)
+inline Tree sigSerialize (Tree s1, Tree box)
 {
     printf("serialize not implemented\n");
     exit(0);
 }
 
-inline Tree sigConcat (Tree s1, Tree s2)
+inline Tree sigConcat (Tree s1, Tree s2, Tree box)
 {
     printf("concatenation not implemented\n");
     exit(0);
 }
 
-inline Tree sigVectorAt (Tree s1, Tree s2)
+inline Tree sigVectorAt (Tree s1, Tree s2, Tree box)
 {
     printf("vector at not implemented\n");
     exit(0);
@@ -150,46 +152,46 @@ inline Tree sigVectorAt (Tree s1, Tree s2)
 
 // arithmetical operations
 
-Tree sigBinOp	(int op, Tree x, Tree y);
+Tree sigBinOp	(int op, Tree x, Tree y, Tree box);
 bool isSigBinOp	(Tree s, int* op, Tree& x, Tree& y);
 
 // Foreign Functions
 
-Tree sigFFun (Tree ff, Tree largs);
+Tree sigFFun (Tree ff, Tree largs, Tree box);
 bool isSigFFun	(Tree s, Tree& ff, Tree& largs);
 
 // Foreign Constants
 
-Tree sigFConst      (Tree type, Tree name, Tree file);
+Tree sigFConst      (Tree type, Tree name, Tree file, Tree box);
 bool isSigFConst    (Tree s);
 bool isSigFConst    (Tree s, Tree& type, Tree& name, Tree& file);
 
 // Foreign Variables
 
-Tree sigFVar      (Tree type, Tree name, Tree file);
+Tree sigFVar      (Tree type, Tree name, Tree file, Tree box);
 bool isSigFVar    (Tree s);
 bool isSigFVar    (Tree s, Tree& type, Tree& name, Tree& file);
 
 // emulation des anciennes fonctions
-inline Tree sigAdd(Tree x, Tree y)	{ return sigBinOp(kAdd, x, y); }
-inline Tree sigSub(Tree x, Tree y)	{ return sigBinOp(kSub, x, y); }
-inline Tree sigMul(Tree x, Tree y)	{ return sigBinOp(kMul, x, y); }
-inline Tree sigDiv(Tree x, Tree y)	{ return sigBinOp(kDiv, x, y); }
-inline Tree sigRem(Tree x, Tree y)	{ return sigBinOp(kRem, x, y); }
+inline Tree sigAdd(Tree x, Tree y, Tree box = unknown_box)	{ return sigBinOp(kAdd, x, y, box); }
+inline Tree sigSub(Tree x, Tree y, Tree box = unknown_box)	{ return sigBinOp(kSub, x, y, box); }
+inline Tree sigMul(Tree x, Tree y, Tree box = unknown_box)	{ return sigBinOp(kMul, x, y, box); }
+inline Tree sigDiv(Tree x, Tree y, Tree box = unknown_box)	{ return sigBinOp(kDiv, x, y, box); }
+inline Tree sigRem(Tree x, Tree y, Tree box = unknown_box)	{ return sigBinOp(kRem, x, y, box); }
 
-inline Tree sigAND(Tree x, Tree y)	{ return sigBinOp(kAND, x, y); }
-inline Tree sigOR(Tree x, Tree y)	{ return sigBinOp(kOR, x, y); }
-inline Tree sigXOR(Tree x, Tree y)	{ return sigBinOp(kXOR, x, y); }
+inline Tree sigAND(Tree x, Tree y, Tree box)	{ return sigBinOp(kAND, x, y, box); }
+inline Tree sigOR(Tree x, Tree y, Tree box)	{ return sigBinOp(kOR, x, y, box); }
+inline Tree sigXOR(Tree x, Tree y, Tree box)	{ return sigBinOp(kXOR, x, y, box); }
 
-inline Tree sigLeftShift(Tree x, Tree y)	{ return sigBinOp(kLsh, x, y); }
-inline Tree sigRightShift(Tree x, Tree y)	{ return sigBinOp(kRsh, x, y); }
+inline Tree sigLeftShift(Tree x, Tree y, Tree box)	{ return sigBinOp(kLsh, x, y, box); }
+inline Tree sigRightShift(Tree x, Tree y, Tree box)	{ return sigBinOp(kRsh, x, y, box); }
 
-inline Tree sigGT(Tree x, Tree y)	{ return sigBinOp(kGT, x, y); }
-inline Tree sigLT(Tree x, Tree y)	{ return sigBinOp(kLT, x, y); }
-inline Tree sigGE(Tree x, Tree y)	{ return sigBinOp(kGE, x, y); }
-inline Tree sigLE(Tree x, Tree y)	{ return sigBinOp(kLE, x, y); }
-inline Tree sigEQ(Tree x, Tree y)	{ return sigBinOp(kEQ, x, y); }
-inline Tree sigNE(Tree x, Tree y)	{ return sigBinOp(kNE, x, y); }
+inline Tree sigGT(Tree x, Tree y, Tree box)	{ return sigBinOp(kGT, x, y, box); }
+inline Tree sigLT(Tree x, Tree y, Tree box)	{ return sigBinOp(kLT, x, y, box); }
+inline Tree sigGE(Tree x, Tree y, Tree box)	{ return sigBinOp(kGE, x, y, box); }
+inline Tree sigLE(Tree x, Tree y, Tree box)	{ return sigBinOp(kLE, x, y, box); }
+inline Tree sigEQ(Tree x, Tree y, Tree box)	{ return sigBinOp(kEQ, x, y, box); }
+inline Tree sigNE(Tree x, Tree y, Tree box)	{ return sigBinOp(kNE, x, y, box); }
 
 // pattern matching pour les anciennes fonctions
 bool isSigAdd	(Tree a, Tree&x, Tree&y);
@@ -198,13 +200,13 @@ bool isSigSub	(Tree a, Tree&x, Tree&y);
 bool isSigDiv	(Tree a, Tree&x, Tree&y);
 
 // operations pratiques sur des arbres dont on sait qu'ils sont des nombres
-Tree addNums 	(Tree a, Tree b);
-Tree subNums 	(Tree a, Tree b);
-Tree mulNums 	(Tree a, Tree b);
-Tree divNums 	(Tree a, Tree b);
-Tree divExtendedNums 	(Tree a, Tree b);
-Tree minusNum	(Tree a);
-Tree inverseNum	(Tree a);
+Tree addNums 	(Tree a, Tree b, Tree box = unknown_box);
+Tree subNums 	(Tree a, Tree b, Tree box = unknown_box);
+Tree mulNums 	(Tree a, Tree b, Tree box = unknown_box);
+Tree divNums 	(Tree a, Tree b, Tree box = unknown_box);
+Tree divExtendedNums 	(Tree a, Tree b, Tree box = unknown_box);
+Tree minusNum	(Tree a, Tree box = unknown_box);
+Tree inverseNum	(Tree a, Tree box = unknown_box);
 
 // tests sur les signaux constants
 inline bool isNum		(Tree a)	{ assert(a); return isNum(a->node()); }
@@ -215,7 +217,7 @@ inline bool isOne		(Tree a)	{ assert(a); return isOne(a->node()); }
 inline bool isMinusOne	(Tree a)	{ assert(a); return isMinusOne(a->node()); }
 
 //projection for recursive groups
-Tree sigProj (int i, Tree rgroup);
+Tree sigProj (int i, Tree rgroup, Tree box);
 bool isProj (Tree t, int* i, Tree& rgroup);
 
 inline bool isNum(const Tree& t, num& n)
@@ -233,36 +235,36 @@ inline bool isNum(const Tree& t, num& n)
 							 User Interface Elements
 *****************************************************************************/
 
-Tree sigButton 	 (Tree label);
+Tree sigButton 	 (Tree label, Tree box);
 bool isSigButton (Tree s);
 bool isSigButton (Tree s, Tree& label);
 
-Tree sigCheckbox   (Tree label);
+Tree sigCheckbox   (Tree label, Tree box);
 bool isSigCheckbox (Tree s);
 bool isSigCheckbox (Tree s, Tree& label);
 
-Tree sigVSlider   (Tree label, Tree cur, Tree min, Tree max, Tree step);
+Tree sigVSlider   (Tree label, Tree cur, Tree min, Tree max, Tree step, Tree box);
 bool isSigVSlider (Tree s);
 bool isSigVSlider (Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
-Tree sigHSlider   (Tree label, Tree cur, Tree min, Tree max, Tree step);
+Tree sigHSlider   (Tree label, Tree cur, Tree min, Tree max, Tree step, Tree box);
 bool isSigHSlider (Tree s);
 bool isSigHSlider (Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
-Tree sigNumEntry   (Tree label, Tree cur, Tree min, Tree max, Tree step);
+Tree sigNumEntry   (Tree label, Tree cur, Tree min, Tree max, Tree step, Tree box);
 bool isSigNumEntry (Tree s);
 bool isSigNumEntry (Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
 // output elements
-Tree sigVBargraph   (Tree label, Tree min, Tree max, Tree t0);
+Tree sigVBargraph   (Tree label, Tree min, Tree max, Tree t0, Tree box);
 bool isSigVBargraph (Tree s);
 bool isSigVBargraph (Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
 
-Tree sigHBargraph   (Tree label, Tree min, Tree max, Tree t0);
+Tree sigHBargraph   (Tree label, Tree min, Tree max, Tree t0, Tree box);
 bool isSigHBargraph (Tree s);
 bool isSigHBargraph (Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
 
-Tree sigAttach   (Tree x, Tree y);
+Tree sigAttach   (Tree x, Tree y, Tree box);
 bool isSigAttach (Tree s);
 bool isSigAttach (Tree s, Tree& x, Tree& y);
 
@@ -273,16 +275,16 @@ bool isSigAttach (Tree s, Tree& x, Tree& y);
 
 // a tuple of signals is basically a list of signals.
 // mode = 0 means normal, mode = 1 means blocked
-Tree sigTuple (int mode, Tree ls);
+Tree sigTuple (int mode, Tree ls, Tree box);
 bool isSigTuple (Tree s, int* mode, Tree& ls);
 
 // Access the components of a tuple.
 // ts is tuple of signals, idx is a scalar signal between 0..n
-Tree sigTupleAccess(Tree ts, Tree idx);
+Tree sigTupleAccess(Tree ts, Tree idx, Tree box);
 bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 
 // create a tuple of signals
-Tree sigCartesianProd (Tree s1, Tree s2);
+Tree sigCartesianProd (Tree s1, Tree s2, Tree box);
 
 
 

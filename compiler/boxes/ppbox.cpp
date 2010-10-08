@@ -29,12 +29,12 @@
 #include "xtended.hh"
 
 
-const char * prim0name(CTree *(*ptr) ())
+const char * prim0name(prim0 ptr)
 {
 	return "prim0???";
 }
 
-const char * prim1name(CTree *(*ptr) (CTree *))
+const char * prim1name(prim1 ptr)
 {
 	if (ptr == sigDelay1) return "mem";
 	if (ptr == sigIntCast) return "int";
@@ -43,7 +43,7 @@ const char * prim1name(CTree *(*ptr) (CTree *))
 	return "prim1???";
 }
 
-const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
+const char * prim2name(prim2 ptr)
 {
 	if (ptr == sigAdd) return "+";
 	if (ptr == sigSub) return "-";
@@ -76,20 +76,20 @@ const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 	return "prim2???";
 }
 
-const char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *))
+const char * prim3name(prim3 ptr)
 {
 	if (ptr == sigReadOnlyTable) 	return "rdtable";
 	if (ptr == sigSelect2) 			return "select2";
 	return "prim3???";
 }
 
-const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
+const char * prim4name(prim4 ptr)
 {
 	if (ptr == sigSelect3) 			return "select3";
 	return "prim4???";
 }
 
-const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
+const char * prim5name(prim5 ptr)
 {
 	if (ptr == sigWriteReadTable) 	return "wrtable";
 	return "prim5???";

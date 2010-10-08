@@ -46,16 +46,16 @@
 
 
 //! mix une liste de signaux sur n bus
-siglist mix(const siglist& lsig, int nbus)
+siglist mix(const siglist& lsig, int nbus, Tree box)
 {
 	int nlines	= lsig.size();
 
 	siglist dst(nbus);
 
 	for (int b=0; b<nbus; b++) {
-		Tree t = (b<nlines) ? lsig[b] : sigInt(0, NULL);
+		Tree t = (b<nlines) ? lsig[b] : sigInt(0, box);
 		for (int i=b+nbus; i<nlines; i+=nbus) {
-			t = sigAdd(t, lsig[i]);
+			t = sigAdd(t, lsig[i], box);
 		}
 		dst[b] = t;
 	}
@@ -76,18 +76,18 @@ siglist split(const siglist& inputs, int nbus)
 }
 
 //! Fabrique une liste de n projections d'un groupe récursif
-siglist makeSigProjList (Tree t, int n)
+siglist makeSigProjList (Tree t, int n, Tree box)
 {
 	siglist l(n);
-	for (int i = 0; i < n; i++) l[i] = sigDelay0(sigProj(i, t));
+	for (int i = 0; i < n; i++) l[i] = sigDelay0(sigProj(i, t, box), box);
 	return l;
 }
 
 //! Fabrique une liste de n mem projections d'un groupe récursif
-siglist makeMemSigProjList (Tree t, int n)
+siglist makeMemSigProjList (Tree t, int n, Tree box)
 {
 	siglist l(n);
-	for (int i = 0; i < n; i++) l[i] = sigDelay1(sigProj(i, t));
+	for (int i = 0; i < n; i++) l[i] = sigDelay1(sigProj(i, t, box), box);
 	return l;
 }
 
@@ -229,12 +229,12 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 
     else if (isBoxFConst(box, type, name, file))    {
         assert(lsig.size()==0);
-        return makeList(sigFConst(type, name, file));
+        return makeList(sigFConst(type, name, file, box));
     }
 
     else if (isBoxFVar(box, type, name, file))    {
         assert(lsig.size()==0);
-        return makeList(sigFVar(type, name, file));
+        return makeList(sigFVar(type, name, file, box));
     }
 
 	// Wire and Cut
@@ -272,76 +272,76 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 
 	else if (isBoxPrim0(box, &p0)) 			{
 		assert(lsig.size()==0);
-		return makeList( p0() );
+		return makeList( p0(box) );
 	}
 
 	else if (isBoxPrim1(box, &p1)) 				{
 		assert(lsig.size()==1);
-		return makeList( p1(lsig[0]) );
+		return makeList( p1(lsig[0], box) );
 	}
 
 	else if (isBoxPrim2(box, &p2)) 				{
 //		printf("prim2 recoit : "); print(lsig); printf("\n");
 		assert(lsig.size()==2);
-		return makeList( p2(lsig[0],lsig[1]) );
+		return makeList( p2(lsig[0],lsig[1], box) );
 	}
 
 	else if (isBoxPrim3(box, &p3)) 				{
 		assert(lsig.size()==3);
-		return makeList( p3(lsig[0],lsig[1],lsig[2]) );
+		return makeList( p3(lsig[0],lsig[1],lsig[2], box) );
 	}
 
 	else if (isBoxPrim4(box, &p4)) 				{
 		assert(lsig.size()==4);
-		return makeList( p4(lsig[0],lsig[1],lsig[2],lsig[3]) );
+		return makeList( p4(lsig[0],lsig[1],lsig[2],lsig[3], box) );
 	}
 
 	else if (isBoxPrim5(box, &p5)) 				{
 		assert(lsig.size()==5);
-		return makeList( p5(lsig[0],lsig[1],lsig[2],lsig[3],lsig[4]) );
+		return makeList( p5(lsig[0],lsig[1],lsig[2],lsig[3],lsig[4], box) );
 	}
 
 	else if (isBoxFFun(box, ff)) 				{
 		//cerr << "propagate en boxFFun of arity " << ffarity(ff) << endl;
 		assert(int(lsig.size())==ffarity(ff));
-		return makeList(sigFFun(ff, listConvert(lsig)));
+		return makeList(sigFFun(ff, listConvert(lsig), box));
 	}
 
 	// User Interface Widgets
 
 	else if (isBoxButton(box, label)) 	{
 		assert(lsig.size()==0);
-		return makeList(sigButton(normalizePath(cons(label, path))));
+		return makeList(sigButton(normalizePath(cons(label, path)), box));
 	}
 
 	else if (isBoxCheckbox(box, label)) 	{
 		assert(lsig.size()==0);
-		return makeList(sigCheckbox(normalizePath(cons(label, path))));
+		return makeList(sigCheckbox(normalizePath(cons(label, path)), box));
 	}
 
 	else if (isBoxVSlider(box, label, cur, min, max, step)) 	{
 		assert(lsig.size()==0);
-		return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step));
+		return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step, box));
 	}
 
 	else if (isBoxHSlider(box, label, cur, min, max, step)) 	{
 		assert(lsig.size()==0);
-		return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step));
+		return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step, box));
 	}
 
 	else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{
 		assert(lsig.size()==0);
-		return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step));
+		return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step, box));
 	}
 
 	else if (isBoxVBargraph(box, label, min, max)) 	{
 		assert(lsig.size()==1);
-		return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+		return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0], box));
 	}
 
 	else if (isBoxHBargraph(box, label, min, max)) 	{
 		assert(lsig.size()==1);
-		return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0]));
+		return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0], box));
 	}
 
 	// User Interface Groups
@@ -402,7 +402,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t2, &in2, &out2);
 
 		siglist l1 = propagate(slotenv, path, t1, lsig);
-		siglist l2 = mix(l1, in2);
+		siglist l2 = mix(l1, in2, box);
 		return propagate(slotenv, path, t2, l2);
 	}
 /*
@@ -426,11 +426,11 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 
 		Tree slotenv2 = lift(slotenv); // the environment must also be lifted
 
-		siglist l0 = makeMemSigProjList(ref(1), in2);
+		siglist l0 = makeMemSigProjList(ref(1), in2, box);
 		siglist l1 = propagate(slotenv2, path, t2, l0);
 		siglist l2 = propagate(slotenv2, path, t1, listConcat(l1,listLift(lsig)));
 		Tree g = rec(listConvert(l2));
-		return makeSigProjList(g, out1);
+		return makeSigProjList(g, out1, box);
 	}
 
 	cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;

@@ -18,20 +18,20 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _PPBOX_H
 #define _PPBOX_H
 
 /**********************************************************************
 			- ppbox.h : pretty print box expressions (projet FAUST) -
-					
+
 
 		Historique :
 		-----------
 		12-07-2002  first implementation  (yo)
-		
+
 ***********************************************************************/
 
 #include <iostream>
@@ -44,12 +44,12 @@ using namespace std;
 //inline void	ppbox  (Tree box, int priority=0) 					{ fppbox(stdout, box, priority); }
 
 
-const char * prim0name(CTree *(*ptr) ());
-const char * prim1name(CTree *(*ptr) (CTree *));
-const char * prim2name(CTree *(*ptr) (CTree *, CTree *));
-const char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *));
-const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *));
-const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *));
+const char * prim0name(prim0);
+const char * prim1name(prim1);
+const char * prim2name(prim2);
+const char * prim3name(prim3);
+const char * prim4name(prim4);
+const char * prim5name(prim5);
 
 
 // box pretty printer.

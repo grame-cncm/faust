@@ -184,12 +184,12 @@ bool isBoxError(Tree t);
 							 Primitive Boxes (n -> 1)
 *****************************************************************************/
 
-typedef Tree (*prim0)();
-typedef Tree (*prim1)(Tree x);
-typedef Tree (*prim2)(Tree x, Tree y);
-typedef Tree (*prim3)(Tree x, Tree y, Tree z);
-typedef Tree (*prim4)(Tree w, Tree x, Tree y, Tree z);
-typedef Tree (*prim5)(Tree v, Tree w, Tree x, Tree y, Tree z);
+typedef Tree (*prim0)(Tree box);
+typedef Tree (*prim1)(Tree x, Tree box);
+typedef Tree (*prim2)(Tree x, Tree y, Tree box);
+typedef Tree (*prim3)(Tree x, Tree y, Tree z, Tree box);
+typedef Tree (*prim4)(Tree w, Tree x, Tree y, Tree z, Tree box);
+typedef Tree (*prim5)(Tree v, Tree w, Tree x, Tree y, Tree z, Tree box);
 
 Tree boxPrim0 (prim0 foo);
 Tree boxPrim1 (prim1 foo);
