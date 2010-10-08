@@ -124,29 +124,17 @@ bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
 // multirate
-inline Tree sigVectorize (Tree s1, Tree s2, Tree box)
-{
-    printf("vectorize not implemented\n");
-    exit(0);
-}
+Tree sigVectorize (Tree s1, Tree s2, Tree box);
+bool isSigVectorize (Tree a, Tree& s1, Tree& s2);
 
-inline Tree sigSerialize (Tree s1, Tree box)
-{
-    printf("serialize not implemented\n");
-    exit(0);
-}
+Tree sigSerialize (Tree s, Tree box);
+bool isSigSerialize (Tree a, Tree& s);
 
-inline Tree sigConcat (Tree s1, Tree s2, Tree box)
-{
-    printf("concatenation not implemented\n");
-    exit(0);
-}
+Tree sigConcat (Tree s1, Tree s2, Tree box);
+bool isSigConcat (Tree a, Tree& s1, Tree& s2);
 
-inline Tree sigVectorAt (Tree s1, Tree s2, Tree box)
-{
-    printf("vector at not implemented\n");
-    exit(0);
-}
+Tree sigVectorAt (Tree s1, Tree s2, Tree box);
+bool isSigVectorAt (Tree a, Tree& s1, Tree& s2);
 
 // arithmetical operations
 

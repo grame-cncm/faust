@@ -50,6 +50,12 @@ static Type infereXType(Tree sig, Tree env);
 static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
+static Type infereVectorizeType(Tree sig, Tree env, Tree s1, Tree s2);
+static Type infereSerializeType(Tree sig, Tree env, Tree s);
+static Type infereConcatType(Tree sig, Tree env, Tree s1, Tree s2);
+static Type infereVectorAtType(Tree sig, Tree env, Tree s1, Tree s2);
+
+
 
 //static Tree addEnv(Tree var, Tree tt, Tree env);
 //static void markSigType(Tree sig, Tree env);
@@ -406,6 +412,10 @@ static Type infereSigType(Tree sig, Tree env)
 		while (isList(sig)) { v.push_back(T(hd(sig),env)); sig = tl(sig); }
 		return new TupletType(v);
 	}
+	else if (isSigVectorize(sig, s1, s2))   return infereVectorizeType(sig, env, s1, s2);
+    else if (isSigSerialize(sig, s1))       return infereSerializeType(sig, env, s1);
+    else if (isSigConcat(sig, s1, s2))      return infereConcatType(sig, env, s1, s2);
+    else if (isSigVectorAt(sig, s1, s2))    return infereVectorAtType(sig, env, s1, s2);
 
 	// unrecognized signal here
 	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
@@ -657,4 +667,30 @@ static Type infereXType(Tree sig, Tree env)
 
 	for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));
 	return p->infereSigType(vt);
+}
+
+static Type infereVectorizeType(Tree sig, Tree env, Tree s1, Tree s2)
+{
+    checkIntParam(T(s2, env));
+    printf("vectorize not implemented\n");
+    exit (0);
+}
+
+static Type infereSerializeType(Tree sig, Tree env, Tree s)
+{
+    printf("serialize not implemented\n");
+    exit (0);
+}
+
+static Type infereConcatType(Tree sig, Tree env, Tree s1, Tree s2)
+{
+    printf("concatenation not implemented\n");
+    exit (0);
+}
+
+static Type infereVectorAtType(Tree sig, Tree env, Tree s1, Tree s2)
+{
+    checkIntParam(T(s2, env));
+    printf("vector at not implemented\n");
+    exit (0);
 }
