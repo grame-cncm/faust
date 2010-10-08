@@ -539,6 +539,7 @@ static void tab1(int n, ostream& fout)
 void CPPOpenCLCodeContainer::produceClass() 
 {
     
+    // Visitor that only generates non-control fields
     struct DSPInstVisitor : public CPPInstVisitor {
        
         DSPInstVisitor(std::ostream* out, int tab)
@@ -574,6 +575,7 @@ void CPPOpenCLCodeContainer::produceClass()
         {}
     };
     
+    // Visitor that only generates control fields
     struct ControlInstVisitor : public CPPInstVisitor {
         
         ControlInstVisitor(std::ostream* out, int tab)
@@ -609,12 +611,34 @@ void CPPOpenCLCodeContainer::produceClass()
             :ControlInstVisitor(out, tab)
         {}
     };
-    
+ 
+    // Control fields are preceded with "control->"
+    // Non-conftrol fields are preceded with "dsp->"
     struct KernelInstVisitor : public CPPInstVisitor {
 
+        map < string, string> fFunctionTable;
         KernelInstVisitor(std::ostream* out, int tab)
             :CPPInstVisitor(out, tab)
-        {}
+        {
+            fFunctionTable["sin"] = "native_sin";
+            fFunctionTable["sinf"] = "native_sin";
+            fFunctionTable["cos"] = "native_cos";
+            fFunctionTable["cosf"] = "native_cos";
+            fFunctionTable["tan"] = "native_tan";
+            fFunctionTable["tanf"] = "native_tan";
+            fFunctionTable["log"] = "native_log";
+            fFunctionTable["logf"] = "native_log";
+            fFunctionTable["log10"] = "native_log10";
+            fFunctionTable["log10f"] = "native_log10";
+            fFunctionTable["log2"] = "native_log2";
+            fFunctionTable["log2f"] = "native_log2";
+            fFunctionTable["exp"] = "native_exp";
+            fFunctionTable["expf"] = "native_exp";
+            fFunctionTable["powf"] = "native_powr";
+            fFunctionTable["sqrt"] = "native_sqrt";
+            fFunctionTable["sqrtf"] = "native_sqrt";
+            fFunctionTable["fabsf"] = "fabs";
+        }
         
         virtual void tab1(int n, ostream& fout)
         {
@@ -650,6 +674,10 @@ void CPPOpenCLCodeContainer::produceClass()
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
             
+            // Special treatment for "fSamplingFreq" variable
+            if (named && named->getName() == "fSamplingFreq")
+                named->setAccess(Address::kStruct);
+            
             if (named) {
                 if (named->getAccess() == Address::kStruct)
                     *fOut << (IsControl(named) ? "control->" : "dsp->") << named->getName();
@@ -670,6 +698,10 @@ void CPPOpenCLCodeContainer::produceClass()
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
             
+            // Special treatment for "fSamplingFreq" variable
+            if (named && named->getName() == "fSamplingFreq")
+                named->setAccess(Address::kStruct);
+            
             if (named) {
                 if (named->getAccess() == Address::kStruct)
                     *fOut << (IsControl(named) ? "control->" : "dsp->")  << named->getName() << " = ";
@@ -687,6 +719,34 @@ void CPPOpenCLCodeContainer::produceClass()
             EndLine();
         }
         
+        virtual void visit(FunCallInst* inst)
+        {
+            if (inst->fMethod) {
+                list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
+                // Compile object arg
+                (*it)->accept(this); 
+                *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]: inst->fName) << "(";
+                list<ValueInst*>::const_iterator it1; 
+                int size = inst->fArgs.size() - 1, i = 0;
+                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                    // Compile argument
+                    (*it1)->accept(this); 
+                    if (i < size - 1) *fOut << ", ";
+                }
+                *fOut << ")";
+          } else {
+                *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
+                list<ValueInst*>::const_iterator it;
+                int size = inst->fArgs.size(), i = 0;
+                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                    // Compile argument
+                    (*it)->accept(this); 
+                    if (i < size - 1) *fOut << ", ";
+                }
+                *fOut << ")";
+            }
+        }
+      
     };
          
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
@@ -720,17 +780,17 @@ void CPPOpenCLCodeContainer::produceClass()
        
     // Compile OpenCL kernel string
     KernelInstVisitor codeproducer(fGPUOut, n);
-    //codeproducer.Tab(n+1);
         
     *fGPUOut << "const char* KernelSource = \"";
-     //tab1(n, *fGPUOut);
     
     // Macro definition
+    tab1(n, *fGPUOut); *fGPUOut << "#define max(x,y) (((x)>(y)) ? (x) : (y))";
+    tab1(n, *fGPUOut); *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
     tab1(n, *fGPUOut); *fGPUOut << "#ifndef " << FLOATMACRO;
     tab1(n, *fGPUOut); *fGPUOut << "#define " << FLOATMACRO << " " << "float";
     tab1(n, *fGPUOut); *fGPUOut << "#endif  ";
      
-    // Separate control and non-controls fields in 2 structures
+    // Separate control and non-controls fields in 2 separeted structures
     tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
         DSPGPUInstVisitor dsp_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&dsp_visitor);
@@ -757,6 +817,7 @@ void CPPOpenCLCodeContainer::produceClass()
     // Generate compute kernel
     tab1(n, *fGPUOut);
     *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
+    
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "__global float* input" << i << ", ";
     }
@@ -784,9 +845,8 @@ void CPPOpenCLCodeContainer::produceClass()
     *fGPUOut << "}";
     tab1(n, *fGPUOut);
     *fGPUOut << "\\n\";";
-    //fGPUOut->flush();
     
-    //*fGPUOut << "}\";";
+    // Insert OpenCL code as a string
     tab(n, *fOut); *fOut << fGPUOut->str();
    
     tab(n, *fOut);
