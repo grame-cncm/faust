@@ -614,143 +614,7 @@ void CPPOpenCLCodeContainer::produceClass()
         {}
     };
  
-    // Control fields are preceded with "control->"
-    // Non-confrol fields are preceded with "dsp->"
-    struct KernelInstVisitor : public CPPInstVisitor {
-
-        map < string, string> fFunctionTable;
-        KernelInstVisitor(std::ostream* out, int tab)
-            :CPPInstVisitor(out, tab)
-        {
-            fFunctionTable["sin"] = "native_sin";
-            fFunctionTable["sinf"] = "native_sin";
-            fFunctionTable["cos"] = "native_cos";
-            fFunctionTable["cosf"] = "native_cos";
-            fFunctionTable["tan"] = "native_tan";
-            fFunctionTable["tanf"] = "native_tan";
-            fFunctionTable["log"] = "native_log";
-            fFunctionTable["logf"] = "native_log";
-            fFunctionTable["log10"] = "native_log10";
-            fFunctionTable["log10f"] = "native_log10";
-            fFunctionTable["log2"] = "native_log2";
-            fFunctionTable["log2f"] = "native_log2";
-            fFunctionTable["exp"] = "native_exp";
-            fFunctionTable["expf"] = "native_exp";
-            fFunctionTable["powf"] = "native_powr";
-            fFunctionTable["sqrt"] = "native_sqrt";
-            fFunctionTable["sqrtf"] = "native_sqrt";
-            fFunctionTable["fabsf"] = "fabs";
-        }
-        
-        virtual void tab1(int n, ostream& fout)
-        {
-            fout << "  \\n\"  \\\n";
-            fout << "\"";
-            while (n--) fout << '\t';
-        }
-        
-        bool IsControl(NamedAddress* named)
-        {
-            return (named->getName().find("fbutton") != string::npos
-                || named->getName().find("fcheckbox") != string::npos
-                || named->getName().find("fvbargraph") != string::npos
-                || named->getName().find("fhbargraph") != string::npos
-                || named->getName().find("fvslider") != string::npos
-                || named->getName().find("fhslider") != string::npos
-                || named->getName().find("fentry") != string::npos);
-        }
-        
-        bool IsControl(IndexedAddress* indexed)
-        {
-            return (indexed->getName().find("fbutton") != string::npos
-                || indexed->getName().find("fvbargraph") != string::npos
-                || indexed->getName().find("fhbargraph") != string::npos
-                || indexed->getName().find("fcheckbox") != string::npos
-                || indexed->getName().find("fvslider") != string::npos
-                || indexed->getName().find("fhslider") != string::npos
-                || indexed->getName().find("fentry") != string::npos);
-        }
-
-        virtual void visit(LoadVarInst* inst) 
-        {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            
-            // Special treatment for "fSamplingFreq" variable
-            if (named && named->getName() == "fSamplingFreq")
-                named->setAccess(Address::kStruct);
-            
-            if (named) {
-                if (named->getAccess() == Address::kStruct)
-                    *fOut << (IsControl(named) ? "control->" : "dsp->") << named->getName();
-                else
-                    *fOut << named->getName();
-            } else {
-                if (indexed->getAccess() == Address::kStruct)
-                    *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
-                else
-                    *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "]"; 
-            }
-        }
-
-        virtual void visit(StoreVarInst* inst)
-        {   
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            
-            // Special treatment for "fSamplingFreq" variable
-            if (named && named->getName() == "fSamplingFreq")
-                named->setAccess(Address::kStruct);
-            
-            if (named) {
-                if (named->getAccess() == Address::kStruct)
-                    *fOut << (IsControl(named) ? "control->" : "dsp->")  << named->getName() << " = ";
-                else
-                    *fOut << named->getName() << " = ";
-            } else {
-                if (indexed->getAccess() == Address::kStruct)
-                    *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
-                else
-                    *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
-                *fOut << "] = "; 
-            }
-            inst->fValue->accept(this);
-            EndLine();
-        }
-        
-        virtual void visit(FunCallInst* inst)
-        {
-            if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
-                // Compile object arg
-                (*it)->accept(this); 
-                *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]: inst->fName) << "(";
-                list<ValueInst*>::const_iterator it1; 
-                int size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                    // Compile argument
-                    (*it1)->accept(this); 
-                    if (i < size - 1) *fOut << ", ";
-                }
-                *fOut << ")";
-          } else {
-                *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
-                list<ValueInst*>::const_iterator it;
-                int size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                    // Compile argument
-                    (*it)->accept(this); 
-                    if (i < size - 1) *fOut << ", ";
-                }
-                *fOut << ")";
-            }
-        }
-      
-    };
-         
+             
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
      // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDeclareVarInst("fSamplingFreq",
@@ -781,8 +645,6 @@ void CPPOpenCLCodeContainer::produceClass()
     }
        
     // Compile OpenCL kernel string
-    KernelInstVisitor codeproducer(fGPUOut, n);
-        
     *fGPUOut << "const char* KernelSource = \"";
     
     // Macro definition
@@ -810,42 +672,15 @@ void CPPOpenCLCodeContainer::produceClass()
     if (fInitInstructions->fCode.size() > 0) {
         *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global int samplingFreq) {";
         tab1(n+1, *fGPUOut);
-        codeproducer.Tab(n+1);
-        fInitInstructions->accept(&codeproducer);
+        fKernelCodeProducer->Tab(n+1);
+        fInitInstructions->accept(fKernelCodeProducer);
         tab1(n, *fGPUOut);
         *fGPUOut << "}";
     }
     
     // Generate compute kernel
-    tab1(n, *fGPUOut);
-    *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
-    
-    for (int i = 0; i < fNumInputs; i++) {
-        *fGPUOut <<  "__global float* input" << i << ", ";
-    }
-    
-    for (int i = 0; i < fNumOutputs; i++) {
-        if (i == fNumOutputs - 1) {
-            *fGPUOut << "__global float* output" << i;
-        } else {
-            *fGPUOut << "__global float* output" << i << ", ";
-        }    
-    }
-    
-    *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
-    tab1(n+1, *fGPUOut);
+    generateComputeKernel(n);
    
-    // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&codeproducer);
-    
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
-    loop->accept(&codeproducer);
-      
-    tab1(n, *fGPUOut);
-    
-    *fGPUOut << "}";
-    tab1(n, *fGPUOut);
     *fGPUOut << "\\n\";";
     
     // Insert OpenCL code as a string
@@ -1040,7 +875,7 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}";
             
             // Build the program executable
-            tab(n+2, *fOut); *fOut << "err = clBuildProgram(fProgram, 0, NULL, NULL, NULL, NULL);";   
+            tab(n+2, *fOut); *fOut << "err = clBuildProgram(fProgram, 0, NULL, \"-cl-denorms-are-zero\", NULL, NULL);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot build program err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
@@ -1371,4 +1206,62 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
     }
     tab(n+2, *fOut); *fOut << "fRunThread->Signal();";
     tab(n+1, *fOut); *fOut << "}";
+}
+
+void CPPOpenCLCodeContainer::generateComputeKernel(int n)
+{
+    // Generate compute kernel
+    tab1(n, *fGPUOut);
+    *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
+    
+    for (int i = 0; i < fNumInputs; i++) {
+        *fGPUOut <<  "__global float* input" << i << ", ";
+    }
+    
+    for (int i = 0; i < fNumOutputs; i++) {
+        if (i == fNumOutputs - 1) {
+            *fGPUOut << "__global float* output" << i;
+        } else {
+            *fGPUOut << "__global float* output" << i << ", ";
+        }    
+    }
+    
+    *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
+    tab1(n+1, *fGPUOut);
+   
+    // Generates local variables declaration and setup
+    fComputeBlockInstructions->accept(fKernelCodeProducer);
+    
+    // Generates one single scalar loop
+    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    loop->accept(fKernelCodeProducer);
+      
+    tab1(n, *fGPUOut);
+    
+    *fGPUOut << "}";
+    tab1(n, *fGPUOut);
+}
+
+void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
+{
+    // Generate compute kernel
+    tab1(n, *fGPUOut);
+    *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
+    
+    for (int i = 0; i < fNumInputs; i++) {
+        *fGPUOut <<  "__global float* input" << i << ", ";
+    }
+    
+    for (int i = 0; i < fNumOutputs; i++) {
+        if (i == fNumOutputs - 1) {
+            *fGPUOut << "__global float* output" << i;
+        } else {
+            *fGPUOut << "__global float* output" << i << ", ";
+        }    
+    }
+    
+    *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
+    tab1(n+1, *fGPUOut);
+    
+    // TODO
 }

@@ -123,26 +123,177 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
 
     protected:
     
-        OpenCLInstVisitor fOpenCLCodeProducer;
+        // Control fields are preceded with "control->"
+        // Non-confrol fields are preceded with "dsp->"
+        struct KernelInstVisitor : public CPPInstVisitor {
+
+            map < string, string> fFunctionTable;
+            KernelInstVisitor(std::ostream* out, int tab)
+                :CPPInstVisitor(out, tab)
+            {
+                fFunctionTable["sin"] = "native_sin";
+                fFunctionTable["sinf"] = "native_sin";
+                fFunctionTable["cos"] = "native_cos";
+                fFunctionTable["cosf"] = "native_cos";
+                fFunctionTable["tan"] = "native_tan";
+                fFunctionTable["tanf"] = "native_tan";
+                fFunctionTable["log"] = "native_log";
+                fFunctionTable["logf"] = "native_log";
+                fFunctionTable["log10"] = "native_log10";
+                fFunctionTable["log10f"] = "native_log10";
+                fFunctionTable["log2"] = "native_log2";
+                fFunctionTable["log2f"] = "native_log2";
+                fFunctionTable["exp"] = "native_exp";
+                fFunctionTable["expf"] = "native_exp";
+                fFunctionTable["powf"] = "native_powr";
+                fFunctionTable["sqrt"] = "native_sqrt";
+                fFunctionTable["sqrtf"] = "native_sqrt";
+                fFunctionTable["fabsf"] = "fabs";
+            }
+            
+            virtual void tab1(int n, ostream& fout)
+            {
+                fout << "  \\n\"  \\\n";
+                fout << "\"";
+                while (n--) fout << '\t';
+            }
+            
+            bool IsControl(NamedAddress* named)
+            {
+                return (named->getName().find("fbutton") != string::npos
+                    || named->getName().find("fcheckbox") != string::npos
+                    || named->getName().find("fvbargraph") != string::npos
+                    || named->getName().find("fhbargraph") != string::npos
+                    || named->getName().find("fvslider") != string::npos
+                    || named->getName().find("fhslider") != string::npos
+                    || named->getName().find("fentry") != string::npos);
+            }
+            
+            bool IsControl(IndexedAddress* indexed)
+            {
+                return (indexed->getName().find("fbutton") != string::npos
+                    || indexed->getName().find("fvbargraph") != string::npos
+                    || indexed->getName().find("fhbargraph") != string::npos
+                    || indexed->getName().find("fcheckbox") != string::npos
+                    || indexed->getName().find("fvslider") != string::npos
+                    || indexed->getName().find("fhslider") != string::npos
+                    || indexed->getName().find("fentry") != string::npos);
+            }
+
+            virtual void visit(LoadVarInst* inst) 
+            {
+                NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+                IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+                
+                // Special treatment for "fSamplingFreq" variable
+                if (named && named->getName() == "fSamplingFreq")
+                    named->setAccess(Address::kStruct);
+                
+                if (named) {
+                    if (named->getAccess() == Address::kStruct)
+                        *fOut << (IsControl(named) ? "control->" : "dsp->") << named->getName();
+                    else
+                        *fOut << named->getName();
+                } else {
+                    if (indexed->getAccess() == Address::kStruct)
+                        *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
+                    else
+                        *fOut << indexed->getName() << "[";
+                    indexed->fIndex->accept(this);
+                    *fOut << "]"; 
+                }
+            }
+
+            virtual void visit(StoreVarInst* inst)
+            {   
+                NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+                IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+                
+                // Special treatment for "fSamplingFreq" variable
+                if (named && named->getName() == "fSamplingFreq")
+                    named->setAccess(Address::kStruct);
+                
+                if (named) {
+                    if (named->getAccess() == Address::kStruct)
+                        *fOut << (IsControl(named) ? "control->" : "dsp->")  << named->getName() << " = ";
+                    else
+                        *fOut << named->getName() << " = ";
+                } else {
+                    if (indexed->getAccess() == Address::kStruct)
+                        *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
+                    else
+                        *fOut << indexed->getName() << "[";
+                    indexed->fIndex->accept(this);
+                    *fOut << "] = "; 
+                }
+                inst->fValue->accept(this);
+                EndLine();
+            }
+            
+            virtual void visit(FunCallInst* inst)
+            {
+                if (inst->fMethod) {
+                    list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
+                    // Compile object arg
+                    (*it)->accept(this); 
+                    *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]: inst->fName) << "(";
+                    list<ValueInst*>::const_iterator it1; 
+                    int size = inst->fArgs.size() - 1, i = 0;
+                    for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                        // Compile argument
+                        (*it1)->accept(this); 
+                        if (i < size - 1) *fOut << ", ";
+                    }
+                    *fOut << ")";
+              } else {
+                    *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
+                    list<ValueInst*>::const_iterator it;
+                    int size = inst->fArgs.size(), i = 0;
+                    for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                        // Compile argument
+                        (*it)->accept(this); 
+                        if (i < size - 1) *fOut << ", ";
+                    }
+                    *fOut << ")";
+                }
+            }
+          
+        };
+    
+        KernelInstVisitor* fKernelCodeProducer;
         std::ostringstream* fGPUOut;
      
     public:
     
         CPPOpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :CPPCodeContainer(name, super, numInputs, numOutputs, out), fOpenCLCodeProducer(out)
+            :CPPCodeContainer(name, super, numInputs, numOutputs, out)
         {
             fGPUOut = new std::ostringstream();
+            fKernelCodeProducer = new KernelInstVisitor(fGPUOut, 0);
         }
         virtual ~CPPOpenCLCodeContainer()
         {
             delete fGPUOut;
+            delete fKernelCodeProducer;
         }
         
         virtual void produceClass();
         void produceInternal();
         
         void generateCompute(int n);
+        virtual void generateComputeKernel(int n);
              
+};
+
+class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
+
+    public:
+    
+        CPPOpenCLVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+            :CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, out)
+        {}
+        
+        void generateComputeKernel(int n);
 };
 
 #endif
