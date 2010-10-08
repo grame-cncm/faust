@@ -475,21 +475,21 @@ StatementInst* CodeContainer::generateDAGLoopOMP()
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG
-    lclgraph G;
-    CodeLoop::sortGraph(fCurLoop, G);
+    lclgraph dag;
+    CodeLoop::sortGraph(fCurLoop, dag);
     int loop_num = 0;
     bool is_single = false; // Generates "#pragma omp single" once when we stay if a sequence of "single" loops
 
-    for (int l = G.size() - 1; l >= 0; l--) {
+    for (int l = dag.size() - 1; l >= 0; l--) {
         BlockInst* omp_sections_block = InstBuilder::genBlockInst();
-        if (G[l].size() > 1) {
+        if (dag[l].size() > 1) {
             loop_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp sections"));
             omp_sections_block->setIndent(true);
         }
-        for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+        for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
-            if (G[l].size() == 1) { // Only one loop
-                if (!(*p)->fIsRecursive && gOpenMPLoop) {
+            if (dag[l].size() == 1) { // Only one loop
+                if (!(*p)->isRecursive() && gOpenMPLoop) {
                     generateParLoopNode(*p, omp_section_block, loop_num++);
                 } else {
                     omp_section_block->setIndent(true);

@@ -673,10 +673,14 @@ int main (int argc, char* argv[])
                 container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else if (gSchedulerSwitch) {
                 container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            } else if (gOpenCLSwitch) {   
+                if (gVectorSwitch) {
+                    container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+                } else {
+                    container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+                }
             } else if (gVectorSwitch) {
                 container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-             } else if (gOpenCLSwitch) {   
-                container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
                 container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             }

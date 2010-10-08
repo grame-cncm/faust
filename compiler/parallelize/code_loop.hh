@@ -105,7 +105,8 @@ class CodeLoop {
                 loop->pushBackInst((*it));
             }
         }
-          
+        
+        
         bool isEmpty();                 ///< true when the loop doesn't contain any line of code
         bool hasRecDependencies();      ///< returns true is this loop has recursive dependencies
         
@@ -139,6 +140,8 @@ class CodeLoop {
         StatementInst* pushComputePostDSPMethod(StatementInst* inst) { fPostInst->pushBackInst(inst); return inst;}
         
         ForLoopInst* getScalarLoop();
+        
+        bool isRecursive() { return fIsRecursive; }
         
         void generateVecLoop(BlockInst* block);
         void generateVecLoop1(BlockInst* block);

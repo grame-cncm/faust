@@ -123,6 +123,81 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
 
     protected:
     
+        // Visitor that only generates non-control fields
+        struct DSPInstVisitor : public CPPInstVisitor {
+           
+            DSPInstVisitor(std::ostream* out, int tab)
+                :CPPInstVisitor(out, tab)
+            {}
+         
+            virtual void visit(DeclareVarInst* inst) 
+            {
+                if (!(inst->fName.find("fbutton") != string::npos
+                    || inst->fName.find("fvbargraph") != string::npos
+                    || inst->fName.find("fhbargraph") != string::npos
+                    || inst->fName.find("fcheckbox") != string::npos
+                    || inst->fName.find("fvslider") != string::npos
+                    || inst->fName.find("fhslider") != string::npos
+                    || inst->fName.find("fentry") != string::npos))
+                {
+                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                }
+            }
+        };
+        
+        // To be used when generating GPU kernel string
+        struct DSPGPUInstVisitor : public DSPInstVisitor {
+        
+            virtual void tab1(int n, ostream& fout)
+            {
+                fout << "  \\n\"  \\\n";
+                fout << "\"";
+                while (n--) fout << '\t';
+            }
+            
+            DSPGPUInstVisitor(std::ostream* out, int tab)
+                :DSPInstVisitor(out, tab)
+            {}
+        };
+        
+        // Visitor that only generates control fields
+        struct ControlInstVisitor : public CPPInstVisitor {
+            
+            ControlInstVisitor(std::ostream* out, int tab)
+                :CPPInstVisitor(out, tab)
+            {}
+      
+            virtual void visit(DeclareVarInst* inst) 
+            {
+                if (inst->fName.find("fbutton") != string::npos
+                    || inst->fName.find("fcheckbox") != string::npos
+                    || inst->fName.find("fvbargraph") != string::npos
+                    || inst->fName.find("fhbargraph") != string::npos
+                    || inst->fName.find("fvslider") != string::npos
+                    || inst->fName.find("fhslider") != string::npos
+                    || inst->fName.find("fentry") != string::npos)
+                {
+                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                }
+            }
+            
+        };
+        
+        // To be used when generating GPU kernel string
+        struct ControlGPUInstVisitor : public ControlInstVisitor {
+        
+            virtual void tab1(int n, ostream& fout)
+            {
+                fout << "  \\n\"  \\\n";
+                fout << "\"";
+                while (n--) fout << '\t';
+            }
+            
+            ControlGPUInstVisitor(std::ostream* out, int tab)
+                :ControlInstVisitor(out, tab)
+            {}
+        };
+
         // Control fields are preceded with "control->"
         // Non-confrol fields are preceded with "dsp->"
         struct KernelInstVisitor : public CPPInstVisitor {
@@ -293,7 +368,7 @@ class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
             :CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, out)
         {}
         
-        void generateComputeKernel(int n);
+        virtual void generateComputeKernel(int n);
 };
 
 #endif

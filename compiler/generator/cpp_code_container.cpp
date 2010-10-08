@@ -35,6 +35,7 @@ using namespace std;
 
 extern bool gUIMacroSwitch;
 extern int gVectorLoopVariant;
+extern bool gOpenMPLoop;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 
@@ -538,85 +539,9 @@ static void tab1(int n, ostream& fout)
         
 void CPPOpenCLCodeContainer::produceClass() 
 {
-    
-    // Visitor that only generates non-control fields
-    struct DSPInstVisitor : public CPPInstVisitor {
-       
-        DSPInstVisitor(std::ostream* out, int tab)
-            :CPPInstVisitor(out, tab)
-        {}
-     
-        virtual void visit(DeclareVarInst* inst) 
-        {
-            if (!(inst->fName.find("fbutton") != string::npos
-                || inst->fName.find("fvbargraph") != string::npos
-                || inst->fName.find("fhbargraph") != string::npos
-                || inst->fName.find("fcheckbox") != string::npos
-                || inst->fName.find("fvslider") != string::npos
-                || inst->fName.find("fhslider") != string::npos
-                || inst->fName.find("fentry") != string::npos))
-            {
-                tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
-            }
-        }
-    };
-    
-    // To be used when generating GPU kernel string
-    struct DSPGPUInstVisitor : public DSPInstVisitor {
-    
-        virtual void tab1(int n, ostream& fout)
-        {
-            fout << "  \\n\"  \\\n";
-            fout << "\"";
-            while (n--) fout << '\t';
-        }
-        
-        DSPGPUInstVisitor(std::ostream* out, int tab)
-            :DSPInstVisitor(out, tab)
-        {}
-    };
-    
-    // Visitor that only generates control fields
-    struct ControlInstVisitor : public CPPInstVisitor {
-        
-        ControlInstVisitor(std::ostream* out, int tab)
-            :CPPInstVisitor(out, tab)
-        {}
-  
-        virtual void visit(DeclareVarInst* inst) 
-        {
-            if (inst->fName.find("fbutton") != string::npos
-                || inst->fName.find("fcheckbox") != string::npos
-                || inst->fName.find("fvbargraph") != string::npos
-                || inst->fName.find("fhbargraph") != string::npos
-                || inst->fName.find("fvslider") != string::npos
-                || inst->fName.find("fhslider") != string::npos
-                || inst->fName.find("fentry") != string::npos)
-            {
-                tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
-            }
-        }
-        
-    };
-    
-    // To be used when generating GPU kernel string
-    struct ControlGPUInstVisitor : public ControlInstVisitor {
-    
-        virtual void tab1(int n, ostream& fout)
-        {
-            fout << "  \\n\"  \\\n";
-            fout << "\"";
-            while (n--) fout << '\t';
-        }
-        
-        ControlGPUInstVisitor(std::ostream* out, int tab)
-            :ControlInstVisitor(out, tab)
-        {}
-    };
- 
              
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
+    // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDeclareVarInst("fSamplingFreq",
         InstBuilder::genBasicTyped(Typed::kInt), Address::kStruct));
    
@@ -1263,5 +1188,47 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
     tab1(n+1, *fGPUOut);
     
-    // TODO
+    // Generates local variables declaration and setup
+    fComputeBlockInstructions->accept(fKernelCodeProducer);
+    
+    lclgraph dag;
+    CodeLoop::sortGraph(fCurLoop, dag);
+    computeForwardDAG(dag);
+    
+    BlockInst* loop_code = InstBuilder::genBlockInst();
+    list<ValueInst*> args;
+    args.push_back(InstBuilder::genIntNumInst(0));
+    
+    loop_code->pushBackInst(InstBuilder::genDeclareVarInst("tasknum", 
+        InstBuilder::genBasicTyped(Typed::kInt), Address::kStack, 
+        InstBuilder::genFunCallInst("get_global_id", args)));
+    
+    // Generate DAG
+    for (int l = dag.size() - 1; l >= 0; l--) {
+    
+        ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
+        SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+    
+        if (dag[l].size() > 1) {
+            int loop_num = 0;
+            for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+                BlockInst* switch_case_block = InstBuilder::genBlockInst();
+                generateLoopNode(*p, switch_case_block, loop_num);
+                switch_block->addCase(loop_num, switch_case_block);
+                loop_num++;
+            }
+        } else {
+            BlockInst* single_case_block = InstBuilder::genBlockInst();
+            generateLoopNode(*dag[l].begin(), single_case_block, 0);
+            switch_block->addCase(0, single_case_block);
+        }
+        
+        loop_code->pushBackInst(switch_block);
+        loop_code->pushBackInst(InstBuilder::genLabelInst("barrier(CLK_GLOBAL_MEM_FENCE);"));
+    }
+    
+    loop_code->accept(fKernelCodeProducer);
+    
+    *fGPUOut << "}";
+    tab1(n, *fGPUOut);
 }
