@@ -698,7 +698,7 @@ void CPPOpenCLCodeContainer::produceClass()
                  
                 // Pass variable parameters
                 tab(n+3, *fOut); *fOut << "int err = 0;";
-                tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fComputeKernel, 0, sizeof(unsigned int), &dsp->fCount);";
+                tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fComputeKernel, 0, sizeof(int), &dsp->fCount);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                     tab(n+4, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
@@ -709,15 +709,17 @@ void CPPOpenCLCodeContainer::produceClass()
                     tab(n+4, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
                 
-                /*
-                tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
+                
+                //tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
+                
+                tab(n+3, *fOut); *fOut << "global = local = 32;";
                 tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, NULL);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                     tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueNDRangeKernel compute err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
-                */
                 
-                tab(n+3, *fOut); *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, NULL);";
+                
+                //tab(n+3, *fOut); *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, NULL);";
                 tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                     tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueTask compute err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
@@ -803,7 +805,7 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "err = clBuildProgram(fProgram, 0, NULL, \"-cl-denorms-are-zero\", NULL, NULL);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot build program err = \" << err << endl;";
-                tab(n+3, *fOut); *fOut << "goto error;";
+                tab(n+3, *fOut); *fOut << "goto error_build;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Create the compute kernel 
@@ -903,6 +905,32 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}";
             
             tab(n+2, *fOut); *fOut << "return;" << endl;
+            
+         tab(n+1, *fOut); *fOut << "error_build:";
+            tab(n+2, *fOut); *fOut << "cl_build_status build_status;";
+            tab(n+2, *fOut); *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &build_status, NULL);";
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"clGetProgramBuildInfo CL_PROGRAM_BUILD_STATUS err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+            tab(n+2, *fOut); *fOut << "char* build_log;";
+            tab(n+2, *fOut); *fOut << "size_t ret_val_size;";
+            tab(n+2, *fOut); *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);";
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"clGetProgramBuildInfo CL_PROGRAM_BUILD_LOG err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+            tab(n+2, *fOut); *fOut << "char build_log1[ret_val_size + 1];";
+            tab(n+2, *fOut); *fOut << "err = clGetProgramBuildInfo(fProgram, fDeviceID, CL_PROGRAM_BUILD_LOG, ret_val_size, build_log1, NULL);";
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"clGetProgramBuildInfo CL_PROGRAM_BUILD_LOG err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            tab(n+2, *fOut); *fOut << "build_log1[ret_val_size] = '\\0';";
+            tab(n+2, *fOut); *fOut << "std::cout << \"BUILD LOG\" << std::endl;";
+            tab(n+2, *fOut); *fOut << "std::cout << build_log1 << std::endl;";
                     
         tab(n+1, *fOut); *fOut << "error:";
             tab(n+2, *fOut); *fOut << "throw std::bad_alloc();";   
@@ -1171,7 +1199,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
     tab1(n, *fGPUOut);
-    *fGPUOut << "__kernel void computeKernel(const unsigned int fullcount, ";
+    *fGPUOut << "__kernel void computeKernel(const int fullcount, ";
     
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "__global float* input" << i << ", ";

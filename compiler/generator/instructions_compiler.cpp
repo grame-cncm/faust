@@ -55,6 +55,7 @@ using namespace std;
 extern int gMaxCopyDelay;
 extern bool gVectorSwitch;
 extern int gVecSize;
+extern bool gOpenCLSwitch;
 
 std::ostream* Printable::fOut = &cout;
 
@@ -286,30 +287,30 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Needed in the global variable table
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("count", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("samplingFreq", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
+ 
+    if (!gOpenCLSwitch) { // HACK 
+        // "input" and "inputs" used as a name convention
+        for (int index = 0; index < fContainer->inputs(); index++) {
+            string name = subst("input$0", T(index));
 
-    /*
-    // "input" and "inputs" used as a name convention
-    for (int index = 0; index < fContainer->inputs(); index++) {
-        string name = subst("input$0", T(index));
+                fContainer->pushComputeBlockMethod(
+                    InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
+                        InstBuilder::genLoadVarInst(
+                            InstBuilder::genIndexedAddress(
+                                InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+        }
 
-            fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
-                    InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+        // "output" and "outputs" used as a name convention
+        for (int index = 0; index < fContainer->outputs(); index++) {
+            string name = subst("output$0", T(index));
+
+                fContainer->pushComputeBlockMethod(
+                    InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
+                        InstBuilder::genLoadVarInst(
+                            InstBuilder::genIndexedAddress(
+                                InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+        }
     }
-
-    // "output" and "outputs" used as a name convention
-    for (int index = 0; index < fContainer->outputs(); index++) {
-        string name = subst("output$0", T(index));
-
-            fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
-                    InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-    }
-    */
 
 	for (int index = 0; isList(L); L = tl(L), index++) {
 		Tree sig = hd(L);

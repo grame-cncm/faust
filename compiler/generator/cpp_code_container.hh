@@ -322,12 +322,12 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                     if (named->getAccess() == Address::kStruct)
                         *fOut << (IsControl(named) ? "&control->" : "&dsp->") << named->getName();
                     else
-                        *fOut << named->getName();
+                        *fOut << "&" << named->getName();
                 } else {
                     if (indexed->getAccess() == Address::kStruct)
                         *fOut << (IsControl(indexed) ? "&control->" : "&dsp->") << indexed->getName() << "[";
                     else
-                        *fOut << indexed->getName() << "[";
+                        *fOut << "&" << indexed->getName() << "[";
                     indexed->fIndex->accept(this);
                     *fOut << "]"; 
                 }
