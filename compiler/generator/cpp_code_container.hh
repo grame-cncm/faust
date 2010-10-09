@@ -254,6 +254,36 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                     || indexed->getName().find("fhslider") != string::npos
                     || indexed->getName().find("fentry") != string::npos);
             }
+            
+            virtual void visit(DeclareVarInst* inst) 
+            {   
+                if (inst->fAccess & Address::kGlobal) {
+                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+                        // If global is not defined
+                        fGlobalTable[inst->fName] = 1;
+                    } else {
+                        return;
+                    }
+                }
+                
+                if (inst->fAccess & Address::kStaticStruct) {
+                     *fOut << "static ";
+                }
+                
+                if (inst->fAccess & Address::kVolatile) {
+                     *fOut << "volatile ";
+                }
+                
+                if (inst->fAccess & Address::kStack) {
+                     *fOut << "__local ";
+                }
+                
+                if (inst->fValue) {
+                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                } else {
+                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                }
+            }
 
             virtual void visit(LoadVarInst* inst) 
             {
@@ -272,6 +302,30 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                 } else {
                     if (indexed->getAccess() == Address::kStruct)
                         *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
+                    else
+                        *fOut << indexed->getName() << "[";
+                    indexed->fIndex->accept(this);
+                    *fOut << "]"; 
+                }
+            }
+            
+            virtual void visit(LoadVarAddressInst* inst) 
+            {
+                NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
+                IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+                
+                // Special treatment for "fSamplingFreq" variable
+                if (named && named->getName() == "fSamplingFreq")
+                    named->setAccess(Address::kStruct);
+                
+                if (named) {
+                    if (named->getAccess() == Address::kStruct)
+                        *fOut << (IsControl(named) ? "&control->" : "&dsp->") << named->getName();
+                    else
+                        *fOut << named->getName();
+                } else {
+                    if (indexed->getAccess() == Address::kStruct)
+                        *fOut << (IsControl(indexed) ? "&control->" : "&dsp->") << indexed->getName() << "[";
                     else
                         *fOut << indexed->getName() << "[";
                     indexed->fIndex->accept(this);

@@ -568,6 +568,9 @@ void CPPOpenCLCodeContainer::produceClass()
         fCodeProducer.Tab(n);
         fGlobalDeclarationInstructions->accept(&fCodeProducer);
     }
+    
+    // Sort arrays to be at the begining
+    fDeclarationInstructions->fCode.sort(sortFunction1);
        
     // Compile OpenCL kernel string
     *fGPUOut << "const char* KernelSource = \"";
@@ -626,9 +629,6 @@ void CPPOpenCLCodeContainer::produceClass()
         // Fields
         if (fDeclarationInstructions->fCode.size() > 0) {
             fCodeProducer.Tab(n+1);
-            
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
             
             // Separate control and non-controls fields in 2 structures
             tab(n+1, *fOut); *fOut << "typedef struct {";
@@ -1171,7 +1171,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
     tab1(n, *fGPUOut);
-    *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
+    *fGPUOut << "__kernel void computeKernel(const unsigned int fullcount, ";
     
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "__global float* input" << i << ", ";
@@ -1196,9 +1196,25 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     computeForwardDAG(dag);
     
     BlockInst* loop_code = InstBuilder::genBlockInst();
+    
+     // Generate local input/output access
+    generateLocalInputs(loop_code);
+    generateLocalOutputs(loop_code);
+
+    
+    // Generate : int count = min(32, (fullcount - index))
+    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)));
+    list<ValueInst*> min_fun_args;
+    min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
+    min_fun_args.push_back(init2);
+    ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
+    StatementInst* count_dec = InstBuilder::genDeclareVarInst("count", InstBuilder::genBasicTyped(Typed::kInt), Address::kStack, init3);
+    loop_code->pushBackInst(count_dec);
+    
+    // Generates get_global_id access
     list<ValueInst*> args;
     args.push_back(InstBuilder::genIntNumInst(0));
-    
     loop_code->pushBackInst(InstBuilder::genDeclareVarInst("tasknum", 
         InstBuilder::genBasicTyped(Typed::kInt), Address::kStack, 
         InstBuilder::genFunCallInst("get_global_id", args)));
@@ -1227,7 +1243,22 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
         loop_code->pushBackInst(InstBuilder::genLabelInst("barrier(CLK_GLOBAL_MEM_FENCE);"));
     }
     
-    loop_code->accept(fKernelCodeProducer);
+    // Generates the DAG enclosing loop
+    string index = "index";
+    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(index, InstBuilder::genBasicTyped(Typed::kInt), Address::kLoop, InstBuilder::genIntNumInst(0));
+
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
+    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
+                        InstBuilder::genBinopInst(kAdd,
+                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                    InstBuilder::genIntNumInst(gVecSize)));
+
+    StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
+
+    // Generates the final loop
+    loop->accept(fKernelCodeProducer);
     
     *fGPUOut << "}";
     tab1(n, *fGPUOut);
