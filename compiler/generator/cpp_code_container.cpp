@@ -775,7 +775,7 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "std::cerr << \"Device name: \" << cDevName << endl;";
             
             // Creates context
-            tab(n+2, *fOut); *fOut << "fContext = clCreateContext(0, 1, &fDeviceID, NULL, NULL, &err);";   
+            tab(n+2, *fOut); *fOut << "fContext = clCreateContext(0, 1, &fDeviceID, clLogMessagesToStdoutAPPLE, NULL, &err);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create context err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
@@ -1217,7 +1217,8 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     tab1(n+1, *fGPUOut);
     
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(fKernelCodeProducer);
+    BlockKernelInstVisitor block_visitor(fGPUOut, n+1);
+    fComputeBlockInstructions->accept(&block_visitor);
     
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);

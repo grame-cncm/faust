@@ -255,36 +255,6 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                     || indexed->getName().find("fentry") != string::npos);
             }
             
-            virtual void visit(DeclareVarInst* inst) 
-            {   
-                if (inst->fAccess & Address::kGlobal) {
-                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
-                        // If global is not defined
-                        fGlobalTable[inst->fName] = 1;
-                    } else {
-                        return;
-                    }
-                }
-                
-                if (inst->fAccess & Address::kStaticStruct) {
-                     *fOut << "static ";
-                }
-                
-                if (inst->fAccess & Address::kVolatile) {
-                     *fOut << "volatile ";
-                }
-                
-                if (inst->fAccess & Address::kStack) {
-                     *fOut << "__local ";
-                }
-                
-                if (inst->fValue) {
-                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
-                } else {
-                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
-                }
-            }
-
             virtual void visit(LoadVarInst* inst) 
             {
                 NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
@@ -389,6 +359,44 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
           
         };
     
+        struct BlockKernelInstVisitor : public KernelInstVisitor {
+        
+            BlockKernelInstVisitor(std::ostream* out, int tab)
+                :KernelInstVisitor(out, tab)
+            {}
+            
+            virtual void visit(DeclareVarInst* inst) 
+            {   
+                if (inst->fAccess & Address::kGlobal) {
+                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+                        // If global is not defined
+                        fGlobalTable[inst->fName] = 1;
+                    } else {
+                        return;
+                    }
+                }
+                
+                if (inst->fAccess & Address::kStaticStruct) {
+                     *fOut << "static ";
+                }
+                
+                if (inst->fAccess & Address::kVolatile) {
+                     *fOut << "volatile ";
+                }
+                
+                if (inst->fAccess & Address::kStack) {
+                     *fOut << "__local ";
+                }
+                
+                if (inst->fValue) {
+                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                } else {
+                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                }
+            }
+
+        };
+        
         KernelInstVisitor* fKernelCodeProducer;
         std::ostringstream* fGPUOut;
      
