@@ -121,8 +121,77 @@ class CPPWorkStealingCodeContainer : public CPPCodeContainer {
 
 class CPPOpenCLCodeContainer : public CPPCodeContainer {
 
+    private:
+    
+        static bool isControl(string name)
+        {
+            return (name.find("fbutton") != string::npos
+                || name.find("fcheckbox") != string::npos
+                || name.find("fvbargraph") != string::npos
+                || name.find("fhbargraph") != string::npos
+                || name.find("fvslider") != string::npos
+                || name.find("fhslider") != string::npos
+                || name.find("fentry") != string::npos);
+        }
+
     protected:
     
+        // To access control inside fControl field
+        struct UIInstVisitor : public CPPInstVisitor {
+    
+            UIInstVisitor(std::ostream* out, int tab)
+                :CPPInstVisitor(out, tab)
+            {}
+            
+            virtual void visit(AddMetaDeclareInst* inst) 
+            {
+                *fOut << "interface->declare(" << "&fControl." << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
+            }
+            
+            virtual void visit(AddButtonInst* inst) 
+            {
+                if (inst->fType == AddButtonInst::kDefaultButton) {
+                    *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
+                } else {
+                    *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
+                }
+            }
+
+            virtual void visit(AddSliderInst* inst) 
+            {
+                string name;
+                switch (inst->fType) {
+                    case AddSliderInst::kHorizontal:
+                        name = "interface->addHorizontalSlider"; break;
+                    case AddSliderInst::kVertical:
+                        name = "interface->addVerticalSlider"; break;
+                    case AddSliderInst::kNumEntry:
+                        name = "interface->addNumEntry"; break;
+                } 
+                if (strcmp(ifloat(), "float") == 0)    
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
+                else
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+                EndLine();  
+            }
+            
+            virtual void visit(AddBargraphInst* inst) 
+            {
+                string name;
+                switch (inst->fType) {
+                    case AddBargraphInst::kHorizontal:
+                        name = "interface->addHorizontalBargraph"; break;
+                    case AddBargraphInst::kVertical:
+                        name = "interface->addVerticalBargraph"; break;
+                }     
+                if (strcmp(ifloat(), "float") == 0)
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
+                else
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
+                EndLine();       
+            }                    
+        };
+
         // Visitor that only generates non-control fields
         struct DSPInstVisitor : public CPPInstVisitor {
            
@@ -132,14 +201,7 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
          
             virtual void visit(DeclareVarInst* inst) 
             {
-                if (!(inst->fName.find("fbutton") != string::npos
-                    || inst->fName.find("fvbargraph") != string::npos
-                    || inst->fName.find("fhbargraph") != string::npos
-                    || inst->fName.find("fcheckbox") != string::npos
-                    || inst->fName.find("fvslider") != string::npos
-                    || inst->fName.find("fhslider") != string::npos
-                    || inst->fName.find("fentry") != string::npos))
-                {
+                if (!isControl(inst->fName)) {
                     tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
                 }
             }
@@ -169,14 +231,7 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
       
             virtual void visit(DeclareVarInst* inst) 
             {
-                if (inst->fName.find("fbutton") != string::npos
-                    || inst->fName.find("fcheckbox") != string::npos
-                    || inst->fName.find("fvbargraph") != string::npos
-                    || inst->fName.find("fhbargraph") != string::npos
-                    || inst->fName.find("fvslider") != string::npos
-                    || inst->fName.find("fhslider") != string::npos
-                    || inst->fName.find("fentry") != string::npos)
-                {
+                if (!isControl(inst->fName)) {                    
                     tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
                 }
             }
@@ -233,28 +288,6 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                 while (n--) fout << '\t';
             }
             
-            bool IsControl(NamedAddress* named)
-            {
-                return (named->getName().find("fbutton") != string::npos
-                    || named->getName().find("fcheckbox") != string::npos
-                    || named->getName().find("fvbargraph") != string::npos
-                    || named->getName().find("fhbargraph") != string::npos
-                    || named->getName().find("fvslider") != string::npos
-                    || named->getName().find("fhslider") != string::npos
-                    || named->getName().find("fentry") != string::npos);
-            }
-            
-            bool IsControl(IndexedAddress* indexed)
-            {
-                return (indexed->getName().find("fbutton") != string::npos
-                    || indexed->getName().find("fvbargraph") != string::npos
-                    || indexed->getName().find("fhbargraph") != string::npos
-                    || indexed->getName().find("fcheckbox") != string::npos
-                    || indexed->getName().find("fvslider") != string::npos
-                    || indexed->getName().find("fhslider") != string::npos
-                    || indexed->getName().find("fentry") != string::npos);
-            }
-            
             virtual void visit(LoadVarInst* inst) 
             {
                 NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
@@ -266,12 +299,12 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                 
                 if (named) {
                     if (named->getAccess() == Address::kStruct)
-                        *fOut << (IsControl(named) ? "control->" : "dsp->") << named->getName();
+                        *fOut << (isControl(named->getName()) ? "control->" : "dsp->") << named->getName();
                     else
                         *fOut << named->getName();
                 } else {
                     if (indexed->getAccess() == Address::kStruct)
-                        *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
+                        *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->") << indexed->getName() << "[";
                     else
                         *fOut << indexed->getName() << "[";
                     indexed->fIndex->accept(this);
@@ -290,12 +323,12 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                 
                 if (named) {
                     if (named->getAccess() == Address::kStruct)
-                        *fOut << (IsControl(named) ? "&control->" : "&dsp->") << named->getName();
+                        *fOut << (isControl(named->getName()) ? "&control->" : "&dsp->") << named->getName();
                     else
                         *fOut << "&" << named->getName();
                 } else {
                     if (indexed->getAccess() == Address::kStruct)
-                        *fOut << (IsControl(indexed) ? "&control->" : "&dsp->") << indexed->getName() << "[";
+                        *fOut << (isControl(indexed->getName()) ? "&control->" : "&dsp->") << indexed->getName() << "[";
                     else
                         *fOut << "&" << indexed->getName() << "[";
                     indexed->fIndex->accept(this);
@@ -314,12 +347,12 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                 
                 if (named) {
                     if (named->getAccess() == Address::kStruct)
-                        *fOut << (IsControl(named) ? "control->" : "dsp->")  << named->getName() << " = ";
+                        *fOut << (isControl(named->getName()) ? "control->" : "dsp->")  << named->getName() << " = ";
                     else
                         *fOut << named->getName() << " = ";
                 } else {
                     if (indexed->getAccess() == Address::kStruct)
-                        *fOut << (IsControl(indexed) ? "control->" : "dsp->") << indexed->getName() << "[";
+                        *fOut << (isControl(indexed->getName()) ? "control->" : "dsp->") << indexed->getName() << "[";
                     else
                         *fOut << indexed->getName() << "[";
                     indexed->fIndex->accept(this);
@@ -359,6 +392,7 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
           
         };
     
+        // Add __local keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
         
             BlockKernelInstVisitor(std::ostream* out, int tab)

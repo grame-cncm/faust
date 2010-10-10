@@ -447,6 +447,13 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     tab(n+1, *fOut); *fOut << "}";
 }
 
+static void tab1(int n, ostream& fout)
+{
+    fout << "  \\n\"  \\\n";
+    fout << "\"";
+    while (n--) fout << '\t';
+}
+
 void CPPOpenCLCodeContainer::produceInternal()
 {
     int n = 0;
@@ -529,17 +536,9 @@ void CPPOpenCLCodeContainer::produceInternal()
                         << "; }";
     tab(n, *fOut);
 }
-
-static void tab1(int n, ostream& fout)
-{
-    fout << "  \\n\"  \\\n";
-    fout << "\"";
-    while (n--) fout << '\t';
-}
         
 void CPPOpenCLCodeContainer::produceClass() 
 {
-             
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDeclareVarInst("fSamplingFreq",
@@ -550,7 +549,6 @@ void CPPOpenCLCodeContainer::produceClass()
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
     
     int n = 0;
-    
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
     addIncludeFile("<OpenCL/opencl.h>");
@@ -608,7 +606,6 @@ void CPPOpenCLCodeContainer::produceClass()
     
     // Generate compute kernel
     generateComputeKernel(n);
-   
     *fGPUOut << "\\n\";";
     
     // Insert OpenCL code as a string
@@ -692,7 +689,6 @@ void CPPOpenCLCodeContainer::produceClass()
         
         tab(n+1, *fOut); *fOut   << "static void* RunHandler(void* arg) {";
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
-            
             tab(n+2, *fOut); *fOut << "while (true) {";
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
                  
@@ -726,9 +722,7 @@ void CPPOpenCLCodeContainer::produceClass()
 		         
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fCommands);";
-             
             tab(n+2, *fOut); *fOut << "}";
-            
         tab(n+1, *fOut); *fOut << "}" << endl;
         
         
@@ -1045,63 +1039,6 @@ void CPPOpenCLCodeContainer::produceClass()
             if (fUserInterfaceInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
-                
-                // To access conrol inside fControl field
-                struct UIInstVisitor : public CPPInstVisitor {
-            
-                    UIInstVisitor(std::ostream* out, int tab)
-                        :CPPInstVisitor(out, tab)
-                    {}
-                    
-                    virtual void visit(AddMetaDeclareInst* inst) 
-                    {
-                        *fOut << "interface->declare(" << "&fControl." << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
-                    }
-                    
-                    virtual void visit(AddButtonInst* inst) 
-                    {
-                        if (inst->fType == AddButtonInst::kDefaultButton) {
-                            *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
-                        } else {
-                            *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
-                        }
-                    }
-
-                    virtual void visit(AddSliderInst* inst) 
-                    {
-                        string name;
-                        switch (inst->fType) {
-                            case AddSliderInst::kHorizontal:
-                                name = "interface->addHorizontalSlider"; break;
-                            case AddSliderInst::kVertical:
-                                name = "interface->addVerticalSlider"; break;
-                            case AddSliderInst::kNumEntry:
-                                name = "interface->addNumEntry"; break;
-                        } 
-                        if (strcmp(ifloat(), "float") == 0)    
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
-                        else
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
-                        EndLine();  
-                    }
-                    
-                    virtual void visit(AddBargraphInst* inst) 
-                    {
-                        string name;
-                        switch (inst->fType) {
-                            case AddBargraphInst::kHorizontal:
-                                name = "interface->addHorizontalBargraph"; break;
-                            case AddBargraphInst::kVertical:
-                                name = "interface->addVerticalBargraph"; break;
-                        }     
-                        if (strcmp(ifloat(), "float") == 0)
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
-                        else
-                            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
-                        EndLine();       
-                    }                    
-                };
-                
                 UIInstVisitor ui_visitor(fOut, n+2);
                 fUserInterfaceInstructions->accept(&ui_visitor);
             }
@@ -1229,7 +1166,6 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
      // Generate local input/output access
     generateLocalInputs(loop_code);
     generateLocalOutputs(loop_code);
-
     
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
