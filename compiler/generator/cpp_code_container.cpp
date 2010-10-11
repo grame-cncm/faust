@@ -692,7 +692,7 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "cl_ulong start, end;";
             tab(n+2, *fOut); *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);";
             tab(n+2, *fOut); *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);";
-            tab(n+2, *fOut); *fOut << "return (double)1.0e-6 * (end - start); // convert nanoseconds to seconds on return";
+            tab(n+2, *fOut); *fOut << "return (double)1.0e-6 * (end - start); // Convert nanoseconds to milliseconds on return";
         tab(n+1, *fOut); *fOut << "}" << endl;
         
         tab(n+1, *fOut); *fOut << "static void* RunHandler(void* arg) {";
