@@ -89,7 +89,6 @@ class CPPVectorCodeContainer : public CPPCodeContainer {
 
 };
 
-
 class CPPOpenMPCodeContainer : public CPPCodeContainer {
 
     protected:
@@ -231,7 +230,7 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
       
             virtual void visit(DeclareVarInst* inst) 
             {
-                if (!isControl(inst->fName)) {                    
+                if (isControl(inst->fName)) {                    
                     tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
                 }
             }

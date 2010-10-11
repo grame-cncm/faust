@@ -688,8 +688,21 @@ void CPPOpenCLCodeContainer::produceClass()
     
         tab(n+1, *fOut); *fOut << "}" << endl;
         
-        tab(n+1, *fOut); *fOut   << "static void* RunHandler(void* arg) {";
+        tab(n+1, *fOut); *fOut << "static double executionTime(cl_event &event) {";
+            tab(n+2, *fOut); *fOut << "cl_ulong start, end;";
+            tab(n+2, *fOut); *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);";
+            tab(n+2, *fOut); *fOut << "clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);";
+            tab(n+2, *fOut); *fOut << "return (double)1.0e-6 * (end - start); // convert nanoseconds to seconds on return";
+        tab(n+1, *fOut); *fOut << "}" << endl;
+        
+        tab(n+1, *fOut); *fOut << "static void* RunHandler(void* arg) {";
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
+            
+            tab(n+2, *fOut); *fOut << "if (dsp->fRunThread->fRealTime) {";
+                tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
+                tab(n+3, *fOut); *fOut << "SetRealTime();";
+            tab(n+2, *fOut); *fOut << "}";
+        
             tab(n+2, *fOut); *fOut << "while (true) {";
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
                  
@@ -706,16 +719,18 @@ void CPPOpenCLCodeContainer::produceClass()
                     tab(n+4, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "}";
                 
+                tab(n+3, *fOut); *fOut << "cl_event dsp_execution;";
+                
                 if (gVectorSwitch) {
                     //tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
                     tab(n+3, *fOut); *fOut << "global = local = 32;";
-                    tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, NULL);";
+                    tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, &dsp_execution);";
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueNDRangeKernel compute err = \" << err << endl;";
                     tab(n+3, *fOut); *fOut << "}";
                 } else {
                     // Only one kernel
-                    tab(n+3, *fOut); *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, NULL);";
+                    tab(n+3, *fOut); *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, &dsp_execution);";
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueTask compute err = \" << err << endl;";
                     tab(n+3, *fOut); *fOut << "}";
@@ -723,6 +738,8 @@ void CPPOpenCLCodeContainer::produceClass()
                		         
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fCommands);";
+                tab(n+3, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000) << \"%\" << endl;";
+             
             tab(n+2, *fOut); *fOut << "}";
             tab(n+2, *fOut); *fOut << "return NULL;";
         tab(n+1, *fOut); *fOut << "}" << endl;
@@ -778,7 +795,7 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}";
             
             // Creates a command queue
-            tab(n+2, *fOut); *fOut << "fCommands = clCreateCommandQueue(fContext, fDeviceID, 0, &err);";   
+            tab(n+2, *fOut); *fOut << "fCommands = clCreateCommandQueue(fContext, fDeviceID, CL_QUEUE_PROFILING_ENABLE, &err);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create command queue err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
@@ -1005,7 +1022,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
             if (fInitInstructions->fCode.size() > 0) {
                 
-                // TODO : handle samplingFreq
+                tab(n+2, *fOut); *fOut << "fSamplingFreq = samplingFreq;";
                 
                 tab(n+2, *fOut); *fOut << "int err = 0;";
                 tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fGPUDSP);";
@@ -1080,6 +1097,7 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
    
     tab(n+2, *fOut); *fOut << "fCount = count;";
+    tab(n+2, *fOut); *fOut << "GetRealTime();";
     
     // Copy audio input buffer to temp buffers
     if (fNumInputs > 0) {
