@@ -41,79 +41,111 @@
 #include "prim2.hh"
 
 extern int gMaxCopyDelay;
+extern bool gOpenCLSwitch;
 
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
     
     // "input" and "inputs" used as a name convention
-    for (int index = 0; index < fContainer->inputs(); index++) {
-        string name1 = subst("fInput$0_ptr", T(index));
-        string name2 = subst("fInput$0", T(index));
-        
-        //if (!gVectorSwitch) {
-        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name1, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));
-        fContainer->pushComputeBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct), 
-                InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+    if (!gOpenCLSwitch) { // HACK 
+        for (int index = 0; index < fContainer->inputs(); index++) {
+            string name1 = subst("fInput$0_ptr", T(index));
+            string name2 = subst("fInput$0", T(index));
+            
+            //if (!gVectorSwitch) {
+                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name1, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));
+                fContainer->pushComputeBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct), 
+                        InstBuilder::genLoadVarInst(
+                                InstBuilder::genIndexedAddress(
+                                    InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+                                    
+                                    
+                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name2, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));
                             
-                            
-        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name2, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));
-                        
-        /*
-        } else {
-             fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,  
-                    InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+            /*
+            } else {
+                 fContainer->pushComputeBlockMethod(
+                    InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,  
+                        InstBuilder::genLoadVarInst(
+                            InstBuilder::genIndexedAddress(
+                                InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+            }
+            */
         }
-        */
     }
     
-    // "output" and "outputs" used as a name convention
-    for (int index = 0; index < fContainer->outputs(); index++) {
-        string name1 = subst("fOutput$0_ptr", T(index));
-        string name2 = subst("fOutput$0", T(index));
-        
-        // if (!gVectorSwitch) {
-        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name1, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));                
-        fContainer->pushComputeBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct), 
-                InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-                            
-        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name2, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));
-                            
-        /*                
-        } else {
-             fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,  
+    if (!gOpenCLSwitch) { // HACK
+        // "output" and "outputs" used as a name convention
+        for (int index = 0; index < fContainer->outputs(); index++) {
+            string name1 = subst("fOutput$0_ptr", T(index));
+            string name2 = subst("fOutput$0", T(index));
+            
+            // if (!gVectorSwitch) {
+            fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name1, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));                
+            fContainer->pushComputeBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct), 
                     InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+                            InstBuilder::genIndexedAddress(
+                                InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+                                
+            fContainer->pushDeclare(InstBuilder::genDeclareVarInst(name2, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStruct));
+                                
+            /*                
+            } else {
+                 fContainer->pushComputeBlockMethod(
+                    InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,  
+                        InstBuilder::genLoadVarInst(
+                            InstBuilder::genIndexedAddress(
+                                InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+            }
+            */
         }
-        */
     }
     
-	for (int index = 0; isList(L); L = tl(L), index++) {
-		Tree sig = hd(L);
-        string name = subst("fOutput$0", T(index));
+    if (gOpenCLSwitch) { // HACK
+    
+        for (int index = 0; isList(L); L = tl(L), index++) {
+            Tree sig = hd(L);
+            string name = subst("output$0", T(index));
+            
+            fContainer->openLoop();
+            
+            // Cast to external float
+            ValueInst* res = CS(kSamp, sig);
+            res = InstBuilder::genCastNumInst(CS(kSamp, sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+            
+            fContainer->getCurLoop()->pushComputeDSPMethod(
+                InstBuilder::genStoreVarInst(
+                    InstBuilder::genIndexedAddress(
+                        InstBuilder::genNamedAddress(name, Address::kFunArgs), 
+                            InstBuilder::genBinopInst(kAdd,
+                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)),
+                             InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)))), res));
+                            
+            fContainer->closeLoop();
+        }
+    
+    } else {
         
-        fContainer->openLoop();
-        
-        // Cast to external float
-        ValueInst* res = CS(kSamp, sig);
-        res = InstBuilder::genCastNumInst(CS(kSamp, sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-        
-        fContainer->getCurLoop()->pushComputeDSPMethod(
-            InstBuilder::genStoreVarInst(
-                InstBuilder::genIndexedAddress(
-                    InstBuilder::genNamedAddress(name, Address::kStruct), 
-                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), res));  
-                        
-        fContainer->closeLoop();
+        for (int index = 0; isList(L); L = tl(L), index++) {
+            Tree sig = hd(L);
+            string name = subst("fOutput$0", T(index));
+            
+            fContainer->openLoop();
+            
+            // Cast to external float
+            ValueInst* res = CS(kSamp, sig);
+            res = InstBuilder::genCastNumInst(CS(kSamp, sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+            
+            fContainer->getCurLoop()->pushComputeDSPMethod(
+                InstBuilder::genStoreVarInst(
+                    InstBuilder::genIndexedAddress(
+                        InstBuilder::genNamedAddress(name, Address::kStruct), 
+                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), res));  
+                            
+            fContainer->closeLoop();
+        }
+    
     }
     
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
@@ -172,15 +204,30 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
 
 ValueInst* DAGInstructionsCompiler::generateInput(int variability, Tree sig, int idx) 
 {
-    // "input" use as a name convention
-    string name = subst("fInput$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress(name, Address::kStruct), 
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)))); 
-    // Cast to internal float
-    res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
-    return generateCacheCode(sig, res);
+    if (gOpenCLSwitch) { // HACK
+        // "input" use as a name convention
+        string name = subst("input$0", T(idx));
+        ValueInst* res = InstBuilder::genLoadVarInst(
+                            InstBuilder::genIndexedAddress(
+                                InstBuilder::genNamedAddress(name, Address::kFunArgs), 
+                                    InstBuilder::genBinopInst(kAdd,
+                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)),
+                             InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))))); 
+        // Cast to internal float
+        res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+        return generateCacheCode(sig, res);
+     
+     } else {
+        // "input" use as a name convention
+        string name = subst("fInput$0", T(idx));
+        ValueInst* res = InstBuilder::genLoadVarInst(
+                            InstBuilder::genIndexedAddress(
+                                InstBuilder::genNamedAddress(name, Address::kStruct), 
+                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)))); 
+        // Cast to internal float
+        res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+        return generateCacheCode(sig, res);
+     }
 }
 
 ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)

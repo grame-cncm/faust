@@ -1183,9 +1183,9 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     
     BlockInst* loop_code = InstBuilder::genBlockInst();
     
-     // Generate local input/output access
-    generateLocalInputs(loop_code);
-    generateLocalOutputs(loop_code);
+    // Generate local input/output access
+    //generateLocalInputs(loop_code);
+    //generateLocalOutputs(loop_code);
     
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
@@ -1225,7 +1225,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
         }
         
         loop_code->pushBackInst(switch_block);
-        loop_code->pushBackInst(InstBuilder::genLabelInst("barrier(CLK_GLOBAL_MEM_FENCE);"));
+        loop_code->pushBackInst(InstBuilder::genLabelInst("barrier(CLK_LOCAL_MEM_FENCE|CLK_GLOBAL_MEM_FENCE);"));
     }
     
     // Generates the DAG enclosing loop
