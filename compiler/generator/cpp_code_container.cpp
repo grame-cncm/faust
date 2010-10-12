@@ -1250,3 +1250,252 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     *fGPUOut << "}";
     tab1(n, *fGPUOut);
 }
+
+void CPPCUDACodeContainer::produceInternal()
+{
+    int n = 0;
+    
+    // Global declarations
+    /*
+    tab(n, *fOut); 
+    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
+        fCodeProducer.Tab(n);
+        fGlobalDeclarationInstructions->accept(&fCodeProducer);
+    }
+    */
+    
+    tab(n, *fOut); *fOut << "class " << fKlassName << " {";
+    
+        tab(n+1, *fOut); 
+        
+        if (gUIMacroSwitch) {
+            tab(n, *fOut); *fOut << "  public:";
+        } else {
+            tab(n, *fOut); *fOut << "  private:";
+        }
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); 
+        
+        // Fields
+        if (fDeclarationInstructions->fCode.size() > 0) {
+            fCodeProducer.Tab(n+1);
+            
+            // Sort arrays to be at the begining
+            fDeclarationInstructions->fCode.sort(sortFunction1);
+            
+            fDeclarationInstructions->accept(&fCodeProducer);
+        }
+            
+    tab(n, *fOut); *fOut << "  public:";
+     
+        // Input method
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "int getNumInputs" << fKlassName << "() { "
+                            << "return " << fNumInputs
+                            << "; }";
+        
+        // Output method
+        tab(n+1, *fOut); *fOut << "int getNumOutputs" << fKlassName << "() { "
+                            << "return " << fNumOutputs
+                            << "; }";
+       
+        // Inits
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
+            if (fInitInstructions->fCode.size() > 0) {
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                fInitInstructions->accept(&fCodeProducer);
+            }
+        tab(n+1, *fOut); *fOut << "}";
+     
+        // Fill
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
+        if (fComputeBlockInstructions->fCode.size() > 0) {
+            fComputeBlockInstructions->accept(&fCodeProducer);
+        }
+        ForLoopInst* loop = fCurLoop->getScalarLoop();
+        loop->accept(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "}";
+    
+    tab(n, *fOut); *fOut << "};" << endl;
+    
+    // Memory methods (as globals)
+    tab(n, *fOut); *fOut << fKlassName << "* " << "new" <<  fKlassName << "() { "
+                        << "return (" << fKlassName << "*) new "<< fKlassName << "()"
+                        << "; }";
+                        
+    tab(n, *fOut); *fOut << "void " << "delete" << fKlassName << "(" << fKlassName << "* dsp) { "
+                        << "delete dsp"
+                        << "; }";
+    tab(n, *fOut);
+}
+
+void CPPCUDACodeContainer::produceClass() 
+{
+    // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
+    // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
+    pushDeclare(InstBuilder::genDeclareVarInst("fSamplingFreq",
+        InstBuilder::genBasicTyped(Typed::kInt), Address::kStruct));
+   
+    pushFrontInitMethod(InstBuilder::genStoreVarInst(
+                            InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), 
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
+    
+    int n = 0;
+    addIncludeFile("<iostream>");
+    addIncludeFile("<fstream>");
+    addIncludeFile("<cuda.h");
+     
+    // Libraries
+    printLibrary(*fOut);
+    printIncludeFile(*fOut);
+   
+    // Sub containers
+    generateSubContainers();
+        
+    // Functions
+    tab(n, *fOut); 
+    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
+        fCodeProducer.Tab(n);
+        fGlobalDeclarationInstructions->accept(&fCodeProducer);
+    }
+    
+    // Sort arrays to be at the begining
+    fDeclarationInstructions->fCode.sort(sortFunction1);
+    
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
+    
+        tab(n+1, *fOut); 
+          
+        if (gUIMacroSwitch) {
+            tab(n, *fOut); *fOut << "  public:";
+        } else {
+            tab(n, *fOut); *fOut << "  private:";
+        }
+        tab(n+1, *fOut); 
+   
+        if (fDeclarationInstructions->fCode.size() > 0) {
+            fCodeProducer.Tab(n+1);
+            
+            // Separate control and non-controls fields in 2 structures
+            tab(n+1, *fOut); *fOut << "typedef struct {";
+  //              DSPInstVisitor dsp_visitor(fOut, n+2);
+   //             fDeclarationInstructions->accept(&dsp_visitor);
+            tab(n+1, *fOut); *fOut << "} faustdsp;";
+            tab(n+1, *fOut);
+            
+            tab(n+1, *fOut); *fOut << "typedef struct {";
+ //               ControlInstVisitor control_visitor(fOut, n+2);
+  //              fDeclarationInstructions->accept(&control_visitor);
+            tab(n+1, *fOut); *fOut << "} faustcontrol;";
+            
+            tab(n+1, *fOut);
+            tab(n+1, *fOut); *fOut << "faustcontrol fControl;";
+            tab(n+1, *fOut); *fOut << "void* fGPUDSP;";
+            tab(n+1, *fOut); *fOut << "void* fGPUControl;";
+        }
+        
+        tab(n+1, *fOut); *fOut << "int fDeviceID;";
+        tab(n+1, *fOut); *fOut << "float** fInputs;";
+        tab(n+1, *fOut); *fOut << "float** fOutputs;";
+        tab(n+1, *fOut); *fOut << "RunThread* fRunThread;";
+        tab(n+1, *fOut); *fOut << "int fCount;";
+        if (fNumInputs > 0) {
+            tab(n+1, *fOut); *fOut << "float** fTempInputs;";
+        }
+        if (fNumOutputs > 0) {
+            tab(n+1, *fOut); *fOut << "float** fTempOutputs;";
+        }
+         
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "  public:";
+    
+        // Print metadata declaration
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "void static metadata(Meta* m) { ";
+        
+        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+            if (i->first != tree("author")) {
+                tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+            } else {
+                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                    if (j == i->second.begin()) {
+                        tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
+                    } else {
+                        tab(n+2, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
+                    }
+                }
+            }
+        }
+    
+        tab(n+1, *fOut); *fOut << "}" << endl;
+        
+         tab(n+1, *fOut); *fOut << fKlassName << "() {";
+            tab(n+2, *fOut); *fOut << "cudaError_t cudaResult;";
+            tab(n+2, *fOut); *fOut << "int gpu = 1;"; 
+            tab(n+2, *fOut); *fOut << "int num_devices;"; 
+            tab(n+2, *fOut); *fOut << "char* program_src;"; 
+            
+            if (fNumInputs > 0) {
+                tab(n+2, *fOut); *fOut << "fInputs = new float*["<< fNumInputs << "];";
+                tab(n+2, *fOut); *fOut << "fTempInputs = new float*["<< fNumInputs << "];";
+            }
+            if (fNumOutputs > 0) {
+                tab(n+2, *fOut); *fOut << "fOutputs = new float*["<< fNumOutputs << "];";
+                tab(n+2, *fOut); *fOut << "fTempOutputs = new float*["<< fNumOutputs << "];";
+            }
+            
+            // Creates device
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaGetDeviceCount(&num_devices);";   
+            
+            
+        tab(n+1, *fOut); *fOut << "}" << endl;
+        
+    tab(n, *fOut); *fOut << "};" << endl;
+    
+    // Generate user interface macros if needed
+	if (gUIMacroSwitch) {
+		tab(n, *fOut); *fOut << "#ifdef FAUST_UIMACROS";
+            tab(n+1, *fOut); *fOut << "#define FAUST_INPUTS " << fNumInputs;
+            tab(n+1, *fOut); *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
+            tab(n+1, *fOut); *fOut << "#define FAUST_ACTIVES " << fNumActives;
+            tab(n+1, *fOut); *fOut << "#define FAUST_PASSIVES " << fNumPassives;
+			printlines(n+1, fUIMacro, *fOut);
+		tab(n, *fOut); *fOut << "#endif";
+        tab(n, *fOut);
+	}
+}
+
+void CPPCUDACodeContainer::generateCompute(int n)
+{
+    // Generates declaration
+    tab(n+1, *fOut);
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int count, $0** inputs, $0** outputs) {", xfloat());
+    fCodeProducer.Tab(n+2);
+   
+    tab(n+2, *fOut); *fOut << "fCount = count;";
+    tab(n+2, *fOut); *fOut << "GetRealTime();";
+    
+    // Copy audio input buffer to temp buffers
+    if (fNumInputs > 0) {
+        tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
+            tab(n+3, *fOut); *fOut << subst("memcpy(fTempInputs[i], inputs[i], sizeof($0) * count);", xfloat());
+        tab(n+2, *fOut); *fOut << "}";
+        tab(n+2, *fOut);
+    }
+    
+    // Copy temp buffers to audio output buffers
+    if (fNumOutputs > 0) {
+        tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
+            tab(n+3, *fOut); *fOut << subst("memcpy(outputs[i], fTempOutputs[i], sizeof($0) * count);", xfloat());
+        tab(n+2, *fOut); *fOut << "}";
+        tab(n+2, *fOut);
+    }
+    tab(n+2, *fOut); *fOut << "fRunThread->Signal();";
+    tab(n+1, *fOut); *fOut << "}";
+}

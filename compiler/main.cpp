@@ -149,6 +149,7 @@ bool            gOpenMPSwitch   = false;
 bool            gOpenMPLoop     = false;
 bool            gSchedulerSwitch  = false;
 bool            gOpenCLSwitch  = false;
+bool            gCUDASwitch = false;
 bool			gGroupTaskSwitch = false;
 bool			gFunTaskSwitch = false;
 
@@ -291,6 +292,10 @@ bool process_cmdline(int argc, char* argv[])
             
          } else if (isCmd(argv[i], "-ocl", "--openCL")) {
 			gOpenCLSwitch = true;
+			i += 1;
+            
+        } else if (isCmd(argv[i], "-cuda", "--CUDA")) {
+			gCUDASwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
@@ -678,6 +683,12 @@ int main (int argc, char* argv[])
                     container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 } else {
                     container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+                }
+            } else if (gCUDASwitch) {   
+                if (gVectorSwitch) {
+                    //container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+                } else {
+                    container = new CPPCUDACodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 }
             } else if (gVectorSwitch) {
                 container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);

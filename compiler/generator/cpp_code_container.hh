@@ -468,4 +468,24 @@ class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
         virtual void generateComputeKernel(int n);
 };
 
+class CPPCUDACodeContainer : public CPPCodeContainer {
+
+    protected:
+
+
+    public:
+
+        CPPCUDACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+             :CPPCodeContainer(name, super, numInputs, numOutputs, out)
+        {}
+        virtual ~CPPCUDACodeContainer()
+        {}
+     
+        void produceClass();
+        void generateCompute(int tab);
+        void produceInternal();
+
+};
+
+
 #endif
