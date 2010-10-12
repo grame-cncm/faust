@@ -78,6 +78,10 @@ jackgtkocl :
 	install -d jackgtkdirocl
 	$(MAKE) DEST='jackgtkdirocl/' VEC=' -ocl' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs` -framework OpenCL' -f Makefile.compile
 
+jackgtkoclvec :
+	install -d jackgtkdiroclvec
+	$(MAKE) DEST='jackgtkdiroclvec/' VEC=' -ocl -vec -vs 64' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs` -framework OpenCL' -f Makefile.compile
+
 jackgtkc :
 	install -d jackgtkdirc
 	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -sch -vs 64' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile

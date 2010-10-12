@@ -279,6 +279,7 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                 fFunctionTable["sqrtf"] = "native_sqrt";
                 fFunctionTable["fabsf"] = "fabs";
                 fFunctionTable["floorf"] = "floor";
+                fFunctionTable["fmodf"] = "fmod";
             }
             
             virtual void tab1(int n, ostream& fout)

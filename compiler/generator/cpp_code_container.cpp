@@ -738,7 +738,9 @@ void CPPOpenCLCodeContainer::produceClass()
                		         
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fCommands);";
-                tab(n+3, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000) << \"%\" << endl;";
+                tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10)) {";
+                    tab(n+4, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000) << \"%\" << endl;";
+                tab(n+3, *fOut); *fOut << "}" << endl;
              
             tab(n+2, *fOut); *fOut << "}";
             tab(n+2, *fOut); *fOut << "return NULL;";
