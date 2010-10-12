@@ -286,48 +286,35 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Needed in the global variable table
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("count", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("samplingFreq", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
+    
+    Typed* type;
+    /*
+    if (gVectorSwitch) {
+        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), gVecSize);
+    } else {
+        type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    }
+    */
+    type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     // "input" and "inputs" used as a name convention
     for (int index = 0; index < fContainer->inputs(); index++) {
         string name = subst("input$0", T(index));
-
-        //if (!gVectorSwitch) {
-            fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
+        fContainer->pushComputeBlockMethod(
+                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(type, 0), Address::kStack,
                     InstBuilder::genLoadVarInst(
                         InstBuilder::genIndexedAddress(
                             InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-        /*
-        } else {
-             fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,
-                    InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-        }
-        */
     }
 
     // "output" and "outputs" used as a name convention
     for (int index = 0; index < fContainer->outputs(); index++) {
         string name = subst("output$0", T(index));
-
-        //if (!gVectorSwitch) {
-            fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0), Address::kStack,
+        fContainer->pushComputeBlockMethod(
+                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(type, 0), Address::kStack,
                     InstBuilder::genLoadVarInst(
                         InstBuilder::genIndexedAddress(
                             InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-
-        /*
-        } else {
-             fContainer->pushComputeBlockMethod(
-                InstBuilder::genDeclareVarInst(name, InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), 0), Address::kStack,
-                    InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
-        }
-        */
     }
 
 	for (int index = 0; isList(L); L = tl(L), index++) {
@@ -495,40 +482,50 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     string vname;
     Typed::VarType ctype;
     ::Type t = getSigType(sig);
+    
+    Typed* type;
+    
 
     switch (t->variability()) {
 
         case kKonst:
-
             getTypedNames(t, "Const", ctype, vname);
-            //if (!gVectorSwitch) {
-                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(vname, InstBuilder::genBasicTyped(ctype), Address::kStruct));
-            //} else {
-            //    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(vname, InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize), Address::kStruct));
-            //}
+            /*
+            if (gVectorSwitch) {
+                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize);
+            } else {
+                type = InstBuilder::genBasicTyped(ctype);
+            }
+            */
+            type = InstBuilder::genBasicTyped(ctype);
+            fContainer->pushDeclare(InstBuilder::genDeclareVarInst(vname, type, Address::kStruct));
             fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), exp));
             return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct));
 
         case kBlock:
-
             getTypedNames(t, "Slow", ctype, vname);
-            //if (!gVectorSwitch) {
-                fContainer->pushComputeBlockMethod(InstBuilder::genDeclareVarInst(vname, InstBuilder::genBasicTyped(ctype), Address::kStack, exp));
-            //} else {
-            //    fContainer->pushComputeBlockMethod(InstBuilder::genDeclareVarInst(vname,
-            //        InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize), Address::kStack, exp));
-            //}
+             /*
+            if (gVectorSwitch) {
+                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize);
+            } else {
+                type = InstBuilder::genBasicTyped(ctype);
+            }
+            */
+            type = InstBuilder::genBasicTyped(ctype);
+            fContainer->pushComputeBlockMethod(InstBuilder::genDeclareVarInst(vname, type, Address::kStack, exp));
             return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
 
         case kSamp:
-
             getTypedNames(t, "Temp", ctype, vname);
-            //if (!gVectorSwitch) {
-                fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genDeclareVarInst(vname, InstBuilder::genBasicTyped(ctype), Address::kStack, exp));
-            //} else {
-            //    fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genDeclareVarInst(vname,
-            //        InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize), Address::kStack, exp));
-            //}
+             /*
+            if (gVectorSwitch) {
+                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize);
+            } else {
+                type = InstBuilder::genBasicTyped(ctype);
+            }
+            */
+            type = InstBuilder::genBasicTyped(ctype);
+            fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genDeclareVarInst(vname, type, Address::kStack, exp));
             return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
 
         default:
@@ -994,12 +991,17 @@ ValueInst* InstructionsCompiler::generateFloatCast(int variability, Tree sig, Tr
 ValueInst* InstructionsCompiler::generateButtonAux(int variability, Tree sig, Tree path, const string& name)
 {
     string varname = getFreshID(name);
-    //if (!gVectorSwitch) {
-        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(varname, InstBuilder::genBasicTyped(Typed::kFloatMacro), Address::kStruct));
-    //} else {
-    //    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(varname,
-    //        InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), Address::kStruct));
-    //}
+    Typed* type;
+    /*
+    if (gVectorSwitch) {
+        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gVecSize);
+    } else {
+        type = InstBuilder::genBasicTyped(yped::kFloatMacro);
+    }
+    */
+    type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    
+    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(varname, type, Address::kStruct));
     fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
@@ -1020,12 +1022,17 @@ ValueInst* InstructionsCompiler::generateCheckbox(int variability, Tree sig, Tre
 ValueInst* InstructionsCompiler::generateSliderAux(int variability, Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name)
 {
     string varname = getFreshID(name);
-    //if (!gVectorSwitch) {
-        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(varname, InstBuilder::genBasicTyped(Typed::kFloatMacro), Address::kStruct));
-    //} else {
-    //    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(varname,
-    //        InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(xfloat()), gVecSize), Address::kStruct));
-    //}
+    Typed* type;
+    /*
+    if (gVectorSwitch) {
+        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gVecSize);
+    } else {
+        type = InstBuilder::genBasicTyped(yped::kFloatMacro);
+    }
+    */
+    type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+
+    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(varname, type, Address::kStruct));
     fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
