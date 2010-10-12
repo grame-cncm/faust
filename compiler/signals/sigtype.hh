@@ -81,22 +81,22 @@ typedef P<AudioType> Type;
 class AudioType
 {
   protected:
-	int   		fNature;  		  	///< the kind of data represented
-	int   		fVariability; 	  	///< how fast values change
-  	int   		fComputability;	  	///< when are values available
-    int   		fVectorability;     ///< when a signal can be vectorized
-    int   		fBoolean;           ///< when a signal stands for a boolean value
-    
-    interval	fInterval;			///< Minimal and maximal values the signal can take
+	const int   		fNature;  			///< the kind of data represented
+	const int   		fVariability; 		///< how fast values change
+	const int   		fComputability;		///< when are values available
+    const int   		fVectorability;     ///< when a signal can be vectorized
+    const int   		fBoolean;           ///< when a signal stands for a boolean value
 
-	
-  public :		  
-	AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i=interval()) 
-		  : fNature(n), fVariability(v), fComputability(c), 
-		    fVectorability(vec), fBoolean(b), 
-		    fInterval(i) {}									///< constructs an abstract audio type	
-  	virtual ~AudioType() 									{} 	///< not really useful here, but make compiler happier
-	
+    const interval	    fInterval;          ///< Minimal and maximal values the signal can take
+
+
+  public :
+	AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i=interval())
+		  : fNature(n), fVariability(v), fComputability(c),
+		    fVectorability(vec), fBoolean(b),
+		    fInterval(i) {}									///< constructs an abstract audio type
+	virtual ~AudioType() 									{} 	///< not really useful here, but make compiler happier
+
 	int 	nature() 		const	{ return fNature; 		}	///< returns the kind of values (integre or floating point)
 	int 	variability() 	const	{ return fVariability; }	///< returns how fast values change (constant, by blocks, by samples)
 	int 	computability() const	{ return fComputability;}	///< returns when values are available (compilation, initialisation, execution)
@@ -115,10 +115,6 @@ class AudioType
 
 	
 	virtual ostream& print(ostream& dst) const		= 0;			///< print nicely a type
-	
-  protected:	
-	void		setInterval(const interval& r)	{ fInterval = r;}
-
 };
 
 //printing
