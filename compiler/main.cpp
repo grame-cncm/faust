@@ -750,7 +750,7 @@ int main (int argc, char* argv[])
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                 streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
                 
-                if (gOpenCLSwitch) {
+                if (gOpenCLSwitch || gCUDASwitch) {
                     istream* thread_include = open_arch_stream("thread.h");
                     if (thread_include) {
                         streamCopy(*thread_include, *dst);

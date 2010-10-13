@@ -1552,18 +1552,18 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "computeKernel<<<grid, block>>>(dsp->fCount, ";
                 if (fNumInputs > 0) {
                     for (int i = 0; i < fNumInputs; i++) {
-                       *fOut << "fDeviceInputs[" << i << "], ";
+                       *fOut << "dsp->fDeviceInputs[" << i << "], ";
                     }
                 }
                 if (fNumOutputs > 0) {
                     for (int i = 0; i < fNumOutputs; i++) {
                         if (i == fNumOutputs - 1)
-                            *fOut << "fDeviceOutputs[" << i << "]";
+                            *fOut << "dsp->fDeviceOutputs[" << i << "]";
                         else
-                            *fOut << "fDeviceOutputs[" << i << "], ";
+                            *fOut << "dsp->fDeviceOutputs[" << i << "], ";
                     }
                 } 
-                *fOut << ", fDeviceDSP, fDeviceControl);";
+                *fOut << ", dsp->fDeviceDSP, dsp->fDeviceControl);";
                		         
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "cudaThreadSynchronize();";
@@ -1587,7 +1587,7 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+2, *fOut); *fOut << "fTempInputs = new float*["<< fNumInputs << "];";
             }
             if (fNumOutputs > 0) {
-                tab(n+2, *fOut); *fOut << "ffHostOutputs = new float*["<< fNumOutputs << "];";
+                tab(n+2, *fOut); *fOut << "fHostOutputs = new float*["<< fNumOutputs << "];";
                 tab(n+2, *fOut); *fOut << "fDeviceOutputs = new float*["<< fNumOutputs << "];";
             }
             
@@ -1619,19 +1619,25 @@ void CPPCUDACodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}"; 
             
             tab(n+2, *fOut); *fOut << "std::cerr << \"Device name: \" << deviceProp.name << endl;";
+            
+             tab(n+2, *fOut); *fOut << " if (!deviceProp.canMapHostMemory) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Device cannot map host memory \" << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}"; 
+            
+            tab(n+2, *fOut); *fOut << "cudaSetDeviceFlags(cudaDeviceMapHost);"; 
            
             // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("fTempInputs[i] = new $0[sizeof($0) * 8192];", xfloat());
                     tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostInputs[i], sizeof($0) * 8192, cudaHostAllocMapped);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
-                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << err << endl;";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
                     tab(n+3, *fOut); *fOut << "}";
                     tab(n+3, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceInputs[i], (void *)fHostInputs[i], 0);";
                     tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
-                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot map input buffer err = \" << err << endl;";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot map input buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
                     tab(n+3, *fOut); *fOut << "}";
                 tab(n+2, *fOut); *fOut << "}";
@@ -1640,16 +1646,14 @@ void CPPCUDACodeContainer::produceClass()
             // Allocate kernel output buffers (shared between CPU and GPU)
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("fTempOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
                     tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostOutputs[i], sizeof($0) * 8192, cudaHostAllocMapped);", xfloat());
-                    
-                    tab(n+3, *fOut); *fOut << "if (err != cudaSuccess) {";
-                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << err << endl;";
+                    tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
                     tab(n+3, *fOut); *fOut << "}";
                     tab(n+3, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceOutputs[i], (void *)fHostOutputs[i], 0);";
                     tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
-                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot map output buffer err = \" << err << endl;";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot map output buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
                     tab(n+3, *fOut); *fOut << "}";
                 tab(n+2, *fOut); *fOut << "}";
@@ -1657,23 +1661,29 @@ void CPPCUDACodeContainer::produceClass()
              
             // Allocate control on CPU, map it on GPU
             tab(n+2, *fOut); *fOut << "cudaResult = cudaHostAlloc((void **)&fHostControl, sizeof(faustcontrol), cudaHostAllocMapped);";
-            tab(n+2, *fOut); *fOut << "if (err != cudaSuccess) {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << err << endl;";
+            tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << cudaResult << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
-            tab(n+2, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceControl, (void *)&fHostControl, 0));";
-            tab(n+2, *fOut); *fOut << "if (err != cudaSuccess) {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << err << endl;";
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceControl, (void *)fHostControl, 0);";
+            tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot map control err = \" << cudaResult << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Allocate DSP on GPU
             tab(n+2, *fOut); *fOut << "cudaResult = cudaMalloc((void **)&fDeviceDSP, sizeof(faustdsp));";
-            tab(n+2, *fOut); *fOut << "if (err != cudaResult) {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << err << endl;";
+            tab(n+2, *fOut); *fOut << "if (cudaResult != cudaResult) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << cudaResult << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
+            // Allocate thread
+            tab(n+2, *fOut); *fOut << "fRunThread = new RunThread();";
+            tab(n+2, *fOut); *fOut << "if (fRunThread->Start(true, RunHandler, this) != 0) {";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+   
             tab(n+2, *fOut); *fOut << "return;" << endl;
             
         tab(n+1, *fOut); *fOut << "error:";
@@ -1753,7 +1763,7 @@ void CPPCUDACodeContainer::produceClass()
                 
                 tab(n+2, *fOut); *fOut << "dim3 block(1);";
                 tab(n+2, *fOut); *fOut << "dim3 grid(1);";
-                tab(n+2, *fOut); *fOut << "initializeKernel<<<grid, block>>>(fDeviceDSP, fDeviceControl, samplingFreq);";
+                tab(n+2, *fOut); *fOut << "instanceInitKernel<<<grid, block>>>(fDeviceDSP, fDeviceControl, samplingFreq);";
                 
                 // Wait for instanceInit end
                 tab(n+2, *fOut); *fOut << "cudaThreadSynchronize();";
