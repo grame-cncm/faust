@@ -583,13 +583,13 @@ void CPPOpenCLCodeContainer::produceClass()
      
     // Separate control and non-controls fields in 2 separeted structures
     tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
-        DSPGPUInstVisitor dsp_visitor(fGPUOut, n+1);
+        DSPOpenCLInstVisitor dsp_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&dsp_visitor);
     tab1(n, *fGPUOut); *fGPUOut << "} faustdsp;";
     tab1(n, *fGPUOut);
     
     tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
-        ControlGPUInstVisitor control_visitor(fGPUOut, n+1);
+        ControlOpenCLInstVisitor control_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&control_visitor);
     tab1(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
     tab1(n, *fGPUOut);
@@ -652,17 +652,16 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "cl_program fProgram;";
         tab(n+1, *fOut); *fOut << "cl_kernel fComputeKernel;";
         tab(n+1, *fOut); *fOut << "cl_kernel fInstanceInitKernel;";
-        
-        tab(n+1, *fOut); *fOut << "cl_mem* fInputs;";
-        tab(n+1, *fOut); *fOut << "cl_mem* fOutputs;";
         tab(n+1, *fOut); *fOut << "cl_device_id* fDevicesTable;";
         tab(n+1, *fOut); *fOut << "RunThread* fRunThread;";
         tab(n+1, *fOut); *fOut << "int fCount;";
         if (fNumInputs > 0) {
             tab(n+1, *fOut); *fOut << "float** fTempInputs;";
+            tab(n+1, *fOut); *fOut << "cl_mem* fInputs;";
         }
         if (fNumOutputs > 0) {
             tab(n+1, *fOut); *fOut << "float** fTempOutputs;";
+            tab(n+1, *fOut); *fOut << "cl_mem* fOutputs;";
         }
         tab(n+1, *fOut);
             
@@ -765,9 +764,14 @@ void CPPOpenCLCodeContainer::produceClass()
             // Creates device
             tab(n+2, *fOut); *fOut << "err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 0, NULL, &num_devices);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot count CPU devices err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot count GPU devices err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
+            
+            tab(n+2, *fOut); *fOut << "if (num_devices == 0) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"There is no GPU devices\"<< endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}"; 
             
             tab(n+2, *fOut); *fOut << "fDevicesTable = new cl_device_id[num_devices];";
             
@@ -830,7 +834,7 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
-            // Create the nstanceInit kernel 
+            // Create the instanceInit kernel 
             tab(n+2, *fOut); *fOut << "fInstanceInitKernel = clCreateKernel(fProgram, \"instanceInitKernel\", &err);";   
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot create instanceInit kernel err = \" << err << endl;";
@@ -870,7 +874,7 @@ void CPPOpenCLCodeContainer::produceClass()
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
                     tab(n+3, *fOut); *fOut << subst("fTempOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
-                    tab(n+3, *fOut); *fOut << subst("fOutputs[i] = clCreateBuffer(fContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempOutputs[i], &err);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("cudaHostAlloc(fOutputs[i] = clCreateBuffer(fContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempOutputs[i], &err);", xfloat());
                     
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << err << endl;";
@@ -886,7 +890,7 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
-             // Allocate DSP  on GPU
+            // Allocate DSP on GPU
             tab(n+2, *fOut); *fOut << "fGPUDSP = clCreateBuffer(fContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, &err);";
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << err << endl;";
@@ -1367,6 +1371,68 @@ void CPPCUDACodeContainer::produceClass()
     // Sort arrays to be at the begining
     fDeclarationInstructions->fCode.sort(sortFunction1);
     
+    // Compile OpenCL kernel string
+    //*fGPUOut << "const char* KernelSource = \"";
+    
+    // Macro definition
+    /*
+    tab1(n, *fGPUOut); *fGPUOut << "#define max(x,y) (((x)>(y)) ? (x) : (y))";
+    tab1(n, *fGPUOut); *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
+    tab1(n, *fGPUOut); *fGPUOut << "#ifndef " << FLOATMACRO;
+    tab1(n, *fGPUOut); *fGPUOut << "#define " << FLOATMACRO << " " << "float";
+    tab1(n, *fGPUOut); *fGPUOut << "#endif  ";
+    */
+    
+    tab(n, *fGPUOut); *fGPUOut << "#define max(x,y) (((x)>(y)) ? (x) : (y))";
+    tab(n, *fGPUOut); *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
+    tab(n, *fGPUOut); *fGPUOut << "#ifndef " << FLOATMACRO;
+    tab(n, *fGPUOut); *fGPUOut << "#define " << FLOATMACRO << " " << "float";
+    tab(n, *fGPUOut); *fGPUOut << "#endif  ";
+    
+     // Separate control and non-controls fields in 2 separeted structures
+    //tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
+    tab(n, *fGPUOut);
+    tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
+        DSPInstVisitor dsp_visitor(fGPUOut, n+1);
+        fDeclarationInstructions->accept(&dsp_visitor);
+    //tab1(n, *fGPUOut); *fGPUOut << "} faustdsp;";
+    //tab1(n, *fGPUOut);
+    tab(n, *fGPUOut); *fGPUOut << "} faustdsp;";
+    tab(n, *fGPUOut);
+    
+    //tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
+    tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
+        ControlInstVisitor control_visitor(fGPUOut, n+1);
+        fDeclarationInstructions->accept(&control_visitor);
+    /*
+    tab1(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
+    tab1(n, *fGPUOut);
+    tab1(n, *fGPUOut);
+    */
+    tab(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
+    tab(n, *fGPUOut);
+    tab(n, *fGPUOut);
+    
+    // Generate instanceInit kernel
+    if (fInitInstructions->fCode.size() > 0) {
+        *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global int samplingFreq) {";
+        //tab1(n+1, *fGPUOut);
+        tab(n+1, *fGPUOut);
+        fKernelCodeProducer->Tab(n+1);
+        fInitInstructions->accept(fKernelCodeProducer);
+        //tab1(n, *fGPUOut);
+        tab(n, *fGPUOut);
+        *fGPUOut << "}";
+    }
+    
+    // Generate compute kernel
+    generateComputeKernel(n);
+    
+    //*fGPUOut << "\\n\";";
+    
+    // Insert CUDA code as a string
+    tab(n, *fOut); *fOut << fGPUOut->str();
+    
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
     
@@ -1395,21 +1461,23 @@ void CPPCUDACodeContainer::produceClass()
             tab(n+1, *fOut); *fOut << "} faustcontrol;";
             
             tab(n+1, *fOut);
-            tab(n+1, *fOut); *fOut << "faustcontrol fControl;";
-            tab(n+1, *fOut); *fOut << "void* fGPUDSP;";
-            tab(n+1, *fOut); *fOut << "void* fGPUControl;";
+            tab(n+1, *fOut); *fOut << "faustdsp* fDeviceDSP;";
+            tab(n+1, *fOut); *fOut << "faustcontrol* fHostControl;";
+            tab(n+1, *fOut); *fOut << "faustcontrol* fDeviceControl;";
         }
         
         tab(n+1, *fOut); *fOut << "int fDeviceID;";
-        tab(n+1, *fOut); *fOut << "float** fInputs;";
-        tab(n+1, *fOut); *fOut << "float** fOutputs;";
+        
+        tab(n+1, *fOut); *fOut << "int fDeviceCount;";
         tab(n+1, *fOut); *fOut << "RunThread* fRunThread;";
         tab(n+1, *fOut); *fOut << "int fCount;";
         if (fNumInputs > 0) {
-            tab(n+1, *fOut); *fOut << "float** fTempInputs;";
+            tab(n+1, *fOut); *fOut << "float** fDeviceInputs;";
+            tab(n+1, *fOut); *fOut << "float** fHostInputs;";
         }
         if (fNumOutputs > 0) {
-            tab(n+1, *fOut); *fOut << "float** fTempOutputs;";
+            tab(n+1, *fOut); *fOut << "float** fDeviceOutputs;";
+            tab(n+1, *fOut); *fOut << "float** fHostOutputs;";
         }
          
     tab(n, *fOut);
@@ -1435,27 +1503,313 @@ void CPPCUDACodeContainer::produceClass()
     
         tab(n+1, *fOut); *fOut << "}" << endl;
         
+        tab(n+1, *fOut); *fOut << "static void* RunHandler(void* arg) {";
+            tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
+            
+            tab(n+2, *fOut); *fOut << "if (dsp->fRunThread->fRealTime) {";
+                tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
+                tab(n+3, *fOut); *fOut << "SetRealTime();";
+            tab(n+2, *fOut); *fOut << "}";
+        
+            tab(n+2, *fOut); *fOut << "while (true) {";
+                tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
+                 
+                // Pass variable parameters
+                /*
+                tab(n+3, *fOut); *fOut << "int err = 0;";
+                tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fComputeKernel, 0, sizeof(int), &dsp->fCount);";
+                tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+4, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "}";
+                
+                tab(n+3, *fOut); *fOut << "size_t global, local;";
+                tab(n+3, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fComputeKernel, dsp->fDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
+                tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+4, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "}";
+                
+                tab(n+3, *fOut); *fOut << "cl_event dsp_execution;";
+                */
+                
+                /*
+                if (gVectorSwitch) {
+                    //tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
+                    tab(n+3, *fOut); *fOut << "global = local = 32;";
+                    tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, &dsp_execution);";
+                    tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueNDRangeKernel compute err = \" << err << endl;";
+                    tab(n+3, *fOut); *fOut << "}";
+                } else {
+                    // Only one kernel
+                    tab(n+3, *fOut); *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, &dsp_execution);";
+                    tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueTask compute err = \" << err << endl;";
+                    tab(n+3, *fOut); *fOut << "}";
+                }
+                */
+                tab(n+3, *fOut); *fOut << "dim3 block(256);";
+                tab(n+3, *fOut); *fOut << "dim3 grid(16);";
+                tab(n+3, *fOut); *fOut << "computeKernel<<<grid, block>>>(dsp->fCount, ";
+                if (fNumInputs > 0) {
+                    for (int i = 0; i < fNumInputs; i++) {
+                       *fOut << "fDeviceInputs[" << i << "], ";
+                    }
+                }
+                if (fNumOutputs > 0) {
+                    for (int i = 0; i < fNumOutputs; i++) {
+                        if (i == fNumOutputs - 1)
+                            *fOut << "fDeviceOutputs[" << i << "]";
+                        else
+                            *fOut << "fDeviceOutputs[" << i << "], ";
+                    }
+                } 
+                *fOut << ", fDeviceDSP, fDeviceControl);";
+               		         
+                // Wait for computation end
+                tab(n+3, *fOut); *fOut << "cudaThreadSynchronize();";
+                /*
+                tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10)) {";
+                    tab(n+4, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000) << \"%\" << endl;";
+                tab(n+3, *fOut); *fOut << "}" << endl;
+                */
+             
+            tab(n+2, *fOut); *fOut << "}";
+            tab(n+2, *fOut); *fOut << "return NULL;";
+        tab(n+1, *fOut); *fOut << "}" << endl;
+      
+        
          tab(n+1, *fOut); *fOut << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "cudaError_t cudaResult;";
-            tab(n+2, *fOut); *fOut << "int gpu = 1;"; 
-            tab(n+2, *fOut); *fOut << "int num_devices;"; 
             tab(n+2, *fOut); *fOut << "char* program_src;"; 
             
             if (fNumInputs > 0) {
-                tab(n+2, *fOut); *fOut << "fInputs = new float*["<< fNumInputs << "];";
+                tab(n+2, *fOut); *fOut << "fHostInputs = new float*["<< fNumInputs << "];";
                 tab(n+2, *fOut); *fOut << "fTempInputs = new float*["<< fNumInputs << "];";
             }
             if (fNumOutputs > 0) {
-                tab(n+2, *fOut); *fOut << "fOutputs = new float*["<< fNumOutputs << "];";
-                tab(n+2, *fOut); *fOut << "fTempOutputs = new float*["<< fNumOutputs << "];";
+                tab(n+2, *fOut); *fOut << "ffHostOutputs = new float*["<< fNumOutputs << "];";
+                tab(n+2, *fOut); *fOut << "fDeviceOutputs = new float*["<< fNumOutputs << "];";
             }
             
             // Creates device
-            tab(n+2, *fOut); *fOut << "cudaResult = cudaGetDeviceCount(&num_devices);";   
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaGetDeviceCount(&fDeviceCount);";  
+            tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot count GPU devices err = \" << cudaResult << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}"; 
             
+            tab(n+2, *fOut); *fOut << "if (fDeviceCount == 0) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"There is no GPU devices\"<< endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}"; 
             
+            tab(n+2, *fOut); *fOut << "fDeviceID = 0;";
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaSetDevice(fDeviceID);";
+            tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot set GPU device err = \" << cudaResult << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}"; 
+            
+            // Print device name
+            tab(n+2, *fOut); *fOut << "cudaDeviceProp deviceProp;";
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaGetDeviceProperties(&deviceProp, fDeviceID);";
+            tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot set device properties err = \" << cudaResult << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}"; 
+            
+            tab(n+2, *fOut); *fOut << "std::cerr << \"Device name: \" << deviceProp.name << endl;";
+           
+            // Allocate kernel input buffers (shared between CPU and GPU)
+            if (fNumInputs > 0) {
+                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
+                    tab(n+3, *fOut); *fOut << subst("fTempInputs[i] = new $0[sizeof($0) * 8192];", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostInputs[i], sizeof($0) * 8192, cudaHostAllocMapped);", xfloat());
+                    tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << err << endl;";
+                        tab(n+4, *fOut); *fOut << "goto error;";
+                    tab(n+3, *fOut); *fOut << "}";
+                    tab(n+3, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceInputs[i], (void *)fHostInputs[i], 0);";
+                    tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot map input buffer err = \" << err << endl;";
+                        tab(n+4, *fOut); *fOut << "goto error;";
+                    tab(n+3, *fOut); *fOut << "}";
+                tab(n+2, *fOut); *fOut << "}";
+            }
+            
+            // Allocate kernel output buffers (shared between CPU and GPU)
+            if (fNumOutputs > 0) {
+                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
+                    tab(n+3, *fOut); *fOut << subst("fTempOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostOutputs[i], sizeof($0) * 8192, cudaHostAllocMapped);", xfloat());
+                    
+                    tab(n+3, *fOut); *fOut << "if (err != cudaSuccess) {";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << err << endl;";
+                        tab(n+4, *fOut); *fOut << "goto error;";
+                    tab(n+3, *fOut); *fOut << "}";
+                    tab(n+3, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceOutputs[i], (void *)fHostOutputs[i], 0);";
+                    tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                        tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot map output buffer err = \" << err << endl;";
+                        tab(n+4, *fOut); *fOut << "goto error;";
+                    tab(n+3, *fOut); *fOut << "}";
+                tab(n+2, *fOut); *fOut << "}";
+            }
+             
+            // Allocate control on CPU, map it on GPU
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaHostAlloc((void **)&fHostControl, sizeof(faustcontrol), cudaHostAllocMapped);";
+            tab(n+2, *fOut); *fOut << "if (err != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceControl, (void *)&fHostControl, 0));";
+            tab(n+2, *fOut); *fOut << "if (err != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+            // Allocate DSP on GPU
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaMalloc((void **)&fDeviceDSP, sizeof(faustdsp));";
+            tab(n+2, *fOut); *fOut << "if (err != cudaResult) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+            tab(n+2, *fOut); *fOut << "return;" << endl;
+            
+        tab(n+1, *fOut); *fOut << "error:";
+            tab(n+2, *fOut); *fOut << "throw std::bad_alloc();";   
         tab(n+1, *fOut); *fOut << "}" << endl;
         
+        tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
+            tab(n+2, *fOut); *fOut << "fRunThread->Stop();";
+            tab(n+2, *fOut); *fOut << "delete fRunThread;";
+            
+            // Free kernel input buffers
+            if (fNumInputs > 0) {
+                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
+                    tab(n+3, *fOut); *fOut << "cudaFreeHost(fHostInputs[i]);";
+                    tab(n+3, *fOut); *fOut << "cudaFree(fDeviceInputs[i]);";
+                tab(n+2, *fOut); *fOut << "}";
+            }
+            
+            // Free kernel output buffers
+            if (fNumOutputs > 0) {
+                tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
+                    tab(n+3, *fOut); *fOut << "cudaFreeHost(fHostOutputs[i]);";
+                    tab(n+3, *fOut); *fOut << "cudaFree(fDeviceOutputs[i]);";
+                tab(n+2, *fOut); *fOut << "}";
+            }
+            
+            if (fNumInputs > 0) {
+                tab(n+2, *fOut); *fOut << "delete[] fHostInputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fDeviceInputs;";
+            }
+            if (fNumOutputs > 0) {
+                tab(n+2, *fOut); *fOut << "delete[] fHostOutputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fDeviceOutputs;";
+            }
+            tab(n+2, *fOut); *fOut << "cudaFreeHost(fDeviceControl);";
+            tab(n+2, *fOut); *fOut << "cudaFree(fDeviceDSP);";
+            
+            // Shutdown and cleanup
+            tab(n+2, *fOut); *fOut << "cudaThreadExit();";
+            tab(n+2, *fOut); *fOut << "destroy();";
+           
+      
+        tab(n+1, *fOut); *fOut << "}" << endl;
+        
+    tab(n+1, *fOut); *fOut << "void destroy() {";
+            if (fDestroyInstructions->fCode.size() > 0) {
+                tab(n+2, *fOut); 
+                fCodeProducer.Tab(n+2);
+                fDestroyInstructions->accept(&fCodeProducer);
+            }
+        tab(n+1, *fOut);  *fOut << "}";
+        tab(n+1, *fOut); 
+            
+        // Input method
+        tab(n+1, *fOut); *fOut << "virtual int getNumInputs() { "
+                            << "return " << fNumInputs << "; }";
+        
+        // Output method
+        tab(n+1, *fOut); *fOut << "virtual int getNumOutputs() { "
+                            << "return " << fNumOutputs << "; }";
+       
+        // Inits
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+            if (fStaticInitInstructions->fCode.size() > 0) {
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                fStaticInitInstructions->accept(&fCodeProducer);
+            }
+        tab(n+1, *fOut); *fOut << "}";
+
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
+            if (fInitInstructions->fCode.size() > 0) {
+                
+                tab(n+2, *fOut); *fOut << "fSamplingFreq = samplingFreq;";
+                
+                tab(n+2, *fOut); *fOut << "dim3 block(1);";
+                tab(n+2, *fOut); *fOut << "dim3 grid(1);";
+                tab(n+2, *fOut); *fOut << "initializeKernel<<<grid, block>>>(fDeviceDSP, fDeviceControl, samplingFreq);";
+                
+                // Wait for instanceInit end
+                tab(n+2, *fOut); *fOut << "cudaThreadSynchronize();";
+                
+                /*
+                tab(n+2, *fOut); *fOut << "int err = 0;";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fGPUDSP);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fGPUControl);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 2, sizeof(int), &samplingFreq);";
+                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg instanceInit err = \" << err << endl;";
+                tab(n+2, *fOut); *fOut << "}";
+                
+                tab(n+2, *fOut); *fOut << "err = clEnqueueTask(fCommands, fInstanceInitKernel, 0, NULL, NULL);";
+                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+3, *fOut); *fOut << "std::cerr << \"clEnqueueTask instanceInit err = \" << err << endl;";
+                tab(n+2, *fOut); *fOut << "}";
+                
+                // Wait for instanceInit end
+                tab(n+2, *fOut); *fOut << "err = clFinish(fCommands);";
+                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                    tab(n+3, *fOut); *fOut << "std::cerr << \"clFinish instanceInit err = \" << err << endl;";
+                tab(n+2, *fOut); *fOut << "}";
+                */
+
+            }
+        tab(n+1, *fOut); *fOut << "}";
+
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
+            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
+            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
+        tab(n+1, *fOut); *fOut << "}";
+        
+        // User interface
+        tab(n+1, *fOut); 
+        tab(n+1, *fOut); *fOut << "virtual void buildUserInterface(UI* interface) {";
+            if (fUserInterfaceInstructions->fCode.size() > 0) {
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                UIInstVisitor ui_visitor(fOut, n+2);
+                fUserInterfaceInstructions->accept(&ui_visitor);
+            }
+        tab(n+1, *fOut); *fOut << "}";
+        
+        // Compute
+        generateCompute(n);
+        tab(n, *fOut);
+        
+        // Possibly generate separated functions
+        fCodeProducer.Tab(n+1);
+        tab(n+1, *fOut);
+        if (fComputeFunctions->fCode.size() > 0) {    
+            fComputeFunctions->accept(&fCodeProducer);
+        }
+    
     tab(n, *fOut); *fOut << "};" << endl;
     
     // Generate user interface macros if needed
@@ -1484,7 +1838,7 @@ void CPPCUDACodeContainer::generateCompute(int n)
     // Copy audio input buffer to temp buffers
     if (fNumInputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << subst("memcpy(fTempInputs[i], inputs[i], sizeof($0) * count);", xfloat());
+            tab(n+3, *fOut); *fOut << subst("memcpy(fHostInputs[i], inputs[i], sizeof($0) * count);", xfloat());
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
@@ -1492,10 +1846,48 @@ void CPPCUDACodeContainer::generateCompute(int n)
     // Copy temp buffers to audio output buffers
     if (fNumOutputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << subst("memcpy(outputs[i], fTempOutputs[i], sizeof($0) * count);", xfloat());
+            tab(n+3, *fOut); *fOut << subst("memcpy(outputs[i], fHostOutputs[i], sizeof($0) * count);", xfloat());
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
     tab(n+2, *fOut); *fOut << "fRunThread->Signal();";
     tab(n+1, *fOut); *fOut << "}";
+}
+
+void CPPCUDACodeContainer::generateComputeKernel(int n)
+{
+    // Generate compute kernel
+    //tab1(n, *fGPUOut);
+    tab(n, *fGPUOut);
+    *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
+    
+    for (int i = 0; i < fNumInputs; i++) {
+        *fGPUOut <<  "__global float* input" << i << ", ";
+    }
+    
+    for (int i = 0; i < fNumOutputs; i++) {
+        if (i == fNumOutputs - 1) {
+            *fGPUOut << "__global float* output" << i;
+        } else {
+            *fGPUOut << "__global float* output" << i << ", ";
+        }    
+    }
+    
+    *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
+    //tab1(n+1, *fGPUOut);
+    tab(n+1, *fGPUOut);
+   
+    // Generates local variables declaration and setup
+    fComputeBlockInstructions->accept(fKernelCodeProducer);
+    
+    // Generates one single scalar loop
+    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    loop->accept(fKernelCodeProducer);
+      
+    //tab1(n, *fGPUOut);
+    tab(n, *fGPUOut);
+    
+    *fGPUOut << "}";
+    //tab1(n, *fGPUOut);
+    tab(n, *fGPUOut);
 }

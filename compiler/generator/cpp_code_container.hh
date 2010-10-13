@@ -204,21 +204,6 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             }
         };
         
-        // To be used when generating GPU kernel string
-        struct DSPGPUInstVisitor : public DSPInstVisitor {
-        
-            virtual void tab1(int n, ostream& fout)
-            {
-                fout << "  \\n\"  \\\n";
-                fout << "\"";
-                while (n--) fout << '\t';
-            }
-            
-            DSPGPUInstVisitor(std::ostream* out, int tab)
-                :DSPInstVisitor(out, tab)
-            {}
-        };
-        
         // Visitor that only generates control fields
         struct ControlInstVisitor : public CPPInstVisitor {
             
@@ -235,20 +220,6 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             
         };
         
-        // To be used when generating GPU kernel string
-        struct ControlGPUInstVisitor : public ControlInstVisitor {
-        
-            virtual void tab1(int n, ostream& fout)
-            {
-                fout << "  \\n\"  \\\n";
-                fout << "\"";
-                while (n--) fout << '\t';
-            }
-            
-            ControlGPUInstVisitor(std::ostream* out, int tab)
-                :ControlInstVisitor(out, tab)
-            {}
-        };
 
         // Control fields are preceded with "control->"
         // Non-confrol fields are preceded with "dsp->"
@@ -278,13 +249,6 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 fFunctionTable["fabsf"] = "fabs";
                 fFunctionTable["floorf"] = "floor";
                 fFunctionTable["fmodf"] = "fmod";
-            }
-            
-            virtual void tab1(int n, ostream& fout)
-            {
-                fout << "  \\n\"  \\\n";
-                fout << "\"";
-                while (n--) fout << '\t';
             }
             
             virtual void visit(LoadVarInst* inst) 
@@ -430,10 +394,16 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
         };
         
+        KernelInstVisitor* fKernelCodeProducer;
+        std::ostringstream* fGPUOut;
+        
     public:
     
         CPPGPUCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CPPCodeContainer(name, super, numInputs, numOutputs, out)
+        {}
+        
+        virtual ~CPPGPUCodeContainer()
         {}
  
 };
@@ -441,17 +411,58 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
       protected:
+      
+        struct OpenCLKernelInstVisitor : public KernelInstVisitor {
         
-        KernelInstVisitor* fKernelCodeProducer;
-        std::ostringstream* fGPUOut;
-     
+            virtual void tab1(int n, ostream& fout)
+            {
+                fout << "  \\n\"  \\\n";
+                fout << "\"";
+                while (n--) fout << '\t';
+            }
+            
+            OpenCLKernelInstVisitor(std::ostream* out, int tab)
+                :KernelInstVisitor(out, tab)
+            {}
+        };
+        
+        // To be used when generating GPU kernel string
+        struct ControlOpenCLInstVisitor : public ControlInstVisitor {
+        
+            virtual void tab1(int n, ostream& fout)
+            {
+                fout << "  \\n\"  \\\n";
+                fout << "\"";
+                while (n--) fout << '\t';
+            }
+            
+            ControlOpenCLInstVisitor(std::ostream* out, int tab)
+                :ControlInstVisitor(out, tab)
+            {}
+        };
+         
+        // To be used when generating GPU kernel string
+        struct DSPOpenCLInstVisitor : public DSPInstVisitor {
+        
+            virtual void tab1(int n, ostream& fout)
+            {
+                fout << "  \\n\"  \\\n";
+                fout << "\"";
+                while (n--) fout << '\t';
+            }
+            
+            DSPOpenCLInstVisitor(std::ostream* out, int tab)
+                :DSPInstVisitor(out, tab)
+            {}
+        };
+        
     public:
     
         CPPOpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
         {
             fGPUOut = new std::ostringstream();
-            fKernelCodeProducer = new KernelInstVisitor(fGPUOut, 0);
+            fKernelCodeProducer = new OpenCLKernelInstVisitor(fGPUOut, 0);
         }
         virtual ~CPPOpenCLCodeContainer()
         {
@@ -459,10 +470,10 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             delete fKernelCodeProducer;
         }
         
-        virtual void produceClass();
+        void produceClass();
         void produceInternal();
-        
         void generateCompute(int n);
+        
         virtual void generateComputeKernel(int n);
              
 };
@@ -475,27 +486,64 @@ class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
             :CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, out)
         {}
         
-        virtual void generateComputeKernel(int n);
+        void generateComputeKernel(int n);
 };
 
 class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
     protected:
 
+        struct CUDAKernelInstVisitor : public KernelInstVisitor {
+        
+            CUDAKernelInstVisitor(std::ostream* out, int tab)
+                :KernelInstVisitor(out, tab)
+            {}
+
+        };
 
     public:
 
         CPPCUDACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
              :CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
-        {}
+        {
+            fGPUOut = new std::ostringstream();
+            fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
+        }
         virtual ~CPPCUDACodeContainer()
-        {}
+        {
+            delete fGPUOut;
+            delete fKernelCodeProducer;
+        }
      
         void produceClass();
         void generateCompute(int tab);
         void produceInternal();
+        
+        virtual void generateComputeKernel(int n);
 
 };
+
+class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
+
+    protected:
+
+
+    public:
+
+        CPPCUDAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+             :CPPCUDACodeContainer(name, super, numInputs, numOutputs, out)
+        {}
+        virtual ~CPPCUDAVectorCodeContainer()
+        {}
+     
+        void produceClass() {}
+        void generateCompute(int tab) {}
+        void produceInternal() {}
+        
+        void generateComputeKernel(int n) {}
+
+};
+
 
 
 #endif

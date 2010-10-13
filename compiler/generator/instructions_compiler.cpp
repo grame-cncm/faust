@@ -56,6 +56,7 @@ extern int gMaxCopyDelay;
 extern bool gVectorSwitch;
 extern int gVecSize;
 extern bool gOpenCLSwitch;
+extern bool gCUDASwitch;
 
 std::ostream* Printable::fOut = &cout;
 
@@ -288,7 +289,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("count", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
     //fContainer->pushDeclare(InstBuilder::genDeclareVarInst("samplingFreq", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
  
-    if (!gOpenCLSwitch) { // HACK 
+    if (!gOpenCLSwitch && !gCUDASwitch) { // HACK 
         // "input" and "inputs" used as a name convention
         for (int index = 0; index < fContainer->inputs(); index++) {
             string name = subst("input$0", T(index));

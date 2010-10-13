@@ -686,7 +686,7 @@ int main (int argc, char* argv[])
                 }
             } else if (gCUDASwitch) {   
                 if (gVectorSwitch) {
-                    //container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+                    container = new CPPCUDAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 } else {
                     container = new CPPCUDACodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 }

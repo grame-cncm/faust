@@ -42,13 +42,14 @@
 
 extern int gMaxCopyDelay;
 extern bool gOpenCLSwitch;
+extern bool gCUDASwitch;
 
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
     
     // "input" and "inputs" used as a name convention
-    if (!gOpenCLSwitch) { // HACK 
+    if (!gOpenCLSwitch && !gCUDASwitch) { // HACK 
         for (int index = 0; index < fContainer->inputs(); index++) {
             string name1 = subst("fInput$0_ptr", T(index));
             string name2 = subst("fInput$0", T(index));
@@ -75,7 +76,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
     
-    if (!gOpenCLSwitch) { // HACK
+    if (!gOpenCLSwitch && !gCUDASwitch) { // HACK
         // "output" and "outputs" used as a name convention
         for (int index = 0; index < fContainer->outputs(); index++) {
             string name1 = subst("fOutput$0_ptr", T(index));
@@ -102,7 +103,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
     
-    if (gOpenCLSwitch) { // HACK
+    if (gOpenCLSwitch && !gCUDASwitch) { // HACK
     
         for (int index = 0; isList(L); L = tl(L), index++) {
             Tree sig = hd(L);
@@ -204,7 +205,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
 
 ValueInst* DAGInstructionsCompiler::generateInput(int variability, Tree sig, int idx) 
 {
-    if (gOpenCLSwitch) { // HACK
+    if (gOpenCLSwitch && !gCUDASwitch) { // HACK
         // "input" use as a name convention
         string name = subst("input$0", T(idx));
         ValueInst* res = InstBuilder::genLoadVarInst(
