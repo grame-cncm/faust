@@ -1415,7 +1415,7 @@ void CPPCUDACodeContainer::produceClass()
     
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
-        *fGPUOut << "__kernel void instanceInitKernel(__global faustdsp* dsp, __global faustcontrol* control, __global int samplingFreq) {";
+        *fGPUOut << "__global__ void instanceInitKernel(__global__ faustdsp* dsp, __global__ faustcontrol* control, __global__ int samplingFreq) {";
         //tab1(n+1, *fGPUOut);
         tab(n+1, *fGPUOut);
         fKernelCodeProducer->Tab(n+1);
@@ -1869,21 +1869,21 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
     // Generate compute kernel
     //tab1(n, *fGPUOut);
     tab(n, *fGPUOut);
-    *fGPUOut << "__kernel void computeKernel(const unsigned int count, ";
+    *fGPUOut << "__global__ void computeKernel(const unsigned int count, ";
     
     for (int i = 0; i < fNumInputs; i++) {
-        *fGPUOut <<  "__global float* input" << i << ", ";
+        *fGPUOut <<  "__global__ float* input" << i << ", ";
     }
     
     for (int i = 0; i < fNumOutputs; i++) {
         if (i == fNumOutputs - 1) {
-            *fGPUOut << "__global float* output" << i;
+            *fGPUOut << "__global__ float* output" << i;
         } else {
-            *fGPUOut << "__global float* output" << i << ", ";
+            *fGPUOut << "__global__ float* output" << i << ", ";
         }    
     }
     
-    *fGPUOut << ", __global faustdsp* dsp, __global faustcontrol* control) {";
+    *fGPUOut << ", __global__ faustdsp* dsp, __global__ faustcontrol* control) {";
     //tab1(n+1, *fGPUOut);
     tab(n+1, *fGPUOut);
    
