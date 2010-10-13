@@ -105,6 +105,7 @@ Tree unquote(char* str)
 %left DELAY1
 %left APPL DOT
 
+%left HASH
 
 %token MEM
 %token PREFIX
@@ -407,6 +408,8 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 				| infixexp EQ infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
 				| infixexp NE infixexp		{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
 
+                | infixexp HASH infixexp    { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigConcat)); }
+
 				| infixexp LPAR arglist RPAR 	%prec APPL	{ $$ = buildBoxAppl($1,$3); }
 				| infixexp LCROC deflist RCROC	%prec APPL	{ $$ = boxModifLocalDef($1,formatDefinitions($3)); }
 
@@ -486,6 +489,12 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 
 				| SELECT2 						{ $$ = boxPrim3(sigSelect2); }
 				| SELECT3						{ $$ = boxPrim4(sigSelect3); }
+
+                | VECTORIZE                     { $$ = boxPrim2(sigVectorize); }
+                | SERIALIZE                     { $$ = boxPrim1(sigSerialize); }
+                | HASH                          { $$ = boxPrim2(sigConcat); }
+                | LCROC RCROC                   { $$ = boxPrim2(sigVectorAt); }
+                | LCROC infixexp RCROC          { $$ = boxSeq(boxPar(boxWire(),$2),boxPrim2(sigVectorAt)); }
 
 				| ident 						{ $$ = $1; }
                 | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }

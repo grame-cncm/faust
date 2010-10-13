@@ -39,6 +39,7 @@ const char * prim1name(CTree *(*ptr) (CTree *))
 	if (ptr == sigDelay1) return "mem";
 	if (ptr == sigIntCast) return "int";
 	if (ptr == sigFloatCast) return "float";
+    if (ptr == sigSerialize)   return "serialize";
 	return "prim1???";
 }
 
@@ -67,6 +68,10 @@ const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 	if (ptr == sigFixDelay) return "@";
 	if (ptr == sigPrefix) 	return "prefix";
 	if (ptr == sigAttach) 	return "attach";
+
+    if (ptr == sigVectorize) return "vectorize";
+    if (ptr == sigConcat)   return "#";
+    if (ptr == sigVectorAt)   return "[]";
 
 	return "prim2???";
 }
@@ -260,34 +265,34 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxSymbolic(box, slot, body)) {
 		fout << "[" << boxpp(slot) << ">" << boxpp(body) << "]";
 	}
-	
+
 	// Pattern Matching Extensions
 	else if (isBoxCase(box, rules)) {
 		fout << "case {";
 		while (!isNil(rules)) { printRule(fout, hd(rules)); rules = tl(rules); }
-		fout << "}";	 
+		fout << "}";
 	}
 #if 1
 	// more useful for debugging output
 	else if (isBoxPatternVar(box, ident)) {
-		fout << "<" << boxpp(ident) << ">";	
+		fout << "<" << boxpp(ident) << ">";
 	}
 #else
 	// beautify messages involving lhs patterns
 	else if (isBoxPatternVar(box, ident)) {
-		fout << boxpp(ident);	
+		fout << boxpp(ident);
 	}
 #endif
 
 	else if (isBoxPatternMatcher(box)) {
-		fout << "PM[" << box << "]";	
+		fout << "PM[" << box << "]";
 	}
 
 	else if (isBoxError(box)) {
-		fout << "ERROR";	
+		fout << "ERROR";
 	}
 
-	
+
 	// None of the previous tests succeded, then it is not a valid box
 	else {
 		cerr << "Error in box::print() : " << *box << " is not the address of a valid box" << endl;

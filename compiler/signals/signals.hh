@@ -122,7 +122,32 @@ Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3);
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
-// arithmetical operations 
+// multirate
+inline Tree sigVectorize (Tree s1, Tree s2)
+{
+    printf("vectorize not implemented\n");
+    exit(0);
+}
+
+inline Tree sigSerialize (Tree s1)
+{
+    printf("serialize not implemented\n");
+    exit(0);
+}
+
+inline Tree sigConcat (Tree s1, Tree s2)
+{
+    printf("concatenation not implemented\n");
+    exit(0);
+}
+
+inline Tree sigVectorAt (Tree s1, Tree s2)
+{
+    printf("vector at not implemented\n");
+    exit(0);
+}
+
+// arithmetical operations
 
 Tree sigBinOp	(int op, Tree x, Tree y);
 bool isSigBinOp	(Tree s, int* op, Tree& x, Tree& y);
