@@ -118,9 +118,9 @@ class CPPWorkStealingCodeContainer : public CPPCodeContainer {
 
 };
 
-class CPPOpenCLCodeContainer : public CPPCodeContainer {
+class CPPGPUCodeContainer : public CPPCodeContainer {
 
-    private:
+    protected:
     
         static bool isControl(string name)
         {
@@ -132,9 +132,7 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
                 || name.find("fhslider") != string::npos
                 || name.find("fentry") != string::npos);
         }
-
-    protected:
-    
+        
         // To access control inside fControl field
         struct UIInstVisitor : public CPPInstVisitor {
     
@@ -432,13 +430,25 @@ class CPPOpenCLCodeContainer : public CPPCodeContainer {
 
         };
         
+    public:
+    
+        CPPGPUCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+            :CPPCodeContainer(name, super, numInputs, numOutputs, out)
+        {}
+ 
+};
+
+class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
+
+      protected:
+        
         KernelInstVisitor* fKernelCodeProducer;
         std::ostringstream* fGPUOut;
      
     public:
     
         CPPOpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :CPPCodeContainer(name, super, numInputs, numOutputs, out)
+            :CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
         {
             fGPUOut = new std::ostringstream();
             fKernelCodeProducer = new KernelInstVisitor(fGPUOut, 0);
@@ -468,7 +478,7 @@ class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
         virtual void generateComputeKernel(int n);
 };
 
-class CPPCUDACodeContainer : public CPPCodeContainer {
+class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
     protected:
 
@@ -476,7 +486,7 @@ class CPPCUDACodeContainer : public CPPCodeContainer {
     public:
 
         CPPCUDACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-             :CPPCodeContainer(name, super, numInputs, numOutputs, out)
+             :CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
         {}
         virtual ~CPPCUDACodeContainer()
         {}

@@ -1348,7 +1348,7 @@ void CPPCUDACodeContainer::produceClass()
     int n = 0;
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
-    addIncludeFile("<cuda.h");
+    addIncludeFile("<cuda.h>");
      
     // Libraries
     printLibrary(*fOut);
@@ -1384,14 +1384,14 @@ void CPPCUDACodeContainer::produceClass()
             
             // Separate control and non-controls fields in 2 structures
             tab(n+1, *fOut); *fOut << "typedef struct {";
-  //              DSPInstVisitor dsp_visitor(fOut, n+2);
-   //             fDeclarationInstructions->accept(&dsp_visitor);
+                DSPInstVisitor dsp_visitor(fOut, n+2);
+                fDeclarationInstructions->accept(&dsp_visitor);
             tab(n+1, *fOut); *fOut << "} faustdsp;";
             tab(n+1, *fOut);
             
             tab(n+1, *fOut); *fOut << "typedef struct {";
- //               ControlInstVisitor control_visitor(fOut, n+2);
-  //              fDeclarationInstructions->accept(&control_visitor);
+                ControlInstVisitor control_visitor(fOut, n+2);
+                fDeclarationInstructions->accept(&control_visitor);
             tab(n+1, *fOut); *fOut << "} faustcontrol;";
             
             tab(n+1, *fOut);
