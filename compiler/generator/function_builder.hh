@@ -145,7 +145,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                     if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->getName()) == fAddedVarTable.end()) {  // First encounter
                     
                         // Be sure variable is defined
-                        //cerr << "createParameter kFunArgs " << address->getName() << endl;
+                        cerr << "createParameter kFunArgs " << address->getName() << endl;
                         assert(gVarTable.find(address->getName()) != gVarTable.end());
                             
                         // Parameter in the enclosing function, becomes a fun parameter

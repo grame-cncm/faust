@@ -103,7 +103,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
     
-    if (gOpenCLSwitch && !gCUDASwitch) { // HACK
+    if (gOpenCLSwitch || gCUDASwitch) { // HACK
     
         for (int index = 0; isList(L); L = tl(L), index++) {
             Tree sig = hd(L);
@@ -205,7 +205,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
 
 ValueInst* DAGInstructionsCompiler::generateInput(int variability, Tree sig, int idx) 
 {
-    if (gOpenCLSwitch && !gCUDASwitch) { // HACK
+    if (gOpenCLSwitch || gCUDASwitch) { // HACK
         // "input" use as a name convention
         string name = subst("input$0", T(idx));
         ValueInst* res = InstBuilder::genLoadVarInst(

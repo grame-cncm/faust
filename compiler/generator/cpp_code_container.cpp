@@ -641,9 +641,9 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+1, *fOut); *fOut << "} faustcontrol;";
             
             tab(n+1, *fOut);
-            tab(n+1, *fOut); *fOut << "faustcontrol fControl;";
-            tab(n+1, *fOut); *fOut << "cl_mem fGPUDSP;";
-            tab(n+1, *fOut); *fOut << "cl_mem fGPUControl;";
+            tab(n+1, *fOut); *fOut << "faustcontrol* fHostControl;";
+            tab(n+1, *fOut); *fOut << "cl_mem fDeviceDSP;";
+            tab(n+1, *fOut); *fOut << "cl_mem fDeviceControl;";
         }
         
         tab(n+1, *fOut); *fOut << "cl_device_id fDeviceID;";
@@ -656,12 +656,12 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "RunThread* fRunThread;";
         tab(n+1, *fOut); *fOut << "int fCount;";
         if (fNumInputs > 0) {
-            tab(n+1, *fOut); *fOut << "float** fTempInputs;";
-            tab(n+1, *fOut); *fOut << "cl_mem* fInputs;";
+            tab(n+1, *fOut); *fOut << "float** fHostInputs;";
+            tab(n+1, *fOut); *fOut << "cl_mem* fDeviceInputs;";
         }
         if (fNumOutputs > 0) {
-            tab(n+1, *fOut); *fOut << "float** fTempOutputs;";
-            tab(n+1, *fOut); *fOut << "cl_mem* fOutputs;";
+            tab(n+1, *fOut); *fOut << "float** fHostOutputs;";
+            tab(n+1, *fOut); *fOut << "cl_mem* fDeviceOutputs;";
         }
         tab(n+1, *fOut);
             
@@ -753,12 +753,12 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "char* program_src;"; 
             
             if (fNumInputs > 0) {
-                tab(n+2, *fOut); *fOut << "fInputs = new cl_mem["<< fNumInputs << "];";
-                tab(n+2, *fOut); *fOut << "fTempInputs = new float*["<< fNumInputs << "];";
+                tab(n+2, *fOut); *fOut << "fDeviceInputs = new cl_mem["<< fNumInputs << "];";
+                tab(n+2, *fOut); *fOut << "fHostInputs = new float*["<< fNumInputs << "];";
             }
             if (fNumOutputs > 0) {
-                tab(n+2, *fOut); *fOut << "fOutputs = new cl_mem["<< fNumOutputs << "];";
-                tab(n+2, *fOut); *fOut << "fTempOutputs = new float*["<< fNumOutputs << "];";
+                tab(n+2, *fOut); *fOut << "fDeviceOutputs = new cl_mem["<< fNumOutputs << "];";
+                tab(n+2, *fOut); *fOut << "fHostOutputs = new float*["<< fNumOutputs << "];";
             }
             
             // Creates device
@@ -861,8 +861,8 @@ void CPPOpenCLCodeContainer::produceClass()
             // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("fTempInputs[i] = new $0[sizeof($0) * 8192];", xfloat());
-                    tab(n+3, *fOut); *fOut << subst("fInputs[i] = clCreateBuffer(fContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempInputs[i], &err);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fHostInputs[i] = new $0[sizeof($0) * 8192];", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fDeviceInputs[i] = clCreateBuffer(fContext, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fHostInputs[i], &err);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << err << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -873,8 +873,8 @@ void CPPOpenCLCodeContainer::produceClass()
             // Allocate kernel output buffers (shared between CPU and GPU)
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("fTempOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
-                    tab(n+3, *fOut); *fOut << subst("cudaHostAlloc(fOutputs[i] = clCreateBuffer(fContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fTempOutputs[i], &err);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fHostOutputs[i] = new $0[sizeof($0) * 8192];", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("fDeviceOutputs[i] = clCreateBuffer(fContext, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, sizeof($0) * 8192, fHostOutputs[i], &err);", xfloat());
                     
                     tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << err << endl;";
@@ -884,14 +884,20 @@ void CPPOpenCLCodeContainer::produceClass()
             }
             
             // Allocate control on CPU, map it on GPU
-            tab(n+2, *fOut); *fOut << "fGPUControl = clCreateBuffer(fContext, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(faustcontrol), &fControl, &err);";
-            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+             tab(n+2, *fOut); *fOut << "fHostControl = (faustcontrol*)calloc(1, sizeof(faustcontrol));";
+            tab(n+2, *fOut); *fOut << "if (fHostControl == NULL) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
+            tab(n+2, *fOut); *fOut << "fDeviceControl = clCreateBuffer(fContext, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(faustcontrol), fHostControl, &err);";
+            tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot map control err = \" << err << endl;";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
             // Allocate DSP on GPU
-            tab(n+2, *fOut); *fOut << "fGPUDSP = clCreateBuffer(fContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, &err);";
+            tab(n+2, *fOut); *fOut << "fDeviceDSP = clCreateBuffer(fContext, CL_MEM_READ_WRITE, sizeof(faustdsp), NULL, &err);";
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << err << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
@@ -901,17 +907,17 @@ void CPPOpenCLCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "err = 0;" << endl;
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, i+1, sizeof(cl_mem), &fInputs[i]);";
+                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, i+1, sizeof(cl_mem), &fDeviceInputs[i]);";
                 tab(n+2, *fOut); *fOut << "}";
             }
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << fNumInputs << "+i+1, sizeof(cl_mem), &fOutputs[i]);";
+                    tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << fNumInputs << "+i+1, sizeof(cl_mem), &fDeviceOutputs[i]);";
                 tab(n+2, *fOut); *fOut << "}";
             }
             
-            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+1, sizeof(cl_mem), &fGPUDSP);";
-            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+2, sizeof(cl_mem), &fGPUControl);";
+            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+1, sizeof(cl_mem), &fDeviceDSP);";
+            tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+2, sizeof(cl_mem), &fDeviceControl);";
         
             tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
@@ -963,31 +969,32 @@ void CPPOpenCLCodeContainer::produceClass()
             // Free kernel input buffers
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fInputs[i]);";
-                     tab(n+3, *fOut); *fOut << "delete[] fTempInputs[i];";
+                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fDeviceInputs[i]);";
+                     tab(n+3, *fOut); *fOut << "delete[] fHostInputs[i];";
                 tab(n+2, *fOut); *fOut << "}";
             }
             
             // Free kernel output buffers
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fOutputs[i]);";
-                    tab(n+3, *fOut); *fOut << "delete[] fTempOutputs[i];";
+                    tab(n+3, *fOut); *fOut << "clReleaseMemObject(fDeviceOutputs[i]);";
+                    tab(n+3, *fOut); *fOut << "delete[] fHostOutputs[i];";
                 tab(n+2, *fOut); *fOut << "}";
             }
             
             if (fNumInputs > 0) {
-                tab(n+2, *fOut); *fOut << "delete[] fInputs;";
-                tab(n+2, *fOut); *fOut << "delete[] fTempInputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fDeviceInputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fHostInputs;";
             }
             if (fNumOutputs > 0) {
-                tab(n+2, *fOut); *fOut << "delete[] fOutputs;";
-                tab(n+2, *fOut); *fOut << "delete[] fTempOutputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fDeviceOutputs;";
+                tab(n+2, *fOut); *fOut << "delete[] fHostOutputs;";
             }
             
             // Shutdown and cleanup
-            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fGPUControl);";
-            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fGPUDSP);";
+            tab(n+2, *fOut); *fOut << "free(fHostControl);";
+            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fDeviceControl);";
+            tab(n+2, *fOut); *fOut << "clReleaseMemObject(fDeviceDSP);";
             tab(n+2, *fOut); *fOut << "clReleaseKernel(fComputeKernel);";
             tab(n+2, *fOut); *fOut << "clReleaseKernel(fInstanceInitKernel);";
             tab(n+2, *fOut); *fOut << "clReleaseCommandQueue(fCommands);";
@@ -1031,8 +1038,8 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+2, *fOut); *fOut << "fSamplingFreq = samplingFreq;";
                 
                 tab(n+2, *fOut); *fOut << "int err = 0;";
-                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fGPUDSP);";
-                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fGPUControl);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fDeviceDSP);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fDeviceControl);";
                 tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 2, sizeof(int), &samplingFreq);";
                 tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                     tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg instanceInit err = \" << err << endl;";
@@ -1108,7 +1115,7 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
     // Copy audio input buffer to temp buffers
     if (fNumInputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << subst("memcpy(fTempInputs[i], inputs[i], sizeof($0) * count);", xfloat());
+            tab(n+3, *fOut); *fOut << subst("memcpy(fHostInputs[i], inputs[i], sizeof($0) * count);", xfloat());
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
@@ -1116,7 +1123,7 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
     // Copy temp buffers to audio output buffers
     if (fNumOutputs > 0) {
         tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-            tab(n+3, *fOut); *fOut << subst("memcpy(outputs[i], fTempOutputs[i], sizeof($0) * count);", xfloat());
+            tab(n+3, *fOut); *fOut << subst("memcpy(outputs[i], fHostOutputs[i], sizeof($0) * count);", xfloat());
         tab(n+2, *fOut); *fOut << "}";
         tab(n+2, *fOut);
     }
@@ -1584,7 +1591,7 @@ void CPPCUDACodeContainer::produceClass()
             
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "fHostInputs = new float*["<< fNumInputs << "];";
-                tab(n+2, *fOut); *fOut << "fTempInputs = new float*["<< fNumInputs << "];";
+                tab(n+2, *fOut); *fOut << "fHostInputs = new float*["<< fNumInputs << "];";
             }
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "fHostOutputs = new float*["<< fNumOutputs << "];";
@@ -1770,8 +1777,8 @@ void CPPCUDACodeContainer::produceClass()
                 
                 /*
                 tab(n+2, *fOut); *fOut << "int err = 0;";
-                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fGPUDSP);";
-                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fGPUControl);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fDeviceDSP);";
+                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fDeviceControl);";
                 tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 2, sizeof(int), &samplingFreq);";
                 tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
                     tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg instanceInit err = \" << err << endl;";

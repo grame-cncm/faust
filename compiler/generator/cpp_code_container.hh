@@ -142,15 +142,15 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             
             virtual void visit(AddMetaDeclareInst* inst) 
             {
-                *fOut << "interface->declare(" << "&fControl." << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
+                *fOut << "interface->declare(" << "&fHostControl->" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
             }
             
             virtual void visit(AddButtonInst* inst) 
             {
                 if (inst->fType == AddButtonInst::kDefaultButton) {
-                    *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
+                    *fOut << "interface->addButton(" << "\"" << inst->fLabel << "\"" << "," << "&fHostControl->" << inst->fZone << ")"; EndLine();
                 } else {
-                    *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&fControl." << inst->fZone << ")"; EndLine();
+                    *fOut << "interface->addCheckButton(" << "\"" << inst->fLabel << "\"" << "," << "&fHostControl->" << inst->fZone << ")"; EndLine();
                 }
             }
 
@@ -166,9 +166,9 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                         name = "interface->addNumEntry"; break;
                 } 
                 if (strcmp(ifloat(), "float") == 0)    
-                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
                 else
-                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
                 EndLine();  
             }
             
@@ -182,9 +182,9 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                         name = "interface->addVerticalBargraph"; break;
                 }     
                 if (strcmp(ifloat(), "float") == 0)
-                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
                 else
-                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fControl." << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
+                    *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&fHostControl->" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
                 EndLine();       
             }                    
         };
