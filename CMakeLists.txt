@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 project (faust)
 
+enable_testing()
+
 # uninstall support
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
@@ -12,3 +14,7 @@ ADD_CUSTOM_TARGET(uninstall
 
 
 add_subdirectory(compiler)
+
+add_subdirectory(tests/error-tests)
+add_subdirectory(tests/warning-tests)
+add_subdirectory(tests/pass-tests)
