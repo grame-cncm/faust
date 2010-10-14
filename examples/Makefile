@@ -4,6 +4,7 @@ MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 #MYGCCFLAGS := '-O3'
 VSIZE := 1024
 
+
 SC_SOURCE_DIR = ../../supercollider
 
 
@@ -81,6 +82,10 @@ jackgtkocl :
 jackgtkoclvec :
 	install -d jackgtkdiroclvec
 	$(MAKE) DEST='jackgtkdiroclvec/' VEC=' -ocl -vec -vs 64' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs` -framework OpenCL' -f Makefile.compile
+
+jackgtkcuda :
+	install -d jackgtkdircuda
+	$(MAKE) DEST='jackgtkdircuda/' VEC=' -cuda' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs`' -f Makefile.cudacompile
 
 jackgtkc :
 	install -d jackgtkdirc

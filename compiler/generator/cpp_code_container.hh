@@ -230,28 +230,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             map < string, string> fFunctionTable;
             KernelInstVisitor(std::ostream* out, int tab)
                 :CPPInstVisitor(out, tab)
-            {
-                fFunctionTable["sin"] = "native_sin";
-                fFunctionTable["sinf"] = "native_sin";
-                fFunctionTable["cos"] = "native_cos";
-                fFunctionTable["cosf"] = "native_cos";
-                fFunctionTable["tan"] = "native_tan";
-                fFunctionTable["tanf"] = "native_tan";
-                fFunctionTable["log"] = "native_log";
-                fFunctionTable["logf"] = "native_log";
-                fFunctionTable["log10"] = "native_log10";
-                fFunctionTable["log10f"] = "native_log10";
-                fFunctionTable["log2"] = "native_log2";
-                fFunctionTable["log2f"] = "native_log2";
-                fFunctionTable["exp"] = "native_exp";
-                fFunctionTable["expf"] = "native_exp";
-                fFunctionTable["powf"] = "native_powr";
-                fFunctionTable["sqrt"] = "native_sqrt";
-                fFunctionTable["sqrtf"] = "native_sqrt";
-                fFunctionTable["fabsf"] = "fabs";
-                fFunctionTable["floorf"] = "floor";
-                fFunctionTable["fmodf"] = "fmod";
-            }
+            {}
             
             virtual void visit(LoadVarInst* inst) 
             {
@@ -425,7 +404,29 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             
             OpenCLKernelInstVisitor(std::ostream* out, int tab)
                 :KernelInstVisitor(out, tab)
-            {}
+            {
+                
+                fFunctionTable["sin"] = "native_sin";
+                fFunctionTable["sinf"] = "native_sin";
+                fFunctionTable["cos"] = "native_cos";
+                fFunctionTable["cosf"] = "native_cos";
+                fFunctionTable["tan"] = "native_tan";
+                fFunctionTable["tanf"] = "native_tan";
+                fFunctionTable["log"] = "native_log";
+                fFunctionTable["logf"] = "native_log";
+                fFunctionTable["log10"] = "native_log10";
+                fFunctionTable["log10f"] = "native_log10";
+                fFunctionTable["log2"] = "native_log2";
+                fFunctionTable["log2f"] = "native_log2";
+                fFunctionTable["exp"] = "native_exp";
+                fFunctionTable["expf"] = "native_exp";
+                fFunctionTable["powf"] = "native_powr";
+                fFunctionTable["sqrt"] = "native_sqrt";
+                fFunctionTable["sqrtf"] = "native_sqrt";
+                fFunctionTable["fabsf"] = "fabs";
+                fFunctionTable["floorf"] = "floor";
+                fFunctionTable["fmodf"] = "fmod";
+            }
         };
         
         // To be used when generating GPU kernel string
