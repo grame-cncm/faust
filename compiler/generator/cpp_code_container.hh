@@ -34,6 +34,8 @@
 #include "cpp_instructions.hh"
 #include "opencl_instructions.hh"
 
+extern string gMasterDocument;
+
 using namespace std;
 
 class CPPCodeContainer : public CodeContainer {
@@ -395,7 +397,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         };
         
         KernelInstVisitor* fKernelCodeProducer;
-        std::ostringstream* fGPUOut;
+        std::ostream* fGPUOut;
         
     public:
     
@@ -506,7 +508,8 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
         CPPCUDACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
              :CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
         {
-            fGPUOut = new std::ostringstream();
+            string filename = gMasterDocument + ".cu";
+            fGPUOut = new std::ofstream(filename.c_str());
             fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
         }
         virtual ~CPPCUDACodeContainer()

@@ -610,7 +610,7 @@ void CPPOpenCLCodeContainer::produceClass()
     *fGPUOut << "\\n\";";
     
     // Insert OpenCL code as a string
-    tab(n, *fOut); *fOut << fGPUOut->str();
+    tab(n, *fOut); *fOut << dynamic_cast<ostringstream*>(fGPUOut)->str();
    
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
@@ -970,7 +970,7 @@ void CPPOpenCLCodeContainer::produceClass()
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
                     tab(n+3, *fOut); *fOut << "clReleaseMemObject(fDeviceInputs[i]);";
-                     tab(n+3, *fOut); *fOut << "delete[] fHostInputs[i];";
+                    tab(n+3, *fOut); *fOut << "delete[] fHostInputs[i];";
                 tab(n+2, *fOut); *fOut << "}";
             }
             
@@ -1438,7 +1438,8 @@ void CPPCUDACodeContainer::produceClass()
     //*fGPUOut << "\\n\";";
     
     // Insert CUDA code as a string
-    tab(n, *fOut); *fOut << fGPUOut->str();
+    //tab(n, *fOut); *fOut << fGPUOut->str();
+    fGPUOut->flush();
     
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";

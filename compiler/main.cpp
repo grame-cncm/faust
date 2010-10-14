@@ -805,7 +805,7 @@ int main (int argc, char* argv[])
 	if (gPrintDocSwitch) {
 		if (gLatexDocSwitch) {
 			string projname = gMasterDocument;
-			if (gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp") {
+			if (gMasterDocument.substr(gMasterDocument.length() - 4) == ".dsp") {
 				projname = gMasterDocument.substr(0, gMasterDocument.length() - 4); }
 			printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
 		}
@@ -817,7 +817,7 @@ int main (int argc, char* argv[])
     
     if (gGraphSwitch) {
         ofstream dotfile(subst("$0.dot", gMasterDocument).c_str());
-       container->printGraphDotFormat(dotfile);
+        container->printGraphDotFormat(dotfile);
     }
   	
 	return 0;
