@@ -336,46 +336,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             }
           
         };
-    
-        // Add __local keyword for stack variables
-        struct BlockKernelInstVisitor : public KernelInstVisitor {
-        
-            BlockKernelInstVisitor(std::ostream* out, int tab)
-                :KernelInstVisitor(out, tab)
-            {}
             
-            virtual void visit(DeclareVarInst* inst) 
-            {   
-                if (inst->fAccess & Address::kGlobal) {
-                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
-                        // If global is not defined
-                        fGlobalTable[inst->fName] = 1;
-                    } else {
-                        return;
-                    }
-                }
-                
-                if (inst->fAccess & Address::kStaticStruct) {
-                     *fOut << "static ";
-                }
-                
-                if (inst->fAccess & Address::kVolatile) {
-                     *fOut << "volatile ";
-                }
-                
-                if (inst->fAccess & Address::kStack) {
-                     *fOut << "__local ";
-                }
-                
-                if (inst->fValue) {
-                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
-                } else {
-                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
-                }
-            }
-
-        };
-        
         KernelInstVisitor* fKernelCodeProducer;
         std::ostream* fGPUOut;
         
@@ -460,6 +421,47 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             {}
         };
         
+        
+        // Add __local keyword for stack variables
+        struct BlockKernelInstVisitor : public KernelInstVisitor {
+        
+            BlockKernelInstVisitor(std::ostream* out, int tab)
+                :KernelInstVisitor(out, tab)
+            {}
+            
+            virtual void visit(DeclareVarInst* inst) 
+            {   
+                if (inst->fAccess & Address::kGlobal) {
+                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+                        // If global is not defined
+                        fGlobalTable[inst->fName] = 1;
+                    } else {
+                        return;
+                    }
+                }
+                
+                if (inst->fAccess & Address::kStaticStruct) {
+                     *fOut << "static ";
+                }
+                
+                if (inst->fAccess & Address::kVolatile) {
+                     *fOut << "volatile ";
+                }
+                
+                if (inst->fAccess & Address::kStack) {
+                     *fOut << "__local ";
+                }
+                
+                if (inst->fValue) {
+                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                } else {
+                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                }
+            }
+
+        };
+
+        
     public:
     
         CPPOpenCLCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
@@ -504,6 +506,47 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
             {}
 
         };
+        
+        
+        // Add __local keyword for stack variables
+        struct BlockKernelInstVisitor : public KernelInstVisitor {
+        
+            BlockKernelInstVisitor(std::ostream* out, int tab)
+                :KernelInstVisitor(out, tab)
+            {}
+            
+            virtual void visit(DeclareVarInst* inst) 
+            {   
+                if (inst->fAccess & Address::kGlobal) {
+                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+                        // If global is not defined
+                        fGlobalTable[inst->fName] = 1;
+                    } else {
+                        return;
+                    }
+                }
+                
+                if (inst->fAccess & Address::kStaticStruct) {
+                     *fOut << "static ";
+                }
+                
+                if (inst->fAccess & Address::kVolatile) {
+                     *fOut << "volatile ";
+                }
+                
+                if (inst->fAccess & Address::kStack) {
+                     *fOut << "__shared__ ";
+                }
+                
+                if (inst->fValue) {
+                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                } else {
+                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                }
+            }
+
+        };
+
 
     public:
 
@@ -524,6 +567,8 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
         void generateCompute(int tab);
         void produceInternal();
         
+        virtual void generateComputeKernelGlue(int n);
+        virtual void generateInstanceInitKernelGlue(int n);
         virtual void generateComputeKernel(int n);
 
 };
@@ -541,11 +586,9 @@ class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
         virtual ~CPPCUDAVectorCodeContainer()
         {}
      
-        void produceClass() {}
-        void generateCompute(int tab) {}
-        void produceInternal() {}
-        
-        void generateComputeKernel(int n) {}
+        void generateComputeKernelGlue(int n);
+        void generateInstanceInitKernelGlue(int n);
+        void generateComputeKernel(int n);
 
 };
 

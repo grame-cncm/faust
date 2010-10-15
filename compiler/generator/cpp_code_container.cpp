@@ -1258,6 +1258,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // Generates the final loop
     loop->accept(fKernelCodeProducer);
     
+    tab1(n, *fGPUOut);
     *fGPUOut << "}";
     tab1(n, *fGPUOut);
 }
@@ -1343,6 +1344,54 @@ void CPPCUDACodeContainer::produceInternal()
                         << "delete dsp"
                         << "; }";
     tab(n, *fOut);
+}
+
+void CPPCUDACodeContainer::generateInstanceInitKernelGlue(int n) 
+{
+    tab(n, *fGPUOut); *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int samplingFreq) {";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(1);";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(1);";
+        tab(n+1, *fGPUOut); *fGPUOut << "instanceInitKernel<<<grid, block>>>(dsp, control, samplingFreq);";
+    tab(n, *fGPUOut); *fGPUOut << "}";
+}
+
+void CPPCUDACodeContainer::generateComputeKernelGlue(int n) 
+{
+    *fGPUOut << "void computeKernelGlue(int count, ";
+    
+    for (int i = 0; i < fNumInputs; i++) {
+        *fGPUOut <<  " float* input" << i << ", ";
+    }
+    
+    for (int i = 0; i < fNumOutputs; i++) {
+        if (i == fNumOutputs - 1) {
+            *fGPUOut << "float* output" << i;
+        } else {
+            *fGPUOut << "float* output" << i << ", ";
+        }    
+    }
+    
+    *fGPUOut << ", faustdsp* dsp, faustcontrol* control) {";
+    
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(1);";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(1);";
+        tab(n+1, *fGPUOut); *fGPUOut << "computeKernel<<<grid, block>>>(count, ";
+        
+        for (int i = 0; i < fNumInputs; i++) {
+            *fGPUOut <<  "input" << i << ", ";
+        }
+        
+        for (int i = 0; i < fNumOutputs; i++) {
+            if (i == fNumOutputs - 1) {
+                *fGPUOut << "output" << i;
+            } else {
+                *fGPUOut << "output" << i << ", ";
+            }    
+        }
+        
+        *fGPUOut << ", dsp, control);";
+
+    tab(n, *fGPUOut); *fGPUOut << "}";
 }
 
 void CPPCUDACodeContainer::produceClass() 
@@ -1437,49 +1486,10 @@ void CPPCUDACodeContainer::produceClass()
     generateComputeKernel(n);
     
     // Generate glue functions
-    tab(n, *fGPUOut); *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int samplingFreq) {";
-        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(1);";
-        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(1);";
-        tab(n+1, *fGPUOut); *fGPUOut << "instanceInitKernel<<<grid, block>>>(dsp, control, samplingFreq);";
-    tab(n, *fGPUOut); *fGPUOut << "}";
-    
+    generateInstanceInitKernelGlue(n);
     tab(n, *fGPUOut);
-    *fGPUOut << "void computeKernelGlue(int count, ";
-    
-    for (int i = 0; i < fNumInputs; i++) {
-        *fGPUOut <<  " float* input" << i << ", ";
-    }
-    
-    for (int i = 0; i < fNumOutputs; i++) {
-        if (i == fNumOutputs - 1) {
-            *fGPUOut << "float* output" << i;
-        } else {
-            *fGPUOut << "float* output" << i << ", ";
-        }    
-    }
-    
-    *fGPUOut << ", faustdsp* dsp, faustcontrol* control) {";
-    
-        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(1);";
-        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(1);";
-        tab(n+1, *fGPUOut); *fGPUOut << "computeKernel<<<grid, block>>>(count, ";
-        
-        for (int i = 0; i < fNumInputs; i++) {
-            *fGPUOut <<  "input" << i << ", ";
-        }
-        
-        for (int i = 0; i < fNumOutputs; i++) {
-            if (i == fNumOutputs - 1) {
-                *fGPUOut << "output" << i;
-            } else {
-                *fGPUOut << "output" << i << ", ";
-            }    
-        }
-        
-        *fGPUOut << ", dsp, control);";
-
-    tab(n, *fGPUOut); *fGPUOut << "}";
-       
+    generateComputeKernelGlue(n);
+           
     //*fGPUOut << "\\n\";";
     
     // Insert CUDA code as a string
@@ -2017,4 +2027,154 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
     *fGPUOut << "}";
     //tab1(n, *fGPUOut);
     tab(n, *fGPUOut);
+}
+
+void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
+{
+    // Generate compute kernel
+    tab(n, *fGPUOut);
+    *fGPUOut << "__global__ void computeKernel(const int fullcount, ";
+    
+    for (int i = 0; i < fNumInputs; i++) {
+        *fGPUOut <<  "float* input" << i << ", ";
+    }
+    
+    for (int i = 0; i < fNumOutputs; i++) {
+        if (i == fNumOutputs - 1) {
+            *fGPUOut << "float* output" << i;
+        } else {
+            *fGPUOut << "float* output" << i << ", ";
+        }    
+    }
+    
+    *fGPUOut << ", faustdsp* dsp, faustcontrol* control) {";
+    tab(n+1, *fGPUOut);
+    
+    // Generates local variables declaration and setup
+    BlockKernelInstVisitor block_visitor(fGPUOut, n+1);
+    fComputeBlockInstructions->accept(&block_visitor);
+    
+    lclgraph dag;
+    CodeLoop::sortGraph(fCurLoop, dag);
+    computeForwardDAG(dag);
+    
+    BlockInst* loop_code = InstBuilder::genBlockInst();
+    
+    // Generate local input/output access
+    //generateLocalInputs(loop_code);
+    //generateLocalOutputs(loop_code);
+    
+    // Generate : int count = min(32, (fullcount - index))
+    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)));
+    list<ValueInst*> min_fun_args;
+    min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
+    min_fun_args.push_back(init2);
+    ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
+    StatementInst* count_dec = InstBuilder::genDeclareVarInst("count", InstBuilder::genBasicTyped(Typed::kInt), Address::kStack, init3);
+    loop_code->pushBackInst(count_dec);
+    
+    // Generates get_global_id access
+    list<ValueInst*> args;
+    args.push_back(InstBuilder::genIntNumInst(0));
+    /*
+    loop_code->pushBackInst(InstBuilder::genDeclareVarInst("tasknum", 
+        InstBuilder::genBasicTyped(Typed::kInt), Address::kStack, 
+        InstBuilder::genFunCallInst("get_global_id", args)));
+        */
+        
+    loop_code->pushBackInst(InstBuilder::genLabelInst("int tasknum = blockDim.x * blockIdx.x + threadIdx.x;"));
+    
+    // Generate DAG
+    for (int l = dag.size() - 1; l >= 0; l--) {
+    
+        ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
+        SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+    
+        if (dag[l].size() > 1) {
+            int loop_num = 0;
+            for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
+                BlockInst* switch_case_block = InstBuilder::genBlockInst();
+                generateLoopNode(*p, switch_case_block, loop_num);
+                switch_block->addCase(loop_num, switch_case_block);
+                loop_num++;
+            }
+        } else {
+            BlockInst* single_case_block = InstBuilder::genBlockInst();
+            generateLoopNode(*dag[l].begin(), single_case_block, 0);
+            switch_block->addCase(0, single_case_block);
+        }
+        
+        loop_code->pushBackInst(switch_block);
+        loop_code->pushBackInst(InstBuilder::genLabelInst("__syncthreads();"));
+    }
+    
+    // Generates the DAG enclosing loop
+    string index = "index";
+    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(index, InstBuilder::genBasicTyped(Typed::kInt), Address::kLoop, InstBuilder::genIntNumInst(0));
+
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
+    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
+                        InstBuilder::genBinopInst(kAdd,
+                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                    InstBuilder::genIntNumInst(gVecSize)));
+
+    StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
+
+    // Generates the final loop
+    loop->accept(fKernelCodeProducer);
+    
+    tab(n, *fGPUOut);
+    *fGPUOut << "}";
+    tab(n, *fGPUOut);
+}
+
+void CPPCUDAVectorCodeContainer::generateInstanceInitKernelGlue(int n) 
+{
+    tab(n, *fGPUOut); *fGPUOut << "void instanceInitKernelGlue(faustdsp* dsp, faustcontrol* control, int samplingFreq) {";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(16);";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(16);";
+        tab(n+1, *fGPUOut); *fGPUOut << "instanceInitKernel<<<grid, block>>>(dsp, control, samplingFreq);";
+    tab(n, *fGPUOut); *fGPUOut << "}";
+}
+
+void CPPCUDAVectorCodeContainer::generateComputeKernelGlue(int n) 
+{
+    *fGPUOut << "void computeKernelGlue(int count, ";
+    
+    for (int i = 0; i < fNumInputs; i++) {
+        *fGPUOut <<  " float* input" << i << ", ";
+    }
+    
+    for (int i = 0; i < fNumOutputs; i++) {
+        if (i == fNumOutputs - 1) {
+            *fGPUOut << "float* output" << i;
+        } else {
+            *fGPUOut << "float* output" << i << ", ";
+        }    
+    }
+    
+    *fGPUOut << ", faustdsp* dsp, faustcontrol* control) {";
+    
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(16);";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(16);";
+        tab(n+1, *fGPUOut); *fGPUOut << "computeKernel<<<grid, block>>>(count, ";
+        
+        for (int i = 0; i < fNumInputs; i++) {
+            *fGPUOut <<  "input" << i << ", ";
+        }
+        
+        for (int i = 0; i < fNumOutputs; i++) {
+            if (i == fNumOutputs - 1) {
+                *fGPUOut << "output" << i;
+            } else {
+                *fGPUOut << "output" << i << ", ";
+            }    
+        }
+        
+        *fGPUOut << ", dsp, control);";
+
+    tab(n, *fGPUOut); *fGPUOut << "}";
 }
