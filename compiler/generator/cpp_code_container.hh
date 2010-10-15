@@ -35,6 +35,7 @@
 #include "opencl_instructions.hh"
 
 extern string gMasterDocument;
+extern string gOutputFile;
 
 using namespace std;
 
@@ -509,7 +510,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
         CPPCUDACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
              :CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
         {
-            string filename = gMasterDocument + ".cu";
+            string filename = gOutputFile + ".cu";
             fGPUOut = new std::ofstream(filename.c_str());
             fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
         }

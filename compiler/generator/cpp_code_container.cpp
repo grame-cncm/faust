@@ -1579,7 +1579,13 @@ void CPPCUDACodeContainer::produceClass()
         
         tab(n+1, *fOut); *fOut << "static void* RunHandler(void* arg) {";
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
+            tab(n+2, *fOut); *fOut << "cudaError_t cudaResult;";
             
+            tab(n+2, *fOut); *fOut << "cudaResult = cudaSetDeviceFlags(cudaDeviceMapHost);"; 
+            tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
+                tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot set device properties cudaDeviceMapHost err = \" << cudaResult << endl;";
+            tab(n+2, *fOut); *fOut << "}"; 
+
             
             tab(n+2, *fOut); *fOut << "if (!dsp->allocateCUDA())";
                 tab(n+3, *fOut); *fOut << "return NULL;";
@@ -1685,6 +1691,7 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}"; 
             
+            
             /*
             tab(n+2, *fOut); *fOut << "if (!allocateCUDA())";
                 tab(n+3, *fOut); *fOut << "goto error;";
@@ -1749,7 +1756,7 @@ void CPPCUDACodeContainer::produceClass()
            // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostInputs[i], sizeof($0) * 8192, cudaHostAllocMapped|cudaHostAllocWriteCombined|cudaHostAllocPortable);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostInputs[i], sizeof($0) * 8192, cudaHostAllocMapped|cudaHostAllocPortable);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -1765,7 +1772,7 @@ void CPPCUDACodeContainer::produceClass()
             // Allocate kernel output buffers (shared between CPU and GPU)
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostOutputs[i], sizeof($0) * 8192, cudaHostAllocMapped|cudaHostAllocWriteCombined|cudaHostAllocPortable);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostOutputs[i], sizeof($0) * 8192, cudaHostAllocMapped|cudaHostAllocPortable);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
