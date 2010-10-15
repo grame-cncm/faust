@@ -203,6 +203,13 @@ struct RunThread {
         mach_port_t machThread = pthread_mach_thread_np(fThread);
         thread_terminate(machThread);
     }
+    
+    void Join()
+    {
+        sem_post(fSemaphore);
+        pthread_join(fThread, NULL);
+    }
+
 
     #endif
 
@@ -211,6 +218,12 @@ struct RunThread {
     void Cancel()
     {
         pthread_cancel(fThread);
+        pthread_join(fThread, NULL);
+    }
+    
+    void Join()
+    {
+        sem_post(fSemaphore);
         pthread_join(fThread, NULL);
     }
 

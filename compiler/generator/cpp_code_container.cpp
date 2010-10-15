@@ -1460,8 +1460,8 @@ void CPPCUDACodeContainer::produceClass()
     
     *fGPUOut << ", faustdsp* dsp, faustcontrol* control) {";
     
-        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(16);";
-        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(16);";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 block(1);";
+        tab(n+1, *fGPUOut); *fGPUOut << "dim3 grid(1);";
         tab(n+1, *fGPUOut); *fGPUOut << "computeKernel<<<grid, block>>>(count, ";
         
         for (int i = 0; i < fNumInputs; i++) {
@@ -1529,8 +1529,7 @@ void CPPCUDACodeContainer::produceClass()
         } else {
             tab(n, *fOut); *fOut << "  private:";
         }
-        tab(n+1, *fOut); 
-   
+     
         if (fDeclarationInstructions->fCode.size() > 0) {
             fCodeProducer.Tab(n+1);
             
@@ -1541,6 +1540,7 @@ void CPPCUDACodeContainer::produceClass()
         }
         
         tab(n+1, *fOut); *fOut << "int fDeviceID;";
+        tab(n+1, *fOut); *fOut << "volatile bool fDeviceRunning;";
         
         tab(n+1, *fOut); *fOut << "int fDeviceCount;";
         tab(n+1, *fOut); *fOut << "RunThread* fRunThread;";
@@ -1580,13 +1580,18 @@ void CPPCUDACodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "static void* RunHandler(void* arg) {";
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
             
+            
+            tab(n+2, *fOut); *fOut << "if (!dsp->allocateCUDA())";
+                tab(n+3, *fOut); *fOut << "return NULL;";
+            
+            
             tab(n+2, *fOut); *fOut << "if (dsp->fRunThread->fRealTime) {";
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
                 tab(n+3, *fOut); *fOut << "SetRealTime();";
             tab(n+2, *fOut); *fOut << "}";
         
-            tab(n+2, *fOut); *fOut << "while (true) {";
-                tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
+            tab(n+2, *fOut); *fOut << "while (dsp->fDeviceRunning) {";
+                
                  
                 // Pass variable parameters
                 /*
@@ -1636,9 +1641,11 @@ void CPPCUDACodeContainer::produceClass()
                     }
                 } 
                 *fOut << ", dsp->fDeviceDSP, dsp->fDeviceControl);";
-               		         
+                
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "cudaThreadSynchronize();";
+                
+                tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
                 /*
                 tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10)) {";
                     tab(n+4, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000) << \"%\" << endl;";
@@ -1646,13 +1653,15 @@ void CPPCUDACodeContainer::produceClass()
                 */
              
             tab(n+2, *fOut); *fOut << "}";
+            
+            tab(n+2, *fOut); *fOut << "dsp->destroyCUDA();";
+         
             tab(n+2, *fOut); *fOut << "return NULL;";
         tab(n+1, *fOut); *fOut << "}" << endl;
       
         
          tab(n+1, *fOut); *fOut << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "cudaError_t cudaResult;";
-            tab(n+2, *fOut); *fOut << "char* program_src;"; 
             
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "fHostInputs = new float*["<< fNumInputs << "];";
@@ -1662,6 +1671,7 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+2, *fOut); *fOut << "fHostOutputs = new float*["<< fNumOutputs << "];";
                 tab(n+2, *fOut); *fOut << "fDeviceOutputs = new float*["<< fNumOutputs << "];";
             }
+            tab(n+2, *fOut); *fOut << "fHostControl = NULL;";
             
             // Creates device
             tab(n+2, *fOut); *fOut << "cudaResult = cudaGetDeviceCount(&fDeviceCount);";  
@@ -1675,6 +1685,39 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}"; 
             
+            /*
+            tab(n+2, *fOut); *fOut << "if (!allocateCUDA())";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            */
+                    
+            // Allocate thread
+            tab(n+2, *fOut); *fOut << "fRunThread = new RunThread();";
+            tab(n+2, *fOut); *fOut << "if (fRunThread->Start(true, RunHandler, this) != 0) {";
+                tab(n+3, *fOut); *fOut << "goto error;";
+            tab(n+2, *fOut); *fOut << "}";
+            
+            tab(n+2, *fOut); *fOut << "while(!fDeviceRunning) { usleep(100); }";
+   
+            tab(n+2, *fOut); *fOut << "return;" << endl;
+            
+        tab(n+1, *fOut); *fOut << "error:";
+            tab(n+2, *fOut); *fOut << "throw std::bad_alloc();";   
+        tab(n+1, *fOut); *fOut << "}" << endl;
+           
+        tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
+            tab(n+2, *fOut); *fOut << "fDeviceRunning = false; ";
+            //tab(n+2, *fOut); *fOut << "fRunThread->Stop();";
+            
+            tab(n+2, *fOut); *fOut << "fRunThread->Join();";
+            //tab(n+2, *fOut); *fOut << "destroyCUDA();";
+            tab(n+2, *fOut); *fOut << "delete fRunThread;";
+            tab(n+2, *fOut); *fOut << "destroy();";
+           
+        tab(n+1, *fOut); *fOut << "}" << endl;
+
+        tab(n+1, *fOut); *fOut << "bool allocateCUDA() {";
+         
+            tab(n+2, *fOut); *fOut << "cudaError_t cudaResult;";
             tab(n+2, *fOut); *fOut << "fDeviceID = 1;";
             tab(n+2, *fOut); *fOut << "cudaResult = cudaSetDevice(fDeviceID);";
             tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
@@ -1702,11 +1745,11 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot set device properties cudaDeviceMapHost err = \" << cudaResult << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}"; 
-           
-            // Allocate kernel input buffers (shared between CPU and GPU)
+            
+           // Allocate kernel input buffers (shared between CPU and GPU)
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostInputs[i], sizeof($0) * 8192, cudaHostAllocMapped);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostInputs[i], sizeof($0) * 8192, cudaHostAllocMapped|cudaHostAllocWriteCombined|cudaHostAllocPortable);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate input buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -1722,7 +1765,7 @@ void CPPCUDACodeContainer::produceClass()
             // Allocate kernel output buffers (shared between CPU and GPU)
             if (fNumOutputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumOutputs << "; i++) {";
-                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostOutputs[i], sizeof($0) * 8192, cudaHostAllocMapped);", xfloat());
+                    tab(n+3, *fOut); *fOut << subst("cudaResult = cudaHostAlloc((void **)&fHostOutputs[i], sizeof($0) * 8192, cudaHostAllocMapped|cudaHostAllocWriteCombined|cudaHostAllocPortable);", xfloat());
                     tab(n+3, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
                         tab(n+4, *fOut); *fOut << "std::cerr << \"Cannot allocate output buffer err = \" << cudaResult << endl;";
                         tab(n+4, *fOut); *fOut << "goto error;";
@@ -1741,35 +1784,30 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate control err = \" << cudaResult << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
+            
             tab(n+2, *fOut); *fOut << "cudaResult = cudaHostGetDevicePointer((void **)&fDeviceControl, (void *)fHostControl, 0);";
             tab(n+2, *fOut); *fOut << "if (cudaResult != cudaSuccess) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot map control err = \" << cudaResult << endl;";
-                tab(n+3, *fOut); *fOut << "goto error;";
+                tab(n+4, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
             // Allocate DSP on GPU
             tab(n+2, *fOut); *fOut << "cudaResult = cudaMalloc((void **)&fDeviceDSP, sizeof(faustdsp));";
             tab(n+2, *fOut); *fOut << "if (cudaResult != cudaResult) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Cannot allocate DSP err = \" << cudaResult << endl;";
-                tab(n+3, *fOut); *fOut << "goto error;";
+                tab(n+4, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
             
-            // Allocate thread
-            tab(n+2, *fOut); *fOut << "fRunThread = new RunThread();";
-            tab(n+2, *fOut); *fOut << "if (fRunThread->Start(true, RunHandler, this) != 0) {";
-                tab(n+3, *fOut); *fOut << "goto error;";
-            tab(n+2, *fOut); *fOut << "}";
-   
-            tab(n+2, *fOut); *fOut << "return;" << endl;
-            
+            tab(n+2, *fOut); *fOut << "fDeviceRunning = true;";
+            tab(n+2, *fOut); *fOut << "return true;";
+             
         tab(n+1, *fOut); *fOut << "error:";
-            tab(n+2, *fOut); *fOut << "throw std::bad_alloc();";   
-        tab(n+1, *fOut); *fOut << "}" << endl;
-        
-        tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
-            tab(n+2, *fOut); *fOut << "fRunThread->Stop();";
-            tab(n+2, *fOut); *fOut << "delete fRunThread;";
+            tab(n+2, *fOut); *fOut << "return false;";  
             
+         tab(n+1, *fOut); *fOut << "}";
+        
+         tab(n+1, *fOut); *fOut << "void destroyCUDA() {";
+           
             // Free kernel input buffers
             if (fNumInputs > 0) {
                 tab(n+2, *fOut); *fOut << "for (int i = 0; i < " << fNumInputs << "; i++) {";
@@ -1797,11 +1835,10 @@ void CPPCUDACodeContainer::produceClass()
             
             // Shutdown and cleanup
             tab(n+2, *fOut); *fOut << "cudaThreadExit();";
-            tab(n+2, *fOut); *fOut << "destroy();";
-           
       
-        tab(n+1, *fOut); *fOut << "}" << endl;
-        
+         tab(n+1, *fOut); *fOut << "}";
+      
+             
     tab(n+1, *fOut); *fOut << "void destroy() {";
             if (fDestroyInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut); 
@@ -1873,6 +1910,7 @@ void CPPCUDACodeContainer::produceClass()
         // User interface
         tab(n+1, *fOut); 
         tab(n+1, *fOut); *fOut << "virtual void buildUserInterface(UI* interface) {";
+            tab(n+2, *fOut); *fOut << "assert(fHostControl);";
             if (fUserInterfaceInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
