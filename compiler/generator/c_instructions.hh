@@ -283,7 +283,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 indexed->fIndex->accept(this);
                 *fOut << "] = ";
             }
-                    
+            assert( inst->fValue);   
             inst->fValue->accept(this);
             EndLine();
         }

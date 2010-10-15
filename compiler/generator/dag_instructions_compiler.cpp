@@ -488,18 +488,8 @@ ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::Var
 
 void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access)
 {
-    // -- declare the vector
-    ValueInst* init;
-    BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
-    
-    if (ctype == Typed::kInt) {
-        init = InstBuilder::genIntNumInst(0); 
-    } else {  // Real type
-        init = InstBuilder::genRealNumInst(ctype, 0); 
-    }
-    
     // "$0 $1[$2];"
-    DeclareVarInst* table_inst = InstBuilder::genDeclareVarInst(vname, InstBuilder::genArrayTyped(typed, gVecSize), Address::kStack);
+    DeclareVarInst* table_inst = InstBuilder::genDeclareVarInst(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gVecSize), Address::kStack);
     fContainer->pushComputeBlockMethod(table_inst);
     
     // -- compute the new samples
@@ -515,15 +505,8 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
 
 void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const string& vname, int delay, ValueInst* exp, Address::AccessType& var_access)
 {
-    ValueInst* init;
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
-    
-    if (ctype == Typed::kInt) {
-        init = InstBuilder::genIntNumInst(0); 
-    } else {  // Real type
-        init = InstBuilder::genRealNumInst(ctype, 0); 
-    }
-        
+          
     if (delay < gMaxCopyDelay) {
         
         // Implementation of a copy based delayline

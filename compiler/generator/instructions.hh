@@ -935,10 +935,10 @@ struct BinopInst : public ValueInst
 
 struct CastNumInst : public ValueInst
 {
-    BasicTyped* fTyped;
+    Typed* fTyped;
     ValueInst* fInst;
   
-    CastNumInst(ValueInst* inst, BasicTyped* typed)
+    CastNumInst(ValueInst* inst, Typed* typed)
         :fTyped(typed), fInst(inst)
     {}
     virtual ~CastNumInst() 						
@@ -1204,7 +1204,7 @@ class BasicCloneVisitor : public CloneVisitor {
             return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this));
         }
         
-        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this),  dynamic_cast<BasicTyped*>(inst->fTyped->clone(this))); }
+        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this), inst->fTyped->clone(this)); }
         
         // Function call
         virtual ValueInst* visit(FunCallInst* inst)
@@ -1471,13 +1471,18 @@ struct InstBuilder
     // Numerical computation
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2) { return new BinopInst(opcode, inst1, inst2); }
     
-    static ValueInst* genCastNumInst(ValueInst* inst, BasicTyped* typed)
+    static ValueInst* genCastNumInst(ValueInst* inst, Typed* typed_ext)
     {
         IntNumInst* int_num = dynamic_cast<IntNumInst*>(inst);
         FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
         DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
         
-        if (typed->getType() == Typed::kFloat) {
+        BasicTyped* typed = dynamic_cast<BasicTyped*>(typed_ext);
+        
+        if (!typed) {
+            // Default case
+            return new CastNumInst(inst, typed);
+        } else if (typed->getType() == Typed::kFloat) {
             if (int_num) {
                 // Simple float cast of integer
                 return InstBuilder::genFloatNumInst(float(int_num->fNum)); 
