@@ -2178,3 +2178,4 @@ void CPPCUDAVectorCodeContainer::generateComputeKernelGlue(int n)
 
     tab(n, *fGPUOut); *fGPUOut << "}";
 }
+

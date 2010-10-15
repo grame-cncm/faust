@@ -334,6 +334,12 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     *fOut << ")";
                 }
             }
+            
+            virtual void visit(CastNumInst* inst) 
+            {   
+                *fOut << "(" << generateType(inst->fTyped) << ")";
+                inst->fInst->accept(this);
+            }
           
         };
             
@@ -425,6 +431,13 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // Add __local keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
         
+            virtual void tab1(int n, ostream& fout)
+            {
+                fout << "  \\n\"  \\\n";
+                fout << "\"";
+                while (n--) fout << '\t';
+            }
+            
             BlockKernelInstVisitor(std::ostream* out, int tab)
                 :KernelInstVisitor(out, tab)
             {}
