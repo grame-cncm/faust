@@ -110,5 +110,12 @@ take (1, (xs, xxs)) 	= xs;
 take (1, xs) 			= xs;
 take (nn, (xs, xxs)) 	= take (nn-1, xxs);
 
+// linear interpolation between two signals 
+interpolate(i) = *(1.0-i),*(i) : +; 
+
+// if-then-else implemented with a select2. 
+if(cond,thn,els) = select2(cond,els,thn);
+
+
 
 
