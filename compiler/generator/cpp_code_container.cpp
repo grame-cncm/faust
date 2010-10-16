@@ -1428,18 +1428,7 @@ void CPPCUDACodeContainer::produceClass()
     // Sort arrays to be at the begining
     fDeclarationInstructions->fCode.sort(sortFunction1);
     
-    // Compile OpenCL kernel string
-    //*fGPUOut << "const char* KernelSource = \"";
-    
     // Macro definition
-    /*
-    tab1(n, *fGPUOut); *fGPUOut << "#define max(x,y) (((x)>(y)) ? (x) : (y))";
-    tab1(n, *fGPUOut); *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
-    tab1(n, *fGPUOut); *fGPUOut << "#ifndef " << FLOATMACRO;
-    tab1(n, *fGPUOut); *fGPUOut << "#define " << FLOATMACRO << " " << "float";
-    tab1(n, *fGPUOut); *fGPUOut << "#endif  ";
-    */
-    
     tab(n, *fGPUOut); *fGPUOut << "#define max(x,y) (((x)>(y)) ? (x) : (y))";
     tab(n, *fGPUOut); *fGPUOut << "#define min(x,y) (((x)<(y)) ? (x) : (y))";
     tab(n, *fGPUOut); *fGPUOut << "#ifndef " << FLOATMACRO;
@@ -1447,25 +1436,16 @@ void CPPCUDACodeContainer::produceClass()
     tab(n, *fGPUOut); *fGPUOut << "#endif  ";
     
      // Separate control and non-controls fields in 2 separeted structures
-    //tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
     tab(n, *fGPUOut);
     tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
         DSPInstVisitor dsp_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&dsp_visitor);
-    //tab1(n, *fGPUOut); *fGPUOut << "} faustdsp;";
-    //tab1(n, *fGPUOut);
     tab(n, *fGPUOut); *fGPUOut << "} faustdsp;";
     tab(n, *fGPUOut);
     
-    //tab1(n, *fGPUOut); *fGPUOut << "typedef struct {";
     tab(n, *fGPUOut); *fGPUOut << "typedef struct {";
         ControlInstVisitor control_visitor(fGPUOut, n+1);
         fDeclarationInstructions->accept(&control_visitor);
-    /*
-    tab1(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
-    tab1(n, *fGPUOut);
-    tab1(n, *fGPUOut);
-    */
     tab(n, *fGPUOut); *fGPUOut << "} faustcontrol;";
     tab(n, *fGPUOut);
     tab(n, *fGPUOut);
@@ -1473,11 +1453,9 @@ void CPPCUDACodeContainer::produceClass()
     // Generate instanceInit kernel
     if (fInitInstructions->fCode.size() > 0) {
         *fGPUOut << "__global__ void instanceInitKernel(faustdsp* dsp, faustcontrol* control, int samplingFreq) {";
-        //tab1(n+1, *fGPUOut);
         tab(n+1, *fGPUOut);
         fKernelCodeProducer->Tab(n+1);
         fInitInstructions->accept(fKernelCodeProducer);
-        //tab1(n, *fGPUOut);
         tab(n, *fGPUOut);
         *fGPUOut << "}";
     }
@@ -1489,11 +1467,8 @@ void CPPCUDACodeContainer::produceClass()
     generateInstanceInitKernelGlue(n);
     tab(n, *fGPUOut);
     generateComputeKernelGlue(n);
-           
-    //*fGPUOut << "\\n\";";
     
-    // Insert CUDA code as a string
-    //tab(n, *fOut); *fOut << fGPUOut->str();
+    // Generates CUDA code as a file
     fGPUOut->flush();
     
     // Separate control and non-controls fields in 2 structures
@@ -1608,40 +1583,6 @@ void CPPCUDACodeContainer::produceClass()
         
             tab(n+2, *fOut); *fOut << "while (dsp->fDeviceRunning) {";
                 
-                 
-                // Pass variable parameters
-                /*
-                tab(n+3, *fOut); *fOut << "int err = 0;";
-                tab(n+3, *fOut); *fOut << "err |= clSetKernelArg(dsp->fComputeKernel, 0, sizeof(int), &dsp->fCount);";
-                tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+4, *fOut); *fOut << "std::cerr << \"clSetKernelArg err = \" << err << endl;";
-                tab(n+3, *fOut); *fOut << "}";
-                
-                tab(n+3, *fOut); *fOut << "size_t global, local;";
-                tab(n+3, *fOut); *fOut << "err = clGetKernelWorkGroupInfo(dsp->fComputeKernel, dsp->fDeviceID, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);";
-                tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+4, *fOut); *fOut << "std::cerr << \"clGetKernelWorkGroupInfo err = \" << err << endl;";
-                tab(n+3, *fOut); *fOut << "}";
-                
-                tab(n+3, *fOut); *fOut << "cl_event dsp_execution;";
-                */
-                
-                /*
-                if (gVectorSwitch) {
-                    //tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
-                    tab(n+3, *fOut); *fOut << "global = local = 32;";
-                    tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, &dsp_execution);";
-                    tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                        tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueNDRangeKernel compute err = \" << err << endl;";
-                    tab(n+3, *fOut); *fOut << "}";
-                } else {
-                    // Only one kernel
-                    tab(n+3, *fOut); *fOut << "err = clEnqueueTask(dsp->fCommands, dsp->fComputeKernel, 0, NULL, &dsp_execution);";
-                    tab(n+3, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                        tab(n+4, *fOut); *fOut << "std::cerr << \"clEnqueueTask compute err = \" << err << endl;";
-                    tab(n+3, *fOut); *fOut << "}";
-                }
-                */
                 tab(n+3, *fOut); *fOut << "computeKernelGlue(dsp->fCount, ";
                 if (fNumInputs > 0) {
                     for (int i = 0; i < fNumInputs; i++) {
@@ -1660,7 +1601,6 @@ void CPPCUDACodeContainer::produceClass()
                 
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "cudaThreadSynchronize();";
-                
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
                 /*
                 tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10)) {";
@@ -1669,14 +1609,11 @@ void CPPCUDACodeContainer::produceClass()
                 */
              
             tab(n+2, *fOut); *fOut << "}";
-            
             tab(n+2, *fOut); *fOut << "dsp->destroyCUDA();";
-         
             tab(n+2, *fOut); *fOut << "return NULL;";
         tab(n+1, *fOut); *fOut << "}" << endl;
-      
         
-         tab(n+1, *fOut); *fOut << fKlassName << "() {";
+        tab(n+1, *fOut); *fOut << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "cudaError_t cudaResult;";
             
             if (fNumInputs > 0) {
@@ -1700,7 +1637,6 @@ void CPPCUDACodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "std::cerr << \"There is no GPU devices\"<< endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}"; 
-            
             
             /*
             tab(n+2, *fOut); *fOut << "if (!allocateCUDA())";
@@ -1888,33 +1824,10 @@ void CPPCUDACodeContainer::produceClass()
             if (fInitInstructions->fCode.size() > 0) {
                 
                 tab(n+2, *fOut); *fOut << "fSamplingFreq = samplingFreq;";
-                
                 tab(n+2, *fOut); *fOut << "instanceInitKernelGlue(fDeviceDSP, fDeviceControl, samplingFreq);";
                 
                 // Wait for instanceInit end
                 tab(n+2, *fOut); *fOut << "cudaThreadSynchronize();";
-                
-                /*
-                tab(n+2, *fOut); *fOut << "int err = 0;";
-                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 0, sizeof(cl_mem), &fDeviceDSP);";
-                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 1, sizeof(cl_mem), &fDeviceControl);";
-                tab(n+2, *fOut); *fOut << "err |= clSetKernelArg(fInstanceInitKernel, 2, sizeof(int), &samplingFreq);";
-                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+3, *fOut); *fOut << "std::cerr << \"clSetKernelArg instanceInit err = \" << err << endl;";
-                tab(n+2, *fOut); *fOut << "}";
-                
-                tab(n+2, *fOut); *fOut << "err = clEnqueueTask(fCommands, fInstanceInitKernel, 0, NULL, NULL);";
-                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+3, *fOut); *fOut << "std::cerr << \"clEnqueueTask instanceInit err = \" << err << endl;";
-                tab(n+2, *fOut); *fOut << "}";
-                
-                // Wait for instanceInit end
-                tab(n+2, *fOut); *fOut << "err = clFinish(fCommands);";
-                tab(n+2, *fOut); *fOut << "if (err != CL_SUCCESS) {";
-                    tab(n+3, *fOut); *fOut << "std::cerr << \"clFinish instanceInit err = \" << err << endl;";
-                tab(n+2, *fOut); *fOut << "}";
-                */
-
             }
         tab(n+1, *fOut); *fOut << "}";
 
@@ -1994,7 +1907,6 @@ void CPPCUDACodeContainer::generateCompute(int n)
 void CPPCUDACodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
-    //tab1(n, *fGPUOut);
     tab(n, *fGPUOut);
     *fGPUOut << "__global__ void computeKernel(int count, ";
     
@@ -2011,7 +1923,6 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
     }
     
     *fGPUOut << ", faustdsp* dsp, faustcontrol* control) {";
-    //tab1(n+1, *fGPUOut);
     tab(n+1, *fGPUOut);
    
     // Generates local variables declaration and setup
@@ -2021,11 +1932,8 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
     ForLoopInst* loop = fCurLoop->getScalarLoop();
     loop->accept(fKernelCodeProducer);
       
-    //tab1(n, *fGPUOut);
     tab(n, *fGPUOut);
-    
     *fGPUOut << "}";
-    //tab1(n, *fGPUOut);
     tab(n, *fGPUOut);
 }
 
@@ -2077,6 +1985,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     // Generates get_global_id access
     list<ValueInst*> args;
     args.push_back(InstBuilder::genIntNumInst(0));
+    
     /*
     loop_code->pushBackInst(InstBuilder::genDeclareVarInst("tasknum", 
         InstBuilder::genBasicTyped(Typed::kInt), Address::kStack, 

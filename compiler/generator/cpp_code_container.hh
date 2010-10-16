@@ -222,8 +222,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             }
             
         };
-        
-
+   
         // Control fields are preceded with "control->"
         // Non-confrol fields are preceded with "dsp->"
         struct KernelInstVisitor : public CPPInstVisitor {
@@ -335,6 +334,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 }
             }
             
+            // C like cast
             virtual void visit(CastNumInst* inst) 
             {   
                 *fOut << "(" << generateType(inst->fTyped) << ")";
@@ -363,6 +363,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
       
         struct OpenCLKernelInstVisitor : public KernelInstVisitor {
         
+            // Code will be genaretd as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -400,6 +401,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // To be used when generating GPU kernel string
         struct ControlOpenCLInstVisitor : public ControlInstVisitor {
         
+            // Code will be genaretd as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -415,6 +417,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
         // To be used when generating GPU kernel string
         struct DSPOpenCLInstVisitor : public DSPInstVisitor {
         
+            // Code will be genaretd as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -427,10 +430,10 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             {}
         };
         
-        
         // Add __local keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
         
+            // Code will be genaretd as a string
             virtual void tab1(int n, ostream& fout)
             {
                 fout << "  \\n\"  \\\n";
@@ -520,8 +523,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
         };
         
-        
-        // Add __local keyword for stack variables
+        // Add __shared__ keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
         
             BlockKernelInstVisitor(std::ostream* out, int tab)
@@ -559,7 +561,6 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
             }
 
         };
-
 
     public:
 
