@@ -409,12 +409,12 @@ void printhelp()
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
     cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
-    cout << "-ocl    \t--opencl generate tasks with OpenCL \n";
+    cout << "-ocl    \t--openCL generate tasks with OpenCL \n";
     cout << "-cuda   \t--cuda generate tasks with CUDA \n";
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, llvm, opencl, fir (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, llvm, fir (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";

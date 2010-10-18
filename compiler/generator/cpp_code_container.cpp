@@ -1688,7 +1688,7 @@ void CPPCUDACodeContainer::produceClass()
             
             tab(n+2, *fOut); *fOut << "std::cerr << \"Device name: \" << deviceProp.name << endl;";
             
-             tab(n+2, *fOut); *fOut << " if (!deviceProp.canMapHostMemory) {";
+             tab(n+2, *fOut); *fOut << "if (!deviceProp.canMapHostMemory) {";
                 tab(n+3, *fOut); *fOut << "std::cerr << \"Device cannot map host memory \" << endl;";
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}"; 
