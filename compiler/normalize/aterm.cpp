@@ -8,7 +8,7 @@ using namespace std;
 
 typedef map<Tree,mterm> SM;
 
-aterm::aterm ()            
+aterm::aterm ()
 {}
 
 
@@ -25,10 +25,10 @@ aterm::aterm (Tree t)
     cerr << "aterm::aterm (" << ppsig(t)<< ") : -> " << *this << endl;
 	#endif
 }
-	
+
 
 /**
- * Add two terms trying to simplify the result 
+ * Add two terms trying to simplify the result
  */
 static Tree simplifyingAdd(Tree t1, Tree t2)
 {
@@ -36,7 +36,7 @@ static Tree simplifyingAdd(Tree t1, Tree t2)
 	assert(t2!=0);
 
 	if (isNum(t1) && isNum(t2)) {
-		return addNums(t1,t2);
+		return addNums(t1,t2, unknown_box);
 
 	} else if (isZero(t1)) {
 		return t2;
@@ -45,10 +45,10 @@ static Tree simplifyingAdd(Tree t1, Tree t2)
 		return t1;
 
 	} else if (t1 <= t2) {
-		return sigAdd(t1, t2);
+		return sigAdd(t1, t2, unknown_box);
 
 	} else {
-		return sigAdd(t2, t1);
+		return sigAdd(t2, t1, unknown_box);
 	}
 }
 
@@ -62,13 +62,13 @@ Tree aterm::normalizedTree() const
 	// positive terms are stored in P[]
 	// negative terms are inverted (made positive) and stored in N[]
 	Tree P[4], N[4];
-	
+
 	// prepare
 	for (int order = 0; order < 4; order++) 	P[order] = N[order] = tree(0);
-	
+
 	// sum by order and sign
 	for (SM::const_iterator p = fSig2MTerms.begin(); p != fSig2MTerms.end(); p++) {
-		const mterm& m = p->second;	
+		const mterm& m = p->second;
 		if (m.isNegative()) {
 			Tree t = m.normalizedTree(false, true);
 			int order = getSigOrder(t);
@@ -79,7 +79,7 @@ Tree aterm::normalizedTree() const
 			P[order] = simplifyingAdd(P[order],t);
 		}
 	}
-	
+
 	// combine sums
 	Tree SUM = tree(0);
 	for (int order = 0; order < 4; order++) {
@@ -91,15 +91,15 @@ Tree aterm::normalizedTree() const
 				// we postpone substraction
 				N[order+1] = simplifyingAdd(N[order], N[order+1]);
 			} else {
-				SUM = sigSub(SUM, N[order]);
+				SUM = sigSub(SUM, N[order], unknown_box);
 			}
 		}
 	}
-	
+
 	assert(SUM);
 	return SUM;
 }
-	
+
 
 /**
  * print an aterm in a human readable format
@@ -115,13 +115,13 @@ ostream& aterm::print(ostream& dst) const
 	        sep = " + ";
         }
     }
- 
+
 	return dst;
 }
 
 
 /**
- * Add in place an additive expression tree Go down t recursively looking 
+ * Add in place an additive expression tree Go down t recursively looking
  * for additions and substractions
  */
 const aterm& aterm::operator += (Tree t)
@@ -148,7 +148,7 @@ const aterm& aterm::operator += (Tree t)
 
 
 /**
- * Substract in place an additive expression tree Go down t recursively looking 
+ * Substract in place an additive expression tree Go down t recursively looking
  * for additions and substractions
  */
 const aterm& aterm::operator -= (Tree t)
@@ -214,12 +214,12 @@ const aterm& aterm::operator -= (const mterm& m)
 	}
 	return *this;
 }
-	
+
 mterm aterm::greatestDivisor() const
 {
 	int maxComplexity = 0;
 	mterm maxGCD(1);
-	
+
 	for (SM::const_iterator p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
 		for (SM::const_iterator p2 = p1; p2 != fSig2MTerms.end(); p2++) {
 			if (p2 != p1) {
@@ -243,7 +243,7 @@ aterm aterm::factorize(const mterm& d)
 	//cerr << "factorize : " << *this << " with " << d << endl;
 	aterm A;
 	aterm Q;
-	
+
 	// separate the multiple of m from the others
 	for (SM::const_iterator p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
 		mterm t = p1->second;
@@ -257,15 +257,15 @@ aterm aterm::factorize(const mterm& d)
 			//cerr << "step A = " << A << endl;
 		}
 	}
-	
+
 	// combines the two parts
 	//cerr << "d.normalizedTree() " << ppsig(d.normalizedTree()) << endl;
 	//cerr << "Q.normalizedTree() " << ppsig(Q.normalizedTree()) << endl;
 	//Tree tt = sigMul(d.normalizedTree(), Q.normalizedTree());
 	//cerr << "tt " << *tt << endl;
-	
+
 	//Tree ttt = sigAdd(
-	A += sigMul(d.normalizedTree(), Q.normalizedTree());
+	A += sigMul(d.normalizedTree(), Q.normalizedTree(), unknown_box);
 	//cerr << "Final A = " << A << endl;
 	//cerr << "Final Tree " << *(A.normalizedTree()) << endl;
 	return A;

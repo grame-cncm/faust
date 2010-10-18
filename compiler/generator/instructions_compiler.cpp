@@ -955,7 +955,7 @@ ValueInst* InstructionsCompiler::generateRec(int variability, Tree sig, Tree var
 
     // Prepare each element of a recursive definition
     for (int i = 0; i < N; i++) {
-        Tree e = sigProj(i, sig);     // recreate each recursive definition
+        Tree e = sigProj(i, sig, unknown_box);     // recreate each recursive definition
         if (fOccMarkup.retrieve(e)) {
             // This projection is used
             used[i] = true;

@@ -119,7 +119,7 @@ class CTree
 	// fields
 	Tree		fNext;				///< next tree in the same hashtable entry
 	Node		fNode;				///< the node content of the tree
-	void*		fType;				///< the type of a tree 
+	void*		fType;				///< the type of a tree
 	plist		fProperties;		///< the properties list attached to the tree
 	unsigned int		fHashKey;			///< the hashtable key
 	int			fAperture;			///< how "open" is a tree (synthezised field)
@@ -153,9 +153,9 @@ class CTree
 	// type information
 	void		setType(void* t) 	{ fType = t; }
 	void*		getType() 			{ return fType; }
-	
+
 	// Property list of a tree
-	void		setProperty(Tree key, Tree value) { fProperties[key] = value; }
+	CTree*		setProperty(Tree key, Tree value) { fProperties[key] = value; return this;}
 	void		clearProperty(Tree key) { fProperties.erase(key); }
 	void		clearProperties()		{ fProperties = plist(); }
 

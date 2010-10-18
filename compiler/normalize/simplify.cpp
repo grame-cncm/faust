@@ -112,7 +112,7 @@ static Tree simplification (Tree sig)
 		else 								return normalizeAddTerm(sig);
 
 	} else if (isSigDelay1(sig, t1)) {
-		
+
 		return normalizeDelay1Term (t1);
 
 	} else if (isSigFixDelay(sig, t1, t2)) {
@@ -126,10 +126,10 @@ static Tree simplification (Tree sig)
 		double 	x;
 		Node 	n1 = t1->node();
 
-		if (isInt(n1, &i)) 			return t1; 
+		if (isInt(n1, &i)) 			return t1;
 		if (isDouble(n1, &x)) 		return tree(int(x));
 		if (isSigIntCast(t1, tx)) 	return t1;
-		
+
 		return sig;
 
 	} else if (isSigFloatCast(sig, t1)) {
@@ -142,7 +142,7 @@ static Tree simplification (Tree sig)
 		if (isInt(n1, &i)) 				return tree(double(i));
 		if (isDouble(n1, &x)) 			return t1;
 		if (isSigFloatCast(t1, tx)) 	return t1;
-		
+
 		return sig;
 
 	} else {
@@ -155,7 +155,7 @@ static Tree simplification (Tree sig)
 
 /**
  * Recursively transform a graph by applying a function f.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)]) 
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
  */
 static Tree sigMap (Tree key, tfun f, Tree t)
 {
@@ -209,9 +209,9 @@ static Tree sigMap (Tree key, tfun f, Tree t)
 
 
 /**
- * Like SigMap, recursively transform a graph by applying a 
+ * Like SigMap, recursively transform a graph by applying a
  * function f. But here recursive trees are also renamed.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)]) 
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
  */
 static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
 {
@@ -329,18 +329,19 @@ static Tree docTableConverter (Tree sig)
     Tree tbl, tbl2, id, id2, size, igen, isig, ridx, widx, wsig;
 
     if (isSigRDTbl(sig, tbl, ridx)) {
+        Tree box = sig->getProperty(box_symbol);
         // we are in a table to convert
         if (isSigTable(tbl, id, size, igen)) {
             // it's a read only table
             assert(isSigGen(igen, isig));
-            return sigDocAccessTbl(sigDocConstantTbl(size,isig),ridx);
+            return sigDocAccessTbl(sigDocConstantTbl(size,isig, box),ridx, box);
         } else {
             // it's a read write table
             assert(isSigWRTbl(tbl,id,tbl2,widx,wsig));
             assert(isSigTable(tbl2, id2, size, igen));
             assert(isSigGen(igen, isig));
 
-            return sigDocAccessTbl(sigDocWriteTbl(size,isig,widx,wsig),ridx);
+            return sigDocAccessTbl(sigDocWriteTbl(size,isig,widx,wsig, box),ridx, box);
         }
 
     } else {

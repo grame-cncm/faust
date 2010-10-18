@@ -34,7 +34,7 @@ Tree normalizeAddTerm(Tree t)
 #ifdef TRACE
 	cerr << "START normalizeAddTerm : " << ppsig(t) << endl;
 #endif
-	
+
 	aterm A(t);
 	//cerr << "ATERM IS : " << A << endl;
 	mterm D = A.greatestDivisor();
@@ -104,7 +104,7 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 	} else if (isSigDiv(s, x, y)) {
 
 		if (getSigOrder(y) < 2) {
-            return /*simplify*/(sigDiv(normalizeFixedDelayTerm(x,d),y));
+            return /*simplify*/(sigDiv(normalizeFixedDelayTerm(x,d),y, unknown_box));
 		} else {
 			return sigFixDelay(s,d);
 		}
@@ -112,7 +112,7 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 	} else if (isSigFixDelay(s, x, y)) {
 		// (x@n)@m = x@(n+m)
 //		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
-		return normalizeFixedDelayTerm(x,simplify(sigAdd(d,y))); 
+		return normalizeFixedDelayTerm(x,simplify(sigAdd(d,y)));
 
 	} else {
 
