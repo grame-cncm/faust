@@ -94,8 +94,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
-                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "()"
-                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "(" + num_str.str() + ")"; 
+                    ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
             } else {
                 assert(false);
                 return "";
@@ -128,8 +128,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
-                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "()"
-                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "(" + num_str.str() + ")"; 
+                    ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
             } else {
                 assert(false);
                 return "";
@@ -299,7 +299,12 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {   
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            *fOut << "LoadVarInst(";
+            
+            if (inst->fSize > 1) {
+                *fOut << "LoadVarInstVec<" << inst->fSize << ">(";
+            } else {
+                *fOut << "LoadVarInst(";
+            }
          
             if (named) {
                 *fOut << named->getName();
@@ -315,7 +320,12 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            *fOut << "LoadVarAddressInst(";
+            
+            if (inst->fSize > 1) {
+                *fOut << "LoadVarAddressInstVec<" << inst->fSize << ">(";
+            } else {
+                *fOut << "LoadVarAddressInst(";
+            }
          
             if (named) {
                 *fOut << named->getName();
@@ -349,7 +359,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(FloatNumInst* inst)
         {   
             if (inst->fSize > 1)
-                *fOut << "VecFloat(" << checkFloat(inst->fNum) << ")";
+                *fOut << "FloatVec<" << inst->fSize << ">(" << checkFloat(inst->fNum) << ")";
             else
                 *fOut << "Float(" << checkFloat(inst->fNum) << ")";
         }    
@@ -357,7 +367,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(IntNumInst* inst)
         {   
             if (inst->fSize > 1)
-                *fOut << "VecInt(" << inst->fNum  << ")";
+                *fOut << "IntVec<" << inst->fSize << ">(" << inst->fNum  << ")";
             else
                 *fOut << "Int(" << inst->fNum  << ")";
         }
@@ -365,22 +375,26 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(BoolNumInst* inst) 
         {   
             if (inst->fSize > 1)
-                *fOut << "VecBool(" << inst->fNum  << ")";
+                *fOut << "BoolVec<" << inst->fSize << ">(" << inst->fNum  << ")";
             else
                 *fOut << "Bool(" << inst->fNum  << ")";
         }
         
         virtual void visit(DoubleNumInst* inst)
         {   
-             if (inst->fSize > 1)
-                *fOut << "VecDouble(" << inst->fNum  << ")";
+            if (inst->fSize > 1)
+                *fOut << "DoubleVec<" << inst->fSize << ">(" << inst->fNum  << ")";
             else
                 *fOut << "Double(" << inst->fNum  << ")";
         }
          
         virtual void visit(BinopInst* inst) 
         {   
-            *fOut << "BinopInst(";
+            if (inst->fSize > 1) {
+                *fOut << "BinopInstVec<" << inst->fSize << ">(";
+            } else {
+                *fOut << "BinopInst(";
+            }
             *fOut << "\"";
             *fOut << gBinOpTable[inst->fOpcode]->fName;
             *fOut << "\"";
@@ -419,7 +433,12 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 return;
             }
             
-            *fOut << "FunCallInst(";
+            if (inst->fSize > 1) {
+                *fOut << "FunCallInstVec<" << inst->fSize << ">(";
+            } else {
+                *fOut << "FunCallInst(";
+            }
+           
             *fOut << "\"" <<inst->fName << "\"";
             list<ValueInst*>::const_iterator it;
             
@@ -435,7 +454,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
        
         virtual void visit(Select2Inst* inst)
         {   
-            *fOut << "Select2Inst(";
+            if (inst->fSize > 1) {
+                *fOut << "Select2InstVec<" << inst->fSize << ">(";
+            } else {
+                *fOut << "Select2Inst(";
+            }
             inst->fCond->accept(this);
             *fOut << " ";
             inst->fThen->accept(this);

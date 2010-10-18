@@ -806,12 +806,12 @@ struct DropInst : public StatementInst
 };
 
 
-struct LoadVarInst : public ValueInst
+struct LoadVarInst : public ValueInst, public Vectorizable
 {
     Address* fAddress;
     
-    LoadVarInst(Address* address)
-        :fAddress(address)
+    LoadVarInst(Address* address, int size = 1)
+        :Vectorizable(size), fAddress(address)
     {}
     virtual ~LoadVarInst() 						
     {}
@@ -821,12 +821,12 @@ struct LoadVarInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct LoadVarAddressInst : public ValueInst
+struct LoadVarAddressInst : public ValueInst, public Vectorizable
 {
     Address* fAddress;
     
-    LoadVarAddressInst(Address* address)
-        :fAddress(address)
+    LoadVarAddressInst(Address* address, int size = 1)
+        :Vectorizable(size), fAddress(address)
     {}
     virtual ~LoadVarAddressInst() 						
     {}
@@ -916,14 +916,14 @@ struct BoolNumInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct BinopInst : public ValueInst
+struct BinopInst : public ValueInst, public Vectorizable
 {
     int fOpcode;
     ValueInst* fInst1;
     ValueInst* fInst2;
 
-    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
-        :fOpcode(opcode), fInst1(inst1), fInst2(inst2)
+    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1)
+        :Vectorizable(size), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
     {}
     virtual ~BinopInst() 						
     {}
@@ -987,14 +987,14 @@ struct BlockInst : public StatementInst
     }
 };
 
-struct Select2Inst : public ValueInst
+struct Select2Inst : public ValueInst, public Vectorizable
 {
     ValueInst* fCond;
     ValueInst* fThen;
     ValueInst* fElse;
 
-    Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
-        :fCond(cond_inst), fThen(then_inst), fElse(else_inst)
+    Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst, int size = 1)
+        :Vectorizable(size), fCond(cond_inst), fThen(then_inst), fElse(else_inst)
     {}
     virtual ~Select2Inst() 						
     {}
@@ -1064,14 +1064,14 @@ struct RetInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct FunCallInst : public ValueInst
+struct FunCallInst : public ValueInst, public Vectorizable
 {
     string fName;
     list<ValueInst*> fArgs;   // List of arguments
     bool fMethod;
 
-    FunCallInst(const string& name, const list<ValueInst*>& args, bool method = false)
-        :fName(name), fArgs(args), fMethod(method)
+    FunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
+        :Vectorizable(size), fName(name), fArgs(args), fMethod(method)
     {}
    
     virtual ~FunCallInst() 						
@@ -1184,8 +1184,8 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         
         // Memory
-        virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this)); }
-        virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
+        virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this), inst->fSize); }
+        virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize); }
         virtual StatementInst* visit(StoreVarInst* inst) { return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
         
         // Addresses
@@ -1201,7 +1201,7 @@ class BasicCloneVisitor : public CloneVisitor {
         // Numerical computation
         virtual ValueInst* visit(BinopInst* inst) 
         { 
-            return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this));
+            return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), inst->fSize);
         }
         
         virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this), inst->fTyped->clone(this)); }
@@ -1214,13 +1214,13 @@ class BasicCloneVisitor : public CloneVisitor {
             for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
                 cloned.push_back((*it)->clone(this));
             }
-            return new FunCallInst(inst->fName, cloned, inst->fMethod); 
+            return new FunCallInst(inst->fName, cloned, inst->fMethod, inst->fSize); 
         }
         virtual StatementInst* visit(RetInst* inst) { return new RetInst((inst->fResult) ? inst->fResult->clone(this) : NULL); }
         virtual StatementInst* visit(DropInst* inst) { return new DropInst((inst->fResult) ? inst->fResult->clone(this) : NULL); }
        
         // Conditionnal
-        virtual ValueInst* visit(Select2Inst* inst) { return new Select2Inst(inst->fCond->clone(this), inst->fThen->clone(this), inst->fElse->clone(this)); }
+        virtual ValueInst* visit(Select2Inst* inst) { return new Select2Inst(inst->fCond->clone(this), inst->fThen->clone(this), inst->fElse->clone(this), inst->fSize); }
         virtual StatementInst* visit(IfInst* inst) 
         { 
             return new IfInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fThen->clone(this)), dynamic_cast<BlockInst*>(inst->fElse->clone(this)));
@@ -1441,8 +1441,8 @@ struct InstBuilder
         {return new DeclareFunInst(name, typed);}
     
     // Memory
-    static LoadVarInst* genLoadVarInst(Address* address) { return new LoadVarInst(address); }
-    static LoadVarAddressInst* genLoadVarAddressInst(Address* address) { return new LoadVarAddressInst(address); }
+    static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
+    static LoadVarAddressInst* genLoadVarAddressInst(Address* address, int size = 1) { return new LoadVarAddressInst(address, size); }
     static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value) {return new StoreVarInst(address, value); }
     
     // Numbers
@@ -1469,7 +1469,7 @@ struct InstBuilder
     static BoolNumInst* genBoolNumInst(bool num, int size = 1) { return new BoolNumInst(num); }
   
     // Numerical computation
-    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2) { return new BinopInst(opcode, inst1, inst2); }
+    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1) { return new BinopInst(opcode, inst1, inst2, size); }
     
     static ValueInst* genCastNumInst(ValueInst* inst, Typed* typed_ext)
     {
@@ -1539,8 +1539,10 @@ struct InstBuilder
     static SwitchInst* genSwitchInst(ValueInst* cond) { return new SwitchInst(cond); }
   
     // Function management
-    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool internal = false) 
-        { return new FunCallInst(name, args, internal); }
+    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args) 
+        { return new FunCallInst(name, args, false); }
+    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1) 
+        { return new FunCallInst(name, args, method, size); }
     
     // Loop 
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code) 

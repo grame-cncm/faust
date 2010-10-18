@@ -227,6 +227,7 @@ void CodeContainer::generateLoopNode(CodeLoop* loop, BlockInst* loop_code, int l
 {
     if (gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();
+        
         loop->generateVecLoop(block);
         /*
         if (loop->fIsRecursive)
@@ -240,13 +241,14 @@ void CodeContainer::generateLoopNode(CodeLoop* loop, BlockInst* loop_code, int l
         loop_code->pushBackInst(builder.fFunctionCall);
     } else {
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
+        
+        loop->generateVecLoop(loop_code);
         /*
         if (loop->fIsRecursive)
             loop->generateVecLoop(loop_code);
         else
             loop->generateVectorizedLoop(loop_code, 4);
         */
-        loop->generateVecLoop(loop_code);
     }
 }
 

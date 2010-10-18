@@ -125,8 +125,8 @@ class StringTypeManager {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
-                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "()"
-                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "(" + num_str.str() + ")"; 
+                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
             } else {
                 assert(false);
                 return "";
@@ -157,8 +157,8 @@ class StringTypeManager {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
-                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "()"
-                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + "> " + "(" + num_str.str() + ")"; 
+                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
             } else {
                 assert(false);
                 return "";

@@ -290,7 +290,7 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
 
 };
 
-// Remove linked Declare/Load/Store with a given name of name family
+// Remove linked Declare/Load/Store with a given name family
 
 struct StackVariableRemover : public DispatchVisitor {
 
@@ -883,21 +883,13 @@ struct CodeVerifier : public DispatchVisitor {
     {
         // Loop variable added in fCurVarScope
         inst->fInit->accept(this);
-        
         inst->fEnd->accept(this);
-        
         inst->fIncrement->accept(this);
         
         // Keep current variable state, start an empty one
         fStackVarsTable.push(fCurVarScope);
         fCurVarScope.clear();
-            
-        /*
-        list<StatementInst*>::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            (*it)->accept(this); 
-        }
-        */
+        
         inst->fCode->accept(this);
         
         // Restore old variable state

@@ -62,6 +62,11 @@ ForLoopInst* CodeLoop::getScalarLoop()
 
 void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
 {
+    // TODO
+    // 1) Vectorize access to all scalar that are not "kLoop" type: declare a Vector version of them, then transform Load/Store access.
+    // 2) Vectorize access to all constant numbers (Load)
+    // 3) Vectorize all array access (Load/Store)
+  
     // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
     string index = "i";
 
@@ -105,33 +110,42 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
                 return new VectorTyped(dynamic_cast<BasicTyped*>(typed->clone(&cloner)), fSize);
             }
             */
-
+            virtual ValueInst* visit(LoadVarInst* inst) 
+            { 
+                return new LoadVarInst(inst->fAddress->clone(this), fSize); 
+            }
+            virtual ValueInst* visit(LoadVarAddressInst* inst) 
+            { 
+                return new LoadVarAddressInst(inst->fAddress->clone(this), fSize); 
+            }
+         
             virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, fSize); }
+            
+            virtual ValueInst* visit(BinopInst* inst) { return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), fSize); }
 
-            /*
-            virtual Address* visit(NamedAddress* address)
-            {
-                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) != fAddedVarTable.end()) {
-                    return new NamedAddress(address->fName, Address::kFunArgs);
-                } else {
-                    return BasicCloneVisitor::visit(address);
+            virtual ValueInst* visit(FunCallInst* inst)
+            { 
+                list<ValueInst*> cloned;
+                list<ValueInst*>::const_iterator it;
+                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
+                    cloned.push_back((*it)->clone(this));
                 }
+                return new FunCallInst(inst->fName, cloned, inst->fMethod, fSize); 
             }
-            */
+            
+            virtual ValueInst* visit(Select2Inst* inst) 
+            { 
+                return new Select2Inst(inst->fCond->clone(this), inst->fThen->clone(this), inst->fElse->clone(this), fSize); 
+            }
 
         };
 
         VectorCloneVisitor vector_cloner(size);
         BlockInst* cloned = dynamic_cast<BlockInst*>(fComputeInst->clone(&vector_cloner));
         pushLoop(cloned, loop);
-
-        // TODO
-        // 1) Vectorize access to all scalar
-        // 2) Vectorize access to all constant numbers
-        // 3) Vectorize all array access
     }
 
     // Generate code after the loop
