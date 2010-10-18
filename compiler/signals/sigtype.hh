@@ -273,38 +273,19 @@ class TableType : public AudioType
 		  AudioType(t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean()), 
 		  fContent(t) {}		///< construct a TableType with a content of a type t
 
-	TableType(const Type& t, int v, int c) : 
-		  AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()), 
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting variability and computability
-
-	TableType(const Type& t, int n, int v, int c) : 
-		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()), 
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability and computability
-
-	TableType(const Type& t, int n, int v, int c, int vec) :
-		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability and vectorability
-
-	TableType(const Type& t, int n, int v, int c, int vec, int b) :
-		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
-
-	TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i) :
+	TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i = interval()) :
 		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b, i),
 		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
 
-  
-
-  	Type content() const				{ return fContent; 	}		///< return the type of data store in the table
+	Type content() const				{ return fContent; 	}		///< return the type of data store in the table
 	virtual ostream& print(ostream& dst) const;						///< print a TableType
 	
 	virtual AudioType* promoteNature(int n)				{ return new TableType(fContent, n|fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval); }	///< promote the nature of a type
 	virtual AudioType* promoteVariability(int v)			{ return new TableType(fContent, fNature, v|fVariability, fComputability, fVectorability, fBoolean, fInterval); }	///< promote the variability of a type
 	virtual AudioType* promoteComputability(int c)			{ return new TableType(fContent, fNature, fVariability, c|fComputability, fVectorability, fBoolean, fInterval); }	///< promote the computability of a type
-  	virtual AudioType* promoteVectorability(int vec)		{ return new TableType(fContent, fNature, fVariability, fComputability, vec|fVectorability, fBoolean, fInterval);}///< promote the vectorability of a type
+	virtual AudioType* promoteVectorability(int vec)		{ return new TableType(fContent, fNature, fVariability, fComputability, vec|fVectorability, fBoolean, fInterval);}///< promote the vectorability of a type
 	virtual AudioType* promoteBoolean(int b)        		{ return new TableType(fContent, fNature, fVariability, fComputability, fVectorability, b|fBoolean, fInterval); }	///< promote the booleanity of a type
 	//virtual AudioType* promoteInterval(const interval& i)	{ return new TableType(fContent, fNature, fVariability, fComputability, fVectorability, fBoolean, i); }			///< promote the interval of a type
-
 };
 
 

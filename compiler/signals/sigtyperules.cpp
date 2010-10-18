@@ -469,8 +469,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 
 	//return new TableType(/*tt->content()*/temp, v, c);
 
-	return new TableType(tt->content(), n, v, c, vec);
-
+	return new TableType(tt->content(), n, v, c, vec, tt->boolean());
 }
 
 
