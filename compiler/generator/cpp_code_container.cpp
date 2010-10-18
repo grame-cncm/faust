@@ -1238,7 +1238,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
         }
         
         loop_code->pushBackInst(switch_block);
-        loop_code->pushBackInst(InstBuilder::genLabelInst("barrier(CLK_LOCAL_MEM_FENCE|CLK_GLOBAL_MEM_FENCE);"));
+        loop_code->pushBackInst(InstBuilder::genLabelInst("barrier(CLK_LOCAL_MEM_FENCE);"));
     }
     
     // Generates the DAG enclosing loop
