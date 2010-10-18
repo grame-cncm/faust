@@ -139,7 +139,6 @@ class InstructionsCompiler {
         virtual ValueInst* generateFFun(int variability, Tree sig, Tree ff, Tree largs);
 
         virtual ValueInst* generateInput(int variability, Tree sig, int idx);
-        virtual ValueInst* generateOutput(int variability, Tree sig, int idx, Tree arg1);
 
         virtual ValueInst* generateTable(int variability, Tree sig, Tree tsize, Tree content);
         virtual ValueInst* generateStaticTable(int variability, Tree sig, Tree tsize, Tree content);

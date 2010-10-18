@@ -288,8 +288,6 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
 
-	else if (isSigOutput(sig, &i, s1)) 	return sampCast(T(s1,env));
-
 	else if (isSigDelay1(sig, s1)) 			{
 		Type t = T(s1,env);
 		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0)));

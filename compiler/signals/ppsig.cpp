@@ -71,10 +71,10 @@ ostream& ppsig::printui (ostream& fout, const string& funame, Tree label, Tree l
 {
 	fout << funame << '(';
 	printlabel(fout, label);
-	return fout 	
-			<< ',' << ppsig(lo,fEnv) 
-			<< ',' << ppsig(hi,fEnv) 
-			<< ',' << ppsig(step,fEnv) 
+	return fout
+			<< ',' << ppsig(lo,fEnv)
+			<< ',' << ppsig(hi,fEnv)
+			<< ',' << ppsig(step,fEnv)
 			<< ')';
 }
 
@@ -82,28 +82,28 @@ ostream& ppsig::printui (ostream& fout, const string& funame, Tree label, Tree c
 {
 	fout << funame << '(';
 	printlabel(fout, label);
-	return fout 	
-			<< ',' << ppsig(cur,fEnv) 
-			<< ',' << ppsig(lo,fEnv) 
-			<< ',' << ppsig(hi,fEnv) 
-			<< ',' << ppsig(step,fEnv) 
+	return fout
+			<< ',' << ppsig(cur,fEnv)
+			<< ',' << ppsig(lo,fEnv)
+			<< ',' << ppsig(hi,fEnv)
+			<< ',' << ppsig(step,fEnv)
 			<< ')';
 }
 
 ostream& ppsig::printout (ostream& fout, int i, Tree x) const
 {
 	if (fPriority > 0) fout << "(";
-	fout << "OUT" << i << " = " << ppsig(x, fEnv, 0);	
+	fout << "OUT" << i << " = " << ppsig(x, fEnv, 0);
 	if (fPriority > 0) fout << ")";
 	return fout;
 }
 
 ostream& ppsig::printlabel (ostream& fout, Tree pathname) const
 {
-	fout << *hd(pathname); 
+	fout << *hd(pathname);
 	pathname = tl(pathname);
-	while (!isNil(pathname)) { 
-		fout << '/' << *tl(hd(pathname)); 
+	while (!isNil(pathname)) {
+		fout << '/' << *tl(hd(pathname));
 		pathname = tl(pathname);
 	}
 	return fout;
@@ -112,9 +112,9 @@ ostream& ppsig::printlabel (ostream& fout, Tree pathname) const
 ostream& ppsig::printlist (ostream& fout, Tree largs) const
 {
 	string sep = "";
-	fout << '('; 
-	while (!isNil(largs)) { 
-		fout << sep << ppsig(hd(largs), fEnv); 
+	fout << '(';
+	while (!isNil(largs)) {
+		fout << sep << ppsig(hd(largs), fEnv);
 		sep = ", ";
 		largs = tl(largs);
 	}
@@ -131,11 +131,11 @@ ostream& ppsig::printff (ostream& fout, Tree ff, Tree largs) const
 ostream& ppsig::printFixDelay (ostream& fout, Tree exp, Tree delay) const
 {
 	int 	d;
-	
+
 	if (isSigInt(delay, &d) && (d==1)) {
 		fout << ppsig(exp,fEnv,8) << "'";
 	} else {
-		printinfix(fout, "@", 8, exp, delay); 
+		printinfix(fout, "@", 8, exp, delay);
 	}
 	return fout;
 }
@@ -164,7 +164,7 @@ ostream& ppsig::printextended (ostream& fout, Tree sig) const
 {
 	string 		sep = "";
 	xtended* 	p = (xtended*) getUserData(sig);
-	
+
 	fout << p->name() << '(';
 	for (int i = 0; i < sig->arity(); i++) {
 		fout << sep << ppsig(sig->branch(i), fEnv);
@@ -173,8 +173,8 @@ ostream& ppsig::printextended (ostream& fout, Tree sig) const
 	fout << ')';
 	return fout;
 }
-	
-	
+
+
 ostream& ppsig::print (ostream& fout) const
 {
 	int 	i;
@@ -188,13 +188,12 @@ ostream& ppsig::print (ostream& fout) const
 	// debruinj notation
 	else if ( isRec(sig, le) )						{ printrec(fout, le, fHideRecursion ); }
 	else if ( isRef(sig, i) )						{ fout << "REF[" << i << "]"; }
-	
+
 	else if ( getUserData(sig) ) 					{ printextended(fout, sig); }
 	else if ( isSigInt(sig, &i) ) 					{ fout << i; }
 	else if ( isSigReal(sig, &r) ) 					{ fout << r; }
 	else if ( isSigInput(sig, &i) ) 				{ fout << "IN[" << i << "]"; }
-	else if ( isSigOutput(sig, &i, x) ) 			{ printout(fout, i, x) ; }
-	
+
 	else if ( isSigDelay1(sig, x) ) 				{ fout << ppsig(x, fEnv, 9) << "'"; }
 	//else if ( isSigFixDelay(sig, x, y) ) 			{ printinfix(fout, "@", 8, x, y); 	}
 	else if ( isSigFixDelay(sig, x, y) ) 			{ printFixDelay(fout, x, y); 	}
@@ -204,7 +203,7 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigFFun(sig, ff, largs) )			{ printff(fout, ff, largs); }
     else if ( isSigFConst(sig, type, name, file) )  { fout << tree2str(name); }
     else if ( isSigFVar(sig, type, name, file) )    { fout << tree2str(name); }
-	
+
 	else if ( isSigTable(sig, id, x, y) ) 			{ printfun(fout, "TABLE", x, y); 		}
 	else if ( isSigWRTbl(sig, id, x, y, z) )		{ printfun(fout, "write", x, y, z);	}
 	else if ( isSigRDTbl(sig, x, y) )				{ printfun(fout, "read", x, y);	}
@@ -216,10 +215,10 @@ ostream& ppsig::print (ostream& fout) const
 
 	else if ( isSigSelect2(sig, sel, x, y) ) 		{ printfun(fout, "select2", sel, x, y); }
 	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ printfun(fout, "select3", sel, x, y, z); }
-	
+
 	else if ( isSigIntCast(sig, x) ) 				{ printfun(fout, "int", x); }
 	else if ( isSigFloatCast(sig, x) )				{ printfun(fout, "float", x);  }
-	
+
 	else if ( isSigButton(sig, label) ) 			{ printui(fout, "button", label); }
 	else if ( isSigCheckbox(sig, label) ) 			{ printui(fout, "checkbox", label);  }
 	else if ( isSigVSlider(sig, label,c,x,y,z) )	{ printui(fout, "vslider", label, c, x, y, z); }
@@ -228,7 +227,7 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ printui(fout, "vbargraph", label, x, y, z); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ printui(fout, "hbargraph", label, x, y, z); }
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
-	
+
 	else {
         cerr << "NOT A SIGNAL : " << *sig << endl;
         //exit(1);

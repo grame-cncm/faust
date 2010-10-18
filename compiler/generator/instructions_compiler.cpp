@@ -397,7 +397,6 @@ ValueInst* InstructionsCompiler::generateCode(int variability, Tree sig)
 	else if ( isSigInt(sig, &i) ) 					{ return generateIntNumber(variability, sig, i); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateRealNumber(variability, sig, r); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput(variability, sig, i); }
-	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput(variability, sig, i, x);}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay(variability, sig, x, y); }
 	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix(variability, sig, x, y); }
@@ -693,12 +692,6 @@ ValueInst* InstructionsCompiler::generateInput(int variability, Tree sig, int id
     // Cast to internal float
     res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
-}
-
-ValueInst* InstructionsCompiler::generateOutput(int variability, Tree sig, int idx, Tree arg1)
-{
-    // Not used
-    return InstBuilder::genNullInst();
 }
 
 ValueInst* InstructionsCompiler::generateTable(int variability, Tree sig, Tree tsize, Tree content)

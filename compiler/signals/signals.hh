@@ -53,10 +53,8 @@ bool  isSigReal(Tree t, double* r);
 
 // Inputs and outputs
 Tree sigInput(int i, Tree box);
-Tree sigOutput(int i, Tree t, Tree box);
 
 bool  isSigInput(Tree t, int* i);
-bool  isSigOutput(Tree t, int* i, Tree& t0);
 
 // delay
 Tree  sigDelay0(Tree t, Tree box);

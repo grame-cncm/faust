@@ -50,10 +50,6 @@ Sym SIGINPUT = symbol ("sigInput");
 Tree  sigInput(int i, Tree box)                     { return tree(SIGINPUT, tree(i))->setProperty(box_symbol, box);	}
 bool  isSigInput(Tree t, int* i) 					{ Tree x; return isTree(t, SIGINPUT, x) && isInt(x->node(),i); 	}
 
-Sym SIGOUTPUT = symbol ("sigOutput");
-Tree  sigOutput(int i, Tree t0, Tree box)			{ return tree(SIGOUTPUT, tree(i), t0)->setProperty(box_symbol, box); 	}
-bool  isSigOutput(Tree t, int* i, Tree& t0)			{ Tree x; return isTree(t, SIGOUTPUT, x, t0) && isInt(x->node(),i); 	}
-
 Sym SIGDELAY1 = symbol ("sigDelay1");
 Tree  sigDelay0(Tree t0, Tree box)					{ return sigFixDelay(t0, sigInt(0, box), box);}
 
