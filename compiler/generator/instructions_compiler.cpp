@@ -165,7 +165,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 
 	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
-	typeAnnotation(L3);				// Annotate L3 with type information
+	typeAnnotation(L3);	        	// Annotate L3 with type information
 	sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
  endTiming("CodeLlvmScalarCompiler::prepare");
@@ -431,6 +431,22 @@ ValueInst* InstructionsCompiler::generateCode(int variability, Tree sig)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph(variability, sig, label, x, y, CS(variability, z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph(variability, sig, label, x, y, CS(variability, z)); }
 	else if ( isSigAttach(sig, x, y) )				{ CS(variability, y); return generateCacheCode(sig, CS(variability, x)); }
+    else if (isSigVectorize(sig, x, y)) {
+        printf("vectorize not implemented\n");
+        exit (0);
+    }
+    else if (isSigSerialize(sig, x)) {
+        printf("serialize not implemented\n");
+        exit (0);
+    }
+    else if (isSigConcat(sig, x, y)) {
+        printf("concatenation not implemented\n");
+        exit (0);
+    }
+    else if (isSigVectorAt(sig, x, y)) {
+        printf("vector at not implemented\n");
+        exit (0);
+    }
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
 		print(sig);
