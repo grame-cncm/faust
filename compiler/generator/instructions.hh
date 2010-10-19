@@ -603,20 +603,20 @@ struct NamedAddress : public Address {
 
 struct IndexedAddress : public Address {
     
-    Address* fAdress;
+    Address* fAddress;
     ValueInst* fIndex;
     
     IndexedAddress(Address* address, ValueInst* index) 
-        :fAdress(address), fIndex(index) 
+        :fAddress(address), fIndex(index) 
     {}
     virtual ~IndexedAddress()
     {}
     
-    void setAccess(Address::AccessType type) { fAdress->setAccess(type); }
-    Address::AccessType getAccess() { return fAdress->getAccess(); }
+    void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
+    Address::AccessType getAccess() { return fAddress->getAccess(); }
     
-    void setName(const string& name) { fAdress->setName(name); }
-    string getName() {return fAdress->getName(); }
+    void setName(const string& name) { fAddress->setName(name); }
+    string getName() {return fAddress->getName(); }
        
     Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
     
@@ -763,23 +763,29 @@ struct LabelInst : public StatementInst
 
 struct DeclareVarInst : public StatementInst
 {
-    string fName;
+    Address* fAddress;
     Typed* fTyped;
-    Address::AccessType fAccess;
     ValueInst* fValue;
          
-    DeclareVarInst(const string& name, Typed* typed, Address::AccessType access, ValueInst* value)
-        :fName(name), fTyped(typed), fAccess(access), fValue(value)
+    DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
+        :fAddress(address), fTyped(typed), fValue(value)
     {
-        if (gVarTable.find(fName) == gVarTable.end()) {
-            gVarTable[fName] = typed;
+        if (gVarTable.find(fAddress->getName()) == gVarTable.end()) {
+            gVarTable[fAddress->getName()] = typed;
         }
     }
     
     virtual ~DeclareVarInst() 						
     {
-        gVarTable.erase(fName);
+        gVarTable.erase(fAddress->getName());
+        delete fAddress;
     }
+    
+    void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
+    Address::AccessType getAccess() { return fAddress->getAccess(); }
+    
+    void setName(const string& name) { fAddress->setName(name); }
+    string getName() {return fAddress->getName(); }
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
      
@@ -1175,8 +1181,8 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(DeclareVarInst* inst) 
         { 
             return (inst->fValue)
-                ? new DeclareVarInst(inst->fName, inst->fTyped->clone(this), inst->fAccess, inst->fValue->clone(this))
-                : new DeclareVarInst(inst->fName, inst->fTyped->clone(this), inst->fAccess, NULL); 
+                ? new DeclareVarInst(inst->fAddress->clone(this), inst->fTyped->clone(this), inst->fValue->clone(this))
+                : new DeclareVarInst(inst->fAddress->clone(this), inst->fTyped->clone(this), NULL); 
         }
         virtual StatementInst* visit(DeclareFunInst* inst)
         { 
@@ -1190,7 +1196,7 @@ class BasicCloneVisitor : public CloneVisitor {
         
         // Addresses
         virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, address->fAccess); }
-        virtual Address* visit(IndexedAddress* address) { return new IndexedAddress(address->fAdress->clone(this), address->fIndex->clone(this)); }
+        virtual Address* visit(IndexedAddress* address) { return new IndexedAddress(address->fAddress->clone(this), address->fIndex->clone(this)); }
         
         // Primitives : numbers and string
         virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, inst->fSize); }
@@ -1310,7 +1316,7 @@ struct DispatchVisitor : public InstVisitor {
 
     virtual void visit(IndexedAddress* address) 
     { 
-        address->fAdress->accept(this); 
+        address->fAddress->accept(this); 
         address->fIndex->accept(this); 
     }
 
@@ -1432,8 +1438,8 @@ struct InstBuilder
     static NullInst* genNullInst() { return new NullInst(); }
     
     // Declarations
-    static DeclareVarInst* genDeclareVarInst(const string& name, Typed* typed, Address::AccessType access, ValueInst* value = NULL) 
-        { return new DeclareVarInst(name, typed, access, value); }
+    static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = NULL) 
+        { return new DeclareVarInst(address, typed, value); }
         
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed, BlockInst* code) 
         {return new DeclareFunInst(name, typed, code);}

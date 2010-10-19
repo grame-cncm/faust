@@ -201,8 +201,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
          
             virtual void visit(DeclareVarInst* inst) 
             {
-                if (!isControl(inst->fName)) {
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                if (!isControl(inst->fAddress->getName())) {
+                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << ";";
                 }
             }
         };
@@ -216,8 +216,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
       
             virtual void visit(DeclareVarInst* inst) 
             {
-                if (isControl(inst->fName)) {                    
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fName) << ";";
+                if (isControl(inst->fAddress->getName())) {                    
+                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << ";";
                 }
             }
             
@@ -447,31 +447,31 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             
             virtual void visit(DeclareVarInst* inst) 
             {   
-                if (inst->fAccess & Address::kGlobal) {
-                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+                if (inst->fAddress->getAccess() & Address::kGlobal) {
+                    if (fGlobalTable.find(inst->fAddress->getName()) == fGlobalTable.end()) {
                         // If global is not defined
-                        fGlobalTable[inst->fName] = 1;
+                        fGlobalTable[inst->fAddress->getName()] = 1;
                     } else {
                         return;
                     }
                 }
                 
-                if (inst->fAccess & Address::kStaticStruct) {
+                if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                      *fOut << "static ";
                 }
                 
-                if (inst->fAccess & Address::kVolatile) {
+                if (inst->fAddress->getAccess() & Address::kVolatile) {
                      *fOut << "volatile ";
                 }
                 
-                if (inst->fAccess & Address::kStack) {
+                if (inst->fAddress->getAccess() & Address::kStack) {
                      *fOut << "__local ";
                 }
                 
                 if (inst->fValue) {
-                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
                 } else {
-                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
                 }
             }
 
@@ -532,31 +532,31 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
             
             virtual void visit(DeclareVarInst* inst) 
             {   
-                if (inst->fAccess & Address::kGlobal) {
-                    if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+                if (inst->fAddress->getAccess() & Address::kGlobal) {
+                    if (fGlobalTable.find(inst->fAddress->getName()) == fGlobalTable.end()) {
                         // If global is not defined
-                        fGlobalTable[inst->fName] = 1;
+                        fGlobalTable[inst->fAddress->getName()] = 1;
                     } else {
                         return;
                     }
                 }
                 
-                if (inst->fAccess & Address::kStaticStruct) {
+                if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                      *fOut << "static ";
                 }
                 
-                if (inst->fAccess & Address::kVolatile) {
+                if (inst->fAddress->getAccess() & Address::kVolatile) {
                      *fOut << "volatile ";
                 }
                 
-                if (inst->fAccess & Address::kStack) {
+                if (inst->fAddress->getAccess() & Address::kStack) {
                      *fOut << "__shared__ ";
                 }
                 
                 if (inst->fValue) {
-                    *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
                 } else {
-                    *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
                 }
             }
 

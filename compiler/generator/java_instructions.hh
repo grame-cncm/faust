@@ -149,14 +149,14 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         
         virtual void visit(DeclareVarInst* inst) 
         {   
-            if (inst->fAccess & Address::kVolatile) {
+            if (inst->fAddress->getAccess() & Address::kVolatile) {
                  *fOut << "volatile ";
             }
             
             if (inst->fValue) {
-                *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
             } else {
-                *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
             }
         }
         

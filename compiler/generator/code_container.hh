@@ -284,9 +284,9 @@ class CodeContainer {
                     DispatchVisitor::visit(inst);
                     ArrayTyped* array_typed;
                     BasicCloneVisitor cloner;
-                    if (inst->fAccess == Address::kStack && (array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped))) {
+                    if (inst->fAddress->getAccess() == Address::kStack && (array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped))) {
                         if (array_typed->fSize > 0) {
-                            fContainer->pushDeclare(InstBuilder::genDeclareVarInst(inst->fName, inst->fTyped->clone(&cloner), Address::kStruct, NULL));
+                            fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
                         } else {
                             // Define a special cloner that force access to kStruct
                             struct StructVarCloneVisitor : public BasicCloneVisitor {
@@ -296,7 +296,7 @@ class CodeContainer {
                             // For local thread access (in computeThread)
                             fContainer->pushComputeThreadBlockMethod(inst->clone(&cloner1));
                         }
-                        inst->fAccess = Address::kLink;
+                        inst->fAddress->setAccess(Address::kLink);
                     }
                 }
                  
@@ -309,7 +309,7 @@ class CodeContainer {
                 // Rewrite Declare as a no-op (DropInst)
                 StatementInst* visit(DeclareVarInst* inst) 
                 { 
-                    if (inst->fAccess == Address::kLink) {
+                    if (inst->fAddress->getAccess() == Address::kLink) {
                         return new DropInst();
                     } else {
                         return BasicCloneVisitor::visit(inst);
@@ -339,10 +339,10 @@ class CodeContainer {
                     DispatchVisitor::visit(inst);
                     BasicCloneVisitor cloner;
 
-                    if (inst->fAccess == Address::kStack && inst->fName.find(fName) != string::npos) {
-                        inst->fAccess = Address::kLink;
+                    if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+                        inst->fAddress->setAccess(Address::kLink);
                         // Replace the Declare instruction by a version *without* the associated value
-                        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(inst->fName, inst->fTyped->clone(&cloner), Address::kStruct, NULL));
+                        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
                     }
                 }
                 
@@ -381,7 +381,7 @@ class CodeContainer {
                 // Rewrite Declare as Store with a struct access
                 StatementInst* visit(DeclareVarInst* inst) 
                 { 
-                    if (inst->fAccess == Address::kLink) {
+                    if (inst->fAddress->getAccess() == Address::kLink) {
                         // Define a special cloner that force access to kStruct
                         struct StructVarCloneVisitor : public BasicCloneVisitor {
                             virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, Address::kStruct); }
@@ -389,7 +389,7 @@ class CodeContainer {
                         // Rewrite the Declare instruction by a Store
                         StructVarCloneVisitor cloner1;
                         //return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct), inst->fValue->clone(this));
-                        return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct), inst->fValue->clone(&cloner1));
+                        return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fValue->clone(&cloner1));
                         /*
                         return InstBuilder::genDeclareVarInst(inst->fName, 
                                                             inst->fTyped->clone(this), 
@@ -437,15 +437,15 @@ class CodeContainer {
                 { 
                     DispatchVisitor::visit(inst);
                     BasicCloneVisitor cloner;
-                    if (inst->fAccess == Address::kStack && inst->fName.find(fName) != string::npos) {
+                    if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
                     
                         // Variable moved to the Struct
-                        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(inst->fName, inst->fTyped->clone(&cloner), Address::kStruct, NULL));
+                        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
                         
                         // For local thread access (in computeThread), rewrite the Declare instruction by a Store
                         if (inst->fValue)
-                            fContainer->pushComputeThreadBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct), inst->fValue->clone(&cloner)));
-                        inst->fAccess = Address::kLink;
+                            fContainer->pushComputeThreadBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fValue->clone(&cloner)));
+                        inst->fAddress->setAccess(Address::kLink);
                     }
                 }
                 
@@ -485,11 +485,11 @@ class CodeContainer {
                 { 
                     DispatchVisitor::visit(inst);
                     BasicCloneVisitor cloner;
-                    if (inst->fAccess == Address::kStack && inst->fName.find(fName) != string::npos) {
+                    if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
                         // For local thread access (in computeThread)
                         if (inst->fValue)
                             fContainer->pushComputeThreadBlockMethod(inst->clone(&cloner));
-                        inst->fAccess = Address::kLink;
+                        inst->fAddress->setAccess(Address::kLink);
                     }
                 }
                 
@@ -503,7 +503,7 @@ class CodeContainer {
                 // Rewrite Declare as a no-op (DropInst)
                 StatementInst* visit(DeclareVarInst* inst) 
                 { 
-                    if (inst->fAccess == Address::kLink) {
+                    if (inst->fAddress->getAccess() == Address::kLink) {
                         return new DropInst();
                     } else {
                         return BasicCloneVisitor::visit(inst);
@@ -558,14 +558,14 @@ struct StructVarAnalyser : public DispatchVisitor {
         DispatchVisitor::visit(inst);
         
         // Keep "simple" struct variables
-        if (inst->fAccess == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fTyped) || dynamic_cast<NamedTyped*>(inst->fTyped))) {
+        if (inst->fAddress->getAccess() == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fTyped) || dynamic_cast<NamedTyped*>(inst->fTyped))) {
             Typed::VarType type = inst->fTyped->getType();
             ValueInst* init;
             if (type == Typed::kFloat) 
                 init = InstBuilder::genFloatNumInst(0.5);
             else
                 init = InstBuilder::genIntNumInst(1);
-            fSpecializedValueTable[inst->fName] = init;
+            fSpecializedValueTable[inst->fAddress->getName()] = init;
         }
     }
 };

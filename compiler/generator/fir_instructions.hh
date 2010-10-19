@@ -217,22 +217,22 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {   
             *fOut << "DeclareVarInst(";
             
-            if (inst->fAccess & Address::kGlobal) {
+            if (inst->fAddress->getAccess() & Address::kGlobal) {
                  *fOut << "global ";
             }
             
-            if (inst->fAccess & Address::kStaticStruct) {
+            if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
             
-            if (inst->fAccess & Address::kVolatile) {
+            if (inst->fAddress->getAccess() & Address::kVolatile) {
                  *fOut << "volatile ";
             }
             
             if (inst->fValue) {
-                *fOut << generateType(inst->fTyped, inst->fName) << ", "; inst->fValue->accept(this);
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << ", "; inst->fValue->accept(this);
             } else {
-                *fOut << generateType(inst->fTyped, inst->fName); 
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName()); 
             }
             *fOut << ")";
             EndLine();

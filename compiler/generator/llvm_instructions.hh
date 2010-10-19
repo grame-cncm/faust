@@ -453,7 +453,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
                 fDSPFields.push_back(VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize));
             }
             
-            fDSPFieldsNames[inst->fName] = fDSPFieldsCounter++;
+            fDSPFieldsNames[inst->fAddress->getName()] = fDSPFieldsCounter++;
         }
         
         virtual void visit(DeclareFunInst* inst) 
@@ -970,21 +970,21 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fTyped);
             
-            if (inst->fAccess & Address::kStruct) {
+            if (inst->fAddress->getAccess() & Address::kStruct) {
                 // Not supposed to happen
                 //cerr << "DeclareVarInst " << inst->fName << endl;
                 assert(false);
-            } else if (inst->fAccess & Address::kFunArgs) {
+            } else if (inst->fAddress->getAccess() & Address::kFunArgs) {
                 // Not supposed to happen
                 assert(false);
                 // Direct access Declare/Store ==> Load
-            } else if (inst->fAccess & Address::kLink) {
+            } else if (inst->fAddress->getAccess() & Address::kLink) {
                 if (inst->fValue) {
                     // Result is in fCurValue;
                     inst->fValue->accept(this);
-                    fDSPStackVars[inst->fName] = fCurValue;
+                    fDSPStackVars[inst->fAddress->getName()] = fCurValue;
                 }
-            } else if (inst->fAccess & Address::kStack || inst->fAccess & Address::kLoop) {
+            } else if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
                 
                 if (basic_typed) {
                     fCurValue = fBuilder->CreateAlloca(fTypeMap[basic_typed->fType]);
@@ -1004,8 +1004,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
                 
                 //fCurValue->dump();
-                fDSPStackVars[inst->fName] = fCurValue; // Keep var
-                fDSPStackVars[inst->fName]->setName(inst->fName);
+                fDSPStackVars[inst->fAddress->getName()] = fCurValue; // Keep var
+                fDSPStackVars[inst->fAddress->getName()]->setName(inst->fAddress->getName());
                 //cout << "DeclareVarInst " << inst->fAccess << " " << inst->fName << endl;
                  
                 // Declaration with a value
@@ -1014,21 +1014,21 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     inst->fValue->accept(this);
                     //fCurValue->dump();
                     //fDSPStackVars[inst->fName]->dump();
-                    fBuilder->CreateStore(fCurValue, fDSPStackVars[inst->fName]);
+                    fBuilder->CreateStore(fCurValue, fDSPStackVars[inst->fAddress->getName()]);
                 }
                 //fModule->dump();
-            } else if (inst->fAccess & Address::kGlobal || inst->fAccess & Address::kStaticStruct) {  
-                if (!fModule->getGlobalVariable(inst->fName, true)) {
+            } else if (inst->fAddress->getAccess() & Address::kGlobal || inst->fAddress->getAccess() & Address::kStaticStruct) {  
+                if (!fModule->getGlobalVariable(inst->fAddress->getName(), true)) {
                     GlobalVariable* global_var = NULL;
                     
                     if (basic_typed) {
-                        global_var = new GlobalVariable(*fModule, fTypeMap[basic_typed->getType()], false, GlobalValue::PrivateLinkage, 0, inst->fName);
+                        global_var = new GlobalVariable(*fModule, fTypeMap[basic_typed->getType()], false, GlobalValue::PrivateLinkage, 0, inst->fAddress->getName());
                     } else if (array_typed) {
                         global_var = new GlobalVariable(*fModule, ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize), 
-                            false, GlobalValue::PrivateLinkage, 0, inst->fName);
+                            false, GlobalValue::PrivateLinkage, 0, inst->fAddress->getName());
                     } else if (vector_typed) {
                         // TO CHECK
-                        global_var = new GlobalVariable(*fModule, fTypeMap[vector_typed->getType()], false, GlobalValue::PrivateLinkage, 0, inst->fName);
+                        global_var = new GlobalVariable(*fModule, fTypeMap[vector_typed->getType()], false, GlobalValue::PrivateLinkage, 0, inst->fAddress->getName());
                     }
                     
                     // Declaration with a value
@@ -1201,7 +1201,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             
            if (indexed_address) {
            
-                named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAdress);
+                named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
                 assert(named_address); // One level indexation for now
                      
                 if (named_address->fAccess & Address::kStruct) {
@@ -1311,7 +1311,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             
             if (indexed_address) {
             
-                named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAdress);
+                named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
                 assert(named_address); // One level indexation for now
                 
                 if (named_address->fAccess & Address::kStruct) {
@@ -1449,7 +1449,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             
             if (indexed_address) {
            
-                named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAdress);
+                named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
                 assert(named_address); // One level indexation for now
            
                 if (named_address->fAccess & Address::kStruct) {
@@ -1867,7 +1867,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string loop_counter_name;
             
             if (declare_inst) {
-                loop_counter_name = declare_inst->fName;
+                loop_counter_name = declare_inst->fAddress->getName();
             } else if (store_inst) {
                 loop_counter_name = store_inst->fAddress->getName();
             } else {

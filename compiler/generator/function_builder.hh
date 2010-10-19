@@ -177,9 +177,9 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         {
             DispatchVisitor::visit(inst);
             
-            if (inst->fAccess == Address::kStack || inst->fAccess == Address::kLoop) {
+            if (inst->fAddress->getAccess() == Address::kStack || inst->fAddress->getAccess() == Address::kLoop) {
                 // Keep local variables in the loop
-                fLocalVarTable[inst->fName] = inst->fAccess;
+                fLocalVarTable[inst->fAddress->getName()] = inst->fAddress->getAccess();
             }
         }
         
@@ -260,7 +260,7 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
     // Rewrite Declare as a no-op (DropInst)
     StatementInst* visit(DeclareVarInst* inst) 
     { 
-        if (inst->fAccess == Address::kLink) {
+        if (inst->fAddress->getAccess() == Address::kLink) {
             return new DropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
@@ -313,9 +313,9 @@ struct StackVariableRemover : public DispatchVisitor {
         { 
             DispatchVisitor::visit(inst);
             
-            if (inst->fAccess == Address::kStack && inst->fName.find(fName) != string::npos) {
-                fLinkTable[inst->fName] = inst->fValue;
-                inst->fAccess = Address::kLink;
+            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+                fLinkTable[inst->fAddress->getName()] = inst->fValue;
+                inst->fAddress->setAccess(Address::kLink);
             }
         }
 
@@ -371,8 +371,8 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
         { 
             DispatchVisitor::visit(inst);
             
-            if (inst->fAccess == Address::kStack && inst->fName.find(fName) != string::npos) {
-                inst->fAccess = Address::kLink;
+            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+                inst->fAddress->setAccess(Address::kLink);
             }
         }
 
@@ -635,15 +635,15 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         if (float1) {
             //float1->dump();
             // Creates a "link" so that corresponding load see the real value
-            fValueTable[inst->fName] = float1;
+            fValueTable[inst->fAddress->getName()] = float1;
             return new DropInst();
         } else if (int1) {
             // Creates a "link" so that corresponding load see the real value
-            fValueTable[inst->fName] = int1;
+            fValueTable[inst->fAddress->getName()] = int1;
             return new DropInst();
         } else {
             BasicCloneVisitor cloner;
-            return new DeclareVarInst(inst->fName, inst->fTyped->clone(&cloner), inst->fAccess, val1);  
+            return new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fTyped->clone(&cloner), val1);  
         }
     }
     
@@ -714,7 +714,7 @@ struct CodeVerifier : public DispatchVisitor {
     
     virtual void visit(DeclareVarInst* inst) 
     { 
-        fCurVarScope[inst->fName] = inst->fAccess;
+        fCurVarScope[inst->fAddress->getName()] = inst->fAddress->getAccess();
         inst->fValue->accept(this);
     }
     

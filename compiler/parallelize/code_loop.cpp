@@ -43,7 +43,7 @@ ForLoopInst* CodeLoop::getScalarLoop()
     // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
     string index = "i";
 
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(index, InstBuilder::genBasicTyped(Typed::kInt), Address::kLoop, InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kFunArgs)));
@@ -79,7 +79,7 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
 
-        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(index, InstBuilder::genBasicTyped(Typed::kInt), Address::kLoop, InstBuilder::genIntNumInst(0));
+        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
                                     InstBuilder::genBinopInst(kDiv,
@@ -168,7 +168,7 @@ void CodeLoop::generateVecLoop(BlockInst* block)
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(index, InstBuilder::genBasicTyped(Typed::kInt), Address::kLoop, InstBuilder::genIntNumInst(0));
+        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)));
@@ -204,7 +204,7 @@ void CodeLoop::generateVecLoop1(BlockInst* block)
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(index, InstBuilder::genBasicTyped(Typed::kInt), Address::kLoop, InstBuilder::genIntNumInst(0));
+        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)));

@@ -149,27 +149,27 @@ class OpenCLInstVisitor : public InstVisitor, public StringTypeManager {
                 
         virtual void visit(DeclareVarInst* inst) 
         {   
-            if (inst->fAccess & Address::kGlobal) {
-                if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+            if (inst->fAddress->getAccess() & Address::kGlobal) {
+                if (fGlobalTable.find(inst->fAddress->getName()) == fGlobalTable.end()) {
                     // If global is not defined
-                    fGlobalTable[inst->fName] = 1;
+                    fGlobalTable[inst->fAddress->getName()] = 1;
                 } else {
                     return;
                 }
             }
             
-            if (inst->fAccess & Address::kStaticStruct) {
+            if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
             
-            if (inst->fAccess & Address::kVolatile) {
+            if (inst->fAddress->getAccess() & Address::kVolatile) {
                  *fOut << "volatile ";
             }
             
             if (inst->fValue) {
-                *fOut << generateType(inst->fTyped, inst->fName) << " = "; inst->fValue->accept(this); EndLine();
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
             } else {
-                *fOut << generateType(inst->fTyped, inst->fName); EndLine();
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
             }
         }
         

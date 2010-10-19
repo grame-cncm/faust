@@ -407,7 +407,7 @@ void LLVMCodeContainer::produceInternal()
 Module* LLVMCodeContainer::produceModule(const string& filename)
 {
     // Always generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushGlobalDeclare(InstBuilder::genDeclareVarInst("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt), Address::kGlobal));
+    pushGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal), InstBuilder::genBasicTyped(Typed::kInt)));
     pushFrontInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal),
                                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
 
