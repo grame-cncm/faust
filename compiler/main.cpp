@@ -36,6 +36,7 @@
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "privatise.hh"
+#include "recursivness.hh"
 
 #include "propagate.hh"
 #include "errormsg.hh"
@@ -291,7 +292,7 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
 			gGroupTaskSwitch = true;
 			i += 1;
-            
+
         } else if (isCmd(argv[i], "-fun", "--funTasks")) {
 			gFunTaskSwitch = true;
 			i += 1;
@@ -316,23 +317,23 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
             gFloatSize = 3;
             i += 1;
-			
+
         } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
             gPrintDocSwitch = true;
             i += 1;
-			
+
         } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang")) {
             gDocLang = argv[i+1];
             i += 2;
-			
+
         } else if (isCmd(argv[i], "-stripmdoc", "--strip-mdoc-tags")) {
             gStripDocSwitch = true;
             i += 1;
-			
+
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
             gPrintFileListSwitch = true;
             i += 1;
-			
+
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -424,7 +425,7 @@ void printheader(ostream& dst)
 {
     // steph
     return;
-    
+
     // defines the metadata we want to print as comments at the begin of in the C++ file
     set<Tree> selectedKeys;
     selectedKeys.insert(tree("name"));
@@ -473,7 +474,7 @@ static string fxname(const string& filename)
     for (unsigned int i=0; i<filename.size(); i++) {
         if (filename[i] == '/')  { p1 = i+1; }
     }
-	
+
 	// determine position of the last '.'
 	unsigned int p2 = filename.size();
     for (unsigned int i=p1; i<filename.size(); i++) {
@@ -504,6 +505,25 @@ static void initFaustDirectories()
     }
 }
 
+static Tree prepareSignals(Tree lsignals)
+{
+    startTiming("preparation");
+
+    startTiming("deBruijn2Sym");
+    Tree lsym = deBruijn2Sym(lsignals);         // convert debruijn recursion into symbolic recursion
+    endTiming("deBruijn2Sym");
+
+    Tree simplified = simplify(lsym);           // simplify by executing every computable operation
+    Tree privatized = privatise(simplified);    // Un-share tables with multiple writers
+
+    Tree signals = privatized;
+    recursivnessAnnotation(signals);            // Annotate final signal tree with recursivness information
+    typeAnnotation(signals);                    // Annotate final signal tree with type information
+
+    endTiming("preparation");
+    return signals;
+}
+
 int main (int argc, char* argv[])
 {
 
@@ -526,7 +546,7 @@ int main (int argc, char* argv[])
 	*****************************************************************/
 
 	startTiming("parser");
-	
+
 	list<string>::iterator s;
 	gResult2 = nil;
 	yyerr = 0;
@@ -546,11 +566,11 @@ int main (int argc, char* argv[])
 	gExpandedDefList = gReader.expandlist(gResult2);
 
 	endTiming("parser");
-	
+
 	/****************************************************************
 	 3 - evaluate 'process' definition
 	*****************************************************************/
-	
+
 	startTiming("evaluation");
 
 	Tree process = evalprocess(gExpandedDefList);
@@ -565,7 +585,7 @@ int main (int argc, char* argv[])
 	if (gDrawPSSwitch || gDrawSVGSwitch) {
 		string projname = gMasterDocument;
 		if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
-			projname = gMasterDocument.substr(0, gMasterDocument.length()-4); 
+			projname = gMasterDocument.substr(0, gMasterDocument.length()-4);
 		}
 		if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps",  projname).c_str(), "ps" ); }
 		if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", projname).c_str(), "svg" ); }
@@ -581,7 +601,7 @@ int main (int argc, char* argv[])
 	if (gDetailsSwitch) {
         cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
     }
-	
+
 	endTiming("evaluation");
 
 	/****************************************************************
@@ -599,7 +619,7 @@ int main (int argc, char* argv[])
 	/****************************************************************
 	 4 - compute output signals of 'process'
 	*****************************************************************/
-	
+
 	startTiming("propagation");
 
 	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
@@ -607,35 +627,41 @@ int main (int argc, char* argv[])
 
 	endTiming("propagation");
 
+    /****************************************************************
+     5 - preparation of the signal tree
+    *****************************************************************/
+
+    Tree signals = prepareSignals(lsignals);
+
 	/****************************************************************
-	 5 - translate output signals into C, C++, JAVA or LLVM code
+	 6 - translate output signals into C, C++, JAVA or LLVM code
 	*****************************************************************/
-   
+
     // By default use "cpp" output
     if (gOutputLang == "") gOutputLang = "cpp";
-    
+
     InstructionsCompiler* comp;
     CodeContainer* container = NULL;
-   
+
     startTiming("compilation");
 
     istream* enrobage;
     ostream* dst;
-    
+
     if (gOutputFile != "") {
         dst = new ofstream(gOutputFile.c_str());
     } else {
         dst = &cout;
     }
-   
+
     if (gOutputLang == "llvm") {
-    
+
         if (gFloatSize == 3) {
             cerr << "ERROR : quad format not supported in LLVM mode" << endl;
             return 1;
         }
         gDSPStruct = true;
-        
+
         if (gOpenMPSwitch) {
             cerr << "ERROR : OpenMP not supported for LLVM" << endl;
             return 1;
@@ -649,16 +675,16 @@ int main (int argc, char* argv[])
             container = new LLVMScalarCodeContainer(numInputs, numOutputs);
             comp = new InstructionsCompiler(container);
         }
-           
+
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
 
-        comp->compileMultiSignal(lsignals);
-        
+        comp->compileMultiSignal(signals);
+
         dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
-     
+
     } else {
-    
+
         if (gOutputLang == "c") {
             gDSPStruct = true;
             if (gOpenMPSwitch) {
@@ -707,7 +733,7 @@ int main (int argc, char* argv[])
                 comp = new InstructionsCompiler(container);
             }
 
-            comp->compileMultiSignal(lsignals);
+            comp->compileMultiSignal(signals);
             container->dump(dst);
             return 0;
         }
@@ -720,14 +746,14 @@ int main (int argc, char* argv[])
         } else {
             comp = new InstructionsCompiler(container);
         }
-        
+
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
 
-        comp->compileMultiSignal(lsignals);
-          
+        comp->compileMultiSignal(signals);
+
         /****************************************************************
-        8 - generate output file
+        6.1 - generate output file
         *****************************************************************/
 
         if (gArchFile != "") {
@@ -753,11 +779,11 @@ int main (int argc, char* argv[])
         }
     }
     endTiming("compilation");
-    
+
 	/****************************************************************
-	 6 - generate XML description (if required)
+	 7 - generate XML description (if required)
 	*****************************************************************/
- 
+
 	if (gPrintXMLSwitch) {
 		Description* 	D = comp->getDescription(); assert(D);
 		ofstream 		xout(subst("$0.xml", gMasterDocument).c_str());
@@ -773,9 +799,9 @@ int main (int argc, char* argv[])
 
 		D->print(0, xout);
 	}
- 
+
 	/****************************************************************
-	 7 - generate documentation from Faust comments (if required)
+	 8 - generate documentation from Faust comments (if required)
 	*****************************************************************/
 
 	if (gPrintDocSwitch) {
@@ -790,11 +816,11 @@ int main (int argc, char* argv[])
     /****************************************************************
      9 - generate the task graph file in dot format
     *****************************************************************/
-    
+
     if (gGraphSwitch) {
         ofstream dotfile(subst("$0.dot", gMasterDocument).c_str());
        container->printGraphDotFormat(dotfile);
     }
-  	
+
 	return 0;
 }
