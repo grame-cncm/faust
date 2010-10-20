@@ -409,7 +409,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         
         virtual void visit(CastNumInst* inst) 
         {   
-            *fOut << "CastNumInst(";
+             if (inst->fSize > 1) {
+                *fOut << "CastNumInstVec<" << inst->fSize << ">(";
+            } else {
+                *fOut << "CastNumInst(";
+            }
             *fOut << generateType(inst->fTyped);
             *fOut << ", ";
             inst->fInst->accept(this);

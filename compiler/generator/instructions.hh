@@ -939,13 +939,13 @@ struct BinopInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct CastNumInst : public ValueInst
+struct CastNumInst : public ValueInst, public Vectorizable
 {
     Typed* fTyped;
     ValueInst* fInst;
   
-    CastNumInst(ValueInst* inst, Typed* typed)
-        :fTyped(typed), fInst(inst)
+    CastNumInst(ValueInst* inst, Typed* typed, int size = 1)
+        :Vectorizable(size), fTyped(typed), fInst(inst)
     {}
     virtual ~CastNumInst() 						
     {}
@@ -1210,7 +1210,7 @@ class BasicCloneVisitor : public CloneVisitor {
             return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), inst->fSize);
         }
         
-        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this), inst->fTyped->clone(this)); }
+        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this), inst->fTyped->clone(this), inst->fSize); }
         
         // Function call
         virtual ValueInst* visit(FunCallInst* inst)
@@ -1477,7 +1477,7 @@ struct InstBuilder
     // Numerical computation
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1) { return new BinopInst(opcode, inst1, inst2, size); }
     
-    static ValueInst* genCastNumInst(ValueInst* inst, Typed* typed_ext)
+    static ValueInst* genCastNumInst(ValueInst* inst, Typed* typed_ext, int size = 1)
     {
         IntNumInst* int_num = dynamic_cast<IntNumInst*>(inst);
         FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
@@ -1499,7 +1499,7 @@ struct InstBuilder
                 return InstBuilder::genFloatNumInst(float(double_num->fNum)); 
             } else {
                 // Default case
-                return new CastNumInst(inst, typed);
+                return new CastNumInst(inst, typed, size);
             }
         } else if (typed->getType() == Typed::kDouble || typed->getType() == Typed::kQuad) {
             if (int_num) {
@@ -1512,7 +1512,7 @@ struct InstBuilder
                 return inst;
             } else {
                 // Default case
-                return new CastNumInst(inst, typed);
+                return new CastNumInst(inst, typed, size);
             }
         } else if (typed->getType() == Typed::kInt) {
              if (int_num) {
@@ -1526,11 +1526,11 @@ struct InstBuilder
                 return InstBuilder::genIntNumInst(int(double_num->fNum));
             } else {
                 // Default case
-                return new CastNumInst(inst, typed);
+                return new CastNumInst(inst, typed, size);
             }
         } else {
             // Default case
-            return new CastNumInst(inst, typed);
+            return new CastNumInst(inst, typed, size);
         }
     }
 

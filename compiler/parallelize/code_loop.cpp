@@ -110,15 +110,27 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
                 return new VectorTyped(dynamic_cast<BasicTyped*>(typed->clone(&cloner)), fSize);
             }
             */
+            
             virtual ValueInst* visit(LoadVarInst* inst) 
             { 
-                return new LoadVarInst(inst->fAddress->clone(this), fSize); 
+                if (inst->fAddress->getAccess() != Address::kLoop)
+                    return new LoadVarInst(inst->fAddress->clone(this), fSize); 
+                else
+                    return new LoadVarInst(inst->fAddress->clone(this), inst->fSize); 
             }
             virtual ValueInst* visit(LoadVarAddressInst* inst) 
             { 
-                return new LoadVarAddressInst(inst->fAddress->clone(this), fSize); 
+                if (inst->fAddress->getAccess() != Address::kLoop)
+                    return new LoadVarAddressInst(inst->fAddress->clone(this), fSize); 
+                else
+                    return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize); 
             }
-         
+            
+            virtual ValueInst* visit(CastNumInst* inst) 
+            { 
+                return new CastNumInst(inst->fInst->clone(this), inst->fTyped->clone(this), fSize); 
+            }
+          
             virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, fSize); }

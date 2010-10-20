@@ -1281,18 +1281,17 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
 
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genIntNumInst(size));
+                                    InstBuilder::genIntNumInst(size));
 
     StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
                         InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(1)));
+                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
 
-    ValueInst* load_index = InstBuilder::genBinopInst(kAdd,
-            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)),
-            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)));
+    ValueInst* load_index = InstBuilder::genBinopInst(kAdd,InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)),
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)));
 
     ValueInst* load_value = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(vname_from, Address::kStack), load_index));
 
