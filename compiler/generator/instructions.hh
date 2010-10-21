@@ -273,11 +273,14 @@ struct StatementInst : public Printable
 };
 
 // Results from the compilation
-struct ValueInst : public Printable
+struct ValueInst : public Printable, public Vectorizable
 {
     virtual void accept(InstVisitor* visitor) = 0;
     
     virtual ValueInst* clone(CloneVisitor* cloner) = 0;
+    
+    ValueInst(int size = 1):Vectorizable(size)
+    {}
 };
 
 // ==================
@@ -812,12 +815,12 @@ struct DropInst : public StatementInst
 };
 
 
-struct LoadVarInst : public ValueInst, public Vectorizable
+struct LoadVarInst : public ValueInst
 {
     Address* fAddress;
     
     LoadVarInst(Address* address, int size = 1)
-        :Vectorizable(size), fAddress(address)
+        :ValueInst(size), fAddress(address)
     {}
     virtual ~LoadVarInst() 						
     {}
@@ -827,12 +830,12 @@ struct LoadVarInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct LoadVarAddressInst : public ValueInst, public Vectorizable
+struct LoadVarAddressInst : public ValueInst
 {
     Address* fAddress;
     
     LoadVarAddressInst(Address* address, int size = 1)
-        :Vectorizable(size), fAddress(address)
+        :ValueInst(size), fAddress(address)
     {}
     virtual ~LoadVarAddressInst() 						
     {}
@@ -862,12 +865,12 @@ struct StoreVarInst : public StatementInst
 // Numbers
 // ========
 
-struct FloatNumInst : public ValueInst, public Vectorizable
+struct FloatNumInst : public ValueInst
 {
     float fNum;
 
     FloatNumInst(float num, int size = 1)
-        :Vectorizable(size), fNum(num)
+        :ValueInst(size), fNum(num)
     {}
     virtual ~FloatNumInst() 						
     {}
@@ -877,12 +880,12 @@ struct FloatNumInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct DoubleNumInst : public ValueInst, public Vectorizable
+struct DoubleNumInst : public ValueInst
 {
     double fNum;
 
     DoubleNumInst(double num, int size = 1)
-        :Vectorizable(size), fNum(num)
+        :ValueInst(size), fNum(num)
     {}
     virtual ~DoubleNumInst() 						
     {}
@@ -892,12 +895,12 @@ struct DoubleNumInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct IntNumInst : public ValueInst, public Vectorizable
+struct IntNumInst : public ValueInst
 {
     int fNum;
     
     IntNumInst(int num, int size = 1)
-        :Vectorizable(size), fNum(num)
+        :ValueInst(size), fNum(num)
     {}
     virtual ~IntNumInst() 						
     {}
@@ -907,12 +910,12 @@ struct IntNumInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct BoolNumInst : public ValueInst, public Vectorizable
+struct BoolNumInst : public ValueInst
 {
     int fNum;
         
     BoolNumInst(bool num, int size = 1)
-        :Vectorizable(size), fNum(num)
+        :ValueInst(size), fNum(num)
     {}
     virtual ~BoolNumInst() 						
     {}
@@ -922,14 +925,14 @@ struct BoolNumInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct BinopInst : public ValueInst, public Vectorizable
+struct BinopInst : public ValueInst
 {
     int fOpcode;
     ValueInst* fInst1;
     ValueInst* fInst2;
 
     BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1)
-        :Vectorizable(size), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
+        :ValueInst(size), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
     {}
     virtual ~BinopInst() 						
     {}
@@ -939,13 +942,13 @@ struct BinopInst : public ValueInst, public Vectorizable
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct CastNumInst : public ValueInst, public Vectorizable
+struct CastNumInst : public ValueInst
 {
     Typed* fTyped;
     ValueInst* fInst;
   
     CastNumInst(ValueInst* inst, Typed* typed, int size = 1)
-        :Vectorizable(size), fTyped(typed), fInst(inst)
+        :ValueInst(size), fTyped(typed), fInst(inst)
     {}
     virtual ~CastNumInst() 						
     {}
@@ -993,14 +996,14 @@ struct BlockInst : public StatementInst
     }
 };
 
-struct Select2Inst : public ValueInst, public Vectorizable
+struct Select2Inst : public ValueInst
 {
     ValueInst* fCond;
     ValueInst* fThen;
     ValueInst* fElse;
 
     Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst, int size = 1)
-        :Vectorizable(size), fCond(cond_inst), fThen(then_inst), fElse(else_inst)
+        :ValueInst(size), fCond(cond_inst), fThen(then_inst), fElse(else_inst)
     {}
     virtual ~Select2Inst() 						
     {}
@@ -1070,14 +1073,14 @@ struct RetInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct FunCallInst : public ValueInst, public Vectorizable
+struct FunCallInst : public ValueInst
 {
     string fName;
     list<ValueInst*> fArgs;   // List of arguments
     bool fMethod;
 
     FunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        :Vectorizable(size), fName(name), fArgs(args), fMethod(method)
+        :ValueInst(size), fName(name), fArgs(args), fMethod(method)
     {}
    
     virtual ~FunCallInst() 						

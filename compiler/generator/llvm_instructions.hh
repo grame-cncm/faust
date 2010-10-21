@@ -141,6 +141,39 @@ struct LLVMTypeHelper {
         else
             return ConstantFP::get(getGlobalContext(), APFloat(number));
     }
+    
+    virtual const llvm::Type* getFloatTy(int size)
+    {
+        if (size > 1)
+            return VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), size);
+        else
+            return llvm::Type::getFloatTy(getGlobalContext());
+    }
+    
+    virtual const llvm::Type* getInt32Ty(int size)
+    {
+        if (size > 1)
+            return VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), size);
+        else
+            return llvm::Type::getInt32Ty(getGlobalContext());
+    }
+    
+    virtual const llvm::Type* getInt1Ty(int size)
+    {
+        if (size > 1)
+            return VectorType::get(llvm::Type::getInt1Ty(getGlobalContext()), size);
+        else
+            return llvm::Type::getInt1Ty(getGlobalContext());
+    }
+    
+    virtual const llvm::Type* getDoubleTy(int size)
+    {
+        if (size > 1)
+            return VectorType::get(llvm::Type::getDoubleTy(getGlobalContext()), size);
+        else
+            return llvm::Type::getDoubleTy(getGlobalContext());
+    }
+
 };
 
 // LLVM type generator
