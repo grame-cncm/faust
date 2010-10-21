@@ -176,15 +176,6 @@ struct LLVMTypeHelper {
 
 };
 
-// LLVM type generator
-
-class LLVMTypeBuilder {
-
-    virtual llvm::Type genFloatTy();
-    virtual llvm::Type genInt32Ty();
-    virtual llvm::Type genInt1Ty();
-};
-
 class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
     protected:
@@ -1601,7 +1592,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             inst->fInst2->accept(this);
             LlvmValue res2 = fCurValue;
             
-            fCurValue = generateBinopAux(inst->fOpcode, res1, res2);
+            fCurValue = generateBinopAux(inst->fOpcode, res1, res2, inst->fSize);
         }
         
         virtual void visit(CastNumInst* inst)
@@ -1617,11 +1608,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 
                     // Takes the type of internal real
                     case Typed::kFloatMacro:
-                        visitAux(itfloat());
+                        visitAux(itfloat(), inst->fSize);
                         break;
                         
                     default:
-                        visitAux(basic_typed->fType);
+                        visitAux(basic_typed->fType, inst->fSize);
                         break;
                 }
                 
@@ -1631,48 +1622,36 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
         
-        void visitAux(Typed::VarType type)
+        void visitAux(Typed::VarType type, int size)
         {
             switch (type) {
             
                 case Typed::kFloat:
-                    /*
-                    if (!gVectorSwitch)  // TO improve (check fCurValue actual type ?)
-                        fCurValue = fBuilder->CreateSIToFP(fCurValue, fBuilder->getFloatTy());
-                    else
-                        fCurValue = fBuilder->CreateSIToFP(fCurValue, VectorType::get(fBuilder->getFloatTy(), gVecSize));
-                    */
-                    if (fCurValue->getType() == fBuilder->getInt32Ty()) {
-                         fCurValue = fBuilder->CreateSIToFP(fCurValue, fBuilder->getFloatTy());
-                    } else if (fCurValue->getType() == fBuilder->getFloatTy())  {
+                    if (fCurValue->getType() == getInt32Ty(size)) {
+                         fCurValue = fBuilder->CreateSIToFP(fCurValue, getFloatTy(size));
+                    } else if (fCurValue->getType() == getFloatTy(size))  {
                         // Nothing to do
-                    } else if (fCurValue->getType() == fBuilder->getDoubleTy())  {
-                        fCurValue = fBuilder->CreateFPTrunc(fCurValue, fBuilder->getFloatTy());
+                    } else if (fCurValue->getType() == getDoubleTy(size))  {
+                        fCurValue = fBuilder->CreateFPTrunc(fCurValue, getFloatTy(size));
                     }
                     break;
                    
                 case Typed::kInt:
-                    /*
-                    if (!gVectorSwitch) // TO improve (check fCurValue actual type ?)
-                        fCurValue = fBuilder->CreateFPToSI(fCurValue, fBuilder->getInt32Ty());
-                    else
-                        fCurValue = fBuilder->CreateFPToSI(fCurValue, VectorType::get(fBuilder->getInt32Ty(), gVecSize));
-                    */
-                    if (fCurValue->getType() == fBuilder->getInt32Ty()) {
+                     if (fCurValue->getType() == getInt32Ty(size)) {
                         // Nothing to do
-                    } else if (fCurValue->getType() == fBuilder->getFloatTy())  {
-                         fCurValue = fBuilder->CreateFPToSI(fCurValue, fBuilder->getInt32Ty());
-                    } else if (fCurValue->getType() == fBuilder->getDoubleTy())  {
-                         fCurValue = fBuilder->CreateFPToSI(fCurValue, fBuilder->getInt32Ty());
+                    } else if (fCurValue->getType() == getFloatTy(size))  {
+                         fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(size));
+                    } else if (fCurValue->getType() == getDoubleTy(size))  {
+                         fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(size));
                     }
                     break;
                     
                 case Typed::kDouble:
-                    if (fCurValue->getType() == fBuilder->getInt32Ty()) {
-                        fCurValue = fBuilder->CreateSIToFP(fCurValue, fBuilder->getDoubleTy());
-                    } else if (fCurValue->getType() == fBuilder->getFloatTy())  {
-                        fCurValue = fBuilder->CreateFPExt(fCurValue, fBuilder->getDoubleTy());
-                    } else if (fCurValue->getType() == fBuilder->getDoubleTy())  {
+                    if (fCurValue->getType() == getInt32Ty(size)) {
+                        fCurValue = fBuilder->CreateSIToFP(fCurValue, getDoubleTy(size));
+                    } else if (fCurValue->getType() == getFloatTy(size))  {
+                        fCurValue = fBuilder->CreateFPExt(fCurValue, getDoubleTy(size));
+                    } else if (fCurValue->getType() == getDoubleTy(size))  {
                        // Nothing to do
                     }
                     break;
@@ -1764,12 +1743,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             inst->fCond->accept(this);
              
             // Convert condition to a bool by comparing equal to comp_val value
-            Value* cond_value;
-            
-            //if (!gVectorSwitch)  // TO improve (check fCurValue actual type ?)
-                cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(1), "ifcond");
-            //else
-           //     cond_value = fBuilder->CreateICmpEQ(fCurValue, ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), gVecSize), 1), "ifcond");
+            Value* cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(1, inst->fSize), "ifcond");
             
             Function* function = fBuilder->GetInsertBlock()->getParent();
 
@@ -1830,12 +1804,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             inst->fCond->accept(this);
              
             // Convert condition to a bool by comparing equal to comp_val value
-            Value* cond_value;
-            
-            //if (!gVectorSwitch)  // TO improve (check fCurValue actual type ?)
-                cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(1), "ifcond");
-            //else
-           //     cond_value = fBuilder->CreateICmpEQ(fCurValue, ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), gVecSize), 1), "ifcond");
+            Value* cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(1), "ifcond");
             
             Function* function = fBuilder->GetInsertBlock()->getParent();
 
@@ -2105,143 +2074,92 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Helper code
         //==============
         
-        LlvmValue generateBinOpAux1Float(int opcode, LlvmValue arg1, LlvmValue arg2)
+        LlvmValue generateBinOpAux1Float(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
-                return fBuilder->CreateSelect(comp_value, genFloat(1.0f), genFloat(0.0f));
+                return fBuilder->CreateSelect(comp_value, genFloat(1.0f, size), genFloat(0.0f, size));
             } else {
                 return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
             }
         }
         
-        LlvmValue generateBinOpAux1Double(int opcode, LlvmValue arg1, LlvmValue arg2)
+        LlvmValue generateBinOpAux1Double(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
-                return fBuilder->CreateSelect(comp_value, genDouble(1.0), genDouble(0.0));
+                return fBuilder->CreateSelect(comp_value, genDouble(1.0, size), genDouble(0.0, size));
             } else {
                 return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
             }
         }
 
-        LlvmValue generateBinOpAux2(int opcode, LlvmValue arg1, LlvmValue arg2)
+        LlvmValue generateBinOpAux2(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmIntInst, arg1, arg2);
-                return fBuilder->CreateSelect(comp_value, genInt32(1), genInt32(0));
+                return fBuilder->CreateSelect(comp_value, genInt32(1, size), genInt32(0, size));
             } else {
                 return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmIntInst, arg1, arg2);
             }
         }
 
-        LlvmValue generateBinopAux(int opcode, LlvmValue arg1, LlvmValue arg2)
+        LlvmValue generateBinopAux(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             assert(arg1);
             assert(arg2);
-            
             //arg1->dump();
             //arg2->dump();
             
             assert(fBuilder);
+                    
+            if (arg1->getType() == getFloatTy(size) && arg2->getType() == getFloatTy(size)) {
             
-            /*
-            bool t1 = isa<VectorType>(arg1->getType());
-            bool t2 = isa<VectorType>(arg2->getType());
-            bool t3 = arg1->getType() == fBuilder->getFloatTy();
-            bool t4 = arg2->getType() == fBuilder->getFloatTy();
-            
-            printf("t1 %d t2 %d t3 %d t3 %d\n", t1, t2, t3, t4);
-             
-            // Polymorphic : scalar floats or ints are promoted to vector when needed
-            if (isa<VectorType>(arg1->getType())) {
-                if (isa<VectorType>(arg2->getType())) {
-                    // Nothing to do
-                } else {
-                    // Promote float or int to vector
-                    if (ConstantFP* float_val = dyn_cast<ConstantFP>(arg2)) {
-                        arg2 = ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), gVecSize), float_val->getValueAPF().convertToFloat());
-                    } else if (ConstantInt* int_val = dyn_cast<ConstantInt>(arg2)) {
-                        arg2 = ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), gVecSize), int_val->getValue());
-                    }
-                }
-            } else if (isa<VectorType>(arg2->getType())) { 
-                // Promote float or int to vector
-                if (ConstantFP* float_val = dyn_cast<ConstantFP>(arg1)) {
-                    arg1 = ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), gVecSize), float_val->getValueAPF().convertToFloat());
-                } else if (ConstantInt* int_val = dyn_cast<ConstantInt>(arg1)) {
-                    arg1 = ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), gVecSize), int_val->getValue());
-                }
-            } else {
-                // Nothing to do
-            }
-            */
-            
-            /*
-            if (arg1->getType() == fBuilder->getFloatTy()) {
-                if (arg2->getType() == fBuilder->getFloatTy()) {
-                    return generateBinOpAux1(opcode, arg1, arg2);
-                } else {
-                    // Generates cast to float
-                    Value* cast_value = fBuilder->CreateSIToFP(arg2, fBuilder->getFloatTy());
-                    return generateBinOpAux1(opcode, arg1, cast_value);
-                }
-            } else if (arg2->getType() == fBuilder->getFloatTy()) {
-                // Generates cast to float
-                Value* cast_value = fBuilder->CreateSIToFP(arg1, fBuilder->getFloatTy());
-                return generateBinOpAux1(opcode, cast_value, arg2);
-            } else {
-                return generateBinOpAux2(opcode, arg1, arg2);
-            }
-            */
-            
-            if (arg1->getType() == fBuilder->getFloatTy() && arg2->getType() == fBuilder->getFloatTy()) {
-            
-                return generateBinOpAux1Float(opcode, arg1, arg2);
+                return generateBinOpAux1Float(opcode, arg1, arg2, size);
                 
-            } else if (arg1->getType() == fBuilder->getFloatTy() && arg2->getType() == fBuilder->getDoubleTy()) {
+            } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getDoubleTy(size)) {
             
                 // Generates cast arg1 to double
-                Value* cast_value = fBuilder->CreateFPExt(arg1, fBuilder->getDoubleTy());
-                return generateBinOpAux1Double(opcode, cast_value, arg2);
+                Value* cast_value = fBuilder->CreateFPExt(arg1, getDoubleTy(size));
+                return generateBinOpAux1Double(opcode, cast_value, arg2, size);
                 
-            } else if (arg1->getType() == fBuilder->getFloatTy() && arg2->getType() == fBuilder->getInt32Ty()) {
+            } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getInt32Ty(size)) {
             
                 // Generates cast arg2 to float
                 Value* cast_value = fBuilder->CreateSIToFP(arg2, fBuilder->getFloatTy());
-                return generateBinOpAux1Float(opcode, arg1, cast_value);
+                return generateBinOpAux1Float(opcode, arg1, cast_value, size);
                 
-            } else if (arg1->getType() == fBuilder->getDoubleTy() && arg2->getType() == fBuilder->getFloatTy()) {
+            } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getFloatTy(size)) {
             
                 // Generates cast arg2 to double
-                Value* cast_value = fBuilder->CreateFPExt(arg2, fBuilder->getDoubleTy());
-                return generateBinOpAux1Double(opcode, arg1, cast_value);
+                Value* cast_value = fBuilder->CreateFPExt(arg2, getDoubleTy(size));
+                return generateBinOpAux1Double(opcode, arg1, cast_value, size);
                 
-            } else if (arg1->getType() == fBuilder->getDoubleTy() && arg2->getType() == fBuilder->getDoubleTy()) { 
+            } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getDoubleTy(size)) { 
             
-                return generateBinOpAux1Double(opcode, arg1, arg2);
+                return generateBinOpAux1Double(opcode, arg1, arg2, size);
                 
-            } else if (arg1->getType() == fBuilder->getDoubleTy() && arg2->getType() == fBuilder->getInt32Ty()) { 
+            } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getInt32Ty(size)) { 
             
                 // Generates cast to double
-                Value* cast_value = fBuilder->CreateSIToFP(arg2, fBuilder->getDoubleTy());
-                return generateBinOpAux1Double(opcode, arg1, cast_value);
+                Value* cast_value = fBuilder->CreateSIToFP(arg2, getDoubleTy(size));
+                return generateBinOpAux1Double(opcode, arg1, cast_value, size);
                 
-            } else if (arg1->getType() == fBuilder->getInt32Ty() && arg2->getType() == fBuilder->getFloatTy()) { 
+            } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getFloatTy(size)) { 
             
                 // Generates cast to float
-                Value* cast_value = fBuilder->CreateSIToFP(arg1, fBuilder->getFloatTy());
-                return generateBinOpAux1Float(opcode, cast_value, arg2);
+                Value* cast_value = fBuilder->CreateSIToFP(arg1, getFloatTy(size));
+                return generateBinOpAux1Float(opcode, cast_value, arg2, size);
                 
-            } else if (arg1->getType() == fBuilder->getInt32Ty() && arg2->getType() == fBuilder->getDoubleTy()) { 
+            } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getDoubleTy(size)) { 
             
                 // Generates cast to double
-                Value* cast_value = fBuilder->CreateSIToFP(arg1, fBuilder->getDoubleTy());
-                return generateBinOpAux1Double(opcode, cast_value, arg2);
+                Value* cast_value = fBuilder->CreateSIToFP(arg1, getDoubleTy(size));
+                return generateBinOpAux1Double(opcode, cast_value, arg2, size);
                 
-            } else if (arg1->getType() == fBuilder->getInt32Ty() && arg2->getType() == fBuilder->getInt32Ty()) { 
+            } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getInt32Ty(size)) { 
             
-                return generateBinOpAux2(opcode, arg1, arg2);
+                return generateBinOpAux2(opcode, arg1, arg2, size);
                 
             } else {
                 // Should not happen
