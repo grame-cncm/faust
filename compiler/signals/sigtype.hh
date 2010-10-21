@@ -355,6 +355,7 @@ private:
     int size(void) const                { return fSize; }
 };
 
+/* promote lhs with the features of rhs */
 inline AudioType * mergeTypes(AudioType * lhs, AudioType * rhs)
 {
     return lhs->promoteNature(rhs->nature())
