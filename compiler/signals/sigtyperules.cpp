@@ -45,7 +45,7 @@ static Type infereFVarType (Tree type);
 static Type infereRecType (Tree var, Tree body, Tree env);
 static Type infereReadTableType(Type tbl, Type ri);
 static Type infereWriteTableType(Type tbl, Type wi, Type wd);
-static Type infereProjType(Type t, int i, int vec);
+static Type infereProjType(Type t, int i);
 static Type infereXType(Tree sig, Tree env);
 static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
@@ -370,7 +370,7 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isRec(sig, var, body))			return infereRecType(sig, body, env);
 
-	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i,kScal);
+	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i);
 
 	else if (isSigTable(sig, id, s1, s2)) 		{ checkInt(checkInit(T(s1,env))); return new TableType(checkInit(T(s2,env))); }
 
@@ -428,7 +428,7 @@ static Type infereSigType(Tree sig, Tree env)
 /**
  *	Infere the type of a projection (selection) of a tuplet element
  */
-static Type infereProjType(Type t, int i, int vec)
+static Type infereProjType(Type t, int i)
 {
 	TupletType* tt = isTupletType(t);
 	if (tt == 0) {
@@ -439,11 +439,10 @@ static Type infereProjType(Type t, int i, int vec)
 	//		->promoteComputability(t->computability());
 	Type temp = (*tt)[i]	->promoteVariability(t->variability())
 	  ->promoteComputability(t->computability())
-	  ->promoteVectorability(vec/*t->vectorability()*/);
+	  ->promoteVectorability(kScal);
 	//->promoteBooleanity(t->boolean());
 
-	if(vec==kVect) return vecCast(temp);
-	else return temp;
+    return temp;
 }
 
 
