@@ -1422,11 +1422,10 @@ The following primitives allow to define fixed delays, read-only and read-write 
 
 
 \faust user interface widgets allow an abstract description of the user interface from within the \faust code. This description is
-independent of any GUI toolkits. It is based on \emph{buttons}, \emph{checkboxes}, \emph{sliders}, etc. that are grouped together vertically and
-horizontally using appropriate grouping schemes.
+independent of any GUI toolkits. It is based on \emph{buttons}, \emph{checkboxes}, \emph{sliders}, etc. that are grouped together 
+vertically and horizontally using appropriate grouping schemes.
 
-All these GUI elements produce signals. A button for example (see figure \ref{fig:button}) produces a signal which is 1 when the button is pressed and 0 otherwise.
-These signals can be freely combined with other audio signals.
+All these GUI elements produce signals. A button for example (see figure \ref{fig:button}) produces a signal which is 1 when the button is pressed and 0 otherwise. These signals can be freely combined with other audio signals. 
 
 \begin{figure}[h]
 \centering
@@ -1452,6 +1451,7 @@ These signals can be freely combined with other audio signals.
 \texttt{tgroup(\farg{str},\farg{block-diagram})} & \texttt{vgroup("parametric", \ldots)}\\
 \texttt{vbargraph(\farg{str},\farg{min},\farg{max})} & \texttt{vbargraph("input",0,100)}\\
 \texttt{hbargraph(\farg{str},\farg{min},\farg{max})} & \texttt{hbargraph("signal",0,1.0)}\\
+\texttt{attach} & \texttt{attach(x, vumeter(x))}\\
 \hline
 \end{tabular}
 
@@ -1592,6 +1592,10 @@ the value
 Moreover starting a label with a number option like in \lstinline'"[1]..."' provides
 a convenient means to control the alphabetical order of the widgets.
 
+\subsubsection{Attach}
+The \lstinline'attach' primitive takes two input signals and produce one output signal which is a copy of the first input. The role of \lstinline'attach' is to force its second input signal to be compiled with the first one. From a mathematical point of view \lstinline'attach(x,y)' is equivalent to \lstinline'1*x+0*y', which is in turn equivalent to \lstinline'x', but it tells the compiler not to optimize-out \lstinline'y'.
+
+To illustrate this role let say that we want to develop a mixer application with a vumeter for each input signals. Such vumeters can be easily coded in \faust using an envelop detector connected to a bargraph. The problem is that these envelop signals have no role in the output signals. Using \lstinline'attach(x,vumeter(x))' one can tel the compiler that when \lstinline'x' is compiled \lstinline'vumeter(x)' should also be compiled. 
 
 
 
