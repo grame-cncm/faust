@@ -82,9 +82,7 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
         DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genBinopInst(kDiv,
-                                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)),
-                                         InstBuilder::genIntNumInst(size)));
+                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)));
         StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
                                             InstBuilder::genBinopInst(kAdd,
                                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),

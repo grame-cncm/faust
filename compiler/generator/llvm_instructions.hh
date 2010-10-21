@@ -1161,7 +1161,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = NULL;
         }
         
-        Value* genVectorLoad( Value* load_ptr, Value* load, int size)
+        Value* genVectorLoad(Value* load_ptr, Value* load, int size)
         {
             if (size > 1) {
                 cerr << "genVectorLoad" << endl;
@@ -1171,6 +1171,21 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 VectorType::get(load->getType(), size)->dump();
                 Value* casted_load_ptr = fBuilder->CreateBitCast(load_ptr, PointerType::get(VectorType::get(load->getType(), size), 0));
                 return  fBuilder->CreateLoad(casted_load_ptr);
+            } else {
+                return load;
+            }
+        }
+        
+        Value* genVectorScalarLoad( Value* load, int size)
+        {
+            if (size > 1) {
+                cerr << "genVectorScalarLoad" << endl;
+                VectorType::get(load->getType(), size)->dump();
+                Value* vector = fBuilder->CreateAlloca(VectorType::get(load->getType(), size));
+                for (int i = 0; i < size; i++) {
+                    vector = fBuilder->CreateInsertElement(vector, load, genInt32(i));
+                }
+                return vector;
             } else {
                 return load;
             }
