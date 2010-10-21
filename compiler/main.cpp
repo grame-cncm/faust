@@ -36,6 +36,7 @@
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "privatise.hh"
+#include "recursivness.hh"
 
 #include "propagate.hh"
 #include "errormsg.hh"
@@ -291,7 +292,7 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
 			gGroupTaskSwitch = true;
 			i += 1;
-            
+
         } else if (isCmd(argv[i], "-fun", "--funTasks")) {
 			gFunTaskSwitch = true;
 			i += 1;
@@ -316,23 +317,23 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
             gFloatSize = 3;
             i += 1;
-			
+
         } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
             gPrintDocSwitch = true;
             i += 1;
-			
+
         } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang")) {
             gDocLang = argv[i+1];
             i += 2;
-			
+
         } else if (isCmd(argv[i], "-stripmdoc", "--strip-mdoc-tags")) {
             gStripDocSwitch = true;
             i += 1;
-			
+
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
             gPrintFileListSwitch = true;
             i += 1;
-			
+
 		} else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -424,7 +425,7 @@ void printheader(ostream& dst)
 {
     // steph
     return;
-    
+
     // defines the metadata we want to print as comments at the begin of in the C++ file
     set<Tree> selectedKeys;
     selectedKeys.insert(tree("name"));
@@ -473,7 +474,7 @@ static string fxname(const string& filename)
     for (unsigned int i=0; i<filename.size(); i++) {
         if (filename[i] == '/')  { p1 = i+1; }
     }
-	
+
 	// determine position of the last '.'
 	unsigned int p2 = filename.size();
     for (unsigned int i=p1; i<filename.size(); i++) {
@@ -504,141 +505,124 @@ static void initFaustDirectories()
     }
 }
 
-int main (int argc, char* argv[])
+static void parseSourceFiles()
 {
+    startTiming("parser");
 
-	/****************************************************************
-	 1 - process command line
-	*****************************************************************/
+    list<string>::iterator s;
+    gResult2 = nil;
+    yyerr = 0;
 
-	process_cmdline(argc, argv);
+    if (gInputFiles.begin() == gInputFiles.end()) {
+        cerr << "ERROR: no files specified; for help type \"faust --help\"" << endl;
+        exit(1);
+    }
+    for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
+        if (s == gInputFiles.begin()) gMasterDocument = *s;
+        gResult2 = cons(importFile(tree(s->c_str())), gResult2);
+    }
+    if (yyerr > 0) {
+        //fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
+        exit(1);
+    }
+    gExpandedDefList = gReader.expandlist(gResult2);
 
-	if (gHelpSwitch) 		{ printhelp(); exit(0); }
-	if (gVersionSwitch) 	{ printversion(); exit(0); }
+    endTiming("parser");
+}
 
-    initFaustDirectories();
-#ifndef WIN32
-    alarm(gTimeout);
-#endif
+static Tree evaluateBlockDiagram(Tree expandedDefList, int & numInputs, int & numOutputs)
+{
+    startTiming("evaluation");
 
-	/****************************************************************
-	 2 - parse source files
-	*****************************************************************/
-
-	startTiming("parser");
-	
-	list<string>::iterator s;
-	gResult2 = nil;
-	yyerr = 0;
-
-	if (gInputFiles.begin() == gInputFiles.end()) {
-		cerr << "ERROR: no files specified; for help type \"faust --help\"" << endl;
-		exit(1);
-	}
-	for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-		if (s == gInputFiles.begin()) gMasterDocument = *s;
-		gResult2 = cons(importFile(tree(s->c_str())), gResult2);
-	}
-	if (yyerr > 0) {
-		//fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
-		exit(1);
-	}
-	gExpandedDefList = gReader.expandlist(gResult2);
-
-	endTiming("parser");
-	
-	/****************************************************************
-	 3 - evaluate 'process' definition
-	*****************************************************************/
-	
-	startTiming("evaluation");
-
-	Tree process = evalprocess(gExpandedDefList);
-	if (gErrorCount > 0) {
+    Tree process = evalprocess(expandedDefList);
+    if (gErrorCount > 0) {
        // cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n";
         cerr << "Total of " << gErrorCount << " errors during the compilation of  " << gMasterDocument << ";\n";
-		exit(1);
-	}
+        exit(1);
+    }
 
-	if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
+    if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
-	if (gDrawPSSwitch || gDrawSVGSwitch) {
-		string projname = gMasterDocument;
-		if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
-			projname = gMasterDocument.substr(0, gMasterDocument.length()-4); 
-		}
-		if (gDrawPSSwitch) 	{ drawSchema( process, subst("$0-ps",  projname).c_str(), "ps" ); }
-		if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", projname).c_str(), "svg" ); }
-	}
+    if (gDrawPSSwitch || gDrawSVGSwitch) {
+        string projname = gMasterDocument;
+        if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
+            projname = gMasterDocument.substr(0, gMasterDocument.length()-4);
+        }
+        if (gDrawPSSwitch)  { drawSchema( process, subst("$0-ps",  projname).c_str(), "ps" ); }
+        if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", projname).c_str(), "svg" ); }
+    }
 
-	int numInputs, numOutputs;
-	if (!getBoxType(process, &numInputs, &numOutputs)) {
-		cerr << "ERROR during the evaluation of  process : "
-			 << boxpp(process) << endl;
-		exit(1);
-	}
+    if (!getBoxType(process, &numInputs, &numOutputs)) {
+        cerr << "ERROR during the evaluation of  process : "
+             << boxpp(process) << endl;
+        exit(1);
+    }
 
-	if (gDetailsSwitch) {
+    if (gDetailsSwitch) {
         cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
     }
-	
-	endTiming("evaluation");
 
-	/****************************************************************
-	 3.5 - output file list is needed
-	*****************************************************************/
-	if (gPrintFileListSwitch) {
-		cout << "******* ";
-		// print the pathnames of the files used to evaluate process
-		vector<string> pathnames = gReader.listSrcFiles();
-		for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << ' ';
-		cout << endl;
+    endTiming("evaluation");
 
-	}
+    if (gPrintFileListSwitch) {
+        cout << "******* ";
+        // print the pathnames of the files used to evaluate process
+        vector<string> pathnames = gReader.listSrcFiles();
+        for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << ' ';
+        cout << endl;
+    }
 
-	/****************************************************************
-	 4 - compute output signals of 'process'
-	*****************************************************************/
-	
-	startTiming("propagation");
+    return process;
+}
 
-	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
-	if (gDetailsSwitch) { cerr << "output signals are : " << endl;  printSignal(lsignals, stderr); }
+static Tree prepareSignals(Tree lsignals)
+{
+    startTiming("preparation");
 
-	endTiming("propagation");
+    startTiming("deBruijn2Sym");
+    Tree lsym = deBruijn2Sym(lsignals);         // convert debruijn recursion into symbolic recursion
+    endTiming("deBruijn2Sym");
 
-	/****************************************************************
-	 5 - translate output signals into C, C++, JAVA or LLVM code
-	*****************************************************************/
-   
+    Tree simplified = simplify(lsym);           // simplify by executing every computable operation
+    Tree privatized = privatise(simplified);    // Un-share tables with multiple writers
+
+    Tree signals = privatized;
+    recursivnessAnnotation(signals);            // Annotate final signal tree with recursivness information
+    typeAnnotation(signals);                    // Annotate final signal tree with type information
+
+    endTiming("preparation");
+    return signals;
+}
+
+static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs)
+{
     // By default use "cpp" output
     if (gOutputLang == "") gOutputLang = "cpp";
-    
+
     InstructionsCompiler* comp;
     CodeContainer* container = NULL;
-   
+
     startTiming("compilation");
 
     istream* enrobage;
     ostream* dst;
-    
+
     if (gOutputFile != "") {
         dst = new ofstream(gOutputFile.c_str());
     } else {
         dst = &cout;
     }
-   
+
     if (gOutputLang == "llvm") {
-    
         if (gFloatSize == 3) {
             cerr << "ERROR : quad format not supported in LLVM mode" << endl;
-            return 1;
+            exit(1);
         }
         gDSPStruct = true;
-        
+
         if (gOpenMPSwitch) {
             cerr << "ERROR : OpenMP not supported for LLVM" << endl;
-            return 1;
+            exit(1);
         } else if (gSchedulerSwitch) {
             container = new LLVMWorkStealingCodeContainer(numInputs, numOutputs);
             comp = new DAGInstructionsCompiler(container);
@@ -649,16 +633,14 @@ int main (int argc, char* argv[])
             container = new LLVMScalarCodeContainer(numInputs, numOutputs);
             comp = new InstructionsCompiler(container);
         }
-           
+
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
 
-        comp->compileMultiSignal(lsignals);
-        
+        comp->compileMultiSignal(signals);
+
         dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
-     
     } else {
-    
         if (gOutputLang == "c") {
             gDSPStruct = true;
             if (gOpenMPSwitch) {
@@ -683,10 +665,10 @@ int main (int argc, char* argv[])
         } else if (gOutputLang == "java") {
             if (gOpenMPSwitch) {
                 cerr << "ERROR : OpenMP not supported for Java" << endl;
-                return 1;
+                exit(1);
             } else if (gSchedulerSwitch) {
                 cerr << "ERROR : Scheduler mode not supported for Java" << endl;
-                return 1;
+                exit(1);
             } else if (gVectorSwitch) {
                 container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
@@ -707,29 +689,28 @@ int main (int argc, char* argv[])
                 comp = new InstructionsCompiler(container);
             }
 
-            comp->compileMultiSignal(lsignals);
+            comp->compileMultiSignal(signals);
             container->dump(dst);
-            return 0;
+            exit(0);
         }
         if (!container) {
              cerr << "ERROR : cannot file compiler for " << "\"" << gOutputLang  << "\"" << endl;
-             return 1;
+             exit(1);
         }
         if (gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
         } else {
             comp = new InstructionsCompiler(container);
         }
-        
+
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
 
-        comp->compileMultiSignal(lsignals);
-          
-        /****************************************************************
-        8 - generate output file
-        *****************************************************************/
+        comp->compileMultiSignal(signals);
 
+        /****************************************************************
+         * generate output file
+         ****************************************************************/
         if (gArchFile != "") {
             if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
@@ -745,7 +726,7 @@ int main (int argc, char* argv[])
                 }
             } else {
                 cerr << "ERROR : can't open architecture file " << gArchFile << endl;
-                return 1;
+                exit(1);
             }
         } else {
             printfloatdef(*dst);
@@ -753,14 +734,19 @@ int main (int argc, char* argv[])
         }
     }
     endTiming("compilation");
-    
-	/****************************************************************
-	 6 - generate XML description (if required)
-	*****************************************************************/
- 
-	if (gPrintXMLSwitch) {
-		Description* 	D = comp->getDescription(); assert(D);
-		ofstream 		xout(subst("$0.xml", gMasterDocument).c_str());
+
+    return make_pair(comp, container);
+}
+
+static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * container)
+{
+    /****************************************************************
+     1 - generate XML description (if required)
+    *****************************************************************/
+
+    if (gPrintXMLSwitch) {
+        Description*    D = comp->getDescription(); assert(D);
+        ofstream        xout(subst("$0.xml", gMasterDocument).c_str());
 
         if (gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
         if (gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
@@ -768,33 +754,85 @@ int main (int argc, char* argv[])
         if (gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
         if (gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
 
-		D->inputs(container->inputs());
-		D->outputs(container->outputs());
+        D->inputs(container->inputs());
+        D->outputs(container->outputs());
 
-		D->print(0, xout);
-	}
- 
-	/****************************************************************
-	 7 - generate documentation from Faust comments (if required)
-	*****************************************************************/
-
-	if (gPrintDocSwitch) {
-		if (gLatexDocSwitch) {
-			string projname = gMasterDocument;
-			if (gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp") {
-				projname = gMasterDocument.substr(0, gMasterDocument.length() - 4); }
-			printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
-		}
-	}
+        D->print(0, xout);
+    }
 
     /****************************************************************
-     9 - generate the task graph file in dot format
+     2 - generate documentation from Faust comments (if required)
     *****************************************************************/
-    
+
+    if (gPrintDocSwitch) {
+        if (gLatexDocSwitch) {
+            string projname = gMasterDocument;
+            if (gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp") {
+                projname = gMasterDocument.substr(0, gMasterDocument.length() - 4); }
+            printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
+        }
+    }
+
+    /****************************************************************
+     3 - generate the task graph file in dot format
+    *****************************************************************/
+
     if (gGraphSwitch) {
         ofstream dotfile(subst("$0.dot", gMasterDocument).c_str());
        container->printGraphDotFormat(dotfile);
     }
-  	
+}
+
+int main (int argc, char* argv[])
+{
+	/****************************************************************
+	 1 - process command line
+	*****************************************************************/
+	process_cmdline(argc, argv);
+
+	if (gHelpSwitch) 		{ printhelp(); exit(0); }
+	if (gVersionSwitch) 	{ printversion(); exit(0); }
+
+    initFaustDirectories();
+#ifndef WIN32
+    alarm(gTimeout);
+#endif
+
+	/****************************************************************
+	 2 - parse source files
+	*****************************************************************/
+    parseSourceFiles();
+
+	/****************************************************************
+	 3 - evaluate 'process' definition
+	*****************************************************************/
+    int numInputs, numOutputs;
+    Tree process = evaluateBlockDiagram(gExpandedDefList, numInputs, numOutputs);
+
+	/****************************************************************
+	 4 - compute output signals of 'process'
+	*****************************************************************/
+	startTiming("propagation");
+
+	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
+	if (gDetailsSwitch) { cerr << "output signals are : " << endl;  printSignal(lsignals, stderr); }
+
+	endTiming("propagation");
+
+    /****************************************************************
+     5 - preparation of the signal tree
+    *****************************************************************/
+    Tree signals = prepareSignals(lsignals);
+
+	/****************************************************************
+	 6 - translate output signals into C, C++, JAVA or LLVM code
+	*****************************************************************/
+    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(signals, numInputs, numOutputs);
+
+    /****************************************************************
+     7 - generate xml description, documentation or dot files
+    *****************************************************************/
+    generateOutputFiles(comp_container.first, comp_container.second);
+
 	return 0;
 }
