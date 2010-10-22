@@ -623,6 +623,15 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             exit(1);
         }
         gDSPStruct = true;
+        
+        if (gOpenCLSwitch) {
+            cerr << "ERROR : OpenCL not supported for LLVM" << endl;
+            exit(1);
+        }
+        if (gCUDASwitch) {
+            cerr << "ERROR : CUDA not supported for LLVM" << endl;
+            exit(1);
+        }
 
         if (gOpenMPSwitch) {
             cerr << "ERROR : OpenMP not supported for LLVM" << endl;
@@ -647,6 +656,16 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     } else {
         if (gOutputLang == "c") {
             gDSPStruct = true;
+            
+            if (gOpenCLSwitch) {
+                cerr << "ERROR : OpenCL not supported for C" << endl;
+                exit(1);
+            }
+            if (gCUDASwitch) {
+                cerr << "ERROR : CUDA not supported for C" << endl;
+                exit(1);
+            }
+            
             if (gOpenMPSwitch) {
                 container = new COpenMPCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
             } else if (gSchedulerSwitch) {
@@ -662,12 +681,20 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else if (gSchedulerSwitch) {
                 container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else if (gOpenCLSwitch) {   
+                if (gFunTaskSwitch) {
+                    cerr << "ERROR : -fun not yet supported in OpenCL mode" << endl;
+                    exit(1);
+                }
                 if (gVectorSwitch) {
                     container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 } else {
                     container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 }
             } else if (gCUDASwitch) {   
+                if (gFunTaskSwitch) {
+                    cerr << "ERROR : -fun not yet supported in CUDA mode" << endl;
+                    exit(1);
+                }
                 if (gVectorSwitch) {
                     container = new CPPCUDAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 } else {
@@ -679,6 +706,16 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             }
         } else if (gOutputLang == "java") {
+        
+            if (gOpenCLSwitch) {
+                cerr << "ERROR : OpenCL not supported for Java" << endl;
+                exit(1);
+            }
+            if (gCUDASwitch) {
+                cerr << "ERROR : CUDA not supported for Java" << endl;
+                exit(1);
+            }
+            
             if (gOpenMPSwitch) {
                 cerr << "ERROR : OpenMP not supported for Java" << endl;
                 exit(1);
