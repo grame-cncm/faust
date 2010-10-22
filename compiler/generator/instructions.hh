@@ -1218,12 +1218,13 @@ class BasicCloneVisitor : public CloneVisitor {
         // Function call
         virtual ValueInst* visit(FunCallInst* inst)
         { 
-            list<ValueInst*> cloned;
-            list<ValueInst*>::const_iterator it;
-            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
-                cloned.push_back((*it)->clone(this));
+            list<ValueInst*> cloned_args;
+            
+            for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
+                cloned_args.push_back((*it)->clone(this));
             }
-            return new FunCallInst(inst->fName, cloned, inst->fMethod, inst->fSize); 
+            
+            return new FunCallInst(inst->fName, cloned_args, inst->fMethod, inst->fSize); 
         }
         virtual StatementInst* visit(RetInst* inst) { return new RetInst((inst->fResult) ? inst->fResult->clone(this) : NULL); }
         virtual StatementInst* visit(DropInst* inst) { return new DropInst((inst->fResult) ? inst->fResult->clone(this) : NULL); }

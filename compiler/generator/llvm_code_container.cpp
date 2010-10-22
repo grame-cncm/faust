@@ -155,7 +155,7 @@ void LLVMCodeContainer::generateComputeEnd()
     if (fBuilder->GetInsertBlock())
         fBuilder->CreateBr(return_block);
 
-    //llvm_compute->dump();
+    llvm_compute->dump();
     verifyFunction(*llvm_compute);
 }
 

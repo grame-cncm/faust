@@ -91,7 +91,6 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
 
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
-        //pushLoop(fComputeInst, loop);
         block->pushBackInst(loop);
 
         struct VectorCloneVisitor : public BasicCloneVisitor {
@@ -111,22 +110,35 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
             
             virtual ValueInst* visit(LoadVarInst* inst) 
             { 
-                if (inst->fAddress->getAccess() != Address::kLoop)
+                if (inst->fAddress->getAccess() != Address::kLoop) {
                     return new LoadVarInst(inst->fAddress->clone(this), fSize); 
-                else
-                    return new LoadVarInst(inst->fAddress->clone(this), inst->fSize); 
+                } else {
+                    BasicCloneVisitor cloner;
+                    return inst->clone(&cloner);
+                }
             }
+            
             virtual ValueInst* visit(LoadVarAddressInst* inst) 
             { 
-                if (inst->fAddress->getAccess() != Address::kLoop)
+                if (inst->fAddress->getAccess() != Address::kLoop) {
                     return new LoadVarAddressInst(inst->fAddress->clone(this), fSize); 
-                else
-                    return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize); 
+                } else {
+                    BasicCloneVisitor cloner;
+                    return inst->clone(&cloner);
+                }
             }
             
             virtual ValueInst* visit(CastNumInst* inst) 
             { 
-                return new CastNumInst(inst->fInst->clone(this), inst->fTyped->clone(this), fSize); 
+                ValueInst* cloned_inst = inst->fInst->clone(this);
+                
+                // Vector result when argument is vectorized
+                if (cloned_inst->fSize > 1) {
+                    return new CastNumInst(cloned_inst, inst->fTyped->clone(this), fSize); 
+                } else {
+                    BasicCloneVisitor cloner;
+                    return inst->clone(&cloner);
+                }
             }
           
             virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
@@ -134,21 +146,51 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
             virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, fSize); }
             
-            virtual ValueInst* visit(BinopInst* inst) { return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), fSize); }
+            virtual ValueInst* visit(BinopInst* inst) 
+            { 
+                ValueInst* cloned_inst1 = inst->fInst1->clone(this);
+                ValueInst* cloned_inst2 = inst->fInst2->clone(this);
+                
+                // Vector result when both arguments are vectorized
+                if (cloned_inst1->fSize > 1 && cloned_inst2->fSize > 1) {
+                    return new BinopInst(inst->fOpcode, cloned_inst1, cloned_inst2, fSize); 
+                } else {
+                    BasicCloneVisitor cloner;
+                    return inst->clone(&cloner);
+                }
+            }
 
             virtual ValueInst* visit(FunCallInst* inst)
             { 
-                list<ValueInst*> cloned;
-                list<ValueInst*>::const_iterator it;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
-                    cloned.push_back((*it)->clone(this));
+                list<ValueInst*> cloned_args;
+                bool all_vectorized = true;
+                
+                for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
+                    ValueInst* cloned_arg = (*it)->clone(this);
+                    all_vectorized &= (cloned_arg->fSize > 1);
+                    cloned_args.push_back(cloned_arg);
                 }
-                return new FunCallInst(inst->fName, cloned, inst->fMethod, fSize); 
+                
+                // Vector result when all arguments are vectorized
+                if (all_vectorized) {
+                    return new FunCallInst(inst->fName, cloned_args, inst->fMethod, fSize); 
+                } else {
+                    BasicCloneVisitor cloner;
+                    return inst->clone(&cloner);
+                }
             }
             
             virtual ValueInst* visit(Select2Inst* inst) 
             { 
-                return new Select2Inst(inst->fCond->clone(this), inst->fThen->clone(this), inst->fElse->clone(this), fSize); 
+                ValueInst* cloned_inst = inst->fCond->clone(this);
+                
+                // Vector result when fCond is vectorized
+                if (cloned_inst->fSize > 1) { 
+                    return new Select2Inst(cloned_inst, inst->fThen->clone(this), inst->fElse->clone(this), fSize); 
+                } else {
+                    BasicCloneVisitor cloner;
+                    return inst->clone(&cloner);
+                }
             }
 
         };

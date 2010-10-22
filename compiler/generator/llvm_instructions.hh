@@ -1164,13 +1164,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Value* genPointer2VectorLoad(Value* load_ptr, Value* load, int size)
         {
             if (size > 1) {
-                cerr << "genPointer2VectorLoad" << endl;
-                load_ptr->dump();
-                load->dump();
-                load->getType()->dump();
+                //cerr << "genPointer2VectorLoad" << endl;
+                //load_ptr->dump();
+                //load->dump();
+                //load->getType()->dump();
                 VectorType::get(load->getType(), size)->dump();
                 Value* casted_load_ptr = fBuilder->CreateBitCast(load_ptr, PointerType::get(VectorType::get(load->getType(), size), 0));
-                return  fBuilder->CreateLoad(casted_load_ptr);
+                return fBuilder->CreateLoad(casted_load_ptr);
             } else {
                 return load;
             }
@@ -1179,9 +1179,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Value* genScalar2VectorLoad(Value* load, int size)
         {
             if (size > 1) {
-                cerr << "genScalar2VectorLoad" << endl;
-                load->dump();
-                load->getType()->dump();
+                //cerr << "genScalar2VectorLoad" << endl;
+                //load->dump();
+                //load->getType()->dump();
                 /*
                 Value* vector = fBuilder->CreateAlloca(VectorType::get(load->getType(), size));
                 for (int i = 0; i < size; i++) {
@@ -1191,10 +1191,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 
                 Value* vector = UndefValue::get(VectorType::get(load->getType(), size));
                 Value* idx = genInt32(0);
-                vector->dump();
+               // vector->dump();
                 vector = fBuilder->CreateInsertElement(vector, load, idx);
                 SmallVector<Constant*, 16> args;
-                for (unsigned i = 0; i < size; i++) {
+                for (int i = 0; i < size; i++) {
                     args.push_back(static_cast<Constant*>(genInt32(0)));
                 }
                 Constant* mask = ConstantVector::get(&args[0], size);
@@ -1207,10 +1207,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         
         Value* genVectorLoad(Value* load_ptr, Value* load, int size) 
         {
-            if (isa<PointerType>(load->getType()))
+            if (isa<PointerType>(load->getType())) {
                 return genPointer2VectorLoad(load_ptr, load, size);
-            else 
+            } else {
                 return genScalar2VectorLoad(load, size);
+            }
         }
                       
         virtual void visit(LoadVarInst* inst) 
@@ -1480,16 +1481,16 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         void genVectorStore(Value* store_ptr, Value* store, int size, bool vola = false)
         {
             if (size > 1) {
-                cerr << "genVectorStore vector" << endl;
-                store_ptr->dump();
-                store->dump();
-                store->getType()->dump();
+                //cerr << "genVectorStore vector" << endl;
+                //store_ptr->dump();
+                //store->dump();
+                //store->getType()->dump();
                 Value* casted_store_ptr = fBuilder->CreateBitCast(store_ptr, PointerType::get(store->getType(), 0));
                 fBuilder->CreateStore(store, casted_store_ptr, vola);
             } else {
-                cerr << "genVectorStore scalar" << endl;
-                store_ptr->dump();
-                store->dump();
+                //cerr << "genVectorStore scalar" << endl;
+                //store_ptr->dump();
+                //store->dump();
                 fBuilder->CreateStore(store, store_ptr, vola);
             }
         }
@@ -1846,60 +1847,19 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Compile condition, result in fCurValue
             inst->fCond->accept(this);
              
-            // Convert condition to a bool by comparing equal to comp_val value
+            // Convert condition to a bool by comparing to 1
             Value* cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(1, inst->fSize), "ifcond");
-            
-            Function* function = fBuilder->GetInsertBlock()->getParent();
-
-            // Create blocks for the then and else cases.  Insert the 'then' block at the end of the function
-            BasicBlock* then_block = BasicBlock::Create(getGlobalContext(), "then_code", function);
-            BasicBlock* else_block = BasicBlock::Create(getGlobalContext(), "else_code");
-            BasicBlock* merge_block = BasicBlock::Create(getGlobalContext(), "ifcont");
-
-            fBuilder->CreateCondBr(cond_value, then_block, else_block);
-
-            // Emit then value.
-            fBuilder->SetInsertPoint(then_block);
-
+       
             // Compile then branch, result in fCurValue
             inst->fThen->accept(this);
             Value* then_value = fCurValue;
-   
-            fBuilder->CreateBr(merge_block);
-            // Codegen of 'Then' can change the current block, update then_block for the PHI
-            then_block = fBuilder->GetInsertBlock();
 
-            // Emit else block.
-            function->getBasicBlockList().push_back(else_block);
-            fBuilder->SetInsertPoint(else_block);
-
-             // Compile else branch, result in fCurValue
+            // Compile else branch, result in fCurValue
             inst->fElse->accept(this);
             Value* else_value = fCurValue;
-          
-            fBuilder->CreateBr(merge_block);
-            // Codegen of 'Else' can change the current block, update else_block for the PHI
-            else_block = fBuilder->GetInsertBlock();
-
-            // Emit merge block
-            function->getBasicBlockList().push_back(merge_block);
-            fBuilder->SetInsertPoint(merge_block);
-            
-            // "then_value" and "else_value" have the same type, so use "then_value" one
-            PHINode* phi_value = fBuilder->CreatePHI(then_value->getType(), "iftmp");
-        
-            /*
-            printf("then_value\n");
-            then_value->dump();
-            printf("else_value\n");
-            else_value->dump();
-            */
-           
-            phi_value->addIncoming(then_value, then_block);
-            phi_value->addIncoming(else_value, else_block);
-          
-            // Result is phi_value
-            fCurValue = phi_value;
+                     
+            // Creates the result
+            fCurValue = fBuilder->CreateSelect(cond_value, then_value, else_value);
         }
         
         virtual void visit(IfInst* inst) 
