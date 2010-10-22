@@ -111,7 +111,7 @@ void CPPCodeContainer::produceInternal()
         if (fComputeBlockInstructions->fCode.size() > 0) {
             fComputeBlockInstructions->accept(&fCodeProducer);
         }
-        ForLoopInst* loop = fCurLoop->getScalarLoop();
+        ForLoopInst* loop = fCurLoop->generateScalarLoop();
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
@@ -299,7 +299,7 @@ void CPPScalarCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->accept(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
@@ -521,7 +521,7 @@ void CPPOpenCLCodeContainer::produceInternal()
         if (fComputeBlockInstructions->fCode.size() > 0) {
             fComputeBlockInstructions->accept(&fCodeProducer);
         }
-        ForLoopInst* loop = fCurLoop->getScalarLoop();
+        ForLoopInst* loop = fCurLoop->generateScalarLoop();
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
@@ -1154,7 +1154,7 @@ void CPPOpenCLCodeContainer::generateComputeKernel(int n)
     fComputeBlockInstructions->accept(fKernelCodeProducer);
     
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(fKernelCodeProducer);
       
     tab1(n, *fGPUOut);
@@ -1225,13 +1225,13 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
                 BlockInst* switch_case_block = InstBuilder::genBlockInst();
-                generateLoopNode(*p, switch_case_block, loop_num);
+                generateDAGLoopAux(*p, switch_case_block, loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
             BlockInst* single_case_block = InstBuilder::genBlockInst();
-            generateLoopNode(*dag[l].begin(), single_case_block, 0);
+            generateDAGLoopAux(*dag[l].begin(), single_case_block, 0);
             switch_block->addCase(0, single_case_block);
         }
         
@@ -1327,7 +1327,7 @@ void CPPCUDACodeContainer::produceInternal()
         if (fComputeBlockInstructions->fCode.size() > 0) {
             fComputeBlockInstructions->accept(&fCodeProducer);
         }
-        ForLoopInst* loop = fCurLoop->getScalarLoop();
+        ForLoopInst* loop = fCurLoop->generateScalarLoop();
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
@@ -1925,7 +1925,7 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
     fComputeBlockInstructions->accept(fKernelCodeProducer);
     
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(fKernelCodeProducer);
       
     tab(n, *fGPUOut);
@@ -2000,13 +2000,13 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
                 BlockInst* switch_case_block = InstBuilder::genBlockInst();
-                generateLoopNode(*p, switch_case_block, loop_num);
+                generateDAGLoopAux(*p, switch_case_block, loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
             BlockInst* single_case_block = InstBuilder::genBlockInst();
-            generateLoopNode(*dag[l].begin(), single_case_block, 0);
+            generateDAGLoopAux(*dag[l].begin(), single_case_block, 0);
             switch_block->addCase(0, single_case_block);
         }
         

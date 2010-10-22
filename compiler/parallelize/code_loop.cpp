@@ -38,7 +38,7 @@
 
 using namespace std;
 
-ForLoopInst* CodeLoop::getScalarLoop()
+ForLoopInst* CodeLoop::generateScalarLoop()
 {
     // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
     string index = "i";
@@ -60,7 +60,7 @@ ForLoopInst* CodeLoop::getScalarLoop()
     return dynamic_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
-void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
+void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
 {
     // TODO
     // 1) Vectorize access to all scalar that are not "kLoop" type: declare a Vector version of them, then transform Load/Store access.
@@ -207,7 +207,7 @@ void CodeLoop::generateVectorizedLoop(BlockInst* block, int size)
     }
 }
 
-void CodeLoop::generateVecLoop(BlockInst* block)
+void CodeLoop::generateDAGLoop(BlockInst* block, bool omp)
 {
     // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
     string index = "i";
@@ -215,6 +215,9 @@ void CodeLoop::generateVecLoop(BlockInst* block)
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
         block->pushBackInst(InstBuilder::genLabelInst("// Pre code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+        }
         pushBlock(fPreInst, block);
     }
 
@@ -231,6 +234,9 @@ void CodeLoop::generateVecLoop(BlockInst* block)
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
+        }
         pushLoop(fComputeInst, loop);
         block->pushBackInst(loop);
     }
@@ -238,44 +244,9 @@ void CodeLoop::generateVecLoop(BlockInst* block)
     // Generate code after the loop
     if (fPostInst->fCode.size() > 0) {
         block->pushBackInst(InstBuilder::genLabelInst("// Post code"));
-        pushBlock(fPostInst, block);
-    }
-}
-
-void CodeLoop::generateVecLoop1(BlockInst* block)
-{
-    // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
-    string index = "i";
-
-    // Generate code before the loop
-    if (fPreInst->fCode.size() > 0) {
-        block->pushBackInst(InstBuilder::genLabelInst("// Pre code"));
-        block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
-        pushBlock(fPreInst, block);
-    }
-
-    // Generate loop code
-    if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)));
-        StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                                            InstBuilder::genBinopInst(kAdd,
-                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                                    InstBuilder::genIntNumInst(1)));
-
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
-        block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
-        block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
-        pushLoop(fComputeInst, loop);
-        block->pushBackInst(loop);
-    }
-
-    // Generate code after the loop
-    if (fPostInst->fCode.size() > 0) {
-        block->pushBackInst(InstBuilder::genLabelInst("// Post code"));
-        block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+        }
         pushBlock(fPostInst, block);
     }
 }

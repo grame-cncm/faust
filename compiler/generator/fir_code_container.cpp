@@ -101,7 +101,7 @@ void FirScalarCodeContainer::dump(ostream* dst)
 
     *dst << "======= Compute DSP ==========" << std::endl;
     *dst << std::endl;
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(&firvisistor);
     *dst << std::endl;
 }

@@ -113,7 +113,7 @@ void CCodeContainer::produceInternal()
         fComputeBlockInstructions->accept(&fCodeProducer);
     }
 
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};\n" << endl;
@@ -282,7 +282,7 @@ void CScalarCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->accept(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;

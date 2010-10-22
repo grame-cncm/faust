@@ -128,15 +128,13 @@ class CodeContainer {
         
         void transformDAG(DispatchVisitor* visitor);
         void computeForwardDAG(lclgraph dag);
-          
+        void sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result);
+         
         void generateLocalInputs(BlockInst* loop_code);
         void generateLocalOutputs(BlockInst* loop_code);
-        void generateLoopDAG(BlockInst* loop_code);
         
-        void generateLoopNode(CodeLoop* loop, BlockInst* loop_code, int loop_num);
-        void generateParLoopNode(CodeLoop* loop, BlockInst* loop_code, int loop_num);
-        
-        void generateLoopDeepFirst(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result);
+        void generateDAGLoop(BlockInst* loop_code);
+        void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int loop_num, bool omp = false);
         
         void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
         void generateDAGLoopWSSAux2(BlockInst* loop_code, bool obj = true);
@@ -216,36 +214,12 @@ class CodeContainer {
         
         StatementInst* pushInitMethod(StatementInst* inst) { fInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushFrontInitMethod(StatementInst* inst) { fInitInstructions->pushFrontInst(inst); return inst; }
-        
         StatementInst* pushDestroyMethod(StatementInst* inst) { fDestroyInstructions->pushBackInst(inst); return inst; }
-        
         StatementInst* pushStaticInitMethod(StatementInst* inst) { fStaticInitInstructions->pushBackInst(inst); return inst; }
-        
         StatementInst* pushComputeBlockMethod(StatementInst* inst) { fComputeBlockInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushComputeThreadBlockMethod(StatementInst* inst) { fComputeThreadBlockInstructions->pushBackInst(inst); return inst; }
-        
         StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }
-        
-        StatementInst* pushWithVariability(int variability, StatementInst* inst)
-        {
-            switch (variability) {
-        
-                case kKonst:
-                    pushInitMethod(inst);
-                    break;
-                    
-                case kBlock:
-                    pushComputeBlockMethod(inst);
-                    break;
-                    
-                case kSamp:
-                    fCurLoop->pushComputeDSPMethod(inst);
-                    break;
-            }
-            
-            return inst;
-        }
-        
+              
         void generateSubContainers()
         {
             list<CodeContainer*>::const_iterator it;

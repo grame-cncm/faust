@@ -137,7 +137,7 @@ void JAVACodeContainer::produceInternal()
         if (fComputeBlockInstructions->fCode.size() > 0) {
             fComputeBlockInstructions->accept(&fCodeProducer);
         }
-        ForLoopInst* loop = fCurLoop->getScalarLoop();
+        ForLoopInst* loop = fCurLoop->generateScalarLoop();
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
@@ -292,7 +292,7 @@ void JAVAScalarCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->accept(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";

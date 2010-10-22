@@ -223,17 +223,17 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code)
     }
 }
 
-void CodeContainer::generateLoopNode(CodeLoop* loop, BlockInst* loop_code, int loop_num)
+void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int loop_num, bool omp)
 {
     if (gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();
         
-        loop->generateVecLoop(block);
+        loop->generateDAGLoop(block, omp);
         /*
         if (loop->fIsRecursive)
-            loop->generateVecLoop(block);
+            loop->generateDAGLoop(block, omp);
         else
-            loop->generateVectorizedLoop(block, 4);
+            loop->generateDAGVecLoop(block, omp, 4);
         */
         Loop2FunctionBuider builder(subst("fun$0", T(loop_num)), block, gDSPStruct);
         fComputeFunctions->pushBackInst(builder.fFunctionDef);
@@ -242,55 +242,39 @@ void CodeContainer::generateLoopNode(CodeLoop* loop, BlockInst* loop_code, int l
     } else {
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
         
-        //loop->generateVecLoop(loop_code);
-        
-        
+        loop->generateDAGLoop(loop_code, omp);
+        /*
         if (loop->fIsRecursive)
-            loop->generateVecLoop(loop_code);
+            loop->generateDAGLoop(loop_code, omp);
         else
-            loop->generateVectorizedLoop(loop_code, 4);
-        
+            loop->generateDAGVecLoop(loop_code, omp, 4);
+        */
     }
 }
 
-void CodeContainer::generateParLoopNode(CodeLoop* loop, BlockInst* loop_code, int loop_num)
-{
-    if (gFunTaskSwitch) {
-        BlockInst* block = InstBuilder::genBlockInst();
-        loop->generateVecLoop1(block);
-        Loop2FunctionBuider builder(subst("fun$0", T(loop_num)), block, gDSPStruct);
-        fComputeFunctions->pushBackInst(builder.fFunctionDef);
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive function $0", T(loop_num)) : subst("// Vectorizable function $0", T(loop_num))));
-        loop_code->pushBackInst(builder.fFunctionCall);
-    } else {
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
-        loop->generateVecLoop1(loop_code);
-    }
-}
-
-void CodeContainer::generateLoopDAG(BlockInst* block)
+void CodeContainer::generateDAGLoop(BlockInst* block)
 {
     int loop_num = 0;
 
     if (gDeepFirstSwitch) {
         set<CodeLoop*> visited;
         list<CodeLoop*> result;
-        generateLoopDeepFirst(fCurLoop, visited, result);
+        sortDeepFirstDAG(fCurLoop, visited, result);
         for (list<CodeLoop*>::const_iterator p = result.begin(); p != result.end(); p++) {
-            generateLoopNode(*p, block, loop_num++);
+            generateDAGLoopAux(*p, block, loop_num++);
         }
     } else {
         lclgraph G;
         CodeLoop::sortGraph(fCurLoop, G);
         for (int l = G.size() - 1; l >= 0; l--) {
             for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-                generateLoopNode(*p, block, loop_num++);
+                generateDAGLoopAux(*p, block, loop_num++);
             }
         }
     }
 }
 
-void CodeContainer::generateLoopDeepFirst(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)
+void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)
 {
 	// Avoid printing already printed loops
 	if (isElement(visited, l)) return;
@@ -300,7 +284,7 @@ void CodeContainer::generateLoopDeepFirst(CodeLoop* l, set<CodeLoop*>& visited, 
 
 	// Compute the dependencies loops (that need to be computed before this one)
 	for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
-        generateLoopDeepFirst(*p, visited, result);
+        sortDeepFirstDAG(*p, visited, result);
     }
 
     // Keep the non-empty loops in result
@@ -331,7 +315,7 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
     loop_code->pushBackInst(count_dec1);
 
     // Generates the loop DAG
-    generateLoopDAG(loop_code);
+    generateDAGLoop(loop_code);
 
     // Generates the DAG enclosing loop
     StoreVarInst* loop_init = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kStack), InstBuilder::genIntNumInst(0));
@@ -374,7 +358,7 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
     then_cond->pushBackInst(count_dec2);
 
     // Generates the loop DAG
-    generateLoopDAG(then_cond);
+    generateDAGLoop(then_cond);
 
     block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_cond));
     return block_res;
@@ -399,7 +383,7 @@ StatementInst* CodeContainer::generateDAGLoopVariant1()
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG
-    generateLoopDAG(loop_code);
+    generateDAGLoop(loop_code);
 
     // Generates the DAG enclosing loop
     string index = "index";
@@ -493,7 +477,7 @@ StatementInst* CodeContainer::generateDAGLoopOMP()
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
             if (dag[l].size() == 1) { // Only one loop
                 if (!(*p)->isRecursive() && gOpenMPLoop) {
-                    generateParLoopNode(*p, omp_section_block, loop_num++);
+                    generateDAGLoopAux(*p, omp_section_block, loop_num++, true);
                 } else {
                     omp_section_block->setIndent(true);
                     if (!is_single) {
@@ -502,13 +486,13 @@ StatementInst* CodeContainer::generateDAGLoopOMP()
                     } else {
                         omp_sections_block->pushBackInst(InstBuilder::genLabelInst("// Still in a single section"));
                     }
-                    generateLoopNode(*p, omp_section_block, loop_num++);
+                    generateDAGLoopAux(*p, omp_section_block, loop_num++);
                 }
             } else {
                 is_single = false;
                 omp_section_block->setIndent(true);
                 omp_sections_block->pushBackInst(InstBuilder::genLabelInst("#pragma omp section"));
-                generateLoopNode(*p, omp_section_block, loop_num++);
+                generateDAGLoopAux(*p, omp_section_block, loop_num++);
             }
             omp_sections_block->pushBackInst(omp_section_block);
         }
@@ -855,7 +839,7 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
 
             // Generates a "case" block for each task
             BlockInst* case_block = InstBuilder::genBlockInst();
-            generateLoopNode(*p, case_block, loop_num);
+            generateDAGLoopAux(*p, case_block, loop_num);
 
             // Add output tasks activation code
 
@@ -936,14 +920,14 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
 
     if (level.size() == 1) {
         BlockInst* case_block = InstBuilder::genBlockInst();
-        generateLoopNode(*level.begin(), case_block, loop_num);
+        generateDAGLoopAux(*level.begin(), case_block, loop_num);
         case_block->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack), InstBuilder::genIntNumInst(LAST_TASK_INDEX)));
         // Add the "case" block
         switch_block->addCase(loop_num, case_block);
     } else {
         for (lclset::const_iterator p = level.begin(); p != level.end(); p++, loop_num++) {
             BlockInst* case_block = InstBuilder::genBlockInst();
-            generateLoopNode(*p, case_block, loop_num);
+            generateDAGLoopAux(*p, case_block, loop_num);
 
             list<ValueInst*> fun_args;
             fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));

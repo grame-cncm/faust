@@ -106,7 +106,6 @@ class CodeLoop {
             }
         }
         
-        
         bool isEmpty();                 ///< true when the loop doesn't contain any line of code
         bool hasRecDependencies();      ///< returns true is this loop has recursive dependencies
         
@@ -139,13 +138,12 @@ class CodeLoop {
         StatementInst* pushComputeDSPMethod(StatementInst* inst) { fComputeInst->pushBackInst(inst); return inst; }
         StatementInst* pushComputePostDSPMethod(StatementInst* inst) { fPostInst->pushBackInst(inst); return inst;}
         
-        ForLoopInst* getScalarLoop();
-        
         bool isRecursive() { return fIsRecursive; }
         
-        void generateVecLoop(BlockInst* block);
-        void generateVecLoop1(BlockInst* block);
-        void generateVectorizedLoop(BlockInst* block, int size);
+        ForLoopInst* generateScalarLoop();
+        
+        void generateDAGLoop(BlockInst* block, bool omp);
+        void generateDAGVecLoop(BlockInst* block, bool omp, int size);
         
         void transform(DispatchVisitor* visitor)
         {

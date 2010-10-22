@@ -398,7 +398,7 @@ void LLVMCodeContainer::produceInternal()
 
     fComputeBlockInstructions->accept(fCodeProducer);
 
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(fCodeProducer);
 
     generateFillEnd();
@@ -497,7 +497,7 @@ void LLVMScalarCodeContainer::generateCompute()
     fComputeBlockInstructions->accept(fCodeProducer);
 
     // Optimize Declare/Store/Load for fTemp variables
-    ForLoopInst* loop = fCurLoop->getScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop();
     LLVMStackVariableRemover remover;
     remover.Mark(loop, "Temp");
     remover.Finish(loop);
@@ -865,7 +865,7 @@ void LLVMWorkStealingCodeContainer::generateCompute()
 
 /*
 // Transform the loop in a function + function call
-ForLoopInst* loop = fCurLoop->getScalarLoop();
+ForLoopInst* loop = fCurLoop->generateScalarLoop();
 
 BasicCloneVisitor cloner;
 
