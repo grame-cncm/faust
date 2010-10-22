@@ -1777,24 +1777,18 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         void generateFunMinMax(FunCallInst* inst)
         {
             vector<LlvmValue> fun_args;
-            list<ValueInst*>::const_iterator it;
              
-            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
+            for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
                 // Each argument is compiled and result is in fCurValue
                 (*it)->accept(this);
                 //fCurValue->dump();
                 fun_args.push_back(fCurValue);
             }
              
-             // Special cases for min/max
             if (inst->fName == "min") {
-                fCurValue = generateFunMin(fun_args[0], fun_args[1], inst->fSize);
-                return;
-            }
-            
-            if (inst->fName == "max") {
-                fCurValue = generateFunMax(fun_args[0], fun_args[1], inst->fSize);
-                return;
+                fCurValue = generateFunMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kLT);
+            } else if (inst->fName == "max") {
+                fCurValue = generateFunMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
             }
         }
         
@@ -2235,137 +2229,75 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
         
-        LlvmValue generateFunMax(Value* arg1, Value* arg2, int size)
+        LlvmValue generateFunMinMaxAux(Value* arg1, Value* arg2, int size, int comparator)
         {
             if (arg1->getType() == getFloatTy(size) && arg2->getType() == getFloatTy(size)) {
             
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, arg1, arg2);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, arg1, arg2);
                 return fBuilder->CreateSelect(comp_value, arg1, arg2);
                 
             } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getDoubleTy(size)) {
             
                 // Generates cast arg1 to double
                 Value* cast_value = fBuilder->CreateFPExt(arg1, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, cast_value, arg2);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, cast_value, arg2);
                 return fBuilder->CreateSelect(comp_value, cast_value, arg2);
                 
             } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getInt32Ty(size)) {
             
                 // Generates cast arg2 to float
                 Value* cast_value = fBuilder->CreateSIToFP(arg2, getFloatTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, arg1, cast_value);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, arg1, cast_value);
                 return fBuilder->CreateSelect(comp_value, arg1, cast_value);
                 
             } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getFloatTy(size)) {
             
                 // Generates cast arg2 to double
                 Value* cast_value = fBuilder->CreateFPExt(arg2, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, arg1, cast_value);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, arg1, cast_value);
                 return fBuilder->CreateSelect(comp_value, arg1, cast_value);
                 
             } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getDoubleTy(size)) { 
             
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, arg1, arg2);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, arg1, arg2);
                 return fBuilder->CreateSelect(comp_value, arg1, arg2);
                 
             } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getInt32Ty(size)) { 
             
                 // Generates cast arg2 to double
                 Value* cast_value = fBuilder->CreateSIToFP(arg2, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, arg1, cast_value);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, arg1, cast_value);
                 return fBuilder->CreateSelect(comp_value, arg1, cast_value);
                 
             } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getFloatTy(size)) { 
             
                 // Generates cast arg1 to float
                 Value* cast_value = fBuilder->CreateSIToFP(arg1, getFloatTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, cast_value, arg2);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, cast_value, arg2);
                 return fBuilder->CreateSelect(comp_value, cast_value, arg2);
                 
             } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getDoubleTy(size)) { 
             
                 // Generates cast arg1 to double
                 Value* cast_value = fBuilder->CreateSIToFP(arg1, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmFloatInst, cast_value, arg2);
+                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmFloatInst, cast_value, arg2);
                 return fBuilder->CreateSelect(comp_value, cast_value, arg2);
                 
             } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getInt32Ty(size)) { 
             
-                Value* comp_value = fBuilder->CreateICmp((llvm::CmpInst::Predicate)gBinOpTable[kGT]->fLlvmIntInst, arg1, arg2);
+                Value* comp_value = fBuilder->CreateICmp((llvm::CmpInst::Predicate)gBinOpTable[comparator]->fLlvmIntInst, arg1, arg2);
                 return fBuilder->CreateSelect(comp_value, arg1, arg2);
                 
              } else {
                 // Should not happen
+                cerr << "generateFunMinMaxAux" << endl;
+                arg1->getType()->dump();
+                arg2->getType()->dump();
                 assert(false);
                 return NULL;
             }
         }
         
-         LlvmValue generateFunMin(Value* arg1, Value* arg2, int size)
-        {
-            if (arg1->getType() == getFloatTy(size) && arg2->getType() == getFloatTy(size)) {
-            
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, arg1, arg2);
-                return fBuilder->CreateSelect(comp_value, arg1, arg2);
-                
-            } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getDoubleTy(size)) {
-            
-                // Generates cast arg1 to double
-                Value* cast_value = fBuilder->CreateFPExt(arg1, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, cast_value, arg2);
-                return fBuilder->CreateSelect(comp_value, cast_value, arg2);
-                
-            } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getInt32Ty(size)) {
-            
-                // Generates cast  arg2to float
-                Value* cast_value = fBuilder->CreateSIToFP(arg2, getFloatTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, arg1, cast_value);
-                return fBuilder->CreateSelect(comp_value, arg1, cast_value);
-                
-            } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getFloatTy(size)) {
-            
-                // Generates cast arg2 to double
-                Value* cast_value = fBuilder->CreateFPExt(arg2, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, arg1, cast_value);
-                return fBuilder->CreateSelect(comp_value, arg1, cast_value);
-                
-            } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getDoubleTy(size)) { 
-            
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, arg1, arg2);
-                return fBuilder->CreateSelect(comp_value, arg1, arg2);
-                
-            } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getInt32Ty(size)) { 
-            
-                // Generates cast arg2 to double
-                Value* cast_value = fBuilder->CreateSIToFP(arg2, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, arg1, cast_value);
-                return fBuilder->CreateSelect(comp_value, arg1, cast_value);
-                
-            } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getFloatTy(size)) { 
-            
-                // Generates cast arg1 to float
-                Value* cast_value = fBuilder->CreateSIToFP(arg1, getFloatTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, cast_value, arg2);
-                return fBuilder->CreateSelect(comp_value, cast_value, arg2);
-                
-            } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getDoubleTy(size)) { 
-            
-                // Generates cast arg1 to double
-                Value* cast_value = fBuilder->CreateSIToFP(arg1, getDoubleTy(size));
-                Value* comp_value = fBuilder->CreateFCmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmFloatInst, cast_value, arg2);
-                return fBuilder->CreateSelect(comp_value, cast_value, arg2);
-                
-            } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getInt32Ty(size)) { 
-            
-                Value* comp_value = fBuilder->CreateICmp((llvm::CmpInst::Predicate)gBinOpTable[kLT]->fLlvmIntInst, arg1, arg2);
-                return fBuilder->CreateSelect(comp_value, arg1, arg2);
-                
-            } else {
-                // Should not happen
-                assert(false);
-                return NULL;
-            }
-        }
 };
 
 #endif
