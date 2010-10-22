@@ -1161,10 +1161,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = NULL;
         }
         
-        Value* genVectorLoad(Value* load_ptr, Value* load, int size)
+        Value* genPointer2VectorLoad(Value* load_ptr, Value* load, int size)
         {
             if (size > 1) {
-                cerr << "genVectorLoad" << endl;
+                cerr << "genPointer2VectorLoad" << endl;
                 load_ptr->dump();
                 load->dump();
                 load->getType()->dump();
@@ -1176,21 +1176,43 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
         
-        Value* genVectorScalarLoad( Value* load, int size)
+        Value* genScalar2VectorLoad(Value* load, int size)
         {
             if (size > 1) {
-                cerr << "genVectorScalarLoad" << endl;
-                VectorType::get(load->getType(), size)->dump();
+                cerr << "genScalar2VectorLoad" << endl;
+                load->dump();
+                load->getType()->dump();
+                /*
                 Value* vector = fBuilder->CreateAlloca(VectorType::get(load->getType(), size));
                 for (int i = 0; i < size; i++) {
                     vector = fBuilder->CreateInsertElement(vector, load, genInt32(i));
                 }
-                return vector;
+                */ 
+                
+                Value* vector = UndefValue::get(VectorType::get(load->getType(), size));
+                Value* idx = genInt32(0);
+                vector->dump();
+                vector = fBuilder->CreateInsertElement(vector, load, idx);
+                SmallVector<Constant*, 16> args;
+                for (unsigned i = 0; i < size; i++) {
+                    args.push_back(static_cast<Constant*>(genInt32(0)));
+                }
+                Constant* mask = ConstantVector::get(&args[0], size);
+                return fBuilder->CreateShuffleVector(vector, vector, mask, "splat");
             } else {
                 return load;
             }
         }
-                
+
+        
+        Value* genVectorLoad(Value* load_ptr, Value* load, int size) 
+        {
+            if (isa<PointerType>(load->getType()))
+                return genPointer2VectorLoad(load_ptr, load, size);
+            else 
+                return genScalar2VectorLoad(load, size);
+        }
+                      
         virtual void visit(LoadVarInst* inst) 
         {
             NamedAddress* named_address =  dynamic_cast<NamedAddress*>(inst->fAddress);
@@ -1254,7 +1276,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         // We want to see array like [256 x float] as a float*
                         fCurValue = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
                         
-                        fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize);
+                       fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize);
                     }
                 }
             }
@@ -1288,7 +1310,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
                     fCurValue = fBuilder->CreateLoad(load_ptr3);
                     
-                    fCurValue = genVectorLoad(load_ptr3, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr3, fCurValue, inst->fSize);
                     
                 } else if (named_address->fAccess & Address::kFunArgs) {
                     // Get the enclosing function
@@ -1312,7 +1334,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr = fBuilder->CreateGEP(arg, fCurValue);
                     fCurValue = fBuilder->CreateLoad(load_ptr);
                     
-                    fCurValue = genVectorLoad(load_ptr, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr, fCurValue, inst->fSize);
                      
                 } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                     // Compute index, result is in fCurValue
@@ -1324,7 +1346,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
                     fCurValue = fBuilder->CreateLoad(load_ptr2);
                     
-                    fCurValue = genVectorLoad(load_ptr2, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize);
                     
                 } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {     
                    // Compute index, result is in fCurValue
@@ -1336,7 +1358,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
                     fCurValue = fBuilder->CreateLoad(load_ptr2);
                     
-                    fCurValue = genVectorLoad(load_ptr2, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize);
                     
                 } else {
                     // Default
@@ -1403,10 +1425,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     idx[0] = genInt64(0);
                     idx[1] = genInt32(field_index);
                     
-                    Value* zone_ptr1 = fBuilder->CreateGEP(dsp, idx, idx+2);
-                    Value* zone_ptr2 = LoadArrayAsPointer(zone_ptr1);
-                    Value* zone_ptr3 = fBuilder->CreateGEP(zone_ptr2, fCurValue);
-                    fCurValue = zone_ptr3;
+                    Value* load_ptr1 = fBuilder->CreateGEP(dsp, idx, idx+2);
+                    Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
+                    Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
+                    fCurValue = load_ptr3;
                     
                 } else if (named_address->fAccess & Address::kFunArgs) {
                     // Get the enclosing function
@@ -1490,12 +1512,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Function* function = fBuilder->GetInsertBlock()->getParent();
                     Function::arg_iterator function_args_it = function->arg_begin();
                     Value* dsp = function_args_it++;
+                    Value* store_ptr = fBuilder->CreateStructGEP(dsp, field_index);
                     
-                    Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
-                    
-                    //fBuilder->CreateStore(fCurValue, zone_ptr, inst->fAddress->getAccess() & Address::kVolatile);
-                    
-                    genVectorStore(zone_ptr, fCurValue, inst->fAddress->getAccess() & Address::kVolatile);
+                    //fBuilder->CreateStore(fCurValue, store_ptr, inst->fAddress->getAccess() & Address::kVolatile);
+                    genVectorStore(store_ptr, fCurValue, inst->fAddress->getAccess() & Address::kVolatile);
                     
                  } else if (named_address->fAccess & Address::kFunArgs) {
                     // Result is in fCurValue
@@ -1515,8 +1535,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         }
                     } while (function_args_it != function->arg_end());
                     assert(found);
-                   // fBuilder->CreateStore(fCurValue, arg);
                     
+                    // fBuilder->CreateStore(fCurValue, arg);
                     genVectorStore(arg, fCurValue, inst->fValue->fSize);
                     
                 // Direct access Declare/Store ==> Load
@@ -1529,8 +1549,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
                     // Result is in fCurValue
                     inst->fValue->accept(this);
-                    //fBuilder->CreateStore(fCurValue, fDSPStackVars[named_address->fName], inst->fAddress->getAccess() & Address::kVolatile);
                     
+                    //fBuilder->CreateStore(fCurValue, fDSPStackVars[named_address->fName], inst->fAddress->getAccess() & Address::kVolatile);
                     genVectorStore(fDSPStackVars[named_address->fName], fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile);
                     
                  } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {  
@@ -1538,12 +1558,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     inst->fValue->accept(this);
                     //fCurValue->dump();
                     assert(fModule->getGlobalVariable(named_address->fName, true));
+                    
                     //fBuilder->CreateStore(fCurValue, fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
                     fCurValue->dump();
                     genVectorStore(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile);
                 }
             }
-            
             
             if (indexed_address) {
            
@@ -1573,8 +1593,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     
                     // Compute value to be stored, result is in fCurValue
                     inst->fValue->accept(this);
-                    //fBuilder->CreateStore(fCurValue, store_ptr);
                     
+                    //fBuilder->CreateStore(fCurValue, store_ptr);
                     genVectorStore(store_ptr, fCurValue, inst->fValue->fSize);
                     
                 } else if (named_address->fAccess & Address::kFunArgs) {
@@ -1601,9 +1621,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     
                     // Compute value to be stored, result is in fCurValue
                     inst->fValue->accept(this);
-                    //fBuilder->CreateStore(fCurValue, store_ptr);
                     
-                     genVectorStore(store_ptr, fCurValue, inst->fValue->fSize);
+                    //fBuilder->CreateStore(fCurValue, store_ptr);
+                    genVectorStore(store_ptr, fCurValue, inst->fValue->fSize);
                          
                 } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                     //cout <<  "named_address->fName " << named_address->fName.c_str() << endl;
@@ -1618,10 +1638,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     
                     // Compute value to be stored, result is in fCurValue
                     inst->fValue->accept(this);
+                    
                     //fBuilder->CreateStore(fCurValue, store_ptr2);
-                    
                     genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize);
-                    
                     
                 } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) { 
                     // Compute index, result is in fCurValue
@@ -1634,8 +1653,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     
                     // Compute value to be stored, result is in fCurValue
                     inst->fValue->accept(this);
-                    //fBuilder->CreateStore(fCurValue, store_ptr2);
                     
+                    //fBuilder->CreateStore(fCurValue, store_ptr2);
                     genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize);
                     
                 } else {  
