@@ -160,18 +160,10 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 Tree InstructionsCompiler::prepare(Tree LS)
 {
  startTiming("CodeLlvmScalarCompiler::prepare");
- startTiming("deBruijn2Sym");
-	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
- endTiming("deBruijn2Sym");
-	Tree L2 = simplify(L1);			// simplify by executing every computable operation
-	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
-
-	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
-	typeAnnotation(L3);				// Annotate L3 with type information
-	sharingAnalysis(L3);			// annotate L3 with sharing count
-  	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
+	sharingAnalysis(LS);			// annotate L3 with sharing count
+  	fOccMarkup.mark(LS);			// annotate L3 with occurences analysis
  endTiming("CodeLlvmScalarCompiler::prepare");
-  	return L3;
+  	return LS;
 }
 
 Tree InstructionsCompiler::prepare2(Tree L0)
@@ -390,7 +382,6 @@ ValueInst* InstructionsCompiler::generateCode(int variability, Tree sig)
 	else if ( isSigInt(sig, &i) ) 					{ return generateIntNumber(variability, sig, i); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateRealNumber(variability, sig, r); }
 	else if ( isSigInput(sig, &i) ) 				{ return generateInput(variability, sig, i); }
-	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput(variability, sig, i, x);}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay(variability, sig, x, y); }
 	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix(variability, sig, x, y); }
@@ -425,6 +416,22 @@ ValueInst* InstructionsCompiler::generateCode(int variability, Tree sig)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph(variability, sig, label, x, y, CS(variability, z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph(variability, sig, label, x, y, CS(variability, z)); }
 	else if ( isSigAttach(sig, x, y) )				{ CS(variability, y); return generateCacheCode(sig, CS(variability, x)); }
+    else if (isSigVectorize(sig, x, y)) {
+        printf("vectorize not implemented\n");
+        exit (0);
+    }
+    else if (isSigSerialize(sig, x)) {
+        printf("serialize not implemented\n");
+        exit (0);
+    }
+    else if (isSigConcat(sig, x, y)) {
+        printf("concatenation not implemented\n");
+        exit (0);
+    }
+    else if (isSigVectorAt(sig, x, y)) {
+        printf("vector at not implemented\n");
+        exit (0);
+    }
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
 		print(sig);
@@ -696,12 +703,6 @@ ValueInst* InstructionsCompiler::generateInput(int variability, Tree sig, int id
     // Cast to internal float
     res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
-}
-
-ValueInst* InstructionsCompiler::generateOutput(int variability, Tree sig, int idx, Tree arg1)
-{
-    // Not used
-    return InstBuilder::genNullInst();
 }
 
 ValueInst* InstructionsCompiler::generateTable(int variability, Tree sig, Tree tsize, Tree content)

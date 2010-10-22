@@ -21,7 +21,6 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigInt(sig, &i) ) 					{ return 0; }
 	else if ( isSigReal(sig, &r) ) 					{ return 0; }
 	else if ( isSigInput(sig, &i) ) 				{ return 0; 			}
-	else if ( isSigOutput(sig, &i, x) ) 			{ vsigs.push_back(x); return 1;	}
 
 	else if ( isSigDelay1(sig, x) ) 				{ vsigs.push_back(x); return 1;	}
 
@@ -64,6 +63,11 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigAttach(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
     else if ( isList(sig) )                         { int n = 0; while (!isNil(sig)) { vsigs.push_back(hd(sig)); sig = tl(sig); n++; } return n; }
+
+    else if ( isSigVectorize(sig, x, y) )           { vsigs.push_back(x); vsigs.push_back(y); return 2; }
+    else if ( isSigSerialize(sig, x) )              { vsigs.push_back(x); return 1; }
+    else if ( isSigConcat(sig, x, y) )              { vsigs.push_back(x); vsigs.push_back(y); return 2; }
+    else if ( isSigVectorAt(sig, x, y) )            { vsigs.push_back(x); vsigs.push_back(y); return 2; }
 
 	else {
 		cerr << "ERROR, unrecognized signal : " << *sig << endl;

@@ -50,10 +50,6 @@ Sym SIGINPUT = symbol ("sigInput");
 Tree  sigInput(int i, Tree box)                     { return tree(SIGINPUT, tree(i))->setProperty(box_symbol, box);	}
 bool  isSigInput(Tree t, int* i) 					{ Tree x; return isTree(t, SIGINPUT, x) && isInt(x->node(),i); 	}
 
-Sym SIGOUTPUT = symbol ("sigOutput");
-Tree  sigOutput(int i, Tree t0, Tree box)			{ return tree(SIGOUTPUT, tree(i), t0)->setProperty(box_symbol, box); 	}
-bool  isSigOutput(Tree t, int* i, Tree& t0)			{ Tree x; return isTree(t, SIGOUTPUT, x, t0) && isInt(x->node(),i); 	}
-
 Sym SIGDELAY1 = symbol ("sigDelay1");
 Tree  sigDelay0(Tree t0, Tree box)					{ return sigFixDelay(t0, sigInt(0, box), box);}
 
@@ -126,6 +122,23 @@ Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3, Tree box)		{ return s
 
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
 
+// multirate
+
+Sym SIGVECTORIZE = symbol ("SigVectorize");
+Tree sigVectorize (Tree s1, Tree s2, Tree box)  { return tree(SIGVECTORIZE, s1, s2)->setProperty(box_symbol, box); }
+bool isSigVectorize (Tree a, Tree& s1, Tree& s2) { return isTree(a, SIGVECTORIZE, s1, s2); }
+
+Sym SIGSERIALIZE = symbol ("SigSerialize");
+Tree sigSerialize (Tree s1, Tree box)           { return tree(SIGSERIALIZE, s1)->setProperty(box_symbol, box); }
+bool isSigSerialize (Tree a, Tree& s1)          { return isTree(a, SIGSERIALIZE, s1); }
+
+Sym SIGCONCAT = symbol ("SigConcat");
+Tree sigConcat (Tree s1, Tree s2, Tree box)     { return tree(SIGCONCAT, s1, s2)->setProperty(box_symbol, box); }
+bool isSigConcat (Tree a, Tree& s1, Tree& s2)   { return isTree(a, SIGCONCAT, s1, s2); }
+
+Sym SIGVECTORAT = symbol ("SigVectorAt");
+Tree sigVectorAt (Tree s1, Tree s2, Tree box)   { return tree(SIGVECTORAT, s1, s2)->setProperty(box_symbol, box); }
+bool isSigVectorAt(Tree a, Tree& s1, Tree& s2)  { return isTree(a, SIGVECTORAT, s1, s2); }
 
 // Arithmetical operations
 

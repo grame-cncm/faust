@@ -200,7 +200,6 @@ string	DocCompiler::generateCode (Tree sig, int priority)
 	else if ( isSigInt(sig, &i) ) 					{ printGCCall(sig,"generateNumber");	return generateNumber	(sig, docT(i));			}
 	else if ( isSigReal(sig, &r) ) 					{ printGCCall(sig,"generateNumber");	return generateNumber	(sig, docT(r));			}
 	else if ( isSigInput(sig, &i) ) 				{ printGCCall(sig,"generateInput");		return generateInput	(sig, docT(i+1)); 		}
-	else if ( isSigOutput(sig, &i, x) ) 			{ printGCCall(sig,"generateOutput");	return generateOutput	(sig, docT(i+1), CS(x, priority));	}
 
 	else if ( isSigFixDelay(sig, x, y) ) 			{ printGCCall(sig,"generateFixDelay");	return generateFixDelay	(sig, x, y, priority); 	}
 	else if ( isSigPrefix(sig, x, y) ) 				{ printGCCall(sig,"generatePrefix");	return generatePrefix	(sig, x, y, priority); 	}
@@ -351,24 +350,6 @@ string DocCompiler::generateInput (Tree sig, const string& idx)
 		gDocNoticeFlagMap["inputsigs"] = true;
 		return generateCacheCode(sig, subst("x_{$0}(t)", idx));
 	}
-}
-
-
-/** Unused for the moment ! */
-string DocCompiler::generateOutput (Tree sig, const string& idx, const string& arg)
-{
-	string dst;
-
-	if (fLateq->outputs() == 1) {
-		dst = subst("y(t)", idx);
-		gDocNoticeFlagMap["outputsig"] = true;
-	} else {
-		dst = subst("y_{$0}(t)", idx);
-		gDocNoticeFlagMap["outputsigs"] = true;
-	}
-
-	fLateq->addOutputSigFormula(subst("$0 = $1", dst, arg));
-	return dst;
 }
 
 

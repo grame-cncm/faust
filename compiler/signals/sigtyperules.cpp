@@ -50,6 +50,12 @@ static Type infereXType(Tree sig, Tree env);
 static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
+static Type infereVectorizeType(Tree sig, Tree env, Tree s1, Tree s2);
+static Type infereSerializeType(Tree sig, Tree env, Tree s);
+static Type infereConcatType(Tree sig, Tree env, Tree s1, Tree s2);
+static Type infereVectorAtType(Tree sig, Tree env, Tree s1, Tree s2);
+
+
 
 //static Tree addEnv(Tree var, Tree tt, Tree env);
 //static void markSigType(Tree sig, Tree env);
@@ -288,8 +294,6 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
 
-	else if (isSigOutput(sig, &i, s1)) 	return sampCast(T(s1,env));
-
 	else if (isSigDelay1(sig, s1)) 			{
 		Type t = T(s1,env);
 		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0)));
@@ -408,6 +412,10 @@ static Type infereSigType(Tree sig, Tree env)
 		while (isList(sig)) { v.push_back(T(hd(sig),env)); sig = tl(sig); }
 		return new TupletType(v);
 	}
+	else if (isSigVectorize(sig, s1, s2))   return infereVectorizeType(sig, env, s1, s2);
+    else if (isSigSerialize(sig, s1))       return infereSerializeType(sig, env, s1);
+    else if (isSigConcat(sig, s1, s2))      return infereConcatType(sig, env, s1, s2);
+    else if (isSigVectorAt(sig, s1, s2))    return infereVectorAtType(sig, env, s1, s2);
 
 	// unrecognized signal here
 	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
@@ -471,8 +479,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 
 	//return new TableType(/*tt->content()*/temp, v, c);
 
-	return new TableType(tt->content(), n, v, c, vec);
-
+	return new TableType(tt->content(), n, v, c, vec, tt->boolean());
 }
 
 
@@ -660,4 +667,80 @@ static Type infereXType(Tree sig, Tree env)
 
 	for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));
 	return p->infereSigType(vt);
+}
+
+static Type infereVectorizeType(Tree sig, Tree env, Tree s1, Tree s2)
+{
+    Type t1 = T(s1,env);
+    Type t2 = T(s2,env);
+    checkIntParam(t2);
+    int n = tree2int(s2);
+
+    return new FaustVectorType(n, t1);
+}
+
+static Type infereSerializeType(Tree sig, Tree env, Tree s)
+{
+    Type t1 = T(s,env);
+    FaustVectorType * fvt = isVectorType(t1);
+
+    if (!fvt) {
+        printf("Type error: cannot serialize scalar audio data\n");
+        exit(1);
+    }
+
+    return fvt->dereferenceType();
+}
+
+static Type infereConcatType(Tree sig, Tree env, Tree s1, Tree s2)
+{
+    Type t1 = T(s1,env);
+    Type t2 = T(s2,env);
+
+    FaustVectorType * vt1 = isVectorType(t1);
+    FaustVectorType * vt2 = isVectorType(t2);
+
+    if (!vt1 || !vt2) {
+        printf("Type error: cannot concatenate scalar audio data\n");
+        exit(1);
+    }
+
+    Type dt1 = vt1->dereferenceType();
+    Type dt2 = vt2->dereferenceType();
+
+    // TODO: we need to implement a compatibility check for concatenation
+    if (dt1 != dt2) {
+        printf("Type error: dimension mismatch for concatenation\n");
+        exit(1);
+    }
+
+    int t1_size = vt1->size();
+    int t2_size = vt2->size();
+
+    return new FaustVectorType(t1_size + t2_size, dt1 | dt2);
+}
+
+static Type infereVectorAtType(Tree sig, Tree env, Tree s1, Tree s2)
+{
+    Type t1 = T(s1,env);
+
+    FaustVectorType * vt1 = isVectorType(t1);
+    if (!vt1) {
+        printf("Type error: [] primitive expects vector type\n");
+        exit(1);
+    }
+
+    Type dt1 = vt1->dereferenceType();
+    int sz1 = vt1->size();
+
+    Type t2 = T(s2,env);
+    checkIntParam(t2);
+    int n = tree2int(s2); // TODO: how to support run-time element access?
+
+    if (n >= sz1) {
+        printf("Type error: out of bound error for vector element access\n");
+        exit(1);
+    }
+
+    return dt1;
 }
