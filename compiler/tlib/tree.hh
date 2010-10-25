@@ -202,7 +202,7 @@ bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, T
 
 //printing
 inline ostream& operator << (ostream& s, const CTree& t) { return t.print(s); }
-
+void dump(Tree t);
 
 //-----------------------------------------------------------------------------
 // recursive trees
