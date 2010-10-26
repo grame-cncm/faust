@@ -104,74 +104,83 @@ struct LLVMTypeHelper {
     
     virtual LlvmValue genInt1(int number, int size = 1)
     {
-        if (size > 1)
+        if (size > 1) {
             return ConstantInt::get(VectorType::get(llvm::Type::getInt1Ty(getGlobalContext()), size), number);
-        else
+        } else {
             return ConstantInt::get(llvm::Type::getInt1Ty(getGlobalContext()), number);
+        }
     }
 
     virtual LlvmValue genInt32(int number, int size = 1)
     {
-        if (size > 1)
+        if (size > 1) {
             return ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), size), number);
-        else
+        } else {
             return ConstantInt::get(llvm::Type::getInt32Ty(getGlobalContext()), number);
+        }
     }
 
     virtual LlvmValue genInt64(int number, int size = 1)
     {
-        if (size > 1)
+        if (size > 1) {
             return ConstantInt::get(VectorType::get(llvm::Type::getInt64Ty(getGlobalContext()), size), number);
-        else
+        } else {
             return ConstantInt::get(llvm::Type::getInt64Ty(getGlobalContext()), number);
+        }
     }
 
     virtual LlvmValue genFloat(float number, int size = 1)
     {
-        if (size > 1)
+        if (size > 1) {
             return ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), size), number);
-        else
+        } else {
             return ConstantFP::get(getGlobalContext(), APFloat(number));
+        }
     }
     
     virtual LlvmValue genDouble(double number, int size = 1)
     {
-        if (size > 1)
+        if (size > 1) {
             return ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), size), number);
-        else
+        } else {
             return ConstantFP::get(getGlobalContext(), APFloat(number));
+        }
     }
     
     virtual const llvm::Type* getFloatTy(int size)
     {
-        if (size > 1)
+        if (size > 1) {
             return VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), size);
-        else
+        } else {
             return llvm::Type::getFloatTy(getGlobalContext());
+        }
     }
     
     virtual const llvm::Type* getInt32Ty(int size)
     {
-        if (size > 1)
+        if (size > 1) {
             return VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), size);
-        else
+        } else {
             return llvm::Type::getInt32Ty(getGlobalContext());
+        }
     }
     
     virtual const llvm::Type* getInt1Ty(int size)
     {
-        if (size > 1)
+        if (size > 1) {
             return VectorType::get(llvm::Type::getInt1Ty(getGlobalContext()), size);
-        else
+        } else {
             return llvm::Type::getInt1Ty(getGlobalContext());
+        }
     }
     
     virtual const llvm::Type* getDoubleTy(int size)
     {
-        if (size > 1)
+        if (size > 1) {
             return VectorType::get(llvm::Type::getDoubleTy(getGlobalContext()), size);
-        else
+        } else {
             return llvm::Type::getDoubleTy(getGlobalContext());
+        }
     }
 
 };
@@ -468,7 +477,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             if (basic_typed) {
                 fDSPFields.push_back(fTypeMap[basic_typed->fType]);
             } else if (array_typed) {
-                if (array_typed->fSize == 0) {  // TO CHECK
+                if (array_typed->fSize == 0) {  
+                    // Array of zero size are treated as pointer in the corresponding type
                     fDSPFields.push_back(fTypeMap[array_typed->getType()]);
                 } else {
                     fDSPFields.push_back(ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize));
@@ -1203,8 +1213,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 return load;
             }
         }
-
-        
+      
         Value* genVectorLoad(Value* load_ptr, Value* load, int size) 
         {
             if (isa<PointerType>(load->getType())) {

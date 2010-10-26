@@ -625,4 +625,9 @@ struct ControlSpecializer : public DispatchVisitor {
     
 };
 
+inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
+{
+	return S.find(l) != S.end();
+}
+
 #endif

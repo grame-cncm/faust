@@ -240,7 +240,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             if ((sharing > 1) && !verySimple(sig)) {
                 // first cache this expression because it
                 // it is shared and complex
-                ValueInst* cachedexp =  generateVariableStore(sig, exp);
+                ValueInst* cachedexp = generateVariableStore(sig, exp);
                 generateDelayLine(cachedexp, ctype, vname, d, var_access);
                 setVectorNameProperty(sig, vname);
                 return cachedexp;
