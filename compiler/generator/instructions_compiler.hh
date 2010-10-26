@@ -46,10 +46,6 @@ using namespace std;
 
 extern string gMasterName;
 
-class CompilerContext {
-
-};
-
 typedef ValueInst* InstType;
 
 class InstructionsCompiler {

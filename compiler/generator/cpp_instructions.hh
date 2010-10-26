@@ -40,7 +40,7 @@ using namespace std;
 #include "instructions.hh"
 #include "type_manager.hh"
 #include "binop.hh"
-//#include "Text.hh"
+#include "Text.hh"
 
 #include <iostream>
 #include <sstream>
@@ -456,5 +456,237 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         }
         
 };
+
+class CPPVecInstVisitor : public CPPInstVisitor {
+
+   public:
+   
+        CPPVecInstVisitor(std::ostream* out, int tab = 0)
+            :CPPInstVisitor(out, tab)
+        {}
+
+};
+
+
+class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
+
+    protected:
+     
+        std::string fCurValue;
+        Typed::VarType fCurType;
+        
+        std::map<int, string> fVecBinOpTable;
+        std::map<int, string> fScalarBinOpTable;
+        int fVecCounter;
+    
+    public:
+        
+        CPPVecAccelerateInstVisitor(std::ostream* out, int tab = 0)
+            :CPPVecInstVisitor(out, tab)
+        {
+            fVecBinOpTable[kAdd] = "vDSP_vadd";
+            fVecBinOpTable[kSub] = "vDSP_vsub";
+            fVecBinOpTable[kMul] = "vDSP_vmul";
+            fVecBinOpTable[kDiv] = "vDSP_vdiv";
+            
+            fVecCounter = 0;
+        }
+        
+        ~CPPVecAccelerateInstVisitor()
+        {}
+        
+        inline string generateNameVec()
+        {
+            return subst("vec$0_", T(fVecCounter++));
+        }
+        
+        virtual void visit(LoadVarInst* inst)
+        {
+            // Keep name as value
+            fCurValue = inst->fAddress->getName();
+            // Keep type
+            assert(gVarTable.find(inst->fAddress->getName()) != gVarTable.end());
+            fCurType = gVarTable[inst->fAddress->getName()]->getType();
+        }
+
+        virtual void visit(FloatNumInst* inst)
+        {   
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kFloat;
+        }  
+        
+        virtual void visit(IntNumInst* inst)
+        {   
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kInt;
+        }
+        
+        virtual void visit(BoolNumInst* inst) 
+        {   
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kDouble;
+        }
+        
+        virtual void visit(DoubleNumInst* inst)
+        {   
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kBool;
+        }
+ 
+        virtual void visit(BinopInst* inst) 
+        {   
+            // Keep result of first arg compilation
+            inst->fInst1->accept(this);
+            std::string res1 = fCurValue;
+            
+            // Keep result of second arg compilation
+            inst->fInst2->accept(this);
+            std::string res2 = fCurValue;
+            
+            // Generate new result symbol, boteh arguments are equal, so fCurType is the one of last evaluated one 
+            fCurValue = generateNameVec();
+            
+            // Generate stream
+            if (inst->fInst1->fSize > 1 && inst->fInst2->fSize > 1) {
+                // Full vector operation
+                *fOut << fVecBinOpTable[inst->fOpcode] << "(" << res1.c_str() << ", 1, " << res2.c_str() << ", 1, " << fCurValue.c_str() << ", 1, " << inst->fSize << ")";
+            } else if (inst->fInst1->fSize > 1) {
+                // Scalar-Vec operation
+                *fOut << fScalarBinOpTable[inst->fOpcode] << "(" << res1.c_str() << ", 1, " << res2.c_str() << fCurValue.c_str() << ", 1, " << inst->fSize << ")";
+            } else {
+                // Scalar-Vec operation
+                // TODO
+            }
+           
+            EndLine();
+        }
+        
+        
+        virtual void visit(CastNumInst* inst) 
+        {   
+            // Compile exp to cast, result in fCurValue
+            inst->fInst->accept(this);
+            
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
+           
+            switch (basic_typed->fType) {
+            
+                case Typed::kFloat: {
+                    string res = generateNameVec();
+                    switch (fCurType) {
+                    
+                        case Typed::kInt:
+                            *fOut << "vDSP_vflt32(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                    
+                        case Typed::kFloat:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                            
+                         case Typed::kDouble:
+                            // TODO
+                            assert(false);
+                            break;
+                            
+                         default:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                    }
+                    fCurType = Typed::kFloat;
+                    break;
+                }
+                   
+                case Typed::kInt: {
+                    string res = generateNameVec();
+                    switch (fCurType) {
+                    
+                        case Typed::kInt:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                    
+                        case Typed::kFloat:
+                            *fOut << "vDSP_vfixr32(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                            
+                         case Typed::kDouble:
+                            *fOut << "vDSP_vfixr32D(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                            
+                         default:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                    }
+                    fCurType = Typed::kInt;
+                    break;
+                }
+                    
+                case Typed::kDouble: {
+                    string res = generateNameVec();
+                    switch (fCurType) {
+                    
+                        case Typed::kInt:
+                            *fOut << "vDSP_vflt32D(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                    
+                        case Typed::kFloat:
+                            // TODO
+                            assert(false);
+                            break;
+                            
+                         case Typed::kDouble:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                            
+                         default:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                    }
+                    fCurType = Typed::kDouble;
+                    break;
+                }
+                    
+                case Typed::kQuad:
+                    // No supposed to happen
+                    assert(false);
+                    break;
+                    
+                default:
+                    // No supposed to happen
+                    assert(false);
+                    break;
+                    
+            }
+            EndLine();
+        }
+             
+        virtual void visit(FunCallInst* inst)
+        {
+            // TODO
+        }
+        
+        virtual void visit(Select2Inst* inst)
+        { 
+            // Compile condition, result in fCurValue
+            inst->fCond->accept(this);
+            std::string cond_value = fCurValue;
+         
+            // Compile then branch, result in fCurValue
+            inst->fThen->accept(this);
+            std::string then_value = fCurValue;
+
+            // Compile else branch, result in fCurValue
+            inst->fElse->accept(this);
+            std::string else_value = fCurValue;
+        }
+       
+};
+
+
 
 #endif

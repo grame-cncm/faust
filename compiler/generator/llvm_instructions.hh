@@ -1751,7 +1751,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     break;
                    
                 case Typed::kInt:
-                     if (fCurValue->getType() == getInt32Ty(size)) {
+                    if (fCurValue->getType() == getInt32Ty(size)) {
                         // Nothing to do
                     } else if (fCurValue->getType() == getFloatTy(size))  {
                          fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(size));
@@ -2141,7 +2141,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Helper code
         //==============
         
-        LlvmValue generateBinOpAux1Float(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LlvmValue generateBinOpFloat(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
@@ -2151,7 +2151,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
         
-        LlvmValue generateBinOpAux1Double(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LlvmValue generateBinOpDouble(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
@@ -2161,7 +2161,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateBinOpAux2(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LlvmValue generateBinOpInt32(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (opcode >= kGT && opcode < kAND) {
                 Value* comp_value = fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmIntInst, arg1, arg2);
@@ -2179,54 +2179,73 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             //arg2->dump();
             
             assert(fBuilder);
-                    
+            
+            // Arguments are casted if needed in InstructionsCompiler::generateBinOp
+            assert(arg1->getType() == arg2->getType());
+            
+            if (arg1->getType() == getFloatTy(size)) {
+                return generateBinOpFloat(opcode, arg1, arg2, size);
+            } else if (arg1->getType() == getInt32Ty(size)) {
+                return generateBinOpInt32(opcode, arg1, arg2, size);
+            } else if (arg1->getType() == getDoubleTy(size)) {
+                return generateBinOpDouble(opcode, arg1, arg2, size);
+            } else {
+                // Should not happen
+                cerr << "generateBinopAux" << endl;
+                arg1->getType()->dump();
+                arg2->getType()->dump();
+                assert(false);
+                return NULL;
+            }
+            
+            /*
             if (arg1->getType() == getFloatTy(size) && arg2->getType() == getFloatTy(size)) {
             
-                return generateBinOpAux1Float(opcode, arg1, arg2, size);
+                return generateBinOpFloat(opcode, arg1, arg2, size);
                 
             } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getDoubleTy(size)) {
             
                 // Generates cast arg1 to double
                 Value* cast_value = fBuilder->CreateFPExt(arg1, getDoubleTy(size));
-                return generateBinOpAux1Double(opcode, cast_value, arg2, size);
+                return generateBinOpDouble(opcode, cast_value, arg2, size);
                 
             } else if (arg1->getType() == getFloatTy(size) && arg2->getType() == getInt32Ty(size)) {
             
                 // Generates cast arg2 to float
                 Value* cast_value = fBuilder->CreateSIToFP(arg2, getFloatTy(size));
-                return generateBinOpAux1Float(opcode, arg1, cast_value, size);
+                return generateBinOpFloat(opcode, arg1, cast_value, size);
                 
             } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getFloatTy(size)) {
             
                 // Generates cast arg2 to double
                 Value* cast_value = fBuilder->CreateFPExt(arg2, getDoubleTy(size));
-                return generateBinOpAux1Double(opcode, arg1, cast_value, size);
+                return generateBinOpDouble(opcode, arg1, cast_value, size);
                 
             } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getDoubleTy(size)) { 
             
-                return generateBinOpAux1Double(opcode, arg1, arg2, size);
+                return generateBinOpDouble(opcode, arg1, arg2, size);
                 
             } else if (arg1->getType() == getDoubleTy(size) && arg2->getType() == getInt32Ty(size)) { 
             
                 // Generates cast to double
                 Value* cast_value = fBuilder->CreateSIToFP(arg2, getDoubleTy(size));
-                return generateBinOpAux1Double(opcode, arg1, cast_value, size);
+                return generateBinOpDouble(opcode, arg1, cast_value, size);
                 
             } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getFloatTy(size)) { 
             
                 // Generates cast to float
                 Value* cast_value = fBuilder->CreateSIToFP(arg1, getFloatTy(size));
-                return generateBinOpAux1Float(opcode, cast_value, arg2, size);
+                return generateBinOpFloat(opcode, cast_value, arg2, size);
                 
             } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getDoubleTy(size)) { 
             
                 // Generates cast to double
                 Value* cast_value = fBuilder->CreateSIToFP(arg1, getDoubleTy(size));
-                return generateBinOpAux1Double(opcode, cast_value, arg2, size);
+                return generateBinOpDouble(opcode, cast_value, arg2, size);
                 
             } else if (arg1->getType() == getInt32Ty(size) && arg2->getType() == getInt32Ty(size)) { 
             
-                return generateBinOpAux2(opcode, arg1, arg2, size);
+                return generateBinOpInt32(opcode, arg1, arg2, size);
                 
             } else {
                 // Should not happen
@@ -2236,6 +2255,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 assert(false);
                 return NULL;
             }
+            */
         }
         
         LlvmValue generateFunMinMaxAux(Value* arg1, Value* arg2, int size, int comparator)
