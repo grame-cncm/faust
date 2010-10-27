@@ -88,6 +88,7 @@ static bool compatible(RateMap const & lhs, RateMap const & rhs)
     return true;
 }
 
+
 static RateMap merge(RateMap const & lhs, RateMap const & rhs)
 {
     RateMap ret(lhs);
@@ -120,6 +121,39 @@ static RateMap mergeRateInference(Iterator begin, Iterator end)
         ret = mergeInferenceData(ret, *it);
     return ret;
 }
+
+static RateMap unify(RateMap const & lhs, RateMap const & rhs)
+{
+    rational factor = 0;
+
+    /* two rate maps can be unified, if their elements just differ by a constant factor */
+    typedef RateMap::const_iterator ci;
+    for (ci it = lhs.begin(); it != lhs.end(); ++it) {
+        Tree key = it->first;
+        ci key_in_rhs = rhs.find(key);
+        if (key_in_rhs != rhs.end()) {
+            rational ration = it->second / key_in_rhs->second;
+            if (factor == 0)
+                factor = ration;
+            else if (ration != factor)
+                throw runtime_error("conflict for unifying rate maps");
+        }
+    }
+
+    RateMap scaled_rhs = factor ? rhs * factor : rhs;
+    RateMap ret = merge(scaled_rhs, lhs);
+    return ret;
+}
+
+template <typename Iterator>
+static RateMap UnifyRateInference(Iterator begin, Iterator end)
+{
+    RateMap ret = *begin++;
+    for (Iterator it = begin; it != end; ++it)
+        ret = unify(ret, *it);
+    return ret;
+}
+
 
 static RateMap up(int n, RateMap const & base)
 {
@@ -285,7 +319,6 @@ static RateMap infereProjRate(int i, Tree sig)
 {
     Tree sym = sig->branch(0);
     Tree proj = projKey(i, sym);
-    dump(proj);
 
     /* the first time, we find a projection, we use it as signal source, and infer its type
      */
@@ -305,7 +338,7 @@ static RateMap infereRecRate(Tree var, Tree body)
 {
     int size = len(body);
 
-    vector<RateMap> ret;
+    vector<RateMap> vret;
 
     /* we infer all recursions and verify the correctness against the initial assumption for the signal source
      */
@@ -319,10 +352,13 @@ static RateMap infereRecRate(Tree var, Tree body)
             printf("Error in rate propagation\n");
             exit(1);
         }
-        ret.push_back(inferred);
+        vret.push_back(inferred);
     }
 
-    return mergeRateInference(ret.begin(), ret.end());
+    RateMap ret = UnifyRateInference(vret.begin(), vret.end());
+    dump(ret);
+
+    return ret;
 }
 
 static RateMap infereVectorize(Tree s1, Tree s2)
@@ -396,7 +432,7 @@ RateMap doInferRateDispatch(Tree sig)
             v.push_back(doInferRate(hd(sig)));
             sig = tl(sig);
         }
-        RateMap ret = mergeRateInference(v.begin(), v.end());
+        RateMap ret = UnifyRateInference(v.begin(), v.end());
         return ret;
     }
     else if (isSigVectorize(sig, s1, s2))
