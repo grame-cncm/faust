@@ -276,37 +276,53 @@ static RateMap infereFFRate (Tree ff, Tree ls)
     }
 }
 
+static Tree projKey(int i, Tree sym)
+{
+    return cons(tree(Node(i)), sym);
+}
+
 static RateMap infereProjRate(int i, Tree sig)
 {
-    Tree proj = sig->branch(i);
+    Tree sym = sig->branch(0);
+    Tree proj = projKey(i, sym);
+    dump(proj);
 
-    if (gProjMap.find(proj) != gProjMap.end()) {
-        RateMap env = gProjMap[proj];
-        return env;
-    }
+    /* the first time, we find a projection, we use it as signal source, and infer its type
+     */
+    if (gProjMap.find(proj) == gProjMap.end()) {
+        RateMap env = initRate(proj);
+        gProjMap[proj] = env;
 
-    RateMap env = initRate(proj);
+        RateMap infered = doInferRate(sig);
 
-    gProjMap[proj] = env;
-
-    RateMap ret = doInferRate(sig);
-    return ret;
+        assert(compatible(infered, env));
+        return infered;
+    } else
+        return gProjMap[proj];
 }
 
 static RateMap infereRecRate(Tree var, Tree body)
 {
-    RateMap ret = doInferRate(body);
+    int size = len(body);
 
-    if (gProjMap.find(var) != gProjMap.end()) {
-        RateMap env = gProjMap[var];
+    vector<RateMap> ret;
 
-        if (!compatible(ret, env)) {
+    /* we infer all recursions and verify the correctness against the initial assumption for the signal source
+     */
+    for (int i = 0; i != size; ++i) {
+        Tree proj = projKey(i, var);
+        Tree n = nth(body, i);
+
+        RateMap inferred = doInferRate(n);
+
+        if (!compatible(inferred, gProjMap[proj])) {
             printf("Error in rate propagation\n");
             exit(1);
         }
+        ret.push_back(inferred);
     }
 
-    return ret;
+    return mergeRateInference(ret.begin(), ret.end());
 }
 
 static RateMap infereVectorize(Tree s1, Tree s2)
