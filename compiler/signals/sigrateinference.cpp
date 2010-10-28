@@ -278,6 +278,8 @@ static RateMap infereXRate(Tree sig)
 
         if (hasRate(branch))
             data.push_back(doInferRate(branch));
+        else
+            data.push_back(initRate(branch));
     }
 
     RateMap ret = mergeRateInference(data.begin(), data.end());
