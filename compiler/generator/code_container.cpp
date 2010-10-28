@@ -286,13 +286,13 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int
     } else {
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
         
-        loop->generateDAGLoop(loop_code, omp);
-        /*
+        //loop->generateDAGLoop(loop_code, omp);
+        
         if (loop->fIsRecursive)
             loop->generateDAGLoop(loop_code, omp);
         else
             loop->generateDAGVecLoop(loop_code, omp, 4);
-        */
+        
     }
 }
 

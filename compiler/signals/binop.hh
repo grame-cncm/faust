@@ -47,15 +47,15 @@ struct BinOp
 	int			fPriority;
 	//
 	BinOp (const char* name, const char* namevec, 
-        const char* namescal, 
-        const char* namellvmint, 
-        const char* namellvmfloat, 
-        unsigned int llvmint,
-        unsigned int llvmfloat,
-        comp f, 
-        pred ln, 
-        pred rn, 
-        int priority) 
+            const char* namescal, 
+            const char* namellvmint, 
+            const char* namellvmfloat, 
+            unsigned int llvmint,
+            unsigned int llvmfloat,
+            comp f, 
+            pred ln, 
+            pred rn, 
+            int priority) 
 			: fName(name), fNameVec(namevec), fNameScal(namescal), 
             fNameLLVMInt(namellvmint), fNameLLVMFloat(namellvmfloat), 
             fLlvmIntInst(llvmint), fLlvmFloatInst(llvmfloat),

@@ -1402,13 +1402,12 @@ struct DispatchVisitor : public InstVisitor {
 // Combining visitors
 // ========================
 
-class CombinerVisitor : public InstVisitor
+class CombinerVisitor : public DispatchVisitor
 {
     protected:
     
         InstVisitor* fVisitor1;
         InstVisitor* fVisitor2;
-        
         InstVisitor* fCurVisitor;
         
     public:
@@ -1423,121 +1422,6 @@ class CombinerVisitor : public InstVisitor
         {
             delete fVisitor1;
             delete fVisitor2;
-        }
-        
-        virtual void visit(DeclareVarInst* inst) 
-        { 
-           inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(DeclareFunInst* inst) 
-        { 
-            inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(LoadVarInst* inst) 
-        { 
-            inst->accept(fCurVisitor); 
-        }
-        
-        virtual void visit(LoadVarAddressInst* inst) 
-        { 
-            inst->accept(fCurVisitor); 
-        }
-        
-        virtual void visit(StoreVarInst* inst) 
-        { 
-           inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(NamedAddress* address)
-        { 
-           address->accept(fCurVisitor);
-        }
-        
-        virtual void visit(IndexedAddress* address) 
-        { 
-           address->accept(fCurVisitor); 
-        }
-        
-        virtual void visit(FloatNumInst* inst)
-        { 
-           inst->accept(fCurVisitor); 
-        }
-        
-        virtual void visit(IntNumInst* inst)
-        { 
-           inst->accept(fCurVisitor); 
-        }
-        
-        virtual void visit(BoolNumInst* inst)
-        { 
-           inst->accept(fCurVisitor); 
-        }
-        
-        virtual void visit(DoubleNumInst* inst)
-        { 
-           inst->accept(fCurVisitor); 
-        }
-
-        virtual void visit(BinopInst* inst) 
-        { 
-            inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(CastNumInst* inst) 
-        { 
-            inst->accept(fCurVisitor); 
-        }
-
-        virtual void visit(FunCallInst* inst)
-        { 
-           inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(RetInst* inst) 
-        { 
-            inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(DropInst* inst)
-        { 
-            inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(Select2Inst* inst)  
-        { 
-            inst->accept(fCurVisitor);
-        }
-        
-        virtual void visit(IfInst* inst)  
-        { 
-            inst->accept(fCurVisitor);
-        }
-        
-        virtual void visit(::SwitchInst* inst)
-        { 
-            inst->accept(fCurVisitor);
-        }
-
-        virtual void visit(ForLoopInst* inst)
-        {
-            inst->accept(fCurVisitor);
-        }
-        
-        virtual void visit(WhileLoopInst* inst)
-        {
-            inst->accept(fCurVisitor);
-        }
-        
-        virtual void visit(BlockInst* inst)
-        {
-            inst->accept(fCurVisitor); 
-        }
-        
-        virtual void visit(LabelInst* inst)
-        {
-            inst->accept(fCurVisitor); 
         }
 
 };

@@ -335,13 +335,15 @@ void CPPVectorCodeContainer::generateCompute(int n)
         block = generateDAGLoopVariant1();
     }
     
-    ScalarVectorVisitor scal_vec_visitor(fOut, n+2);
-
+    BlockInst* block_res = InstBuilder::genBlockInst();
+    block_res->pushBackInst(InstBuilder::genLabelInst( subst("// Vectorizable loop $0", T(1))));
+  
     // Generate it
     assert(block);
     //block->accept(&fCodeProducer);
-    block->accept(&scal_vec_visitor);
-
+    CPPVecAccelerateInstVisitor visitor(fOut, n+2);
+    block->accept(&visitor);
+   
     tab(n+1, *fOut); *fOut << "}";
 }
 
