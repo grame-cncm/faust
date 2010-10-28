@@ -459,7 +459,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
 class CPPVecInstVisitor : public CPPInstVisitor {
 
-   public:
+    public:
    
         CPPVecInstVisitor(std::ostream* out, int tab = 0)
             :CPPInstVisitor(out, tab)
@@ -528,281 +528,327 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
         
         virtual void visit(LoadVarInst* inst)
         {
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                // Keep name as value
-                fCurValue = inst->fAddress->getName();
-                //cerr << "inst->fAddress->getName " << inst->fAddress->getName() << std::endl;
-                // Keep type
-                assert(gVarTable.find(inst->fAddress->getName()) != gVarTable.end());
-                fCurType = gVarTable[inst->fAddress->getName()]->getType();
-            }
+             // Keep name as value
+            fCurValue = inst->fAddress->getName();
+            //cerr << "inst->fAddress->getName " << inst->fAddress->getName() << std::endl;
+            // Keep type
+            assert(gVarTable.find(inst->fAddress->getName()) != gVarTable.end());
+            fCurType = gVarTable[inst->fAddress->getName()]->getType();
         }
         
-        virtual void visit(StoreVarInst* inst) 
-        {
-            // TODO : copy fCurValue in store location
-            if (inst->fValue->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                CPPInstVisitor::visit(inst);
-            }
-        }
-
+     
         virtual void visit(FloatNumInst* inst)
         {   
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                fCurValue = T(inst->fNum);
-                fCurType = Typed::kFloat;
-            }
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kFloat;
         }  
         
         virtual void visit(IntNumInst* inst)
         {   
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                fCurValue = T(inst->fNum);
-                fCurType = Typed::kInt;
-            }
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kInt;
         }
         
         virtual void visit(BoolNumInst* inst) 
         {   
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                fCurValue = T(inst->fNum);
-                fCurType = Typed::kDouble;
-            }
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kDouble;
         }
         
         virtual void visit(DoubleNumInst* inst)
         {   
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                fCurValue = T(inst->fNum);
-                fCurType = Typed::kBool;
-            }
+            fCurValue = T(inst->fNum);
+            fCurType = Typed::kBool;
         }
  
         virtual void visit(BinopInst* inst) 
         {   
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
+            // Keep result of first arg compilation
+            inst->fInst1->accept(this);
+            std::string res1 = fCurValue;
+            
+            // Keep result of second arg compilation
+            inst->fInst2->accept(this);
+            std::string res2 = fCurValue;
+            
+            // Generate new result symbol, both arguments are equal, so fCurType is the one of last evaluated one 
+            fCurValue = generateNameVec();
+            *fOut << fTypeDirectTable[fCurType] << " " << fCurValue << "[" << inst->fSize << "]"; EndLine();
+            
+            // Generate stream
+            if (inst->fInst1->fSize >= 1 && inst->fInst2->fSize >= 1) {
+                // Full vector operation
+                cerr << "inst->fOpcode " << inst->fOpcode  << endl;
+                *fOut << fVecBinOpTable[inst->fOpcode] << "(" << res1 << ", 1, " << res2 << ", 1, " << fCurValue << ", 1, " << inst->fSize << ")";
+            } else if (inst->fInst1->fSize > 1) {
+                // Scalar-Vec operation
+                // TODO
+                // *fOut << fScalarBinOpTable[inst->fOpcode] << "(" << res1 << ", 1, " << res2 << fCurValue << ", 1, " << inst->fSize << ")";
             } else {
-                // Keep result of first arg compilation
-                inst->fInst1->accept(this);
-                std::string res1 = fCurValue;
-                
-                // Keep result of second arg compilation
-                inst->fInst2->accept(this);
-                std::string res2 = fCurValue;
-                
-                // Generate new result symbol, both arguments are equal, so fCurType is the one of last evaluated one 
-                fCurValue = generateNameVec();
-                *fOut << fTypeDirectTable[fCurType] << " " << fCurValue << "[" << inst->fSize << "]"; EndLine();
-                
-                // Generate stream
-                if (inst->fInst1->fSize >= 1 && inst->fInst2->fSize >= 1) {
-                    // Full vector operation
-                    cerr << "inst->fOpcode " << inst->fOpcode  << endl;
-                    *fOut << fVecBinOpTable[inst->fOpcode] << "(" << res1 << ", 1, " << res2 << ", 1, " << fCurValue << ", 1, " << inst->fSize << ")";
-                } else if (inst->fInst1->fSize > 1) {
-                    // Scalar-Vec operation
-                    // TODO
-                    // *fOut << fScalarBinOpTable[inst->fOpcode] << "(" << res1 << ", 1, " << res2 << fCurValue << ", 1, " << inst->fSize << ")";
-                } else {
-                    // Scalar-Vec operation
-                }
-               
-                EndLine();
+                // Scalar-Vec operation
             }
+           
+            EndLine();
         }
         
         virtual void visit(CastNumInst* inst) 
         {   
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                // Compile value to cast, result in fCurValue
-                inst->fInst->accept(this);
-                
-                BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
-               
-                switch (basic_typed->fType) {
-                
-                    case Typed::kFloat: {
-                        string res = generateNameVec();
-                        *fOut << fTypeDirectTable[Typed::kFloat] << " " << res << "[" << inst->fSize << "]"; EndLine();
-                        switch (fCurType) {
-                        
-                            case Typed::kInt:
-                                *fOut << "vDSP_vflt32(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
-                                break;
-                        
-                            case Typed::kFloat:
-                                // No supposed to happen
-                                assert(false);
-                                break;
-                                
-                             case Typed::kDouble:
-                                *fOut << "vDSP_vspdp(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
-                                break;
-                                
-                             default:
-                                // No supposed to happen
-                                cerr << "CurType " << fTypeDirectTable[fCurType] << endl;
-                                assert(false);
-                                break;
-                        }
-                        fCurType = Typed::kFloat;
-                        fCurValue = res;
-                        break;
+            // Compile value to cast, result in fCurValue
+            inst->fInst->accept(this);
+            
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
+           
+            switch (basic_typed->fType) {
+            
+                case Typed::kFloat: {
+                    string res = generateNameVec();
+                    *fOut << fTypeDirectTable[Typed::kFloat] << " " << res << "[" << inst->fSize << "]"; EndLine();
+                    switch (fCurType) {
+                    
+                        case Typed::kInt:
+                            *fOut << "vDSP_vflt32(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                    
+                        case Typed::kFloat:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                            
+                         case Typed::kDouble:
+                            *fOut << "vDSP_vspdp(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                            
+                         default:
+                            // No supposed to happen
+                            cerr << "CurType " << fTypeDirectTable[fCurType] << endl;
+                            assert(false);
+                            break;
                     }
-                       
-                    case Typed::kInt: {
-                        string res = generateNameVec();
-                        //*fOut << fTypeDirectTable[Typed::kInt] << " " << res << "[" << inst->fSize << "]"; EndLine();
-                        switch (fCurType) {
-                        
-                            case Typed::kInt:
-                                // No supposed to happen
-                                assert(false);
-                                break;
-                        
-                            case Typed::kFloat:
-                                *fOut << "vDSP_vfixr32(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
-                                break;
-                                
-                             case Typed::kDouble:
-                                *fOut << "vDSP_vfixr32D(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
-                                break;
-                                
-                             default:
-                                // No supposed to happen
-                                assert(false);
-                                break;
-                        }
-                        fCurType = Typed::kInt;
-                        fCurValue = res;
-                        break;
-                    }
-                        
-                    case Typed::kDouble: {
-                        string res = generateNameVec();
-                        *fOut << fTypeDirectTable[Typed::kDouble] << " " << res << "[" << inst->fSize << "]"; EndLine();
-                        switch (fCurType) {
-                        
-                            case Typed::kInt:
-                                *fOut << "vDSP_vflt32D(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
-                                break;
-                        
-                            case Typed::kFloat:
-                                *fOut << "vDSP_vdpsp(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
-                                break;
-                                
-                             case Typed::kDouble:
-                                // No supposed to happen
-                                assert(false);
-                                break;
-                                
-                             default:
-                                // No supposed to happen
-                                assert(false);
-                                break;
-                        }
-                        fCurType = Typed::kDouble;
-                        fCurValue = res;
-                        break;
-                    }
-                        
-                    case Typed::kQuad:
-                        // No supposed to happen
-                        assert(false);
-                        break;
-                        
-                    default:
-                        // No supposed to happen
-                        assert(false);
-                        break;
-                        
+                    fCurType = Typed::kFloat;
+                    fCurValue = res;
+                    break;
                 }
-                EndLine();
+                   
+                case Typed::kInt: {
+                    string res = generateNameVec();
+                    //*fOut << fTypeDirectTable[Typed::kInt] << " " << res << "[" << inst->fSize << "]"; EndLine();
+                    switch (fCurType) {
+                    
+                        case Typed::kInt:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                    
+                        case Typed::kFloat:
+                            *fOut << "vDSP_vfixr32(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                            
+                         case Typed::kDouble:
+                            *fOut << "vDSP_vfixr32D(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                            
+                         default:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                    }
+                    fCurType = Typed::kInt;
+                    fCurValue = res;
+                    break;
+                }
+                    
+                case Typed::kDouble: {
+                    string res = generateNameVec();
+                    *fOut << fTypeDirectTable[Typed::kDouble] << " " << res << "[" << inst->fSize << "]"; EndLine();
+                    switch (fCurType) {
+                    
+                        case Typed::kInt:
+                            *fOut << "vDSP_vflt32D(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                    
+                        case Typed::kFloat:
+                            *fOut << "vDSP_vdpsp(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
+                            break;
+                            
+                         case Typed::kDouble:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                            
+                         default:
+                            // No supposed to happen
+                            assert(false);
+                            break;
+                    }
+                    fCurType = Typed::kDouble;
+                    fCurValue = res;
+                    break;
+                }
+                    
+                case Typed::kQuad:
+                    // No supposed to happen
+                    assert(false);
+                    break;
+                    
+                default:
+                    // No supposed to happen
+                    assert(false);
+                    break;
+                    
             }
+            EndLine();
         }
              
         virtual void visit(FunCallInst* inst)
         {
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                string res = generateNameVec();
-                *fOut << fTypeDirectTable[fCurType] << " " << res << "[" << inst->fSize << "]"; EndLine();
-                
-                if (inst->fMethod) {
-                    list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
-                    // Compile object arg
-                    (*it)->accept(this); 
-                    *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
-                    list<ValueInst*>::const_iterator it1; 
-                    int i = 0;
-                    // Add result in parameter list
-                    *fOut << res;
-                    for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
-                        // Compile argument
-                        (*it1)->accept(this); 
-                        *fOut << ", ";
-                    }
-                    // Add "count" in parameter list
-                    *fOut << inst->fSize;
-                    *fOut << ")";
-                } else {
-                    *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
-                    list<ValueInst*>::const_iterator it;
-                    int i = 0;
-                    // Add result in parameter list
-                    *fOut << res;
-                    for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                        // Compile argument
-                        (*it)->accept(this); 
-                        *fOut << ", ";
-                    }
-                    // Add "count" in parameter list
-                    *fOut << inst->fSize;
-                    *fOut << ")";
+            string res = generateNameVec();
+            *fOut << fTypeDirectTable[fCurType] << " " << res << "[" << inst->fSize << "]"; EndLine();
+            
+            if (inst->fMethod) {
+                list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
+                // Compile object arg
+                (*it)->accept(this); 
+                *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
+                list<ValueInst*>::const_iterator it1; 
+                int i = 0;
+                // Add result in parameter list
+                *fOut << res;
+                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                    // Compile argument
+                    (*it1)->accept(this); 
+                    *fOut << ", ";
                 }
-                
-                fCurValue = res;
-                // fCurType does not change
+                // Add "count" in parameter list
+                *fOut << inst->fSize;
+                *fOut << ")";
+            } else {
+                *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
+                list<ValueInst*>::const_iterator it;
+                int i = 0;
+                // Add result in parameter list
+                *fOut << res;
+                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                    // Compile argument
+                    (*it)->accept(this); 
+                    *fOut << ", ";
+                }
+                // Add "count" in parameter list
+                *fOut << inst->fSize;
+                *fOut << ")";
             }
+            
+            fCurValue = res;
+            // fCurType does not change
         }
         
         virtual void visit(Select2Inst* inst)
         { 
-            if (inst->fSize == 1) {
-                CPPInstVisitor::visit(inst);
-            } else {
-                // Compile condition, result in fCurValue
-                inst->fCond->accept(this);
-                std::string cond_value = fCurValue;
-             
-                // Compile then branch, result in fCurValue
-                inst->fThen->accept(this);
-                std::string then_value = fCurValue;
+            // Compile condition, result in fCurValue
+            inst->fCond->accept(this);
+            std::string cond_value = fCurValue;
+         
+            // Compile then branch, result in fCurValue
+            inst->fThen->accept(this);
+            std::string then_value = fCurValue;
 
-                // Compile else branch, result in fCurValue
-                inst->fElse->accept(this);
-                std::string else_value = fCurValue;
-                
-                // TODO
-            }
+            // Compile else branch, result in fCurValue
+            inst->fElse->accept(this);
+            std::string else_value = fCurValue;
+            
+            // TODO
         }
        
 };
+
+class ScalVecDispatcherVisitor : public DispatchVisitor {
+
+    protected:
+    
+        InstVisitor* fScalarVisitor;
+        InstVisitor* fVectorVisitor;
+        
+        void DispatchVisitor(ValueInst* inst)
+        {
+            if (inst->fSize == 1) {
+                fScalarVisitor->visit(inst);
+            } else {
+                fVectorVisitor->visit(inst);
+            }
+        }
+
+    public:
+   
+        ScalVecDispatcherVisitor(std::ostream* out, int tab = 0)
+            :fScalarVisitor(new CPPInstVisitor(out, tab)), 
+            fVectorVisitor(new CPPVecAccelerateInstVisitor(out, tab))
+        {}
+        
+        ~ScalVecDispatcherVisitor()
+        {
+            delete fScalarVisitor;
+            delete fVectorVisitor;
+        }
+        
+        virtual void visit(LoadVarInst* inst) 
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(LoadVarAddressInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(StoreVarInst* inst) 
+        {
+            if (inst->fValue->fSize == 1) {
+                fScalarVisitor->visit(inst);
+            } else {
+                fVectorVisitor->visit(inst);
+            }
+        }
+ 
+        virtual void visit(FloatNumInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(IntNumInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(BoolNumInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(DoubleNumInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(BinopInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(CastNumInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+        virtual void visit(FunCallInst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+     
+        virtual void visit(Select2Inst* inst)
+        {
+            DispatchVisitor(inst);
+        }
+        
+};
+
 
 #endif
