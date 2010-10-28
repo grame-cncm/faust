@@ -335,14 +335,20 @@ static RateMap infereRecRate(Tree var, Tree body)
     for (int i = 0; i != size; ++i) {
         Tree proj = projKey(i, var);
         Tree n = nth(body, i);
+        RateMap last;
 
-        RateMap inferred = doInferRate(n);
+        for (;;) {
+            RateMap inferred = doInferRate(n);
 
-        if (!compatible(inferred, gProjMap[proj])) {
-            printf("Error in rate propagation\n");
-            exit(1);
+            if (!compatible(inferred, gProjMap[proj])) {
+                printf("Error in rate propagation\n");
+                exit(1);
+            }
+            if (inferred == last)
+                break;
+            last = inferred;
         }
-        vret.push_back(inferred);
+        vret.push_back(last);
     }
 
     RateMap ret = UnifyRateInference(vret.begin(), vret.end());
@@ -470,10 +476,13 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
             Tree base = it2->first;
             rational const & r = it2->second;
             RateMap::const_iterator found = rateFactors.find(base);
-            assert(found != rateFactors.end());
-            rational const & factor = found->second;
-            rational val = r / factor;
-            results.push_back(val);
+            if (found != rateFactors.end()) {
+                rational const & factor = found->second;
+                rational val = r / factor;
+                results.push_back(val);
+            } else {
+                results.push_back(r);
+            }
         }
         assert(results.size());
         assert(ident(results.begin(), results.end()));
