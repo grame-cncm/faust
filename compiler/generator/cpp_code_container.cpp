@@ -334,10 +334,13 @@ void CPPVectorCodeContainer::generateCompute(int n)
     } else if (gVectorLoopVariant == 1) {
         block = generateDAGLoopVariant1();
     }
+    
+    ScalarVectorVisitor scal_vec_visitor(fOut, n+2);
 
     // Generate it
     assert(block);
-    block->accept(&fCodeProducer);
+    //block->accept(&fCodeProducer);
+    block->accept(&scal_vec_visitor);
 
     tab(n+1, *fOut); *fOut << "}";
 }

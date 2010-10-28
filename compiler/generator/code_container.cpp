@@ -219,6 +219,24 @@ void CodeContainer::computeForwardDAG(lclgraph dag)
     }
 }
 
+void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)
+{
+	// Avoid printing already printed loops
+	if (isElement(visited, l)) return;
+
+	// Remember we have printed this loop
+	visited.insert(l);
+
+	// Compute the dependencies loops (that need to be computed before this one)
+	for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+        sortDeepFirstDAG(*p, visited, result);
+    }
+
+    // Keep the non-empty loops in result
+    if (!l->isEmpty())
+        result.push_back(l);
+}
+
 void CodeContainer::generateLocalInputs(BlockInst* loop_code)
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
@@ -300,24 +318,6 @@ void CodeContainer::generateDAGLoop(BlockInst* block)
     }
 }
 
-void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)
-{
-	// Avoid printing already printed loops
-	if (isElement(visited, l)) return;
-
-	// Remember we have printed this loop
-	visited.insert(l);
-
-	// Compute the dependencies loops (that need to be computed before this one)
-	for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
-        sortDeepFirstDAG(*p, visited, result);
-    }
-
-    // Keep the non-empty loops in result
-    if (!l->isEmpty())
-        result.push_back(l);
-}
-
 StatementInst* CodeContainer::generateDAGLoopVariant0()
 {
     string index = "index";
@@ -368,11 +368,11 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
                             InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kStack)),
                             InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
 
-    BlockInst* then_cond = InstBuilder::genBlockInst();
+    BlockInst* then_block = InstBuilder::genBlockInst();
 
     // Generate local input/output access
-    generateLocalInputs(then_cond);
-    generateLocalOutputs(then_cond);
+    generateLocalInputs(then_block);
+    generateLocalOutputs(then_block);
 
     // Generate : int count = fullcount-index;
     DeclareVarInst* count_dec2 =
@@ -381,12 +381,12 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)),
                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kStack))));
 
-    then_cond->pushBackInst(count_dec2);
+    then_block->pushBackInst(count_dec2);
 
     // Generates the loop DAG
-    generateDAGLoop(then_cond);
+    generateDAGLoop(then_block);
 
-    block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_cond));
+    block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
     return block_res;
 }
 

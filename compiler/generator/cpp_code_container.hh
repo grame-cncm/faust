@@ -312,7 +312,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
                     // Compile object arg
                     (*it)->accept(this); 
-                    *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]: inst->fName) << "(";
+                    *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
                     list<ValueInst*>::const_iterator it1; 
                     int size = inst->fArgs.size() - 1, i = 0;
                     for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
@@ -374,7 +374,6 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             OpenCLKernelInstVisitor(std::ostream* out, int tab)
                 :KernelInstVisitor(out, tab)
             {
-                
                 fFunctionTable["sin"] = "native_sin";
                 fFunctionTable["sinf"] = "native_sin";
                 fFunctionTable["cos"] = "native_cos";
