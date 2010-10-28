@@ -19,6 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef _SIGRATEINFERENCE_
+#define _SIGRATEINFERENCE_
+
 #include "signals.hh"
 
+extern Tree ratePropertyKey;
+
 void inferRate(Tree sig);
+
+#endif

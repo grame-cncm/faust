@@ -154,17 +154,6 @@ static RateMap UnifyRateInference(Iterator begin, Iterator end)
     return ret;
 }
 
-
-static RateMap up(int n, RateMap const & base)
-{
-    return base * n;
-}
-
-static RateMap down(int n, RateMap const & base)
-{
-    return base * rational(1, n);
-}
-
 static bool hasRate(Tree sig)
 {
     Type t = sig->getType();
@@ -224,7 +213,6 @@ static RateMap propagateRate(Tree sig)
         return initRate(sig);
 }
 
-
 static RateMap propagateRate(Tree s1, Tree s2)
 {
     if (!hasRate(s1))
@@ -255,7 +243,7 @@ static RateMap propagateRate(Tree s1, Tree s2, Tree s3)
         doInferRate(s3)
     };
 
-    return mergeRateInference<>(i, i+3);
+    return mergeRateInference(i, i+3);
 }
 
 static RateMap propagateRate(Tree s1, Tree s2, Tree s3, Tree s4)
@@ -277,7 +265,7 @@ static RateMap propagateRate(Tree s1, Tree s2, Tree s3, Tree s4)
         doInferRate(s4),
     };
 
-    return mergeRateInference<>(i, i+4);
+    return mergeRateInference(i, i+4);
 }
 
 
@@ -366,7 +354,7 @@ static RateMap infereVectorize(Tree s1, Tree s2)
     RateMap i1 = doInferRate(s1);
     int n = tree2int(s2);
 
-    RateMap ret = down(n, i1);
+    RateMap ret = i1 * rational(1, n);
     return ret;
 }
 
@@ -376,7 +364,7 @@ static RateMap infereSerialize(Tree s1, Tree s2)
     Type t1 = getSigType(s1);
     FaustVectorType * vt1 = isVectorType(t1.pointee());
     assert(vt1);
-    RateMap ret = up(vt1->size(), i1);
+    RateMap ret = i1 * vt1->size();
     return ret;
 }
 
@@ -387,7 +375,6 @@ RateMap doInferRateDispatch(Tree sig)
     double      r;
     Tree        sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file;
     Tree        label, cur, min, max, step;
-
 
          if ( getUserData(sig) )                        return infereXRate(sig);
     else if (isSigInt(sig, &i))                         return initRate(sig);
@@ -435,23 +422,14 @@ RateMap doInferRateDispatch(Tree sig)
         RateMap ret = UnifyRateInference(v.begin(), v.end());
         return ret;
     }
-    else if (isSigVectorize(sig, s1, s2))
-                                                        return infereVectorize(s1, s2);
-    else if (isSigSerialize(sig, s1))
-                                                        return infereSerialize(s1, s2);
-    else if (isSigConcat(sig, s1, s2))
-                                                        return propagateRate(s1, s2);
-    else if (isSigVectorAt(sig, s1, s2))
-                                                        return propagateRate(s1, s2);
+    else if (isSigVectorize(sig, s1, s2))               return infereVectorize(s1, s2);
+    else if (isSigSerialize(sig, s1))                   return infereSerialize(s1, s2);
+    else if (isSigConcat(sig, s1, s2))                  return propagateRate(s1, s2);
+    else if (isSigVectorAt(sig, s1, s2))                return propagateRate(s1, s2);
 
     printf("internal error");
     exit(1);
 }
-
-
-
-
-
 
 
 typedef map<Tree, rational> simplifiedRateMap;
@@ -476,7 +454,7 @@ static bool ident(Iterator begin, Iterator end)
  *
  * \returns dictionary: signal -> rate
  */
-static simplifiedRateMap normalizeRateMap(RateMap & rateFactors)
+static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
 {
     simplifiedRateMap ret;
 
@@ -489,7 +467,9 @@ static simplifiedRateMap normalizeRateMap(RateMap & rateFactors)
         for (RateMap::const_iterator it2 = e.begin(); it2 != e.end(); ++it2) {
             Tree base = it2->first;
             rational const & r = it2->second;
-            rational const & factor = rateFactors[base];
+            RateMap::const_iterator found = rateFactors.find(base);
+            assert(found != rateFactors.end());
+            rational const & factor = found->second;
             rational val = r / factor;
             results.push_back(val);
         }
@@ -503,7 +483,6 @@ static simplifiedRateMap normalizeRateMap(RateMap & rateFactors)
     for (simplifiedRateMap::iterator it = ret.begin(); it != ret.end(); ++it)
         denom = boost::lcm(denom, it->second.denominator());
 
-
     for (simplifiedRateMap::iterator it = ret.begin(); it != ret.end(); ++it) {
         it->second = it->second * denom;
         assert(it->second.denominator() == 1);
@@ -515,11 +494,11 @@ static simplifiedRateMap normalizeRateMap(RateMap & rateFactors)
 }
 
 
-static Tree rateProperty = tree(symbol("RateProperty"));
+Tree ratePropertyKey = tree(symbol("RateProperty"));
 
 static void annotateRate(Tree sig, int rate)
 {
-    setProperty(sig, rateProperty, tree(Node(rate)));
+    setProperty(sig, ratePropertyKey, tree(Node(rate)));
 }
 
 static void annotateRate(simplifiedRateMap const & map)
