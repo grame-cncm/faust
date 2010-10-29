@@ -535,7 +535,6 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             assert(gVarTable.find(inst->fAddress->getName()) != gVarTable.end());
             fCurType = gVarTable[inst->fAddress->getName()]->getType();
         }
-        
      
         virtual void visit(FloatNumInst* inst)
         {   

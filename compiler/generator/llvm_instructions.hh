@@ -1845,6 +1845,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = call_inst;
         }
         
+        /*
         virtual void visit(Select2Inst* inst) 
         {
             // Compile condition, result in fCurValue
@@ -1863,6 +1864,65 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                      
             // Creates the result
             fCurValue = fBuilder->CreateSelect(cond_value, then_value, else_value);
+        }
+        */
+        
+        virtual void visit(Select2Inst* inst) 
+        {
+            // Select vector mode X86 code generator sill not implemented, generates the code in scalar for now
+            if (inst->fSize > 1) {
+            
+                // Compile condition, result in fCurValue
+                inst->fCond->accept(this);
+                Value* cond_value = fCurValue;
+                
+                // Compile then branch, result in fCurValue
+                inst->fThen->accept(this);
+                Value* then_value = fCurValue;
+
+                // Compile else branch, result in fCurValue
+                inst->fElse->accept(this);
+                Value* else_value = fCurValue;
+                
+                // Create resulting vector
+                Value* select_vector = UndefValue::get(then_value->getType());
+                
+                for (int i = 0; i < inst->fSize; i++) {
+                
+                    Value* scalar_cond_value1 = fBuilder->CreateExtractElement(cond_value, genInt32(i));
+                    Value* scalar_cond_value2 = fBuilder->CreateICmpEQ(scalar_cond_value1, genInt32(1), "ifcond");
+                    Value* scalar_then_value = fBuilder->CreateExtractElement(then_value, genInt32(i));
+                    Value* scalar_else_value = fBuilder->CreateExtractElement(else_value, genInt32(i));
+                    
+                    // Scalar select
+                    Value* scalar_res = fBuilder->CreateSelect(scalar_cond_value2, scalar_then_value, scalar_else_value);
+                    
+                    // Fill resulting vector
+                    select_vector = fBuilder->CreateInsertElement(select_vector, scalar_res, genInt32(i));
+                }
+                
+                // Final result
+                fCurValue = select_vector;
+                
+            } else {
+            
+                // Compile condition, result in fCurValue
+                inst->fCond->accept(this);
+                 
+                // Convert condition to a bool by comparing to 1
+                Value* cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(1, inst->fSize), "ifcond");
+           
+                // Compile then branch, result in fCurValue
+                inst->fThen->accept(this);
+                Value* then_value = fCurValue;
+
+                // Compile else branch, result in fCurValue
+                inst->fElse->accept(this);
+                Value* else_value = fCurValue;
+                         
+                // Creates the result
+                fCurValue = fBuilder->CreateSelect(cond_value, then_value, else_value);
+            }
         }
         
         virtual void visit(IfInst* inst) 
@@ -2175,6 +2235,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             assert(arg1);
             assert(arg2);
+            //cerr << "generateBinopAux ARGS" << endl;
             //arg1->dump();
             //arg2->dump();
             
