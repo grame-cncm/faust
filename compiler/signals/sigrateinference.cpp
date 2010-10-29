@@ -24,7 +24,7 @@
 #include "xtended.hh"
 #include "prim2.hh"
 
-#include <boost/rational.hpp>
+#include "ratemap.hpp"
 
 /** \file sigrateinference.cpp signal rate inference
  *
@@ -33,9 +33,6 @@
  *
  *  rate source:
  *  a rate source is a signal, that has no constraints for its signal rate.
- *
- *  rate map:
- *  dictionary, mapping rate sources to factors
  *
  *  propagation:
  *  during propagation, all signals are annotated with a rate map, depending
@@ -49,111 +46,7 @@
  *
  **********************************************************************/
 
-
-typedef boost::rational<long> rational;
-
-typedef map<Tree, rational> RateMap;        /// reference signal -> rate factor
-
-static RateMap operator* (RateMap const & x, rational factor)
-{
-    RateMap ret;
-    for (RateMap::const_iterator it = x.begin(); it != x.end(); ++it) {
-        Tree n = it->first;
-        rational rate = it->second;
-        ret.insert(make_pair(n, rate * factor));
-    }
-    return ret;
-}
-
-
-static void dump(RateMap const & env)
-{
-    for (RateMap::const_iterator it = env.begin(); it != env.end(); ++it)
-        cout << *(it->first) << '\t' << it->second << endl;
-}
-
-
-static bool compatible(RateMap const & lhs, RateMap const & rhs)
-{
-    /* two rate environments are compatible, if they have no conflicting entry */
-    typedef RateMap::const_iterator ci;
-    for (ci it = lhs.begin(); it != lhs.end(); ++it) {
-        Tree key = it->first;
-        ci key_in_rhs = rhs.find(key);
-        if (key_in_rhs != rhs.end()) {
-            if (it->second != key_in_rhs->second)
-                return false;
-        }
-    }
-    return true;
-}
-
-
-static RateMap merge(RateMap const & lhs, RateMap const & rhs)
-{
-    RateMap ret(lhs);
-
-    for (RateMap::const_iterator it = rhs.begin(); it != rhs.end(); ++it)
-        ret.insert(*it);
-    return ret;
-}
-
-static RateMap mergeInferenceData(RateMap const & lhs, RateMap const & rhs)
-{
-    if (lhs.empty())
-        return rhs;
-    if (rhs.empty())
-        return lhs;
-
-    if (!compatible(lhs, rhs)) {
-        printf("Error in rate propagation\n");
-        exit(1);
-    }
-
-    return merge (lhs, rhs);
-}
-
-template <typename Iterator>
-static RateMap mergeRateInference(Iterator begin, Iterator end)
-{
-    RateMap ret = *begin++;
-    for (Iterator it = begin; it != end; ++it)
-        ret = mergeInferenceData(ret, *it);
-    return ret;
-}
-
-static RateMap unify(RateMap const & lhs, RateMap const & rhs)
-{
-    rational factor = 0;
-
-    /* two rate maps can be unified, if their elements just differ by a constant factor */
-    typedef RateMap::const_iterator ci;
-    for (ci it = lhs.begin(); it != lhs.end(); ++it) {
-        Tree key = it->first;
-        ci key_in_rhs = rhs.find(key);
-        if (key_in_rhs != rhs.end()) {
-            rational ration = it->second / key_in_rhs->second;
-            if (factor == 0)
-                factor = ration;
-            else if (ration != factor)
-                throw runtime_error("conflict for unifying rate maps");
-        }
-    }
-
-    RateMap scaled_rhs = factor ? rhs * factor : rhs;
-    RateMap ret = merge(scaled_rhs, lhs);
-    return ret;
-}
-
-template <typename Iterator>
-static RateMap UnifyRateInference(Iterator begin, Iterator end)
-{
-    RateMap ret = *begin++;
-    for (Iterator it = begin; it != end; ++it)
-        ret = unify(ret, *it);
-    return ret;
-}
-
+/** trees have a rate, if they are computed at audio rate */
 static bool hasRate(Tree sig)
 {
     Type t = sig->getType();
@@ -162,8 +55,6 @@ static bool hasRate(Tree sig)
     else
         return true;
 }
-
-
 
 typedef map<Tree, RateMap> signalRateMap;  /// signal -> rateEnv
 
@@ -180,10 +71,6 @@ static void dump(signalRateMap const & srm)
 static signalRateMap gProjMap;
 static signalRateMap gRateMap;
 
-static RateMap nullRate(void)
-{
-    return RateMap();
-}
 
 static RateMap initRate(Tree sig)
 {
@@ -224,7 +111,7 @@ static RateMap propagateRate(Tree s1, Tree s2)
     RateMap i1 = doInferRate(s1);
     RateMap i2 = doInferRate(s2);
 
-    return mergeInferenceData(i1, i2);
+    return merge(i1, i2);
 }
 
 static RateMap propagateRate(Tree s1, Tree s2, Tree s3)
@@ -243,7 +130,7 @@ static RateMap propagateRate(Tree s1, Tree s2, Tree s3)
         doInferRate(s3)
     };
 
-    return mergeRateInference(i, i+3);
+    return mergeRateMaps(i, i+3);
 }
 
 static RateMap propagateRate(Tree s1, Tree s2, Tree s3, Tree s4)
@@ -265,7 +152,7 @@ static RateMap propagateRate(Tree s1, Tree s2, Tree s3, Tree s4)
         doInferRate(s4),
     };
 
-    return mergeRateInference(i, i+4);
+    return mergeRateMaps(i, i+4);
 }
 
 
@@ -282,7 +169,7 @@ static RateMap infereXRate(Tree sig)
             data.push_back(initRate(branch));
     }
 
-    RateMap ret = mergeRateInference(data.begin(), data.end());
+    RateMap ret = mergeRateMaps(data.begin(), data.end());
     return ret;
 }
 
@@ -296,7 +183,7 @@ static RateMap infereFFRate (Tree ff, Tree ls)
             vid.push_back(doInferRate(hd(ls)));
             ls = tl(ls);
         }
-        return mergeRateInference(vid.begin(), vid.end());
+        return mergeRateMaps(vid.begin(), vid.end());
     }
 }
 
@@ -346,13 +233,13 @@ static RateMap infereRecRate(Tree var, Tree body)
             }
             if (inferred == last)
                 break;
+
             last = inferred;
         }
         vret.push_back(last);
     }
 
-    RateMap ret = UnifyRateInference(vret.begin(), vret.end());
-    dump(ret);
+    RateMap ret = unifyRateMaps(vret.begin(), vret.end());
 
     return ret;
 }
@@ -416,9 +303,9 @@ RateMap doInferRateDispatch(Tree sig)
     else if (isSigWRTbl(sig, id, s1, s2, s3))           return propagateRate(s1, s2, s3);
     else if (isSigRDTbl(sig, s1, s2))                   return propagateRate(s2);
     else if (isSigGen(sig, s1))                         return propagateRate(s1);
-    else if (isSigDocConstantTbl(sig, x, y) )           return nullRate();
-    else if (isSigDocWriteTbl(sig,x,y,z,u) )            return nullRate();
-    else if (isSigDocAccessTbl(sig, x, y) )             return nullRate();
+    else if (isSigDocConstantTbl(sig, x, y) )           return RateMap();
+    else if (isSigDocWriteTbl(sig,x,y,z,u) )            return RateMap();
+    else if (isSigDocAccessTbl(sig, x, y) )             return RateMap();
     else if (isSigSelect2(sig,sel,s1,s2))               return propagateRate(sel, s1, s2);
     else if (isSigSelect3(sig,sel,s1,s2,s3))            return propagateRate(sel, s1, s2, s3);
     else if (isList(sig)) {
@@ -427,7 +314,7 @@ RateMap doInferRateDispatch(Tree sig)
             v.push_back(doInferRate(hd(sig)));
             sig = tl(sig);
         }
-        RateMap ret = UnifyRateInference(v.begin(), v.end());
+        RateMap ret = unifyRateMaps(v.begin(), v.end());
         return ret;
     }
     else if (isSigVectorize(sig, s1, s2))               return infereVectorize(s1, s2);
@@ -442,25 +329,12 @@ RateMap doInferRateDispatch(Tree sig)
 
 typedef map<Tree, rational> simplifiedRateMap;
 
-template <typename Iterator>
-static bool ident(Iterator begin, Iterator end)
-{
-    if (begin == end)
-        return true;
-
-    for (Iterator it = begin; it != end; ++it) {
-        if (*it != *begin)
-            return false;
-    }
-    return true;
-}
-
 /** normalizes rate map
  *
  *  - computes the rates, relative to a fundamental rate
  *  - normalizes the rates relative to the smallest rate in the graph
  *
- * \returns dictionary: signal -> rate
+ * \returns dictionary, mapping every signal to a normalized rate
  */
 static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
 {
@@ -485,7 +359,8 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
             }
         }
         assert(results.size());
-        assert(ident(results.begin(), results.end()));
+        for (vector<rational>::const_iterator it = results.begin(); it != results.end(); ++it)
+            assert(*it == results.front());
 
         ret.insert(make_pair(sig, results.front()));
     }
@@ -507,19 +382,15 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
 
 Tree ratePropertyKey = tree(symbol("RateProperty"));
 
-static void annotateRate(Tree sig, int rate)
-{
-    setProperty(sig, ratePropertyKey, tree(Node(rate)));
-}
-
 static void annotateRate(simplifiedRateMap const & map)
 {
     for (simplifiedRateMap::const_iterator it = map.begin(); it != map.end(); ++it) {
         Tree sig = it->first;
         rational const & rate = it->second;
         assert(rate.denominator() == 1);
+        int numerator = rate.numerator();
 
-        annotateRate(sig, rate.numerator());
+        setProperty(sig, ratePropertyKey, tree(Node(numerator)));
     }
 }
 
