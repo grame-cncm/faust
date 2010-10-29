@@ -227,10 +227,9 @@ static RateMap infereRecRate(Tree var, Tree body)
         for (;;) {
             RateMap inferred = doInferRate(n);
 
-            if (!compatible(inferred, gProjMap[proj])) {
-                printf("Error in rate propagation\n");
-                exit(1);
-            }
+            if (!compatible(inferred, gProjMap[proj]))
+                throw runtime_error("Error in rate propagation");
+
             if (inferred == last)
                 break;
 
@@ -322,8 +321,7 @@ RateMap doInferRateDispatch(Tree sig)
     else if (isSigConcat(sig, s1, s2))                  return propagateRate(s1, s2);
     else if (isSigVectorAt(sig, s1, s2))                return propagateRate(s1, s2);
 
-    printf("internal error");
-    exit(1);
+    throw logic_error("internal error");
 }
 
 
@@ -396,9 +394,15 @@ static void annotateRate(simplifiedRateMap const & map)
 
 void inferRate(Tree sig)
 {
-    RateMap data = doInferRate(sig);
+    try {
+        RateMap data = doInferRate(sig);
 
-    simplifiedRateMap rates = normalizeRateMap(data);
+        simplifiedRateMap rates = normalizeRateMap(data);
 
-    annotateRate(rates);
+        annotateRate(rates);
+    } catch (runtime_error const & e) {
+        printf("Error during rate inference:\n");
+        cout << e.what();
+        exit(1);
+    }
 }
