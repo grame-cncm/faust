@@ -327,6 +327,8 @@ RateMap doInferRateDispatch(Tree sig)
 
 typedef map<Tree, rational> simplifiedRateMap;
 
+extern bool gDetailsSwitch;
+
 /** normalizes rate map
  *
  *  - computes the rates, relative to a fundamental rate
@@ -370,8 +372,10 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
     for (simplifiedRateMap::iterator it = ret.begin(); it != ret.end(); ++it) {
         it->second = it->second * denom;
         assert(it->second.denominator() == 1);
-        dump(it->first);
-        cout << it->second.numerator() << endl << endl;
+        if (gDetailsSwitch) {
+            dump(it->first);
+            cout << it->second.numerator() << endl << endl;
+        }
     }
 
     return ret;
