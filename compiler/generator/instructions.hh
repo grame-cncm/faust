@@ -287,10 +287,7 @@ struct ValueInst : public Printable
 struct NullInst : public ValueInst
 {
     NullInst()
-    {
-        // Not supposed to happen
-        assert(false);
-    }
+    {}
     virtual ~NullInst() 						
     {}
     

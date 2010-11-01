@@ -327,8 +327,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         string name = subst("output$0", T(index));
 
         // Cast to external float
-        ValueInst* res = CS(kSamp, sig);
-        res = InstBuilder::genCastNumInst(CS(kSamp, sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+        ValueInst* res = InstBuilder::genCastNumInst(CS(kSamp, sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
 
         fContainer->getCurLoop()->pushComputeDSPMethod(
             InstBuilder::genStoreVarInst(
@@ -931,12 +930,14 @@ ValueInst* InstructionsCompiler::generateRecProj(int variability, Tree sig, Tree
 {
     string vname;
     Tree var, le;
-    ValueInst* res = NULL;
+    ValueInst* res;
 
     if (!getVectorNameProperty(sig, vname)) {
         assert(isRec(r, var, le));
         res = generateRec(variability, r, var, le, i);
         assert(getVectorNameProperty(sig, vname));
+    } else {
+        res = InstBuilder::genNullInst();
     }
     return res;
 }
