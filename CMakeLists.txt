@@ -15,6 +15,7 @@ ADD_CUSTOM_TARGET(uninstall
 
 add_subdirectory(compiler)
 
+add_subdirectory(tests/codegen-tests)
 add_subdirectory(tests/error-tests)
 add_subdirectory(tests/warning-tests)
 add_subdirectory(tests/pass-tests)
