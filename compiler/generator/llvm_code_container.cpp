@@ -39,7 +39,7 @@ extern bool gVectorSwitch;
 extern int gVectorLoopVariant;
 extern int gVecSize;
 
-CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name)
+CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int type)
 {
     return new LLVMScalarCodeContainer(0, 1, fModule, fBuilder, name);
 }

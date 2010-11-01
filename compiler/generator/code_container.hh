@@ -258,7 +258,7 @@ class CodeContainer {
         void addUIMacro(const string& str)  { fUIMacro.push_back(str); }
         void addUICode(const string& str)	{ fUICode.push_back(str); }
         
-        virtual CodeContainer* createScalarContainer(const string& name) = 0;
+        virtual CodeContainer* createScalarContainer(const string& name, int type) = 0;
         
         virtual void produceInternal() = 0;
         virtual void produceClass() {}

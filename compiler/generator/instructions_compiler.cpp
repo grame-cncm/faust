@@ -252,19 +252,12 @@ bool InstructionsCompiler::getTableNameProperty(Tree sig, string& name)
 
 CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree sig)
 {
-	Type t = getSigType(sig); //, NULLENV);
+	Type t = getSigType(sig); 
 
-	if (t->nature() == kInt) {
-        CodeContainer* container = fContainer->createScalarContainer(name); // SAME ??
-        InstructionsCompiler C(container);
-		C.compileSingleSignal(sig);
-		return container;
-	} else {
-        CodeContainer* container = fContainer->createScalarContainer(name); // SAME ??
-		InstructionsCompiler C(container);
-		C.compileSingleSignal(sig);
-		return container;
-	}
+	CodeContainer* container = fContainer->createScalarContainer(name, t->nature()); 
+    InstructionsCompiler C(container);
+    C.compileSingleSignal(sig);
+    return container;
 }
 
 /*****************************************************************************

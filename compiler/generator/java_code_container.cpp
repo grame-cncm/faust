@@ -47,7 +47,7 @@ JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const strin
 JAVAScalarCodeContainer::~JAVAScalarCodeContainer()
 {}
 
-CodeContainer* JAVACodeContainer::createScalarContainer(const string& name)
+CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int type)
 {
     return new JAVAScalarCodeContainer(name, "", 0, 1, fOut);
 }

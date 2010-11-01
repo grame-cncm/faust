@@ -59,7 +59,7 @@ class JAVACodeContainer : public CodeContainer {
 
         void printIncludeFile(ostream& fout);
 
-        CodeContainer* createScalarContainer(const string& name);
+        CodeContainer* createScalarContainer(const string& name, int type);
 };
 
 class JAVAScalarCodeContainer : public JAVACodeContainer {

@@ -152,7 +152,7 @@ class LLVMCodeContainer : public CodeContainer {
         virtual void generateCompute() = 0;
         void produceInternal();
 
-        CodeContainer* createScalarContainer(const string& name);
+        CodeContainer* createScalarContainer(const string& name, int type);
 
 };
 

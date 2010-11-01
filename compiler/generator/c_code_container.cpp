@@ -39,7 +39,7 @@ extern bool gUIMacroSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 
-CodeContainer* CCodeContainer::createScalarContainer(const string& name)
+CodeContainer* CCodeContainer::createScalarContainer(const string& name, int type)
 {
     return new CScalarCodeContainer("", 0, 1, fOut, name);
 }

@@ -32,7 +32,7 @@ using namespace std;
 
 extern int gVectorLoopVariant;
 
-CodeContainer* FirCodeContainer::createScalarContainer(const string& name)
+CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int type)
 {
     return new FirScalarCodeContainer(0, 1);
 }

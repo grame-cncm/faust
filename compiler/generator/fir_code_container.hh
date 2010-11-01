@@ -45,7 +45,7 @@ class FirCodeContainer : public CodeContainer {
         virtual ~FirCodeContainer()
         {}
 
-        CodeContainer* createScalarContainer(const string& name);
+        CodeContainer* createScalarContainer(const string& name, int type);
         void produceInternal() {}
 
 };

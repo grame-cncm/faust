@@ -56,7 +56,7 @@ class CPPCodeContainer : public CodeContainer {
         virtual void generateCompute(int tab) = 0;
         virtual void produceInternal();
 
-        CodeContainer* createScalarContainer(const string& name);
+        CodeContainer* createScalarContainer(const string& name, int type);
 
 };
 
