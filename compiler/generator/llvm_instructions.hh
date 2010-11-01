@@ -2211,13 +2211,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             
                 // Create resulting vector
                 Value* select_vector = UndefValue::get(then_value->getType());
-                
-                cerr << "generateScalarSelect " << endl;
-                cond_value->dump();
-                cond_value->getType()->dump();
-                then_value->dump();
-                else_value->dump();
-                
+                  
                 for (int i = 0; i < size; i++) {
                 
                     Value* scalar_cond_value = fBuilder->CreateExtractElement(cond_value, genInt32(i));
@@ -2235,8 +2229,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 return select_vector;
             }
         }
-
-        
+       
         LlvmValue generateBinOpFloat(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (opcode >= kGT && opcode < kAND) {
