@@ -340,9 +340,12 @@ void CPPVectorCodeContainer::generateCompute(int n)
   
     // Generate it
     assert(block);
-    //block->accept(&fCodeProducer);
+    block->accept(&fCodeProducer);
+    
+    /*
     ScalVecDispatcherVisitor visitor(fOut, n+2);
     block->accept(&visitor);
+    */
    
     tab(n+1, *fOut); *fOut << "}";
 }

@@ -1516,7 +1516,7 @@ struct InstBuilder
         
         if (!typed) {
             // Default case
-            return new CastNumInst(inst, typed);
+            return new CastNumInst(inst, typed_ext, size);
         } else if (typed->getType() == Typed::kFloat) {
             if (int_num) {
                 // Simple float cast of integer
