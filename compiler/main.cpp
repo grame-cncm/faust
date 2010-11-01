@@ -33,6 +33,7 @@
 #include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
+#include "sigrateinference.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "privatise.hh"
@@ -593,6 +594,8 @@ static Tree prepareSignals(Tree lsignals)
     Tree signals = privatized;
     recursivnessAnnotation(signals);            // Annotate final signal tree with recursivness information
     typeAnnotation(signals);                    // Annotate final signal tree with type information
+
+    inferRate(signals);
 
     endTiming("preparation");
     return signals;

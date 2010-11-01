@@ -290,10 +290,7 @@ struct ValueInst : public Printable, public Vectorizable
 struct NullInst : public ValueInst
 {
     NullInst()
-    {
-        // Not supposed to happen
-        assert(false);
-    }
+    {}
     virtual ~NullInst() 						
     {}
     

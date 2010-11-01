@@ -89,6 +89,8 @@ typedef CTree* Tree;
 typedef map<Tree, Tree>	plist;
 typedef vector<Tree>	tvec;
 
+struct AudioType;
+
 /**
  * A CTree = (Node x [CTree]) is a Node associated with a list of subtrees called branches.
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -119,7 +121,7 @@ class CTree
 	// fields
 	Tree		fNext;				///< next tree in the same hashtable entry
 	Node		fNode;				///< the node content of the tree
-	void*		fType;				///< the type of a tree
+	AudioType*	fType;				///< the type of a tree
 	plist		fProperties;		///< the properties list attached to the tree
 	unsigned int		fHashKey;			///< the hashtable key
 	int			fAperture;			///< how "open" is a tree (synthezised field)
@@ -151,8 +153,8 @@ class CTree
 	static void control ();										///< print the hash table content (for debug purpose)
 
 	// type information
-	void		setType(void* t) 	{ fType = t; }
-	void*		getType() 			{ return fType; }
+	void		setType(AudioType* t) 	{ fType = t; }
+	AudioType*	getType() 		        { return fType; }
 
 	// Property list of a tree
 	CTree*		setProperty(Tree key, Tree value) { fProperties[key] = value; return this;}
@@ -200,7 +202,7 @@ bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, T
 
 //printing
 inline ostream& operator << (ostream& s, const CTree& t) { return t.print(s); }
-
+void dump(Tree t);
 
 //-----------------------------------------------------------------------------
 // recursive trees

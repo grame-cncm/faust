@@ -45,8 +45,9 @@ static Type infereFVarType (Tree type);
 static Type infereRecType (Tree var, Tree body, Tree env);
 static Type infereReadTableType(Type tbl, Type ri);
 static Type infereWriteTableType(Type tbl, Type wi, Type wd);
-static Type infereProjType(Type t, int i, int vec);
+static Type infereProjType(Type t, int i);
 static Type infereXType(Tree sig, Tree env);
+static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2);
 static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
@@ -286,26 +287,20 @@ static Type infereSigType(Tree sig, Tree env)
 	Tree		label, cur, min, max, step;
 
 
-		 if ( getUserData(sig) ) 			return infereXType(sig, env);
-
-	else if (isSigInt(sig, &i))			return new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
-
-	else if (isSigReal(sig, &r)) 			return new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
-
-	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
-
+		 if ( getUserData(sig) ) 			    return infereXType(sig, env);
+	else if (isSigInt(sig, &i))			        return new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
+    else if (isSigReal(sig, &r)) 			    return new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
+	else if (isSigInput(sig, &i))			    return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
 	else if (isSigDelay1(sig, s1)) 			{
 		Type t = T(s1,env);
 		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0)));
 	}
-
 	else if (isSigPrefix(sig, s1, s2)) 		{
 		Type t1 = T(s1,env);
 		Type t2 = T(s2,env);
 		checkInit(t1);
 		return castInterval(sampCast(t1|t2), reunion(t1->getInterval(), t2->getInterval()));
 	}
-
 	else if (isSigFixDelay(sig, s1, s2)) 		{
 		Type t1 = T(s1,env);
 		Type t2 = T(s2,env);
@@ -329,63 +324,33 @@ static Type infereSigType(Tree sig, Tree env)
 		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0)));
 	}
 
-	else if (isSigBinOp(sig, &i, s1, s2)) {
-		//Type t = T(s1,env)|T(s2,env);
-		Type t1 = T(s1,env);
-		Type t2 = T(s2,env);
-		Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
-		//cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
-	  	//return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
-	  	return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
-	}
-
-	else if (isSigIntCast(sig, s1))			return intCast(T(s1,env));
-
+	else if (isSigBinOp(sig, &i, s1, s2))       return infereBinopType(sig, env, i, s1, s2);
+	else if (isSigIntCast(sig, s1))			    return intCast(T(s1,env));
 	else if (isSigFloatCast(sig, s1)) 			return floatCast(T(s1,env));
-
 	else if (isSigFFun(sig, ff, ls)) 			return infereFFType(ff,ls,env);
-
     else if (isSigFConst(sig,type,name,file))   return infereFConstType(type);
-
-    else if (isSigFVar(sig,type,name,file))   return infereFVarType(type);
-
-	else if (isSigButton(sig)) 				return castInterval(TGUI,interval(0,1));
-
+    else if (isSigFVar(sig,type,name,file))     return infereFVarType(type);
+	else if (isSigButton(sig)) 				    return castInterval(TGUI,interval(0,1));
 	else if (isSigCheckbox(sig))				return castInterval(TGUI,interval(0,1));
-
 	else if (isSigVSlider(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
-
 	else if (isSigHSlider(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
-
 	else if (isSigNumEntry(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
-
-	else if (isSigHBargraph(sig, l, x, y, s1)) return T(s1,env);
-
-	else if (isSigVBargraph(sig, l, x, y, s1)) return T(s1,env);
-
-	else if (isSigAttach(sig, s1, s2)) 		{ T(s2,env); return T(s1,env); }
-
-	else if (isRec(sig, var, body))			return infereRecType(sig, body, env);
-
-	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i,kScal);
-
+	else if (isSigHBargraph(sig, l, x, y, s1))  return T(s1,env);
+	else if (isSigVBargraph(sig, l, x, y, s1))  return T(s1,env);
+	else if (isSigAttach(sig, s1, s2)) 		    { T(s2,env); return T(s1,env); }
+	else if (isRec(sig, var, body))			    return infereRecType(sig, body, env);
+	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i);
 	else if (isSigTable(sig, id, s1, s2)) 		{ checkInt(checkInit(T(s1,env))); return new TableType(checkInit(T(s2,env))); }
-
 	else if (isSigWRTbl(sig, id, s1, s2, s3)) 	return infereWriteTableType(T(s1,env), T(s2,env), T(s3,env));
-
 	else if (isSigRDTbl(sig, s1, s2)) 			return infereReadTableType(T(s1,env), T(s2,env));
-
 	else if (isSigGen(sig, s1)) 				return T(s1,NULLENV);
-
-    else if ( isSigDocConstantTbl(sig, x, y) )	return infereDocConstantTblType(T(x,env), T(y,env));
-    else if ( isSigDocWriteTbl(sig,x,y,z,u) )	return infereDocWriteTblType(T(x,env), T(y,env), T(z,env), T(u,env));
-    else if ( isSigDocAccessTbl(sig, x, y) )    return infereDocAccessTblType(T(x,env), T(y,env));
-
+    else if (isSigDocConstantTbl(sig, x, y) )	return infereDocConstantTblType(T(x,env), T(y,env));
+    else if (isSigDocWriteTbl(sig,x,y,z,u) )	return infereDocWriteTblType(T(x,env), T(y,env), T(z,env), T(u,env));
+    else if (isSigDocAccessTbl(sig, x, y) )     return infereDocAccessTblType(T(x,env), T(y,env));
 	else if (isSigSelect2(sig,sel,s1,s2)) 		{
-
 	  SimpleType *st1, *st2, *stsel;
 
 	  st1 = isSimpleType(T(s1,env));
@@ -405,17 +370,16 @@ static Type infereSigType(Tree sig, Tree env)
 	}
 
 	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	{ return T(sel,env)|T(s1,env)|T(s2,env)|T(s3,env); }
-
 	else if (isList(sig))
 	{
 		vector<Type> v;
 		while (isList(sig)) { v.push_back(T(hd(sig),env)); sig = tl(sig); }
 		return new TupletType(v);
 	}
-	else if (isSigVectorize(sig, s1, s2))   return infereVectorizeType(sig, env, s1, s2);
-    else if (isSigSerialize(sig, s1))       return infereSerializeType(sig, env, s1);
-    else if (isSigConcat(sig, s1, s2))      return infereConcatType(sig, env, s1, s2);
-    else if (isSigVectorAt(sig, s1, s2))    return infereVectorAtType(sig, env, s1, s2);
+	else if (isSigVectorize(sig, s1, s2))       return infereVectorizeType(sig, env, s1, s2);
+    else if (isSigSerialize(sig, s1))           return infereSerializeType(sig, env, s1);
+    else if (isSigConcat(sig, s1, s2))          return infereConcatType(sig, env, s1, s2);
+    else if (isSigVectorAt(sig, s1, s2))        return infereVectorAtType(sig, env, s1, s2);
 
 	// unrecognized signal here
 	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
@@ -428,7 +392,7 @@ static Type infereSigType(Tree sig, Tree env)
 /**
  *	Infere the type of a projection (selection) of a tuplet element
  */
-static Type infereProjType(Type t, int i, int vec)
+static Type infereProjType(Type t, int i)
 {
 	TupletType* tt = isTupletType(t);
 	if (tt == 0) {
@@ -439,11 +403,10 @@ static Type infereProjType(Type t, int i, int vec)
 	//		->promoteComputability(t->computability());
 	Type temp = (*tt)[i]	->promoteVariability(t->variability())
 	  ->promoteComputability(t->computability())
-	  ->promoteVectorability(vec/*t->vectorability()*/);
+	  ->promoteVectorability(kScal);
 	//->promoteBooleanity(t->boolean());
 
-	if(vec==kVect) return vecCast(temp);
-	else return temp;
+    return temp;
 }
 
 
@@ -668,6 +631,45 @@ static Type infereXType(Tree sig, Tree env)
 	for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));
 	return p->infereSigType(vt);
 }
+
+static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2)
+{
+    Type t1 = T(s1,env);
+    Type t2 = T(s2,env);
+
+    Type vt1 = isVectorType(t1);
+    Type vt2 = isVectorType(t2);
+
+    Type ret;
+
+    if (vt1 && !vt2) {
+        Type st2 = isSimpleType(t2);
+
+        if (!st2) {
+            printf("Type error: cannot merge types of binary operator");
+            exit (1);
+        }
+
+        ret = mergeTypes(vt1, st2);
+    }
+    else if (vt2 && !vt1) {
+        Type st1 = isSimpleType(t1);
+
+        if (!st1) {
+            printf("Type error: cannot merge types of binary operator");
+            exit (1);
+        }
+
+        ret = mergeTypes(vt2, st1);
+    } else
+        ret = t1 | t2;
+
+    interval newInterval = arithmetic(i, t1->getInterval(), t2->getInterval());
+    Type t3 = ret->castInterval(newInterval);
+
+    return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
+}
+
 
 static Type infereVectorizeType(Tree sig, Tree env, Tree s1, Tree s2)
 {
