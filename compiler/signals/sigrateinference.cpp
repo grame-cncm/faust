@@ -227,8 +227,14 @@ static RateMap infereRecRate(Tree var, Tree body)
         for (;;) {
             RateMap inferred = doInferRate(n);
 
+            if (gProjMap.find(proj) == gProjMap.end()) {
+                RateMap env = initRate(proj);
+                gProjMap[proj] = env;
+            }
+
             if (!compatible(inferred, gProjMap[proj]))
                 throw runtime_error("Error in rate propagation");
+            inferred = merge(inferred, gProjMap[proj]);
 
             if (inferred == last)
                 break;
@@ -343,6 +349,7 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
     for (signalRateMap::const_iterator it1 = gRateMap.begin(); it1 != gRateMap.end(); ++it1) {
         Tree sig = it1->first;
         RateMap const & e = it1->second;
+        assert(!e.empty());
 
         vector<rational> results;
 
