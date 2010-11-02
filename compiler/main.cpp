@@ -74,6 +74,7 @@
 #include "schema.h"
 #include "drawschema.hh"
 #include "timing.hh"
+#include "constant_folding.hh"
 
 using namespace std ;
 
@@ -584,6 +585,7 @@ static Tree prepareSignals(Tree lsignals)
     Tree lsym = deBruijn2Sym(lsignals);         // convert debruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
 
+    lsym = foldConstants(lsym);
     Tree simplified = simplify(lsym);           // simplify by executing every computable operation
     Tree privatized = privatise(simplified);    // Un-share tables with multiple writers
 
