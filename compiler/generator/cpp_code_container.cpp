@@ -49,14 +49,12 @@ void CPPCodeContainer::produceInternal()
     int n = 0;
 
     // Global declarations
-    
     tab(n, *fOut);
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         fCodeProducer.Tab(n);
         fGlobalDeclarationInstructions->accept(&fCodeProducer);
     }
-    
-
+ 
     tab(n, *fOut); *fOut << "class " << fKlassName << " {";
 
         tab(n+1, *fOut);
@@ -147,7 +145,7 @@ void CPPCodeContainer::produceClass()
     // Sub containers
     generateSubContainers();
 
-    // Functions
+    // Global declarations
     tab(n, *fOut);
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         fCodeProducer.Tab(n);

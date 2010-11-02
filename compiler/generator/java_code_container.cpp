@@ -70,14 +70,12 @@ void JAVACodeContainer::produceInternal()
     int n = 1;
 
     // Global declarations
-    /*
     tab(n, *fOut);
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         fCodeProducer.Tab(n);
         fGlobalDeclarationInstructions->accept(&fCodeProducer);
     }
-    */
-
+ 
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
         tab(n+1, *fOut);
