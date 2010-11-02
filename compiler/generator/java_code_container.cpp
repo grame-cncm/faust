@@ -40,16 +40,18 @@ extern int gVectorLoopVariant;
 extern map<Tree, set<Tree> > gMetaDataSet;
 
 // Scalar
-JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
     :JAVACodeContainer(name, super, numInputs, numOutputs, out)
-{}
+{
+     fSubContainerType = sub_container_type;
+}
 
 JAVAScalarCodeContainer::~JAVAScalarCodeContainer()
 {}
 
-CodeContainer* JAVACodeContainer::createScalarContainer(const string& name)
+CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new JAVAScalarCodeContainer(name, "", 0, 1, fOut);
+    return new JAVAScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
 void JAVACodeContainer::printIncludeFile(ostream& fout)
@@ -68,14 +70,12 @@ void JAVACodeContainer::produceInternal()
     int n = 1;
 
     // Global declarations
-    /*
     tab(n, *fOut);
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         fCodeProducer.Tab(n);
         fGlobalDeclarationInstructions->accept(&fCodeProducer);
     }
-    */
-
+ 
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
         tab(n+1, *fOut);
@@ -131,7 +131,11 @@ void JAVACodeContainer::produceInternal()
 
         // Fill
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+        if (fSubContainerType == kInt) {
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << "(int count, int* output) {";
+        } else {
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+        }
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         if (fComputeBlockInstructions->fCode.size() > 0) {

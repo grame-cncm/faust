@@ -60,7 +60,7 @@ class CPPCodeContainer : public CodeContainer {
         virtual void generateCompute(int tab) = 0;
         virtual void produceInternal();
 
-        CodeContainer* createScalarContainer(const string& name);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
 };
 
@@ -71,7 +71,7 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
 
     public:
 
-        CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+        CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~CPPScalarCodeContainer();
 
         void generateCompute(int tab);
@@ -447,9 +447,9 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             virtual void visit(DeclareVarInst* inst) 
             {   
                 if (inst->fAddress->getAccess() & Address::kGlobal) {
-                    if (fGlobalTable.find(inst->fAddress->getName()) == fGlobalTable.end()) {
+                    if (gGlobalTable.find(inst->fAddress->getName()) == gGlobalTable.end()) {
                         // If global is not defined
-                        fGlobalTable[inst->fAddress->getName()] = 1;
+                        gGlobalTable[inst->fAddress->getName()] = 1;
                     } else {
                         return;
                     }
@@ -532,9 +532,9 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
             virtual void visit(DeclareVarInst* inst) 
             {   
                 if (inst->fAddress->getAccess() & Address::kGlobal) {
-                    if (fGlobalTable.find(inst->fAddress->getName()) == fGlobalTable.end()) {
+                    if (gGlobalTable.find(inst->fAddress->getName()) == gGlobalTable.end()) {
                         // If global is not defined
-                        fGlobalTable[inst->fAddress->getName()] = 1;
+                        gGlobalTable[inst->fAddress->getName()] = 1;
                     } else {
                         return;
                     }

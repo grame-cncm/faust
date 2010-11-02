@@ -31,10 +31,11 @@
 using namespace std;
 
 extern int gVectorLoopVariant;
+map <string, int> FIRInstVisitor::gGlobalTable;
 
-CodeContainer* FirCodeContainer::createScalarContainer(const string& name)
+CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new FirScalarCodeContainer(0, 1);
+    return new FirScalarCodeContainer(0, 1, sub_container_type);
 }
 
 void FirScalarCodeContainer::dump(ostream* dst)

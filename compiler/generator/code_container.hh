@@ -102,6 +102,8 @@ class CodeContainer {
         
         int fNumActives;       ///< number of active controls in the UI (sliders, buttons, etc.)
         int fNumPassives;      ///< number of passive widgets in the UI (bargraphs, etc.)
+        
+        int fSubContainerType;
      
         void incUIActiveCount()    { fNumActives++; }
         void incUIPassiveCount()   { fNumPassives++; }
@@ -198,20 +200,8 @@ class CodeContainer {
             return inst; 
         }
         
-        ValueInst* pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args) 
-        {
-            BasicTyped* result_type = InstBuilder::genBasicTyped(result);
+        ValueInst* pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args);
             
-            list<NamedTyped*> named_args;
-            for (size_t i = 0; i < types.size(); i++) {
-                stringstream num; num << i;
-                named_args.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped(types[i])));
-            }
-            
-            fGlobalDeclarationInstructions->pushBackInst(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
-            return InstBuilder::genFunCallInst(name, args);
-        }
-        
         StatementInst* pushInitMethod(StatementInst* inst) { fInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushFrontInitMethod(StatementInst* inst) { fInitInstructions->pushFrontInst(inst); return inst; }
         StatementInst* pushDestroyMethod(StatementInst* inst) { fDestroyInstructions->pushBackInst(inst); return inst; }
@@ -232,7 +222,7 @@ class CodeContainer {
         void addUIMacro(const string& str)  { fUIMacro.push_back(str); }
         void addUICode(const string& str)	{ fUICode.push_back(str); }
         
-        virtual CodeContainer* createScalarContainer(const string& name) = 0;
+        virtual CodeContainer* createScalarContainer(const string& name, int sub_container_type) = 0;
         
         virtual void produceInternal() = 0;
         virtual void produceClass() {}

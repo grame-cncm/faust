@@ -56,7 +56,7 @@ class CCodeContainer : public CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
 
-        CodeContainer* createScalarContainer(const string& name);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
 };
 
@@ -67,7 +67,7 @@ class CScalarCodeContainer : public CCodeContainer {
 
     public:
 
-        CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
+        CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, const string& prefix = "");
         virtual ~CScalarCodeContainer();
 
         void generateCompute(int tab);

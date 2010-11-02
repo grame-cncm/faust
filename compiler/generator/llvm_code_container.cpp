@@ -39,9 +39,9 @@ extern bool gVectorSwitch;
 extern int gVectorLoopVariant;
 extern int gVecSize;
 
-CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name)
+CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new LLVMScalarCodeContainer(0, 1, fModule, fBuilder, name);
+    return new LLVMScalarCodeContainer(0, 1, fModule, fBuilder, sub_container_type, name);
 }
 
 // Generic
@@ -60,8 +60,16 @@ void LLVMCodeContainer::generateFillBegin()
     llvm_fill_args.push_back(fDSP_ptr);
     llvm_fill_args.push_back(fBuilder->getInt32Ty());
 
-    // real* output
-    const llvm::Type* buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
+    const llvm::Type* buffer_type;
+    
+    if (fSubContainerType == kInt) {
+        // int* type
+        buffer_type = fBuilder->getInt32Ty();
+    } else {
+        // real* output
+        buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
+    }
+    
     llvm_fill_args.push_back(PointerType::get(buffer_type, 0));
     FunctionType* llvm_fill_type = FunctionType::get(fBuilder->getVoidTy(), llvm_fill_args, false);
 
@@ -482,9 +490,11 @@ LLVMScalarCodeContainer::LLVMScalarCodeContainer(int numInputs, int numOutputs, 
     :LLVMCodeContainer(numInputs, numOutputs, prefix)
 {}
 
-LLVMScalarCodeContainer::LLVMScalarCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, const string& prefix)
+LLVMScalarCodeContainer::LLVMScalarCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder,  int sub_container_type, const string& prefix)
     :LLVMCodeContainer(numInputs, numOutputs, module, builder, prefix)
-{}
+{
+    fSubContainerType = sub_container_type;
+}
 
 LLVMScalarCodeContainer::~LLVMScalarCodeContainer()
 {}

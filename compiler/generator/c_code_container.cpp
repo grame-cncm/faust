@@ -38,10 +38,11 @@ extern int gVectorLoopVariant;
 extern bool gUIMacroSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
+map <string, int> CInstVisitor::gGlobalTable;
 
-CodeContainer* CCodeContainer::createScalarContainer(const string& name)
+CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new CScalarCodeContainer("", 0, 1, fOut, name);
+    return new CScalarCodeContainer("", 0, 1, fOut, sub_container_type, name);
 }
 
 void CCodeContainer::produceInternal()
@@ -105,7 +106,11 @@ void CCodeContainer::produceInternal()
 
     // Fill
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int count, $0* output) {", ifloat());
+    if (fSubContainerType == kInt) {
+        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << "* dsp, int count, int* output) {";
+    } else {
+        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int count, $0* output) {", ifloat());
+    }
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -263,9 +268,11 @@ void CCodeContainer::produceClass()
 }
 
 // Scalar
-CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
+CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, const string& prefix)
     :CCodeContainer(name, numInputs, numOutputs, out, prefix)
-{}
+{
+    fSubContainerType = sub_container_type;
+}
 
 CScalarCodeContainer::~CScalarCodeContainer()
 {}
