@@ -589,9 +589,13 @@ static Tree prepareSignals(Tree lsignals)
 
     Tree signals = privatized;
     recursivnessAnnotation(signals);            // Annotate final signal tree with recursivness information
+    startTiming("typeAnnotation");
     typeAnnotation(signals);                    // Annotate final signal tree with type information
+    endTiming("typeAnnotation");
 
+    startTiming("inferRate");
     inferRate(signals);
+    endTiming("inferRate");
 
     endTiming("preparation");
     return signals;
