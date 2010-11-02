@@ -653,7 +653,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else if (gVectorSwitch) {
                 container = new CVectorCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
             } else {
-                container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+                container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, kInt, "c_");
             }
         } else if (gOutputLang == "cpp") {
             if (gOpenMPSwitch) {
@@ -663,7 +663,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else if (gVectorSwitch) {
                 container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
-                container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+                container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
             }
         } else if (gOutputLang == "java") {
             if (gOpenMPSwitch) {
@@ -675,7 +675,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else if (gVectorSwitch) {
                 container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
-                container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+                container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
             }
         } else if (gOutputLang == "fir") {
             if (gOpenMPSwitch) {
@@ -688,7 +688,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 container = new FirVectorCodeContainer(numInputs, numOutputs);
                 comp = new DAGInstructionsCompiler(container);
             } else {
-                container = new FirScalarCodeContainer(numInputs, numOutputs);
+                container = new FirScalarCodeContainer(numInputs, numOutputs, kInt);
                 comp = new InstructionsCompiler(container);
             }
 

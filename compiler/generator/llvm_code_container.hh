@@ -152,7 +152,7 @@ class LLVMCodeContainer : public CodeContainer {
         virtual void generateCompute() = 0;
         void produceInternal();
 
-        CodeContainer* createScalarContainer(const string& name, int type);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
 };
 
@@ -164,7 +164,7 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
     public:
 
         LLVMScalarCodeContainer(int numInputs, int numOutputs, const string& module_name = "");
-        LLVMScalarCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, const string& prefix = "");
+        LLVMScalarCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, int sub_container_type, const string& prefix = "");
         virtual ~LLVMScalarCodeContainer();
 
         void generateCompute();

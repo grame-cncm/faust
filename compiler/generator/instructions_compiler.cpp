@@ -669,13 +669,13 @@ ValueInst* InstructionsCompiler::generateFFun(int variability, Tree sig, Tree ff
     for (int i = 0; i< ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
-        ::Type t1 = getSigType(parameter);//, tEnv);
+        ::Type t1 = getSigType(parameter);
         args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped((t1->nature() == kInt) ? Typed::kInt : itfloat())));
         args_value.push_back(CS(variability, parameter));
     }
 
     // Add function declaration
-    fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped(itfloat()));
+    fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat()));
     fContainer->pushGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
 
     return generateCacheCode(sig, InstBuilder::genFunCallInst(funname, args_value));
@@ -930,7 +930,7 @@ ValueInst* InstructionsCompiler::generateRecProj(int variability, Tree sig, Tree
         res = generateRec(variability, r, var, le, i);
         assert(getVectorNameProperty(sig, vname));
     } else {
-        res = InstBuilder::genNullInst();
+        res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
     }
     return res;
 }
@@ -951,7 +951,7 @@ ValueInst* InstructionsCompiler::generateRec(int variability, Tree sig, Tree var
         if (fOccMarkup.retrieve(e)) {
             // This projection is used
             used[i] = true;
-            getTypedNames(getSigType(e), "Rec", ctype[i],  vname[i]);
+            getTypedNames(getSigType(e), "Rec", ctype[i], vname[i]);
             setVectorNameProperty(e, vname[i]);
             delay[i] = fOccMarkup.retrieve(e)->getMaxDelay();
         } else {
@@ -1288,7 +1288,11 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
 ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access)
 {
     if (mxd == 0) {
-        // Nothing to do
+    
+        // Generate scalar use
+        fContainer->getCurLoop()->pushComputeDSPMethod(
+            InstBuilder::genDeclareVarInst(vname, InstBuilder::genBasicTyped(ctype), Address::kStack, exp));
+        
     } else if (mxd < gMaxCopyDelay) {
 
         // Generates table init

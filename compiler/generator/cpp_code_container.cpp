@@ -37,10 +37,11 @@ extern bool gUIMacroSwitch;
 extern int gVectorLoopVariant;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
+map <string, int> CPPInstVisitor::gGlobalTable;
 
-CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int type)
+CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new CPPScalarCodeContainer(name, "", 0, 1, fOut);
+    return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
 void CPPCodeContainer::produceInternal()
@@ -48,13 +49,13 @@ void CPPCodeContainer::produceInternal()
     int n = 0;
 
     // Global declarations
-    /*
+    
     tab(n, *fOut);
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         fCodeProducer.Tab(n);
         fGlobalDeclarationInstructions->accept(&fCodeProducer);
     }
-    */
+    
 
     tab(n, *fOut); *fOut << "class " << fKlassName << " {";
 
@@ -103,7 +104,11 @@ void CPPCodeContainer::produceInternal()
 
         // Fill
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+        if (fSubContainerType == kInt) {
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName <<  "(int count, int* output) {";
+        } else {
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+        }
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         if (fComputeBlockInstructions->fCode.size() > 0) {
@@ -278,9 +283,11 @@ void CPPCodeContainer::produceClass()
 }
 
 // Scalar
-CPPScalarCodeContainer::CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+CPPScalarCodeContainer::CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
     :CPPCodeContainer(name, super, numInputs, numOutputs, out)
-{}
+{
+    fSubContainerType = sub_container_type;
+}
 
 CPPScalarCodeContainer::~CPPScalarCodeContainer()
 {}

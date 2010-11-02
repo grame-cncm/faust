@@ -56,7 +56,7 @@ class CPPCodeContainer : public CodeContainer {
         virtual void generateCompute(int tab) = 0;
         virtual void produceInternal();
 
-        CodeContainer* createScalarContainer(const string& name, int type);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
 };
 
@@ -67,7 +67,7 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
 
     public:
 
-        CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+        CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~CPPScalarCodeContainer();
 
         void generateCompute(int tab);

@@ -53,6 +53,7 @@ class PowPrim : public xtended
         }
         */
         
+        /*
         Typed::VarType result_type;
         if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
         vector<Typed::VarType> arg_types;
@@ -69,25 +70,36 @@ class PowPrim : public xtended
         }
         
         return container->pushFunction(subst("pow$0", isuffix()), result_type, arg_types, casted_args);
+        */
+         
+        vector<Typed::VarType> arg_types(2);
+        vector< ::Type>::const_iterator it1;
+        Typed::VarType result_type;
+        if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
         
-        /*
-        if (types[1] == Typed::kInt) {
-            return container->pushFunction("faustpower", result_type, types, args);
-        } else {
-            // Force float types for both arguments
-            types[0] = Typed::kFloat;
-            types[1] = Typed::kFloat;
+        if (types[0]->nature() == kInt && types[1]->nature() == kInt) {
+           
+            if (types[0]->nature() == kInt) 
+                arg_types[0] = Typed::kInt;
+            else
+                arg_types[0] = itfloat();
+            arg_types[1] = Typed::kInt;
             
+            return container->pushFunction("faustpower", result_type, arg_types, args);
+            
+        } else {
+            
+            // Both arguments forced to itfloat()
+            arg_types[0] = itfloat();
+            arg_types[1] = itfloat();
+           
             list<ValueInst*> casted_args;
-            list<ValueInst*>::const_iterator it;
-             
-            for (it = args.begin(); it != args.end(); it++) {
-                casted_args.push_back(InstBuilder::genCastNumInst((*it), InstBuilder::genBasicTyped(Typed::kFloat)));
+            for (list<ValueInst*>::const_iterator it = args.begin(); it != args.end(); it++) {
+                casted_args.push_back(InstBuilder::genCastNumInst((*it), InstBuilder::genBasicTyped(itfloat())));
             }
             
-            return container->pushFunction(subst("pow$0", isuffix()), result_type, types, casted_args);
+            return container->pushFunction(subst("pow$0", isuffix()), result_type, arg_types, casted_args);
         }
-        */
     }
     
  	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)

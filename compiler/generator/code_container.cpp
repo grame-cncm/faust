@@ -60,7 +60,8 @@ CodeContainer::CodeContainer(int numInputs, int numOutputs)
     fComputeBlockInstructions(InstBuilder::genBlockInst()),
     fComputeThreadBlockInstructions(InstBuilder::genBlockInst()),
     fComputeFunctions(InstBuilder::genBlockInst()),
-    fUserInterfaceInstructions(InstBuilder::genBlockInst())
+    fUserInterfaceInstructions(InstBuilder::genBlockInst()),
+    fSubContainerType(kInt)
 {
     fCurLoop = new CodeLoop(0);
 }
@@ -175,6 +176,55 @@ void CodeContainer::printIncludeFile(ostream& fout)
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
 {
 	return S.find(l) != S.end();
+}
+
+ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args) 
+{
+    BasicTyped* result_type = InstBuilder::genBasicTyped(result);
+    
+    // Special case for "faustpower"
+    if (name == "faustpower") {
+    
+        list<NamedTyped*> named_args;
+        named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
+        
+        list<ValueInst*>::const_iterator it = args.begin();
+        it++;
+        IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
+        assert(arg1);
+        
+        stringstream num; num << arg1->fNum;
+        string faust_power = name + num.str();
+        
+        // Expand the pow depending of the exposant argument
+        BlockInst* block = InstBuilder::genBlockInst();
+         
+        if (arg1->fNum == 0) {
+             block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(1)));
+        } else {
+            ValueInst* res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("value", Address::kFunArgs));
+            for (int i= 0; i < arg1->fNum - 1; i++) {
+                res = InstBuilder::genBinopInst(kMul, res, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("value", Address::kFunArgs)));
+            }
+            block->pushBackInst(InstBuilder::genRetInst(res));
+        }
+        
+        fGlobalDeclarationInstructions->pushBackInst(InstBuilder::genDeclareFunInst(faust_power, InstBuilder::genFunTyped(named_args, result_type), block));
+        list<ValueInst*> truncated_args;
+        truncated_args.push_back((*args.begin()));
+        return InstBuilder::genFunCallInst(faust_power, truncated_args);
+        
+    } else {
+    
+        list<NamedTyped*> named_args;
+        for (size_t i = 0; i < types.size(); i++) {
+            stringstream num; num << i;
+            named_args.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped(types[i])));
+        }
+        
+        fGlobalDeclarationInstructions->pushBackInst(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
+        return InstBuilder::genFunCallInst(name, args);
+    }    
 }
 
 void CodeContainer::computeForwardDAG(lclgraph dag)

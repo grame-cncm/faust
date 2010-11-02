@@ -45,7 +45,7 @@ class FirCodeContainer : public CodeContainer {
         virtual ~FirCodeContainer()
         {}
 
-        CodeContainer* createScalarContainer(const string& name, int type);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
         void produceInternal() {}
 
 };
@@ -57,9 +57,11 @@ class FirScalarCodeContainer : public FirCodeContainer {
 
     public:
 
-        FirScalarCodeContainer(int numInputs, int numOutputs)
+        FirScalarCodeContainer(int numInputs, int numOutputs, int sub_container_type)
             :FirCodeContainer(numInputs, numOutputs)
-        {}
+        {
+            fSubContainerType = sub_container_type;
+        }
         virtual ~FirScalarCodeContainer()
         {}
 

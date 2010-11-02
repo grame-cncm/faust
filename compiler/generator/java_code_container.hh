@@ -59,7 +59,7 @@ class JAVACodeContainer : public CodeContainer {
 
         void printIncludeFile(ostream& fout);
 
-        CodeContainer* createScalarContainer(const string& name, int type);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 };
 
 class JAVAScalarCodeContainer : public JAVACodeContainer {
@@ -69,7 +69,7 @@ class JAVAScalarCodeContainer : public JAVACodeContainer {
 
     public:
 
-        JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+        JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~JAVAScalarCodeContainer();
 
         void generateCompute(int tab);

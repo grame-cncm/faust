@@ -53,7 +53,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-        map <string, int> fGlobalTable;
+        static map <string, int> gGlobalTable;
     
     public:
     
@@ -150,9 +150,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(DeclareVarInst* inst) 
         {   
             if (inst->fAccess & Address::kGlobal) {
-                if (fGlobalTable.find(inst->fName) == fGlobalTable.end()) {
+                if (gGlobalTable.find(inst->fName) == gGlobalTable.end()) {
                     // If global is not defined
-                    fGlobalTable[inst->fName] = 1;
+                    gGlobalTable[inst->fName] = 1;
                 } else {
                     return;
                 }
@@ -189,7 +189,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
           
         virtual void visit(DeclareFunInst* inst) 
         {   
-            if (fGlobalTable.find(inst->fName) != fGlobalTable.end())
+            if (gGlobalTable.find(inst->fName) != gGlobalTable.end())
                 return;  // Already declared
               
             // Defined as macro in the architecture file...
@@ -224,7 +224,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 tab(fTab, *fOut); 
             }
             
-            fGlobalTable[inst->fName] = 1;
+            gGlobalTable[inst->fName] = 1;
         }
                 
         virtual void visit(LoadVarInst* inst)
