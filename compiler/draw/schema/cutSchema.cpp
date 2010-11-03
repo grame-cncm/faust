@@ -63,7 +63,7 @@ void cutSchema::place(double ox, double oy, int orientation)
  */
 void cutSchema::draw(device& dev)
 {
-	dev.rond(fPoint.x, fPoint.y, dWire/8.0);
+	dev.circle(fPoint.x, fPoint.y, dWire/8.0);
 }
 
 /**

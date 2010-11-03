@@ -111,12 +111,12 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
 
 }
 
-void SVGDev::rond(double x,double y,double rayon)
+void SVGDev::circle(double x,double y,double rayon)
 {
 	fprintf(fic_repr,"<circle cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n",x,y,rayon);
 }
 
-void SVGDev::fleche(double x,double y,double rotation,int sens)
+void SVGDev::arrow(double x,double y,double rotation,int sens)
 {
 	double dx = 3;
 	double dy = 1;
@@ -133,12 +133,12 @@ void SVGDev::fleche(double x,double y,double rotation,int sens)
 	}
 }
 
-void SVGDev::carre(double x,double y,double cote)
+void SVGDev::square(double x,double y,double cote)
 {
 	fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" style=\"stroke: black;stroke-width:0.5;fill:none;\"/>\n",x-0.5*cote,y-cote,cote,cote);
 }
 
-void SVGDev::trait(double x1,double y1,double x2,double y2)
+void SVGDev::line(double x1,double y1,double x2,double y2)
 {
 	//fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"shape-rendering: crispEdges; stroke:black; stroke-linecap:round; stroke-width:0.25;\"/>\n",x1,y1,x2,y2);
 	fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke:black; stroke-linecap:round; stroke-width:0.25;\"/>\n",x1,y1,x2,y2);

@@ -114,14 +114,14 @@ void decorateSchema::draw(device& dev)
 	for (unsigned int i=0; i<inputs(); i++) {
 		point p = inputPoint(i);
 		point q = fSchema->inputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
+		dev.line(p.x, p.y, q.x, q.y);
 	}
 
 	// draw enlarge output wires
 	for (unsigned int i=0; i<outputs(); i++) {
 		point p = outputPoint(i);
 		point q = fSchema->outputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
+		dev.line(p.x, p.y, q.x, q.y);
 	}
 
 	// define the coordinates of the frame

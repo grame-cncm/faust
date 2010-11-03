@@ -139,7 +139,7 @@ void recSchema::draw(device& dev)
 	for (unsigned int i=0; i<outputs(); i++) {
 		point p = fSchema1->outputPoint(i);
 		point q = outputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
+		dev.line(p.x, p.y, q.x, q.y);
 	}
 
 	// draw the input lines
@@ -147,7 +147,7 @@ void recSchema::draw(device& dev)
 	for (unsigned int i=0; i<inputs(); i++) {
 		point p = fSchema1->inputPoint(i+skip);
 		point q = inputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
+		dev.line(p.x, p.y, q.x, q.y);
 	}
 
 	// draw the feedback connections to each fSchema2 input
@@ -173,8 +173,8 @@ void recSchema::drawFeedback(device& dev, const point& src, const point& dst, do
 	double	ct = (orientation()==kLeftRight) ? dWire/2 : -dWire/2;
 
 	drawDelaySign(dev, ox, src.y, ct);
-	dev.trait(ox, src.y-ct, ox, dst.y);
-	dev.trait(ox, dst.y, dst.x, dst.y);
+	dev.line(ox, src.y-ct, ox, dst.y);
+	dev.line(ox, dst.y, dst.x, dst.y);
 }
 
 
@@ -183,9 +183,9 @@ void recSchema::drawFeedback(device& dev, const point& src, const point& dst, do
  */
 void recSchema::drawDelaySign(device& dev, double x, double y, double size)
 {
-	dev.trait(x-size/2, y, x-size/2, y-size);
-	dev.trait(x-size/2, y-size, x+size/2, y-size);
-	dev.trait(x+size/2, y-size, x+size/2, y);
+	dev.line(x-size/2, y, x-size/2, y-size);
+	dev.line(x-size/2, y-size, x+size/2, y-size);
+	dev.line(x+size/2, y-size, x+size/2, y);
 }
 
 
@@ -197,7 +197,7 @@ void recSchema::drawFeedfront(device& dev, const point& src, const point& dst, d
 {
 	double	ox = src.x + ((orientation()==kLeftRight) ? -dx : dx);
 
-	dev.trait(ox, src.y, src.x, src.y);
-	dev.trait(ox, src.y, ox, dst.y);
-	dev.trait(ox, dst.y, dst.x, dst.y);
+	dev.line(ox, src.y, src.x, src.y);
+	dev.line(ox, src.y, ox, dst.y);
+	dev.line(ox, dst.y, dst.x, dst.y);
 }
