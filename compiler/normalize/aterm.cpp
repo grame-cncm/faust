@@ -1,5 +1,7 @@
 #include "aterm.hh"
 #include "ppsig.hh"
+#include <sigtype.hh>
+#include <sigtyperules.hh>
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
 #undef TRACE
@@ -26,7 +28,6 @@ aterm::aterm (Tree t)
 	#endif
 }
 
-
 /**
  * Add two terms trying to simplify the result
  */
@@ -35,21 +36,96 @@ static Tree simplifyingAdd(Tree t1, Tree t2)
 	assert(t1!=0);
 	assert(t2!=0);
 
-	if (isNum(t1) && isNum(t2)) {
-		return addNums(t1,t2, unknown_box);
+    if (isZero(t1))
+        return t2;
+    if (isZero(t2))
+        return t1;
 
-	} else if (isZero(t1)) {
-		return t2;
+    Tree ret;
+	if (isNum(t1) && isNum(t2))
+        ret = addNums(t1,t2, unknown_box);
+	else if (t1 <= t2)
+		ret = sigAdd(t1, t2, unknown_box);
+    else
+		ret = sigAdd(t2, t1, unknown_box);
 
-	} else if (isZero(t2)) {
-		return t1;
+    Type tt1 = t1->getType();
+    Type tt2 = t2->getType();
+    if (tt1 && tt2) {
+        Type tret = tt1|tt2;
+        tret = tret->castInterval(tt1->getInterval() + tt2->getInterval());
+        ret->setType(tret);
+    }
+    return ret;
+}
 
-	} else if (t1 <= t2) {
-		return sigAdd(t1, t2, unknown_box);
+/**
+ * Substract two terms trying to simplify the result
+ */
+static Tree simplifyingSub(Tree t1, Tree t2)
+{
+    assert(t1!=0);
+    assert(t2!=0);
 
-	} else {
-		return sigAdd(t2, t1, unknown_box);
-	}
+    if (isZero(t2))
+        return t1;
+
+    Tree ret;
+    if (isNum(t1) && isNum(t2))
+        ret = subNums(t1, t2, unknown_box);
+    else
+        ret = sigSub(t1, t2, unknown_box);
+
+    Type tt1 = t1->getType();
+    Type tt2 = t2->getType();
+    if (tt1 && tt2) {
+        Type tret = tt1|tt2;
+        tret = tret->castInterval(tt1->getInterval() - tt2->getInterval());
+        ret->setType(tret);
+    }
+    return ret;
+}
+
+/**
+ * Multiply two terms trying to simplify the result
+ */
+static Tree simplifyingMul(Tree t1, Tree t2)
+{
+    assert(t1!=0);
+    assert(t2!=0);
+
+    Tree ret;
+
+    if (isZero(t1) || isZero(t2)) {
+        if (isInt(t1->node()) && isInt(t2->node()))
+            ret = sigInt(0, unknown_box);
+        else
+            /* one of the terms is a float */
+            ret = sigReal(0, unknown_box);
+        if (t1->getType() && t2->getType())
+            typeAnnotation(ret);
+        return ret;
+    }
+
+    if (isOne(t2))
+        return t1;
+
+    if (isOne(t1))
+        return t2;
+
+    if (isNum(t1) && isNum(t2))
+        ret = mulNums(t1, t2, unknown_box);
+    else
+        ret = sigMul(t1, t2, unknown_box);
+
+    Type tt1 = t1->getType();
+    Type tt2 = t2->getType();
+    if (tt1 && tt2) {
+        Type tret = tt1|tt2;
+        tret = tret->castInterval(tt1->getInterval() * tt2->getInterval());
+        ret->setType(tret);
+    }
+    return ret;
 }
 
 /**
@@ -82,6 +158,7 @@ Tree aterm::normalizedTree() const
 
 	// combine sums
 	Tree SUM = tree(0);
+    typeAnnotation(SUM);
 	for (int order = 0; order < 4; order++) {
 		if (!isZero(P[order]))	{
 			SUM = simplifyingAdd(SUM,P[order]);
@@ -91,7 +168,7 @@ Tree aterm::normalizedTree() const
 				// we postpone substraction
 				N[order+1] = simplifyingAdd(N[order], N[order+1]);
 			} else {
-				SUM = sigSub(SUM, N[order], unknown_box);
+                SUM = simplifyingSub(SUM, N[order]);
 			}
 		}
 	}
@@ -265,7 +342,11 @@ aterm aterm::factorize(const mterm& d)
 	//cerr << "tt " << *tt << endl;
 
 	//Tree ttt = sigAdd(
-	A += sigMul(d.normalizedTree(), Q.normalizedTree(), unknown_box);
+    Tree dNormalized = d.normalizedTree();
+    Tree qNormalized = Q.normalizedTree();
+    Tree mul = simplifyingMul(dNormalized, qNormalized);
+
+	A += mul;
 	//cerr << "Final A = " << A << endl;
 	//cerr << "Final Tree " << *(A.normalizedTree()) << endl;
 	return A;
