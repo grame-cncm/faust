@@ -650,7 +650,7 @@ static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2)
             exit (1);
         }
 
-        ret = mergeTypes(vt1, st2);
+        ret = vt1->promote(st2);
     }
     else if (vt2 && !vt1) {
         Type st1 = isSimpleType(t1);
@@ -660,7 +660,7 @@ static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2)
             exit (1);
         }
 
-        ret = mergeTypes(vt2, st1);
+        ret = vt2->promote(st1);
     } else
         ret = t1 | t2;
 
