@@ -48,6 +48,8 @@
 #include "xtended.hh"
 #include "prim2.hh"
 
+#include "ensure.hh"
+
 using namespace std;
 
 // globals
@@ -756,7 +758,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(int variability, Tree sig, 
 	string      vname;
 	int         size;
 
-	assert(isSigGen(content, g));
+	ensure(isSigGen(content, g));
 
 	if (!getCompiledExpression(content, cexp)) {
 		cexp = setCompiledExpression(content, generateStaticSigGen(variability, content, g));
@@ -926,9 +928,9 @@ ValueInst* InstructionsCompiler::generateRecProj(int variability, Tree sig, Tree
     ValueInst* res;
 
     if (!getVectorNameProperty(sig, vname)) {
-        assert(isRec(r, var, le));
+        ensure(isRec(r, var, le));
         res = generateRec(variability, r, var, le, i);
-        assert(getVectorNameProperty(sig, vname));
+        ensure(getVectorNameProperty(sig, vname));
     } else {
         res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
     }

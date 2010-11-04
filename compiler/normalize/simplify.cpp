@@ -38,6 +38,7 @@
 #include "compatibility.hh"
 
 #include "normalize.hh"
+#include "ensure.hh"
 
 #undef TRACE
 
@@ -224,7 +225,7 @@ static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
 
     } else if (isRec(t, id, body)) {
 
-        assert(isRef(t,id)); // controle temporaire
+        ensure(isRef(t,id)); // controle temporaire
 
         Tree id2;
         if (searchEnv(id, id2, env)) {
@@ -333,13 +334,13 @@ static Tree docTableConverter (Tree sig)
         // we are in a table to convert
         if (isSigTable(tbl, id, size, igen)) {
             // it's a read only table
-            assert(isSigGen(igen, isig));
+            ensure(isSigGen(igen, isig));
             return sigDocAccessTbl(sigDocConstantTbl(size,isig, box),ridx, box);
         } else {
             // it's a read write table
-            assert(isSigWRTbl(tbl,id,tbl2,widx,wsig));
-            assert(isSigTable(tbl2, id2, size, igen));
-            assert(isSigGen(igen, isig));
+            ensure(isSigWRTbl(tbl,id,tbl2,widx,wsig));
+            ensure(isSigTable(tbl2, id2, size, igen));
+            ensure(isSigGen(igen, isig));
 
             return sigDocAccessTbl(sigDocWriteTbl(size,isig,widx,wsig, box),ridx, box);
         }
