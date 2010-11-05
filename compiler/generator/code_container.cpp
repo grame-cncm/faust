@@ -269,7 +269,6 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
     }    
 }
 
-
 void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result)
 {
 	// Avoid printing already printed loops

@@ -489,8 +489,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     ::Type t = getSigType(sig);
     
     Typed* type;
-    
-
+  
     switch (t->variability()) {
 
         case kKonst:

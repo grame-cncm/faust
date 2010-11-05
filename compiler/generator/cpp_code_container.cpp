@@ -133,12 +133,12 @@ void CPPCodeContainer::produceInternal()
 
 void CPPCodeContainer::produceClass()
 {
+    int n = 0;
+
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     pushFrontInitMethod(InstBuilder::genStoreVarInst(
                             InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal),
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
-
-    int n = 0;
 
     // Libraries
     printLibrary(*fOut);
@@ -348,7 +348,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     block->accept(&fCodeProducer);
     
     /*
-    ScalVecDispatcherVisitor visitor(fOut, n+2);
+    ScalVecDispatcherVisitor visitor(new CPPInstVisitor(fOut, n+2), new CPPVecAccelerateInstVisitor(fOut, n+2));
     block->accept(&visitor);
     */
    
@@ -400,6 +400,8 @@ CPPWorkStealingCodeContainer::~CPPWorkStealingCodeContainer()
 
 void CPPWorkStealingCodeContainer::produceClass()
 {
+    int n = 0;
+    
     /*
     // Transform stack array variables in struct variables
     MoveStackArray2Struct();
@@ -416,8 +418,7 @@ void CPPWorkStealingCodeContainer::produceClass()
 
     // Inherited method
     CPPCodeContainer::produceClass();
-
-    int n = 0;
+    
     //tab(n, *fOut);
     *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
         tab(n+1, *fOut); *fOut << "static_cast<" << fKlassName << "*>(dsp)->computeThread(num_thread);";
@@ -553,6 +554,8 @@ void CPPOpenCLCodeContainer::produceInternal()
         
 void CPPOpenCLCodeContainer::produceClass() 
 {
+    int n = 0;
+    
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
@@ -560,7 +563,6 @@ void CPPOpenCLCodeContainer::produceClass()
                             InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), 
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
     
-    int n = 0;
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
     addIncludeFile("<OpenCL/opencl.h>");
@@ -1407,6 +1409,8 @@ void CPPCUDACodeContainer::generateComputeKernelGlue(int n)
 
 void CPPCUDACodeContainer::produceClass() 
 {
+    int n = 0;
+    
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
@@ -1414,7 +1418,6 @@ void CPPCUDACodeContainer::produceClass()
                             InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), 
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
     
-    int n = 0;
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
     addIncludeFile("<cuda.h>");

@@ -1395,6 +1395,95 @@ struct DispatchVisitor : public InstVisitor {
     }
 };
 
+class ScalVecDispatcherVisitor : public DispatchVisitor {
+
+    protected:
+    
+        InstVisitor* fScalarVisitor;
+        InstVisitor* fVectorVisitor;
+        
+        void Dispatch2Visitor(ValueInst* inst)
+        {
+            if (inst->fSize == 1) {
+                fScalarVisitor->visit(inst);
+            } else {
+                fVectorVisitor->visit(inst);
+            }
+        }
+
+    public:
+   
+        ScalVecDispatcherVisitor(InstVisitor* scal, InstVisitor* vec)
+            :fScalarVisitor(scal), fVectorVisitor(vec)
+        {}
+        
+        ~ScalVecDispatcherVisitor()
+        {
+            delete fScalarVisitor;
+            delete fVectorVisitor;
+        }
+        
+        virtual void visit(LoadVarInst* inst) 
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(LoadVarAddressInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(StoreVarInst* inst) 
+        {
+            if (inst->fValue->fSize == 1) {
+                fScalarVisitor->visit(inst);
+            } else {
+                fVectorVisitor->visit(inst);
+            }
+        }
+ 
+        virtual void visit(FloatNumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(IntNumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(BoolNumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(DoubleNumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(BinopInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(CastNumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+        virtual void visit(FunCallInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+     
+        virtual void visit(Select2Inst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+        
+};
+
 // ========================
 // Combining visitors
 // ========================

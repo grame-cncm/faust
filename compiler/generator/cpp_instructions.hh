@@ -468,6 +468,10 @@ class CPPVecInstVisitor : public CPPInstVisitor {
 
 };
 
+/**
+ * Use the Apple Accelerate framework.
+ *
+ */
 
 class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
@@ -758,96 +762,6 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             // TODO
         }
        
-};
-
-class ScalVecDispatcherVisitor : public DispatchVisitor {
-
-    protected:
-    
-        InstVisitor* fScalarVisitor;
-        InstVisitor* fVectorVisitor;
-        
-        void DispatchVisitor(ValueInst* inst)
-        {
-            if (inst->fSize == 1) {
-                fScalarVisitor->visit(inst);
-            } else {
-                fVectorVisitor->visit(inst);
-            }
-        }
-
-    public:
-   
-        ScalVecDispatcherVisitor(std::ostream* out, int tab = 0)
-            :fScalarVisitor(new CPPInstVisitor(out, tab)), 
-            fVectorVisitor(new CPPVecAccelerateInstVisitor(out, tab))
-        {}
-        
-        ~ScalVecDispatcherVisitor()
-        {
-            delete fScalarVisitor;
-            delete fVectorVisitor;
-        }
-        
-        virtual void visit(LoadVarInst* inst) 
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(LoadVarAddressInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(StoreVarInst* inst) 
-        {
-            if (inst->fValue->fSize == 1) {
-                fScalarVisitor->visit(inst);
-            } else {
-                fVectorVisitor->visit(inst);
-            }
-        }
- 
-        virtual void visit(FloatNumInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(IntNumInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(BoolNumInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(DoubleNumInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(BinopInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(CastNumInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
-        virtual void visit(FunCallInst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-     
-        virtual void visit(Select2Inst* inst)
-        {
-            DispatchVisitor(inst);
-        }
-        
 };
 
 

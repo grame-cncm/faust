@@ -126,12 +126,12 @@ void CCodeContainer::produceInternal()
 
 void CCodeContainer::produceClass()
 {
+    int n = 0;
+
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
     pushGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal), InstBuilder::genBasicTyped(Typed::kInt)));
     pushFrontInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal),
                                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
-
-    int n = 0;
 
     // Libraries
     printLibrary(*fOut);
@@ -423,7 +423,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     // Generate it
     block->accept(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "}\n";
+    tab(n, *fOut); *fOut << "}" << endl;
 
     // Compute "compute" declaration
     tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
