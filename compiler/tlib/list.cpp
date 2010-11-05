@@ -18,29 +18,29 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 /*****************************************************************************
 ******************************************************************************
-								LIST 
+								LIST
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
-This file contains several extensions to the tree library : 
-	- lists : based on a operations like cons, hd , tl, ... 
+This file contains several extensions to the tree library :
+	- lists : based on a operations like cons, hd , tl, ...
 	- environments : list of associations (key value)
 	- property list : used to annotate trees
 
 
  API:
- ---- 
+ ----
 
 	List :
 	-----
-	
+
 	nil					= predefined empty list
 	cons (x,l)			= create a nex list of head x and tail l
-	hd(cons(x,l)) 		= x, 
+	hd(cons(x,l)) 		= x,
 	tl (cons(x,l)) 		= l
 	nth(l,i)			= ith element of l (or nil)
 	replace(l,i,e)		= a copy of l where the ith element is e
@@ -48,57 +48,57 @@ This file contains several extensions to the tree library :
 	isNil(nil) 			= true 		(false otherwise)
 	isList(cons(x,l)) 	= true 		(false otherwise)
 	list(a,b,..)		= cons(a, list(b,...))
-	
+
 	lmap(f, cons(x,l))	= cons(f(x), lmap(f,l))
 	reverse([a,b,..,z])	= [z,..,b,a]
 	reverseall([a,b,..,z])	= [ra(z),..,ra(b),ra(a)] where ra is reverseall
-	
+
 	Set :
 	-----
 	(Sets are implemented as ordered lists of elements without duplication)
-	
+
 	isElement(e,s)			= true if e is an element of set s, false otherwise
 	addElement(e,s)			= s U {e}
 	remElement(e,s)			= s - {e}
 	singleton(e)			= {e}
-	list2set(l)				= convert a list into a set 
+	list2set(l)				= convert a list into a set
 	setUnion(s1,s2)			= s1 U s2
 	setIntersection(s1,s2)	= s1 intersection s2
 	setDifference(s1,s2)	= s1 - s2
-	
-	Environment : 
+
+	Environment :
 	-------------
-	
+
 	An 'environment' is a stack of pairs (key x value) used to keep track of lexical bindings
-	
+
 	pushEnv (key, val, env) -> env' create a new environment
 	searchEnv (key,&v,env) -> bool  search for key in env and set v accordingly
-	
+
 	search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1==k2
 									= search(k1,&v,env) if k1 != k2
 	Property list :
 	---------------
-	
-	Every tree can be annotated with an 'attribut' field. This attribute field 
+
+	Every tree can be annotated with an 'attribut' field. This attribute field
 	can be used to manage a property list (pl). A property list is a list of pairs
 	key x value, with three basic operations :
-	
+
 	setProperty (t, key, val) -> t		add the association (key x val) to the pl of t
 	getProperty (t, key, &val) -> bool	search the pp of t for the value associated to key
 	remProperty (t, key) -> t			remove any association (key x ?) from the pl of t
-	
+
  Warning :
  ---------
- Since reference counters are used for garbage collecting, one must be careful not to 
+ Since reference counters are used for garbage collecting, one must be careful not to
  create cycles in trees. The only possible source of cycles is by setting the attribut
- of a tree t to a tree t' that contains t as a subtree.  
-	
+ of a tree t to a tree t' that contains t as a subtree.
+
  History :
  ---------
  	2002-02-08 : First version
  	2002-02-20 : New description of the API, non recursive lmap and reverse
  	2002-03-29 : Added function remElement(e,set), corrected comment error
-	
+
 ******************************************************************************
 *****************************************************************************/
 
@@ -123,30 +123,30 @@ Tree nil = tree(NIL);
 static bool printlist (Tree l, FILE* out)
 {
 	if (isList(l)) {
-		
+
 		char sep = '(';
-		
+
 		do {
 			fputc(sep, out); sep = ',';
 			print(hd(l));
 			l = tl(l);
 		} while (isList(l));
-		
+
 		if (! isNil(l)) {
 			fprintf(out, " . ");
 			print(l, out);
 		}
-		
+
 		fputc(')', out);
 		return true;
-		
+
 	} else if (isNil(l)) {
-		
+
 		fprintf(out, "nil");
 		return true;
-		
+
 	} else {
-		
+
 		return false;
 	}
 }
@@ -154,15 +154,15 @@ static bool printlist (Tree l, FILE* out)
 void print (Tree t, FILE* out)
 {
 	int i; double f; Sym s; void* p;
-	
+
 	if (printlist(t, out))		return;
-	
+
 	Node n = t->node();
 		 if (isInt(n, &i)) 		fprintf (out, "%d", i);
 	else if (isDouble(n, &f)) 	fprintf (out, "%f", f);
 	else if (isSym(n, &s)) 		fprintf (out, "%s", name(s));
 	else if (isPointer(n, &p)) 	fprintf (out, "#%p", p);
-	
+
 	int k = t->arity();
 	if (k > 0) {
 		char sep = '[';
@@ -171,7 +171,7 @@ void print (Tree t, FILE* out)
 			print(t->branch(i), out);
 		}
 		fputc(']', out);
-	} 
+	}
 }
 
 
@@ -318,7 +318,7 @@ Tree setUnion (Tree A, Tree B)
 {
 	if (isNil(A)) 		return B;
 	if (isNil(B)) 		return A;
-	
+
 	if (hd(A) == hd(B)) return cons(hd(A), setUnion(tl(A),tl(B)));
 	if (hd(A) < hd(B)) 	return cons(hd(A), setUnion(tl(A),B));
 	/* hd(A) > hd(B) */	return cons(hd(B), setUnion(A,tl(B)));
@@ -341,8 +341,8 @@ Tree setDifference (Tree A, Tree B)
 	if (hd(A) < hd(B)) 	return cons(hd(A), setDifference(tl(A),B));
 	/* (hd(A) > hd(B)*/	return setDifference(A,tl(B));
 }
-	
-		
+
+
 
 //------------------------------------------------------------------------------
 // Environments
@@ -374,7 +374,7 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 				return false;
 	if (left(hd(pl)) == key) 	{ val= right(hd(pl)); return true; }
-	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val); 
+	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val);
 }
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
@@ -396,7 +396,7 @@ static Tree removeKey (Tree pl, Tree key)
 void setProperty (Tree t, Tree key, Tree val)
 {
 	CTree* pl = t->attribut();
-	if (pl) t->attribut(updateKey(pl, key, val)); 
+	if (pl) t->attribut(updateKey(pl, key, val));
 	else 	t->attribut(updateKey(nil, key, val));
 }
 
@@ -442,36 +442,40 @@ void remProperty (Tree t, Tree key)
 // Bottom Up Tree Mapping
 //------------------------------------------------------------------------------
 
+/**
+ * Transform a graph by applying a function f.
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
+ */
 Tree tmap (Tree key, tfun f, Tree t)
-{	
+{
 	//printf("start tmap\n");
-	Tree p; 
-	
+	Tree p;
+
 	if (getProperty(t, key, p)) {
-		
+
 		return (isNil(p)) ? t : p;	// truc pour eviter les boucles
-		
+
 	} else {
-		
+
 		Tree r1=nil;
 		switch (t->arity()) {
-			
-			case 0 : 
-				r1 = t; 
+
+			case 0 :
+				r1 = t;
 				break;
-			case 1 : 
-				r1 = tree(t->node(), tmap(key,f,t->branch(0))); 
+			case 1 :
+				r1 = tree(t->node(), tmap(key,f,t->branch(0)));
 				break;
-			case 2 : 
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1))); 
+			case 2 :
+				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)));
 				break;
-			case 3 : 
+			case 3 :
 				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)),
-										   tmap(key,f,t->branch(2))); 
+										   tmap(key,f,t->branch(2)));
 				break;
-			case 4 : 
+			case 4 :
 				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)),
-										   tmap(key,f,t->branch(2)), tmap(key,f,t->branch(3))); 
+										   tmap(key,f,t->branch(2)), tmap(key,f,t->branch(3)));
 				break;
 		}
 		Tree r2 = f(r1);
@@ -483,7 +487,49 @@ Tree tmap (Tree key, tfun f, Tree t)
 		return r2;
 	}
 }
-		
+
+/**
+ * Recursively transform a graph by applying a function f.
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
+ */
+Tree tmapRec (Tree key, tfun f, Tree t)
+{
+    Tree p,id,body;
+
+    if (getProperty(t, key, p)) {
+        return (isNil(p)) ? t : p;  // truc pour eviter les boucles
+    } else if (isRec(t, id, body)) {
+        setProperty(t, key, nil);   // avoid infinite loop
+        return rec(id, tmapRec(key, f, body));
+    } else {
+        Tree r1=nil;
+        switch (t->arity()) {
+            case 0 :
+                r1 = t;
+                break;
+            case 1 :
+                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)));
+                break;
+            case 2 :
+                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)), tmapRec(key,f,t->branch(1)));
+                break;
+            case 3 :
+                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)), tmapRec(key,f,t->branch(1)),
+                                           tmapRec(key,f,t->branch(2)));
+                break;
+            case 4 :
+                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)), tmapRec(key,f,t->branch(1)),
+                                           tmapRec(key,f,t->branch(2)), tmapRec(key,f,t->branch(3)));
+                break;
+        }
+        Tree r2 = f(r1);
+        if (r2 == t)
+            setProperty(t, key, nil);
+        else
+            setProperty(t, key, r2);
+        return r2;
+    }
+}
 
 
 
@@ -493,12 +539,12 @@ Tree tmap (Tree key, tfun f, Tree t)
 //------------------------------------------------------------------------------
 
 // genere une clef unique propre � cette substitution
-static Tree substkey(Tree t, Tree id, Tree val) 
+static Tree substkey(Tree t, Tree id, Tree val)
 {
 	char 	name[256];
 	snprintf(name, 255, "SUBST<%p,%p,%p> : ", (CTree*)t, (CTree*)id, (CTree*)val);
 	return tree(unique(name));
-}	
+}
 
 // realise la substitution proprement dite tout en mettant � jour la propriete
 // pour ne pas avoir � la calculer deux fois
@@ -506,10 +552,10 @@ static Tree substkey(Tree t, Tree id, Tree val)
 static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 {
 	Tree p;
-	
+
 	if (t==id) {
 		return val;
-		
+
 	} else if (t->arity() == 0) {
 		return t;
 	} else if (getProperty(t, propkey, p)) {
@@ -517,33 +563,33 @@ static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 	} else {
 		Tree r=nil;
 		switch (t->arity()) {
-			
-			case 1 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val)); 
+
+			case 1 :
+				r = tree(t->node(),
+							subst(t->branch(0), propkey, id, val));
 				break;
-				
-			case 2 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val), 
-							subst(t->branch(1), propkey, id, val)); 
+
+			case 2 :
+				r = tree(t->node(),
+							subst(t->branch(0), propkey, id, val),
+							subst(t->branch(1), propkey, id, val));
 				break;
-				
-			case 3 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val), 
-							subst(t->branch(1), propkey, id, val), 
-							subst(t->branch(2), propkey, id, val)); 
+
+			case 3 :
+				r = tree(t->node(),
+							subst(t->branch(0), propkey, id, val),
+							subst(t->branch(1), propkey, id, val),
+							subst(t->branch(2), propkey, id, val));
 				break;
-				
-			case 4 : 
-				r = tree(t->node(), 
-							subst(t->branch(0), propkey, id, val), 
-							subst(t->branch(1), propkey, id, val), 
-							subst(t->branch(2), propkey, id, val), 
-							subst(t->branch(3), propkey, id, val)); 
+
+			case 4 :
+				r = tree(t->node(),
+							subst(t->branch(0), propkey, id, val),
+							subst(t->branch(1), propkey, id, val),
+							subst(t->branch(2), propkey, id, val),
+							subst(t->branch(3), propkey, id, val));
 				break;
-			
+
 		}
 		if (r == t) {
 			setProperty(t, propkey, nil);
@@ -552,7 +598,7 @@ static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 		}
 		return r;
 	}
-		
+
 }
 
 // remplace toutes les occurences de 'id' par 'val' dans 't'
@@ -560,8 +606,8 @@ Tree substitute (Tree t, Tree id, Tree val)
 {
 	return subst (t, substkey(t,id,val), id, val);
 }
-	
-	
-	
 
-	
+
+
+
+

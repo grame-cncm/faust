@@ -160,49 +160,7 @@ static Tree simplification (Tree sig)
  */
 static Tree sigMap (Tree key, tfun f, Tree t)
 {
-    //printf("start sigMap\n");
-    Tree p,id,body;
-
-    if (getProperty(t, key, p)) {
-
-        return (isNil(p)) ? t : p;	// truc pour eviter les boucles
-
-    } else if (isRec(t, id, body)) {
-
-        setProperty(t, key, nil);	// avoid infinite loop
-        return rec(id, sigMap(key, f, body));
-
-    } else {
-
-        Tree r1=nil;
-        switch (t->arity()) {
-
-            case 0 :
-                r1 = t;
-                break;
-            case 1 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)));
-                break;
-            case 2 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)));
-                break;
-            case 3 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)),
-                                           sigMap(key,f,t->branch(2)));
-                break;
-            case 4 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)),
-                                           sigMap(key,f,t->branch(2)), sigMap(key,f,t->branch(3)));
-                break;
-        }
-        Tree r2 = f(r1);
-        if (r2 == t) {
-            setProperty(t, key, nil);
-        } else {
-            setProperty(t, key, r2);
-        }
-        return r2;
-    }
+    return tmapRec(key, f, t);
 }
 
 
