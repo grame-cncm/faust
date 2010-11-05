@@ -44,34 +44,7 @@ class PowPrim : public xtended
     {
         assert (args.size() == arity());
 		assert (types.size() == arity());
-        
-        /*
-        if (types[1] == Typed::kInt) {
-            return container->pushFunction("llvm.powi.f32", types, args);
-        } else {
-            return container->pushFunction(subst("pow$0", isuffix()), types, args);
-        }
-        */
-        
-        /*
-        Typed::VarType result_type;
-        if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
-        vector<Typed::VarType> arg_types;
-        vector< ::Type>::const_iterator it1;
-        for (it1 = types.begin(); it1 != types.end(); it1++) {
-            arg_types.push_back(itfloat());
-        }
-        
-        list<ValueInst*> casted_args;
-        list<ValueInst*>::const_iterator it2;
-         
-        for (it2 = args.begin(); it2 != args.end(); it2++) {
-            casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(itfloat())));
-        }
-        
-        return container->pushFunction(subst("pow$0", isuffix()), result_type, arg_types, casted_args);
-        */
-         
+           
         vector<Typed::VarType> arg_types(2);
         vector< ::Type>::const_iterator it1;
         Typed::VarType result_type;

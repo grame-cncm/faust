@@ -2002,7 +2002,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     loop_code->pushBackInst(InstBuilder::genDeclareVarInst("tasknum", 
         InstBuilder::genBasicTyped(Typed::kInt), Address::kStack, 
         InstBuilder::genFunCallInst("get_global_id", args)));
-        */
+    */
         
     loop_code->pushBackInst(InstBuilder::genLabelInst("int tasknum = blockDim.x * blockIdx.x + threadIdx.x;"));
     

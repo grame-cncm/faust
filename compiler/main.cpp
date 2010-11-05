@@ -679,11 +679,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, kInt, "c_");
             }
         } else if (gOutputLang == "cpp") {
-            if (gOpenMPSwitch) {
-                container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-            } else if (gSchedulerSwitch) {
-                container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-            } else if (gOpenCLSwitch) {   
+            if (gOpenCLSwitch) {   
                 if (gFunTaskSwitch) {
                     cerr << "ERROR : -fun not yet supported in OpenCL mode" << endl;
                     exit(1);
@@ -703,6 +699,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 } else {
                     container = new CPPCUDACodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 }
+            } else if (gOpenMPSwitch) {
+                container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            } else if (gSchedulerSwitch) {
+                container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else if (gVectorSwitch) {
                 container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
             } else {
