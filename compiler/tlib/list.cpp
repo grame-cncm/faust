@@ -442,50 +442,74 @@ void remProperty (Tree t, Tree key)
 // Bottom Up Tree Mapping
 //------------------------------------------------------------------------------
 
+static void copyProperties(Tree dst, Tree src, vector<Tree> const & persistentProperties)
+{
+    dst->setType(src->getType());
+    for (size_t i = 0; i != persistentProperties.size(); ++i) {
+        Tree key = persistentProperties[i];
+        Tree prop = src->getProperty(key);
+
+        if (prop)
+            dst->setProperty(key, prop);
+    }
+}
+
 /**
  * Transform a graph by applying a function f.
  * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
  */
 Tree tmap (Tree key, tfun f, Tree t)
 {
-	//printf("start tmap\n");
-	Tree p;
+    vector<Tree> noPersistentProperties;
+    return tmap(key, f, t, noPersistentProperties);
+}
 
-	if (getProperty(t, key, p)) {
+/**
+ * Transform a graph by applying a function f.
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
+ *
+ * copying persistent properties
+ */
+Tree tmap (Tree key, tfun f, Tree t, vector<Tree> const & persistentProperties)
+{
+    //printf("start tmap\n");
+    Tree p;
 
-		return (isNil(p)) ? t : p;	// truc pour eviter les boucles
+    if (getProperty(t, key, p))
+        return (isNil(p)) ? t : p;  // truc pour eviter les boucles
 
-	} else {
-
-		Tree r1=nil;
-		switch (t->arity()) {
-
-			case 0 :
-				r1 = t;
-				break;
-			case 1 :
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)));
-				break;
-			case 2 :
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)));
-				break;
-			case 3 :
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)),
-										   tmap(key,f,t->branch(2)));
-				break;
-			case 4 :
-				r1 = tree(t->node(), tmap(key,f,t->branch(0)), tmap(key,f,t->branch(1)),
-										   tmap(key,f,t->branch(2)), tmap(key,f,t->branch(3)));
-				break;
-		}
-		Tree r2 = f(r1);
-		if (r2 == t) {
-			setProperty(t, key, nil);
-		} else {
-			setProperty(t, key, r2);
-		}
-		return r2;
-	}
+    Tree r1=nil;
+    switch (t->arity()) {
+        case 0 :
+            r1 = t;
+            break;
+        case 1 :
+            r1 = tree(t->node(), tmap(key, f, t->branch(0), persistentProperties));
+            break;
+        case 2 :
+            r1 = tree(t->node(), tmap(key, f, t->branch(0), persistentProperties),
+                                 tmap(key, f, t->branch(1), persistentProperties));
+            break;
+        case 3 :
+            r1 = tree(t->node(), tmap(key, f, t->branch(0), persistentProperties),
+                                 tmap(key, f, t->branch(1), persistentProperties),
+                                 tmap(key, f, t->branch(2), persistentProperties));
+            break;
+        case 4 :
+            r1 = tree(t->node(), tmap(key, f, t->branch(0), persistentProperties),
+                                 tmap(key, f, t->branch(1), persistentProperties),
+                                 tmap(key, f, t->branch(2), persistentProperties),
+                                 tmap(key, f, t->branch(3), persistentProperties));
+            break;
+    }
+    Tree r2 = f(r1);
+    if (r2 == t) {
+        setProperty(t, key, nil);
+    } else {
+        setProperty(t, key, r2);
+        copyProperties(r2, t, persistentProperties);
+    }
+    return r2;
 }
 
 /**
@@ -493,6 +517,18 @@ Tree tmap (Tree key, tfun f, Tree t)
  * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
  */
 Tree tmapRec (Tree key, tfun f, Tree t)
+{
+    vector<Tree> noPersistentProperties;
+    return tmapRec(key, f, t, noPersistentProperties);
+}
+
+/**
+ * Recursively transform a graph by applying a function f.
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
+ *
+ * copying persistent properties
+ */
+Tree tmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistentProperties)
 {
     Tree p,id,body;
 
@@ -508,29 +544,34 @@ Tree tmapRec (Tree key, tfun f, Tree t)
                 r1 = t;
                 break;
             case 1 :
-                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)));
+                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties));
                 break;
             case 2 :
-                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)), tmapRec(key,f,t->branch(1)));
+                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties),
+                                     tmapRec(key, f, t->branch(1), persistentProperties));
                 break;
             case 3 :
-                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)), tmapRec(key,f,t->branch(1)),
-                                           tmapRec(key,f,t->branch(2)));
+                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties),
+                                     tmapRec(key, f, t->branch(1), persistentProperties),
+                                     tmapRec(key, f, t->branch(2), persistentProperties));
                 break;
             case 4 :
-                r1 = tree(t->node(), tmapRec(key,f,t->branch(0)), tmapRec(key,f,t->branch(1)),
-                                           tmapRec(key,f,t->branch(2)), tmapRec(key,f,t->branch(3)));
+                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties),
+                                     tmapRec(key, f, t->branch(1), persistentProperties),
+                                     tmapRec(key, f, t->branch(2), persistentProperties),
+                                     tmapRec(key, f, t->branch(3), persistentProperties));
                 break;
         }
         Tree r2 = f(r1);
         if (r2 == t)
             setProperty(t, key, nil);
-        else
+        else {
             setProperty(t, key, r2);
+            copyProperties(r2, t, persistentProperties);
+        }
         return r2;
     }
 }
-
 
 
 

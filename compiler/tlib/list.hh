@@ -183,6 +183,9 @@ void 	remProperty (Tree t, Tree key);
 // Mapping sur les arbres
 Tree tmap (Tree k, tfun f, Tree t);
 Tree tmapRec (Tree k, tfun f, Tree t);
+Tree tmap (Tree k, tfun f, Tree t, vector<Tree> const & persistentProperties);
+Tree tmapRec (Tree k, tfun f, Tree t, vector<Tree> const & persistentProperties);
+
 
 // remplacement
 Tree substitute (Tree t, Tree id, Tree val);
