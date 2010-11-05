@@ -75,7 +75,7 @@ static Tree doConstantFolding (Tree sig)
 
         if (isInt(n1, &i))          return t1;
         if (isDouble(n1, &x))       return tree(int(x));
-        if (isSigIntCast(t1, tx))   return t1;
+        if (isSigIntCast(t1, tx))   return tx;
 
     } else if (isSigFloatCast(sig, t1)) {
         Tree    tx;
@@ -85,7 +85,7 @@ static Tree doConstantFolding (Tree sig)
 
         if (isInt(n1, &i))              return tree(double(i));
         if (isDouble(n1, &x))           return t1;
-        if (isSigFloatCast(t1, tx))     return t1;
+        if (isSigFloatCast(t1, tx))     return tx;
     }
 
     return sig;
