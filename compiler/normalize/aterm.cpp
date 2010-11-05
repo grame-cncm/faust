@@ -89,7 +89,7 @@ static Tree simplifyingSub(Tree t1, Tree t2)
 /**
  * Multiply two terms trying to simplify the result
  */
-static Tree simplifyingMul(Tree t1, Tree t2)
+Tree simplifyingMul(Tree t1, Tree t2)
 {
     assert(t1!=0);
     assert(t2!=0);
@@ -127,6 +127,35 @@ static Tree simplifyingMul(Tree t1, Tree t2)
     }
     return ret;
 }
+
+/**
+ * Divide two terms trying to simplify the result
+ */
+Tree simplifyingDiv(Tree t1, Tree t2)
+{
+    assert(t1!=0);
+    assert(t2!=0);
+
+    Tree ret;
+
+    if (isOne(t2))
+        return t1;
+
+    if (isNum(t1) && isNum(t2))
+        ret = divNums(t1, t2, unknown_box);
+    else
+        ret = sigDiv(t1, t2, unknown_box);
+
+    Type tt1 = t1->getType();
+    Type tt2 = t2->getType();
+    if (tt1 && tt2) {
+        Type tret = tt1|tt2;
+        tret = tret->castInterval(tt1->getInterval() / tt2->getInterval());
+        ret->setType(tret);
+    }
+    return ret;
+}
+
 
 /**
  * return the corresponding normalized expression tree
