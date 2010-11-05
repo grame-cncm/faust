@@ -7,6 +7,8 @@
 #include "simplify.hh"
 #include "normalize.hh"
 #include "sigorderrules.hh"
+#include "sigtyperules.hh"
+#include "simplifying_terms.hh"
 #include <map>
 #include <list>
 
@@ -58,9 +60,14 @@ Tree normalizeAddTerm(Tree t)
  */
 Tree normalizeDelay1Term(Tree s)
 {
-	return normalizeFixedDelayTerm(s, tree(1));
+    Tree one = tree(1);
+    typeAnnotation(one);
+    return normalizeFixedDelayTerm(s, one);
 }
 
+Type mergeAddTypes(Type t1, Type t2);
+Type mergeMulTypes(Type t1, Type t2);
+Type mergeDivTypes(Type t1, Type t2);
 
 /**
  * Compute the normal form of a fixed delay term (s@d).
@@ -83,40 +90,36 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 	Tree x, y, r;
 	int i;
 
-	if (isZero(d) && ! isProj(s, &i, r)) {
-
+	if (isZero(d) && ! isProj(s, &i, r))
         return s;
 
-	} else if (isZero(s)) {
-
+	if (isZero(s))
         return s;
 
-	} else if (isSigMul(s, x, y)) {
-
+	if (isSigMul(s, x, y)) {
 		if (getSigOrder(x) < 2) {
-            return /*simplify*/(sigMul(x,normalizeFixedDelayTerm(y,d)));
+            Tree normDel = normalizeFixedDelayTerm(y,d);
+            return simplifyingMul(x, normDel);
 		} else if (getSigOrder(y) < 2) {
-            return /*simplify*/(sigMul(y,normalizeFixedDelayTerm(x,d)));
-		} else {
-			return sigFixDelay(s,d);
+            Tree normDel = normalizeFixedDelayTerm(x,d);
+            return simplifyingMul(y, normDel);
 		}
 
 	} else if (isSigDiv(s, x, y)) {
 
 		if (getSigOrder(y) < 2) {
-            return /*simplify*/(sigDiv(normalizeFixedDelayTerm(x,d),y, unknown_box));
-		} else {
-			return sigFixDelay(s,d);
+            Tree normDel = normalizeFixedDelayTerm(x,d);
+            return simplifyingDiv(normDel, y);
 		}
 
 	} else if (isSigFixDelay(s, x, y)) {
 		// (x@n)@m = x@(n+m)
-//		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
-		return normalizeFixedDelayTerm(x,simplify(sigAdd(d,y)));
-
-	} else {
-
-		return sigFixDelay(s,d);
+        Tree addTerm = simplifyingAdd(d, y);
+		return normalizeFixedDelayTerm(x, addTerm);
 	}
+
+    Tree ret = sigFixDelay(s, d);
+    ret->setType(s->getType());
+    return ret;
 }
 
