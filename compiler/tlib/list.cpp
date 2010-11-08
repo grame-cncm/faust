@@ -107,6 +107,7 @@ This file contains several extensions to the tree library :
 #include "compatibility.hh"
 #include <map>
 #include <cstdlib>
+#include "ensure.hh"
 
 // predefined symbols CONS and NIL
 Sym CONS = symbol("cons");
@@ -530,15 +531,26 @@ Tree tmapRec (Tree key, tfun f, Tree t)
  *
  * copying persistent properties
  */
-Tree tmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistentProperties)
+static Tree doTmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistentProperties, Tree env)
 {
-    Tree p,id,body;
+    Tree p, id, body;
 
     if (getProperty(t, key, p)) {
         return (isNil(p)) ? t : p;  // truc pour eviter les boucles
     } else if (isRec(t, id, body)) {
-        setProperty(t, key, nil);   // avoid infinite loop
-        return rec(id, tmapRec(key, f, body));
+        Tree tid;
+        ensure(isRef(t, id)); // controle temporaire
+
+        Tree id2;
+        if (searchEnv(id, id2, env)) {
+            // déjà en cours de visite de cette recursion
+            return ref(id2);
+        } else {
+            // premiere visite de cette recursion
+            id2 = tree(Node(unique("renamed")));
+            Tree body2 = doTmapRec(key, f, body, persistentProperties, pushEnv(id, id2, env));
+            return rec(id2, body2);
+        }
     } else {
         Tree r1=nil;
         switch (t->arity()) {
@@ -546,22 +558,22 @@ Tree tmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistentPropertie
                 r1 = t;
                 break;
             case 1 :
-                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties));
+                r1 = tree(t->node(), doTmapRec(key, f, t->branch(0), persistentProperties, env));
                 break;
             case 2 :
-                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties),
-                                     tmapRec(key, f, t->branch(1), persistentProperties));
+                r1 = tree(t->node(), doTmapRec(key, f, t->branch(0), persistentProperties, env),
+                                     doTmapRec(key, f, t->branch(1), persistentProperties, env));
                 break;
             case 3 :
-                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties),
-                                     tmapRec(key, f, t->branch(1), persistentProperties),
-                                     tmapRec(key, f, t->branch(2), persistentProperties));
+                r1 = tree(t->node(), doTmapRec(key, f, t->branch(0), persistentProperties, env),
+                                     doTmapRec(key, f, t->branch(1), persistentProperties, env),
+                                     doTmapRec(key, f, t->branch(2), persistentProperties, env));
                 break;
             case 4 :
-                r1 = tree(t->node(), tmapRec(key, f, t->branch(0), persistentProperties),
-                                     tmapRec(key, f, t->branch(1), persistentProperties),
-                                     tmapRec(key, f, t->branch(2), persistentProperties),
-                                     tmapRec(key, f, t->branch(3), persistentProperties));
+                r1 = tree(t->node(), doTmapRec(key, f, t->branch(0), persistentProperties, env),
+                                     doTmapRec(key, f, t->branch(1), persistentProperties, env),
+                                     doTmapRec(key, f, t->branch(2), persistentProperties, env),
+                                     doTmapRec(key, f, t->branch(3), persistentProperties, env));
                 break;
         }
         Tree r2 = f(r1);
@@ -575,7 +587,12 @@ Tree tmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistentPropertie
     }
 }
 
+extern Tree NULLENV;
 
+Tree tmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistentProperties)
+{
+    return doTmapRec (key, f, t, persistentProperties, NULLENV);
+}
 
 //------------------------------------------------------------------------------
 // substitute :remplace toutes les occurences de 'id' par 'val' dans 't'
