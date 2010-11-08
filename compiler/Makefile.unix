@@ -38,59 +38,178 @@ doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
 
 main.o: tlib/compatibility.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
-main.o: generator/uitree.hh tlib/property.hh
-main.o: generator/Text.hh generator/description.hh
-main.o: generator/occurences.hh   
-main.o: propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh
-main.o: parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh generator/floats.hh
-main.o: generator/instructions.hh documentator/doc.hh generator/instructions_compiler.hh generator/code_container.hh
-main.o: generator/function_builder.hh generator/dag_instructions_compiler.hh generator/c_code_container.hh
-main.o: generator/c_instructions.hh generator/cpp_code_container.hh generator/cpp_instructions.hh
+main.o: generator/instructions.hh signals/sigtyperules.hh signals/sigrateinference.hh signals/sigprint.hh
+main.o: normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh propagate/propagate.hh boxes/boxes.hh
+main.o: errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
+main.o: evaluate/environment.hh generator/description.hh generator/uitree.hh generator/floats.hh documentator/doc.hh
+main.o: generator/instructions_compiler.hh generator/code_container.hh generator/Text.hh tlib/property.hh
+main.o: generator/function_builder.hh parallelize/code_loop.hh generator/occurences.hh
+main.o: generator/dag_instructions_compiler.hh generator/c_code_container.hh generator/c_instructions.hh
+main.o: generator/type_manager.hh generator/cpp_code_container.hh generator/cpp_instructions.hh
 main.o: generator/java_code_container.hh generator/java_instructions.hh generator/llvm_code_container.hh
-main.o: generator/llvm_instructions.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh
+main.o: generator/llvm_instructions.hh utils/ensure.hh /usr/local/include/llvm/DerivedTypes.h
+main.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/AbstractTypeUser.h
+main.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/System/DataTypes.h
+main.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ExecutionEngine/ExecutionEngine.h
+main.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+main.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/ADT/ValueMap.h
+main.o: /usr/local/include/llvm/ADT/DenseMap.h /usr/local/include/llvm/Support/MathExtras.h
+main.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/ADT/DenseMapInfo.h
+main.o: /usr/local/include/llvm/Support/ValueHandle.h /usr/local/include/llvm/ADT/PointerIntPair.h
+main.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/Use.h /usr/local/include/llvm/System/Mutex.h
+main.o: /usr/local/include/llvm/System/Threading.h /usr/local/include/llvm/Target/TargetMachine.h
+main.o: /usr/local/include/llvm/Target/TargetInstrItineraries.h /usr/local/include/llvm/ExecutionEngine/JIT.h
+main.o: /usr/local/include/llvm/LLVMContext.h /usr/local/include/llvm/Module.h /usr/local/include/llvm/Function.h
+main.o: /usr/local/include/llvm/GlobalValue.h /usr/local/include/llvm/Constant.h /usr/local/include/llvm/User.h
+main.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+main.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/ADT/ilist_node.h
+main.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/SymbolTableListTraits.h
+main.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Argument.h
+main.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/Support/Compiler.h
+main.o: /usr/local/include/llvm/GlobalVariable.h /usr/local/include/llvm/OperandTraits.h
+main.o: /usr/local/include/llvm/GlobalAlias.h /usr/local/include/llvm/Metadata.h
+main.o: /usr/local/include/llvm/ADT/FoldingSet.h /usr/local/include/llvm/ADT/OwningPtr.h
+main.o: /usr/local/include/llvm/PassManager.h /usr/local/include/llvm/Pass.h /usr/local/include/llvm/PassSupport.h
+main.o: /usr/local/include/llvm/Pass.h /usr/local/include/llvm/PassAnalysisSupport.h
+main.o: /usr/local/include/llvm/Analysis/Verifier.h /usr/local/include/llvm/Target/TargetData.h
+main.o: /usr/local/include/llvm/Target/TargetSelect.h /usr/local/include/llvm/Config/config.h
+main.o: /usr/local/include/llvm/Config/Targets.def /usr/local/include/llvm/Config/AsmPrinters.def
+main.o: /usr/local/include/llvm/Config/AsmParsers.def /usr/local/include/llvm/Config/Disassemblers.def
+main.o: /usr/local/include/llvm/Transforms/Scalar.h /usr/local/include/llvm/Support/IRBuilder.h
+main.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Operator.h
+main.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/ADT/APFloat.h
+main.o: /usr/local/include/llvm/Support/ConstantFolder.h /usr/local/include/llvm-c/BitWriter.h
+main.o: /usr/local/include/llvm-c/Core.h /usr/local/include/llvm/Bitcode/ReaderWriter.h
+main.o: /usr/local/include/llvm/Support/raw_ostream.h /usr/local/include/llvm/System/Host.h
+main.o: /usr/local/include/llvm/ADT/StringMap.h /usr/local/include/llvm/Support/Allocator.h
+main.o: /usr/local/include/llvm/Support/AlignOf.h generator/fir_code_container.hh generator/fir_instructions.hh
+main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-boxes/boxcomplexity.o:  generator/uitree.hh tlib/property.hh 
-boxes/boxcomplexity.o:  signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-boxes/boxcomplexity.o: documentator/lateq.hh generator/instructions.hh boxes/boxcomplexity.h boxes/boxes.hh
+boxes/boxcomplexity.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+boxes/boxcomplexity.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+boxes/boxcomplexity.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+boxes/boxcomplexity.o: boxes/boxcomplexity.h boxes/boxes.hh
 boxes/boxes.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxes.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
-boxes/boxes.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh  generator/uitree.hh
-boxes/boxes.o: tlib/property.hh   signals/sigvisitor.hh
-boxes/boxes.o: documentator/lateq.hh
+boxes/boxes.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh extended/xtended.hh
+boxes/boxes.o: signals/sigvisitor.hh documentator/lateq.hh /usr/local/include/llvm/Value.h
+boxes/boxes.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+boxes/boxes.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+boxes/boxes.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+boxes/boxes.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+boxes/boxes.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+boxes/boxes.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+boxes/boxes.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+boxes/boxes.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+boxes/boxes.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+boxes/boxes.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+boxes/boxes.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+boxes/boxes.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+boxes/boxes.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+boxes/boxes.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+boxes/boxes.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+boxes/boxes.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+boxes/boxes.o: /usr/local/include/llvm/Support/ConstantFolder.h
 boxes/boxtype.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxtype.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
-boxes/boxtype.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh  generator/uitree.hh
-boxes/boxtype.o: tlib/property.hh   signals/sigvisitor.hh
-boxes/boxtype.o: documentator/lateq.hh generator/instructions.hh
+boxes/boxtype.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh extended/xtended.hh
+boxes/boxtype.o: signals/sigvisitor.hh documentator/lateq.hh /usr/local/include/llvm/Value.h
+boxes/boxtype.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+boxes/boxtype.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+boxes/boxtype.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+boxes/boxtype.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+boxes/boxtype.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+boxes/boxtype.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+boxes/boxtype.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+boxes/boxtype.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+boxes/boxtype.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+boxes/boxtype.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+boxes/boxtype.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+boxes/boxtype.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+boxes/boxtype.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+boxes/boxtype.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+boxes/boxtype.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+boxes/boxtype.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+boxes/boxtype.o: /usr/local/include/llvm/Support/ConstantFolder.h
 boxes/ppbox.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh boxes/boxes.hh tlib/tlib.hh tlib/num.hh
 boxes/ppbox.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
-boxes/ppbox.o: tlib/smartpointer.hh signals/interval.hh extended/xtended.hh generator/uitree.hh
-boxes/ppbox.o: tlib/property.hh signals/sigvisitor.hh
-boxes/ppbox.o: documentator/lateq.hh generator/instructions.hh
+boxes/ppbox.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh extended/xtended.hh
+boxes/ppbox.o: signals/sigvisitor.hh documentator/lateq.hh /usr/local/include/llvm/Value.h
+boxes/ppbox.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+boxes/ppbox.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+boxes/ppbox.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+boxes/ppbox.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+boxes/ppbox.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+boxes/ppbox.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+boxes/ppbox.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+boxes/ppbox.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+boxes/ppbox.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+boxes/ppbox.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+boxes/ppbox.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+boxes/ppbox.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+boxes/ppbox.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+boxes/ppbox.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+boxes/ppbox.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+boxes/ppbox.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+boxes/ppbox.o: /usr/local/include/llvm/Support/ConstantFolder.h
 documentator/doc_autodoc.o: documentator/doc_autodoc.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 documentator/doc_autodoc.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 documentator/doc_autodoc.o: documentator/doc.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
 documentator/doc_compile.o: documentator/doc_compile.hh signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh
 documentator/doc_compile.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 documentator/doc_compile.o: signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-documentator/doc_compile.o: generator/occurences.hh tlib/property.hh documentator/lateq.hh generator/Text.hh
-documentator/doc_compile.o: documentator/doc_Text.hh generator/description.hh generator/uitree.hh generator/floats.hh
-documentator/doc_compile.o: generator/instructions.hh signals/sigprint.hh signals/recursivness.hh normalize/simplify.hh
-documentator/doc_compile.o: normalize/privatise.hh signals/prim2.hh extended/xtended.hh 
-documentator/doc_compile.o: signals/sigvisitor.hh tlib/compatibility.hh
-documentator/doc_compile.o: signals/ppsig.hh utils/names.hh propagate/propagate.hh boxes/boxes.hh documentator/doc.hh
-documentator/doc_compile.o: evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh documentator/doc_notice.hh
+documentator/doc_compile.o: generator/instructions.hh generator/occurences.hh tlib/property.hh documentator/lateq.hh
+documentator/doc_compile.o: generator/Text.hh documentator/doc_Text.hh generator/description.hh generator/uitree.hh
+documentator/doc_compile.o: generator/floats.hh signals/sigprint.hh signals/recursivness.hh normalize/simplify.hh
+documentator/doc_compile.o: normalize/privatise.hh signals/prim2.hh extended/xtended.hh signals/sigvisitor.hh
+documentator/doc_compile.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+documentator/doc_compile.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+documentator/doc_compile.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+documentator/doc_compile.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+documentator/doc_compile.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+documentator/doc_compile.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+documentator/doc_compile.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+documentator/doc_compile.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+documentator/doc_compile.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+documentator/doc_compile.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+documentator/doc_compile.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+documentator/doc_compile.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+documentator/doc_compile.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+documentator/doc_compile.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+documentator/doc_compile.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+documentator/doc_compile.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+documentator/doc_compile.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+documentator/doc_compile.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+documentator/doc_compile.o: tlib/compatibility.hh signals/ppsig.hh utils/names.hh propagate/propagate.hh boxes/boxes.hh
+documentator/doc_compile.o: documentator/doc.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
+documentator/doc_compile.o: documentator/doc_notice.hh utils/ensure.hh
 documentator/doc.o: boxes/ppbox.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 documentator/doc.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
-documentator/doc.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh documentator/doc.hh evaluate/eval.hh
-documentator/doc.o: parser/sourcereader.hh evaluate/environment.hh errors/errormsg.hh documentator/doc_Text.hh
-documentator/doc.o: signals/sigprint.hh propagate/propagate.hh parser/enrobage.hh draw/drawschema.hh utils/names.hh
-documentator/doc.o: normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh documentator/lateq.hh
-documentator/doc.o: documentator/doc_compile.hh signals/sigtyperules.hh generator/occurences.hh tlib/property.hh
-documentator/doc.o: generator/Text.hh generator/description.hh generator/uitree.hh documentator/doc_lang.hh
-documentator/doc.o: documentator/doc_notice.hh documentator/doc_autodoc.hh tlib/compatibility.hh
+documentator/doc.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+documentator/doc.o: documentator/doc.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
+documentator/doc.o: errors/errormsg.hh documentator/doc_Text.hh signals/sigprint.hh propagate/propagate.hh
+documentator/doc.o: parser/enrobage.hh draw/drawschema.hh utils/names.hh normalize/simplify.hh normalize/privatise.hh
+documentator/doc.o: signals/recursivness.hh documentator/lateq.hh documentator/doc_compile.hh signals/sigtyperules.hh
+documentator/doc.o: generator/occurences.hh tlib/property.hh generator/Text.hh generator/description.hh
+documentator/doc.o: generator/uitree.hh documentator/doc_lang.hh documentator/doc_notice.hh documentator/doc_autodoc.hh
+documentator/doc.o: tlib/compatibility.hh
 documentator/doc_lang.o: documentator/doc_lang.hh documentator/doc_notice.hh documentator/doc_autodoc.hh
 documentator/doc_lang.o: documentator/doc_metadatas.hh documentator/lateq.hh parser/enrobage.hh tlib/compatibility.hh
 documentator/doc_metadatas.o: documentator/doc_metadatas.hh documentator/doc.hh tlib/tlib.hh tlib/symbol.hh
@@ -101,19 +220,36 @@ documentator/doc_notice.o: documentator/doc_notice.hh documentator/doc_lang.hh p
 documentator/doc_sharing.o: documentator/doc_compile.hh signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh
 documentator/doc_sharing.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 documentator/doc_sharing.o: signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-documentator/doc_sharing.o: generator/occurences.hh tlib/property.hh documentator/lateq.hh generator/Text.hh
-documentator/doc_sharing.o: documentator/doc_Text.hh generator/description.hh generator/uitree.hh signals/sigprint.hh
+documentator/doc_sharing.o: generator/instructions.hh generator/occurences.hh tlib/property.hh documentator/lateq.hh
+documentator/doc_sharing.o: generator/Text.hh documentator/doc_Text.hh generator/description.hh generator/uitree.hh
+documentator/doc_sharing.o: signals/sigprint.hh
 documentator/doc_Text.o: documentator/doc_Text.hh tlib/compatibility.hh generator/floats.hh generator/instructions.hh
 documentator/doc_Text.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
 documentator/lateq.o: documentator/lateq.hh generator/Text.hh
 draw/drawschema.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 draw/drawschema.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
-draw/drawschema.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh draw/device/devLib.h
-draw/drawschema.o: draw/device/SVGDev.h draw/device/device.h draw/device/PSDev.h extended/xtended.hh 
-draw/drawschema.o: generator/uitree.hh tlib/property.hh  
-draw/drawschema.o: signals/sigvisitor.hh documentator/lateq.hh generator/instructions.hh tlib/occurrences.hh
-draw/drawschema.o: boxes/boxcomplexity.h draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh utils/names.hh
-draw/drawschema.o: propagate/propagate.hh generator/description.hh
+draw/drawschema.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+draw/drawschema.o: draw/device/devLib.h draw/device/SVGDev.h draw/device/device.h draw/device/PSDev.h
+draw/drawschema.o: extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh /usr/local/include/llvm/Value.h
+draw/drawschema.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+draw/drawschema.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+draw/drawschema.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+draw/drawschema.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+draw/drawschema.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+draw/drawschema.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+draw/drawschema.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+draw/drawschema.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+draw/drawschema.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+draw/drawschema.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+draw/drawschema.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+draw/drawschema.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+draw/drawschema.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+draw/drawschema.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+draw/drawschema.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+draw/drawschema.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+draw/drawschema.o: /usr/local/include/llvm/Support/ConstantFolder.h tlib/occurrences.hh boxes/boxcomplexity.h
+draw/drawschema.o: draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh utils/names.hh propagate/propagate.hh
+draw/drawschema.o: generator/description.hh generator/uitree.hh utils/ensure.hh
 errors/errormsg.o: errors/errormsg.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 errors/errormsg.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
 errors/timing.o: errors/timing.hh
@@ -124,246 +260,649 @@ evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tli
 evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
 evaluate/eval.o: evaluate/environment.hh errors/errormsg.hh boxes/ppbox.hh normalize/simplify.hh propagate/propagate.hh
 evaluate/eval.o: patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh tlib/smartpointer.hh
-evaluate/eval.o: signals/interval.hh  generator/uitree.hh tlib/property.hh 
-evaluate/eval.o:  signals/sigvisitor.hh documentator/lateq.hh generator/instructions.hh
-evaluate/eval.o: evaluate/loopDetector.hh utils/names.hh tlib/compatibility.hh
+evaluate/eval.o: signals/interval.hh generator/instructions.hh signals/sigvisitor.hh documentator/lateq.hh
+evaluate/eval.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+evaluate/eval.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+evaluate/eval.o: /usr/local/include/llvm/ADT/PointerIntPair.h /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+evaluate/eval.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+evaluate/eval.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+evaluate/eval.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+evaluate/eval.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+evaluate/eval.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+evaluate/eval.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+evaluate/eval.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+evaluate/eval.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+evaluate/eval.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+evaluate/eval.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+evaluate/eval.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+evaluate/eval.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+evaluate/eval.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+evaluate/eval.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+evaluate/eval.o: evaluate/loopDetector.hh tlib/property.hh utils/names.hh tlib/compatibility.hh
 evaluate/loopDetector.o: evaluate/loopDetector.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 evaluate/loopDetector.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 evaluate/loopDetector.o: parser/sourcereader.hh boxes/ppbox.hh
 extended/absprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/absprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/absprim.o: generator/uitree.hh tlib/property.hh  
-extended/absprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/absprim.o: generator/instructions.hh generator/Text.hh signals/sigtyperules.hh generator/floats.hh
-extended/absprim.o:  generator/code_container.hh generator/description.hh
-extended/absprim.o: generator/function_builder.hh
+extended/absprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/absprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/absprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/absprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/absprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/absprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/absprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/absprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/absprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/absprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/absprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/absprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/absprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/absprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/absprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/absprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/absprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/absprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/absprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/absprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh signals/sigtyperules.hh
+extended/absprim.o: generator/floats.hh generator/code_container.hh generator/description.hh generator/uitree.hh
+extended/absprim.o: tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
 extended/acosprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/acosprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/acosprim.o: generator/uitree.hh tlib/property.hh  
-extended/acosprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/acosprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/acosprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/acosprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/acosprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/acosprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/acosprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/acosprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/acosprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/acosprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/acosprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/acosprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/acosprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/acosprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/acosprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/acosprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/acosprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/acosprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/acosprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/acosprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/acosprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/acosprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/acosprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/acosprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/acosprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/asinprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/asinprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/asinprim.o: generator/uitree.hh tlib/property.hh  
-extended/asinprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/asinprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/asinprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/asinprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/asinprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/asinprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/asinprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/asinprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/asinprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/asinprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/asinprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/asinprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/asinprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/asinprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/asinprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/asinprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/asinprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/asinprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/asinprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/asinprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/asinprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/asinprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/asinprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/asinprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/asinprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/atan2prim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/atan2prim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/atan2prim.o: generator/uitree.hh tlib/property.hh 
-extended/atan2prim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-extended/atan2prim.o: documentator/lateq.hh generator/instructions.hh generator/Text.hh generator/floats.hh
-extended/atan2prim.o: generator/code_container.hh generator/description.hh
-extended/atan2prim.o: generator/function_builder.hh
+extended/atan2prim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/atan2prim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/atan2prim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/atan2prim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/atan2prim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+extended/atan2prim.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+extended/atan2prim.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+extended/atan2prim.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+extended/atan2prim.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+extended/atan2prim.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+extended/atan2prim.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+extended/atan2prim.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+extended/atan2prim.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+extended/atan2prim.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+extended/atan2prim.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+extended/atan2prim.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+extended/atan2prim.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+extended/atan2prim.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+extended/atan2prim.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+extended/atan2prim.o: generator/Text.hh generator/floats.hh generator/code_container.hh generator/description.hh
+extended/atan2prim.o: generator/uitree.hh tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
 extended/atanprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/atanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/atanprim.o: generator/uitree.hh tlib/property.hh  
-extended/atanprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/atanprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/atanprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/atanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/atanprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/atanprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/atanprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/atanprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/atanprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/atanprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/atanprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/atanprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/atanprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/atanprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/atanprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/atanprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/atanprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/atanprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/atanprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/atanprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/atanprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/atanprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/atanprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/atanprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/atanprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/ceilprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/ceilprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/ceilprim.o: generator/uitree.hh tlib/property.hh  
-extended/ceilprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/ceilprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/ceilprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/ceilprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/ceilprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/ceilprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/ceilprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/ceilprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/ceilprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/ceilprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/ceilprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/ceilprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/ceilprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/ceilprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/ceilprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/ceilprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/ceilprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/ceilprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/ceilprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/ceilprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/ceilprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/ceilprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/ceilprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/ceilprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/ceilprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/cosprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/cosprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/cosprim.o: generator/uitree.hh tlib/property.hh  
-extended/cosprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/cosprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/cosprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/cosprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/cosprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/cosprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/cosprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/cosprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/cosprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/cosprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/cosprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/cosprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/cosprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/cosprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/cosprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/cosprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/cosprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/cosprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/cosprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/cosprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/cosprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/cosprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/cosprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/cosprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/cosprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/expprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/expprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/expprim.o: generator/uitree.hh tlib/property.hh  
-extended/expprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/expprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/expprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/expprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/expprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/expprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/expprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/expprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/expprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/expprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/expprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/expprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/expprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/expprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/expprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/expprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/expprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/expprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/expprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/expprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/expprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/expprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/expprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/expprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/expprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/floorprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/floorprim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/floorprim.o:  generator/uitree.hh tlib/property.hh 
-extended/floorprim.o:  signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-extended/floorprim.o: documentator/lateq.hh generator/instructions.hh generator/Text.hh generator/floats.hh
-extended/floorprim.o:  generator/code_container.hh generator/description.hh
-extended/floorprim.o: generator/function_builder.hh
+extended/floorprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/floorprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/floorprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/floorprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/floorprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+extended/floorprim.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+extended/floorprim.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+extended/floorprim.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+extended/floorprim.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+extended/floorprim.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+extended/floorprim.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+extended/floorprim.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+extended/floorprim.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+extended/floorprim.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+extended/floorprim.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+extended/floorprim.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+extended/floorprim.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+extended/floorprim.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+extended/floorprim.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+extended/floorprim.o: generator/Text.hh generator/floats.hh generator/code_container.hh generator/description.hh
+extended/floorprim.o: generator/uitree.hh tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
 extended/fmodprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/fmodprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/fmodprim.o: generator/uitree.hh tlib/property.hh  
-extended/fmodprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/fmodprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/fmodprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/fmodprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/fmodprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/fmodprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/fmodprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/fmodprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/fmodprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/fmodprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/fmodprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/fmodprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/fmodprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/fmodprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/fmodprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/fmodprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/fmodprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/fmodprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/fmodprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/fmodprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/fmodprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/fmodprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/fmodprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/fmodprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/fmodprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/log10prim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/log10prim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/log10prim.o:  generator/uitree.hh tlib/property.hh 
-extended/log10prim.o:  signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-extended/log10prim.o: documentator/lateq.hh generator/instructions.hh generator/Text.hh generator/floats.hh
-extended/log10prim.o:  generator/code_container.hh generator/description.hh
-extended/log10prim.o: generator/function_builder.hh
+extended/log10prim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/log10prim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/log10prim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/log10prim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/log10prim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+extended/log10prim.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+extended/log10prim.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+extended/log10prim.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+extended/log10prim.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+extended/log10prim.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+extended/log10prim.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+extended/log10prim.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+extended/log10prim.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+extended/log10prim.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+extended/log10prim.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+extended/log10prim.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+extended/log10prim.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+extended/log10prim.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+extended/log10prim.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+extended/log10prim.o: generator/Text.hh generator/floats.hh generator/code_container.hh generator/description.hh
+extended/log10prim.o: generator/uitree.hh tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
 extended/logprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/logprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/logprim.o: generator/uitree.hh tlib/property.hh  
-extended/logprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/logprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/logprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/logprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/logprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/logprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/logprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/logprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/logprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/logprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/logprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/logprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/logprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/logprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/logprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/logprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/logprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/logprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/logprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/logprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/logprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/logprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/logprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/logprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/logprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/maxprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/maxprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/maxprim.o: generator/uitree.hh tlib/property.hh  
-extended/maxprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/maxprim.o: generator/instructions.hh generator/Text.hh signals/sigtyperules.hh generator/floats.hh
-extended/maxprim.o:  generator/code_container.hh generator/description.hh
-extended/maxprim.o: generator/function_builder.hh
+extended/maxprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/maxprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/maxprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/maxprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/maxprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/maxprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/maxprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/maxprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/maxprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/maxprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/maxprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/maxprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/maxprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/maxprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/maxprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/maxprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/maxprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/maxprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/maxprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/maxprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh signals/sigtyperules.hh
+extended/maxprim.o: generator/floats.hh generator/code_container.hh generator/description.hh generator/uitree.hh
+extended/maxprim.o: tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
 extended/minprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/minprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/minprim.o: generator/uitree.hh tlib/property.hh  
-extended/minprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/minprim.o: generator/instructions.hh generator/Text.hh signals/sigtyperules.hh generator/floats.hh
-extended/minprim.o:  generator/code_container.hh generator/description.hh
-extended/minprim.o: generator/function_builder.hh
+extended/minprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/minprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/minprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/minprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/minprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/minprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/minprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/minprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/minprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/minprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/minprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/minprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/minprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/minprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/minprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/minprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/minprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/minprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/minprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/minprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh signals/sigtyperules.hh
+extended/minprim.o: generator/floats.hh generator/code_container.hh generator/description.hh generator/uitree.hh
+extended/minprim.o: tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
 extended/powprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/powprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/powprim.o: generator/uitree.hh tlib/property.hh  
-extended/powprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/powprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/powprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/powprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/powprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/powprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/powprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/powprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/powprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/powprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/powprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/powprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/powprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/powprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/powprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/powprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/powprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/powprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/powprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/powprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/powprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/powprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/powprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/powprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/powprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/remainderprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/remainderprim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-extended/remainderprim.o:  generator/uitree.hh tlib/property.hh 
-extended/remainderprim.o:  signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-extended/remainderprim.o: documentator/lateq.hh generator/instructions.hh tlib/compatibility.hh generator/Text.hh
-extended/remainderprim.o: generator/floats.hh  generator/code_container.hh
-extended/remainderprim.o: generator/description.hh generator/function_builder.hh
+extended/remainderprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/remainderprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h
+extended/remainderprim.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+extended/remainderprim.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/remainderprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+extended/remainderprim.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+extended/remainderprim.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+extended/remainderprim.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+extended/remainderprim.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+extended/remainderprim.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+extended/remainderprim.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+extended/remainderprim.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+extended/remainderprim.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+extended/remainderprim.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+extended/remainderprim.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+extended/remainderprim.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+extended/remainderprim.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+extended/remainderprim.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+extended/remainderprim.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+extended/remainderprim.o: tlib/compatibility.hh generator/Text.hh generator/floats.hh generator/code_container.hh
+extended/remainderprim.o: generator/description.hh generator/uitree.hh tlib/property.hh generator/function_builder.hh
+extended/remainderprim.o: parallelize/code_loop.hh
 extended/rintprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/rintprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/rintprim.o: generator/uitree.hh tlib/property.hh  
-extended/rintprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/rintprim.o: generator/instructions.hh tlib/compatibility.hh generator/Text.hh generator/floats.hh
-extended/rintprim.o:  generator/code_container.hh generator/description.hh
-extended/rintprim.o: generator/function_builder.hh
+extended/rintprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/rintprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/rintprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/rintprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/rintprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/rintprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/rintprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/rintprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/rintprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/rintprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/rintprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/rintprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/rintprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/rintprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/rintprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/rintprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/rintprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/rintprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/rintprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/rintprim.o: /usr/local/include/llvm/Support/ConstantFolder.h tlib/compatibility.hh generator/Text.hh
+extended/rintprim.o: generator/floats.hh generator/code_container.hh generator/description.hh generator/uitree.hh
+extended/rintprim.o: tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
 extended/sinprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/sinprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/sinprim.o: generator/uitree.hh tlib/property.hh  
-extended/sinprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/sinprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/sinprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/sinprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/sinprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/sinprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/sinprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/sinprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/sinprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/sinprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/sinprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/sinprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/sinprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/sinprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/sinprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/sinprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/sinprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/sinprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/sinprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/sinprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/sinprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/sinprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/sinprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/sinprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/sinprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/sqrtprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/sqrtprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/sqrtprim.o: generator/uitree.hh tlib/property.hh  
-extended/sqrtprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/sqrtprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/sqrtprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/sqrtprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/sqrtprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/sqrtprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/sqrtprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/sqrtprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/sqrtprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/sqrtprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/sqrtprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/sqrtprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/sqrtprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/sqrtprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/sqrtprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/sqrtprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/sqrtprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/sqrtprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/sqrtprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/sqrtprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/sqrtprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/sqrtprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/sqrtprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/sqrtprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/sqrtprim.o: generator/function_builder.hh parallelize/code_loop.hh
 extended/tanprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-extended/tanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh 
-extended/tanprim.o: generator/uitree.hh tlib/property.hh  
-extended/tanprim.o: signals/sigvisitor.hh signals/signals.hh signals/binop.hh documentator/lateq.hh
-extended/tanprim.o: generator/instructions.hh generator/Text.hh generator/floats.hh 
-extended/tanprim.o: generator/code_container.hh generator/description.hh generator/function_builder.hh
+extended/tanprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+extended/tanprim.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+extended/tanprim.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+extended/tanprim.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+extended/tanprim.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+extended/tanprim.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+extended/tanprim.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+extended/tanprim.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+extended/tanprim.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+extended/tanprim.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+extended/tanprim.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+extended/tanprim.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+extended/tanprim.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+extended/tanprim.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+extended/tanprim.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+extended/tanprim.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+extended/tanprim.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+extended/tanprim.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+extended/tanprim.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+extended/tanprim.o: /usr/local/include/llvm/Support/ConstantFolder.h generator/Text.hh generator/floats.hh
+extended/tanprim.o: generator/code_container.hh generator/description.hh generator/uitree.hh tlib/property.hh
+extended/tanprim.o: generator/function_builder.hh parallelize/code_loop.hh
 generator/c_code_container.o: generator/c_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/c_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/c_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/c_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
-generator/c_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
-generator/c_code_container.o: generator/c_instructions.hh  
-generator/code_compile.o: errors/timing.hh  signals/signals.hh tlib/tlib.hh tlib/symbol.hh
-generator/code_compile.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
-generator/code_compile.o:  signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-generator/code_compile.o: generator/uitree.hh tlib/property.hh  
-generator/code_compile.o: generator/Text.hh generator/description.hh generator/floats.hh generator/instructions.hh
-generator/code_compile.o: signals/sigprint.hh signals/ppsig.hh signals/sigtyperules.hh normalize/simplify.hh
-generator/code_compile.o: normalize/privatise.hh
+generator/c_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
+generator/c_code_container.o: generator/c_instructions.hh generator/type_manager.hh
 generator/code_container.o: generator/code_container.hh generator/instructions.hh signals/binop.hh tlib/node.hh
 generator/code_container.o: tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh
 generator/code_container.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh generator/description.hh
 generator/code_container.o: signals/signals.hh generator/uitree.hh generator/floats.hh generator/Text.hh
-generator/code_container.o: tlib/property.hh generator/function_builder.hh 
-generator/code_container.o: 
-generator/compile.o: errors/timing.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
-generator/compile.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh 
-generator/compile.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh tlib/property.hh
-generator/compile.o:   generator/Text.hh generator/description.hh
-generator/compile.o: generator/floats.hh generator/instructions.hh signals/sigprint.hh signals/ppsig.hh
-generator/compile.o: signals/sigtyperules.hh normalize/simplify.hh normalize/privatise.hh
-generator/compile_scal.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh
-generator/compile_scal.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
-generator/compile_scal.o:  signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-generator/compile_scal.o: generator/uitree.hh tlib/property.hh  
-generator/compile_scal.o: generator/Text.hh generator/description.hh signals/sigtyperules.hh generator/occurences.hh
-generator/compile_scal.o: errors/timing.hh generator/floats.hh generator/instructions.hh signals/sigprint.hh
-generator/compile_scal.o: signals/recursivness.hh normalize/simplify.hh normalize/privatise.hh signals/prim2.hh
-generator/compile_scal.o: extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh tlib/compatibility.hh
-generator/compile_scal.o: signals/ppsig.hh
-generator/compile_sched.o:  
-generator/compile_sched.o: generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
-generator/compile_sched.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh 
-generator/compile_sched.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh
-generator/compile_sched.o: tlib/property.hh   generator/Text.hh
-generator/compile_sched.o: generator/description.hh signals/sigtyperules.hh generator/occurences.hh generator/floats.hh
-generator/compile_sched.o: generator/instructions.hh signals/ppsig.hh
-generator/compile_vect.o:   generator/compile.hh signals/signals.hh
-generator/compile_vect.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-generator/compile_vect.o: tlib/shlysis.hh signals/binop.hh  signals/sigtype.hh tlib/smartpointer.hh
-generator/compile_vect.o: signals/interval.hh generator/uitree.hh tlib/property.hh 
-generator/compile_vect.o:  generator/Text.hh generator/description.hh
-generator/compile_vect.o: signals/sigtyperules.hh generator/occurences.hh generator/floats.hh generator/instructions.hh
-generator/compile_vect.o: signals/ppsig.hh
+generator/code_container.o: tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
+generator/code_container.o: generator/fir_instructions.hh generator/type_manager.hh
 generator/contextor.o: generator/contextor.hh
 generator/cpp_code_container.o: generator/cpp_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/cpp_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/cpp_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/cpp_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/cpp_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
-generator/cpp_code_container.o: generator/cpp_instructions.hh  
+generator/cpp_code_container.o: parallelize/code_loop.hh generator/cpp_instructions.hh generator/type_manager.hh
 generator/dag_instructions_compiler.o: generator/dag_instructions_compiler.hh generator/instructions_compiler.hh
 generator/dag_instructions_compiler.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/dag_instructions_compiler.o: generator/code_container.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/dag_instructions_compiler.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/dag_instructions_compiler.o: tlib/shlysis.hh generator/description.hh signals/signals.hh generator/uitree.hh
 generator/dag_instructions_compiler.o: generator/floats.hh generator/Text.hh tlib/property.hh
-generator/dag_instructions_compiler.o: generator/function_builder.hh generator/occurences.hh signals/ppsig.hh
-generator/dag_instructions_compiler.o: signals/sigtyperules.hh errors/timing.hh signals/recursivness.hh
-generator/dag_instructions_compiler.o: normalize/privatise.hh normalize/simplify.hh extended/xtended.hh
-generator/dag_instructions_compiler.o:   
-generator/dag_instructions_compiler.o: signals/sigvisitor.hh documentator/lateq.hh signals/prim2.hh
+generator/dag_instructions_compiler.o: generator/function_builder.hh parallelize/code_loop.hh generator/occurences.hh
+generator/dag_instructions_compiler.o: signals/ppsig.hh signals/sigtyperules.hh errors/timing.hh
+generator/dag_instructions_compiler.o: signals/recursivness.hh normalize/privatise.hh normalize/simplify.hh
+generator/dag_instructions_compiler.o: extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/System/DataTypes.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/ADT/StringRef.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Support/IRBuilder.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Support/type_traits.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/BasicBlock.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/SymbolTableListTraits.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/ADT/ilist.h
+generator/dag_instructions_compiler.o: /usr/local/include/llvm/Support/ConstantFolder.h signals/prim2.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/smartpointer.hh
 generator/description.o: generator/uitree.hh generator/Text.hh
+generator/fir_code_container.o: generator/fir_code_container.hh generator/code_container.hh generator/instructions.hh
+generator/fir_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
+generator/fir_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+generator/fir_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
+generator/fir_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
+generator/fir_code_container.o: parallelize/code_loop.hh generator/fir_instructions.hh generator/type_manager.hh
 generator/floats.o: generator/floats.hh generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
+generator/floats.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/APInt.h
+generator/floats.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/System/DataTypes.h
+generator/floats.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/ADT/StringExtras.h
 generator/instructions_compiler.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/instructions_compiler.o: generator/instructions_compiler.hh generator/code_container.hh signals/sigtype.hh
 generator/instructions_compiler.o: tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh
 generator/instructions_compiler.o: tlib/list.hh tlib/shlysis.hh generator/description.hh signals/signals.hh
 generator/instructions_compiler.o: generator/uitree.hh generator/floats.hh generator/Text.hh tlib/property.hh
-generator/instructions_compiler.o: generator/function_builder.hh generator/occurences.hh signals/sigprint.hh
-generator/instructions_compiler.o: signals/ppsig.hh signals/sigtyperules.hh errors/timing.hh signals/recursivness.hh
-generator/instructions_compiler.o: normalize/privatise.hh normalize/simplify.hh extended/xtended.hh 
-generator/instructions_compiler.o:   signals/sigvisitor.hh
-generator/instructions_compiler.o: documentator/lateq.hh signals/prim2.hh
+generator/instructions_compiler.o: generator/function_builder.hh parallelize/code_loop.hh generator/occurences.hh
+generator/instructions_compiler.o: signals/sigprint.hh signals/ppsig.hh signals/sigtyperules.hh errors/timing.hh
+generator/instructions_compiler.o: signals/recursivness.hh normalize/privatise.hh normalize/simplify.hh
+generator/instructions_compiler.o: extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
+generator/instructions_compiler.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+generator/instructions_compiler.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+generator/instructions_compiler.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+generator/instructions_compiler.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+generator/instructions_compiler.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+generator/instructions_compiler.o: /usr/local/include/llvm/ADT/SmallVector.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+generator/instructions_compiler.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+generator/instructions_compiler.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+generator/instructions_compiler.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+generator/instructions_compiler.o: /usr/local/include/llvm/Support/ConstantFolder.h signals/prim2.hh utils/ensure.hh
 generator/java_code_container.o: generator/java_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/java_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/java_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/java_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/java_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
-generator/java_code_container.o: generator/java_instructions.hh  
-generator/klass.o: generator/floats.hh generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
-generator/klass.o: tlib/smartpointer.hh  signals/sigtype.hh signals/interval.hh tlib/tlib.hh
-generator/klass.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh generator/uitree.hh tlib/property.hh
-generator/klass.o:   generator/Text.hh signals/signals.hh
-generator/klass.o: signals/ppsig.hh
+generator/java_code_container.o: parallelize/code_loop.hh generator/java_instructions.hh generator/type_manager.hh
 generator/llvm_code_container.o: generator/llvm_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/llvm_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/llvm_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/llvm_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/llvm_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
-generator/llvm_code_container.o: generator/llvm_instructions.hh  
+generator/llvm_code_container.o: parallelize/code_loop.hh generator/llvm_instructions.hh utils/ensure.hh
+generator/llvm_code_container.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+generator/llvm_code_container.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Support/Casting.h
+generator/llvm_code_container.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/GraphTraits.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ExecutionEngine/ExecutionEngine.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/SmallVector.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/ADT/StringRef.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/ValueMap.h /usr/local/include/llvm/ADT/DenseMap.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/MathExtras.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/DenseMapInfo.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/ValueHandle.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/PointerIntPair.h /usr/local/include/llvm/Value.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/System/Mutex.h
+generator/llvm_code_container.o: /usr/local/include/llvm/System/Threading.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Target/TargetMachine.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Target/TargetInstrItineraries.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ExecutionEngine/JIT.h /usr/local/include/llvm/LLVMContext.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Module.h /usr/local/include/llvm/Function.h
+generator/llvm_code_container.o: /usr/local/include/llvm/GlobalValue.h /usr/local/include/llvm/Constant.h
+generator/llvm_code_container.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/CallingConv.h
+generator/llvm_code_container.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/Instruction.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+generator/llvm_code_container.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Argument.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/Support/Compiler.h
+generator/llvm_code_container.o: /usr/local/include/llvm/GlobalVariable.h /usr/local/include/llvm/OperandTraits.h
+generator/llvm_code_container.o: /usr/local/include/llvm/GlobalAlias.h /usr/local/include/llvm/Metadata.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/FoldingSet.h /usr/local/include/llvm/ADT/OwningPtr.h
+generator/llvm_code_container.o: /usr/local/include/llvm/PassManager.h /usr/local/include/llvm/Pass.h
+generator/llvm_code_container.o: /usr/local/include/llvm/PassSupport.h /usr/local/include/llvm/Pass.h
+generator/llvm_code_container.o: /usr/local/include/llvm/PassAnalysisSupport.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Analysis/Verifier.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Target/TargetData.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Target/TargetSelect.h /usr/local/include/llvm/Config/config.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Config/Targets.def
+generator/llvm_code_container.o: /usr/local/include/llvm/Config/AsmPrinters.def
+generator/llvm_code_container.o: /usr/local/include/llvm/Config/AsmParsers.def
+generator/llvm_code_container.o: /usr/local/include/llvm/Config/Disassemblers.def
+generator/llvm_code_container.o: /usr/local/include/llvm/Transforms/Scalar.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+generator/llvm_code_container.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Operator.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/ADT/APInt.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/Support/ConstantFolder.h
+generator/llvm_code_container.o: /usr/local/include/llvm-c/BitWriter.h /usr/local/include/llvm-c/Core.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Bitcode/ReaderWriter.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/raw_ostream.h /usr/local/include/llvm/System/Host.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ADT/StringMap.h /usr/local/include/llvm/Support/Allocator.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/AlignOf.h
+generator/llvm_code_container.o: /usr/local/include/llvm/ExecutionEngine/GenericValue.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Analysis/Passes.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/StandardPasses.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Transforms/IPO.h
 generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/occurences.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/occurences.hh
-generator/occurences.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigtyperules.hh
-generator/sharing.o:   generator/compile.hh signals/signals.hh
-generator/sharing.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
-generator/sharing.o: signals/binop.hh  signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-generator/sharing.o: generator/uitree.hh tlib/property.hh  
-generator/sharing.o: generator/Text.hh generator/description.hh signals/sigtyperules.hh generator/occurences.hh
-generator/sharing.o: signals/sigprint.hh
+generator/occurences.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+generator/occurences.o: signals/sigtyperules.hh
 generator/Text.o: generator/Text.hh tlib/compatibility.hh generator/floats.hh generator/instructions.hh
 generator/Text.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
@@ -374,40 +913,84 @@ normalize/aterm.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mte
 normalize/mterm.o: normalize/mterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 normalize/mterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
 normalize/mterm.o: normalize/normalize.hh signals/sigorderrules.hh signals/ppsig.hh extended/xtended.hh
-normalize/mterm.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh  generator/uitree.hh
-normalize/mterm.o: tlib/property.hh   signals/sigvisitor.hh
-normalize/mterm.o: documentator/lateq.hh generator/instructions.hh
+normalize/mterm.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+normalize/mterm.o: signals/sigvisitor.hh documentator/lateq.hh /usr/local/include/llvm/Value.h
+normalize/mterm.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+normalize/mterm.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+normalize/mterm.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+normalize/mterm.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/Support/IRBuilder.h
+normalize/mterm.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h
+normalize/mterm.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/User.h
+normalize/mterm.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+normalize/mterm.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/Operator.h
+normalize/mterm.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/Constant.h
+normalize/mterm.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/Support/MathExtras.h
+normalize/mterm.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/SmallVector.h
+normalize/mterm.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/DerivedTypes.h
+normalize/mterm.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/GraphTraits.h
+normalize/mterm.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
+normalize/mterm.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
+normalize/mterm.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+normalize/mterm.o: /usr/local/include/llvm/Support/ConstantFolder.h
 normalize/normalize.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 normalize/normalize.o: signals/signals.hh signals/binop.hh signals/sigprint.hh signals/ppsig.hh normalize/simplify.hh
 normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh normalize/aterm.hh
-normalize/privatise.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh tlib/compatibility.hh
-normalize/privatise.o: signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
-normalize/privatise.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtyperules.hh
-normalize/privatise.o: normalize/privatise.hh
+normalize/privatise.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+normalize/privatise.o: signals/binop.hh tlib/node.hh tlib/symbol.hh tlib/compatibility.hh signals/sigprint.hh
+normalize/privatise.o: signals/signals.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+normalize/privatise.o: signals/sigtyperules.hh normalize/privatise.hh
 normalize/simplify.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh signals/signals.hh tlib/tlib.hh tlib/num.hh
 normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-normalize/simplify.o: signals/recursivness.hh signals/sigtyperules.hh signals/sigorderrules.hh signals/sigprint.hh
-normalize/simplify.o: signals/ppsig.hh normalize/simplify.hh extended/xtended.hh  generator/uitree.hh
-normalize/simplify.o: tlib/property.hh   signals/sigvisitor.hh
-normalize/simplify.o: documentator/lateq.hh generator/instructions.hh tlib/compatibility.hh normalize/normalize.hh
+normalize/simplify.o: generator/instructions.hh signals/recursivness.hh signals/sigtyperules.hh
+normalize/simplify.o: signals/sigorderrules.hh signals/sigprint.hh signals/ppsig.hh normalize/simplify.hh
+normalize/simplify.o: extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh /usr/local/include/llvm/Value.h
+normalize/simplify.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+normalize/simplify.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+normalize/simplify.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+normalize/simplify.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+normalize/simplify.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+normalize/simplify.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+normalize/simplify.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+normalize/simplify.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+normalize/simplify.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+normalize/simplify.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+normalize/simplify.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+normalize/simplify.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+normalize/simplify.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+normalize/simplify.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+normalize/simplify.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+normalize/simplify.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+normalize/simplify.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+normalize/simplify.o: tlib/compatibility.hh normalize/normalize.hh utils/ensure.hh
+parallelize/code_loop.o: parallelize/code_loop.hh tlib/tree.hh tlib/symbol.hh tlib/node.hh
+parallelize/code_loop.o: generator/function_builder.hh generator/instructions.hh signals/binop.hh generator/floats.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 parallelize/colorize.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-parallelize/graphSorting.o:   tlib/tlib.hh tlib/symbol.hh tlib/node.hh
-parallelize/graphSorting.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh generator/code_container.hh
-parallelize/graphSorting.o: generator/instructions.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh
-parallelize/graphSorting.o: signals/interval.hh generator/description.hh signals/signals.hh generator/uitree.hh
-parallelize/graphSorting.o: generator/floats.hh generator/Text.hh tlib/property.hh generator/function_builder.hh
-parallelize/loop.o:  tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-parallelize/loop.o: tlib/shlysis.hh generator/Text.hh
 parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh
 parser/faustlexer.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh parser/faustparser.hpp
 parser/faustparser.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh tlib/num.hh
 parser/faustparser.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-parser/faustparser.o:  generator/uitree.hh tlib/property.hh 
-parser/faustparser.o:  signals/sigvisitor.hh signals/signals.hh signals/binop.hh
-parser/faustparser.o: documentator/lateq.hh generator/instructions.hh boxes/boxes.hh signals/prim2.hh
-parser/faustparser.o: errors/errormsg.hh parser/sourcereader.hh documentator/doc.hh evaluate/eval.hh
-parser/faustparser.o: evaluate/environment.hh boxes/ppbox.hh
+parser/faustparser.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+parser/faustparser.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+parser/faustparser.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+parser/faustparser.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+parser/faustparser.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+parser/faustparser.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+parser/faustparser.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+parser/faustparser.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+parser/faustparser.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+parser/faustparser.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+parser/faustparser.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+parser/faustparser.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+parser/faustparser.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+parser/faustparser.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+parser/faustparser.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+parser/faustparser.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+parser/faustparser.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+parser/faustparser.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+parser/faustparser.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+parser/faustparser.o: boxes/boxes.hh signals/prim2.hh errors/errormsg.hh parser/sourcereader.hh documentator/doc.hh
+parser/faustparser.o: evaluate/eval.hh evaluate/environment.hh boxes/ppbox.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/enrobage.hh
 parser/sourcereader.o: boxes/ppbox.hh
@@ -417,44 +1000,168 @@ patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh evaluat
 patternmatcher/patternmatcher.o: patternmatcher/patternmatcher.hh
 propagate/labels.o: propagate/labels.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 propagate/labels.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh tlib/compatibility.hh
+propagate/labels.o: utils/ensure.hh
 propagate/propagate.o: propagate/propagate.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 propagate/propagate.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/prim2.hh
-propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh boxes/ppbox.hh extended/xtended.hh
-propagate/propagate.o:  generator/uitree.hh tlib/property.hh 
-propagate/propagate.o:  signals/sigvisitor.hh documentator/lateq.hh
-propagate/propagate.o: generator/instructions.hh propagate/labels.hh generator/Text.hh signals/ppsig.hh utils/names.hh
-signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
+propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+propagate/propagate.o: boxes/ppbox.hh extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
+propagate/propagate.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+propagate/propagate.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+propagate/propagate.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+propagate/propagate.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+propagate/propagate.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+propagate/propagate.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+propagate/propagate.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+propagate/propagate.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+propagate/propagate.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+propagate/propagate.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+propagate/propagate.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+propagate/propagate.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+propagate/propagate.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+propagate/propagate.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+propagate/propagate.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+propagate/propagate.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+propagate/propagate.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+propagate/propagate.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+propagate/propagate.o: propagate/labels.hh generator/Text.hh signals/ppsig.hh utils/names.hh
+signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh /usr/local/include/llvm/Instructions.h
+signals/binop.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+signals/binop.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/Value.h
+signals/binop.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+signals/binop.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+signals/binop.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/System/DataTypes.h
+signals/binop.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/ADT/ilist_node.h
+signals/binop.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+signals/binop.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+signals/binop.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+signals/binop.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+signals/binop.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+signals/binop.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+signals/binop.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+signals/binop.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
 signals/ppsig.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 signals/ppsig.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigtype.hh tlib/smartpointer.hh
-signals/ppsig.o: signals/interval.hh extended/xtended.hh  generator/uitree.hh tlib/property.hh
-signals/ppsig.o:   signals/sigvisitor.hh documentator/lateq.hh
-signals/ppsig.o: generator/instructions.hh signals/recursivness.hh
+signals/ppsig.o: signals/interval.hh generator/instructions.hh extended/xtended.hh signals/sigvisitor.hh
+signals/ppsig.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+signals/ppsig.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+signals/ppsig.o: /usr/local/include/llvm/ADT/PointerIntPair.h /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+signals/ppsig.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+signals/ppsig.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+signals/ppsig.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+signals/ppsig.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+signals/ppsig.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+signals/ppsig.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+signals/ppsig.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+signals/ppsig.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+signals/ppsig.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+signals/ppsig.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+signals/ppsig.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+signals/ppsig.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+signals/ppsig.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+signals/ppsig.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+signals/ppsig.o: signals/recursivness.hh
 signals/prim2.o: signals/prim2.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-signals/prim2.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+signals/prim2.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+signals/prim2.o: signals/binop.hh
+signals/ratemap.o: signals/ratemap.hpp tlib/tree.hh tlib/symbol.hh tlib/node.hh
 signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 signals/recursivness.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 signals/signals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/signals.o: tlib/shlysis.hh signals/binop.hh
-signals/sigorderrules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigprint.hh
-signals/sigorderrules.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-signals/sigorderrules.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigorderrules.hh
-signals/sigorderrules.o: extended/xtended.hh  generator/uitree.hh tlib/property.hh
-signals/sigorderrules.o:   signals/sigvisitor.hh documentator/lateq.hh
-signals/sigorderrules.o: generator/instructions.hh
+signals/sigorderrules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+signals/sigorderrules.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigprint.hh signals/signals.hh
+signals/sigorderrules.o: tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/prim2.hh
+signals/sigorderrules.o: signals/sigorderrules.hh extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
+signals/sigorderrules.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+signals/sigorderrules.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+signals/sigorderrules.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+signals/sigorderrules.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+signals/sigorderrules.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+signals/sigorderrules.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+signals/sigorderrules.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+signals/sigorderrules.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+signals/sigorderrules.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+signals/sigorderrules.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+signals/sigorderrules.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+signals/sigorderrules.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+signals/sigorderrules.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+signals/sigorderrules.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+signals/sigorderrules.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+signals/sigorderrules.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+signals/sigorderrules.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+signals/sigorderrules.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
 signals/sigprint.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/sigprint.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-signals/sigprint.o: signals/sigtyperules.hh
-signals/sigtype.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-signals/sigtyperules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigprint.hh
-signals/sigtyperules.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-signals/sigtyperules.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/ppsig.hh signals/prim2.hh
-signals/sigtyperules.o: signals/sigtyperules.hh extended/xtended.hh  generator/uitree.hh
-signals/sigtyperules.o: tlib/property.hh   signals/sigvisitor.hh
-signals/sigtyperules.o: documentator/lateq.hh generator/instructions.hh signals/recursivness.hh
+signals/sigprint.o: generator/instructions.hh signals/sigtyperules.hh
+signals/sigrateinference.o: signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
+signals/sigrateinference.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh
+signals/sigrateinference.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+signals/sigrateinference.o: signals/sigrateinference.hh extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
+signals/sigrateinference.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+signals/sigrateinference.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+signals/sigrateinference.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+signals/sigrateinference.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+signals/sigrateinference.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+signals/sigrateinference.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+signals/sigrateinference.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+signals/sigrateinference.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+signals/sigrateinference.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+signals/sigrateinference.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+signals/sigrateinference.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+signals/sigrateinference.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+signals/sigrateinference.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+signals/sigrateinference.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+signals/sigrateinference.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+signals/sigrateinference.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+signals/sigrateinference.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+signals/sigrateinference.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+signals/sigrateinference.o: signals/prim2.hh signals/ratemap.hpp
+signals/sigtype.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+signals/sigtype.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
+signals/sigtyperules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+signals/sigtyperules.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigprint.hh signals/signals.hh
+signals/sigtyperules.o: tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/ppsig.hh
+signals/sigtyperules.o: signals/prim2.hh signals/sigtyperules.hh extended/xtended.hh signals/sigvisitor.hh
+signals/sigtyperules.o: documentator/lateq.hh /usr/local/include/llvm/Value.h
+signals/sigtyperules.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+signals/sigtyperules.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+signals/sigtyperules.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+signals/sigtyperules.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+signals/sigtyperules.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+signals/sigtyperules.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+signals/sigtyperules.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+signals/sigtyperules.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+signals/sigtyperules.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+signals/sigtyperules.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+signals/sigtyperules.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+signals/sigtyperules.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+signals/sigtyperules.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+signals/sigtyperules.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+signals/sigtyperules.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+signals/sigtyperules.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+signals/sigtyperules.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+signals/sigtyperules.o: signals/recursivness.hh
 signals/sigvisitor.o: signals/sigvisitor.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 signals/sigvisitor.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh extended/xtended.hh signals/sigtype.hh
-signals/sigvisitor.o: tlib/smartpointer.hh signals/interval.hh  generator/uitree.hh tlib/property.hh
-signals/sigvisitor.o:   documentator/lateq.hh generator/instructions.hh
+signals/sigvisitor.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh documentator/lateq.hh
+signals/sigvisitor.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+signals/sigvisitor.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
+signals/sigvisitor.o: /usr/local/include/llvm/ADT/PointerIntPair.h
+signals/sigvisitor.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+signals/sigvisitor.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+signals/sigvisitor.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+signals/sigvisitor.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+signals/sigvisitor.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+signals/sigvisitor.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+signals/sigvisitor.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+signals/sigvisitor.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+signals/sigvisitor.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+signals/sigvisitor.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+signals/sigvisitor.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+signals/sigvisitor.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+signals/sigvisitor.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+signals/sigvisitor.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+signals/sigvisitor.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
 signals/subsignals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/subsignals.o: tlib/shlysis.hh signals/binop.hh
 tlib/list.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh
