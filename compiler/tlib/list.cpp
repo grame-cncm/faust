@@ -473,7 +473,9 @@ Tree tmap (Tree key, tfun f, Tree t)
 Tree tmap (Tree key, tfun f, Tree t, vector<Tree> const & persistentProperties)
 {
     //printf("start tmap\n");
-    Tree p;
+    Tree p, id, body;
+
+    assert(!isRec(t, id, body));
 
     if (getProperty(t, key, p))
         return (isNil(p)) ? t : p;  // truc pour eviter les boucles
