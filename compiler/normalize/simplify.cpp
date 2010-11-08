@@ -46,7 +46,6 @@
 Tree SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
 //static Tree binequiv (Tree sig, int opnum, Tree a, Tree b);
 static Tree simplification (Tree sig);
-static Tree sigMap (Tree key, tfun f, Tree t);
 
 static Tree traced_simplification(Tree sig)
 {
@@ -76,7 +75,7 @@ static Tree traced_simplification(Tree sig)
 
 Tree simplify (Tree sig)
 {
-	return sigMap(SIMPLIFIED, traced_simplification, sig);
+	return tmapRec(SIMPLIFIED, traced_simplification, sig);
 }
 
 
@@ -154,18 +153,6 @@ static Tree simplification (Tree sig)
 
 
 
-/**
- * Recursively transform a graph by applying a function f.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
- */
-static Tree sigMap (Tree key, tfun f, Tree t)
-{
-    return tmapRec(key, f, t);
-}
-
-
-
-
 
 #if 0
 static void eraseProperties (Tree key, Tree t)
@@ -210,7 +197,7 @@ static Tree docTableConverter (Tree sig);
 
 Tree docTableConvertion (Tree sig)
 {
-    Tree r  = sigMap(DOCTABLES, docTableConverter, sig);
+    Tree r  = tmapRec(DOCTABLES, docTableConverter, sig);
     return r;
 }
 
