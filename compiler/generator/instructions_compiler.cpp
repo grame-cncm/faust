@@ -678,7 +678,7 @@ ValueInst* InstructionsCompiler::generateFFun(int variability, Tree sig, Tree ff
 
     // Add function declaration
     fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat()));
-    fContainer->pushGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
 
     return generateCacheCode(sig, InstBuilder::genFunCallInst(funname, args_value));
 }
@@ -1117,7 +1117,6 @@ ValueInst* InstructionsCompiler::generateFConst(int variability, Tree sig, Tree 
     Typed::VarType ctype;
     string vname;
 	Occurences* o = fOccMarkup.retrieve(sig);
-    int sig_type = getSigType(sig)->nature();
 
     fContainer->addIncludeFile(file);
 
@@ -1127,7 +1126,8 @@ ValueInst* InstructionsCompiler::generateFConst(int variability, Tree sig, Tree 
 		generateDelayVec(sig, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal)), ctype, vname, o->getMaxDelay());
 	}
 
-    fContainer->pushGlobalDeclare(InstBuilder::genDeclareVarInst(name,
+    int sig_type = getSigType(sig)->nature();
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareVarInst(name,
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat()), Address::kGlobal));
     return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal));
 }
@@ -1135,11 +1135,12 @@ ValueInst* InstructionsCompiler::generateFConst(int variability, Tree sig, Tree 
 ValueInst* InstructionsCompiler::generateFVar(int variability, Tree sig, Tree type, const string& file, const string& name)
 {
     fContainer->addIncludeFile(file);
-
+    
     int sig_type = getSigType(sig)->nature();
-    fContainer->pushGlobalDeclare(InstBuilder::genDeclareVarInst(name,
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareVarInst(name,
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat()), Address::kGlobal));
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal));
+    
+    return generateCacheCode(sig, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal)));
 }
 
 ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd)
