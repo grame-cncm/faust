@@ -30,7 +30,7 @@ static Tree doConstantFolding (Tree sig);
 
 Tree foldConstants (Tree sig)
 {
-    return tmapRec(folded, doConstantFolding, sig);
+    return tmap(folded, doConstantFolding, sig);
 }
 
 static Tree doConstantFolding (Tree sig)

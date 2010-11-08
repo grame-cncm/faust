@@ -581,11 +581,12 @@ static Tree prepareSignals(Tree lsignals)
 {
     startTiming("preparation");
 
+    lsignals = foldConstants(lsignals);
+
     startTiming("deBruijn2Sym");
     Tree lsym = deBruijn2Sym(lsignals);         // convert debruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
 
-    lsym = foldConstants(lsym);
     Tree simplified = simplify(lsym);           // simplify by executing every computable operation
     Tree privatized = privatise(simplified);    // Un-share tables with multiple writers
 

@@ -26,7 +26,9 @@
 
 /** constant folding and propagation pass
  *
- *  \param sig: untyped signal or subsignal
+ *  this pass has to be applied on signals with debruijn recursion
+ *
+ *  \param sig: non-recursive signal or subsignal
  */
 Tree foldConstants (Tree sig);
 
