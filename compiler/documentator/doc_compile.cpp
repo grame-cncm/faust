@@ -51,7 +51,7 @@
 #include "doc.hh"
 #include "tlib.hh"
 #include "doc_notice.hh"
-
+#include "ensure.hh"
 
 extern bool		gLessTempSwitch;
 extern int		gMaxCopyDelay;
@@ -862,11 +862,11 @@ string DocCompiler::generateRecProj(Tree sig, Tree r, int i, int priority)
 	//cerr << "*** generateRecProj sig : \"" << ppsig(sig) << "\"" << endl;
 
     if ( ! getVectorNameProperty(sig, vname)) {
-        assert(isRec(r, var, le));
+        ensure(isRec(r, var, le));
 		//cerr << "    generateRecProj has NOT YET a vname : " << endl;
 		//cerr << "--> generateRecProj calls generateRec on \"" << ppsig(sig) << "\"" << endl;
         generateRec(r, var, le, priority);
-        assert(getVectorNameProperty(sig, vname));
+        ensure(getVectorNameProperty(sig, vname));
 		//cerr << "<-- generateRecProj vname : \"" << subst("$0(t)", vname) << "\"" << endl;
     } else {
 		//cerr << "(generateRecProj has already a vname : \"" << subst("$0(t)", vname) << "\")" << endl;

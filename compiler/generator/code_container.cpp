@@ -53,6 +53,7 @@ map<string, Typed*> gVarTable;
 CodeContainer::CodeContainer(int numInputs, int numOutputs)
     :fNumInputs(numInputs), fNumOutputs(numOutputs),
     fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
+    fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
     fDeclarationInstructions(InstBuilder::genBlockInst()),
     fInitInstructions(InstBuilder::genBlockInst()),
     fDestroyInstructions(InstBuilder::genBlockInst()),

@@ -48,6 +48,8 @@
 #include "xtended.hh"
 #include "prim2.hh"
 
+#include "ensure.hh"
+
 using namespace std;
 
 // globals
@@ -678,7 +680,7 @@ ValueInst* InstructionsCompiler::generateFFun(int variability, Tree sig, Tree ff
 
     // Add function declaration
     fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat()));
-    fContainer->pushGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
 
     return generateCacheCode(sig, InstBuilder::genFunCallInst(funname, args_value));
 }
@@ -758,7 +760,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(int variability, Tree sig, 
 	string      vname;
 	int         size;
 
-	assert(isSigGen(content, g));
+	ensure(isSigGen(content, g));
 
 	if (!getCompiledExpression(content, cexp)) {
 		cexp = setCompiledExpression(content, generateStaticSigGen(variability, content, g));
@@ -928,9 +930,9 @@ ValueInst* InstructionsCompiler::generateRecProj(int variability, Tree sig, Tree
     ValueInst* res;
 
     if (!getVectorNameProperty(sig, vname)) {
-        assert(isRec(r, var, le));
+        ensure(isRec(r, var, le));
         res = generateRec(variability, r, var, le, i);
-        assert(getVectorNameProperty(sig, vname));
+        ensure(getVectorNameProperty(sig, vname));
     } else {
         res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
     }
@@ -1127,7 +1129,6 @@ ValueInst* InstructionsCompiler::generateFConst(int variability, Tree sig, Tree 
     Typed::VarType ctype;
     string vname;
 	Occurences* o = fOccMarkup.retrieve(sig);
-    int sig_type = getSigType(sig)->nature();
 
     fContainer->addIncludeFile(file);
 
@@ -1137,7 +1138,8 @@ ValueInst* InstructionsCompiler::generateFConst(int variability, Tree sig, Tree 
 		generateDelayVec(sig, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal)), ctype, vname, o->getMaxDelay());
 	}
 
-    fContainer->pushGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal),
+    int sig_type = getSigType(sig)->nature();
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal),
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
     return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal));
 }
@@ -1145,11 +1147,11 @@ ValueInst* InstructionsCompiler::generateFConst(int variability, Tree sig, Tree 
 ValueInst* InstructionsCompiler::generateFVar(int variability, Tree sig, Tree type, const string& file, const string& name)
 {
     fContainer->addIncludeFile(file);
-
+    
     int sig_type = getSigType(sig)->nature();
-    fContainer->pushGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal),
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal),
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal));
+    return generateCacheCode(sig, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal)));
 }
 
 ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd)

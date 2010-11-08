@@ -58,7 +58,7 @@
 #include "compatibility.hh"
 #include "names.hh"
 #include "description.hh"
-
+#include "ensure.hh"
 
 
 #if 0
@@ -70,7 +70,7 @@
 #endif
 
 #if 0
-#define linkcolor "#F57900" 
+#define linkcolor "#F57900"
 #define normalcolor "#4B71A1"
 #define uicolor "#47945E"
 #define slotcolor "#EDD400"
@@ -78,7 +78,7 @@
 #endif
 
 #if 0
-#define linkcolor "#47945E" 
+#define linkcolor "#47945E"
 #define normalcolor "#4B71A1"
 #define uicolor "#f44800"
 #define slotcolor "#EDD400"
@@ -86,7 +86,7 @@
 #endif
 
 #if 0
-#define linkcolor "#47945E" 
+#define linkcolor "#47945E"
 #define normalcolor "#4B71A1"
 #define uicolor "#816647"
 #define slotcolor "#EDD400"
@@ -94,7 +94,7 @@
 #endif
 
 #if 0
-#define linkcolor "#003366" 
+#define linkcolor "#003366"
 #define normalcolor "#4B71A1"
 #define uicolor "#816647"
 #define slotcolor "#EDD400"
@@ -102,7 +102,7 @@
 #endif
 
 #if 0
-#define linkcolor "#003366" 
+#define linkcolor "#003366"
 #define normalcolor "#4B71A1"
 #define uicolor "#477881"
 #define slotcolor "#816647"
@@ -111,7 +111,7 @@
 
 
 #if 1
-#define linkcolor "#003366" 
+#define linkcolor "#003366"
 #define normalcolor "#4B71A1"
 #define uicolor "#477881"
 #define slotcolor "#47945E"
@@ -224,11 +224,11 @@ static void writeSchemaFile(Tree bd)
 
 	gOccurrences = new Occurrences(bd);
 
-	bool hasname = getDefNameProperty(bd, id); 
+	bool hasname = getDefNameProperty(bd, id);
 
 	//assert(hasname);
 	if (!hasname) {
-		// create an arbitrary name 
+		// create an arbitrary name
 		id = tree(Node(unique("diagram_")));
 	}
 
@@ -306,7 +306,7 @@ static char* legalFileName(Tree t, int n, char* dst)
 		}
 	}
 	dst[i] = 0;
-	if (strcmp(dst, "process") != 0) { 
+	if (strcmp(dst, "process") != 0) {
 		// if it is not process add the hex address to make the name unique
 		snprintf(&dst[i], n-i, "-%p", t);
 	}
@@ -528,7 +528,7 @@ static schema* generateBargraphSchema(Tree t)
  */
 static schema* generateInputSlotSchema(Tree a)
 {
-	Tree id; assert(getDefNameProperty(a, id));
+	Tree id; ensure(getDefNameProperty(a, id));
 	stringstream s; s << tree2str(id);
 	return makeBlockSchema(1, 0, s.str(), slotcolor, "");
 }
@@ -540,7 +540,7 @@ static schema* generateInputSlotSchema(Tree a)
  */
 static schema* generateOutputSlotSchema(Tree a)
 {
-	Tree id; assert(getDefNameProperty(a, id));
+	Tree id; ensure(getDefNameProperty(a, id));
 	stringstream s; s << tree2str(id);
 	return makeBlockSchema(0, 1, s.str(), slotcolor, "");
 }

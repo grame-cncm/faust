@@ -67,6 +67,7 @@ class CodeContainer {
         int fNumOutputs;
      
         // Declaration part
+        BlockInst* fExtGlobalDeclarationInstructions;
         BlockInst* fGlobalDeclarationInstructions;
         BlockInst* fDeclarationInstructions;
         
@@ -197,6 +198,12 @@ class CodeContainer {
         StatementInst* pushGlobalDeclare(StatementInst* inst) 
         { 
             fGlobalDeclarationInstructions->pushBackInst(inst); 
+            return inst; 
+        }
+        
+        StatementInst* pushExtGlobalDeclare(StatementInst* inst) 
+        { 
+            fExtGlobalDeclarationInstructions->pushBackInst(inst); 
             return inst; 
         }
         

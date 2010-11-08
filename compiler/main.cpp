@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "2.0.a2"
+#define FAUSTVERSION "2.0.a3"
 
 #include <stdio.h>
 #include <string.h>
@@ -593,9 +593,13 @@ static Tree prepareSignals(Tree lsignals)
 
     Tree signals = privatized;
     recursivnessAnnotation(signals);            // Annotate final signal tree with recursivness information
+    startTiming("typeAnnotation");
     typeAnnotation(signals);                    // Annotate final signal tree with type information
+    endTiming("typeAnnotation");
 
+    startTiming("inferRate");
     inferRate(signals);
+    endTiming("inferRate");
 
     endTiming("preparation");
     return signals;
