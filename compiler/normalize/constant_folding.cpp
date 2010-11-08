@@ -23,6 +23,8 @@
 #include <list.hh>
 #include <xtended.hh>
 #include "constant_folding.hh"
+#include <stdexcept>
+
 
 static Tree folded = tree(symbol("sigFoldedConstant"));
 
@@ -37,7 +39,7 @@ static Tree doConstantFolding (Tree sig)
 {
     assert(sig);
     int     opnum;
-    Tree    t1, t2;
+    Tree    selector, t1, t2, t3;
 
     xtended* xt = (xtended*) getUserData(sig);
     if (xt)
@@ -86,6 +88,34 @@ static Tree doConstantFolding (Tree sig)
         if (isInt(n1, &i))              return tree(double(i));
         if (isDouble(n1, &x))           return t1;
         if (isSigFloatCast(t1, tx))     return tx;
+    } else if (isSigSelect2(sig, selector, t1, t2)) {
+        Node sn = selector->node();
+
+        if (!isInt(sn) || !isDouble(sn))
+            return sig;
+
+        int sni = sn;
+        if (sni == 0)
+            return t1;
+        if (sni == 1)
+            return t2;
+
+        throw runtime_error("Constant selector signal to select2 signal needs to be 0 or 1");
+    } else if (isSigSelect3(sig, selector, t1, t2, t3)) {
+        Node sn = selector->node();
+
+        if (!isInt(sn) || !isDouble(sn))
+            return sig;
+
+        int sni = sn;
+        if (sni == 0)
+            return t1;
+        if (sni == 1)
+            return t2;
+        if (sni == 2)
+            return t3;
+
+        throw runtime_error("Constant selector signal to select3 needs to be 0, 1 or 2");
     }
 
     return sig;
