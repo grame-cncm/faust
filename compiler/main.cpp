@@ -596,6 +596,9 @@ static Tree prepareSignals(Tree lsignals)
     typeAnnotation(signals);                    // Annotate final signal tree with type information
     endTiming("typeAnnotation");
 
+    assert(sigIsAnnotated(signals, RECURSIVNESS));
+    assert(sigIsTyped(signals));
+
     startTiming("inferRate");
     inferRate(signals);
     endTiming("inferRate");

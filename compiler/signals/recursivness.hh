@@ -26,6 +26,7 @@
 
 #include "signals.hh"
 
+extern Tree RECURSIVNESS;
 void 	recursivnessAnnotation(Tree sig);
 int 	getRecursivness(Tree t);
 

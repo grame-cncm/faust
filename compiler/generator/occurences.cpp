@@ -65,6 +65,8 @@ void OccMarkup::mark(Tree root)
 	fRootTree = root;
 	fPropKey = tree(unique("OCCURENCES"));
 
+    assert(isAnnotated(root, RECURSIVNESS));
+
 	if (isList(root)) {
 		while (isList(root)) {
 			//incOcc(kSamp, 1, hd(root));
