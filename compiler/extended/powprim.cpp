@@ -77,7 +77,11 @@ class PowPrim : public xtended
         Typed::VarType result_type;
         if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
         
-        if (types[0]->nature() == kInt && types[1]->nature() == kInt) {
+        list<ValueInst*>::const_iterator it = args.begin();
+        it++;
+        IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
+         
+        if (types[1]->nature() == kInt && arg1) {
            
             if (types[0]->nature() == kInt) 
                 arg_types[0] = Typed::kInt;
