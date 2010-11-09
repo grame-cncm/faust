@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <sigtyperules.hh>
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
+#include "simplifying_terms.hh"
 
 #undef TRACE
 
@@ -388,10 +389,6 @@ static Tree buildPowTerm(Tree f, int q)
 		return f;
 	}
 }
-
-/* simplification functions from aterm.cpp */
-Tree simplifyingMul(Tree t1, Tree t2);
-Tree simplifyingDiv(Tree t1, Tree t2);
 
 /**
  * Combine R and A doing R = R*A or R = A
