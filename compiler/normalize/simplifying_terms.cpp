@@ -28,6 +28,33 @@
 #include "signals.hh"
 #include "sigtyperules.hh"
 
+template <typename operation>
+static Type computeType(Type t1, Type t2, operation const & o)
+{
+    if (t1 && t2) {
+        FaustVectorType * vt1 = isVectorType(t1);
+        FaustVectorType * vt2 = isVectorType(t2);
+
+        Type ret;
+        if (vt1 && !vt2) {
+            Type st2 = isSimpleType(t2);
+            assert(st2);
+            ret = vt1->promote(st2);
+        } else if (vt2 && !vt1) {
+            Type st1 = isSimpleType(t1);
+            assert(st1);
+            ret = vt2->promote(st1);
+        } else
+            ret = t1 | t2;
+
+        interval i = o(t1->getInterval(), t2->getInterval());
+
+        ret = ret->castInterval(i);
+
+        return ret;
+    } else
+        return NULL;
+}
 
 /**
  * Add two terms trying to simplify the result
@@ -52,11 +79,8 @@ Tree simplifyingAdd(Tree t1, Tree t2)
 
     Type tt1 = t1->getType();
     Type tt2 = t2->getType();
-    if (tt1 && tt2) {
-        Type tret = tt1|tt2;
-        tret = tret->castInterval(tt1->getInterval() + tt2->getInterval());
-        ret->setType(tret);
-    }
+    Type tret = computeType(tt1, tt2, std::plus<interval>());
+    ret->setType(tret);
     return ret;
 }
 
@@ -79,11 +103,9 @@ Tree simplifyingSub(Tree t1, Tree t2)
 
     Type tt1 = t1->getType();
     Type tt2 = t2->getType();
-    if (tt1 && tt2) {
-        Type tret = tt1|tt2;
-        tret = tret->castInterval(tt1->getInterval() - tt2->getInterval());
-        ret->setType(tret);
-    }
+
+    Type tret = computeType(tt1, tt2, std::minus<interval>());
+    ret->setType(tret);
     return ret;
 }
 
@@ -121,11 +143,9 @@ Tree simplifyingMul(Tree t1, Tree t2)
 
     Type tt1 = t1->getType();
     Type tt2 = t2->getType();
-    if (tt1 && tt2) {
-        Type tret = tt1|tt2;
-        tret = tret->castInterval(tt1->getInterval() * tt2->getInterval());
-        ret->setType(tret);
-    }
+    Type tret = computeType(tt1, tt2, std::multiplies<interval>());
+    ret->setType(tret);
+
     return ret;
 }
 
@@ -149,11 +169,9 @@ Tree simplifyingDiv(Tree t1, Tree t2)
 
     Type tt1 = t1->getType();
     Type tt2 = t2->getType();
-    if (tt1 && tt2) {
-        Type tret = tt1|tt2;
-        tret = tret->castInterval(tt1->getInterval() / tt2->getInterval());
-        ret->setType(tret);
-    }
+    Type tret = computeType(tt1, tt2, std::divides<interval>());
+    ret->setType(tret);
+
     return ret;
 }
 
