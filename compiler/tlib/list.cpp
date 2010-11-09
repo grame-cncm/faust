@@ -539,7 +539,7 @@ static Tree doTmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistent
         return (isNil(p)) ? t : p;  // truc pour eviter les boucles
     } else if (isRec(t, id, body)) {
         Tree tid;
-        ensure(isRef(t, id)); // controle temporaire
+        ensure(isRef(t, tid)); // controle temporaire
 
         Tree id2;
         if (searchEnv(id, id2, env)) {
@@ -549,7 +549,9 @@ static Tree doTmapRec (Tree key, tfun f, Tree t, vector<Tree> const & persistent
             // premiere visite de cette recursion
             id2 = tree(Node(unique("renamed")));
             Tree body2 = doTmapRec(key, f, body, persistentProperties, pushEnv(id, id2, env));
-            return rec(id2, body2);
+            Tree ret = rec(id2, body2);
+            copyProperties(ret, t, persistentProperties);
+            return ret;
         }
     } else {
         Tree r1=nil;
