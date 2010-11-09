@@ -69,12 +69,12 @@ void enlargedSchema::place(double ox, double oy, int orientation)
 
 	for (unsigned int i=0; i < inputs(); i++) {
 		point p = fSchema->inputPoint(i);
-		fInputPoint[i] = point(p.x-dx, p.y);
+        fInputPoint[i] = point(p.x-dx, p.y, p.invisible);
 	}
 
 	for (unsigned int i=0; i < outputs(); i++) {
 		point p = fSchema->outputPoint(i);
-		fOutputPoint[i] = point(p.x+dx, p.y);
+        fOutputPoint[i] = point(p.x+dx, p.y, p.invisible);
 	}
 
 	endPlace();

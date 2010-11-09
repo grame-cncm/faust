@@ -6,7 +6,8 @@
 GRAME - Centre National de Creation Musicale - is happy to announce
 the release of FAUST 0.9.30. This version fixes several bugs,
 introduces some new possibilities in the language and provides 
-improved libraries and additional examples.
+improved libraries and additional examples, as well as simplification 
+of block diagram by removing useless cables
 
 -------------
 About FAUST :
@@ -39,6 +40,7 @@ Online Faust Compiler (requires firefox):
 http://faust.grame.fr
 
 
+<<<<<<< HEAD
 ======================== WHAT'S NEW ==============================
 
 ---------------
@@ -47,6 +49,104 @@ Documentation :
 
 - A new version of the Faust Quick Reference is provided with a
 better layout and an expanded and updated content.
+=======
+------------
+What's new :
+------------
+Examples :
+
+- smoothdelay.dsp
+- cubic_distortion.dsp
+- gate_compressor.dsp
+- graphic_eq.dsp
+- parametric_eq.dsp
+- phaser_flanger.dsp
+- spectral_level.dsp
+- vcf_wah_pedals.dsp
+
+Documentation :
+
+- Updated and improved faust quick reference
+
+libraries :
+
+- music.lib : added sdelay() function for variable delays without transposition
+
+- math.lib : interpolate(a,b,i) and if(c,t,e)
+
+- filter.lib : added function fir() for general convolution based FIR filtering
+			 : added allpass_comb filter
+
+- effet.lib : historical reverberators (originaly implemented by John Chowning
+in the MUS10) jcrev, satrev, and reverb_demo in effect.lib
+
+Architectures :
+
+- fix for supercollider.cpp architecture file
+
+- Aggregate in/out devices when needed ca-qt.cpp (core audio QT) architecture file
+
+Compiler :
+
+- fix error message for non constant-integer table sizes
+
+- getBoxType now always called on fully evaluated expressions in PNF (propagation normal form)
+
+- missing boxtype for pattern matching variables added
+
+Language definition :
+
+
+----------------------------------------------------------------------------
+- Improved mathematical description (--mathdoc option) and support
+for two new languages : German (-mdlang de) and Italian (-mdlang
+it)
+
+- Support for floating point numbers in scientific notation and
+better precision for floating point constants. The precision used
+to print a floating point constant in the generated C++ code is no
+more limited to 6 digits. It is now dynamically adjusted to find
+the minimal number of digits that will produce the same internal
+representation when read back. This approach guarantees accuracy
+without sacrificing for readability.
+
+- All expressions are now systematically represented in polynomial
+forms. For example x*x will be replaced by x^2. If x is a complex
+expression the later form has several advantages, in particular to
+limit CSE.
+
+- Lazy semantics to select2 and select3 : the code generated for
+select2 and select3 is now based on conditional expressions
+((cond)?exp1:exp0 ) instead of tables. The resulting code is more
+efficient as the stateless parts of the branches are not computed
+every time but only when really needed.
+
+- new --task-graph option. It produces a graphical representation
+of the internal DAG of task in dot format (Graphviz
+http://www.graphviz.org/). This DAG is useful for example to
+understand the potential parallelism of a program as analyzed by
+the Faust compiler
+
+- Two new tools : faust2graph and faust2graphviewer. These tools
+make use of the --task-graph option in order to produce the
+graphical representation, as a PDF file, of the internal DAG of
+tasks of a Faust program (require Graphviz).
+
+- new reduce.lib library. It provides various operations on block
+of samples based on a high order 'reduce(op, n)' fold-like
+function. Moreover the music.lib library has been extended with
+break-point functions and multiple decorrelated random and noise
+generators. New flanger and stereowidth control have been added to
+the effect.lib library.
+
+- new iPhone architecture. It consists in a iphone-cocoa.cpp
+architecture file and an Xcode template project to be used to
+produce the applications. Use "make iphone" in the example folder
+to build the examples for the iPhone.
+
+- improved cross plateform compatibility and brand new visual
+studio 2008 project to build Faust on windows machines.
+>>>>>>> undergoing simplification of block diagram by removing useless cables
 
 
 ----------

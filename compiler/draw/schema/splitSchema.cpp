@@ -82,6 +82,7 @@ void splitSchema::place(double ox, double oy, int orientation)
 	endPlace();
 }
 
+
 /**
  * The inputs of s1 <: s2 are the inputs of s1
  */

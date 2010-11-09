@@ -38,13 +38,14 @@ const double dVert = 4;				///< marge verticale
 
 struct point
 {
-	double x;
-	double y;
+    double  x;
+    double  y;
+    bool    invisible;
 
-	point() : x(0.0), y(0.0) {}
-	point(double f) : x(f),y(f) {}
-	point(double u, double v) : x(u), y(v) {}
-	point(const point& p) : x(p.x), y(p.y) {}
+    point() : x(0.0), y(0.0), invisible(false) {}
+    point(double f, bool inv=false) : x(f), y(f), invisible(inv) {}
+    point(double u, double v, bool inv=false) : x(u), y(v), invisible(inv)  {}
+    point(const point& p) : x(p.x), y(p.y), invisible(p.invisible) {}
 };
 
 enum { kLeftRight=1, kRightLeft=-1 };
