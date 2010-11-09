@@ -46,8 +46,8 @@ decorateSchema::decorateSchema( schema* s, double margin, const string& text )
 	 	fMargin(margin),
 	 	fText(text)
 {
-	for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0));
-	for (unsigned int i=0; i<outputs(); i++) 	fOutputPoint.push_back(point(0));
+    for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0,0));
+    for (unsigned int i=0; i<outputs(); i++) 	fOutputPoint.push_back(point(0,0));
 }
 
 
@@ -69,12 +69,12 @@ void decorateSchema::place(double ox, double oy, int orientation)
 
 	for (unsigned int i=0; i < inputs(); i++) {
 		point p = fSchema->inputPoint(i);
-		fInputPoint[i] = point(p.x-m, p.y);
+        fInputPoint[i] = point(p.x-m, p.y, p.invisible);
 	}
 
 	for (unsigned int i=0; i < outputs(); i++) {
 		point p = fSchema->outputPoint(i);
-		fOutputPoint[i] = point(p.x+m, p.y);
+        fOutputPoint[i] = point(p.x+m, p.y, p.invisible);
 	}
 
 	endPlace();

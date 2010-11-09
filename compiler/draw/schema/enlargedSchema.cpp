@@ -46,8 +46,8 @@ enlargedSchema::enlargedSchema( schema* s, double width )
 	: 	schema(s->inputs(), s->outputs(), width, s->height()),
 	 	fSchema(s)
 {
-	for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0));
-	for (unsigned int i=0; i<outputs(); i++) 	fOutputPoint.push_back(point(0));
+    for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0,0));
+    for (unsigned int i=0; i<outputs(); i++) 	fOutputPoint.push_back(point(0,0));
 }
 
 
@@ -114,13 +114,13 @@ void enlargedSchema::draw(device& dev)
 	for (unsigned int i=0; i<inputs(); i++) {
 		point p = inputPoint(i);
 		point q = fSchema->inputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
+        if ( !(p.invisible | q.invisible) ) dev.trait(p.x, p.y, q.x, q.y);
 	}
 
 	// draw enlarge output wires
 	for (unsigned int i=0; i<outputs(); i++) {
 		point p = outputPoint(i);
 		point q = fSchema->outputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
+        if ( !(p.invisible | q.invisible) ) dev.trait(p.x, p.y, q.x, q.y);
 	}
 }

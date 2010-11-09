@@ -70,8 +70,8 @@ blockSchema::blockSchema (	unsigned int inputs,
 	  	fColor(color),
 	  	fLink(link)
 {
-	for (unsigned int i=0; i<inputs; i++) 	fInputPoint.push_back(point(0));
-	for (unsigned int i=0; i<outputs; i++) 	fOutputPoint.push_back(point(0));
+    for (unsigned int i=0; i<inputs; i++) 	fInputPoint.push_back(point(0,0));
+    for (unsigned int i=0; i<outputs; i++) 	fOutputPoint.push_back(point(0,0));
 }
 
 /**
