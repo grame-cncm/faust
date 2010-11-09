@@ -508,7 +508,10 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 		// combine each order separately : R[i] = A[i]/B[i]
 		Tree RR = 0;
 		for (int order = 0; order < 4; order++) {
-			if (A[order] && B[order]) 	combineMulLeft(RR,sigDiv(A[order],B[order]));
+			if (A[order] && B[order]) {
+                Tree divTerm = simplifyingDiv(A[order],B[order]);
+                combineMulLeft(RR, divTerm);
+            }
 			else if (A[order])			combineMulLeft(RR,A[order]);
 			else if (B[order])			combineDivLeft(RR,B[order]);
 		}
