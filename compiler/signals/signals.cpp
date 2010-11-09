@@ -29,6 +29,7 @@
 
 #include "signals.hh"
 
+#include <set>
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -445,3 +446,89 @@ bool verySimple(Tree exp)
 			||	isSigInput(exp, &i)
 			||	isSigFConst(exp, type, name, file);
 }
+
+
+/** helper class for testing a predicate on all subsignals or subtrees
+ *
+ *  parameters:
+ *  Test: prediacate to test
+ *  test_subsignals: if true, subsignals are traversed, otherwise all branches
+ *
+ * */
+template <typename Test,
+          bool test_subsignals>
+struct SigChecker
+{
+    SigChecker(Test const & t = Test()):
+        test(t)
+    {}
+
+    bool perform(Tree sig)
+    {
+        if (checked.find(sig) != checked.end())
+            return true;
+
+        checked.insert(sig);
+
+        if (!sig->getType())
+            return false;
+
+        Tree rgroup;
+        int i;
+
+        if (isProj(sig, &i, rgroup))
+            return perform(rgroup);
+
+        if (test_subsignals) {
+            vector<Tree> subsigs;
+            getSubSignals(sig, subsigs);
+            for (int i = 0; i != subsigs.size(); ++i) {
+                if (!perform(subsigs[i]))
+                    return false;
+            }
+        } else {
+            for (int i = 0; i != sig->arity(); ++i) {
+                if (!perform(sig->branch(i)))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    Test test;
+    set<Tree> checked;
+};
+
+struct isTyped
+{
+    bool operator()(Tree sig) const {return sig->getType();} ;
+};
+
+bool sigIsTyped(Tree root)
+{
+    SigChecker<isTyped, true> checker;
+    return checker.perform(root);
+}
+
+struct treeIsAnnotated
+{
+    treeIsAnnotated(Tree prop): property(prop) {}
+    bool operator()(Tree sig) const {return sig->getProperty(property);};
+    Tree property;
+};
+
+bool sigIsAnnotated(Tree root, Tree property)
+{
+    treeIsAnnotated check(property);
+    SigChecker<treeIsAnnotated, true> checker(check);
+    return checker.perform(root);
+}
+
+bool isAnnotated(Tree root, Tree property)
+{
+    treeIsAnnotated check(property);
+    SigChecker<treeIsAnnotated, true> checker(check);
+    return checker.perform(root);
+}
+
