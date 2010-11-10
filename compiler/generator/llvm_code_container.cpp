@@ -395,6 +395,7 @@ void LLVMCodeContainer::produceInternal()
     //}
 
     // Global declarations
+    fExtGlobalDeclarationInstructions->accept(fCodeProducer);
     fGlobalDeclarationInstructions->accept(fCodeProducer);
 
     generateInstanceInitBegin(fields_names["fSamplingFreq"]);
@@ -449,7 +450,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
         fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, fDSP_ptr, fPrefix);
     //}
 
-    // Functions
+    // Global declarations
+    fExtGlobalDeclarationInstructions->accept(fCodeProducer);
     fGlobalDeclarationInstructions->accept(fCodeProducer);
 
     generateClassInitBegin();
