@@ -65,6 +65,11 @@ static Tree doConstantFolding (Tree sig)
         if (op->isRightNeutral(n2))
             return t1;
 
+        if (op->isLeftAbsorbing(n1))
+            return t1;
+        if (op->isRightAbsorbing(n2))
+            return t2;
+
     } else if (isSigFixDelay(sig, t1, t2)) {
         if (isZero(t2))
             return t1;
