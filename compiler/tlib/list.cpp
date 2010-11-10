@@ -445,7 +445,8 @@ void remProperty (Tree t, Tree key)
 
 static void copyProperties(Tree dst, Tree src, vector<Tree> const & persistentProperties)
 {
-    dst->setType(src->getType());
+    if (!dst->getType())
+        dst->setType(src->getType());
     for (size_t i = 0; i != persistentProperties.size(); ++i) {
         Tree key = persistentProperties[i];
         Tree prop = src->getProperty(key);
