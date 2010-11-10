@@ -83,6 +83,12 @@ inline interval operator-(const interval& x, const interval& y)
 
 inline interval operator*(const interval& x, const interval& y)
 {
+    if (x.valid && (x.lo == 0) && (x.hi == 0))
+        return x;
+
+    if (y.valid && (y.lo == 0) && (y.hi == 0))
+        return y;
+
 	if (x.valid&y.valid) {
 		double a=x.lo*y.lo;
 		double b=x.lo*y.hi;
@@ -90,12 +96,6 @@ inline interval operator*(const interval& x, const interval& y)
 		double d=x.hi*y.hi;
 		return interval(min4(a,b,c,d), max4(a,b,c,d));
 	}
-
-    if (x.valid && (x.lo == 0) && (x.hi == 0))
-        return x;
-
-    if (y.valid && (y.lo == 0) && (y.hi == 0))
-        return y;
 
     return interval();
 }
