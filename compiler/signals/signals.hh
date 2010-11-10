@@ -305,5 +305,7 @@ bool sigIsTyped(Tree root);
 bool sigIsAnnotated(Tree root, Tree property);
 /** test if tree and all subtrees are annotated with a property */
 bool isAnnotated(Tree root, Tree property);
+/** test if signal has a valid interval */
+bool sigValidInterval(Tree root);
 
 #endif

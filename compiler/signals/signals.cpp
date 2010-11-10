@@ -28,6 +28,7 @@
 
 
 #include "signals.hh"
+#include "sigtype.hh"
 
 #include <set>
 
@@ -532,3 +533,11 @@ bool isAnnotated(Tree root, Tree property)
     return checker.perform(root);
 }
 
+bool sigValidInterval(Tree root)
+{
+    Type t = root->getType();
+    if (t && t->getInterval().valid)
+        return true;
+    else
+        return false;
+}
