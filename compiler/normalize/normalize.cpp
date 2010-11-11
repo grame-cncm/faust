@@ -116,7 +116,7 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 	} else if (isSigFixDelay(s, x, y)) {
 		// (x@n)@m = x@(n+m)
         Tree addTerm = simplifyingAdd(d, y);
-        assert(sigValidInterval(addTerm));
+        assert(addTerm->getType() ? sigValidInterval(addTerm) : true);
 		return normalizeFixedDelayTerm(x, addTerm);
 	}
 
