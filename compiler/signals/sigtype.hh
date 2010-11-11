@@ -117,6 +117,17 @@ class AudioType
 	virtual AudioType* castInterval(const interval & i) = 0;
 
 	virtual ostream& print(ostream& dst) const		= 0;			///< print nicely a type
+
+    /** promote with the features of rhs */
+    inline AudioType * promote(AudioType * rhs)
+    {
+        return promoteNature(rhs->nature())
+            ->promoteVariability(rhs->variability())
+            ->promoteComputability(rhs->computability())
+            ->promoteVectorability(rhs->vectorability())
+            ->promoteBoolean(rhs->boolean())
+            ->promoteInterval(rhs->getInterval());
+    }
 };
 
 //printing
@@ -354,17 +365,6 @@ private:
     AudioType * dereferenceType(void)   { return fType; }
     int size(void) const                { return fSize; }
 };
-
-/* promote lhs with the features of rhs */
-inline AudioType * mergeTypes(AudioType * lhs, AudioType * rhs)
-{
-    return lhs->promoteNature(rhs->nature())
-        ->promoteVariability(rhs->variability())
-        ->promoteComputability(rhs->computability())
-        ->promoteVectorability(rhs->vectorability())
-        ->promoteBoolean(rhs->boolean());
-}
-
 
 //-------------------------------------------------
 //-------------------------------------------------

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2006 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,16 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef _CONSTANT_FOLDING_
+#define _CONSTANT_FOLDING_
 
+#include "tree.hh"
 
-#ifndef _RECURSIVNESS_
-#define _RECURSIVNESS_
-
-#include "signals.hh"
-
-extern Tree RECURSIVNESS;
-void 	recursivnessAnnotation(Tree sig);
-int 	getRecursivness(Tree t);
+/** constant folding and propagation pass
+ *
+ *  this pass has to be applied on signals with debruijn recursion
+ *
+ *  \param sig: non-recursive signal or subsignal
+ */
+Tree foldConstants (Tree sig);
 
 #endif
-

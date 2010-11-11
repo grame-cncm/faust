@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2006 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2010 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,16 +19,30 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef _SIMPLIFYING_TERMS_
+#define _SIMPLIFYING_TERMS_
 
+#include "tree.hh"
 
-#ifndef _RECURSIVNESS_
-#define _RECURSIVNESS_
+/**
+ * Add two terms trying to simplify the result
+ */
+Tree simplifyingAdd(Tree t1, Tree t2);
 
-#include "signals.hh"
+/**
+ * Substract two terms trying to simplify the result
+ */
+Tree simplifyingSub(Tree t1, Tree t2);
 
-extern Tree RECURSIVNESS;
-void 	recursivnessAnnotation(Tree sig);
-int 	getRecursivness(Tree t);
+/**
+ * Multiply two terms trying to simplify the result
+ */
+Tree simplifyingMul(Tree t1, Tree t2);
+
+/**
+ * Divide two terms trying to simplify the result
+ */
+Tree simplifyingDiv(Tree t1, Tree t2);
+
 
 #endif
-

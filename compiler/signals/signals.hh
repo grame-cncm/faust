@@ -294,4 +294,18 @@ bool verySimple(Tree exp);
 extern Sym SIGINTCAST;
 extern Sym SIGFLOATCAST;
 
+
+/*****************************************************************************
+                             signal checks
+*****************************************************************************/
+
+/** test if signal and all subsignals are typed */
+bool sigIsTyped(Tree root);
+/** test if signal and all subsignals are annotated with a property */
+bool sigIsAnnotated(Tree root, Tree property);
+/** test if tree and all subtrees are annotated with a property */
+bool isAnnotated(Tree root, Tree property);
+/** test if signal has a valid interval */
+bool sigValidInterval(Tree root);
+
 #endif

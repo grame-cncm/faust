@@ -46,7 +46,6 @@
 Tree SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
 //static Tree binequiv (Tree sig, int opnum, Tree a, Tree b);
 static Tree simplification (Tree sig);
-static Tree sigMap (Tree key, tfun f, Tree t);
 
 static Tree traced_simplification(Tree sig)
 {
@@ -76,7 +75,7 @@ static Tree traced_simplification(Tree sig)
 
 Tree simplify (Tree sig)
 {
-	return sigMap(SIMPLIFIED, traced_simplification, sig);
+	return tmapRec(SIMPLIFIED, traced_simplification, sig);
 }
 
 
@@ -129,7 +128,7 @@ static Tree simplification (Tree sig)
 
 		if (isInt(n1, &i)) 			return t1;
 		if (isDouble(n1, &x)) 		return tree(int(x));
-		if (isSigIntCast(t1, tx)) 	return t1;
+		if (isSigIntCast(t1, tx)) 	return tx;
 
 		return sig;
 
@@ -142,7 +141,7 @@ static Tree simplification (Tree sig)
 
 		if (isInt(n1, &i)) 				return tree(double(i));
 		if (isDouble(n1, &x)) 			return t1;
-		if (isSigFloatCast(t1, tx)) 	return t1;
+		if (isSigFloatCast(t1, tx)) 	return tx;
 
 		return sig;
 
@@ -154,126 +153,6 @@ static Tree simplification (Tree sig)
 
 
 
-/**
- * Recursively transform a graph by applying a function f.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
- */
-static Tree sigMap (Tree key, tfun f, Tree t)
-{
-    //printf("start sigMap\n");
-    Tree p,id,body;
-
-    if (getProperty(t, key, p)) {
-
-        return (isNil(p)) ? t : p;	// truc pour eviter les boucles
-
-    } else if (isRec(t, id, body)) {
-
-        setProperty(t, key, nil);	// avoid infinite loop
-        return rec(id, sigMap(key, f, body));
-
-    } else {
-
-        Tree r1=nil;
-        switch (t->arity()) {
-
-            case 0 :
-                r1 = t;
-                break;
-            case 1 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)));
-                break;
-            case 2 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)));
-                break;
-            case 3 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)),
-                                           sigMap(key,f,t->branch(2)));
-                break;
-            case 4 :
-                r1 = tree(t->node(), sigMap(key,f,t->branch(0)), sigMap(key,f,t->branch(1)),
-                                           sigMap(key,f,t->branch(2)), sigMap(key,f,t->branch(3)));
-                break;
-        }
-        Tree r2 = f(r1);
-        if (r2 == t) {
-            setProperty(t, key, nil);
-        } else {
-            setProperty(t, key, r2);
-        }
-        return r2;
-    }
-}
-
-
-
-
-
-/**
- * Like SigMap, recursively transform a graph by applying a
- * function f. But here recursive trees are also renamed.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
- */
-static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
-{
-    //printf("start sigMap\n");
-    Tree p,id,body;
-
-    if (getProperty(t, key, p)) {
-
-        return (isNil(p)) ? t : p;	// truc pour eviter les boucles
-
-    } else if (isRec(t, id, body)) {
-
-        ensure(isRef(t,id)); // controle temporaire
-
-        Tree id2;
-        if (searchEnv(id, id2, env)) {
-            // déjà en cours de visite de cette recursion
-            return ref(id2);
-        } else {
-            // premiere visite de cette recursion
-            id2 = tree(Node(unique("renamed")));
-            Tree body2 = sigMapRename(key, pushEnv(id, id2, env), f, body);
-            return rec(id2,body2);
-        }
-
-    } else {
-
-        Tree r1=nil;
-        switch (t->arity()) {
-
-            case 0 :
-                r1 = t;
-                break;
-            case 1 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)));
-                break;
-            case 2 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)),
-                                        sigMapRename(key,env,f,t->branch(1)));
-                break;
-            case 3 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)),
-                                        sigMapRename(key,env,f,t->branch(1)),
-                                        sigMapRename(key,env,f,t->branch(2)));
-                break;
-            case 4 :
-                r1 = tree(t->node(),    sigMapRename(key,env,f,t->branch(0)),
-                                        sigMapRename(key,env,f,t->branch(1)),
-                                        sigMapRename(key,env,f,t->branch(2)),
-                                        sigMapRename(key,env,f,t->branch(3)));
-                break;
-        }
-        Tree r2 = f(r1);
-        if (r2 == t) {
-            setProperty(t, key, nil);
-        } else {
-            setProperty(t, key, r2);
-        }
-        return r2;
-    }
-}
 
 #if 0
 static void eraseProperties (Tree key, Tree t)
@@ -318,7 +197,7 @@ static Tree docTableConverter (Tree sig);
 
 Tree docTableConvertion (Tree sig)
 {
-    Tree r  = sigMapRename(DOCTABLES, NULLENV, docTableConverter, sig);
+    Tree r  = tmapRec(DOCTABLES, docTableConverter, sig);
     return r;
 }
 

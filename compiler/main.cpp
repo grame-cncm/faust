@@ -74,6 +74,7 @@
 #include "schema.h"
 #include "drawschema.hh"
 #include "timing.hh"
+#include "constant_folding.hh"
 
 using namespace std ;
 
@@ -584,6 +585,8 @@ static Tree prepareSignals(Tree lsignals)
 {
     startTiming("preparation");
 
+    lsignals = foldConstants(lsignals);
+
     startTiming("deBruijn2Sym");
     Tree lsym = deBruijn2Sym(lsignals);         // convert debruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
@@ -596,6 +599,9 @@ static Tree prepareSignals(Tree lsignals)
     startTiming("typeAnnotation");
     typeAnnotation(signals);                    // Annotate final signal tree with type information
     endTiming("typeAnnotation");
+
+    assert(sigIsAnnotated(signals, RECURSIVNESS));
+    assert(sigIsTyped(signals));
 
     startTiming("inferRate");
     inferRate(signals);

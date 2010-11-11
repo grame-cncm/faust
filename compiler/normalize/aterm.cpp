@@ -1,5 +1,8 @@
 #include "aterm.hh"
 #include "ppsig.hh"
+#include <sigtype.hh>
+#include <sigtyperules.hh>
+#include "simplifying_terms.hh"
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
 #undef TRACE
@@ -27,30 +30,6 @@ aterm::aterm (Tree t)
 }
 
 
-/**
- * Add two terms trying to simplify the result
- */
-static Tree simplifyingAdd(Tree t1, Tree t2)
-{
-	assert(t1!=0);
-	assert(t2!=0);
-
-	if (isNum(t1) && isNum(t2)) {
-		return addNums(t1,t2, unknown_box);
-
-	} else if (isZero(t1)) {
-		return t2;
-
-	} else if (isZero(t2)) {
-		return t1;
-
-	} else if (t1 <= t2) {
-		return sigAdd(t1, t2, unknown_box);
-
-	} else {
-		return sigAdd(t2, t1, unknown_box);
-	}
-}
 
 /**
  * return the corresponding normalized expression tree
@@ -82,6 +61,7 @@ Tree aterm::normalizedTree() const
 
 	// combine sums
 	Tree SUM = tree(0);
+    typeAnnotation(SUM);
 	for (int order = 0; order < 4; order++) {
 		if (!isZero(P[order]))	{
 			SUM = simplifyingAdd(SUM,P[order]);
@@ -91,7 +71,7 @@ Tree aterm::normalizedTree() const
 				// we postpone substraction
 				N[order+1] = simplifyingAdd(N[order], N[order+1]);
 			} else {
-				SUM = sigSub(SUM, N[order], unknown_box);
+                SUM = simplifyingSub(SUM, N[order]);
 			}
 		}
 	}
@@ -265,7 +245,11 @@ aterm aterm::factorize(const mterm& d)
 	//cerr << "tt " << *tt << endl;
 
 	//Tree ttt = sigAdd(
-	A += sigMul(d.normalizedTree(), Q.normalizedTree(), unknown_box);
+    Tree dNormalized = d.normalizedTree();
+    Tree qNormalized = Q.normalizedTree();
+    Tree mul = simplifyingMul(dNormalized, qNormalized);
+
+	A += mul;
 	//cerr << "Final A = " << A << endl;
 	//cerr << "Final Tree " << *(A.normalizedTree()) << endl;
 	return A;
