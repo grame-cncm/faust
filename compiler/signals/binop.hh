@@ -66,8 +66,8 @@ struct BinOp
 			: fName(name), fNameVec(namevec), fNameScal(namescal),
             fNameLLVMInt(namellvmint), fNameLLVMFloat(namellvmfloat),
             fLlvmIntInst(llvmint), fLlvmFloatInst(llvmfloat),
-            fCompute(f), fLeftNeutral(ln), fRightNeutral(rn), fPriority(priority),
-            fLeftAbsorbing(la), fRightAbsorbing(ra)
+            fCompute(f), fLeftNeutral(ln), fRightNeutral(rn),
+            fLeftAbsorbing(la), fRightAbsorbing(ra), fPriority(priority)
     {}
 
 	Node compute(const Node& a, const Node& b) { return fCompute(a,b); 	}
