@@ -97,6 +97,11 @@ static Tree simplification (Tree sig)
 		return xt->computeSigOutput(args);
 
 	} else if (isSigBinOp(sig, &opnum, t1, t2)) {
+        if (isVectorType(t1->getType()) ||
+            isVectorType(t2->getType()))
+            /* simplifying vector types may result in scalar/vector operations that we don't support for now */
+            return sig;
+
 		BinOp* op = gBinOpTable[opnum];
 
 		Node n1 = t1->node();
