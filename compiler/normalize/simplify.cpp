@@ -97,19 +97,27 @@ static Tree simplification (Tree sig)
 		return xt->computeSigOutput(args);
 
 	} else if (isSigBinOp(sig, &opnum, t1, t2)) {
-
 		BinOp* op = gBinOpTable[opnum];
 
 		Node n1 = t1->node();
 		Node n2 = t2->node();
 
-		if (isNum(n1) && isNum(n2)) 		return tree(op->compute(n1,n2));
+		if (isNum(n1) && isNum(n2))
+            return tree(op->compute(n1,n2));
 
-		else if (op->isLeftNeutral(n1)) 	return t2;
+        if (op->isLeftAbsorbing(n1))
+            return t1;
 
-		else if (op->isRightNeutral(n2)) 	return t1;
+        if (op->isRightAbsorbing(n2))
+            return t2;
 
-		else 								return normalizeAddTerm(sig);
+		if (op->isLeftNeutral(n1))
+            return t2;
+
+		if (op->isRightNeutral(n2))
+            return t1;
+
+		return normalizeAddTerm(sig);
 
 	} else if (isSigDelay1(sig, t1)) {
 
