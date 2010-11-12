@@ -359,6 +359,10 @@ string DocCompiler::generateInput (Tree sig, const string& idx)
 
 /**
  * Generate binary operations, managing priority parenthesis.
+ * ((a*b)+c) can be written (a*b+c) if priority(*) > priority(+)
+ * ((a*b)*c) can be writteb (a*b*c) if * is associative
+ * Associative operation should have a distinc priority from other operations.
+ * Non associative operations can share the same priority.
  *
  * @param	sig			The signal expression to treat.
  * @param	opcode		The operation code, as described in gBinOpLateqTable.
@@ -373,6 +377,12 @@ string DocCompiler::generateInput (Tree sig, const string& idx)
  * @todo	Handle integer arithmetics, by testing arguments type,
  * and printing dedicated operators (\oplus, \odot, \ominus, \oslash).
  */
+
+/// associative operations are + * | & xor
+static bool associative (int opcode) {
+    return (opcode == kAdd) || (opcode == kMul) || (opcode == kAND) || (opcode == kOR) || (opcode == kXOR);
+}
+
 string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, int priority)
 {
 	string s;
@@ -381,10 +391,11 @@ string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, in
 	/* Priority parenthesis handling. */
 	string lpar = "";
 	string rpar = "";
-	if (thisPriority < priority) {
-		lpar = " \\left(";
-		rpar = "\\right) ";
-	}
+    if ( (thisPriority < priority) || ((thisPriority == priority) && !associative(opcode)) ) {
+        // (a+b)*c or (a/b)/c need parenthesis
+        lpar = " \\left(";
+        rpar = "\\right) ";
+    }
 
 	Type t1 = getSigType(arg1);
 	Type t2 = getSigType(arg2);

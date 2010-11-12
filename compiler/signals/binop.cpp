@@ -38,13 +38,13 @@ bool falsePredicate(Node const & a)
 BinOp* gBinOpTable[] = {
 
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", Instruction::Add, Instruction::FAdd, addNode, isZero, isZero, 6),
-	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", Instruction::Sub, Instruction::FSub, subNode, falsePredicate, isZero, 6),
-	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", Instruction::Mul, Instruction::FMul, mulNode, isOne, isOne, 7, isZero, isZero),
-	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", Instruction::SDiv, Instruction::FDiv, divNode, falsePredicate, isOne, 8),
-	new BinOp("%","mod_vec","mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, remNode, falsePredicate, falsePredicate, 8),
+	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", Instruction::Sub, Instruction::FSub, subNode, falsePredicate, isZero, 7),
+	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", Instruction::Mul, Instruction::FMul, mulNode, isOne, isOne, 8, isZero, isZero),
+	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", Instruction::SDiv, Instruction::FDiv, divNode, falsePredicate, isOne, 10),
+	new BinOp("%","mod_vec","mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, remNode, falsePredicate, falsePredicate, 9),
 
-	new BinOp("<<","shift_left_vec","shift_left_scal", "","", Instruction::Shl, Instruction::Shl, lshNode, falsePredicate, isZero, 7),
-	new BinOp(">>","shift_right_vec","shift_right_scal","","", Instruction::LShr, Instruction::LShr, rshNode, falsePredicate, isZero, 7),
+	new BinOp("<<","shift_left_vec","shift_left_scal", "","", Instruction::Shl, Instruction::Shl, lshNode, falsePredicate, isZero, 8),
+	new BinOp(">>","shift_right_vec","shift_right_scal","","", Instruction::LShr, Instruction::LShr, rshNode, falsePredicate, isZero, 8),
 
 	new BinOp(">","gt_vec","gt_scal", "icmp ugt", "fcmp ugt", ICmpInst::ICMP_UGT, FCmpInst::FCMP_OGT, gtNode, falsePredicate, falsePredicate, 5),
 	new BinOp("<","lt_vec","lt_scal", "icmp ult", "fcmp ult", ICmpInst::ICMP_ULT, FCmpInst::FCMP_OLT, ltNode, falsePredicate, falsePredicate, 5),
@@ -53,9 +53,9 @@ BinOp* gBinOpTable[] = {
 	new BinOp("==","eq_vec","eq_scal", "icmp eq", "fcmp eq", ICmpInst::ICMP_EQ, FCmpInst::FCMP_OEQ, eqNode, falsePredicate, falsePredicate, 5),
 	new BinOp("!=","neq_vec","neq_scal", "icmp ne", "fcmp ne", ICmpInst::ICMP_NE, FCmpInst::FCMP_ONE, neNode, falsePredicate, falsePredicate, 5),
 
-	new BinOp("","and_vec","and_scal", "and", "and", Instruction::And, Instruction::And, andNode, isMinusOne, isMinusOne, 7, isZero, isZero),
-	new BinOp("|","or_vec","or_scal", "or", "or", Instruction::Or, Instruction::Or, orNode, isZero, isZero, 6),
-	new BinOp("^","xor_vec","xor_scal", "xor", "xor", Instruction::Xor, Instruction::Xor, xorNode, falsePredicate, falsePredicate, 7)
+	new BinOp("","and_vec","and_scal", "and", "and", Instruction::And, Instruction::And, andNode, isMinusOne, isMinusOne, 8, isZero, isZero),
+	new BinOp("|","or_vec","or_scal", "or", "or", Instruction::Or, Instruction::Or, orNode, isZero, isZero, 7),
+	new BinOp("^","xor_vec","xor_scal", "xor", "xor", Instruction::Xor, Instruction::Xor, xorNode, falsePredicate, falsePredicate, 8)
 };
 /*
     switch (CE->getPredicate()) {
@@ -96,13 +96,13 @@ BinOp* gBinOpTable[] = {
 BinOp* gBinOpLateqTable[] = {
 
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", 0, 0, addNode, isZero, isZero, 6),
-	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", 0, 0, subNode, falsePredicate, isZero, 6),
-	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", 0, 0, mulNode, isOne, isOne, 7, isZero, isZero), // \DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
-	new BinOp("/","div_vec","div_scal", "div", "fdiv", 0, 0, divNode, falsePredicate, isOne, 9), // \frac{}{} used in generateBinOp
-	new BinOp("\\bmod","mod_vec","mod_scal", "srem", "frem", 0, 0, remNode, falsePredicate, falsePredicate, 8),
+	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", 0, 0, subNode, falsePredicate, isZero, 7),
+	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", 0, 0, mulNode, isOne, isOne, 8, isZero, isZero), // \DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
+	new BinOp("/","div_vec","div_scal", "div", "fdiv", 0, 0, divNode, falsePredicate, isOne, 10), 			// \frac{}{} used in generateBinOp
+	new BinOp("\\bmod","mod_vec","mod_scal", "srem", "frem", 0, 0, remNode, falsePredicate, falsePredicate, 9),
 
-	new BinOp("\\hiderel{\\ll}","shift_left_vec","shift_left_scal","","", 0, 0, lshNode, falsePredicate, isZero, 7),
-	new BinOp("\\hiderel{\\gg}","shift_right_vec","shift_right_scal","","", 0, 0, rshNode, falsePredicate, isZero, 7),
+	new BinOp("\\hiderel{\\ll}","shift_left_vec","shift_left_scal","","", 0, 0, lshNode, falsePredicate, isZero, 8),
+	new BinOp("\\hiderel{\\gg}","shift_right_vec","shift_right_scal","","", 0, 0, rshNode, falsePredicate, isZero, 8),
 
 	new BinOp("\\hiderel{>}","gt_vec","gt_scal", "icmp ugt", "fcmp ugt", 0, 0, gtNode, falsePredicate, falsePredicate, 5),
 	new BinOp("\\hiderel{<}","lt_vec","lt_scal", "icmp ult", "fcmp ult", 0, 0, ltNode, falsePredicate, falsePredicate, 5),
@@ -111,7 +111,8 @@ BinOp* gBinOpLateqTable[] = {
 	new BinOp("\\hiderel{\\equiv}","eq_vec","eq_scal", "icmp eq", "fcmp eq", 0, 0, eqNode, falsePredicate, falsePredicate, 5),
 	new BinOp("\\hiderel{\\neq}","neq_vec","neq_scal", "icmp ne", "fcmp ne", 0, 0, neNode, falsePredicate, falsePredicate, 5),
 
-	new BinOp("\\wedge","and_vec","and_scal", "and", "and", 0, 0, andNode, isMinusOne, isMinusOne, 7, isZero, isZero),
-	new BinOp("\\vee","or_vec","or_scal","or", "or", 0, 0, orNode, isZero, isZero, 6),
-	new BinOp("\\veebar","xor_vec","xor_scal", "xor", "xor", 0, 0, xorNode, falsePredicate, falsePredicate, 7)
+	new BinOp("\\wedge","and_vec","and_scal", "and", "and", 0, 0, andNode, isMinusOne, isMinusOne, 8, isZero, isZero),
+	new BinOp("\\vee","or_vec","or_scal","or", "or", 0, 0, orNode, isZero, isZero, 7),
+	new BinOp("\\veebar","xor_vec","xor_scal", "xor", "xor", 0, 0, xorNode, falsePredicate, falsePredicate, 8)
+
 };

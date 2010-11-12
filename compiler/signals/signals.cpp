@@ -483,7 +483,7 @@ struct SigChecker
         if (test_subsignals) {
             vector<Tree> subsigs;
             getSubSignals(sig, subsigs);
-            for (int i = 0; i != subsigs.size(); ++i) {
+            for (unsigned int i = 0; i != subsigs.size(); ++i) {
                 if (!perform(subsigs[i]))
                     return false;
             }
