@@ -640,29 +640,7 @@ static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2)
     Type vt1 = isVectorType(t1);
     Type vt2 = isVectorType(t2);
 
-    Type ret;
-
-    if (vt1 && !vt2) {
-        Type st2 = isSimpleType(t2);
-
-        if (!st2) {
-            printf("Type error: cannot merge types of binary operator");
-            exit (1);
-        }
-
-        ret = vt1->promote(st2);
-    }
-    else if (vt2 && !vt1) {
-        Type st1 = isSimpleType(t1);
-
-        if (!st1) {
-            printf("Type error: cannot merge types of binary operator");
-            exit (1);
-        }
-
-        ret = vt2->promote(st1);
-    } else
-        ret = t1 | t2;
+    Type ret = t1 | t2;
 
     interval newInterval = arithmetic(i, t1->getInterval(), t2->getInterval());
     Type t3 = ret->castInterval(newInterval);
