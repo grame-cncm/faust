@@ -83,7 +83,7 @@ main.o: /usr/local/include/llvm-c/Core.h /usr/local/include/llvm/Bitcode/ReaderW
 main.o: /usr/local/include/llvm/Support/raw_ostream.h /usr/local/include/llvm/System/Host.h
 main.o: /usr/local/include/llvm/ADT/StringMap.h /usr/local/include/llvm/Support/Allocator.h
 main.o: /usr/local/include/llvm/Support/AlignOf.h generator/fir_code_container.hh generator/fir_instructions.hh
-main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh
+main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh normalize/constant_folding.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
@@ -258,10 +258,10 @@ evaluate/environment.o: tlib/list.hh tlib/shlysis.hh errors/errormsg.hh boxes/bo
 evaluate/environment.o: signals/binop.hh boxes/ppbox.hh utils/names.hh propagate/propagate.hh
 evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
-evaluate/eval.o: evaluate/environment.hh errors/errormsg.hh boxes/ppbox.hh normalize/simplify.hh propagate/propagate.hh
-evaluate/eval.o: patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh tlib/smartpointer.hh
-evaluate/eval.o: signals/interval.hh generator/instructions.hh signals/sigvisitor.hh documentator/lateq.hh
-evaluate/eval.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
+evaluate/eval.o: evaluate/environment.hh errors/errormsg.hh boxes/ppbox.hh normalize/constant_folding.hh
+evaluate/eval.o: propagate/propagate.hh patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh
+evaluate/eval.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh signals/sigvisitor.hh
+evaluate/eval.o: documentator/lateq.hh /usr/local/include/llvm/Value.h /usr/local/include/llvm/AbstractTypeUser.h
 evaluate/eval.o: /usr/local/include/llvm/Use.h /usr/local/include/llvm/Support/Casting.h
 evaluate/eval.o: /usr/local/include/llvm/ADT/PointerIntPair.h /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
 evaluate/eval.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
@@ -910,6 +910,30 @@ generator/uitree.o: tlib/shlysis.hh
 normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 normalize/aterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
 normalize/aterm.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh signals/ppsig.hh
+normalize/aterm.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+normalize/aterm.o: signals/sigtyperules.hh normalize/simplifying_terms.hh
+normalize/constant_folding.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh
+normalize/constant_folding.o: tlib/num.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+normalize/constant_folding.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
+normalize/constant_folding.o: documentator/lateq.hh /usr/local/include/llvm/Value.h
+normalize/constant_folding.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
+normalize/constant_folding.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/ADT/PointerIntPair.h
+normalize/constant_folding.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+normalize/constant_folding.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/StringRef.h
+normalize/constant_folding.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+normalize/constant_folding.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
+normalize/constant_folding.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/ADT/ilist_node.h
+normalize/constant_folding.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/OperandTraits.h
+normalize/constant_folding.o: /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+normalize/constant_folding.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/ADT/APInt.h
+normalize/constant_folding.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/ADT/APFloat.h
+normalize/constant_folding.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
+normalize/constant_folding.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+normalize/constant_folding.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ADT/Twine.h
+normalize/constant_folding.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/CallingConv.h
+normalize/constant_folding.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
+normalize/constant_folding.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
+normalize/constant_folding.o: normalize/constant_folding.hh
 normalize/mterm.o: normalize/mterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 normalize/mterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
 normalize/mterm.o: normalize/normalize.hh signals/sigorderrules.hh signals/ppsig.hh extended/xtended.hh
@@ -931,10 +955,13 @@ normalize/mterm.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/ADT/Gr
 normalize/mterm.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Attributes.h
 normalize/mterm.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
 normalize/mterm.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
-normalize/mterm.o: /usr/local/include/llvm/Support/ConstantFolder.h
+normalize/mterm.o: /usr/local/include/llvm/Support/ConstantFolder.h signals/sigtyperules.hh
+normalize/mterm.o: normalize/simplifying_terms.hh
 normalize/normalize.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 normalize/normalize.o: signals/signals.hh signals/binop.hh signals/sigprint.hh signals/ppsig.hh normalize/simplify.hh
-normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh normalize/aterm.hh
+normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh signals/sigtyperules.hh signals/sigtype.hh
+normalize/normalize.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+normalize/normalize.o: normalize/simplifying_terms.hh normalize/mterm.hh normalize/aterm.hh
 normalize/privatise.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 normalize/privatise.o: signals/binop.hh tlib/node.hh tlib/symbol.hh tlib/compatibility.hh signals/sigprint.hh
 normalize/privatise.o: signals/signals.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
@@ -962,6 +989,10 @@ normalize/simplify.o: /usr/local/include/llvm/Attributes.h /usr/local/include/ll
 normalize/simplify.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
 normalize/simplify.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
 normalize/simplify.o: tlib/compatibility.hh normalize/normalize.hh utils/ensure.hh
+normalize/simplifying_terms.o: normalize/simplifying_terms.hh tlib/tree.hh tlib/symbol.hh tlib/node.hh
+normalize/simplifying_terms.o: signals/signals.hh tlib/tlib.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+normalize/simplifying_terms.o: signals/binop.hh signals/sigtyperules.hh signals/sigtype.hh tlib/smartpointer.hh
+normalize/simplifying_terms.o: signals/interval.hh generator/instructions.hh
 parallelize/code_loop.o: parallelize/code_loop.hh tlib/tree.hh tlib/symbol.hh tlib/node.hh
 parallelize/code_loop.o: generator/function_builder.hh generator/instructions.hh signals/binop.hh generator/floats.hh
 parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
@@ -1067,7 +1098,8 @@ signals/ratemap.o: signals/ratemap.hpp tlib/tree.hh tlib/symbol.hh tlib/node.hh
 signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 signals/recursivness.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 signals/signals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-signals/signals.o: tlib/shlysis.hh signals/binop.hh
+signals/signals.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+signals/signals.o: generator/instructions.hh
 signals/sigorderrules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 signals/sigorderrules.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigprint.hh signals/signals.hh
 signals/sigorderrules.o: tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/prim2.hh
@@ -1164,7 +1196,7 @@ signals/sigvisitor.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/ll
 signals/sigvisitor.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
 signals/subsignals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/subsignals.o: tlib/shlysis.hh signals/binop.hh
-tlib/list.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh
+tlib/list.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh tlib/compatibility.hh utils/ensure.hh
 tlib/node.o: tlib/node.hh tlib/symbol.hh
 tlib/occurrences.o: tlib/occurrences.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 tlib/occurrences.o: tlib/shlysis.hh tlib/compatibility.hh
