@@ -1055,7 +1055,8 @@ propagate/propagate.o: /usr/local/include/llvm/Attributes.h /usr/local/include/l
 propagate/propagate.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/SymbolTableListTraits.h
 propagate/propagate.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/Support/ConstantFolder.h
 propagate/propagate.o: propagate/labels.hh generator/Text.hh signals/ppsig.hh utils/names.hh
-signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh /usr/local/include/llvm/Instructions.h
+signals/binop.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/signals.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh
+signals/binop.o: tlib/list.hh tlib/shlysis.hh /usr/local/include/llvm/Instructions.h
 signals/binop.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Instruction.h
 signals/binop.o: /usr/local/include/llvm/User.h /usr/local/include/llvm/Value.h
 signals/binop.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Use.h
