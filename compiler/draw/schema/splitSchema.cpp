@@ -118,7 +118,7 @@ void splitSchema::draw(device& dev)
 	for (unsigned int i=0; i<fSchema2->inputs(); i++) {
 		point p = fSchema1->outputPoint(i%r);
 		point q = fSchema2->inputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
+		dev.line(p.x, p.y, q.x, q.y);
 	}
 }
 

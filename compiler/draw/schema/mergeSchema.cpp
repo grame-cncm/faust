@@ -117,7 +117,7 @@ void mergeSchema::draw(device& dev)
 	for (unsigned int i=0; i<fSchema1->outputs(); i++) {
 		point p = fSchema1->outputPoint(i);
 		point q = fSchema2->inputPoint(i%r);
-		dev.trait(p.x, p.y, q.x, q.y);
+		dev.line(p.x, p.y, q.x, q.y);
 	}
 }
 

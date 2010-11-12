@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 // SVGDev.h
 
 #if !defined SVGDEV_H
@@ -34,10 +34,10 @@ class SVGDev : public device
 		SVGDev(const char*,double,double);
 		~SVGDev();
 		void rect(double,double,double,double, const char*, const char*);
-		void rond(double,double,double);
-		void carre(double,double,double);
-		void fleche(double,double,double,int);
-		void trait(double,double,double,double);
+		void circle(double,double,double);
+		void square(double,double,double);
+		void arrow(double,double,double,int);
+		void line(double,double,double,double);
 		void dasharray(double,double,double,double);
 		void text(double,double,const char*);
 		void label(double,double,const char*);
@@ -46,6 +46,6 @@ class SVGDev : public device
 
 };
 
-#endif 
+#endif
 
 

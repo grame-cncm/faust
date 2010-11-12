@@ -167,12 +167,12 @@ void seqSchema::drawInternalWires(device& dev)
 			}
 			if (src.y == dst.y) {
 				// draw straight cable
-				dev.trait(src.x, src.y, dst.x, dst.y);
+				dev.line(src.x, src.y, dst.x, dst.y);
 			} else {
 				// draw zizag cable
-				dev.trait(src.x, src.y, src.x+mx, src.y);
-				dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
-				dev.trait(src.x+mx, dst.y, dst.x, dst.y);
+				dev.line(src.x, src.y, src.x+mx, src.y);
+				dev.line(src.x+mx, src.y, src.x+mx, dst.y);
+				dev.line(src.x+mx, dst.y, dst.x, dst.y);
 			}
 		}
 	} else {
@@ -195,12 +195,12 @@ void seqSchema::drawInternalWires(device& dev)
 			}
 			if (src.y == dst.y) {
 				// draw straight cable
-				dev.trait(src.x, src.y, dst.x, dst.y);
+				dev.line(src.x, src.y, dst.x, dst.y);
 			} else {
 				// draw zizag cable
-				dev.trait(src.x, src.y, src.x+mx, src.y);
-				dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
-				dev.trait(src.x+mx, dst.y, dst.x, dst.y);
+				dev.line(src.x, src.y, src.x+mx, src.y);
+				dev.line(src.x+mx, src.y, src.x+mx, dst.y);
+				dev.line(src.x+mx, dst.y, dst.x, dst.y);
 			}
 		}
 	}
