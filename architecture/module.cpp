@@ -32,9 +32,6 @@ struct Meta : map<const char*, const char*>
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
 
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 /******************************************************************************
@@ -44,9 +41,6 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 *******************************************************************************
 *******************************************************************************/
-
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 <<includeIntrinsic>>
 
@@ -88,9 +82,7 @@ class UI
 		fGuiList.push_back(this);
 	}
 	
-	virtual ~UI() {
-		// suppression de this dans fGuiList
-	}
+	virtual ~UI() {}
 
 	// -- zone management
 	
@@ -137,6 +129,8 @@ class UI
 	virtual void openHorizontalBox(const char* label) = 0;
 	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
+    
+    virtual void declare(float* zone, const char* key, const char* value) = 0;
 	
 	virtual void show() = 0;
 	virtual void run() = 0;
@@ -144,7 +138,6 @@ class UI
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 };
-
 
 /**
  * User Interface Item: abstract definition
@@ -181,7 +174,6 @@ class uiItem
 	virtual void 	reflectZone() 	= 0;	
 };
 
-
 /**
  * Callback Item
  */
@@ -201,7 +193,6 @@ struct uiCallbackItem : public uiItem
 	}
 };
 
-
 /**
  * Update all user items reflecting zone z
  */
@@ -214,7 +205,6 @@ inline void UI::updateZone(float* z)
 		if ((*c)->cache() != v) (*c)->reflectZone();
 	}
 }
-
 
 /**
  * Update all user items not up to date
@@ -238,10 +228,8 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 };
 
 
-		
-
 //----------------------------------------------------------------
-//  d�inition du processeur de signal
+//  Signal processor definition
 //----------------------------------------------------------------
 			
 class dsp {
