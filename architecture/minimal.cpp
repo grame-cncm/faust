@@ -1,4 +1,8 @@
 #include <cmath>
+
+#define max(x,y) (((x)>(y)) ? (x) : (y))
+#define min(x,y) (((x)<(y)) ? (x) : (y))
+
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 

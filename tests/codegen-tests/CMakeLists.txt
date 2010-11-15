@@ -9,7 +9,7 @@ foreach(test ${tests})
     add_custom_target(#OUTPUT
         ${test_name}.cpp ALL
          COMMAND faust -a minimal.cpp -o ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${test}
-         DEPENDS ${test} faust
+         DEPENDS ${test} faust ../../architecture/minimal.cpp
     )
 
     add_test(NAME ${test_name}_compile
