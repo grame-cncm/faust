@@ -35,6 +35,8 @@ bool falsePredicate(Node const & a)
     return false;
 }
 
+static bool noNtrl(const Node& n) { return falsePredicate(n); }
+
 BinOp* gBinOpTable[] = {
 
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", Instruction::Add, Instruction::FAdd, addNode, isZero, isZero, 6),
