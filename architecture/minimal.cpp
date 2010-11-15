@@ -26,7 +26,7 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 *******************************************************************************
 *******************************************************************************/
 
-struct Meta 
+struct Meta
 {
     void declare (const char*, const char*) {  }
 };
@@ -34,28 +34,30 @@ struct Meta
 //----------------------------------------------------------------
 //  abstract definition of a user interface
 //----------------------------------------------------------------
-            
+
 
 class UI
 {
 	bool	fStopped;
 public:
-		
+
 	UI() : fStopped(false) {}
 	virtual ~UI() {}
-	
+
 	virtual void addButton(const char* label, float* zone) = 0;
 	virtual void addToggleButton(const char* label, float* zone) = 0;
 	virtual void addCheckButton(const char* label, float* zone) = 0;
 	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	
+
 	virtual void openFrameBox(const char* label) = 0;
 	virtual void openTabBox(const char* label) = 0;
 	virtual void openHorizontalBox(const char* label) = 0;
 	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 
     virtual void declare(float* zone, const char* key, const char* value) = 0;
 };
@@ -76,7 +78,7 @@ public:
 //----------------------------------------------------------------
 //  abstract definition of a signal processor
 //----------------------------------------------------------------
-			
+
 class dsp {
  protected:
 	int fSamplingFreq;
@@ -90,11 +92,11 @@ class dsp {
 	virtual void init(int samplingRate) 			= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
-		
+
 
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
-		
+
 
 <<includeclass>>
