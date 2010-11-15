@@ -97,7 +97,7 @@ void PSDev::rect(double x,double y,double l,double h, const char*, const char*)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::rond(double x,double y,double rayon)
+void PSDev::circle(double x,double y,double rayon)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -106,7 +106,7 @@ void PSDev::rond(double x,double y,double rayon)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::fleche(double x,double y,double rotation,int sens)
+void PSDev::arrow(double x,double y,double rotation,int sens)
 {
 	if(sens == 1)
 	{	
@@ -142,7 +142,7 @@ void PSDev::fleche(double x,double y,double rotation,int sens)
 	}
 }
 
-void PSDev::carre(double x,double y,double cote)
+void PSDev::square(double x,double y,double cote)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -156,7 +156,7 @@ void PSDev::carre(double x,double y,double cote)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::trait(double x1,double y1,double x2,double y2)
+void PSDev::line(double x1,double y1,double x2,double y2)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"0.3 setgray\n");

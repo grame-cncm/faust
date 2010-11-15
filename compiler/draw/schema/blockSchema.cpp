@@ -237,8 +237,8 @@ void blockSchema::drawInputWires(device& dev)
 
 	for (unsigned int i=0; i<inputs(); i++) {
 		point p = fInputPoint[i];
-		dev.trait(p.x, p.y, p.x+dx, p.y);
-		dev.fleche(p.x+dx, p.y, 0, orientation());
+		dev.line(p.x, p.y, p.x+dx, p.y);
+		dev.arrow(p.x+dx, p.y, 0, orientation());
 	}
 }
 
@@ -252,7 +252,7 @@ void blockSchema::drawOutputWires(device& dev)
 
 	for (unsigned int i=0; i<outputs(); i++) {
 		point p = fOutputPoint[i];
-		dev.trait(p.x, p.y, p.x-dx, p.y);
+		dev.line(p.x, p.y, p.x-dx, p.y);
 	}
 }
 

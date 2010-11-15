@@ -60,10 +60,6 @@ static Tree doConstantFolding (Tree sig)
 
         if (isNum(n1) && isNum(n2))
             return tree(op->compute(n1,n2));
-        if (op->isLeftNeutral(n1))
-            return t2;
-        if (op->isRightNeutral(n2))
-            return t1;
 
     } else if (isSigFixDelay(sig, t1, t2)) {
         if (isZero(t2))

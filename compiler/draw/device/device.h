@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 // device.h
 
 
@@ -29,26 +29,26 @@
 
 #include "stdio.h"
 
-class device  
+class device
 {
 	public:
         virtual ~device() {}
         virtual void rect(double,double,double,double, const char*, const char*)=0;
-		virtual void rond(double,double,double)=0;
-		virtual void carre(double,double,double)=0;
-		virtual void fleche(double,double,double,int)=0;
-		virtual void trait(double,double,double,double)=0;
+		virtual void circle(double,double,double)=0;
+		virtual void square(double,double,double)=0;
+		virtual void arrow(double,double,double,int)=0;
+		virtual void line(double,double,double,double)=0;
 		virtual void dasharray(double,double,double,double)=0;
 		virtual void text(double,double,const char*)=0;
 		virtual void label(double,double,const char*)=0;
 		virtual void markSens(double,double,int)=0;
 		virtual void Error(const char*,const char*,int,double,double,double)=0;
-	
+
 	protected:
 		FILE* fic_repr;
 
 };
 
-#endif 
+#endif
 
 

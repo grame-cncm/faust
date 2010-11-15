@@ -104,6 +104,6 @@ void topSchema::draw(device& dev)
 	// draw arrows at output points of schema
 	for (unsigned int i=0; i<fSchema->outputs(); i++) {
 		point p = fSchema->outputPoint(i);
-		dev.fleche(p.x, p.y, 0, orientation());
+		dev.arrow(p.x, p.y, 0, orientation());
 	}
 }

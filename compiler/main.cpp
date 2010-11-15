@@ -591,24 +591,28 @@ static Tree prepareSignals(Tree lsignals)
     Tree lsym = deBruijn2Sym(lsignals);         // convert debruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
 
-    Tree simplified = simplify(lsym);           // simplify by executing every computable operation
-    Tree privatized = privatise(simplified);    // Un-share tables with multiple writers
+    Tree privatized = privatise(lsym);        // Un-share tables with multiple writers
 
-    Tree signals = privatized;
-    recursivnessAnnotation(signals);            // Annotate final signal tree with recursivness information
+    recursivnessAnnotation(privatized);      // Annotate signal tree with recursivness information
+
     startTiming("typeAnnotation");
-    typeAnnotation(signals);                    // Annotate final signal tree with type information
+    typeAnnotation(privatized);              // Annotate signal tree with type information
     endTiming("typeAnnotation");
 
-    assert(sigIsAnnotated(signals, RECURSIVNESS));
-    assert(sigIsTyped(signals));
+    Tree simplified = simplify(privatized);   // simplify by executing every computable operation
+
+    assert(sigIsTyped(simplified));
+
+    recursivnessAnnotation(simplified);      // re-annotate simplified signal tree with recursivness information
+
+    assert(sigIsAnnotated(simplified, RECURSIVNESS));
 
     startTiming("inferRate");
-    inferRate(signals);
+    inferRate(simplified);
     endTiming("inferRate");
 
     endTiming("preparation");
-    return signals;
+    return simplified;
 }
 
 static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs)
