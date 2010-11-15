@@ -1,5 +1,7 @@
 file(GLOB tests RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *dsp)
 
+list(REMOVE_ITEM tests freeverb.dsp)
+
 foreach(test ${tests})
     string(REPLACE .dsp "" test_name ${test} )
 
