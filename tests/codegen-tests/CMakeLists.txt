@@ -2,40 +2,24 @@ file(GLOB tests RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *dsp)
 
 list(REMOVE_ITEM tests freeverb.dsp)
 
-foreach(test ${tests})
-    string(REPLACE .dsp "" test_name ${test} )
+set(flags vec scal omp fun sch)
 
-    add_test(NAME ${test_name}
-         COMMAND faust ${CMAKE_CURRENT_SOURCE_DIR}/${test})
+foreach(flag ${flags})
+    foreach(test ${tests})
+        string(REPLACE .dsp "" test_name ${test} )
+        set(test_name ${test_name}_${flag})
 
-    add_custom_target(#OUTPUT
-        ${test_name}.cpp ALL
-         COMMAND faust -a minimal.cpp -o ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${test}
-         DEPENDS ${test} faust ../../architecture/minimal.cpp
-    )
+        add_test(NAME ${test_name}
+            COMMAND faust ${CMAKE_CURRENT_SOURCE_DIR}/${test})
 
-    add_test(NAME ${test_name}_compile
-      COMMAND ${CMAKE_CXX_COMPILER} -c ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cpp)
+        add_custom_target(
+            ${test_name}.cpp ALL
+            COMMAND faust -a minimal.cpp -${flag} -o ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${test}
+            DEPENDS ${test} faust ../../architecture/minimal.cpp
+        )
 
-endforeach()
+        add_test(NAME ${test_name}_compile
+        COMMAND ${CMAKE_CXX_COMPILER} -c ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cpp)
 
-foreach(test ${tests})
-    string(REPLACE .dsp ".vec" test_name ${test} )
-
-    add_test(NAME ${test_name}
-         COMMAND faust -vec ${CMAKE_CURRENT_SOURCE_DIR}/${test})
-endforeach()
-
-foreach(test ${tests})
-    string(REPLACE .dsp ".omp" test_name ${test} )
-
-    add_test(NAME ${test_name}
-         COMMAND faust -omp ${CMAKE_CURRENT_SOURCE_DIR}/${test})
-endforeach()
-
-foreach(test ${tests})
-    string(REPLACE .dsp ".sch" test_name ${test} )
-
-    add_test(NAME ${test_name}
-         COMMAND faust -sch ${CMAKE_CURRENT_SOURCE_DIR}/${test})
+    endforeach()
 endforeach()
