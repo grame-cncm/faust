@@ -10,16 +10,9 @@ foreach(flag ${flags})
         set(test_name ${test_name}_${flag})
 
         add_test(NAME ${test_name}
-            COMMAND faust ${CMAKE_CURRENT_SOURCE_DIR}/${test})
-
-        add_custom_target(
-            ${test_name}.cpp ALL
-            COMMAND faust -a minimal.cpp -${flag} -o ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${test}
-            DEPENDS ${test} faust ../../architecture/minimal.cpp
-        )
+            COMMAND faust -${flag} ${CMAKE_CURRENT_SOURCE_DIR}/${test})
 
         add_test(NAME ${test_name}_compile
-        COMMAND ${CMAKE_CXX_COMPILER} -c ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.cpp)
-
+          COMMAND ${CMAKE_SOURCE_DIR}/run_test_cpp.sh -m -${flag} -f ${CMAKE_BINARY_DIR}/compiler/faust -c ${CMAKE_CXX_COMPILER} ${CMAKE_CURRENT_SOURCE_DIR}/${test})
     endforeach()
 endforeach()
