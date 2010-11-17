@@ -61,8 +61,15 @@ static Tree doConstantFolding (Tree sig)
         if (isNum(n1) && isNum(n2))
             return tree(op->compute(n1,n2));
 
+    
     } else if (isSigFixDelay(sig, t1, t2)) {
-        if (isZero(t2))
+        Tree r;
+        int i;    
+        
+        if (isZero(t2) && !isProj(t1, &i, r))
+            return t1;
+
+        if (isZero(t1))
             return t1;
 
     } else if (isSigIntCast(sig, t1)) {

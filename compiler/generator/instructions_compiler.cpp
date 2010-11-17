@@ -563,7 +563,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(int variability, Tree sig, Tre
     int mxd;
 	string vecname;
 
-    ValueInst* value = CS(variability, exp); // ensure exp is compiled to have a vector name
+    CS(variability, exp); // Ensure exp is compiled to have a vector name, result of CS is not needed, only side effect is important
     mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
 	if (!getVectorNameProperty(exp, vecname)) {
@@ -572,7 +572,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(int variability, Tree sig, Tre
     }
 
     if (mxd == 0) {
-        return value; // TO CHECK
+        return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vecname, Address::kStack));
 	} else if (mxd < gMaxCopyDelay) {
 		return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(vecname, Address::kStruct), CS(variability, delay)));
 	} else {
@@ -610,7 +610,7 @@ ValueInst* InstructionsCompiler::generatePrefix(int variability, Tree sig, Tree 
     return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vtemp, Address::kStack));
 }
 
-ValueInst* InstructionsCompiler::generateIota(int variability, Tree sig, Tree arg) { return InstBuilder::genNullInst(); }  // Not used
+ValueInst* InstructionsCompiler::generateIota(int variability, Tree sig, Tree arg) { return InstBuilder::genNullInst(); }  // Result not used
 
 ValueInst* InstructionsCompiler::generateBinOp(int variability, Tree sig, int opcode, Tree arg1, Tree arg2)
 {
@@ -934,7 +934,7 @@ ValueInst* InstructionsCompiler::generateRecProj(int variability, Tree sig, Tree
         res = generateRec(variability, r, var, le, i);
         ensure(getVectorNameProperty(sig, vname));
     } else {
-        res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
+        res = InstBuilder::genNullInst(); // Result not used
     }
     return res;
 }
