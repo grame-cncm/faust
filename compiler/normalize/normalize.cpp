@@ -66,10 +66,6 @@ Tree normalizeDelay1Term(Tree s)
     return normalizeFixedDelayTerm(s, one);
 }
 
-Type mergeAddTypes(Type t1, Type t2);
-Type mergeMulTypes(Type t1, Type t2);
-Type mergeDivTypes(Type t1, Type t2);
-
 /**
  * Compute the normal form of a fixed delay term (s@d).
  * The normalisation rules are :
