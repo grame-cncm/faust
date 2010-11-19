@@ -1,11 +1,12 @@
 
 							================
-							| FAUST 0.9.24 |
+							| FAUST 0.9.30 |
 							================
 
 GRAME - Centre National de Creation Musicale - is happy to announce
-the release of FAUST 0.9.24. This version fixes several bugs,
-and introduces some new possibilities in the language.
+the release of FAUST 0.9.30. This version fixes several bugs,
+introduces some new possibilities in the language and provides 
+improved libraries and additional examples.
 
 -------------
 About FAUST :
@@ -25,98 +26,122 @@ Q, SC and VST plugins.
 The Faust distribution can be downloaded at:
 http://sourceforge.net/projects/faudiostream
 
+We switched from CVS to GIT. The GIT repository can be cloned with 
+the following command :
+git clone git://faudiostream.git.sourceforge.net/gitroot/faudiostream/faudiostream faust
+
 Two mailing lists are available:
 https://lists.sourceforge.net/lists/listinfo/faudiostream-devel
 https://lists.sourceforge.net/lists/listinfo/faudiostream-users
 
 In order to test FAUST without installing it, please refer to the
-Online Faust Compiler: 
+Online Faust Compiler (requires firefox): 
 http://faust.grame.fr
 
 
-------------
-What's new :
-------------
+======================== WHAT'S NEW ==============================
 
-- Explicit substitutions. The language has been extended with new
-expressions type : exp[x1=def1; x2=def2; ...] allowing explicit
-substitutions in the lexical environment of an expression. This
-extension allows for instance, to customize an existing component
-by replacing some of its internal definitions without having to
-modify its source code. This extension is particularly useful to
-promote better code reuse.
+---------------
+Documentation :
+---------------
 
-- Improved mathematical description (--mathdoc option) and support
-for two new languages : German (-mdlang de) and Italian (-mdlang
-it)
+- A new version of the Faust Quick Reference is provided with a
+better layout and an expanded and updated content.
 
-- Support for floating point numbers in scientific notation and
-better precision for floating point constants. The precision used
-to print a floating point constant in the generated C++ code is no
-more limited to 6 digits. It is now dynamically adjusted to find
-the minimal number of digits that will produce the same internal
-representation when read back. This approach guarantees accuracy
-without sacrificing for readability.
 
-- All expressions are now systematically represented in polynomial
-forms. For example x*x will be replaced by x^2. If x is a complex
-expression the later form has several advantages, in particular to
-limit CSE.
+----------
+Compiler :
+----------
 
-- Lazy semantics to select2 and select3 : the code generated for
-select2 and select3 is now based on conditional expressions
-((cond)?exp1:exp0 ) instead of tables. The resulting code is more
-efficient as the stateless parts of the branches are not computed
-every time but only when really needed.
+- the ':' (seq), '<:' (split), ':>' (merge) and ',' (par)
+composition operators are now right associative. For example the
+parallel composition (1,2,3,4,5) now denotes (1,(2,(3,(4,5)))).
+This change simplifies pattern matching techniques in particular
+the use parallel compositions as lists. The iterative par(...)
+construction as been modified accordingly.
 
-- new --task-graph option. It produces a graphical representation
-of the internal DAG of task in dot format (Graphviz
-http://www.graphviz.org/). This DAG is useful for example to
-understand the potential parallelism of a program as analyzed by
-the Faust compiler
+- Improved pattern matching support. Variables don't have anymore
+to be undefined to be considered match variables. The new strategy
+uses the positions to determine the role of variables. For example
+in pattern 'x(y,z)' y and z are match variables while x, in
+functional position, is a regular variable. This allow to evaluate
+patterns without having to introduce a special notation for match
+variables...
 
-- Two new tools : faust2graph and faust2graphviewer. These tools
-make use of the --task-graph option in order to produce the
-graphical representation, as a PDF file, of the internal DAG of
-tasks of a Faust program (require Graphviz).
 
-- new reduce.lib library. It provides various operations on block
-of samples based on a high order 'reduce(op, n)' fold-like
-function. Moreover the music.lib library has been extended with
-break-point functions and multiple decorrelated random and noise
-generators. New flanger and stereowidth control have been added to
-the effect.lib library.
+-----------
+Libraries :
+-----------
 
-- new iPhone architecture. It consists in a iphone-cocoa.cpp
-architecture file and an Xcode template project to be used to
-produce the applications. Use "make iphone" in the example folder
-to build the examples for the iPhone.
+The various libraries have been extended, in particular Julius
+Smith's effect.lib, osc.lib and filter.lib. 
 
-- improved cross plateform compatibility and brand new visual
-studio 2008 project to build Faust on windows machines.
+- effect.lib : among the new additions are some historical reverbs
+form the early 70's like John Chowning's jcrev and satrev. 
+
+- filter.lib : contains several new filters in particular
+third-order and sixth-order Elliptic/Cauer lowpass and highpass
+filters. 
+
+- math.lib : added Hadamard() matrix function contributed by Rémy
+Muller that has applications in Feedback Delay Networks.
+
+
+----------
+Examples :
+----------
+Several examples were added to illustrate some of the new functions
+provided by the libraries.
+
+- cubic_distortion.dsp, 
+
+- gate_compressor.dsp,
+
+- graphic_eq.dsp,
+ 
+- parametric_eq.dsp, 
+
+- phaser_flanger.dsp
+
+- smoothdelay.dsp, 
+
+- spectral_level.dsp, 
+
+- vcf_wah_pedals.dsp
+
+
+--------------------
+Architecture files :
+--------------------
+
+- ca-qt.cpp : Aggregate in/out devices when needed.
+
+- jack-gtk.cpp : Tooltip format added
+
+- max-msp.cpp : help message is now posted even when no audio inlet
+is available
+
+- module.cpp : updated 
+
+- supercollider.cpp : compile fix 
 
 
 ----------
 Bug Fixes:
 ----------
 
-- Report error when non-integer table size is detected during
-compilation
+- improved error messages for non constant-integer table sizes
 
-- Corrected partial application of power operator. Now ^(n) is
-equivalent to \(x).(x^n) and not anymore to \(x).(n^x)
+- getBoxType now only always called on fully evaluated expressions
+in propagation normal form.
 
-- Added missing faustpower definition when power function is
-used only in table content.
+- missing boxtype for pattern matching variables added
 
-- Fixed lock-free implementations of PopHead and PopTail functions on
-work stealing queues in --scheduler mode
+- Bitmask : new implementation correcting bug for large values
 
-- Corrected missing dependencies in the internal DAG of tasks
-
-- Added missing cache code to slow shared expressions used delayed
-
-- Added missing cache code to foreign functions
+- some recursive call to simplify have been removed to avoid
+potential infinite loops during the simplification of some
+expressions
 
 
 ----------------
@@ -127,15 +152,15 @@ Many persons have been contributing to the FAUST project by
 providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc. 
 
-I would like to thank them and especially: Fons Adriaensen, Tiziano
-Bole, Baktery Chanka, Thomas Charbonnel, Damien Cramet, Etienne
-Gaudrin, Albert Graef, Stefan Kersten, Victor Lazzarini, Matthieu
-Leberre, Mathieu Leroi, Kjetil Matheussen, Remy Muller, Sampo
-Savolainen, Nicolas Scaringella, Stephen Sinclair, Travis Skare,
-Julius Smith, as well as my colleagues at GRAME, in particular :
-Dominique Fober, Stephane Letz and Karim Barkati, and from the
-ASTREE project : Jerome Barthelemy (IRCAM), Alain Bonardi (IRCAM),
-Raffaele Ciavarella (IRCAM), Pierre Jouvelot (Ecole des
+I would like to thank them and especially: Fons Adriaensen, Tim
+Blechmann, Tiziano Bole, Baktery Chanka, Thomas Charbonnel, Damien
+Cramet, Etienne Gaudrin, Albert Graef, Stefan Kersten, Victor
+Lazzarini, Matthieu Leberre, Mathieu Leroi, Kjetil Matheussen, Remy
+Muller, Sampo Savolainen, Nicolas Scaringella, Stephen Sinclair,
+Travis Skare, Julius Smith, as well as my colleagues at GRAME, in
+particular : Dominique Fober, Stephane Letz and Karim Barkati, and
+from the ASTREE project : Jerome Barthelemy (IRCAM), Alain Bonardi
+(IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot (Ecole des
 Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
 
 Yann Orlarey
