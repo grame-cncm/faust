@@ -92,6 +92,8 @@ string ScalarCompiler::getFreshID(const string& prefix)
 						    prepare
 *****************************************************************************/
 
+extern bool gDumpNorm;
+
 Tree ScalarCompiler::prepare(Tree LS)
 {
 startTiming("ScalarCompiler::prepare");
@@ -100,6 +102,14 @@ startTiming("ScalarCompiler::prepare");
  endTiming("deBruijn2Sym");
 	Tree L2 = simplify(L1);			// simplify by executing every computable operation
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
+
+	// dump normal form
+	if (gDumpNorm) {
+		printSignal(L3, stdout, 1);
+		cout << endl;
+		cout << ppsig(L3) << endl;
+		exit(0);
+	}
 
 	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
 	typeAnnotation(L3);				// Annotate L3 with type information
@@ -129,14 +139,14 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 {
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
-    
+
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
     }
     for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = output[$0];", T(i), xfloat()));
     }
-    
+
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
 		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
@@ -331,7 +341,7 @@ string ScalarCompiler::generateFConst (Tree sig, const string& file, const strin
 string ScalarCompiler::generateFVar (Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    
+
     addIncludeFile(file);
     return generateCacheCode(sig, exp);
 }
@@ -694,7 +704,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 		ctype = "int";
 	} else {
 		vname = getFreshID("ftbl");
-		ctype = ifloat(); 
+		ctype = ifloat();
 	}
 
 	// declaration de la table

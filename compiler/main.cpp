@@ -144,6 +144,7 @@ bool            gSchedulerSwitch   = false;
 bool			gGroupTaskSwitch= false;
 
 bool            gUIMacroSwitch  = false;
+bool            gDumpNorm       = false;
 
 int             gTimeout        = 0;            // time out to abort compiler
 
@@ -313,8 +314,12 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
             gPrintFileListSwitch = true;
             i += 1;
-			
-		} else if (argv[i][0] != '-') {
+
+        } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
+            gDumpNorm = true;
+            i += 1;
+
+        } else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
 			}
@@ -392,6 +397,7 @@ void printhelp()
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
+    cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
 
 	cout << "\nexample :\n";
 	cout << "---------\n";

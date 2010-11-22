@@ -18,20 +18,20 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _PPSIG_H
 #define _PPSIG_H
 
 /**********************************************************************
 			- ppsig.h : pretty print signals expressions (projet FAUST) -
-					
+
 
 		Historique :
 		-----------
 		05-07-2006  first implementation  (yo)
-		
+
 ***********************************************************************/
 
 #include <iostream>
@@ -54,9 +54,9 @@ class ppsig
 public:
 	ppsig(Tree s) : sig(s), fEnv(nil), fPriority(0), fHideRecursion(false)  {}
 	ostream& print (ostream& fout) const;
-	
+
 private:
-	ppsig(Tree s, Tree env, int priority=0) : sig(s), fEnv(env), fPriority(priority), fHideRecursion(true) {}
+	ppsig(Tree s, Tree env, int priority=0) : sig(s), fEnv(env), fPriority(priority), fHideRecursion(false) {}
 	ostream& printinfix (ostream& fout, const string& opname, int priority, Tree x, Tree y) const;
 	ostream& printfun (ostream& fout, const string& funame, Tree x) const;
 	ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y) const;
