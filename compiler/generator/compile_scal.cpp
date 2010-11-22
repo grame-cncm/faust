@@ -105,8 +105,6 @@ startTiming("ScalarCompiler::prepare");
 
 	// dump normal form
 	if (gDumpNorm) {
-		printSignal(L3, stdout, 1);
-		cout << endl;
 		cout << ppsig(L3) << endl;
 		exit(0);
 	}
