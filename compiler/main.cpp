@@ -911,8 +911,6 @@ int main (int argc, char* argv[])
     Tree signals = prepareSignals(lsignals);
 
     if (gDumpNorm) {
-        printSignal(signals, stdout, 1);
-        cout << endl;
         cout << ppsig(signals) << endl;
         exit(0);
     }
