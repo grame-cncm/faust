@@ -36,50 +36,34 @@
 using namespace std;
 
 class FirCodeContainer : public CodeContainer {
-
      public:
-
         FirCodeContainer(int numInputs, int numOutputs)
             :CodeContainer(numInputs, numOutputs)
-        {}
-        virtual ~FirCodeContainer()
         {}
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
         void produceInternal() {}
 
+protected:
+    void dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst);
 };
 
 class FirScalarCodeContainer : public FirCodeContainer {
-
-    protected:
-
-
     public:
-
         FirScalarCodeContainer(int numInputs, int numOutputs, int sub_container_type)
             :FirCodeContainer(numInputs, numOutputs)
         {
             fSubContainerType = sub_container_type;
         }
-        virtual ~FirScalarCodeContainer()
-        {}
 
         void dump(ostream* dst);
 
 };
 
 class FirVectorCodeContainer : public FirCodeContainer {
-
-    protected:
-
-
     public:
-
         FirVectorCodeContainer(int numInputs, int numOutputs)
             :FirCodeContainer(numInputs, numOutputs)
-        {}
-        virtual ~FirVectorCodeContainer()
         {}
 
         void dump(ostream* dst);
@@ -87,16 +71,10 @@ class FirVectorCodeContainer : public FirCodeContainer {
 };
 
 class FirOpenMPCodeContainer : public FirCodeContainer {
-
-    protected:
-
-
     public:
 
         FirOpenMPCodeContainer(int numInputs, int numOutputs)
             :FirCodeContainer(numInputs, numOutputs)
-        {}
-        virtual ~FirOpenMPCodeContainer()
         {}
 
         void dump(ostream* dst);
@@ -104,16 +82,10 @@ class FirOpenMPCodeContainer : public FirCodeContainer {
 };
 
 class FirWorkStealingCodeContainer : public FirCodeContainer {
-
-    protected:
-
-
     public:
 
         FirWorkStealingCodeContainer(int numInputs, int numOutputs)
             :FirCodeContainer(numInputs, numOutputs)
-        {}
-        virtual ~FirWorkStealingCodeContainer()
         {}
 
         void dump(ostream* dst);

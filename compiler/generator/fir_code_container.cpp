@@ -38,10 +38,8 @@ CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int s
     return new FirScalarCodeContainer(0, 1, sub_container_type);
 }
 
-void FirScalarCodeContainer::dump(ostream* dst)
+void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst)
 {
-    FIRInstVisitor firvisistor(dst);
-
     // Subclasses
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
@@ -52,7 +50,7 @@ void FirScalarCodeContainer::dump(ostream* dst)
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         *dst << "======= User Interface ==========" << std::endl;
         *dst << std::endl;
-        fUserInterfaceInstructions->accept(&firvisistor);
+        fUserInterfaceInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
@@ -60,106 +58,64 @@ void FirScalarCodeContainer::dump(ostream* dst)
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         *dst << "======= Global declarations ==========" << std::endl;
         *dst << std::endl;
-        fGlobalDeclarationInstructions->accept(&firvisistor);
+        fGlobalDeclarationInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
     if (fDeclarationInstructions->fCode.size() > 0) {
         *dst << "======= Declarations ==========" << std::endl;
         *dst << std::endl;
-        fDeclarationInstructions->accept(&firvisistor);
+        fDeclarationInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
     if (fInitInstructions->fCode.size() > 0) {
         *dst << "======= Init ==========" << std::endl;
         *dst << std::endl;
-        fInitInstructions->accept(&firvisistor);
+        fInitInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
     if (fStaticInitInstructions->fCode.size() > 0) {
         *dst << "======= Static Init ==========" << std::endl;
         *dst << std::endl;
-        fStaticInitInstructions->accept(&firvisistor);
+        fStaticInitInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
     if (fDestroyInstructions->fCode.size() > 0) {
         *dst << "======= Destroy ==========" << std::endl;
         *dst << std::endl;
-        fDestroyInstructions->accept(&firvisistor);
+        fDestroyInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
+}
+
+
+void FirScalarCodeContainer::dump(ostream* dst)
+{
+    FIRInstVisitor firvisitor(dst);
+    dumpGlobalsAndInit(firvisitor, dst);
 
     // Current loop
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute Block ==========" << std::endl;
         *dst << std::endl;
-        fComputeBlockInstructions->accept(&firvisistor);
+        fComputeBlockInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
     *dst << "======= Compute DSP ==========" << std::endl;
     *dst << std::endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
-    loop->accept(&firvisistor);
+    loop->accept(&firvisitor);
     *dst << std::endl;
 }
 
 void FirVectorCodeContainer::dump(ostream* dst)
 {
-    FIRInstVisitor firvisistor(dst);
-
-    // Subclasses
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        (*it)->dump(dst);
-    }
-
-    /// User Interface
-    if (fUserInterfaceInstructions->fCode.size() > 0) {
-        *dst << "======= User Interface ==========" << std::endl;
-        *dst << std::endl;
-        fUserInterfaceInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    // General
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Global declarations ==========" << std::endl;
-        *dst << std::endl;
-        fGlobalDeclarationInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Declarations ==========" << std::endl;
-        *dst << std::endl;
-        fDeclarationInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fInitInstructions->fCode.size() > 0) {
-        *dst << "======= Init ==========" << std::endl;
-        *dst << std::endl;
-        fInitInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fStaticInitInstructions->fCode.size() > 0) {
-        *dst << "======= Static Init ==========" << std::endl;
-        *dst << std::endl;
-        fStaticInitInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fDestroyInstructions->fCode.size() > 0) {
-        *dst << "======= Destroy ==========" << std::endl;
-        *dst << std::endl;
-        fDestroyInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
+    FIRInstVisitor firvisitor(dst);
+    dumpGlobalsAndInit(firvisitor, dst);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);
@@ -168,7 +124,7 @@ void FirVectorCodeContainer::dump(ostream* dst)
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute Block ==========" << std::endl;
         *dst << std::endl;
-        fComputeBlockInstructions->accept(&firvisistor);
+        fComputeBlockInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
@@ -182,14 +138,14 @@ void FirVectorCodeContainer::dump(ostream* dst)
     }
 
     // Generate it
-    block->accept(&firvisistor);
+    block->accept(&firvisitor);
 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
         *dst << std::endl;
         *dst << "======= Separated functions ==========" << std::endl;
         *dst << std::endl;
-        fComputeFunctions->accept(&firvisistor);
+        fComputeFunctions->accept(&firvisitor);
         *dst << std::endl;
     } else {
         *dst << std::endl;
@@ -198,57 +154,8 @@ void FirVectorCodeContainer::dump(ostream* dst)
 
 void FirOpenMPCodeContainer::dump(ostream* dst)
 {
-    FIRInstVisitor firvisistor(dst);
-
-    // Subclasses
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        (*it)->dump(dst);
-    }
-
-    /// User Interface
-    if (fUserInterfaceInstructions->fCode.size() > 0) {
-        *dst << "======= User Interface ==========" << std::endl;
-        *dst << std::endl;
-        fUserInterfaceInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    // General
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Global declarations ==========" << std::endl;
-        *dst << std::endl;
-        fGlobalDeclarationInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Declarations ==========" << std::endl;
-        *dst << std::endl;
-        fDeclarationInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fInitInstructions->fCode.size() > 0) {
-        *dst << "======= Init ==========" << std::endl;
-        *dst << std::endl;
-        fInitInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fStaticInitInstructions->fCode.size() > 0) {
-        *dst << "======= Static Init ==========" << std::endl;
-        *dst << std::endl;
-        fStaticInitInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fDestroyInstructions->fCode.size() > 0) {
-        *dst << "======= Destroy ==========" << std::endl;
-        *dst << std::endl;
-        fDestroyInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
+    FIRInstVisitor firvisitor(dst);
+    dumpGlobalsAndInit(firvisitor, dst);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);
@@ -257,7 +164,7 @@ void FirOpenMPCodeContainer::dump(ostream* dst)
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute Block ==========" << std::endl;
         *dst << std::endl;
-        fComputeBlockInstructions->accept(&firvisistor);
+        fComputeBlockInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
@@ -265,72 +172,22 @@ void FirOpenMPCodeContainer::dump(ostream* dst)
     StatementInst* block = generateDAGLoopOMP();
 
     // Generate it
-    block->accept(&firvisistor);
+    block->accept(&firvisitor);
 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
         *dst << std::endl;
         *dst << "======= Separated functions ==========" << std::endl;
         *dst << std::endl;
-        fComputeFunctions->accept(&firvisistor);
+        fComputeFunctions->accept(&firvisitor);
         *dst << std::endl;
     }
 }
 
 void FirWorkStealingCodeContainer::dump(ostream* dst)
 {
-    FIRInstVisitor firvisistor(dst);
-
-    // Subclasses
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        (*it)->dump(dst);
-    }
-
-    /// User Interface
-    if (fUserInterfaceInstructions->fCode.size() > 0) {
-        *dst << "======= User Interface ==========" << std::endl;
-        *dst << std::endl;
-        fUserInterfaceInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    // General
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Global declarations ==========" << std::endl;
-        *dst << std::endl;
-        fGlobalDeclarationInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fDeclarationInstructions->fCode.size() > 0) {
-        *dst << "======= Declarations ==========" << std::endl;
-        *dst << std::endl;
-        fDeclarationInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fInitInstructions->fCode.size() > 0) {
-        *dst << "======= Init ==========" << std::endl;
-        *dst << std::endl;
-        fInitInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fStaticInitInstructions->fCode.size() > 0) {
-        *dst << "======= Static Init ==========" << std::endl;
-        *dst << std::endl;
-        fStaticInitInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
-    if (fDestroyInstructions->fCode.size() > 0) {
-        *dst << "======= Destroy ==========" << std::endl;
-        *dst << std::endl;
-        fDestroyInstructions->accept(&firvisistor);
-        *dst << std::endl;
-    }
-
+    FIRInstVisitor firvisitor(dst);
+    dumpGlobalsAndInit(firvisitor, dst);
      // Transform some stack variables in struct variables
     MoveStack2Struct();
 
@@ -347,7 +204,7 @@ void FirWorkStealingCodeContainer::dump(ostream* dst)
     // Generate it
     *dst << "======= Compute Thread ==========" << std::endl;
     *dst << std::endl;
-    block->accept(&firvisistor);
+    block->accept(&firvisitor);
     *dst << std::endl;
 
     generateDAGLoopWSSAux2(fComputeBlockInstructions);
@@ -359,7 +216,7 @@ void FirWorkStealingCodeContainer::dump(ostream* dst)
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute Block ==========" << std::endl;
         *dst << std::endl;
-        fComputeBlockInstructions->accept(&firvisistor);
+        fComputeBlockInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
@@ -368,9 +225,7 @@ void FirWorkStealingCodeContainer::dump(ostream* dst)
         *dst << std::endl;
         *dst << "======= Separated functions ==========" << std::endl;
         *dst << std::endl;
-        fComputeFunctions->accept(&firvisistor);
+        fComputeFunctions->accept(&firvisitor);
         *dst << std::endl;
     }
 }
-
-
