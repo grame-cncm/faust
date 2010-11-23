@@ -169,6 +169,11 @@ class InstructionsCompiler {
         virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
         virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
 
+        virtual ValueInst* generateVectorize(Tree sig, Tree x, Tree vectorSize);
+        virtual ValueInst* generateSerialize(Tree sig, Tree x);
+        virtual ValueInst* generateConcat(Tree sig, Tree v1, Tree v2);
+        virtual ValueInst* generateVectorAt(Tree sig, Tree x, Tree index);
+
         // Gestion de la description arborescente de l'IU
         void addUIWidget(Tree path, Tree widget);
         Tree prepareUserInterfaceTree(Tree t);
