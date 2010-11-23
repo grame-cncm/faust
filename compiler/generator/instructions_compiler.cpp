@@ -256,9 +256,9 @@ bool InstructionsCompiler::getTableNameProperty(Tree sig, string& name)
 
 CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree sig)
 {
-	Type t = getSigType(sig); 
+	Type t = getSigType(sig);
 
-	CodeContainer* container = fContainer->createScalarContainer(name, t->nature()); 
+	CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
     InstructionsCompiler C(container);
     C.compileSingleSignal(sig);
     return container;
@@ -285,8 +285,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     }
     */
     type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
- 
-    if (!gOpenCLSwitch && !gCUDASwitch) { // HACK 
+
+    if (!gOpenCLSwitch && !gCUDASwitch) { // HACK
         // "input" and "inputs" used as a name convention
         for (int index = 0; index < fContainer->inputs(); index++) {
             string name = subst("input$0", T(index));
@@ -489,9 +489,9 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     string vname;
     Typed::VarType ctype;
     ::Type t = getSigType(sig);
-    
+
     Typed* type;
-  
+
     switch (t->variability()) {
 
         case kKonst:
@@ -1002,7 +1002,7 @@ ValueInst* InstructionsCompiler::generateButtonAux(int variability, Tree sig, Tr
     }
     */
     type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
-    
+
     fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), type));
     fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
@@ -1147,7 +1147,7 @@ ValueInst* InstructionsCompiler::generateFConst(int variability, Tree sig, Tree 
 ValueInst* InstructionsCompiler::generateFVar(int variability, Tree sig, Tree type, const string& file, const string& name)
 {
     fContainer->addIncludeFile(file);
-    
+
     int sig_type = getSigType(sig)->nature();
     fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal),
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
@@ -1301,11 +1301,11 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
 ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access)
 {
     if (mxd == 0) {
-    
+
         // Generate scalar use
         fContainer->getCurLoop()->pushComputeDSPMethod(
             InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), InstBuilder::genBasicTyped(ctype), exp));
-        
+
     } else if (mxd < gMaxCopyDelay) {
 
         // Generates table init

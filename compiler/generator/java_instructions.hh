@@ -50,36 +50,36 @@ using namespace std;
 class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
     private:
-    
+
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-    
+
     public:
-    
+
         JAVAInstVisitor(std::ostream* out, int tab = 0)
             :fTab(tab), fOut(out), fFinishLine(true)
         {}
-        
+
         virtual ~JAVAInstVisitor()
         {}
-        
+
         void Tab(int n) {fTab = n;}
-        
+
         void EndLine()
         {
             if (fFinishLine) {
-                *fOut << ";"; 
+                *fOut << ";";
                 tab(fTab, *fOut);
             }
         }
-        
-        virtual void visit(AddMetaDeclareInst* inst) 
+
+        virtual void visit(AddMetaDeclareInst* inst)
         {
             *fOut << "interface.declare(" << "&" << inst->fZone <<", " << inst->fKey << ", " <<  inst->fValue << ")"; EndLine();
         }
-        
-        virtual void visit(OpenboxInst* inst) 
+
+        virtual void visit(OpenboxInst* inst)
         {
             string name;
             switch (inst->fOrient) {
@@ -90,15 +90,15 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 case 2:
                     name = "interface.openTabBox"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fName << "\"" << ")"; 
+            *fOut << name << "(" << "\"" << inst->fName << "\"" << ")";
             EndLine();
         }
-        
-        virtual void visit(CloseboxInst* inst) 
+
+        virtual void visit(CloseboxInst* inst)
         {
             *fOut << "interface.closeBox();"; tab(fTab, *fOut);
         }
-        virtual void visit(AddButtonInst* inst) 
+        virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 *fOut << "interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ")"; EndLine();
@@ -106,8 +106,8 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << "interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ")"; EndLine();
             }
         }
-        
-        virtual void visit(AddSliderInst* inst) 
+
+        virtual void visit(AddSliderInst* inst)
         {
             string name;
             switch (inst->fType) {
@@ -117,15 +117,15 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                     name = "interface.addVerticalSlider"; break;
                 case AddSliderInst::kNumEntry:
                     name = "interface.addNumEntry"; break;
-            }     
-            if (strcmp(ifloat(), "float") == 0)    
+            }
+            if (strcmp(ifloat(), "float") == 0)
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
             else
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
-            EndLine();     
+            EndLine();
         }
-        
-        virtual void visit(AddBargraphInst* inst) 
+
+        virtual void visit(AddBargraphInst* inst)
         {
             string name;
             switch (inst->fType) {
@@ -133,49 +133,49 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                     name = "interface.addHorizontalBargraph"; break;
                 case AddBargraphInst::kVertical:
                     name = "interface.addVerticalBargraph"; break;
-            }     
-            if (strcmp(ifloat(), "float") == 0) 
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
+            }
+            if (strcmp(ifloat(), "float") == 0)
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
             else
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")"; 
-            EndLine();     
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "&" << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            EndLine();
         }
-        
-        virtual void visit(LabelInst* inst) 
+
+        virtual void visit(LabelInst* inst)
         {
             *fOut << inst->fLabel;
             tab(fTab, *fOut);
         }
-        
-        virtual void visit(DeclareVarInst* inst) 
-        {   
+
+        virtual void visit(DeclareVarInst* inst)
+        {
             if (inst->fAddress->getAccess() & Address::kVolatile) {
                  *fOut << "volatile ";
             }
-            
+
             if (inst->fValue) {
                 *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
             } else {
                 *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
             }
         }
-        
-        virtual void visit(RetInst* inst) 
-        {   
+
+        virtual void visit(RetInst* inst)
+        {
             if (inst->fResult) {
                 *fOut << "return "; inst->fResult->accept(this); EndLine();
             }
         }
-        
-        virtual void visit(DropInst* inst) 
-        {   
+
+        virtual void visit(DropInst* inst)
+        {
             if (inst->fResult) {
                 inst->fResult->accept(this); EndLine();
             }
         }
-          
-        virtual void visit(DeclareFunInst* inst) 
-        {   
+
+        virtual void visit(DeclareFunInst* inst)
+        {
             // Prototype
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";
@@ -185,7 +185,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << generateType((*it));
                 if (i < size - 1) *fOut << ", ";
             }
-                
+
             if (inst->fCode->fCode.size() == 0) {
                 *fOut << ");" << endl;  // Pure prototype
             } else {
@@ -193,80 +193,80 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << ") {";
                     fTab++;
                     tab(fTab, *fOut);
-                    inst->fCode->accept(this); 
+                    inst->fCode->accept(this);
                     fTab--;
-                    tab(fTab, *fOut); 
+                    tab(fTab, *fOut);
                 *fOut << "}";
-                tab(fTab, *fOut); 
+                tab(fTab, *fOut);
             }
         }
-                
+
         virtual void visit(LoadVarInst* inst)
-        {   
+        {
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            
+
             if (named) {
                 *fOut << named->getName();
             } else {
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "]"; 
+                *fOut << "]";
             }
         }
-        
-        virtual void visit(LoadVarAddressInst* inst) 
+
+        virtual void visit(LoadVarAddressInst* inst)
         {
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            
+
             if (named) {
                 *fOut << "&" << named->getName();
             } else {
                 *fOut << "&" << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "]"; 
+                *fOut << "]";
             }
         }
 
         virtual void visit(StoreVarInst* inst)
-        {   
+        {
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
-            
+
             if (named) {
                 *fOut << named->getName() << " = ";
             } else {
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "] = "; 
+                *fOut << "] = ";
             }
             inst->fValue->accept(this);
             EndLine();
         }
-        
+
         virtual void visit(FloatNumInst* inst)
-        {   
+        {
             *fOut << checkFloat(inst->fNum);
-        }  
-        
+        }
+
         virtual void visit(IntNumInst* inst)
-        {   
+        {
             *fOut << inst->fNum;
         }
-        
-        virtual void visit(BoolNumInst* inst) 
-        {   
+
+        virtual void visit(BoolNumInst* inst)
+        {
             *fOut << inst->fNum;
         }
-        
+
         virtual void visit(DoubleNumInst* inst)
-        {   
+        {
             *fOut << inst->fNum;
         }
-          
-        virtual void visit(BinopInst* inst) 
-        {   
+
+        virtual void visit(BinopInst* inst)
+        {
             *fOut << "(";
             inst->fInst1->accept(this);
             *fOut << " ";
@@ -275,29 +275,29 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fInst2->accept(this);
             *fOut << ")";
         }
-        
-        virtual void visit(CastNumInst* inst) 
-        {   
+
+        virtual void visit(CastNumInst* inst)
+        {
             *fOut << "(" << generateType(inst->fTyped) << ")";
             inst->fInst->accept(this);
         }
-        
+
         virtual void visit(FunCallInst* inst)
         {
             *fOut << inst->fName << "(";
             list<ValueInst*>::const_iterator it;
-            
+
             int size = inst->fArgs.size(), i = 0;
             for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                 // Compile argument
-                (*it)->accept(this); 
+                (*it)->accept(this);
                 if (i < size - 1) *fOut << ", ";
             }
             *fOut << ")";
         }
-        
+
         virtual void visit(Select2Inst* inst)
-        {   
+        {
             *fOut << "(";
             inst->fCond->accept(this);
             *fOut << "?";
@@ -306,21 +306,21 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fElse->accept(this);
             *fOut << ")";
         }
-        
+
         virtual void visit(IfInst* inst)
-        {   
+        {
             *fOut << "if ";
             inst->fCond->accept(this);
             *fOut << " {";
                 fTab++;
-                tab(fTab, *fOut); 
+                tab(fTab, *fOut);
                 inst->fThen->accept(this);
                 fTab--;
-                tab(fTab, *fOut); 
+                tab(fTab, *fOut);
             if (inst->fElse->fCode.size() > 0) {
                 *fOut << "} else {";
                     fTab++;
-                    tab(fTab, *fOut); 
+                    tab(fTab, *fOut);
                     inst->fElse->accept(this);
                     fTab--;
                     tab(fTab, *fOut);
@@ -328,42 +328,42 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 *fOut << "}";
             }
-            tab(fTab, *fOut); 
+            tab(fTab, *fOut);
         }
-        
-        virtual void visit(ForLoopInst* inst) 
+
+        virtual void visit(ForLoopInst* inst)
         {
-            *fOut << "for ("; 
+            *fOut << "for (";
                 fFinishLine = false;
-                inst->fInit->accept(this); 
-                *fOut << "; "; 
-                inst->fEnd->accept(this); 
-                *fOut << "; "; 
-                inst->fIncrement->accept(this); 
+                inst->fInit->accept(this);
+                *fOut << "; ";
+                inst->fEnd->accept(this);
+                *fOut << "; ";
+                inst->fIncrement->accept(this);
                 fFinishLine = true;
             *fOut << ") {";
                 fTab++;
                 tab(fTab, *fOut);
                 inst->fCode->accept(this);
                 fTab--;
-                tab(fTab, *fOut); 
-            *fOut << "}"; 
+                tab(fTab, *fOut);
+            *fOut << "}";
             tab(fTab, *fOut);
         }
-        
-        virtual void visit(WhileLoopInst* inst) 
+
+        virtual void visit(WhileLoopInst* inst)
         {
-            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {"; 
+            *fOut << "while ("; inst->fCond->accept(this); *fOut << ") {";
                 fTab++;
                 tab(fTab, *fOut);
                 inst->fCode->accept(this);
                 fTab--;
-                tab(fTab, *fOut); 
-             *fOut << "}"; 
-             tab(fTab, *fOut);        
+                tab(fTab, *fOut);
+             *fOut << "}";
+             tab(fTab, *fOut);
         }
-        
-        virtual void visit(BlockInst* inst) 
+
+        virtual void visit(BlockInst* inst)
         {
             if (inst->fIndent) {
                 *fOut << "{";
@@ -376,13 +376,13 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
             if (inst->fIndent) {
                 fTab--;
-                tab(fTab, *fOut); 
-                *fOut << "}"; 
+                tab(fTab, *fOut);
+                *fOut << "}";
                 tab(fTab, *fOut);
             }
         }
-        
-        virtual void visit(SwitchInst* inst) 
+
+        virtual void visit(SwitchInst* inst)
         {
             *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
                 fTab++;

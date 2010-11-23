@@ -49,7 +49,7 @@ using namespace std;
 class InstComplexityVisitor : public InstVisitor {
 
     private:
-    
+
         int fLoad;
         int fStore;
         int fNumerical;
@@ -60,45 +60,45 @@ class InstComplexityVisitor : public InstVisitor {
         int fLoop;
 
     public:
-    
+
         InstComplexityVisitor()
             :fLoad(0), fStore(0), fNumerical(0), fNumbers(0);
             fDeclare(0), fCast(0), fSelect(0), fLoop(0)
         {}
         virtual ~InstComplexityVisitor()
         {}
-        
+
         virtual void visit(Printable* inst) {}
-        
-        virtual void visit(DeclareVarInst* inst) 
+
+        virtual void visit(DeclareVarInst* inst)
             { fDeclare++; inst->fValue->accept(this); }
         virtual void visit(DeclareFunInst* inst) {}
-        
+
         virtual void visit(LoadVarInst* inst) { fLoad++; }
         virtual void visit(StoreVarInst* inst) { fStore++; inst->fValue->accept(this);}
-        
-        virtual void visit(FloatNumInst* inst) { fNumbers++; }   
-        virtual void visit(IntNumInst* inst) { fNumbers++; } 
-        virtual void visit(BoolNumInst* inst) { fNumbers++; } 
-        virtual void visit(DoubleNumInst* inst) { fNumbers++; } 
-         
+
+        virtual void visit(FloatNumInst* inst) { fNumbers++; }
+        virtual void visit(IntNumInst* inst) { fNumbers++; }
+        virtual void visit(BoolNumInst* inst) { fNumbers++; }
+        virtual void visit(DoubleNumInst* inst) { fNumbers++; }
+
         virtual void visit(BinopInst* inst) { fNumerical++; inst->fInst1->accept(this); inst->fInst2->accept(this);}
         virtual void visit(CastNumInst* inst) { fCast++; inst->fInst->accept(this); }
-        
+
         virtual void visit(FunCallInst* inst) {}    // Needs a cost table for a set of standard functions?
-       
-        virtual void visit(IfInst* inst) 
-        { 
-            fSelect++; 
-            inst->fCond->accept(this); 
-            
+
+        virtual void visit(IfInst* inst)
+        {
+            fSelect++;
+            inst->fCond->accept(this);
+
             // Max of the 2 branch cast
             InstComplexityVisitor then_branch
-            inst->fThen->accept(&then_branch); 
-            
+            inst->fThen->accept(&then_branch);
+
             InstComplexityVisitor else_branch
-            inst->fThen->accept(&else_branch); 
-            
+            inst->fThen->accept(&else_branch);
+
             if (then_branch.cost() > else_branch.cost()) {
                 fLoad += then_branch.fLoad;
                 fStore += then_branch.fStore;
@@ -118,24 +118,24 @@ class InstComplexityVisitor : public InstVisitor {
                 fSelect += else_branch.fSelect;
                 fLoop += else_branch.fLoop;
             }
-        }  
-        
-        virtual void visit(LoopInst* inst) 
+        }
+
+        virtual void visit(LoopInst* inst)
         {
             fLoop++;
-            
+
             std::list<Inst*>::const_iterator it;
             for (it = inst->fInstructions.begin(); it != inst->fInstructions.end(); it++) {
                 (*it)->accept(this);
             }
         }
-        
+
         int cost()
         {
             // Un polynome basé sur toutes les les valeurs mesurées
-            return 0; 
+            return 0;
         }
-        
+
 };
 
 #endif

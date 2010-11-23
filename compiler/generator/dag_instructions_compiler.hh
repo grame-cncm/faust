@@ -36,36 +36,36 @@
 class DAGInstructionsCompiler : public InstructionsCompiler {
 
     protected:
-    
+
         bool needSeparateLoop(Tree sig);
-       
+
     public:
-    
-        DAGInstructionsCompiler(CodeContainer* container):InstructionsCompiler(container)        
+
+        DAGInstructionsCompiler(CodeContainer* container):InstructionsCompiler(container)
         {}
         virtual ~DAGInstructionsCompiler()
         {}
-        
+
         virtual ValueInst* CS(int variability, Tree sig);
-        
+
         virtual void compileMultiSignal(Tree sig);
-        
+
         virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
         virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
-        
+
         virtual ValueInst* generateInput(int variability, Tree sig, int idx);
-        
+
         // Code generation
-        
+
         virtual ValueInst* generateCode(int variability, Tree sig);
         virtual ValueInst* generateFixDelay(int variability, Tree sig, Tree arg, Tree size);
-           
+
         virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
         virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
-        
+
         virtual void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
         virtual void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
-        
+
 };
 
 

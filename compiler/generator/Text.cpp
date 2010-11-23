@@ -39,11 +39,11 @@ extern bool gInternDoubleSwitch;
 static string substitution (const string& model, const vector<string>& args);
 
 /**
- * Text substitution. Creates a string by replacing all the $n 
- * occurences in the model string, with the corresponding arguments. 
+ * Text substitution. Creates a string by replacing all the $n
+ * occurences in the model string, with the corresponding arguments.
  * Example :
  * 		subst("float $0 = $1;", "var", T(10.2))
- */ 
+ */
 string subst (const string& model, const vector<string>& args)
 {
 	return substitution(model, args);
@@ -168,9 +168,9 @@ string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
 static void ensureFloat(char* c)
 {
     bool isInt = true;
-    while (*c != 0) { 
-        if ((*c == '.') | (*c == 'e')) isInt = false; 
-        c++; 
+    while (*c != 0) {
+        if ((*c == '.') | (*c == 'e')) isInt = false;
+        c++;
     }
 
     if (isInt) {
@@ -189,7 +189,7 @@ string T(double n)
 {
     char    c[64];
     int     p = 1;
-    
+
     do { snprintf(c, 32, "%.*g", p++, n); } while (atof(c) != n);
     ensureFloat(c);
     return string(c)+inumix();
@@ -269,7 +269,7 @@ string checkFloat(float val)
 {
     stringstream num; num << val;
     string str = num.str();
-    
+
     bool dot = false;
     for (unsigned int i = 0; i < str.size(); i++) {
         if (str[i] == '.' || str[i] == 'e') {

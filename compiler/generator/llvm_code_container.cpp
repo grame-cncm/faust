@@ -61,7 +61,7 @@ void LLVMCodeContainer::generateFillBegin()
     llvm_fill_args.push_back(fBuilder->getInt32Ty());
 
     const llvm::Type* buffer_type;
-    
+
     if (fSubContainerType == kInt) {
         // int* type
         buffer_type = fBuilder->getInt32Ty();
@@ -69,7 +69,7 @@ void LLVMCodeContainer::generateFillBegin()
         // real* output
         buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
     }
-    
+
     llvm_fill_args.push_back(PointerType::get(buffer_type, 0));
     FunctionType* llvm_fill_type = FunctionType::get(fBuilder->getVoidTy(), llvm_fill_args, false);
 

@@ -27,7 +27,7 @@ class Description
 	string 			fCopyright;
 	string 			fLicense;
 	string 			fVersion;
-	
+
 	int				fInputs;
 	int				fOutputs;
 	int				fWidgetID;
@@ -37,46 +37,46 @@ class Description
 	list<string>	fPassiveLines;
 	list<string>	fLayoutLines;
 	list<int>		fLayoutTabs;
-	
+
 
   public:
-  
-	Description():	/*fName("Unknow"), 
-					fAuthor("Unknow"), 
+
+	Description():	/*fName("Unknow"),
+					fAuthor("Unknow"),
 					fCopyright("Unknow"),
-					fLicense("Unknow"), 
+					fLicense("Unknow"),
 					fVersion("Unknow"),*/
-					
+
 					fInputs(0),
 					fOutputs(0),
 					fWidgetID(0),
 					fActiveWidgetCount(0),
 					fPassiveWidgetCount(0)
 					{}
-					
+
 	Description*	name(const string& s) 			{ fName = s; 	return this; }
 	Description*	author(const string& s) 		{ fAuthor = s; 	return this; }
 	Description*	copyright(const string& s) 		{ fCopyright = s; return this; }
 	Description*	license(const string& s) 		{ fLicense = s; return this; }
 	Description*	version(const string& s) 		{ fVersion = s; return this; }
-	
+
 	Description*	inputs(int n) 					{ fInputs = n; 	return this; }
 	Description*	outputs(int n) 					{ fOutputs = n; return this; }
-	
+
 	void			ui(Tree t);
 	void 			print(int n, ostream& fout);
-	
-		
+
+
   private:
 	void 			addGroup(int level, Tree t);
 	int 			addWidget(Tree label, Tree varname, Tree sig);
-	
+
   	void 			tab (int n, ostream& fout);
 	void			addActiveLine(const string& l) 	{ fActiveLines.push_back(l);}
 	void			addPassiveLine(const string& l) { fPassiveLines.push_back(l);}
 	void			addLayoutLine(int n, const string& l) 	{ fLayoutTabs.push_back(n); fLayoutLines.push_back(l);}
-	
-	
+
+
 };
 
 #endif
