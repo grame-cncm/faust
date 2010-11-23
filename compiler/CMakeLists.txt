@@ -10,6 +10,11 @@ exec_program(llvm-config-2.8 ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
 
 include_directories(${LLVM_DIR})
 
+
+if (${CMAKE_COMPILER_IS_GNUCXX})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wuninitialized -Wno-parentheses -Wnon-virtual-dtor")
+endif()
+
 add_executable(faust ${SOURCES} ${SUB_SOURCES}  ${SUB_SUB_SOURCES})
 
 set_property(TARGET faust
