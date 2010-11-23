@@ -1719,58 +1719,61 @@ Opcode := + | - | * | / |...etc...
 
 Access := kGlobal | kStruct | kStaticStruct | kFunArgs | kStack | kLoop
 
-Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size)  si Size = 0, alors équivalent à pointeur sur type
+Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size)  si size = 0, then equivalent to a pointer on the type
 
-Address := Access Name | Address index
+Address := Access name | Address index
 
-Statement   := DeclareVar (Name, Type, Access, Value)
-            | Loop (Name, Value, Statement*)
-            | Store (Address, Value)
+Statement   := DeclareVar (Address, Type, Value)
+            | ForLoop (Statement, Value, Statement, Block)
+            | WhileLoop (Value, Block)
+            | StoreVar (Address, Value)
             | DeclareFun (Name, Type, Statement*) 
             | Drop Value   
             | Return Value
+            | BlockInst (Statement*)
+            | If (Value1, BlockInst, BlockInst)
+            | Switch (Value1, <int, BlockInst> *)
             
-Value       := Load (Address)
+Value       := LoadVar (Address)
             | Float | Int | Double 
             | Binop (Opcode, Value1, Value2)
             | Cast (Value, Type)
-            | If (Value1, Value2, Value3)
+            | Select2 (Value1, Value2, Value3)
             | FunCall (Name, Value*)
             
 
-Réécriture de code :
+Code rewritting :
 
-Pour WSS:
+For WSS:
 
-1) changer l'accès de toutes les variables tableau kStack en kStruct
+1) change access of variable of type kStack in kStruct
 
 
-Mettre les boucles dans des fonctions (compilation plus rapide):
+Loop to function rewritting (faster compilation ?):
 
-2 méthodes 
+2 methods
 
 I)
 
-1) changer l'accès de toutes les variables kStack en kStruct
-2) transformer Loop (Name, Value, Statement*) en DeclareFun (Name, Type, Statement*) : fonction du type kVoid --> kVoid
-3) dans Compute, remplacer chaque boucle par un appel à la fonction créee
+1) change kStack variables in kStruct
+2) transform Loop (Name, Value, Statement*) in DeclareFun (Name, Type, Statement*) : function type kVoid --> kVoid
+3) in Compute, replace each loop with a call to the created function
 
 
 II)
 
-1) dans chaque boucle, transformer l'accès de ses vecteurs d'entrée kStack en kFunArgs
-2) transformer Loop (Name, Value, Statement*) en DeclareFun (Name, Type, Statement*) : toutes variables d'entrée deviennent des paramètres de la fonction
-3) dans Compute, remplacer chaque boucle par un appel à la fonction créee en passant les bons paramétres
+1) in each loop, transform in put vector access from kStack in kFunArgs
+2) transform Loop (Name, Value, Statement*) in DeclareFun (Name, Type, Statement*) : all input variables become function parameters
+3) in Compute, replace each loop with a call to the created function giving it the good parameters
 
 
-Scalarisation:
+Scalarisation (some ideas, possibly not correct or not complete...):
 
-1) transformer tous les vecteurs *sans retard* sur la pile (utilisées par les boucles) en scalaire
-2) dans chaque boucle, transformer l'accès de ses vecteurs d'entrée à des accès scalaires (Load/Store)
-3) regrouper tous les "poscode" de toutes les boucles à la fin
-4) Renommage de la variable des boucles dans le nom de la variable de boucle de Compute
-5) extraire le code pour le mettre dans Compute et supprimer les statement Loop (Name, Value, Statement*)  
-
+1) transform all vectors *without delay* on the stack (used in loops) in scalar
+2) in each loop, transform input vector accessin scalar access (Load/Store)
+3) regroup all  "postcode" of all loop at the end
+4) rename loop variable into the Compute variable name
+5) extract code and put it in Compute, suppress Loop statements
 
 Vision des boucles (count, liste de vecteurs d'entrée, liste de vecteurs de sorties) différente du prototype externe compute(count, float**, float**) ou veut homogenéiser
 
@@ -1783,7 +1786,6 @@ compute(count, float**, float**)
 2) compiler les boucles
 
 Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard? Avec un nommage spécifique?
- 
  
 TODO : gestion des indices de boucles: 
 
