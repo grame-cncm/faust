@@ -315,9 +315,6 @@ struct Typed : public Printable
     Typed()
     {}
 
-    virtual ~Typed()
-    {}
-
     virtual VarType getType() = 0;
 
     // Returns the pointer type version of a primitive type
@@ -444,8 +441,6 @@ struct BasicTyped : public Typed {
     BasicTyped(VarType type)
         :fType(type)
     {}
-    virtual ~BasicTyped()
-    {}
 
     VarType getType() { return fType; }
 
@@ -460,8 +455,6 @@ struct NamedTyped : public Typed {
 
     NamedTyped(const string& name, Typed* type)
         :fName(name), fType(type)
-    {}
-    virtual ~NamedTyped()
     {}
 
     VarType getType() { return fType->getType(); }
@@ -484,8 +477,6 @@ struct FunTyped : public Typed {
     FunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunAttribute attribute = kDefault)
         :fArgsTypes(args), fResult(result), fAttribute(attribute)
     {}
-    virtual ~FunTyped()
-    {}
 
     VarType getType() { assert(false); return fResult->getType(); }
 
@@ -501,8 +492,6 @@ struct ArrayTyped : public Typed {
     ArrayTyped(Typed* type, int size)
         :fType(type), fSize(size)
     {}
-    virtual ~ArrayTyped()
-    {}
 
     VarType getType() { return getPtrFromType(fType->getType()); }
 
@@ -516,8 +505,6 @@ struct VectorTyped : public Typed {
 
     VectorTyped(BasicTyped* type, int size)
         :fType(type), fSize(size)
-    {}
-    virtual ~VectorTyped()
     {}
 
     VarType getType() { return getVecFromType(fType->getType()); }
@@ -543,8 +530,6 @@ struct Address : public Printable {
     };
 
     Address()
-    {}
-    virtual ~Address()
     {}
 
     virtual void setAccess(Address::AccessType type) = 0;
@@ -587,8 +572,6 @@ struct NamedAddress : public Address {
     NamedAddress(const string& name, AccessType access)
         :fName(name), fAccess(access)
     {}
-    virtual ~NamedAddress()
-    {}
 
     void setAccess(Address::AccessType type) { fAccess = type; }
     Address::AccessType getAccess() { return fAccess; }
@@ -608,8 +591,6 @@ struct IndexedAddress : public Address {
 
     IndexedAddress(Address* address, ValueInst* index)
         :fAddress(address), fIndex(index)
-    {}
-    virtual ~IndexedAddress()
     {}
 
     void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
@@ -637,9 +618,6 @@ struct AddMetaDeclareInst : public StatementInst
         :fZone(zone), fKey(key), fValue(value)
     {}
 
-    virtual ~AddMetaDeclareInst()
-    {}
-
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -654,9 +632,6 @@ struct OpenboxInst : public StatementInst
         :fOrient(orient), fName(name)
     {}
 
-    virtual ~OpenboxInst()
-    {}
-
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -665,9 +640,6 @@ struct OpenboxInst : public StatementInst
 struct CloseboxInst : public StatementInst
 {
     CloseboxInst()
-    {}
-
-    virtual ~CloseboxInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -685,9 +657,6 @@ struct AddButtonInst : public StatementInst
 
     AddButtonInst(const string& label, const string& zone, ButtonType type)
         :fLabel(label), fZone(zone), fType(type)
-    {}
-
-    virtual ~AddButtonInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -711,9 +680,6 @@ struct AddSliderInst : public StatementInst
         :fLabel(label), fZone(zone), fInit(init), fMin(min), fMax(max), fStep(step), fType(type)
     {}
 
-    virtual ~AddSliderInst()
-    {}
-
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -733,9 +699,6 @@ struct AddBargraphInst : public StatementInst
         :fLabel(label), fZone(zone), fMin(min), fMax(max), fType(type)
     {}
 
-    virtual ~AddBargraphInst()
-    {}
-
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -747,9 +710,6 @@ struct LabelInst : public StatementInst
 
     LabelInst(const string& label)
         :fLabel(label)
-    {}
-
-    virtual ~LabelInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -803,8 +763,6 @@ struct DropInst : public StatementInst
     DropInst(ValueInst* result = NULL)
         :fResult(result)
     {}
-    virtual ~DropInst()
-    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -819,8 +777,6 @@ struct LoadVarInst : public ValueInst
     LoadVarInst(Address* address, int size = 1)
         :ValueInst(size), fAddress(address)
     {}
-    virtual ~LoadVarInst()
-    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -833,8 +789,6 @@ struct LoadVarAddressInst : public ValueInst
 
     LoadVarAddressInst(Address* address, int size = 1)
         :ValueInst(size), fAddress(address)
-    {}
-    virtual ~LoadVarAddressInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -849,8 +803,6 @@ struct StoreVarInst : public StatementInst
 
     StoreVarInst(Address* address, ValueInst* value)
         :fAddress(address), fValue(value)
-    {}
-    virtual ~StoreVarInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -869,8 +821,6 @@ struct FloatNumInst : public ValueInst
     FloatNumInst(float num, int size = 1)
         :ValueInst(size), fNum(num)
     {}
-    virtual ~FloatNumInst()
-    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -883,8 +833,6 @@ struct DoubleNumInst : public ValueInst
 
     DoubleNumInst(double num, int size = 1)
         :ValueInst(size), fNum(num)
-    {}
-    virtual ~DoubleNumInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -899,8 +847,6 @@ struct IntNumInst : public ValueInst
     IntNumInst(int num, int size = 1)
         :ValueInst(size), fNum(num)
     {}
-    virtual ~IntNumInst()
-    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -913,8 +859,6 @@ struct BoolNumInst : public ValueInst
 
     BoolNumInst(bool num, int size = 1)
         :ValueInst(size), fNum(num)
-    {}
-    virtual ~BoolNumInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -931,8 +875,6 @@ struct BinopInst : public ValueInst
     BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1)
         :ValueInst(size), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
     {}
-    virtual ~BinopInst()
-    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -946,8 +888,6 @@ struct CastNumInst : public ValueInst
 
     CastNumInst(ValueInst* inst, Typed* typed, int size = 1)
         :ValueInst(size), fTyped(typed), fInst(inst)
-    {}
-    virtual ~CastNumInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -970,9 +910,6 @@ struct BlockInst : public StatementInst
 
     BlockInst()
         :fIndent(false)
-    {}
-
-    virtual ~BlockInst()
     {}
 
     void setIndent(bool indent) { fIndent = indent; }
@@ -1002,8 +939,6 @@ struct Select2Inst : public ValueInst
     Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst, int size = 1)
         :ValueInst(size), fCond(cond_inst), fThen(then_inst), fElse(else_inst)
     {}
-    virtual ~Select2Inst()
-    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1024,9 +959,6 @@ struct IfInst : public StatementInst
         :fCond(cond_inst), fThen(then_inst), fElse(new BlockInst())
     {}
 
-    virtual ~IfInst()
-    {}
-
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1045,9 +977,6 @@ struct SwitchInst : public StatementInst
         :fCond(cond)
     {}
 
-    virtual ~SwitchInst()
-    {}
-
     void addCase(int value, BlockInst* block) { fCode.push_back(make_pair(value, block)); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1061,8 +990,6 @@ struct RetInst : public StatementInst
 
     RetInst(ValueInst* result = NULL)
         :fResult(result)
-    {}
-    virtual ~RetInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1078,9 +1005,6 @@ struct FunCallInst : public ValueInst
 
     FunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
         :ValueInst(size), fName(name), fArgs(args), fMethod(method)
-    {}
-
-    virtual ~FunCallInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1099,9 +1023,6 @@ struct DeclareFunInst : public StatementInst
     {}
     DeclareFunInst(const string& name, FunTyped* type)
         :fName(name), fType(type), fCode(new BlockInst())
-    {}
-
-    virtual ~DeclareFunInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1125,9 +1046,6 @@ struct ForLoopInst : public StatementInst
     {}
     ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment)
         :fInit(init), fEnd(end), fIncrement(increment), fCode(new BlockInst())
-    {}
-
-    virtual ~ForLoopInst()
     {}
 
     void pushFrontInst(StatementInst* inst)
@@ -1154,9 +1072,6 @@ struct WhileLoopInst : public StatementInst
         :fCond(cond), fCode(code)
     {}
 
-    virtual ~WhileLoopInst()
-    {}
-
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1171,8 +1086,6 @@ class BasicCloneVisitor : public CloneVisitor {
     public:
 
         BasicCloneVisitor()
-        {}
-        virtual ~BasicCloneVisitor()
         {}
 
         virtual NullInst* visit(NullInst* inst) { return new NullInst(); }
