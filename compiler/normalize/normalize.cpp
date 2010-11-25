@@ -117,7 +117,7 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 	}
 
     Tree ret = sigFixDelay(s, d);
-    ret->setType(s->getType());
+    ret->setType(sampCast(s->getType()));
 
     /* sigFixDelay introduces a cast node. we need to ensure the type */
     Tree sNormalized = NULL, dNormalized = NULL;
