@@ -28,4 +28,11 @@ extern Tree ratePropertyKey;
 
 void inferRate(Tree sig);
 
+inline int getSigRate(Tree sig)
+{
+    Tree prop = sig->getProperty(ratePropertyKey);
+    assert(prop);
+    return tree2int(prop);
+}
+
 #endif
