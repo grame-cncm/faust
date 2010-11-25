@@ -1636,7 +1636,6 @@ Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) |
 
 Address := Access name | Address index
 
-<<<<<<< HEAD
 Statement   := DeclareVar (Address, Type, Value)
             | ForLoop (Statement, Value, Statement, Block)
             | WhileLoop (Value, Block)
@@ -1650,22 +1649,6 @@ Statement   := DeclareVar (Address, Type, Value)
             
 Value       := LoadVar (Address)
             | Float | Int | Double 
-=======
-Statement   := DeclareVar (Name, Type, Access, Value)
-            | Loop (Name, Value, Statement*)
-            | Store (Address, Value)
-            | DeclareFun (Name, Type, Statement*)
-            | Drop Value
-            | Return Value
-
-Value       := Load (Address)
-            | Float | Int | Double
->>>>>>> generator-cleanups-for-stephane
-            | Binop (Opcode, Value1, Value2)
-            | Cast (Value, Type)
-            | Select2 (Value1, Value2, Value3)
-            | FunCall (Name, Value*)
-
 
 Code rewritting :
 
