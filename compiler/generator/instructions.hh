@@ -73,6 +73,11 @@ struct WhileLoopInst;
 struct BlockInst;
 struct SwitchInst;
 
+struct VectorizeInst;
+struct SerializeInst;
+struct ConcatInst;
+struct VectorAtInst;
+
 // User interface
 struct AddMetaDeclareInst;
 struct OpenboxInst;
@@ -152,6 +157,12 @@ class InstVisitor {
         virtual void visit(ForLoopInst* inst) {}
         virtual void visit(WhileLoopInst* inst) {}
 
+        // Multirate
+        virtual void visit(VectorizeInst* inst) {}
+        virtual void visit(SerializeInst* inst) {}
+        virtual void visit(ConcatInst* inst) {}
+        virtual void visit(VectorAtInst* inst) {}
+
         // Block
         virtual void visit(BlockInst* inst) {}
 
@@ -214,6 +225,12 @@ class CloneVisitor {
         // Loops
         virtual StatementInst* visit(ForLoopInst* inst) = 0;
         virtual StatementInst* visit(WhileLoopInst* inst) = 0;
+
+        // Multirate
+        virtual ValueInst* visit(VectorizeInst* inst) = 0;
+        virtual ValueInst* visit(SerializeInst* inst) = 0;
+        virtual ValueInst* visit(ConcatInst* inst) = 0;
+        virtual ValueInst* visit(VectorAtInst* inst) = 0;
 
         // Block
         virtual StatementInst* visit(BlockInst* inst) = 0;
@@ -1077,6 +1094,67 @@ struct WhileLoopInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// ======
+// Multirate Instructions
+// ======
+
+struct VectorizeInst : public ValueInst
+{
+    ValueInst* fSig;
+    int fVectorSize;
+
+    VectorizeInst (ValueInst* sig, int vectorSize, int size = 1):
+        ValueInst(size), fSig(sig), fVectorSize(vectorSize)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct SerializeInst : public ValueInst
+{
+    ValueInst* fSig;
+    int fVectorSize;
+
+    SerializeInst (ValueInst* sig, int vectorSize, int size = 1):
+        ValueInst(size), fSig(sig), fVectorSize(vectorSize)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct ConcatInst : public ValueInst
+{
+    ValueInst* fSig1;
+    ValueInst* fSig2;
+
+    ConcatInst (ValueInst* sig1, ValueInst* sig2, int size = 1):
+        ValueInst(size), fSig1(sig1), fSig2(sig2)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct VectorAtInst : public ValueInst
+{
+    ValueInst* fSig;
+    int fIndex;
+
+    VectorAtInst (ValueInst* sig, int index, int size = 1):
+        ValueInst(size), fSig(sig), fIndex(index)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+
 // =====================
 // Basic clone visitor
 // =====================
@@ -1165,6 +1243,12 @@ class BasicCloneVisitor : public CloneVisitor {
         {
             return new WhileLoopInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
         }
+
+        // Multirate instructions
+        virtual ValueInst* visit(VectorizeInst* inst) { return new VectorizeInst(inst->fSig, inst->fVectorSize, inst->fSize); }
+        virtual ValueInst* visit(SerializeInst* inst) { return new SerializeInst(inst->fSig, inst->fVectorSize, inst->fSize); }
+        virtual ValueInst* visit(ConcatInst* inst)    { return new ConcatInst(inst->fSig1, inst->fSig2, inst->fSize); }
+        virtual ValueInst* visit(VectorAtInst* inst)  { return new VectorAtInst(inst->fSig, inst->fIndex, inst->fSize); }
 
         // Block
         virtual StatementInst* visit(BlockInst* inst)
@@ -1288,6 +1372,27 @@ struct DispatchVisitor : public InstVisitor {
     {
         inst->fCond->accept(this);
         inst->fCode->accept(this);
+    }
+
+    virtual void visit(VectorizeInst* inst)
+    {
+       inst->fSig->accept(this);
+    }
+
+    virtual void visit(SerializeInst* inst)
+    {
+        inst->fSig->accept(this);
+    }
+
+    virtual void visit(ConcatInst* inst)
+    {
+        inst->fSig1->accept(this);
+        inst->fSig2->accept(this);
+    }
+
+    virtual void visit(VectorAtInst* inst)
+    {
+        inst->fSig->accept(this);
     }
 
     virtual void visit(SwitchInst* inst)
@@ -1595,6 +1700,17 @@ struct InstBuilder
     static BlockInst* genBlockInst()
         { return new BlockInst(); }
 
+    // Multirate
+    static VectorizeInst* genVectorizeInst(ValueInst* sig, int vectorSize, int size = 1)
+        { return new VectorizeInst(sig, vectorSize, size); }
+    static SerializeInst* genSerializeInst(ValueInst* sig, int vectorSize, int size = 1)
+        { return new SerializeInst(sig, vectorSize, size); }
+    static ConcatInst* genConcatInst(ValueInst* sig1, ValueInst* sig2, int size = 1)
+        { return new ConcatInst(sig1, sig2, size); }
+    static VectorAtInst* genVectorAtInst(ValueInst* sig, int index, int size = 1)
+        { return new VectorAtInst(sig, index, size); }
+
+
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type)
     {
@@ -1617,7 +1733,6 @@ struct InstBuilder
     // Addresses
     static NamedAddress* genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }
     static IndexedAddress* genIndexedAddress(Address* address, ValueInst* index) { return new IndexedAddress(address, index); }
-
 };
 
 #endif
@@ -1640,15 +1755,15 @@ Statement   := DeclareVar (Address, Type, Value)
             | ForLoop (Statement, Value, Statement, Block)
             | WhileLoop (Value, Block)
             | StoreVar (Address, Value)
-            | DeclareFun (Name, Type, Statement*) 
-            | Drop Value   
+            | DeclareFun (Name, Type, Statement*)
+            | Drop Value
             | Return Value
             | BlockInst (Statement*)
             | If (Value1, BlockInst, BlockInst)
             | Switch (Value1, <int, BlockInst> *)
-            
+
 Value       := LoadVar (Address)
-            | Float | Int | Double 
+            | Float | Int | Double
 
 Code rewritting :
 
@@ -1694,8 +1809,8 @@ compute(count, float**, float**)
 2) compiler les boucles
 
 Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard? Avec un nommage spécifique?
- 
-TODO : gestion des indices de boucles: 
+
+TODO : gestion des indices de boucles:
 
 
 TODO : gestion des indices de boucles:
