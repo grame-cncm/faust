@@ -55,7 +55,7 @@ class RintPrim : public xtended
 		}
 	}
 		
-    virtual ValueInst* generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
     {
         assert (args.size() == arity());
 		assert (types.size() == arity());

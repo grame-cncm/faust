@@ -75,7 +75,7 @@ void JAVACodeContainer::produceInternal()
         fCodeProducer.Tab(n);
         fGlobalDeclarationInstructions->accept(&fCodeProducer);
     }
- 
+
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
         tab(n+1, *fOut);

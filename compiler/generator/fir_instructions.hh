@@ -50,30 +50,30 @@ using namespace std;
 class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
     private:
-    
+
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
         static map <string, int> gGlobalTable;
-     
+
     public:
-    
+
         FIRInstVisitor(std::ostream* out, int tab = 0)
             :fTab(tab), fOut(out), fFinishLine(true)
         {}
-        
+
         virtual ~FIRInstVisitor()
         {}
-        
+
         void Tab(int n) {fTab = n;}
-        
+
         void EndLine()
         {
             if (fFinishLine) {
                 tab(fTab, *fOut);
             }
         }
-        
+
         virtual string generateType(Typed* type)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
@@ -81,7 +81,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-        
+
             if (basic_typed) {
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\"";
             } else if (named_typed) {
@@ -95,13 +95,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
                     ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
+                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
             } else {
                 assert(false);
                 return "";
             }
         }
-        
+
         virtual string generateType(Typed* type, const string& name)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
@@ -109,7 +109,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-          
+
             if (basic_typed) {
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\", " + name;
             } else if (named_typed) {
@@ -129,19 +129,19 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
                     ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
+                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
             } else {
                 assert(false);
                 return "";
             }
         }
-      
-        virtual void visit(AddMetaDeclareInst* inst) 
+
+        virtual void visit(AddMetaDeclareInst* inst)
         {
             *fOut << "AddMetaDeclareInst(" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
         }
-        
-        virtual void visit(OpenboxInst* inst) 
+
+        virtual void visit(OpenboxInst* inst)
         {
             string name;
             switch (inst->fOrient) {
@@ -152,16 +152,16 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 case 2:
                     name = "OpenTabBox("; break;
             }
-            *fOut << name << "\"" << inst->fName << "\""; 
+            *fOut << name << "\"" << inst->fName << "\"";
             *fOut << ")";
             EndLine();
         }
-        
-        virtual void visit(CloseboxInst* inst) 
+
+        virtual void visit(CloseboxInst* inst)
         {
             *fOut << "CloseboxInst"; tab(fTab, *fOut);
         }
-        virtual void visit(AddButtonInst* inst) 
+        virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 *fOut << "AddButtonInst(" << "\"" << inst->fLabel << "\"" << inst->fZone;
@@ -171,8 +171,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << ")";
             EndLine();
         }
-        
-        virtual void visit(AddSliderInst* inst) 
+
+        virtual void visit(AddSliderInst* inst)
         {
             string name;
             switch (inst->fType) {
@@ -182,16 +182,16 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                     name = "AddVerticalSlider"; break;
                 case AddSliderInst::kNumEntry:
                     name = "AddNumEntry"; break;
-            }     
+            }
             if (strcmp(ifloat(), "float") == 0)
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
             else
                 *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " <<  inst->fMax << ", " << inst->fStep << ")";
-         
-            EndLine();     
+
+            EndLine();
         }
-        
-        virtual void visit(AddBargraphInst* inst) 
+
+        virtual void visit(AddBargraphInst* inst)
         {
             string name;
             switch (inst->fType) {
@@ -199,75 +199,75 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                     name = "AddHorizontalBargraph"; break;
                 case AddBargraphInst::kVertical:
                     name = "AddVerticalBargraph"; break;
-            }     
+            }
             if (strcmp(ifloat(), "float") == 0)
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")"; 
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
             else
-                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";      
-            EndLine();     
+                *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << inst->fZone << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            EndLine();
         }
-        
-        virtual void visit(LabelInst* inst) 
+
+        virtual void visit(LabelInst* inst)
         {
             *fOut << inst->fLabel;
             tab(fTab, *fOut);
         }
-        
-        virtual void visit(DeclareVarInst* inst) 
-        {   
+
+        virtual void visit(DeclareVarInst* inst)
+        {
             *fOut << "DeclareVarInst(";
-            
+
             if (inst->fAddress->getAccess() & Address::kGlobal) {
                  *fOut << "global ";
             }
-            
+
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                  *fOut << "static ";
             }
-            
+
             if (inst->fAddress->getAccess() & Address::kVolatile) {
                  *fOut << "volatile ";
             }
-            
+
             if (inst->fValue) {
                 *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << ", "; inst->fValue->accept(this);
             } else {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()); 
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName());
             }
             *fOut << ")";
             EndLine();
         }
-        
-        virtual void visit(RetInst* inst) 
-        {   
+
+        virtual void visit(RetInst* inst)
+        {
             if (inst->fResult) {
-                *fOut << "RetInst("; 
-                inst->fResult->accept(this);   
+                *fOut << "RetInst(";
+                inst->fResult->accept(this);
                 *fOut << ")";
                 EndLine();
             }
         }
-        
-        virtual void visit(DropInst* inst) 
-        {   
+
+        virtual void visit(DropInst* inst)
+        {
             if (inst->fResult) {
                 *fOut << "DropInst(";
-                inst->fResult->accept(this); 
+                inst->fResult->accept(this);
                 *fOut << ")";
                  EndLine();
             }
         }
-          
-        virtual void visit(DeclareFunInst* inst) 
-        {   
+
+        virtual void visit(DeclareFunInst* inst)
+        {
             if (gGlobalTable.find(inst->fName) != gGlobalTable.end())
                 return;  // already declared
-                
+
             // Defined as macro in the architecture file...
             if (inst->fName == "min" || inst->fName == "max") {
                 return;
             }
-           
+
             // Prototype
             *fOut << "DeclareFunInst(";
             *fOut << generateType(inst->fType->fResult, "\"" + inst->fName + "\", ");
@@ -277,7 +277,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << generateType((*it));
                 if (i < size - 1) *fOut << ", ";
             }
-                
+
             if (inst->fCode->fCode.size() == 0) {
                 *fOut << ")";  // Pure prototype
                 tab(fTab, *fOut);
@@ -286,110 +286,110 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << ")";
                     fTab++;
                     tab(fTab, *fOut);
-                    inst->fCode->accept(this); 
+                    inst->fCode->accept(this);
                     fTab--;
                     *fOut << "EndDeclare";
-                    tab(fTab, *fOut); 
+                    tab(fTab, *fOut);
             }
-            
+
             gGlobalTable[inst->fName] = 1;
         }
-        
+
         virtual void visit(LoadVarInst* inst)
-        {   
+        {
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            
+
             if (inst->fSize > 1) {
                 *fOut << "LoadVarInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "LoadVarInst(";
             }
-         
+
             if (named) {
                 *fOut << named->getName();
             } else {
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "]"; 
+                *fOut << "]";
             }
             *fOut << ")";
         }
-        
-        virtual void visit(LoadVarAddressInst* inst) 
+
+        virtual void visit(LoadVarAddressInst* inst)
         {
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            
+
             if (inst->fSize > 1) {
                 *fOut << "LoadVarAddressInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "LoadVarAddressInst(";
             }
-         
+
             if (named) {
                 *fOut << named->getName();
             } else {
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "]"; 
+                *fOut << "]";
             }
             *fOut << ")";
         }
 
         virtual void visit(StoreVarInst* inst)
-        {   
+        {
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            *fOut << "StoreVarInst(";            
-            
+            *fOut << "StoreVarInst(";
+
             if (named) {
                 *fOut << named->getName() << ", ";
             } else {
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
-                *fOut << "], "; 
+                *fOut << "], ";
             }
-                    
+
             inst->fValue->accept(this);
             *fOut << ")";
             EndLine();
         }
-          
+
         virtual void visit(FloatNumInst* inst)
-        {   
+        {
             if (inst->fSize > 1)
                 *fOut << "FloatVec<" << inst->fSize << ">(" << checkFloat(inst->fNum) << ")";
             else
                 *fOut << "Float(" << checkFloat(inst->fNum) << ")";
-        }    
-            
+        }
+
         virtual void visit(IntNumInst* inst)
-        {   
+        {
             if (inst->fSize > 1)
                 *fOut << "IntVec<" << inst->fSize << ">(" << inst->fNum  << ")";
             else
                 *fOut << "Int(" << inst->fNum  << ")";
         }
-        
-        virtual void visit(BoolNumInst* inst) 
-        {   
+
+        virtual void visit(BoolNumInst* inst)
+        {
             if (inst->fSize > 1)
                 *fOut << "BoolVec<" << inst->fSize << ">(" << inst->fNum  << ")";
             else
                 *fOut << "Bool(" << inst->fNum  << ")";
         }
-        
+
         virtual void visit(DoubleNumInst* inst)
-        {   
+        {
             if (inst->fSize > 1)
                 *fOut << "DoubleVec<" << inst->fSize << ">(" << inst->fNum  << ")";
             else
                 *fOut << "Double(" << inst->fNum  << ")";
         }
-         
-        virtual void visit(BinopInst* inst) 
-        {   
+
+        virtual void visit(BinopInst* inst)
+        {
             if (inst->fSize > 1) {
                 *fOut << "BinopInstVec<" << inst->fSize << ">(";
             } else {
@@ -406,9 +406,9 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fInst2->accept(this);
             *fOut << ")";
         }
-        
-        virtual void visit(CastNumInst* inst) 
-        {   
+
+        virtual void visit(CastNumInst* inst)
+        {
              if (inst->fSize > 1) {
                 *fOut << "CastNumInstVec<" << inst->fSize << ">(";
             } else {
@@ -419,13 +419,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fInst->accept(this);
             *fOut << ")";
         }
-        
+
         void generateFaustPower(ValueInst* arg1, ValueInst* arg2)
         {}
-        
+
         void generateFaustPowerAux(ValueInst* arg1, int arg2)
         {}
-        
+
         virtual void visit(FunCallInst* inst)
         {
             if (inst->fName == "faustpower") {
@@ -436,28 +436,28 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 generateFaustPower(arg1, arg2);
                 return;
             }
-            
+
             if (inst->fSize > 1) {
                 *fOut << "FunCallInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "FunCallInst(";
             }
-           
+
             *fOut << "\"" <<inst->fName << "\"";
             list<ValueInst*>::const_iterator it;
-            
+
             int size = inst->fArgs.size(), i = 0;
             if (size > 0) *fOut << ", ";
             for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                 // Compile argument
-                (*it)->accept(this); 
+                (*it)->accept(this);
                 if (i < size - 1) *fOut << ", ";
             }
             *fOut << ")";
         }
-       
+
         virtual void visit(Select2Inst* inst)
-        {   
+        {
             if (inst->fSize > 1) {
                 *fOut << "Select2InstVec<" << inst->fSize << ">(";
             } else {
@@ -470,37 +470,37 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fElse->accept(this);
             *fOut << ")";
         }
-        
+
         virtual void visit(IfInst* inst)
-        {   
+        {
             *fOut << "IfInst ";
                 fTab++;
                 tab(fTab, *fOut);
                 inst->fCond->accept(this);
-                tab(fTab, *fOut); 
+                tab(fTab, *fOut);
                 inst->fThen->accept(this);
                 fTab--;
             if (inst->fElse->fCode.size() > 0) {
                 fTab++;
-                tab(fTab, *fOut); 
+                tab(fTab, *fOut);
                 inst->fElse->accept(this);
                 fTab--;
             }
             *fOut << "EndIf";
-            tab(fTab, *fOut); 
+            tab(fTab, *fOut);
         }
-              
-        virtual void visit(ForLoopInst* inst) 
+
+        virtual void visit(ForLoopInst* inst)
         {
             *fOut << "ForLoopInst ";
                 fFinishLine = false;
                 fTab++;
                 tab(fTab, *fOut);
-                inst->fInit->accept(this); 
+                inst->fInit->accept(this);
                 tab(fTab, *fOut);
-                inst->fEnd->accept(this); 
-                tab(fTab, *fOut); 
-                inst->fIncrement->accept(this); 
+                inst->fEnd->accept(this);
+                tab(fTab, *fOut);
+                inst->fIncrement->accept(this);
                 fFinishLine = true;
                 tab(fTab, *fOut);
                 inst->fCode->accept(this);
@@ -508,20 +508,20 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "EndForLoop";
             tab(fTab, *fOut);
         }
-        
-        virtual void visit(WhileLoopInst* inst) 
+
+        virtual void visit(WhileLoopInst* inst)
         {
             *fOut << "WhileLoopInst ";
-            inst->fCond->accept(this); 
+            inst->fCond->accept(this);
                 fTab++;
                 tab(fTab, *fOut);
                 inst->fCode->accept(this);
                 fTab--;
-            *fOut << "EndWhileLoop"; 
-            tab(fTab, *fOut);  
+            *fOut << "EndWhileLoop";
+            tab(fTab, *fOut);
         }
-    
-        virtual void visit(BlockInst* inst) 
+
+        virtual void visit(BlockInst* inst)
         {
             *fOut << "BlockInst ";
             fTab++;
@@ -534,11 +534,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "EndBlock";
             tab(fTab, *fOut);
         }
-        
-        virtual void visit(::SwitchInst* inst) 
+
+        virtual void visit(::SwitchInst* inst)
         {
             *fOut << "SwitchInst ";
-            inst->fCond->accept(this); 
+            inst->fCond->accept(this);
                 fTab++;
                 tab(fTab, *fOut);
                 list<pair <int, BlockInst*> >::const_iterator it;

@@ -41,7 +41,7 @@ class xtended
 	// virtual method to be implemented by subclasses
 	virtual unsigned int 	arity () = 0;
     
-    virtual ValueInst* 	generateCode(int variability, CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type >& types) = 0;
+    virtual ValueInst* 	generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type >& types) = 0;
     
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types) = 0;
 	virtual int 	infereSigOrder (const vector<int>& args) = 0;

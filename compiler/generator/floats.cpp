@@ -21,7 +21,7 @@
 
 #include "floats.hh"
 
-#include <iostream> 
+#include <iostream>
 #include <sstream>
 
 #include <llvm/ADT/APFloat.h>
@@ -50,12 +50,12 @@ const char* castname[]   = {FLOATCAST, "(float)", "(double)", "(quad)"}; // floa
 const char* isuffix() { return mathsuffix[gFloatSize]; } ///< suffix for math functions
 const char* inumix()  { return numsuffix [gFloatSize]; } ///< suffix for numeric constants
 
-const char* ifloat() 
-{ 
-    return floatname[gFloatSize]; 
+const char* ifloat()
+{
+    return floatname[gFloatSize];
 }
 
-const Typed::VarType itfloat() 
+const Typed::VarType itfloat()
 {
     switch (gFloatSize) {
         case 1:

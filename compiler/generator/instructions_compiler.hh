@@ -82,9 +82,9 @@ class InstructionsCompiler {
         StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
         StatementInst* generateShiftArray(const string& vname, int delay);
 
-        ValueInst* generateButtonAux(int variability, Tree sig, Tree path, const string& name);
-        ValueInst* generateSliderAux(int variability, Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
-        ValueInst* generateBargraphAux(int variability, Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
+        ValueInst* generateButtonAux(Tree sig, Tree path, const string& name);
+        ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
+        ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
 
         void ensureIotaCode();
 
@@ -115,7 +115,7 @@ class InstructionsCompiler {
         virtual ~InstructionsCompiler()
         {}
 
-        virtual ValueInst* CS(int variability, Tree sig);
+        virtual ValueInst* CS(Tree sig);
 
         virtual void compileMultiSignal(Tree sig);
         virtual void compileSingleSignal(Tree sig);
@@ -124,47 +124,47 @@ class InstructionsCompiler {
         virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
 
         // Code generation
-        virtual ValueInst* generateCode(int variability, Tree sig);
+        virtual ValueInst* generateCode(Tree sig);
 
-        virtual ValueInst* generateXtended(int variability, Tree sig);
-        virtual ValueInst* generateFixDelay(int variability, Tree sig, Tree arg, Tree size);
-        virtual ValueInst* generatePrefix(int variability, Tree sig, Tree x, Tree e);
-        virtual ValueInst* generateIota(int variability, Tree sig, Tree arg);
-        virtual ValueInst* generateBinOp (int variability, Tree sig, int opcode, Tree arg1, Tree arg2);
+        virtual ValueInst* generateXtended(Tree sig);
+        virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
+        virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
+        virtual ValueInst* generateIota(Tree sig, Tree arg);
+        virtual ValueInst* generateBinOp (Tree sig, int opcode, Tree arg1, Tree arg2);
 
-        virtual ValueInst* generateFFun(int variability, Tree sig, Tree ff, Tree largs);
+        virtual ValueInst* generateFFun(Tree sig, Tree ff, Tree largs);
 
-        virtual ValueInst* generateInput(int variability, Tree sig, int idx);
+        virtual ValueInst* generateInput(Tree sig, int idx);
 
-        virtual ValueInst* generateTable(int variability, Tree sig, Tree tsize, Tree content);
-        virtual ValueInst* generateStaticTable(int variability, Tree sig, Tree tsize, Tree content);
-        virtual ValueInst* generateWRTbl(int variability, Tree sig, Tree tbl, Tree idx, Tree data);
-        virtual ValueInst* generateRDTbl(int variability, Tree sig, Tree tbl, Tree idx);
-        virtual ValueInst* generateSigGen(int variability, Tree sig, Tree content);
-        virtual ValueInst* generateStaticSigGen(int variability, Tree sig, Tree content);
+        virtual ValueInst* generateTable(Tree sig, Tree tsize, Tree content);
+        virtual ValueInst* generateStaticTable(Tree sig, Tree tsize, Tree content);
+        virtual ValueInst* generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data);
+        virtual ValueInst* generateRDTbl(Tree sig, Tree tbl, Tree idx);
+        virtual ValueInst* generateSigGen(Tree sig, Tree content);
+        virtual ValueInst* generateStaticSigGen(Tree sig, Tree content);
 
-        virtual ValueInst* generateSelect2(int variability, Tree sig, Tree sel, Tree s1, Tree s2);
-        virtual ValueInst* generateSelect3(int variability, Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
+        virtual ValueInst* generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2);
+        virtual ValueInst* generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
 
-        virtual ValueInst* generateRecProj(int variability, Tree sig, Tree exp, int i);
-        virtual ValueInst* generateRec(int variability, Tree sig, Tree var, Tree le, int index);
+        virtual ValueInst* generateRecProj(Tree sig, Tree exp, int i);
+        virtual ValueInst* generateRec(Tree sig, Tree var, Tree le, int index);
 
-        virtual ValueInst* generateIntCast(int variability, Tree sig, Tree x);
-        virtual ValueInst* generateFloatCast(int variability, Tree sig, Tree x);
+        virtual ValueInst* generateIntCast(Tree sig, Tree x);
+        virtual ValueInst* generateFloatCast(Tree sig, Tree x);
 
-        virtual ValueInst* generateButton(int variability, Tree sig, Tree label);
-        virtual ValueInst* generateCheckbox(int variability, Tree sig, Tree label);
-        virtual ValueInst* generateVSlider(int variability, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-        virtual ValueInst* generateHSlider(int variability, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-        virtual ValueInst* generateNumEntry(int variability, Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+        virtual ValueInst* generateButton(Tree sig, Tree label);
+        virtual ValueInst* generateCheckbox(Tree sig, Tree label);
+        virtual ValueInst* generateVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+        virtual ValueInst* generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+        virtual ValueInst* generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
 
-        virtual ValueInst* generateVBargraph(int variability, Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
-        virtual ValueInst* generateHBargraph(int variability, Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
+        virtual ValueInst* generateVBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
+        virtual ValueInst* generateHBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
 
-        virtual ValueInst* generateIntNumber(int variability, Tree sig, int num);
-        virtual ValueInst* generateRealNumber(int variability, Tree sig, double num);
-        virtual ValueInst* generateFConst(int variability, Tree sig, Tree type, const string& file, const string& name);
-        virtual ValueInst* generateFVar(int variability, Tree sig, Tree type, const string& file, const string& name);
+        virtual ValueInst* generateIntNumber(Tree sig, int num);
+        virtual ValueInst* generateRealNumber(Tree sig, double num);
+        virtual ValueInst* generateFConst(Tree sig, Tree type, const string& file, const string& name);
+        virtual ValueInst* generateFVar(Tree sig, Tree type, const string& file, const string& name);
 
         virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
         virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);

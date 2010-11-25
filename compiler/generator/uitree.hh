@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
+
+
 #ifndef _UITREE_
 #define _UITREE_
 
@@ -40,10 +40,10 @@ inline Tree uiLabel (Tree t)	{ return t->branch(0); }
 
 //Tree putFolder(Tree folder, Tree item);
 //Tree getFolder (Tree folder, Tree ilabel);
-	
+
 //Tree makeSubFolderChain(Tree path, Tree elem);
 
-	
+
 Tree putSubFolder(Tree folder, Tree path, Tree item);
 
 

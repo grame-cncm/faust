@@ -43,17 +43,17 @@ using namespace std;
 class StringTypeManager {
 
     protected:
-    
+
         map <Typed::VarType, string> fTypeDirectTable;
         map <string, Typed::VarType> fInvertTypeTable;
-     
+
     public:
-    
+
         StringTypeManager()
         {
             fTypeDirectTable[Typed::kFloatMacro] = FLOATMACRO;
             fTypeDirectTable[Typed::kFloatMacro_ptr] = FLOATMACROPTR;
-            
+
             fTypeDirectTable[Typed::kFloat] = "float";
             fTypeDirectTable[Typed::kFloat_ptr] = "float*";
             fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
@@ -65,23 +65,23 @@ class StringTypeManager {
             fTypeDirectTable[Typed::kDouble] = "double";
             fTypeDirectTable[Typed::kDouble_ptr] = "double*";
             fTypeDirectTable[Typed::kDouble_vec] = "vector<double>";
-            
+
             fTypeDirectTable[Typed::kQuad] = "quad";
             fTypeDirectTable[Typed::kQuad_ptr] = "quad*";
-         
+
             fTypeDirectTable[Typed::kBool] = "bool";
             fTypeDirectTable[Typed::kBool_ptr] = "bool*";
             fTypeDirectTable[Typed::kBool_vec] = "vector<bool>";
 
             fTypeDirectTable[Typed::kVoid] = "void";
             fTypeDirectTable[Typed::kVoid_ptr] = "void*";
-            
+
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = "*";
 
             fInvertTypeTable[FLOATMACRO] = Typed::kFloatMacro;
             fInvertTypeTable[FLOATMACROPTR] = Typed::kFloatMacro_ptr;
-            
+
             fInvertTypeTable["float"] = Typed::kFloat;
             fInvertTypeTable["float*"] = Typed::kFloat_ptr;
             fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
@@ -93,10 +93,10 @@ class StringTypeManager {
             fInvertTypeTable["double"] = Typed::kDouble;
             fInvertTypeTable["double*"] = Typed::kDouble_ptr;
             fInvertTypeTable["vector<double>"] = Typed::kDouble_vec;
-            
+
             fInvertTypeTable["quad"] = Typed::kQuad;
             fInvertTypeTable["quad*"] = Typed::kQuad_ptr;
-         
+
             fInvertTypeTable["bool"] = Typed::kBool;
             fInvertTypeTable["bool*"] = Typed::kBool_ptr;
             fInvertTypeTable["vector<bool>"] = Typed::kBool_vec;
@@ -104,7 +104,7 @@ class StringTypeManager {
             fInvertTypeTable["void"] = Typed::kVoid;
             fInvertTypeTable["void*"] = Typed::kVoid_ptr;
         }
-               
+
         virtual string generateType(Typed* type)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
@@ -112,7 +112,7 @@ class StringTypeManager {
             FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-        
+
             if (basic_typed) {
                 return fTypeDirectTable[basic_typed->fType];
             } else if (named_typed) {
@@ -126,13 +126,13 @@ class StringTypeManager {
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
                     ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
+                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
             } else {
                 assert(false);
                 return "";
             }
         }
-        
+
         virtual string generateType(Typed* type, const string& name)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
@@ -140,7 +140,7 @@ class StringTypeManager {
             FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-          
+
             if (basic_typed) {
                 return fTypeDirectTable[basic_typed->fType] + " " + name;
             } else if (named_typed) {
@@ -158,7 +158,7 @@ class StringTypeManager {
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
                     ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")"; 
+                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
             } else {
                 assert(false);
                 return "";
