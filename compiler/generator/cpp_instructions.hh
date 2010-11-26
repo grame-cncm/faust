@@ -148,6 +148,61 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             EndLine();
         }
 
+        virtual void visit(VectorizeInst* inst)
+        {
+            /*
+            *fOut << "VectorizeInst(";
+            inst->fSignal->accept(this);
+            *fOut << ", ";
+            inst->fSize->accept(this);
+            *fOut << ")";
+            */
+
+            /*
+             TODO :
+             1) define a VectorInst value of size retrieved form inst->fSize
+             2) fill il with inst->fSize from the signal inst->fSignal
+             3) return the created vector
+            */
+            InstVisitor::visit(inst);
+        }
+
+        virtual void visit(SerializeInst* inst)
+        {
+            /*
+            *fOut << "SerializeInst(";
+            inst->fSignal->accept(this);
+            *fOut << ")";
+            */
+
+            // TODO
+            InstVisitor::visit(inst);
+        }
+
+        virtual void visit(ConcatInst* inst)
+        {
+            /*
+            *fOut << "ConcatInst(";
+            inst->fSignal->accept(this);
+            *fOut << ")";
+            */
+
+            // TODO
+            InstVisitor::visit(inst);
+        }
+
+        virtual void visit(VectorAtInst * inst)
+        {
+            /*
+            *fOut << "VectorAtInst(";
+            inst->fSignal->accept(this);
+            *fOut << ")";
+            */
+
+            // TODO
+            InstVisitor::visit(inst);
+        }
+
         virtual void visit(LabelInst* inst)
         {
             *fOut << inst->fLabel;
