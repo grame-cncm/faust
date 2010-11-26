@@ -53,8 +53,6 @@ class CPPCodeContainer : public CodeContainer {
         CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
         {}
-        virtual ~CPPCodeContainer()
-        {}
 
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
