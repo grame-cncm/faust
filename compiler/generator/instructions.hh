@@ -61,6 +61,11 @@ struct FloatNumInst;
 struct IntNumInst;
 struct BoolNumInst;
 struct DoubleNumInst;
+
+struct VectorInst;
+struct LoadVectorInst;
+struct StoreVectorInst;
+
 struct BinopInst;
 struct CastNumInst;
 struct RetInst;
@@ -139,6 +144,11 @@ class InstVisitor {
         virtual void visit(IntNumInst* inst) {}
         virtual void visit(BoolNumInst* inst) {}
         virtual void visit(DoubleNumInst* inst) {}
+
+        // Vectors
+        virtual void visit(VectorInst* inst) {}
+        virtual void visit(LoadVectorInst* inst) {}
+        virtual void visit(StoreVectorInst* inst) {}
 
         // Numerical computation
         virtual void visit(BinopInst* inst) {}
@@ -227,6 +237,11 @@ class CloneVisitor {
         virtual ValueInst* visit(IntNumInst* inst) = 0;
         virtual ValueInst* visit(BoolNumInst* inst) = 0;
         virtual ValueInst* visit(DoubleNumInst* inst) = 0;
+
+        // Vectors
+        virtual ValueInst* visit(VectorInst* inst) = 0;
+        virtual ValueInst* visit(LoadVectorInst* inst) = 0;
+        virtual StatementInst* visit(StoreVectorInst* inst) = 0;
 
         // Numerical computation
         virtual ValueInst* visit(BinopInst* inst) = 0;
@@ -903,6 +918,55 @@ struct BoolNumInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// ========
+// Vectors
+// ========
+
+struct VectorInst : public ValueInst
+{
+    vector<ValueInst*> fVector;
+
+    VectorInst(const vector<ValueInst*>& vector)
+        :fVector(vector)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct LoadVectorInst : public ValueInst
+{
+    VectorInst* fVector;
+    ValueInst* fIndex;
+
+    LoadVectorInst(VectorInst* vector, ValueInst* index)
+        :fVector(vector), fIndex(index)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct StoreVectorInst : public StatementInst
+{
+    VectorInst* fVector;
+    ValueInst* fIndex;
+
+    StoreVectorInst(VectorInst* vector, ValueInst* index)
+        :fVector(vector), fIndex(index)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+// =======================
+// Numerical computation
+// =======================
+
 struct BinopInst : public ValueInst
 {
     int fOpcode;
@@ -1215,6 +1279,20 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, inst->fSize); }
 
+        // Vectors
+        virtual ValueInst* visit(VectorInst* inst)
+        {
+            vector<ValueInst*> cloned_vector;
+
+            for (vector<ValueInst*>::const_iterator it = inst->fVector.begin(); it != inst->fVector.end(); it++) {
+                cloned_vector.push_back((*it)->clone(this));
+            }
+
+            return new VectorInst(cloned_vector);
+        }
+        virtual ValueInst* visit(LoadVectorInst* inst) { return new LoadVectorInst(dynamic_cast<VectorInst*>(inst->fVector->clone(this)), inst->fIndex->clone(this)); }
+        virtual StatementInst* visit(StoreVectorInst* inst) { return new StoreVectorInst(dynamic_cast<VectorInst*>(inst->fVector->clone(this)), inst->fIndex->clone(this)); }
+
         // Numerical computation
         virtual ValueInst* visit(BinopInst* inst)
         {
@@ -1336,6 +1414,25 @@ struct DispatchVisitor : public InstVisitor {
     {
         address->fAddress->accept(this);
         address->fIndex->accept(this);
+    }
+
+    virtual void visit(VectorInst* inst)
+    {
+        for (vector<ValueInst*>::const_iterator it = inst->fVector.begin(); it != inst->fVector.end(); it++) {
+            (*it)->accept(this);
+        }
+    }
+
+    virtual void visit(LoadVectorInst* inst)
+    {
+        inst->fVector->accept(this);
+        inst->fIndex->accept(this);
+    }
+
+    virtual void visit(StoreVectorInst* inst)
+    {
+        inst->fVector->accept(this);
+        inst->fIndex->accept(this);
     }
 
     virtual void visit(BinopInst* inst)
@@ -1629,6 +1726,11 @@ struct InstBuilder
 
     static IntNumInst* genIntNumInst(int num, int size = 1) { return new IntNumInst(num); }
     static BoolNumInst* genBoolNumInst(bool num, int size = 1) { return new BoolNumInst(num); }
+
+    // Vectors
+    static VectorInst* genVectorInst(const vector<ValueInst*>& vector) { return new VectorInst(vector); }
+    static LoadVectorInst* genLoadVectorInst(VectorInst* vector, ValueInst* index) { return new LoadVectorInst(vector, index); }
+    static StoreVectorInst* genStoreVectorInst(VectorInst* vector, ValueInst* index) { return new StoreVectorInst(vector, index); }
 
     // Numerical computation
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1) { return new BinopInst(opcode, inst1, inst2, size); }
