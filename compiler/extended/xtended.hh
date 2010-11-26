@@ -10,39 +10,38 @@
 
 #include <llvm/Value.h>
 #include <llvm/Support/IRBuilder.h>
-#include "instructions.hh"
 
 typedef llvm::Value* LlvmValue;
 
 class CodeGen;
 class CodeContainer;
 
-class xtended 
+class xtended
 {
 	Symbol*		fSymbol;	///< the symbol the xtended is attached to
  public:
- 
- 	
- 	xtended (const char* name) : 
-		fSymbol(::symbol(name)) { 
-		setUserData(fSymbol, (void*)this); 
+
+
+ 	xtended (const char* name) :
+		fSymbol(::symbol(name)) {
+		setUserData(fSymbol, (void*)this);
 	}
 	virtual ~xtended() { setUserData(fSymbol, 0); }
-	
+
 	Sym				symbol() 	{ return fSymbol; }
 	const char * 	name () 	{ return ::name(fSymbol); }
-	
-	Tree			box () { 
-						Tree b = tree(fSymbol); 
-						assert(getUserData(b) != 0); 
-						return b; 
+
+	Tree			box () {
+						Tree b = tree(fSymbol);
+						assert(getUserData(b) != 0);
+						return b;
 					}
-	
+
 	// virtual method to be implemented by subclasses
 	virtual unsigned int 	arity () = 0;
-    
+
     virtual ValueInst* 	generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type >& types) = 0;
-    
+
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types) = 0;
 	virtual int 	infereSigOrder (const vector<int>& args) = 0;
 	virtual Type 	infereSigType (const vector<Type>& args) = 0;
@@ -66,20 +65,20 @@ extern xtended* gTanPrim;
 
 // -- Exponential Functions
 
-extern xtended* gExpPrim; 		
-extern xtended* gLogPrim; 		
-extern xtended* gLog10Prim; 
-extern xtended* gPowPrim; 
-		
-extern xtended* gSqrtPrim; 	
-extern xtended* gCbrtPrim; 	
-extern xtended* gHypotPrim; 
-extern xtended* gLdexpPrim; 
-extern xtended* gScalbPrim; 
-extern xtended* gLog1pPrim; 
-extern xtended* gLogbPrim; 	
-extern xtended* gIlogbPrim; 
-extern xtended* gExpm1Prim; 
+extern xtended* gExpPrim;
+extern xtended* gLogPrim;
+extern xtended* gLog10Prim;
+extern xtended* gPowPrim;
+
+extern xtended* gSqrtPrim;
+extern xtended* gCbrtPrim;
+extern xtended* gHypotPrim;
+extern xtended* gLdexpPrim;
+extern xtended* gScalbPrim;
+extern xtended* gLog1pPrim;
+extern xtended* gLogbPrim;
+extern xtended* gIlogbPrim;
+extern xtended* gExpm1Prim;
 
 
 // -- Hyperbolic Functions
@@ -101,8 +100,8 @@ extern xtended* gRemainderPrim;
 // -- Nearest Integer Functions
 
 extern xtended* gFloorPrim;
-extern xtended* gCeilPrim; 
-extern xtended* gRintPrim; 
+extern xtended* gCeilPrim;
+extern xtended* gRintPrim;
 
 
 // -- Miscellaneous Functions
