@@ -560,6 +560,41 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             tab(fTab, *fOut);
         }
 
+        virtual void visit(VectorizeInst* inst)
+        {
+            *fOut << "VectorizeInst(";
+            inst->fSig->accept(this);
+            *fOut << ",";
+            *fOut << inst->fVectorSize;
+            *fOut << ")";
+        }
+
+        virtual void visit(SerializeInst* inst)
+        {
+            *fOut << "SerializeInst(";
+            inst->fSig->accept(this);
+            *fOut << ",";
+            *fOut << inst->fVectorSize;
+            *fOut << ")";
+        }
+
+        virtual void visit(ConcatInst* inst)
+        {
+            *fOut << "ConcatInst(";
+            inst->fSig1->accept(this);
+            *fOut << ",";
+            inst->fSig2->accept(this);
+            *fOut << ")";
+        }
+
+        virtual void visit(VectorAtInst * inst)
+        {
+            *fOut << "VectorAtInst(";
+            inst->fSig->accept(this);
+            *fOut << ",";
+            *fOut << inst->fIndex;
+            *fOut << ")";
+        }
 };
 
 #endif
