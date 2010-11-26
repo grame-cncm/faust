@@ -343,8 +343,6 @@ struct NullInst : public ValueInst
 {
     NullInst()
     {}
-    virtual ~NullInst()
-    {}
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
