@@ -13,6 +13,8 @@
 
 typedef llvm::Value* LlvmValue;
 
+struct ValueInst;
+
 class CodeGen;
 class CodeContainer;
 
