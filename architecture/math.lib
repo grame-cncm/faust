@@ -129,8 +129,7 @@ bus(n) = par(i, n, _);
 selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
 
 // interleave(m,n) : interleave m*n cables : x(0), x(m), x(2m), ..., x(1),x(1+m), x(1+2m)...
-interleave(m,n) = bus(m*n) <: par(i, m, par(j, n, selector(i+j*m,m*n))); 
-
+//interleave(m,n) = bus(m*n) <: par(i, m, par(j, n, selector(i+j*m,m*n))); 
 
 // interleave(row,col) : interleave row*col cables from column order to row order.
 // input : x(0), x(1), x(2) ..., x(row*col-1)
@@ -143,6 +142,3 @@ butterfly(n) = bus(n) <: interleave(n/2,2), interleave(n/2,2) : par(i, n/2, +), 
 // hadamard(n) : hadamard matrix function of size n = 2^k
 hadamard(2) = butterfly(2);
 hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
-
-
-

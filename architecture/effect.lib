@@ -273,7 +273,9 @@ with {
  Df0 = polydel(a1) - polydel(1.0/a1);
 };
 
-//------- flanger_mono, flanger_stereo, flanger_demo -------
+//===================== Phasing and Flanging Effects  ====================
+
+//--------------- flanger_mono, flanger_stereo, flanger_demo -------------
 // Flanging effect
 //
 // USAGE:
@@ -493,6 +495,8 @@ amp_follower(rel) = abs : env with {
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
+//=============== Gates, Limiters, and Dynamic Range Compression ============
+
 //----------------- gate_mono, gate_stereo -------------------
 // Mono and stereo signal gates
 //
@@ -666,6 +670,8 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
 limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 
+//========================== Schroeder Reverberators  ======================
+
 //------------------------------ jcrev,satrev ------------------------------
 // USAGE: 
 //     _ :  jcrev : _,_,_,_
@@ -758,4 +764,105 @@ reverb_demo(x) = reverbs(x) with {
    i1 = jcrev_group(button("[2] Test [tooltip:Feed an impulse to JCRev]"));
    g2 = sat_group(checkbox("[1] SATRev [tooltip:Enable SATRev]"));
    i2 = sat_group(button("[2] Test [tooltip:Feed an impulse to SATRev]"));
+};
+
+//-------------------------------- freeverb --------------------------------
+// See <faust_distribution>/examples/freeverb.dsp
+
+//=============== Feedback Delay Network (FDN) Reverberators  ==============
+
+ import("filter.lib"); // filterbank
+
+// Later API: fdnrev(delays, freqs, durs, loopgainmax) 
+
+fdnrev0(delaymax, delays, freqs, durs, loopgainmax) 
+  = (bus(2*N) :> bus(N) : delaylines(N)) ~ 
+    (delayfilters(N,freqs,durs) : feedbackmatrix(N)) 
+with {
+  N = count(delays);
+  NB = count(durs);
+//assert(count(freqs)+1==NB);
+  delayval(i) = take(i+1,delays);
+  dlmax(i) = delaymax; // must hardwire this from argument for now
+//dlmax(i) = 2^max(1,nextpow2(delayval(i))) // try when slider min/max is known
+//           with { nextpow2(x) = ceil(log(x)/log(2.0)); };
+// -1 is for feedback delay:
+  delaylines(N) = par(i,N,(delay(dlmax(i),(delayval(i)-1))));
+  delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
+  feedbackmatrix(N) = hadamard(N); // math.lib
+
+  BBSO = 3; // Butterworth bandsplit order
+  fs = SR;
+  filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) :> 
+		       *(loopgainmax) / sqrt(N)
+  with {
+    dur(j) = take(j+1,durs);
+    g(j,i) = (1.0 - 6.91/(fs*dur(j)))^delayval(i);
+  };
+};
+
+prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with{
+  //N=4; pathmin=5; pathmax=6;
+
+  // N = integer up to 16
+  primes = 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53;
+  Np = 16;
+  prime(n) = primes : selector(n,Np);
+
+  // Prime Power Bounds [matlab: floor(log(maxdel)./log(primes(53)))]
+  maxdel=8192; // more than 63 meters at 44100 samples/sec & 343 m/s
+  ppbs = 13,8,5,4, 3,3,3,3, 2,2,2,2, 2,2,2,2; // 8192 enough for all
+  ppb(i) = take(i+1,ppbs); // delay line max-lengths == prime(i)^ppb(i);
+
+  // Approximate desired delay-line lengths using powers of distinct primes:
+  c = 343; // soundspeed in m/s at 20 degrees C for dry air
+  dmin = SR*pathmin/c;
+  dmax = SR*pathmax/c;
+  dl(i) = dmin * (dmax/dmin)^(i/float(N-1)); // desired delay in samples
+  ppwr(i) = floor(0.5+log(dl(i))/log(prime(i))); // prime power
+  delayvals(i) = prime(i)^ppwr(i); // each delay a power of a distinct prime
+};
+
+fdnrev0_demo = _,_ : +(pulser),+(pulser)
+	  <: fdnrev0(delaymax,delays,freqs,durs,loopgainmax) 
+          :> par(i,2,*(gain)) 
+with {
+  N=16;  // 2, 4, 8, or 16 [can add powers of 2 by extending primes array]
+  NB=5;  // integer 3 or greater
+  delaymax = 8192; // sync w delays and pp_delays algorithm in fdnrev
+  defdurs = (8.4,6.5,5.0,3.8,2.7); // NB default durations (sec)
+  deffreqs = (500,1000,2000,4000); // NB-1 default crossover frequencies (Hz)
+  deflens = (56.3,63.0); // 2 default min and max path lengths
+
+  fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR
+       [tooltip: See Faust's effect.lib for documentation and references]", x);
+
+  freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
+  t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
+  path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
+  ctl_group(x)  = fdn_group(vgroup("[4] Test Controls", x));
+
+  pulser =  ctl_group(button("[1] Impulse")) <: _,mem : - : >(0);
+  squelch =  ctl_group(button("[2] Squelch (hold down)"));
+  loopgainmax = 1.0-0.5*squelch;
+
+  pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]", 
+	    46, 3, 63, 0.1));
+  pathmax = path_group(hslider("[2] max acoustic ray length [unit:m]", 
+	    63, 3, 63, 0.1));
+
+  defdur(i) = 0.5*float(N+1-i);
+  durvals(i) = t60_group(vslider("[%i] %i [unit:s]",
+	  take(i+1,defdurs), 0.1, 10, 0.1));
+  durs = par(i,NB,durvals(NB-1-i));
+
+  deffreq(i) = 500+1000*i;
+  freqvals(i) = freq_group(hslider("[%i] Band %i upper edge [unit:Hz]",
+	     take(i+1,deffreqs), 100, 10000, 1));
+  freqs = par(i,NB-1,freqvals(i));
+
+  delays = prime_power_delays(N,pathmin,pathmax);
+
+  gain = hslider("[3] Output Level (dB) [unit:dB]", -40, -70, 20, 0.1) :
+	 db2linear with { db2linear(x) = pow(10, x/20.0); };
 };
