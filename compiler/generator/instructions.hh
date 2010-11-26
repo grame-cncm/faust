@@ -42,6 +42,7 @@ using namespace std;
 #include <sstream>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "binop.hh"
 
@@ -158,10 +159,29 @@ class InstVisitor {
         virtual void visit(WhileLoopInst* inst) {}
 
         // Multirate
-        virtual void visit(VectorizeInst* inst) {}
-        virtual void visit(SerializeInst* inst) {}
-        virtual void visit(ConcatInst* inst) {}
-        virtual void visit(VectorAtInst* inst) {}
+        virtual void visit(VectorizeInst* inst)
+        {
+            printf("\n\nvectorize not implemented\n");
+            exit (0);
+        }
+
+        virtual void visit(SerializeInst* inst)
+        {
+            printf("\n\nserialize not implemented\n");
+            exit (0);
+        }
+
+        virtual void visit(ConcatInst* inst)
+        {
+            printf("\n\nconcatenation not implemented\n");
+            exit (0);
+        }
+
+        virtual void visit(VectorAtInst* inst)
+        {
+            printf("\n\nvector at not implemented\n");
+            exit (0);
+        }
 
         // Block
         virtual void visit(BlockInst* inst) {}

@@ -1346,10 +1346,6 @@ ValueInst* InstructionsCompiler::generateVectorize(Tree sig, Tree x, Tree vector
     assert(vSize > 0);
 
     ValueInst* vectorized = InstBuilder::genVectorizeInst(xVal, vSize);
-
-    printf("vectorize not implemented\n");
-    exit (0);
-
     return vectorized;
 }
 
@@ -1361,9 +1357,6 @@ ValueInst* InstructionsCompiler::generateSerialize(Tree sig, Tree x)
     int vectorSize = xType->size();
 
     ValueInst* serialized = InstBuilder::genSerializeInst(xVal, vectorSize);
-
-    printf("serialize not implemented\n");
-    exit (0);
     return serialized;
 }
 
@@ -1373,10 +1366,6 @@ ValueInst* InstructionsCompiler::generateConcat(Tree sig, Tree v1, Tree v2)
     ValueInst* v2Val = CS(v2);
 
     ValueInst* concat = InstBuilder::genConcatInst(v1Val, v2Val);
-
-    printf("concatenation not implemented\n");
-    exit (0);
-
     return concat;
 }
 
@@ -1387,9 +1376,6 @@ ValueInst* InstructionsCompiler::generateVectorAt(Tree sig, Tree x, Tree index)
     assert(iIndex < isVectorType(x->getType())->size());
 
     ValueInst* vectorAt = InstBuilder::genVectorAtInst(xVal, iIndex);
-    printf("vector at not implemented\n");
-    exit (0);
-
     return vectorAt;
 }
 
