@@ -930,6 +930,11 @@ struct VectorInst : public ValueInst
         :fVector(vector)
     {}
 
+    VectorInst(int size)
+    {
+        fVector.resize(size);
+    }
+
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1729,6 +1734,7 @@ struct InstBuilder
 
     // Vectors
     static VectorInst* genVectorInst(const vector<ValueInst*>& vector) { return new VectorInst(vector); }
+    static VectorInst* genVectorInst(int size) { return new VectorInst(size); }
     static LoadVectorInst* genLoadVectorInst(VectorInst* vector, ValueInst* index) { return new LoadVectorInst(vector, index); }
     static StoreVectorInst* genStoreVectorInst(VectorInst* vector, ValueInst* index) { return new StoreVectorInst(vector, index); }
 

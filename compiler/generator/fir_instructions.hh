@@ -128,8 +128,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
                 return (vector_typed->fSize == 0)
-                    ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
+                    ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(), " + name
+                    : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + "), " + name;
             } else {
                 assert(false);
                 return "";

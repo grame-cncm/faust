@@ -1345,8 +1345,35 @@ ValueInst* InstructionsCompiler::generateVectorize(Tree sig, Tree x, Tree vector
     int vSize = tree2int(vectorSize);
     assert(vSize > 0);
 
+    /*
     ValueInst* vectorized = InstBuilder::genVectorizeInst(xVal, vSize);
     return vectorized;
+    */
+
+    string vname;
+    Typed::VarType ctype;
+    getTypedNames(getSigType(sig), "MultiVec", ctype, vname);
+
+    fContainer->pushComputeBlockMethod(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), vSize)));
+
+    string index = "j";
+
+    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                InstBuilder::genIntNumInst(vSize));
+    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
+                                            InstBuilder::genBinopInst(kAdd,
+                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                                    InstBuilder::genIntNumInst(1)));
+
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
+
+    loop->pushFrontInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), xVal));
+
+    fContainer->getCurLoop()->pushComputeDSPMethod(loop);
+
+    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
 }
 
 ValueInst* InstructionsCompiler::generateSerialize(Tree sig, Tree x)
