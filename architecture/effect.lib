@@ -858,7 +858,7 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with{
 //------------------------- fdnrev0_demo ---------------------------
 // USAGE: _,_ : fdnrev0_demo : _,_ 
 
-fdnrev0_demo = _,_ : +(pulser),+(pulser)
+fdnrev0_demo = _,_ : +(pulsel+pulsec),+(pulser+pulsec)
 	  <: fdnrev0(delaymax,delays,freqs,durs,loopgainmax) 
           :> *(gain),*(gain)
 with {
@@ -875,10 +875,17 @@ with {
   freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
   t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
   path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
-  ctl_group(x)  = fdn_group(vgroup("[4] Test Controls", x));
+  ctl_group(x)  = fdn_group(hgroup("[4] Test Controls", x));
 
-  pulser =  ctl_group(button("[1] Impulse")) <: _,mem : - : >(0);
-  squelch =  ctl_group(button("[2] Squelch (hold down)"));
+  impulsify = _ <: _,mem : - : >(0);
+  pulsel =  ctl_group(button("[1] Impulse Left
+         [tooltip: Send impulse into LEFT channel]")) : impulsify;
+  pulsec =  ctl_group(button("[2] Impulse Center
+         [tooltip: Send impulse into LEFT and RIGHT channels]")) : impulsify;
+  pulser =  ctl_group(button("[3] Impulse Right
+         [tooltip: Send impulse into RIGHT channel]")) : impulsify;
+  squelch =  ctl_group(button("[4] Squelch 
+         [tooltip: Hold down 'Squelch' to clear reverberator]"));
   loopgainmax = 1.0-0.5*squelch;
 
   pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]", 
@@ -898,6 +905,8 @@ with {
 
   delays = prime_power_delays(N,pathmin,pathmax);
 
-  gain = hslider("[3] Output Level (dB) [unit:dB]", -40, -70, 20, 0.1) :
-    db2linear; // (causes infinite loop sometimes!:) with { db2linear(x) = pow(10, x/20.0); };
+  gain = hslider("[3] Output Level (dB) [unit:dB] 
+         [tooltip Output scale factor]", -40, -70, 20, 0.1) :
+    db2linear; 
+    // (can cause infinite loop!:) with { db2linear(x) = pow(10, x/20.0); };
 };
