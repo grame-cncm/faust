@@ -858,7 +858,7 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with{
 //------------------------- fdnrev0_demo ---------------------------
 // USAGE: _,_ : fdnrev0_demo : _,_ 
 
-fdnrev0_demo = _,_ : +(pulsel+pulsec),+(pulser+pulsec)
+fdnrev0_demo = _,_ : +(pulseL+pulseC),+(pulseR+pulseC)
 	  <: fdnrev0(delaymax,delays,freqs,durs,loopgainmax) 
           :> *(gain),*(gain)
 with {
@@ -878,11 +878,11 @@ with {
   ctl_group(x)  = fdn_group(hgroup("[4] Test Controls", x));
 
   impulsify = _ <: _,mem : - : >(0);
-  pulsel =  ctl_group(button("[1] Impulse Left
+  pulseL =  ctl_group(button("[1] Impulse Left
          [tooltip: Send impulse into LEFT channel]")) : impulsify;
-  pulsec =  ctl_group(button("[2] Impulse Center
+  pulseC =  ctl_group(button("[2] Impulse Center
          [tooltip: Send impulse into LEFT and RIGHT channels]")) : impulsify;
-  pulser =  ctl_group(button("[3] Impulse Right
+  pulseR =  ctl_group(button("[3] Impulse Right
          [tooltip: Send impulse into RIGHT channel]")) : impulsify;
   squelch =  ctl_group(button("[4] Squelch 
          [tooltip: Hold down 'Squelch' to clear the reverberator]"));
@@ -899,7 +899,7 @@ with {
 
   defdur(i) = 1.9*(0.7^float(-i));
   durvals(i) = t60_group(vslider("[%i] %i [unit:s]
-    [tooltip: T60 is the 60dB decay-time in seconds. For concert halls, an overall reverberation time (T60) near 1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each frequency band.  In real rooms, higher frequency bands generally decay faster due to air absorption.]",
+    [tooltip: T60 is the 60dB decay-time in seconds. For concert halls, an overall reverberation time (T60) near 1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each frequency band.  In real rooms, higher frequency bands generally decay faster due to absorption and scattering.]",
     take(i+1,defdurs), 0.1, 10, 0.1));
   durs = par(i,NB,durvals(NB-1-i));
 
