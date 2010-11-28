@@ -885,28 +885,33 @@ with {
   pulser =  ctl_group(button("[3] Impulse Right
          [tooltip: Send impulse into RIGHT channel]")) : impulsify;
   squelch =  ctl_group(button("[4] Squelch 
-         [tooltip: Hold down 'Squelch' to clear reverberator]"));
+         [tooltip: Hold down 'Squelch' to clear the reverberator]"));
   loopgainmax = 1.0-0.5*squelch;
 
-  pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]", 
+  pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]
+    [tooltip: This length (in meters) determines the shortest delay-line used in the FDN reverberator.
+    	      Think of it as the shortest wall-to-wall separation in the room.]", 
 	    46, 3, 63, 0.1));
-  pathmax = path_group(hslider("[2] max acoustic ray length [unit:m]", 
+  pathmax = path_group(hslider("[2] max acoustic ray length [unit:m]
+    [tooltip: This length (in meters) determines the longest delay-line used in the FDN reverberator.
+    	      Think of it as the largest wall-to-wall separation in the room.]", 
 	    63, 3, 63, 0.1));
 
-  defdur(i) = 0.5*float(N+1-i);
-  durvals(i) = t60_group(vslider("[%i] %i [unit:s]",
-	  take(i+1,defdurs), 0.1, 10, 0.1));
+  defdur(i) = 1.9*(0.7^float(-i));
+  durvals(i) = t60_group(vslider("[%i] %i [unit:s]
+    [tooltip: T60 is the 60dB decay-time in seconds. For concert halls, an overall reverberation time (T60) near 1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each frequency band.  In real rooms, higher frequency bands generally decay faster due to air absorption.]",
+    take(i+1,defdurs), 0.1, 10, 0.1));
   durs = par(i,NB,durvals(NB-1-i));
 
-  deffreq(i) = 500+1000*i;
-  freqvals(i) = freq_group(hslider("[%i] Band %i upper edge [unit:Hz]",
-	     take(i+1,deffreqs), 100, 10000, 1));
+  deffreq(i) = 1000*2^float(i);
+  freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz]
+    [tooltip: Each delay-line signal is split into frequency-bands for separate decay-time control in each band]", 
+    take(i+1,deffreqs), 100, 10000, 1));
   freqs = par(i,NB-1,freqvals(i));
 
   delays = prime_power_delays(N,pathmin,pathmax);
 
   gain = hslider("[3] Output Level (dB) [unit:dB] 
-         [tooltip Output scale factor]", -40, -70, 20, 0.1) :
-    db2linear; 
-    // (can cause infinite loop!:) with { db2linear(x) = pow(10, x/20.0); };
+    [tooltip: Output scale factor]", -40, -70, 20, 0.1) : db2linear; 
+     // (can cause infinite loop:) with { db2linear(x) = pow(10, x/20.0); };
 };
