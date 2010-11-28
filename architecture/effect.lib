@@ -5,7 +5,7 @@ declare version "1.31";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
-import("filter.lib"); // dcblocker*, lowpass, ...
+import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 
 // The following utilities (or equivalents) could go in music.lib:
 
@@ -767,11 +767,27 @@ reverb_demo(x) = reverbs(x) with {
 };
 
 //-------------------------------- freeverb --------------------------------
-// See <faust_distribution>/examples/freeverb.dsp
+// Freeverb is a widely used, free, open-source Schroeder reverb contributed
+// by ``Jezar at Dreampoint.'' See <faust_distribution>/examples/freeverb.dsp
 
 //=============== Feedback Delay Network (FDN) Reverberators  ==============
 
- import("filter.lib"); // filterbank
+// USAGE: 
+//   <1,2,4,...,N signals> <: 
+//   fdnrev0(delays,freqs,durs,loopgainmax) :> 
+//   <1,2,4,...,N signals>
+//
+// WHERE 
+//   N = 2, 4, 8, ...  (power of 2)
+//   delays = N delay lines, N a power of 2, lengths perferably coprime
+//   freqs  = NB-1 crossover frequencies separating desired frequency bands
+//   durs   = NB decay times (t60) desired for the various bands
+//   loopgainmax = scalar gain between 0 and 1 used to "squelch" the reverb
+//
+// REFERENCE: 
+//   https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html
+//
+// DEPENDENCIES: filter.lib (filterbank)
 
 // Later API: fdnrev(delays, freqs, durs, loopgainmax) 
 
@@ -801,40 +817,59 @@ with {
   };
 };
 
+// ---------- prime_power_delays -----
+// Prime Power Delay Line Lengths
+//
+// USAGE: 
+//   bus(N) : prime_power_delays(N,pathmin,pathmax) : bus(N);
+//
+// WHERE 
+//   N = positive integer up to 16 
+//       (for higher powers of 2, extend 'primes' array below.)
+//   pathmin = minimum acoustic ray length in the reverberator (in meters)
+//   pathmax = maximum acoustic ray length (meters) - think "room size"
+//
+// DEPENDENCIES: 
+//   math.lib (SR, selector, take) 
+//   music.lib (db2linear)
+//
+// REFERENCE: 
+//   https://ccrma.stanford.edu/~jos/pasp/Prime_Power_Delay_Line.html
+//
 prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with{
-  //N=4; pathmin=5; pathmax=6;
-
-  // N = integer up to 16
-  primes = 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53;
   Np = 16;
-  prime(n) = primes : selector(n,Np);
+  primes = 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53;
+  prime(n) = primes : selector(n,Np); // math.lib
 
   // Prime Power Bounds [matlab: floor(log(maxdel)./log(primes(53)))]
   maxdel=8192; // more than 63 meters at 44100 samples/sec & 343 m/s
-  ppbs = 13,8,5,4, 3,3,3,3, 2,2,2,2, 2,2,2,2; // 8192 enough for all
-  ppb(i) = take(i+1,ppbs); // delay line max-lengths == prime(i)^ppb(i);
+  ppbs = 13,8,5,4, 3,3,3,3, 2,2,2,2, 2,2,2,2; // 8192 is enough for all
+  ppb(i) = take(i+1,ppbs);
 
   // Approximate desired delay-line lengths using powers of distinct primes:
   c = 343; // soundspeed in m/s at 20 degrees C for dry air
   dmin = SR*pathmin/c;
   dmax = SR*pathmax/c;
   dl(i) = dmin * (dmax/dmin)^(i/float(N-1)); // desired delay in samples
-  ppwr(i) = floor(0.5+log(dl(i))/log(prime(i))); // prime power
+  ppwr(i) = floor(0.5+log(dl(i))/log(prime(i))); // best prime power
   delayvals(i) = prime(i)^ppwr(i); // each delay a power of a distinct prime
 };
 
+//------------------------- fdnrev0_demo ---------------------------
+// USAGE: _,_ : fdnrev0_demo : _,_ 
+
 fdnrev0_demo = _,_ : +(pulser),+(pulser)
 	  <: fdnrev0(delaymax,delays,freqs,durs,loopgainmax) 
-          :> par(i,2,*(gain)) 
+          :> *(gain),*(gain)
 with {
   N=16;  // 2, 4, 8, or 16 [can add powers of 2 by extending primes array]
   NB=5;  // integer 3 or greater
-  delaymax = 8192; // sync w delays and pp_delays algorithm in fdnrev
+  delaymax = 8192; // sync w delays and prime_power_delays above
   defdurs = (8.4,6.5,5.0,3.8,2.7); // NB default durations (sec)
   deffreqs = (500,1000,2000,4000); // NB-1 default crossover frequencies (Hz)
   deflens = (56.3,63.0); // 2 default min and max path lengths
 
-  fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR
+  fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR, ORDER 16
        [tooltip: See Faust's effect.lib for documentation and references]", x);
 
   freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
@@ -864,5 +899,5 @@ with {
   delays = prime_power_delays(N,pathmin,pathmax);
 
   gain = hslider("[3] Output Level (dB) [unit:dB]", -40, -70, 20, 0.1) :
-	 db2linear with { db2linear(x) = pow(10, x/20.0); };
+    db2linear; // (causes infinite loop sometimes!:) with { db2linear(x) = pow(10, x/20.0); };
 };
