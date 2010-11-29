@@ -1,9 +1,11 @@
 file(GLOB SOURCES *cpp)
 file(GLOB SUB_SOURCES */*cpp)
 file(GLOB SUB_SUB_SOURCES */*/*cpp)
+file(GLOB LOKI_SOURCES ../libraries/loki/*cpp)
 
 include_directories(boxes documentator draw draw/device draw/schema errors evaluate extended generator normalize parallelize
-    parser patternmatcher propagate signals tlib utils)
+    parser patternmatcher propagate signals tlib utils ../libraries)
+
 
 exec_program(llvm-config ARGS --includedir OUTPUT_VARIABLE LLVM_DIR)
 exec_program(llvm-config ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
@@ -15,7 +17,7 @@ if (${CMAKE_COMPILER_IS_GNUCXX})
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wuninitialized -Wno-parentheses -Wnon-virtual-dtor")
 endif()
 
-add_executable(faust ${SOURCES} ${SUB_SOURCES}  ${SUB_SUB_SOURCES})
+add_executable(faust ${SOURCES} ${SUB_SOURCES}  ${SUB_SUB_SOURCES} ${LOKI_SOURCES})
 
 set_property(TARGET faust
     APPEND
