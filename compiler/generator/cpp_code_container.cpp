@@ -63,6 +63,26 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
     Loki::FPrintf(*fOut, string("int getNumOutputs() { return %d; }"))(fNumOutputs);
 }
 
+void CPPCodeContainer::produceMetadata(int tabs)
+{
+    tab(tabs, *fOut); *fOut   << "void static metadata(Meta* m) { ";
+
+    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            tab(tabs+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    tab(tabs+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
+                } else {
+                    tab(tabs+1, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
+                }
+            }
+        }
+    }
+
+    tab(tabs, *fOut); *fOut << "}" << endl;
+}
 
 void CPPCodeContainer::produceInternal()
 {
@@ -187,23 +207,7 @@ void CPPCodeContainer::produceClass()
 
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut   << "void static metadata(Meta* m) { ";
-
-        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
-                tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-            } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
-                    } else {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
-                    }
-                }
-            }
-        }
-
-        tab(n+1, *fOut); *fOut << "}" << endl;
+        produceMetadata(n+1);
 
         tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "destroy();";
@@ -672,23 +676,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void static metadata(Meta* m) { ";
-
-        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
-                tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-            } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
-                    } else {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
-                    }
-                }
-            }
-        }
-
-        tab(n+1, *fOut); *fOut << "}" << endl;
+        produceMetadata(n+1);
 
         tab(n+1, *fOut); *fOut << "static double executionTime(cl_event &event) {";
             tab(n+2, *fOut); *fOut << "cl_ulong start, end;";
@@ -1522,23 +1510,7 @@ void CPPCUDACodeContainer::produceClass()
 
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void static metadata(Meta* m) { ";
-
-        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
-                tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-            } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
-                    } else {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
-                    }
-                }
-            }
-        }
-
-        tab(n+1, *fOut); *fOut << "}" << endl;
+        produceMetadata(n+1);
 
         tab(n+1, *fOut); *fOut << "static void* RunHandler(void* arg) {";
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
