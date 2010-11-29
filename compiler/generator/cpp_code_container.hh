@@ -50,6 +50,7 @@ class CPPCodeContainer : public CodeContainer {
 
         void produceInfoFunctions(int tabs, bool isVirtual);
         void produceMetadata(int tabs);
+        void produceInit(int tabs);
 
     public:
 

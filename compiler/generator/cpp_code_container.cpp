@@ -84,6 +84,15 @@ void CPPCodeContainer::produceMetadata(int tabs)
     tab(tabs, *fOut); *fOut << "}" << endl;
 }
 
+
+void CPPCodeContainer::produceInit(int tabs)
+{
+    tab(tabs, *fOut); *fOut << "virtual void init(int samplingFreq) {";
+        tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq);";
+        tab(tabs+1, *fOut); *fOut << "instanceInit(samplingFreq);";
+    tab(tabs, *fOut); *fOut << "}";
+}
+
 void CPPCodeContainer::produceInternal()
 {
     int n = 0;
@@ -244,10 +253,7 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
-        tab(n+1, *fOut); *fOut << "}";
+        produceInit(n+1);
 
         // User interface
         tab(n+1, *fOut);
@@ -1045,10 +1051,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
-        tab(n+1, *fOut); *fOut << "}";
+        produceInit(n+1);
 
         // User interface
         tab(n+1, *fOut);
@@ -1776,10 +1779,7 @@ void CPPCUDACodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
-        tab(n+1, *fOut); *fOut << "}";
+        produceInit(n+1);
 
         // User interface
         tab(n+1, *fOut);
