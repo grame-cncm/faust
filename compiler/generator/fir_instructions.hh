@@ -564,7 +564,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "VectorizeInst(";
             inst->fSig->accept(this);
-            *fOut << ",";
+            *fOut << ", ";
             *fOut << inst->fVectorSize;
             *fOut << ")";
         }
@@ -573,7 +573,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "SerializeInst(";
             inst->fSig->accept(this);
-            *fOut << ",";
+            *fOut << ", ";
             *fOut << inst->fVectorSize;
             *fOut << ")";
         }
@@ -582,7 +582,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "ConcatInst(";
             inst->fSig1->accept(this);
-            *fOut << ",";
+            *fOut << ", ";
             inst->fSig2->accept(this);
             *fOut << ")";
         }
@@ -591,7 +591,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "VectorAtInst(";
             inst->fSig->accept(this);
-            *fOut << ",";
+            *fOut << ", ";
             *fOut << inst->fIndex;
             *fOut << ")";
         }

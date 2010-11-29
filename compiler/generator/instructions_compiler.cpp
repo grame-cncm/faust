@@ -1374,6 +1374,7 @@ ValueInst* InstructionsCompiler::generateVectorize(Tree sig, Tree x, Tree vector
     fContainer->getCurLoop()->pushComputeDSPMethod(loop);
 
     return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
+
 }
 
 ValueInst* InstructionsCompiler::generateSerialize(Tree sig, Tree x)
