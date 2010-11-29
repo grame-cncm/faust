@@ -958,9 +958,10 @@ struct StoreVectorInst : public StatementInst
 {
     VectorInst* fVector;
     ValueInst* fIndex;
+    ValueInst* fValue;
 
-    StoreVectorInst(VectorInst* vector, ValueInst* index)
-        :fVector(vector), fIndex(index)
+    StoreVectorInst(VectorInst* vector, ValueInst* index, ValueInst* value)
+        :fVector(vector), fIndex(index), fValue(value)
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1296,7 +1297,13 @@ class BasicCloneVisitor : public CloneVisitor {
             return new VectorInst(cloned_vector);
         }
         virtual ValueInst* visit(LoadVectorInst* inst) { return new LoadVectorInst(dynamic_cast<VectorInst*>(inst->fVector->clone(this)), inst->fIndex->clone(this)); }
-        virtual StatementInst* visit(StoreVectorInst* inst) { return new StoreVectorInst(dynamic_cast<VectorInst*>(inst->fVector->clone(this)), inst->fIndex->clone(this)); }
+        virtual StatementInst* visit(StoreVectorInst* inst)
+        {
+            return new StoreVectorInst(dynamic_cast<VectorInst*>(inst->fVector->clone(this)),
+                                       inst->fIndex->clone(this),
+                                       inst->fValue->clone(this)
+                                      );
+        }
 
         // Numerical computation
         virtual ValueInst* visit(BinopInst* inst)
@@ -1438,6 +1445,7 @@ struct DispatchVisitor : public InstVisitor {
     {
         inst->fVector->accept(this);
         inst->fIndex->accept(this);
+        inst->fValue->accept(this);
     }
 
     virtual void visit(BinopInst* inst)
@@ -1736,7 +1744,8 @@ struct InstBuilder
     static VectorInst* genVectorInst(const vector<ValueInst*>& vector) { return new VectorInst(vector); }
     static VectorInst* genVectorInst(int size) { return new VectorInst(size); }
     static LoadVectorInst* genLoadVectorInst(VectorInst* vector, ValueInst* index) { return new LoadVectorInst(vector, index); }
-    static StoreVectorInst* genStoreVectorInst(VectorInst* vector, ValueInst* index) { return new StoreVectorInst(vector, index); }
+    static StoreVectorInst* genStoreVectorInst(VectorInst* vector, ValueInst* index, ValueInst* value)
+        { return new StoreVectorInst(vector, index, value); }
 
     // Numerical computation
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1) { return new BinopInst(opcode, inst1, inst2, size); }
