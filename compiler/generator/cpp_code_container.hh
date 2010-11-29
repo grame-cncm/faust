@@ -48,6 +48,8 @@ class CPPCodeContainer : public CodeContainer {
         string fKlassName;
         string fSuperKlassName;
 
+        void produceInfoFunctions(int tabs, bool isVirtual);
+
     public:
 
         CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)

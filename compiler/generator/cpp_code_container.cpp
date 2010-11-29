@@ -30,6 +30,7 @@
 #include "cpp_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
+#include "loki/SafeFormat.h"
 
 using namespace std;
 
@@ -45,6 +46,23 @@ CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int s
 {
     return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
+
+void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
+{
+    // Input method
+    tab(tabs, *fOut);
+    if (isVirtual)
+        *fOut << "virtual ";
+
+    Loki::FPrintf(*fOut, string("int getNumInputs() { return %d; }"))(fNumInputs);
+
+    // Output method
+    tab(tabs, *fOut);
+    if (isVirtual)
+        *fOut << "virtual ";
+    Loki::FPrintf(*fOut, string("int getNumOutputs() { return %d; }"))(fNumOutputs);
+}
+
 
 void CPPCodeContainer::produceInternal()
 {
@@ -81,16 +99,7 @@ void CPPCodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "  public:";
 
-        // Input method
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "int getNumInputs" << fKlassName << "() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs" << fKlassName << "() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, false);
 
         // Inits
         tab(n+1, *fOut);
@@ -209,15 +218,7 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        // Input method
-        tab(n+1, *fOut); *fOut << "virtual int getNumInputs() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "virtual int getNumOutputs() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, true);
 
         // Inits
         tab(n+1, *fOut);
@@ -506,14 +507,7 @@ void CPPOpenCLCodeContainer::produceInternal()
 
         // Input method
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "int getNumInputs" << fKlassName << "() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs" << fKlassName << "() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, false);
 
         // Inits
         tab(n+1, *fOut);
@@ -1022,13 +1016,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        // Input method
-        tab(n+1, *fOut); *fOut << "virtual int getNumInputs() { "
-                            << "return " << fNumInputs << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "virtual int getNumOutputs() { "
-                            << "return " << fNumOutputs << "; }";
+        produceInfoFunctions(n+1, true);
 
         // Inits
         tab(n+1, *fOut);
@@ -1301,16 +1289,8 @@ void CPPCUDACodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "  public:";
 
-        // Input method
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "int getNumInputs" << fKlassName << "() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs" << fKlassName << "() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, false);
 
         // Inits
         tab(n+1, *fOut);
@@ -1799,13 +1779,7 @@ void CPPCUDACodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        // Input method
-        tab(n+1, *fOut); *fOut << "virtual int getNumInputs() { "
-                            << "return " << fNumInputs << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "virtual int getNumOutputs() { "
-                            << "return " << fNumOutputs << "; }";
+        produceInfoFunctions(n+1, true);
 
         // Inits
         tab(n+1, *fOut);
