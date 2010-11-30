@@ -51,22 +51,23 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
 {
     // Input method
     tab(tabs, *fOut);
-    if (isVirtual)
-        *fOut << "virtual ";
 
+    string virtualPrefix;
+    if (isVirtual)
+        virtualPrefix = "virtual ";
+
+    *fOut << virtualPrefix;
     Loki::FPrintf(*fOut, string("int getNumInputs() { return %d; }\n"))(fNumInputs);
 
     // Output method
     tab(tabs, *fOut);
-    if (isVirtual)
-        *fOut << "virtual ";
+    *fOut << virtualPrefix;
     Loki::FPrintf(*fOut, string("int getNumOutputs() { return %d; }\n"))(fNumOutputs);
 
     // Input Rates
     tab(tabs, *fOut);
-    if (isVirtual)
-        *fOut << "virtual ";
-    *fOut << "int getInputRate(int channel) {";
+    *fOut << virtualPrefix;
+    Loki::FPrintf(*fOut, string("int getInputRate(int channel) {"));
     tab(tabs+1, *fOut); *fOut << "switch (channel) {";
 
     for (int i = 0; i != fNumInputs; ++i) {
@@ -78,9 +79,8 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
 
     // Output Rates
     tab(tabs, *fOut);
-    if (isVirtual)
-        *fOut << "virtual ";
-    *fOut << "int getOutputRate(int channel) {";
+    *fOut << virtualPrefix;
+    Loki::FPrintf(*fOut, string("int getOutputRate(int channel) {"));
     tab(tabs+1, *fOut); *fOut << "switch (channel) {";
 
     for (int i = 0; i != fNumOutputs; ++i) {
@@ -89,7 +89,6 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
     tab(tabs+2, *fOut); *fOut << "default: -1;";
     tab(tabs+1, *fOut); *fOut << "}";
     tab(tabs, *fOut); *fOut << "}";
-
 }
 
 void CPPCodeContainer::produceMetadata(int tabs)
