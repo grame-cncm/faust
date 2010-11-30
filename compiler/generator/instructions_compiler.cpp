@@ -49,6 +49,7 @@
 #include "prim2.hh"
 
 #include "ensure.hh"
+#include <sigrateinference.hh>
 
 using namespace std;
 
@@ -322,6 +323,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 InstBuilder::genIndexedAddress(
                     InstBuilder::genNamedAddress(name, Address::kStack),
                         InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), res));
+
+        int rate = getSigRate(sig);
+        fContainer->setOutputRate(index, rate);
     }
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
@@ -679,6 +683,9 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 
 ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 {
+    int rate = getSigRate(sig);
+    fContainer->setInputRate(idx, rate);
+
     // "input" use as a name convention
     string name = subst("input$0", T(idx));
     ValueInst* res = InstBuilder::genLoadVarInst(
