@@ -49,6 +49,7 @@
 #include "prim2.hh"
 
 #include "ensure.hh"
+#include <sigrateinference.hh>
 
 using namespace std;
 
@@ -310,6 +311,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         // Cast to external float
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
         fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
+
+        int rate = getSigRate(sig);
+        fContainer->setOutputRate(index, rate);
     }
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
@@ -669,6 +673,9 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 
 ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 {
+    int rate = getSigRate(sig);
+    fContainer->setInputRate(idx, rate);
+
     // "input" use as a name convention
     string name = subst("input$0", T(idx));
     ValueInst* res = InstBuilder::genLoadArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex());

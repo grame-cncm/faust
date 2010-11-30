@@ -63,8 +63,10 @@ class CodeContainer {
 
         list <CodeContainer*> fSubContainers;
 
-        int fNumInputs;
-        int fNumOutputs;
+        const int fNumInputs;
+        const int fNumOutputs;
+        vector<int> fInputRates;
+        vector<int> fOutputRates;
 
         // Declaration part
         BlockInst* fExtGlobalDeclarationInstructions;
@@ -172,6 +174,8 @@ class CodeContainer {
 
         int	inputs() 	{ return fNumInputs; }
         int outputs()	{ return fNumOutputs; }
+        void setInputRate(int channel, int rate) { fInputRates[channel] = rate;}
+        void setOutputRate(int channel, int rate) { fOutputRates[channel] = rate;}
 
         void addSubContainer(CodeContainer* container) { fSubContainers.push_back(container); }
 
