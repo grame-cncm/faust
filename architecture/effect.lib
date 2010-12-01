@@ -774,12 +774,14 @@ reverb_demo(x) = reverbs(x) with {
 
 // USAGE: 
 //   <1,2,4,...,N signals> <: 
-//   fdnrev0(delays,freqs,durs,loopgainmax) :> 
+//   fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax) :> 
 //   <1,2,4,...,N signals>
 //
 // WHERE 
 //   N = 2, 4, 8, ...  (power of 2)
+//   MAXDELAY = power of 2 at least as large as longest delay-line length
 //   delays = N delay lines, N a power of 2, lengths perferably coprime
+//   BBSO = odd positive integer = order of bandsplit desired at freqs
 //   freqs  = NB-1 crossover frequencies separating desired frequency bands
 //   durs   = NB decay times (t60) desired for the various bands
 //   loopgainmax = scalar gain between 0 and 1 used to "squelch" the reverb
@@ -789,9 +791,7 @@ reverb_demo(x) = reverbs(x) with {
 //
 // DEPENDENCIES: filter.lib (filterbank)
 
-// Later API: fdnrev(delays, freqs, durs, loopgainmax) 
-
-fdnrev0(delaymax, delays, freqs, durs, loopgainmax) 
+fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax) 
   = (bus(2*N) :> bus(N) : delaylines(N)) ~ 
     (delayfilters(N,freqs,durs) : feedbackmatrix(N)) 
 with {
@@ -799,7 +799,7 @@ with {
   NB = count(durs);
 //assert(count(freqs)+1==NB);
   delayval(i) = take(i+1,delays);
-  dlmax(i) = delaymax; // must hardwire this from argument for now
+  dlmax(i) = MAXDELAY; // must hardwire this from argument for now
 //dlmax(i) = 2^max(1,nextpow2(delayval(i))) // try when slider min/max is known
 //           with { nextpow2(x) = ceil(log(x)/log(2.0)); };
 // -1 is for feedback delay:
@@ -807,7 +807,6 @@ with {
   delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
   feedbackmatrix(N) = hadamard(N); // math.lib
 
-  BBSO = 3; // Butterworth bandsplit order
   fs = SR;
   filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) :> 
 		       *(loopgainmax) / sqrt(N)
@@ -857,14 +856,22 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with{
 
 //------------------------- fdnrev0_demo ---------------------------
 // USAGE: _,_ : fdnrev0_demo : _,_ 
+// WHERE
+//    N = Feedback Delay Network (FDN) order
+//      = number of delay lines used = order of feedback matrix
+//      = 2, 4, 8, or 16 [extend primes array below for 32, 64, ...]
+//   NB = number of frequency bands
+//      = number of (nearly) independent T60 controls
+//      = integer 3 or greater
+// BBSO = Butterworth band-split order
+//      = order of lowpass/highpass bandsplit used at each crossover freq
+//      = odd positive integer
 
-fdnrev0_demo = _,_ : +(pulseL+pulseC),+(pulseR+pulseC)
-	  <: fdnrev0(delaymax,delays,freqs,durs,loopgainmax) 
+fdnrev0_demo(N,NB,BBSO) = _,_ : +(pulseL+pulseC),+(pulseR+pulseC)
+	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax) 
           :> *(gain),*(gain)
 with {
-  N=16;  // 2, 4, 8, or 16 [can add powers of 2 by extending primes array]
-  NB=5;  // integer 3 or greater
-  delaymax = 8192; // sync w delays and prime_power_delays above
+  MAXDELAY = 8192; // sync w delays and prime_power_delays above
   defdurs = (8.4,6.5,5.0,3.8,2.7); // NB default durations (sec)
   deffreqs = (500,1000,2000,4000); // NB-1 default crossover frequencies (Hz)
   deflens = (56.3,63.0); // 2 default min and max path lengths
