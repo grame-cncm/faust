@@ -71,6 +71,8 @@ jackgtk :
 	install -d jackgtkdir
 	$(MAKE) DEST='jackgtkdir/' CXXFLAGS=$(MYGCCFLAGS) VEC=' -vec -lv 1 -vs 64 -fun'  ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
+#
+
 jackgtkllvm :
 	install -d jackgtkdirllvm
 	$(MAKE) DEST='jackgtkdirllvm/' ARCH='llvm-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs`' -f Makefile.llvmcompile

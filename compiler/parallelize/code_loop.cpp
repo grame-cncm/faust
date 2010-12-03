@@ -40,16 +40,13 @@ using namespace std;
 
 ForLoopInst* CodeLoop::generateScalarLoop()
 {
-    // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
-    string index = "i";
-
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop)),
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kFunArgs)));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
+    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop),
                                             InstBuilder::genBinopInst(kAdd,
-                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop)),
                                                     InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
@@ -66,9 +63,6 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
     // 1) Vectorize access to all scalar that are not "kLoop" type: declare a Vector version of them, then transform Load/Store access.
     // 2) Vectorize access to all constant numbers (Load)
     // 3) Vectorize all array access (Load/Store)
-  
-    // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
-    string index = "i";
 
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
@@ -79,13 +73,13 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
 
-        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop)),
                                      InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)));
-        StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
+        StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop),
                                             InstBuilder::genBinopInst(kAdd,
-                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop)),
                                                     InstBuilder::genIntNumInst(size)));
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
@@ -107,53 +101,53 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
                 return new VectorTyped(dynamic_cast<BasicTyped*>(typed->clone(&cloner)), fSize);
             }
             */
-            
-            virtual ValueInst* visit(LoadVarInst* inst) 
-            { 
+
+            virtual ValueInst* visit(LoadVarInst* inst)
+            {
                 if (inst->fAddress->getAccess() != Address::kLoop) {
-                    return new LoadVarInst(inst->fAddress->clone(this), fSize); 
+                    return new LoadVarInst(inst->fAddress->clone(this), fSize);
                 } else {
                     BasicCloneVisitor cloner;
                     return inst->clone(&cloner);
                 }
             }
-            
-            virtual ValueInst* visit(LoadVarAddressInst* inst) 
-            { 
+
+            virtual ValueInst* visit(LoadVarAddressInst* inst)
+            {
                 if (inst->fAddress->getAccess() != Address::kLoop) {
-                    return new LoadVarAddressInst(inst->fAddress->clone(this), fSize); 
+                    return new LoadVarAddressInst(inst->fAddress->clone(this), fSize);
                 } else {
                     BasicCloneVisitor cloner;
                     return inst->clone(&cloner);
                 }
             }
-            
-            virtual ValueInst* visit(CastNumInst* inst) 
-            { 
+
+            virtual ValueInst* visit(CastNumInst* inst)
+            {
                 ValueInst* cloned_inst = inst->fInst->clone(this);
-                
+
                 // Vector result when argument is vectorized
                 if (cloned_inst->fSize > 1) {
-                    return new CastNumInst(cloned_inst, inst->fTyped->clone(this), fSize); 
+                    return new CastNumInst(cloned_inst, inst->fTyped->clone(this), fSize);
                 } else {
                     BasicCloneVisitor cloner;
                     return inst->clone(&cloner);
                 }
             }
-          
+
             virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, fSize); }
             virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, fSize); }
-            
-            virtual ValueInst* visit(BinopInst* inst) 
-            { 
+
+            virtual ValueInst* visit(BinopInst* inst)
+            {
                 ValueInst* cloned_inst1 = inst->fInst1->clone(this);
                 ValueInst* cloned_inst2 = inst->fInst2->clone(this);
-                
+
                 // Vector result when both arguments are vectorized
                 if (cloned_inst1->fSize > 1 && cloned_inst2->fSize > 1) {
-                    return new BinopInst(inst->fOpcode, cloned_inst1, cloned_inst2, fSize); 
+                    return new BinopInst(inst->fOpcode, cloned_inst1, cloned_inst2, fSize);
                 } else {
                     BasicCloneVisitor cloner;
                     return inst->clone(&cloner);
@@ -161,32 +155,32 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
             }
 
             virtual ValueInst* visit(FunCallInst* inst)
-            { 
+            {
                 list<ValueInst*> cloned_args;
                 bool all_vectorized = true;
-                
+
                 for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
                     ValueInst* cloned_arg = (*it)->clone(this);
                     all_vectorized &= (cloned_arg->fSize > 1);
                     cloned_args.push_back(cloned_arg);
                 }
-                
+
                 // Vector result when all arguments are vectorized
                 if (all_vectorized) {
-                    return new FunCallInst(inst->fName, cloned_args, inst->fMethod, fSize); 
+                    return new FunCallInst(inst->fName, cloned_args, inst->fMethod, fSize);
                 } else {
                     BasicCloneVisitor cloner;
                     return inst->clone(&cloner);
                 }
             }
-            
-            virtual ValueInst* visit(Select2Inst* inst) 
-            { 
+
+            virtual ValueInst* visit(Select2Inst* inst)
+            {
                 ValueInst* cloned_inst = inst->fCond->clone(this);
-                
+
                 // Vector result when fCond is vectorized
-                if (cloned_inst->fSize > 1) { 
-                    return new Select2Inst(cloned_inst, inst->fThen->clone(this), inst->fElse->clone(this), fSize); 
+                if (cloned_inst->fSize > 1) {
+                    return new Select2Inst(cloned_inst, inst->fThen->clone(this), inst->fElse->clone(this), fSize);
                 } else {
                     BasicCloneVisitor cloner;
                     return inst->clone(&cloner);
@@ -209,9 +203,6 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
 
 void CodeLoop::generateDAGLoop(BlockInst* block, bool omp)
 {
-    // Here we assume that the generated loop will be embedded in a function where a "count" parameter is defined.
-    string index = "i";
-
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
         block->pushBackInst(InstBuilder::genLabelInst("// Pre code"));
@@ -223,13 +214,13 @@ void CodeLoop::generateDAGLoop(BlockInst* block, bool omp)
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop)),
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)));
-        StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
+        StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop),
                                             InstBuilder::genBinopInst(kAdd,
-                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
+                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop)),
                                                     InstBuilder::genIntNumInst(1)));
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
@@ -313,6 +304,9 @@ void CodeLoop::absorb(CodeLoop* l)
     fPreInst->fCode.insert(fPreInst->fCode.end(), l->fPreInst->fCode.begin(), l->fPreInst->fCode.end());
     fComputeInst->fCode.insert(fComputeInst->fCode.end(), l->fComputeInst->fCode.begin(), l->fComputeInst->fCode.end());
     fPostInst->fCode.insert(fPostInst->fCode.begin(), l->fPostInst->fCode.begin(), l->fPostInst->fCode.end());
+
+    // copy loop index
+    fLoopIndex = l->fLoopIndex;
 }
 
 void CodeLoop::concat(CodeLoop* l)

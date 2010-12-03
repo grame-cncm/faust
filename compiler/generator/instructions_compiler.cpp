@@ -321,7 +321,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             InstBuilder::genStoreVarInst(
                 InstBuilder::genIndexedAddress(
                     InstBuilder::genNamedAddress(name, Address::kStack),
-                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), res));
+                         fContainer->getCurLoop()->getLoopIndex()), res));
     }
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
@@ -344,7 +344,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
             InstBuilder::genStoreVarInst(
                 InstBuilder::genIndexedAddress(
                     InstBuilder::genNamedAddress(name, Address::kFunArgs),
-                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), CS(sig)));
+                        fContainer->getCurLoop()->getLoopIndex()), CS(sig)));
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -481,6 +481,7 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
         code = generateCode(sig);
         setCompiledExpression(sig, code);
     }
+
     return code;
 }
 
@@ -692,7 +693,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     ValueInst* res = InstBuilder::genLoadVarInst(
                         InstBuilder::genIndexedAddress(
                             InstBuilder::genNamedAddress(name, Address::kStack),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                                fContainer->getCurLoop()->getLoopIndex()));
     // Cast to internal float
     res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);

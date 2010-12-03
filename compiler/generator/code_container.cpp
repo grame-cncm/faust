@@ -64,7 +64,7 @@ CodeContainer::CodeContainer(int numInputs, int numOutputs)
     fUserInterfaceInstructions(InstBuilder::genBlockInst()),
     fSubContainerType(kInt)
 {
-    fCurLoop = new CodeLoop(0);
+    fCurLoop = new CodeLoop(0, "i");
 }
 
 CodeContainer::~CodeContainer()
@@ -103,9 +103,9 @@ bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
  * Open a non-recursive loop on top of the stack of open loops.
  * @param size the number of iterations of the loop
  */
-void CodeContainer::openLoop(int size)
+void CodeContainer::openLoop(string index_name, int size)
 {
-    fCurLoop = new CodeLoop(fCurLoop, size);
+    fCurLoop = new CodeLoop(fCurLoop, index_name, size);
 }
 
 /**
@@ -113,9 +113,9 @@ void CodeContainer::openLoop(int size)
  * @param recsymbol the recursive symbol defined in this loop
  * @param size the number of iterations of the loop
  */
-void CodeContainer::openLoop(Tree recsymbol, int size)
+void CodeContainer::openLoop(Tree recsymbol, string index_name, int size)
 {
-     fCurLoop = new CodeLoop(recsymbol, fCurLoop, size);
+     fCurLoop = new CodeLoop(recsymbol, fCurLoop, index_name, size);
 }
 
 /**

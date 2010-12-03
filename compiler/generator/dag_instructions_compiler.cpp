@@ -95,7 +95,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree sig = hd(L);
             string name = subst("output$0", T(index));
 
-            fContainer->openLoop();
+            //fContainer->openLoop(getFreshID("i"));
+            fContainer->openLoop("i");
 
             // Cast to external float
             ValueInst* res = CS(sig);
@@ -107,7 +108,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
                         InstBuilder::genNamedAddress(name, Address::kFunArgs),
                             InstBuilder::genBinopInst(kAdd,
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)))), res));
+                                    fContainer->getCurLoop()->getLoopIndex())), res));
 
             fContainer->closeLoop();
         }
@@ -118,7 +119,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree sig = hd(L);
             string name = subst("fOutput$0", T(index));
 
-            fContainer->openLoop();
+            //fContainer->openLoop(getFreshID("i"));
+            fContainer->openLoop("i");
 
             // Cast to external float
             ValueInst* res = CS(sig);
@@ -128,7 +130,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
                 InstBuilder::genStoreVarInst(
                     InstBuilder::genIndexedAddress(
                         InstBuilder::genNamedAddress(name, Address::kStruct),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), res));
+                            fContainer->getCurLoop()->getLoopIndex()), res));
 
             fContainer->closeLoop();
         }
@@ -183,7 +185,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
         return InstBuilder::genLoadVarInst(
                     InstBuilder::genIndexedAddress(
                         InstBuilder::genNamedAddress(vname, var_access),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                            fContainer->getCurLoop()->getLoopIndex()));
     } else {
         return InstructionsCompiler::generateVariableStore(sig, exp);
     }
@@ -198,8 +200,8 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
                             InstBuilder::genIndexedAddress(
                                 InstBuilder::genNamedAddress(name, Address::kFunArgs),
                                     InstBuilder::genBinopInst(kAdd,
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)),
-                             InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)))));
+                                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)),
+                                            fContainer->getCurLoop()->getLoopIndex())));
         // Cast to internal float
         res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
         return generateCacheCode(sig, res);
@@ -210,7 +212,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         ValueInst* res = InstBuilder::genLoadVarInst(
                             InstBuilder::genIndexedAddress(
                                 InstBuilder::genNamedAddress(name, Address::kStruct),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                                    fContainer->getCurLoop()->getLoopIndex()));
         // Cast to internal float
         res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
         return generateCacheCode(sig, res);
@@ -267,7 +269,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 // return subst("$0[i]", vname);
                 return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
                             InstBuilder::genNamedAddress(vname, var_access),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                                fContainer->getCurLoop()->getLoopIndex()));
             }
         } else {
             // not delayed
@@ -281,7 +283,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 // return subst("$0[i]", vname);
                 return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
                             InstBuilder::genNamedAddress(vname, var_access),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                                fContainer->getCurLoop()->getLoopIndex()));
            } else {
                 // not shared or simple : no cache needed
                 return exp;
@@ -311,13 +313,15 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
                 return InstructionsCompiler::generateCode(sig);
             } else {
                 // x must be defined
-                fContainer->openLoop(x);
+                //fContainer->openLoop(x, getFreshID("i"));
+                fContainer->openLoop(x, "i");
                 ValueInst* code = InstructionsCompiler::generateCode(sig);
                 fContainer->closeLoop(sig);
                 return code;
             }
         } else {
-            fContainer->openLoop();
+            //fContainer->openLoop(getFreshID("i"));
+            fContainer->openLoop("i");
             ValueInst* code = InstructionsCompiler::generateCode(sig);
             fContainer->closeLoop(sig);
             return code;
@@ -380,7 +384,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
         return InstBuilder::genLoadVarInst(
                     InstBuilder::genIndexedAddress(
                         InstBuilder::genNamedAddress(vname, Address::kStack),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                            fContainer->getCurLoop()->getLoopIndex()));
 
     } else if (mxd < gMaxCopyDelay) {
         if (isSigInt(delay, &d)) {
@@ -389,11 +393,11 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
                 return InstBuilder::genLoadVarInst(
                     InstBuilder::genIndexedAddress(
                         InstBuilder::genNamedAddress(vname, Address::kStack),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                            fContainer->getCurLoop()->getLoopIndex()));
             } else {
                 // return subst("$0[i-$1]", vname, T(d));
                 ValueInst* index = InstBuilder::genBinopInst(kSub,
-                                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
+                                        fContainer->getCurLoop()->getLoopIndex(),
                                             InstBuilder::genIntNumInst(d));
                 return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
                                                         InstBuilder::genNamedAddress(vname, Address::kStack), index));
@@ -401,7 +405,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
         } else {
             // return subst("$0[i-$1]", vname, CS(delay));
             ValueInst* index = InstBuilder::genBinopInst(kSub,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
+                                    fContainer->getCurLoop()->getLoopIndex(),
                                         CS(delay));
             return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
                                                         InstBuilder::genNamedAddress(vname, Address::kStack), index));
@@ -416,7 +420,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
             if (d == 0) {
                 //return subst("$0[($0_idx+i)&$1]", vname, T(N-1));
                 ValueInst* index1 = InstBuilder::genBinopInst(kAdd,
-                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
+                        fContainer->getCurLoop()->getLoopIndex(),
                         InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname_idx, Address::kStruct)));
                 ValueInst* index2 = InstBuilder::genBinopInst(kAND, index1, InstBuilder::genIntNumInst(N-1));
                 return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
@@ -424,7 +428,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
             } else {
                 //return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), T(d));
                 ValueInst* index1 = InstBuilder::genBinopInst(kAdd,
-                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
+                        fContainer->getCurLoop()->getLoopIndex(),
                         InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname_idx, Address::kStruct)));
                 ValueInst* index2 = InstBuilder::genBinopInst(kSub, index1, InstBuilder::genIntNumInst(d));
                 ValueInst* index3 = InstBuilder::genBinopInst(kAND, index2, InstBuilder::genIntNumInst(N-1));
@@ -434,7 +438,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
         } else {
             //return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), CS(delay));
             ValueInst* index1 = InstBuilder::genBinopInst(kAdd,
-                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
+                        fContainer->getCurLoop()->getLoopIndex(),
                         InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname_idx, Address::kStruct)));
             ValueInst* index2 = InstBuilder::genBinopInst(kSub, index1, CS(delay));
             ValueInst* index3 = InstBuilder::genBinopInst(kAND, index2, InstBuilder::genIntNumInst(N-1));
@@ -457,7 +461,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
         return InstBuilder::genLoadVarInst(
                     InstBuilder::genIndexedAddress(
                         InstBuilder::genNamedAddress(vname, var_access),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))));
+                            fContainer->getCurLoop()->getLoopIndex()));
     }
 }
 
@@ -484,7 +488,7 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
     fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreVarInst(
                             InstBuilder::genIndexedAddress(
                                 InstBuilder::genNamedAddress(vname, Address::kStack),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), exp));
+                                    fContainer->getCurLoop()->getLoopIndex()), exp));
 
     // Set desired variable access
     var_access = Address::kStack;
@@ -527,7 +531,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
             InstBuilder::genStoreVarInst(
                 InstBuilder::genIndexedAddress(
                     InstBuilder::genNamedAddress(vname, Address::kStack),
-                        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))), exp));
+                        fContainer->getCurLoop()->getLoopIndex()), exp));
 
         // -- copy back to stored samples
         fContainer->getCurLoop()->pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay));
@@ -564,7 +568,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
 
         // -- compute the new samples
         ValueInst* index3 = InstBuilder::genBinopInst(kAdd,
-                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
+                    fContainer->getCurLoop()->getLoopIndex(),
                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(idx, Address::kStruct)));
         ValueInst* index4 = InstBuilder::genBinopInst(kAND, index3, InstBuilder::genIntNumInst(delay-1));
 

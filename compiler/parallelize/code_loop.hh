@@ -47,7 +47,7 @@ extern int gVecSize;
 
 /*
 
-On a des boucles indépendantes qui seront "connectées" avec des vecteurs 
+On a des boucles indépendantes qui seront "connectées" avec des vecteurs
 
 On voudrait pouvoir connecter des boucles et supprimer les vecteurs intermédiaires.
 
@@ -61,35 +61,37 @@ Scalarisation d'une boucle:
 - identifier tous les vecteurs d'entrée et de sortie
 - transformer les vecteur en scalaire
 - transformer les accès (Load/Store) en accès scalaire
-        
+
 */
 
 class CodeLoop;
 
 typedef set<CodeLoop*>  lclset;
-typedef vector<lclset>  lclgraph;  
+typedef vector<lclset>  lclgraph;
 
 class CodeLoop {
 
     friend class CodeContainer;
 
     private:
-        
+
         bool fIsRecursive;                  ///< recursive loops can't be SIMDed
         const Tree fRecSymbol;              ///< recursive loops define a recursive symbol
         CodeLoop* const fEnclosingLoop;     ///< Loop from which this one originated
         int fSize;                          ///< number of iterations of the loop
         int fOrder;                         ///< used during topological sort
         int fIndex;
-      
+
         BlockInst* fPreInst;
         BlockInst* fComputeInst;
         BlockInst* fPostInst;
-        
+
+        string fLoopIndex;
+
         set<Tree>      fRecDependencies;            ///< Loops having recursive dependencies must be merged
         set<CodeLoop*> fBackwardLoopDependencies;   ///< Loops that must be computed before this one
         set<CodeLoop*> fForwardLoopDependencies;    ///< Loops that will be computed after this one
-        
+
         void pushLoop(BlockInst* block, ForLoopInst* loop)
         {
             list<StatementInst*>::const_iterator it;
@@ -97,7 +99,7 @@ class CodeLoop {
                 loop->pushBackInst(*it);
             }
         }
-   
+
         void pushBlock(BlockInst* block, BlockInst* loop)
         {
             list<StatementInst*>::const_iterator it;
@@ -105,59 +107,64 @@ class CodeLoop {
                 loop->pushBackInst((*it));
             }
         }
-        
+
         bool isEmpty();                 ///< true when the loop doesn't contain any line of code
         bool hasRecDependencies();      ///< returns true is this loop has recursive dependencies
-        
+
         void absorb(CodeLoop* l);       ///< absorb a loop inside this one
         void concat(CodeLoop* l);
-        
+
         // Graph sorting
         static void setOrder(CodeLoop* l, int order, lclgraph& V);
         static void setLevel(int order, const lclset& T1, lclset& T2, lclgraph& V);
         static void resetOrder(CodeLoop* l);
-           
-    public: 
-    
+
+    public:
+
         ///< create a recursive loop
-        CodeLoop(Tree recsymbol, CodeLoop* encl, int size = 0)  
+        CodeLoop(Tree recsymbol, CodeLoop* encl, string index_name, int size = 0)
             :fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
-            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst())
+            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}
-        
+
         ///< create a non recursive loop
-        CodeLoop(CodeLoop* encl, int size = 0)   
+        CodeLoop(CodeLoop* encl, string index_name, int size = 0)
             :fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
-            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst())
+            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}
-        
+
         virtual ~CodeLoop()
         {}
-        
+
         StatementInst* pushComputePreDSPMethod(StatementInst* inst) { fPreInst->pushBackInst(inst); return inst; }
         StatementInst* pushComputeDSPMethod(StatementInst* inst) { fComputeInst->pushBackInst(inst); return inst; }
         StatementInst* pushComputePostDSPMethod(StatementInst* inst) { fPostInst->pushBackInst(inst); return inst;}
-        
+
         bool isRecursive() { return fIsRecursive; }
-        
+
+        ValueInst* getLoopIndex()
+        {
+            return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop));
+        }
+
         ForLoopInst* generateScalarLoop();
-        
+
         void generateDAGLoop(BlockInst* block, bool omp);
         void generateDAGVecLoop(BlockInst* block, bool omp, int size);
-        
+
         void transform(DispatchVisitor* visitor)
         {
             fPreInst->accept(visitor);
             fComputeInst->accept(visitor);
             fPostInst->accept(visitor);
         }
-    
+
         void addRecDependency(Tree t);  ///< Check for a recursive dependecy and add it if needed
-        bool findRecDefinition(Tree t); ///< indicates a dependency with an enclosing loop 
+        bool findRecDefinition(Tree t); ///< indicates a dependency with an enclosing loop
         void addBackwardDependency(CodeLoop* ls)  { fBackwardLoopDependencies.insert(ls); }
-        
+
         static void sortGraph(CodeLoop* root, lclgraph& V);
-     
+
 };
 
 #endif
