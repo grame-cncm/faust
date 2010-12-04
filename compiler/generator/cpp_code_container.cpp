@@ -136,9 +136,7 @@ void CPPCodeContainer::produceClass()
     int n = 0;
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    pushFrontInitMethod(InstBuilder::genStoreVarInst(
-                            InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
+    pushFrontInitMethod(InstBuilder::genStoreGlobalVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     // Libraries
     printLibrary(*fOut);
@@ -558,10 +556,8 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
-    pushFrontInitMethod(InstBuilder::genStoreVarInst(
-                            InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
+    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -1214,26 +1210,24 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     //generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)));
+    ValueInst* init1 = InstBuilder::genLoadFunArgsVar("fullcount");
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), init3);
+    StatementInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
     list<ValueInst*> args;
     args.push_back(InstBuilder::genIntNumInst(0));
-    loop_code->pushBackInst(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack),
-        InstBuilder::genBasicTyped(Typed::kInt),
-        InstBuilder::genFunCallInst("get_global_id", args)));
+    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genFunCallInst("get_global_id", args)));
 
     // Generate DAG
     for (int l = dag.size() - 1; l >= 0; l--) {
 
-        ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
+        ValueInst* switch_cond = InstBuilder::genLoadStackVar("tasknum");
         SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
         if (dag[l].size() > 1) {
@@ -1256,15 +1250,9 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 
     // Generates the DAG enclosing loop
     string index = "index";
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(gVecSize)));
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar("fullcount"));
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -1413,10 +1401,8 @@ void CPPCUDACodeContainer::produceClass()
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
-    pushFrontInitMethod(InstBuilder::genStoreVarInst(
-                            InstBuilder::genNamedAddress("fSamplingFreq", Address::kStruct),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
+    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     addIncludeFile("<iostream>");
     addIncludeFile("<fstream>");
@@ -1986,7 +1972,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)));
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);

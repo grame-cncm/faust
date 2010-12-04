@@ -151,11 +151,9 @@ void JAVACodeContainer::produceInternal()
 void JAVACodeContainer::produceClass()
 {
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    pushFrontInitMethod(InstBuilder::genStoreVarInst(
-                            InstBuilder::genNamedAddress("fSamplingFreq", Address::kGlobal),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs))));
+    pushFrontInitMethod(InstBuilder::genStoreGlobalVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
-   int n = 0;
+    int n = 0;
 
     // Libraries
     printLibrary(*fOut);
