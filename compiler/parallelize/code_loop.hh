@@ -144,7 +144,7 @@ class CodeLoop {
 
         ValueInst* getLoopIndex()
         {
-            return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(fLoopIndex, Address::kLoop));
+            return InstBuilder::genLoadLoopVar(fLoopIndex);
         }
 
         ForLoopInst* generateScalarLoop();
