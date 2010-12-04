@@ -69,9 +69,9 @@ ialsasch :
 
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' CXXFLAGS=$(MYGCCFLAGS) VEC=' -vec -lv 1 -vs 64 -fun'  ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' CXXFLAGS=$(MYGCCFLAGS)   ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
-#
+#VEC=' -vec -lv 1 -vs 64 -fun'
 
 jackgtkllvm :
 	install -d jackgtkdirllvm

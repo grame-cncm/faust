@@ -287,26 +287,19 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     if (!gOpenCLSwitch && !gCUDASwitch) { // HACK
+
         // "input" and "inputs" used as a name convention
         for (int index = 0; index < fContainer->inputs(); index++) {
             string name = subst("input$0", T(index));
-
-                fContainer->pushComputeBlockMethod(
-                    InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kStack), InstBuilder::genArrayTyped(type, 0),
-                        InstBuilder::genLoadVarInst(
-                            InstBuilder::genIndexedAddress(
-                                InstBuilder::genNamedAddress("inputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+            fContainer->pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
         }
 
         // "output" and "outputs" used as a name convention
         for (int index = 0; index < fContainer->outputs(); index++) {
             string name = subst("output$0", T(index));
-
-                fContainer->pushComputeBlockMethod(
-                    InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kStack), InstBuilder::genArrayTyped(type, 0),
-                        InstBuilder::genLoadVarInst(
-                            InstBuilder::genIndexedAddress(
-                                InstBuilder::genNamedAddress("outputs", Address::kFunArgs), InstBuilder::genIntNumInst(index)))));
+            fContainer->pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
         }
     }
 
@@ -316,12 +309,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
         // Cast to external float
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-
-        fContainer->getCurLoop()->pushComputeDSPMethod(
-            InstBuilder::genStoreVarInst(
-                InstBuilder::genIndexedAddress(
-                    InstBuilder::genNamedAddress(name, Address::kStack),
-                         fContainer->getCurLoop()->getLoopIndex()), res));
+        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
     }
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
@@ -340,11 +328,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
   	sig = prepare2(sig);		// Optimize and annotate expression
     string name = "output";
 
-    fContainer->getCurLoop()->pushComputeDSPMethod(
-            InstBuilder::genStoreVarInst(
-                InstBuilder::genIndexedAddress(
-                    InstBuilder::genNamedAddress(name, Address::kFunArgs),
-                        fContainer->getCurLoop()->getLoopIndex()), CS(sig)));
+    fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, fContainer->getCurLoop()->getLoopIndex(), CS(sig)));
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -505,9 +489,9 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             }
             */
             type = InstBuilder::genBasicTyped(ctype);
-            fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), type));
-            fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), exp));
-            return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct));
+            fContainer->pushDeclare(InstBuilder::genDecStructVar(vname, type));
+            fContainer->pushInitMethod(InstBuilder::genStoreStructVar(vname, exp));
+            return InstBuilder::genLoadStructVar(vname);
 
         case kBlock:
             getTypedNames(t, "Slow", ctype, vname);
@@ -519,8 +503,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             }
             */
             type = InstBuilder::genBasicTyped(ctype);
-            fContainer->pushComputeBlockMethod(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), type, exp));
-            return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
+            fContainer->pushComputeBlockMethod(InstBuilder::genDecStackVar(vname, type, exp));
+            return InstBuilder::genLoadStackVar(vname);
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
@@ -532,8 +516,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             }
             */
             type = InstBuilder::genBasicTyped(ctype);
-            fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), type, exp));
-            return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStack));
+            fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, type, exp));
+            return InstBuilder::genLoadStackVar(vname);
 
         default:
             return InstBuilder::genNullInst();
@@ -573,17 +557,16 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
     }
 
     if (mxd == 0) {
-        return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vecname, Address::kStack));
+        return InstBuilder::genLoadStackVar(vecname);
 	} else if (mxd < gMaxCopyDelay) {
-		return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(vecname, Address::kStruct), CS(delay)));
+		return InstBuilder::genLoadArrayStructVar(vecname, CS(delay));
 	} else {
 		// Long delay : we use a ring buffer of size 2^x
 		int N = pow2limit(mxd + 1);
 
-        ValueInst* value1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("IOTA", Address::kStruct));
-        ValueInst* value2 = InstBuilder::genBinopInst(kSub, value1, CS(delay));
+        ValueInst* value2 = InstBuilder::genBinopInst(kSub, InstBuilder::genLoadStructVar("IOTA"), CS(delay));
         ValueInst* value3 = InstBuilder::genBinopInst(kAND, value2, InstBuilder::genIntNumInst(N - 1));
-        return InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(vecname, Address::kStruct), value3));
+        return InstBuilder::genLoadArrayStructVar(vecname, value3);
     }
 }
 
@@ -597,18 +580,16 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
    Typed::VarType type = ctType(te);
 
     // Table declaration
-    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vperm, Address::kStruct), InstBuilder::genBasicTyped(type)));
+    fContainer->pushDeclare(InstBuilder::genDecStructVar(vperm, InstBuilder::genBasicTyped(type)));
 
     // Init
-    fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(vperm, Address::kStruct), CS(x)));
+    fContainer->pushInitMethod(InstBuilder::genStoreStructVar(vperm, CS(x)));
 
     // Exec
-    fContainer->getCurLoop()->pushComputeDSPMethod(
-        InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vtemp, Address::kStack), InstBuilder::genBasicTyped(type),
-            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vperm, Address::kStruct))));
-    fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(vperm, Address::kStruct), CS(e)));
+    fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genDecStructVar(vtemp, InstBuilder::genBasicTyped(type), InstBuilder::genLoadStructVar(vperm)));
+    fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreStructVar(vperm, CS(e)));
 
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vtemp, Address::kStack));
+    return InstBuilder::genLoadStackVar(vtemp);
 }
 
 ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg) { return InstBuilder::genNullInst(); }  // Result not used
@@ -690,10 +671,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 {
     // "input" use as a name convention
     string name = subst("input$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadVarInst(
-                        InstBuilder::genIndexedAddress(
-                            InstBuilder::genNamedAddress(name, Address::kStack),
-                                fContainer->getCurLoop()->getLoopIndex()));
+    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex());
     // Cast to internal float
     res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
@@ -726,7 +704,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 	}
 
     // Table declaration
-    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
+    fContainer->pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
 
     string tablename;
     getTableNameProperty(content, tablename);
@@ -734,14 +712,14 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     // Init content generator
     list<ValueInst*> args1;
     args1.push_back(generator);
-    args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs)));
+    args1.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
     fContainer->pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit" + tablename, args1, true)));
 
     // Fill the table
     list<ValueInst*> args2;
     args2.push_back(generator);
     args2.push_back(InstBuilder::genIntNumInst(size));
-    args2.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct)));
+    args2.push_back(InstBuilder::genLoadStructVar(vname));
     fContainer->pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("fill" + tablename, args2, true)));
 
     // Delete object
@@ -750,7 +728,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     fContainer->pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("delete" + tablename, args3)));
 
     // Return table access
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct));
+    return InstBuilder::genLoadStructVar(vname);
 }
 
 ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
@@ -792,19 +770,19 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     vname += tablename;
 
     // Table declaration
-    fContainer->pushGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStaticStruct), InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
+    fContainer->pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
 
     // Init content generator
     list<ValueInst*> args1;
     args1.push_back(cexp);
-    args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("samplingFreq", Address::kFunArgs)));
+    args1.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
     fContainer->pushStaticInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit" + tablename, args1, true)));
 
     // Fill the table
     list<ValueInst*> args2;
     args2.push_back(cexp);
     args2.push_back(InstBuilder::genIntNumInst(size));
-    args2.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStaticStruct)));
+    args2.push_back(InstBuilder::genLoadStaticStructVar(vname));
     fContainer->pushStaticInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("fill" + tablename, args2, true)));
 
     // Delete object
@@ -813,7 +791,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     fContainer->pushStaticInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("delete" + tablename, args3)));
 
     // Return table access
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(vname, Address::kStaticStruct));
+    return InstBuilder::genLoadStaticStructVar(vname);
 }
 
 ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
@@ -822,14 +800,10 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
     assert(load_value);
 
-    StoreVarInst* store_inst = InstBuilder::genStoreVarInst(InstBuilder::genIndexedAddress(
-                                                                InstBuilder::genNamedAddress(load_value->fAddress->getName(), Address::kStruct),
-                                                                CS(idx)),
-                                                                CS(data));
-    fContainer->getCurLoop()->pushComputeDSPMethod(store_inst);
+    fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), CS(idx), CS(data)));
 
     // Return table access
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(load_value->fAddress->getName(), Address::kStruct));
+    return InstBuilder::genLoadStructVar(load_value->fAddress->getName());
 }
 
 ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
@@ -869,12 +843,10 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     // We must allocate an object of type "cname"
     const list<ValueInst*> args;
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
-    StatementInst* obj_decl =
-        InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(signame, Address::kStack), InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj);
-    fContainer->pushInitMethod(obj_decl);
+    fContainer->pushInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
     setTableNameProperty(sig, cname);
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(signame, Address::kStack));
+    return InstBuilder::genLoadStackVar(signame);
 }
 
 ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
@@ -888,12 +860,10 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
    // We must allocate an object of type "cname"
     const list<ValueInst*> args;
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
-    StatementInst* obj_decl =
-        InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(signame, Address::kStack), InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj);
-    fContainer->pushStaticInitMethod(obj_decl);
+    fContainer->pushStaticInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
     setTableNameProperty(sig, cname);
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(signame, Address::kStack));
+    return InstBuilder::genLoadStackVar(signame);
 }
 
 ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
@@ -1004,12 +974,11 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     */
     type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
-    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), type));
-    fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
+    fContainer->pushDeclare(InstBuilder::genDecStructVar(varname, type));
+    fContainer->pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    ValueInst* res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct));
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genLoadStructVar(varname), InstBuilder::genBasicTyped(itfloat())));
 }
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
@@ -1035,12 +1004,11 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     */
     type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
-    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), type));
-    fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
+    fContainer->pushDeclare(InstBuilder::genDecStructVar(varname, type));
+    fContainer->pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    ValueInst* res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct));
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genLoadStructVar(varname), InstBuilder::genBasicTyped(itfloat())));
 }
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -1060,27 +1028,26 @@ ValueInst* InstructionsCompiler::generateNumEntry(Tree sig, Tree path, Tree cur,
 ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name)
 {
     string varname = getFreshID(name);
-    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), InstBuilder::genBasicTyped(Typed::kFloatMacro)));
+    fContainer->pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kFloatMacro)));
  	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
 	::Type t = getSigType(sig);
 	switch (t->variability()) {
 
 		case kKonst :
-            fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), exp));
+            fContainer->pushInitMethod(InstBuilder::genStoreStructVar(varname, exp));
 			break;
 
 		case kBlock :
-            fContainer->pushComputeBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), exp));
+            fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(varname, exp));
 			break;
 
 		case kSamp :
-	        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct), exp));
+	        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreStructVar(varname, exp));
 			break;
 	}
 
-    ValueInst* res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(varname, Address::kStruct));
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat())));
+    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genLoadStructVar(varname), InstBuilder::genBasicTyped(itfloat())));
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)
@@ -1136,13 +1103,13 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
 		getTypedNames(getSigType(sig), "Vec", ctype, vname);
-		generateDelayVec(sig, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal)), ctype, vname, o->getMaxDelay());
+		generateDelayVec(sig, InstBuilder::genLoadGlobalVar(name), ctype, vname, o->getMaxDelay());
 	}
 
     int sig_type = getSigType(sig)->nature();
-    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal),
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name,
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
-    return InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal));
+    return InstBuilder::genLoadGlobalVar(name);
 }
 
 ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string& file, const string& name)
@@ -1150,9 +1117,9 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
     fContainer->addIncludeFile(file);
 
     int sig_type = getSigType(sig)->nature();
-    fContainer->pushExtGlobalDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal),
+    fContainer->pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name,
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
-    return generateCacheCode(sig, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(name, Address::kGlobal)));
+    return generateCacheCode(sig, InstBuilder::genLoadGlobalVar(name));
 }
 
 ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd)
@@ -1177,26 +1144,19 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
     }
 
     // Generates table declaration
-    DeclareVarInst* table_inst = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), InstBuilder::genArrayTyped(typed, delay));
-    fContainer->pushDeclare(table_inst);
+    fContainer->pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genIntNumInst(delay));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(1)));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(delay));
+
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
+        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
 
-    loop->pushFrontInst(InstBuilder::genStoreVarInst(
-                            InstBuilder::genIndexedAddress(
-                                InstBuilder::genNamedAddress(vname, Address::kStruct),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop))), init));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadLoopVar(index), init));
     return loop;
 }
 
@@ -1205,40 +1165,26 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
     string index = "j";
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kGT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genIntNumInst(0));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                                            InstBuilder::genBinopInst(kSub,
-                                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                                    InstBuilder::genIntNumInst(1)));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kGT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(0));
+
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
+        InstBuilder::genBinopInst(kSub, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
 
-    ValueInst* load_value1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop));
-    ValueInst* load_value2 = InstBuilder::genBinopInst(kSub, load_value1, InstBuilder::genIntNumInst(1));
-    ValueInst* load_value3 = InstBuilder::genLoadVarInst(
-                                InstBuilder::genIndexedAddress(
-                                    InstBuilder::genNamedAddress(vname, Address::kStruct), load_value2));
+    ValueInst* load_value2 = InstBuilder::genBinopInst(kSub, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1));
+    ValueInst* load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
 
-    loop->pushFrontInst(InstBuilder::genStoreVarInst(
-                            InstBuilder::genIndexedAddress(
-                                InstBuilder::genNamedAddress(vname, Address::kStruct),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop))), load_value3));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadLoopVar(index), load_value3));
     return loop;
 }
 
 StatementInst* InstructionsCompiler::generateCopyArray(const string& vname, int index_from, int index_to)
 {
-    ValueInst* inst1 = InstBuilder::genLoadVarInst(
-                                    InstBuilder::genIndexedAddress(
-                                        InstBuilder::genNamedAddress(vname, Address::kStruct), InstBuilder::genIntNumInst(index_from)));
-    StatementInst* inst2 = InstBuilder::genStoreVarInst(
-                                InstBuilder::genIndexedAddress(
-                                    InstBuilder::genNamedAddress(vname, Address::kStruct), InstBuilder::genIntNumInst(index_to)), inst1);
-    return inst2;
+    ValueInst* inst1 = InstBuilder::genLoadArrayStructVar(vname, InstBuilder::genIntNumInst(index_from));
+    return InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genIntNumInst(index_to), inst1);
 }
 
 StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, const string& vname_from, int size)
@@ -1246,26 +1192,18 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
     string index = "j";
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genIntNumInst(size));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(1)));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(size));
+
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
+        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
 
-    ValueInst* load_value = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(
-                                InstBuilder::genNamedAddress(vname_from, Address::kStruct),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop))));
+    ValueInst* load_value = InstBuilder::genLoadArrayStructVar(vname_from, InstBuilder::genLoadLoopVar(index));
 
-    loop->pushFrontInst(InstBuilder::genStoreVarInst(
-                            InstBuilder::genIndexedAddress(
-                                InstBuilder::genNamedAddress(vname_to, Address::kStack),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop))), load_value));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, InstBuilder::genLoadLoopVar(index), load_value));
     return loop;
 }
 
@@ -1274,28 +1212,19 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
     string index = "j";
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(size));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(size));
 
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genIntNumInst(1)));
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
+        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
 
-    ValueInst* load_index = InstBuilder::genBinopInst(kAdd,InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("count", Address::kStack)),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)));
+    ValueInst* load_index = InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadStackVar("count"), InstBuilder::genLoadLoopVar(index));
+    ValueInst* load_value = InstBuilder::genLoadArrayStackVar(vname_from, load_index);
 
-    ValueInst* load_value = InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress(vname_from, Address::kStack), load_index));
-
-    loop->pushFrontInst(InstBuilder::genStoreVarInst(
-                            InstBuilder::genIndexedAddress(
-                                InstBuilder::genNamedAddress(vname_to, Address::kStruct),
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop))), load_value));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, InstBuilder::genLoadLoopVar(index), load_value));
     return loop;
 }
 
@@ -1304,23 +1233,19 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
     if (mxd == 0) {
 
         // Generate scalar use
-        fContainer->getCurLoop()->pushComputeDSPMethod(
-            InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), InstBuilder::genBasicTyped(ctype), exp));
+        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
 
-    } else if (mxd < gMaxCopyDelay) {
+   } else if (mxd < gMaxCopyDelay) {
 
         // Generates table init
         fContainer->pushInitMethod(generateInitArray(vname, ctype, mxd + 1));
 
         // Generate table use
-        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreVarInst(
-                                                            InstBuilder::genIndexedAddress(
-                                                                InstBuilder::genNamedAddress(vname, Address::kStruct),
-                                                                    InstBuilder::genIntNumInst(0)), exp));
+        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genIntNumInst(0), exp));
 
         // Generates post processing copy code to update delay values
         if (mxd == 1) {
-             fContainer->getCurLoop()->pushComputePostDSPMethod(generateCopyArray(vname, 0, 1));
+            fContainer->getCurLoop()->pushComputePostDSPMethod(generateCopyArray(vname, 0, 1));
         } else if (mxd == 2) {
             fContainer->getCurLoop()->pushComputePostDSPMethod(generateCopyArray(vname, 1, 2));
             fContainer->getCurLoop()->pushComputePostDSPMethod(generateCopyArray(vname, 0, 1));
@@ -1337,12 +1262,9 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         fContainer->pushInitMethod(generateInitArray(vname, ctype, N));
 
         // Generate table use
-        ValueInst* value1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("IOTA", Address::kStruct));
+        ValueInst* value1 = InstBuilder::genLoadStructVar("IOTA");
         ValueInst* value2 = InstBuilder::genBinopInst(kAND, value1, InstBuilder::genIntNumInst(N - 1));
-        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreVarInst(
-                                                            InstBuilder::genIndexedAddress(
-                                                                InstBuilder::genNamedAddress(vname, Address::kStruct),
-                                                                   value2), exp));
+        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
     }
 
     return exp;
@@ -1353,12 +1275,11 @@ void InstructionsCompiler::ensureIotaCode()
     if (!fLoadedIota) {
         fLoadedIota = true;
 
-        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress( "IOTA", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
-        fContainer->pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("IOTA", Address::kStruct), InstBuilder::genIntNumInst(0)));
+        fContainer->pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genBasicTyped(Typed::kInt)));
+        fContainer->pushInitMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genIntNumInst(0)));
 
-        ValueInst* value1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("IOTA", Address::kStruct));
-        ValueInst* value2 = InstBuilder::genBinopInst(kAdd, value1, InstBuilder::genIntNumInst(1));
-        fContainer->getCurLoop()->pushComputePostDSPMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("IOTA", Address::kStruct), value2));
+        ValueInst* value = InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadStructVar("IOTA"), InstBuilder::genIntNumInst(1));
+        fContainer->getCurLoop()->pushComputePostDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));
     }
 }
 

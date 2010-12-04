@@ -105,6 +105,7 @@ class InstructionsCompiler {
         Tree prepare(Tree LS);
         Tree prepare2(Tree L0);
 
+
     public:
 
         InstructionsCompiler(CodeContainer* container)

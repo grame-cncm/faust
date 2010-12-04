@@ -36,6 +36,7 @@ using namespace std;
 #include <string>
 #include <list>
 #include <set>
+#include <stack>
 #include <map>
 #include <vector>
 #include <iostream>
@@ -1308,6 +1309,28 @@ struct DispatchVisitor : public InstVisitor {
     }
 };
 
+struct VariableScopeVisitor : public DispatchVisitor {
+
+    stack<list<DeclareVarInst*> > fBlockVarTable;
+
+    VariableScopeVisitor()
+    {}
+
+    virtual void visit(DeclareVarInst* inst)
+    {
+        fBlockVarTable.top().push_back(inst);
+        DispatchVisitor::visit(inst);
+    }
+
+    virtual void visit(BlockInst* inst)
+    {
+        list<DeclareVarInst*> variable_block;
+        fBlockVarTable.push(variable_block);
+        DispatchVisitor::visit(inst);
+        fBlockVarTable.pop();
+    }
+};
+
 class ScalVecDispatcherVisitor : public DispatchVisitor {
 
     protected:
@@ -1522,12 +1545,12 @@ struct InstBuilder
         } else if (typed->getType() == Typed::kFloat) {
             if (int_num) {
                 // Simple float cast of integer
-                return InstBuilder::genFloatNumInst(float(int_num->fNum));
+                return genFloatNumInst(float(int_num->fNum));
             } else if (float_num) {
                 // No cast needed
                 return inst;
             } else if (double_num) {
-                return InstBuilder::genFloatNumInst(float(double_num->fNum));
+                return genFloatNumInst(float(double_num->fNum));
             } else {
                 // Default case
                 return new CastNumInst(inst, typed, size);
@@ -1535,9 +1558,9 @@ struct InstBuilder
         } else if (typed->getType() == Typed::kDouble || typed->getType() == Typed::kQuad) {
             if (int_num) {
                 // Simple double cast of integer
-                return InstBuilder::genDoubleNumInst(double(int_num->fNum));
+                return genDoubleNumInst(double(int_num->fNum));
             } else if (float_num) {
-                return InstBuilder::genDoubleNumInst(double(float_num->fNum));
+                return genDoubleNumInst(double(float_num->fNum));
             } else if (double_num) {
                 // No cast needed
                 return inst;
@@ -1551,10 +1574,10 @@ struct InstBuilder
                 return inst;
             } else if (float_num) {
                 // Simple int cast of float
-                return InstBuilder::genIntNumInst(int(float_num->fNum));
+                return genIntNumInst(int(float_num->fNum));
             } else if (double_num) {
                 // Simple int cast of double
-                return InstBuilder::genIntNumInst(int(double_num->fNum));
+                return genIntNumInst(int(double_num->fNum));
             } else {
                 // Default case
                 return new CastNumInst(inst, typed, size);
@@ -1618,6 +1641,124 @@ struct InstBuilder
     static NamedAddress* genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }
     static IndexedAddress* genIndexedAddress(Address* address, ValueInst* index) { return new IndexedAddress(address, index); }
 
+    // Helper build methods
+
+    // Struct variable
+    static DeclareVarInst* genDecStructVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
+    }
+
+    static LoadVarInst* genLoadStructVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
+    }
+
+    static LoadVarInst* genLoadArrayStructVar(string vname, ValueInst* index)
+    {
+        return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
+    }
+
+    static StoreVarInst* genStoreStructVar(string vname, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
+    }
+
+    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* index, ValueInst* exp)
+    {
+        return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index), exp);
+    }
+
+    // static struct variable
+    static DeclareVarInst* genDecStaticStructVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
+    }
+
+    static LoadVarInst* genLoadStaticStructVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, Address::kStaticStruct));
+    }
+
+    static StoreVarInst* genStoreStaticStructVar(string vname, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, Address::kStaticStruct), exp);
+    }
+
+    // Stack variable
+    static DeclareVarInst* genDecStackVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, Address::kStack), type, exp);
+    }
+
+    static LoadVarInst* genLoadStackVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, Address::kStack));
+    }
+
+    static LoadVarInst* genLoadArrayStackVar(string vname, ValueInst* index)
+    {
+        return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index));
+    }
+
+    static StoreVarInst* genStoreStackVar(string vname, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, Address::kStack), exp);
+    }
+
+    static StoreVarInst* genStoreArrayStackVar(string vname, ValueInst* index, ValueInst* exp)
+    {
+        return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index), exp);
+    }
+
+    // Loop variable
+    static DeclareVarInst* genDecLoopVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, Address::kLoop), type, exp);
+    }
+
+    static LoadVarInst* genLoadLoopVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, Address::kLoop));
+    }
+
+    static StoreVarInst* genStoreLoopVar(string vname, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, Address::kLoop), exp);
+    }
+
+    // FunArgs variable
+    static LoadVarInst* genLoadFunArgsVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, Address::kFunArgs));
+    }
+
+    static LoadVarInst* genLoadArrayFunArgsVar(string vname, ValueInst* index)
+    {
+        return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kFunArgs), index));
+    }
+
+    static StoreVarInst* genStoreArrayFunArgsVar(string vname, ValueInst* index, ValueInst* exp)
+    {
+        return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kFunArgs), index), exp);
+    }
+
+    // Global variable
+    static DeclareVarInst* genDecGlobalVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
+    }
+
+    static LoadVarInst* genLoadGlobalVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, Address::kGlobal));
+    }
+
+    static StoreVarInst* genStoreGlobalVar(string vname, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, Address::kGlobal), exp);
+    }
+
 };
 
 #endif
@@ -1640,15 +1781,15 @@ Statement   := DeclareVar (Address, Type, Value)
             | ForLoop (Statement, Value, Statement, Block)
             | WhileLoop (Value, Block)
             | StoreVar (Address, Value)
-            | DeclareFun (Name, Type, Statement*) 
-            | Drop Value   
+            | DeclareFun (Name, Type, Statement*)
+            | Drop Value
             | Return Value
             | BlockInst (Statement*)
             | If (Value1, BlockInst, BlockInst)
             | Switch (Value1, <int, BlockInst> *)
-            
+
 Value       := LoadVar (Address)
-            | Float | Int | Double 
+            | Float | Int | Double
 
 Code rewritting :
 
@@ -1694,8 +1835,8 @@ compute(count, float**, float**)
 2) compiler les boucles
 
 Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard? Avec un nommage spécifique?
- 
-TODO : gestion des indices de boucles: 
+
+TODO : gestion des indices de boucles:
 
 
 TODO : gestion des indices de boucles:
