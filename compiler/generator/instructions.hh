@@ -1643,6 +1643,26 @@ struct InstBuilder
 
     // Helper build methods
 
+    static LoadVarInst* genLoadVar(string vname, Address::AccessType var_access)
+    {
+        return genLoadVarInst(genNamedAddress(vname, var_access));
+    }
+
+    static LoadVarInst* genLoadArrayVar(string vname, Address::AccessType var_access, ValueInst* index)
+    {
+        return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
+    }
+
+    static StoreVarInst* genStoreVar(string vname, Address::AccessType var_access, ValueInst* exp)
+    {
+        return genStoreVarInst(genNamedAddress(vname, var_access), exp);
+    }
+
+    static StoreVarInst* genStoreArrayVar(string vname, Address::AccessType var_access, ValueInst* index, ValueInst* exp)
+    {
+        return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index), exp);
+    }
+
     // Struct variable
     static DeclareVarInst* genDecStructVar(string vname, Typed* type, ValueInst* exp = NULL)
     {
@@ -1699,6 +1719,11 @@ struct InstBuilder
     static LoadVarInst* genLoadArrayStackVar(string vname, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index));
+    }
+
+    static LoadVarAddressInst* genLoadArrayStackAddressVar(string vname, ValueInst* index)
+    {
+        return genLoadVarAddressInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index));
     }
 
     static StoreVarInst* genStoreStackVar(string vname, ValueInst* exp)
