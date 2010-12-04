@@ -294,12 +294,7 @@ void CodeContainer::generateLocalInputs(BlockInst* loop_code)
     for (int index = 0; index < inputs(); index++) {
         string name1 = subst("fInput$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
-
-        loop_code->pushBackInst(
-            InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct),
-                InstBuilder::genLoadVarAddressInst(
-                    InstBuilder::genIndexedAddress(
-                        InstBuilder::genNamedAddress(name2, Address::kStruct), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop))))));
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadLoopVar("index"))));
     }
 }
 
@@ -309,12 +304,7 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code)
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
-
-        loop_code->pushBackInst(
-            InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct),
-                InstBuilder::genLoadVarAddressInst(
-                    InstBuilder::genIndexedAddress(
-                        InstBuilder::genNamedAddress(name2, Address::kStruct), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop))))));
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadLoopVar("index"))));
     }
 }
 
@@ -377,7 +367,7 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
     BlockInst* block_res = InstBuilder::genBlockInst();
 
     // Declare the "index" variable outside the loop
-    DeclareVarInst* index_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kStack), InstBuilder::genBasicTyped(Typed::kInt));
+    DeclareVarInst* index_dec = InstBuilder::genDecStackVar(index, InstBuilder::genBasicTyped(Typed::kInt));
     block_res->pushBackInst(index_dec);
     block_res->pushBackInst(InstBuilder::genLabelInst("// Main loop"));
 
@@ -388,24 +378,20 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
     generateLocalOutputs(loop_code);
 
     // Generate : int count = 32;
-    DeclareVarInst* count_dec1 = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress( "count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(gVecSize));
+    DeclareVarInst* count_dec1 = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(gVecSize));
     loop_code->pushBackInst(count_dec1);
 
     // Generates the loop DAG
     generateDAGLoop(loop_code);
 
     // Generates the DAG enclosing loop
-    StoreVarInst* loop_init = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kStack), InstBuilder::genIntNumInst(0));
+    StoreVarInst* loop_init = InstBuilder::genStoreStackVar(index, InstBuilder::genIntNumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLE,
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kStack)),
-                            InstBuilder::genBinopInst(kSub,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)),
-                                InstBuilder::genIntNumInst(gVecSize)));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(gVecSize)));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLE, InstBuilder::genLoadStackVar(index),
+        InstBuilder::genBinopInst(kSub, InstBuilder::genLoadFunArgsVar("fullcount"), InstBuilder::genIntNumInst(gVecSize)));
+
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
+        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -415,9 +401,7 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
     // Remaining frames
     block_res->pushBackInst(InstBuilder::genLabelInst("// Remaining frames"));
 
-    ValueInst* if_cond = InstBuilder::genBinopInst(kLT,
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kStack)),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
+    ValueInst* if_cond = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadStackVar(index), InstBuilder::genLoadFunArgsVar("fullcount"));
 
     BlockInst* then_block = InstBuilder::genBlockInst();
 
@@ -426,11 +410,8 @@ StatementInst* CodeContainer::generateDAGLoopVariant0()
     generateLocalOutputs(then_block);
 
     // Generate : int count = fullcount-index;
-    DeclareVarInst* count_dec2 =
-        InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt),
-            InstBuilder::genBinopInst(kSub,
-                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)),
-                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kStack))));
+    DeclareVarInst* count_dec2 = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genBinopInst(kSub,
+                                    InstBuilder::genLoadFunArgsVar("fullcount"), InstBuilder::genLoadStackVar(index)));
 
     then_block->pushBackInst(count_dec2);
 
@@ -450,13 +431,13 @@ StatementInst* CodeContainer::generateDAGLoopVariant1()
     generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)));
+    ValueInst* init1 = InstBuilder::genLoadFunArgsVar("fullcount");
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), init3);
+    StatementInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG
@@ -464,15 +445,11 @@ StatementInst* CodeContainer::generateDAGLoopVariant1()
 
     // Generates the DAG enclosing loop
     string index = "index";
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(gVecSize)));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar("fullcount"));
+
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
     return loop;
@@ -529,13 +506,13 @@ StatementInst* CodeContainer::generateDAGLoopOMP()
     generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("index", Address::kLoop)));
+    ValueInst* init1 = InstBuilder::genLoadFunArgsVar("fullcount");
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), init3);
+    StatementInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG
@@ -578,16 +555,9 @@ StatementInst* CodeContainer::generateDAGLoopOMP()
 
     // Generates the DAG enclosing loop
     string index = "index";
-    DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
-    StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                    InstBuilder::genIntNumInst(gVecSize)));
-
+    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar("fullcount"));
+    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -622,7 +592,7 @@ void CodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, b
     // Last stage connected to end task
     if (dag[0].size() > 1) {
         list<ValueInst*> fun_args;
-        fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
+        fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
         fun_args.push_back(InstBuilder::genIntNumInst(LAST_TASK_INDEX));
         fun_args.push_back(InstBuilder::genIntNumInst(dag[0].size()));
         gen_code->pushBackInst(InstBuilder::genLabelInst("// Initialize end task, if more than one input"));
@@ -637,7 +607,7 @@ void CodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, b
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() > 1)  { // Only initialize taks with more than 1 input, since taks with one input are "directly" activated.
                 list<ValueInst*> fun_args;
-                fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
+                fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
                 fun_args.push_back(InstBuilder::genIntNumInst((*p)->fIndex));
                 fun_args.push_back(InstBuilder::genIntNumInst((*p)->fBackwardLoopDependencies.size()));
                 gen_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("initTask", fun_args)));
@@ -648,32 +618,30 @@ void CodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, b
     // Push n - 1 ready tasks
     for (unsigned int i = 0; i < task_num.size() - 1; i++) {
         list<ValueInst*> fun_args;
-        fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+        fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
         fun_args.push_back(InstBuilder::genIntNumInst(task_num[i]));
         gen_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("pushHead", fun_args)));
     }
 
-    gen_code->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack), InstBuilder::genIntNumInst(task_num[task_num.size() - 1])));
+    gen_code->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(task_num[task_num.size() - 1])));
 
     if (master_thread) {
         loop_code->pushBackInst(InstBuilder::genLabelInst("// Master thread init processing"));
-        ValueInst* if_cond = InstBuilder::genBinopInst(kEQ, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("num_thread", Address::kFunArgs)), InstBuilder::genIntNumInst(0));
+        ValueInst* if_cond = InstBuilder::genBinopInst(kEQ, InstBuilder::genLoadFunArgsVar("num_thread"), InstBuilder::genIntNumInst(0));
         loop_code->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
     }
 }
 
 void CodeContainer::generateDAGLoopWSSAux2(BlockInst* loop_code, bool obj)
 {
-    loop_code->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fFullcount", Address::kStruct),
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs))));
-    loop_code->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fIndex", Address::kStruct),
-        InstBuilder::genIntNumInst(0)));
+    loop_code->pushBackInst(InstBuilder::genStoreStructVar("fFullcount", InstBuilder::genLoadFunArgsVar("fullcount")));
+    loop_code->pushBackInst(InstBuilder::genStoreStructVar("fIndex", InstBuilder::genIntNumInst(0)));
 
     list<ValueInst*> fun_args0;
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("GetRealTime", fun_args0)));
 
     list<ValueInst*> fun_args3;
-    fun_args3.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fDynamicNumThreads", Address::kStruct)));
+    fun_args3.push_back(InstBuilder::genLoadStructVar("fDynamicNumThreads"));
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("initAllTaskQueue", fun_args3)));
 
     list<NamedTyped*> callback_args;
@@ -681,18 +649,18 @@ void CodeContainer::generateDAGLoopWSSAux2(BlockInst* loop_code, bool obj)
     callback_args.push_back(InstBuilder::genNamedTyped("cur_thread", InstBuilder::genBasicTyped(Typed::kInt)));
 
     list<ValueInst*> fun_args1;
-    fun_args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fThreadPool", Address::kStruct)));
-    fun_args1.push_back(InstBuilder::genBinopInst(kSub, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fDynamicNumThreads", Address::kStruct)), InstBuilder::genIntNumInst(1)));
+    fun_args1.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
+    fun_args1.push_back(InstBuilder::genBinopInst(kSub, InstBuilder::genLoadStructVar("fDynamicNumThreads"), InstBuilder::genIntNumInst(1)));
 
     if (obj)
-        fun_args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("dsp", Address::kFunArgs)));
+        fun_args1.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
     else
-        fun_args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("this", Address::kFunArgs)));
+        fun_args1.push_back(InstBuilder::genLoadFunArgsVar("this"));
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("signalAll", fun_args1)));
 
     list<ValueInst*> fun_args2;
     if (obj)
-        fun_args2.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("dsp", Address::kFunArgs)));
+        fun_args2.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
     fun_args2.push_back(InstBuilder::genIntNumInst(0));
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("computeThread", fun_args2)));
 }
@@ -757,18 +725,15 @@ void CodeContainer::generateDAGLoopWSSAux3()
 
     pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("initTaskQueue", fun_args)));
 
-    StatementInst* init_loop1 = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("i", Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* end_loop1 = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)), InstBuilder::genIntNumInst(16));
-    StoreVarInst* inc_loop1 = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("i", Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
-                                    InstBuilder::genIntNumInst(1)));
+    StatementInst* init_loop1 = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* end_loop1 = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
+    StoreVarInst* inc_loop1 = InstBuilder::genStoreLoopVar("i", InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
 
     list<StatementInst*> code1;
     list<ValueInst*> fun_args1;
-    fun_args1.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)));
+    fun_args1.push_back(InstBuilder::genLoadLoopVar("i"));
     code1.push_back(InstBuilder::genStoreVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress("fTaskQueueTable", Address::kStruct),
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop))),
+        InstBuilder::genLoadLoopVar("i")),
         InstBuilder::genFunCallInst("createTaskQueue", fun_args1)));
 
     pushInitMethod(InstBuilder::genForLoopInst(init_loop1, end_loop1, inc_loop1, InstBuilder::genBlockInst(code1)));
@@ -787,16 +752,12 @@ void CodeContainer::generateDAGLoopWSSAux3()
     pushDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("deleteTaskGraph", fun_args4)));
 
     StatementInst* init_loop2 = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("i", Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* end_loop2 = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)), InstBuilder::genIntNumInst(16));
-    StoreVarInst* inc_loop2 = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("i", Address::kLoop),
-                        InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)),
-                                    InstBuilder::genIntNumInst(1)));
+    ValueInst* end_loop2 = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
+    StoreVarInst* inc_loop2 = InstBuilder::genStoreLoopVar("i", InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
 
     list<StatementInst*> code2;
     list<ValueInst*> fun_args5;
-    fun_args5.push_back(InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress("fTaskQueueTable", Address::kStruct),
-                                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("i", Address::kLoop)))));
+    fun_args5.push_back(InstBuilder::genLoadArrayStructVar("fTaskQueueTable", InstBuilder::genLoadLoopVar("i")));
     code2.push_back(InstBuilder::genDropInst(InstBuilder::genFunCallInst("deleteTaskQueue", fun_args5)));
     pushDestroyMethod(InstBuilder::genForLoopInst(init_loop2, end_loop2, inc_loop2, InstBuilder::genBlockInst(code2)));
 }
@@ -804,9 +765,9 @@ void CodeContainer::generateDAGLoopWSSAux3()
 StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
 {
     BlockInst* loop_code = fComputeThreadBlockInstructions;
-    loop_code->pushBackInst(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
+    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
 
-    ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
+    ValueInst* switch_cond = InstBuilder::genLoadStackVar("tasknum");
     SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
     // Generate input/output access
@@ -814,33 +775,23 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
     for (int index = 0; index < inputs(); index++) {
         string name1 = subst("fInput$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
-
-        loop_code->pushBackInst(
-            InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct),
-                InstBuilder::genLoadVarAddressInst(
-                    InstBuilder::genIndexedAddress(
-                        InstBuilder::genNamedAddress(name2, Address::kStruct), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))))));
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 
     // Generates line like: fOutput0 = &fOutput0_ptr[index];
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+   }
 
-        loop_code->pushBackInst(
-            InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct),
-                InstBuilder::genLoadVarAddressInst(
-                    InstBuilder::genIndexedAddress(
-                        InstBuilder::genNamedAddress(name2, Address::kStruct), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))))));
-    }
-
-    loop_code->pushBackInst(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack),
-        InstBuilder::genBasicTyped(Typed::kVoid_ptr),
-        InstBuilder::genLoadVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress("fTaskQueueTable", Address::kStruct),
-            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("num_thread", Address::kFunArgs))))));
+    loop_code->pushBackInst(InstBuilder::genDecStackVar("taskqueue", InstBuilder::genBasicTyped(Typed::kVoid_ptr),
+        InstBuilder::genLoadArrayStructVar("fTaskQueueTable", InstBuilder::genLoadFunArgsVar("num_thread"))));
 
     list<ValueInst*> fun_args;
-    fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+    fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
 
     generateDAGLoopWSSAux1(dag, loop_code, true);
 
@@ -848,45 +799,33 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
     BlockInst* ws_block = InstBuilder::genBlockInst();
     ws_block->pushBackInst(InstBuilder::genLabelInst("// Work Stealing task"));
     list<ValueInst*> fun_args2;
-    fun_args2.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("num_thread", Address::kFunArgs)));
-    fun_args2.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fDynamicNumThreads", Address::kStruct)));
-    ws_block->pushBackInst(InstBuilder::genStoreVarInst(
-        InstBuilder::genNamedAddress("tasknum", Address::kStack),
-        InstBuilder::genFunCallInst("getNextTask", fun_args2)));
+    fun_args2.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
+    fun_args2.push_back(InstBuilder::genLoadStructVar("fDynamicNumThreads"));
+    ws_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genFunCallInst("getNextTask", fun_args2)));
     switch_block->addCase(WORK_STEALING_INDEX, ws_block);
 
     // Last task
     BlockInst* last_block = InstBuilder::genBlockInst();
     last_block->pushBackInst(InstBuilder::genLabelInst("// Last task"));
-    last_block->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+    last_block->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile),
                                 InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile))),
+                                    InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                     InstBuilder::genIntNumInst(gVecSize))));
 
     // Generates line like: fInput0 = &fInput0_ptr[index];
     for (int index = 0; index < inputs(); index++) {
         string name1 = subst("fInput$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
-
-        last_block->pushBackInst(
-            InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct),
-                InstBuilder::genLoadVarAddressInst(
-                    InstBuilder::genIndexedAddress(
-                        InstBuilder::genNamedAddress(name2, Address::kStruct),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))))));
+        last_block->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2,
+                            InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 
     // Generates line like: fOutput0 = &fOuput0_ptr[index];
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
-
-        last_block->pushBackInst(
-            InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(name1, Address::kStruct),
-                InstBuilder::genLoadVarAddressInst(
-                    InstBuilder::genIndexedAddress(
-                        InstBuilder::genNamedAddress(name2, Address::kStruct),
-                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))))));
+        last_block->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2,
+                            InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 
     // Generates init DAG and ready tasks activations
@@ -896,19 +835,18 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Generates global "switch/case"
     int loop_num = START_TASK_MAX;  // First index to be used for remaining tasks
 
-    ValueInst* while_cond = InstBuilder::genBinopInst(kLT,
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile))),
-        InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fFullcount", Address::kStruct)));
+    ValueInst* while_cond = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+                                InstBuilder::genLoadStructVar("fFullcount"));
     BlockInst* switch_block_code = InstBuilder::genBlockInst();
 
     // Generates switch/case block "header"
-    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fFullcount", Address::kStruct));
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fIndex", Address::kStruct)));
+    ValueInst* init1 = InstBuilder::genLoadStructVar("fFullcount");
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadStructVar("fIndex"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), init3);
+    StatementInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
     switch_block_code->pushBackInst(count_dec);
 
     for (int l = dag.size() - 1; l > 0; l--) {
@@ -925,11 +863,11 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
 
                 lclset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
                 if ((*p1)->fBackwardLoopDependencies.size () == 1) {
-                    case_block->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack), InstBuilder::genIntNumInst((*p1)->fIndex)));
+                    case_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst((*p1)->fIndex)));
                 } else {
                     list<ValueInst*> fun_args;
-                    fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
-                    fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+                    fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
+                    fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
                     fun_args.push_back(InstBuilder::genIntNumInst((*p1)->fIndex));
                     fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
                     case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("activateOneOutputTask", fun_args)));
@@ -947,29 +885,29 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
                 }
 
                 if (keep == NULL) {
-                    case_block->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack), InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
+                    case_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
                 }
 
                 for (lclset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin(); p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
                     if ((*p1)->fBackwardLoopDependencies.size () == 1) {  // Task is the only input
                         if (*p1 != keep) {
                             list<ValueInst*> fun_args;
-                            fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+                            fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
                             fun_args.push_back(InstBuilder::genIntNumInst((*p1)->fIndex));
                             case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("pushHead", fun_args)));
                         }
                     } else {
                         if (keep == NULL) {
                             list<ValueInst*> fun_args;
-                            fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
-                            fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+                            fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
+                            fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
                             fun_args.push_back(InstBuilder::genIntNumInst((*p1)->fIndex));
                             fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
                             case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("activateOutputTask1", fun_args)));
                         } else {
                             list<ValueInst*> fun_args;
-                            fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
-                            fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+                            fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
+                            fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
                             fun_args.push_back(InstBuilder::genIntNumInst((*p1)->fIndex));
                             case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("activateOutputTask2", fun_args)));
                         }
@@ -977,11 +915,11 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
                 }
 
                 if (keep != NULL) {
-                    case_block->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack), InstBuilder::genIntNumInst(keep->fIndex)));
+                    case_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(keep->fIndex)));
                 } else {
                     list<ValueInst*> fun_args;
-                    fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
-                    fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+                    fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
+                    fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
                     fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
                     case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("getReadyTask", fun_args)));
                 }
@@ -998,7 +936,7 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
     if (level.size() == 1) {
         BlockInst* case_block = InstBuilder::genBlockInst();
         generateDAGLoopAux(*level.begin(), case_block, loop_num);
-        case_block->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack), InstBuilder::genIntNumInst(LAST_TASK_INDEX)));
+        case_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(LAST_TASK_INDEX)));
         // Add the "case" block
         switch_block->addCase(loop_num, case_block);
     } else {
@@ -1007,8 +945,8 @@ StatementInst* CodeContainer::generateDAGLoopWSS(lclgraph dag)
             generateDAGLoopAux(*p, case_block, loop_num);
 
             list<ValueInst*> fun_args;
-            fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
-            fun_args.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("taskqueue", Address::kStack)));
+            fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
+            fun_args.push_back(InstBuilder::genLoadStackVar("taskqueue"));
             fun_args.push_back(InstBuilder::genIntNumInst(LAST_TASK_INDEX));
             fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
             case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("activateOneOutputTask", fun_args)));

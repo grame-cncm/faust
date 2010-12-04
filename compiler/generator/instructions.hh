@@ -1679,6 +1679,11 @@ struct InstBuilder
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
     }
 
+    static LoadVarAddressInst* genLoadArrayStructAddressVar(string vname, ValueInst* index)
+    {
+        return genLoadVarAddressInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
+    }
+
     static StoreVarInst* genStoreStructVar(string vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
