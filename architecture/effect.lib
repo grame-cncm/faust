@@ -856,7 +856,7 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
 };
 
 //------------------------- fdnrev0_demo ---------------------------
-// USAGE: _,_ : fdnrev0_demo : _,_ 
+// USAGE: _,_ : fdnrev0_demo(N,NB,BBSO) : _,_ 
 // WHERE
 //    N = Feedback Delay Network (FDN) order
 //      = number of delay lines used = order of feedback matrix
