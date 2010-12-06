@@ -953,10 +953,8 @@ zita_rev1_engine(rdel,f1,f2,t60dc,t60m,t60pi,loopgainmax) =
 delay_stereo(rdel) : distrib2(N) : ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~ 
  (delayfilters(N,freqs,durs) : fbdelaylines(N)))
  : output2(N) // no ambisonics mode
-//T:  = par(i,N,delayval(i))
 with {
   N = 8;
-//T: N = 4;
 
   delay_stereo(rdel) = delay_mono(rdel),delay_mono(rdel);
   delay_mono(rdel) = delay(8192,SR*rdel*0.001) * 0.3;
@@ -977,17 +975,15 @@ with {
  tdelay(i) = floor(0.5 + SR*take(i+1,tdelays));
 apdelay(i) = floor(0.5 + SR*take(i+1,apdelays));
 fbdelay(i) = tdelay(i) - apdelay(i);
-//T: apdelay(i) = int(1 + 2*float(i)) - 1;
-//T: fbdelay(i) = int(3 + 5*float(i)) - 1;
 
   // allpass comb filters:
-  // result in matlab of 2 .^ ceil(log2(SR*apdelays)) for SR=48000:
+  // result (matlab) of 2 .^ ceil(log2(SR*apdelays)) for SR=48000:
   maxapdelays = (1024, 2048, 2048, 2048, 2048, 2048, 1024, 1024);
   apdelmax(i) = take(i+1,maxapdelays);
   apcoeff(i) = select2(i&1,0.6,-0.6);
 
   // feedback delays:
-  // result in matlab of 2 .^ ceil(log2(SR*fbdelays)) for SR=48000:
+  // result (matlab) of 2 .^ ceil(log2(SR*fbdelays)) for SR=48000:
   maxfbdelays = (8192, 16384, 8192, 16384, 8192, 8192, 8192, 16384);
   fbdelmax(i) = take(i+1,maxfbdelays);
 
@@ -1002,7 +998,6 @@ fbdelay(i) = tdelay(i) - apdelay(i);
     : *(loopgainmax) / sqrt(float(N)) 
     : +(staynormal)
   with {
-//T: lo_hi_shelf(i) = *(0.999);
     lo_hi_shelf(i) = low_shelf1_l(g0/gM,f(1)) : *(gM) : high_shelf1_l(gPi/gM,f(2));
     low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // filter.lib
     high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); // filter.lib
