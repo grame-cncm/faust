@@ -748,6 +748,7 @@ with { // octave script output:
 //
 low_shelf = low_shelf3; // default
 low_shelf1(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(1,fx,x);
+low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x);
 low_shelf3(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(3,fx,x);
 low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(5,fx,x);
 
@@ -761,6 +762,7 @@ low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(5,fx,x);
 //
 high_shelf=high_shelf3; //default
 high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x);
+high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x);
 high_shelf3(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(3,fx,x);
 high_shelf5(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(5,fx,x);
 

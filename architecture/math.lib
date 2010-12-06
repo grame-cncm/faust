@@ -123,6 +123,7 @@ if(cond,thn,els) = select2(cond,els,thn);
  *****************************************************************/
 
 // bus(n) : n parallel cables
+bus(2) = _,_; // avoids a lot of "bus(1)" labels in block diagrams
 bus(n) = par(i, n, _);
 
 // selector(i,n) : select ith cable among n
