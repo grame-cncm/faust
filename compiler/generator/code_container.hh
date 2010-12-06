@@ -221,6 +221,10 @@ class CodeContainer {
         StatementInst* pushComputeThreadBlockMethod(StatementInst* inst) { fComputeThreadBlockInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }
 
+        StatementInst* pushComputePreDSPMethod(StatementInst* inst)     { return fCurLoop->pushComputePreDSPMethod(inst); }
+        StatementInst* pushComputeDSPMethod(StatementInst* inst)        { return fCurLoop->pushComputeDSPMethod(inst); }
+        StatementInst* pushComputePostDSPMethod(StatementInst* inst)    { return fCurLoop->pushComputePostDSPMethod(inst); }
+
         void generateSubContainers()
         {
             list<CodeContainer*>::const_iterator it;

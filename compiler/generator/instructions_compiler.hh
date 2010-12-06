@@ -86,6 +86,25 @@ class InstructionsCompiler {
         ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
         ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
 
+
+        /* wrapper functions to access code container */
+        StatementInst* pushInitMethod(StatementInst* inst)              { return fContainer->pushInitMethod(inst); }
+        StatementInst* pushFrontInitMethod(StatementInst* inst)         { return fContainer->pushFrontInitMethod(inst); }
+        StatementInst* pushDestroyMethod(StatementInst* inst)           { return fContainer->pushDestroyMethod(inst); }
+        StatementInst* pushStaticInitMethod(StatementInst* inst)        { return fContainer->pushStaticInitMethod(inst); }
+        StatementInst* pushComputeBlockMethod(StatementInst* inst)      { return fContainer->pushComputeBlockMethod(inst); }
+        StatementInst* pushComputeThreadBlockMethod(StatementInst* inst){ return fContainer->pushComputeThreadBlockMethod(inst); }
+        StatementInst* pushUserInterfaceMethod(StatementInst* inst)     { return fContainer->pushUserInterfaceMethod(inst); }
+
+        StatementInst* pushDeclare(StatementInst* inst)                 { return fContainer->pushDeclare(inst); }
+        StatementInst* pushGlobalDeclare(StatementInst* inst)           { return fContainer->pushGlobalDeclare(inst); }
+        StatementInst* pushExtGlobalDeclare(StatementInst* inst)        { return fContainer->pushExtGlobalDeclare(inst); }
+
+        StatementInst* pushComputePreDSPMethod(StatementInst* inst)     { return fContainer->pushComputePreDSPMethod(inst); }
+        StatementInst* pushComputeDSPMethod(StatementInst* inst)        { return fContainer->pushComputeDSPMethod(inst); }
+        StatementInst* pushComputePostDSPMethod(StatementInst* inst)    { return fContainer->pushComputePostDSPMethod(inst); }
+
+        
         void ensureIotaCode();
 
         int pow2limit(int x)
