@@ -250,7 +250,7 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
     sort(V.begin(), V.end());
   
     // Mean of 10 best values (gives relatively stable results)
-    uint64 meavalx = meanValue(V.begin(), V.begin() + 10);			
+    uint64 meavalx = meanValue(V.begin()+KMESURE/2 - 5, V.begin()+KMESURE/2 + 5);			
   
     //printing
     cout << megapersec(bsize, ichans+ochans, meavalx) << "\tMB/s"
