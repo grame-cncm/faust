@@ -1,6 +1,69 @@
 #!/bin/bash
 
-for f in $@; do
-    faust -a matlabplot.cpp $f -o $f.cpp
-    ${CXX=g++} ${CXXFLAGS=-O3} $f.cpp -o ${f%.dsp}
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to plotters					#
+#               (c) Grame, 2009                                     #
+#                                                                   #
+#####################################################################
+
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
 done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+
+
+	
+#-------------------------------------------------------------------
+# compile the *.dsp files 
+
+for f in $FILES;; do
+	
+	# compile faust to c++
+    faust -a matlabplot.cpp $OPTIONS "$f" -o "$f.cpp"
+
+	# compile c++ to binary
+	(
+		${CXX=g++} ${CXXFLAGS=-O3} $OMP "$f.cpp" -o "${f%.dsp}"
+	) > /dev/null
+	rm "$f.cpp"
+
+	# collect binary file name for FaustWorks
+	BINARIES="$BINARIES${f%.dsp};"
+done
+echo $BINARIES
+
