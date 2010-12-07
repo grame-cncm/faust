@@ -64,6 +64,8 @@ class InstructionsCompiler {
         Tree fUIRoot;
         Description* fDescription;
         bool fLoadedIota;
+        
+        string fInputNamePattern;
 
         void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
@@ -130,7 +132,7 @@ class InstructionsCompiler {
         InstructionsCompiler(CodeContainer* container)
             :fContainer(container), fUIRoot(uiFolder(cons(tree(0),
             tree(subst("$0", gMasterName))))), fDescription(0),
-            fLoadedIota(false)
+            fLoadedIota(false), fInputNamePattern("input$0")
         {}
         virtual ~InstructionsCompiler()
         {}

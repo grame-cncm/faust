@@ -44,6 +44,15 @@ extern int gMaxCopyDelay;
 extern bool gOpenCLSwitch;
 extern bool gCUDASwitch;
 
+DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container):
+    InstructionsCompiler(container)
+{
+    if (!(gOpenCLSwitch || gCUDASwitch))
+        // different naming convention than InstructionsCompiler
+        fInputNamePattern = "fInput$0";
+}
+
+
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
@@ -178,15 +187,8 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         // Cast to internal float
         res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
         return generateCacheCode(sig, res);
-
-     } else {
-        // "fInput" use as a name convention
-        string name = subst("fInput$0", T(idx));
-        ValueInst* res = InstBuilder::genLoadArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex());
-        // Cast to internal float
-        res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
-        return generateCacheCode(sig, res);
-     }
+     } else
+        InstructionsCompiler::generateInput(sig, idx);
 }
 
 ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)

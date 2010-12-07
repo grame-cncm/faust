@@ -41,11 +41,8 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
     public:
 
-        DAGInstructionsCompiler(CodeContainer* container):InstructionsCompiler(container)
-        {}
-        virtual ~DAGInstructionsCompiler()
-        {}
-
+        DAGInstructionsCompiler(CodeContainer* container);
+        
         virtual ValueInst* CS(Tree sig);
 
         virtual void compileMultiSignal(Tree sig);

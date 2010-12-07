@@ -676,12 +676,11 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     int rate = getSigRate(sig);
     fContainer->setInputRate(idx, rate);
 
-    // "input" use as a name convention
-    string name = subst("input$0", T(idx));
+    string name = subst(fInputNamePattern, T(idx));
     ValueInst* res = InstBuilder::genLoadArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex());
-    // Cast to internal float
-    res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
-    return generateCacheCode(sig, res);
+
+    ValueInst* castedToFloat = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+    return generateCacheCode(sig, castedToFloat);
 }
 
 ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree content)
