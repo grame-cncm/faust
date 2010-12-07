@@ -279,3 +279,17 @@ string checkFloat(float val)
     }
     return (dot) ? (str + "f") : (str + ".f");
 }
+
+string indent(string const & str, int tabs)
+{
+    stringstream instream(str);
+    stringstream outstream;
+    string line;
+    while (getline(instream, line, '\n')) {
+        for (int i = 0; i != tabs; ++i)
+            outstream << '\t';
+        outstream << line << endl;
+    }
+
+    return outstream.str();
+}

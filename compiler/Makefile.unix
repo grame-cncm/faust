@@ -1,6 +1,6 @@
-subprojects := boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher documentator utils
+subprojects := boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher documentator utils ../libraries
 
-sources = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard draw/*/*.cpp)
+sources = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
 
 objects = $(sources:.cpp=.o)
 os 	:= $(shell uname)

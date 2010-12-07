@@ -31,8 +31,10 @@ void inferRate(Tree sig);
 inline int getSigRate(Tree sig)
 {
     Tree prop = sig->getProperty(ratePropertyKey);
-    assert(prop);
-    return tree2int(prop);
+    if (prop)
+        return tree2int(prop);
+    else
+        return 0;
 }
 
 #endif

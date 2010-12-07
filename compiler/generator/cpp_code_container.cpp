@@ -30,6 +30,7 @@
 #include "cpp_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
+#include "loki/SafeFormat.h"
 
 using namespace std;
 
@@ -44,6 +45,85 @@ map <string, int> CPPInstVisitor::gGlobalTable;
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
+}
+
+void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
+{
+    stringstream out;
+    string virtualPrefix;
+    if (isVirtual)
+        virtualPrefix = "virtual ";
+
+    // Input/Output method
+    out << virtualPrefix;
+    Loki::FPrintf(out, string("int getNumInputs() { return %d; }\n"))(fNumInputs);
+    out << virtualPrefix;
+    Loki::FPrintf(out, string("int getNumOutputs() { return %d; }\n"))(fNumOutputs);
+
+    // Input Rates
+    {
+        stringstream block1, block2;
+
+        out << endl << virtualPrefix;
+        Loki::FPrintf(out, string("int getInputRate(int channel) {\n"));
+        block1 << "switch (channel) {" << endl;
+
+        for (int i = 0; i != fNumInputs; ++i)
+            Loki::FPrintf(block2, string("case %d: return %d;\n"))(i)(fInputRates[i]);
+
+        block2 << "default: -1;\n";
+
+        block1 << indent(block2.str(), 1) << "}" << endl;
+        out << indent(block1.str(), 1) << "}" << endl;
+    }
+
+    // Output Rates
+    {
+        stringstream block1, block2;
+
+        out << endl << virtualPrefix;
+        Loki::FPrintf(out, string("int getOutputRate(int channel) {\n"));
+        block1 << "switch (channel) {" << endl;
+
+        for (int i = 0; i != fNumOutputs; ++i)
+            Loki::FPrintf(block2, string("case %d: return %d;\n"))(i)(fOutputRates[i]);
+
+        block2 << "default: -1;\n";
+
+        block1 << indent(block2.str(), 1) << "}" << endl;
+        out << indent(block1.str(), 1) << "}" << endl;
+    }
+    *fOut << endl << indent(out.str(), tabs);
+}
+
+void CPPCodeContainer::produceMetadata(int tabs)
+{
+    tab(tabs, *fOut); *fOut   << "void static metadata(Meta* m) { ";
+
+    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            tab(tabs+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    tab(tabs+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
+                } else {
+                    tab(tabs+1, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
+                }
+            }
+        }
+    }
+
+    tab(tabs, *fOut); *fOut << "}" << endl;
+}
+
+
+void CPPCodeContainer::produceInit(int tabs)
+{
+    tab(tabs, *fOut); *fOut << "virtual void init(int samplingFreq) {";
+        tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq);";
+        tab(tabs+1, *fOut); *fOut << "instanceInit(samplingFreq);";
+    tab(tabs, *fOut); *fOut << "}";
 }
 
 void CPPCodeContainer::produceInternal()
@@ -81,16 +161,7 @@ void CPPCodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "  public:";
 
-        // Input method
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "int getNumInputs" << fKlassName << "() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs" << fKlassName << "() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, false);
 
         // Inits
         tab(n+1, *fOut);
@@ -178,23 +249,7 @@ void CPPCodeContainer::produceClass()
 
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut   << "void static metadata(Meta* m) { ";
-
-        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
-                tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-            } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
-                    } else {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
-                    }
-                }
-            }
-        }
-
-        tab(n+1, *fOut); *fOut << "}" << endl;
+        produceMetadata(n+1);
 
         tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "destroy();";
@@ -209,15 +264,7 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        // Input method
-        tab(n+1, *fOut); *fOut << "virtual int getNumInputs() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "virtual int getNumOutputs() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, true);
 
         // Inits
         tab(n+1, *fOut);
@@ -239,10 +286,7 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
-        tab(n+1, *fOut); *fOut << "}";
+        produceInit(n+1);
 
         // User interface
         tab(n+1, *fOut);
@@ -506,14 +550,7 @@ void CPPOpenCLCodeContainer::produceInternal()
 
         // Input method
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "int getNumInputs" << fKlassName << "() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs" << fKlassName << "() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, false);
 
         // Inits
         tab(n+1, *fOut);
@@ -678,23 +715,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void static metadata(Meta* m) { ";
-
-        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
-                tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-            } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
-                    } else {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
-                    }
-                }
-            }
-        }
-
-        tab(n+1, *fOut); *fOut << "}" << endl;
+        produceMetadata(n+1);
 
         tab(n+1, *fOut); *fOut << "static double executionTime(cl_event &event) {";
             tab(n+2, *fOut); *fOut << "cl_ulong start, end;";
@@ -1022,13 +1043,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        // Input method
-        tab(n+1, *fOut); *fOut << "virtual int getNumInputs() { "
-                            << "return " << fNumInputs << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "virtual int getNumOutputs() { "
-                            << "return " << fNumOutputs << "; }";
+        produceInfoFunctions(n+1, true);
 
         // Inits
         tab(n+1, *fOut);
@@ -1069,10 +1084,7 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
-        tab(n+1, *fOut); *fOut << "}";
+        produceInit(n+1);
 
         // User interface
         tab(n+1, *fOut);
@@ -1301,16 +1313,8 @@ void CPPCUDACodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "  public:";
 
-        // Input method
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "int getNumInputs" << fKlassName << "() { "
-                            << "return " << fNumInputs
-                            << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs" << fKlassName << "() { "
-                            << "return " << fNumOutputs
-                            << "; }";
+        produceInfoFunctions(n+1, false);
 
         // Inits
         tab(n+1, *fOut);
@@ -1542,23 +1546,7 @@ void CPPCUDACodeContainer::produceClass()
 
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void static metadata(Meta* m) { ";
-
-        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
-            if (i->first != tree("author")) {
-                tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-            } else {
-                for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                    if (j == i->second.begin()) {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
-                    } else {
-                        tab(n+2, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
-                    }
-                }
-            }
-        }
-
-        tab(n+1, *fOut); *fOut << "}" << endl;
+        produceMetadata(n+1);
 
         tab(n+1, *fOut); *fOut << "static void* RunHandler(void* arg) {";
             tab(n+2, *fOut); *fOut << "mydsp* dsp = static_cast<mydsp*>(arg);";
@@ -1799,13 +1787,7 @@ void CPPCUDACodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        // Input method
-        tab(n+1, *fOut); *fOut << "virtual int getNumInputs() { "
-                            << "return " << fNumInputs << "; }";
-
-        // Output method
-        tab(n+1, *fOut); *fOut << "virtual int getNumOutputs() { "
-                            << "return " << fNumOutputs << "; }";
+        produceInfoFunctions(n+1, true);
 
         // Inits
         tab(n+1, *fOut);
@@ -1830,10 +1812,7 @@ void CPPCUDACodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
-        tab(n+1, *fOut); *fOut << "}";
+        produceInit(n+1);
 
         // User interface
         tab(n+1, *fOut);

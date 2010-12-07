@@ -281,6 +281,11 @@ bool process_cmdline(int argc, char* argv[])
 
         } else if (isCmd(argv[i], "-lv", "--loop-variant")) {
             gVectorLoopVariant = atoi(argv[i+1]);
+            if (gVectorLoopVariant < 0 ||
+                gVectorLoopVariant > 1) {
+                cerr << "faust: invalid loop variant: \"" << gVectorLoopVariant <<"\"" << endl;
+                exit(1);
+            }
             i += 2;
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {

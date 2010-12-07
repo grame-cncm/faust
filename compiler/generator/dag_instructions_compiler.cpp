@@ -64,20 +64,20 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         for (int index = 0; index < fContainer->inputs(); index++) {
             string name1 = subst("fInput$0_ptr", T(index));
             string name2 = subst("fInput$0", T(index));
-            fContainer->pushDeclare(InstBuilder::genDecStructVar(name1, type));
-            fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
+            pushDeclare(InstBuilder::genDecStructVar(name1, type));
+            pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
                 InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
-            fContainer->pushDeclare(InstBuilder::genDecStructVar(name2, type));
+            pushDeclare(InstBuilder::genDecStructVar(name2, type));
         }
 
         // "output" and "outputs" used as a name convention
         for (int index = 0; index < fContainer->outputs(); index++) {
             string name1 = subst("fOutput$0_ptr", T(index));
             string name2 = subst("fOutput$0", T(index));
-            fContainer->pushDeclare(InstBuilder::genDecStructVar(name1, type));
-            fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
+            pushDeclare(InstBuilder::genDecStructVar(name1, type));
+            pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
                 InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
-            fContainer->pushDeclare(InstBuilder::genDecStructVar(name2, type));
+            pushDeclare(InstBuilder::genDecStructVar(name2, type));
         }
     }
 
@@ -93,7 +93,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             // Cast to external float
             ValueInst* res = CS(sig);
             res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-            fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name,
+            pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name,
                                 InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("index"), fContainer->getCurLoop()->getLoopIndex()), res));
 
             fContainer->closeLoop();
@@ -111,7 +111,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             // Cast to external float
             ValueInst* res = CS(sig);
             res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-            fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
 
             fContainer->closeLoop();
         }
@@ -422,11 +422,11 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
 {
     // "$0 $1[$2];"
     DeclareVarInst* table_inst = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gVecSize));
-    fContainer->pushComputeBlockMethod(table_inst);
+    pushComputeBlockMethod(table_inst);
 
     // -- compute the new samples
     // $0[i] = $1;"
-    fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex(), exp));
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex(), exp));
 
     // Set desired variable access
     var_access = Address::kStack;
@@ -447,26 +447,26 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         delay = (delay+3) & -4;
 
         // allocate permanent storage for delayed samples
-        fContainer->pushInitMethod(generateInitArray(pmem, ctype, delay));
+        pushInitMethod(generateInitArray(pmem, ctype, delay));
 
         // compute method
 
         // -- declare a buffer and a "shifted" vector
         DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gVecSize + delay));
-        fContainer->pushComputeBlockMethod(table_inst1);
+        pushComputeBlockMethod(table_inst1);
 
         ValueInst* address_value = InstBuilder::genLoadArrayStackAddressVar(buf, InstBuilder::genIntNumInst(delay));
         DeclareVarInst* table_inst2 = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(typed, 0), address_value);
-        fContainer->pushComputeBlockMethod(table_inst2);
+        pushComputeBlockMethod(table_inst2);
 
         // -- copy the stored samples to the delay line
-        fContainer->getCurLoop()->pushComputePreDSPMethod(generateCopyArray(buf, pmem, delay));
+        pushComputePreDSPMethod(generateCopyArray(buf, pmem, delay));
 
         // -- compute the new samples
-        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex(), exp));
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex(), exp));
 
         // -- copy back to stored samples
-        fContainer->getCurLoop()->pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay));
+        pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay));
 
         // Set desired variable access
         var_access = Address::kStack;
@@ -481,28 +481,28 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         string idx_save = subst("$0_idx_save", vname);
 
         // allocate permanent storage for delayed samples
-        fContainer->pushInitMethod(generateInitArray(vname, ctype, delay));
-        fContainer->pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
-        fContainer->pushDeclare(InstBuilder::genDecStructVar(idx_save, InstBuilder::genBasicTyped(Typed::kInt)));
+        pushInitMethod(generateInitArray(vname, ctype, delay));
+        pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
+        pushDeclare(InstBuilder::genDecStructVar(idx_save, InstBuilder::genBasicTyped(Typed::kInt)));
 
         // init permanent memory
-        fContainer->pushInitMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));
-        fContainer->pushInitMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genIntNumInst(0)));
+        pushInitMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));
+        pushInitMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genIntNumInst(0)));
 
         // -- update index
         ValueInst* index1 = InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadStructVar(idx), InstBuilder::genLoadStructVar(idx_save));
         ValueInst* index2 = InstBuilder::genBinopInst(kAND, index1, InstBuilder::genIntNumInst(delay-1));
 
-        fContainer->getCurLoop()->pushComputePreDSPMethod(InstBuilder::genStoreStructVar(idx, index2));
+        pushComputePreDSPMethod(InstBuilder::genStoreStructVar(idx, index2));
 
         // -- compute the new samples
         ValueInst* index3 = InstBuilder::genBinopInst(kAdd, fContainer->getCurLoop()->getLoopIndex(), InstBuilder::genLoadStructVar(idx));
         ValueInst* index4 = InstBuilder::genBinopInst(kAND, index3, InstBuilder::genIntNumInst(delay-1));
 
-        fContainer->getCurLoop()->pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));
 
         // -- save index
-        fContainer->getCurLoop()->pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genLoadStackVar("count")));
+        pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genLoadStackVar("count")));
 
         // Set desired variable access
         var_access = Address::kStruct;

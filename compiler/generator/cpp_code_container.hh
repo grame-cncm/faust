@@ -48,12 +48,14 @@ class CPPCodeContainer : public CodeContainer {
         string fKlassName;
         string fSuperKlassName;
 
+        void produceInfoFunctions(int tabs, bool isVirtual);
+        void produceMetadata(int tabs);
+        void produceInit(int tabs);
+
     public:
 
         CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
-        {}
-        virtual ~CPPCodeContainer()
         {}
 
         virtual void produceClass();
