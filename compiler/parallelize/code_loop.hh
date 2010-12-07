@@ -133,9 +133,6 @@ class CodeLoop {
             fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}
 
-        virtual ~CodeLoop()
-        {}
-
         StatementInst* pushComputePreDSPMethod(StatementInst* inst) { fPreInst->pushBackInst(inst); return inst; }
         StatementInst* pushComputeDSPMethod(StatementInst* inst) { fComputeInst->pushBackInst(inst); return inst; }
         StatementInst* pushComputePostDSPMethod(StatementInst* inst) { fPostInst->pushBackInst(inst); return inst;}
