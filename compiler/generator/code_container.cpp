@@ -245,9 +245,9 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         if (arg1->fNum == 0) {
              block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(1)));
         } else {
-            ValueInst* res = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("value", Address::kFunArgs));
+            ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
             for (int i= 0; i < arg1->fNum - 1; i++) {
-                res = InstBuilder::genBinopInst(kMul, res, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("value", Address::kFunArgs)));
+                res = InstBuilder::genBinopInst(kMul, res, InstBuilder::genLoadFunArgsVar("value"));
             }
             block->pushBackInst(InstBuilder::genRetInst(res));
         }
@@ -668,13 +668,13 @@ void CodeContainer::generateDAGLoopWSSAux2(BlockInst* loop_code, bool obj)
 void CodeContainer::generateDAGLoopWSSAux3()
 {
     // Needed in the struct
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)), InstBuilder::genBasicTyped(Typed::kInt)));
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fFullcount", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fStaticNumThreads", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fDynamicNumThreads", Address::kStruct), InstBuilder::genBasicTyped(Typed::kInt)));
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fThreadPool", Address::kStruct), InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct), InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
-    pushDeclare(InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("fTaskQueueTable", Address::kStruct), InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kVoid_ptr), 16)));
+    pushDeclare(InstBuilder::genDecVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genBasicTyped(Typed::kInt)));
+    pushDeclare(InstBuilder::genDecStructVar("fFullcount", InstBuilder::genBasicTyped(Typed::kInt)));
+    pushDeclare(InstBuilder::genDecStructVar("fStaticNumThreads", InstBuilder::genBasicTyped(Typed::kInt)));
+    pushDeclare(InstBuilder::genDecStructVar("fDynamicNumThreads", InstBuilder::genBasicTyped(Typed::kInt)));
+    pushDeclare(InstBuilder::genDecStructVar("fThreadPool", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
+    pushDeclare(InstBuilder::genDecStructVar("fTaskGraph", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
+    pushDeclare(InstBuilder::genDecStructVar("fTaskQueueTable", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kVoid_ptr), 16)));
 
     // Scheduler prototypes declaration
     pushGlobalDeclare(InstBuilder::genLabelInst("#ifdef __cplusplus"));
@@ -714,14 +714,10 @@ void CodeContainer::generateDAGLoopWSSAux3()
 
     // Specific init instructions
     list<ValueInst*> fun_args;
-    pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fStaticNumThreads", Address::kStruct),
-        InstBuilder::genFunCallInst("getStaticThreadsNum", fun_args)));
-     pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fDynamicNumThreads", Address::kStruct),
-        InstBuilder::genFunCallInst("getDynamicThreadsNum", fun_args)));
-    pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fThreadPool", Address::kStruct),
-        InstBuilder::genFunCallInst("createThreadPool", fun_args)));
-    pushInitMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct),
-        InstBuilder::genFunCallInst("createTaskGraph", fun_args)));
+    pushInitMethod(InstBuilder::genStoreStructVar("fStaticNumThreads", InstBuilder::genFunCallInst("getStaticThreadsNum", fun_args)));
+    pushInitMethod(InstBuilder::genStoreStructVar("fDynamicNumThreads", InstBuilder::genFunCallInst("getDynamicThreadsNum", fun_args)));
+    pushInitMethod(InstBuilder::genStoreStructVar("fThreadPool",InstBuilder::genFunCallInst("createThreadPool", fun_args)));
+    pushInitMethod(InstBuilder::genStoreStructVar("fTaskGraph",InstBuilder::genFunCallInst("createTaskGraph", fun_args)));
 
     pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("initTaskQueue", fun_args)));
 
@@ -732,26 +728,24 @@ void CodeContainer::generateDAGLoopWSSAux3()
     list<StatementInst*> code1;
     list<ValueInst*> fun_args1;
     fun_args1.push_back(InstBuilder::genLoadLoopVar("i"));
-    code1.push_back(InstBuilder::genStoreVarInst(InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress("fTaskQueueTable", Address::kStruct),
-        InstBuilder::genLoadLoopVar("i")),
-        InstBuilder::genFunCallInst("createTaskQueue", fun_args1)));
+    code1.push_back(InstBuilder::genStoreArrayStructVar("fTaskQueueTable", InstBuilder::genLoadLoopVar("i"), InstBuilder::genFunCallInst("createTaskQueue", fun_args1)));
 
     pushInitMethod(InstBuilder::genForLoopInst(init_loop1, end_loop1, inc_loop1, InstBuilder::genBlockInst(code1)));
 
     list<ValueInst*> fun_args2;
-    fun_args2.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fThreadPool", Address::kStruct)));
-    fun_args2.push_back(InstBuilder::genBinopInst(kSub, InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fStaticNumThreads", Address::kStruct)), InstBuilder::genIntNumInst(1)));
+    fun_args2.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
+    fun_args2.push_back(InstBuilder::genBinopInst(kSub, InstBuilder::genLoadStructVar("fStaticNumThreads"), InstBuilder::genIntNumInst(1)));
     pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("startAll", fun_args2)));
 
     // Specific destroy instructions
     list<ValueInst*> fun_args3;
-    fun_args3.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fThreadPool", Address::kStruct)));
+    fun_args3.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
     pushDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("deleteThreadPool", fun_args3)));
     list<ValueInst*> fun_args4;
-    fun_args4.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fTaskGraph", Address::kStruct)));
+    fun_args4.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
     pushDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("deleteTaskGraph", fun_args4)));
 
-    StatementInst* init_loop2 = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("i", Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    StatementInst* init_loop2 = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* end_loop2 = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
     StoreVarInst* inc_loop2 = InstBuilder::genStoreLoopVar("i", InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
 

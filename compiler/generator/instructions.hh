@@ -1643,6 +1643,11 @@ struct InstBuilder
 
     // Helper build methods
 
+    static DeclareVarInst* genDecVar(string vname, Address::AccessType var_access, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, var_access), type, exp);
+    }
+
     static LoadVarInst* genLoadVar(string vname, Address::AccessType var_access)
     {
         return genLoadVarInst(genNamedAddress(vname, var_access));
