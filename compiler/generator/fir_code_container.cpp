@@ -91,20 +91,29 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* 
     }
 }
 
-
-void FirScalarCodeContainer::dump(ostream* dst)
+void FirCodeContainer::dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst)
 {
-    FIRInstVisitor firvisitor(dst);
-    dumpGlobalsAndInit(firvisitor, dst);
-
-    // Current loop
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute Block ==========" << std::endl;
         *dst << std::endl;
         fComputeBlockInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
+}
 
+void FirCodeContainer::dump(ostream* dst)
+{
+    prepareDump();
+
+    FIRInstVisitor firvisitor(dst);
+    dumpGlobalsAndInit(firvisitor, dst);
+    dumpThread(firvisitor, dst);
+    dumpComputeBlock(firvisitor, dst);
+    dumpCompute(firvisitor, dst);
+}
+
+void FirScalarCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
+{
     *dst << "======= Compute DSP ==========" << std::endl;
     *dst << std::endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
@@ -112,23 +121,8 @@ void FirScalarCodeContainer::dump(ostream* dst)
     *dst << std::endl;
 }
 
-void FirVectorCodeContainer::dump(ostream* dst)
+void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
-    FIRInstVisitor firvisitor(dst);
-    dumpGlobalsAndInit(firvisitor, dst);
-
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
-
-    // Current loop
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *dst << "======= Compute Block ==========" << std::endl;
-        *dst << std::endl;
-        fComputeBlockInstructions->accept(&firvisitor);
-        *dst << std::endl;
-    }
-
-
     // Prepare global loop
     StatementInst* block;
     if (gVectorLoopVariant == 0) {
@@ -152,22 +146,15 @@ void FirVectorCodeContainer::dump(ostream* dst)
     }
 }
 
-void FirOpenMPCodeContainer::dump(ostream* dst)
+void FirVectorCodeContainer::prepareDump()
 {
-    FIRInstVisitor firvisitor(dst);
-    dumpGlobalsAndInit(firvisitor, dst);
-
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);
+}
 
-    // Current loop
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *dst << "======= Compute Block ==========" << std::endl;
-        *dst << std::endl;
-        fComputeBlockInstructions->accept(&firvisitor);
-        *dst << std::endl;
-    }
 
+void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
+{
     // Prepare global loop
     StatementInst* block = generateDAGLoopOMP();
 
@@ -184,10 +171,35 @@ void FirOpenMPCodeContainer::dump(ostream* dst)
     }
 }
 
-void FirWorkStealingCodeContainer::dump(ostream* dst)
+void FirOpenMPCodeContainer::prepareDump()
 {
-    FIRInstVisitor firvisitor(dst);
-    dumpGlobalsAndInit(firvisitor, dst);
+    // Sort arrays to be at the begining
+    fComputeBlockInstructions->fCode.sort(sortFunction1);
+}
+
+void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
+{
+    // Possibly generate separated functions
+    if (fComputeFunctions->fCode.size() > 0) {
+        *dst << std::endl;
+        *dst << "======= Separated functions ==========" << std::endl;
+        *dst << std::endl;
+        fComputeFunctions->accept(&firvisitor);
+        *dst << std::endl;
+    }
+}
+
+void FirWorkStealingCodeContainer::prepareDump()
+{
+     // Transform some stack variables in struct variables
+    MoveStack2Struct();
+
+    // Specific init code
+    CodeContainer::generateDAGLoopWSSAux3();
+}
+
+void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor & firvisitor, ostream* dst)
+{
      // Transform some stack variables in struct variables
     MoveStack2Struct();
 
@@ -207,25 +219,9 @@ void FirWorkStealingCodeContainer::dump(ostream* dst)
     block->accept(&firvisitor);
     *dst << std::endl;
 
+    // FIXME: can this be moved to the prepareDump method?
     generateDAGLoopWSSAux2(fComputeBlockInstructions);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);
-
-    // Current loop
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        *dst << "======= Compute Block ==========" << std::endl;
-        *dst << std::endl;
-        fComputeBlockInstructions->accept(&firvisitor);
-        *dst << std::endl;
-    }
-
-    // Possibly generate separated functions
-    if (fComputeFunctions->fCode.size() > 0) {
-        *dst << std::endl;
-        *dst << "======= Separated functions ==========" << std::endl;
-        *dst << std::endl;
-        fComputeFunctions->accept(&firvisitor);
-        *dst << std::endl;
-    }
 }
