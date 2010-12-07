@@ -52,6 +52,97 @@ ForLoopInst* CodeLoop::generateScalarLoop()
     return dynamic_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
+struct VectorCloneVisitor : public BasicCloneVisitor {
+
+    int fSize;
+
+    VectorCloneVisitor(int fize):fSize(fize)
+    {}
+
+    /*
+    virtual Typed* visit(BasicTyped* typed)
+    {
+        BasicCloneVisitor cloner;
+        return new VectorTyped(dynamic_cast<BasicTyped*>(typed->clone(&cloner)), fSize);
+    }
+    */
+
+    virtual ValueInst* visit(LoadVarInst* inst)
+    {
+        if (inst->fAddress->getAccess() != Address::kLoop) {
+            return new LoadVarInst(inst->fAddress->clone(this), fSize);
+        } else
+            return BasicCloneVisitor::visit(inst);
+    }
+
+    virtual ValueInst* visit(LoadVarAddressInst* inst)
+    {
+        if (inst->fAddress->getAccess() != Address::kLoop) {
+            return new LoadVarAddressInst(inst->fAddress->clone(this), fSize);
+        }  else
+            return BasicCloneVisitor::visit(inst);
+    }
+
+    virtual ValueInst* visit(CastNumInst* inst)
+    {
+        ValueInst* cloned_inst = inst->fInst->clone(this);
+
+        // Vector result when argument is vectorized
+        if (cloned_inst->fSize > 1) {
+            return new CastNumInst(cloned_inst, inst->fTyped->clone(this), fSize);
+        }  else
+            return BasicCloneVisitor::visit(inst);
+    }
+
+    virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
+    virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, fSize); }
+    virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, fSize); }
+    virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, fSize); }
+
+    virtual ValueInst* visit(BinopInst* inst)
+    {
+        ValueInst* cloned_inst1 = inst->fInst1->clone(this);
+        ValueInst* cloned_inst2 = inst->fInst2->clone(this);
+
+        // Vector result when both arguments are vectorized
+        if (cloned_inst1->fSize > 1 && cloned_inst2->fSize > 1) {
+            return new BinopInst(inst->fOpcode, cloned_inst1, cloned_inst2, fSize);
+        } else
+            return BasicCloneVisitor::visit(inst);
+    }
+
+    virtual ValueInst* visit(FunCallInst* inst)
+    {
+        list<ValueInst*> cloned_args;
+        bool all_vectorized = true;
+
+        for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
+            ValueInst* cloned_arg = (*it)->clone(this);
+            all_vectorized &= (cloned_arg->fSize > 1);
+            cloned_args.push_back(cloned_arg);
+        }
+
+        // Vector result when all arguments are vectorized
+        if (all_vectorized) {
+            return new FunCallInst(inst->fName, cloned_args, inst->fMethod, fSize);
+        } else
+            return BasicCloneVisitor::visit(inst);
+    }
+
+    virtual ValueInst* visit(Select2Inst* inst)
+    {
+        ValueInst* cloned_inst = inst->fCond->clone(this);
+
+        // Vector result when fCond is vectorized
+        if (cloned_inst->fSize > 1) {
+            return new Select2Inst(cloned_inst, inst->fThen->clone(this), inst->fElse->clone(this), fSize);
+        } else
+            return BasicCloneVisitor::visit(inst);
+    }
+};
+
+
+
 void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
 {
     // TODO
@@ -76,108 +167,6 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
 
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
         block->pushBackInst(loop);
-
-        struct VectorCloneVisitor : public BasicCloneVisitor {
-
-            int fSize;
-
-            VectorCloneVisitor(int fize):fSize(fize)
-            {}
-
-            /*
-            virtual Typed* visit(BasicTyped* typed)
-            {
-                BasicCloneVisitor cloner;
-                return new VectorTyped(dynamic_cast<BasicTyped*>(typed->clone(&cloner)), fSize);
-            }
-            */
-
-            virtual ValueInst* visit(LoadVarInst* inst)
-            {
-                if (inst->fAddress->getAccess() != Address::kLoop) {
-                    return new LoadVarInst(inst->fAddress->clone(this), fSize);
-                } else {
-                    BasicCloneVisitor cloner;
-                    return inst->clone(&cloner);
-                }
-            }
-
-            virtual ValueInst* visit(LoadVarAddressInst* inst)
-            {
-                if (inst->fAddress->getAccess() != Address::kLoop) {
-                    return new LoadVarAddressInst(inst->fAddress->clone(this), fSize);
-                } else {
-                    BasicCloneVisitor cloner;
-                    return inst->clone(&cloner);
-                }
-            }
-
-            virtual ValueInst* visit(CastNumInst* inst)
-            {
-                ValueInst* cloned_inst = inst->fInst->clone(this);
-
-                // Vector result when argument is vectorized
-                if (cloned_inst->fSize > 1) {
-                    return new CastNumInst(cloned_inst, inst->fTyped->clone(this), fSize);
-                } else {
-                    BasicCloneVisitor cloner;
-                    return inst->clone(&cloner);
-                }
-            }
-
-            virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
-            virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, fSize); }
-            virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, fSize); }
-            virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, fSize); }
-
-            virtual ValueInst* visit(BinopInst* inst)
-            {
-                ValueInst* cloned_inst1 = inst->fInst1->clone(this);
-                ValueInst* cloned_inst2 = inst->fInst2->clone(this);
-
-                // Vector result when both arguments are vectorized
-                if (cloned_inst1->fSize > 1 && cloned_inst2->fSize > 1) {
-                    return new BinopInst(inst->fOpcode, cloned_inst1, cloned_inst2, fSize);
-                } else {
-                    BasicCloneVisitor cloner;
-                    return inst->clone(&cloner);
-                }
-            }
-
-            virtual ValueInst* visit(FunCallInst* inst)
-            {
-                list<ValueInst*> cloned_args;
-                bool all_vectorized = true;
-
-                for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
-                    ValueInst* cloned_arg = (*it)->clone(this);
-                    all_vectorized &= (cloned_arg->fSize > 1);
-                    cloned_args.push_back(cloned_arg);
-                }
-
-                // Vector result when all arguments are vectorized
-                if (all_vectorized) {
-                    return new FunCallInst(inst->fName, cloned_args, inst->fMethod, fSize);
-                } else {
-                    BasicCloneVisitor cloner;
-                    return inst->clone(&cloner);
-                }
-            }
-
-            virtual ValueInst* visit(Select2Inst* inst)
-            {
-                ValueInst* cloned_inst = inst->fCond->clone(this);
-
-                // Vector result when fCond is vectorized
-                if (cloned_inst->fSize > 1) {
-                    return new Select2Inst(cloned_inst, inst->fThen->clone(this), inst->fElse->clone(this), fSize);
-                } else {
-                    BasicCloneVisitor cloner;
-                    return inst->clone(&cloner);
-                }
-            }
-
-        };
 
         VectorCloneVisitor vector_cloner(size);
         BlockInst* cloned = dynamic_cast<BlockInst*>(fComputeInst->clone(&vector_cloner));
