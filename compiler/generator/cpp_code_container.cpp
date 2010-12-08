@@ -132,10 +132,9 @@ void CPPCodeContainer::produceInternal()
 
     // Global declarations
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "class " << fKlassName << " {";
 
@@ -150,14 +149,8 @@ void CPPCodeContainer::produceInternal()
         tab(n+1, *fOut);
 
         // Fields
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "  public:";
 
@@ -166,11 +159,9 @@ void CPPCodeContainer::produceInternal()
         // Inits
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
-            if (fInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
@@ -182,9 +173,7 @@ void CPPCodeContainer::produceInternal()
         }
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
-        if (fComputeBlockInstructions->fCode.size() > 0) {
-            fComputeBlockInstructions->accept(&fCodeProducer);
-        }
+        generateComputeBlock(&fCodeProducer);
         ForLoopInst* loop = fCurLoop->generateScalarLoop();
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
@@ -218,10 +207,8 @@ void CPPCodeContainer::produceClass()
 
     // Global declarations
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
@@ -235,15 +222,9 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);
 
         // Fields
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-            tab(n+1, *fOut);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        tab(n+1, *fOut);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "  public:";
 
@@ -256,11 +237,10 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}" << endl;
 
         tab(n+1, *fOut); *fOut << "void destroy() {";
-            if (fDestroyInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fDestroyInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateDestroy(&fCodeProducer);
+
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
@@ -269,20 +249,16 @@ void CPPCodeContainer::produceClass()
         // Inits
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
-            if (fStaticInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fStaticInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
-            if (fInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -291,11 +267,9 @@ void CPPCodeContainer::produceClass()
         // User interface
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual void buildUserInterface(UI* interface) {";
-            if (fUserInterfaceInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fUserInterfaceInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateUserInterface(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         // Compute
@@ -305,9 +279,7 @@ void CPPCodeContainer::produceClass()
         // Possibly generate separated functions
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
-        if (fComputeFunctions->fCode.size() > 0) {
-            fComputeFunctions->accept(&fCodeProducer);
-        }
+        generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};\n" << endl;
 
@@ -343,7 +315,7 @@ void CPPScalarCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
@@ -372,7 +344,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Prepare global loop
     StatementInst* block = NULL;
@@ -420,7 +392,7 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Prepare global loop
     StatementInst* block = generateDAGLoopOMP();
@@ -485,7 +457,7 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}" << endl;
 
@@ -537,14 +509,8 @@ void CPPOpenCLCodeContainer::produceInternal()
         tab(n+1, *fOut);
 
         // Fields
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "  public:";
 
@@ -555,11 +521,9 @@ void CPPOpenCLCodeContainer::produceInternal()
         // Inits
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
-            if (fInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
@@ -567,9 +531,7 @@ void CPPOpenCLCodeContainer::produceInternal()
         tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
-        if (fComputeBlockInstructions->fCode.size() > 0) {
-            fComputeBlockInstructions->accept(&fCodeProducer);
-        }
+        generateComputeBlock(&fCodeProducer);
         ForLoopInst* loop = fCurLoop->generateScalarLoop();
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
@@ -609,10 +571,8 @@ void CPPOpenCLCodeContainer::produceClass()
 
     // Functions
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     // Sort arrays to be at the begining
     fDeclarationInstructions->fCode.sort(sortFunction1);
@@ -1104,9 +1064,7 @@ void CPPOpenCLCodeContainer::produceClass()
         // Possibly generate separated functions
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
-        if (fComputeFunctions->fCode.size() > 0) {
-            fComputeFunctions->accept(&fCodeProducer);
-        }
+        generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};" << endl;
 
@@ -1174,7 +1132,7 @@ void CPPOpenCLCodeContainer::generateComputeKernel(int n)
     tab1(n+1, *fGPUOut);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(fKernelCodeProducer);
+    generateComputeBlock(fKernelCodeProducer);
 
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
@@ -1302,14 +1260,8 @@ void CPPCUDACodeContainer::produceInternal()
         tab(n+1, *fOut);
 
         // Fields
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "  public:";
 
@@ -1319,11 +1271,9 @@ void CPPCUDACodeContainer::produceInternal()
         // Inits
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
-            if (fInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
@@ -1331,9 +1281,7 @@ void CPPCUDACodeContainer::produceInternal()
         tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
-        if (fComputeBlockInstructions->fCode.size() > 0) {
-            fComputeBlockInstructions->accept(&fCodeProducer);
-        }
+        generateComputeBlock(&fCodeProducer);
         ForLoopInst* loop = fCurLoop->generateScalarLoop();
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
@@ -1422,10 +1370,8 @@ void CPPCUDACodeContainer::produceClass()
 
     // Functions
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     // Sort arrays to be at the begining
     fDeclarationInstructions->fCode.sort(sortFunction1);
@@ -1779,11 +1725,9 @@ void CPPCUDACodeContainer::produceClass()
 
 
     tab(n+1, *fOut); *fOut << "void destroy() {";
-            if (fDestroyInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fDestroyInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateDestroy(&fCodeProducer);
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
@@ -1792,11 +1736,9 @@ void CPPCUDACodeContainer::produceClass()
         // Inits
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
-            if (fStaticInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fStaticInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -1833,9 +1775,7 @@ void CPPCUDACodeContainer::produceClass()
         // Possibly generate separated functions
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
-        if (fComputeFunctions->fCode.size() > 0) {
-            fComputeFunctions->accept(&fCodeProducer);
-        }
+        generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};" << endl;
 
@@ -1903,7 +1843,7 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
     tab(n+1, *fGPUOut);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(fKernelCodeProducer);
+    generateComputeBlock(fKernelCodeProducer);
 
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop();

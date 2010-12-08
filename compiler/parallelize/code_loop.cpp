@@ -141,8 +141,6 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
     }
 };
 
-
-
 void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
 {
     // TODO

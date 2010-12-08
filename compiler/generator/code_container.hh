@@ -63,8 +63,8 @@ class CodeContainer {
 
         list <CodeContainer*> fSubContainers;
 
-        const int fNumInputs;
-        const int fNumOutputs;
+        int fNumInputs;
+        int fNumOutputs;
         vector<int> fInputRates;
         vector<int> fOutputRates;
 
@@ -174,8 +174,15 @@ class CodeContainer {
 
         int	inputs() 	{ return fNumInputs; }
         int outputs()	{ return fNumOutputs; }
+
+        void setInputs(int inputs)      { fNumInputs = inputs; }
+        void setOutputs(int outputs)    { fNumOutputs = outputs; }
+
         void setInputRate(int channel, int rate) { fInputRates[channel] = rate;}
         void setOutputRate(int channel, int rate) { fOutputRates[channel] = rate;}
+
+        int getInputRate(int channel) { return fInputRates[channel];}
+        int getOutputRate(int channel) { return fOutputRates[channel];}
 
         void addSubContainer(CodeContainer* container) { fSubContainers.push_back(container); }
 
@@ -212,6 +219,64 @@ class CodeContainer {
         }
 
         ValueInst* pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args);
+
+        void generateGlobalDeclarations(InstVisitor* visitor)
+        {
+            if (fGlobalDeclarationInstructions->fCode.size() > 0) {
+                fGlobalDeclarationInstructions->accept(visitor);
+            }
+        }
+
+        void generateDeclarations(InstVisitor* visitor)
+        {
+           if (fDeclarationInstructions->fCode.size() > 0) {
+                // Sort arrays to be at the begining
+                fDeclarationInstructions->fCode.sort(sortFunction1);
+                fDeclarationInstructions->accept(visitor);
+            }
+        }
+
+        void generateInit(InstVisitor* visitor)
+        {
+            if (fInitInstructions->fCode.size() > 0) {
+                fInitInstructions->accept(visitor);
+            }
+        }
+
+        void generateStaticInit(InstVisitor* visitor)
+        {
+            if (fStaticInitInstructions->fCode.size() > 0) {
+                fStaticInitInstructions->accept(visitor);
+            }
+        }
+
+        void generateUserInterface(InstVisitor* visitor)
+        {
+            if (fUserInterfaceInstructions->fCode.size() > 0) {
+                fUserInterfaceInstructions->accept(visitor);
+            }
+        }
+
+        void generateComputeFunctions(InstVisitor* visitor)
+        {
+            if (fComputeFunctions->fCode.size() > 0) {
+                fComputeFunctions->accept(visitor);
+            }
+        }
+
+        void generateComputeBlock(InstVisitor* visitor)
+        {
+            if (fComputeBlockInstructions->fCode.size() > 0) {
+                fComputeBlockInstructions->accept(visitor);
+            }
+        }
+
+        void generateDestroy(InstVisitor* visitor)
+        {
+            if (fDestroyInstructions->fCode.size() > 0) {
+                fDestroyInstructions->accept(visitor);
+            }
+        }
 
         StatementInst* pushInitMethod(StatementInst* inst) { fInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushFrontInitMethod(StatementInst* inst) { fInitInstructions->pushFrontInst(inst); return inst; }
