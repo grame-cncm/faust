@@ -302,7 +302,7 @@ void JAVAScalarCodeContainer::generateCompute(int n)
 
 // Vector
 JAVAVectorCodeContainer::JAVAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :JAVACodeContainer(name, super, numInputs, numOutputs, out)
+    :VectorCodeContainer(numInputs, numOutputs), JAVACodeContainer(name, super, numInputs, numOutputs, out)
 {}
 
 JAVAVectorCodeContainer::~JAVAVectorCodeContainer()

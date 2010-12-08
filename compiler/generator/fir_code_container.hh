@@ -33,6 +33,7 @@
 #include "code_container.hh"
 #include "fir_instructions.hh"
 
+#include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
@@ -71,10 +72,10 @@ private:
     virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 };
 
-class FirVectorCodeContainer : public FirCodeContainer {
+class FirVectorCodeContainer : public VectorCodeContainer, public FirCodeContainer {
 public:
     FirVectorCodeContainer(int numInputs, int numOutputs)
-        :FirCodeContainer(numInputs, numOutputs)
+        :VectorCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
     {}
 
 private:

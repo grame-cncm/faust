@@ -326,7 +326,7 @@ void CPPScalarCodeContainer::generateCompute(int n)
 
 // Vector
 CPPVectorCodeContainer::CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :CPPCodeContainer(name, super, numInputs, numOutputs, out)
+    :VectorCodeContainer(numInputs, numOutputs), CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {}
 
 CPPVectorCodeContainer::~CPPVectorCodeContainer()

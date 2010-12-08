@@ -34,6 +34,7 @@
 #include "code_container.hh"
 #include "java_instructions.hh"
 
+#include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
@@ -72,7 +73,6 @@ class JAVAScalarCodeContainer : public JAVACodeContainer {
 
     protected:
 
-
     public:
 
         JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
@@ -82,10 +82,9 @@ class JAVAScalarCodeContainer : public JAVACodeContainer {
 
 };
 
-class JAVAVectorCodeContainer : public JAVACodeContainer {
+class JAVAVectorCodeContainer : public VectorCodeContainer, public JAVACodeContainer {
 
     protected:
-
 
     public:
 
@@ -96,11 +95,9 @@ class JAVAVectorCodeContainer : public JAVACodeContainer {
 
 };
 
-
 class JAVAOpenMPCodeContainer : public OpenMPCodeContainer, public JAVACodeContainer {
 
     protected:
-
 
     public:
 

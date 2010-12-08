@@ -312,9 +312,6 @@ class CodeContainer {
         virtual void dump() {}
         virtual void dump(ostream* dst) {}
 
-        StatementInst* generateDAGLoopVariant0();
-        StatementInst* generateDAGLoopVariant1();
-
         void MoveStackSlow2Struct()
         {
             // Analysis to promote stack "slow" variables to struct variables

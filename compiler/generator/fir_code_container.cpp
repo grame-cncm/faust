@@ -152,7 +152,6 @@ void FirVectorCodeContainer::prepareDump()
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 }
 
-
 void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
     // Prepare global loop

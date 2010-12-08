@@ -33,6 +33,7 @@
 #include "code_container.hh"
 #include "c_instructions.hh"
 
+#include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
@@ -70,7 +71,6 @@ class CScalarCodeContainer : public CCodeContainer {
 
     protected:
 
-
     public:
 
         CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, const string& prefix = "");
@@ -80,10 +80,9 @@ class CScalarCodeContainer : public CCodeContainer {
 
 };
 
-class CVectorCodeContainer : public CCodeContainer {
+class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
 
     protected:
-
 
     public:
 
@@ -98,7 +97,6 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
 
     protected:
 
-
     public:
 
         COpenMPCodeContainer(const string& name,int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
@@ -111,7 +109,6 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
 class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContainer {
 
     protected:
-
 
     public:
 

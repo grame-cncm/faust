@@ -38,11 +38,6 @@
 
 using namespace std;
 
-extern bool gOpenMPLoop;
-extern bool gDeepFirstSwitch;
-extern bool gFunTaskSwitch;
-extern bool gDSPStruct;
-
 void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread)
 {
     // Compute ready tasks list

@@ -39,9 +39,6 @@
 using namespace std;
 
 extern bool gOpenMPLoop;
-extern bool gDeepFirstSwitch;
-extern bool gFunTaskSwitch;
-extern bool gDSPStruct;
 
 // LabelInst are used to add OMP directive in the code
 StatementInst* OpenMPCodeContainer::generateDAGLoopOMP()

@@ -35,6 +35,7 @@
 #include "opencl_instructions.hh"
 
 #include "omp_code_container.hh"
+#include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
 extern string gMasterDocument;
@@ -87,10 +88,9 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
 
 };
 
-class CPPVectorCodeContainer : public CPPCodeContainer {
+class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContainer {
 
     protected:
-
 
     public:
 

@@ -272,7 +272,7 @@ void CScalarCodeContainer::generateCompute(int n)
 
 // Vector
 CVectorCodeContainer::CVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
-    :CCodeContainer(name, numInputs, numOutputs, out, prefix)
+    :VectorCodeContainer(numInputs, numOutputs), CCodeContainer(name, numInputs, numOutputs, out, prefix)
 {}
 
 CVectorCodeContainer::~CVectorCodeContainer()

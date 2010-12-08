@@ -516,7 +516,7 @@ void LLVMScalarCodeContainer::generateCompute()
 
 // Vector
 LLVMVectorCodeContainer::LLVMVectorCodeContainer(int numInputs, int numOutputs, const string& prefix)
-    :LLVMCodeContainer(numInputs, numOutputs, prefix)
+    :VectorCodeContainer(numInputs, numOutputs), LLVMCodeContainer(numInputs, numOutputs, prefix)
 {}
 
 LLVMVectorCodeContainer::~LLVMVectorCodeContainer()
