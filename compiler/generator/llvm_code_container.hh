@@ -34,6 +34,7 @@
 #include "code_container.hh"
 #include "llvm_instructions.hh"
 
+#include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
 #include <llvm/System/Host.h>
@@ -189,7 +190,7 @@ class LLVMVectorCodeContainer : public LLVMCodeContainer {
 
 };
 
-class LLVMOpenMPCodeContainer : public LLVMCodeContainer {
+class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeContainer {
 
     protected:
 

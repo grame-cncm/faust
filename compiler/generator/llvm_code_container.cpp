@@ -552,7 +552,7 @@ void LLVMVectorCodeContainer::generateCompute()
 
 // OpenMP
 LLVMOpenMPCodeContainer::LLVMOpenMPCodeContainer(int numInputs, int numOutputs, const string& prefix)
-    :LLVMCodeContainer(numInputs, numOutputs, prefix)
+    :OpenMPCodeContainer(numInputs, numOutputs), LLVMCodeContainer(numInputs, numOutputs, prefix)
 {}
 
 LLVMOpenMPCodeContainer::~LLVMOpenMPCodeContainer()

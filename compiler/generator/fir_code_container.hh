@@ -33,6 +33,7 @@
 #include "code_container.hh"
 #include "fir_instructions.hh"
 
+#include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
 using namespace std;
@@ -81,11 +82,11 @@ private:
     virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 };
 
-class FirOpenMPCodeContainer : public FirCodeContainer {
+class FirOpenMPCodeContainer : public OpenMPCodeContainer, public FirCodeContainer {
 public:
 
     FirOpenMPCodeContainer(int numInputs, int numOutputs)
-        :FirCodeContainer(numInputs, numOutputs)
+        :OpenMPCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
     {}
 
 private:

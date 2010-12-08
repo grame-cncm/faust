@@ -34,6 +34,7 @@
 #include "code_container.hh"
 #include "java_instructions.hh"
 
+#include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
 using namespace std;
@@ -96,7 +97,7 @@ class JAVAVectorCodeContainer : public JAVACodeContainer {
 };
 
 
-class JAVAOpenMPCodeContainer : public JAVACodeContainer {
+class JAVAOpenMPCodeContainer : public OpenMPCodeContainer, public JAVACodeContainer {
 
     protected:
 

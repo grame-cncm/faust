@@ -314,7 +314,6 @@ class CodeContainer {
 
         StatementInst* generateDAGLoopVariant0();
         StatementInst* generateDAGLoopVariant1();
-        StatementInst* generateDAGLoopOMP();
 
         void MoveStackSlow2Struct()
         {

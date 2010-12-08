@@ -339,7 +339,7 @@ void JAVAVectorCodeContainer::generateCompute(int n)
 
 // OpenMP
 JAVAOpenMPCodeContainer::JAVAOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :JAVACodeContainer(name, super, numInputs, numOutputs, out)
+    :OpenMPCodeContainer( numInputs, numOutputs), JAVACodeContainer(name, super, numInputs, numOutputs, out)
 {}
 
 JAVAOpenMPCodeContainer::~JAVAOpenMPCodeContainer()

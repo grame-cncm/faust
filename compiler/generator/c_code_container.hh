@@ -33,6 +33,7 @@
 #include "code_container.hh"
 #include "c_instructions.hh"
 
+#include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
 using namespace std;
@@ -93,7 +94,7 @@ class CVectorCodeContainer : public CCodeContainer {
 
 };
 
-class COpenMPCodeContainer : public CCodeContainer {
+class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
 
     protected:
 

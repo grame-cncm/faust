@@ -371,7 +371,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
 
 // OpenMP
 CPPOpenMPCodeContainer::CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :CPPCodeContainer(name, super, numInputs, numOutputs, out)
+    :OpenMPCodeContainer(numInputs, numOutputs), CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {}
 
 CPPOpenMPCodeContainer::~CPPOpenMPCodeContainer()
