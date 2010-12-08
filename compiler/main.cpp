@@ -65,6 +65,7 @@
 #include "dag_instructions_compiler.hh"
 #include "c_code_container.hh"
 #include "cpp_code_container.hh"
+#include "cpp_gpu_code_container.hh"
 #include "java_code_container.hh"
 #include "llvm_code_container.hh"
 #include "fir_code_container.hh"
@@ -299,11 +300,11 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-sch", "--scheduler")) {
 			gSchedulerSwitch = true;
 			i += 1;
-            
+
          } else if (isCmd(argv[i], "-ocl", "--openCL")) {
 			gOpenCLSwitch = true;
 			i += 1;
-            
+
         } else if (isCmd(argv[i], "-cuda", "--CUDA")) {
 			gCUDASwitch = true;
 			i += 1;
@@ -652,7 +653,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             exit(1);
         }
         gDSPStruct = true;
-        
+
         if (gOpenCLSwitch) {
             cerr << "ERROR : OpenCL not supported for LLVM" << endl;
             exit(1);
@@ -685,7 +686,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     } else {
         if (gOutputLang == "c") {
             gDSPStruct = true;
-            
+
             if (gOpenCLSwitch) {
                 cerr << "ERROR : OpenCL not supported for C" << endl;
                 exit(1);
@@ -694,7 +695,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 cerr << "ERROR : CUDA not supported for C" << endl;
                 exit(1);
             }
-            
+
             if (gOpenMPSwitch) {
                 container = new COpenMPCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
             } else if (gSchedulerSwitch) {
@@ -705,7 +706,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, kInt, "c_");
             }
         } else if (gOutputLang == "cpp") {
-            if (gOpenCLSwitch) {   
+            if (gOpenCLSwitch) {
                 if (gFunTaskSwitch) {
                     cerr << "ERROR : -fun not yet supported in OpenCL mode" << endl;
                     exit(1);
@@ -715,7 +716,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 } else {
                     container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
                 }
-            } else if (gCUDASwitch) {   
+            } else if (gCUDASwitch) {
                 if (gFunTaskSwitch) {
                     cerr << "ERROR : -fun not yet supported in CUDA mode" << endl;
                     exit(1);
@@ -735,7 +736,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
             }
         } else if (gOutputLang == "java") {
-        
+
             if (gOpenCLSwitch) {
                 cerr << "ERROR : OpenCL not supported for Java" << endl;
                 exit(1);
@@ -744,7 +745,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 cerr << "ERROR : CUDA not supported for Java" << endl;
                 exit(1);
             }
-            
+
             if (gOpenMPSwitch) {
                 cerr << "ERROR : OpenMP not supported for Java" << endl;
                 exit(1);
@@ -797,14 +798,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                 streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-                
+
                 if (gOpenCLSwitch || gCUDASwitch) {
                     istream* thread_include = open_arch_stream("thread.h");
                     if (thread_include) {
                         streamCopy(*thread_include, *dst);
                     }
                 }
-                
+
                 printfloatdef(*dst);
                 container->produceClass();
                 streamCopyUntilEnd(*enrobage, *dst);
@@ -814,7 +815,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                         streamCopy(*scheduler_include, *dst);
                     }
                 }
-                
+
             } else {
                 cerr << "ERROR : can't open architecture file " << gArchFile << endl;
                 exit(1);
