@@ -51,10 +51,8 @@ void CCodeContainer::produceInternal()
 
     // Global declarations
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "struct " << fPrefix << fStructName << " {";
 
@@ -62,14 +60,8 @@ void CCodeContainer::produceInternal()
         tab(n+1, *fOut);
 
         // Fields
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};";
 
@@ -100,7 +92,7 @@ void CCodeContainer::produceInternal()
         if (fInitInstructions->fCode.size() > 0) {
             tab(n+1, *fOut);
             fCodeProducer.Tab(n+1);
-            fInitInstructions->accept(&fCodeProducer);
+            generateInit(&fCodeProducer);
         }
     tab(n, *fOut); *fOut << "}";
 
@@ -113,11 +105,7 @@ void CCodeContainer::produceInternal()
     }
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
-
-    if (fComputeBlockInstructions->fCode.size() > 0) {
-        fComputeBlockInstructions->accept(&fCodeProducer);
-    }
-
+    generateComputeBlock(&fCodeProducer);
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(&fCodeProducer);
 
@@ -141,10 +129,8 @@ void CCodeContainer::produceClass()
 
     // Functions
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "struct " << fPrefix << fStructName << " {";
 
@@ -152,14 +138,8 @@ void CCodeContainer::produceClass()
         tab(n+1, *fOut);
 
         // Fields
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};";
 
@@ -227,11 +207,9 @@ void CCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << fPrefix << "instanceInit(" << fPrefix << fStructName << "* dsp, int samplingFreq) {";
-        if (fInitInstructions->fCode.size() > 0) {
-            tab(n+1, *fOut);
-            fCodeProducer.Tab(n+1);
-            fInitInstructions->accept(&fCodeProducer);
-        }
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateInit(&fCodeProducer);
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
@@ -243,11 +221,9 @@ void CCodeContainer::produceClass()
     // User interface
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << fPrefix << "buildUserInterface(" << fPrefix << fStructName << "* dsp, UIGlue* interface) {";
-        if (fUserInterfaceInstructions->fCode.size() > 0) {
-            tab(n+1, *fOut);
-            fCodeProducer.Tab(n+1);
-            fUserInterfaceInstructions->accept(&fCodeProducer);
-        }
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateUserInterface(&fCodeProducer);
     tab(n, *fOut); *fOut << "}";
 
     // Compute
@@ -285,7 +261,7 @@ void CScalarCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
@@ -315,9 +291,7 @@ void CVectorCodeContainer::generateCompute(int n)
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
     tab(n, *fOut);
-    if (fComputeFunctions->fCode.size() > 0) {
-        fComputeFunctions->accept(&fCodeProducer);
-    }
+    generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
     tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
@@ -328,7 +302,7 @@ void CVectorCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Generate it
     assert(block);
@@ -350,9 +324,7 @@ void COpenMPCodeContainer::generateCompute(int n)
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
     tab(n, *fOut);
-    if (fComputeFunctions->fCode.size() > 0) {
-        fComputeFunctions->accept(&fCodeProducer);
-    }
+    generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
     tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
@@ -366,7 +338,7 @@ void COpenMPCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Generate it
     assert(block);
@@ -410,9 +382,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
     tab(n, *fOut);
-    if (fComputeFunctions->fCode.size() > 0) {
-        fComputeFunctions->accept(&fCodeProducer);
-    }
+    generateComputeFunctions(&fCodeProducer);
 
     // Generates "computeThread" code
     tab(n, *fOut); *fOut << "void computeThread(" << fPrefix << fStructName << "* dsp, int num_thread) {";
@@ -435,12 +405,11 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 
     tab(n, *fOut); *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
         tab(n+1, *fOut); *fOut << "computeThread((" << fPrefix << fStructName << "*)dsp, num_thread);";
     tab(n, *fOut); *fOut << "}" << endl;
-
 }
