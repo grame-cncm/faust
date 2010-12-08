@@ -65,7 +65,7 @@ class LLVMCodeContainer : public CodeContainer {
 
         void generateClassInitBegin();
         void generateClassInitEnd();
-        void generateInit();
+        void generateInitFun();
 
         void generateInstanceInitBegin(int sample_freq_field);
         void generateInstanceInitEnd();

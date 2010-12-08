@@ -125,7 +125,6 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
 
     FunctionType* llvm_compute_type = FunctionType::get(fBuilder->getVoidTy(), llvm_compute_args, false);
 
-
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fPrefix, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
     llvm_compute->setAlignment(2);
@@ -286,7 +285,7 @@ void LLVMCodeContainer::generateDestroyEnd()
     verifyFunction(*llvm_destroy);
 }
 
-void LLVMCodeContainer::generateInit()
+void LLVMCodeContainer::generateInitFun()
 {
     vector<const llvm::Type*> llvm_init_args;
     llvm_init_args.push_back(fDSP_ptr);
@@ -373,9 +372,7 @@ void LLVMCodeContainer::produceInternal()
     LLVMTypeInstVisitor fTypeBuilder(fModule, fPrefix);
 
     // Sort arrays to be at the begining
-    fDeclarationInstructions->fCode.sort(sortFunction1);
-
-    fDeclarationInstructions->accept(&fTypeBuilder);
+    generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
     fDSP_ptr = fTypeBuilder.getDSPType(false);
@@ -395,17 +392,17 @@ void LLVMCodeContainer::produceInternal()
     //}
 
     // Global declarations
-    fExtGlobalDeclarationInstructions->accept(fCodeProducer);
-    fGlobalDeclarationInstructions->accept(fCodeProducer);
+    generateExtGlobalDeclarations(fCodeProducer);
+    generateGlobalDeclarations(fCodeProducer);
 
     generateInstanceInitBegin(fields_names["fSamplingFreq"]);
-    fInitInstructions->accept(fCodeProducer);
+    generateInit(fCodeProducer);
     generateInstanceInitEnd();
 
     // Fill
     generateFillBegin();
 
-    fComputeBlockInstructions->accept(fCodeProducer);
+    generateComputeBlock(fCodeProducer);
 
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
     loop->accept(fCodeProducer);
@@ -428,9 +425,7 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     LLVMTypeInstVisitor1 fTypeBuilder(fModule, fPrefix);
 
     // Sort arrays to be at the begining
-    fDeclarationInstructions->fCode.sort(sortFunction1);
-
-    fDeclarationInstructions->accept(&fTypeBuilder);
+    generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
     fDSP_ptr = fTypeBuilder.getDSPType();
@@ -450,30 +445,30 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     //}
 
     // Global declarations
-    fExtGlobalDeclarationInstructions->accept(fCodeProducer);
-    fGlobalDeclarationInstructions->accept(fCodeProducer);
+    generateExtGlobalDeclarations(fCodeProducer);
+    generateGlobalDeclarations(fCodeProducer);
 
     generateClassInitBegin();
-    fStaticInitInstructions->accept(fCodeProducer);
+    generateStaticInit(fCodeProducer);
     generateClassInitEnd();
 
     generateInstanceInitBegin(fields_names["fSamplingFreq"]);
-    fInitInstructions->accept(fCodeProducer);
+    generateInit(fCodeProducer);
     generateInstanceInitEnd();
 
     generateDestroyBegin();
-    fDestroyInstructions->accept(fCodeProducer);
+    generateDestroy(fCodeProducer);
     generateDestroyEnd();
 
     generateBuildUserInterfaceBegin();
-    fUserInterfaceInstructions->accept(fCodeProducer);
+    generateUserInterface(fCodeProducer);
     generateBuildUserInterfaceEnd();
 
     // Compute
     generateCompute();
 
     // Has to be done *after* generateInstanceInitBegin/generateInstanceInitEnd
-    generateInit();
+    generateInitFun();
 
     if (filename == "") {
         fModule->dump();
@@ -505,7 +500,7 @@ void LLVMScalarCodeContainer::generateCompute()
     generateComputeBegin("count");
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(fCodeProducer);
+    generateComputeBlock(fCodeProducer);
 
     // Optimize Declare/Store/Load for fTemp variables
     ForLoopInst* loop = fCurLoop->generateScalarLoop();
@@ -538,7 +533,7 @@ void LLVMVectorCodeContainer::generateCompute()
     }
 
     // Possibly generate separated functions
-    fComputeFunctions->accept(fCodeProducer);
+    generateComputeFunctions(fCodeProducer);
 
     generateComputeBegin("fullcount");
 
@@ -546,7 +541,7 @@ void LLVMVectorCodeContainer::generateCompute()
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(fCodeProducer);
+    generateComputeBlock(fCodeProducer);
 
     // Generate it
     assert(block);
@@ -847,7 +842,7 @@ void LLVMWorkStealingCodeContainer::generateCompute()
     StatementInst* block = generateDAGLoopWSS(dag);
 
     // Possibly generate separated functions
-    fComputeFunctions->accept(fCodeProducer);
+    generateComputeFunctions(fCodeProducer);
 
     // Generates "computeThread" code
     generateComputeThreadBegin();

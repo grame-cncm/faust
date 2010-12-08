@@ -220,6 +220,13 @@ class CodeContainer {
 
         ValueInst* pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args);
 
+        void generateExtGlobalDeclarations(InstVisitor* visitor)
+        {
+            if (fExtGlobalDeclarationInstructions->fCode.size() > 0) {
+                fExtGlobalDeclarationInstructions->accept(visitor);
+            }
+        }
+
         void generateGlobalDeclarations(InstVisitor* visitor)
         {
             if (fGlobalDeclarationInstructions->fCode.size() > 0) {
