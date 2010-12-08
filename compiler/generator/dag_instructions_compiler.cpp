@@ -183,12 +183,19 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         // "input" use as a name convention
         string name = subst("input$0", T(idx));
         ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(name,
-                                    InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("index"), fContainer->getCurLoop()->getLoopIndex()));
+            InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("index"), fContainer->getCurLoop()->getLoopIndex()));
         // Cast to internal float
         res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
         return generateCacheCode(sig, res);
-     } else
-        InstructionsCompiler::generateInput(sig, idx);
+
+     } else {
+        // "fInput" use as a name convention
+        string name = subst("fInput$0", T(idx));
+        ValueInst* res = InstBuilder::genLoadArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex());
+        // Cast to internal float
+        res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+        return generateCacheCode(sig, res);
+     }
 }
 
 ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
