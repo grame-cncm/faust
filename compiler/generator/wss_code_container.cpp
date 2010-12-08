@@ -27,14 +27,7 @@
 		-----------
 
 ***********************************************************************/
-#include <string>
-#include <list>
-#include <set>
-#include <map>
-#include <vector>
-
 #include "wss_code_container.hh"
-#include "floats.hh"
 
 using namespace std;
 
