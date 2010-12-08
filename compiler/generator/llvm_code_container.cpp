@@ -744,7 +744,7 @@ void LLVMOpenMPCodeContainer::generateOMPDeclarations()
 
 // Works stealing scheduler
 LLVMWorkStealingCodeContainer::LLVMWorkStealingCodeContainer(int numInputs, int numOutputs, const string& prefix)
-    :LLVMCodeContainer(numInputs, numOutputs, prefix)
+    :WSSCodeContainer(numInputs, numOutputs), LLVMCodeContainer(numInputs, numOutputs, prefix)
 {}
 
 LLVMWorkStealingCodeContainer::~LLVMWorkStealingCodeContainer()
@@ -826,7 +826,7 @@ Module* LLVMWorkStealingCodeContainer::produceModule(const string& filename)
     MoveStack2Struct();
 
     // Specific init code
-    CodeContainer::generateDAGLoopWSSAux3();
+    generateDAGLoopWSSAux3();
 
     // Inherited method
     return LLVMCodeContainer::produceModule(filename);

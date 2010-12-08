@@ -34,9 +34,11 @@
 #include "code_container.hh"
 #include "java_instructions.hh"
 
+#include "wss_code_container.hh"
+
 using namespace std;
 
-class JAVACodeContainer : public CodeContainer {
+class JAVACodeContainer : public virtual CodeContainer {
 
     protected:
 
@@ -49,7 +51,10 @@ class JAVACodeContainer : public CodeContainer {
 
         JAVACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
-        {}
+        {
+            fNumInputs = numInputs;
+            fNumOutputs = numOutputs;
+        }
         virtual ~JAVACodeContainer()
         {}
 

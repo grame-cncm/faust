@@ -34,12 +34,14 @@
 #include "cpp_instructions.hh"
 #include "opencl_instructions.hh"
 
+#include "wss_code_container.hh"
+
 extern string gMasterDocument;
 extern string gOutputFile;
 
 using namespace std;
 
-class CPPCodeContainer : public CodeContainer {
+class CPPCodeContainer : public virtual CodeContainer {
 
     protected:
 
@@ -47,6 +49,7 @@ class CPPCodeContainer : public CodeContainer {
         std::ostream* fOut;
         string fKlassName;
         string fSuperKlassName;
+
 
         void produceInfoFunctions(int tabs, bool isVirtual);
         void produceMetadata(int tabs);
@@ -56,7 +59,10 @@ class CPPCodeContainer : public CodeContainer {
 
         CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
-        {}
+        {
+            fNumInputs = numInputs;
+            fNumOutputs = numOutputs;
+        }
 
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
@@ -98,7 +104,6 @@ class CPPOpenMPCodeContainer : public CPPCodeContainer {
 
     protected:
 
-
     public:
 
         CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
@@ -108,10 +113,9 @@ class CPPOpenMPCodeContainer : public CPPCodeContainer {
 
 };
 
-class CPPWorkStealingCodeContainer : public CPPCodeContainer {
+class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeContainer {
 
     protected:
-
 
     public:
 
@@ -352,7 +356,10 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
 
         CPPGPUCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
             :CPPCodeContainer(name, super, numInputs, numOutputs, out)
-        {}
+        {
+            fNumInputs = numInputs;
+            fNumOutputs = numOutputs;
+        }
 
         virtual ~CPPGPUCodeContainer()
         {}
@@ -571,6 +578,8 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
             string filename = gOutputFile + ".cu";
             fGPUOut = new std::ofstream(filename.c_str());
             fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
+            fNumInputs = numInputs;
+            fNumOutputs = numOutputs;
         }
         virtual ~CPPCUDACodeContainer()
         {

@@ -142,6 +142,11 @@ class CodeLoop {
 
         bool isRecursive() { return fIsRecursive; }
 
+        int getIndex() { return fIndex; }
+
+        set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
+        set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
+
         ValueInst* getLoopIndex()
         {
             return InstBuilder::genLoadLoopVar(fLoopIndex);

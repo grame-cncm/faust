@@ -352,7 +352,7 @@ COpenMPCodeContainer::~COpenMPCodeContainer()
 
 // Works stealing scheduler
 CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
-    :CCodeContainer(name, numInputs, numOutputs, out, prefix)
+    :WSSCodeContainer(numInputs, numOutputs), CCodeContainer(name, numInputs, numOutputs, out, prefix)
 {}
 
 CWorkStealingCodeContainer::~CWorkStealingCodeContainer()
@@ -364,7 +364,7 @@ void CWorkStealingCodeContainer::produceClass()
     MoveStack2Struct();
 
     // Specific init code
-    CodeContainer::generateDAGLoopWSSAux3();
+    generateDAGLoopWSSAux3();
 
     // Inherited method
     CCodeContainer::produceClass();
@@ -399,7 +399,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
-    generateDAGLoopWSSAux2(fComputeBlockInstructions);
+    generateDAGLoopWSSAux2(true);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);

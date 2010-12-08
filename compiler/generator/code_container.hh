@@ -84,7 +84,6 @@ class CodeContainer {
 
         // Compute method
         BlockInst* fComputeBlockInstructions;
-        BlockInst* fComputeThreadBlockInstructions;
 
         // Additionnal functions
         BlockInst* fComputeFunctions;
@@ -131,39 +130,10 @@ class CodeContainer {
             merge(S, fLibrarySet);
         }
 
-        void transformDAG(DispatchVisitor* visitor);
-        void computeForwardDAG(lclgraph dag);
-        void sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result);
-
-        void generateLocalInputs(BlockInst* loop_code);
-        void generateLocalOutputs(BlockInst* loop_code);
-
-        void generateDAGLoop(BlockInst* loop_code);
-        void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int loop_num, bool omp = false);
-
-        void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
-        void generateDAGLoopWSSAux2(BlockInst* loop_code, bool obj = true);
-        void generateDAGLoopWSSAux3();
-
-        void createVoidFunction(const string& name);
-        void createFunction0(const string& name, Typed::VarType res);
-        void createFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty);
-        void createFunction2(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty);
-        void createFunction3(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty,
-                                const string& arg3, Typed::VarType arg3_ty);
-        void createFunction4(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty,
-                                const string& arg3, Typed::VarType arg3_ty,
-                                const string& arg4, Typed::VarType arg4_ty);
-
-    public:
+      public:
 
         CodeContainer(int numInputs, int numOutputs);
+        CodeContainer();
         virtual ~CodeContainer();
 
         CodeLoop* getCurLoop() { return fCurLoop; }
@@ -196,6 +166,32 @@ class CodeContainer {
         bool getLoopProperty(Tree sig, CodeLoop*& l);    ///< Returns the loop used to compute a signal
 
         void printGraphDotFormat(ostream& fout);
+
+        void transformDAG(DispatchVisitor* visitor);
+        void computeForwardDAG(lclgraph dag);
+        void sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result);
+
+        void generateLocalInputs(BlockInst* loop_code);
+        void generateLocalOutputs(BlockInst* loop_code);
+
+        void generateDAGLoop(BlockInst* loop_code);
+        void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int loop_num, bool omp = false);
+
+        void createVoidFunction(const string& name);
+        void createFunction0(const string& name, Typed::VarType res);
+        void createFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty);
+        void createFunction2(const string& name, Typed::VarType res,
+                                const string& arg1, Typed::VarType arg1_ty,
+                                const string& arg2, Typed::VarType arg2_ty);
+        void createFunction3(const string& name, Typed::VarType res,
+                                const string& arg1, Typed::VarType arg1_ty,
+                                const string& arg2, Typed::VarType arg2_ty,
+                                const string& arg3, Typed::VarType arg3_ty);
+        void createFunction4(const string& name, Typed::VarType res,
+                                const string& arg1, Typed::VarType arg1_ty,
+                                const string& arg2, Typed::VarType arg2_ty,
+                                const string& arg3, Typed::VarType arg3_ty,
+                                const string& arg4, Typed::VarType arg4_ty);
 
         // Fill code for each method
 
@@ -290,7 +286,6 @@ class CodeContainer {
         StatementInst* pushDestroyMethod(StatementInst* inst) { fDestroyInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushStaticInitMethod(StatementInst* inst) { fStaticInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushComputeBlockMethod(StatementInst* inst) { fComputeBlockInstructions->pushBackInst(inst); return inst; }
-        StatementInst* pushComputeThreadBlockMethod(StatementInst* inst) { fComputeThreadBlockInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }
 
         StatementInst* pushComputePreDSPMethod(StatementInst* inst)     { return fCurLoop->pushComputePreDSPMethod(inst); }
@@ -320,62 +315,6 @@ class CodeContainer {
         StatementInst* generateDAGLoopVariant0();
         StatementInst* generateDAGLoopVariant1();
         StatementInst* generateDAGLoopOMP();
-        StatementInst* generateDAGLoopWSS(lclgraph dag);
-
-        // In fComputeBlockInstructions, move stack array variables as struct variables
-        void MoveStackArray2Struct()
-        {
-            // Analysis to promote stack variables to struct variables
-            struct StackArray2StructAnalyser : public DispatchVisitor {
-
-                CodeContainer* fContainer;
-
-                void visit(DeclareVarInst* inst)
-                {
-                    DispatchVisitor::visit(inst);
-                    ArrayTyped* array_typed;
-                    BasicCloneVisitor cloner;
-                    if (inst->fAddress->getAccess() == Address::kStack && (array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped))) {
-                        if (array_typed->fSize > 0) {
-                            fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
-                        } else {
-                            // Define a special cloner that force access to kStruct
-                            struct StructVarCloneVisitor : public BasicCloneVisitor {
-                                virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, Address::kStruct); }
-                            };
-                            StructVarCloneVisitor cloner1;
-                            // For local thread access (in computeThread)
-                            fContainer->pushComputeThreadBlockMethod(inst->clone(&cloner1));
-                        }
-                        inst->fAddress->setAccess(Address::kLink);
-                    }
-                }
-
-                StackArray2StructAnalyser(CodeContainer* container):fContainer(container)
-                {}
-            };
-
-            struct RemoverCloneVisitor : public BasicCloneVisitor {
-
-                // Rewrite Declare as a no-op (DropInst)
-                StatementInst* visit(DeclareVarInst* inst)
-                {
-                    if (inst->fAddress->getAccess() == Address::kLink) {
-                        return new DropInst();
-                    } else {
-                        return BasicCloneVisitor::visit(inst);
-                    }
-                }
-            };
-
-            // Transform stack array variables in struct variables
-            StackArray2StructAnalyser analyser(this);
-            fComputeBlockInstructions->accept(&analyser);
-
-            // Remove marked variables from fComputeBlockInstructions
-            RemoverCloneVisitor remover;
-            fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
-       }
 
         void MoveStackSlow2Struct()
         {
@@ -474,124 +413,6 @@ class CodeContainer {
             // Rewrite marked variables from fComputeBlockInstructions
             Declare2StoreCloneVisitor cloner;
             fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&cloner));
-       }
-
-        void MoveStack2Struct()
-        {
-            // Analysis to promote stack variables to struct variables
-            struct Stack2StructAnalyser : public DispatchVisitor {
-
-                CodeContainer* fContainer;
-                string fName;
-
-                void visit(DeclareVarInst* inst)
-                {
-                    DispatchVisitor::visit(inst);
-                    BasicCloneVisitor cloner;
-                    if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-
-                        // Variable moved to the Struct
-                        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
-
-                        // For local thread access (in computeThread), rewrite the Declare instruction by a Store
-                        if (inst->fValue)
-                            fContainer->pushComputeThreadBlockMethod(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fValue->clone(&cloner)));
-                        inst->fAddress->setAccess(Address::kLink);
-                    }
-                }
-
-                void visit(NamedAddress* address)
-                {
-                    if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
-                        address->fAccess = Address::kStruct;
-                    }
-                }
-
-                Stack2StructAnalyser(CodeContainer* container, const string& name)
-                    :fContainer(container), fName(name)
-                {}
-            };
-
-            struct Stack2StructAnalyser2 : public DispatchVisitor {
-
-                string fName;
-
-                void visit(NamedAddress* address)
-                {
-                    if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
-                        address->fAccess = Address::kStruct;
-                    }
-                }
-
-                Stack2StructAnalyser2(const string& name):fName(name)
-                {}
-            };
-
-            struct Stack2StructAnalyser3 : public DispatchVisitor {
-
-                CodeContainer* fContainer;
-                string fName;
-
-                void visit(DeclareVarInst* inst)
-                {
-                    DispatchVisitor::visit(inst);
-                    BasicCloneVisitor cloner;
-                    if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-                        // For local thread access (in computeThread)
-                        if (inst->fValue)
-                            fContainer->pushComputeThreadBlockMethod(inst->clone(&cloner));
-                        inst->fAddress->setAccess(Address::kLink);
-                    }
-                }
-
-                Stack2StructAnalyser3(CodeContainer* container, const string& name)
-                    :fContainer(container), fName(name)
-                {}
-            };
-
-            struct RemoverCloneVisitor : public BasicCloneVisitor {
-
-                // Rewrite Declare as a no-op (DropInst)
-                StatementInst* visit(DeclareVarInst* inst)
-                {
-                    if (inst->fAddress->getAccess() == Address::kLink) {
-                        return new DropInst();
-                    } else {
-                        return BasicCloneVisitor::visit(inst);
-                    }
-                }
-            };
-
-            struct VariableMover {
-
-                static void Move(CodeContainer* container, const string& name)
-                {
-                    // Transform stack variables in struct variables
-                    Stack2StructAnalyser analyser1(container, name);
-                    container->fComputeBlockInstructions->accept(&analyser1);
-
-                    Stack2StructAnalyser2 analyser2(name);
-                    container->transformDAG(&analyser2);
-                }
-            };
-
-            // Transform stack variables in struct variables
-            VariableMover::Move(this, "Rec");
-            VariableMover::Move(this, "tmp");
-            VariableMover::Move(this, "Zec");
-            VariableMover::Move(this, "Yec");
-
-            // To move variable in "computeThread"
-            Stack2StructAnalyser3 analyser8(this, "Slow");
-            fComputeBlockInstructions->accept(&analyser8);
-
-            // To move variable in "computeThread"
-            Stack2StructAnalyser3 analyser9(this, "Vec");
-            fComputeBlockInstructions->accept(&analyser9);
-
-            // Remove marked variables from fComputeBlockInstructions
-            RemoverCloneVisitor remover;
-            fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
         }
 
         static bool sortFunction1(StatementInst* a, StatementInst* b);

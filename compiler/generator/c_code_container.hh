@@ -33,9 +33,11 @@
 #include "code_container.hh"
 #include "c_instructions.hh"
 
+#include "wss_code_container.hh"
+
 using namespace std;
 
-class CCodeContainer : public CodeContainer {
+class CCodeContainer : public virtual CodeContainer {
 
     protected:
 
@@ -48,7 +50,10 @@ class CCodeContainer : public CodeContainer {
 
         CCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "")
             :CodeContainer(numInputs, numOutputs), fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
-        {}
+        {
+            fNumInputs = numInputs;
+            fNumOutputs = numOutputs;
+        }
         virtual ~CCodeContainer()
         {}
 
@@ -102,7 +107,7 @@ class COpenMPCodeContainer : public CCodeContainer {
 
 };
 
-class CWorkStealingCodeContainer : public CCodeContainer {
+class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContainer {
 
     protected:
 

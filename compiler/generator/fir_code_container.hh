@@ -33,9 +33,11 @@
 #include "code_container.hh"
 #include "fir_instructions.hh"
 
+#include "wss_code_container.hh"
+
 using namespace std;
 
-class FirCodeContainer : public CodeContainer {
+class FirCodeContainer : public virtual CodeContainer {
 public:
     void dump(ostream* dst);
 
@@ -91,11 +93,11 @@ private:
     virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 };
 
-class FirWorkStealingCodeContainer : public FirCodeContainer {
+class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeContainer {
 public:
 
     FirWorkStealingCodeContainer(int numInputs, int numOutputs)
-        :FirCodeContainer(numInputs, numOutputs)
+        :WSSCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
     {}
 
 private:

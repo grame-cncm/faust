@@ -64,7 +64,7 @@ class InstructionsCompiler {
         Tree fUIRoot;
         Description* fDescription;
         bool fLoadedIota;
-        
+
         string fInputNamePattern;
 
         void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
@@ -95,7 +95,6 @@ class InstructionsCompiler {
         StatementInst* pushDestroyMethod(StatementInst* inst)           { return fContainer->pushDestroyMethod(inst); }
         StatementInst* pushStaticInitMethod(StatementInst* inst)        { return fContainer->pushStaticInitMethod(inst); }
         StatementInst* pushComputeBlockMethod(StatementInst* inst)      { return fContainer->pushComputeBlockMethod(inst); }
-        StatementInst* pushComputeThreadBlockMethod(StatementInst* inst){ return fContainer->pushComputeThreadBlockMethod(inst); }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst)     { return fContainer->pushUserInterfaceMethod(inst); }
 
         StatementInst* pushDeclare(StatementInst* inst)                 { return fContainer->pushDeclare(inst); }
@@ -106,7 +105,7 @@ class InstructionsCompiler {
         StatementInst* pushComputeDSPMethod(StatementInst* inst)        { return fContainer->pushComputeDSPMethod(inst); }
         StatementInst* pushComputePostDSPMethod(StatementInst* inst)    { return fContainer->pushComputePostDSPMethod(inst); }
 
-        
+
         void ensureIotaCode();
 
         int pow2limit(int x)
@@ -125,7 +124,6 @@ class InstructionsCompiler {
         void sharingAnnotation(int vctxt, Tree sig);
         Tree prepare(Tree LS);
         Tree prepare2(Tree L0);
-
 
     public:
 

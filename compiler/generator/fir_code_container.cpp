@@ -195,16 +195,16 @@ void FirWorkStealingCodeContainer::prepareDump()
     MoveStack2Struct();
 
     // Specific init code
-    CodeContainer::generateDAGLoopWSSAux3();
+    generateDAGLoopWSSAux3();
 }
 
-void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor & firvisitor, ostream* dst)
+void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostream* dst)
 {
      // Transform some stack variables in struct variables
     MoveStack2Struct();
 
     // Specific init code
-    CodeContainer::generateDAGLoopWSSAux3();
+    generateDAGLoopWSSAux3();
 
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);
