@@ -810,10 +810,13 @@ with {
   delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
   feedbackmatrix(N) = hadamard(N); // math.lib
 
-  filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) :> *(loopgainmax) / sqrt(N)
+  filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) 
+                         :> *(loopgainmax) / sqrt(N)
   with {
     dur(j) = take(j+1,durs);
-    g(j,i) = (1.0 - 6.91/(SR*dur(j)))^delayval(i);
+    n60(j) = dur(j)*SR; // decay time in samples
+    g(j,i) = exp(-3.0*log(10.0)*delayval(i)/n60(j));
+        // ~ 1.0 - 6.91*delayval(i)/(SR*dur(j)); // valid for large dur(j)
   };
 };
 
@@ -855,6 +858,30 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
   delayvals(i) = prime(i)^ppwr(i); // each delay a power of a distinct prime
 };
 
+//--------------------- stereo_reverb_tester --------------------
+// Handy test inputs for reverberator demos below.
+
+stereo_reverb_tester(revin_group,x,y) = inx,iny with {
+  ck_group(x) = revin_group(vgroup("[1] Input Config",x));
+  mutegain = 1 - ck_group(checkbox("[1] Mute Ext Inputs
+         [tooltip: When this is checked, the stereo external audio inputs are disabled (good for hearing the impulse response or pink-noise response alone)]"));
+  pinkin = ck_group(checkbox("[2] Pink Noise 
+         [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting the EQ sections)]"));
+
+  impulsify = _ <: _,mem : - : >(0);
+  imp_group(x) = revin_group(hgroup("[2] Impulse Selection",x));
+  pulseL =  imp_group(button("[1] Left
+         [tooltip: Send impulse into LEFT channel]")) : impulsify;
+  pulseC =  imp_group(button("[2] Center
+         [tooltip: Send impulse into LEFT and RIGHT channels]")) : impulsify;
+  pulseR =  imp_group(button("[3] Right
+         [tooltip: Send impulse into RIGHT channel]")) : impulsify;
+  
+  inx = x*mutegain + (pulseL+pulseC) + pn;
+  iny = y*mutegain + (pulseR+pulseC) + pn;
+  pn = 0.1*pinkin*component("osc.lib").pink_noise;
+};
+
 //------------------------- fdnrev0_demo ---------------------------
 // USAGE: _,_ : fdnrev0_demo(N,NB,BBSO) : _,_ 
 // WHERE
@@ -868,7 +895,7 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
 //      = order of lowpass/highpass bandsplit used at each crossover freq
 //      = odd positive integer
 
-fdnrev0_demo(N,NB,BBSO) = _,_ : +(pulseL+pulseC),+(pulseR+pulseC)
+fdnrev0_demo(N,NB,BBSO,x,y) = stereo_reverb_tester(revin_group,x,y)
 	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax) 
           :> *(gain),*(gain)
 with {
@@ -878,23 +905,15 @@ with {
   deflens = (56.3,63.0); // 2 default min and max path lengths
 
   fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR, ORDER 16
-       [tooltip: See Faust's effect.lib for documentation and references]", x);
+    [tooltip: See Faust's effect.lib for documentation and references]", x);
 
   freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
   t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
   path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
-  ctl_group(x)  = fdn_group(hgroup("[4] Test Controls", x));
-
-  impulsify = _ <: _,mem : - : >(0);
-  pulseL =  ctl_group(button("[1] Impulse Left
-         [tooltip: Send impulse into LEFT channel]")) : impulsify;
-  pulseC =  ctl_group(button("[2] Impulse Center
-         [tooltip: Send impulse into LEFT and RIGHT channels]")) : impulsify;
-  pulseR =  ctl_group(button("[3] Impulse Right
-         [tooltip: Send impulse into RIGHT channel]")) : impulsify;
-  squelch =  ctl_group(button("[4] Squelch 
-         [tooltip: Hold down 'Squelch' to clear the reverberator]"));
-  loopgainmax = 1.0-0.5*squelch;
+  revin_group(x)  = fdn_group(hgroup("[4] Input Controls", x));
+  quench_group(x) = revin_group(vgroup("[3] Reverb State",x));
+  loopgainmax = 1.0-0.5*quench_group(button("[1] Quench
+         [tooltip: Hold down 'Quench' to clear the reverberator]"));
 
   pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]
     [tooltip: This length (in meters) determines the shortest delay-line used in the FDN reverberator.
@@ -926,32 +945,31 @@ with {
 //----------------------------- zita_rev1_engine ---------------------------
 // Approximate implementation of the FOSS Linux reverb zita-rev1
 // by Fons Adriaensen  <fons@kokkinizita.net>.  This is an FDN reverb with
-// allpass comb filters in each feedback delay path as well.
+// allpass comb filters in each feedback delay in addition to the 
+// damping filters.  Only stereo mode is implemented (no Ambisonic mode).
 //
 // USAGE: 
-//   _,_ : zita_rev1_engine(rdel,f1,f2,t60dc,t60m,t60pi,loopgainmax) : _,_
+//   _,_ : zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax) : _,_
+//
 // WHERE 
 //   rdel  = delay (in ms) before reverberation begins
 //   f1    = crossover frequency separating dc and midrange frequencies
-//   f2    = crossover frequency midrange frequencies and SR/2
+//   f2    = frequency above f1 where T60 = t60m/2 (see below)
 //   t60dc = desired decay time (t60) at frequency 0
 //   t60m  = desired decay time (t60) at midrange frequencies
-//   t60pi = desired decay time (t60) at half the sampling rate SR/2
-//   loopgainmax = scalar gain between 0 and 1 used to "squelch" the reverb
-//
-// NOTE: 
-//   Sampling rates >  48000 Hz may need larger delay lines
+//   fsmax = maximum sampling rate to be used
 //
 // REFERENCE: 
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
 //
 // DEPENDENCIES: 
-//   filter.lib (for lo and hi shelf filters)
+//   filter.lib (for allpass_comb, lowpass, and smooth)
 //   math.lib (for hadamard(N), take, etc.)
 
-zita_rev1_engine(rdel,f1,f2,t60dc,t60m,t60pi,loopgainmax) = 
-delay_stereo(rdel) : distrib2(N) : ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~ 
- (delayfilters(N,freqs,durs) : fbdelaylines(N)))
+zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax) = 
+delay_stereo(rdel) : distrib2(N) 
+ : ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~ 
+   (delayfilters(N,freqs,durs) : fbdelaylines(N)))
  : output2(N) // no ambisonics mode
 with {
   N = 8;
@@ -970,48 +988,61 @@ with {
 
   // feedback delay-line lengths in seconds:
 
-  apdelays = ( 0.020346, 0.024421, 0.031604, 0.027333, 0.022904, 0.029291, 0.013458, 0.019123); // feedforward delays
-   tdelays = ( 0.153129, 0.210389, 0.127837, 0.256891, 0.174713, 0.192303, 0.125000, 0.219991); // total delays
- tdelay(i) = floor(0.5 + SR*take(i+1,tdelays));
-apdelay(i) = floor(0.5 + SR*take(i+1,apdelays));
-fbdelay(i) = tdelay(i) - apdelay(i);
+  // can't use fsmax = SR because SR is not bounded at compile time
 
-  // allpass comb filters:
-  // result (matlab) of 2 .^ ceil(log2(SR*apdelays)) for SR=48000:
-  maxapdelays = (1024, 2048, 2048, 2048, 2048, 2048, 1024, 1024);
-  apdelmax(i) = take(i+1,maxapdelays);
-  apcoeff(i) = select2(i&1,0.6,-0.6);
+  apdelays = ( 0.020346, 0.024421, 0.031604, 0.027333, 0.022904, 
+               0.029291, 0.013458, 0.019123); // feedforward delays in seconds
+  tdelays = ( 0.153129, 0.210389, 0.127837, 0.256891, 0.174713, 
+              0.192303, 0.125000, 0.219991); // total delays in seconds
+  tdelay(i) = floor(0.5 + SR*take(i+1,tdelays)); // samples
+  apdelay(i) = floor(0.5 + SR*take(i+1,apdelays));
+  fbdelay(i) = tdelay(i) - apdelay(i);
+  tdelaymaxfs(i) = floor(0.5 + fsmax*take(i+1,tdelays));
+  apdelaymaxfs(i) = floor(0.5 + fsmax*take(i+1,apdelays));
+  fbdelaymaxfs(i) = tdelaymaxfs(i) - apdelaymaxfs(i);
+  nextpow2(x) = ceil(log(x)/log(2.0));
+  maxapdelay(i) = int(2.0^max(1.0,nextpow2(apdelaymaxfs(i))));
+  maxfbdelay(i) = int(2.0^max(1.0,nextpow2(fbdelaymaxfs(i))));
 
-  // feedback delays:
-  // result (matlab) of 2 .^ ceil(log2(SR*fbdelays)) for SR=48000:
-  maxfbdelays = (8192, 16384, 8192, 16384, 8192, 8192, 8192, 16384);
-  fbdelmax(i) = take(i+1,maxfbdelays);
-
-  allpass_combs(N) = par(i,N,(allpass_comb(apdelmax(i),apdelay(i),apcoeff(i)))); // filter.lib
-  fbdelaylines(N) = par(i,N,(delay(fbdelmax(i),(fbdelay(i)))));
-  freqs = (f1,f2); durs = (t60dc,t60m,t60pi);
+  apcoeff(i) = select2(i&1,0.6,-0.6);  // allpass comb-filter coefficient
+  allpass_combs(N) = 
+    par(i,N,(allpass_comb(maxapdelay(i),apdelay(i),apcoeff(i)))); // filter.lib
+  fbdelaylines(N) = par(i,N,(delay(maxfbdelay(i),(fbdelay(i)))));
+  freqs = (f1,f2); durs = (t60dc,t60m);
   delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
   feedbackmatrix(N) = hadamard(N); // math.lib
 
   staynormal = 10.0^(-20); // let signals decay well below LSB, but not to zero
-  filter(i,freqs,durs) =  lo_hi_shelf(i) 
-    : *(loopgainmax) / sqrt(float(N)) 
-    : +(staynormal)
+
+  special_lowpass(g,f) = smooth(p) with {
+    // unity-dc-gain lowpass needs gain g at frequency f => quadratic formula:
+    p = mbo2 - sqrt(mbo2*mbo2 - 1.0); // other solution is unstable
+    mbo2 = (1.0 - gs*c)/(1.0 - gs); // NOTE: must ensure |g|<1 (t60m finite)
+    gs = g*g;
+    c = cos(2.0*PI*f/float(SR));
+  };
+
+  filter(i,freqs,durs) = lowshelf_lowpass(i)/sqrt(float(N))+staynormal
   with {
-    lo_hi_shelf(i) = low_shelf1_l(g0/gM,f(1)) : *(gM) : high_shelf1_l(gPi/gM,f(2));
+    lowshelf_lowpass(i) = gM*low_shelf1_l(g0/gM,f(1)):special_lowpass(gM,f(2));
     low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // filter.lib
-    high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); // filter.lib
     g0 = g(0,i);
     gM = g(1,i);
-    gPi = g(2,i);
     f(k) = take(k,freqs);
     dur(j) = take(j+1,durs);
-    g(j,i) = (1.0 - 6.91/(SR*dur(j)))^tdelay(i);
+    n60(j) = dur(j)*SR; // decay time in samples
+    g(j,i) = exp(-3.0*log(10.0)*tdelay(i)/n60(j));
   };
 };
 
 //---------------------------------- zita_rev1 ------------------------------
-// Example GUI for zita_rev1_engine (mostly following the Linux zita-rev1 GUI)
+// Example GUI for zita_rev1_engine (mostly following the Linux zita-rev1 GUI).
+// Note that the parametric peaking equalizers used here are as described in
+// Zolzer's 1999 book Digital Audio Signal Processing, and online at 
+// https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html
+// while zita-rev1 uses dezippered Regalia-Mitra eq sections.  To add
+// dezippering here, one could place "smooth(0.999)" or the like in series with
+// the eq control parameter(s) that will be varied in real time.
 //
 // REFERENCE: 
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
@@ -1019,41 +1050,15 @@ fbdelay(i) = tdelay(i) - apdelay(i);
 // DEPENDENCIES: 
 //   osc.lib (for pink_noise)
 
-zita_rev1(x,y) = inputs(x,y)
-	  : zita_rev1_engine(rdel,f1,f2,t60dc,t60m,t60pi,loopgainmax)
-	  : out_eq
-	  : dry_wet(inx,iny)
-	  : out_level
+zita_rev1(x,y) = zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
+	  : out_eq : dry_wet(x,y) : out_level
 with {
+
+  fsmax = 48000.0;  // highest sampling rate that will be used
 
   fdn_group(x) = hgroup(
     "[0]  ~ ZITA_REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER ALLPASS-COMB REVERBERATOR (8x8)
      [tooltip: See Faust's effect.lib for documentation and references]", x);
-
-  ctl_group(x)  = hgroup("[1] Test Controls", x);
-
-  impulsify = _ <: _,mem : - : >(0);
-  pulseL =  ctl_group(button("[1] Impulse Left
-         [tooltip: Send impulse into LEFT channel]")) : impulsify;
-  pulseC =  ctl_group(button("[2] Impulse Center
-         [tooltip: Send impulse into LEFT and RIGHT channels]")) : impulsify;
-  pulseR =  ctl_group(button("[3] Impulse Right
-         [tooltip: Send impulse into RIGHT channel]")) : impulsify;
-  squelch =  ctl_group(button("[4] Squelch 
-         [tooltip: Hold down 'Squelch' to clear the reverberator]"));
-  loopgainmax = 1.0-0.5*squelch;
-  mutegain = 1 - ctl_group(checkbox("[5] Mute Ext Inputs 
-         [tooltip: When this is checked, the stereo external audio inputs are disabled
-          (good for hearing the impulse response or pink-noise response alone)"));
-  pinkin = ctl_group(checkbox("[6] Pink Noise Input 
-         [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting the EQ sections)]"));
-  
-  NB = 3; // number of frequency bands
-
-  inputs(x,y) =  inx,iny;
-  inx = x*mutegain + (pulseL+pulseC) + pn;
-  iny = y*mutegain + (pulseR+pulseC) + pn;
-  pn = 0.1*pinkin*component("osc.lib").pink_noise;
 
   in_group(x) = fdn_group(hgroup("[1] Input", x));
 
@@ -1064,7 +1069,7 @@ with {
   freq_group(x) = fdn_group(hgroup("[2] Decay Times in Bands (see tooltips)", x));
 
   f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob] 
-       [tooltip: Crossover frequency separating low and middle frequencies]",
+       [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
        200, 50, 1000, 1));
 
   t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob] 
@@ -1075,18 +1080,14 @@ with {
           [tooltip: T60 = time (in seconds) to decay 60dB in middle band]", 
 	  2, 1, 8, 0.1));
 
-  t60pi = freq_group(vslider("[4] Hi RT60 [unit:s] [style:knob]
-          [tooltip: T60 = time (in seconds) to decay 60dB in high-frequency band]", 
-	  0.1, 0.1, 8, 0.1));
-
-  f2 = freq_group(vslider("[5] HF X [unit:Hz] [style:knob]
-       [tooltip: Crossover frequency separating middle and high frequencies]",
-       6000, 1500, 12000, 1));
+  f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob]
+       [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
+       6000, 1500, fsmax/2, 1));
 
   out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
   pareq_stereo(eqf,eql,Q) = peak_eq(eql,eqf,eqf/Q), peak_eq(eql,eqf,eqf/Q);
 
-  eq1_group(x) = fdn_group(hgroup("[3] Parametric Peaking Equalizer 1", x));
+  eq1_group(x) = fdn_group(hgroup("[3] Peaking Equalizer 1", x));
 
   eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob]
        [tooltip: Center-frequency of second-order parametric peaking equalizer section 1]",
@@ -1100,7 +1101,7 @@ with {
        [tooltip: Q = centerFrequency/bandwidth of second-order peaking equalizer section 1]",
        3, 0.1, 10, 0.1));
   
-  eq2_group(x) = fdn_group(hgroup("[4] Parametric Peaking Equalizer 2", x));
+  eq2_group(x) = fdn_group(hgroup("[4] Peaking Equalizer 2", x));
 
   eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob]
        [tooltip: Center-frequency of second-order parametric peaking equalizer section 2]",
