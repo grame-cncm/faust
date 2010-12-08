@@ -34,7 +34,6 @@
 #include <vector>
 
 #include "code_container.hh"
-#include "fir_instructions.hh"
 #include "floats.hh"
 
 using namespace std;
@@ -225,7 +224,9 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
  */
  void CodeContainer::computeForwardDAG(lclgraph dag)
 {
-    int loop_num = START_TASK_MAX;  // First index to be used for remaining tasks
+    #define START_TASK_MAX 2
+
+    int loop_num = START_TASK_MAX; // First index to be used for remaining tasks
 
     for (int l = dag.size() - 1; l >= 0; l--) {
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {

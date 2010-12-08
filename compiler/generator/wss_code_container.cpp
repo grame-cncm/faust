@@ -31,6 +31,11 @@
 
 using namespace std;
 
+#define WORK_STEALING_INDEX 0
+#define LAST_TASK_INDEX 1
+#define START_TASK_INDEX LAST_TASK_INDEX + 1
+#define START_TASK_MAX 2
+
 void WSSCodeContainer::MoveStackArray2Struct()
 {
     // Analysis to promote stack variables to struct variables

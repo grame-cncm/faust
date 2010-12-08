@@ -118,6 +118,8 @@ class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeCont
 
     protected:
 
+        void MoveStackSlow2Struct();
+
     public:
 
         CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);

@@ -45,17 +45,8 @@
 #include "floats.hh"
 #include "Text.hh"
 #include "property.hh"
-
 #include "function_builder.hh"
 #include "code_loop.hh"
-
-extern bool gVectorSwitch;
-extern int gVecSize;
-
-#define WORK_STEALING_INDEX 0
-#define LAST_TASK_INDEX 1
-#define START_TASK_INDEX LAST_TASK_INDEX + 1
-#define START_TASK_MAX 2
 
 class CodeContainer {
 
@@ -194,7 +185,6 @@ class CodeContainer {
                                 const string& arg4, Typed::VarType arg4_ty);
 
         // Fill code for each method
-
         StatementInst* pushDeclare(StatementInst* inst)
         {
             fDeclarationInstructions->pushBackInst(inst);
@@ -312,108 +302,14 @@ class CodeContainer {
         virtual void dump() {}
         virtual void dump(ostream* dst) {}
 
-        void MoveStackSlow2Struct()
-        {
-            // Analysis to promote stack "slow" variables to struct variables
-            struct StackSlow2StructAnalyser1 : public DispatchVisitor {
-
-                CodeContainer* fContainer;
-                string fName;
-
-                void visit(DeclareVarInst* inst)
-                {
-                    DispatchVisitor::visit(inst);
-                    BasicCloneVisitor cloner;
-
-                    if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-                        inst->fAddress->setAccess(Address::kLink);
-                        // Replace the Declare instruction by a version *without* the associated value
-                        fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
-                    }
-                }
-
-                StackSlow2StructAnalyser1(CodeContainer* container, const string& name)
-                    :fContainer(container), fName(name)
-                {}
-            };
-
-            // Analysis to promote Load stack "slow" variables to struct variables
-            struct StackSlow2StructAnalyser2 : public DispatchVisitor {
-
-                string fName;
-
-                /*
-                void visit(LoadVarInst* inst)
-                {
-                    if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-                        inst->fAddress->setAccess(Address::kStruct);
-                    }
-                }
-                */
-
-                void visit(NamedAddress* address)
-                {
-                    if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
-                        address->fAccess = Address::kStruct;
-                    }
-                }
-
-                StackSlow2StructAnalyser2(const string& name):fName(name)
-                {}
-            };
-
-            struct Declare2StoreCloneVisitor : public BasicCloneVisitor {
-
-                // Rewrite Declare as Store with a struct access
-                StatementInst* visit(DeclareVarInst* inst)
-                {
-                    if (inst->fAddress->getAccess() == Address::kLink) {
-                        // Define a special cloner that force access to kStruct
-                        struct StructVarCloneVisitor : public BasicCloneVisitor {
-                            virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, Address::kStruct); }
-                        };
-                        // Rewrite the Declare instruction by a Store
-                        StructVarCloneVisitor cloner1;
-                        //return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct), inst->fValue->clone(this));
-                        return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fValue->clone(&cloner1));
-                        /*
-                        return InstBuilder::genDeclareVarInst(inst->fName,
-                                                            inst->fTyped->clone(this),
-                                                            Address::kStack,
-                                                            InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct)));
-                        */
-                    } else {
-                        return BasicCloneVisitor::visit(inst);
-                    }
-                }
-            };
-
-            // Transform stack "slow" variables in struct variables
-            StackSlow2StructAnalyser1 analyser1(this, "Slow");
-            fComputeBlockInstructions->accept(&analyser1);
-
-            // Transform stack "slow" variables Load access in struct variables
-            StackSlow2StructAnalyser2 analyser2("Slow");
-            transformDAG(&analyser2);
-
-            /*
-            // Transform stack "slow" variables in struct variables
-            StackSlow2StructAnalyser1 analyser3(this, "_tmp");
-            fComputeBlockInstructions->accept(&analyser3);
-
-            // Transform stack "slow" variables Load access in struct variables
-            StackSlow2StructAnalyser2 analyser4("_tmp");
-            transformDAG(&analyser4);
-            */
-
-            // Rewrite marked variables from fComputeBlockInstructions
-            Declare2StoreCloneVisitor cloner;
-            fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&cloner));
-        }
-
         static bool sortFunction1(StatementInst* a, StatementInst* b);
 
 };
+
+inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
+{
+	return S.find(l) != S.end();
+}
 
 // Specialize all simple kStruct variables with a given value
 
@@ -518,10 +414,5 @@ struct ControlSpecializer : public DispatchVisitor {
     }
 
 };
-
-inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
-{
-	return S.find(l) != S.end();
-}
 
 #endif
