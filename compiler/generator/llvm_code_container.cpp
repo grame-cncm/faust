@@ -542,7 +542,7 @@ void LLVMVectorCodeContainer::generateCompute()
     generateComputeBegin(counter);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
@@ -865,7 +865,7 @@ void LLVMWorkStealingCodeContainer::generateCompute()
     generateComputeBegin(counter);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(fCodeProducer);

@@ -377,7 +377,7 @@ void CodeContainer::generateDAGLoop(BlockInst* block)
     }
 }
 
-bool CodeContainer::sortFunction1(StatementInst* a, StatementInst* b)
+bool CodeContainer::sortArrayDeclarations(StatementInst* a, StatementInst* b)
 {
     if (dynamic_cast<DeclareVarInst*>(a)) {
         DeclareVarInst* inst = dynamic_cast<DeclareVarInst*>(a);

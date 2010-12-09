@@ -224,7 +224,7 @@ class CodeContainer {
         {
            if (fDeclarationInstructions->fCode.size() > 0) {
                 // Sort arrays to be at the begining
-                fDeclarationInstructions->fCode.sort(sortFunction1);
+                fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
                 fDeclarationInstructions->accept(visitor);
             }
         }
@@ -302,8 +302,7 @@ class CodeContainer {
         virtual void dump() {}
         virtual void dump(ostream* dst) {}
 
-        static bool sortFunction1(StatementInst* a, StatementInst* b);
-
+        static bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)

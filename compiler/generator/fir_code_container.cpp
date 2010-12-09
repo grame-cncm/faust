@@ -151,7 +151,7 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
 void FirVectorCodeContainer::prepareDump()
 {
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 }
 
 void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
@@ -176,7 +176,7 @@ void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
 void FirOpenMPCodeContainer::prepareDump()
 {
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 }
 
 void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
@@ -226,5 +226,5 @@ void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostrea
     generateDAGLoopWSSAux2(counter, fComputeBlockInstructions);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 }

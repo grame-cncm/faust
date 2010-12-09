@@ -301,7 +301,7 @@ void CVectorCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+1);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
@@ -339,7 +339,7 @@ void COpenMPCodeContainer::generateCompute(int n)
     //MoveStackArray2Struct();
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
@@ -408,7 +408,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     generateDAGLoopWSSAux2(counter, true);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);

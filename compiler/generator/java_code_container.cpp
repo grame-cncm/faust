@@ -294,7 +294,7 @@ void JAVAVectorCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);

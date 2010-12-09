@@ -131,7 +131,7 @@ void CPPOpenCLCodeContainer::produceClass()
     generateGlobalDeclarations(&fCodeProducer);
 
     // Sort arrays to be at the begining
-    fDeclarationInstructions->fCode.sort(sortFunction1);
+    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
 
     // Compile OpenCL kernel string
     *fGPUOut << "const char* KernelSource = \"";
@@ -934,7 +934,7 @@ void CPPCUDACodeContainer::produceClass()
     generateGlobalDeclarations(&fCodeProducer);
 
     // Sort arrays to be at the begining
-    fDeclarationInstructions->fCode.sort(sortFunction1);
+    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
 
     // Macro definition
     tab(n, *fGPUOut); *fGPUOut << "#define max(x,y) (((x)>(y)) ? (x) : (y))";

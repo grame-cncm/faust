@@ -343,7 +343,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
@@ -393,7 +393,7 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
     //MoveStackArray2Struct();
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
@@ -559,7 +559,7 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     generateDAGLoopWSSAux2(counter, false);
 
     // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortFunction1);
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
