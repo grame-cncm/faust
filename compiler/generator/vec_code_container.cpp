@@ -96,6 +96,8 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
 
 StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
 {
+    string index = "index";
+
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
     // Generate local input/output access
@@ -104,7 +106,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -116,7 +118,6 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
     generateDAGLoop(loop_code);
 
     // Generates the DAG enclosing loop
-    string index = "index";
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));

@@ -95,8 +95,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             fContainer->openLoop("i");
 
             // Cast to external float
-            ValueInst* res = CS(sig);
-            res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+            ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
             pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name,
                                 InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("index"), fContainer->getCurLoop()->getLoopIndex()), res));
 
@@ -113,8 +112,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             fContainer->openLoop("i");
 
             // Cast to external float
-            ValueInst* res = CS(sig);
-            res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+            ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
             pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
 
             fContainer->closeLoop();

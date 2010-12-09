@@ -705,6 +705,8 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
     string counter = "fullcount";
+    string index = "index";
+
     tab1(n, *fGPUOut);
     *fGPUOut << subst("__kernel void computeKernel(const int $0, ", counter);
 
@@ -739,7 +741,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -777,7 +779,6 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     }
 
     // Generates the DAG enclosing loop
-    string index = "index";
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
@@ -1418,6 +1419,8 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
     string counter = "fullcount";
+    string index = "index";
+
     tab(n, *fGPUOut);
     *fGPUOut << subst("__global__ void computeKernel(const int $0, ", counter);
 
@@ -1452,7 +1455,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -1497,7 +1500,6 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     }
 
     // Generates the DAG enclosing loop
-    string index = "index";
     DeclareVarInst* loop_init = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
 
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT,

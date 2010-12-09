@@ -37,6 +37,7 @@ extern bool gOpenMPLoop;
 StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 {
     BlockInst* result_code = InstBuilder::genBlockInst();
+    string index = "index";
 
     // Analysis to discover which stack variables have to be used in the "firstprivate" list
     struct StackVarAnalyser : public DispatchVisitor {
@@ -85,7 +86,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
+    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -132,7 +133,6 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     }
 
     // Generates the DAG enclosing loop
-    string index = "index";
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
