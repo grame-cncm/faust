@@ -2058,7 +2058,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = NULL;
         }
 
-        // TO TEST
         virtual void visit(WhileLoopInst* inst)
         {
             Function* function = fBuilder->GetInsertBlock()->getParent();

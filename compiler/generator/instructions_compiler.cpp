@@ -222,26 +222,26 @@ InstType InstructionsCompiler::setCompiledExpression(Tree sig, const InstType& c
  * Set the vector name property of a signal, the name of the vector used to
  * store the previous values of the signal to implement a delay.
  * @param sig the signal expression.
- * @param vecname the string representing the vector name.
+ * @param vname the string representing the vector name.
  * @return true is already compiled
  */
-void InstructionsCompiler::setVectorNameProperty(Tree sig, const string& vecname)
+void InstructionsCompiler::setVectorNameProperty(Tree sig, const string& vname)
 {
-    assert(vecname.size() > 0);
-    fVectorProperty.set(sig, vecname);
+    assert(vname.size() > 0);
+    fVectorProperty.set(sig, vname);
 }
 
 /**
  * Get the vector name property of a signal, the name of the vector used to
  * store the previous values of the signal to implement a delay.
  * @param sig the signal expression.
- * @param vecname the string where to store the vector name.
+ * @param vname the string where to store the vector name.
  * @return true if the signal has this property, false otherwise
  */
 
-bool InstructionsCompiler::getVectorNameProperty(Tree sig, string& vecname)
+bool InstructionsCompiler::getVectorNameProperty(Tree sig, string& vname)
 {
-    return fVectorProperty.get(sig, vecname);
+    return fVectorProperty.get(sig, vname);
 }
 
 void InstructionsCompiler::setTableNameProperty(Tree sig, const string& name)
@@ -550,27 +550,27 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
     int mxd;
-	string vecname;
+	string vname;
 
     CS(exp); // Ensure exp is compiled to have a vector name, result of CS is not needed, only side effect is important
     mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
-	if (!getVectorNameProperty(exp, vecname)) {
+	if (!getVectorNameProperty(exp, vname)) {
         cerr << "No vector name for : " << ppsig(exp) << endl;
         assert(0);
     }
 
     if (mxd == 0) {
-        return InstBuilder::genLoadStackVar(vecname);
+        return InstBuilder::genLoadStackVar(vname);
 	} else if (mxd < gMaxCopyDelay) {
-		return InstBuilder::genLoadArrayStructVar(vecname, CS(delay));
+		return InstBuilder::genLoadArrayStructVar(vname, CS(delay));
 	} else {
 		// Long delay : we use a ring buffer of size 2^x
 		int N = pow2limit(mxd + 1);
 
         ValueInst* value2 = InstBuilder::genBinopInst(kSub, InstBuilder::genLoadStructVar("IOTA"), CS(delay));
         ValueInst* value3 = InstBuilder::genBinopInst(kAND, value2, InstBuilder::genIntNumInst(N - 1));
-        return InstBuilder::genLoadArrayStructVar(vecname, value3);
+        return InstBuilder::genLoadArrayStructVar(vname, value3);
     }
 }
 
@@ -581,7 +581,7 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 	string vperm = getFreshID("M");
 	string vtemp = getFreshID("T");
 
-   Typed::VarType type = ctType(te);
+    Typed::VarType type = ctType(te);
 
     // Table declaration
     pushDeclare(InstBuilder::genDecStructVar(vperm, InstBuilder::genBasicTyped(type)));

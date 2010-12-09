@@ -52,7 +52,6 @@ DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container):
         fInputNamePattern = "fInput$0";
 }
 
-
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
@@ -406,9 +405,11 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
 {
     // it is a non-sample but used delayed
     // we need a delay line
+
+    setVectorNameProperty(sig, vname);
     Address::AccessType var_access;
     generateDelayLine(exp, ctype, vname, mxd, var_access);
-    setVectorNameProperty(sig, vname);
+
     if (verySimple(sig)) {
         return exp;
     } else {
