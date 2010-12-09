@@ -45,6 +45,7 @@
 #include "privatise.hh"
 #include "prim2.hh"
 #include "xtended.hh"
+
 //#include "contextor.hh"
 #include "compatibility.hh"
 #include "ppsig.hh"
@@ -616,6 +617,7 @@ string ScalarCompiler::generateSigGen(Tree sig, Tree content)
 
 	fClass->addSubKlass(signal2klass(klassname, content));
 	fClass->addInitCode(subst("$0 $1;", klassname, signame));
+    fInstanceInitProperty.set(content,true);
 
 	return signame;
 }
@@ -627,6 +629,7 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 	fClass->addSubKlass(signal2klass(klassname, content));
 	fClass->addStaticInitCode(subst("$0 $1;", klassname, signame));
+    fStaticInitProperty.set(content,true);
 
 	return signame;
 }
@@ -1171,6 +1174,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
 
 
     } else if (mxd < gMaxCopyDelay) {
+		cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
 
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));

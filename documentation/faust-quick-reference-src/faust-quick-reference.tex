@@ -578,7 +578,12 @@ Here is another example to count the number of elements of a list. Please note t
 
 If we now write \lstinline'count(duplicate(10,666))' the expression will be evaluated to \lstinline'10'.
 
-
+Please note that the order of pattern matching rules matters. The more specific rules must precede the more general rules. When this order is not respected, as in :
+\begin{lstlisting}
+ count(x) = 1;
+ count((x,xs)) = 1+count(xs);
+\end{lstlisting}
+the first rule will always match and the second rule will never be called.
 
 
 

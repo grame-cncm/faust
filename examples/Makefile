@@ -1,5 +1,6 @@
 MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2' 
-MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+#MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+MYGCCFLAGS := '-O2 -march=native -ffast-math'
 #MYGCCFLAGS := '-O3'
 VSIZE := 1024
 

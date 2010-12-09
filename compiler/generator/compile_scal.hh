@@ -41,6 +41,8 @@ class ScalarCompiler : public Compiler
   protected:
     property<string>            fCompileProperty;
     property<string>            fVectorProperty;
+    property<bool>              fStaticInitProperty;        // property added to solve 20101208 kjetil bug
+    property<bool>              fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
 
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
