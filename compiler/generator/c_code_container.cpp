@@ -89,11 +89,9 @@ void CCodeContainer::produceInternal()
     // Init
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "instanceInit" << fPrefix << "(" << fPrefix << fStructName << "* dsp, int samplingFreq) {";
-        if (fInitInstructions->fCode.size() > 0) {
-            tab(n+1, *fOut);
-            fCodeProducer.Tab(n+1);
-            generateInit(&fCodeProducer);
-        }
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateInit(&fCodeProducer);
     tab(n, *fOut); *fOut << "}";
 
     // Fill

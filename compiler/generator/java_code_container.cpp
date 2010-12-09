@@ -71,10 +71,8 @@ void JAVACodeContainer::produceInternal()
 
     // Global declarations
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
@@ -88,14 +86,8 @@ void JAVACodeContainer::produceInternal()
         tab(n+1, *fOut);
 
         // Fields
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "  public:";
 
@@ -122,11 +114,9 @@ void JAVACodeContainer::produceInternal()
         // Inits
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "void init(int samplingFreq) {";
-            if (fInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
@@ -139,9 +129,7 @@ void JAVACodeContainer::produceInternal()
         }
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
-        if (fComputeBlockInstructions->fCode.size() > 0) {
-            fComputeBlockInstructions->accept(&fCodeProducer);
-        }
+        generateComputeBlock(&fCodeProducer);
         ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
@@ -151,10 +139,10 @@ void JAVACodeContainer::produceInternal()
 
 void JAVACodeContainer::produceClass()
 {
+    int n = 0;
+
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     pushFrontInitMethod(InstBuilder::genStoreGlobalVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
-
-    int n = 0;
 
     // Libraries
     printLibrary(*fOut);
@@ -162,10 +150,8 @@ void JAVACodeContainer::produceClass()
 
     // Global declarations
     tab(n, *fOut);
-    if (fGlobalDeclarationInstructions->fCode.size() > 0) {
-        fCodeProducer.Tab(n);
-        fGlobalDeclarationInstructions->accept(&fCodeProducer);
-    }
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "final class " << fKlassName << " extends " << fSuperKlassName << " {";
 
@@ -183,14 +169,8 @@ void JAVACodeContainer::produceClass()
 
         // Fields
         tab(n+1, *fOut);
-        if (fDeclarationInstructions->fCode.size() > 0) {
-            fCodeProducer.Tab(n+1);
-
-            // Sort arrays to be at the begining
-            fDeclarationInstructions->fCode.sort(sortFunction1);
-
-            fDeclarationInstructions->accept(&fCodeProducer);
-        }
+        fCodeProducer.Tab(n+1);
+        generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "  public:";
 
@@ -236,11 +216,9 @@ void JAVACodeContainer::produceClass()
 
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "void instanceInit(int samplingFreq) {";
-            if (fInitInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fInitInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -252,11 +230,9 @@ void JAVACodeContainer::produceClass()
         // User interface
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "void buildUserInterface(UI* interface) {";
-            if (fUserInterfaceInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut);
-                fCodeProducer.Tab(n+2);
-                fUserInterfaceInstructions->accept(&fCodeProducer);
-            }
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateUserInterface(&fCodeProducer);
             printlines(n+2, fUICode, *fOut);
         tab(n+1, *fOut); *fOut << "}";
 
@@ -266,9 +242,7 @@ void JAVACodeContainer::produceClass()
         // Possibly generate separated functions
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
-        if (fComputeFunctions->fCode.size() > 0) {
-            fComputeFunctions->accept(&fCodeProducer);
-        }
+        generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};\n" << endl;
 
@@ -293,7 +267,7 @@ void JAVAScalarCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
@@ -323,7 +297,7 @@ void JAVAVectorCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->fCode.sort(sortFunction1);
 
     // Generates local variables declaration and setup
-    fComputeBlockInstructions->accept(&fCodeProducer);
+    generateComputeBlock(&fCodeProducer);
 
     // Prepare global loop
     StatementInst* block = NULL;
