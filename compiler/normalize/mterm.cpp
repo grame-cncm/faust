@@ -3,9 +3,10 @@
 #include "ppsig.hh"
 #include "xtended.hh"
 #include <assert.h>
-#include <sigtyperules.hh>
-//static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
+#include "sigtyperules.hh"
 #include "simplifying_terms.hh"
+
+//static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
 #undef TRACE
 

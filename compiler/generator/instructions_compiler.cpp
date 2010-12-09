@@ -49,7 +49,7 @@
 #include "prim2.hh"
 
 #include "ensure.hh"
-#include <sigrateinference.hh>
+#include "sigrateinference.hh"
 
 using namespace std;
 

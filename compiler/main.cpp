@@ -76,7 +76,7 @@
 #include "drawschema.hh"
 #include "timing.hh"
 #include "constant_folding.hh"
-#include <ppsig.hh>
+#include "ppsig.hh"
 
 using namespace std ;
 

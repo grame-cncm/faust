@@ -20,8 +20,8 @@
  ************************************************************************/
 
 
-#include <list.hh>
-#include <xtended.hh>
+#include "list.hh"
+#include "xtended.hh"
 #include "constant_folding.hh"
 #include <stdexcept>
 
@@ -61,11 +61,11 @@ static Tree doConstantFolding (Tree sig)
         if (isNum(n1) && isNum(n2))
             return tree(op->compute(n1,n2));
 
-    
+
     } else if (isSigFixDelay(sig, t1, t2)) {
         Tree r;
-        int i;    
-        
+        int i;
+
         if (isZero(t2) && !isProj(t1, &i, r))
             return t1;
 
