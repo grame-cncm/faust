@@ -46,11 +46,7 @@ extern bool gCUDASwitch;
 
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container):
     InstructionsCompiler(container)
-{
-    if (!(gOpenCLSwitch || gCUDASwitch))
-        // different naming convention than InstructionsCompiler
-        fInputNamePattern = "fInput$0";
-}
+{}
 
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 {

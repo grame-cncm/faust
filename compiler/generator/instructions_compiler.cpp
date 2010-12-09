@@ -273,10 +273,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 {
 	L = prepare(L);		// Optimize, share and annotate expression
 
-    // Needed in the global variable table
-    //pushDeclare(InstBuilder::genDeclareVarInst("count", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
-    //pushDeclare(InstBuilder::genDeclareVarInst("samplingFreq", InstBuilder::genBasicTyped(Typed::kInt), Address::kFunArgs));
-
     Typed* type;
     /*
     if (gVectorSwitch) {
@@ -676,7 +672,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     int rate = getSigRate(sig);
     fContainer->setInputRate(idx, rate);
 
-    string name = subst(fInputNamePattern, T(idx));
+    string name = subst("input$0", T(idx));
     ValueInst* res = InstBuilder::genLoadArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex());
 
     ValueInst* castedToFloat = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
