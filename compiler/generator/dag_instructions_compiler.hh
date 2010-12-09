@@ -35,34 +35,27 @@
 
 class DAGInstructionsCompiler : public InstructionsCompiler {
 
-    protected:
+public:
+    DAGInstructionsCompiler(CodeContainer* container);
 
-        bool needSeparateLoop(Tree sig);
+private:
+    // private helper functions
+    bool needSeparateLoop(Tree sig);
+    void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
+    void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
 
-    public:
 
-        DAGInstructionsCompiler(CodeContainer* container);
-        
-        virtual ValueInst* CS(Tree sig);
+    // reimplemented code generation methods
+    virtual ValueInst* CS(Tree sig);
+    virtual void compileMultiSignal(Tree sig);
 
-        virtual void compileMultiSignal(Tree sig);
-
-        virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
-        virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
-
-        virtual ValueInst* generateInput(Tree sig, int idx);
-
-        // Code generation
-
-        virtual ValueInst* generateCode(Tree sig);
-        virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
-
-        virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-        virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
-
-        virtual void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
-        virtual void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
-
+    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
+    virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
+    virtual ValueInst* generateInput(Tree sig, int idx);
+    virtual ValueInst* generateCode(Tree sig);
+    virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
+    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
 };
 
 
