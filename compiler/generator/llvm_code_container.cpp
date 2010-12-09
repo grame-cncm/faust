@@ -526,18 +526,20 @@ LLVMVectorCodeContainer::~LLVMVectorCodeContainer()
 
 void LLVMVectorCodeContainer::generateCompute()
 {
+    string counter = "fullcount";
+
     // Prepare global loop
     StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0();
+        block = generateDAGLoopVariant0(counter);
     } else {
-        block = generateDAGLoopVariant1();
+        block = generateDAGLoopVariant1(counter);
     }
 
     // Possibly generate separated functions
     generateComputeFunctions(fCodeProducer);
 
-    generateComputeBegin("fullcount");
+    generateComputeBegin(counter);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);
@@ -562,9 +564,10 @@ LLVMOpenMPCodeContainer::~LLVMOpenMPCodeContainer()
 
 void LLVMOpenMPCodeContainer::generateCompute()
 {
-    generateOMPDeclarations();
+    string counter = "fullcount";
 
-    generateComputeBegin("fullcount");
+    generateOMPDeclarations();
+    generateComputeBegin(counter);
 
     // Generates OMP thread function
     generateOMPCompute();
@@ -836,6 +839,8 @@ Module* LLVMWorkStealingCodeContainer::produceModule(const string& filename)
 
 void LLVMWorkStealingCodeContainer::generateCompute()
 {
+    string counter = "fullcount";
+
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);
     computeForwardDAG(dag);
@@ -855,9 +860,9 @@ void LLVMWorkStealingCodeContainer::generateCompute()
     generateComputeThreadEnd();
 
     // Generates "compute" code
-    generateDAGLoopWSSAux2(fComputeBlockInstructions);
+    generateDAGLoopWSSAux2(counter, fComputeBlockInstructions);
 
-    generateComputeBegin("fullcount");
+    generateComputeBegin(counter);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);

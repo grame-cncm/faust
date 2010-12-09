@@ -704,8 +704,9 @@ void CPPOpenCLCodeContainer::generateComputeKernel(int n)
 void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
+    string counter = "fullcount";
     tab1(n, *fGPUOut);
-    *fGPUOut << "__kernel void computeKernel(const int fullcount, ";
+    *fGPUOut << subst("__kernel void computeKernel(const int $0, ", counter);
 
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "__global float* input" << i << ", ";
@@ -737,7 +738,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     //generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadFunArgsVar("fullcount");
+    ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
@@ -778,7 +779,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // Generates the DAG enclosing loop
     string index = "index";
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar("fullcount"));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
@@ -1416,8 +1417,9 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
 void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
+    string counter = "fullcount";
     tab(n, *fGPUOut);
-    *fGPUOut << "__global__ void computeKernel(const int fullcount, ";
+    *fGPUOut << subst("__global__ void computeKernel(const int $0, ", counter);
 
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "float* input" << i << ", ";
@@ -1449,7 +1451,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     //generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs));
+    ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
     ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
@@ -1500,7 +1502,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     ValueInst* loop_end = InstBuilder::genBinopInst(kLT,
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),
-                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("fullcount", Address::kFunArgs)));
+                                InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
     StoreVarInst* loop_increment = InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(index, Address::kLoop),
                         InstBuilder::genBinopInst(kAdd,
                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(index, Address::kLoop)),

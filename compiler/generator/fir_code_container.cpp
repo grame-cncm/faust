@@ -124,11 +124,13 @@ void FirScalarCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
 void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
     // Prepare global loop
+    string counter = "fullcount";
+
     StatementInst* block;
     if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0();
+        block = generateDAGLoopVariant0(counter);
     } else {
-        block = generateDAGLoopVariant1();
+        block = generateDAGLoopVariant1(counter);
     }
 
     // Generate it
@@ -155,7 +157,8 @@ void FirVectorCodeContainer::prepareDump()
 void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
     // Prepare global loop
-    StatementInst* block = generateDAGLoopOMP();
+    string counter = "fullcount";
+    StatementInst* block = generateDAGLoopOMP(counter);
 
     // Generate it
     block->accept(&firvisitor);
@@ -219,7 +222,8 @@ void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostrea
     *dst << std::endl;
 
     // FIXME: can this be moved to the prepareDump method?
-    generateDAGLoopWSSAux2(fComputeBlockInstructions);
+    string counter = "fullcount";
+    generateDAGLoopWSSAux2(counter, fComputeBlockInstructions);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);

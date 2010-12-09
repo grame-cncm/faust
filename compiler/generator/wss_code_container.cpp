@@ -274,11 +274,11 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code
     }
 }
 
-void WSSCodeContainer::generateDAGLoopWSSAux2(bool obj)
+void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter, bool obj)
 {
     BlockInst* loop_code = fComputeBlockInstructions;
 
-    loop_code->pushBackInst(InstBuilder::genStoreStructVar("fFullcount", InstBuilder::genLoadFunArgsVar("fullcount")));
+    loop_code->pushBackInst(InstBuilder::genStoreStructVar("fFullcount", InstBuilder::genLoadFunArgsVar(counter)));
     loop_code->pushBackInst(InstBuilder::genStoreStructVar("fIndex", InstBuilder::genIntNumInst(0)));
 
     list<ValueInst*> fun_args0;

@@ -282,12 +282,14 @@ CVectorCodeContainer::~CVectorCodeContainer()
 
 void CVectorCodeContainer::generateCompute(int n)
 {
+    string counter = "fullcount";
+
     // Prepare global loop
     StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0();
+        block = generateDAGLoopVariant0(counter);
     } else {
-        block = generateDAGLoopVariant1();
+        block = generateDAGLoopVariant1(counter);
     }
 
     // Possibly generate separated functions
@@ -296,7 +298,7 @@ void CVectorCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -320,8 +322,10 @@ COpenMPCodeContainer::COpenMPCodeContainer(const string& name, int numInputs, in
 
 void COpenMPCodeContainer::generateCompute(int n)
 {
+    string counter = "fullcount";
+
     // Prepare global loop
-    StatementInst* block = generateDAGLoopOMP();
+    StatementInst* block = generateDAGLoopOMP(counter);
 
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
@@ -329,7 +333,7 @@ void COpenMPCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -397,11 +401,13 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     tab(n, *fOut); *fOut << "}" << endl;
 
     // Compute "compute" declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int fullcount, $0** inputs, $0** outputs) {", xfloat());
+    string counter = "fullcount";
+
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
-    generateDAGLoopWSSAux2(true);
+    generateDAGLoopWSSAux2(counter, true);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);

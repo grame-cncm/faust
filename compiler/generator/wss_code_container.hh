@@ -44,7 +44,7 @@ struct WSSCodeContainer : public virtual CodeContainer {
     void MoveStack2Struct();
 
     void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
-    void generateDAGLoopWSSAux2(bool obj);
+    void generateDAGLoopWSSAux2(const string& counter, bool obj);
     void generateDAGLoopWSSAux3();
     StatementInst* generateDAGLoopWSS(lclgraph dag);
 };

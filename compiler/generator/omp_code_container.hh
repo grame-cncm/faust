@@ -38,7 +38,7 @@ struct OpenMPCodeContainer : public virtual CodeContainer {
         :CodeContainer(numInputs, numOutputs)
     {}
 
-    StatementInst* generateDAGLoopOMP();
+    StatementInst* generateDAGLoopOMP(const string& counter);
 
 };
 

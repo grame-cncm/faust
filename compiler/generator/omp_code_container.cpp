@@ -34,7 +34,7 @@ using namespace std;
 extern bool gOpenMPLoop;
 
 // LabelInst are used to add OMP directive in the code
-StatementInst* OpenMPCodeContainer::generateDAGLoopOMP()
+StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 {
     BlockInst* result_code = InstBuilder::genBlockInst();
 
@@ -84,7 +84,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP()
     generateLocalOutputs(loop_code);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadFunArgsVar("fullcount");
+    ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar("index"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
@@ -134,7 +134,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP()
     // Generates the DAG enclosing loop
     string index = "index";
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar("fullcount"));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);

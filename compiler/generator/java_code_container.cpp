@@ -313,8 +313,9 @@ JAVAVectorCodeContainer::~JAVAVectorCodeContainer()
 void JAVAVectorCodeContainer::generateCompute(int n)
 {
     // Compute
+    string counter = "fullcount";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int fullcount, $0** inputs, $0** outputs) {", xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -327,9 +328,9 @@ void JAVAVectorCodeContainer::generateCompute(int n)
     // Prepare global loop
     StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0();
+        block = generateDAGLoopVariant0(counter);
     } else {
-        block = generateDAGLoopVariant1();
+        block = generateDAGLoopVariant1(counter);
     }
 
     // Generate it

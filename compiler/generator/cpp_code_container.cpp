@@ -336,8 +336,9 @@ CPPVectorCodeContainer::~CPPVectorCodeContainer()
 void CPPVectorCodeContainer::generateCompute(int n)
 {
     // Generates declaration
+    string counter = "fullcount";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int fullcount, $0** inputs, $0** outputs) {", xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -350,9 +351,9 @@ void CPPVectorCodeContainer::generateCompute(int n)
     // Prepare global loop
     StatementInst* block = NULL;
     if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0();
+        block = generateDAGLoopVariant0(counter);
     } else if (gVectorLoopVariant == 1) {
-        block = generateDAGLoopVariant1();
+        block = generateDAGLoopVariant1(counter);
     }
 
     BlockInst* block_res = InstBuilder::genBlockInst();
@@ -381,8 +382,10 @@ CPPOpenMPCodeContainer::~CPPOpenMPCodeContainer()
 void CPPOpenMPCodeContainer::generateCompute(int n)
 {
     // Compute declaration
+    string counter = "fullcount";
+
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int fullcount, $0** inputs, $0** outputs) {", xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -396,7 +399,7 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Prepare global loop
-    StatementInst* block = generateDAGLoopOMP();
+    StatementInst* block = generateDAGLoopOMP(counter);
 
     // Generate it
     assert(block);
@@ -546,12 +549,14 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     computeForwardDAG(dag);
 
     // Compute "compute" declaration
+    string counter = "fullcount";
+
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int fullcount, $0** inputs, $0** outputs) {", xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
-    generateDAGLoopWSSAux2(false);
+    generateDAGLoopWSSAux2(counter, false);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortFunction1);

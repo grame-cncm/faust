@@ -38,8 +38,8 @@ struct VectorCodeContainer : public virtual CodeContainer {
         :CodeContainer(numInputs, numOutputs)
     {}
 
-    StatementInst* generateDAGLoopVariant0();
-    StatementInst* generateDAGLoopVariant1();
+    StatementInst* generateDAGLoopVariant0(const string& counter);
+    StatementInst* generateDAGLoopVariant1(const string& counter);
 
 };
 
