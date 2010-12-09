@@ -82,12 +82,13 @@ void CPPOpenCLCodeContainer::produceInternal()
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
+        string counter = "count";
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+        tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1* output) {", counter, ifloat());
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         generateComputeBlock(&fCodeProducer);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop();
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
@@ -668,8 +669,9 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
 void CPPOpenCLCodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
+    string counter = "count";
     tab1(n, *fGPUOut);
-    *fGPUOut << "__kernel void computeKernel(int count, ";
+    *fGPUOut << subst("__kernel void computeKernel(int $0, ", counter);
 
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  "__global float* input" << i << ", ";
@@ -690,7 +692,7 @@ void CPPOpenCLCodeContainer::generateComputeKernel(int n)
     generateComputeBlock(fKernelCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(fKernelCodeProducer);
 
     tab1(n, *fGPUOut);
@@ -832,12 +834,13 @@ void CPPCUDACodeContainer::produceInternal()
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
+        string counter = "count";
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+        tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1* output) {", counter, ifloat());
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         generateComputeBlock(&fCodeProducer);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop();
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
@@ -1379,8 +1382,9 @@ void CPPCUDACodeContainer::generateCompute(int n)
 void CPPCUDACodeContainer::generateComputeKernel(int n)
 {
     // Generate compute kernel
+    string counter = "count";
     tab(n, *fGPUOut);
-    *fGPUOut << "__global__ void computeKernel(int count, ";
+    *fGPUOut << subst("__global__ void computeKernel(int $0, ", counter);
 
     for (int i = 0; i < fNumInputs; i++) {
         *fGPUOut <<  " float* input" << i << ", ";
@@ -1401,7 +1405,7 @@ void CPPCUDACodeContainer::generateComputeKernel(int n)
     generateComputeBlock(fKernelCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(fKernelCodeProducer);
 
     tab(n, *fGPUOut);

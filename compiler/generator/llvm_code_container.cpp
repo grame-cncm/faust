@@ -54,7 +54,7 @@ class PrintVisitor : public InstVisitor {
 
 };
 
-void LLVMCodeContainer::generateFillBegin()
+void LLVMCodeContainer::generateFillBegin(const string& counter)
 {
     vector<const llvm::Type*> llvm_fill_args;
     llvm_fill_args.push_back(fDSP_ptr);
@@ -81,7 +81,7 @@ void LLVMCodeContainer::generateFillBegin()
     Value* arg1 = llvm_fill_args_it++;
     arg1->setName("dsp");
     Value* arg2 = llvm_fill_args_it++;
-    arg2->setName("count");
+    arg2->setName(counter);
     Value* arg4 = llvm_fill_args_it++;
     arg4->setName("output");
 
@@ -400,11 +400,12 @@ void LLVMCodeContainer::produceInternal()
     generateInstanceInitEnd();
 
     // Fill
-    generateFillBegin();
+    string counter = "count";
+    generateFillBegin(counter);
 
     generateComputeBlock(fCodeProducer);
 
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(fCodeProducer);
 
     generateFillEnd();
@@ -497,13 +498,14 @@ LLVMScalarCodeContainer::~LLVMScalarCodeContainer()
 
 void LLVMScalarCodeContainer::generateCompute()
 {
-    generateComputeBegin("count");
+    string counter = "count";
+    generateComputeBegin(counter);
 
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
 
     // Optimize Declare/Store/Load for fTemp variables
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     LLVMStackVariableRemover remover;
     remover.Mark(loop, "Temp");
     remover.Finish(loop);

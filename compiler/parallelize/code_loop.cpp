@@ -38,10 +38,10 @@
 
 using namespace std;
 
-ForLoopInst* CodeLoop::generateScalarLoop()
+ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
 {
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genLoadFunArgsVar("count"));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(fLoopIndex, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);

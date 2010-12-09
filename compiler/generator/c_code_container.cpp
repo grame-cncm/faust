@@ -98,15 +98,16 @@ void CCodeContainer::produceInternal()
 
     // Fill
     tab(n, *fOut);
+    string counter = "count";
     if (fSubContainerType == kInt) {
-        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << "* dsp, int count, int* output) {";
+        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, int* output) {", counter);
     } else {
-        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int count, $0* output) {", ifloat());
+        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, $1* output) {", counter, ifloat());
     }
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
     generateComputeBlock(&fCodeProducer);
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};\n" << endl;
@@ -255,8 +256,9 @@ CScalarCodeContainer::~CScalarCodeContainer()
 void CScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
+    string counter = "count";
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int count, $0** inputs, $0** outputs) {", xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -264,7 +266,7 @@ void CScalarCodeContainer::generateCompute(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;

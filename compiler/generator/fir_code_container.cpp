@@ -116,7 +116,7 @@ void FirScalarCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
 {
     *dst << "======= Compute DSP ==========" << std::endl;
     *dst << std::endl;
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
     loop->accept(&firvisitor);
     *dst << std::endl;
 }

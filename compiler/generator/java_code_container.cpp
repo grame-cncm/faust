@@ -130,18 +130,19 @@ void JAVACodeContainer::produceInternal()
         tab(n+1, *fOut); *fOut << "}";
 
         // Fill
+        string counter = "count";
         tab(n+1, *fOut);
         if (fSubContainerType == kInt) {
-            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << "(int count, int* output) {";
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, int* output) {", counter);
         } else {
-            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int count, $0* output) {", ifloat());
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1* output) {", counter, ifloat());
         }
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
         if (fComputeBlockInstructions->fCode.size() > 0) {
             fComputeBlockInstructions->accept(&fCodeProducer);
         }
-        ForLoopInst* loop = fCurLoop->generateScalarLoop();
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
@@ -285,8 +286,9 @@ void JAVACodeContainer::produceClass()
 
 void JAVAScalarCodeContainer::generateCompute(int n)
 {
+    string counter = "count";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("void compute(int count, $0** inputs, $0** outputs) {", xfloat());
+    tab(n+1, *fOut); *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", counter,  xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -294,7 +296,7 @@ void JAVAScalarCodeContainer::generateCompute(int n)
     fComputeBlockInstructions->accept(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop();
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";

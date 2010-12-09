@@ -152,7 +152,7 @@ class CodeLoop {
             return InstBuilder::genLoadLoopVar(fLoopIndex);
         }
 
-        ForLoopInst* generateScalarLoop();
+        ForLoopInst* generateScalarLoop(const string& counter);
 
         void generateDAGLoop(BlockInst* block, bool omp);
         void generateDAGVecLoop(BlockInst* block, bool omp, int size);

@@ -61,7 +61,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateComputeEnd();
         void generateComputeDouble();
 
-        void generateFillBegin();
+        void generateFillBegin(const string& counter);
         void generateFillEnd();
 
         void generateGetNumInputs();
