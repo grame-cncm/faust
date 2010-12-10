@@ -32,15 +32,16 @@
 
 #include "code_container.hh"
 
-struct OpenMPCodeContainer : public virtual CodeContainer {
+class OpenMPCodeContainer : public virtual CodeContainer {
 
-    OpenMPCodeContainer(int numInputs, int numOutputs)
-        :CodeContainer(numInputs, numOutputs)
-    {}
+    public:
 
-    StatementInst* generateDAGLoopOMP(const string& counter);
+        OpenMPCodeContainer(int numInputs, int numOutputs)
+            :CodeContainer(numInputs, numOutputs)
+        {}
+
+        StatementInst* generateDAGLoopOMP(const string& counter);
 
 };
-
 
 #endif

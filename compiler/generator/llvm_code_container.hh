@@ -166,7 +166,6 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
 
     protected:
 
-
     public:
 
         LLVMScalarCodeContainer(int numInputs, int numOutputs, const string& module_name = "");
@@ -180,7 +179,6 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
 class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeContainer {
 
     protected:
-
 
     public:
 

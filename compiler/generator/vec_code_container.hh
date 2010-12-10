@@ -32,16 +32,17 @@
 
 #include "code_container.hh"
 
-struct VectorCodeContainer : public virtual CodeContainer {
+class VectorCodeContainer : public virtual CodeContainer {
 
-    VectorCodeContainer(int numInputs, int numOutputs)
-        :CodeContainer(numInputs, numOutputs)
-    {}
+    public:
 
-    StatementInst* generateDAGLoopVariant0(const string& counter);
-    StatementInst* generateDAGLoopVariant1(const string& counter);
+        VectorCodeContainer(int numInputs, int numOutputs)
+            :CodeContainer(numInputs, numOutputs)
+        {}
+
+        StatementInst* generateDAGLoopVariant0(const string& counter);
+        StatementInst* generateDAGLoopVariant1(const string& counter);
 
 };
-
 
 #endif

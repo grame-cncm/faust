@@ -32,25 +32,31 @@
 
 #include "code_container.hh"
 
-struct WSSCodeContainer : public virtual CodeContainer {
+class WSSCodeContainer : public virtual CodeContainer {
 
-    BlockInst* fComputeThreadBlockInstructions;
+    protected:
 
-    WSSCodeContainer(int numInputs, int numOutputs)
-        :CodeContainer(numInputs, numOutputs), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
-    {}
+        BlockInst* fComputeThreadBlockInstructions;
 
-    void MoveStackArray2Struct();
-    void MoveStackSlow2Struct();
-    void MoveStack2Struct();
+        void MoveStackArray2Struct();
+        void MoveStackSlow2Struct();
+        void MoveStack2Struct();
 
-    void generateLocalInputs(BlockInst* loop_code);
-    void generateLocalOutputs(BlockInst* loop_code);
+        void generateLocalInputs(BlockInst* loop_code);
+        void generateLocalOutputs(BlockInst* loop_code);
 
-    void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
-    void generateDAGLoopWSSAux2(const string& counter, bool obj);
-    void generateDAGLoopWSSAux3();
-    StatementInst* generateDAGLoopWSS(lclgraph dag);
+        void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
+        void generateDAGLoopWSSAux2(const string& counter, bool obj);
+        void generateDAGLoopWSSAux3();
+
+    public:
+
+        WSSCodeContainer(int numInputs, int numOutputs)
+            :CodeContainer(numInputs, numOutputs), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
+        {}
+
+        StatementInst* generateDAGLoopWSS(lclgraph dag);
+
 };
 
 #endif
