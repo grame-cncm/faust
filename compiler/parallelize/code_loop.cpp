@@ -40,11 +40,11 @@ using namespace std;
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
 {
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(fLoopIndex, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genIntNumInst(1)));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
     pushLoop(fPreInst, loop);
     pushLoop(fComputeInst, loop);
     pushLoop(fPostInst, loop);
@@ -157,11 +157,11 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
 
-        DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genLoadStackVar("count"));
-        StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(fLoopIndex, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genIntNumInst(size)));
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genLoadStackVar("count"));
+        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(size)));
 
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
+        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
         block->pushBackInst(loop);
@@ -191,11 +191,11 @@ void CodeLoop::generateDAGLoop(BlockInst* block, bool omp)
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genLoadStackVar("count"));
-        StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(fLoopIndex, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(fLoopIndex), InstBuilder::genIntNumInst(1)));
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genLoadStackVar("count"));
+        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
+        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
         if (omp) {
             block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));

@@ -1149,16 +1149,13 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
     pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genIntNumInst(delay));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(delay));
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
-        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
-
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
-
-    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadLoopVar(index), init));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loop_decl->load(), init));
     return loop;
 }
 
@@ -1167,19 +1164,16 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
     string index = "j";
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kGT, loop_decl->load(), InstBuilder::genIntNumInst(0));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kSub, loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kGT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(0));
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
-        InstBuilder::genBinopInst(kSub, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
-
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
-
-    ValueInst* load_value2 = InstBuilder::genBinopInst(kSub, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1));
+    ValueInst* load_value2 = InstBuilder::genBinopInst(kSub, loop_decl->load(), InstBuilder::genIntNumInst(1));
     ValueInst* load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
 
-    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadLoopVar(index), load_value3));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loop_decl->load(), load_value3));
     return loop;
 }
 
@@ -1194,18 +1188,15 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
     string index = "j";
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genIntNumInst(size));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(size));
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
-        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
+    ValueInst* load_value = InstBuilder::genLoadArrayStructVar(vname_from, loop_decl->load());
 
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
-
-    ValueInst* load_value = InstBuilder::genLoadArrayStructVar(vname_from, InstBuilder::genLoadLoopVar(index));
-
-    loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, InstBuilder::genLoadLoopVar(index), load_value));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStackVar(vname_to, loop_decl->load(), load_value));
     return loop;
 }
 
@@ -1214,19 +1205,16 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
     string index = "j";
 
     // Generates init table loop
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genIntNumInst(size));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(size));
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
-        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(1)));
-
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment);
-
-    ValueInst* load_index = InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadStackVar("count"), InstBuilder::genLoadLoopVar(index));
+    ValueInst* load_index = InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadStackVar("count"), loop_decl->load());
     ValueInst* load_value = InstBuilder::genLoadArrayStackVar(vname_from, load_index);
 
-    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, InstBuilder::genLoadLoopVar(index), load_value));
+    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, loop_decl->load(), load_value));
     return loop;
 }
 

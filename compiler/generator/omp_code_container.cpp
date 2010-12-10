@@ -33,28 +33,28 @@ using namespace std;
 
 extern bool gOpenMPLoop;
 
+// Analysis to discover which stack variables have to be used in the "firstprivate" list
+struct StackVarAnalyser : public DispatchVisitor {
+
+    list<string> fFirstPrivateTable;
+
+    virtual void visit(DeclareVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+        ArrayTyped* array_typed;
+
+        // Keep "simple" stack variables and pointers on simple variables (that is everything but arrays)
+        if (inst->fAddress->getAccess() == Address::kStack && !((array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped)) && array_typed->fSize > 0)) {
+            fFirstPrivateTable.push_back(inst->fAddress->getName());
+        }
+    }
+};
+
 // LabelInst are used to add OMP directive in the code
 StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 {
     BlockInst* result_code = InstBuilder::genBlockInst();
     string index = "index";
-
-    // Analysis to discover which stack variables have to be used in the "firstprivate" list
-    struct StackVarAnalyser : public DispatchVisitor {
-
-        list<string> fFirstPrivateTable;
-
-        virtual void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            ArrayTyped* array_typed;
-
-            // Keep "simple" stack variables and pointers on simple variables (that is everything but arrays)
-            if (inst->fAddress->getAccess() == Address::kStack && !((array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped)) && array_typed->fSize > 0)) {
-                fFirstPrivateTable.push_back(inst->fAddress->getName());
-            }
-        }
-    };
 
     // Setup "firstprivate" list
     StackVarAnalyser analyser;
@@ -133,11 +133,11 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(gVecSize)));
 
-    StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
+    StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 
     parallel_code->pushBackInst(loop);
     result_code->pushBackInst(parallel_code);

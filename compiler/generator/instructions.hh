@@ -749,6 +749,9 @@ struct DeclareVarInst : public StatementInst
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+
+    struct StoreVarInst * store (ValueInst * val);
+    struct LoadVarInst * load ();
 };
 
 // ==============

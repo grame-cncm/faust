@@ -57,13 +57,12 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     generateDAGLoop(loop_code);
 
     // Generates the DAG enclosing loop
-    StoreVarInst* loop_init = InstBuilder::genStoreStackVar(index, InstBuilder::genIntNumInst(0));
+    StoreVarInst* loop_init = index_dec->store(InstBuilder::genIntNumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLE, InstBuilder::genLoadStackVar(index),
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLE, index_dec->load(),
         InstBuilder::genBinopInst(kSub, InstBuilder::genLoadFunArgsVar(counter), InstBuilder::genIntNumInst(gVecSize)));
 
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index,
-        InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
+    StoreVarInst* loop_increment = index_dec->store(InstBuilder::genBinopInst(kAdd, index_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -118,10 +117,10 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
     generateDAGLoop(loop_code);
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar(index), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = InstBuilder::genStoreLoopVar(index, InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar(index), InstBuilder::genIntNumInst(gVecSize)));
+    DeclareVarInst* loop_dec = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genBinopInst(kAdd, loop_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
 
-    StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
+    StatementInst* loop = InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code);
     return loop;
 }
