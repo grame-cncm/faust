@@ -390,7 +390,6 @@ bool CodeContainer::sortArrayDeclarations(StatementInst* a, StatementInst* b)
     } else {
         return false;
     }
-    return true;
 }
 
 void CodeContainer::createVoidFunction(const string& name)
