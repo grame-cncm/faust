@@ -103,7 +103,6 @@ class InstructionsCompiler {
         StatementInst* pushComputeDSPMethod(StatementInst* inst)        { return fContainer->pushComputeDSPMethod(inst); }
         StatementInst* pushComputePostDSPMethod(StatementInst* inst)    { return fContainer->pushComputePostDSPMethod(inst); }
 
-
         void ensureIotaCode();
 
         int pow2limit(int x)

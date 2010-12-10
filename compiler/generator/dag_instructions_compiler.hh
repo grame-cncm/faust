@@ -44,7 +44,6 @@ private:
     void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
     void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
 
-
     // reimplemented code generation methods
     virtual ValueInst* CS(Tree sig);
     virtual void compileMultiSignal(Tree sig);
