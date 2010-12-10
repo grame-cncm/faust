@@ -499,6 +499,28 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
     pushDestroyMethod(InstBuilder::genForLoopInst(init_loop2, end_loop2, inc_loop2, InstBuilder::genBlockInst(code2)));
 }
 
+void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code)
+{
+    // Generates line like: fInput0 = &fInput0_ptr[index];
+    for (int index = 0; index < inputs(); index++) {
+        string name1 = subst("fInput$0", T(index));
+        string name2 = subst("fInput$0_ptr", T(index));
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+    }
+}
+
+void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code)
+{
+    // Generates line like: fOutput0 = &fOutput0_ptr[index];
+    for (int index = 0; index < outputs(); index++) {
+        string name1 = subst("fOutput$0", T(index));
+        string name2 = subst("fOutput$0_ptr", T(index));
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+    }
+}
+
 StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 {
     BlockInst* loop_code = fComputeThreadBlockInstructions;
@@ -508,21 +530,8 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
     // Generate input/output access
-    // Generates line like: fInput0 = &fInput0_ptr[index];
-    for (int index = 0; index < inputs(); index++) {
-        string name1 = subst("fInput$0", T(index));
-        string name2 = subst("fInput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
-    }
-
-    // Generates line like: fOutput0 = &fOutput0_ptr[index];
-    for (int index = 0; index < outputs(); index++) {
-        string name1 = subst("fOutput$0", T(index));
-        string name2 = subst("fOutput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
-   }
+    generateLocalInputs(loop_code);
+    generateLocalOutputs(loop_code);
 
     loop_code->pushBackInst(InstBuilder::genDecStackVar("taskqueue", InstBuilder::genBasicTyped(Typed::kVoid_ptr),
         InstBuilder::genLoadArrayStructVar("fTaskQueueTable", InstBuilder::genLoadFunArgsVar("num_thread"))));
@@ -548,21 +557,9 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                                 InstBuilder::genAdd(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                                     InstBuilder::genIntNumInst(gVecSize))));
 
-    // Generates line like: fInput0 = &fInput0_ptr[index];
-    for (int index = 0; index < inputs(); index++) {
-        string name1 = subst("fInput$0", T(index));
-        string name2 = subst("fInput$0_ptr", T(index));
-        last_block->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2,
-                            InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
-    }
-
-    // Generates line like: fOutput0 = &fOuput0_ptr[index];
-    for (int index = 0; index < outputs(); index++) {
-        string name1 = subst("fOutput$0", T(index));
-        string name2 = subst("fOutput$0_ptr", T(index));
-        last_block->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2,
-                            InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
-    }
+    // Generate input/output access
+    generateLocalInputs(last_block);
+    generateLocalOutputs(last_block);
 
     // Generates init DAG and ready tasks activations
     generateDAGLoopWSSAux1(dag, last_block, false);
