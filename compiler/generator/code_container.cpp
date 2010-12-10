@@ -411,7 +411,7 @@ void CodeContainer::createFunction0(const string& name, Typed::VarType res)
 void CodeContainer::createFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty)
 {
     list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, InstBuilder::genBasicTyped(arg1_ty)));
+    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
     pushGlobalDeclare(fun);
@@ -422,8 +422,8 @@ void CodeContainer::createFunction2(const string& name, Typed::VarType res,
                                 const string& arg2, Typed::VarType arg2_ty)
 {
     list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, InstBuilder::genBasicTyped(arg1_ty)));
-    args.push_back(InstBuilder::genNamedTyped(arg2, InstBuilder::genBasicTyped(arg2_ty)));
+    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
     pushGlobalDeclare(fun);
@@ -435,9 +435,9 @@ void CodeContainer::createFunction3(const string& name, Typed::VarType res,
                                 const string& arg3, Typed::VarType arg3_ty)
 {
     list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, InstBuilder::genBasicTyped(arg1_ty)));
-    args.push_back(InstBuilder::genNamedTyped(arg2, InstBuilder::genBasicTyped(arg2_ty)));
-    args.push_back(InstBuilder::genNamedTyped(arg3, InstBuilder::genBasicTyped(arg3_ty)));
+    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
     pushGlobalDeclare(fun);
@@ -450,10 +450,10 @@ void CodeContainer::createFunction4(const string& name, Typed::VarType res,
                                 const string& arg4, Typed::VarType arg4_ty)
 {
     list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, InstBuilder::genBasicTyped(arg1_ty)));
-    args.push_back(InstBuilder::genNamedTyped(arg2, InstBuilder::genBasicTyped(arg2_ty)));
-    args.push_back(InstBuilder::genNamedTyped(arg3, InstBuilder::genBasicTyped(arg3_ty)));
-    args.push_back(InstBuilder::genNamedTyped(arg4, InstBuilder::genBasicTyped(arg4_ty)));
+    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
+    args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
     pushGlobalDeclare(fun);
