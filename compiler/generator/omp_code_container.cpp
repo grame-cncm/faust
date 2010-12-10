@@ -91,7 +91,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG
@@ -110,7 +110,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
             if (dag[l].size() == 1) { // Only one loop
                 if (!(*p)->isRecursive() && gOpenMPLoop) {
-                    generateDAGLoopAux(*p, omp_section_block, loop_num++, true);
+                    generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++, true);
                 } else {
                     omp_section_block->setIndent(true);
                     if (!is_single) {
@@ -119,13 +119,13 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
                     } else {
                         omp_sections_block->pushBackInst(InstBuilder::genLabelInst("// Still in a single section"));
                     }
-                    generateDAGLoopAux(*p, omp_section_block, loop_num++);
+                    generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++);
                 }
             } else {
                 is_single = false;
                 omp_section_block->setIndent(true);
                 omp_sections_block->pushBackInst(InstBuilder::genLabelInst("#pragma omp section"));
-                generateDAGLoopAux(*p, omp_section_block, loop_num++);
+                generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++);
             }
             omp_sections_block->pushBackInst(omp_section_block);
         }

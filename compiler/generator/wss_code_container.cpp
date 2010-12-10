@@ -579,7 +579,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
     switch_block_code->pushBackInst(count_dec);
 
     for (int l = dag.size() - 1; l > 0; l--) {
@@ -587,7 +587,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
             // Generates a "case" block for each task
             BlockInst* case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*p, case_block, loop_num);
+            generateDAGLoopAux(*p, case_block, count_dec, loop_num);
 
             // Add output tasks activation code
 
@@ -668,14 +668,14 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
     if (level.size() == 1) {
         BlockInst* case_block = InstBuilder::genBlockInst();
-        generateDAGLoopAux(*level.begin(), case_block, loop_num);
+        generateDAGLoopAux(*level.begin(), case_block, count_dec, loop_num);
         case_block->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(LAST_TASK_INDEX)));
         // Add the "case" block
         switch_block->addCase(loop_num, case_block);
     } else {
         for (lclset::const_iterator p = level.begin(); p != level.end(); p++, loop_num++) {
             BlockInst* case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*p, case_block, loop_num);
+            generateDAGLoopAux(*p, case_block, count_dec, loop_num);
 
             list<ValueInst*> fun_args;
             fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));

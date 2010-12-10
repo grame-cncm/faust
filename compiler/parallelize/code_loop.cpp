@@ -141,7 +141,7 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
     }
 };
 
-void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
+void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool omp, int size)
 {
     // TODO
     // 1) Vectorize access to all scalar that are not "kLoop" type: declare a Vector version of them, then transform Load/Store access.
@@ -158,7 +158,7 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
     if (fComputeInst->fCode.size() > 0) {
 
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadStackVar("count"));
+        ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(size)));
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
@@ -178,7 +178,7 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, bool omp, int size)
     }
 }
 
-void CodeLoop::generateDAGLoop(BlockInst* block, bool omp)
+void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
@@ -192,7 +192,7 @@ void CodeLoop::generateDAGLoop(BlockInst* block, bool omp)
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadStackVar("count"));
+        ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);

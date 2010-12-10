@@ -326,12 +326,12 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code)
     }
 }
 
-void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int loop_num, bool omp)
+void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst * count, int loop_num, bool omp)
 {
     if (gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();
 
-        loop->generateDAGLoop(block, omp);
+        loop->generateDAGLoop(block, count, omp);
         /*
         if (loop->fIsRecursive)
             loop->generateDAGLoop(block, omp);
@@ -345,7 +345,7 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int
     } else {
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
 
-        loop->generateDAGLoop(loop_code, omp);
+        loop->generateDAGLoop(loop_code, count, omp);
         /*
         if (loop->fIsRecursive)
             loop->generateDAGLoop(loop_code, omp);
@@ -355,7 +355,7 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int
     }
 }
 
-void CodeContainer::generateDAGLoop(BlockInst* block)
+void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
 {
     int loop_num = 0;
 
@@ -364,14 +364,14 @@ void CodeContainer::generateDAGLoop(BlockInst* block)
         list<CodeLoop*> result;
         sortDeepFirstDAG(fCurLoop, visited, result);
         for (list<CodeLoop*>::const_iterator p = result.begin(); p != result.end(); p++) {
-            generateDAGLoopAux(*p, block, loop_num++);
+            generateDAGLoopAux(*p, block, count, loop_num++);
         }
     } else {
         lclgraph G;
         CodeLoop::sortGraph(fCurLoop, G);
         for (int l = G.size() - 1; l >= 0; l--) {
             for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
-                generateDAGLoopAux(*p, block, loop_num++);
+                generateDAGLoopAux(*p, block, count, loop_num++);
             }
         }
     }

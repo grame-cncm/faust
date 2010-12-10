@@ -151,8 +151,8 @@ class CodeLoop {
 
         ForLoopInst* generateScalarLoop(const string& counter);
 
-        void generateDAGLoop(BlockInst* block, bool omp);
-        void generateDAGVecLoop(BlockInst* block, bool omp, int size);
+        void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
+        void generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool omp, int size);
 
         void transform(DispatchVisitor* visitor)
         {

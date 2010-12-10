@@ -165,8 +165,8 @@ class CodeContainer {
         void generateLocalInputs(BlockInst* loop_code);
         void generateLocalOutputs(BlockInst* loop_code);
 
-        void generateDAGLoop(BlockInst* loop_code);
-        void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int loop_num, bool omp = false);
+        void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
+        void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
 
         // Fill code for each method
         StatementInst* pushDeclare(StatementInst* inst)

@@ -746,7 +746,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
@@ -764,13 +764,13 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
                 BlockInst* switch_case_block = InstBuilder::genBlockInst();
-                generateDAGLoopAux(*p, switch_case_block, loop_num);
+                generateDAGLoopAux(*p, switch_case_block, count_dec, loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
             BlockInst* single_case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*dag[l].begin(), single_case_block, 0);
+            generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec, 0);
             switch_block->addCase(0, single_case_block);
         }
 
@@ -1460,7 +1460,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
-    StatementInst* count_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
@@ -1485,13 +1485,13 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
             int loop_num = 0;
             for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
                 BlockInst* switch_case_block = InstBuilder::genBlockInst();
-                generateDAGLoopAux(*p, switch_case_block, loop_num);
+                generateDAGLoopAux(*p, switch_case_block, count_dec, loop_num);
                 switch_block->addCase(loop_num, switch_case_block);
                 loop_num++;
             }
         } else {
             BlockInst* single_case_block = InstBuilder::genBlockInst();
-            generateDAGLoopAux(*dag[l].begin(), single_case_block, 0);
+            generateDAGLoopAux(*dag[l].begin(), single_case_block, count_dec, 0);
             switch_block->addCase(0, single_case_block);
         }
 
