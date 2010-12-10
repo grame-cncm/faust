@@ -86,7 +86,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -134,8 +134,8 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(gVecSize)));
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 

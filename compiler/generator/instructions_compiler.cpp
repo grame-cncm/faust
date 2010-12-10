@@ -564,8 +564,8 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 		// Long delay : we use a ring buffer of size 2^x
 		int N = pow2limit(mxd + 1);
 
-        ValueInst* value2 = InstBuilder::genBinopInst(kSub, InstBuilder::genLoadStructVar("IOTA"), CS(delay));
-        ValueInst* value3 = InstBuilder::genBinopInst(kAND, value2, InstBuilder::genIntNumInst(N - 1));
+        ValueInst* value2 = InstBuilder::genSub(InstBuilder::genLoadStructVar("IOTA"), CS(delay));
+        ValueInst* value3 = InstBuilder::genAnd(value2, InstBuilder::genIntNumInst(N - 1));
         return InstBuilder::genLoadArrayStructVar(vname, value3);
     }
 }
@@ -1150,8 +1150,8 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genIntNumInst(delay));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genIntNumInst(delay));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
@@ -1165,12 +1165,12 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(delay));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kGT, loop_decl->load(), InstBuilder::genIntNumInst(0));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kSub, loop_decl->load(), InstBuilder::genIntNumInst(1)));
+    ValueInst* loop_end = InstBuilder::genGreaterThan(loop_decl->load(), InstBuilder::genIntNumInst(0));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    ValueInst* load_value2 = InstBuilder::genBinopInst(kSub, loop_decl->load(), InstBuilder::genIntNumInst(1));
+    ValueInst* load_value2 = InstBuilder::genSub(loop_decl->load(), InstBuilder::genIntNumInst(1));
     ValueInst* load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loop_decl->load(), load_value3));
@@ -1189,8 +1189,8 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genIntNumInst(size));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genIntNumInst(size));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
@@ -1206,12 +1206,12 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
 
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(), InstBuilder::genIntNumInst(size));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(), InstBuilder::genIntNumInst(1)));
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genIntNumInst(size));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(1)));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    ValueInst* load_index = InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadStackVar("count"), loop_decl->load());
+    ValueInst* load_index = InstBuilder::genAdd(InstBuilder::genLoadStackVar("count"), loop_decl->load());
     ValueInst* load_value = InstBuilder::genLoadArrayStackVar(vname_from, load_index);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, loop_decl->load(), load_value));
@@ -1253,7 +1253,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
 
         // Generate table use
         ValueInst* value1 = InstBuilder::genLoadStructVar("IOTA");
-        ValueInst* value2 = InstBuilder::genBinopInst(kAND, value1, InstBuilder::genIntNumInst(N - 1));
+        ValueInst* value2 = InstBuilder::genAnd(value1, InstBuilder::genIntNumInst(N - 1));
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
     }
 
@@ -1268,7 +1268,7 @@ void InstructionsCompiler::ensureIotaCode()
         pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genBasicTyped(Typed::kInt)));
         pushInitMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genIntNumInst(0)));
 
-        ValueInst* value = InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadStructVar("IOTA"), InstBuilder::genIntNumInst(1));
+        ValueInst* value = InstBuilder::genAdd(InstBuilder::genLoadStructVar("IOTA"), InstBuilder::genIntNumInst(1));
         pushComputePostDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));
     }
 }

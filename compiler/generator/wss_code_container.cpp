@@ -294,7 +294,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter, bool obj)
 
     list<ValueInst*> fun_args1;
     fun_args1.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
-    fun_args1.push_back(InstBuilder::genBinopInst(kSub, InstBuilder::genLoadStructVar("fDynamicNumThreads"), InstBuilder::genIntNumInst(1)));
+    fun_args1.push_back(InstBuilder::genSub(InstBuilder::genLoadStructVar("fDynamicNumThreads"), InstBuilder::genIntNumInst(1)));
 
     if (obj)
         fun_args1.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
@@ -366,8 +366,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
     pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("initTaskQueue", fun_args)));
 
     StatementInst* init_loop1 = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* end_loop1 = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
-    StoreVarInst* inc_loop1 = InstBuilder::genStoreLoopVar("i", InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
+    ValueInst* end_loop1 = InstBuilder::genLessThan(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
+    StoreVarInst* inc_loop1 = InstBuilder::genStoreLoopVar("i", InstBuilder::genAdd(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
 
     list<StatementInst*> code1;
     list<ValueInst*> fun_args1;
@@ -378,7 +378,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
 
     list<ValueInst*> fun_args2;
     fun_args2.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
-    fun_args2.push_back(InstBuilder::genBinopInst(kSub, InstBuilder::genLoadStructVar("fStaticNumThreads"), InstBuilder::genIntNumInst(1)));
+    fun_args2.push_back(InstBuilder::genSub(InstBuilder::genLoadStructVar("fStaticNumThreads"), InstBuilder::genIntNumInst(1)));
     pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("startAll", fun_args2)));
 
     // Specific destroy instructions
@@ -390,8 +390,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
     pushDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("deleteTaskGraph", fun_args4)));
 
     StatementInst* init_loop2 = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* end_loop2 = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
-    StoreVarInst* inc_loop2 = InstBuilder::genStoreLoopVar("i", InstBuilder::genBinopInst(kAdd, InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
+    ValueInst* end_loop2 = InstBuilder::genLessThan(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
+    StoreVarInst* inc_loop2 = InstBuilder::genStoreLoopVar("i", InstBuilder::genAdd(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
 
     list<StatementInst*> code2;
     list<ValueInst*> fun_args5;
@@ -446,9 +446,8 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     BlockInst* last_block = InstBuilder::genBlockInst();
     last_block->pushBackInst(InstBuilder::genLabelInst("// Last task"));
     last_block->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile),
-                                InstBuilder::genBinopInst(kAdd,
-                                    InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                    InstBuilder::genIntNumInst(gVecSize))));
+                                InstBuilder::genAdd(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+                                                    InstBuilder::genIntNumInst(gVecSize))));
 
     // Generates line like: fInput0 = &fInput0_ptr[index];
     for (int index = 0; index < inputs(); index++) {
@@ -473,13 +472,13 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     // Generates global "switch/case"
     int loop_num = START_TASK_MAX;  // First index to be used for remaining tasks
 
-    ValueInst* while_cond = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
+    ValueInst* while_cond = InstBuilder::genLessThan(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                 InstBuilder::genLoadStructVar("fFullcount"));
     BlockInst* switch_block_code = InstBuilder::genBlockInst();
 
     // Generates switch/case block "header"
     ValueInst* init1 = InstBuilder::genLoadStructVar("fFullcount");
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadStructVar("fIndex"));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadStructVar("fIndex"));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);

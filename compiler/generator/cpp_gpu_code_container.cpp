@@ -741,7 +741,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -780,8 +780,8 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
 
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genBinopInst(kAdd, loop_init->load(), InstBuilder::genIntNumInst(gVecSize)));
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -1455,7 +1455,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -1502,10 +1502,9 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_decl = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress(index, Address::kLoop), InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_decl->load(),
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(),
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genBinopInst(kAdd, loop_decl->load(),
-                                    InstBuilder::genIntNumInst(gVecSize)));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 

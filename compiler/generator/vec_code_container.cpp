@@ -60,9 +60,9 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     StoreVarInst* loop_init = index_dec->store(InstBuilder::genIntNumInst(0));
 
     ValueInst* loop_end = InstBuilder::genBinopInst(kLE, index_dec->load(),
-        InstBuilder::genBinopInst(kSub, InstBuilder::genLoadFunArgsVar(counter), InstBuilder::genIntNumInst(gVecSize)));
+        InstBuilder::genSub(InstBuilder::genLoadFunArgsVar(counter), InstBuilder::genIntNumInst(gVecSize)));
 
-    StoreVarInst* loop_increment = index_dec->store(InstBuilder::genBinopInst(kAdd, index_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
+    StoreVarInst* loop_increment = index_dec->store(InstBuilder::genAdd(index_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -72,7 +72,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     // Remaining frames
     block_res->pushBackInst(InstBuilder::genLabelInst("// Remaining frames"));
 
-    ValueInst* if_cond = InstBuilder::genBinopInst(kLT, InstBuilder::genLoadStackVar(index), InstBuilder::genLoadFunArgsVar(counter));
+    ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadStackVar(index), InstBuilder::genLoadFunArgsVar(counter));
 
     BlockInst* then_block = InstBuilder::genBlockInst();
 
@@ -105,7 +105,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
 
     // Generate : int count = min(32, (fullcount - index))
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genBinopInst(kSub, init1, InstBuilder::genLoadLoopVar(index));
+    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
     min_fun_args.push_back(init2);
@@ -118,8 +118,8 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
 
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_dec = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genBinopInst(kLT, loop_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genBinopInst(kAdd, loop_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genAdd(loop_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code);
     return loop;

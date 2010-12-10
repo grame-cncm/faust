@@ -1796,6 +1796,41 @@ struct InstBuilder
         return genStoreVarInst(genNamedAddress(vname, Address::kGlobal), exp);
     }
 
+    static BinopInst* genAdd(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kAdd, a1, a2);
+    }
+
+    static BinopInst* genSub(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kSub, a1, a2);
+    }
+
+    static BinopInst* genMul(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kMul, a1, a2);
+    }
+
+    static BinopInst* genDiv(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kDiv, a1, a2);
+    }
+
+    static BinopInst* genAnd(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kAND, a1, a2);
+    }
+
+    static BinopInst* genLessThan(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kLT, a1, a2);
+    }
+
+     static BinopInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kGT, a1, a2);
+    }
+
 };
 
 #endif

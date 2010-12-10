@@ -265,7 +265,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         } else {
             ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
             for (int i= 0; i < arg1->fNum - 1; i++) {
-                res = InstBuilder::genBinopInst(kMul, res, InstBuilder::genLoadFunArgsVar("value"));
+                res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
             }
             block->pushBackInst(InstBuilder::genRetInst(res));
         }
