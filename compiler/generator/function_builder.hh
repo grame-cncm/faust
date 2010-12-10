@@ -899,4 +899,108 @@ struct CodeVerifier : public DispatchVisitor {
 
 };
 
+// Specialize all simple kStruct variables with a given value
+
+struct StructVarAnalyser : public DispatchVisitor {
+
+    map<string, ValueInst*> fSpecializedValueTable;
+
+    void visit(DeclareVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+
+        // Keep "simple" struct variables
+        if (inst->fAddress->getAccess() == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fTyped) || dynamic_cast<NamedTyped*>(inst->fTyped))) {
+            Typed::VarType type = inst->fTyped->getType();
+            ValueInst* init;
+            if (type == Typed::kFloat)
+                init = InstBuilder::genFloatNumInst(0.5);
+            else
+                init = InstBuilder::genIntNumInst(1);
+            fSpecializedValueTable[inst->fAddress->getName()] = init;
+        }
+    }
+};
+
+struct ControlSpecializer : public DispatchVisitor {
+
+    StatementInst* fResultCode;
+
+    // Mark all simple kStruct variables
+    struct VariableMarker : public DispatchVisitor {
+
+        map<string, ValueInst*>& fSpecializedValueTable;
+
+        VariableMarker(map<string, ValueInst*>& valuetable)
+            :fSpecializedValueTable(valuetable)
+        {}
+
+        void visit(StoreVarInst* inst)
+        {
+            DispatchVisitor::visit(inst);
+
+            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
+                inst->fAddress->setAccess(Address::kLink);
+            } else {
+                //cout << "ControlSpecializer StoreVarInst " << inst->fAddress->getName() << endl;
+            }
+        }
+
+        void visit(LoadVarInst* inst)
+        {
+            DispatchVisitor::visit(inst);
+
+            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
+                inst->fAddress->setAccess(Address::kLink);
+            } else {
+                //cout << "ControlSpecializer LoadVarInst " << inst->fAddress->getName() << endl;
+            }
+        }
+    };
+
+    // To be used to clone the annotated code
+    struct VariableSpecializer : public BasicCloneVisitor {
+
+        map<string, ValueInst*>& fSpecializedValueTable;
+
+        VariableSpecializer(map<string, ValueInst*>& valuetable)
+            :fSpecializedValueTable(valuetable)
+        {}
+
+        // Rewrite Load as an access to kept ValueInst
+        ValueInst* visit(LoadVarInst* inst)
+        {
+            if (inst->fAddress->getAccess() == Address::kLink) {
+                assert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
+                return fSpecializedValueTable[inst->fAddress->getName()]->clone(this);
+            } else {
+                return BasicCloneVisitor::visit(inst);
+            }
+        }
+
+        // Rewrite Store as a no-op (DropInst)
+        StatementInst* visit(StoreVarInst* inst)
+        {
+            if (inst->fAddress->getAccess() == Address::kLink) {
+                assert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
+                return new DropInst();
+            } else {
+                return BasicCloneVisitor::visit(inst);
+            }
+        }
+    };
+
+    ControlSpecializer(StatementInst* code, map<string, ValueInst*>& valuetable)
+    {
+        // Identify Store/Load with simple kStruct access
+        VariableMarker marker(valuetable);
+        code->accept(&marker);
+
+        // Clone the code with specialized value
+        VariableSpecializer specializer(valuetable);
+        fResultCode = code->clone(&specializer);
+    }
+
+};
+
 #endif

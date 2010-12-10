@@ -70,7 +70,7 @@
 #include "llvm_code_container.hh"
 #include "fir_code_container.hh"
 
-// construction des representations graphiques
+// Build graphical representations
 
 #include "schema.h"
 #include "drawschema.hh"
@@ -80,11 +80,9 @@
 
 using namespace std ;
 
-
 /****************************************************************
  						Parser variables
 *****************************************************************/
-
 
 int yyparse();
 
@@ -101,7 +99,6 @@ extern vector<Tree> gDocVector;
 extern string gDocLang;
 
 string gOutputLang = "";
-
 
 /****************************************************************
  				Command line tools and arguments

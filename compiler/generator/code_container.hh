@@ -123,8 +123,8 @@ class CodeContainer {
 
       public:
 
-        CodeContainer(int numInputs, int numOutputs);
         CodeContainer();
+        CodeContainer(int numInputs, int numOutputs);
         virtual ~CodeContainer();
 
         CodeLoop* getCurLoop() { return fCurLoop; }
@@ -150,8 +150,8 @@ class CodeContainer {
         void addIncludeFile(const string& str)  { fIncludeFileSet.insert(str); }
         void addLibrary(const string& str)      { fLibrarySet.insert(str); }
 
-        virtual void printLibrary(ostream& fout);
-        virtual void printIncludeFile(ostream& fout);
+        void printLibrary(ostream& fout);
+         void printIncludeFile(ostream& fout);
 
         void setLoopProperty(Tree sig, CodeLoop* l);     ///< Store the loop used to compute a signal
         bool getLoopProperty(Tree sig, CodeLoop*& l);    ///< Returns the loop used to compute a signal
@@ -293,109 +293,5 @@ inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
 {
 	return S.find(l) != S.end();
 }
-
-// Specialize all simple kStruct variables with a given value
-
-struct StructVarAnalyser : public DispatchVisitor {
-
-    map<string, ValueInst*> fSpecializedValueTable;
-
-    void visit(DeclareVarInst* inst)
-    {
-        DispatchVisitor::visit(inst);
-
-        // Keep "simple" struct variables
-        if (inst->fAddress->getAccess() == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fTyped) || dynamic_cast<NamedTyped*>(inst->fTyped))) {
-            Typed::VarType type = inst->fTyped->getType();
-            ValueInst* init;
-            if (type == Typed::kFloat)
-                init = InstBuilder::genFloatNumInst(0.5);
-            else
-                init = InstBuilder::genIntNumInst(1);
-            fSpecializedValueTable[inst->fAddress->getName()] = init;
-        }
-    }
-};
-
-struct ControlSpecializer : public DispatchVisitor {
-
-    StatementInst* fResultCode;
-
-    // Mark all simple kStruct variables
-    struct VariableMarker : public DispatchVisitor {
-
-        map<string, ValueInst*>& fSpecializedValueTable;
-
-        VariableMarker(map<string, ValueInst*>& valuetable)
-            :fSpecializedValueTable(valuetable)
-        {}
-
-        void visit(StoreVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-
-            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
-                inst->fAddress->setAccess(Address::kLink);
-            } else {
-                //cout << "ControlSpecializer StoreVarInst " << inst->fAddress->getName() << endl;
-            }
-        }
-
-        void visit(LoadVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-
-            if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
-                inst->fAddress->setAccess(Address::kLink);
-            } else {
-                //cout << "ControlSpecializer LoadVarInst " << inst->fAddress->getName() << endl;
-            }
-        }
-    };
-
-    // To be used to clone the annotated code
-    struct VariableSpecializer : public BasicCloneVisitor {
-
-        map<string, ValueInst*>& fSpecializedValueTable;
-
-        VariableSpecializer(map<string, ValueInst*>& valuetable)
-            :fSpecializedValueTable(valuetable)
-        {}
-
-        // Rewrite Load as an access to kept ValueInst
-        ValueInst* visit(LoadVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() == Address::kLink) {
-                assert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
-                return fSpecializedValueTable[inst->fAddress->getName()]->clone(this);
-            } else {
-                return BasicCloneVisitor::visit(inst);
-            }
-        }
-
-        // Rewrite Store as a no-op (DropInst)
-        StatementInst* visit(StoreVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() == Address::kLink) {
-                assert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
-                return new DropInst();
-            } else {
-                return BasicCloneVisitor::visit(inst);
-            }
-        }
-    };
-
-    ControlSpecializer(StatementInst* code, map<string, ValueInst*>& valuetable)
-    {
-        // Identify Store/Load with simple kStruct access
-        VariableMarker marker(valuetable);
-        code->accept(&marker);
-
-        // Clone the code with specialized value
-        VariableSpecializer specializer(valuetable);
-        fResultCode = code->clone(&specializer);
-    }
-
-};
 
 #endif
