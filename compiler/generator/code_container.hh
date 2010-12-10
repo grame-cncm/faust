@@ -168,22 +168,6 @@ class CodeContainer {
         void generateDAGLoop(BlockInst* loop_code);
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, int loop_num, bool omp = false);
 
-        void createVoidFunction(const string& name);
-        void createFunction0(const string& name, Typed::VarType res);
-        void createFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty);
-        void createFunction2(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty);
-        void createFunction3(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty,
-                                const string& arg3, Typed::VarType arg3_ty);
-        void createFunction4(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty,
-                                const string& arg3, Typed::VarType arg3_ty,
-                                const string& arg4, Typed::VarType arg4_ty);
-
         // Fill code for each method
         StatementInst* pushDeclare(StatementInst* inst)
         {

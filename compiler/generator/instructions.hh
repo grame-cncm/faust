@@ -1826,10 +1826,27 @@ struct InstBuilder
         return genBinopInst(kLT, a1, a2);
     }
 
-     static BinopInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
+    static BinopInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
     {
         return genBinopInst(kGT, a1, a2);
     }
+
+    static DeclareFunInst* genVoidFunction(const string& name);
+    static DeclareFunInst* genFunction0(const string& name, Typed::VarType res);
+    static DeclareFunInst* genFunction1(const string& name, Typed::VarType res,
+                    const string& arg1, Typed::VarType arg1_ty);
+    static DeclareFunInst* genFunction2(const string& name, Typed::VarType res,
+                    const string& arg1, Typed::VarType arg1_ty,
+                    const string& arg2, Typed::VarType arg2_ty);
+    static DeclareFunInst* genFunction3(const string& name, Typed::VarType res,
+                    const string& arg1, Typed::VarType arg1_ty,
+                    const string& arg2, Typed::VarType arg2_ty,
+                    const string& arg3, Typed::VarType arg3_ty);
+    static DeclareFunInst* genFunction4(const string& name, Typed::VarType res,
+                    const string& arg1, Typed::VarType arg1_ty,
+                    const string& arg2, Typed::VarType arg2_ty,
+                    const string& arg3, Typed::VarType arg3_ty,
+                    const string& arg4, Typed::VarType arg4_ty);
 
 };
 

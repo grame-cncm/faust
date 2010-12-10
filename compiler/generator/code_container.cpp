@@ -265,7 +265,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         } else {
             ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
             for (int i= 0; i < arg1->fNum - 1; i++) {
-                res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
+                res = InstBuilder::genBinopInst(kMul, res, InstBuilder::genLoadFunArgsVar("value"));
             }
             block->pushBackInst(InstBuilder::genRetInst(res));
         }
@@ -390,72 +390,5 @@ bool CodeContainer::sortArrayDeclarations(StatementInst* a, StatementInst* b)
     } else {
         return false;
     }
-}
-
-void CodeContainer::createVoidFunction(const string& name)
-{
-    list<NamedTyped*> args;
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid));
-    DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
-    pushGlobalDeclare(fun);
-}
-
-void CodeContainer::createFunction0(const string& name, Typed::VarType res)
-{
-    list<NamedTyped*> args;
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
-    pushGlobalDeclare(fun);
-}
-
-void CodeContainer::createFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty)
-{
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
-    pushGlobalDeclare(fun);
-}
-
-void CodeContainer::createFunction2(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty)
-{
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
-    pushGlobalDeclare(fun);
-}
-
-void CodeContainer::createFunction3(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty,
-                                const string& arg3, Typed::VarType arg3_ty)
-{
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
-    pushGlobalDeclare(fun);
-}
-
-void CodeContainer::createFunction4(const string& name, Typed::VarType res,
-                                const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty,
-                                const string& arg3, Typed::VarType arg3_ty,
-                                const string& arg4, Typed::VarType arg4_ty)
-{
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
-    args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    DeclareFunInst* fun = InstBuilder::genDeclareFunInst(name, fun_type);
-    pushGlobalDeclare(fun);
 }
 

@@ -326,31 +326,31 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
     pushGlobalDeclare(InstBuilder::genLabelInst("{"));
     pushGlobalDeclare(InstBuilder::genLabelInst("#endif"));
 
-    createVoidFunction("GetRealTime");
+    pushGlobalDeclare(InstBuilder::genVoidFunction("GetRealTime"));
 
-    createFunction0("createThreadPool", Typed::kVoid_ptr);
-    createFunction1("deleteThreadPool", Typed::kVoid, "pool", Typed::kVoid_ptr);
-    createFunction2("startAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt);
-    createFunction3("signalAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt, "dsp", Typed::kVoid_ptr);
+    pushGlobalDeclare(InstBuilder::genFunction0("createThreadPool", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction1("deleteThreadPool", Typed::kVoid, "pool", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction2("startAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt));
+    pushGlobalDeclare(InstBuilder::genFunction3("signalAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt, "dsp", Typed::kVoid_ptr));
 
-    createVoidFunction("initTaskQueue");
-    createFunction1("initAllTaskQueue", Typed::kVoid, "num_threads", Typed::kInt);
-    createFunction1("createTaskQueue", Typed::kVoid_ptr, "cur_thread", Typed::kInt);
-    createFunction1("deleteTaskQueue", Typed::kVoid, "queue", Typed::kVoid_ptr);
-    createFunction2("pushHead", Typed::kVoid, "queue", Typed::kVoid_ptr, "task", Typed::kInt);
-    createFunction1("popHead", Typed::kInt, "queue", Typed::kVoid_ptr);
-    createFunction2("getNextTask", Typed::kInt, "cur_thread", Typed::kInt, "dynamic_threads", Typed::kInt);
+    pushGlobalDeclare(InstBuilder::genVoidFunction("initTaskQueue"));
+    pushGlobalDeclare(InstBuilder::genFunction1("initAllTaskQueue", Typed::kVoid, "num_threads", Typed::kInt));
+    pushGlobalDeclare(InstBuilder::genFunction1("createTaskQueue", Typed::kVoid_ptr, "cur_thread", Typed::kInt));
+    pushGlobalDeclare(InstBuilder::genFunction1("deleteTaskQueue", Typed::kVoid, "queue", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction2("pushHead", Typed::kVoid, "queue", Typed::kVoid_ptr, "task", Typed::kInt));
+    pushGlobalDeclare(InstBuilder::genFunction1("popHead", Typed::kInt, "queue", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction2("getNextTask", Typed::kInt, "cur_thread", Typed::kInt, "dynamic_threads", Typed::kInt));
 
-    createFunction0("createTaskGraph", Typed::kVoid_ptr);
-    createFunction1("deleteTaskGraph", Typed::kVoid, "graph", Typed::kVoid_ptr);
-    createFunction3("initTask", Typed::kVoid, "graph", Typed::kVoid_ptr, "task", Typed::kInt, "count", Typed::kInt);
-    createFunction4("activateOutputTask1", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "task", Typed::kInt, "tasknum", Typed::kInt_ptr);
-    createFunction3("activateOutputTask2", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "task", Typed::kInt);
-    createFunction4("activateOneOutputTask", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "task", Typed::kInt, "tasknum", Typed::kInt_ptr);
-    createFunction3("getReadyTask", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "tasknum", Typed::kInt_ptr);
+    pushGlobalDeclare(InstBuilder::genFunction0("createTaskGraph", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction1("deleteTaskGraph", Typed::kVoid, "graph", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction3("initTask", Typed::kVoid, "graph", Typed::kVoid_ptr, "task", Typed::kInt, "count", Typed::kInt));
+    pushGlobalDeclare(InstBuilder::genFunction4("activateOutputTask1", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "task", Typed::kInt, "tasknum", Typed::kInt_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction3("activateOutputTask2", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "task", Typed::kInt));
+    pushGlobalDeclare(InstBuilder::genFunction4("activateOneOutputTask", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "task", Typed::kInt, "tasknum", Typed::kInt_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction3("getReadyTask", Typed::kVoid, "graph", Typed::kVoid_ptr, "queue", Typed::kVoid_ptr, "tasknum", Typed::kInt_ptr));
 
-    createFunction0("getStaticThreadsNum", Typed::kInt);
-    createFunction0("getDynamicThreadsNum", Typed::kInt);
+    pushGlobalDeclare(InstBuilder::genFunction0("getStaticThreadsNum", Typed::kInt));
+    pushGlobalDeclare(InstBuilder::genFunction0("getDynamicThreadsNum", Typed::kInt));
 
     pushGlobalDeclare(InstBuilder::genLabelInst("#ifdef __cplusplus"));
     pushGlobalDeclare(InstBuilder::genLabelInst("}"));
