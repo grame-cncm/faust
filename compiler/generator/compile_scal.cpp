@@ -617,7 +617,7 @@ string ScalarCompiler::generateSigGen(Tree sig, Tree content)
 
 	fClass->addSubKlass(signal2klass(klassname, content));
 	fClass->addInitCode(subst("$0 $1;", klassname, signame));
-    fInstanceInitProperty.set(content,true);
+    fInstanceInitProperty.set(content, pair<string,string>(klassname,signame));
 
 	return signame;
 }
@@ -629,7 +629,7 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 	fClass->addSubKlass(signal2klass(klassname, content));
 	fClass->addStaticInitCode(subst("$0 $1;", klassname, signame));
-    fStaticInitProperty.set(content,true);
+    fStaticInitProperty.set(content, pair<string,string>(klassname,signame));
 
 	return signame;
 }
@@ -642,8 +642,21 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
 	string 		generator(CS(content));
-	string		ctype, vname;
+    Tree		g;
+    string 		cexp;
+    string		ctype, vname;
 	int 		size;
+
+    // already compiled but check if we need to add declarations
+
+    assert ( isSigGen(content, g) );
+    pair<string,string> kvnames;
+    if ( ! fInstanceInitProperty.get(g, kvnames)) {
+        // not declared here, we add a declaration
+        bool b = fStaticInitProperty.get(g, kvnames);
+        assert(b);
+        fClass->addInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
+    }
 
 	if (!isSigInt(tsize, &size)) {
 		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
@@ -685,9 +698,19 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 	int 		size;
 
 	assert ( isSigGen(content, g) );
+
 	if (!getCompiledExpression(content, cexp)) {
 		cexp = setCompiledExpression(content, generateStaticSigGen(content, g));
-	}
+    } else {
+        // already compiled but check if we need to add declarations
+        pair<string,string> kvnames;
+        if ( ! fStaticInitProperty.get(g, kvnames)) {
+            // not declared here, we add a declaration
+            bool b = fInstanceInitProperty.get(g, kvnames);
+            assert(b);
+            fClass->addStaticInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
+        }
+    }
 
     if (!isSigInt(tsize, &size)) {
 		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
@@ -1174,7 +1197,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
 
 
     } else if (mxd < gMaxCopyDelay) {
-		cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
+        // cerr << "small delay : " << vname << "[" << mxd << "]" << endl;
 
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));

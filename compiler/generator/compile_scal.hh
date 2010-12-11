@@ -24,6 +24,7 @@
 #ifndef _COMPILE_SCAL_
 #define _COMPILE_SCAL_
 
+#include <utility>
 #include "compile.hh"
 #include "sigtyperules.hh"
 #include "sigtyperules.hh"
@@ -41,8 +42,8 @@ class ScalarCompiler : public Compiler
   protected:
     property<string>            fCompileProperty;
     property<string>            fVectorProperty;
-    property<bool>              fStaticInitProperty;        // property added to solve 20101208 kjetil bug
-    property<bool>              fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
+    property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
+    property<pair<string,string> >  fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
 
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
