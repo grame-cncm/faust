@@ -150,6 +150,5 @@ void OpenMPCodeContainer::processFIR()
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Prepare global loop
-    string counter = "fullcount";
-    fGlobalLoopBlock = generateDAGLoopOMP(counter);
+    fGlobalLoopBlock = generateDAGLoopOMP(fFullCount);
 }

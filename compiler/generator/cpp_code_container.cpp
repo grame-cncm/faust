@@ -309,9 +309,8 @@ CPPScalarCodeContainer::~CPPScalarCodeContainer()
 void CPPScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
-    string counter = "count";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -319,7 +318,7 @@ void CPPScalarCodeContainer::generateCompute(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";

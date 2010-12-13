@@ -260,9 +260,8 @@ void JAVACodeContainer::produceClass()
 
 void JAVAScalarCodeContainer::generateCompute(int n)
 {
-    string counter = "count";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", counter,  xfloat());
+    tab(n+1, *fOut); *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", fFullCount,  xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -270,7 +269,7 @@ void JAVAScalarCodeContainer::generateCompute(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
@@ -287,9 +286,8 @@ JAVAVectorCodeContainer::~JAVAVectorCodeContainer()
 void JAVAVectorCodeContainer::generateCompute(int n)
 {
     // Compute
-    string counter = "fullcount";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 

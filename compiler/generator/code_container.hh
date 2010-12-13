@@ -97,6 +97,8 @@ class CodeContainer {
 
         int fSubContainerType;
 
+        string fFullCount;
+
         void incUIActiveCount()    { fNumActives++; }
         void incUIPassiveCount()   { fNumPassives++; }
 

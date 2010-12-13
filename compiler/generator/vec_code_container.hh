@@ -45,7 +45,9 @@ public:
 
     VectorCodeContainer(int numInputs, int numOutputs)
         :CodeContainer(numInputs, numOutputs)
-    {}
+    {
+        fFullCount = "fullcount";
+    }
 
 };
 

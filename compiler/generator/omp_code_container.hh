@@ -43,7 +43,9 @@ class OpenMPCodeContainer : public virtual CodeContainer {
 
         OpenMPCodeContainer(int numInputs, int numOutputs)
             :CodeContainer(numInputs, numOutputs)
-        {}
+        {
+            fFullCount = "fullcount";
+        }
 
 
 };

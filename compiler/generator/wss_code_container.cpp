@@ -708,8 +708,7 @@ void WSSCodeContainer::processFIR(void)
     // Prepare global loop
     fThreadLoopBlock = generateDAGLoopWSS(dag);
 
-    string counter = "fullcount";
-    generateDAGLoopWSSAux2(counter);
+    generateDAGLoopWSSAux2(fFullCount);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);

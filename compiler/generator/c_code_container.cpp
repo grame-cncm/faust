@@ -254,9 +254,8 @@ CScalarCodeContainer::~CScalarCodeContainer()
 void CScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
-    string counter = "count";
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -264,7 +263,7 @@ void CScalarCodeContainer::generateCompute(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;

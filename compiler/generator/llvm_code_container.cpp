@@ -498,14 +498,13 @@ LLVMScalarCodeContainer::~LLVMScalarCodeContainer()
 
 void LLVMScalarCodeContainer::generateCompute()
 {
-    string counter = "count";
-    generateComputeBegin(counter);
+    generateComputeBegin(fFullCount);
 
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
 
     // Optimize Declare/Store/Load for fTemp variables
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     LLVMStackVariableRemover remover;
     remover.Mark(loop, "Temp");
     remover.Finish(loop);
@@ -526,12 +525,10 @@ LLVMVectorCodeContainer::~LLVMVectorCodeContainer()
 
 void LLVMVectorCodeContainer::generateCompute()
 {
-    string counter = "fullcount";
-
     // Possibly generate separated functions
     generateComputeFunctions(fCodeProducer);
 
-    generateComputeBegin(counter);
+    generateComputeBegin(fFullCount);
 
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
@@ -552,10 +549,8 @@ LLVMOpenMPCodeContainer::~LLVMOpenMPCodeContainer()
 
 void LLVMOpenMPCodeContainer::generateCompute()
 {
-    string counter = "fullcount";
-
     generateOMPDeclarations();
-    generateComputeBegin(counter);
+    generateComputeBegin(fFullCount);
 
     // Generates OMP thread function
     generateOMPCompute();
@@ -815,8 +810,6 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
 void LLVMWorkStealingCodeContainer::generateCompute()
 {
-    string counter = "fullcount";
-
     // Possibly generate separated functions
     generateComputeFunctions(fCodeProducer);
 
@@ -829,7 +822,7 @@ void LLVMWorkStealingCodeContainer::generateCompute()
     generateComputeThreadEnd();
 
     // Generates "compute" code
-    generateComputeBegin(counter);
+    generateComputeBegin(fFullCount);
 
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(fCodeProducer);
