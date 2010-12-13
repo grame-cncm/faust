@@ -420,20 +420,6 @@ void CPPWorkStealingCodeContainer::produceClass()
 {
     int n = 0;
 
-    /*
-    // Transform stack array variables in struct variables
-    MoveStackArray2Struct();
-
-    // Transform stack slow variables in struct variables
-    MoveStackSlow2Struct();
-    */
-
-    // Transform some stack variables in struct variables
-    MoveStack2Struct();
-
-    // Specific init code
-    generateDAGLoopWSSAux3();
-
     // Inherited method
     CPPCodeContainer::produceClass();
 
@@ -457,11 +443,6 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
-    generateDAGLoopWSSAux2(counter, false);
-
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
@@ -472,12 +453,9 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
-    // Prepare global loop
-    StatementInst* block = generateDAGLoopWSS(dag);
-
     // Generate it
-    assert(block);
-    block->accept(&fCodeProducer);
+    assert(threadLoopBlock);
+    threadLoopBlock->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }

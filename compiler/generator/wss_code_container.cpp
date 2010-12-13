@@ -697,3 +697,24 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     return loop_code;
 }
 
+void WSSCodeContainer::processFIR(void)
+{
+     // Transform some stack variables in struct variables
+    MoveStack2Struct();
+
+    generateDAGLoopWSSAux3();
+
+    lclgraph dag;
+    CodeLoop::sortGraph(fCurLoop, dag);
+    computeForwardDAG(dag);
+
+    // Prepare global loop
+    threadLoopBlock = generateDAGLoopWSS(dag);
+
+    string counter = "fullcount";
+    generateDAGLoopWSSAux2(counter, false); // FIXME: for C it was true, for LLVM it was fComputeBlockInstructions.
+
+
+    // Sort arrays to be at the begining
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+}

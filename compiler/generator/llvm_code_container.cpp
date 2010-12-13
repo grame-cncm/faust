@@ -825,28 +825,9 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
     verifyFunction(*llvm_computethread);
 }
 
-Module* LLVMWorkStealingCodeContainer::produceModule(const string& filename)
-{
-    // Transform some stack variables in struct variables
-    MoveStack2Struct();
-
-    // Specific init code
-    generateDAGLoopWSSAux3();
-
-    // Inherited method
-    return LLVMCodeContainer::produceModule(filename);
-}
-
 void LLVMWorkStealingCodeContainer::generateCompute()
 {
     string counter = "fullcount";
-
-    lclgraph dag;
-    CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
-
-    // Prepare global loop
-    StatementInst* block = generateDAGLoopWSS(dag);
 
     // Possibly generate separated functions
     generateComputeFunctions(fCodeProducer);
@@ -855,17 +836,12 @@ void LLVMWorkStealingCodeContainer::generateCompute()
     generateComputeThreadBegin();
 
     // Generate it
-    block->accept(fCodeProducer);
+    threadLoopBlock->accept(fCodeProducer);
 
     generateComputeThreadEnd();
 
     // Generates "compute" code
-    generateDAGLoopWSSAux2(counter, fComputeBlockInstructions);
-
     generateComputeBegin(counter);
-
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     fComputeBlockInstructions->accept(fCodeProducer);

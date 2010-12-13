@@ -362,27 +362,8 @@ CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int n
 CWorkStealingCodeContainer::~CWorkStealingCodeContainer()
 {}
 
-void CWorkStealingCodeContainer::produceClass()
-{
-    // Transform some stack variables in struct variables
-    MoveStack2Struct();
-
-    // Specific init code
-    generateDAGLoopWSSAux3();
-
-    // Inherited method
-    CCodeContainer::produceClass();
-}
-
 void CWorkStealingCodeContainer::generateCompute(int n)
 {
-    lclgraph dag;
-    CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
-
-     // Prepare global loop
-    StatementInst* block = generateDAGLoopWSS(dag);
-
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
     tab(n, *fOut);
@@ -394,7 +375,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+1);
 
     // Generate it
-    block->accept(&fCodeProducer);
+    threadLoopBlock->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 
@@ -404,11 +385,6 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
-
-    generateDAGLoopWSSAux2(counter, true);
-
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);

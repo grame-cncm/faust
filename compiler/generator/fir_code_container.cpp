@@ -191,28 +191,6 @@ void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostr
     }
 }
 
-void FirWorkStealingCodeContainer::prepareDump()
-{
-     // Transform some stack variables in struct variables
-    MoveStack2Struct();
-
-    // Specific init code
-    generateDAGLoopWSSAux3();
-
-    lclgraph dag;
-    CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
-
-    // Prepare global loop
-    threadLoopBlock = generateDAGLoopWSS(dag);
-
-    string counter = "fullcount";
-    generateDAGLoopWSSAux2(counter, fComputeBlockInstructions);
-
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-}
-
 void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostream* dst)
 {
     // Generate it

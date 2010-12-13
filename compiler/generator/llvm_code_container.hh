@@ -228,7 +228,6 @@ class LLVMWorkStealingCodeContainer : public WSSCodeContainer, public LLVMCodeCo
         LLVMWorkStealingCodeContainer(int numInputs, int numOutputs, const string& module_name = "");
         virtual ~LLVMWorkStealingCodeContainer();
 
-        Module* produceModule(const string& filename);
         void generateCompute();
 
 };

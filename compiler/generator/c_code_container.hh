@@ -115,7 +115,6 @@ class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContaine
         CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
         virtual ~CWorkStealingCodeContainer();
 
-        void produceClass();
         void generateCompute(int tab);
 };
 
