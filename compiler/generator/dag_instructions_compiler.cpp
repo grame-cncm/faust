@@ -124,6 +124,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
+
+	fContainer->processFIR();
 }
 
 ValueInst* DAGInstructionsCompiler::CS(Tree sig)

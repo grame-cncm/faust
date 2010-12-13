@@ -317,6 +317,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
+
+    fContainer->processFIR();
 }
 
 /*****************************************************************************
