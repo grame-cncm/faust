@@ -335,9 +335,8 @@ CPPVectorCodeContainer::~CPPVectorCodeContainer()
 void CPPVectorCodeContainer::generateCompute(int n)
 {
     // Generates declaration
-    string counter = "fullcount";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -369,10 +368,9 @@ CPPOpenMPCodeContainer::~CPPOpenMPCodeContainer()
 void CPPOpenMPCodeContainer::generateCompute(int n)
 {
     // Compute declaration
-    string counter = "fullcount";
 
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -413,10 +411,8 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     computeForwardDAG(dag);
 
     // Compute "compute" declaration
-    string counter = "fullcount";
-
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 

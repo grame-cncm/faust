@@ -279,15 +279,13 @@ CVectorCodeContainer::~CVectorCodeContainer()
 
 void CVectorCodeContainer::generateCompute(int n)
 {
-    string counter = "fullcount";
-
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
     tab(n, *fOut);
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -307,15 +305,13 @@ COpenMPCodeContainer::COpenMPCodeContainer(const string& name, int numInputs, in
 
 void COpenMPCodeContainer::generateCompute(int n)
 {
-    string counter = "fullcount";
-
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
     tab(n, *fOut);
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -357,9 +353,8 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     tab(n, *fOut); *fOut << "}" << endl;
 
     // Compute "compute" declaration
-    string counter = "fullcount";
 
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", counter, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
