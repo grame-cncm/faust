@@ -101,7 +101,7 @@ class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeCont
 public:
 
     FirWorkStealingCodeContainer(int numInputs, int numOutputs)
-        :WSSCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
+        :WSSCodeContainer(numInputs, numOutputs, "this"), FirCodeContainer(numInputs, numOutputs)
     {}
 
 private:

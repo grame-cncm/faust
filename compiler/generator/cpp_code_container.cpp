@@ -410,7 +410,7 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
 
 // Works stealing scheduler
 CPPWorkStealingCodeContainer::CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :WSSCodeContainer(numInputs, numOutputs), CPPCodeContainer(name, super, numInputs, numOutputs, out)
+    :WSSCodeContainer(numInputs, numOutputs, "this"), CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {}
 
 CPPWorkStealingCodeContainer::~CPPWorkStealingCodeContainer()

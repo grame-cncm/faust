@@ -749,7 +749,7 @@ void LLVMOpenMPCodeContainer::generateOMPDeclarations()
 
 // Works stealing scheduler
 LLVMWorkStealingCodeContainer::LLVMWorkStealingCodeContainer(int numInputs, int numOutputs, const string& prefix)
-    :WSSCodeContainer(numInputs, numOutputs), LLVMCodeContainer(numInputs, numOutputs, prefix)
+    :WSSCodeContainer(numInputs, numOutputs, "this"), LLVMCodeContainer(numInputs, numOutputs, prefix)
 {}
 
 LLVMWorkStealingCodeContainer::~LLVMWorkStealingCodeContainer()

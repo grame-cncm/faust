@@ -35,6 +35,7 @@
 class WSSCodeContainer : public virtual CodeContainer {
 
 private:
+    string fObjName;
     BlockInst* fComputeThreadBlockInstructions;
 
     void MoveStackArray2Struct();
@@ -46,14 +47,15 @@ private:
 
     StatementInst* generateDAGLoopWSS(lclgraph dag);
     void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
-    void generateDAGLoopWSSAux2(const string& counter, bool obj);
+    void generateDAGLoopWSSAux2(const string& counter);
     void generateDAGLoopWSSAux3();
 
     void processFIR(void);
 
 public:
-    WSSCodeContainer(int numInputs, int numOutputs)
-        :CodeContainer(numInputs, numOutputs), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
+    WSSCodeContainer(int numInputs, int numOutputs, string const & objName)
+        :CodeContainer(numInputs, numOutputs), fObjName(objName),
+        fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
     {}
 
 protected:

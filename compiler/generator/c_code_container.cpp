@@ -356,7 +356,7 @@ COpenMPCodeContainer::~COpenMPCodeContainer()
 
 // Works stealing scheduler
 CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix)
-    :WSSCodeContainer(numInputs, numOutputs), CCodeContainer(name, numInputs, numOutputs, out, prefix)
+    :WSSCodeContainer(numInputs, numOutputs, "dsp"), CCodeContainer(name, numInputs, numOutputs, out, prefix)
 {}
 
 CWorkStealingCodeContainer::~CWorkStealingCodeContainer()

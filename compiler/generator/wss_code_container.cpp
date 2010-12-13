@@ -373,7 +373,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code
     }
 }
 
-void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter, bool obj)
+void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter)
 {
     BlockInst* loop_code = fComputeBlockInstructions;
 
@@ -395,15 +395,12 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter, bool obj)
     fun_args1.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
     fun_args1.push_back(InstBuilder::genSub(InstBuilder::genLoadStructVar("fDynamicNumThreads"), InstBuilder::genIntNumInst(1)));
 
-    if (obj)
-        fun_args1.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
-    else
-        fun_args1.push_back(InstBuilder::genLoadFunArgsVar("this"));
+    fun_args1.push_back(InstBuilder::genLoadFunArgsVar(fObjName));
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("signalAll", fun_args1)));
 
     list<ValueInst*> fun_args2;
-    if (obj)
-        fun_args2.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+    if (fObjName != "this")
+        fun_args2.push_back(InstBuilder::genLoadFunArgsVar(fObjName));
     fun_args2.push_back(InstBuilder::genIntNumInst(0));
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("computeThread", fun_args2)));
 }
@@ -712,7 +709,7 @@ void WSSCodeContainer::processFIR(void)
     threadLoopBlock = generateDAGLoopWSS(dag);
 
     string counter = "fullcount";
-    generateDAGLoopWSSAux2(counter, false); // FIXME: for C it was true, for LLVM it was fComputeBlockInstructions.
+    generateDAGLoopWSSAux2(counter);
 
 
     // Sort arrays to be at the begining
