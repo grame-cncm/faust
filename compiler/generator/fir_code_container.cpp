@@ -156,12 +156,8 @@ void FirVectorCodeContainer::prepareDump()
 
 void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
-    // Prepare global loop
-    string counter = "fullcount";
-    StatementInst* block = generateDAGLoopOMP(counter);
-
     // Generate it
-    block->accept(&firvisitor);
+    globalLoopBlock->accept(&firvisitor);
 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
@@ -177,6 +173,10 @@ void FirOpenMPCodeContainer::prepareDump()
 {
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+
+    // Prepare global loop
+    string counter = "fullcount";
+    globalLoopBlock = generateDAGLoopOMP(counter);
 }
 
 void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
@@ -198,33 +198,26 @@ void FirWorkStealingCodeContainer::prepareDump()
 
     // Specific init code
     generateDAGLoopWSSAux3();
-}
-
-void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostream* dst)
-{
-     // Transform some stack variables in struct variables
-    MoveStack2Struct();
-
-    // Specific init code
-    generateDAGLoopWSSAux3();
 
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);
     computeForwardDAG(dag);
 
     // Prepare global loop
-    StatementInst* block = generateDAGLoopWSS(dag);
+    threadLoopBlock = generateDAGLoopWSS(dag);
 
-    // Generate it
-    *dst << "======= Compute Thread ==========" << std::endl;
-    *dst << std::endl;
-    block->accept(&firvisitor);
-    *dst << std::endl;
-
-    // FIXME: can this be moved to the prepareDump method?
     string counter = "fullcount";
     generateDAGLoopWSSAux2(counter, fComputeBlockInstructions);
 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+}
+
+void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostream* dst)
+{
+    // Generate it
+    *dst << "======= Compute Thread ==========" << std::endl;
+    *dst << std::endl;
+    threadLoopBlock->accept(&firvisitor);
+    *dst << std::endl;
 }

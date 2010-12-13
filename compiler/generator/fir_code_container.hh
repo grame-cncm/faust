@@ -93,6 +93,8 @@ public:
 private:
     virtual void prepareDump(void);
     virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
+
+    StatementInst* globalLoopBlock;
 };
 
 class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeContainer {
@@ -106,6 +108,8 @@ private:
     virtual void prepareDump(void);
     virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
     virtual void dumpThread(FIRInstVisitor & firvisitor, ostream* dst);
+
+    StatementInst* threadLoopBlock;
 };
 
 #endif
