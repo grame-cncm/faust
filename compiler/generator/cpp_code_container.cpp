@@ -343,9 +343,6 @@ void CPPVectorCodeContainer::generateCompute(int n)
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
-    BlockInst* block_res = InstBuilder::genBlockInst();
-    block_res->pushBackInst(InstBuilder::genLabelInst( subst("// Vectorizable loop $0", T(1))));
-
     // Generate it
     fDAGBlock->accept(&fCodeProducer);
 
