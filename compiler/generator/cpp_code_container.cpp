@@ -442,8 +442,8 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
 
     // Generate it
-    assert(threadLoopBlock);
-    threadLoopBlock->accept(&fCodeProducer);
+    assert(fThreadLoopBlock);
+    fThreadLoopBlock->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }

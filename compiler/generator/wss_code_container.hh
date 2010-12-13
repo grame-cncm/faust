@@ -59,7 +59,7 @@ public:
     {}
 
 protected:
-    StatementInst* threadLoopBlock;
+    StatementInst* fThreadLoopBlock;
 };
 
 #endif

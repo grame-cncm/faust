@@ -363,7 +363,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+1);
 
     // Generate it
-    threadLoopBlock->accept(&fCodeProducer);
+    fThreadLoopBlock->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 

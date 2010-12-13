@@ -141,7 +141,7 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
 void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
     // Generate it
-    globalLoopBlock->accept(&firvisitor);
+    fGlobalLoopBlock->accept(&firvisitor);
 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
@@ -160,7 +160,7 @@ void FirOpenMPCodeContainer::prepareDump()
 
     // Prepare global loop
     string counter = "fullcount";
-    globalLoopBlock = generateDAGLoopOMP(counter);
+    fGlobalLoopBlock = generateDAGLoopOMP(counter);
 }
 
 void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
@@ -180,6 +180,6 @@ void FirWorkStealingCodeContainer::dumpThread(FIRInstVisitor& firvisitor, ostrea
     // Generate it
     *dst << "======= Compute Thread ==========" << std::endl;
     *dst << std::endl;
-    threadLoopBlock->accept(&firvisitor);
+    fThreadLoopBlock->accept(&firvisitor);
     *dst << std::endl;
 }

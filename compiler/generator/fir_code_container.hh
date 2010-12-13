@@ -93,7 +93,7 @@ private:
     virtual void prepareDump(void);
     virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 
-    StatementInst* globalLoopBlock;
+    StatementInst* fGlobalLoopBlock;
 };
 
 class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeContainer {
