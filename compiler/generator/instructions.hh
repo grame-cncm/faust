@@ -1801,6 +1801,11 @@ struct InstBuilder
         return genBinopInst(kAdd, a1, a2);
     }
 
+    static BinopInst* genAdd(ValueInst* a1, int value)
+    {
+        return genBinopInst(kAdd, a1, genIntNumInst(value));
+    }
+
     static BinopInst* genSub(ValueInst* a1, ValueInst* a2)
     {
         return genBinopInst(kSub, a1, a2);

@@ -466,7 +466,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
 
     StatementInst* init_loop1 = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* end_loop1 = InstBuilder::genLessThan(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
-    StoreVarInst* inc_loop1 = InstBuilder::genStoreLoopVar("i", InstBuilder::genAdd(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
+    StoreVarInst* inc_loop1 = InstBuilder::genStoreLoopVar("i", InstBuilder::genAdd(InstBuilder::genLoadLoopVar("i"), 1));
 
     list<StatementInst*> code1;
     list<ValueInst*> fun_args1;
@@ -490,7 +490,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
 
     StatementInst* init_loop2 = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* end_loop2 = InstBuilder::genLessThan(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(16));
-    StoreVarInst* inc_loop2 = InstBuilder::genStoreLoopVar("i", InstBuilder::genAdd(InstBuilder::genLoadLoopVar("i"), InstBuilder::genIntNumInst(1)));
+    StoreVarInst* inc_loop2 = InstBuilder::genStoreLoopVar("i", InstBuilder::genAdd(InstBuilder::genLoadLoopVar("i"), 1));
 
     list<StatementInst*> code2;
     list<ValueInst*> fun_args5;
@@ -555,7 +555,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     last_block->pushBackInst(InstBuilder::genLabelInst("// Last task"));
     last_block->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile),
                                 InstBuilder::genAdd(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                                    InstBuilder::genIntNumInst(gVecSize))));
+                                                    gVecSize)));
 
     // Generate input/output access
     generateLocalInputs(last_block);

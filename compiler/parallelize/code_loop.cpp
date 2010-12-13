@@ -42,7 +42,7 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
 {
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(1)));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
     pushLoop(fPreInst, loop);
@@ -159,7 +159,7 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
 
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
-        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(size)));
+        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), size));
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
@@ -193,7 +193,7 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp
     if (fComputeInst->fCode.size() > 0) {
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
-        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(1)));
+        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));

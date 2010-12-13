@@ -781,7 +781,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), InstBuilder::genIntNumInst(gVecSize)));
+    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -1504,7 +1504,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(),
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), InstBuilder::genIntNumInst(gVecSize)));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 

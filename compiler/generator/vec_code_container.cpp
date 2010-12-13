@@ -62,7 +62,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     ValueInst* loop_end = InstBuilder::genBinopInst(kLE, index_dec->load(),
         InstBuilder::genSub(InstBuilder::genLoadFunArgsVar(counter), InstBuilder::genIntNumInst(gVecSize)));
 
-    StoreVarInst* loop_increment = index_dec->store(InstBuilder::genAdd(index_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
+    StoreVarInst* loop_increment = index_dec->store(InstBuilder::genAdd(index_dec->load(), gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -119,7 +119,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_dec = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_dec->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genAdd(loop_dec->load(), InstBuilder::genIntNumInst(gVecSize)));
+    StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genAdd(loop_dec->load(), gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code);
     return loop;
