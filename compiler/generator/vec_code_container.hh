@@ -34,14 +34,18 @@
 
 class VectorCodeContainer : public virtual CodeContainer {
 
-    public:
+    void processFIR(void);
+    StatementInst* generateDAGLoopVariant0(const string& counter);
+    StatementInst* generateDAGLoopVariant1(const string& counter);
 
-        VectorCodeContainer(int numInputs, int numOutputs)
-            :CodeContainer(numInputs, numOutputs)
-        {}
+protected:
+    StatementInst* fDAGBlock;
 
-        StatementInst* generateDAGLoopVariant0(const string& counter);
-        StatementInst* generateDAGLoopVariant1(const string& counter);
+public:
+
+    VectorCodeContainer(int numInputs, int numOutputs)
+        :CodeContainer(numInputs, numOutputs)
+    {}
 
 };
 

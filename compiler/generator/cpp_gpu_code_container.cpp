@@ -38,6 +38,14 @@ static void tab1(int n, ostream& fout)
     while (n--) fout << '\t';
 }
 
+void CPPGPUCodeContainer::prepareFIR(void)
+{
+    // Sort arrays to be at the begining
+    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
+}
+
+
+
 void CPPOpenCLCodeContainer::produceInternal()
 {
     int n = 0;
@@ -129,9 +137,6 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-
-    // Sort arrays to be at the begining
-    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
 
     // Compile OpenCL kernel string
     *fGPUOut << "const char* KernelSource = \"";
@@ -932,9 +937,6 @@ void CPPCUDACodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-
-    // Sort arrays to be at the begining
-    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
 
     // Macro definition
     tab(n, *fGPUOut); *fGPUOut << "#define max(x,y) (((x)>(y)) ? (x) : (y))";

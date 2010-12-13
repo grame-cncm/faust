@@ -282,14 +282,6 @@ void CVectorCodeContainer::generateCompute(int n)
 {
     string counter = "fullcount";
 
-    // Prepare global loop
-    StatementInst* block = NULL;
-    if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0(counter);
-    } else {
-        block = generateDAGLoopVariant1(counter);
-    }
-
     // Possibly generate separated functions
     fCodeProducer.Tab(n);
     tab(n, *fOut);
@@ -300,15 +292,11 @@ void CVectorCodeContainer::generateCompute(int n)
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
     // Generate it
-    assert(block);
-    block->accept(&fCodeProducer);
+    fDAGBlock->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 }

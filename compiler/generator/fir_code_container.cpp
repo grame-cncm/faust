@@ -123,18 +123,8 @@ void FirScalarCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
 
 void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
-    // Prepare global loop
-    string counter = "fullcount";
-
-    StatementInst* block;
-    if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0(counter);
-    } else {
-        block = generateDAGLoopVariant1(counter);
-    }
-
     // Generate it
-    block->accept(&firvisitor);
+    fDAGBlock->accept(&firvisitor);
 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
@@ -146,12 +136,6 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
     } else {
         *dst << std::endl;
     }
-}
-
-void FirVectorCodeContainer::prepareDump()
-{
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 }
 
 void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)

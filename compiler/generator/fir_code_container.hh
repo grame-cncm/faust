@@ -79,7 +79,6 @@ public:
     {}
 
 private:
-    virtual void prepareDump(void);
     virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 };
 

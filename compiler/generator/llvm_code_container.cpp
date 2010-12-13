@@ -528,28 +528,16 @@ void LLVMVectorCodeContainer::generateCompute()
 {
     string counter = "fullcount";
 
-    // Prepare global loop
-    StatementInst* block = NULL;
-    if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0(counter);
-    } else {
-        block = generateDAGLoopVariant1(counter);
-    }
-
     // Possibly generate separated functions
     generateComputeFunctions(fCodeProducer);
 
     generateComputeBegin(counter);
 
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
 
     // Generate it
-    assert(block);
-    block->accept(fCodeProducer);
+    fDAGBlock->accept(fCodeProducer);
 
     generateComputeEnd();
 }

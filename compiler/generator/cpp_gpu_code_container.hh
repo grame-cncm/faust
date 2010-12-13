@@ -34,6 +34,8 @@
 
 class CPPGPUCodeContainer : public CPPCodeContainer {
 
+        void prepareFIR(void);
+
     protected:
 
         static bool isControl(string name)

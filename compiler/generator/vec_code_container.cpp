@@ -124,3 +124,19 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
     StatementInst* loop = InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code);
     return loop;
 }
+
+extern int gVectorLoopVariant;
+
+void VectorCodeContainer::processFIR(void)
+{
+    // Sort arrays to be at the begining
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+
+    string counter = "fullcount";
+    if (gVectorLoopVariant == 0)
+        fDAGBlock = generateDAGLoopVariant0(counter);
+    else if (gVectorLoopVariant == 1)
+        fDAGBlock = generateDAGLoopVariant1(counter);
+    else
+        fDAGBlock = NULL;
+}

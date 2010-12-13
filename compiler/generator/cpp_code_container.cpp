@@ -342,26 +342,14 @@ void CPPVectorCodeContainer::generateCompute(int n)
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
-
-    // Prepare global loop
-    StatementInst* block = NULL;
-    if (gVectorLoopVariant == 0) {
-        block = generateDAGLoopVariant0(counter);
-    } else if (gVectorLoopVariant == 1) {
-        block = generateDAGLoopVariant1(counter);
-    }
 
     BlockInst* block_res = InstBuilder::genBlockInst();
     block_res->pushBackInst(InstBuilder::genLabelInst( subst("// Vectorizable loop $0", T(1))));
 
     // Generate it
-    assert(block);
-    block->accept(&fCodeProducer);
+    fDAGBlock->accept(&fCodeProducer);
 
     /*
     ScalVecDispatcherVisitor visitor(new CPPInstVisitor(fOut, n+2), new CPPVecAccelerateInstVisitor(fOut, n+2));
