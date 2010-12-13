@@ -377,21 +377,11 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
-    // Transform stack array variables in struct variables
-    //MoveStackArray2Struct();
-
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
-    // Prepare global loop
-    StatementInst* block = generateDAGLoopOMP(counter);
-
     // Generate it
-    assert(block);
-    block->accept(&fCodeProducer);
+    fGlobalLoopBlock->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }

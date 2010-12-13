@@ -34,13 +34,17 @@
 
 class OpenMPCodeContainer : public virtual CodeContainer {
 
+        StatementInst* generateDAGLoopOMP(const string& counter);
+        void processFIR();
+
     public:
+
+        StatementInst* fGlobalLoopBlock;
 
         OpenMPCodeContainer(int numInputs, int numOutputs)
             :CodeContainer(numInputs, numOutputs)
         {}
 
-        StatementInst* generateDAGLoopOMP(const string& counter);
 
 };
 

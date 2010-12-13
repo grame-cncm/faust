@@ -153,16 +153,6 @@ void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* d
     }
 }
 
-void FirOpenMPCodeContainer::prepareDump()
-{
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-
-    // Prepare global loop
-    string counter = "fullcount";
-    fGlobalLoopBlock = generateDAGLoopOMP(counter);
-}
-
 void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
 {
     // Possibly generate separated functions

@@ -143,3 +143,13 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     result_code->pushBackInst(parallel_code);
     return result_code;
 }
+
+void OpenMPCodeContainer::processFIR()
+{
+    // Sort arrays to be at the begining
+    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+
+    // Prepare global loop
+    string counter = "fullcount";
+    fGlobalLoopBlock = generateDAGLoopOMP(counter);
+}
