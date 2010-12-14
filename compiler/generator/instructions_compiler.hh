@@ -56,6 +56,8 @@ class InstructionsCompiler {
 
         property<ValueInst*> fCompileProperty;
         property<string> fVectorProperty;
+        property<pair<string, string> > fStaticInitProperty;
+        property<pair<string,string> > fInstanceInitProperty;
         property<string> fTableProperty;
         static map<string, int>	fIDCounters;
         Tree fSharingKey;

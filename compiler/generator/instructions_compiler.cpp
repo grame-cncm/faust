@@ -683,8 +683,21 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 {
     ValueInst* 	generator = CS(content);
     Typed::VarType ctype;
+    Tree        g;
 	string		vname;
 	int 		size;
+
+    // already compiled but check if we need to add declarations
+    assert(isSigGen(content, g));
+    pair<string, string> kvnames;
+    if (!fInstanceInitProperty.get(g, kvnames)) {
+        // not declared here, we add a declaration
+        bool b = fStaticInitProperty.get(g, kvnames);
+        assert(b);
+        const list<ValueInst*> args;
+        ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
+        pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
+    }
 
 	if (!isSigInt(tsize, &size)) {
 		cerr << "error in ScalarCompiler::generateTable() : "
@@ -745,7 +758,18 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
 	if (!getCompiledExpression(content, cexp)) {
 		cexp = setCompiledExpression(content, generateStaticSigGen(content, g));
-	}
+	} else {
+        // already compiled but check if we need to add declarations
+        pair<string, string> kvnames;
+        if (!fStaticInitProperty.get(g, kvnames)) {
+            // not declared here, we add a declaration
+            bool b = fInstanceInitProperty.get(g, kvnames);
+            assert(b);
+            const list<ValueInst*> args;
+            ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
+            pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
+        }
+    }
 
     if (!isSigInt(tsize, &size)) {
 		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
@@ -848,6 +872,8 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     pushInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
     setTableNameProperty(sig, cname);
+    fInstanceInitProperty.set(content, pair<string, string>(cname, signame));
+
     return InstBuilder::genLoadStackVar(signame);
 }
 
@@ -865,6 +891,8 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     pushStaticInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
     setTableNameProperty(sig, cname);
+    fStaticInitProperty.set(content, pair<string,string>(cname, signame));
+
     return InstBuilder::genLoadStackVar(signame);
 }
 
