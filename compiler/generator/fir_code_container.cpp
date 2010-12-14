@@ -33,9 +33,35 @@ using namespace std;
 extern int gVectorLoopVariant;
 map <string, int> FIRInstVisitor::gGlobalTable;
 
+extern int gVectorLoopVariant;
+extern bool gVectorSwitch;
+extern bool gOpenCLSwitch;
+extern bool gCUDASwitch;
+extern bool gOpenMPSwitch;
+extern bool gSchedulerSwitch;
+extern bool gVectorSwitch;
+extern bool gFunTaskSwitch;
+
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new FirScalarCodeContainer(0, 1, sub_container_type);
+}
+
+CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs)
+{
+    CodeContainer* container;
+
+    if (gOpenMPSwitch) {
+        container = new FirOpenMPCodeContainer(numInputs, numOutputs);
+    } else if (gSchedulerSwitch) {
+        container = new FirWorkStealingCodeContainer(numInputs, numOutputs);
+    } else if (gVectorSwitch) {
+        container = new FirVectorCodeContainer(numInputs, numOutputs);
+    } else {
+        container = new FirScalarCodeContainer(numInputs, numOutputs, kInt);
+    }
+
+    return container;
 }
 
 void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst)

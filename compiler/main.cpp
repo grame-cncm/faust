@@ -650,127 +650,41 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     }
 
     if (gOutputLang == "llvm") {
-        if (gFloatSize == 3) {
-            cerr << "ERROR : quad format not supported in LLVM mode" << endl;
-            exit(1);
-        }
-        gDSPStruct = true;
 
-        if (gOpenCLSwitch) {
-            cerr << "ERROR : OpenCL not supported for LLVM" << endl;
-            exit(1);
-        }
-        if (gCUDASwitch) {
-            cerr << "ERROR : CUDA not supported for LLVM" << endl;
-            exit(1);
-        }
-
-        if (gOpenMPSwitch) {
-            cerr << "ERROR : OpenMP not supported for LLVM" << endl;
-            exit(1);
-        } else if (gSchedulerSwitch) {
-            container = new LLVMWorkStealingCodeContainer(numInputs, numOutputs);
-            comp = new DAGInstructionsCompiler(container);
-        } else if (gVectorSwitch) {
-            container = new LLVMVectorCodeContainer(numInputs, numOutputs);
-            comp = new DAGInstructionsCompiler(container);
-        } else {
-            container = new LLVMScalarCodeContainer(numInputs, numOutputs);
-            comp = new InstructionsCompiler(container);
-        }
+        container = LLVMCodeContainer::createContainer(numInputs, numOutputs, dst);
 
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
 
-        comp->compileMultiSignal(signals);
+        if (gVectorSwitch) {
+            comp = new DAGInstructionsCompiler(container);
+        } else {
+            comp = new InstructionsCompiler(container);
+        }
 
+        comp->compileMultiSignal(signals);
         dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
+
     } else {
         if (gOutputLang == "c") {
-            gDSPStruct = true;
 
-            if (gOpenCLSwitch) {
-                cerr << "ERROR : OpenCL not supported for C" << endl;
-                exit(1);
-            }
-            if (gCUDASwitch) {
-                cerr << "ERROR : CUDA not supported for C" << endl;
-                exit(1);
-            }
+            container = CCodeContainer::createContainer(numInputs, numOutputs, dst);
 
-            if (gOpenMPSwitch) {
-                container = new COpenMPCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
-            } else if (gSchedulerSwitch) {
-                container = new CWorkStealingCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
-            } else if (gVectorSwitch) {
-                container = new CVectorCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
-            } else {
-                container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, kInt, "c_");
-            }
         } else if (gOutputLang == "cpp") {
-            if (gOpenCLSwitch) {
-                if (gFunTaskSwitch) {
-                    cerr << "ERROR : -fun not yet supported in OpenCL mode" << endl;
-                    exit(1);
-                }
-                if (gVectorSwitch) {
-                    container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                } else {
-                    container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                }
-            } else if (gCUDASwitch) {
-                if (gFunTaskSwitch) {
-                    cerr << "ERROR : -fun not yet supported in CUDA mode" << endl;
-                    exit(1);
-                }
-                if (gVectorSwitch) {
-                    container = new CPPCUDAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                } else {
-                    container = new CPPCUDACodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-                }
-            } else if (gOpenMPSwitch) {
-                container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-            } else if (gSchedulerSwitch) {
-                container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-            } else if (gVectorSwitch) {
-                container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-            } else {
-                container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
-            }
+
+            container = CPPCodeContainer::createContainer(numInputs, numOutputs, dst);
+
         } else if (gOutputLang == "java") {
 
-            if (gOpenCLSwitch) {
-                cerr << "ERROR : OpenCL not supported for Java" << endl;
-                exit(1);
-            }
-            if (gCUDASwitch) {
-                cerr << "ERROR : CUDA not supported for Java" << endl;
-                exit(1);
-            }
+            container = JAVACodeContainer::createContainer(numInputs, numOutputs, dst);
 
-            if (gOpenMPSwitch) {
-                cerr << "ERROR : OpenMP not supported for Java" << endl;
-                exit(1);
-            } else if (gSchedulerSwitch) {
-                cerr << "ERROR : Scheduler mode not supported for Java" << endl;
-                exit(1);
-            } else if (gVectorSwitch) {
-                container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
-            } else {
-                container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
-            }
        } else if (gOutputLang == "fir") {
-            if (gOpenMPSwitch) {
-                container = new FirOpenMPCodeContainer(numInputs, numOutputs);
-                comp = new DAGInstructionsCompiler(container);
-            } else if (gSchedulerSwitch) {
-                container = new FirWorkStealingCodeContainer(numInputs, numOutputs);
-                comp = new DAGInstructionsCompiler(container);
-            } else if (gVectorSwitch) {
-                container = new FirVectorCodeContainer(numInputs, numOutputs);
+
+            container = FirCodeContainer::createContainer(numInputs, numOutputs);
+
+            if (gVectorSwitch) {
                 comp = new DAGInstructionsCompiler(container);
             } else {
-                container = new FirScalarCodeContainer(numInputs, numOutputs, kInt);
                 comp = new InstructionsCompiler(container);
             }
 

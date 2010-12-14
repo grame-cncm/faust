@@ -28,6 +28,7 @@
 
 ***********************************************************************/
 #include "cpp_code_container.hh"
+#include "cpp_gpu_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
 #include "loki/SafeFormat.h"
@@ -38,6 +39,12 @@ extern bool gUIMacroSwitch;
 extern int gVectorLoopVariant;
 extern bool gOpenMPLoop;
 extern bool gVectorSwitch;
+extern bool gOpenCLSwitch;
+extern bool gCUDASwitch;
+extern bool gOpenMPSwitch;
+extern bool gSchedulerSwitch;
+extern bool gVectorSwitch;
+extern bool gFunTaskSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 map <string, int> CPPInstVisitor::gGlobalTable;
@@ -45,6 +52,43 @@ map <string, int> CPPInstVisitor::gGlobalTable;
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
+}
+
+CodeContainer* CPPCodeContainer::createContainer(int numInputs, int numOutputs, ostream* dst)
+{
+    CodeContainer* container;
+
+    if (gOpenCLSwitch) {
+        if (gFunTaskSwitch) {
+            cerr << "ERROR : -fun not yet supported in OpenCL mode" << endl;
+            exit(1);
+        }
+        if (gVectorSwitch) {
+            container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        } else {
+            container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        }
+    } else if (gCUDASwitch) {
+        if (gFunTaskSwitch) {
+            cerr << "ERROR : -fun not yet supported in CUDA mode" << endl;
+            exit(1);
+        }
+        if (gVectorSwitch) {
+            container = new CPPCUDAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        } else {
+            container = new CPPCUDACodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        }
+    } else if (gOpenMPSwitch) {
+        container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+    } else if (gSchedulerSwitch) {
+        container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+    } else if (gVectorSwitch) {
+        container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+    } else {
+        container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
+    }
+
+    return container;
 }
 
 void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)

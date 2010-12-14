@@ -65,6 +65,8 @@ class CCodeContainer : public virtual CodeContainer {
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
+        static CodeContainer* createContainer(int numInputs, int numOutputs, ostream* dst);
+
 };
 
 class CScalarCodeContainer : public CCodeContainer {

@@ -38,10 +38,50 @@ using namespace std;
 extern bool gVectorSwitch;
 extern int gVectorLoopVariant;
 extern int gVecSize;
+extern bool gDSPStruct;
+extern bool gOpenCLSwitch;
+extern bool gCUDASwitch;
+extern bool gOpenMPSwitch;
+extern bool gSchedulerSwitch;
+extern bool gVectorSwitch;
+extern int gFloatSize;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new LLVMScalarCodeContainer(0, 1, fModule, fBuilder, sub_container_type, name);
+}
+
+CodeContainer* LLVMCodeContainer::createContainer(int numInputs, int numOutputs, ostream* dst)
+{
+    CodeContainer* container;
+
+    if (gFloatSize == 3) {
+        cerr << "ERROR : quad format not supported in LLVM mode" << endl;
+        exit(1);
+    }
+    gDSPStruct = true;
+
+    if (gOpenCLSwitch) {
+        cerr << "ERROR : OpenCL not supported for LLVM" << endl;
+        exit(1);
+    }
+    if (gCUDASwitch) {
+        cerr << "ERROR : CUDA not supported for LLVM" << endl;
+        exit(1);
+    }
+
+    if (gOpenMPSwitch) {
+        cerr << "ERROR : OpenMP not supported for LLVM" << endl;
+        exit(1);
+    } else if (gSchedulerSwitch) {
+        container = new LLVMWorkStealingCodeContainer(numInputs, numOutputs);
+    } else if (gVectorSwitch) {
+        container = new LLVMVectorCodeContainer(numInputs, numOutputs);
+    } else {
+        container = new LLVMScalarCodeContainer(numInputs, numOutputs);
+    }
+
+    return container;
 }
 
 // Generic

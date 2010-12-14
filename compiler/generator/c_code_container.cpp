@@ -36,6 +36,12 @@ using namespace std;
 
 extern int gVectorLoopVariant;
 extern bool gUIMacroSwitch;
+extern bool gDSPStruct;
+extern bool gOpenCLSwitch;
+extern bool gCUDASwitch;
+extern bool gOpenMPSwitch;
+extern bool gSchedulerSwitch;
+extern bool gVectorSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 map <string, int> CInstVisitor::gGlobalTable;
@@ -43,6 +49,33 @@ map <string, int> CInstVisitor::gGlobalTable;
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new CScalarCodeContainer("", 0, 1, fOut, sub_container_type, name);
+}
+
+CodeContainer* CCodeContainer::createContainer(int numInputs, int numOutputs, ostream* dst)
+{
+    gDSPStruct = true;
+    CodeContainer* container;
+
+    if (gOpenCLSwitch) {
+        cerr << "ERROR : OpenCL not supported for C" << endl;
+        exit(1);
+    }
+    if (gCUDASwitch) {
+        cerr << "ERROR : CUDA not supported for C" << endl;
+        exit(1);
+    }
+
+    if (gOpenMPSwitch) {
+        container = new COpenMPCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+    } else if (gSchedulerSwitch) {
+        container = new CWorkStealingCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+    } else if (gVectorSwitch) {
+        container = new CVectorCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+    } else {
+        container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, kInt, "c_");
+    }
+
+    return container;
 }
 
 void CCodeContainer::produceInternal()
@@ -195,19 +228,23 @@ void CCodeContainer::produceClass()
 
     // Input Rates
     tab(n, *fOut); *fOut << "int " << fPrefix << "getInputRate(" << fPrefix << fStructName << "* dsp, int channel) { ";
-        for (int i = 0; i != fNumInputs; ++i) {
-            tab(n+1, *fOut); *fOut << "case " << i << ": return " << fInputRates[i] << ";";
-        }
-        tab(n+1, *fOut); *fOut << "default: -1;" << endl;
-    *fOut << "}";
+        tab(n+1, *fOut); *fOut << "switch (channel) {";
+            for (int i = 0; i != fNumInputs; ++i) {
+                tab(n+2, *fOut); *fOut << "case " << i << ": return " << fInputRates[i] << ";";
+            }
+            tab(n+2, *fOut); *fOut << "default: -1;" << endl;
+        tab(n+1, *fOut); *fOut << "}";
+   tab(n, *fOut); *fOut << "}";
 
      // Output Rates
     tab(n, *fOut); *fOut << "int " << fPrefix << "getOutputRate(" << fPrefix << fStructName << "* dsp, int channel) { ";
-        for (int i = 0; i != fNumOutputs; ++i) {
-            tab(n+1, *fOut); *fOut << "case " << i << ": return " << fOutputRates[i] << ";";
-        }
-        tab(n+1, *fOut); *fOut << "default: -1;" << endl;
-    *fOut << "}";
+        tab(n+1, *fOut); *fOut << "switch (channel) {";
+            for (int i = 0; i != fNumOutputs; ++i) {
+                tab(n+2, *fOut); *fOut << "case " << i << ": return " << fOutputRates[i] << ";";
+            }
+            tab(n+2, *fOut); *fOut << "default: -1;" << endl;
+        tab(n+1, *fOut); *fOut << "}";
+    tab(n, *fOut); *fOut << "}";
 
     // Inits
     tab(n, *fOut);

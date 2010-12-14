@@ -43,6 +43,8 @@ class FirCodeContainer : public virtual CodeContainer {
 public:
     void dump(ostream* dst);
 
+     static CodeContainer* createContainer(int numInputs, int numOutputs);
+
 protected:
     FirCodeContainer(int numInputs, int numOutputs)
         :CodeContainer(numInputs, numOutputs)

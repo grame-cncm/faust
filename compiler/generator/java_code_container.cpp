@@ -36,6 +36,13 @@ using namespace std;
 
 extern bool gUIMacroSwitch;
 extern int gVectorLoopVariant;
+extern bool gVectorSwitch;
+extern bool gOpenCLSwitch;
+extern bool gCUDASwitch;
+extern bool gOpenMPSwitch;
+extern bool gSchedulerSwitch;
+extern bool gVectorSwitch;
+extern bool gFunTaskSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 
@@ -44,6 +51,34 @@ JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const strin
     :JAVACodeContainer(name, super, numInputs, numOutputs, out)
 {
      fSubContainerType = sub_container_type;
+}
+
+CodeContainer* JAVACodeContainer::createContainer(int numInputs, int numOutputs, ostream* dst)
+{
+    CodeContainer* container;
+
+    if (gOpenCLSwitch) {
+        cerr << "ERROR : OpenCL not supported for Java" << endl;
+        exit(1);
+    }
+    if (gCUDASwitch) {
+        cerr << "ERROR : CUDA not supported for Java" << endl;
+        exit(1);
+    }
+
+    if (gOpenMPSwitch) {
+        cerr << "ERROR : OpenMP not supported for Java" << endl;
+        exit(1);
+    } else if (gSchedulerSwitch) {
+        cerr << "ERROR : Scheduler mode not supported for Java" << endl;
+        exit(1);
+    } else if (gVectorSwitch) {
+        container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+    } else {
+        container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
+    }
+
+    return container;
 }
 
 JAVAScalarCodeContainer::~JAVAScalarCodeContainer()
