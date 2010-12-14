@@ -383,6 +383,8 @@ void LLVMCodeContainer::produceInternal()
     generateGetNumInputs();
     generateGetNumOutputs();
 
+    // TODO : Input and output rates
+
     // Init code generator with fields_names
     //if (gVectorSwitch) {
         //fCodeProducer = new LLVMVectorInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, gVecSize);

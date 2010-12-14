@@ -193,6 +193,22 @@ void CCodeContainer::produceClass()
                         << "return " << fNumOutputs
                         << "; }";
 
+    // Input Rates
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getInputRate(" << fPrefix << fStructName << "* dsp, int channel) { ";
+        for (int i = 0; i != fNumInputs; ++i) {
+            tab(n+1, *fOut); *fOut << "case " << i << ": return " << fInputRates[i] << ";";
+        }
+        tab(n+1, *fOut); *fOut << "default: -1;" << endl;
+    *fOut << "}";
+
+     // Output Rates
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getOutputRate(" << fPrefix << fStructName << "* dsp, int channel) { ";
+        for (int i = 0; i != fNumOutputs; ++i) {
+            tab(n+1, *fOut); *fOut << "case " << i << ": return " << fOutputRates[i] << ";";
+        }
+        tab(n+1, *fOut); *fOut << "default: -1;" << endl;
+    *fOut << "}";
+
     // Inits
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << fPrefix << "classInit(int samplingFreq) {";

@@ -56,20 +56,20 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
 
     // Input/Output method
     out << virtualPrefix;
-    Loki::FPrintf(out, string("int getNumInputs() { return %d; }\n"))(fNumInputs);
+    Loki::FPrintf(out, "int getNumInputs() { return %d; }\n")(fNumInputs);
     out << virtualPrefix;
-    Loki::FPrintf(out, string("int getNumOutputs() { return %d; }\n"))(fNumOutputs);
+    Loki::FPrintf(out, "int getNumOutputs() { return %d; }\n")(fNumOutputs);
 
     // Input Rates
     {
         stringstream block1, block2;
 
         out << endl << virtualPrefix;
-        Loki::FPrintf(out, string("int getInputRate(int channel) {\n"));
+        Loki::FPrintf(out, "int getInputRate(int channel) {\n");
         block1 << "switch (channel) {" << endl;
 
         for (int i = 0; i != fNumInputs; ++i)
-            Loki::FPrintf(block2, string("case %d: return %d;\n"))(i)(fInputRates[i]);
+            Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fInputRates[i]);
 
         block2 << "default: -1;\n";
 
@@ -82,11 +82,11 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
         stringstream block1, block2;
 
         out << endl << virtualPrefix;
-        Loki::FPrintf(out, string("int getOutputRate(int channel) {\n"));
+        Loki::FPrintf(out, "int getOutputRate(int channel) {\n");
         block1 << "switch (channel) {" << endl;
 
         for (int i = 0; i != fNumOutputs; ++i)
-            Loki::FPrintf(block2, string("case %d: return %d;\n"))(i)(fOutputRates[i]);
+            Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fOutputRates[i]);
 
         block2 << "default: -1;\n";
 
