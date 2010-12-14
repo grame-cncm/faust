@@ -473,6 +473,7 @@ highpass1 = highpass(1);
 
 //-------------------- lowpass_plus|minus_highpass ------------------
 
+highpass_plus_lowpass(1,fc) = _;
 highpass_plus_lowpass(3,fc) = tf2s(1,-1,1,1,1,w1) with { w1 = 2*PI*fc; };
 highpass_minus_lowpass(3,fc) = tf1s(-1,1,1,w1) with { w1 = 2*PI*fc; };
 highpass_plus_lowpass(5,fc) = tf2s(1,-a11,1,a11,1,w1)
@@ -747,6 +748,7 @@ with { // octave script output:
 //
 low_shelf = low_shelf3; // default
 low_shelf1(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(1,fx,x);
+low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x);
 low_shelf3(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(3,fx,x);
 low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(5,fx,x);
 
@@ -760,11 +762,12 @@ low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(5,fx,x);
 //
 high_shelf=high_shelf3; //default
 high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x);
+high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x);
 high_shelf3(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(3,fx,x);
 high_shelf5(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(5,fx,x);
 
 //-------------------------------- peak_eq -----------------------------------
-// second order "peaking equalizer" section 
+// Second order "peaking equalizer" section 
 // (gain boost or cut near some frequency)
 //   Also called a "parametric equalizer" section
 // USAGE: _ : peak_eq(Lfx,fx,B) : _;
@@ -785,14 +788,35 @@ peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
 };  
 
 //------------------------------- peak_eq_cq ---------------------------------
-// Constant-Q second order "peaking equalizer" section 
+// Constant-Q second order peaking equalizer section 
 // USAGE: _ : peak_eq_cq(Lfx,fx,Q) : _;
 // where
 //    Lfx = level (dB) at fx
-//     fx = peak frequency (Hz)
+//     fx = boost or cut frequency (Hz)
 //      Q = "Quality factor" = fx/B where B = bandwidth of peak in Hz
 //
 peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
+
+//------------------------------- peak_eq_rm ---------------------------------
+// Regalia-Mitra second order peaking equalizer section
+// USAGE: _ : peak_eq_rm(Lfx,fx,tanPiBT) : _;
+// where
+//     Lfx = level (dB) at fx
+//      fx = boost or cut frequency (Hz)
+// tanPiBT = tan(PI*B/SR), where B = -3dB bandwidth (Hz) when 10^(Lfx/20) = 0
+//         ~ PI*B/SR for narrow bandwidths B
+//
+// REFERENCE: 
+//   P.A. Regalia, S.K. Mitra, and P.P. Vaidyanathan,
+//   "The Digital All-Pass Filter: A Versatile Signal Processing Building Block"
+//   Proceedings of the IEEE, 76(1):19-37, Jan. 1988.  (See pp. 29-30.)
+//
+peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
+  A = tf2(k2, k1*(1+k2), 1, k1*(1+k2), k2) <: _,_;
+  k1 = 0.0 - cos(2.0*PI*fx/SR);
+  k2 = (1.0 - tanPiBT)/(1.0 + tanPiBT);
+  K = db2linear(Lfx);
+};
 
 //-------------------------- parametric_eq_demo ------------------------------
 // USAGE: _ : parametric_eq_demo: _ ;

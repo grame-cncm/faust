@@ -447,12 +447,12 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 			#else
 				std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 			#endif
-				post((char*)"------------------");
-				for (mspUI::iterator it = x->dspUI->begin(); it != x->dspUI->end(); ++it) {
-					char param[64];
-					it->second->toString(param);
-					post(param);
-				}
+			}
+			post((char*)"------------------");
+			for (mspUI::iterator it = x->dspUI->begin(); it != x->dspUI->end(); ++it) {
+				char param[64];
+				it->second->toString(param);
+				post(param);
 			}
         } else if (a < x->dsp->getNumInputs()) {
 		#ifdef WIN32

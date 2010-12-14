@@ -5,7 +5,7 @@ declare version "1.31";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
-import("filter.lib"); // dcblocker*, lowpass, ...
+import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 
 // The following utilities (or equivalents) could go in music.lib:
 
@@ -273,7 +273,9 @@ with {
  Df0 = polydel(a1) - polydel(1.0/a1);
 };
 
-//------- flanger_mono, flanger_stereo, flanger_demo -------
+//===================== Phasing and Flanging Effects  ====================
+
+//--------------- flanger_mono, flanger_stereo, flanger_demo -------------
 // Flanging effect
 //
 // USAGE:
@@ -493,6 +495,8 @@ amp_follower(rel) = abs : env with {
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 
+//=============== Gates, Limiters, and Dynamic Range Compression ============
+
 //----------------- gate_mono, gate_stereo -------------------
 // Mono and stereo signal gates
 //
@@ -666,6 +670,8 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
 limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 
+//========================== Schroeder Reverberators  ======================
+
 //------------------------------ jcrev,satrev ------------------------------
 // USAGE: 
 //     _ :  jcrev : _,_,_,_
@@ -758,4 +764,378 @@ reverb_demo(x) = reverbs(x) with {
    i1 = jcrev_group(button("[2] Test [tooltip:Feed an impulse to JCRev]"));
    g2 = sat_group(checkbox("[1] SATRev [tooltip:Enable SATRev]"));
    i2 = sat_group(button("[2] Test [tooltip:Feed an impulse to SATRev]"));
+};
+
+//-------------------------------- freeverb --------------------------------
+// Freeverb is a widely used, free, open-source Schroeder reverb contributed
+// by ``Jezar at Dreampoint.'' See <faust_distribution>/examples/freeverb.dsp
+
+//=============== Feedback Delay Network (FDN) Reverberators  ==============
+
+//-------------------------------- fdnrev0 ---------------------------------
+// Pure Feedback Delay Network Reverberator (generalized for easy scaling).
+//
+// USAGE: 
+//   <1,2,4,...,N signals> <: 
+//   fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax) :> 
+//   <1,2,4,...,N signals>
+//
+// WHERE 
+//   N = 2, 4, 8, ...  (power of 2)
+//   MAXDELAY = power of 2 at least as large as longest delay-line length
+//   delays = N delay lines, N a power of 2, lengths perferably coprime
+//   BBSO = odd positive integer = order of bandsplit desired at freqs
+//   freqs  = NB-1 crossover frequencies separating desired frequency bands
+//   durs   = NB decay times (t60) desired for the various bands
+//   loopgainmax = scalar gain between 0 and 1 used to "squelch" the reverb
+//
+// REFERENCE: 
+//   https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html
+//
+// DEPENDENCIES: filter.lib (filterbank)
+
+fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax) 
+  = (bus(2*N) :> bus(N) : delaylines(N)) ~ 
+    (delayfilters(N,freqs,durs) : feedbackmatrix(N)) 
+with {
+  N = count(delays);
+  NB = count(durs);
+//assert(count(freqs)+1==NB);
+  delayval(i) = take(i+1,delays);
+  dlmax(i) = MAXDELAY; // must hardwire this from argument for now
+//dlmax(i) = 2^max(1,nextpow2(delayval(i))) // try when slider min/max is known
+//           with { nextpow2(x) = ceil(log(x)/log(2.0)); };
+// -1 is for feedback delay:
+  delaylines(N) = par(i,N,(delay(dlmax(i),(delayval(i)-1))));
+  delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
+  feedbackmatrix(N) = hadamard(N); // math.lib
+
+  filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) 
+                         :> *(loopgainmax) / sqrt(N)
+  with {
+    dur(j) = take(j+1,durs);
+    n60(j) = dur(j)*SR; // decay time in samples
+    g(j,i) = exp(-3.0*log(10.0)*delayval(i)/n60(j));
+        // ~ 1.0 - 6.91*delayval(i)/(SR*dur(j)); // valid for large dur(j)
+  };
+};
+
+// ---------- prime_power_delays -----
+// Prime Power Delay Line Lengths
+//
+// USAGE: 
+//   bus(N) : prime_power_delays(N,pathmin,pathmax) : bus(N);
+//
+// WHERE 
+//   N = positive integer up to 16 
+//       (for higher powers of 2, extend 'primes' array below.)
+//   pathmin = minimum acoustic ray length in the reverberator (in meters)
+//   pathmax = maximum acoustic ray length (meters) - think "room size"
+//
+// DEPENDENCIES: 
+//   math.lib (SR, selector, take) 
+//   music.lib (db2linear)
+//
+// REFERENCE: 
+//   https://ccrma.stanford.edu/~jos/pasp/Prime_Power_Delay_Line.html
+//
+prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
+  Np = 16;
+  primes = 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53;
+  prime(n) = primes : selector(n,Np); // math.lib
+
+  // Prime Power Bounds [matlab: floor(log(maxdel)./log(primes(53)))]
+  maxdel=8192; // more than 63 meters at 44100 samples/sec & 343 m/s
+  ppbs = 13,8,5,4, 3,3,3,3, 2,2,2,2, 2,2,2,2; // 8192 is enough for all
+  ppb(i) = take(i+1,ppbs);
+
+  // Approximate desired delay-line lengths using powers of distinct primes:
+  c = 343; // soundspeed in m/s at 20 degrees C for dry air
+  dmin = SR*pathmin/c;
+  dmax = SR*pathmax/c;
+  dl(i) = dmin * (dmax/dmin)^(i/float(N-1)); // desired delay in samples
+  ppwr(i) = floor(0.5+log(dl(i))/log(prime(i))); // best prime power
+  delayvals(i) = prime(i)^ppwr(i); // each delay a power of a distinct prime
+};
+
+//--------------------- stereo_reverb_tester --------------------
+// Handy test inputs for reverberator demos below.
+
+stereo_reverb_tester(revin_group,x,y) = inx,iny with {
+  ck_group(x) = revin_group(vgroup("[1] Input Config",x));
+  mutegain = 1 - ck_group(checkbox("[1] Mute Ext Inputs
+         [tooltip: When this is checked, the stereo external audio inputs are disabled (good for hearing the impulse response or pink-noise response alone)]"));
+  pinkin = ck_group(checkbox("[2] Pink Noise 
+         [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting the EQ sections)]"));
+
+  impulsify = _ <: _,mem : - : >(0);
+  imp_group(x) = revin_group(hgroup("[2] Impulse Selection",x));
+  pulseL =  imp_group(button("[1] Left
+         [tooltip: Send impulse into LEFT channel]")) : impulsify;
+  pulseC =  imp_group(button("[2] Center
+         [tooltip: Send impulse into LEFT and RIGHT channels]")) : impulsify;
+  pulseR =  imp_group(button("[3] Right
+         [tooltip: Send impulse into RIGHT channel]")) : impulsify;
+  
+  inx = x*mutegain + (pulseL+pulseC) + pn;
+  iny = y*mutegain + (pulseR+pulseC) + pn;
+  pn = 0.1*pinkin*component("osc.lib").pink_noise;
+};
+
+//------------------------- fdnrev0_demo ---------------------------
+// USAGE: _,_ : fdnrev0_demo(N,NB,BBSO) : _,_ 
+// WHERE
+//    N = Feedback Delay Network (FDN) order
+//      = number of delay lines used = order of feedback matrix
+//      = 2, 4, 8, or 16 [extend primes array below for 32, 64, ...]
+//   NB = number of frequency bands
+//      = number of (nearly) independent T60 controls
+//      = integer 3 or greater
+// BBSO = Butterworth band-split order
+//      = order of lowpass/highpass bandsplit used at each crossover freq
+//      = odd positive integer
+
+fdnrev0_demo(N,NB,BBSO,x,y) = stereo_reverb_tester(revin_group,x,y)
+	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax) 
+          :> *(gain),*(gain)
+with {
+  MAXDELAY = 8192; // sync w delays and prime_power_delays above
+  defdurs = (8.4,6.5,5.0,3.8,2.7); // NB default durations (sec)
+  deffreqs = (500,1000,2000,4000); // NB-1 default crossover frequencies (Hz)
+  deflens = (56.3,63.0); // 2 default min and max path lengths
+
+  fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR, ORDER 16
+    [tooltip: See Faust's effect.lib for documentation and references]", x);
+
+  freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
+  t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
+  path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
+  revin_group(x)  = fdn_group(hgroup("[4] Input Controls", x));
+  quench_group(x) = revin_group(vgroup("[3] Reverb State",x));
+  loopgainmax = 1.0-0.5*quench_group(button("[1] Quench
+         [tooltip: Hold down 'Quench' to clear the reverberator]"));
+
+  pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]
+    [tooltip: This length (in meters) determines the shortest delay-line used in the FDN reverberator.
+    	      Think of it as the shortest wall-to-wall separation in the room.]", 
+	    46, 3, 63, 0.1));
+  pathmax = path_group(hslider("[2] max acoustic ray length [unit:m]
+    [tooltip: This length (in meters) determines the longest delay-line used in the FDN reverberator.
+    	      Think of it as the largest wall-to-wall separation in the room.]", 
+	    63, 3, 63, 0.1));
+
+  defdur(i) = 1.9*(0.7^float(-i));
+  durvals(i) = t60_group(vslider("[%i] %i [unit:s]
+    [tooltip: T60 is the 60dB decay-time in seconds. For concert halls, an overall reverberation time (T60) near 1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each frequency band.  In real rooms, higher frequency bands generally decay faster due to absorption and scattering.]",
+    take(i+1,defdurs), 0.1, 10, 0.1));
+  durs = par(i,NB,durvals(NB-1-i));
+
+  freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz]
+    [tooltip: Each delay-line signal is split into frequency-bands for separate decay-time control in each band]", 
+    take(i+1,deffreqs), 100, 10000, 1));
+  freqs = par(i,NB-1,freqvals(i));
+
+  delays = prime_power_delays(N,pathmin,pathmax);
+
+  gain = hslider("[3] Output Level (dB) [unit:dB] 
+    [tooltip: Output scale factor]", -40, -70, 20, 0.1) : db2linear; 
+     // (can cause infinite loop:) with { db2linear(x) = pow(10, x/20.0); };
+};
+
+//----------------------------- zita_rev1_engine ---------------------------
+// Approximate implementation of the FOSS Linux reverb zita-rev1
+// by Fons Adriaensen  <fons@kokkinizita.net>.  This is an FDN reverb with
+// allpass comb filters in each feedback delay in addition to the 
+// damping filters.  Only stereo mode is implemented (no Ambisonic mode).
+//
+// USAGE: 
+//   _,_ : zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax) : _,_
+//
+// WHERE 
+//   rdel  = delay (in ms) before reverberation begins
+//   f1    = crossover frequency separating dc and midrange frequencies
+//   f2    = frequency above f1 where T60 = t60m/2 (see below)
+//   t60dc = desired decay time (t60) at frequency 0
+//   t60m  = desired decay time (t60) at midrange frequencies
+//   fsmax = maximum sampling rate to be used
+//
+// REFERENCE: 
+//   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
+//
+// DEPENDENCIES: 
+//   filter.lib (for allpass_comb, lowpass, and smooth)
+//   math.lib (for hadamard(N), take, etc.)
+
+zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax) = 
+delay_stereo(rdel) : distrib2(N) 
+ : ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~ 
+   (delayfilters(N,freqs,durs) : fbdelaylines(N)))
+ : output2(N) // no ambisonics mode
+with {
+  N = 8;
+
+  delay_stereo(rdel) = delay_mono(rdel),delay_mono(rdel);
+  delay_mono(rdel) = delay(8192,SR*rdel*0.001) * 0.3;
+
+  distrib2(N) = _,_ <: fanflip(N);
+  fanflip(4) = _,_,*(-1),*(-1);
+  fanflip(N) = fanflip(N/2),fanflip(N/2);
+
+  output2(N) = outmix(N) : *(t1),*(t1);
+  t1 = 0.37; // zita-rev1 linearly ramps from 0 to t1 over one buffer
+  outmix(4) = !,butterfly(2),!; // probably the result of some experimenting!
+  outmix(N) = outmix(N/2),par(i,N/2,!);
+
+  // feedback delay-line lengths in seconds:
+
+  // can't use fsmax = SR because SR is not bounded at compile time
+
+  apdelays = ( 0.020346, 0.024421, 0.031604, 0.027333, 0.022904, 
+               0.029291, 0.013458, 0.019123); // feedforward delays in seconds
+  tdelays = ( 0.153129, 0.210389, 0.127837, 0.256891, 0.174713, 
+              0.192303, 0.125000, 0.219991); // total delays in seconds
+  tdelay(i) = floor(0.5 + SR*take(i+1,tdelays)); // samples
+  apdelay(i) = floor(0.5 + SR*take(i+1,apdelays));
+  fbdelay(i) = tdelay(i) - apdelay(i);
+  tdelaymaxfs(i) = floor(0.5 + fsmax*take(i+1,tdelays));
+  apdelaymaxfs(i) = floor(0.5 + fsmax*take(i+1,apdelays));
+  fbdelaymaxfs(i) = tdelaymaxfs(i) - apdelaymaxfs(i);
+  nextpow2(x) = ceil(log(x)/log(2.0));
+  maxapdelay(i) = int(2.0^max(1.0,nextpow2(apdelaymaxfs(i))));
+  maxfbdelay(i) = int(2.0^max(1.0,nextpow2(fbdelaymaxfs(i))));
+
+  apcoeff(i) = select2(i&1,0.6,-0.6);  // allpass comb-filter coefficient
+  allpass_combs(N) = 
+    par(i,N,(allpass_comb(maxapdelay(i),apdelay(i),apcoeff(i)))); // filter.lib
+  fbdelaylines(N) = par(i,N,(delay(maxfbdelay(i),(fbdelay(i)))));
+  freqs = (f1,f2); durs = (t60dc,t60m);
+  delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
+  feedbackmatrix(N) = hadamard(N); // math.lib
+
+  staynormal = 10.0^(-20); // let signals decay well below LSB, but not to zero
+
+  special_lowpass(g,f) = smooth(p) with {
+    // unity-dc-gain lowpass needs gain g at frequency f => quadratic formula:
+    p = mbo2 - sqrt(mbo2*mbo2 - 1.0); // other solution is unstable
+    mbo2 = (1.0 - gs*c)/(1.0 - gs); // NOTE: must ensure |g|<1 (t60m finite)
+    gs = g*g;
+    c = cos(2.0*PI*f/float(SR));
+  };
+
+  filter(i,freqs,durs) = lowshelf_lowpass(i)/sqrt(float(N))+staynormal
+  with {
+    lowshelf_lowpass(i) = gM*low_shelf1_l(g0/gM,f(1)):special_lowpass(gM,f(2));
+    low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // filter.lib
+    g0 = g(0,i);
+    gM = g(1,i);
+    f(k) = take(k,freqs);
+    dur(j) = take(j+1,durs);
+    n60(j) = dur(j)*SR; // decay time in samples
+    g(j,i) = exp(-3.0*log(10.0)*tdelay(i)/n60(j));
+  };
+};
+
+//---------------------------------- zita_rev1 ------------------------------
+// Example GUI for zita_rev1_engine (mostly following the Linux zita-rev1 GUI).
+//
+// Only the dry/wet and output level parameters are "dezippered" here.  If 
+// parameters are to be varied in real time, use "smooth(0.999)" or the like
+// in the same way.
+//
+// REFERENCE: 
+//   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
+//
+// DEPENDENCIES: 
+//   filter.lib (for peak_eq_rm)
+
+zita_rev1(x,y) = zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
+	  : out_eq : dry_wet(x,y) : out_level
+with {
+
+  fsmax = 48000.0;  // highest sampling rate that will be used
+
+  fdn_group(x) = hgroup(
+    "[0]  ~ ZITA_REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER ALLPASS-COMB REVERBERATOR (8x8)
+     [tooltip: See Faust's effect.lib for documentation and references]", x);
+
+  in_group(x) = fdn_group(hgroup("[1] Input", x));
+
+  rdel = in_group(vslider("[1] In Delay [unit:ms] [style:knob] 
+                  [tooltip: Delay in ms before reverberation begins]",
+                  60,20,100,1));
+
+  freq_group(x) = fdn_group(hgroup("[2] Decay Times in Bands (see tooltips)", x));
+
+  f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob] 
+       [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
+       200, 50, 1000, 1));
+
+  t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob] 
+          [style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]", 
+	  3, 1, 8, 0.1));
+
+  t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob]
+          [tooltip: T60 = time (in seconds) to decay 60dB in middle band]", 
+	  2, 1, 8, 0.1));
+
+  f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob]
+       [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
+       6000, 1500, 0.49*fsmax, 1));
+
+  out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
+// Zolzer style peaking eq (not used in zita-rev1) (filter.lib):
+// pareq_stereo(eqf,eql,Q) = peak_eq(eql,eqf,eqf/Q), peak_eq(eql,eqf,eqf/Q);
+// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filter.lib):
+  pareq_stereo(eqf,eql,Q) = peak_eq_rm(eql,eqf,tpbt), peak_eq_rm(eql,eqf,tpbt)
+  with {
+    tpbt = wcT/sqrt(g); // tan(PI*B/SR) where B bandwidth in Hz (Q^2 ~ g/4)
+    wcT = 2*PI*eqf/SR;  // peak frequency in rad/sample
+    g = db2linear(eql); // peak gain
+  };
+
+  eq1_group(x) = fdn_group(hgroup("[3] RM Peaking Equalizer 1", x));
+
+  eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob]
+       [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 1]",
+       315, 40, 2500, 1));
+  
+  eq1l = eq1_group(vslider("[2] Eq1 Level [unit:dB] [style:knob]
+       [tooltip: Peak level in dB of second-order Regalia-Mitra peaking equalizer section 1]",
+       0, -15, 15, 0.1));
+  
+  eq1q = eq1_group(vslider("[3] Eq1 Q [style:knob]
+       [tooltip: Q = centerFrequency/bandwidth of second-order peaking equalizer section 1]",
+       3, 0.1, 10, 0.1));
+  
+  eq2_group(x) = fdn_group(hgroup("[4] RM Peaking Equalizer 2", x));
+
+  eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob]
+       [tooltip: Center-frequency of second-order peaking Regalia-Mitra equalizer section 2]",
+       315, 40, 2500, 1));
+  
+  eq2l = eq2_group(vslider("[2] Eq2 Level [unit:dB] [style:knob]
+       [tooltip: Peak level in dB of second-order Regalia-Mitra peaking equalizer section 2]",
+       0, -15, 15, 0.1));
+
+  eq2q = eq2_group(vslider("[3] Eq2 Q [style:knob]
+       [tooltip: Q = centerFrequency/bandwidth of second-order peaking equalizer section 2]",
+       3, 0.1, 10, 0.1));
+  
+  out_group(x)  = fdn_group(hgroup("[5] Output", x));
+
+  dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y with { 
+    wet = 0.5*(drywet+1.0);
+    dry = 1.0-wet; 
+  };
+
+  drywet = out_group(vslider("[1] Dry/Wet Mix [style:knob]
+       [tooltip: -1 = dry, 1 = wet]",
+       0, -1.0, 1.0, 0.01)) : smooth(0.999);
+
+  out_level = *(gain),*(gain);
+
+  gain = out_group(vslider("[2] Level [unit:dB] [style:knob]
+    [tooltip: Output scale factor]", -40, -70, 40, 0.1)) 
+    : smooth(0.999) : db2linear; 
+
 };
