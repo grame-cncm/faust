@@ -1296,7 +1296,6 @@ void CPPCUDACodeContainer::produceClass()
         produceInfoFunctions(n+1, true);
 
         // Inits
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);

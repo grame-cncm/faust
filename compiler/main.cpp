@@ -693,7 +693,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             exit(0);
         }
         if (!container) {
-             cerr << "ERROR : cannot file compiler for " << "\"" << gOutputLang  << "\"" << endl;
+             cerr << "ERROR : cannot find compiler for " << "\"" << gOutputLang  << "\"" << endl;
              exit(1);
         }
         if (gVectorSwitch) {

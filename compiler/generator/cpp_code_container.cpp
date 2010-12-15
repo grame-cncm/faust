@@ -257,10 +257,8 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        produceInfoFunctions(n+1, true);
+        produceInfoFunctions(n+1, true);  // Inits
 
-        // Inits
-        //tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
