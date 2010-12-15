@@ -466,7 +466,8 @@ struct FunTyped : public Typed {
 
     enum FunAttribute {
         kDefault = 0x1,
-        kLocal = 0x2
+        kLocal = 0x2,
+        kVirtual = 0x4
     };
 
     list<NamedTyped*> fArgsTypes;
@@ -930,6 +931,9 @@ struct BlockInst : public StatementInst
     {
         fCode.push_back(inst);
     }
+
+    bool hasReturn();
+
 };
 
 struct Select2Inst : public ValueInst

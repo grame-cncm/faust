@@ -326,6 +326,88 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code)
     }
 }
 
+DeclareFunInst* CodeContainer::generateGetInputs()
+{
+    list<NamedTyped*> args;
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(fNumInputs)));
+
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    return InstBuilder::genDeclareFunInst("getNumInputs", fun_type, block);
+}
+
+DeclareFunInst* CodeContainer::generateGetOutputs()
+{
+    list<NamedTyped*> args;
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(fNumOutputs)));
+
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    return InstBuilder::genDeclareFunInst("getNumOutputs", fun_type, block);
+}
+
+DeclareFunInst* CodeContainer::generateGetInputRate()
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
+
+    BlockInst* code = InstBuilder::genBlockInst();
+    ValueInst* switch_cond = InstBuilder::genLoadFunArgsVar("channel");
+    SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+    code->pushBackInst(switch_block);
+
+    int i = 0;
+    for (vector<int>::const_iterator it = fInputRates.begin(); it != fInputRates.end(); it++, i++) {
+        // Creates "case" block
+        BlockInst* case_block = InstBuilder::genBlockInst();
+        // Compiles "case" block
+        case_block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(*it)));
+        // Add it into the switch
+        switch_block->addCase(i, case_block);
+    }
+
+    // Default case
+    BlockInst* default_case_block = InstBuilder::genBlockInst();
+    default_case_block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(-1)));
+    switch_block->addCase(-1, default_case_block);
+
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    return InstBuilder::genDeclareFunInst("getInputRate", fun_type, code);
+}
+
+DeclareFunInst* CodeContainer::generateGetOutputRate()
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
+
+    BlockInst* code = InstBuilder::genBlockInst();
+    ValueInst* switch_cond = InstBuilder::genLoadFunArgsVar("channel");
+    SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+    code->pushBackInst(switch_block);
+
+    int i = 0;
+    for (vector<int>::const_iterator it = fOutputRates.begin(); it != fOutputRates.end(); it++, i++) {
+        // Creates "case" block
+        BlockInst* case_block = InstBuilder::genBlockInst();
+        // Compiles "case" block
+        case_block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(*it)));
+        // Add it into the switch
+        switch_block->addCase(i, case_block);
+    }
+
+    // Default case
+    BlockInst* default_case_block = InstBuilder::genBlockInst();
+    default_case_block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(-1)));
+    switch_block->addCase(-1, default_case_block);
+
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    return InstBuilder::genDeclareFunInst("getOutputRate", fun_type, code);
+}
+
 void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst * count, int loop_num, bool omp)
 {
     if (gFunTaskSwitch) {

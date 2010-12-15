@@ -67,6 +67,10 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateGetNumInputs();
         void generateGetNumOutputs();
 
+
+        //void generateGetInputRate();
+        //void generateGetOutputRate();
+
         void generateClassInitBegin();
         void generateClassInitEnd();
         void generateInitFun();
@@ -136,6 +140,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
             fModule->setTargetTriple(llvm::sys::getHostTriple());
             fNumInputs = numInputs;
             fNumOutputs = numOutputs;
+            fInputRates.resize(numInputs);
+            fOutputRates.resize(numOutputs);
         }
 
          LLVMCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, const string& prefix = "")

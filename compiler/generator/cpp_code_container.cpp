@@ -93,51 +93,20 @@ CodeContainer* CPPCodeContainer::createContainer(int numInputs, int numOutputs, 
 
 void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
 {
-    stringstream out;
-    string virtualPrefix;
-    if (isVirtual)
-        virtualPrefix = "virtual ";
-
     // Input/Output method
-    out << virtualPrefix;
-    Loki::FPrintf(out, "int getNumInputs() { return %d; }\n")(fNumInputs);
-    out << virtualPrefix;
-    Loki::FPrintf(out, "int getNumOutputs() { return %d; }\n")(fNumOutputs);
+    fCodeProducer.Tab(tabs);
+    generateGetInputs()->accept(&fCodeProducer);
+
+    fCodeProducer.Tab(tabs);
+    generateGetOutputs()->accept(&fCodeProducer);
 
     // Input Rates
-    {
-        stringstream block1, block2;
-
-        out << endl << virtualPrefix;
-        Loki::FPrintf(out, "int getInputRate(int channel) {\n");
-        block1 << "switch (channel) {" << endl;
-
-        for (int i = 0; i != fNumInputs; ++i)
-            Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fInputRates[i]);
-
-        block2 << "default: -1;\n";
-
-        block1 << indent(block2.str(), 1) << "}" << endl;
-        out << indent(block1.str(), 1) << "}" << endl;
-    }
+    fCodeProducer.Tab(tabs);
+    generateGetInputRate()->accept(&fCodeProducer);
 
     // Output Rates
-    {
-        stringstream block1, block2;
-
-        out << endl << virtualPrefix;
-        Loki::FPrintf(out, "int getOutputRate(int channel) {\n");
-        block1 << "switch (channel) {" << endl;
-
-        for (int i = 0; i != fNumOutputs; ++i)
-            Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fOutputRates[i]);
-
-        block2 << "default: -1;\n";
-
-        block1 << indent(block2.str(), 1) << "}" << endl;
-        out << indent(block1.str(), 1) << "}" << endl;
-    }
-    *fOut << endl << indent(out.str(), tabs);
+    fCodeProducer.Tab(tabs);
+    generateGetOutputRate()->accept(&fCodeProducer);
 }
 
 void CPPCodeContainer::produceMetadata(int tabs)

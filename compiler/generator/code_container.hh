@@ -122,6 +122,8 @@ class CodeContainer {
             merge(S, fLibrarySet);
         }
 
+        void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
+
       public:
 
         CodeContainer();
@@ -166,8 +168,13 @@ class CodeContainer {
         void generateLocalInputs(BlockInst* loop_code);
         void generateLocalOutputs(BlockInst* loop_code);
 
+        DeclareFunInst* generateGetInputs();
+        DeclareFunInst* generateGetOutputs();
+
+        DeclareFunInst* generateGetInputRate();
+        DeclareFunInst* generateGetOutputRate();
+
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
-        void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
 
         /* can be overridden by subclasses to reorder the FIR before the actual code generation */
         virtual void processFIR(void) {}

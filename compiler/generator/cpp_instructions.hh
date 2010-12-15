@@ -208,6 +208,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             if (inst->fType->fAttribute & FunTyped::kLocal)
                  *fOut << "inline ";
 
+            if (inst->fType->fAttribute & FunTyped::kVirtual)
+                 *fOut << "virtual ";
+
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
@@ -444,7 +447,8 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                         fTab++;
                         tab1(fTab, *fOut);
                         ((*it).second)->accept(this);
-                        *fOut << "break;";
+                        if (!((*it).second)->hasReturn())
+                            *fOut << "break;";
                         fTab--;
                         tab1(fTab, *fOut);
                     *fOut << "}";

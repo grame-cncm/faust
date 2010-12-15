@@ -55,6 +55,8 @@ class CCodeContainer : public virtual CodeContainer {
         {
             fNumInputs = numInputs;
             fNumOutputs = numOutputs;
+            fInputRates.resize(numInputs);
+            fOutputRates.resize(numOutputs);
         }
         virtual ~CCodeContainer()
         {}

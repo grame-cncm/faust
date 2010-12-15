@@ -266,6 +266,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         {
             fNumInputs = numInputs;
             fNumOutputs = numOutputs;
+            fInputRates.resize(numInputs);
+            fOutputRates.resize(numOutputs);
         }
 
         virtual ~CPPGPUCodeContainer()
@@ -487,6 +489,8 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
             fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
             fNumInputs = numInputs;
             fNumOutputs = numOutputs;
+            fInputRates.resize(numInputs);
+            fOutputRates.resize(numOutputs);
         }
         virtual ~CPPCUDACodeContainer()
         {

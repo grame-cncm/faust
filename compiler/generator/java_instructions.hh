@@ -397,7 +397,8 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                         fTab++;
                         tab(fTab, *fOut);
                         ((*it).second)->accept(this);
-                        *fOut << "break;";
+                        if (!((*it).second)->hasReturn())
+                            *fOut << "break;";
                         fTab--;
                         tab(fTab, *fOut);
                     *fOut << "}";

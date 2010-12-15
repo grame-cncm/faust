@@ -21,6 +21,13 @@
 
 #include "instructions.hh"
 
+bool BlockInst::hasReturn()
+{
+    list<StatementInst*>::const_iterator it = fCode.end();
+    it--;
+    return dynamic_cast<RetInst*>(*it);
+}
+
 struct StoreVarInst * DeclareVarInst::store (ValueInst * exp)
 {
     return InstBuilder::genStoreVarInst(fAddress, exp);
