@@ -326,7 +326,7 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code)
     }
 }
 
-DeclareFunInst* CodeContainer::generateGetInputs()
+DeclareFunInst* CodeContainer::generateGetInputs(const string& name)
 {
     list<NamedTyped*> args;
     BlockInst* block = InstBuilder::genBlockInst();
@@ -334,10 +334,10 @@ DeclareFunInst* CodeContainer::generateGetInputs()
 
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
-    return InstBuilder::genDeclareFunInst("getNumInputs", fun_type, block);
+    return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputs()
+DeclareFunInst* CodeContainer::generateGetOutputs(const string& name)
 {
     list<NamedTyped*> args;
     BlockInst* block = InstBuilder::genBlockInst();
@@ -345,10 +345,10 @@ DeclareFunInst* CodeContainer::generateGetOutputs()
 
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
-    return InstBuilder::genDeclareFunInst("getNumOutputs", fun_type, block);
+    return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputRate()
+DeclareFunInst* CodeContainer::generateGetInputRate(const string& name)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
@@ -375,10 +375,10 @@ DeclareFunInst* CodeContainer::generateGetInputRate()
 
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
-    return InstBuilder::genDeclareFunInst("getInputRate", fun_type, code);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputRate()
+DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
@@ -405,7 +405,7 @@ DeclareFunInst* CodeContainer::generateGetOutputRate()
 
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
-    return InstBuilder::genDeclareFunInst("getOutputRate", fun_type, code);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
 void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst * count, int loop_num, bool omp)

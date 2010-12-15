@@ -95,18 +95,18 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
 {
     // Input/Output method
     fCodeProducer.Tab(tabs);
-    generateGetInputs()->accept(&fCodeProducer);
+    generateGetInputs("getNumInputs")->accept(&fCodeProducer);
 
     fCodeProducer.Tab(tabs);
-    generateGetOutputs()->accept(&fCodeProducer);
+    generateGetOutputs("getNumOutputs")->accept(&fCodeProducer);
 
     // Input Rates
     fCodeProducer.Tab(tabs);
-    generateGetInputRate()->accept(&fCodeProducer);
+    generateGetInputRate("getInputRate")->accept(&fCodeProducer);
 
     // Output Rates
     fCodeProducer.Tab(tabs);
-    generateGetOutputRate()->accept(&fCodeProducer);
+    generateGetOutputRate("getOutputRate")->accept(&fCodeProducer);
 }
 
 void CPPCodeContainer::produceMetadata(int tabs)
@@ -260,7 +260,7 @@ void CPPCodeContainer::produceClass()
         produceInfoFunctions(n+1, true);
 
         // Inits
-        tab(n+1, *fOut);
+        //tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);

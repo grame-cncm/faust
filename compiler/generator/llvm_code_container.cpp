@@ -232,66 +232,6 @@ void LLVMCodeContainer::generateGetNumOutputs()
     verifyFunction(*output_fun);
 }
 
-/*
-void LLVMCodeContainer::generateGetInputRate()
-{
-    vector<const llvm::Type*> llvm_getInputRate_args;
-    llvm_getInputRate_args.push_back(fDSP_ptr);
-    llvm_getInputRate_args.push_back(fBuilder->getInt32Ty());
-    FunctionType* llvm_getInputRate_type = FunctionType::get(fBuilder->getVoidTy(), llvm_getInputRate_args, false);
-
-    Function* input_fun = Function::Create(llvm_getInputRate_type, Function::ExternalLinkage, "getInputRate" + fPrefix, fModule);
-    input_fun->setCallingConv(CallingConv::C);
-    BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", input_fun);
-
-    Function::arg_iterator llvm_getInputRate_args_it = input_fun->arg_begin();
-    Value* channel = llvm_getInputRate_args_it++;
-    channel->setName("channel");
-
-    // Creates "default" block
-    BasicBlock* default_block = BasicBlock::Create(getGlobalContext(), "default", input_fun);
-
-    // Creates switch
-    llvm::SwitchInst* switch_inst = fBuilder->CreateSwitch(ConstantInt::get(llvm::Type::getInt32Ty(getGlobalContext()), -1), default_block, fInputRates.size());
-
-    vector<int>::const_iterator it;
-    for (it = fInputRates.begin(); it != fInputRates.end(); it++) {
-        // Creates "case" block
-        BasicBlock* case_block = BasicBlock::Create(getGlobalContext(), "case", input_fun);
-        // Move insertion in case_block
-        fBuilder->SetInsertPoint(case_block);
-        // Compiles "case" block
-        (*it).second->accept(this);
-        // Link init_block and exit_block
-        fBuilder->CreateBr(exit_block);
-        // Add it into the switch
-        switch_inst->addCase(*it, case_block);
-
-    }
-
-
-     fBuilder->SetInsertPoint(block);
-}
-
-void LLVMCodeContainer::generateGetOutputRate()
-{
-     vector<const llvm::Type*> llvm_getOutputRate_args;
-    llvm_getOutputRate_args.push_back(fDSP_ptr);
-    llvm_getOutputRate_args.push_back(fBuilder->getInt32Ty());
-    FunctionType* llvm_getOutputRate_type = FunctionType::get(fBuilder->getVoidTy(), llvm_getOutputRate_args, false);
-
-    Function* output_fun = Function::Create(llvm_getOutputRate_type, Function::ExternalLinkage, "getOutputRate" + fPrefix, fModule);
-    output_fun->setCallingConv(CallingConv::C);
-    BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", output_fun);
-
-    Function::arg_iterator llvm_getOutputRate_args_it = output_fun->arg_begin();
-    Value* channel = llvm_getOutputRate_args_it++;
-    channel->setName("channel");
-
-    fBuilder->SetInsertPoint(block);
-}
-*/
-
 void LLVMCodeContainer::generateClassInitBegin()
 {
     vector<const llvm::Type*> llvm_classInit_args;
@@ -483,9 +423,6 @@ void LLVMCodeContainer::produceInternal()
     generateGetNumInputs();
     generateGetNumOutputs();
 
-    //generateGetInputRate();
-    //generateGetOutputRate();
-
     // TODO : Input and output rates
 
     // Init code generator with fields_names
@@ -541,9 +478,6 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
 
     generateGetNumInputs();
     generateGetNumOutputs();
-
-    //generateGetInputRate();
-    //generateGetOutputRate();
 
     // Init code generator with fields_names
     //if (gVectorSwitch) {

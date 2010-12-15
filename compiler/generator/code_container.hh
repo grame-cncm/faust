@@ -168,11 +168,11 @@ class CodeContainer {
         void generateLocalInputs(BlockInst* loop_code);
         void generateLocalOutputs(BlockInst* loop_code);
 
-        DeclareFunInst* generateGetInputs();
-        DeclareFunInst* generateGetOutputs();
+        DeclareFunInst* generateGetInputs(const string& name);
+        DeclareFunInst* generateGetOutputs(const string& name);
 
-        DeclareFunInst* generateGetInputRate();
-        DeclareFunInst* generateGetOutputRate();
+        DeclareFunInst* generateGetInputRate(const string& name);
+        DeclareFunInst* generateGetOutputRate(const string& name);
 
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
 
