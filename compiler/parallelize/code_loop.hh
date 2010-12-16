@@ -114,13 +114,13 @@ class CodeLoop {
     public:
 
         ///< create a recursive loop
-        CodeLoop(Tree recsymbol, CodeLoop* encl, string index_name, int size = 0)
+        CodeLoop(Tree recsymbol, CodeLoop* encl, string index_name, int size = 1)
             :fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
             fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}
 
         ///< create a non recursive loop
-        CodeLoop(CodeLoop* encl, string index_name, int size = 0)
+        CodeLoop(CodeLoop* encl, string index_name, int size = 1)
             :fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
             fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}

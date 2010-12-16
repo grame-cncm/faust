@@ -41,7 +41,9 @@ using namespace std;
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
 {
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+    ValueInst* loop_end = fSize != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter))
+                                     : InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(InstBuilder::genLoadFunArgsVar(counter),
+                                                                                                       InstBuilder::genIntNumInst(fSize)));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
     BlockInst* block = InstBuilder::genBlockInst();
@@ -161,7 +163,9 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
     if (fComputeInst->fCode.size() > 0) {
 
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
+        ValueInst* loop_end = fSize != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
+                                                                                                           InstBuilder::genIntNumInst(fSize)))
+                                         : InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), size));
 
         VectorCloneVisitor vector_cloner(size);
@@ -197,7 +201,9 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
+        ValueInst* loop_end = fSize != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
+                                                                                                           InstBuilder::genIntNumInst(fSize)))
+                                         : InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
