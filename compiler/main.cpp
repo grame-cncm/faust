@@ -823,7 +823,15 @@ int main (int argc, char* argv[])
 	startTiming("propagation");
 
 	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
-	if (gDetailsSwitch) { cerr << "output signals are : " << endl;  printSignal(lsignals, stderr); }
+
+	if (gDetailsSwitch) { 
+		cerr << "output signals are : " << endl; 
+		Tree ls =  lsignals;
+		while (! isNil(ls)) {
+			cerr << ppsig(hd(ls)) << endl;
+			ls = tl(ls);
+		}
+	}
 
 	endTiming("propagation");
 
