@@ -46,45 +46,48 @@ main.o: evaluate/environment.hh generator/description.hh generator/uitree.hh gen
 main.o: generator/instructions_compiler.hh generator/code_container.hh generator/Text.hh tlib/property.hh
 main.o: generator/function_builder.hh parallelize/code_loop.hh generator/occurences.hh
 main.o: generator/dag_instructions_compiler.hh generator/c_code_container.hh generator/c_instructions.hh
-main.o: generator/type_manager.hh generator/cpp_code_container.hh generator/cpp_instructions.hh
-main.o: generator/java_code_container.hh generator/java_instructions.hh generator/llvm_code_container.hh
-main.o: generator/llvm_instructions.hh utils/ensure.hh /usr/local/include/llvm/DerivedTypes.h
-main.o: /usr/local/include/llvm/Type.h /usr/local/include/llvm/AbstractTypeUser.h
-main.o: /usr/local/include/llvm/Support/Casting.h /usr/local/include/llvm/System/DataTypes.h
-main.o: /usr/local/include/llvm/ADT/GraphTraits.h /usr/local/include/llvm/ExecutionEngine/ExecutionEngine.h
-main.o: /usr/local/include/llvm/ADT/SmallVector.h /usr/local/include/llvm/Support/type_traits.h
-main.o: /usr/local/include/llvm/ADT/StringRef.h /usr/local/include/llvm/ADT/ValueMap.h
-main.o: /usr/local/include/llvm/ADT/DenseMap.h /usr/local/include/llvm/Support/MathExtras.h
-main.o: /usr/local/include/llvm/Support/PointerLikeTypeTraits.h /usr/local/include/llvm/ADT/DenseMapInfo.h
-main.o: /usr/local/include/llvm/Support/ValueHandle.h /usr/local/include/llvm/ADT/PointerIntPair.h
-main.o: /usr/local/include/llvm/Value.h /usr/local/include/llvm/Use.h /usr/local/include/llvm/System/Mutex.h
-main.o: /usr/local/include/llvm/System/Threading.h /usr/local/include/llvm/Target/TargetMachine.h
-main.o: /usr/local/include/llvm/Target/TargetInstrItineraries.h /usr/local/include/llvm/ExecutionEngine/JIT.h
-main.o: /usr/local/include/llvm/LLVMContext.h /usr/local/include/llvm/Module.h /usr/local/include/llvm/Function.h
-main.o: /usr/local/include/llvm/GlobalValue.h /usr/local/include/llvm/Constant.h /usr/local/include/llvm/User.h
-main.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
-main.o: /usr/local/include/llvm/Instruction.h /usr/local/include/llvm/ADT/ilist_node.h
-main.o: /usr/local/include/llvm/Instruction.def /usr/local/include/llvm/SymbolTableListTraits.h
-main.o: /usr/local/include/llvm/ADT/ilist.h /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Argument.h
-main.o: /usr/local/include/llvm/Attributes.h /usr/local/include/llvm/Support/Compiler.h
-main.o: /usr/local/include/llvm/GlobalVariable.h /usr/local/include/llvm/OperandTraits.h
-main.o: /usr/local/include/llvm/GlobalAlias.h /usr/local/include/llvm/Metadata.h
-main.o: /usr/local/include/llvm/ADT/FoldingSet.h /usr/local/include/llvm/ADT/OwningPtr.h
-main.o: /usr/local/include/llvm/PassManager.h /usr/local/include/llvm/Pass.h /usr/local/include/llvm/PassSupport.h
-main.o: /usr/local/include/llvm/Pass.h /usr/local/include/llvm/PassAnalysisSupport.h
-main.o: /usr/local/include/llvm/Analysis/Verifier.h /usr/local/include/llvm/Target/TargetData.h
-main.o: /usr/local/include/llvm/Target/TargetSelect.h /usr/local/include/llvm/Config/config.h
-main.o: /usr/local/include/llvm/Config/Targets.def /usr/local/include/llvm/Config/AsmPrinters.def
-main.o: /usr/local/include/llvm/Config/AsmParsers.def /usr/local/include/llvm/Config/Disassemblers.def
-main.o: /usr/local/include/llvm/Transforms/Scalar.h /usr/local/include/llvm/Support/IRBuilder.h
-main.o: /usr/local/include/llvm/Instructions.h /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Operator.h
-main.o: /usr/local/include/llvm/Constants.h /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/ADT/APFloat.h
+main.o: generator/type_manager.hh generator/vec_code_container.hh generator/omp_code_container.hh
+main.o: generator/wss_code_container.hh generator/cpp_code_container.hh generator/cpp_instructions.hh
+main.o: generator/opencl_instructions.hh generator/cpp_gpu_code_container.hh generator/java_code_container.hh
+main.o: generator/java_instructions.hh generator/llvm_code_container.hh generator/llvm_instructions.hh
+main.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
+main.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Support/Casting.h
+main.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/GraphTraits.h
+main.o: /usr/local/include/llvm/ExecutionEngine/ExecutionEngine.h /usr/local/include/llvm/ADT/SmallVector.h
+main.o: /usr/local/include/llvm/Support/type_traits.h /usr/local/include/llvm/ADT/StringRef.h
+main.o: /usr/local/include/llvm/ADT/ValueMap.h /usr/local/include/llvm/ADT/DenseMap.h
+main.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/Support/PointerLikeTypeTraits.h
+main.o: /usr/local/include/llvm/ADT/DenseMapInfo.h /usr/local/include/llvm/Support/ValueHandle.h
+main.o: /usr/local/include/llvm/ADT/PointerIntPair.h /usr/local/include/llvm/Value.h /usr/local/include/llvm/Use.h
+main.o: /usr/local/include/llvm/System/Mutex.h /usr/local/include/llvm/System/Threading.h
+main.o: /usr/local/include/llvm/Target/TargetMachine.h /usr/local/include/llvm/Target/TargetInstrItineraries.h
+main.o: /usr/local/include/llvm/ExecutionEngine/JIT.h /usr/local/include/llvm/LLVMContext.h
+main.o: /usr/local/include/llvm/Module.h /usr/local/include/llvm/Function.h /usr/local/include/llvm/GlobalValue.h
+main.o: /usr/local/include/llvm/Constant.h /usr/local/include/llvm/User.h /usr/local/include/llvm/CallingConv.h
+main.o: /usr/local/include/llvm/BasicBlock.h /usr/local/include/llvm/Instruction.h
+main.o: /usr/local/include/llvm/ADT/ilist_node.h /usr/local/include/llvm/Instruction.def
+main.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
+main.o: /usr/local/include/llvm/ADT/Twine.h /usr/local/include/llvm/Argument.h /usr/local/include/llvm/Attributes.h
+main.o: /usr/local/include/llvm/Support/Compiler.h /usr/local/include/llvm/GlobalVariable.h
+main.o: /usr/local/include/llvm/OperandTraits.h /usr/local/include/llvm/GlobalAlias.h
+main.o: /usr/local/include/llvm/Metadata.h /usr/local/include/llvm/ADT/FoldingSet.h
+main.o: /usr/local/include/llvm/ADT/OwningPtr.h /usr/local/include/llvm/PassManager.h /usr/local/include/llvm/Pass.h
+main.o: /usr/local/include/llvm/PassSupport.h /usr/local/include/llvm/Pass.h
+main.o: /usr/local/include/llvm/PassAnalysisSupport.h /usr/local/include/llvm/Analysis/Verifier.h
+main.o: /usr/local/include/llvm/Target/TargetData.h /usr/local/include/llvm/Target/TargetSelect.h
+main.o: /usr/local/include/llvm/Config/config.h /usr/local/include/llvm/Config/Targets.def
+main.o: /usr/local/include/llvm/Config/AsmPrinters.def /usr/local/include/llvm/Config/AsmParsers.def
+main.o: /usr/local/include/llvm/Config/Disassemblers.def /usr/local/include/llvm/Transforms/Scalar.h
+main.o: /usr/local/include/llvm/Support/IRBuilder.h /usr/local/include/llvm/Instructions.h
+main.o: /usr/local/include/llvm/InstrTypes.h /usr/local/include/llvm/Operator.h /usr/local/include/llvm/Constants.h
+main.o: /usr/local/include/llvm/ADT/APInt.h /usr/local/include/llvm/ADT/APFloat.h
 main.o: /usr/local/include/llvm/Support/ConstantFolder.h /usr/local/include/llvm-c/BitWriter.h
 main.o: /usr/local/include/llvm-c/Core.h /usr/local/include/llvm/Bitcode/ReaderWriter.h
 main.o: /usr/local/include/llvm/Support/raw_ostream.h /usr/local/include/llvm/System/Host.h
 main.o: /usr/local/include/llvm/ADT/StringMap.h /usr/local/include/llvm/Support/Allocator.h
 main.o: /usr/local/include/llvm/Support/AlignOf.h generator/fir_code_container.hh generator/fir_instructions.hh
 main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh normalize/constant_folding.hh
+main.o: signals/ppsig.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/instructions.hh signals/binop.hh signals/sigvisitor.hh signals/signals.hh
@@ -749,13 +752,13 @@ generator/c_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signa
 generator/c_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/c_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/c_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
-generator/c_code_container.o: generator/c_instructions.hh generator/type_manager.hh
+generator/c_code_container.o: generator/c_instructions.hh generator/type_manager.hh generator/vec_code_container.hh
+generator/c_code_container.o: generator/omp_code_container.hh generator/wss_code_container.hh
 generator/code_container.o: generator/code_container.hh generator/instructions.hh signals/binop.hh tlib/node.hh
 generator/code_container.o: tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh
 generator/code_container.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh generator/description.hh
 generator/code_container.o: signals/signals.hh generator/uitree.hh generator/floats.hh generator/Text.hh
 generator/code_container.o: tlib/property.hh generator/function_builder.hh parallelize/code_loop.hh
-generator/code_container.o: generator/fir_instructions.hh generator/type_manager.hh
 generator/contextor.o: generator/contextor.hh
 generator/cpp_code_container.o: generator/cpp_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/cpp_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -763,6 +766,19 @@ generator/cpp_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tl
 generator/cpp_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/cpp_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
 generator/cpp_code_container.o: parallelize/code_loop.hh generator/cpp_instructions.hh generator/type_manager.hh
+generator/cpp_code_container.o: generator/opencl_instructions.hh generator/omp_code_container.hh
+generator/cpp_code_container.o: generator/vec_code_container.hh generator/wss_code_container.hh
+generator/cpp_code_container.o: generator/cpp_gpu_code_container.hh ../libraries/loki/SafeFormat.h
+generator/cpp_code_container.o: ../libraries/loki/LokiExport.h
+generator/cpp_gpu_code_container.o: generator/cpp_gpu_code_container.hh generator/cpp_code_container.hh
+generator/cpp_gpu_code_container.o: generator/code_container.hh generator/instructions.hh signals/binop.hh tlib/node.hh
+generator/cpp_gpu_code_container.o: tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+generator/cpp_gpu_code_container.o: tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+generator/cpp_gpu_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
+generator/cpp_gpu_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
+generator/cpp_gpu_code_container.o: parallelize/code_loop.hh generator/cpp_instructions.hh generator/type_manager.hh
+generator/cpp_gpu_code_container.o: generator/opencl_instructions.hh generator/omp_code_container.hh
+generator/cpp_gpu_code_container.o: generator/vec_code_container.hh generator/wss_code_container.hh
 generator/dag_instructions_compiler.o: generator/dag_instructions_compiler.hh generator/instructions_compiler.hh
 generator/dag_instructions_compiler.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/dag_instructions_compiler.o: generator/code_container.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -804,6 +820,8 @@ generator/fir_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tl
 generator/fir_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/fir_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
 generator/fir_code_container.o: parallelize/code_loop.hh generator/fir_instructions.hh generator/type_manager.hh
+generator/fir_code_container.o: generator/vec_code_container.hh generator/omp_code_container.hh
+generator/fir_code_container.o: generator/wss_code_container.hh
 generator/floats.o: generator/floats.hh generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/floats.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/ADT/APInt.h
 generator/floats.o: /usr/local/include/llvm/Support/MathExtras.h /usr/local/include/llvm/System/DataTypes.h
@@ -836,18 +854,22 @@ generator/instructions_compiler.o: /usr/local/include/llvm/ADT/Twine.h /usr/loca
 generator/instructions_compiler.o: /usr/local/include/llvm/CallingConv.h /usr/local/include/llvm/BasicBlock.h
 generator/instructions_compiler.o: /usr/local/include/llvm/SymbolTableListTraits.h /usr/local/include/llvm/ADT/ilist.h
 generator/instructions_compiler.o: /usr/local/include/llvm/Support/ConstantFolder.h signals/prim2.hh utils/ensure.hh
+generator/instructions_compiler.o: signals/sigrateinference.hh
+generator/instructions.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/java_code_container.o: generator/java_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/java_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/java_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/java_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/java_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
 generator/java_code_container.o: parallelize/code_loop.hh generator/java_instructions.hh generator/type_manager.hh
+generator/java_code_container.o: generator/vec_code_container.hh generator/omp_code_container.hh
+generator/java_code_container.o: generator/wss_code_container.hh
 generator/llvm_code_container.o: generator/llvm_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/llvm_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/llvm_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/llvm_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/llvm_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
-generator/llvm_code_container.o: parallelize/code_loop.hh generator/llvm_instructions.hh utils/ensure.hh
+generator/llvm_code_container.o: parallelize/code_loop.hh generator/llvm_instructions.hh
 generator/llvm_code_container.o: /usr/local/include/llvm/DerivedTypes.h /usr/local/include/llvm/Type.h
 generator/llvm_code_container.o: /usr/local/include/llvm/AbstractTypeUser.h /usr/local/include/llvm/Support/Casting.h
 generator/llvm_code_container.o: /usr/local/include/llvm/System/DataTypes.h /usr/local/include/llvm/ADT/GraphTraits.h
@@ -893,9 +915,10 @@ generator/llvm_code_container.o: /usr/local/include/llvm/Constants.h /usr/local/
 generator/llvm_code_container.o: /usr/local/include/llvm/ADT/APFloat.h /usr/local/include/llvm/Support/ConstantFolder.h
 generator/llvm_code_container.o: /usr/local/include/llvm-c/BitWriter.h /usr/local/include/llvm-c/Core.h
 generator/llvm_code_container.o: /usr/local/include/llvm/Bitcode/ReaderWriter.h
-generator/llvm_code_container.o: /usr/local/include/llvm/Support/raw_ostream.h /usr/local/include/llvm/System/Host.h
-generator/llvm_code_container.o: /usr/local/include/llvm/ADT/StringMap.h /usr/local/include/llvm/Support/Allocator.h
-generator/llvm_code_container.o: /usr/local/include/llvm/Support/AlignOf.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/raw_ostream.h generator/vec_code_container.hh
+generator/llvm_code_container.o: generator/omp_code_container.hh generator/wss_code_container.hh
+generator/llvm_code_container.o: /usr/local/include/llvm/System/Host.h /usr/local/include/llvm/ADT/StringMap.h
+generator/llvm_code_container.o: /usr/local/include/llvm/Support/Allocator.h /usr/local/include/llvm/Support/AlignOf.h
 generator/llvm_code_container.o: /usr/local/include/llvm/ExecutionEngine/GenericValue.h
 generator/llvm_code_container.o: /usr/local/include/llvm/Analysis/Passes.h
 generator/llvm_code_container.o: /usr/local/include/llvm/Support/StandardPasses.h
@@ -904,10 +927,28 @@ generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh 
 generator/occurences.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/occurences.hh
 generator/occurences.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 generator/occurences.o: signals/sigtyperules.hh
+generator/omp_code_container.o: generator/omp_code_container.hh generator/code_container.hh generator/instructions.hh
+generator/omp_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
+generator/omp_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+generator/omp_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
+generator/omp_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
+generator/omp_code_container.o: parallelize/code_loop.hh
 generator/Text.o: generator/Text.hh tlib/compatibility.hh generator/floats.hh generator/instructions.hh
 generator/Text.o: signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
+generator/vec_code_container.o: generator/vec_code_container.hh generator/code_container.hh generator/instructions.hh
+generator/vec_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
+generator/vec_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+generator/vec_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
+generator/vec_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
+generator/vec_code_container.o: parallelize/code_loop.hh
+generator/wss_code_container.o: generator/wss_code_container.hh generator/code_container.hh generator/instructions.hh
+generator/wss_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh signals/sigtype.hh tlib/smartpointer.hh
+generator/wss_code_container.o: signals/interval.hh tlib/tlib.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+generator/wss_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
+generator/wss_code_container.o: generator/Text.hh tlib/property.hh generator/function_builder.hh
+generator/wss_code_container.o: parallelize/code_loop.hh
 normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 normalize/aterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
 normalize/aterm.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh signals/ppsig.hh
@@ -1222,3 +1263,4 @@ draw/schema/recSchema.o: draw/schema/recSchema.h draw/schema/schema.h draw/devic
 draw/schema/seqSchema.o: draw/schema/seqSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/splitSchema.o: draw/schema/splitSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/topSchema.o: draw/schema/topSchema.h draw/schema/schema.h draw/device/device.h
+../libraries/loki/SafeFormat.o: ../libraries/loki/SafeFormat.h ../libraries/loki/LokiExport.h
