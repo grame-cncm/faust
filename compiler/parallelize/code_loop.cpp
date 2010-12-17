@@ -357,3 +357,6 @@ void CodeLoop::sortGraph(CodeLoop* root, lclgraph& V)
 
 void VectorizeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {}
+
+void SerializeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
+{}

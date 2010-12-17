@@ -279,6 +279,8 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
     Tree exp, n;
     if (isSigVectorize(sig, exp, n)) {
         return generateVectorize(sig, exp, tree2int(n));
+    } else if (isSigSerialize(sig, exp)) {
+        return generateSerialize(sig, exp);
     } else if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
@@ -545,4 +547,34 @@ ValueInst* DAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
     fContainer->closeLoop(); // close vectorize
 
     return vecBuffer->load(); // return handle
+}
+
+ValueInst* DAGInstructionsCompiler::generateSerialize(Tree sig, Tree exp)
+{
+    // TODO
+    /*
+    Type expType = getSigType(exp);
+    int expRate = getSigRate(exp);
+    Typed * firType = NULL; //genVectorType(expType, n, expRate);
+    DeclareTypeInst * firVecType = InstBuilder::genDeclareType(firType);
+
+    pushGlobalDeclare(firVecType);
+    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
+    pushDeclare(vecBuffer);
+
+    SerializeCodeLoop * vLoop = new SerializeCodeLoop(fContainer->fCurLoop, "j", expRate/n);
+
+    fContainer->fCurLoop = vLoop;
+
+    fContainer->openLoop("i", n);
+    ValueInst * body = generateCode(exp);
+    fContainer->closeLoop();
+
+    vLoop->setExpression(body);
+
+    fContainer->closeLoop(); // close vectorize
+
+    return vecBuffer->load(); // return handle
+    */
+    return NULL;
 }

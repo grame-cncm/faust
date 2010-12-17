@@ -58,6 +58,7 @@ private:
 
     // multirate
     ValueInst* generateVectorize(Tree sig, Tree exp, int n);
+    ValueInst* generateSerialize(Tree sig, Tree exp);
 
 };
 

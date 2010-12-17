@@ -163,18 +163,48 @@ class CodeLoop {
 
 };
 
-struct VectorizeCodeLoop:
+// Base class for MultiRate loops
+
+struct MultiRateCodeLoop:
     CodeLoop
 {
-private:
+protected:
     ValueInst * fExpr;
 
 public:
-    VectorizeCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
+    MultiRateCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
         CodeLoop(encl, index_name, rate), fExpr(NULL)
     {}
 
     void setExpression (ValueInst* expr) { fExpr = expr;}
+
+    virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp) {}
+};
+
+struct VectorizeCodeLoop:
+    MultiRateCodeLoop
+{
+
+public:
+    VectorizeCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
+        MultiRateCodeLoop(encl, index_name, rate)
+    {}
+
+    void setExpression (ValueInst* expr) { fExpr = expr;}
+
+    virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
+};
+
+struct SerializeCodeLoop:
+    MultiRateCodeLoop
+{
+
+public:
+    SerializeCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
+        MultiRateCodeLoop(encl, index_name, rate)
+    {}
+
+    void setExpression (ValueInst* expr) { fExpr = expr; }
 
     virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 };
