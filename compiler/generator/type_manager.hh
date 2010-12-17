@@ -105,7 +105,7 @@ class StringTypeManager {
             fInvertTypeTable["void*"] = Typed::kVoid_ptr;
         }
 
-        virtual string generateType(Typed* type)
+        string generateType(Typed* type)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
             NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -133,7 +133,7 @@ class StringTypeManager {
             }
         }
 
-        virtual string generateType(Typed* type, const string& name)
+        string generateType(Typed* type, const string& name)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
             NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);

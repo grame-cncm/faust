@@ -102,6 +102,9 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kVoid_ptr_ptr] = PointerType::get(fTypeMap[Typed::kVoid_ptr], 0);
     }
 
+    virtual ~LLVMTypeHelper()
+    {}
+
     virtual LlvmValue genInt1(int number, int size = 1)
     {
         if (size > 1) {
