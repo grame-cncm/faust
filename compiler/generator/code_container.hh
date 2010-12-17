@@ -133,8 +133,8 @@ class CodeContainer {
 
         CodeLoop* getCurLoop() { return fCurLoop; }
 
-        void openLoop(string index_name, int size = 0);
-        void openLoop(Tree recsymbol, string index_name, int size = 0);
+        void openLoop(string index_name, int rate = 1);
+        void openLoop(Tree recsymbol, string index_name, int rate = 1);
         void closeLoop(Tree sig = 0);
 
         int	inputs() 	{ return fNumInputs; }

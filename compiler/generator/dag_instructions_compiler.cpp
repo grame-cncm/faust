@@ -39,6 +39,7 @@
 #include "simplify.hh"
 #include "xtended.hh"
 #include "prim2.hh"
+#include <sigrateinference.hh>
 
 extern int gMaxCopyDelay;
 extern bool gOpenCLSwitch;
@@ -283,15 +284,15 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
                 return InstructionsCompiler::generateCode(sig);
             } else {
                 // x must be defined
-                //fContainer->openLoop(x, getFreshID("i"));
-                fContainer->openLoop(x, "i");
+                int sigRate = getSigRate(x);
+                fContainer->openLoop(x, "i", sigRate);
                 ValueInst* code = InstructionsCompiler::generateCode(sig);
                 fContainer->closeLoop(sig);
                 return code;
             }
         } else {
-            //fContainer->openLoop(getFreshID("i"));
-            fContainer->openLoop("i");
+            int sigRate = getSigRate(sig);
+            fContainer->openLoop("i", sigRate);
             ValueInst* code = InstructionsCompiler::generateCode(sig);
             fContainer->closeLoop(sig);
             return code;

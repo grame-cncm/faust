@@ -117,21 +117,21 @@ bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
 
 /**
  * Open a non-recursive loop on top of the stack of open loops.
- * @param size the number of iterations of the loop
+ * @param rate rate of the loop
  */
-void CodeContainer::openLoop(string index_name, int size)
+void CodeContainer::openLoop(string index_name, int rate)
 {
-    fCurLoop = new CodeLoop(fCurLoop, index_name, size);
+    fCurLoop = new CodeLoop(fCurLoop, index_name, rate);
 }
 
 /**
  * Open a recursive loop on top of the stack of open loops.
  * @param recsymbol the recursive symbol defined in this loop
- * @param size the number of iterations of the loop
+ * @param rate rate of the loop
  */
-void CodeContainer::openLoop(Tree recsymbol, string index_name, int size)
+void CodeContainer::openLoop(Tree recsymbol, string index_name, int rate)
 {
-     fCurLoop = new CodeLoop(recsymbol, fCurLoop, index_name, size);
+     fCurLoop = new CodeLoop(recsymbol, fCurLoop, index_name, rate);
 }
 
 /**
