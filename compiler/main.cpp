@@ -653,14 +653,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         container = LLVMCodeContainer::createContainer(numInputs, numOutputs, dst);
 
-        if (gPrintXMLSwitch) comp->setDescription(new Description());
-        if (gPrintDocSwitch) comp->setDescription(new Description());
-
         if (gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
         } else {
             comp = new InstructionsCompiler(container);
         }
+
+        if (gPrintXMLSwitch) comp->setDescription(new Description());
+        if (gPrintDocSwitch) comp->setDescription(new Description());
 
         comp->compileMultiSignal(signals);
         dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
@@ -824,8 +824,8 @@ int main (int argc, char* argv[])
 
 	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
 
-	if (gDetailsSwitch) { 
-		cerr << "output signals are : " << endl; 
+	if (gDetailsSwitch) {
+		cerr << "output signals are : " << endl;
 		Tree ls =  lsignals;
 		while (! isNil(ls)) {
 			cerr << ppsig(hd(ls)) << endl;
