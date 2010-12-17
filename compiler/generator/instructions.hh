@@ -1036,6 +1036,10 @@ struct DeclareFunInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct DeclareTypeInst : public StatementInst
+{
+};
+
 // ======
 // Loops
 // ======
@@ -1502,8 +1506,10 @@ struct InstBuilder
 
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed, BlockInst* code)
         {return new DeclareFunInst(name, typed, code);}
-     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed)
+    static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed)
         {return new DeclareFunInst(name, typed);}
+
+    static DeclareTypeInst* genDeclareType(Typed * tp) {return NULL;}
 
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
