@@ -47,6 +47,7 @@
 #include "property.hh"
 #include "function_builder.hh"
 #include "code_loop.hh"
+#include "fir_to_fir.hh"
 
 class CodeContainer {
 
@@ -297,7 +298,6 @@ class CodeContainer {
         virtual void dump() {}
         virtual void dump(ostream* dst) {}
 
-        static bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
