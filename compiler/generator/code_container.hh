@@ -168,8 +168,8 @@ class CodeContainer {
         void generateLocalInputs(BlockInst* loop_code);
         void generateLocalOutputs(BlockInst* loop_code);
 
-        DeclareFunInst* generateGetInputs(const string& name);
-        DeclareFunInst* generateGetOutputs(const string& name);
+        DeclareFunInst* generateGetInputs(const string& name, bool isvirtual);
+        DeclareFunInst* generateGetOutputs(const string& name, bool isvirtual);
 
         DeclareFunInst* generateGetInputRate(const string& name);
         DeclareFunInst* generateGetOutputRate(const string& name);

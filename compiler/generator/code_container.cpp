@@ -326,25 +326,25 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code)
     }
 }
 
-DeclareFunInst* CodeContainer::generateGetInputs(const string& name)
+DeclareFunInst* CodeContainer::generateGetInputs(const string& name, bool isvirtual)
 {
     list<NamedTyped*> args;
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(fNumInputs)));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputs(const string& name)
+DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, bool isvirtual)
 {
     list<NamedTyped*> args;
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(fNumOutputs)));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
