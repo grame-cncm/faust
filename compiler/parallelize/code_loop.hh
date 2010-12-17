@@ -125,6 +125,8 @@ class CodeLoop {
             fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}
 
+        virtual ~CodeLoop(void) {}
+
         StatementInst* pushComputePreDSPMethod(StatementInst* inst) { fPreInst->pushBackInst(inst); return inst; }
         StatementInst* pushComputeDSPMethod(StatementInst* inst) { fComputeInst->pushBackInst(inst); return inst; }
         StatementInst* pushComputePostDSPMethod(StatementInst* inst) { fPostInst->pushBackInst(inst); return inst;}
@@ -143,7 +145,7 @@ class CodeLoop {
 
         ForLoopInst* generateScalarLoop(const string& counter);
 
-        void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
+        virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
         void generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool omp, int size);
 
         void transform(DispatchVisitor* visitor)
@@ -159,6 +161,22 @@ class CodeLoop {
 
         static void sortGraph(CodeLoop* root, lclgraph& V);
 
+};
+
+struct VectorizeCodeLoop:
+    CodeLoop
+{
+private:
+    ValueInst * fExpr;
+
+public:
+    VectorizeCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
+        CodeLoop(encl, index_name, rate), fExpr(NULL)
+    {}
+
+    void setExpression (ValueInst* expr) { fExpr = expr;}
+
+    virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 };
 
 #endif

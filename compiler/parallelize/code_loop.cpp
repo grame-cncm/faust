@@ -187,7 +187,7 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
     }
 }
 
-void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
+void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* vectorSize, bool omp)
 {
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
@@ -201,9 +201,9 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
+        ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(vectorSize->load(),
                                                                                                            InstBuilder::genIntNumInst(fRate)))
-                                         : InstBuilder::genLessThan(loop_decl->load(), count->load());
+                                         : InstBuilder::genLessThan(loop_decl->load(), vectorSize->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
@@ -354,3 +354,6 @@ void CodeLoop::sortGraph(CodeLoop* root, lclgraph& V)
         }
     }
 }
+
+void VectorizeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
+{}

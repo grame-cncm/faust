@@ -55,6 +55,10 @@ private:
     virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
+
+    // multirate
+    ValueInst* generateVectorize(Tree sig, Tree exp, int n);
+
 };
 
 

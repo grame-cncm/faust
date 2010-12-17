@@ -274,7 +274,12 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
     l = fContainer->getCurLoop();
     assert(l);
 
-    if (needSeparateLoop(sig)) {
+    int rate = getSigRate(sig);
+
+    Tree exp, n;
+    if (isSigVectorize(sig, exp, n)) {
+        return generateVectorize(sig, exp, tree2int(n));
+    } else if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
             // projection of a recursive group x
@@ -516,3 +521,28 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
     }
 }
 
+ValueInst* DAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
+{
+    Type expType = getSigType(exp);
+    int expRate = getSigRate(exp);
+    Typed * firType = NULL; //genVectorType(expType, n, expRate);
+    DeclareTypeInst * firVecType = InstBuilder::genDeclareType(firType);
+
+    pushGlobalDeclare(firVecType);
+    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
+    pushDeclare(vecBuffer);
+
+    VectorizeCodeLoop * vLoop = new VectorizeCodeLoop(fContainer->fCurLoop, "j", expRate/n);
+
+    fContainer->fCurLoop = vLoop;
+
+    fContainer->openLoop("i", n);
+    ValueInst * body = generateCode(exp);
+    fContainer->closeLoop();
+
+    vLoop->setExpression(body);
+
+    fContainer->closeLoop(); // close vectorize
+
+    return vecBuffer->load(); // return handle
+}
