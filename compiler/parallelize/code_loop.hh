@@ -92,14 +92,6 @@ class CodeLoop {
         set<CodeLoop*> fBackwardLoopDependencies;   ///< Loops that must be computed before this one
         set<CodeLoop*> fForwardLoopDependencies;    ///< Loops that will be computed after this one
 
-        void pushLoop(BlockInst* block, ForLoopInst* loop)
-        {
-            list<StatementInst*>::const_iterator it;
-            for (it = block->fCode.begin(); it != block->fCode.end(); it++) {
-                loop->pushBackInst(*it);
-            }
-        }
-
         void pushBlock(BlockInst* block, BlockInst* loop)
         {
             list<StatementInst*>::const_iterator it;

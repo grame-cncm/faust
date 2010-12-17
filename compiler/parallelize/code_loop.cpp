@@ -44,11 +44,14 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
-    pushLoop(fPreInst, loop);
-    pushLoop(fComputeInst, loop);
-    pushLoop(fPostInst, loop);
+    BlockInst* block = InstBuilder::genBlockInst();
+    pushBlock(fPreInst, block);
+    pushBlock(fComputeInst, block);
+    pushBlock(fPostInst, block);
     BasicCloneVisitor cloner;
+
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block);
+
     return dynamic_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
@@ -161,14 +164,16 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
         ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), size));
 
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
+        VectorCloneVisitor vector_cloner(size);
+        BlockInst* cloned = dynamic_cast<BlockInst*>(fComputeInst->clone(&vector_cloner));
+
+        BlockInst* block1 = InstBuilder::genBlockInst();
+        pushBlock(cloned, block1);
+
+        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1);
 
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
         block->pushBackInst(loop);
-
-        VectorCloneVisitor vector_cloner(size);
-        BlockInst* cloned = dynamic_cast<BlockInst*>(fComputeInst->clone(&vector_cloner));
-        pushLoop(cloned, loop);
     }
 
     // Generate code after the loop
@@ -195,12 +200,15 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp
         ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
         block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
         if (omp) {
             block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
         }
-        pushLoop(fComputeInst, loop);
+
+        BlockInst* block1 = InstBuilder::genBlockInst();
+        pushBlock(fComputeInst, block1);
+
+        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1);
         block->pushBackInst(loop);
     }
 
