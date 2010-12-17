@@ -54,6 +54,7 @@ struct Printable;
 struct NullInst;
 struct DeclareVarInst;
 struct DeclareFunInst;
+struct DeclareTypeInst;
 struct LoadVarInst;
 struct LoadVarAddressInst;
 struct StoreVarInst;
@@ -119,6 +120,7 @@ class InstVisitor {
         // Declarations
         virtual void visit(DeclareVarInst* inst) {}
         virtual void visit(DeclareFunInst* inst) {}
+        virtual void visit(DeclareTypeInst* inst) {}
 
         // Memory
         virtual void visit(LoadVarInst* inst) {}
@@ -182,6 +184,7 @@ class CloneVisitor {
         // Declarations
         virtual StatementInst* visit(DeclareVarInst* inst) = 0;
         virtual StatementInst* visit(DeclareFunInst* inst) = 0;
+        virtual StatementInst* visit(DeclareTypeInst* inst) = 0;
 
         // Memory
         virtual ValueInst* visit(LoadVarInst* inst) = 0;
@@ -1038,6 +1041,16 @@ struct DeclareFunInst : public StatementInst
 
 struct DeclareTypeInst : public StatementInst
 {
+   string fName;
+   Typed* fType;
+
+   DeclareTypeInst(const string& name, Typed* type)
+        :fName(name), fType(type)
+    {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 // ======
@@ -1110,6 +1123,10 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(DeclareFunInst* inst)
         {
             return new DeclareFunInst(inst->fName, dynamic_cast<FunTyped*>(inst->fType->clone(this)), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
+        }
+        virtual StatementInst* visit(DeclareTypeInst* inst)
+        {
+            return new DeclareTypeInst(inst->fName, inst->fType->clone(this));
         }
 
         // Memory
@@ -1223,11 +1240,6 @@ struct DispatchVisitor : public InstVisitor {
     {
         if (inst->fValue)
             inst->fValue->accept(this);
-    }
-
-    virtual void visit(DeclareFunInst* inst)
-    {
-        inst->fCode->accept(this);
     }
 
     virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
@@ -1508,6 +1520,9 @@ struct InstBuilder
         {return new DeclareFunInst(name, typed, code);}
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed)
         {return new DeclareFunInst(name, typed);}
+
+    static DeclareTypeInst* genDeclareTypeInst(const string& name, Typed* type)
+        {return new DeclareTypeInst(name, type);}
 
     static DeclareTypeInst* genDeclareType(Typed * tp) {return NULL;}
 
