@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _DAG_INSTRUCTION_COMPILER_H
-#define _DAG_INSTRUCTION_COMPILER_H
+#ifndef _MR_DAG_INSTRUCTION_COMPILER_H
+#define _MR_DAG_INSTRUCTION_COMPILER_H
 
 /**********************************************************************
 			- code_gen.h : generic code generator (projet FAUST) -
@@ -31,31 +31,24 @@
 
 ***********************************************************************/
 
-#include "instructions_compiler.hh"
+#include "dag_instructions_compiler.hh"
 
-class DAGInstructionsCompiler : public InstructionsCompiler {
+class MultiRateDAGInstructionsCompiler : public DAGInstructionsCompiler {
 
 public:
-    DAGInstructionsCompiler(CodeContainer* container);
+    MultiRateDAGInstructionsCompiler(CodeContainer* container):
+        DAGInstructionsCompiler(container)
+    {}
 
 private:
     // private helper functions
     bool needSeparateLoop(Tree sig);
 
-    void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
-    void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
-
    // reimplemented code generation methods
-    virtual ValueInst* CS(Tree sig);
-    virtual void compileMultiSignal(Tree sig);
+    ValueInst* generateCode(Tree sig);
 
-    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateInput(Tree sig, int idx);
-    virtual ValueInst* generateCode(Tree sig);
-    virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);    // multirate
+    ValueInst* generateVectorize(Tree sig, Tree exp, int n);
+    ValueInst* generateSerialize(Tree sig, Tree exp);
 
 };
 

@@ -39,7 +39,7 @@
 #include "simplify.hh"
 #include "xtended.hh"
 #include "prim2.hh"
-#include <sigrateinference.hh>
+#include "sigrateinference.hh"
 
 extern int gMaxCopyDelay;
 extern bool gOpenCLSwitch;
@@ -269,19 +269,10 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
 {
     int         i;
     Tree        x;
-    CodeLoop*   l;
-
-    l = fContainer->getCurLoop();
+    CodeLoop*   l = fContainer->getCurLoop();
     assert(l);
 
-    int rate = getSigRate(sig);
-
-    Tree exp, n;
-    if (isSigVectorize(sig, exp, n)) {
-        return generateVectorize(sig, exp, tree2int(n));
-    } else if (isSigSerialize(sig, exp)) {
-        return generateSerialize(sig, exp);
-    } else if (needSeparateLoop(sig)) {
+    if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
             // projection of a recursive group x
@@ -309,6 +300,7 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
     }
 }
 
+
 /**
  * Test if a signal need to be compiled in a separate loop.
  * @param sig the signal expression to test.
@@ -326,7 +318,7 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 
     if (o->getMaxDelay() > 0) {
         b = true;
-    } else if (verySimple(sig) || t->variability()<kSamp) {
+    } else if (verySimple(sig) || t->variability() < kSamp) {
         b = false;      // non sample computation never require a loop
     } else if (isSigFixDelay(sig, x, y)) {
         b = false;
@@ -521,60 +513,4 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         // Set desired variable access
         var_access = Address::kStruct;
     }
-}
-
-ValueInst* DAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
-{
-    Type expType = getSigType(exp);
-    int expRate = getSigRate(exp);
-    Typed * firType = NULL; //genVectorType(expType, n, expRate);
-    DeclareTypeInst * firVecType = InstBuilder::genDeclareType(firType);
-
-    pushGlobalDeclare(firVecType);
-    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
-    pushDeclare(vecBuffer);
-
-    VectorizeCodeLoop * vLoop = new VectorizeCodeLoop(fContainer->fCurLoop, "j", expRate/n);
-
-    fContainer->fCurLoop = vLoop;
-
-    fContainer->openLoop("i", n);
-    ValueInst * body = generateCode(exp);
-    fContainer->closeLoop();
-
-    vLoop->setExpression(body);
-
-    fContainer->closeLoop(); // close vectorize
-
-    return vecBuffer->load(); // return handle
-}
-
-ValueInst* DAGInstructionsCompiler::generateSerialize(Tree sig, Tree exp)
-{
-    // TODO
-    /*
-    Type expType = getSigType(exp);
-    int expRate = getSigRate(exp);
-    Typed * firType = NULL; //genVectorType(expType, n, expRate);
-    DeclareTypeInst * firVecType = InstBuilder::genDeclareType(firType);
-
-    pushGlobalDeclare(firVecType);
-    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
-    pushDeclare(vecBuffer);
-
-    SerializeCodeLoop * vLoop = new SerializeCodeLoop(fContainer->fCurLoop, "j", expRate/n);
-
-    fContainer->fCurLoop = vLoop;
-
-    fContainer->openLoop("i", n);
-    ValueInst * body = generateCode(exp);
-    fContainer->closeLoop();
-
-    vLoop->setExpression(body);
-
-    fContainer->closeLoop(); // close vectorize
-
-    return vecBuffer->load(); // return handle
-    */
-    return NULL;
 }
