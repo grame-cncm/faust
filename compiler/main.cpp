@@ -63,6 +63,7 @@
 
 #include "instructions_compiler.hh"
 #include "dag_instructions_compiler.hh"
+#include "mr_dag_instructions_compiler.hh"
 #include "c_code_container.hh"
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
@@ -683,7 +684,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = FirCodeContainer::createContainer(numInputs, numOutputs);
 
             if (gVectorSwitch) {
-                comp = new DAGInstructionsCompiler(container);
+                //comp = new DAGInstructionsCompiler(container);
+                comp = new MultiRateDAGInstructionsCompiler(container);
             } else {
                 comp = new InstructionsCompiler(container);
             }

@@ -47,6 +47,58 @@ extern bool gCUDASwitch;
 
 // Code generation
 
+void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
+{
+	L = prepare(L);		// Optimize, share and annotate expression
+
+    // "input" and "inputs" used as a name convention
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+
+    for (int index = 0; index < fContainer->inputs(); index++) {
+        string name1 = subst("fInput$0_ptr", T(index));
+        string name2 = subst("fInput$0", T(index));
+        pushDeclare(InstBuilder::genDecStructVar(name1, type));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
+            InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
+        pushDeclare(InstBuilder::genDecStructVar(name2, type));
+    }
+
+    // "output" and "outputs" used as a name convention
+    for (int index = 0; index < fContainer->outputs(); index++) {
+        string name1 = subst("fOutput$0_ptr", T(index));
+        string name2 = subst("fOutput$0", T(index));
+        pushDeclare(InstBuilder::genDecStructVar(name1, type));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
+            InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
+        pushDeclare(InstBuilder::genDecStructVar(name2, type));
+    }
+
+    for (int index = 0; isList(L); L = tl(L), index++) {
+        Tree sig = hd(L);
+        string name = subst("fOutput$0", T(index));
+
+        //fContainer->openLoop(getFreshID("i"));
+        fContainer->openLoop("i");
+
+        // Cast to external float
+        /*
+        TODO
+        ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
+        */
+
+        fContainer->closeLoop();
+    }
+
+	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+	if (fDescription) {
+		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+	}
+
+	fContainer->processFIR();
+}
+
 ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
 {
     int         i;
@@ -88,7 +140,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
     }
 }
 
-
 /**
  * Test if a signal need to be compiled in a separate loop.
  * @param sig the signal expression to test.
@@ -124,6 +175,19 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
         b = false;
     }
     return b;
+}
+
+ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
+{
+    // "fInput" use as a name convention
+    // TODO
+    /*
+    string name = subst("fInput$0", T(idx));
+    ValueInst* res = InstBuilder::genLoadArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex());
+    // Cast to internal float
+    res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+    return generateCacheCode(sig, res);
+    */
 }
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)

@@ -38,7 +38,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 public:
     DAGInstructionsCompiler(CodeContainer* container);
 
-private:
+protected:
     // private helper functions
     bool needSeparateLoop(Tree sig);
 

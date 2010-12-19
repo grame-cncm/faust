@@ -45,10 +45,12 @@ private:
     bool needSeparateLoop(Tree sig);
 
    // reimplemented code generation methods
-    ValueInst* generateCode(Tree sig);
+    virtual ValueInst* generateCode(Tree sig);
+    virtual ValueInst* generateInput(Tree sig, int idx);
+    virtual void compileMultiSignal(Tree L);
 
-    ValueInst* generateVectorize(Tree sig, Tree exp, int n);
-    ValueInst* generateSerialize(Tree sig, Tree exp);
+    virtual ValueInst* generateVectorize(Tree sig, Tree exp, int n);
+    virtual ValueInst* generateSerialize(Tree sig, Tree exp);
 
 };
 
