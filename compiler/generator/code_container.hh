@@ -87,7 +87,6 @@ class CodeContainer {
 
         // DAG of loops
         CodeLoop* fCurLoop;
-        friend class DAGInstructionsCompiler;
 
         property<CodeLoop*> fLoopProperty;     ///< loops used to compute some signals
 
@@ -136,6 +135,7 @@ class CodeContainer {
 
         void openLoop(string index_name, int rate = 1);
         void openLoop(Tree recsymbol, string index_name, int rate = 1);
+        void openLoop(CodeLoop * loop);
         void closeLoop(Tree sig = 0);
 
         int	inputs() 	{ return fNumInputs; }

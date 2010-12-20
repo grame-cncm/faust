@@ -194,6 +194,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 {
     Type expType = getSigType(exp);
     int expRate = getSigRate(exp);
+    int sigRate = getSigRate(sig);
+    assert(sigRate * n == expRate);
     Typed * firType = NULL; //genVectorType(expType, n, expRate);
     DeclareTypeInst * typeInst = InstBuilder::genDeclareTypeInst(firType);
 
@@ -201,9 +203,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
     pushDeclare(vecBuffer);
 
-    VectorizeCodeLoop * vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", expRate/n);
-
-    //fContainer->fCurLoop = vLoop;
+    VectorizeCodeLoop * vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    fContainer->openLoop(vLoop);
 
     fContainer->openLoop("i", n);
     ValueInst * body = generateCode(exp);
@@ -218,20 +219,19 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree exp)
 {
-    // TODO
-    /*
     Type expType = getSigType(exp);
     int expRate = getSigRate(exp);
+    int sigRate = getSigRate(sig);
+    int n = sigRate / expRate;
     Typed * firType = NULL; //genVectorType(expType, n, expRate);
     DeclareTypeInst * typeInst = InstBuilder::genDeclareTypeInst(firType);
 
-    pushGlobalDeclare(firVecType);
+    pushGlobalDeclare(typeInst);
     DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
     pushDeclare(vecBuffer);
 
-    SerializeCodeLoop * vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", expRate/n);
-
-    fContainer->fCurLoop = vLoop;
+    SerializeCodeLoop * vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    fContainer->openLoop(vLoop);
 
     fContainer->openLoop("i", n);
     ValueInst * body = generateCode(exp);
@@ -242,6 +242,4 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     fContainer->closeLoop(); // close vectorize
 
     return vecBuffer->load(); // return handle
-    */
-    return NULL;
 }
