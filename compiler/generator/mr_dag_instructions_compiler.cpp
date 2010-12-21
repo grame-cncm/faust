@@ -78,14 +78,15 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         string name = subst("fOutput$0", T(index));
 
         //fContainer->openLoop(getFreshID("i"));
-        fContainer->openLoop("i");
+        fContainer->openLoop(new MultiRateCodeLoop("i"));
 
         // Cast to external float
         /*
-        TODO
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
         */
+
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, CS(sig)));
 
         fContainer->closeLoop();
     }
@@ -118,7 +119,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
             } else {
                 // x must be defined
                 int sigRate = getSigRate(x);
-                fContainer->openLoop(x, "i", sigRate);
+                fContainer->openLoop(new MultiRateCodeLoop(x, "i", sigRate));
                 ValueInst* code = InstructionsCompiler::generateCode(sig);
                 fContainer->closeLoop(sig);
                 return code;
@@ -130,7 +131,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
             return generateSerialize(sig, exp);
         } else {
             int sigRate = getSigRate(sig);
-            fContainer->openLoop("i", sigRate);
+            fContainer->openLoop(new MultiRateCodeLoop(x, "i", sigRate));
             ValueInst* code = InstructionsCompiler::generateCode(sig);
             fContainer->closeLoop(sig);
             return code;
@@ -180,14 +181,12 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
 ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
 {
     // "fInput" use as a name convention
-    // TODO
-    /*
     string name = subst("fInput$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex());
+    ValueInst* res = InstBuilder::genLoadArrayStructVar(name);
     // Cast to internal float
-    res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+    //res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
-    */
+
 }
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
@@ -204,7 +203,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     //fContainer->fCurLoop = vLoop;
 
-    fContainer->openLoop("i", n);
+    fContainer->openLoop(new MultiRateCodeLoop("i", n));
     ValueInst * body = generateCode(exp);
     fContainer->closeLoop();
 

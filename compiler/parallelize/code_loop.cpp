@@ -355,6 +355,13 @@ void CodeLoop::sortGraph(CodeLoop* root, lclgraph& V)
     }
 }
 
+void MultiRateCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
+{
+     pushBlock(fPreInst, block);
+     pushBlock(fComputeInst, block);
+     pushBlock(fPostInst, block);
+}
+
 void VectorizeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {}
 

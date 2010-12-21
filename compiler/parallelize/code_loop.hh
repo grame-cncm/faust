@@ -73,11 +73,11 @@ class CodeLoop {
 
     friend class CodeContainer;
 
-    private:
+    protected:
 
         bool fIsRecursive;                  ///< recursive loops can't be SIMDed
         const Tree fRecSymbol;              ///< recursive loops define a recursive symbol
-        CodeLoop* const fEnclosingLoop;     ///< Loop from which this one originated
+        CodeLoop* fEnclosingLoop;     ///< Loop from which this one originated
         int fRate;                          ///< rate of the loop
         int fOrder;                         ///< used during topological sort
         int fIndex;
@@ -110,6 +110,9 @@ class CodeLoop {
         static void setOrder(CodeLoop* l, int order, lclgraph& V);
         static void setLevel(int order, const lclset& T1, lclset& T2, lclgraph& V);
         static void resetOrder(CodeLoop* l);
+
+        void setEnclosingLoop(CodeLoop* loop) { fEnclosingLoop = loop; }
+        CodeLoop* getEnclosingLoop() { return fEnclosingLoop; }
 
     public:
 
@@ -172,13 +175,23 @@ protected:
     ValueInst * fExpr;
 
 public:
+
     MultiRateCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
         CodeLoop(encl, index_name, rate), fExpr(NULL)
     {}
 
+
+    MultiRateCodeLoop(string index_name, int rate = 1):
+        CodeLoop(NULL, index_name, rate), fExpr(NULL)
+    {}
+
+    MultiRateCodeLoop(Tree recsymbol, string index_name, int rate = 1):
+        CodeLoop(recsymbol, NULL, index_name, rate), fExpr(NULL)
+    {}
+
     void setExpression (ValueInst* expr) { fExpr = expr;}
 
-    virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp) {}
+    virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 };
 
 struct VectorizeCodeLoop:

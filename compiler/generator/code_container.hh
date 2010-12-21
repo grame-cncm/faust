@@ -136,6 +136,7 @@ class CodeContainer {
 
         void openLoop(string index_name, int rate = 1);
         void openLoop(Tree recsymbol, string index_name, int rate = 1);
+        void openLoop(CodeLoop* loop);
         void closeLoop(Tree sig = 0);
 
         int	inputs() 	{ return fNumInputs; }
