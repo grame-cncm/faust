@@ -45,6 +45,8 @@ using namespace std;
 #include <stdio.h>
 
 #include "binop.hh"
+#include "property.hh"
+#include "Text.hh"
 
 // ============================
 // Generic instruction visitor
@@ -1475,6 +1477,19 @@ class CombinerVisitor : public DispatchVisitor
 
 struct InstBuilder
 {
+
+    static map<string, int> fIDCounters;
+
+    static string getFreshID(const string& prefix)
+    {
+        if (fIDCounters.find(prefix) == fIDCounters.end()) {
+            fIDCounters[prefix] = 0;
+        }
+        int n = fIDCounters[prefix];
+        fIDCounters[prefix] = n+1;
+        return subst("$0$1", prefix, T(n));
+    }
+
     // User interface
     static AddMetaDeclareInst* genAddMetaDeclareInst(const string& zone, const string& key, const string& value)
         { return new AddMetaDeclareInst(zone, key, value); }
@@ -1878,7 +1893,11 @@ struct InstBuilder
                     const string& arg3, Typed::VarType arg3_ty,
                     const string& arg4, Typed::VarType arg4_ty);
 
+    // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation unicity.
+    static DeclareTypeInst* genType(AudioType* type);
+
 };
+
 
 #endif
 

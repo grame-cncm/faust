@@ -194,11 +194,10 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 {
     Type expType = getSigType(exp);
     int expRate = getSigRate(exp);
-    Typed * firType = NULL; //genVectorType(expType, n, expRate);
-    DeclareTypeInst * typeInst = InstBuilder::genDeclareTypeInst(firType);
+    DeclareTypeInst * typeInst = InstBuilder::genType(expType);
 
     pushGlobalDeclare(typeInst);
-    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
+    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", typeInst->fType);
     pushDeclare(vecBuffer);
 
     VectorizeCodeLoop * vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", expRate/n);

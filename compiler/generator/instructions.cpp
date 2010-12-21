@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "instructions.hh"
+#include "sigtype.hh"
 
 bool BlockInst::hasReturn()
 {
@@ -97,4 +98,76 @@ DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res
     args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     return InstBuilder::genDeclareFunInst(name, fun_type);
+}
+
+
+
+//--------------------------
+// Coding Types as trees
+//--------------------------
+
+Sym TYPEINT = symbol ("TypeInt");
+Tree  typeInt()                    { return tree(TYPEINT);         }
+bool  isTypeInt(Tree t)            { return isTree(t, TYPEINT);     }
+
+
+Sym TYPEFLOAT = symbol ("TypeFloat");
+Tree  typeFloat()                { return tree(TYPEFLOAT);         }
+bool  isTypeFloat(Tree t)        { return isTree(t, TYPEFLOAT);     }
+
+
+Sym TYPEARRAY = symbol ("TypeArray");
+Tree  typeArray(int n, Tree t)                    { return tree(TYPEARRAY, tree(n), t);         }
+bool  isTypeArray(Tree t, int* n, Tree& u)        { Tree x; return isTree(t, TYPEARRAY, x, u) && isInt(x->node(), n);     }
+
+static Tree signalTypeToSharedType(AudioType* type)
+{
+    if (isSimpleType(type)) {
+        if (type->nature() == kInt) {
+            return typeInt();
+        } else if (type->nature() == kReal) {
+            return typeFloat();
+        } else {
+            assert(false);
+        }
+    } else if (FaustVectorType* vec = isVectorType(type)) {
+        return typeArray(vec->size(), signalTypeToSharedType(vec->dereferenceType()));
+    } else {
+        assert(false);
+    }
+}
+
+static Typed* sharedTypeToFirType(Tree t)
+{
+    int size;
+    Tree subtree;
+
+    if (isTypeInt(t)) {
+        return InstBuilder::genBasicTyped(Typed::kInt);
+    } else if (isTypeFloat(t)) {
+        return InstBuilder::genBasicTyped(Typed::kFloat);
+    } else if (isTypeArray(t, &size, subtree)) {
+        return InstBuilder::genArrayTyped(sharedTypeToFirType(subtree), size);
+    } else {
+        assert(false);
+        return NULL;
+    }
+}
+
+static property<DeclareTypeInst* > gFirTypeProperty;
+
+map<string, int> InstBuilder::fIDCounters;
+
+DeclareTypeInst* InstBuilder::genType(AudioType* type)
+{
+    Tree shared_type = signalTypeToSharedType(type);
+    DeclareTypeInst* dec_type;
+
+    if (gFirTypeProperty.get(shared_type, dec_type)) {
+        return dec_type;
+    } else {
+        DeclareTypeInst* dec_type = InstBuilder::genDeclareTypeInst(getFreshID("vecType"), sharedTypeToFirType(shared_type));
+        gFirTypeProperty.set(shared_type, dec_type);
+        return dec_type;
+    }
 }
