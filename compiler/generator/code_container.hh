@@ -87,7 +87,6 @@ class CodeContainer {
 
         // DAG of loops
         CodeLoop* fCurLoop;
-        friend class DAGInstructionsCompiler;
 
         property<CodeLoop*> fLoopProperty;     ///< loops used to compute some signals
 

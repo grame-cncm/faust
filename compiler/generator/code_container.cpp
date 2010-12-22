@@ -134,6 +134,9 @@ void CodeContainer::openLoop(Tree recsymbol, string index_name, int rate)
      fCurLoop = new CodeLoop(recsymbol, fCurLoop, index_name, rate);
 }
 
+/**
+ * Open a custom loop
+ */
 void CodeContainer::openLoop(CodeLoop* loop)
 {
     loop->setEnclosingLoop(fCurLoop);

@@ -396,22 +396,10 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph(sig, label, x, y, CS(z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph(sig, label, x, y, CS(z)); }
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
-    else if (isSigVectorize(sig, x, y)) {
-        printf("vectorize not implemented\n");
-        exit (0);
-    }
-    else if (isSigSerialize(sig, x)) {
-        printf("serialize not implemented\n");
-        exit (0);
-    }
-    else if (isSigConcat(sig, x, y)) {
-        printf("concatenation not implemented\n");
-        exit (0);
-    }
-    else if (isSigVectorAt(sig, x, y)) {
-        printf("vector at not implemented\n");
-        exit (0);
-    }
+    else if ( isSigVectorize(sig, x, y) )           { return generateVectorize(sig, x, tree2int(y)); }
+    else if ( isSigSerialize(sig, x) )              { return generateSerialize(sig, x); }
+    else if ( isSigConcat(sig, x, y) )              { return generateConcat(sig, x, y); }
+    else if ( isSigVectorAt(sig, x, y) )            { return generateVectorAt(sig, x, y); }
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
 		print(sig);
@@ -1289,6 +1277,31 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
 
     return exp;
 }
+
+ValueInst* InstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
+{
+    printf("vectorize not implemented\n");
+    exit (0);
+}
+
+ValueInst* InstructionsCompiler::generateSerialize(Tree sig, Tree exp)
+{
+    printf("serialize not implemented\n");
+    exit (0);
+}
+
+ValueInst* InstructionsCompiler::generateVectorAt(Tree sig, Tree exp, Tree index)
+{
+    printf("vector at not implemented\n");
+    exit (0);
+}
+
+ValueInst* InstructionsCompiler::generateConcat(Tree sig, Tree exp1, Tree exp2)
+{
+    printf("concatenation not implemented\n");
+    exit (0);
+}
+
 
 void InstructionsCompiler::ensureIotaCode()
 {
