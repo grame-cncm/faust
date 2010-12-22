@@ -27,6 +27,18 @@ void dump(RateMap const & rm)
         cout << *(it->first) << '\t' << it->second << endl;
 }
 
+bool orthogonal(RateMap const & lhs, RateMap const & rhs)
+{
+    typedef RateMap::const_iterator ci;
+    for (ci it = lhs.begin(); it != lhs.end(); ++it) {
+        Tree key = it->first;
+        ci key_in_rhs = rhs.find(key);
+        if (key_in_rhs != rhs.end())
+            return false;
+    }
+    return true;
+}
+
 bool compatible(RateMap const & lhs, RateMap const & rhs)
 {
     typedef RateMap::const_iterator ci;
@@ -40,6 +52,43 @@ bool compatible(RateMap const & lhs, RateMap const & rhs)
     }
     return true;
 }
+
+/** compute the factor to scale lhs to rhs. returns 0 if arguments are not parallel */
+rational computeScaleFactor(RateMap const & lhs, RateMap const & rhs)
+{
+    rational factor = 0;
+
+    /* two rate maps can be unified, if their elements just differ by a constant factor */
+    typedef RateMap::const_iterator ci;
+    for (ci it = lhs.begin(); it != lhs.end(); ++it) {
+        Tree key = it->first;
+        ci key_in_rhs = rhs.find(key);
+        if (key_in_rhs != rhs.end()) {
+            rational ration = it->second / key_in_rhs->second;
+            if (factor == 0)
+                factor = ration;
+            else if (ration != factor)
+                return 0;
+        }
+    }
+    return factor;
+}
+
+bool parallel(RateMap const & lhs, RateMap const & rhs)
+{
+    return computeScaleFactor(lhs, rhs) != 0;
+}
+
+std::set<Tree> findCommonBases(RateMap const & lhs, RateMap const & rhs)
+{
+    std::set<Tree> ret;
+    for (RateMap::const_iterator it = lhs.begin(); it != lhs.end(); ++it) {
+        if (rhs.find(it->first) != rhs.end())
+            ret.insert(it->first);
+    }
+    return ret;
+}
+
 
 static RateMap doMerge(RateMap const & lhs, RateMap const & rhs)
 {
@@ -65,24 +114,14 @@ RateMap merge(RateMap const & lhs, RateMap const & rhs)
 
 RateMap unify(RateMap const & lhs, RateMap const & rhs)
 {
-    rational factor = 0;
+    rational factor = computeScaleFactor(lhs, rhs);
+    if (factor)
+        // ratemaps are parallel
+        return doMerge(lhs, rhs * factor);
 
-    /* two rate maps can be unified, if their elements just differ by a constant factor */
-    typedef RateMap::const_iterator ci;
-    for (ci it = lhs.begin(); it != lhs.end(); ++it) {
-        Tree key = it->first;
-        ci key_in_rhs = rhs.find(key);
-        if (key_in_rhs != rhs.end()) {
-            rational ration = it->second / key_in_rhs->second;
-            if (factor == 0)
-                factor = ration;
-            else if (ration != factor)
-                throw runtime_error("conflict for unifying rate maps");
-        }
-    }
+    if (orthogonal(lhs, rhs))
+        return doMerge(lhs, rhs);
 
-    RateMap scaled_rhs = factor ? rhs * factor : rhs;
-    RateMap ret = doMerge(scaled_rhs, lhs);
-    return ret;
+    throw runtime_error("conflict for unifying rate maps");
 }
 
