@@ -423,6 +423,7 @@ static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, int arc_offse
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
 	cairo_line_to(cr,lengh_x,lengh_y);
 	cairo_stroke(cr);
+	cairo_pattern_destroy (pat);
 	cairo_destroy(cr);
 }
 
