@@ -171,6 +171,7 @@ class UI
         virtual void addCheckButton(const char* label, float* zone) = 0;
         virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
         virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+        virtual void addKnob(const char* label, float* zone, float init, float min, float max, float step) = 0;
         virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
         
         // -- passive widgets
@@ -319,11 +320,21 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 #define kBoxMode 1
 #define kTabMode 2
 
+//------------ calculate needed precision
+static int precision(double n)
+{
+	if (n < 0.009999) return 3;
+	else if (n < 0.099999) return 2;
+	else if (n < 0.999999) return 1;
+	else return 0;
+}
+
+namespace gtk_knob
+{
 
 class GtkKnob
 {
 private:
-
 	double start_x, start_y, max_value;
 public:
 	GtkRange parent;
@@ -333,7 +344,6 @@ public:
 	GtkWidget *gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment);
 	
 };
-
 
 #define GTK_TYPE_KNOB          (gtk_knob_get_type())
 #define GTK_KNOB(obj)          (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_KNOB, GtkKnob))
@@ -370,60 +380,88 @@ GType gtk_knob_get_type ();
 
 const double scale_zero = 20 * (M_PI/180); // defines "dead zone" for knobs
 
-//------------ calculate needed precision
-static int precision(double n)
+static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, GdkEventExpose *event, int arc_offset)
 {
-	if (n < 0.009999) return 3;
-	else if (n < 0.099999) return 2;
-	else if (n < 0.999999) return 1;
-	else return 0;
-}
-
-
-static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, int arc_offset)
-{
+	/** check resize **/
+	int grow;
+	if(widget->allocation.width > widget->allocation.height) {
+		grow = widget->allocation.height;
+	} else {
+		grow =  widget->allocation.width;
+	}
+	knob_x = grow-4;
+	knob_y = grow-4;
+	/** get values for the knob **/
 	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
-	int knobx = widget->allocation.x + (widget->allocation.width - knob_x) * 0.5;
-	int knoby = widget->allocation.y + (widget->allocation.height - knob_y) * 0.5;
-	int knobx1 = widget->allocation.x + (widget->allocation.width) * 0.5;
-	int knoby1 = widget->allocation.y + (widget->allocation.height) * 0.5;
+	int knobx = (widget->allocation.x+2 + (widget->allocation.width-4 - knob_x) * 0.5);
+	int knoby = (widget->allocation.y+2 + (widget->allocation.height-4 - knob_y) * 0.5);
+	int knobx1 = (widget->allocation.x+2 + (widget->allocation.width-4)* 0.5);
+	int knoby1 = (widget->allocation.y+2 + (widget->allocation.height-4) * 0.5);
 	double knobstate = (adj->value - adj->lower) / (adj->upper - adj->lower);
 	double angle = scale_zero + knobstate * 2 * (M_PI - scale_zero);
-	const double pointer_off = 5;
+	double knobstate1 = (0. - adj->lower) / (adj->upper - adj->lower);
+	double pointer_off = knob_x/6;
 	double radius = min(knob_x-pointer_off, knob_y-pointer_off) / 2;
 	double lengh_x = (knobx+radius+pointer_off/2) - radius * sin(angle);
 	double lengh_y = (knoby+radius+pointer_off/2) + radius * cos(angle);
-	double radius1 = min(knob_x, knob_y) / 2;
+	double radius1 = min(knob_x, knob_y) / 2 ;
 
+	/** get widget forground color convert to cairo **/
+	GtkStyle *style = gtk_widget_get_style (widget);
+	double r = min(0.6,style->fg[gtk_widget_get_state(widget)].red/65535.0),
+		   g = min(0.6,style->fg[gtk_widget_get_state(widget)].green/65535.0),
+		   b = min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
+
+	/** paint focus **/
 	if (GTK_WIDGET_HAS_FOCUS(widget)== TRUE) {
 		gtk_paint_focus(widget->style, widget->window, GTK_STATE_NORMAL, NULL, widget, NULL,
-		                knobx, knoby, knob_x, knob_y);
+		                knobx-2, knoby-2, knob_x+4, knob_y+4);
 	}
-	/** create a knob and a pointer rotating on the knob with cairo **/
+	/** create clowing knobs with cairo **/
 	cairo_t *cr = gdk_cairo_create(GDK_DRAWABLE(widget->window));
+	GdkRegion *region;
+	region = gdk_region_rectangle (&widget->allocation);
+	gdk_region_intersect (region, event->region);
+	gdk_cairo_region (cr, region);
+	cairo_clip (cr);
+	
 	cairo_arc(cr,knobx1+arc_offset, knoby1+arc_offset, knob_x/2.1, 0, 2 * M_PI );
 	cairo_pattern_t*pat =
-		cairo_pattern_create_radial (knobx1+arc_offset-4,knoby1+arc_offset-4, 1,knobx1+arc_offset,knoby1+arc_offset, 15);
-	cairo_pattern_add_color_stop_rgb (pat, 0, 0.4, 0.4, 0.4);
-	cairo_pattern_add_color_stop_rgb (pat, 0.5, 0.15, 0.15, 0.15);
-	cairo_pattern_add_color_stop_rgb (pat, 1, 0, 0, 0);
-	cairo_set_line_width(cr, 2.0);
+		cairo_pattern_create_radial (knobx1+arc_offset-knob_x/6,knoby1+arc_offset-knob_x/6, 1,knobx1+arc_offset,knoby1+arc_offset,knob_x/2.1 );
+	if(adj->lower<0 && adj->value>0.) {
+		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4, g+0.4 + knobstate-knobstate1, b+0.4);
+		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15, g+0.15 + (knobstate-knobstate1)*0.5, b+0.15);
+		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+	} else if(adj->lower<0 && adj->value<=0.) {
+		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4 +knobstate1- knobstate, g+0.4, b+0.4);
+		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15 +(knobstate1- knobstate)*0.5, g+0.15, b+0.15);
+		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+	} else {
+		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4, g+0.4 +knobstate, b+0.4);
+		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15, g+0.15 + knobstate*0.5, b+0.15);
+		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+	}
 	cairo_set_source (cr, pat);
 	cairo_fill_preserve (cr);
-	gdk_cairo_set_source_color(cr,  gtk_widget_get_style (widget)->fg);
+	gdk_cairo_set_source_color(cr, gtk_widget_get_style (widget)->fg);
+	cairo_set_line_width(cr, 2.0);
 	cairo_stroke(cr);
-	
+
+	/** create a rotating pointer on the kob**/
 	cairo_set_source_rgb(cr,  0.1, 0.1, 0.1);
-	cairo_set_line_width(cr, 5.0);
+	cairo_set_line_width(cr,max(3, min(7, knob_x/15)));
+	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND); 
+	cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
 	cairo_line_to(cr,lengh_x,lengh_y);
 	cairo_stroke(cr);
 	cairo_set_source_rgb(cr,  0.9, 0.9, 0.9);
-	cairo_set_line_width(cr, 1.0);
+	cairo_set_line_width(cr,min(5, max(1,knob_x/30)));
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
 	cairo_line_to(cr,lengh_x,lengh_y);
 	cairo_stroke(cr);
 	cairo_pattern_destroy (pat);
+	gdk_region_destroy (region);
 	cairo_destroy(cr);
 }
 
@@ -435,20 +473,18 @@ static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, int arc_offse
 static gboolean gtk_knob_expose (GtkWidget *widget, GdkEventExpose *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
-	GtkKnob *knob = GTK_KNOB(widget);
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
-	knob_expose(widget, klass->knob_x, klass->knob_y, 0);
+	knob_expose(widget, klass->knob_x, klass->knob_y, event, 0);
 	return TRUE;
 }
 
 /****************************************************************
- ** set size for GdkDrawable per type
+ ** set initial size for GdkDrawable per type
  */
 
 static void gtk_knob_size_request (GtkWidget *widget, GtkRequisition *requisition)
 {
 	g_assert(GTK_IS_KNOB(widget));
-	GtkKnob *knob = GTK_KNOB(widget);
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
 	requisition->width = klass->knob_x;
 	requisition->height = klass->knob_y;
@@ -507,17 +543,6 @@ static gboolean gtk_knob_key_press (GtkWidget *widget, GdkEventKey *event)
 	}
 
 	return FALSE;
-}
-
-//------------ calculate value for display
-static double gtk_knob_get_value(GtkAdjustment *adj,double pos)
-{
-    if (adj->step_increment < 0.009999) pos = (floor (pos*1000))*0.001;
-    else if (adj->step_increment < 0.099999) pos = (floor (pos*100))*0.01;
-    else if (adj->step_increment < 0.999999) pos = (floor (pos*10))*0.1;
-    else pos = floor (pos);
-    return pos;
-
 }
 
 /****************************************************************
@@ -588,10 +613,9 @@ static void knob_pointer_event(GtkWidget *widget, gdouble x, gdouble y, int knob
 static gboolean gtk_knob_button_press (GtkWidget *widget, GdkEventButton *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
-	GtkKnob *knob = GTK_KNOB(widget);
+	
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
-	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
-	GtkWidget * dialog,* spinner, *ok_button, *vbox, *toplevel;
+	
 
 	switch (event->button) {
 	case 1:  // left button
@@ -634,9 +658,8 @@ static gboolean gtk_knob_button_release (GtkWidget *widget, GdkEventButton *even
 static gboolean gtk_knob_pointer_motion (GtkWidget *widget, GdkEventMotion *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
-	GtkKnob *knob = GTK_KNOB(widget);
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
-	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+	
 	gdk_event_request_motions (event);
 	
 	if (GTK_WIDGET_HAS_GRAB(widget)) {
@@ -745,8 +768,9 @@ GType gtk_knob_get_type (void)
 	}
 	return kn_type;
 }
+}/* end of gtk_knob namespace */
 
-GtkKnob myGtkKnob;
+gtk_knob::GtkKnob myGtkKnob;
 
 /**
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
@@ -922,6 +946,7 @@ class GTKUI : public UI
     virtual void addCheckButton(const char* label, float* zone);
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);   
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step); 
+    virtual void addKnob(const char* label, float* zone, float init, float min, float max, float step);
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
     
     // -- passive display widgets
@@ -1057,9 +1082,9 @@ void GTKUI::declare(float* zone, const char* key, const char* value)
         fTooltip[zone] = formatTooltip(30,value) ;
     }
     else if (strcmp(key,"style")==0) {
-            if (strcmp(value,"knob") == 0) {
-				fKnobSet.insert(zone);
-            }
+		if (strcmp(value,"knob") == 0) {
+			fKnobSet.insert(zone);
+		}
     }
 }
         
@@ -1484,10 +1509,55 @@ struct uiValueDisplay : public uiItem
 		}
 };
 
+// ------------------------------- Knob -----------------------------------------
+
+void GTKUI::addKnob(const char* label, float* zone, float init, float min, float max, float step)
+{
+	*zone = init;
+    GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
+    
+    uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
+
+    gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
+    
+	GtkWidget* slider = gtk_vbox_new (FALSE, 0);
+	GtkWidget* fil = gtk_vbox_new (FALSE, 0);
+	GtkWidget* rei = gtk_vbox_new (FALSE, 0);
+	GtkWidget* re =myGtkKnob.gtk_knob_new_with_adjustment(GTK_ADJUSTMENT(adj));
+	GtkWidget* lw = gtk_label_new("");
+	new uiValueDisplay(this, zone, GTK_LABEL(lw),precision(step));
+	gtk_container_add (GTK_CONTAINER(rei), re);
+	if(fGuiSize[zone]) {
+		float size = 30 * fGuiSize[zone];
+		gtk_widget_set_size_request(rei, size, size );
+		gtk_box_pack_start (GTK_BOX(slider), fil, TRUE, TRUE, 0);
+		gtk_box_pack_start (GTK_BOX(slider), rei, FALSE, FALSE, 0);
+	} else {
+		gtk_container_add (GTK_CONTAINER(slider), fil);
+		gtk_container_add (GTK_CONTAINER(slider), rei);
+	}
+	gtk_container_add (GTK_CONTAINER(slider), lw);
+	gtk_widget_show_all(slider);
+	
+	if (label && label[0]!=0) {
+        openFrameBox(label);
+        addWidget(label, slider);
+        closeBox();
+    } else {
+        addWidget(label, slider);
+    }
+
+    checkForTooltip(zone, slider);
+}
+
 // -------------------------- Vertical Slider -----------------------------------
 
 void GTKUI::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 {
+	if (isKnob(zone)) { 
+		addKnob(label, zone, init, min, max, step);
+		return;
+	} 
     *zone = init;
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
     
@@ -1495,21 +1565,14 @@ void GTKUI::addVerticalSlider(const char* label, float* zone, float init, float 
 
     gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
     
-    GtkWidget* slider;
-    if (isKnob(zone)) { 
-		slider = gtk_vbox_new (FALSE, 0);
-		GtkWidget* re =myGtkKnob.gtk_knob_new_with_adjustment(GTK_ADJUSTMENT(adj));
-		GtkWidget* lw = gtk_label_new("");
-		new uiValueDisplay(this, zone, GTK_LABEL(lw),precision(step));
-		gtk_container_add (GTK_CONTAINER(slider), re);
-		gtk_container_add (GTK_CONTAINER(slider), lw);
-		gtk_widget_show_all(slider);
-	} else {
-		slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
-		gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
-		float size = 160 * pow(2, fGuiSize[zone]);
-		gtk_widget_set_usize(slider, -1, size);
+	GtkWidget* slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
+	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
+	float size = 160;
+	if(fGuiSize[zone]) {
+		size = 160 * fGuiSize[zone];
 	}
+	gtk_widget_set_size_request(slider, -1, size);
+	
     gtk_range_set_inverted (GTK_RANGE(slider), TRUE);
     
     if (label && label[0]!=0) {
@@ -1527,6 +1590,10 @@ void GTKUI::addVerticalSlider(const char* label, float* zone, float init, float 
 
 void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 {
+	if (isKnob(zone)) { 
+		addKnob(label, zone, init, min, max, step);
+		return;
+	} 
     *zone = init;
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
     
@@ -1534,21 +1601,13 @@ void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, floa
 
     gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
     
-    GtkWidget* slider;
-    if (isKnob(zone)) { 
-		slider = gtk_vbox_new (FALSE, 0);
-		GtkWidget* re =myGtkKnob.gtk_knob_new_with_adjustment(GTK_ADJUSTMENT(adj));
-		GtkWidget* lw = gtk_label_new("");
-		new uiValueDisplay(this, zone, GTK_LABEL(lw),precision(step));
-		gtk_container_add (GTK_CONTAINER(slider), re);
-		gtk_container_add (GTK_CONTAINER(slider), lw);
-		gtk_widget_show_all(slider);
-	} else {
-		slider= gtk_hscale_new (GTK_ADJUSTMENT(adj));
-		gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
-		float size = 160 * pow(2, fGuiSize[zone]);
-		gtk_widget_set_size_request(slider, size, -1);
-  	}  
+    GtkWidget* slider = gtk_hscale_new (GTK_ADJUSTMENT(adj));
+	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
+	float size = 160;
+	if(fGuiSize[zone]) {
+		size = 160 * fGuiSize[zone];
+	}
+	gtk_widget_set_size_request(slider, size, -1);
     
     if (label && label[0]!=0) {
         openFrameBox(label);
@@ -1566,6 +1625,10 @@ void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, floa
 
 void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 {
+	if (isKnob(zone)) { 
+		addKnob(label, zone, init, min, max, step);
+		return;
+	} 
     *zone = init;
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, step);
     
@@ -1573,18 +1636,7 @@ void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, f
 
     gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
     
-    GtkWidget* spinner;
-    if (isKnob(zone)) { 
-		spinner = gtk_vbox_new (FALSE, 0);
-		GtkWidget* re =myGtkKnob.gtk_knob_new_with_adjustment(GTK_ADJUSTMENT(adj));
-		GtkWidget* lw = gtk_label_new("");
-		new uiValueDisplay(this, zone, GTK_LABEL(lw),precision(step));
-		gtk_container_add (GTK_CONTAINER(spinner), re);
-		gtk_container_add (GTK_CONTAINER(spinner), lw);
-		gtk_widget_show_all(spinner);
-	} else {
-		spinner = gtk_spin_button_new (GTK_ADJUSTMENT(adj), 0.005, precision(step));
-	}
+    GtkWidget* spinner = gtk_spin_button_new (GTK_ADJUSTMENT(adj), 0.005, precision(step));
 
     openFrameBox(label);
     addWidget(label, spinner);
