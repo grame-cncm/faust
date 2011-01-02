@@ -290,7 +290,7 @@ ostream& boxpp::print (ostream& fout) const
 	
 	// None of the previous tests succeded, then it is not a valid box
 	else {
-		cerr << "Error in box::print() : " << *box << " is not the address of a valid box" << endl;
+        cerr << "Error in box::print() : " << *box << " is not a valid box" << endl;
 		exit(1);
 	}
 
