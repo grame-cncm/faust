@@ -514,7 +514,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateInitFun();
 
     if (filename == "") {
-        fModule->dump();
+        //fModule->dump();
+        outs() << *fModule;
     } else {
         std::string ErrorInfo;
         raw_fd_ostream Out(filename.c_str(), ErrorInfo, raw_fd_ostream::F_Binary);
