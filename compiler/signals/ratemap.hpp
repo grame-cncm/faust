@@ -25,11 +25,20 @@
 #include "tree.hh"
 
 #include <map>
+#include <set>
+#include <algorithm>
+#include <numeric>
 #include <boost/rational.hpp>
 
 typedef boost::rational<long> rational;
 
 /** dictionary, mapping rate sources (i.e. trees) to factors
+ *
+ *  a rate map is a vector in a multidimensional vector space. it is constructed from a
+ *  number of Tree instances, which serve as an orthogonal basis.
+ *
+ *  properties: RateMaps are orthogonal, if they don't have a common base
+ *              RateMaps are parallel, if one can be scaled to the other
  *
  * */
 struct RateMap:
@@ -45,12 +54,31 @@ struct RateMap:
         }
         return ret;
     }
+
+    rational length(void) const
+    {
+        rational ret = 0;
+        for (RateMap::const_iterator it = begin(); it != end(); ++it)
+            ret += it->second;
+        return ret;
+    }
 };
 
 void dump(RateMap const &);
 
+/** two rate maps are orthogonal, if their constraints are independent */
+bool orthogonal(RateMap const & lhs, RateMap const & rhs);
+
+/** two rate maps are parallel, if their constraints only differ by a constant factor */
+bool parallel(RateMap const & lhs, RateMap const & rhs);
+
 /** two rate maps are compatible, if they have no conflicting entry */
 bool compatible(RateMap const & lhs, RateMap const & rhs);
+
+/** compute the factor to scale lhs to rhs. returns 0 if arguments are not parallel */
+rational computeScaleFactor(RateMap const & lhs, RateMap const & rhs);
+
+std::set<Tree> findCommonBases(RateMap const & lhs, RateMap const & rhs);
 
 /** merge two rate maps
  *
@@ -75,15 +103,49 @@ static RateMap mergeRateMaps(Iterator begin, Iterator end)
     return ret;
 }
 
+
+
 /** unifies rate maps in the range [begin, end[ */
 template <typename Iterator>
 static RateMap unifyRateMaps(Iterator begin, Iterator end)
 {
+    using namespace std;
+    if (begin == end)
+        return RateMap();
+
     RateMap ret = *begin++;
-    for (Iterator it = begin; it != end; ++it)
-        ret = unify(ret, *it);
+
+    for (Iterator it = begin; it != end; ++it) {
+        RateMap const & currentRateMap = *it;
+
+        set<Tree> commonBases = findCommonBases(currentRateMap, ret);
+
+        rational factor = 0;
+        for (set<Tree>::const_iterator baseIt = commonBases.begin(); baseIt != commonBases.end(); ++baseIt) {
+            rational scaleInCurrent = currentRateMap.at(*baseIt);
+            rational scaleInRet     = ret.at(*baseIt);
+            rational newFactor = scaleInRet / scaleInCurrent;
+
+            if (factor != 0 && factor != newFactor)
+                throw logic_error("unable to unify rate maps");
+            factor = newFactor;
+        }
+
+        if (commonBases.empty()) // FIXME: we should probably perform the unification incrementally
+            factor = 1;
+
+        RateMap scaled = currentRateMap * factor; // factors of the common basis match
+
+        for (RateMap::const_iterator baseIt = scaled.begin(); baseIt != scaled.end(); ++baseIt) {
+            Tree basis = baseIt->first;
+
+            if (commonBases.find(basis) == commonBases.end())
+                ret.insert(make_pair(basis, scaled.at(basis)));
+            else
+                assert(scaled.at(basis) == ret.at(basis));
+        }
+    }
     return ret;
 }
-
 
 #endif

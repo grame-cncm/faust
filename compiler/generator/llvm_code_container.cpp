@@ -202,7 +202,7 @@ void LLVMCodeContainer::generateComputeEnd()
     if (fBuilder->GetInsertBlock())
         fBuilder->CreateBr(return_block);
 
-    llvm_compute->dump();
+    //llvm_compute->dump();
     verifyFunction(*llvm_compute);
 }
 
@@ -514,7 +514,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateInitFun();
 
     if (filename == "") {
-        fModule->dump();
+        //fModule->dump();
+        outs() << *fModule;
     } else {
         std::string ErrorInfo;
         raw_fd_ostream Out(filename.c_str(), ErrorInfo, raw_fd_ostream::F_Binary);

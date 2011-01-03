@@ -87,8 +87,10 @@ static RateMap doInferRate(Tree sig)
     RateMap ret = doInferRateDispatch(sig);
     if (gRateMap.find(sig) == gRateMap.end())
         gRateMap.insert(make_pair(sig, ret));
-    else
-        gRateMap[sig] = merge(gRateMap[sig], ret);
+    else {
+        ret = merge(gRateMap[sig], ret);
+        gRateMap[sig] = ret;
+    }
     return ret;
 }
 
@@ -244,9 +246,7 @@ static RateMap infereRecRate(Tree var, Tree body)
         vret.push_back(last);
     }
 
-    RateMap ret = unifyRateMaps(vret.begin(), vret.end());
-
-    return ret;
+    return unifyRateMaps(vret.begin(), vret.end());
 }
 
 static RateMap infereVectorize(Tree s1, Tree s2)
@@ -319,8 +319,8 @@ RateMap doInferRateDispatch(Tree sig)
             v.push_back(doInferRate(hd(sig)));
             sig = tl(sig);
         }
-        RateMap ret = unifyRateMaps(v.begin(), v.end());
-        return ret;
+
+        return RateMap();
     }
     else if (isSigVectorize(sig, s1, s2))               return infereVectorize(s1, s2);
     else if (isSigSerialize(sig, s1))                   return infereSerialize(s1, s2);
@@ -335,6 +335,23 @@ typedef map<Tree, rational> simplifiedRateMap;
 
 extern bool gDetailsSwitch;
 
+// lists and recursions are not annotated with a rate
+static bool requiresRateAnnotation(Tree sig)
+{
+    if (isList(sig))
+        return false;
+
+    Tree body, id;
+    if (isRec(sig, id, body))
+        return false;
+
+    int i; Tree rgroup;
+    if (isProj(sig, &i, rgroup))
+        return false;
+
+    return true;
+}
+
 /** normalizes rate map
  *
  *  - computes the rates, relative to a fundamental rate
@@ -347,6 +364,9 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
     simplifiedRateMap ret;
 
     for (signalRateMap::const_iterator it1 = gRateMap.begin(); it1 != gRateMap.end(); ++it1) {
+        if (!requiresRateAnnotation(it1->first))
+            continue;
+
         Tree sig = it1->first;
         RateMap const & e = it1->second;
         assert(!e.empty());
@@ -365,11 +385,14 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
                 results.push_back(r);
             }
         }
+
         assert(results.size());
+
         for (vector<rational>::const_iterator it = results.begin(); it != results.end(); ++it)
             assert(*it == results.front());
+        rational result = results.front();
 
-        ret.insert(make_pair(sig, results.front()));
+        ret.insert(make_pair(sig, result));
     }
 
     long denom = 1;
@@ -388,7 +411,6 @@ static simplifiedRateMap normalizeRateMap(RateMap const & rateFactors)
     return ret;
 }
 
-
 Tree ratePropertyKey = tree(symbol("RateProperty"));
 
 static void annotateRate(simplifiedRateMap const & map)
@@ -406,9 +428,19 @@ static void annotateRate(simplifiedRateMap const & map)
 void inferRate(Tree sig)
 {
     try {
-        RateMap data = doInferRate(sig);
+        // fill global rate map
+        doInferRate(sig);
 
-        simplifiedRateMap rates = normalizeRateMap(data);
+        set<RateMap> rateMapsToUnify;
+        // we ignore signal lists
+        for(signalRateMap::iterator it = gRateMap.begin(); it != gRateMap.end(); ++it) {
+            if (requiresRateAnnotation(it->first))
+                rateMapsToUnify.insert(it->second);
+        }
+
+        RateMap unifiedRates = unifyRateMaps(rateMapsToUnify.begin(), rateMapsToUnify.end());
+
+        simplifiedRateMap rates = normalizeRateMap(unifiedRates);
 
         annotateRate(rates);
     } catch (runtime_error const & e) {

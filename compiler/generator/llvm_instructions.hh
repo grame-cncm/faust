@@ -1181,7 +1181,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 //load_ptr->dump();
                 //load->dump();
                 //load->getType()->dump();
-                VectorType::get(load->getType(), size)->dump();
+                //VectorType::get(load->getType(), size)->dump();
                 Value* casted_load_ptr = fBuilder->CreateBitCast(load_ptr, PointerType::get(VectorType::get(load->getType(), size), 0));
                 return fBuilder->CreateLoad(casted_load_ptr);
             } else {
@@ -1283,18 +1283,18 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Function* function = fModule->getFunction(named_address->fName);
                     if (function) {
                         fCurValue = function;
-                        fCurValue->dump();
+                        //fCurValue->dump();
                     } else {
                         assert(fModule->getGlobalVariable(named_address->fName, true));
                         // We want to see array like [256 x float] as a float*
                         fCurValue = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
 
-                       fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize);
+                        fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize);
                     }
                 }
             }
 
-           if (indexed_address) {
+            if (indexed_address) {
 
                 named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
                 assert(named_address); // One level indexation for now
@@ -1573,7 +1573,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     assert(fModule->getGlobalVariable(named_address->fName, true));
 
                     //fBuilder->CreateStore(fCurValue, fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
-                    fCurValue->dump();
+                    //fCurValue->dump();
                     genVectorStore(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile);
                 }
             }
@@ -2287,8 +2287,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else {
                 // Should not happen
                 cerr << "generateBinopAux" << endl;
-                arg1->getType()->dump();
-                arg2->getType()->dump();
+                //arg1->getType()->dump();
+                //arg2->getType()->dump();
                 assert(false);
                 return NULL;
             }
@@ -2424,8 +2424,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
              } else {
                 // Should not happen
                 cerr << "generateFunMinMaxAux" << endl;
-                arg1->getType()->dump();
-                arg2->getType()->dump();
+                //arg1->getType()->dump();
+                //arg2->getType()->dump();
                 assert(false);
                 return NULL;
             }
