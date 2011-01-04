@@ -193,6 +193,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     //Type expType = getSigType(exp);
     Type sigType = getSigType(sig);
 
+    //sigType->print(cout);
+
     int expRate = getSigRate(exp);
     int sigRate = getSigRate(sig);
 
@@ -201,7 +203,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     assert(sigRate * n == expRate);
 
-    string vecname = getFreshID("vectorize");
+    string vecname = getFreshID("fVectorize");
 
     printf("generateVectorize expRate %d sigRate %d n %d\n", expRate, sigRate, n);
 
@@ -222,12 +224,14 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     //Type expType = getSigType(exp);
     Type sigType = getSigType(sig);
 
+    //sigType->print(cout);
+
     int expRate = getSigRate(exp);
     int sigRate = getSigRate(sig);
 
     int n = sigRate / expRate;
 
-    string vecname = getFreshID("serialize");
+    string vecname = getFreshID("fSerialize");
 
     //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
     DeclareTypeInst* typeInst = InstBuilder::genType(sigType);

@@ -154,7 +154,7 @@ Type operator| ( const Type& t1, const Type& t2)
 
     } else if ( (vt1 = isVectorType(t1)) && (vt2 = isVectorType(t2)) ) {
         if (vt1->size() != vt2->size()) {
-            printf("Type error: cannot unify vector types of different sizes!");
+            cerr << "Type error: cannot unify vector types of different sizes!" << endl;
             exit(1);
         }
         Type dt1 = vt1->dereferenceType();

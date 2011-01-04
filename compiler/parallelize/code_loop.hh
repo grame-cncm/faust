@@ -75,11 +75,11 @@ class CodeLoop {
 
     protected:
 
-        bool fIsRecursive;                  ///< recursive loops can't be SIMDed
-        const Tree fRecSymbol;              ///< recursive loops define a recursive symbol
+        bool fIsRecursive;            ///< recursive loops can't be SIMDed
+        const Tree fRecSymbol;        ///< recursive loops define a recursive symbol
         CodeLoop* fEnclosingLoop;     ///< Loop from which this one originated
-        int fRate;                          ///< rate of the loop
-        int fOrder;                         ///< used during topological sort
+        int fRate;                    ///< rate of the loop
+        int fOrder;                   ///< used during topological sort
         int fIndex;
 
         BlockInst* fPreInst;
@@ -180,7 +180,6 @@ public:
         CodeLoop(encl, index_name, rate), fExpr(NULL)
     {}
 
-
     MultiRateCodeLoop(string index_name, int rate = 1):
         CodeLoop(NULL, index_name, rate), fExpr(NULL)
     {}
@@ -189,7 +188,7 @@ public:
         CodeLoop(recsymbol, NULL, index_name, rate), fExpr(NULL)
     {}
 
-    void setExpression (ValueInst* expr) { fExpr = expr;}
+    void setExpression(ValueInst* expr) { fExpr = expr;}
 
     virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 };
@@ -203,8 +202,6 @@ public:
         MultiRateCodeLoop(encl, index_name, rate)
     {}
 
-    void setExpression (ValueInst* expr) { fExpr = expr;}
-
     virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 };
 
@@ -216,8 +213,6 @@ public:
     SerializeCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
         MultiRateCodeLoop(encl, index_name, rate)
     {}
-
-    void setExpression (ValueInst* expr) { fExpr = expr; }
 
     virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 };
