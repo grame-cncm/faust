@@ -89,7 +89,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else if (fun_typed) {
                 return "Function type";
             } else if (array_typed) {
-                return "\"" + fTypeDirectTable[array_typed->getType()] + "\"";
+                BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+                assert(basic_typed1);
+                std::ostringstream num_str;
+                num_str << array_typed->fSize;
+                return (array_typed->fSize == 0)
+                    ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
+                    : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\"";
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
@@ -113,7 +119,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             if (basic_typed) {
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\", " + name;
             } else if (named_typed) {
-                return named_typed->fName + generateType(named_typed->fType) + ", " + name;
+                //return named_typed->fName + generateType(named_typed->fType) + ", " + name;
+                return named_typed->fName + ", " + name;
             } else if (fun_typed) {
                 return "Function type";
             } else if (array_typed) {
@@ -123,7 +130,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 num_str << array_typed->fSize;
                 return (array_typed->fSize == 0)
                     ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
-                    : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_str.str() + "]";
+                    //: "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_str.str() + "]";
+                    : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\", " + name;
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
@@ -235,6 +243,12 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << generateType(inst->fTyped, inst->fAddress->getName());
             }
             *fOut << ")";
+            EndLine();
+        }
+
+        virtual void visit(DeclareTypeInst* inst)
+        {
+            *fOut << "DeclareTypeInst(" << generateType(inst->fType) << ")";
             EndLine();
         }
 

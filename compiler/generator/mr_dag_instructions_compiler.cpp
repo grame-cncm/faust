@@ -186,30 +186,32 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
     // Cast to internal float
     //res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
-
 }
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
 {
-    Type expType = getSigType(exp);
+    //Type expType = getSigType(exp);
+    Type sigType = getSigType(sig);
+
     int expRate = getSigRate(exp);
     int sigRate = getSigRate(sig);
-    DeclareTypeInst * typeInst = InstBuilder::genType(expType);
+
+    //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
+
     assert(sigRate * n == expRate);
 
+    string vecname = getFreshID("vectorize");
+
+    printf("generateVectorize expRate %d sigRate %d n %d\n", expRate, sigRate, n);
+
     pushGlobalDeclare(typeInst);
-    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", typeInst->fType);
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
     pushDeclare(vecBuffer);
 
-    VectorizeCodeLoop * vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
     fContainer->openLoop(vLoop);
-
-    fContainer->openLoop(new MultiRateCodeLoop("i", n));
-    ValueInst * body = generateCode(exp);
-    fContainer->closeLoop();
-
-    vLoop->setExpression(body);
-
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
     fContainer->closeLoop(); // close vectorize
 
     return vecBuffer->load(); // return handle
@@ -217,27 +219,29 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree exp)
 {
-    Type expType = getSigType(exp);
+    //Type expType = getSigType(exp);
+    Type sigType = getSigType(sig);
+
     int expRate = getSigRate(exp);
     int sigRate = getSigRate(sig);
+
     int n = sigRate / expRate;
-    Typed * firType = NULL; //genVectorType(expType, n, expRate);
-    DeclareTypeInst * typeInst = InstBuilder::genDeclareTypeInst(firType);
+
+    string vecname = getFreshID("serialize");
+
+    //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
+
+    printf("generateSerialize expRate %d sigRate %d\n", expRate, sigRate);
 
     pushGlobalDeclare(typeInst);
-    DeclareVarInst * vecBuffer = InstBuilder::genDecStackVar("toto", firType);
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
     pushDeclare(vecBuffer);
 
-    SerializeCodeLoop * vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    SerializeCodeLoop* vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
     fContainer->openLoop(vLoop);
-
-    fContainer->openLoop("i", n);
-    ValueInst * body = generateCode(exp);
-    fContainer->closeLoop();
-
-    vLoop->setExpression(body);
-
-    fContainer->closeLoop(); // close vectorize
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
+    fContainer->closeLoop(); // close serialize
 
     return vecBuffer->load(); // return handle
 }

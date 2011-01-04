@@ -768,5 +768,24 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
 };
 
+class MRCPPInstVisitor : public CPPInstVisitor {
+
+    public:
+
+        MRCPPInstVisitor(std::ostream* out, int tab = 0)
+            :CPPInstVisitor(out, tab)
+        {}
+
+        virtual ~MRCPPInstVisitor()
+        {}
+
+        virtual void visit(DeclareTypeInst* inst)
+        {
+            // TODO : recursive array types...
+            *fOut << "typedef " << generateType(inst->fType);
+            EndLine();
+        }
+
+};
 
 #endif

@@ -47,7 +47,8 @@ class CPPCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        CPPInstVisitor fCodeProducer;
+        //CPPInstVisitor fCodeProducer;
+        MRCPPInstVisitor fCodeProducer;
         std::ostream* fOut;
         string fKlassName;
         string fSuperKlassName;

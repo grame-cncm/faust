@@ -141,10 +141,13 @@ static Typed* sharedTypeToFirType(Tree t)
     Tree subtree;
 
     if (isTypeInt(t)) {
+        printf("sharedTypeToFirType isTypeInt\n");
         return InstBuilder::genBasicTyped(Typed::kInt);
     } else if (isTypeFloat(t)) {
+        printf("sharedTypeToFirType isTypeFloat\n");
         return InstBuilder::genBasicTyped(Typed::kFloat);
     } else if (isTypeArray(t, &size, subtree)) {
+        printf("sharedTypeToFirType isTypeArray size %d\n", size);
         return InstBuilder::genArrayTyped(sharedTypeToFirType(subtree), size);
     } else {
         assert(false);
@@ -164,7 +167,7 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
     if (gFirTypeProperty.get(shared_type, dec_type)) {
         return dec_type;
     } else {
-        DeclareTypeInst* dec_type = InstBuilder::genDeclareTypeInst(getFreshID("vecType"), sharedTypeToFirType(shared_type));
+        DeclareTypeInst* dec_type = genDeclareTypeInst(getFreshID("vecType"), sharedTypeToFirType(shared_type));
         gFirTypeProperty.set(shared_type, dec_type);
         return dec_type;
     }

@@ -1281,27 +1281,26 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
 ValueInst* InstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
 {
     printf("vectorize not implemented\n");
-    exit (0);
+    assert(false);
 }
 
 ValueInst* InstructionsCompiler::generateSerialize(Tree sig, Tree exp)
 {
     printf("serialize not implemented\n");
-    exit (0);
+    assert(false);
 }
 
 ValueInst* InstructionsCompiler::generateVectorAt(Tree sig, Tree exp, Tree index)
 {
     printf("vector at not implemented\n");
-    exit (0);
+    assert(false);
 }
 
 ValueInst* InstructionsCompiler::generateConcat(Tree sig, Tree exp1, Tree exp2)
 {
     printf("concatenation not implemented\n");
-    exit (0);
+    assert(false);
 }
-
 
 void InstructionsCompiler::ensureIotaCode()
 {
