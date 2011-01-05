@@ -22,6 +22,7 @@
  
  
 #include "enrobage.hh"
+#include <vector>
 #include <string>
 #include <limits.h>
 #include <stdlib.h>
@@ -36,12 +37,59 @@ extern string gMasterDirectory;
 
 
 /**
+ * Returns true is a line is blank (contains only white caracters)
+ */
+static bool isBlank(const string& s) {
+    for (size_t i=0; i<s.size(); i++) {
+        if (s[i] != ' ' && s[i] != '\t') return false;
+    }
+    return true;
+}
+
+/**
+ * Copy or remove license header. Architecture files can contain a header specifying
+ * the license. If this header contains an exception tag (for example "FAUST COMPILER EXCEPTION")
+ * it is an indication for the compiler to remove the license header from the resulting code. 
+ * A header is the first non blank line that begins a comment.
+ */
+void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
+{
+    string          s;
+    vector<string>	H;
+
+    // skip blank lines
+    while (getline(src,s) && isBlank(s)) dst << s << endl;
+
+    // first non blank should start a comment
+    if (s.find("/*")==string::npos) { dst << s << endl; return; }
+
+    // copy the header into H
+    bool remove = false;
+    H.push_back(s);
+
+    while (getline(src,s) && s.find("*/")==string::npos) {
+        H.push_back(s);
+        if (s.find(exceptiontag) != string::npos) remove=true;
+    }
+
+    // copy the header unless explicitely granted to remove it
+    if (!remove) {
+        // copy the header
+        for (unsigned int i=0; i<H.size(); i++) {
+            dst << H[i] << endl;
+        }
+        dst << s << endl;
+    }
+}
+
+
+/**
  * Copy src to dst until specific line.
  */
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
-{ 
-	string	s;
-	while ( getline(src,s) && (s != until) ) dst << s << endl;
+{
+    string	s;
+    while ( getline(src,s) && (s != until) ) dst << s << endl;
 }
 
 /**

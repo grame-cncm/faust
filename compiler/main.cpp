@@ -684,8 +684,9 @@ int main (int argc, char* argv[])
 			C->getClass()->printIncludeFile(*dst);
             C->getClass()->printAdditionalCode(*dst);
 
-			streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-            
+            streamCopyLicense(*enrobage, *dst, "FAUST COMPILER EXCEPTION");
+            streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+
 // 			if ( gVectorSwitch && (intrinsic = open_arch_stream("intrinsic.hh")) ) {
 // 				streamCopyUntilEnd(*intrinsic, *dst);
 // 			}
