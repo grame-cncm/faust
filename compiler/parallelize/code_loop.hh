@@ -114,6 +114,10 @@ class CodeLoop {
         void setEnclosingLoop(CodeLoop* loop) { fEnclosingLoop = loop; }
         CodeLoop* getEnclosingLoop() { return fEnclosingLoop; }
 
+        // Code generation helpers
+        void generateDAGLoopPre(BlockInst* block, bool omp);
+        void generateDAGLoopPost(BlockInst* block, bool omp);
+
     public:
 
         ///< create a recursive loop
