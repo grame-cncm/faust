@@ -187,7 +187,7 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
     }
 }
 
-void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* vectorSize, bool omp)
+void CodeLoop::generateDAGLoopPre(BlockInst* block, bool omp)
 {
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
@@ -197,6 +197,23 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* vectorSize, boo
         }
         pushBlock(fPreInst, block);
     }
+}
+
+void CodeLoop::generateDAGLoopPost(BlockInst* block, bool omp)
+{
+    // Generate code after the loop
+    if (fPostInst->fCode.size() > 0) {
+        block->pushBackInst(InstBuilder::genLabelInst("// Post code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+        }
+        pushBlock(fPostInst, block);
+    }
+}
+
+void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* vectorSize, bool omp)
+{
+    generateDAGLoopPre(block, omp);
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
@@ -218,14 +235,7 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* vectorSize, boo
         block->pushBackInst(loop);
     }
 
-    // Generate code after the loop
-    if (fPostInst->fCode.size() > 0) {
-        block->pushBackInst(InstBuilder::genLabelInst("// Post code"));
-        if (omp) {
-            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
-        }
-        pushBlock(fPostInst, block);
-    }
+    generateDAGLoopPost(block, omp);
 }
 
 /**
@@ -357,23 +367,57 @@ void CodeLoop::sortGraph(CodeLoop* root, lclgraph& V)
 
 void MultiRateCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
-    pushBlock(fPreInst, block);
-    pushBlock(fComputeInst, block);
-    pushBlock(fPostInst, block);
+    CodeLoop::generateDAGLoop(block, count, omp);
 }
 
 void VectorizeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
-    // TODO : generate enclosing loop
-    pushBlock(fPreInst, block);
-    pushBlock(fComputeInst, block);
-    pushBlock(fPostInst, block);
+    generateDAGLoopPre(block, omp);
+
+    if (fComputeInst->fCode.size() > 0) {
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
+                                                                                                           InstBuilder::genIntNumInst(fRate)))
+                                         : InstBuilder::genLessThan(loop_decl->load(), count->load());
+        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+
+        block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
+        }
+
+        BlockInst* block1 = InstBuilder::genBlockInst();
+        pushBlock(fComputeInst, block1);
+
+        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1);
+        block->pushBackInst(loop);
+    }
+
+    generateDAGLoopPost(block, omp);
 }
 
 void SerializeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
-    // TODO : generate enclosing loop
-    pushBlock(fPreInst, block);
-    pushBlock(fComputeInst, block);
-    pushBlock(fPostInst, block);
+    generateDAGLoopPre(block, omp);
+
+    if (fComputeInst->fCode.size() > 0) {
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
+                                                                                                           InstBuilder::genIntNumInst(fRate)))
+                                         : InstBuilder::genLessThan(loop_decl->load(), count->load());
+        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+
+        block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
+        }
+
+        BlockInst* block1 = InstBuilder::genBlockInst();
+        pushBlock(fComputeInst, block1);
+
+        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1);
+        block->pushBackInst(loop);
+    }
+
+    generateDAGLoopPost(block, omp);
 }

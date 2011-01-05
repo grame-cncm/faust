@@ -86,7 +86,26 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
         */
 
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, CS(sig)));
+        int rate = getSigRate(sig);
+
+        DeclareVarInst* indexInst = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt),
+                                                               InstBuilder::genIntNumInst(rate));
+
+        ValueInst * code = CS(sig);
+        ValueInst * loadedCode = code;
+
+        LoadVarInst * loadCode = dynamic_cast<LoadVarInst*>(code);
+        if (loadCode) {
+            Address * loadAddress = InstBuilder::genIndexedAddress(loadCode->fAddress, indexInst->load());
+            loadedCode = InstBuilder::genLoadVarInst(loadAddress);
+        }
+
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, indexInst->load(), loadedCode));
+
+        if (getSigRate(sig) == 1) {
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, CS(sig)));
+        } else {
+        }
 
         fContainer->closeLoop();
     }
@@ -191,6 +210,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
     return generateCacheCode(sig, res);
 }
 
+
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
 {
     //Type expType = getSigType(exp);
@@ -214,9 +234,23 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
     pushDeclare(vecBuffer);
 
-    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", expRate);
     fContainer->openLoop(vLoop);
-    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
+
+    DeclareVarInst* index = InstBuilder::genDecLoopVar("j", InstBuilder::genBasicTyped(Typed::kInt),
+                                                       InstBuilder::genIntNumInst(n));
+
+    ValueInst * code = generateCode(exp);
+    ValueInst * loadedCode = code;
+
+    LoadVarInst * loadCode = dynamic_cast<LoadVarInst*>(code);
+    if (loadCode) {
+        Address * loadAddress = InstBuilder::genIndexedAddress(loadCode->fAddress, index->load());
+        loadedCode = InstBuilder::genLoadVarInst(loadAddress);
+    }
+
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, index->load(), loadedCode));
+
     fContainer->closeLoop(); // close vectorize
 
     return vecBuffer->load(); // return handle
@@ -247,7 +281,19 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
 
     SerializeCodeLoop* vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
     fContainer->openLoop(vLoop);
-    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
+
+
+    DeclareVarInst* index = InstBuilder::genDecLoopVar("j", InstBuilder::genBasicTyped(Typed::kInt),
+                                                       InstBuilder::genIntNumInst(n));
+
+    ValueInst * code = generateCode(exp);
+    LoadVarInst * loadCode = dynamic_cast<LoadVarInst*>(code);
+    Address * loadAddress = InstBuilder::genIndexedAddress(loadCode->fAddress, index->load());
+
+    ValueInst * loadedCode = InstBuilder::genLoadVarInst(loadAddress);
+
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, index->load(), loadedCode));
+
     fContainer->closeLoop(); // close serialize
 
     return vecBuffer->load(); // return handle
