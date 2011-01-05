@@ -237,6 +237,14 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             gGlobalTable[inst->fName] = 1;
         }
 
+        virtual void visit(IndexedAddress* indexed)
+        {
+            indexed->fAddress->accept(this);
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+            *fOut << "]";
+        }
+
         virtual void visit(LoadVarInst* inst)
         {
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
@@ -245,9 +253,13 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             if (named) {
                 *fOut << named->getName();
             } else {
+                /*
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
                 *fOut << "]";
+                */
+                *fOut << indexed->getName();
+                indexed->accept(this);
             }
         }
 
@@ -273,9 +285,14 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             if (named) {
                 *fOut << named->getName() << " = ";
             } else {
+                /*
                 *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
+                indexed->fAddress->accept(this);
                 *fOut << "] = ";
+                */
+                *fOut << indexed->getName();
+                indexed->accept(this);
+                *fOut << " = ";
             }
             inst->fValue->accept(this);
             EndLine();

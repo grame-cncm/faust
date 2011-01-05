@@ -1726,6 +1726,11 @@ struct InstBuilder
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
     }
 
+    static LoadVarInst* genLoadArrayStructVar(string vname, ValueInst* id1, ValueInst* id2)
+    {
+        return genLoadVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id1), id2));
+    }
+
     static LoadVarInst* genLoadArrayStructVar(string vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
@@ -1744,6 +1749,11 @@ struct InstBuilder
     static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* index, ValueInst* exp)
     {
         return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index), exp);
+    }
+
+    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* id1, ValueInst* id2, ValueInst* exp)
+    {
+        return genStoreVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id1), id2), exp);
     }
 
     static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp)
@@ -1904,7 +1914,7 @@ struct InstBuilder
                     const string& arg4, Typed::VarType arg4_ty);
 
     // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation unicity.
-    static DeclareTypeInst* genType(AudioType* type);
+    static DeclareTypeInst* genType(AudioType* type, int rate, int vector_size);
 
 };
 

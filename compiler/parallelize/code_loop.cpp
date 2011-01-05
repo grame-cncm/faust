@@ -41,7 +41,7 @@ using namespace std;
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
 {
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter))
+    ValueInst* loop_end = (fRate != 1) ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter))
                                      : InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(InstBuilder::genLoadFunArgsVar(counter),
                                                                                                        InstBuilder::genIntNumInst(fRate)));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
@@ -163,7 +163,7 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
     if (fComputeInst->fCode.size() > 0) {
 
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
+        ValueInst* loop_end = (fRate != 1) ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
                                                                                                            InstBuilder::genIntNumInst(fRate)))
                                          : InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), size));
@@ -201,7 +201,7 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* vectorSize, boo
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(vectorSize->load(),
+        ValueInst* loop_end = (fRate != 1) ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(vectorSize->load(),
                                                                                                            InstBuilder::genIntNumInst(fRate)))
                                          : InstBuilder::genLessThan(loop_decl->load(), vectorSize->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
@@ -365,6 +365,14 @@ void MultiRateCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count,
 void VectorizeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
     // TODO : generate enclosing loop
+    /*
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    ValueInst* loop_end = (fRate != 1) ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter))
+                                     : InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(InstBuilder::genLoadFunArgsVar(counter),
+                                                                                                       InstBuilder::genIntNumInst(fRate)));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+    */
+
     pushBlock(fPreInst, block);
     pushBlock(fComputeInst, block);
     pushBlock(fPostInst, block);
