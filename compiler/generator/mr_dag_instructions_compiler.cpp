@@ -180,6 +180,9 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
 {
+    int rate = getSigRate(sig);
+    fContainer->setInputRate(idx, rate);
+
     // "fInput" use as a name convention
     string name = subst("fInput$0", T(idx));
     ValueInst* res = InstBuilder::genLoadArrayStructVar(name);
