@@ -119,6 +119,7 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         StoreVarInst* loop_i_increment = loop_i_decl->store(InstBuilder::genAdd(loop_i_decl->load(), 1));
 
         LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(CS(sig));
+        // Assume the result is a buffer for now (and not a more complex ValueInst*)
         assert(in_buffer);
 
         BlockInst* block_i = InstBuilder::genBlockInst();
@@ -274,6 +275,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     // Output index
     ValueInst* out_index = InstBuilder::genAdd(loop_j_decl->load(), InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(expRate)));
     LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(generateCode(exp));
+    // Assume the result is a buffer for now (and not a more complex ValueInst*)
     assert(in_buffer);
 
     block_j->pushFrontInst(InstBuilder::genStoreArrayStructVar(vecname, loop_i_decl->load(), loop_j_decl->load(),
@@ -362,6 +364,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     // Output index
     ValueInst* out_index = InstBuilder::genAdd(loop_j_decl->load(), InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(expRate)));
     LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(generateCode(exp));
+    // Assume the result is a buffer for now (and not a more complex ValueInst*)
     assert(in_buffer);
 
     block_j->pushFrontInst(InstBuilder::genStoreArrayStructVar(vecname, out_index,

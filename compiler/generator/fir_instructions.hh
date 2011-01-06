@@ -131,6 +131,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             if (basic_typed) {
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\", " + name;
             } else if (named_typed) {
+                // TODO : break code with subclasses
                 //return named_typed->fName + generateType(named_typed->fType) + ", " + name;
                 return named_typed->fName + ", " + name;
             } else if (fun_typed) {
