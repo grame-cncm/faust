@@ -254,6 +254,10 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
     pushDeclare(vecBuffer);
 
+    // open vectorize loop
+    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    fContainer->openLoop(vLoop);
+
     // Enclosing loops
     string i_decl = "i";
     string j_decl = "j";
@@ -286,9 +290,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     block_i->pushFrontInst(loop_j);
 
     ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
-
-    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
-    fContainer->openLoop(vLoop);
 
     //pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
     pushComputeDSPMethod(InstBuilder::genLabelInst("// vectorize"));
@@ -343,6 +344,10 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
     pushDeclare(vecBuffer);
 
+    // open serialize loop
+    SerializeCodeLoop* vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    fContainer->openLoop(vLoop);
+
     // Enclosing loops
     string i_decl = "i";
     string j_decl = "j";
@@ -376,8 +381,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
 
     ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
 
-    SerializeCodeLoop* vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
-    fContainer->openLoop(vLoop);
 
     //pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
     pushComputeDSPMethod(InstBuilder::genLabelInst("// serialize"));
