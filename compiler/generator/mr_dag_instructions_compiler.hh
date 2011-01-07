@@ -51,7 +51,8 @@ private:
 
     virtual ValueInst* generateVectorize(Tree sig, Tree exp, int n);
     virtual ValueInst* generateSerialize(Tree sig, Tree exp);
-
+    virtual ValueInst* generateVectorAt(Tree sig, Tree exp, Tree index);
+    virtual ValueInst* generateConcat(Tree sig, Tree exp1, Tree exp2);
 };
 
 
