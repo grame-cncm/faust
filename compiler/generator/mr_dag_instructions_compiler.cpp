@@ -257,6 +257,10 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
 
+    // open vectorize loop
+    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    fContainer->openLoop(vLoop);
+
     // Enclosing loops
     string i_decl = "i";
     string j_decl = "j";
@@ -289,9 +293,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     block_i->pushFrontInst(loop_j);
 
     ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
-
-    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
-    fContainer->openLoop(vLoop);
 
     //pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
     pushComputeDSPMethod(InstBuilder::genLabelInst("// vectorize"));
@@ -346,6 +347,10 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
 
+    // open serialize loop
+    SerializeCodeLoop* vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    fContainer->openLoop(vLoop);
+
     // Enclosing loops
     string i_decl = "i";
     string j_decl = "j";
@@ -379,8 +384,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
 
     ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
 
-    SerializeCodeLoop* vLoop = new SerializeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
-    fContainer->openLoop(vLoop);
 
     //pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
     pushComputeDSPMethod(InstBuilder::genLabelInst("// serialize"));
@@ -404,4 +407,102 @@ Tim...
 
 */
 
+}
+
+ValueInst* MultiRateDAGInstructionsCompiler::generateVectorAt(Tree sig, Tree exp, Tree index)
+{
+    int rate = getSigRate(sig);
+
+    ValueInst * compiledExpression = CS(exp);
+    LoadVarInst * loadExpression = dynamic_cast<LoadVarInst*>(compiledExpression);
+
+    // FIXME: only supports compile-time indices
+    ValueInst * indexInst = InstBuilder::genIntNumInst(tree2int(index));
+    Address * loadAddress = InstBuilder::genIndexedAddress(loadExpression->fAddress,
+                                                           indexInst);
+    ValueInst * loadedCode = InstBuilder::genLoadVarInst(loadAddress);
+
+    Type sigType = getSigType(sig);
+
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType, rate, gVecSize);
+    pushGlobalDeclare(typeInst);
+
+    string vecname = getFreshID("fAt");
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
+    pushDeclare(vecBuffer);
+
+    StatementInst * storeInst = InstBuilder::genStoreStackVar(vecname, loadedCode);
+    pushComputeDSPMethod(storeInst);
+
+    return generateCacheCode(sig, vecBuffer->load());
+}
+
+ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1, Tree exp2)
+{
+    int sigRate = getSigRate(sig);
+    Type sigType = getSigType(sig);
+
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType, sigRate, gVecSize);
+
+    pushGlobalDeclare(typeInst);
+    string vecname = getFreshID("fConcat");
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
+    pushDeclare(vecBuffer);
+
+    Type exp1Type = getSigType(exp1);
+    int exp1Size = isVectorType(exp1Type)->size();
+
+    Type exp2Type = getSigType(exp2);
+    int exp2Size = isVectorType(exp2Type)->size();
+
+    ValueInst * compiledExpression1 = CS(exp1);
+    LoadVarInst * loadExpression1 = dynamic_cast<LoadVarInst*>(compiledExpression1);
+
+    ValueInst * compiledExpression2 = CS(exp2);
+    LoadVarInst * loadExpression2 = dynamic_cast<LoadVarInst*>(compiledExpression2);
+
+    // first loop
+    {
+        DeclareVarInst* loopDeclare = InstBuilder::genDecLoopVar("k", InstBuilder::genBasicTyped(Typed::kInt),
+                                                            InstBuilder::genIntNumInst(0));
+        ValueInst* loopEnd = InstBuilder::genLessThan(loopDeclare->load(), InstBuilder::genIntNumInst(exp1Size));
+        StoreVarInst* loopIncrement = loopDeclare->store(InstBuilder::genAdd(loopDeclare->load(), 1));
+        BlockInst* block = InstBuilder::genBlockInst();
+
+        ForLoopInst * loop = InstBuilder::genForLoopInst(loopDeclare, loopEnd, loopIncrement, block);
+
+        Address * loadAddress = InstBuilder::genIndexedAddress(loadExpression1->fAddress,
+                                                                loopDeclare->load());
+        ValueInst * loadedCode = InstBuilder::genLoadVarInst(loadAddress);
+
+        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, loopDeclare->load(), loadedCode);
+
+        block->pushBackInst(storeInst);
+
+        pushComputeDSPMethod(loop);
+    }
+
+    {
+        DeclareVarInst* loopDeclare = InstBuilder::genDecLoopVar("k", InstBuilder::genBasicTyped(Typed::kInt),
+                                                            InstBuilder::genIntNumInst(0));
+        ValueInst* loopEnd = InstBuilder::genLessThan(loopDeclare->load(), InstBuilder::genIntNumInst(exp2Size));
+        StoreVarInst* loopIncrement = loopDeclare->store(InstBuilder::genAdd(loopDeclare->load(), 1));
+        BlockInst* block = InstBuilder::genBlockInst();
+
+        ForLoopInst * loop = InstBuilder::genForLoopInst(loopDeclare, loopEnd, loopIncrement, block);
+
+        Address * loadAddress = InstBuilder::genIndexedAddress(loadExpression2->fAddress,
+                                                                loopDeclare->load());
+        ValueInst * loadedCode = InstBuilder::genLoadVarInst(loadAddress);
+
+        ValueInst * index = InstBuilder::genAdd(loopDeclare->load(), InstBuilder::genIntNumInst(exp2Size));
+
+        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, index, loadedCode);
+
+        block->pushBackInst(storeInst);
+
+        pushComputeDSPMethod(loop);
+    }
+
+    return generateCacheCode(sig, vecBuffer->load());
 }
