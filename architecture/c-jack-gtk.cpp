@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <gtk/gtk.h>
-#include <pthread.h> 
+#include <pthread.h>
 #include <sys/wait.h>
 #include <list>
 #include <vector>
@@ -39,7 +39,7 @@ using namespace std;
         #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
     #endif
 #else
-    #define AVOIDDENORMALS 
+    #define AVOIDDENORMALS
 #endif
 
 //#define BENCHMARKMODE
@@ -49,7 +49,7 @@ struct Meta : map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
- 
+
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
@@ -63,7 +63,7 @@ inline int 	int2pow2 (int x)    { int r=0; while ((1<<r)<x) r++; return r; }
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 //#define IS_DOUBLE 1
-#endif  
+#endif
 
 
 /******************************************************************************
@@ -97,61 +97,61 @@ class UI
 {
 	typedef list<uiItem*> clist;
 	typedef map<FAUSTFLOAT*, clist*> zmap;
-	
+
  private:
  	static list<UI*>	fGuiList;
 	zmap				fZoneMap;
 	bool				fStopped;
-	
+
  public:
-		
-	UI() : fStopped(false) {	
+
+	UI() : fStopped(false) {
 		fGuiList.push_back(this);
 	}
-	
+
 	virtual ~UI() {
 		// suppression de this dans fGuiList
 	}
 
 	// -- registerZone(z,c) : zone management
-	
+
 	void registerZone(FAUSTFLOAT* z, uiItem* c)
 	{
 		if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
 		fZoneMap[z]->push_back(c);
-	} 	
+	}
 
 	// -- saveState(filename) : save the value of every zone to a file
-	
-	void saveState(const char* filename)	
+
+	void saveState(const char* filename)
 	{
 		ofstream f(filename);
-		
-		for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
+
+		for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) {
 			f << *(i->first) << ' ';
-		} 
-		
+		}
+
 		f << endl;
 		f.close();
 	}
 
 	// -- recallState(filename) : load the value of every zone from a file
-	
-	void recallState(const char* filename)	
+
+	void recallState(const char* filename)
 	{
 		ifstream f(filename);
 		if (f.good()) {
-			for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
+			for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) {
 				f >> *(i->first);
-			} 
+			}
 		}
 		f.close();
 	}
-	
+
 	void updateAllZones();
-	
+
 	void updateZone(FAUSTFLOAT* z);
-	
+
 	static void updateAllGuis()
 	{
 		list<UI*>::iterator g;
@@ -159,27 +159,28 @@ class UI
 			(*g)->updateAllZones();
 		}
 	}
-        
+
     // -- active widgets
-    
+
     virtual void addButton(const char* label, FAUSTFLOAT* zone) = 0;
     virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) = 0;
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) = 0;
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
+    virtual void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-    
+
     // -- passive widgets
-    
+
     virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision) = 0;
     virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max) = 0;
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) = 0;
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) = 0;
-    
+
     void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data);
-    
+
     // -- widget's layouts
-    
+
     virtual void openFrameBox(const char* label) = 0;
     virtual void openTabBox(const char* label) = 0;
     virtual void openHorizontalBox(const char* label) = 0;
@@ -193,10 +194,10 @@ class UI
     virtual void openExpanderBox(const char* label, FAUSTFLOAT* zone) = 0;
 
     virtual void closeBox() = 0;
-    
+
     virtual void show() {};
     virtual void run() {};
-	
+
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
@@ -211,31 +212,31 @@ class UI
 class uiItem
 {
   protected :
-		  
+
 	UI*		fGUI;
 	FAUSTFLOAT*		fZone;
 	FAUSTFLOAT		fCache;
-	
-	uiItem (UI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
-	{ 
-		ui->registerZone(zone, this); 
+
+	uiItem (UI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321)
+	{
+		ui->registerZone(zone, this);
 	}
-	
-	
+
+
   public :
 	virtual ~uiItem() {}
-	
-	void modifyZone(FAUSTFLOAT v) 	
-	{ 
+
+	void modifyZone(FAUSTFLOAT v)
+	{
 		fCache = v;
 		if (*fZone != v) {
 			*fZone = v;
 			fGUI->updateZone(fZone);
 		}
 	}
-		  	
+
 	FAUSTFLOAT			cache()			{ return fCache; }
-	virtual void 	reflectZone() 	= 0;	
+	virtual void 	reflectZone() 	= 0;
 };
 
 
@@ -247,14 +248,14 @@ struct uiCallbackItem : public uiItem
 {
 	uiCallback	fCallback;
 	void*		fData;
-	
-	uiCallbackItem(UI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data) 
+
+	uiCallbackItem(UI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data)
 			: uiItem(ui, zone), fCallback(foo), fData(data) {}
-	
-	virtual void 	reflectZone() {		
+
+	virtual void 	reflectZone() {
 		FAUSTFLOAT 	v = *fZone;
-		fCache = v; 
-		fCallback(v, fData);	
+		fCache = v;
+		fCallback(v, fData);
 	}
 };
 
@@ -290,9 +291,9 @@ inline void UI::updateAllZones()
 	}
 }
 
-inline void UI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data) 
-{ 
-	new uiCallbackItem(this, zone, foo, data); 
+inline void UI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data)
+{
+	new uiCallbackItem(this, zone, foo, data);
 };
 
 /******************************************************************************
@@ -305,6 +306,7 @@ inline void UI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data)
 *******************************************************************************/
 
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #define stackSize 256
 
@@ -313,6 +315,459 @@ inline void UI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data)
 #define kSingleMode 0
 #define kBoxMode 1
 #define kTabMode 2
+
+//------------ calculate needed precision
+static int precision(double n)
+{
+    if (n < 0.009999) return 3;
+    else if (n < 0.099999) return 2;
+    else if (n < 0.999999) return 1;
+    else return 0;
+}
+
+namespace gtk_knob
+{
+
+class GtkKnob
+{
+private:
+	double start_x, start_y, max_value;
+public:
+	GtkRange parent;
+	int last_quadrant;
+	GtkKnob();
+	~GtkKnob();
+	GtkWidget *gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment);
+
+};
+
+#define GTK_TYPE_KNOB          (gtk_knob_get_type())
+#define GTK_KNOB(obj)          (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_KNOB, GtkKnob))
+#define GTK_IS_KNOB(obj)       (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_KNOB))
+#define GTK_KNOB_CLASS(klass)  (G_TYPE_CHECK_CLASS_CAST ((klass),  GTK_TYPE_KNOB, GtkKnobClass))
+#define GTK_IS_KNOB_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE ((klass),  GTK_TYPE_KNOB))
+
+GtkKnob::GtkKnob()
+// GtkKnob constructor
+{
+
+}
+
+GtkKnob::~GtkKnob()
+{
+	// Nothing specific to do...
+}
+
+struct GtkKnobClass {
+	GtkRangeClass parent_class;
+	int knob_x;
+	int knob_y;
+	int knob_step;
+	int button_is;
+
+};
+
+//------forward declaration
+GType gtk_knob_get_type ();
+
+/****************************************************************
+ ** calculate the knop pointer with dead zone
+ */
+
+const double scale_zero = 20 * (M_PI/180); // defines "dead zone" for knobs
+
+static void knob_expose(GtkWidget *widget, int knob_x, int knob_y, GdkEventExpose *event, int arc_offset)
+{
+	/** check resize **/
+	int grow;
+	if(widget->allocation.width > widget->allocation.height) {
+		grow = widget->allocation.height;
+	} else {
+		grow =  widget->allocation.width;
+	}
+	knob_x = grow-4;
+	knob_y = grow-4;
+	/** get values for the knob **/
+	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+	int knobx = (widget->allocation.x+2 + (widget->allocation.width-4 - knob_x) * 0.5);
+	int knoby = (widget->allocation.y+2 + (widget->allocation.height-4 - knob_y) * 0.5);
+	int knobx1 = (widget->allocation.x+2 + (widget->allocation.width-4)* 0.5);
+	int knoby1 = (widget->allocation.y+2 + (widget->allocation.height-4) * 0.5);
+	double knobstate = (adj->value - adj->lower) / (adj->upper - adj->lower);
+	double angle = scale_zero + knobstate * 2 * (M_PI - scale_zero);
+	double knobstate1 = (0. - adj->lower) / (adj->upper - adj->lower);
+	double pointer_off = knob_x/6;
+	double radius = min(knob_x-pointer_off, knob_y-pointer_off) / 2;
+	double lengh_x = (knobx+radius+pointer_off/2) - radius * sin(angle);
+	double lengh_y = (knoby+radius+pointer_off/2) + radius * cos(angle);
+	double radius1 = min(knob_x, knob_y) / 2 ;
+
+	/** get widget forground color convert to cairo **/
+	GtkStyle *style = gtk_widget_get_style (widget);
+	double r = min(0.6,style->fg[gtk_widget_get_state(widget)].red/65535.0),
+		   g = min(0.6,style->fg[gtk_widget_get_state(widget)].green/65535.0),
+		   b = min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
+
+	/** paint focus **/
+	if (GTK_WIDGET_HAS_FOCUS(widget)== TRUE) {
+		gtk_paint_focus(widget->style, widget->window, GTK_STATE_NORMAL, NULL, widget, NULL,
+		                knobx-2, knoby-2, knob_x+4, knob_y+4);
+	}
+	/** create clowing knobs with cairo **/
+	cairo_t *cr = gdk_cairo_create(GDK_DRAWABLE(widget->window));
+	GdkRegion *region;
+	region = gdk_region_rectangle (&widget->allocation);
+	gdk_region_intersect (region, event->region);
+	gdk_cairo_region (cr, region);
+	cairo_clip (cr);
+
+	cairo_arc(cr,knobx1+arc_offset, knoby1+arc_offset, knob_x/2.1, 0, 2 * M_PI );
+	cairo_pattern_t*pat =
+		cairo_pattern_create_radial (knobx1+arc_offset-knob_x/6,knoby1+arc_offset-knob_x/6, 1,knobx1+arc_offset,knoby1+arc_offset,knob_x/2.1 );
+	if(adj->lower<0 && adj->value>0.) {
+		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4, g+0.4 + knobstate-knobstate1, b+0.4);
+		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15, g+0.15 + (knobstate-knobstate1)*0.5, b+0.15);
+		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+	} else if(adj->lower<0 && adj->value<=0.) {
+		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4 +knobstate1- knobstate, g+0.4, b+0.4);
+		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15 +(knobstate1- knobstate)*0.5, g+0.15, b+0.15);
+		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+	} else {
+		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4, g+0.4 +knobstate, b+0.4);
+		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15, g+0.15 + knobstate*0.5, b+0.15);
+		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+	}
+	cairo_set_source (cr, pat);
+	cairo_fill_preserve (cr);
+	gdk_cairo_set_source_color(cr, gtk_widget_get_style (widget)->fg);
+	cairo_set_line_width(cr, 2.0);
+	cairo_stroke(cr);
+
+	/** create a rotating pointer on the kob**/
+	cairo_set_source_rgb(cr,  0.1, 0.1, 0.1);
+	cairo_set_line_width(cr,max(3, min(7, knob_x/15)));
+	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+	cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
+	cairo_move_to(cr, knobx+radius1, knoby+radius1);
+	cairo_line_to(cr,lengh_x,lengh_y);
+	cairo_stroke(cr);
+	cairo_set_source_rgb(cr,  0.9, 0.9, 0.9);
+	cairo_set_line_width(cr,min(5, max(1,knob_x/30)));
+	cairo_move_to(cr, knobx+radius1, knoby+radius1);
+	cairo_line_to(cr,lengh_x,lengh_y);
+	cairo_stroke(cr);
+	cairo_pattern_destroy (pat);
+	gdk_region_destroy (region);
+	cairo_destroy(cr);
+}
+
+/****************************************************************
+ ** general expose events for all "knob" controllers
+ */
+
+//----------- draw the Knob when moved
+static gboolean gtk_knob_expose (GtkWidget *widget, GdkEventExpose *event)
+{
+	g_assert(GTK_IS_KNOB(widget));
+	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+	knob_expose(widget, klass->knob_x, klass->knob_y, event, 0);
+	return TRUE;
+}
+
+/****************************************************************
+ ** set initial size for GdkDrawable per type
+ */
+
+static void gtk_knob_size_request (GtkWidget *widget, GtkRequisition *requisition)
+{
+	g_assert(GTK_IS_KNOB(widget));
+	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+	requisition->width = klass->knob_x;
+	requisition->height = klass->knob_y;
+}
+
+/****************************************************************
+ ** set value from key bindings
+ */
+
+static void gtk_knob_set_value (GtkWidget *widget, int dir_down)
+{
+	g_assert(GTK_IS_KNOB(widget));
+
+	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+
+	int oldstep = (int)(0.5f + (adj->value - adj->lower) / adj->step_increment);
+	int step;
+	int nsteps = (int)(0.5f + (adj->upper - adj->lower) / adj->step_increment);
+	if (dir_down)
+		step = oldstep - 1;
+	else
+		step = oldstep + 1;
+	float value = adj->lower + step * double(adj->upper - adj->lower) / nsteps;
+	gtk_widget_grab_focus(widget);
+	gtk_range_set_value(GTK_RANGE(widget), value);
+}
+
+/****************************************************************
+ ** keyboard bindings
+ */
+
+static gboolean gtk_knob_key_press (GtkWidget *widget, GdkEventKey *event)
+{
+	g_assert(GTK_IS_KNOB(widget));
+
+	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+	switch (event->keyval) {
+	case GDK_Home:
+		gtk_range_set_value(GTK_RANGE(widget), adj->lower);
+		return TRUE;
+	case GDK_End:
+		gtk_range_set_value(GTK_RANGE(widget), adj->upper);
+		return TRUE;
+	case GDK_Up:
+		gtk_knob_set_value(widget, 0);
+		return TRUE;
+	case GDK_Right:
+		gtk_knob_set_value(widget, 0);
+		return TRUE;
+	case GDK_Down:
+		gtk_knob_set_value(widget, 1);
+		return TRUE;
+	case GDK_Left:
+		gtk_knob_set_value(widget, 1);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+/****************************************************************
+ ** alternative (radial) knob motion mode (ctrl + mouse pressed)
+ */
+
+static void knob_pointer_event(GtkWidget *widget, gdouble x, gdouble y, int knob_x, int knob_y,
+                               bool drag, int state)
+{
+	static double last_y = 2e20;
+	GtkKnob *knob = GTK_KNOB(widget);
+	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+	double radius =  min(knob_x, knob_y) / 2;
+	int  knobx = (widget->allocation.width - knob_x) / 2;
+	int  knoby = (widget->allocation.height - knob_y) / 2;
+	double posx = (knobx + radius) - x; // x axis right -> left
+	double posy = (knoby + radius) - y; // y axis top -> bottom
+	double value;
+	if (!drag) {
+		if (state & GDK_CONTROL_MASK) {
+			last_y = 2e20;
+			return;
+		} else {
+			last_y = posy;
+		}
+	}
+	if (last_y < 1e20) { // in drag started with Control Key
+		const double scaling = 0.005;
+		double scal = (state & GDK_SHIFT_MASK ? scaling*0.1 : scaling);
+		value = (last_y - posy) * scal;
+		last_y = posy;
+		gtk_range_set_value(GTK_RANGE(widget), adj->value - value * (adj->upper - adj->lower));
+		return;
+	}
+
+	double angle = atan2(-posx, posy) + M_PI; // clockwise, zero at 6 o'clock, 0 .. 2*M_PI
+	if (drag) {
+		// block "forbidden zone" and direct moves between quadrant 1 and 4
+		int quadrant = 1 + int(angle/M_PI_2);
+		if (knob->last_quadrant == 1 && (quadrant == 3 || quadrant == 4)) {
+			angle = scale_zero;
+		} else if (knob->last_quadrant == 4 && (quadrant == 1 || quadrant == 2)) {
+			angle = 2*M_PI - scale_zero;
+		} else {
+			if (angle < scale_zero) {
+				angle = scale_zero;
+			} else if (angle > 2*M_PI - scale_zero) {
+				angle = 2*M_PI - scale_zero;
+			}
+			knob->last_quadrant = quadrant;
+		}
+	} else {
+		if (angle < scale_zero) {
+			angle = scale_zero;
+		} else if (angle > 2*M_PI - scale_zero) {
+			angle = 2*M_PI - scale_zero;
+		}
+		knob->last_quadrant = 0;
+	}
+	angle = (angle - scale_zero) / (2 * (M_PI-scale_zero)); // normalize to 0..1
+	gtk_range_set_value(GTK_RANGE(widget), adj->lower + angle * (adj->upper - adj->lower));
+}
+
+/****************************************************************
+ ** mouse button pressed set value
+ */
+
+static gboolean gtk_knob_button_press (GtkWidget *widget, GdkEventButton *event)
+{
+	g_assert(GTK_IS_KNOB(widget));
+
+	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+
+
+	switch (event->button) {
+	case 1:  // left button
+		gtk_widget_grab_focus(widget);
+		gtk_widget_grab_default (widget);
+		gtk_grab_add(widget);
+		klass->button_is = 1;
+		knob_pointer_event(widget, event->x, event->y, klass->knob_x, klass->knob_y,
+						   false, event->state);
+		break;
+	case 2: //wheel
+		klass->button_is = 2;
+		break;
+	case 3:  // right button
+		klass->button_is = 3;
+		break;
+	default: // do nothing
+		break;
+	}
+	return TRUE;
+}
+
+/****************************************************************
+ ** mouse button release
+ */
+
+static gboolean gtk_knob_button_release (GtkWidget *widget, GdkEventButton *event)
+{
+	g_assert(GTK_IS_KNOB(widget));
+	GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget))->button_is = 0;
+	if (GTK_WIDGET_HAS_GRAB(widget))
+		gtk_grab_remove(widget);
+	return FALSE;
+}
+
+/****************************************************************
+ ** set the value from mouse movement
+ */
+
+static gboolean gtk_knob_pointer_motion (GtkWidget *widget, GdkEventMotion *event)
+{
+	g_assert(GTK_IS_KNOB(widget));
+	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+
+	gdk_event_request_motions (event);
+
+	if (GTK_WIDGET_HAS_GRAB(widget)) {
+		knob_pointer_event(widget, event->x, event->y, klass->knob_x, klass->knob_y,
+						   true, event->state);
+	}
+	return FALSE;
+}
+
+/****************************************************************
+ ** set value from mouseweel
+ */
+
+static gboolean gtk_knob_scroll (GtkWidget *widget, GdkEventScroll *event)
+{
+	usleep(5000);
+	gtk_knob_set_value(widget, event->direction);
+	return FALSE;
+}
+
+/****************************************************************
+ ** init the GtkKnobClass
+ */
+
+static void gtk_knob_class_init (GtkKnobClass *klass)
+{
+	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+
+	/** set here the sizes and steps for the used knob **/
+//--------- small knob size and steps
+
+	klass->knob_x = 30;
+	klass->knob_y = 30;
+	klass->knob_step = 86;
+
+//--------- event button
+	klass->button_is = 0;
+
+//--------- connect the events with funktions
+	widget_class->expose_event = gtk_knob_expose;
+	widget_class->size_request = gtk_knob_size_request;
+	widget_class->button_press_event = gtk_knob_button_press;
+	widget_class->button_release_event = gtk_knob_button_release;
+	widget_class->motion_notify_event = gtk_knob_pointer_motion;
+	widget_class->key_press_event = gtk_knob_key_press;
+	widget_class->scroll_event = gtk_knob_scroll;
+}
+
+/****************************************************************
+ ** init the Knob type/size
+ */
+
+static void gtk_knob_init (GtkKnob *knob)
+{
+	GtkWidget *widget = GTK_WIDGET(knob);
+	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+
+	GTK_WIDGET_SET_FLAGS (GTK_WIDGET(knob), GTK_CAN_FOCUS);
+	GTK_WIDGET_SET_FLAGS (GTK_WIDGET(knob), GTK_CAN_DEFAULT);
+
+	widget->requisition.width = klass->knob_x;
+	widget->requisition.height = klass->knob_y;
+
+}
+
+/****************************************************************
+ ** redraw when value changed
+ */
+
+static gboolean gtk_knob_value_changed(gpointer obj)
+{
+	GtkWidget *widget = (GtkWidget *)obj;
+	gtk_widget_queue_draw(widget);
+	return FALSE;
+}
+
+/****************************************************************
+ ** create small knob
+ */
+
+GtkWidget *GtkKnob::gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment)
+{
+	GtkWidget *widget = GTK_WIDGET( g_object_new (GTK_TYPE_KNOB, NULL ));
+	GtkKnob *knob = GTK_KNOB(widget);
+	knob->last_quadrant = 0;
+	if (widget) {
+		gtk_range_set_adjustment(GTK_RANGE(widget), _adjustment);
+		g_signal_connect(GTK_OBJECT(widget), "value-changed",
+		                 G_CALLBACK(gtk_knob_value_changed), widget);
+	}
+	return widget;
+}
+
+/****************************************************************
+ ** get the Knob type
+ */
+
+GType gtk_knob_get_type (void)
+{
+	static GType kn_type = 0;
+	if (!kn_type) {
+		static const GTypeInfo kn_info = {
+			sizeof(GtkKnobClass), NULL,  NULL, (GClassInitFunc)gtk_knob_class_init, NULL, NULL, sizeof (GtkKnob), 0, (GInstanceInitFunc)gtk_knob_init
+		};
+		kn_type = g_type_register_static(GTK_TYPE_RANGE,  "GtkKnob", &kn_info, (GTypeFlags)0);
+	}
+	return kn_type;
+}
+}/* end of gtk_knob namespace */
+
+gtk_knob::GtkKnob myGtkKnob;
+
 
 /**
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
@@ -434,9 +889,12 @@ class GTKUI : public UI
  private :
     static bool                         fInitialized;
     static list<UI*>                    fGuiList;
-    static map<FAUSTFLOAT*, FAUSTFLOAT>           fGuiSize;       // map widget zone with widget size coef
+    static map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
     static map<FAUSTFLOAT*, string>          fTooltip;       // map widget zone with tooltip strings
-    
+    static set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
+
+    bool isKnob(float* zone){return fKnobSet.count(zone) > 0;}
+
  protected :
     GtkWidget*  fWindow;
     int         fTop;
@@ -447,13 +905,13 @@ class GTKUI : public UI
     GtkWidget* addWidget(const char* label, GtkWidget* w);
     virtual void pushBox(int mode, GtkWidget* w);
 
-        
+
  public :
-    
+
     static const gboolean expand = TRUE;
     static const gboolean fill = TRUE;
     static const gboolean homogene = FALSE;
-         
+
     GTKUI(char * name, int* pargc, char*** pargv);
 
     // -- Labels and metadata
@@ -461,10 +919,10 @@ class GTKUI : public UI
     virtual void declare (FAUSTFLOAT* zone, const char* key, const char* value);
     virtual int  checkLabelOptions (GtkWidget* widget, const string& fullLabel, string& simplifiedLabel);
     virtual void checkForTooltip (FAUSTFLOAT* zone, GtkWidget* widget);
-    
+
     // -- layout groups
-    
-    virtual void openFrameBox(const char* label);   
+
+    virtual void openFrameBox(const char* label);
     virtual void openTabBox(const char* label = "");
     virtual void openHorizontalBox(const char* label = "");
     virtual void openVerticalBox(const char* label = "");
@@ -475,29 +933,30 @@ class GTKUI : public UI
     virtual void openEventBox(const char* label = "");
     virtual void openHandleBox(const char* label = "");
     virtual void openExpanderBox(const char* label, FAUSTFLOAT* zone);
-    
+
     virtual void closeBox();
     virtual void adjustStack(int n);
 
     // -- active widgets
-    
+
     virtual void addButton(const char* label, FAUSTFLOAT* zone);
     virtual void addToggleButton(const char* label, FAUSTFLOAT* zone);
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone);
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);   
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step); 
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+    virtual void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-    
+
     // -- passive display widgets
-    
+
     virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision);
     virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max);
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
-    
+
     virtual void show();
     virtual void run();
-    
+
 };
 
 /******************************************************************************
@@ -513,14 +972,16 @@ class GTKUI : public UI
 
 list<UI*>                   UI::fGuiList;
 
-bool                        GTKUI::fInitialized = false;
-map<FAUSTFLOAT*, FAUSTFLOAT>          GTKUI::fGuiSize;
+bool                             GTKUI::fInitialized = false;
+map<FAUSTFLOAT*, FAUSTFLOAT>     GTKUI::fGuiSize;
 map<FAUSTFLOAT*, string>         GTKUI::fTooltip;
+set<FAUSTFLOAT*>                 GTKUI::fKnobSet;       // set of widget zone to be knobs
+
 
 /**
-* Format tooltip string by replacing some white spaces by 
+* Format tooltip string by replacing some white spaces by
 * return characters so that line width doesn't exceed n.
-* Limitation : long words exceeding n are not cut 
+* Limitation : long words exceeding n are not cut
 */
 static string formatTooltip(int n, const string& tt)
 {
@@ -541,7 +1002,7 @@ static string formatTooltip(int n, const string& tt)
 
 static gint delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
 {
-    return FALSE; 
+    return FALSE;
 }
 
 static void destroy_event( GtkWidget *widget, gpointer data )
@@ -549,13 +1010,13 @@ static void destroy_event( GtkWidget *widget, gpointer data )
     gtk_main_quit ();
 }
 
-GTKUI::GTKUI(char * name, int* pargc, char*** pargv) 
+GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
 {
     if (!fInitialized) {
         gtk_init(pargc, pargv);
         fInitialized = true;
     }
-    
+
     fWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     //gtk_container_set_border_width (GTK_CONTAINER (fWindow), 10);
     gtk_window_set_title (GTK_WINDOW (fWindow), name);
@@ -588,7 +1049,7 @@ void GTKUI::adjustStack(int n)
     if (n > 0) {
         assert(fTop >= n);
 
-        fTop -= n; 
+        fTop -= n;
         fMode[fTop] = fMode[fTop+n];
         fBox[fTop]  = fBox[fTop+n];
     }
@@ -602,7 +1063,7 @@ void GTKUI::closeBox()
 
 /**
  * Analyses the widget zone metadata declarations and takes
- * appropriate actions 
+ * appropriate actions
  */
 void GTKUI::declare(FAUSTFLOAT* zone, const char* key, const char* value)
 {
@@ -612,16 +1073,21 @@ void GTKUI::declare(FAUSTFLOAT* zone, const char* key, const char* value)
     else if (strcmp(key,"tooltip")==0) {
         fTooltip[zone] = formatTooltip(30,value) ;
     }
+    else if (strcmp(key,"style")==0) {
+		if (strcmp(value,"knob") == 0) {
+			fKnobSet.insert(zone);
+		}
+    }
 }
-        
+
 /**
  * Analyses a full label and activates the relevant options. returns a simplified
  * label (without options) and an amount of stack adjustement (in case additional
- * containers were pushed on the stack). 
+ * containers were pushed on the stack).
  */
 
 int GTKUI::checkLabelOptions(GtkWidget* widget, const string& fullLabel, string& simplifiedLabel)
-{   
+{
     map<string, string> metadata;
     extractMetadata(fullLabel, simplifiedLabel, metadata);
 
@@ -653,7 +1119,7 @@ void GTKUI::openFrameBox(const char* label)
 {
     GtkWidget * box = gtk_frame_new (label);
     //gtk_container_set_border_width (GTK_CONTAINER (box), 10);
-            
+
     pushBox(kSingleMode, addWidget(label, box));
 }
 
@@ -671,13 +1137,13 @@ void GTKUI::openTabBox(const char* fullLabel)
 }
 
 void GTKUI::openHorizontalBox(const char* fullLabel)
-{   
+{
     string   label;
     GtkWidget* box = gtk_hbox_new (homogene, 4);
     int     adjust = checkLabelOptions(box, fullLabel, label);
 
     gtk_container_set_border_width (GTK_CONTAINER (box), 10);
-            
+
     if (fMode[fTop] != kTabMode && label[0] != 0) {
         GtkWidget * frame = addWidget(label.c_str(), gtk_frame_new (label.c_str()));
         gtk_container_add (GTK_CONTAINER(frame), box);
@@ -698,7 +1164,7 @@ void GTKUI::openVerticalBox(const char* fullLabel)
     int      adjust = checkLabelOptions(box, fullLabel, label);
 
     gtk_container_set_border_width (GTK_CONTAINER (box), 10);
-            
+
     if (fMode[fTop] != kTabMode && label[0] != 0) {
         GtkWidget * frame = addWidget(label.c_str(), gtk_frame_new (label.c_str()));
         gtk_container_add (GTK_CONTAINER(frame), box);
@@ -790,7 +1256,7 @@ void GTKUI::openExpanderBox(const char* label, FAUSTFLOAT* zone)
 }
 
 GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
-{ 
+{
     switch (fMode[fTop]) {
         case kSingleMode    : gtk_container_add (GTK_CONTAINER(fBox[fTop]), w);                             break;
         case kBoxMode       : gtk_box_pack_start (GTK_BOX(fBox[fTop]), w, expand, fill, 0);                 break;
@@ -805,9 +1271,9 @@ GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
 struct uiButton : public uiItem
 {
     GtkButton*  fButton;
-    
+
     uiButton (UI* ui, FAUSTFLOAT* zone, GtkButton* b) : uiItem(ui, zone), fButton(b) {}
-    
+
     static void pressed( GtkWidget *widget, gpointer   data )
     {
         uiItem* c = (uiItem*) data;
@@ -820,10 +1286,10 @@ struct uiButton : public uiItem
         c->modifyZone(0.0);
     }
 
-    virtual void reflectZone()  
-    { 
+    virtual void reflectZone()
+    {
         FAUSTFLOAT   v = *fZone;
-        fCache = v; 
+        fCache = v;
         if (v > 0.0) gtk_button_pressed(fButton); else gtk_button_released(fButton);
     }
 };
@@ -833,9 +1299,9 @@ void GTKUI::addButton(const char* label, FAUSTFLOAT* zone)
     *zone = 0.0;
     GtkWidget*  button = gtk_button_new_with_label (label);
     addWidget(label, button);
-    
+
     uiButton* c = new uiButton(this, zone, GTK_BUTTON(button));
-    
+
     gtk_signal_connect (GTK_OBJECT (button), "pressed", GTK_SIGNAL_FUNC (uiButton::pressed), (gpointer) c);
     gtk_signal_connect (GTK_OBJECT (button), "released", GTK_SIGNAL_FUNC (uiButton::released), (gpointer) c);
 
@@ -847,20 +1313,20 @@ void GTKUI::addButton(const char* label, FAUSTFLOAT* zone)
 struct uiToggleButton : public uiItem
 {
     GtkToggleButton* fButton;
-    
+
     uiToggleButton(UI* ui, FAUSTFLOAT* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
-    
+
     static void toggled (GtkWidget *widget, gpointer data)
     {
-        FAUSTFLOAT   v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0; 
+        FAUSTFLOAT   v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0;
         ((uiItem*)data)->modifyZone(v);
     }
 
-    virtual void reflectZone()  
-    { 
+    virtual void reflectZone()
+    {
         FAUSTFLOAT   v = *fZone;
-        fCache = v; 
-        gtk_toggle_button_set_active(fButton, v > 0.0); 
+        fCache = v;
+        gtk_toggle_button_set_active(fButton, v > 0.0);
     }
 };
 
@@ -869,7 +1335,7 @@ void GTKUI::addToggleButton(const char* label, FAUSTFLOAT* zone)
     *zone = 0.0;
     GtkWidget*  button = gtk_toggle_button_new_with_label (label);
     addWidget(label, button);
-    
+
     uiToggleButton* c = new uiToggleButton(this, zone, GTK_TOGGLE_BUTTON(button));
     gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC (uiToggleButton::toggled), (gpointer) c);
 
@@ -892,7 +1358,7 @@ void show_dialog(GtkWidget *widget, gpointer data)
 static gboolean deleteevent( GtkWidget *widget, gpointer   data )
 {
     return TRUE;
-} 
+}
 
 void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
 {
@@ -906,15 +1372,15 @@ void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
     gtk_window_set_position (GTK_WINDOW(dialog), GTK_WIN_POS_MOUSE);
     gtk_window_set_keep_below (GTK_WINDOW(dialog), FALSE);
     gtk_window_set_title (GTK_WINDOW (dialog), label);
-    g_signal_connect (G_OBJECT (dialog), "delete_event", G_CALLBACK (deleteevent), NULL); 
+    g_signal_connect (G_OBJECT (dialog), "delete_event", G_CALLBACK (deleteevent), NULL);
     gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog), TRUE);
 
     GtkWidget * box = gtk_hbox_new (homogene, 4);
- 
+
     *zone = 0.0;
     GtkWidget*  button = gtk_toggle_button_new ();
     gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC (show_dialog), (gpointer) dialog);
- 
+
     gtk_container_add (GTK_CONTAINER(fBox[fTop]), button);
     gtk_container_add (GTK_CONTAINER(dialog), box);
     gtk_widget_show (button);
@@ -927,20 +1393,20 @@ void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
 struct uiCheckButton : public uiItem
 {
     GtkToggleButton* fButton;
-    
+
     uiCheckButton(UI* ui, FAUSTFLOAT* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
-    
+
     static void toggled (GtkWidget *widget, gpointer data)
     {
-        FAUSTFLOAT   v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0; 
+        FAUSTFLOAT   v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0;
         ((uiItem*)data)->modifyZone(v);
     }
 
-    virtual void reflectZone()  
-    { 
+    virtual void reflectZone()
+    {
         FAUSTFLOAT   v = *fZone;
-        fCache = v; 
-        gtk_toggle_button_set_active(fButton, v > 0.0); 
+        fCache = v;
+        gtk_toggle_button_set_active(fButton, v > 0.0);
     }
 };
 
@@ -949,7 +1415,7 @@ void GTKUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
     *zone = 0.0;
     GtkWidget*  button = gtk_check_button_new_with_label (label);
     addWidget(label, button);
-    
+
     uiCheckButton* c = new uiCheckButton(this, zone, GTK_TOGGLE_BUTTON(button));
     gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC(uiCheckButton::toggled), (gpointer) c);
 
@@ -961,47 +1427,130 @@ void GTKUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
 struct uiAdjustment : public uiItem
 {
     GtkAdjustment* fAdj;
-    
+
     uiAdjustment(UI* ui, FAUSTFLOAT* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
-    
+
     static void changed (GtkWidget *widget, gpointer data)
     {
-        FAUSTFLOAT   v = GTK_ADJUSTMENT (widget)->value; 
+        FAUSTFLOAT   v = GTK_ADJUSTMENT (widget)->value;
         ((uiItem*)data)->modifyZone(v);
     }
 
-    virtual void reflectZone()  
-    { 
+    virtual void reflectZone()
+    {
         FAUSTFLOAT   v = *fZone;
-        fCache = v; 
-        gtk_adjustment_set_value(fAdj, v);  
+        fCache = v;
+        gtk_adjustment_set_value(fAdj, v);
     }
 };
 
-static int precision(double n)
+// --------------------------- format knob value display ---------------------------
+
+struct uiValueDisplay : public uiItem
 {
-    if (n < 0.009999) return 3;
-    else if (n < 0.099999) return 2;
-    else if (n < 0.999999) return 1;
-    else return 0;
+	GtkLabel* fLabel;
+	int	fPrecision ;
+
+	uiValueDisplay(UI* ui, float* zone, GtkLabel* label, int precision)
+		: uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
+
+	virtual void reflectZone()
+		{
+			float v = *fZone;
+			fCache = v;
+			char s[64];
+			if (fPrecision <= 0)
+				snprintf(s, 63, "%d", int(v));
+
+			else if (fPrecision > 3)
+				snprintf(s, 63, "%f", v);
+
+			else if (fPrecision == 1)
+			{
+				const char* format[] = {"%.1f", "%.2f", "%.3f"};
+				snprintf(s, 63, format[1-1], v);
+			}
+			else if (fPrecision == 2)
+			{
+				const char* format[] = {"%.1f", "%.2f", "%.3f"};
+				snprintf(s, 63, format[2-1], v);
+			}
+			else
+			{
+				const char* format[] = {"%.1f", "%.2f", "%.3f"};
+				snprintf(s, 63, format[3-1], v);
+			}
+			gtk_label_set_text(fLabel, s);
+		}
+};
+
+// ------------------------------- Knob -----------------------------------------
+
+void GTKUI::addKnob(const char* label, float* zone, float init, float min, float max, float step)
+{
+	*zone = init;
+    GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
+
+    uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
+
+    gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
+
+	GtkWidget* slider = gtk_vbox_new (FALSE, 0);
+	GtkWidget* fil = gtk_vbox_new (FALSE, 0);
+	GtkWidget* rei = gtk_vbox_new (FALSE, 0);
+	GtkWidget* re =myGtkKnob.gtk_knob_new_with_adjustment(GTK_ADJUSTMENT(adj));
+	GtkWidget* lw = gtk_label_new("");
+	new uiValueDisplay(this, zone, GTK_LABEL(lw),precision(step));
+	gtk_container_add (GTK_CONTAINER(rei), re);
+	if(fGuiSize[zone]) {
+		float size = 30 * fGuiSize[zone];
+		gtk_widget_set_size_request(rei, size, size );
+		gtk_box_pack_start (GTK_BOX(slider), fil, TRUE, TRUE, 0);
+		gtk_box_pack_start (GTK_BOX(slider), rei, FALSE, FALSE, 0);
+	} else {
+		gtk_container_add (GTK_CONTAINER(slider), fil);
+		gtk_container_add (GTK_CONTAINER(slider), rei);
+	}
+	gtk_container_add (GTK_CONTAINER(slider), lw);
+	gtk_widget_show_all(slider);
+
+	if (label && label[0]!=0) {
+        openFrameBox(label);
+        addWidget(label, slider);
+        closeBox();
+    } else {
+        addWidget(label, slider);
+    }
+
+    checkForTooltip(zone, slider);
 }
 
 // -------------------------- Vertical Slider -----------------------------------
 
 void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
+    if (isKnob(zone)) {
+		addKnob(label, zone, init, min, max, step);
+		return;
+	}
     *zone = init;
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
-    
+
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
 
     gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
-    
-    GtkWidget* slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
+
+    gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
+
+	GtkWidget* slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
+	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
+	FAUSTFLOAT size = 160;
+	if(fGuiSize[zone]) {
+		size = 160 * fGuiSize[zone];
+	}
+	gtk_widget_set_size_request(slider, -1, size);
+
     gtk_range_set_inverted (GTK_RANGE(slider), TRUE);
-    gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
-    FAUSTFLOAT size = 160 * pow(2, fGuiSize[zone]);
-    gtk_widget_set_usize(slider, -1, size);
 
     if (label && label[0]!=0) {
         openFrameBox(label);
@@ -1018,25 +1567,33 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
 
 void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
+    if (isKnob(zone)) {
+		addKnob(label, zone, init, min, max, step);
+		return;
+	}
     *zone = init;
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
-    
+
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
 
     gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
-    
+
     GtkWidget* slider = gtk_hscale_new (GTK_ADJUSTMENT(adj));
-    gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
-    FAUSTFLOAT size = 160 * pow(2, fGuiSize[zone]);
-    gtk_widget_set_usize(slider, size, -1);
-    
+	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
+	FAUSTFLOAT size = 160;
+	if(fGuiSize[zone]) {
+		size = 160 * fGuiSize[zone];
+	}
+	gtk_widget_set_size_request(slider, size, -1);
+
+
     if (label && label[0]!=0) {
         openFrameBox(label);
         addWidget(label, slider);
         closeBox();
     } else {
         addWidget(label, slider);
-    }             
+    }
 
     checkForTooltip(zone, slider);
 }
@@ -1045,16 +1602,19 @@ void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
 
 void GTKUI::addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
+    if (isKnob(zone)) {
+		addKnob(label, zone, init, min, max, step);
+		return;
+	}
     *zone = init;
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, step);
-    
+
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
 
     gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
-    
+
     GtkWidget* spinner = gtk_spin_button_new (GTK_ADJUSTMENT(adj), 0.005, precision(step));
 
-    //gtk_widget_set_usize(slider, 160, -1);
     openFrameBox(label);
     addWidget(label, spinner);
     closeBox();
@@ -1071,21 +1631,21 @@ struct uiBargraph : public uiItem
     GtkProgressBar*     fProgressBar;
     FAUSTFLOAT               fMin;
     FAUSTFLOAT               fMax;
-    
-    uiBargraph(UI* ui, FAUSTFLOAT* zone, GtkProgressBar* pbar, FAUSTFLOAT lo, FAUSTFLOAT hi) 
+
+    uiBargraph(UI* ui, FAUSTFLOAT* zone, GtkProgressBar* pbar, FAUSTFLOAT lo, FAUSTFLOAT hi)
             : uiItem(ui, zone), fProgressBar(pbar), fMin(lo), fMax(hi) {}
 
     FAUSTFLOAT scale(FAUSTFLOAT v)        { return (v-fMin)/(fMax-fMin); }
-    
-    virtual void reflectZone()  
-    { 
+
+    virtual void reflectZone()
+    {
         FAUSTFLOAT   v = *fZone;
-        fCache = v; 
-        gtk_progress_bar_set_fraction(fProgressBar, scale(v));  
+        fCache = v;
+        gtk_progress_bar_set_fraction(fProgressBar, scale(v));
     }
 };
 
-    
+
 
 void GTKUI::addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
 {
@@ -1099,7 +1659,7 @@ void GTKUI::addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
 
     checkForTooltip(zone, pb);
 }
-    
+
 
 void GTKUI::addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
 {
@@ -1121,17 +1681,17 @@ struct uiNumDisplay : public uiItem
 {
     GtkLabel* fLabel;
     int fPrecision;
-    
-    uiNumDisplay(UI* ui, FAUSTFLOAT* zone, GtkLabel* label, int precision) 
+
+    uiNumDisplay(UI* ui, FAUSTFLOAT* zone, GtkLabel* label, int precision)
             : uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
 
-    virtual void reflectZone()  
-    { 
+    virtual void reflectZone()
+    {
         FAUSTFLOAT   v = *fZone;
         fCache = v;
-        char s[64]; 
-        if (fPrecision <= 0) { 
-            snprintf(s, 63, "%d", int(v)); 
+        char s[64];
+        if (fPrecision <= 0) {
+            snprintf(s, 63, "%d", int(v));
         } else if (fPrecision>3) {
             snprintf(s, 63, "%f", v);
         } else {
@@ -1141,7 +1701,7 @@ struct uiNumDisplay : public uiItem
         gtk_label_set_text(fLabel, s);
     }
 };
-    
+
 void GTKUI::addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision )
 {
     GtkWidget* lw = gtk_label_new("");
@@ -1162,7 +1722,7 @@ struct uiTextDisplay : public uiItem
     FAUSTFLOAT           fMin;
     FAUSTFLOAT           fMax;
     int             fNum;
-        
+
     uiTextDisplay (UI* ui, FAUSTFLOAT* zone, GtkLabel* label, const char* names[], FAUSTFLOAT lo, FAUSTFLOAT hi)
                     : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
     {
@@ -1170,20 +1730,20 @@ struct uiTextDisplay : public uiItem
         while (fNames[fNum] != 0) fNum++;
     }
 
-    virtual void reflectZone()  
-    { 
+    virtual void reflectZone()
+    {
         FAUSTFLOAT   v = *fZone;
         fCache = v;
-        
+
         int idx = int(fNum*(v-fMin)/(fMax-fMin));
-        
-        if      (idx < 0)       idx = 0; 
+
+        if      (idx < 0)       idx = 0;
         else if (idx >= fNum)   idx = fNum-1;
-                
-        gtk_label_set_text(fLabel, fNames[idx]); 
+
+        gtk_label_set_text(fLabel, fNames[idx]);
     }
 };
-    
+
 void GTKUI::addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT lo, FAUSTFLOAT hi)
 {
     GtkWidget* lw = gtk_label_new("");
@@ -1195,7 +1755,7 @@ void GTKUI::addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* name
     checkForTooltip(zone, lw);
 }
 
-void GTKUI::show() 
+void GTKUI::show()
 {
     assert(fTop == 0);
     gtk_widget_show  (fBox[0]);
@@ -1206,14 +1766,14 @@ void GTKUI::show()
 /**
  * Update all user items reflecting zone z
  */
-    
+
 static gboolean callUpdateAllGuis(gpointer)
-{ 
-    UI::updateAllGuis(); 
+{
+    UI::updateAllGuis();
     return TRUE;
 }
 
-void GTKUI::run() 
+void GTKUI::run()
 {
     assert(fTop == 0);
     gtk_widget_show  (fBox[0]);
@@ -1234,21 +1794,21 @@ void GTKUI::run()
 //----------------------------------------------------------------
 //  Definition of an abstract signal processor
 //----------------------------------------------------------------
-	
+
 class dsp {
  protected:
 	int fSamplingFreq;
  public:
 	dsp() {}
 	virtual ~dsp() {}
-	
+
 	virtual int getNumInputs() 										= 0;
 	virtual int getNumOutputs() 									= 0;
 	virtual void buildUserInterface(UI* interface) 					= 0;
 	virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
 };
-		
+
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
@@ -1258,8 +1818,8 @@ extern "C" {
 #endif
 
 // -- layout groups
-	
-typedef void (* openFrameBoxFun) (void* interface, const char* label);	
+
+typedef void (* openFrameBoxFun) (void* interface, const char* label);
 typedef void (* openTabBoxFun) (void* interface, const char* label);
 typedef void (* openHorizontalBoxFun) (void* interface, const char* label);
 typedef void (* openVerticalBoxFun) (void* interface, const char* label);
@@ -1270,8 +1830,8 @@ typedef void (*closeBoxFun) (void* interface);
 typedef void (* addButtonFun) (void* interface, const char* label, FAUSTFLOAT* zone);
 typedef void (* addToggleButtonFun) (void* interface, const char* label, FAUSTFLOAT* zone);
 typedef void (* addCheckButtonFun) (void* interface, const char* label, FAUSTFLOAT* zone);
-typedef void (* addVerticalSliderFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);	
-typedef void (* addHorizontalSliderFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);	
+typedef void (* addVerticalSliderFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+typedef void (* addHorizontalSliderFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 typedef void (* addNumEntryFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 
 // -- passive display widgets
@@ -1281,12 +1841,12 @@ typedef void (* addTextDisplayFun) (void* interface, const char* label, FAUSTFLO
 typedef void (* addHorizontalBargraphFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
 typedef void (* addVerticalBargraphFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
 
-typedef void (* declareFun) (void* interface, FAUSTFLOAT* zone, const char* key, const char* value);	
+typedef void (* declareFun) (void* interface, FAUSTFLOAT* zone, const char* key, const char* value);
 
 struct UIGlue {
 
     void* uiInterface;
-    
+
     openFrameBoxFun openFrameBox;
     openTabBoxFun openTabBox;
     openHorizontalBoxFun openHorizontalBox;
@@ -1407,42 +1967,42 @@ void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const c
 #endif
 
 <<includeclass>>
-				
+
 class Cdsp : public dsp {
 
   private:
-  
+
 	c_mydsp* fDsp;
-	
+
   public:
-  
-	Cdsp() 
+
+	Cdsp()
 	{
         fDsp = c_newDsp();
 	}
-	
-	virtual ~Cdsp() 
+
+	virtual ~Cdsp()
 	{
 		c_deleteDsp(fDsp);
 	}
 	virtual int getNumInputs() 	{ return c_getNumInputs(fDsp); }
 	virtual int getNumOutputs() { return c_getNumOutputs(fDsp); }
-	
-	static void classInit(int samplingFreq) 
+
+	static void classInit(int samplingFreq)
     {
         c_classInit(samplingFreq);
     }
-	
-	virtual void instanceInit(int samplingFreq) 
+
+	virtual void instanceInit(int samplingFreq)
     {
 		c_instanceInit(fDsp, samplingFreq);
 	}
-	
+
 	virtual void init(int samplingFreq) {
 		c_init(fDsp, samplingFreq);
 	}
-    
-	virtual void buildUserInterface(UI* interface) 
+
+	virtual void buildUserInterface(UI* interface)
     {
         UIGlue glue;
         glue.uiInterface = interface;
@@ -1462,19 +2022,19 @@ class Cdsp : public dsp {
         glue.addHorizontalBargraph = addHorizontalBargraphGlue;
         glue.addVerticalBargraph = addVerticalBargraphGlue;
         glue.declare = declareGlue;
-        
+
         c_buildUserInterface(fDsp, &glue);
   	}
-    
-	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output) 
+
+	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     {
 		c_compute(fDsp, count, input, output);
 	}
 };
 
-		
 
-		
+
+
 Cdsp*	DSP;
 
 /******************************************************************************
@@ -1512,7 +2072,7 @@ double* gOutDoubleChannel[256];
 #endif
 
 //----------------------------------------------------------------------------
-// Jack Callbacks 
+// Jack Callbacks
 //----------------------------------------------------------------------------
 
 int srate(jack_nframes_t nframes, void *arg)
@@ -1550,7 +2110,7 @@ void printstats()
     low = hi = tot = (stops[KSKIP] - starts[KSKIP]);
 
     if (mesure < KMESURE) {
-    
+
         for (int i = KSKIP+1; i<mesure; i++) {
             unsigned long long int m = stops[i] - starts[i];
             if (m<low) low = m;
@@ -1560,7 +2120,7 @@ void printstats()
         cout << low << ' ' << tot/(mesure-KSKIP) << ' ' << hi << endl;
 
     } else {
-    
+
         for (int i = KSKIP+1; i<KMESURE; i++) {
             unsigned long long int m = stops[i] - starts[i];
             if (m<low) low = m;
@@ -1569,7 +2129,7 @@ void printstats()
         }
         cout << low << ' ' << tot/(KMESURE-KSKIP) << ' ' << hi << endl;
 
-    }    
+    }
 }
 
 #else
@@ -1592,7 +2152,7 @@ int process (jack_nframes_t nframes, void *arg)
 	    gOutChannel[i] = (float *)jack_port_get_buffer(output_ports[i], nframes);
 	}
     STARTMESURE
-    
+
     #ifdef IS_DOUBLE
         // Copy float to double
         for (int chan = 0; chan < gNumInChans; chan++) {
@@ -1600,10 +2160,10 @@ int process (jack_nframes_t nframes, void *arg)
                 gInDoubleChannel[chan][frames] = double(gInChannel[chan][frames]);
             }
         }
-        
+
         // Compute
         DSP->compute(nframes, (FAUSTFLOAT**)gInDoubleChannel, (FAUSTFLOAT**)gOutDoubleChannel);
-        
+
         // Copy double to float
         for (int chan = 0; chan < gNumOutChans; chan++) {
             for (int frames = 0; frames < nframes; frames++) {
@@ -1613,8 +2173,8 @@ int process (jack_nframes_t nframes, void *arg)
     #else
         DSP->compute(nframes, gInChannel, gOutChannel);
     #endif
-	
-    STOPMESURE  
+
+    STOPMESURE
 	return 0;
 }
 
@@ -1625,7 +2185,7 @@ int process (jack_nframes_t nframes, void *arg)
 
 *******************************************************************************
 *******************************************************************************/
-	
+
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
@@ -1633,7 +2193,7 @@ int process (jack_nframes_t nframes, void *arg)
 int main(int argc, char *argv[] )
 {
     UI*                 interface;
-    jack_client_t*      client; 
+    jack_client_t*      client;
     char                buf[256];
     char                rcfilename[256];
     jack_status_t       jackstat;
@@ -1655,12 +2215,12 @@ int main(int argc, char *argv[] )
 
     jack_set_process_callback(client, process, 0);
     jack_on_shutdown(client, jack_shutdown, 0);
-    
+
     DSP = new Cdsp();
-    
+
     gNumInChans = DSP->getNumInputs();
     gNumOutChans = DSP->getNumOutputs();
-    
+
     for (int i = 0; i < gNumInChans; i++) {
         snprintf(buf, 256, "in_%d", i);
         input_ports[i] = jack_port_register(client, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
@@ -1675,7 +2235,7 @@ int main(int argc, char *argv[] )
         gOutDoubleChannel[i] = (double*)malloc(sizeof(double) * jack_get_buffer_size(client));
     #endif
     }
-    
+
     interface = new GTKUI (jname, &argc, &argv);
     DSP->init(jack_get_sample_rate(client));
     DSP->buildUserInterface(interface);
@@ -1689,7 +2249,7 @@ int main(int argc, char *argv[] )
         fprintf(stderr, "Can't activate JACK client\n");
         return 1;
     }
-    
+
     pname = getenv("FAUST2JACK_INPUTS");
     if (pname && *pname) {
        for (int i = 0; i < gNumInChans; i++) {
@@ -1703,26 +2263,26 @@ int main(int argc, char *argv[] )
         for (int i = 0; i < gNumOutChans; i++) {
             snprintf(buf, 256, pname, i + 1);
             jack_connect(client, jack_port_name(output_ports[i]), buf);
-        }       
+        }
     }
-    
+
     interface->run();
     jack_deactivate(client);
-    
+
     for (int i = 0; i < gNumInChans; i++) {
         jack_port_unregister(client, input_ports[i]);
     }
     for (int i = 0; i < gNumOutChans; i++) {
         jack_port_unregister(client, output_ports[i]);
     }
-    
+
     jack_client_close(client);
     interface->saveState(rcfilename);
 
 #ifdef BENCHMARKMODE
     printstats();
 #endif
- 
+
     delete DSP;
     return 0;
 }
