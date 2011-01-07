@@ -86,6 +86,9 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
         */
 
+        int rate = getSigRate(sig);
+        fContainer->setOutputRate(index, rate);
+
         /*
         Tim...
         int rate = getSigRate(sig);
