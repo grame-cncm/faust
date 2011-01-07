@@ -546,7 +546,8 @@ int main (int argc, char* argv[])
 	startTiming("evaluation");
 
 
-	Tree process = evalprocess(gExpandedDefList);
+    Tree process = evalprocess(gExpandedDefList);
+
 	if (gErrorCount > 0) {
        // cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n";
         cerr << "Total of " << gErrorCount << " errors during the compilation of  " << gMasterDocument << ";\n";

@@ -80,12 +80,12 @@ static Tree		evalPattern(Tree pattern, Tree env);
 
 static Tree 	patternSimplification (Tree pattern);
 static bool 	isBoxNumeric (Tree in, Tree& out);
-static Tree 	replaceBoxNumeric (Tree exp);
-
 
 static Tree 	vec2list(const vector<Tree>& v);
 static void 	list2vec(Tree l, vector<Tree>& v);
 static Tree 	listn (int n, Tree e);
+
+static Tree     boxSimplification(Tree box);
 
 // Public Interface
 //----------------------
@@ -100,7 +100,13 @@ static Tree 	listn (int n, Tree e);
  */
 Tree evalprocess (Tree eqlist)
 {
-	return a2sb(eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlist, nil, nil)));
+    Tree b = a2sb(eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlist, nil, nil)));
+
+    if (gSimplifyDiagrams) {
+        b = boxSimplification(b);
+    }
+
+    return b;
 }
 
 
@@ -210,14 +216,7 @@ static Tree real_a2sb(Tree exp)
             if (b != m) modified=true;
 		}
         Tree r = (modified) ? CTree::make(exp->node(), B) : exp;
-        if (gSimplifyDiagrams) {
-            return replaceBoxNumeric(r);
-        } else {
-            return r;
-        }
-/*
-        if (modified) {
-		return replaceBoxNumeric(CTree::make(exp->node(), exp->arity(), B));*/
+        return r;
 	}
 }
 
@@ -581,36 +580,6 @@ bool getNumericProperty(Tree t, Tree& num)
 	return getProperty(t, NUMERICPROPERTY, num);
 }
 
-
-static Tree replaceBoxNumeric (Tree exp)
-{
-	int 	numInputs, numOutputs;
-	double 	x; 
-	int		i;
-	Tree	out;
-	
-	if (isBoxInt(exp, &i) || isBoxReal(exp, &x)) {
-		return exp;
-	} else if (getNumericProperty(exp, out)) {
-		return out;
-	} else {
-        //cerr << "TRACEPOINT 2" << endl;
-		if ( getBoxType(exp, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {
-			// potential numerical expression
-			Tree lsignals = boxPropagateSig(nil, exp , makeSigInputList(numInputs) );
-			assert(isList(lsignals));
-			Tree res = simplify(hd(lsignals));
-			if (isSigReal(res, &x))			out = boxReal(x);
-			else if (isSigInt(res, &i))		out = boxInt(i);
-			else out =  exp;
-		} else {
-			out = exp;
-		}
-		setNumericProperty(exp,out);
-		return out;
-	}
-}
-
 /**
  * Simplify a block-diagram pattern by computing its numerical sub-expressions
  * \param pattern an evaluated block-diagram
@@ -634,31 +603,31 @@ Tree simplifyPattern (Tree value)
 
 static bool isBoxNumeric (Tree in, Tree& out)
 {
-	int 	numInputs, numOutputs;
-	double 	x; 
-	int		i;
-	Tree 	v;
-	
-	if (isBoxInt(in, &i) || isBoxReal(in, &x)) {
-		out = in;
-		return true;
-	} else {
-		v = a2sb(in);
-		if ( getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {
-			// potential numerical expression
-			Tree lsignals = boxPropagateSig(nil, v , makeSigInputList(numInputs) );
-			Tree res = simplify(hd(lsignals));
-			if (isSigReal(res, &x)) 	{
-			out = boxReal(x);
-			return true;
-			}
-			if (isSigInt(res, &i))  	{
-			out = boxInt(i);
-			return true;
-			}
-		} 
-		return false;
-	}
+    int 	numInputs, numOutputs;
+    double 	x;
+    int		i;
+    Tree 	v;
+
+    if (isBoxInt(in, &i) || isBoxReal(in, &x)) {
+        out = in;
+        return true;
+    } else {
+        v = a2sb(in);
+        if ( getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {
+            // potential numerical expression
+            Tree lsignals = boxPropagateSig(nil, v , makeSigInputList(numInputs) );
+            Tree res = simplify(hd(lsignals));
+            if (isSigReal(res, &x)) 	{
+            out = boxReal(x);
+            return true;
+            }
+            if (isSigInt(res, &i))  	{
+            out = boxInt(i);
+            return true;
+            }
+        }
+        return false;
+    }
 }
 
 static Tree patternSimplification (Tree pattern)
@@ -1315,4 +1284,245 @@ static Tree vec2list(const vector<Tree>& v)
 	int	 n = v.size();
 	while (n--) { l = cons(v[n],l); }
 	return l;
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// further simplification : replace bloc-diagrams that denote constant number by this number
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static property<Tree> SimplifiedBoxProperty;
+
+static Tree realBoxSimplification (Tree box);
+
+Tree boxSimplification (Tree box)
+{
+    int     ins, outs;
+    Tree    simplified;
+
+    //cerr << "BoxSimplification of " << boxpp(box) << endl;
+
+    if (SimplifiedBoxProperty.get(box,simplified)) {
+        // already simplified
+        return simplified;
+    } else {
+        // we need to compute the simplified form and attach
+        // it as a property
+        if ( ! getBoxType(box, &ins, &outs)) {
+            cerr << "Strange : Not a Valid Box" << *box << endl;
+            exit(1);
+        }
+
+        Tree    result;
+        int     i;
+        double  x;
+
+        if (ins==0 && outs==1) {
+            // this box can potentially denote a number
+            if (isBoxInt(box, &i) || isBoxReal(box, &x)) {
+               result = box;
+            } else {
+                // propagate signals to discover if it simplifies to a number
+                int     i;
+                double  x;
+                Tree    lsignals = boxPropagateSig(nil, box , makeSigInputList(0));
+                Tree    s = simplify(hd(lsignals));
+
+                if (isSigReal(s, &x)) 	{
+                    result = boxReal(x);
+                } else if (isSigInt(s, &i))  	{
+                    result = boxInt(i);
+                } else {
+                    result = realBoxSimplification(box);
+                }
+            }
+        } else {
+            // this box can't denote a number
+            result = realBoxSimplification(box);
+        }
+
+        // transferts name property
+        Tree name;
+        if (getDefNameProperty(box, name)) setDefNameProperty(result, name);
+
+        // attach result as a property
+        SimplifiedBoxProperty.set(box,result);
+
+        //cerr << "BoxSimplification of " << boxpp(box) << " ==> " << boxpp(result) << endl;
+
+        return result;
+    }
+}
+
+Tree realBoxSimplification (Tree box)
+{
+    int		i;
+    double	r;
+    prim0	p0;
+    prim1	p1;
+    prim2	p2;
+    prim3	p3;
+    prim4	p4;
+    prim5	p5;
+
+    Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body;
+
+
+    xtended* xt = (xtended*)getUserData(box);
+
+    // Extended Primitives
+
+    if (xt)	{
+        return box;
+    }
+
+    // Numbers and Constants
+
+    else if (isBoxInt(box, &i)) 	{
+        return box;
+    }
+    else if (isBoxReal(box, &r)) 	{
+        return box;
+    }
+
+    else if (isBoxFConst(box, type, name, file))    {
+        return box;
+    }
+
+    else if (isBoxFVar(box, type, name, file))    {
+        return box;
+    }
+
+    // Wire and Cut
+
+    else if (isBoxCut(box)) 				{
+        return box;
+    }
+
+    else if (isBoxWire(box)) 				{
+        return box;
+    }
+
+    // Slots and Symbolic Boxes
+
+    else if (isBoxSlot(box)) 				{
+        return box;;
+    }
+
+    else if (isBoxSymbolic(box, slot, body)){
+
+        Tree b = boxSimplification(body);
+        return boxSymbolic(slot,b);
+    }
+
+    // Primitives
+
+    else if (isBoxPrim0(box, &p0)) 			{
+        return box;
+    }
+
+    else if (isBoxPrim1(box, &p1)) 			{
+        return box;
+    }
+
+    else if (isBoxPrim2(box, &p2)) 				{
+        return box;
+    }
+
+    else if (isBoxPrim3(box, &p3)) 				{
+        return box;
+    }
+
+    else if (isBoxPrim4(box, &p4)) 				{
+        return box;
+    }
+
+    else if (isBoxPrim5(box, &p5)) 				{
+        return box;
+    }
+
+    else if (isBoxFFun(box, ff)) 				{
+        return box;
+    }
+
+    // User Interface Widgets
+
+    else if (isBoxButton(box, label)) 	{
+        return box;
+    }
+
+    else if (isBoxCheckbox(box, label)) 	{
+        return box;
+    }
+
+    else if (isBoxVSlider(box, label, cur, min, max, step)) 	{
+        return box;
+    }
+
+    else if (isBoxHSlider(box, label, cur, min, max, step)) 	{
+        return box;
+    }
+
+    else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{
+        return box;
+    }
+
+    else if (isBoxVBargraph(box, label, min, max)) 	{
+        return box;
+    }
+
+    else if (isBoxHBargraph(box, label, min, max)) 	{
+        return box;
+    }
+
+    // User Interface Groups
+
+    else if (isBoxVGroup(box, label, t1)) 	{
+        return boxVGroup(label, boxSimplification(t1));
+    }
+
+    else if (isBoxHGroup(box, label, t1)) 	{
+        return boxHGroup(label, boxSimplification(t1));
+    }
+
+    else if (isBoxTGroup(box, label, t1)) 	{
+        return boxTGroup(label, boxSimplification(t1));
+    }
+
+    // Block Diagram Composition Algebra
+
+    else if (isBoxSeq(box, t1, t2)) 	{
+        Tree s1 = boxSimplification(t1);
+        Tree s2 = boxSimplification(t2);
+        return boxSeq(s1,s2);
+    }
+
+    else if (isBoxPar(box, t1, t2)) 	{
+        Tree s1 = boxSimplification(t1);
+        Tree s2 = boxSimplification(t2);
+        return boxPar(s1,s2);
+    }
+
+    else if (isBoxSplit(box, t1, t2)) 	{
+        Tree s1 = boxSimplification(t1);
+        Tree s2 = boxSimplification(t2);
+        return boxSplit(s1,s2);
+    }
+
+    else if (isBoxMerge(box, t1, t2)) 	{
+        Tree s1 = boxSimplification(t1);
+        Tree s2 = boxSimplification(t2);
+        return boxMerge(s1,s2);
+    }
+    else if (isBoxRec(box, t1, t2)) 	{
+        Tree s1 = boxSimplification(t1);
+        Tree s2 = boxSimplification(t2);
+        return boxRec(s1,s2);
+    }
+
+    cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << *box << endl;
+    exit(1);
+    return 0;
 }
