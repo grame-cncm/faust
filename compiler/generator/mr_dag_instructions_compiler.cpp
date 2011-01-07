@@ -411,7 +411,7 @@ Tim...
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorAt(Tree sig, Tree exp, Tree index)
 {
-    int rate = getSigRate(sig);
+    int sigRate = getSigRate(sig);
 
     ValueInst * compiledExpression = CS(exp);
     LoadVarInst * loadExpression = dynamic_cast<LoadVarInst*>(compiledExpression);
@@ -424,11 +424,11 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorAt(Tree sig, Tree exp
 
     Type sigType = getSigType(sig);
 
-    DeclareTypeInst* typeInst = InstBuilder::genType(sigType, rate, gVecSize);
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
     pushGlobalDeclare(typeInst);
 
     string vecname = getFreshID("fAt");
-    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
 
     StatementInst * storeInst = InstBuilder::genStoreStackVar(vecname, loadedCode);
@@ -442,11 +442,11 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
     int sigRate = getSigRate(sig);
     Type sigType = getSigType(sig);
 
-    DeclareTypeInst* typeInst = InstBuilder::genType(sigType, sigRate, gVecSize);
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
 
     pushGlobalDeclare(typeInst);
     string vecname = getFreshID("fConcat");
-    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
 
     Type exp1Type = getSigType(exp1);
