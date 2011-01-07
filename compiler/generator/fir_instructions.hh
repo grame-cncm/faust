@@ -91,6 +91,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else if (array_typed) {
                 BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
                 ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+                NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
                 if (basic_typed1) {
@@ -104,6 +105,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                         : fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]";
                 } else if (array_typed1) {
                     return generateType(array_typed1) + "[" + num_str.str() + "]";
+                } else if (named_typed1) {
+                    return named_typed1->fName + "[" + num_str.str() + "]";
                 } else {
                     assert(false);
                     return "";
@@ -139,6 +142,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else if (array_typed) {
                 BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
                 ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+                NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
                 if (basic_typed1) {
@@ -152,6 +156,8 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                         //: "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\", " + name;
                 } else if (array_typed1) {
                     return generateType(array_typed1) + "[" + num_str.str() + "]";
+                } else if (named_typed1) {
+                    return named_typed1->fName + "[" + num_str.str() + "]";
                 } else {
                     assert(false);
                     return "";

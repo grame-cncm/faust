@@ -799,7 +799,12 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         virtual void visit(DeclareTypeInst* inst)
         {
             // TODO : recursive array types...
-            *fOut << "typedef " << generateType(inst->fType);
+            //*fOut << "typedef " << generateType(inst->fType);
+            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(inst->fType);
+            assert(named_typed);
+            *fOut << "struct " << named_typed->fName << " {" << endl;
+            *fOut << "\t" << generateType(named_typed->fType); EndLine();
+            *fOut << "}";
             EndLine();
         }
 

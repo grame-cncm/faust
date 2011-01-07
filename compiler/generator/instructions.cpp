@@ -118,6 +118,10 @@ Sym TYPEARRAY = symbol ("TypeArray");
 Tree  typeArray(int n, Tree t)                    { return tree(TYPEARRAY, tree(n), t);         }
 bool  isTypeArray(Tree t, int* n, Tree& u)        { Tree x; return isTree(t, TYPEARRAY, x, u) && isInt(x->node(), n);     }
 
+static property<DeclareTypeInst* > gFirTypeProperty;
+
+map<string, int> InstBuilder::fIDCounters;
+
 static Tree signalTypeToSharedType(AudioType* type)
 {
     if (isSimpleType(type)) {
@@ -135,6 +139,38 @@ static Tree signalTypeToSharedType(AudioType* type)
     }
 }
 
+DeclareTypeInst* InstBuilder::genType(AudioType* type)
+{
+    Tree shared_type = signalTypeToSharedType(type);
+    DeclareTypeInst* dec_type;
+
+    if (gFirTypeProperty.get(shared_type, dec_type)) {
+        return dec_type;
+    } else {
+        if (isSimpleType(type)) {
+            if (type->nature() == kInt) {
+                printf("FaustVectorType  intType \n");
+                dec_type = genDeclareTypeInst("intType", InstBuilder::genBasicTyped(Typed::kInt));
+            } else if (type->nature() == kReal) {
+                printf("FaustVectorType  floatType \n");
+                dec_type = genDeclareTypeInst("floatType", InstBuilder::genBasicTyped(Typed::kFloat));
+            } else {
+                assert(false);
+            }
+        } else if (FaustVectorType* vec = isVectorType(type)) {
+            printf("FaustVectorType  size %d\n",  vec->size());
+            DeclareTypeInst* sub_type = genType(vec->dereferenceType());
+            dec_type = genDeclareTypeInst(getFreshID("vecType"), InstBuilder::genArrayTyped(sub_type->fType, vec->size()));
+        } else {
+            assert(false);
+        }
+    }
+
+    gFirTypeProperty.set(shared_type, dec_type);
+    return dec_type;
+}
+
+/*
 static Typed* sharedTypeToFirType(Tree t)
 {
     int size;
@@ -154,12 +190,10 @@ static Typed* sharedTypeToFirType(Tree t)
         return NULL;
     }
 }
+*/
 
-static property<DeclareTypeInst* > gFirTypeProperty;
-
-map<string, int> InstBuilder::fIDCounters;
-
-DeclareTypeInst* InstBuilder::genType(AudioType* type, int rate, int vector_size)
+/*
+DeclareTypeInst* InstBuilder::genType(AudioType* type)
 {
     Tree shared_type = signalTypeToSharedType(type);
     DeclareTypeInst* dec_type;
@@ -168,8 +202,9 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type, int rate, int vector_size
         return dec_type;
     } else {
         DeclareTypeInst* dec_type
-            = genDeclareTypeInst(getFreshID("vecType"), InstBuilder::genArrayTyped(sharedTypeToFirType(shared_type), rate * vector_size));
+            = genDeclareTypeInst(getFreshID("vecType"), sharedTypeToFirType(shared_type));
         gFirTypeProperty.set(shared_type, dec_type);
         return dec_type;
     }
 }
+*/

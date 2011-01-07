@@ -112,6 +112,9 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         */
 
         int sigRate = getSigRate(sig);
+
+        fContainer->setOutputRate(index , sigRate);
+
         // Loop "i"
         string i_decl = "i";
         DeclareVarInst* loop_i_decl = InstBuilder::genDecLoopVar(i_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
@@ -242,7 +245,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     int sigRate = getSigRate(sig);
 
     //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
-    DeclareTypeInst* typeInst = InstBuilder::genType(sigType, sigRate, gVecSize);
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
 
     assert(sigRate * n == expRate);
 
@@ -251,7 +254,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     printf("generateVectorize expRate %d sigRate %d n %d\n", expRate, sigRate, n);
 
     pushGlobalDeclare(typeInst);
-    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
 
     // Enclosing loops
@@ -335,12 +338,12 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     string vecname = getFreshID("fSerialize");
 
     //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
-    DeclareTypeInst* typeInst = InstBuilder::genType(sigType, sigRate, gVecSize);
+    DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
 
     printf("generateSerialize expRate %d sigRate %d\n", expRate, sigRate);
 
     pushGlobalDeclare(typeInst);
-    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, typeInst->fType);
+    DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
 
     // Enclosing loops
