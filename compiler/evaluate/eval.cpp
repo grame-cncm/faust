@@ -1294,69 +1294,80 @@ static Tree vec2list(const vector<Tree>& v)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static property<Tree> SimplifiedBoxProperty;
+static Tree numericBoxSimplification(Tree box);
+static Tree insideBoxSimplification (Tree box);
 
-static Tree realBoxSimplification (Tree box);
-
+/**
+ * boxSimplification(box) : simplify a block-diagram by replacing expressions
+ * denoting a constant number by this number.
+ */
 Tree boxSimplification (Tree box)
 {
-    int     ins, outs;
     Tree    simplified;
 
-    //cerr << "BoxSimplification of " << boxpp(box) << endl;
-
     if (SimplifiedBoxProperty.get(box,simplified)) {
-        // already simplified
+
         return simplified;
+
     } else {
-        // we need to compute the simplified form and attach
-        // it as a property
-        if ( ! getBoxType(box, &ins, &outs)) {
-            cerr << "Strange : Not a Valid Box" << *box << endl;
-            exit(1);
-        }
 
-        Tree    result;
-        int     i;
-        double  x;
+        simplified = numericBoxSimplification(box);
 
-        if (ins==0 && outs==1) {
-            // this box can potentially denote a number
-            if (isBoxInt(box, &i) || isBoxReal(box, &x)) {
-               result = box;
-            } else {
-                // propagate signals to discover if it simplifies to a number
-                int     i;
-                double  x;
-                Tree    lsignals = boxPropagateSig(nil, box , makeSigInputList(0));
-                Tree    s = simplify(hd(lsignals));
+        // transferts name property if any
+        Tree name; if (getDefNameProperty(box, name)) setDefNameProperty(simplified, name);
 
-                if (isSigReal(s, &x)) 	{
-                    result = boxReal(x);
-                } else if (isSigInt(s, &i))  	{
-                    result = boxInt(i);
-                } else {
-                    result = realBoxSimplification(box);
-                }
-            }
-        } else {
-            // this box can't denote a number
-            result = realBoxSimplification(box);
-        }
+        // attach simplified expression as a property of original box
+        SimplifiedBoxProperty.set(box,simplified);
 
-        // transferts name property
-        Tree name;
-        if (getDefNameProperty(box, name)) setDefNameProperty(result, name);
-
-        // attach result as a property
-        SimplifiedBoxProperty.set(box,result);
-
-        //cerr << "BoxSimplification of " << boxpp(box) << " ==> " << boxpp(result) << endl;
-
-        return result;
+        return simplified;
     }
 }
 
-Tree realBoxSimplification (Tree box)
+/**
+ * Try to do a numeric simplification of a block-diagram
+ */
+Tree numericBoxSimplification(Tree box)
+{
+    int     ins, outs;
+    Tree    result;
+    int     i;
+    double  x;
+
+    if ( ! getBoxType(box, &ins, &outs)) {
+        cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", Can't compute the box type of : " << *box << endl;
+        exit(1);
+    }
+
+    if (ins==0 && outs==1) {
+        // this box can potentially denote a number
+        if (isBoxInt(box, &i) || isBoxReal(box, &x)) {
+           result = box;
+        } else {
+            // propagate signals to discover if it simplifies to a number
+            int     i;
+            double  x;
+            Tree    lsignals = boxPropagateSig(nil, box , makeSigInputList(0));
+            Tree    s = simplify(hd(lsignals));
+
+            if (isSigReal(s, &x)) 	{
+                result = boxReal(x);
+            } else if (isSigInt(s, &i))  	{
+                result = boxInt(i);
+            } else {
+                result = insideBoxSimplification(box);
+            }
+        }
+    } else {
+        // this box can't denote a number
+        result = insideBoxSimplification(box);
+    }
+    return result;
+}
+
+/**
+ *  Simplify inside a block-diagram : S[A*B] => S[A]*S[B]
+ */
+Tree insideBoxSimplification (Tree box)
 {
     int		i;
     double	r;
@@ -1403,18 +1414,6 @@ Tree realBoxSimplification (Tree box)
 
     else if (isBoxWire(box)) 				{
         return box;
-    }
-
-    // Slots and Symbolic Boxes
-
-    else if (isBoxSlot(box)) 				{
-        return box;;
-    }
-
-    else if (isBoxSymbolic(box, slot, body)){
-
-        Tree b = boxSimplification(body);
-        return boxSymbolic(slot,b);
     }
 
     // Primitives
@@ -1489,6 +1488,18 @@ Tree realBoxSimplification (Tree box)
 
     else if (isBoxTGroup(box, label, t1)) 	{
         return boxTGroup(label, boxSimplification(t1));
+    }
+
+    // Slots and Symbolic Boxes
+
+    else if (isBoxSlot(box)) 				{
+        return box;;
+    }
+
+    else if (isBoxSymbolic(box, slot, body)){
+
+        Tree b = boxSimplification(body);
+        return boxSymbolic(slot,b);
     }
 
     // Block Diagram Composition Algebra
