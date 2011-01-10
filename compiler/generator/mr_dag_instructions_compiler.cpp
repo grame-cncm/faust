@@ -77,8 +77,11 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         Tree sig = hd(L);
         string name = subst("fOutput$0", T(index));
 
-        //fContainer->openLoop(getFreshID("i"));
-        fContainer->openLoop(new MultiRateCodeLoop("i"));
+        int sigRate = getSigRate(sig);
+        fContainer->setOutputRate(index , sigRate);
+
+        fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
+        ValueInst * loopIndex = fContainer->getCurLoop()->getLoopIndex();
 
         // Cast to external float
         /*
@@ -86,50 +89,20 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
         */
 
-        /*
-        Tim...
-        int rate = getSigRate(sig);
+        ValueInst * compiledSignal = CS(sig);
+        LoadVarInst* compiledSignalBuffer = dynamic_cast<LoadVarInst*>(compiledSignal);
 
-        DeclareVarInst* indexInst = InstBuilder::genDecLoopVar("i", InstBuilder::genBasicTyped(Typed::kInt),
-                                                               InstBuilder::genIntNumInst(rate));
 
-        ValueInst * code = CS(sig);
-        ValueInst * loadedCode = code;
+        if (compiledSignalBuffer) {
+            StatementInst* store = InstBuilder::genStoreArrayStructVar(name, loopIndex,
+                InstBuilder::genCastNumInst(InstBuilder::genLoadArrayStructVar(compiledSignalBuffer->fAddress->getName(),
+                                                                               loopIndex),
+                                            InstBuilder::genBasicTyped(Typed::kFloatMacro)));
 
-        LoadVarInst * loadCode = dynamic_cast<LoadVarInst*>(code);
-        if (loadCode) {
-            Address * loadAddress = InstBuilder::genIndexedAddress(loadCode->fAddress, indexInst->load());
-            loadedCode = InstBuilder::genLoadVarInst(loadAddress);
-        }
+            pushComputeDSPMethod(store);
+        } else
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, loopIndex, compiledSignal));
 
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, indexInst->load(), loadedCode));
-
-        if (getSigRate(sig) == 1) {
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, CS(sig)));
-        } else {
-        }
-
-        */
-
-        int sigRate = getSigRate(sig);
-        fContainer->setOutputRate(index , sigRate);
-
-        // Loop "i"
-        string i_decl = "i";
-        DeclareVarInst* loop_i_decl = InstBuilder::genDecLoopVar(i_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(sigRate)));
-        StoreVarInst* loop_i_increment = loop_i_decl->store(InstBuilder::genAdd(loop_i_decl->load(), 1));
-
-        LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(CS(sig));
-        // Assume the result is a buffer for now (and not a more complex ValueInst*)
-        assert(in_buffer);
-
-        BlockInst* block_i = InstBuilder::genBlockInst();
-        block_i->pushFrontInst(InstBuilder::genStoreArrayStructVar(name, loop_i_decl->load(),
-            InstBuilder::genCastNumInst(InstBuilder::genLoadArrayStructVar(in_buffer->fAddress->getName(), loop_i_decl->load()), InstBuilder::genBasicTyped(Typed::kFloatMacro))));
-
-        ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
-        pushComputeDSPMethod(loop_i);
         fContainer->closeLoop();
     }
 
