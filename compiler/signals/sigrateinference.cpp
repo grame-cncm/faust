@@ -68,6 +68,23 @@ static void dump(signalRateMap const & srm)
     }
 }
 
+enum {
+    kUninitialized,
+    kSingleRate,
+    kMultiRate
+};
+
+static int gIsMultiRate = kUninitialized;
+
+bool isMultiRate()
+{
+    if (gIsMultiRate == kUninitialized)
+        throw runtime_error("Rate inference not started");
+
+    return (gIsMultiRate == kMultiRate);
+}
+
+
 static signalRateMap gProjMap;
 static signalRateMap gRateMap;
 
@@ -251,6 +268,8 @@ static RateMap infereRecRate(Tree var, Tree body)
 
 static RateMap infereVectorize(Tree s1, Tree s2)
 {
+    gIsMultiRate = kMultiRate;
+
     RateMap i1 = doInferRate(s1);
     int n = tree2int(s2);
 
@@ -260,6 +279,8 @@ static RateMap infereVectorize(Tree s1, Tree s2)
 
 static RateMap infereSerialize(Tree s1, Tree s2)
 {
+    gIsMultiRate = kMultiRate;
+
     RateMap i1 = doInferRate(s1);
     Type t1 = getSigType(s1);
     FaustVectorType * vt1 = isVectorType(t1.pointee());
@@ -425,11 +446,13 @@ static void annotateRate(simplifiedRateMap const & map)
     }
 }
 
-void inferRate(Tree sig)
+void inferRate(Tree root)
 {
+    gIsMultiRate = kSingleRate;
+
     try {
         // fill global rate map
-        doInferRate(sig);
+        doInferRate(root);
 
         set<RateMap> rateMapsToUnify;
         // we ignore signal lists

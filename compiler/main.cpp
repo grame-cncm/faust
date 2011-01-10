@@ -699,8 +699,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
              exit(1);
         }
         if (gVectorSwitch) {
-            //comp = new DAGInstructionsCompiler(container);
-            comp = new MultiRateDAGInstructionsCompiler(container);
+            if (isMultiRate())
+                comp = new MultiRateDAGInstructionsCompiler(container);
+            else {
+                comp = new DAGInstructionsCompiler(container);
+            }
         } else {
             comp = new InstructionsCompiler(container);
         }

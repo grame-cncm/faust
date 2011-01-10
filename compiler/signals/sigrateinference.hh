@@ -26,7 +26,7 @@
 
 extern Tree ratePropertyKey;
 
-void inferRate(Tree sig);
+void inferRate(Tree root);
 
 inline int getSigRate(Tree sig)
 {
@@ -36,5 +36,8 @@ inline int getSigRate(Tree sig)
     else
         return 0;
 }
+
+/* returns true, if rate inference found a multi-rate primitive */
+bool isMultiRate(void);
 
 #endif

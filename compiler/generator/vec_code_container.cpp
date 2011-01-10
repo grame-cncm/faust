@@ -69,27 +69,28 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     // Put loop in block_res
     block_res->pushBackInst(loop);
 
-    // Remaining frames
-    block_res->pushBackInst(InstBuilder::genLabelInst("// Remaining frames"));
+    if (gVecSize > 1) {
+        // Remaining frames
+        block_res->pushBackInst(InstBuilder::genLabelInst("// Remaining frames"));
 
-    ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadStackVar(index), InstBuilder::genLoadFunArgsVar(counter));
+        ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadStackVar(index), InstBuilder::genLoadFunArgsVar(counter));
 
-    BlockInst* then_block = InstBuilder::genBlockInst();
+        BlockInst* then_block = InstBuilder::genBlockInst();
 
-    // Generate local input/output access
-    generateLocalInputs(then_block);
-    generateLocalOutputs(then_block);
+        // Generate local input/output access
+        generateLocalInputs(then_block);
+        generateLocalOutputs(then_block);
 
-    // Generate : int count = fullcount-index;
-    DeclareVarInst* count_dec2 = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genBinopInst(kSub,
-                                    InstBuilder::genLoadFunArgsVar(counter), InstBuilder::genLoadStackVar(index)));
+        // Generate : int count = fullcount-index;
+        DeclareVarInst* count_dec2 = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genBinopInst(kSub,
+                                        InstBuilder::genLoadFunArgsVar(counter), InstBuilder::genLoadStackVar(index)));
 
-    then_block->pushBackInst(count_dec2);
+        then_block->pushBackInst(count_dec2);
 
-    // Generates the loop DAG
-    generateDAGLoop(then_block, count_dec2);
-
-    block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
+        // Generates the loop DAG
+        generateDAGLoop(then_block, count_dec2);
+        block_res->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
+    }
     return block_res;
 }
 
