@@ -173,7 +173,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
             return generateSerialize(sig, exp);
         } else {
             int sigRate = getSigRate(sig);
-            fContainer->openLoop(new MultiRateCodeLoop(x, "i", sigRate));
+            fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
             ValueInst* code = InstructionsCompiler::generateCode(sig);
             fContainer->closeLoop(sig);
             return code;
