@@ -787,6 +787,10 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
 class MRCPPInstVisitor : public CPPInstVisitor {
 
+    private:
+
+        map <string, int> gTypeTable;
+
     public:
 
         MRCPPInstVisitor(std::ostream* out, int tab = 0)
@@ -798,14 +802,17 @@ class MRCPPInstVisitor : public CPPInstVisitor {
 
         virtual void visit(DeclareTypeInst* inst)
         {
-            // TODO : recursive array types...
             //*fOut << "typedef " << generateType(inst->fType);
             NamedTyped* named_typed = dynamic_cast<NamedTyped*>(inst->fType);
             assert(named_typed);
-            *fOut << "struct " << named_typed->fName << " {" << endl;
-            *fOut << "\t" << generateType(named_typed->fType); EndLine();
-            *fOut << "}";
-            EndLine();
+            // Check is type already generated
+            if (gTypeTable.find(named_typed->fName) == gTypeTable.end()) {
+                *fOut << "struct " << named_typed->fName << " {" << endl;
+                *fOut << "\t" << generateType(named_typed->fType); EndLine();
+                *fOut << "}";
+                EndLine();
+                gTypeTable[named_typed->fName] = 1;
+            }
         }
 
 };
