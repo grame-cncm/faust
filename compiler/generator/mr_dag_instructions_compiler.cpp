@@ -303,7 +303,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     pushComputeDSPMethod(loop_i);
     fContainer->closeLoop(); // close vectorize
 
-    return vecBuffer->load(); // return handle
+    return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
 
 /*
 Tim...
@@ -399,7 +399,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     pushComputeDSPMethod(loop_i);
     fContainer->closeLoop(); // close serialize
 
-    return vecBuffer->load(); // return handle
+    return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
 
 /*
 Tim...
@@ -443,7 +443,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorAt(Tree sig, Tree exp
     StatementInst * storeInst = InstBuilder::genStoreStackVar(vecname, loadedCode);
     pushComputeDSPMethod(storeInst);
 
-    return generateCacheCode(sig, vecBuffer->load());
+    return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
 }
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1, Tree exp2)
@@ -513,5 +513,5 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
         pushComputeDSPMethod(loop);
     }
 
-    return generateCacheCode(sig, vecBuffer->load());
+    return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
 }
