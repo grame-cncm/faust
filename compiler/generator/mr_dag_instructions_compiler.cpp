@@ -413,7 +413,9 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorAt(Tree sig, Tree exp
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
 
-    StatementInst * storeInst = InstBuilder::genStoreStackVar(vecname, loadedCode);
+    StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname,
+                                                                    InstBuilder::genLoadLoopVar("i"), // rate*count
+                                                                    loadedCode);
     pushComputeDSPMethod(storeInst);
 
     return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
