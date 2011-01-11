@@ -311,8 +311,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     int expRate = getSigRate(exp);
     int sigRate = getSigRate(sig);
 
-    int n = sigRate / expRate;
-
     string vecname = getFreshID("fSerialize");
 
     //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
