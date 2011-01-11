@@ -415,15 +415,19 @@ int main(int argc, char *argv[])
 
     int nins = DSP.getNumInputs();
     int nins_rate[nins];
+    int max_nins_rate = 0;
     for (int chan = 0; chan < nins; chan++) {
         nins_rate[chan] = DSP.getInputRate[chan];
+        max_nins_rate = std::max(max_nins_rate, nins_rate[chan]);
     }
 	channels chan_in(kFrames, nins, nins_rate);
 
 	int nouts = DSP.getNumOutputs();
     int nouts_rate[nins];
+    int max_nouts_rate = 0;
     for (int chan = 0; chan < nouts; chan++) {
         nouts_rate[chan] = DSP.getOutputRate[chan];
+        max_nouts_rate = std::max(max_nouts_rate, nouts_rate[chan]);
     }
 	channels chan_out(kFrames, nouts, nouts_rate);
 
@@ -431,29 +435,67 @@ int main(int argc, char *argv[])
 	while (nbsamples > kFrames) {
         // Read input
         for (int i = 0; i < kFrames; i++) {
-			for (int c = 0; c < nins; c++) {
-                float sample;
-				scanf(mr_input, "%8f\t", chan_in.buffers()[c][i]);
-			}
+            for (int r = 0; r < max_nins_rate; r++) {
+                for (int chan = 0; chan < nins; chan++) {
+                    float sample;
+                    fscanf(mr_input, "%8f\t", &sample);
+                    if (r < nins_rate[chan]) {
+                        chan_in.buffers()[chan][i * nins_rate[chan] + r] = sample;
+                    } else {
+                        // Nothing
+                    }
+                }
+            }
 		}
         // Compute
 		DSP.compute(kFrames, chan_in.buffers()), chan_out.buffers());
         // Write output
-		for (int i = 0; i < kFrames; i++) {
-			for (int c = 0; c < nouts; c++) {
-				printf("%8f\t", chan_out.buffers()[c][i]);
-			}
+		for (int i = 0; i < kFrames * max_nouts_rate; i++) {
+            for (int r = 0; r < max_nouts_rate; r++) {
+                for (int chan = 0; chan < nouts; chan++) {
+                    if (r < nouts_rate[chan]) {
+                        printf("%8f\t", chan_out.buffers()[chan][i * nouts_rate[chan] + r]);
+                    } else {
+                        printf("\t");
+                    }
+                }
+            }
 			cout << endl;
 		}
 		nbsamples -= kFrames;
 	}
 
-	DSP.compute(nbsamples, chan_in.buffers()), chan_out.buffers());
-	for (int i = 0; i < nbsamples; i++) {
-		for (int c = 0; c < nouts; c++) {
-			printf("%8f\t", chan_out.buffers()[c][i]);
-		}
-		cout << endl;
-	}
+    // Remaining frames
+
+    // Read input
+    for (int i = 0; i < kFrames; i++) {
+        for (int r = 0; r < max_nins_rate; r++) {
+            for (int chan = 0; chan < nins; chan++) {
+                float sample;
+                fscanf(mr_input, "%8f\t", &sample);
+                if (r < nins_rate[chan]) {
+                    chan_in.buffers()[chan][i * nins_rate[chan] + r] = sample;
+                } else {
+                    // Nothing
+                }
+            }
+        }
+    }
+    // Compute
+    DSP.compute(kFrames, chan_in.buffers()), chan_out.buffers());
+    // Write output
+    for (int i = 0; i < kFrames * max_nouts_rate; i++) {
+        for (int r = 0; r < max_nouts_rate; r++) {
+            for (int chan = 0; chan < nouts; chan++) {
+                if (r < nouts_rate[chan]) {
+                    printf("%8f\t", chan_out.buffers()[chan][i * nouts_rate[chan] + r]);
+                } else {
+                    printf("\t");
+                }
+            }
+        }
+        cout << endl;
+    }
+
 	return 0;
 }
