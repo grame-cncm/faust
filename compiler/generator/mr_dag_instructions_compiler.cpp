@@ -254,7 +254,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     // Output index
     ValueInst* out_index = InstBuilder::genAdd(loop_j_decl->load(), InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(expRate)));
 
-    MultiRateCodeLoop* cLoop = new MultiRateCodeLoop(fContainer->getCurLoop(), "i", sigRate);
+    MultiRateCodeLoop* cLoop = new MultiRateCodeLoop(fContainer->getCurLoop(), "i", expRate);
     fContainer->openLoop(cLoop);
     LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(generateCode(exp));
     fContainer->closeLoop();
@@ -310,8 +310,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
 
     int expRate = getSigRate(exp);
     int sigRate = getSigRate(sig);
-
-    int n = sigRate / expRate;
 
     string vecname = getFreshID("fSerialize");
 
