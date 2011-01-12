@@ -393,7 +393,7 @@ class channels
 int main(int argc, char *argv[])
 {
 	float fnbsamples;
-    FILE* mr_input;
+    FILE* mr_input = NULL;
 
 	CMDUI* interface = new CMDUI(argc, argv);
 	DSP.buildUserInterface(interface);
@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
         mr_input = fopen("mr-plot.in", "r");
         if (!mr_input) {
             fprintf(stderr, "no input file found\n");
-            exit(1);
+            //exit(1);
         }
     }
 
@@ -438,7 +438,11 @@ int main(int argc, char *argv[])
             for (int r = 0; r < max_nins_rate; r++) {
                 for (int chan = 0; chan < nins; chan++) {
                     float sample;
-                    fscanf(mr_input, "%8f\t", &sample);
+                    if (mr_input) {
+                        fscanf(mr_input, "%8f\t", &sample);
+                    } else {
+                        sample = float(i);
+                    }
                     if (r < nins_rate[chan]) {
                         chan_in.buffers()[chan][i * nins_rate[chan] + r] = sample;
                     } else {
@@ -472,7 +476,11 @@ int main(int argc, char *argv[])
         for (int r = 0; r < max_nins_rate; r++) {
             for (int chan = 0; chan < nins; chan++) {
                 float sample;
-                fscanf(mr_input, "%8f\t", &sample);
+                if (mr_input) {
+                    fscanf(mr_input, "%8f\t", &sample);
+                } else {
+                    sample = float(i);
+                }
                 if (r < nins_rate[chan]) {
                     chan_in.buffers()[chan][i * nins_rate[chan] + r] = sample;
                 } else {
