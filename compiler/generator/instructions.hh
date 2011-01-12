@@ -796,7 +796,6 @@ struct DropInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-
 struct LoadVarInst : public ValueInst
 {
     Address* fAddress;
@@ -1062,6 +1061,7 @@ struct DeclareFunInst : public StatementInst
 
 struct DeclareTypeInst : public StatementInst
 {
+    /*
     NamedTyped* fType;
 
     DeclareTypeInst(const string& name, Typed* type)
@@ -1070,8 +1070,8 @@ struct DeclareTypeInst : public StatementInst
     DeclareTypeInst(NamedTyped* type)
         :fType(type)
     {}
+    */
 
-    /*
     StructTyped* fType;
 
     DeclareTypeInst(const string& name, Typed* type)
@@ -1084,7 +1084,6 @@ struct DeclareTypeInst : public StatementInst
     DeclareTypeInst(StructTyped* type)
         :fType(type)
     {}
-    */
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1164,8 +1163,8 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         virtual StatementInst* visit(DeclareTypeInst* inst)
         {
-            return new DeclareTypeInst(dynamic_cast<NamedTyped*>(inst->fType->clone(this)));
-            //return new DeclareTypeInst(dynamic_cast<StructTyped*>(inst->fType->clone(this)));
+            //return new DeclareTypeInst(dynamic_cast<NamedTyped*>(inst->fType->clone(this)));
+            return new DeclareTypeInst(dynamic_cast<StructTyped*>(inst->fType->clone(this)));
         }
 
         // Memory
@@ -1774,7 +1773,7 @@ struct InstBuilder
 
     static LoadVarInst* genLoadArrayStructVar(string vname, ValueInst* id1, ValueInst* id2)
     {
-        return genLoadVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id2), id1));
+        return genLoadVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id1), id2));
     }
 
     static LoadVarInst* genLoadArrayStructVar(string vname)
@@ -1799,7 +1798,7 @@ struct InstBuilder
 
     static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* id1, ValueInst* id2, ValueInst* exp)
     {
-        return genStoreVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id2), id1), exp);
+        return genStoreVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id1), id2), exp);
     }
 
     static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp)
