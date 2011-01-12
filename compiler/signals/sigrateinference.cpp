@@ -366,10 +366,6 @@ static bool requiresRateAnnotation(Tree sig)
     if (isRec(sig, id, body))
         return false;
 
-    int i; Tree rgroup;
-    if (isProj(sig, &i, rgroup))
-        return false;
-
     return true;
 }
 

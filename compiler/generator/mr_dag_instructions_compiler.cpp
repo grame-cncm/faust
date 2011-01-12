@@ -133,7 +133,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
                 return InstructionsCompiler::generateCode(sig);
             } else {
                 // x must be defined
-                int sigRate = getSigRate(x);
+                int sigRate = getSigRate(sig);
                 fContainer->openLoop(new MultiRateCodeLoop(x, "i", sigRate));
                 ValueInst* code = InstructionsCompiler::generateCode(sig);
                 fContainer->closeLoop(sig);
