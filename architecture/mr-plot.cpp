@@ -417,7 +417,7 @@ int main(int argc, char *argv[])
     int nins_rate[nins];
     int max_nins_rate = 0;
     for (int chan = 0; chan < nins; chan++) {
-        nins_rate[chan] = DSP.getInputRate[chan];
+        nins_rate[chan] = DSP.getInputRate(chan);
         max_nins_rate = std::max(max_nins_rate, nins_rate[chan]);
     }
 	channels chan_in(kFrames, nins, nins_rate);
@@ -426,7 +426,7 @@ int main(int argc, char *argv[])
     int nouts_rate[nins];
     int max_nouts_rate = 0;
     for (int chan = 0; chan < nouts; chan++) {
-        nouts_rate[chan] = DSP.getOutputRate[chan];
+        nouts_rate[chan] = DSP.getOutputRate(chan);
         max_nouts_rate = std::max(max_nouts_rate, nouts_rate[chan]);
     }
 	channels chan_out(kFrames, nouts, nouts_rate);
