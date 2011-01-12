@@ -324,14 +324,14 @@ void CodeContainer::generateLocalInputs(BlockInst* loop_code)
 
         ValueInst * indexInst = InstBuilder::genLoadLoopVar("index");
 
-        /*
-        SL : why that ??
         int inputRate = getInputRate(index);
+
         if (inputRate != 1)
             indexInst = InstBuilder::genMul(indexInst, InstBuilder::genIntNumInst(inputRate));
-        */
 
-        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2, indexInst)));
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+                                                               InstBuilder::genLoadArrayStructAddressVar(name2,
+                                                                                                         indexInst)));
     }
 }
 
