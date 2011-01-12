@@ -123,6 +123,7 @@ class StringTypeManager {
                 BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
                 ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
                 NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+                StructTyped* struct_typed1 = dynamic_cast<StructTyped*>(array_typed->fType);
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
                 if (basic_typed1) {
@@ -133,6 +134,8 @@ class StringTypeManager {
                     return generateType(array_typed1) + "[" + num_str.str() + "]";
                 } else if (named_typed1) {
                     return named_typed1->fName + "[" + num_str.str() + "]";
+                } else if (struct_typed1) {
+                    return struct_typed1->fName + " f" + "[" + num_str.str() + "]";
                 } else {
                     assert(false);
                     return "";
@@ -169,6 +172,7 @@ class StringTypeManager {
                 BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
                 ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
                 NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+                StructTyped* struct_typed1 = dynamic_cast<StructTyped*>(array_typed->fType);
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
                 if (basic_typed1) {
@@ -180,6 +184,8 @@ class StringTypeManager {
                     return generateType(array_typed1) + " " + name + "[" + num_str.str() + "]";
                 } else if (named_typed1) {
                     return named_typed1->fName + " " + name + "[" + num_str.str() + "]";
+                } else if (struct_typed1) {
+                    return struct_typed1->fName + " " + name +  + "[" + num_str.str() + "]";
                 } else {
                     assert(false);
                     return "";
