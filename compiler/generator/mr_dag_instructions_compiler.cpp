@@ -454,6 +454,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
 
     ValueInst * compiledExpression2 = CS(exp2);
     LoadVarInst * loadExpression2 = dynamic_cast<LoadVarInst*>(compiledExpression2);
+    ValueInst* currentIndex = fContainer->getCurLoop()->getLoopIndex();
 
     // first loop
     {
@@ -465,14 +466,10 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
 
         ForLoopInst * loop = InstBuilder::genForLoopInst(loopDeclare, loopEnd, loopIncrement, block);
 
-        Address * loadAddress = InstBuilder::genIndexedAddress(loadExpression1->fAddress,
-                                                                loopDeclare->load());
-        ValueInst * loadedCode = InstBuilder::genLoadVarInst(loadAddress);
-
-        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, loopDeclare->load(), loadedCode);
+        ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression1->fAddress->getName(), currentIndex, loopDeclare->load());
+        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, currentIndex, loopDeclare->load(), loadedCode);
 
         block->pushBackInst(storeInst);
-
         pushComputeDSPMethod(loop);
     }
 
@@ -485,16 +482,11 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
 
         ForLoopInst * loop = InstBuilder::genForLoopInst(loopDeclare, loopEnd, loopIncrement, block);
 
-        Address * loadAddress = InstBuilder::genIndexedAddress(loadExpression2->fAddress,
-                                                                loopDeclare->load());
-        ValueInst * loadedCode = InstBuilder::genLoadVarInst(loadAddress);
-
         ValueInst * index = InstBuilder::genAdd(loopDeclare->load(), InstBuilder::genIntNumInst(exp2Size));
-
-        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, index, loadedCode);
+        ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression2->fAddress->getName(), currentIndex, index);
+        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, currentIndex, loopDeclare->load(), loadedCode);
 
         block->pushBackInst(storeInst);
-
         pushComputeDSPMethod(loop);
     }
 
