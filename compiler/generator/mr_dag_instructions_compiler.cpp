@@ -406,16 +406,18 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorAt(Tree sig, Tree exp
     ValueInst * compiledExpression = CS(exp);
     LoadVarInst * loadExpression = dynamic_cast<LoadVarInst*>(compiledExpression);
 
+    ValueInst* currentIndex = fContainer->getCurLoop()->getLoopIndex();
+
     // FIXME: only supports compile-time indices
     ValueInst * indexInst = InstBuilder::genIntNumInst(tree2int(index));
-    Address * loadAddress = InstBuilder::genIndexedAddress(loadExpression->fAddress,
-                                                           indexInst);
-    ValueInst * loadedCode = InstBuilder::genLoadVarInst(loadAddress);
+    ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression->fAddress->getName(), currentIndex, indexInst);
 
     Type sigType = getSigType(sig);
 
     DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
     pushGlobalDeclare(typeInst);
+
+    pushGlobalDeclare(InstBuilder::genType(getSigType(exp)));
 
     string vecname = getFreshID("fAt");
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
