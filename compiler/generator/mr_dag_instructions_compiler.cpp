@@ -193,6 +193,16 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
     return b;
 }
 
+ValueInst* MultiRateDAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
+{
+    LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
+    if (!loadExp)
+        return DAGInstructionsCompiler::generateCacheCode(sig, exp);
+
+    // if we find a handle, the data is already cached, so no need to generate extra code
+    return exp;
+}
+
 ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
 {
     int rate = getSigRate(sig);

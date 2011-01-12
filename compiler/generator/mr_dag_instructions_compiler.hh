@@ -46,8 +46,10 @@ private:
 
    // reimplemented code generation methods
     virtual ValueInst* generateCode(Tree sig);
-    virtual ValueInst* generateInput(Tree sig, int idx);
     virtual void compileMultiSignal(Tree L);
+    virtual ValueInst* generateCacheCode(Tree sig, ValueInst* exp);
+
+    virtual ValueInst* generateInput(Tree sig, int idx);
 
     virtual ValueInst* generateVectorize(Tree sig, Tree exp, int n);
     virtual ValueInst* generateSerialize(Tree sig, Tree exp);
