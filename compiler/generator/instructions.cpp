@@ -100,6 +100,8 @@ DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res
     return InstBuilder::genDeclareFunInst(name, fun_type);
 }
 
+
+
 //--------------------------
 // Coding Types as trees
 //--------------------------
@@ -147,16 +149,16 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
     } else {
         if (isSimpleType(type)) {
             if (type->nature() == kInt) {
-                printf("FaustVectorType intType \n");
+                printf("FaustVectorType  intType \n");
                 dec_type = genDeclareTypeInst("intType", InstBuilder::genBasicTyped(Typed::kInt));
             } else if (type->nature() == kReal) {
-                printf("FaustVectorType floatType \n");
+                printf("FaustVectorType  floatType \n");
                 dec_type = genDeclareTypeInst("floatType", InstBuilder::genBasicTyped(Typed::kFloat));
             } else {
                 assert(false);
             }
         } else if (FaustVectorType* vec = isVectorType(type)) {
-            printf("FaustVectorType size %d\n", vec->size());
+            printf("FaustVectorType  size %d\n",  vec->size());
             DeclareTypeInst* sub_type = genType(vec->dereferenceType());
             dec_type = genDeclareTypeInst(getFreshID("vecType"), InstBuilder::genArrayTyped(sub_type->fType, vec->size()));
         } else {
