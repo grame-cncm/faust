@@ -829,14 +829,14 @@ class MRCPPInstVisitor : public CPPInstVisitor {
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);
 
                 if (struct_type) {
-                    BasicTyped* basic_type = dynamic_cast<BasicTyped*>(*struct_type->fType.begin());
-                    if (!basic_type) {
+                   // BasicTyped* basic_type = dynamic_cast<BasicTyped*>(*struct_type->fType.begin());
+                   // if (!basic_type) {
                         indexed->fAddress->accept(this);
-                        *fOut << ".f[";
+                        *fOut << "[";
                         indexed->fIndex->accept(this);
-                        *fOut << "]";
+                        *fOut << "].f";
                         return;
-                    }
+                   // }
                 }
             }
 
@@ -855,16 +855,17 @@ class MRCPPInstVisitor : public CPPInstVisitor {
             // Check is type already generated
             if (gTypeTable.find(struct_typed->fName) == gTypeTable.end()) {
                 Typed* sub_type = *struct_typed->fType.begin();
+
                 BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(sub_type);
+                *fOut << "struct " << struct_typed->fName << " {" << endl;
                 if (basic_typed) {
-                    *fOut << "typedef " << generateType(basic_typed) << " " << struct_typed->fName;
-                    EndLine();
+                    *fOut << "\t" << generateType(sub_type) << " f"; EndLine();
                 } else {
-                    *fOut << "struct " << struct_typed->fName << " {" << endl;
                     *fOut << "\t" << generateType(sub_type); EndLine();
-                    *fOut << "}";
-                    EndLine();
                 }
+                *fOut << "}";
+                EndLine();
+
                 gTypeTable[struct_typed->fName] = 1;
             }
         }

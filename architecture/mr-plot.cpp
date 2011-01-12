@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
             }
 		}
         // Compute
-		DSP.compute(kFrames, chan_in.buffers()), chan_out.buffers());
+		DSP.compute(kFrames, chan_in.buffers(), chan_out.buffers());
         // Write output
 		for (int i = 0; i < kFrames * max_nouts_rate; i++) {
             for (int r = 0; r < max_nouts_rate; r++) {
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
         }
     }
     // Compute
-    DSP.compute(kFrames, chan_in.buffers()), chan_out.buffers());
+    DSP.compute(kFrames, chan_in.buffers(), chan_out.buffers());
     // Write output
     for (int i = 0; i < kFrames * max_nouts_rate; i++) {
         for (int r = 0; r < max_nouts_rate; r++) {
