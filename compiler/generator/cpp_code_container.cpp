@@ -115,7 +115,7 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
         for (int i = 0; i != fNumInputs; ++i)
             Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fInputRates[i]);
 
-        block2 << "default: -1;\n";
+        block2 << "default: return -1;\n";
 
         block1 << indent(block2.str(), 1) << "}" << endl;
         out << indent(block1.str(), 1) << "}" << endl;
@@ -132,7 +132,7 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
         for (int i = 0; i != fNumOutputs; ++i)
             Loki::FPrintf(block2, "case %d: return %d;\n")(i)(fOutputRates[i]);
 
-        block2 << "default: -1;\n";
+        block2 << "default: return -1;\n";
 
         block1 << indent(block2.str(), 1) << "}" << endl;
         out << indent(block1.str(), 1) << "}" << endl;
