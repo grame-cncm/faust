@@ -388,7 +388,7 @@ class channels
 	float**	buffers()		{ return fBuffers; }
 };
 
-#define kFrames 512
+#define kFrames 128
 
 int main(int argc, char *argv[])
 {
@@ -403,7 +403,6 @@ int main(int argc, char *argv[])
         mr_input = fopen("mr-plot.in", "r");
         if (!mr_input) {
             fprintf(stderr, "no input file found\n");
-            //exit(1);
         }
     }
 
@@ -454,7 +453,8 @@ int main(int argc, char *argv[])
         // Compute
 		DSP.compute(kFrames, chan_in.buffers(), chan_out.buffers());
         // Write output
-		for (int i = 0; i < kFrames * max_nouts_rate; i++) {
+		for (int i = 0; i < kFrames; i++) {
+            cout << "--- frame " << i << " ---" << endl;
             for (int r = 0; r < max_nouts_rate; r++) {
                 for (int chan = 0; chan < nouts; chan++) {
                     if (r < nouts_rate[chan]) {
@@ -463,8 +463,8 @@ int main(int argc, char *argv[])
                         printf("\t");
                     }
                 }
+                printf("\n");
             }
-			cout << endl;
 		}
 		nbsamples -= kFrames;
 	}
@@ -492,7 +492,8 @@ int main(int argc, char *argv[])
     // Compute
     DSP.compute(kFrames, chan_in.buffers(), chan_out.buffers());
     // Write output
-    for (int i = 0; i < kFrames * max_nouts_rate; i++) {
+    for (int i = 0; i < kFrames; i++) {
+        cout << "--- frame " << i << " ---" << endl;
         for (int r = 0; r < max_nouts_rate; r++) {
             for (int chan = 0; chan < nouts; chan++) {
                 if (r < nouts_rate[chan]) {
@@ -501,8 +502,8 @@ int main(int argc, char *argv[])
                     printf("\t");
                 }
             }
+            printf("\n");
         }
-        cout << endl;
     }
 
 	return 0;
