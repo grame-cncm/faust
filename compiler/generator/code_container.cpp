@@ -323,7 +323,6 @@ void CodeContainer::generateLocalInputs(BlockInst* loop_code)
         string name2 = subst("fInput$0_ptr", T(index));
 
         ValueInst * indexInst = InstBuilder::genLoadLoopVar("index");
-
         int inputRate = getInputRate(index);
 
         if (inputRate != 1)
@@ -341,7 +340,16 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code)
     for (int index = 0; index < outputs(); index++) {
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
-        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1, InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadLoopVar("index"))));
+
+        ValueInst * indexInst = InstBuilder::genLoadLoopVar("index");
+        int outputRate = getOutputRate(index);
+
+        if (outputRate != 1)
+            indexInst = InstBuilder::genMul(indexInst, InstBuilder::genIntNumInst(outputRate));
+
+        loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
+                                                               InstBuilder::genLoadArrayStructAddressVar(name2,
+                                                                                                         indexInst)));
     }
 }
 
