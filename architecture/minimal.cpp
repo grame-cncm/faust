@@ -3,20 +3,24 @@
     FAUST Architecture File
 	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as 
-	published by the Free Software Foundation; either version 2.1 of the 
-	License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+	This is sample code. This file is provided as an example of minimal 
+	FAUST architecture file. Redistribution and use in source and binary 
+	forms, with or without modification, in part or in full are permitted.
+	In particular you can create a derived work of this FAUST architecture 
+	and distribute that work under terms of your choice.
 
-    You should have received a copy of the GNU Lesser General Public
- 	License along with the GNU C Library; if not, write to the Free
-  	Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  	02111-1307 USA. 
+	THIS PROGRAM IS DISTRIBUTED IN THE HOPE THAT IT WILL BE USEFUL, BUT 
+	WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+	THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
+	PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL GRAME BE LIABLE 
+	FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+	THE POSSIBILITY OF SUCH DAMAGE.
  ************************************************************************
  ************************************************************************/
 
