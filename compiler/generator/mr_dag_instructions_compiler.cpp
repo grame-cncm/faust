@@ -489,9 +489,9 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
 
         ForLoopInst * loop = InstBuilder::genForLoopInst(loopDeclare, loopEnd, loopIncrement, block);
 
-        ValueInst * index = InstBuilder::genAdd(loopDeclare->load(), InstBuilder::genIntNumInst(exp2Size));
-        ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression2->fAddress->getName(), currentIndex, index);
-        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, currentIndex, loopDeclare->load(), loadedCode);
+        ValueInst * index = InstBuilder::genAdd(loopDeclare->load(), InstBuilder::genIntNumInst(exp1Size));
+        ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression2->fAddress->getName(), currentIndex,  loopDeclare->load());
+        StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, currentIndex, index, loadedCode);
 
         block->pushBackInst(storeInst);
         pushComputeDSPMethod(loop);
