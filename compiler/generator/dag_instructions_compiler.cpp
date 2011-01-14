@@ -98,7 +98,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             // Cast to external float
             ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
             pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name,
-                                InstBuilder::genAdd(InstBuilder::genLoadLoopVar("index"), fContainer->getCurLoop()->getLoopIndex()), res));
+                                InstBuilder::genAdd(InstBuilder::genLoadLoopVar("index"), curLoopIndex()), res));
 
             fContainer->closeLoop();
         }
@@ -114,7 +114,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             // Cast to external float
             ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, curLoopIndex(), res));
 
             fContainer->closeLoop();
         }
@@ -167,7 +167,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
         getTypedNames(t, "Vector", ctype, vname);
         Address::AccessType var_access;
         generateVectorLoop(ctype, vname, exp, var_access);
-        return InstBuilder::genLoadArrayVar(vname, var_access, fContainer->getCurLoop()->getLoopIndex());
+        return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
     } else {
         return InstructionsCompiler::generateVariableStore(sig, exp);
     }
@@ -179,7 +179,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         // "input" use as a name convention
         string name = subst("input$0", T(idx));
         ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(name,
-            InstBuilder::genAdd(InstBuilder::genLoadLoopVar("index"), fContainer->getCurLoop()->getLoopIndex()));
+            InstBuilder::genAdd(InstBuilder::genLoadLoopVar("index"), curLoopIndex()));
         // Cast to internal float
         res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
         return generateCacheCode(sig, res);
@@ -187,7 +187,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
      } else {
         // "fInput" use as a name convention
         string name = subst("fInput$0", T(idx));
-        ValueInst* res = InstBuilder::genLoadArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex());
+        ValueInst* res = InstBuilder::genLoadArrayStructVar(name, curLoopIndex());
         // Cast to internal float
         res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
         return generateCacheCode(sig, res);
@@ -242,7 +242,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 return exp;
             } else {
                 // return subst("$0[i]", vname);
-                return InstBuilder::genLoadArrayVar(vname, var_access, fContainer->getCurLoop()->getLoopIndex());
+                return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
             }
         } else {
             // not delayed
@@ -254,7 +254,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 generateDelayLine(exp, ctype, vname, d, var_access);
                 setVectorNameProperty(sig, vname);
                 // return subst("$0[i]", vname);
-                return InstBuilder::genLoadArrayVar(vname, var_access, fContainer->getCurLoop()->getLoopIndex());
+                return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
            } else {
                 // not shared or simple : no cache needed
                 return exp;
@@ -351,21 +351,21 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
     if (mxd == 0) {
         // not a real vector name but a scalar name
         //return subst("$0[i]", vname);
-        return InstBuilder::genLoadArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex());
+        return InstBuilder::genLoadArrayStackVar(vname, curLoopIndex());
 
     } else if (mxd < gMaxCopyDelay) {
         if (isSigInt(delay, &d)) {
             if (d == 0) {
                 // return subst("$0[i]", vname);
-                return InstBuilder::genLoadArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex());
+                return InstBuilder::genLoadArrayStackVar(vname, curLoopIndex());
             } else {
                 // return subst("$0[i-$1]", vname, T(d));
-                ValueInst* index = InstBuilder::genSub(fContainer->getCurLoop()->getLoopIndex(), InstBuilder::genIntNumInst(d));
+                ValueInst* index = InstBuilder::genSub(curLoopIndex(), InstBuilder::genIntNumInst(d));
                 return InstBuilder::genLoadArrayStackVar(vname, index);
             }
         } else {
             // return subst("$0[i-$1]", vname, CS(delay));
-            ValueInst* index = InstBuilder::genSub(fContainer->getCurLoop()->getLoopIndex(), CS(delay));
+            ValueInst* index = InstBuilder::genSub(curLoopIndex(), CS(delay));
             return InstBuilder::genLoadArrayStackVar(vname, index);
         }
     } else {
@@ -377,19 +377,19 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
         if (isSigInt(delay, &d)) {
             if (d == 0) {
                 //return subst("$0[($0_idx+i)&$1]", vname, T(N-1));
-                ValueInst* index1 = InstBuilder::genAdd(fContainer->getCurLoop()->getLoopIndex(), InstBuilder::genLoadStructVar(vname_idx));
+                ValueInst* index1 = InstBuilder::genAdd(curLoopIndex(), InstBuilder::genLoadStructVar(vname_idx));
                 ValueInst* index2 = InstBuilder::genAnd(index1, InstBuilder::genIntNumInst(N-1));
                 return InstBuilder::genLoadArrayStructVar(vname, index2);
             } else {
                 //return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), T(d));
-                ValueInst* index1 = InstBuilder::genAdd(fContainer->getCurLoop()->getLoopIndex(), InstBuilder::genLoadStructVar(vname_idx));
+                ValueInst* index1 = InstBuilder::genAdd(curLoopIndex(), InstBuilder::genLoadStructVar(vname_idx));
                 ValueInst* index2 = InstBuilder::genSub(index1, InstBuilder::genIntNumInst(d));
                 ValueInst* index3 = InstBuilder::genAnd(index2, InstBuilder::genIntNumInst(N-1));
                 return InstBuilder::genLoadArrayStructVar(vname, index3);
             }
         } else {
             //return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), CS(delay));
-            ValueInst* index1 = InstBuilder::genAdd(fContainer->getCurLoop()->getLoopIndex(), InstBuilder::genLoadStructVar(vname_idx));
+            ValueInst* index1 = InstBuilder::genAdd(curLoopIndex(), InstBuilder::genLoadStructVar(vname_idx));
             ValueInst* index2 = InstBuilder::genSub(index1, CS(delay));
             ValueInst* index3 = InstBuilder::genAnd(index2, InstBuilder::genIntNumInst(N-1));
             return InstBuilder::genLoadArrayStructVar(vname, index3);
@@ -409,7 +409,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
     if (verySimple(sig)) {
         return exp;
     } else {
-        return InstBuilder::genLoadArrayVar(vname, var_access, fContainer->getCurLoop()->getLoopIndex());
+        return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
     }
 }
 
@@ -432,7 +432,7 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
 
     // -- compute the new samples
     // $0[i] = $1;"
-    pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex(), exp));
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, curLoopIndex(), exp));
 
     // Set desired variable access
     var_access = Address::kStack;
@@ -469,7 +469,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushComputePreDSPMethod(generateCopyArray(buf, pmem, delay));
 
         // -- compute the new samples
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, fContainer->getCurLoop()->getLoopIndex(), exp));
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, curLoopIndex(), exp));
 
         // -- copy back to stored samples
         pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay));
@@ -502,7 +502,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         pushComputePreDSPMethod(InstBuilder::genStoreStructVar(idx, index2));
 
         // -- compute the new samples
-        ValueInst* index3 = InstBuilder::genAdd(fContainer->getCurLoop()->getLoopIndex(), InstBuilder::genLoadStructVar(idx));
+        ValueInst* index3 = InstBuilder::genAdd(curLoopIndex(), InstBuilder::genLoadStructVar(idx));
         ValueInst* index4 = InstBuilder::genAnd(index3, InstBuilder::genIntNumInst(delay-1));
 
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));

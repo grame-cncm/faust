@@ -81,12 +81,12 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->setOutputRate(index , sigRate);
 
         fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
-        ValueInst * loopIndex = fContainer->getCurLoop()->getLoopIndex();
+        ValueInst * loopIndex = curLoopIndex();
 
         // Cast to external float
         /*
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, curLoopIndex(), res));
         */
 
         ValueInst * compiledSignal = CS(sig);
@@ -374,11 +374,9 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorAt(Tree sig, Tree exp
     ValueInst * compiledExpression = CS(exp);
     LoadVarInst * loadExpression = dynamic_cast<LoadVarInst*>(compiledExpression);
 
-    ValueInst* currentIndex = fContainer->getCurLoop()->getLoopIndex();
-
     // FIXME: only supports compile-time indices
     ValueInst * indexInst = InstBuilder::genIntNumInst(tree2int(index));
-    ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression->fAddress->getName(), currentIndex, indexInst);
+    ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression->fAddress->getName(), curLoopIndex(), indexInst);
 
     Type sigType = getSigType(sig);
 
@@ -422,7 +420,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
 
     ValueInst * compiledExpression2 = CS(exp2);
     LoadVarInst * loadExpression2 = dynamic_cast<LoadVarInst*>(compiledExpression2);
-    ValueInst* currentIndex = fContainer->getCurLoop()->getLoopIndex();
+    ValueInst* currentIndex = curLoopIndex();
 
     fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
 

@@ -306,7 +306,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
         // Cast to external float
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, curLoopIndex(), res));
 
         int rate = getSigRate(sig);
         fContainer->setOutputRate(index, rate);
@@ -330,7 +330,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
   	sig = prepare2(sig);		// Optimize and annotate expression
     string name = "output";
 
-    pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, fContainer->getCurLoop()->getLoopIndex(), CS(sig)));
+    pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, curLoopIndex(), CS(sig)));
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -663,7 +663,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     fContainer->setInputRate(idx, rate);
 
     string name = subst("input$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex());
+    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, curLoopIndex());
 
     ValueInst* castedToFloat = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, castedToFloat);
