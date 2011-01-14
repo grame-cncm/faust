@@ -255,7 +255,12 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     // Loop "i"
     DeclareVarInst* loop_i_decl = InstBuilder::genDecLoopVar(i_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(sigRate)));
+    ValueInst* loop_i_end;
+
+    if (sigRate == 1)
+        loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genLoadStackVar("count"));
+    else
+        loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(sigRate)));
     StoreVarInst* loop_i_increment = loop_i_decl->store(InstBuilder::genAdd(loop_i_decl->load(), 1));
 
     BlockInst* block_i = InstBuilder::genBlockInst();
@@ -349,7 +354,13 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
 
     // Loop "i"
     DeclareVarInst* loop_i_decl = InstBuilder::genDecLoopVar(i_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(expRate)));
+    ValueInst* loop_i_end;
+
+    if (sigRate == 1)
+        loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genLoadStackVar("count"));
+    else
+        loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(expRate)));
+
     StoreVarInst* loop_i_increment = loop_i_decl->store(InstBuilder::genAdd(loop_i_decl->load(), 1));
 
     BlockInst* block_i = InstBuilder::genBlockInst();
