@@ -463,6 +463,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
     LoadVarInst * loadExpression2 = dynamic_cast<LoadVarInst*>(compiledExpression2);
     ValueInst* currentIndex = fContainer->getCurLoop()->getLoopIndex();
 
+    fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
+
     // first loop
     {
         DeclareVarInst* loopDeclare = InstBuilder::genDecLoopVar("k", InstBuilder::genBasicTyped(Typed::kInt),
@@ -480,6 +482,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
         pushComputeDSPMethod(loop);
     }
 
+    // second loop
     {
         DeclareVarInst* loopDeclare = InstBuilder::genDecLoopVar("k", InstBuilder::genBasicTyped(Typed::kInt),
                                                             InstBuilder::genIntNumInst(0));
@@ -490,12 +493,14 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
         ForLoopInst * loop = InstBuilder::genForLoopInst(loopDeclare, loopEnd, loopIncrement, block);
 
         ValueInst * index = InstBuilder::genAdd(loopDeclare->load(), InstBuilder::genIntNumInst(exp1Size));
-        ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression2->fAddress->getName(), currentIndex,  loopDeclare->load());
+        ValueInst * loadedCode = InstBuilder::genLoadArrayStructVar(loadExpression2->fAddress->getName(), currentIndex, loopDeclare->load());
         StatementInst * storeInst = InstBuilder::genStoreArrayStructVar(vecname, currentIndex, index, loadedCode);
 
         block->pushBackInst(storeInst);
         pushComputeDSPMethod(loop);
     }
+
+    fContainer->closeLoop(sig);
 
     return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
 }
