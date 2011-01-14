@@ -223,8 +223,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     //sigType->print(cout);
 
-    int expRate = getSigRate(exp);
-    int sigRate = getSigRate(sig);
+    int sigRate = getSigRate(sig); // m x [n]T
+    int expRate = getSigRate(exp); // m.n x T
 
     //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
     DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
@@ -233,7 +233,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     string vecname = getFreshID("fVectorize");
 
-    printf("generateVectorize expRate %d sigRate %d n %d\n", expRate, sigRate, n);
+    printf("generateVectorize expRate=%d, sigRate=%d, n=%d\n", expRate, sigRate, n);
 
     pushGlobalDeclare(typeInst);
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
@@ -261,8 +261,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     BlockInst* block_j = InstBuilder::genBlockInst();
 
-    // Output index
-    ValueInst* out_index = InstBuilder::genAdd(loop_j_decl->load(), InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(sigRate)));
+    // input index
+    ValueInst* in_index = InstBuilder::genAdd(InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(n)), loop_j_decl->load());
 
     MultiRateCodeLoop* cLoop = new MultiRateCodeLoop(fContainer->getCurLoop(), "i", expRate);
     fContainer->openLoop(cLoop);
@@ -273,7 +273,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     assert(in_buffer);
 
     block_j->pushFrontInst(InstBuilder::genStoreArrayStructVar(vecname, loop_i_decl->load(), loop_j_decl->load(),
-        InstBuilder::genLoadArrayStructVar(in_buffer->fAddress->getName(), out_index)));
+        InstBuilder::genLoadArrayStructVar(in_buffer->fAddress->getName(), in_index)));
 
     ForLoopInst* loop_j = InstBuilder::genForLoopInst(loop_j_decl, loop_j_end, loop_j_increment, block_j);
 
@@ -318,8 +318,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
 
     //sigType->print(cout);
 
-    int expRate = getSigRate(exp);
-    int sigRate = getSigRate(sig);
+    int sigRate = getSigRate(sig); // m.n x T
+    int expRate = getSigRate(exp); // m x [n]T     (expRate = m)
     int n = sigRate / expRate;
 
     string vecname = getFreshID("fSerialize");
@@ -327,7 +327,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     //DeclareTypeInst * typeInst = InstBuilder::genType(expType);
     DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
 
-    printf("generateSerialize expRate %d sigRate %d\n", expRate, sigRate);
+    printf("generateSerialize expRate=%d, sigRate=%d, n=%d \n", expRate, sigRate, n);
 
     pushGlobalDeclare(typeInst);
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
@@ -356,7 +356,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     BlockInst* block_j = InstBuilder::genBlockInst();
 
     // Output index
-    ValueInst* out_index = InstBuilder::genAdd(loop_j_decl->load(), InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(expRate)));
+    ValueInst* out_index = InstBuilder::genAdd(InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(n)), loop_j_decl->load());
 
     MultiRateCodeLoop* cLoop = new MultiRateCodeLoop(fContainer->getCurLoop(), "i", sigRate);
     fContainer->openLoop(cLoop);
