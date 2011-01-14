@@ -122,7 +122,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
     CodeLoop*   l = fContainer->getCurLoop();
     assert(l);
 
-    Tree exp, n;
+    Tree exp, exp2, n;
     if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
@@ -144,6 +144,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
              return generateVectorize(sig, exp, tree2int(n));
         } else if (isSigSerialize(sig, exp)) {
             return generateSerialize(sig, exp);
+        } else if (isSigConcat(sig, exp, exp2)) {  // Ugly hack !!
+            return generateConcat(sig, exp, exp2);
         } else {
             int sigRate = getSigRate(sig);
             fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
@@ -151,6 +153,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCode(Tree sig)
             fContainer->closeLoop(sig);
             return code;
         }
+    } else if (isSigVectorAt(sig, exp, exp2)) {  // Ugly hack !!
+         return generateVectorAt(sig, exp, exp2);
     } else {
         return InstructionsCompiler::generateCode(sig);
     }
@@ -182,6 +186,8 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
     } else if (isSigVectorize(sig, x, y)) {
         b = true;
     } else if (isSigSerialize(sig, x)) {
+        b = true;
+    } else if (isSigConcat(sig, x, y)) {
         b = true;
     } else if (c > 1) {
         b = true;
