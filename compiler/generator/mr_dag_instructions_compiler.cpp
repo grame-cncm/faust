@@ -218,6 +218,35 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
     return generateCacheCode(sig, res);
 }
 
+ValueInst* MultiRateDAGInstructionsCompiler::generateXtended(Tree sig)
+{
+    xtended* p = (xtended*)getUserData(sig);
+    list<ValueInst*> args;
+    vector< ::Type> arg_types;
+    ::Type result_type = getSigType(sig);
+
+    for (int i = 0; i < sig->arity(); i++) {
+        Tree arg = sig->branch(i);
+        ValueInst * compiledArg = CS(arg);
+        LoadVarInst* loadCompiledArg = dynamic_cast<LoadVarInst*>(compiledArg);
+
+        if (loadCompiledArg && !isVectorType(getSigType(arg))) {
+            assert(getSigRate(arg) > 1);
+            compiledArg = InstBuilder::genLoadArrayStructVar(loadCompiledArg->fAddress->getName(), curLoopIndex());
+        }
+
+        args.push_back(compiledArg);
+        arg_types.push_back(getSigType(sig->branch(i)));
+    }
+
+    if (p->needCache()) {
+        return generateCacheCode(sig, p->generateCode(fContainer, args, result_type, arg_types));
+    } else {
+        return p->generateCode(fContainer, args, result_type, arg_types);
+    }
+}
+
+
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
 {
     Type sigType = getSigType(sig);
