@@ -1,0 +1,6 @@
+dox/*
+build/*
+clangbuild/*
+*~
+compile.sh
+*tmp*
