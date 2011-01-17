@@ -303,6 +303,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 	for (int index = 0; isList(L); L = tl(L), index++) {
 		Tree sig = hd(L);
         string name = subst("output$0", T(index));
+        int sigRate = getSigRate(sig);
+        fContainer->setOutputRate(index, sigRate);
 
         // Cast to external float
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));

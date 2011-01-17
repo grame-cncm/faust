@@ -92,6 +92,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree sig = hd(L);
             string name = subst("output$0", T(index));
 
+            int sigRate = getSigRate(sig);
+            fContainer->setOutputRate(index, sigRate);
+
             //fContainer->openLoop(getFreshID("i"));
             fContainer->openLoop("i");
 
@@ -108,6 +111,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         for (int index = 0; isList(L); L = tl(L), index++) {
             Tree sig = hd(L);
             string name = subst("fOutput$0", T(index));
+            int sigRate = getSigRate(sig);
+            fContainer->setOutputRate(index, sigRate);
 
             //fContainer->openLoop(getFreshID("i"));
             fContainer->openLoop("i");
@@ -175,6 +180,9 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
 
 ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
 {
+    int rate = getSigRate(sig);
+    fContainer->setInputRate(idx, rate);
+
     if (gOpenCLSwitch || gCUDASwitch) { // HACK
         // "input" use as a name convention
         string name = subst("input$0", T(idx));

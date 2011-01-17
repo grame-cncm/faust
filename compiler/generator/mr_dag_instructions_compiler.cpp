@@ -78,7 +78,7 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         string name = subst("fOutput$0", T(index));
 
         int sigRate = getSigRate(sig);
-        fContainer->setOutputRate(index , sigRate);
+        fContainer->setOutputRate(index, sigRate);
 
         fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
         ValueInst * loopIndex = curLoopIndex();

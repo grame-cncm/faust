@@ -145,7 +145,7 @@ class CodeContainer {
         void setOutputs(int outputs)    { fNumOutputs = outputs; }
 
         void setInputRate(int channel, int rate) { fInputRates[channel] = rate;}
-        void setOutputRate(int channel, int rate) { fOutputRates[channel] = rate;}
+        void setOutputRate(int channel, int rate) { fOutputRates[channel] = std::max(rate, 1); }
 
         int getInputRate(int channel) { return fInputRates[channel];}
         int getOutputRate(int channel) { return fOutputRates[channel];}
