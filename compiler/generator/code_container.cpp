@@ -154,7 +154,9 @@ void CodeContainer::closeLoop(Tree sig)
     fCurLoop = l->fEnclosingLoop;
     assert(fCurLoop);
 
-    if ( (l->isEmpty() || l->hasRecDependencies())
+    const bool disableLoopAbsorb = true;
+
+    if (!disableLoopAbsorb && (l->isEmpty() || l->hasRecDependencies())
         && l->fRate == fCurLoop->fRate) {
         fCurLoop->absorb(l);
         delete l;
