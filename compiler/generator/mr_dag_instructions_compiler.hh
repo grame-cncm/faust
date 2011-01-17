@@ -50,7 +50,6 @@ private:
     virtual ValueInst* generateCacheCode(Tree sig, ValueInst* exp);
 
     virtual ValueInst* generateInput(Tree sig, int idx);
-    ValueInst* generateXtended(Tree sig);
 
     virtual ValueInst* generateVectorize(Tree sig, Tree exp, int n);
     virtual ValueInst* generateSerialize(Tree sig, Tree exp);

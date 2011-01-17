@@ -200,8 +200,15 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
 ValueInst* MultiRateDAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
-    if (!loadExp)
+    if (!loadExp) {
         return DAGInstructionsCompiler::generateCacheCode(sig, exp);
+    }
+
+    if (!isVectorType(getSigType(sig))) {
+        // for scalar multirate signals, we can return the current element
+        assert(getSigRate(sig) > 1);
+        return InstBuilder::genLoadArrayStructVar(loadExp->fAddress->getName(), curLoopIndex());
+    }
 
     // if we find a handle, the data is already cached, so no need to generate extra code
     return exp;
@@ -218,35 +225,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
     // Cast to internal float
     //res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
-}
-
-// TO CHECK
-ValueInst* MultiRateDAGInstructionsCompiler::generateXtended(Tree sig)
-{
-    xtended* p = (xtended*)getUserData(sig);
-    list<ValueInst*> args;
-    vector< ::Type> arg_types;
-    ::Type result_type = getSigType(sig);
-
-    for (int i = 0; i < sig->arity(); i++) {
-        Tree arg = sig->branch(i);
-        ValueInst * compiledArg = CS(arg);
-        LoadVarInst* loadCompiledArg = dynamic_cast<LoadVarInst*>(compiledArg);
-
-        if (loadCompiledArg && !isVectorType(getSigType(arg))) {
-            assert(getSigRate(arg) > 1);
-            compiledArg = InstBuilder::genLoadArrayStructVar(loadCompiledArg->fAddress->getName(), curLoopIndex());
-        }
-
-        args.push_back(compiledArg);
-        arg_types.push_back(getSigType(sig->branch(i)));
-    }
-
-    if (p->needCache()) {
-        return generateCacheCode(sig, p->generateCode(fContainer, args, result_type, arg_types));
-    } else {
-        return p->generateCode(fContainer, args, result_type, arg_types);
-    }
 }
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
