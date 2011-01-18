@@ -49,6 +49,8 @@ private:
     virtual void compileMultiSignal(Tree L);
     virtual ValueInst* generateCacheCode(Tree sig, ValueInst* exp);
 
+    virtual void generateVectorLoop(Tree sig, Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access);
+
     virtual ValueInst* generateInput(Tree sig, int idx);
 
     virtual ValueInst* generateVectorize(Tree sig, Tree exp, int n);

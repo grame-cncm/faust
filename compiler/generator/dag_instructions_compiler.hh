@@ -42,8 +42,8 @@ protected:
     // private helper functions
     bool needSeparateLoop(Tree sig);
 
-    void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
-    void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
+    virtual void generateVectorLoop(Tree sig, Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
+    virtual void generateDlineLoop(Tree sig, Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
 
    // reimplemented code generation methods
     virtual ValueInst* CS(Tree sig);
@@ -55,7 +55,7 @@ protected:
     virtual ValueInst* generateCode(Tree sig);
     virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
+    virtual ValueInst* generateDelayLine(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
 };
 
 

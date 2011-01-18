@@ -960,9 +960,9 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
         if (used[i]) {
             Address::AccessType var_access;
             if (index == i) {
-                res = generateDelayLine(CS(nth(le,i)), ctype[i], vname[i], delay[i], var_access);
+                res = generateDelayLine(sig, CS(nth(le,i)), ctype[i], vname[i], delay[i], var_access);
             } else {
-                generateDelayLine(CS(nth(le,i)), ctype[i], vname[i], delay[i], var_access);
+                generateDelayLine(sig, CS(nth(le,i)), ctype[i], vname[i], delay[i], var_access);
             }
         }
     }
@@ -1145,7 +1145,7 @@ ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Type
 {
     setVectorNameProperty(sig, vname);
     Address::AccessType var_access;
-    return generateDelayLine(exp, ctype, vname, mxd, var_access);
+    return generateDelayLine(sig, exp, ctype, vname, mxd, var_access);
 }
 
 StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Typed::VarType ctype, int delay)
@@ -1235,7 +1235,7 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
     return loop;
 }
 
-ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access)
+ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access)
 {
     if (mxd == 0) {
 

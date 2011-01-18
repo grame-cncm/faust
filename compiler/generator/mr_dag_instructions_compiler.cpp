@@ -90,11 +90,12 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         */
 
         ValueInst * compiledSignal = CS(sig);
-        LoadVarInst* compiledSignalBuffer = dynamic_cast<LoadVarInst*>(compiledSignal);
 
-        if (compiledSignalBuffer) {
+        if (sigRate > 1) {
+            string address;
+            getVectorNameProperty(sig, address);
             StatementInst* store = InstBuilder::genStoreArrayStructVar(name, loopIndex,
-                InstBuilder::genCastNumInst(InstBuilder::genLoadArrayStructVar(compiledSignalBuffer->fAddress->getName(),
+                InstBuilder::genCastNumInst(InstBuilder::genLoadArrayStructVar(address,
                                                                                loopIndex),
                                             InstBuilder::genBasicTyped(Typed::kFloatMacro)));
 
@@ -199,20 +200,51 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
 // TO CHECK
 ValueInst* MultiRateDAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
-    LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
-    if (!loadExp) {
-        return DAGInstructionsCompiler::generateCacheCode(sig, exp);
+    string      vname;
+    Typed::VarType    ctype;
+    Type        t = getSigType(sig);
+    Occurences* o = fOccMarkup.retrieve(sig);
+    int         d = o->getMaxDelay();
+
+    if (t->variability() < kSamp) {
+    } else {
+        // sample-rate signal
+        if (d > 0) {
+        } else {
+            // not delayed
+            if (getSigRate(sig) > 1) {
+                getTypedNames(getSigType(sig), "Zec", ctype, vname);
+                Address::AccessType var_access;
+                generateDelayLine(sig, exp, ctype, vname, d, var_access);
+                setVectorNameProperty(sig, vname);
+                // return subst("$0[i]", vname);
+                return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
+            }
+        }
     }
 
-    if (!isVectorType(getSigType(sig))) {
-        // for scalar multirate signals, we can return the current element
-        assert(getSigRate(sig) > 1);
-        return InstBuilder::genLoadArrayStructVar(loadExp->fAddress->getName(), curLoopIndex());
-    }
-
-    // if we find a handle, the data is already cached, so no need to generate extra code
-    return exp;
+    return DAGInstructionsCompiler::generateCacheCode(sig, exp);
 }
+
+void MultiRateDAGInstructionsCompiler::generateVectorLoop(Tree sig, Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access)
+{
+    DeclareVarInst* table_inst = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), getSigRate(sig) * gVecSize));
+    pushComputeBlockMethod(table_inst);
+
+    // -- compute the new samples
+    if (getSigRate(sig) > 1) {
+        LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
+        if (loadExp)
+            exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), curLoopIndex());
+        // FIXME: breaks for multirate, non-serialized signals
+    }
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, curLoopIndex(), exp));
+
+    // Set desired variable access
+    var_access = Address::kStack;
+}
+
+
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
 {

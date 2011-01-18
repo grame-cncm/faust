@@ -170,7 +170,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
         Typed::VarType ctype;
         getTypedNames(t, "Vector", ctype, vname);
         Address::AccessType var_access;
-        generateVectorLoop(ctype, vname, exp, var_access);
+        generateVectorLoop(sig, ctype, vname, exp, var_access);
         return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
     } else {
         return InstructionsCompiler::generateVariableStore(sig, exp);
@@ -225,13 +225,13 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 // first cache this expression because it
                 // it is shared and complex
                 ValueInst* cachedexp = generateVariableStore(sig, exp);
-                generateDelayLine(cachedexp, ctype, vname, d, var_access);
+                generateDelayLine(sig, cachedexp, ctype, vname, d, var_access);
                 setVectorNameProperty(sig, vname);
                 return cachedexp;
             } else {
                 // no need to cache this expression because
                 // it is either not shared or very simple
-                generateDelayLine(exp, ctype, vname, d, var_access);
+                generateDelayLine(sig, exp, ctype, vname, d, var_access);
                 setVectorNameProperty(sig, vname);
                 return exp;
             }
@@ -242,7 +242,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             // used delayed : we need a delay line
             getTypedNames(getSigType(sig), "Yec", ctype, vname);
             Address::AccessType var_access;
-            generateDelayLine(exp, ctype, vname, d, var_access);
+            generateDelayLine(sig, exp, ctype, vname, d, var_access);
             setVectorNameProperty(sig, vname);
 
             if (verySimple(sig)) {
@@ -258,7 +258,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                 // cerr << "ZEC : " << ppsig(sig) << endl;
                 getTypedNames(getSigType(sig), "Zec", ctype, vname);
                 Address::AccessType var_access;
-                generateDelayLine(exp, ctype, vname, d, var_access);
+                generateDelayLine(sig, exp, ctype, vname, d, var_access);
                 setVectorNameProperty(sig, vname);
                 // return subst("$0[i]", vname);
                 return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
@@ -411,7 +411,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
 
     setVectorNameProperty(sig, vname);
     Address::AccessType var_access;
-    generateDelayLine(exp, ctype, vname, mxd, var_access);
+    generateDelayLine(sig, exp, ctype, vname, mxd, var_access);
 
     if (verySimple(sig)) {
         return exp;
@@ -420,18 +420,18 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access)
+ValueInst* DAGInstructionsCompiler::generateDelayLine(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access)
 {
     if (mxd == 0) {
-        generateVectorLoop(ctype, vname, exp, var_access);
+        generateVectorLoop(sig, ctype, vname, exp, var_access);
     } else {
-        generateDlineLoop(ctype, vname, mxd, exp, var_access);
+        generateDlineLoop(sig, ctype, vname, mxd, exp, var_access);
     }
 
     return exp;
 }
 
-void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access)
+void DAGInstructionsCompiler::generateVectorLoop(Tree sig, Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access)
 {
     // "$0 $1[$2];"
     DeclareVarInst* table_inst = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gVecSize));
@@ -445,7 +445,7 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
     var_access = Address::kStack;
 }
 
-void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const string& vname, int delay, ValueInst* exp, Address::AccessType& var_access)
+void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, const string& vname, int delay, ValueInst* exp, Address::AccessType& var_access)
 {
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
 

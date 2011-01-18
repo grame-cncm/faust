@@ -188,7 +188,7 @@ class InstructionsCompiler {
         virtual ValueInst* generateFVar(Tree sig, Tree type, const string& file, const string& name);
 
         virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-        virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
+        virtual ValueInst* generateDelayLine(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
 
         virtual ValueInst* generateVectorize(Tree sig, Tree exp, int n);
         virtual ValueInst* generateSerialize(Tree sig, Tree exp);
