@@ -1,22 +1,29 @@
 /************************************************************************
+
+	IMPORTANT NOTE : this file contains two clearly delimited sections : 
+	the ARCHITECTURE section (in two parts) and the USER section. Each section 
+	is governed by its own copyright and license. Please check individually 
+	each section for license and copyright information.
+*************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
  ************************************************************************
     FAUST Architecture File
 	Copyright (C) 2007-2011 Remy Muller & Julius Smith
     ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as 
-	published by the Free Software Foundation; either version 2.1 of the 
-	License, or (at your option) any later version.
+    This Architecture section is free software; you can redistribute it 
+    and/or modify it under the terms of the 3-clause BSD license.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+    3-clause BSD license for more details.
 
-    You should have received a copy of the GNU Lesser General Public
- 	License along with the GNU C Library; if not, write to the Free
-  	Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  	02111-1307 USA. 
+	VST SDK : in order to compile a VST (TM) plugin with this 
+	architecture file you will need the official VST SDK from
+	Steinberg. Please check the corresponding license.
  ************************************************************************
  ************************************************************************/
 
@@ -236,13 +243,17 @@ public:
   virtual void init(int samplingRate) = 0;
   virtual void compute(int len, float** inputs, float** outputs) = 0;
 };
+		
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-//----------------------------------------------------------------
-//  Faust-generated dsp class 
-//----------------------------------------------------------------
-			
+/**************************BEGIN USER SECTION **************************/
+		
 <<includeclass>>
 
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+					
 
 /******************************************************************************
  *
@@ -609,3 +620,7 @@ bool Faust::getOutputProperties (VstInt32 index, VstPinProperties* properties)
   else
     return false;
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+
+
