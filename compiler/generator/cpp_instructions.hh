@@ -796,7 +796,7 @@ class MRCPPInstVisitor : public CPPInstVisitor {
 
     private:
 
-        map <string, int> gTypeTable;
+        map <string, StructTyped*> gTypeTable;
 
     public:
 
@@ -807,70 +807,67 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         virtual ~MRCPPInstVisitor()
         {}
 
-        /*
-        virtual void visit(DeclareTypeInst* inst)
+        void visitStructAddress(StructTyped* struct_type, IndexedAddress* indexed)
         {
-            //*fOut << "typedef " << generateType(inst->fType);
-            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(inst->fType);
-            assert(named_typed);
-            // Check is type already generated
-            if (gTypeTable.find(named_typed->fName) == gTypeTable.end()) {
-                *fOut << "struct " << named_typed->fName << " {" << endl;
-                *fOut << "\t" << generateType(named_typed->fType); EndLine();
-                *fOut << "}";
-                EndLine();
-                gTypeTable[named_typed->fName] = 1;
+            ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(struct_type->fType);
+            assert(array_type);
+            StructTyped* struct_type1 = dynamic_cast<StructTyped*>(array_type->fType);
+            BasicTyped* basic_type1 = dynamic_cast<BasicTyped*>(array_type->fType);
+            IndexedAddress* indexed1 = dynamic_cast<IndexedAddress*>(indexed->fAddress);
+
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+
+            if (indexed1) {
+                *fOut << "].f";
+            } else {
+                *fOut << "]";
+            }
+
+            if (struct_type1 && indexed1) {
+                visitStructAddress(struct_type1, indexed1);
+            } else if (basic_type1 && indexed1) {
+                visitAddress(indexed1);
             }
         }
-        */
+
+        void visitAddress(IndexedAddress* indexed)
+        {
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+            *fOut << "]";
+        }
 
         virtual void visit(IndexedAddress* indexed)
         {
-            Typed* var_type = NULL;
-
-            //cerr << "visit(IndexedAddress "<< indexed->fAddress->getName() << endl;
-
             // Struct type access
             if (gVarTable.find(indexed->fAddress->getName()) != gVarTable.end()) {
-                var_type = gVarTable[indexed->fAddress->getName()];
-                //cerr << "visit(IndexedAddress "<< indexed->fAddress->getName() << endl;
+                Typed* var_type = gVarTable[indexed->fAddress->getName()];
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
                 assert(array_type);
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);
-
                 if (struct_type) {
-                    //cerr << "struct_type "<< struct_type->fName << endl;
-                    BasicTyped* basic_type = dynamic_cast<BasicTyped*>(struct_type->fType);
-                    if (!basic_type) {
-                        indexed->fAddress->accept(this);
-                        *fOut << "[";
-                        indexed->fIndex->accept(this);
-                        *fOut << "].f";
-                        return;
-                    }
+                    visitStructAddress(struct_type, indexed);
+                    return;
                 }
             }
 
             // Default case
-            indexed->fAddress->accept(this);
-            *fOut << "[";
-            indexed->fIndex->accept(this);
-            *fOut << "]";
+            visitAddress(indexed);
         }
 
         virtual void visit(DeclareTypeInst* inst)
         {
             StructTyped* struct_typed = dynamic_cast<StructTyped*>(inst->fType);
 
-            // Check is type already generated
+            // Check if type is already generated
             if (struct_typed && gTypeTable.find(struct_typed->fName) == gTypeTable.end()) {
                 Typed* sub_type = struct_typed->fType;
-                BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(sub_type);
                 *fOut << "struct " << struct_typed->fName << " {" << endl;
                 *fOut << "\t" << generateType(sub_type, "f"); EndLine();
                 *fOut << "}";
                 EndLine();
-                gTypeTable[struct_typed->fName] = 1;
+                gTypeTable[struct_typed->fName] = struct_typed;
             }
         }
 
