@@ -508,9 +508,9 @@ struct ArrayTyped : public Typed {
 struct StructTyped : public Typed {
 
     string fName;
-    list<Typed*> fType;
+    Typed* fType;
 
-    StructTyped(const string& name, const list<Typed*>& type)
+    StructTyped(const string& name, Typed* type)
         :fName(name), fType(type)
     {}
 
@@ -1072,16 +1072,9 @@ struct DeclareTypeInst : public StatementInst
     {}
     */
 
-    StructTyped* fType;
+    Typed* fType;
 
-    DeclareTypeInst(const string& name, Typed* type)
-    {
-        list<Typed*> list_type;
-        list_type.push_back(type);
-        fType = new StructTyped(name, list_type);
-    }
-
-    DeclareTypeInst(StructTyped* type)
+    DeclareTypeInst(Typed* type)
         :fType(type)
     {}
 
@@ -1266,12 +1259,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
         virtual Typed* visit(StructTyped* typed)
         {
-            list<Typed*> cloned;
-            list<Typed*>::const_iterator it;
-            for (it = typed->fType.begin(); it != typed->fType.end(); it++) {
-                cloned.push_back((*it)->clone(this));
-            }
-            return new StructTyped( typed->fName, cloned);
+            return new StructTyped(typed->fName, typed->clone(this));
         }
 
         virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(dynamic_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
@@ -1582,8 +1570,8 @@ struct InstBuilder
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed)
         {return new DeclareFunInst(name, typed);}
 
-    static DeclareTypeInst* genDeclareTypeInst(const string& name, Typed* type)
-        {return new DeclareTypeInst(name, type);}
+    static DeclareTypeInst* genDeclareTypeInst(Typed* type)
+        {return new DeclareTypeInst(type);}
 
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
@@ -1722,7 +1710,7 @@ struct InstBuilder
     static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault) { return new FunTyped(args, result, attribute); }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
     static ArrayTyped* genArrayTyped(Typed* type, int size) { return new ArrayTyped(type, size); }
-    static StructTyped* genStructTyped(const string& name, const list<Typed*>& type) { return new StructTyped(name, type); }
+    static StructTyped* genStructTyped(const string& name, Typed* type) { return new StructTyped(name, type); }
 
     // Addresses
     static NamedAddress* genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }

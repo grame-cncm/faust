@@ -148,17 +148,17 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
         if (isSimpleType(type)) {
             if (type->nature() == kInt) {
                 printf("FaustVectorType intType \n");
-                dec_type = genDeclareTypeInst("intType", InstBuilder::genBasicTyped(Typed::kInt));
+                dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kInt));
             } else if (type->nature() == kReal) {
                 printf("FaustVectorType floatType \n");
-                dec_type = genDeclareTypeInst("floatType", InstBuilder::genBasicTyped(Typed::kFloat));
+                dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kFloat));
             } else {
                 assert(false);
             }
         } else if (FaustVectorType* vec = isVectorType(type)) {
             printf("FaustVectorType size %d\n", vec->size());
             DeclareTypeInst* sub_type = genType(vec->dereferenceType());
-            dec_type = genDeclareTypeInst(getFreshID("vecType"), InstBuilder::genArrayTyped(sub_type->fType, vec->size()));
+            dec_type = genDeclareTypeInst(genStructTyped(getFreshID("vecType"), InstBuilder::genArrayTyped(sub_type->fType, vec->size())));
         } else {
             assert(false);
         }
