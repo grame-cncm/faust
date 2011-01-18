@@ -92,7 +92,6 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
         ValueInst * compiledSignal = CS(sig);
         LoadVarInst* compiledSignalBuffer = dynamic_cast<LoadVarInst*>(compiledSignal);
 
-
         if (compiledSignalBuffer) {
             StatementInst* store = InstBuilder::genStoreArrayStructVar(name, loopIndex,
                 InstBuilder::genCastNumInst(InstBuilder::genLoadArrayStructVar(compiledSignalBuffer->fAddress->getName(),
@@ -100,8 +99,10 @@ void MultiRateDAGInstructionsCompiler::compileMultiSignal(Tree L)
                                             InstBuilder::genBasicTyped(Typed::kFloatMacro)));
 
             pushComputeDSPMethod(store);
-        } else
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, loopIndex, compiledSignal));
+        } else {
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, loopIndex,
+                InstBuilder::genCastNumInst(compiledSignal, InstBuilder::genBasicTyped(Typed::kFloatMacro))));
+        }
 
         fContainer->closeLoop();
     }
