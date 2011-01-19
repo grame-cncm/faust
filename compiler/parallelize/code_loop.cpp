@@ -372,34 +372,44 @@ void MultiRateCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count,
 
 void VectorizeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
-    pushBlock(fPreInst, block);
-    pushBlock(fComputeInst, block);
-    pushBlock(fPostInst, block);
-
-/*
     generateDAGLoopPre(block, omp);
 
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-        ValueInst* loop_end = fRate != 1 ? InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genMul(count->load(),
-                                                                                                           InstBuilder::genIntNumInst(fRate)))
-                                         : InstBuilder::genLessThan(loop_decl->load(), count->load());
-        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
-        block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
-        if (omp) {
-            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
-        }
+        // Enclosing loops
+        string i_decl = "i";
+        string j_decl = "j";
 
-        BlockInst* block1 = InstBuilder::genBlockInst();
-        pushBlock(fComputeInst, block1);
+        // Loop "i"
+        DeclareVarInst* loop_i_decl = InstBuilder::genDecLoopVar(i_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        ValueInst* loop_i_end;
 
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1);
-        block->pushBackInst(loop);
+        if (fRate == 1)
+            loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genLoadStackVar("count"));
+        else
+            loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(fRate)));
+        StoreVarInst* loop_i_increment = loop_i_decl->store(InstBuilder::genAdd(loop_i_decl->load(), 1));
+
+        BlockInst* block_i = InstBuilder::genBlockInst();
+
+        // Loop "j"
+        DeclareVarInst* loop_j_decl = InstBuilder::genDecLoopVar(j_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        ValueInst* loop_j_end = InstBuilder::genLessThan(loop_j_decl->load(), InstBuilder::genIntNumInst(fExpRate/fRate));
+        StoreVarInst* loop_j_increment = loop_j_decl->store(InstBuilder::genAdd(loop_j_decl->load(), 1));
+
+        BlockInst* block_j = fComputeInst;
+
+        ForLoopInst* loop_j = InstBuilder::genForLoopInst(loop_j_decl, loop_j_end, loop_j_increment, block_j);
+
+        block_i->pushFrontInst(loop_j);
+
+        ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
+
+        block->pushBackInst(InstBuilder::genLabelInst("// vectorize"));
+        block->pushBackInst(loop_i);
     }
 
     generateDAGLoopPost(block, omp);
-*/
 }
 
 void SerializeCodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)

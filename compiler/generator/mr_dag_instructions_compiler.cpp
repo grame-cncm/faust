@@ -299,57 +299,27 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     pushDeclare(vecBuffer);
 
     // open vectorize loop
-    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate);
+    VectorizeCodeLoop* vLoop = new VectorizeCodeLoop(fContainer->getCurLoop(), "j", sigRate, expRate);
     fContainer->openLoop(vLoop);
 
-    // Enclosing loops
-    string i_decl = "i";
-    string j_decl = "j";
-
-    // Loop "i"
-    DeclareVarInst* loop_i_decl = InstBuilder::genDecLoopVar(i_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_i_end;
-
-    if (sigRate == 1)
-        loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genLoadStackVar("count"));
-    else
-        loop_i_end = InstBuilder::genLessThan(loop_i_decl->load(), InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(sigRate)));
-    StoreVarInst* loop_i_increment = loop_i_decl->store(InstBuilder::genAdd(loop_i_decl->load(), 1));
-
-    BlockInst* block_i = InstBuilder::genBlockInst();
-
-    // Loop "j"
-    DeclareVarInst* loop_j_decl = InstBuilder::genDecLoopVar(j_decl, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_j_end = InstBuilder::genLessThan(loop_j_decl->load(), InstBuilder::genIntNumInst(n));
-    StoreVarInst* loop_j_increment = loop_j_decl->store(InstBuilder::genAdd(loop_j_decl->load(), 1));
-
-    BlockInst* block_j = InstBuilder::genBlockInst();
-
-    // input index
-    ValueInst* in_index = InstBuilder::genAdd(InstBuilder::genMul(loop_i_decl->load(), InstBuilder::genIntNumInst(n)), loop_j_decl->load());
-
-    MultiRateCodeLoop* cLoop = new MultiRateCodeLoop(fContainer->getCurLoop(), "i", expRate);
-    fContainer->openLoop(cLoop);
     LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(generateCode(exp));
-    fContainer->closeLoop();
 
     // Assume the result is a buffer for now (and not a more complex ValueInst*)
     assert(in_buffer);
 
-    block_j->pushFrontInst(InstBuilder::genStoreArrayStructVar(vecname, loop_i_decl->load(), loop_j_decl->load(),
+    // input index
+    LoadVarInst * loadI = InstBuilder::genLoadLoopVar("i");
+    LoadVarInst * loadJ = InstBuilder::genLoadLoopVar("j");
+    ValueInst* in_index = InstBuilder::genAdd(InstBuilder::genMul(loadI, InstBuilder::genIntNumInst(n)), loadJ);
+
+    pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, loadI, loadJ,
         InstBuilder::genLoadArrayStructVar(in_buffer->fAddress->getName(), in_index)));
 
-    ForLoopInst* loop_j = InstBuilder::genForLoopInst(loop_j_decl, loop_j_end, loop_j_increment, block_j);
+    ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
 
-    block_i->pushFrontInst(loop_j);
-
-    ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
-
-    pushComputeDSPMethod(InstBuilder::genLabelInst("// vectorize"));
-    pushComputeDSPMethod(loop_i);
     fContainer->closeLoop(); // close vectorize
 
-    return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
+    return ret; // return "handle" on vector
 }
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree exp)
