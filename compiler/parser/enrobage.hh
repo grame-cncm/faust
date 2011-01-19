@@ -37,6 +37,7 @@ void copyFile(FILE* file, FILE* dst);
 
 
 
+void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag);
 void streamCopyUntil(istream& src, ostream& dst, const string& until);
 void streamCopyUntilEnd(istream& src, ostream& dst);
 void streamCopy(istream& src, ostream& dst);
