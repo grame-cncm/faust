@@ -200,10 +200,10 @@ public:
 struct VectorizeCodeLoop:
     MultiRateCodeLoop
 {
-    int fExpRate;
+    const int fExpRate;
 
 public:
-    VectorizeCodeLoop(CodeLoop* encl, string index_name, int rate = 1, int expRate = 1):
+    VectorizeCodeLoop(CodeLoop* encl, string index_name, int rate, int expRate):
         MultiRateCodeLoop(encl, index_name, rate), fExpRate(expRate)
     {}
 
@@ -213,10 +213,11 @@ public:
 struct SerializeCodeLoop:
     MultiRateCodeLoop
 {
+    const int fExpRate;
 
 public:
-    SerializeCodeLoop(CodeLoop* encl, string index_name, int rate = 1):
-        MultiRateCodeLoop(encl, index_name, rate)
+    SerializeCodeLoop(CodeLoop* encl, string index_name, int rate, int expRate):
+        MultiRateCodeLoop(encl, index_name, rate), fExpRate(expRate)
     {}
 
     virtual void generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp);
