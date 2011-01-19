@@ -1,10 +1,63 @@
+/************************************************************************
+
+	IMPORTANT NOTE : this file contains two clearly delimited sections : 
+	the ARCHITECTURE section (in two parts) and the USER section. Each section 
+	is governed by its own copyright and license. Please check individually 
+	each section for license and copyright information.
+*************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
+ ************************************************************************
+    FAUST Architecture File
+	Copyright (C) 2007-2011 Remy Muller & Julius Smith
+	All rights reserved.
+    ----------------------------BSD License------------------------------
+	Redistribution and use in source and binary forms, with or without 
+	modification, are permitted provided that the following conditions 
+	are met:
+
+    	* Redistributions of source code must retain the above copyright 
+		  notice, this list of conditions and the following disclaimer.
+    	* Redistributions in binary form must reproduce the above 
+		  copyright notice, this list of conditions and the following 
+		  disclaimer in the documentation and/or other materials provided 
+		  with the distribution.
+    	* Neither the name of Remy Muller or Julius Smith or of its 
+		  contributors may be used to endorse or promote products derived 
+		  from this software without specific prior written permission.
+
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+	"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+	LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+	FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+	COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+	CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+	STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+	OF THE POSSIBILITY OF SUCH DAMAGE.
+
+    ----------------------------VST SDK----------------------------------
+	In order to compile a VST (TM) plugin with this architecture file 
+	you will need the proprietary VST SDK from Steinberg. Please check 
+	the corresponding license.
+
+ ************************************************************************
+ ************************************************************************/
+
+
+
 /********************************************************************
  * VST-2.4 wrapper for the FAUST language. 
  *
  * Usage: faust -a vst2p4.cpp myfaustprog.dsp
  *
  * By Julius Smith (http://ccrma.stanford.edu/~jos/), based on 
- * vst.cpp by r�y muller remy.muller@ircam.fr 
+ * vst.cpp by remy muller remy.muller@ircam.fr 
  * http://www.smartelectronix.com/~mdsp/.
  * Essentially, vst.cpp was edited to look more like the "again" 
  * programming sample that comes with the VST-2.4 SDK from Steinberg.
@@ -212,13 +265,17 @@ public:
   virtual void init(int samplingRate) = 0;
   virtual void compute(int len, float** inputs, float** outputs) = 0;
 };
+		
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-//----------------------------------------------------------------
-//  Faust-generated dsp class 
-//----------------------------------------------------------------
-			
+/**************************BEGIN USER SECTION **************************/
+		
 <<includeclass>>
 
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+					
 
 /******************************************************************************
  *
@@ -585,3 +642,7 @@ bool Faust::getOutputProperties (VstInt32 index, VstPinProperties* properties)
   else
     return false;
 }
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+
+

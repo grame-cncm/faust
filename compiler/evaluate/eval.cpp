@@ -604,36 +604,35 @@ Tree simplifyPattern (Tree value)
 
 static bool isBoxNumeric (Tree in, Tree& out)
 {
-	int 	numInputs, numOutputs;
-	double 	x;
-	int		i;
-	Tree 	v;
+    int 	numInputs, numOutputs;
+    double 	x;
+    int		i;
+    Tree 	v;
 
-	if (isBoxInt(in, &i) || isBoxReal(in, &x)) {
-		out = in;
-		return true;
-	} else {
-		v = a2sb(in);
-		if ( getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {
-			// potential numerical expression
-			Tree lsignals = boxPropagateSig(nil, v , makeSigInputList(numInputs) );
-			Tree res = foldConstants(hd(lsignals));
-			if (isSigReal(res, &x)) 	{
-			out = boxReal(x);
-			return true;
-			}
-			if (isSigInt(res, &i))  	{
-			out = boxInt(i);
-			return true;
-			}
-		}
-		return false;
-	}
+    if (isBoxInt(in, &i) || isBoxReal(in, &x)) {
+        out = in;
+        return true;
+    } else {
+        v = a2sb(in);
+        if ( getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {
+            // potential numerical expression
+            Tree lsignals = boxPropagateSig(nil, v , makeSigInputList(numInputs));
+            Tree res = foldConstants(hd(lsignals));
+            if (isSigReal(res, &x)) 	{
+                out = boxReal(x);
+                return true;
+            }
+            if (isSigInt(res, &i))  	{
+                out = boxInt(i);
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 static Tree patternSimplification (Tree pattern)
 {
-
 	Node 	n(0);
 	Tree 	v, t1, t2;
 
