@@ -417,8 +417,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
     LoadVarInst * loadExpression2 = dynamic_cast<LoadVarInst*>(compiledExpression2);
     ValueInst* currentIndex = curLoopIndex();
 
-    fContainer->openLoop(new MultiRateCodeLoop("i", sigRate));
-
     // first loop
     {
         DeclareVarInst* loopDeclare = InstBuilder::genDecLoopVar("k", InstBuilder::genBasicTyped(Typed::kInt),
@@ -453,8 +451,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateConcat(Tree sig, Tree exp1,
         block->pushBackInst(storeInst);
         pushComputeDSPMethod(loop);
     }
-
-    fContainer->closeLoop(sig);
 
     return generateCacheCode(sig, vecBuffer->load()); // return "handle" on vector
 }
