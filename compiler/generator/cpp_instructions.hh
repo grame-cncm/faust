@@ -834,8 +834,8 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             // Struct type access
-            if (gVarTable.find(indexed->fAddress->getName()) != gVarTable.end()) {
-                Typed* var_type = gVarTable[indexed->fAddress->getName()];
+            if (gVarTable.find(indexed->getName()) != gVarTable.end()) {
+                Typed* var_type = gVarTable[indexed->getName()];
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
                 assert(array_type);
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);
