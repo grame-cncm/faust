@@ -52,6 +52,8 @@ private:
     virtual void generateVectorLoop(Tree sig, Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access);
 
     virtual ValueInst* generateInput(Tree sig, int idx);
+    virtual ValueInst* generateFixDelay(Tree sig, Tree exp, Tree delay);
+    virtual void generateDlineLoop(Tree sig, Typed::VarType ctype, const string& vname, int delay, ValueInst* exp, Address::AccessType& var_access);
 
     virtual ValueInst* generateVectorize(Tree sig, Tree exp, int n);
     virtual ValueInst* generateSerialize(Tree sig, Tree exp);

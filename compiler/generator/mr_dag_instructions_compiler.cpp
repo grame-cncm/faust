@@ -226,6 +226,23 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCacheCode(Tree sig, ValueIn
     return DAGInstructionsCompiler::generateCacheCode(sig, exp);
 }
 
+ValueInst* MultiRateDAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
+{
+    return generateCacheCode(sig, DAGInstructionsCompiler::generateFixDelay(sig, exp, delay));
+}
+
+void MultiRateDAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, const string& vname, int delay, ValueInst* exp, Address::AccessType& var_access)
+{
+    if (getSigRate(sig) > 1) {
+        LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
+        if (loadExp)
+            exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), curLoopIndex());
+    }
+
+    return DAGInstructionsCompiler::generateDlineLoop(sig, ctype, vname, delay, exp, var_access);
+}
+
+
 void MultiRateDAGInstructionsCompiler::generateVectorLoop(Tree sig, Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access)
 {
     DeclareVarInst* table_inst = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), getSigRate(sig) * gVecSize));
