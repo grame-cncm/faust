@@ -91,7 +91,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         for (int index = 0; isList(L); L = tl(L), index++) {
             Tree sig = hd(L);
             string name = subst("output$0", T(index));
-
             int sigRate = getSigRate(sig);
             fContainer->setOutputRate(index, sigRate);
 
@@ -353,7 +352,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
 
     if (!getVectorNameProperty(exp, vname)) {
         cerr << "no vector name for " << ppsig(exp) << endl;
-        exit(1);
+        assert(false);
     }
 
     if (mxd == 0) {

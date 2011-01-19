@@ -309,9 +309,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         // Cast to external float
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, curLoopIndex(), res));
-
-        int rate = getSigRate(sig);
-        fContainer->setOutputRate(index, rate);
     }
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));

@@ -196,6 +196,7 @@ bool MultiRateDAGInstructionsCompiler::needSeparateLoop(Tree sig)
     return b;
 }
 
+// TO CHECK
 ValueInst* MultiRateDAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
@@ -213,12 +214,13 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
 
     // "fInput" use as a name convention
     string name = subst("fInput$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadArrayStructVar(name);
+    ValueInst* res = InstBuilder::genLoadArrayStructVar(name);  // return "handle" on vector
     // Cast to internal float
     //res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
 }
 
+// TO CHECK
 ValueInst* MultiRateDAGInstructionsCompiler::generateXtended(Tree sig)
 {
     xtended* p = (xtended*)getUserData(sig);
@@ -246,7 +248,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateXtended(Tree sig)
         return p->generateCode(fContainer, args, result_type, arg_types);
     }
 }
-
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
 {
@@ -314,7 +315,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
 
-    //pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
     pushComputeDSPMethod(InstBuilder::genLabelInst("// vectorize"));
     pushComputeDSPMethod(loop_i);
     fContainer->closeLoop(); // close vectorize
@@ -388,8 +388,6 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
 
     ForLoopInst* loop_i = InstBuilder::genForLoopInst(loop_i_decl, loop_i_end, loop_i_increment, block_i);
 
-
-    //pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, generateCode(exp)));
     pushComputeDSPMethod(InstBuilder::genLabelInst("// serialize"));
     pushComputeDSPMethod(loop_i);
     fContainer->closeLoop(); // close serialize
