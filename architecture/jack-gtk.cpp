@@ -207,13 +207,13 @@ class UI
         virtual void addCheckButton(const char* label, float* zone) = 0;
         virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
         virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        virtual void addKnob(const char* label, float* zone, float init, float min, float max, float step) = 0;
+        //virtual void addKnob(const char* label, float* zone, float init, float min, float max, float step) = 0;
         virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
         
         // -- passive widgets
         
         virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-        virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
+        //virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
         virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
         virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
         
@@ -221,17 +221,17 @@ class UI
         
         // -- widget's layouts
         
-        virtual void openFrameBox(const char* label) = 0;
+        //virtual void openFrameBox(const char* label) = 0;
         virtual void openTabBox(const char* label) = 0;
         virtual void openHorizontalBox(const char* label) = 0;
         virtual void openVerticalBox(const char* label) = 0;
 
         // -- extra widget's layouts
     
-        virtual void openDialogBox(const char* label, float* zone) = 0;
-        virtual void openEventBox(const char* label) = 0;
-        virtual void openHandleBox(const char* label) = 0;
-        virtual void openExpanderBox(const char* label, float* zone) = 0;
+        //virtual void openDialogBox(const char* label, float* zone) = 0;
+        //virtual void openEventBox(const char* label) = 0;
+        //virtual void openHandleBox(const char* label) = 0;
+        //virtual void openExpanderBox(const char* label, float* zone) = 0;
 
         virtual void closeBox() = 0;
         
@@ -335,6 +335,69 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 { 
 	new uiCallbackItem(this, zone, foo, data); 
 };
+
+
+/******************************************************************************
+*******************************************************************************
+
+                      OSC (OpenSOundControl) USER INTERFACE
+                                 gtk interface
+
+*******************************************************************************
+*******************************************************************************/
+class OSCCTRL
+{
+  public:
+	void addnode(const char* label, float* zone, float init, float min, float max) {}
+	void opengroup(const char* label) {}
+	void closegroup() {}
+	void run() {}
+};
+
+class OSCUI : public UI 
+{
+	OSCCTRL*	ctrl;
+ public:
+		
+	OSCUI() : UI() 
+    { ctrl = new OSCCTRL; }
+	
+	virtual ~OSCUI() {
+		// suppression de this dans fGuiList
+	}
+
+	
+	// -- active widgets
+	
+	virtual void addButton(const char* label, float* zone) 															{ ctrl->addnode(label, zone, 0, 0, 1); }
+	virtual void addToggleButton(const char* label, float* zone) 													{ ctrl->addnode(label, zone, 0, 0, 1); }
+	virtual void addCheckButton(const char* label, float* zone) 													{ ctrl->addnode(label, zone, 0, 0, 1); }
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ ctrl->addnode(label, zone, init, min, max); }
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ ctrl->addnode(label, zone, init, min, max); }
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) 			{ ctrl->addnode(label, zone, init, min, max); }
+	
+	// -- passive widgets
+	
+	virtual void addNumDisplay(const char* label, float* zone, int precision) {}
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) {}
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) {}
+	
+	//void addCallback(float* zone, uiCallback foo, void* data);
+	
+	// -- widget's layouts
+	
+	//virtual void openFrameBox(const char* label) {}
+	virtual void openTabBox(const char* label) 			{ ctrl->opengroup(label); }
+	virtual void openHorizontalBox(const char* label) 	{ ctrl->opengroup(label); }
+	virtual void openVerticalBox(const char* label) 	{ ctrl->opengroup(label); }
+	virtual void closeBox() 							{ ctrl->closegroup(); }
+
+	void run()											{ ctrl->run(); }
+
+    //virtual void declare(float* zone, const char* key, const char* value) {}
+};
+
 
 /******************************************************************************
 *******************************************************************************
@@ -2035,13 +2098,14 @@ int process (jack_nframes_t nframes, void *arg)
 int main(int argc, char *argv[] )
 {
     UI*                 interface;
+    OSCUI*              osc;
     jack_client_t*      client; 
     char                buf [256];
     char                rcfilename[256];
     jack_status_t       jackstat;
-    const char*                 home;
-    char*                               pname;
-    char*                               jname;
+    const char*         home;
+    char*               pname;
+    char*               jname;
 
     AVOIDDENORMALS;
 
@@ -2070,9 +2134,12 @@ int main(int argc, char *argv[] )
         output_ports[i] = jack_port_register(client, buf,JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
     }
     
+    osc = new OSCUI ();
     interface = new GTKUI (jname, &argc, &argv);
+
     DSP.init(jack_get_sample_rate(client));
     DSP.buildUserInterface(interface);
+    DSP.buildUserInterface(osc);
 
     home = getenv ("HOME");
     if (home == 0) home = ".";
@@ -2100,6 +2167,7 @@ int main(int argc, char *argv[] )
         }       
     }
     
+	osc->run();
     interface->run();
     jack_deactivate(client);
     
