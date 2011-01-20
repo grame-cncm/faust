@@ -143,7 +143,6 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, b
 }
 */
 
-//Not yet working because of gGlobalTable in CPPInstVisitor (so function can be declared only once...)
 void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
 {
     // Input/Output method
