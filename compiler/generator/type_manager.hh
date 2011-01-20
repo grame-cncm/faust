@@ -164,8 +164,8 @@ class StringTypeManager {
                 return fTypeDirectTable[basic_typed->fType] + " " + name;
             } else if (named_typed) {
                 // TODO : break code with subclasses
-                //return named_typed->fName + generateType(named_typed->fType) + " " + name;
-                return named_typed->fName + " " + name;
+                return named_typed->fName + generateType(named_typed->fType) + " " + name;
+                //return named_typed->fName + " " + name;
             } else if (fun_typed) {
                 return "FUN TYPE";
             } else if (array_typed) {

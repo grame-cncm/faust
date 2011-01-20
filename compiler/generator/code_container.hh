@@ -173,8 +173,8 @@ class CodeContainer {
         DeclareFunInst* generateGetInputs(const string& name, bool isvirtual);
         DeclareFunInst* generateGetOutputs(const string& name, bool isvirtual);
 
-        DeclareFunInst* generateGetInputRate(const string& name);
-        DeclareFunInst* generateGetOutputRate(const string& name);
+        DeclareFunInst* generateGetInputRate(const string& name, bool isvirtual);
+        DeclareFunInst* generateGetOutputRate(const string& name, bool isvirtual);
 
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
 

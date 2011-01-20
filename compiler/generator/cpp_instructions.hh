@@ -204,6 +204,13 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
                 return;
             }
 
+            // If function is actually a method (that is "xx::name"), then keep "xx::name" in gGlobalTable but print "name"
+            string fun_name = inst->fName;
+            size_t pos;
+            if ((pos = inst->fName.find("::")) != string::npos) {
+                fun_name = inst->fName.substr(pos + 2); // After the "::"
+            }
+
             // Prototype
             if (inst->fType->fAttribute & FunTyped::kLocal)
                  *fOut << "inline ";
@@ -211,7 +218,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             if (inst->fType->fAttribute & FunTyped::kVirtual)
                  *fOut << "virtual ";
 
-            *fOut << generateType(inst->fType->fResult, inst->fName);
+            *fOut << generateType(inst->fType->fResult, fun_name);
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;

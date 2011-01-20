@@ -53,7 +53,7 @@ class CPPCodeContainer : public virtual CodeContainer {
         string fKlassName;
         string fSuperKlassName;
 
-        void produceInfoFunctions(int tabs, bool isVirtual);
+        void produceInfoFunctions(int tabs, const string& classname, bool isVirtual);
         void produceMetadata(int tabs);
         void produceInit(int tabs);
 

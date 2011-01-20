@@ -91,7 +91,8 @@ CodeContainer* CPPCodeContainer::createContainer(int numInputs, int numOutputs, 
     return container;
 }
 
-void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
+/*
+void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isVirtual)
 {
     stringstream out;
     string virtualPrefix;
@@ -99,17 +100,18 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
         virtualPrefix = "virtual ";
 
     // Input/Output method
+
     out << virtualPrefix;
-    Loki::FPrintf(out, "int getNumInputs() { return %d; }\n")(fNumInputs);
+    Loki::FPrintf(out, "int " + classname + "::getNumInputs() { return %d; }\n")(fNumInputs);
     out << virtualPrefix;
-    Loki::FPrintf(out, "int getNumOutputs() { return %d; }\n")(fNumOutputs);
+    Loki::FPrintf(out, "int " + classname + "::getNumOutputs() { return %d; }\n")(fNumOutputs);
 
     // Input Rates
     {
         stringstream block1, block2;
 
         out << endl << virtualPrefix;
-        Loki::FPrintf(out, "int getInputRate(int channel) {\n");
+        Loki::FPrintf(out, "int " + classname + "::getInputRate(int channel) {\n");
         block1 << "switch (channel) {" << endl;
 
         for (int i = 0; i != fNumInputs; ++i)
@@ -126,7 +128,7 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
         stringstream block1, block2;
 
         out << endl << virtualPrefix;
-        Loki::FPrintf(out, "int getOutputRate(int channel) {\n");
+        Loki::FPrintf(out, "int " + classname + "::getOutputRate(int channel) {\n");
         block1 << "switch (channel) {" << endl;
 
         for (int i = 0; i != fNumOutputs; ++i)
@@ -139,25 +141,24 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, bool isVirtual)
     }
     *fOut << endl << indent(out.str(), tabs);
 }
+*/
 
-/*
-Not yet working because of gGlobalTable in CPPInstVisitor (so function can be delcared only once...)
-void CPPCodeContainer::produceInfoFunctions(int tabs, bool isvirtual)
+//Not yet working because of gGlobalTable in CPPInstVisitor (so function can be declared only once...)
+void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
 {
     // Input/Output method
     fCodeProducer.Tab(tabs);
-    generateGetInputs("getNumInputs", isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs("getNumOutputs", isvirtual)->accept(&fCodeProducer);
+    generateGetInputs(subst("$0::getNumInputs", classname), isvirtual)->accept(&fCodeProducer);
+    generateGetOutputs(subst("$0::getNumOutputs", classname), isvirtual)->accept(&fCodeProducer);
 
     // Input Rates
     fCodeProducer.Tab(tabs);
-    generateGetInputRate("getInputRate")->accept(&fCodeProducer);
+    generateGetInputRate(subst("$0::getInputRate", classname), isvirtual)->accept(&fCodeProducer);
 
     // Output Rates
     fCodeProducer.Tab(tabs);
-    generateGetOutputRate("getOutputRate")->accept(&fCodeProducer);
+    generateGetOutputRate(subst("$0::getOutputRate", classname), isvirtual)->accept(&fCodeProducer);
 }
-*/
 
 void CPPCodeContainer::produceMetadata(int tabs)
 {
@@ -217,7 +218,7 @@ void CPPCodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "  public:";
 
         tab(n+1, *fOut);
-        produceInfoFunctions(n+1, false);
+        produceInfoFunctions(n+1, fKlassName, false);
 
         // Inits
         tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
@@ -307,7 +308,7 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        produceInfoFunctions(n+1, true);  // Inits
+        produceInfoFunctions(n+1, fKlassName, true);  // Inits
 
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
             tab(n+2, *fOut);
