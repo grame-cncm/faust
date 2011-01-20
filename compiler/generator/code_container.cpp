@@ -348,7 +348,7 @@ DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, bool isvir
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputRate(const string& name)
+DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, bool isvirtual)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
@@ -374,11 +374,11 @@ DeclareFunInst* CodeContainer::generateGetInputRate(const string& name)
     switch_block->addCase(-1, default_case_block);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name)
+DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool isvirtual)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
@@ -404,7 +404,7 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name)
     switch_block->addCase(-1, default_case_block);
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kVirtual);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 

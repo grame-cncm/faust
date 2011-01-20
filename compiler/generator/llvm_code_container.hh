@@ -67,7 +67,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateGetNumInputs();
         void generateGetNumOutputs();
 
-
         //void generateGetInputRate();
         //void generateGetOutputRate();
 
