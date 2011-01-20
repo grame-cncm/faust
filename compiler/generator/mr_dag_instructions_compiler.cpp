@@ -253,9 +253,14 @@ void MultiRateDAGInstructionsCompiler::generateVectorLoop(Tree sig, Typed::VarTy
     // -- compute the new samples
     if (isVectorType(getSigType(sig)) || getSigRate(sig) > 1) {
         LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
-        if (loadExp)
-            exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), curLoopIndex());
-        // FIXME: breaks for multirate, non-serialized signals
+        if (loadExp) {
+            IndexedAddress * idxAddress = dynamic_cast<IndexedAddress*>(loadExp->fAddress);
+            if (idxAddress) {
+                ValueInst * index = InstBuilder::genAdd(idxAddress->fIndex, curLoopIndex());
+                exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), index);
+            } else
+                exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), curLoopIndex());
+        }
     }
 
     pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, curLoopIndex(), exp));
