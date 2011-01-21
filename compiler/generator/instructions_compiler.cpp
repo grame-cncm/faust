@@ -32,6 +32,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <stdexcept>
 
 #include "instructions.hh"
 #include "instructions_compiler.hh"
@@ -1261,26 +1262,22 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, ValueInst* exp, Typ
 
 ValueInst* InstructionsCompiler::generateVectorize(Tree sig, Tree exp, int n)
 {
-    printf("vectorize not implemented\n");
-    assert(false);
+    throw std::logic_error("Internal error: should not be called");
 }
 
 ValueInst* InstructionsCompiler::generateSerialize(Tree sig, Tree exp)
 {
-    printf("serialize not implemented\n");
-    assert(false);
+    throw std::logic_error("Internal error: should not be called");
 }
 
 ValueInst* InstructionsCompiler::generateVectorAt(Tree sig, Tree exp, Tree index)
 {
-    printf("vector at not implemented\n");
-    assert(false);
+    throw std::logic_error("Internal error: should not be called");
 }
 
 ValueInst* InstructionsCompiler::generateConcat(Tree sig, Tree exp1, Tree exp2)
 {
-    printf("concatenation not implemented\n");
-    assert(false);
+    throw std::logic_error("Internal error: should not be called");
 }
 
 void InstructionsCompiler::ensureIotaCode()
