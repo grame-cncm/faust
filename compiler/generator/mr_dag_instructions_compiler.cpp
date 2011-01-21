@@ -299,6 +299,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
 
     printf("generateVectorize expRate=%d, sigRate=%d, n=%d\n", expRate, sigRate, n);
 
+    fContainer->openLoop("i", sigRate);
+
     pushGlobalDeclare(typeInst);
     DeclareVarInst* vecBuffer = InstBuilder::genDecStackVar(vecname, InstBuilder::genArrayTyped(typeInst->fType, sigRate * gVecSize));
     pushDeclare(vecBuffer);
@@ -320,9 +322,11 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, loadI, loadJ,
         InstBuilder::genLoadArrayStructVar(in_buffer->fAddress->getName(), in_index)));
 
-    ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
-
     fContainer->closeLoop(); // close vectorize
+
+    ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
+    fContainer->closeLoop();
+
 
     return ret; // return "handle" on vector
 }
@@ -336,6 +340,8 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     int n = sigRate / expRate;
 
     string vecname = getFreshID("fSerialize");
+
+    fContainer->openLoop("i", sigRate);
 
     DeclareTypeInst* typeInst = InstBuilder::genType(sigType);
 
@@ -361,8 +367,10 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vecname, out_index,
         InstBuilder::genLoadArrayStructVar(in_buffer->fAddress->getName(), loadI, loadJ)));
 
-    ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
     fContainer->closeLoop(); // close serialize
+
+    ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
+    fContainer->closeLoop();
 
     return ret; // return "handle" on vector
 }
