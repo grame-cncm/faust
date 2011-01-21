@@ -449,6 +449,8 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
 {
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
 
+    int sigRate = max(getSigRate(sig), 1);
+
     if (delay < gMaxCopyDelay) {
         // Implementation of a copy based delayline
         // create names for temporary and permanent storage
@@ -464,7 +466,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
         // compute method
 
         // -- declare a buffer and a "shifted" vector
-        DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gVecSize * max(getSigRate(sig), 1) + delay));
+        DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gVecSize * sigRate + delay));
         pushComputeBlockMethod(table_inst1);
 
         ValueInst* address_value = InstBuilder::genLoadArrayStackAddressVar(buf, InstBuilder::genIntNumInst(delay));
@@ -478,7 +480,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, curLoopIndex(), exp));
 
         // -- copy back to stored samples
-        pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay, max(getSigRate(sig), 1)));
+        pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay, sigRate));
 
         // Set desired variable access
         var_access = Address::kStack;
@@ -486,7 +488,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
     } else {
 
         // Implementation of a ring-buffer delayline, the size should be large enough and aligned on a power of two
-        delay = pow2limit(delay + gVecSize);
+        delay = pow2limit(delay + gVecSize*sigRate);
 
         // create names for temporary and permanent storage
         string idx = subst("$0_idx", vname);
@@ -514,7 +516,9 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));
 
         // -- save index
-        pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genLoadStackVar("count")));
+        pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx_save,
+                                                                InstBuilder::genMul(InstBuilder::genLoadStackVar("count"),
+                                                                                    InstBuilder::genIntNumInst(sigRate))));
 
         // Set desired variable access
         var_access = Address::kStruct;
