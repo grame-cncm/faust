@@ -9,13 +9,13 @@ E : signal expression
 E = INx | P(E1,..) | NUM(x) | vectorize(n,E) | serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | PROJ(n, g = (E0, E1, ...))
 
 V : compilation value
-V = int | float | V[n] | P(V1,..)
+V = int | float | var | V[n] | P(V1,..)
 
 S : compilation statement
 S : A = V | Loop(i, n) { S* } | SubLoop(i, n) { S* }
 
 I : access indexes
-I : int | Binop(i1, i2)  with Binop : +,-,*,/
+I : int | var | Binop(i1, i2)  with Binop : +,-,*,/
 
 A compilation value V has a type given with type(V) = T
 
@@ -115,7 +115,7 @@ if not shared (P(E1,E2,..)) : we can inline the expression
 
 >	P(CS[E1,I],CS[E2,I],...)
 
-if shared (P(E1,E2,..)) : we need an intermediated buffer W to store
+if shared (P(E1,E2,..)) : we need an intermediate buffer W to store
 + 	T 	W[r*VS]
 +	Loop(j, r*count) {
 +		W[j] = P(CS[E1,j],...)
