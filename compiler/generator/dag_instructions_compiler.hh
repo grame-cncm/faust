@@ -41,6 +41,7 @@ public:
 protected:
     // private helper functions
     bool needSeparateLoop(Tree sig);
+    StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size, int rate);
 
     virtual void generateVectorLoop(Tree sig, Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
     virtual void generateDlineLoop(Tree sig, Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);

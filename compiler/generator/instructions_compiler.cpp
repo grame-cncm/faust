@@ -1217,24 +1217,6 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
     return loop;
 }
 
-StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from, int size, int rate)
-{
-    string index = "j";
-
-    // Generates init table loop
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genIntNumInst(size));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
-
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
-
-    ValueInst* load_index = InstBuilder::genAdd(InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(rate)), loop_decl->load());
-    ValueInst* load_value = InstBuilder::genLoadArrayStackVar(vname_from, load_index);
-
-    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, loop_decl->load(), load_value));
-    return loop;
-}
-
 ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access)
 {
     if (mxd == 0) {
