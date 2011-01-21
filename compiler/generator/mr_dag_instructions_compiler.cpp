@@ -256,8 +256,8 @@ void MultiRateDAGInstructionsCompiler::generateVectorLoop(Tree sig, Typed::VarTy
         if (loadExp) {
             IndexedAddress * idxAddress = dynamic_cast<IndexedAddress*>(loadExp->fAddress);
             if (idxAddress) {
-                ValueInst * index = InstBuilder::genAdd(idxAddress->fIndex, curLoopIndex());
-                exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), index);
+/*                ValueInst * index = InstBuilder::genAdd(idxAddress->fIndex, curLoopIndex());
+                exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), index);*/
             } else
                 exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), curLoopIndex());
         }
@@ -268,7 +268,6 @@ void MultiRateDAGInstructionsCompiler::generateVectorLoop(Tree sig, Typed::VarTy
     // Set desired variable access
     var_access = Address::kStack;
 }
-
 
 
 ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)

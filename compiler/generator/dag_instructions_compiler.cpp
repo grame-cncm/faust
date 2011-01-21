@@ -450,7 +450,6 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
 
     if (delay < gMaxCopyDelay) {
-
         // Implementation of a copy based delayline
         // create names for temporary and permanent storage
 	    string buf = subst("$0_tmp", vname);
@@ -465,7 +464,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
         // compute method
 
         // -- declare a buffer and a "shifted" vector
-        DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gVecSize + delay));
+        DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gVecSize * max(getSigRate(sig), 1) + delay));
         pushComputeBlockMethod(table_inst1);
 
         ValueInst* address_value = InstBuilder::genLoadArrayStackAddressVar(buf, InstBuilder::genIntNumInst(delay));
@@ -479,7 +478,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Tree sig, Typed::VarType ctype, 
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(vname, curLoopIndex(), exp));
 
         // -- copy back to stored samples
-        pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay));
+        pushComputePostDSPMethod(generateCopyBackArray(pmem, buf, delay, max(getSigRate(sig), 1)));
 
         // Set desired variable access
         var_access = Address::kStack;

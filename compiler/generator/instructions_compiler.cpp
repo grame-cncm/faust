@@ -1217,7 +1217,7 @@ StatementInst* InstructionsCompiler::generateCopyArray(const string& vname_to, c
     return loop;
 }
 
-StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from, int size)
+StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from, int size, int rate)
 {
     string index = "j";
 
@@ -1228,7 +1228,7 @@ StatementInst* InstructionsCompiler::generateCopyBackArray(const string& vname_t
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
-    ValueInst* load_index = InstBuilder::genAdd(InstBuilder::genLoadStackVar("count"), loop_decl->load());
+    ValueInst* load_index = InstBuilder::genAdd(InstBuilder::genMul(InstBuilder::genLoadStackVar("count"), InstBuilder::genIntNumInst(rate)), loop_decl->load());
     ValueInst* load_value = InstBuilder::genLoadArrayStackVar(vname_from, load_index);
 
     loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname_to, loop_decl->load(), load_value));
