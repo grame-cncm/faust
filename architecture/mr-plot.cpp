@@ -358,6 +358,9 @@ mydsp	DSP;
 
 class channels
 {
+
+ protected:
+
 	int 	fNumFrames;
 	int		fNumChannels;
     int*    fRates;
@@ -372,8 +375,8 @@ class channels
         fRates = rates;
 
 		// allocate audio  channels
-		for (int i = 0; i < fNumChannels; i++) {
-			fBuffers[i] = (float*)calloc(fNumFrames * fRates[i], sizeof(float));
+		for (int chan = 0; chan < fNumChannels; chan++) {
+			fBuffers[chan] = (float*)calloc(fNumFrames * fRates[chan], sizeof(float));
 		}
 	}
 
@@ -386,6 +389,47 @@ class channels
 	}
 
 	float**	buffers()		{ return fBuffers; }
+
+
+};
+
+class input_channels : public channels
+{
+    public:
+
+	input_channels(int nframes, int nchannels, int* rates)
+        :channels(nframes, nchannels, rates)
+    {}
+
+    void dirac()
+    {
+        cout << "dirac: chan " << fNumChannels << " frames: " << fNumFrames << endl;
+        for (int chan = 0; chan < fNumChannels; chan++) {
+            memset(fBuffers[chan], 0, fNumFrames * fRates[chan] * sizeof(float));
+            fBuffers[0][0] = 1.f;
+        }
+    }
+
+    void step()
+    {
+        cout << "step: chan " << fNumChannels << " frames: " << fNumFrames << endl;
+        for (int chan = 0; chan < fNumChannels; chan++) {
+           for (int frame = 0; frame < fNumFrames * fRates[chan]; frame++) {
+                fBuffers[chan][frame] = 1.0;
+            }
+         }
+    }
+
+    void ramp()
+    {
+        cout << "ramp: chan " << fNumChannels << " frames: " << fNumFrames << endl;
+        for (int chan = 0; chan < fNumChannels; chan++) {
+           for (int frame = 0; frame < fNumFrames * fRates[chan]; frame++) {
+                fBuffers[chan][frame] = (float(frame)/float(fNumFrames * fRates[chan]));
+            }
+        }
+    }
+
 };
 
 #define kFrames 128
@@ -393,11 +437,13 @@ class channels
 int main(int argc, char *argv[])
 {
 	float fnbsamples;
+    float signal_test_type;
     FILE* mr_input = NULL;
 
 	CMDUI* interface = new CMDUI(argc, argv);
 	DSP.buildUserInterface(interface);
 	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
+    interface->addOption("-s", &signal_test_type, 1.0, 0.0, 2.0);
 
     if (DSP.getNumInputs() > 0) {
         mr_input = fopen("mr-plot.in", "r");
@@ -419,7 +465,7 @@ int main(int argc, char *argv[])
         nins_rate[chan] = DSP.getInputRate(chan);
         max_nins_rate = std::max(max_nins_rate, nins_rate[chan]);
     }
-	channels chan_in(kFrames, nins, nins_rate);
+	input_channels chan_in(kFrames, nins, nins_rate);
 
 	int nouts = DSP.getNumOutputs();
     int nouts_rate[nins];
@@ -430,12 +476,26 @@ int main(int argc, char *argv[])
     }
 	channels chan_out(kFrames, nouts, nouts_rate);
 
+    switch(int(signal_test_type)) {
+
+        case 0:
+            chan_in.dirac();
+            break;
+        case 1:
+            chan_in.step();
+            break;
+        case 2:
+            chan_in.ramp();
+            break;
+    }
+
 	int nbsamples = int(fnbsamples);
-	while (nbsamples > kFrames) {
+  	while (nbsamples > kFrames) {
         // Read input
         for (int i = 0; i < kFrames; i++) {
             for (int r = 0; r < max_nins_rate; r++) {
                 for (int chan = 0; chan < nins; chan++) {
+                    /*
                     float sample;
                     if (mr_input) {
                         fscanf(mr_input, "%8f\t", &sample);
@@ -447,6 +507,7 @@ int main(int argc, char *argv[])
                     } else {
                         // Nothing
                     }
+                    */
                 }
             }
 		}
@@ -475,6 +536,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < kFrames; i++) {
         for (int r = 0; r < max_nins_rate; r++) {
             for (int chan = 0; chan < nins; chan++) {
+                /*
                 float sample;
                 if (mr_input) {
                     fscanf(mr_input, "%8f\t", &sample);
@@ -486,6 +548,7 @@ int main(int argc, char *argv[])
                 } else {
                     // Nothing
                 }
+                */
             }
         }
     }
