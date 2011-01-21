@@ -255,10 +255,7 @@ void MultiRateDAGInstructionsCompiler::generateVectorLoop(Tree sig, Typed::VarTy
         LoadVarInst * loadExp = dynamic_cast<LoadVarInst*>(exp);
         if (loadExp) {
             IndexedAddress * idxAddress = dynamic_cast<IndexedAddress*>(loadExp->fAddress);
-            if (idxAddress) {
-/*                ValueInst * index = InstBuilder::genAdd(idxAddress->fIndex, curLoopIndex());
-                exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), index);*/
-            } else
+            if (!idxAddress)
                 exp = InstBuilder::genLoadArrayStackVar(loadExp->fAddress->getName(), curLoopIndex());
         }
     }
