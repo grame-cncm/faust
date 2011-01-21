@@ -81,7 +81,6 @@ class InstructionsCompiler {
         StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
         StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
         StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
-        StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
         StatementInst* generateShiftArray(const string& vname, int delay);
 
         ValueInst* generateButtonAux(Tree sig, Tree path, const string& name);
