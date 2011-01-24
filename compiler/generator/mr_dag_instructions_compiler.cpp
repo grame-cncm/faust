@@ -211,13 +211,16 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCacheCode(Tree sig, ValueIn
         // sample-rate signal
         if (d > 0) {
         } else {
+            // HACK to handle struct packed signals
+            if (dynamic_cast<LoadVarInst*>(exp))
+                return InstBuilder::genLoadArrayStructVar(dynamic_cast<LoadVarInst*>(exp)->fAddress->getName(), curLoopIndex());
+
             // not delayed
             if (isVectorType(t) || getSigRate(sig) > 1) {
                 getTypedNames(getSigType(sig), "Zec", ctype, vname);
                 Address::AccessType var_access;
                 generateDelayLine(sig, exp, ctype, vname, d, var_access);
                 setVectorNameProperty(sig, vname);
-                // return subst("$0[i]", vname);
                 return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
             }
         }
@@ -274,9 +277,9 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateInput(Tree sig, int idx)
 
     // "fInput" use as a name convention
     string name = subst("fInput$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadArrayStructVar(name);  // return "handle" on vector
+    ValueInst* res = InstBuilder::genLoadArrayStructVar(name, curLoopIndex());  // return "handle" on vector
     // Cast to internal float
-    //res = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
+//      return InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, res);
 }
 
@@ -306,7 +309,14 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     fContainer->openLoop(vLoop);
 
     fContainer->openLoop("i", expRate);
-    LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(generateCode(exp));
+    ValueInst * generated = generateCode(exp);
+    LoadVarInst* in_buffer = dynamic_cast<LoadVarInst*>(generated);
+
+    if (!in_buffer) {
+        // HACK: wrap input signal to a struct
+        in_buffer = dynamic_cast<LoadVarInst*>(generateCacheCode(exp, generated));
+    }
+
     fContainer->closeLoop();
 
     // Assume the result is a buffer for now (and not a more complex ValueInst*)
@@ -323,6 +333,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     fContainer->closeLoop(); // close vectorize
 
     ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
+
     fContainer->closeLoop();
 
 
