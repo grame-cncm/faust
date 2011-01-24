@@ -209,20 +209,18 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateCacheCode(Tree sig, ValueIn
     if (t->variability() < kSamp) {
     } else {
         // sample-rate signal
-        if (d > 0) {
-        } else {
+        if (d == 0) {
             // HACK to handle struct packed signals
             if (dynamic_cast<LoadVarInst*>(exp))
                 return InstBuilder::genLoadArrayStructVar(dynamic_cast<LoadVarInst*>(exp)->fAddress->getName(), curLoopIndex());
 
             // not delayed
-            if (isVectorType(t) || getSigRate(sig) > 1) {
-                getTypedNames(getSigType(sig), "Zec", ctype, vname);
-                Address::AccessType var_access;
-                generateDelayLine(sig, exp, ctype, vname, d, var_access);
-                setVectorNameProperty(sig, vname);
-                return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
-            }
+            // HACK: ensure caching as required for mr primitives
+            getTypedNames(getSigType(sig), "Zec", ctype, vname);
+            Address::AccessType var_access;
+            generateDelayLine(sig, exp, ctype, vname, d, var_access);
+            setVectorNameProperty(sig, vname);
+            return InstBuilder::genLoadArrayVar(vname, var_access, curLoopIndex());
         }
     }
 
@@ -333,9 +331,9 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateVectorize(Tree sig, Tree ex
     fContainer->closeLoop(); // close vectorize
 
     ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
+    setVectorNameProperty(sig, vecname);
 
     fContainer->closeLoop();
-
 
     return ret; // return "handle" on vector
 }
@@ -381,6 +379,7 @@ ValueInst* MultiRateDAGInstructionsCompiler::generateSerialize(Tree sig, Tree ex
     fContainer->closeLoop(); // close serialize
 
     ValueInst * ret = generateCacheCode(sig, vecBuffer->load());
+    setVectorNameProperty(sig, vecname);
     fContainer->closeLoop();
 
     return ret; // return "handle" on vector
