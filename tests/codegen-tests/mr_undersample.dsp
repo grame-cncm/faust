@@ -1,0 +1,7 @@
+up2 = vectorize(1) <: # : serialize;
+
+dw2 = vectorize(2) : [0];
+
+filter = _<:_,@(1):+:*(0.5);
+
+process = *(2):dw2:exp:filter:up2;
