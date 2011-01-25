@@ -9,13 +9,13 @@ E : signal expression
 E = INx | P(E1,..) | NUM(x) | vectorize(n,E) | serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | PROJ(n, g = (E0, E1, ...))
 
 V : compilation value
-V = int | float | var | V[n] | P(V1,..)
+V = int | float | Load(A, I) | P(V1,..)
 
 S : compilation statement
 S : Store(A, V, I) | Loop(i, n) { S* } | SubLoop(i, n) { S* }
 
 I : access indexes
-I : int | var | Binop(i1, i2) | I* (with Binop : +,-,*,/)
+I : int | Var(string) | Binop(i1, i2) | I*      (with Binop : +,-,*,/)
 
 A compilation value V has a type given with type(V) = T
 
@@ -92,7 +92,7 @@ CA[A, OUT_I, INx, IN_I] : &T x I x E x I ==> void
 -------------------------------------------------------------------------------
 CS[INx, IN_I]: E x I x I ==> V
 -------------------------------------------------------------------------------
->	INx[IN_I] (of type int | float)
+>	Load(addr(INx), IN_I) (of type int | float)
 
 
 ===============================================================================
@@ -121,7 +121,7 @@ if shared (P(E1,E2,..)) : we need an intermediate buffer W to store
 +		W[j] = P(CS[E1,j],...)
 +	}
 
->	W[IN_I]  (of type T)
+>	Load(addr(W), IN_I)  (of type T)
 
 
 ===============================================================================
@@ -161,7 +161,7 @@ CS[vectorize(n,E),IN_I] : E x I x I ==> V
 +		}
 +	}
 
->	W[IN_I] (of type T[n])
+>	Load(addr(W), IN_I) (of type T[n])
 
 ===============================================================================
 serialize(E) : serialize a signal of vectors
@@ -198,7 +198,7 @@ CS[serialize(E), IN_I] : E x I x I ==> V
 +		}
 +	}
 
-> W[IN_I] (of type T)
+> Load(addr(W), IN_I) (of type T)
 
 
 ===============================================================================
@@ -237,7 +237,7 @@ CS[E1#E2, IN_I] : E x I x I ==> V
 +       }
 +   }
 
->   W[IN_I]  (of type T[n+m])
+>   Load(addr(W), IN_I)  (of type T[n+m])
 
 
 ===============================================================================
@@ -290,7 +290,7 @@ CS[PROJ(n, g = (E0, E1, ...)), IN_I] : E x I x I ==> V
 +       ....
 +	}
 
->   Wn[IN_I] (of type Tn)
+>   Load(addr(Wn), IN_I) (of type Tn)
 
 
 ===============================================================================
@@ -314,7 +314,7 @@ CS[DL(E1)@E2, IN_I] : E x I x I ==> V
 if d is small :
 +   W = CD[DL(E1),IN_I]
 
->   W[IN_I-CS[E2,IN_I]]  (of type T)
+>   Load(addr(W), [IN_I-CS[E2,IN_I]])  (of type T)
 
 TODO : when d is not small
 
