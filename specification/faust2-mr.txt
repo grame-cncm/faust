@@ -6,7 +6,7 @@ Types definition
 T = int | float | T[n]
 
 E : signal expression
-E = INx | P(E1,..) | NUM(x) | vectorize(n,E) | serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | PROJ(n, g = (E0, E1, ...))
+E = InX | P(E1,..) | Num(x) | Vectorize(n,E) | Serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | Proj(n, g = (E0, E1, ...))
 
 V : compilation value
 V = int | float | Load(A, I) | P(V1,..)
@@ -17,10 +17,11 @@ S : Store(A, V, I) | Loop(i, n) { S* } | SubLoop(i, n) { S* }
 I : access indexes
 I : int | Var(string) | Binop(i1, i2) | I*      (with Binop : +,-,*,/)
 
+A : (string, T)
+
 A compilation value V has a type given with type(V) = T
 
-addr(T)     : address with some type T
-cast(T,A)   : cast the address with the type T
+cast(T,A) : cast the vector with the type T
 
 In each compilation rule:
 
@@ -32,8 +33,8 @@ COMPLEX VERSION WITH DESTINATION AND INDEX
 ===============================================================================
 
 CTOP[E0, E1...]         = compile each output signal
-CV[A, E]                = compile Vector, fill vector A with count*rate samples of signal E, no value
-CA[A, OUT_I, E, IN_I]   = compile Assignment, store in A at index OUT_I , the value of signal E at index IN_I, no value
+CV[O, E]                = compile Vector, fill vector O with count*rate samples of signal E, no value
+CA[O, OUT_I, E, IN_I]   = compile Assignment, store in O at index OUT_I , the value of signal E at index IN_I, no value
 CS[E, IN_I]             = compile Sample, compute the value of signal E at index IN_I, returns a value
 CD[DL(E), IN_I]         = create a delay line, write signal, returns the delay line
 
@@ -53,7 +54,7 @@ CTOP[E0, E1, E2, ...] = compile each output signal
 +	....
 
 -------------------------------------------------------------------------------
-CV[A, E] = compile vector, fill vector A with count*rate samples of signal E
+CV[O, E] = compile vector, fill vector O with count*rate samples of signal E
 -------------------------------------------------------------------------------
    	r = rate(E)
    	T = type(E)
@@ -61,38 +62,38 @@ CV[A, E] = compile vector, fill vector A with count*rate samples of signal E
 	I = fresh index
 
 +	Loop(i, r*count) {
-+		CA[A, I, E, I]
++		CA[O, I, E, I]
 +	}
 
 
 ===============================================================================
-NUM(x) : number (int or float) of value 'x'
+Num(x) : number (int or float) of value 'x'
 ===============================================================================
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, NUM(x), IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, Num(x), IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
-+	Store(A, CS[NUM(x), IN_I], OUT_I)
++	Store(A, CS[Num(x), IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
-CS[NUM(x), IN_I] : E x I x I ==> V
+CS[Num(x), IN_I] : E x I x I ==> V
 -------------------------------------------------------------------------------
 >	x (of type int | float)
 
 
 ===============================================================================
-INx : input x
+InX : input x
 ===============================================================================
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, INx, IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, InX, IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
-+	Store(A, CS[INx, IN_I], OUT_I)
++	Store(O, CS[InX, IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
-CS[INx, IN_I]: E x I x I ==> V
+CS[InX, IN_I]: E x I x I ==> V
 -------------------------------------------------------------------------------
->	Load(addr(INx), IN_I) (of type int | float)
+>	Load(InX, IN_I) (of type int | float)
 
 
 ===============================================================================
@@ -102,9 +103,9 @@ P(E1,E2,..) : primitive operation on signals
 	T = type(P(E1,E2,..))
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, P(E1,E2,..), IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, P(E1,E2,..), IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
-+	Store(A, CS[P(E1,E2,..), IN_I], OUT_I)
++	Store(O, CS[P(E1,E2,..), IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
 CS[P(E1,..), IN_I] : E x I x I ==> V
@@ -118,87 +119,87 @@ if not shared (P(E1,E2,..)) : we can inline the expression
 if shared (P(E1,E2,..)) : we need an intermediate buffer W to store
 + 	T 	W[r*VS]
 +	Loop(j, r*count) {
-+		Store(addr(W), P(CS[E1,j],...), j)    (was W[j] = P(CS[E1,j],...))
++		Store(W, P(CS[E1,j],...), j)    (was W[j] = P(CS[E1,j],...))
 +	}
 
->	Load(addr(W), IN_I)  (of type T)
+>	Load(W, IN_I)  (of type T)
 
 
 ===============================================================================
-vectorize(n,E) : create a signal of vectors of size n and rate r/n
+Vectorize(n,E) : create a signal of vectors of size n and rate r/n
 ===============================================================================
        n*m = rate(E)
    	     T = type(E)
 
- 	     m = rate(vectorize(n,E))
-      T[n] = type(vectorize(n,E))
+ 	     m = rate(Vectorize(n,E))
+      T[n] = type(Vectorize(n,E))
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, vectorize(n,E), IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, Vectorize(n,E), IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 	k is a fresh loop index
 
-if not shared (vectorize(n,E)) :
+if not shared (Vectorize(n,E)) :
 
 +	SubLoop(k, n) {
-+		CA[A, (OUT_I, k), E, I*n+k]   (was addr(A[k]) : here we add k in the list of OUT_I)
++		CA[O, (OUT_I, k), E, I*n+k]   (was addr(A[k]) : here we add k in the list of OUT_I)
 + 	}
 
-if shared (vectorize(n,E)) :
+if shared (Vectorize(n,E)) :
 
-+	Store(A, CS[vectorize(n,E),IN_I], OUT_I)
++	Store(O, CS[Vectorize(n,E),IN_I], OUT_I)
 
 
 -------------------------------------------------------------------------------
-CS[vectorize(n,E),IN_I] : E x I x I ==> V
+CS[Vectorize(n,E),IN_I] : E x I x I ==> V
 -------------------------------------------------------------------------------
 	j and k are fresh loop indexes
 
 +	T[n] W[m*VS]
 +	Loop(j, m*VS) {
 +		SubLoop(k, n) {
-+			CA[addr(W), (j, k), E, j*n+k]   (was addr(W[j][k]) : here we add j and k for OUT_I)
++			CA[W, (j, k), E, j*n+k]   (was addr(W[j][k]) : here we add j and k for OUT_I)
 +		}
 +	}
 
->	Load(addr(W), IN_I) (of type T[n])
+>	Load(W, IN_I) (of type T[n])
 
 ===============================================================================
-serialize(E) : serialize a signal of vectors
+Serialize(E) : Serialize a signal of vectors
 ===============================================================================
      m = rate(E)
   T[n] = type(E)
 
-   n.m = rate(serialize(E))
-     T = type(serialize(E))
+   n.m = rate(Serialize(E))
+     T = type(Serialize(E))
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, serialize(E), IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, Serialize(E), IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 
-if not shared (serialize(E)) :
+if not shared (Serialize(E)) :
 
 +   if (IN_I%n == 0) {
-+       CA[cast(T[n],A), OUT_I, E, IN_I/n]  (here we "divide" IN_I by n..)
++       CA[cast(T[n],O), OUT_I, E, IN_I/n]  (here we "divide" IN_I by n..)
 +   }
 
-if shared (serialize(E)) :
+if shared (Serialize(E)) :
 
-+   Store(A, CS[serialize(E),IN_I], OUT_I)
++   Store(O, CS[Serialize(E),IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
-CS[serialize(E), IN_I] : E x I x I ==> V
+CS[Serialize(E), IN_I] : E x I x I ==> V
 -------------------------------------------------------------------------------
     j and k are fresh loop indexes
 
 +	T W[n*m*VS]
 +	Loop(j, m*VS) {
 +		SubLoop(k, n) {
-+			CA[addr(W), j*n+k, E, (j,k)]		(was : W[j*n+k] = CS[E,j][k])
++			CA[W, j*n+k, E, (j,k)]		(was : W[j*n+k] = CS[E,j][k])
 +		}
 +	}
 
-> Load(addr(W), IN_I) (of type T)
+> Load(W, IN_I) (of type T)
 
 
 ===============================================================================
@@ -210,17 +211,17 @@ E1#E2 : concatenate two signals of vectors
   T[n+m] = type(E1#E2)
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, E1#E2, IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, E1#E2, IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 
 if not shared (E1#E2) :
 
-+	CA[A, OUT_I, E1, IN_I]
-+	CA[A, OUT_I+n, E2, IN_I]  (here we "move" OUT_I by n..)
++	CA[O, OUT_I, E1, IN_I]
++	CA[O, OUT_I+n, E2, IN_I]  (here we "move" OUT_I by n..)
 
 if shared (E1#E2) :
 
-+	Store(A, CS[E1#E2, IN_I], OUT_I)
++	Store(O, CS[E1#E2, IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
 CS[E1#E2, IN_I] : E x I x I ==> V
@@ -230,14 +231,14 @@ CS[E1#E2, IN_I] : E x I x I ==> V
 +	T[n+m] W[r*VS]
 +	Loop(j, r*VS) {
 +		SubLoop(k, n) {
-+           CA[addr(W), (j,k), E1, (j,k)]	(was W[j][k] = CS[E1,j][k])
++           CA[W, (j,k), E1, (j,k)]	(was W[j][k] = CS[E1,j][k])
 +       }
 +		SubLoop(k, n) {
-+           CA[addr(W), (j,n+k), E2, (j,k)]	(was W[j][n+k] = CS[E2,j][k])
++           CA[W, (j,n+k), E2, (j,k)]	(was W[j][n+k] = CS[E2,j][k])
 +       }
 +   }
 
->   Load(addr(W), IN_I)  (of type T[n+m])
+>   Load(W, IN_I)  (of type T[n+m])
 
 
 ===============================================================================
@@ -249,10 +250,10 @@ E1[E2] : takes value of a signal at a given index
        T = type(E1[E2])
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, E1[E2], IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, E1[E2], IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 
-+   Store(A, CS[E1[E2],IN_I], OUT_I)
++   Store(O, CS[E1[E2],IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
 CS[E1[E2], IN_I] : E x I x I ==> V
@@ -262,20 +263,20 @@ CS[E1[E2], IN_I] : E x I x I ==> V
 
 
 ===============================================================================
-PROJ(n, g = (E0, E1, ...)) : projection of a recursive group
+Proj(n, g = (E0, E1, ...)) : projection of a recursive group
 ===============================================================================
        r = rate(E0) = rate(E1) = ...
       T0 = type(E0), T1 = type(E1), ...
       m0 = maxdelay(E0), m1 = maxdelay(E1), ...
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, PROJ(n, g = (E0, E1, ...)), IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, Proj(n, g = (E0, E1, ...)), IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 
-+   Store(A, CS[PROJ(n, g = (E0, E1, ...)),IN_I], OUT_I)
++   Store(A, CS[Proj(n, g = (E0, E1, ...)),IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
-CS[PROJ(n, g = (E0, E1, ...)), IN_I] : E x I x I ==> V
+CS[Proj(n, g = (E0, E1, ...)), IN_I] : E x I x I ==> V
 -------------------------------------------------------------------------------
        r = rate(E0) = rate(E1) = ...
       T0 = type(E0), T1 = type(E1), ...
@@ -285,12 +286,12 @@ CS[PROJ(n, g = (E0, E1, ...)), IN_I] : E x I x I ==> V
 +	T1 W1[r*VS + m1]
 +   ....
 +	Loop(j, m*VS) {
-+       CA[addr(W0), i, E0, i]
-+       CA[addr(W1), i, E1, i]
++       CA[W0, i, E0, i]
++       CA[W1, i, E1, i]
 +       ....
 +	}
 
->   Load(addr(Wn), IN_I) (of type Tn)
+>   Load(Wn, IN_I) (of type Tn)
 
 
 ===============================================================================
@@ -302,7 +303,7 @@ DL(E1)@E2 : read in a delay line
        d = maxdelay(DL(E1))
 
 -------------------------------------------------------------------------------
-CA[A, OUT_I, DL(E1)@E2, IN_I] : &T x I x E x I ==> void
+CA[O, OUT_I, DL(E1)@E2, IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 
 +   Store(A, CS[DL(E1)@E2, IN_I], OUT_I)
@@ -314,7 +315,7 @@ CS[DL(E1)@E2, IN_I] : E x I x I ==> V
 if d is small :
 +   W = CD[DL(E1),IN_I]
 
->   Load(addr(W), [IN_I-CS[E2,IN_I]])  (of type T)
+>   Load(W, [IN_I-CS[E2,IN_I]])  (of type T)
 
 TODO : when d is not small
 
@@ -334,15 +335,15 @@ if d is small :
 
 +	T M[d]
 +	T RM[r*VS + d]
-+	T* R = addr(RM[d])
++	T* R = RM[d]
 +	Loop(j, d) {
-+       Store(addr(RM), Load(addr(M,j), j)
++       Store(RM, Load(addr(M,j), j)
 +	}
 +	Loop(j, r*VS) {
-+       CA[addr(RM), d+j, E, j)   (was : addr(R[j])
++       CA[RM, d+j, E, j)   (was : addr(R[j])
 +	}
 +	Loop(j, d) {
-+       Store(addr(M), Load(addr(RM), r*VS+j), j)
++       Store(M, Load(RM, r*VS+j), j)
 +	}
 
 >   R  (of type T[r*VS])
