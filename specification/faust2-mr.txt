@@ -337,7 +337,7 @@ if d is small :
 +	T RM[r*VS + d]
 +	T* R = RM[d]
 +	Loop(j, d) {
-+       Store(RM, Load(addr(M,j), j)
++       Store(RM, Load(M,j), j)
 +	}
 +	Loop(j, r*VS) {
 +       CA[RM, d+j, E, j)   (was : addr(R[j])
