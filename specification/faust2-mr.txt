@@ -5,6 +5,8 @@ SPECIFICATION OF MULTI-RATE COMPILATIONS RULES
 Types definition
 T = int | float | T[n]
 
+A : (string, T)
+
 E : signal expression
 E = InX | P(E1,..) | Num(x) | Vectorize(n,E) | Serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | Proj(n, g = (E0, E1, ...))
 
@@ -16,8 +18,6 @@ S : Store(A, V, I) | Loop(i, n) { S* } | SubLoop(i, n) { S* }
 
 I : access indexes
 I : int | Var(string) | Binop(i1, i2) | I*      (with Binop : +,-,*,/)
-
-A : (string, T)
 
 A compilation value V has a type given with type(V) = T
 
@@ -58,7 +58,7 @@ CV[O, E] = compile vector, fill vector O with count*rate samples of signal E
 -------------------------------------------------------------------------------
    	r = rate(E)
    	T = type(E)
-	T[r*VS] = type(A)
+	T[r*VS] = type(O)
 	I = fresh index
 
 +	Loop(i, r*count) {
@@ -73,7 +73,7 @@ Num(x) : number (int or float) of value 'x'
 -------------------------------------------------------------------------------
 CA[O, OUT_I, Num(x), IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
-+	Store(A, CS[Num(x), IN_I], OUT_I)
++	Store(O, CS[Num(x), IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
 CS[Num(x), IN_I] : E x I x I ==> V
@@ -273,7 +273,7 @@ Proj(n, g = (E0, E1, ...)) : projection of a recursive group
 CA[O, OUT_I, Proj(n, g = (E0, E1, ...)), IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 
-+   Store(A, CS[Proj(n, g = (E0, E1, ...)),IN_I], OUT_I)
++   Store(O, CS[Proj(n, g = (E0, E1, ...)),IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
 CS[Proj(n, g = (E0, E1, ...)), IN_I] : E x I x I ==> V
@@ -306,7 +306,7 @@ DL(E1)@E2 : read in a delay line
 CA[O, OUT_I, DL(E1)@E2, IN_I] : A x I x E x I ==> void
 -------------------------------------------------------------------------------
 
-+   Store(A, CS[DL(E1)@E2, IN_I], OUT_I)
++   Store(O, CS[DL(E1)@E2, IN_I], OUT_I)
 
 -------------------------------------------------------------------------------
 CS[DL(E1)@E2, IN_I] : E x I x I ==> V
