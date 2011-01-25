@@ -8,7 +8,7 @@ T = int | float | T[n]
 A : (string, T)
 
 E : signal expression
-E = InX | P(E1,..) | Num(x) | Vectorize(n,E) | Serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | Proj(n, g = (E0, E1, ...))
+E = InX | P(E1,..) | Num(x) | Vectorize(n,E) | Serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | Proj(n, g = (E0,E1,...))
 
 V : compilation value
 V = int | float | Load(A, I) | P(V1,..)
@@ -36,7 +36,7 @@ CTOP[E0, E1...]         = compile each output signal
 CV[O, E]                = compile Vector, fill vector O with count*rate samples of signal E, no value
 CA[O, OUT_I, E, IN_I]   = compile Assignment, store in O at index OUT_I , the value of signal E at index IN_I, no value
 CS[E, IN_I]             = compile Sample, compute the value of signal E at index IN_I, returns a value
-CD[DL(E), IN_I]         = create a delay line, write signal, returns the delay line
+CD[DL(E)]               = create a delay line, write signal, returns the delay line
 
 VS = vector size
 count = implicit parameter indicating how many samples at rate 1 we will compute
@@ -313,7 +313,7 @@ CS[DL(E1)@E2, IN_I] : E x I x I ==> V
 -------------------------------------------------------------------------------
 
 if d is small :
-+   W = CD[DL(E1),IN_I]
++   W = CD[DL(E1)]
 
 >   Load(W, [IN_I-CS[E2,IN_I]])  (of type T)
 
@@ -321,14 +321,14 @@ TODO : when d is not small
 
 
 ===============================================================================
-CD[DL(E), IN_I] : create a delay line and write signal
+CD[DL(E)] : create a delay line and write signal
 ===============================================================================
        r = rate(DL(E)) = rate(E)
        T = type(DL(E)) = type(E)
        d = maxdelay(DL(E))
 
 -------------------------------------------------------------------------------
-CD[DL(E), IN_I] : E x I x I ==> V
+CD[DL(E)] : E ==> A
 -------------------------------------------------------------------------------
 
 if d is small :
