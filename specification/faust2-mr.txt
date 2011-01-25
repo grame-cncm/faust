@@ -118,7 +118,7 @@ if not shared (P(E1,E2,..)) : we can inline the expression
 if shared (P(E1,E2,..)) : we need an intermediate buffer W to store
 + 	T 	W[r*VS]
 +	Loop(j, r*count) {
-+		W[j] = P(CS[E1,j],...)
++		Store(addr(W), P(CS[E1,j],...), j)    (was W[j] = P(CS[E1,j],...))
 +	}
 
 >	Load(addr(W), IN_I)  (of type T)
@@ -336,13 +336,13 @@ if d is small :
 +	T RM[r*VS + d]
 +	T* R = addr(RM[d])
 +	Loop(j, d) {
-+       RM[j] = M[j]
++       Store(addr(RM), Load(addr(M,j), j)
 +	}
 +	Loop(j, r*VS) {
 +       CA[addr(RM), d+j, E, j)   (was : addr(R[j])
 +	}
 +	Loop(j, d) {
-+       M[j] = RM[r*VS+j]
++       Store(addr(M), Load(addr(RM), r*VS+j), j)
 +	}
 
 >   R  (of type T[r*VS])
