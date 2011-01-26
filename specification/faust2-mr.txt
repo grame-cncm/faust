@@ -132,7 +132,7 @@ Vectorize(n,E) : create a signal of vectors of size n and rate r/n
    	     T = type(E)
 
  	     m = rate(Vectorize(n,E))
-      T[n] = type(Vectorize(n,E))
+      [n]T = type(Vectorize(n,E))
 
 -------------------------------------------------------------------------------
 CA[O, Os, Vectorize(n,E), Is] : A x [I] x E x [I] ==> void
@@ -168,7 +168,7 @@ CS[Vectorize(n,E),Is] : E x [I] x [I] ==> V
 Serialize(E) : Serialize a signal of vectors
 ===============================================================================
      m = rate(E)
-  T[n] = type(E)
+  [n]T = type(E)
 
    n.m = rate(Serialize(E))
      T = type(Serialize(E))
@@ -228,7 +228,7 @@ CS[E1#E2, Is] : E x [I] x [I] ==> V
 -------------------------------------------------------------------------------
 	j and k are fresh loop indexes
 
-+	T[n+m] W[r*VS]
++	[n+m]T W[r*VS]
 +	Loop(j, r*VS) {
 +		SubLoop(k, n) {
 +           CA[W, [j,k], E1, [j,k]]
@@ -245,7 +245,7 @@ CS[E1#E2, Is] : E x [I] x [I] ==> V
 E1[E2] : takes value of a signal at a given index
 ===============================================================================
        r = rate(E1[E2]) = rate(E1) = rate(E2)
-    T[n] = type(E1)
+    [n]T = type(E1)
      int = type(E2) in (0, n-1)
        T = type(E1[E2])
 
