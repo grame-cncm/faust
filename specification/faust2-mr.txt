@@ -337,13 +337,13 @@ if d is small :
 +	T RM[r*VS + d]
 +	T* R = RM[d]
 +	Loop(j, d) {
-+       Store(RM, [j], Load(M,j))
++       Store(RM, [j], Load(M, [j]))
 +	}
 +	Loop(j, r*VS) {
 +       CA[RM, d+j, E, j)
 +	}
 +	Loop(j, d) {
-+       Store(M, [j], Load(RM, r*VS+j))
++       Store(M, [j], Load(RM, [r*VS+j]))
 +	}
 
 >   R  (of type T[r*VS])
