@@ -17,7 +17,7 @@ S : compilation statement
 S : T A | Store(A, I, V) | Loop(i, n) { S* } | SubLoop(i, n) { S* }
 
 I : access indexes
-I : int | Var(string) | Binop(i1, i2)      (with Binop : +,-,*,/)
+I : int | A | Binop(i1, i2)      (with Binop : +,-,*,/)
 
 A compilation value V has a type given with type(V) = T
 
@@ -73,7 +73,7 @@ Num(x) : number (int or float) of value 'x'
 -------------------------------------------------------------------------------
 CA[O, Os, Num(x), Is] : A x [I] x E x [I] ==> void
 -------------------------------------------------------------------------------
-+	Store(O, CS[Num(x), Is], Os)
++	Store(O, Os, CS[Num(x), Is])
 
 -------------------------------------------------------------------------------
 CS[Num(x), Is] : E x [I] x [I] ==> V
