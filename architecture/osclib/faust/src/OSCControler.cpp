@@ -24,6 +24,8 @@
 */
 
 #include <stdlib.h>
+#include <iostream>
+
 #include "OSCControler.h"
 #include "FaustFactory.h"
 #include "OSCSetup.h"
@@ -106,11 +108,17 @@ void OSCControler::closegroup ()
 }
 
 //--------------------------------------------------------------------------
+static std::string quote (const char* str)	{ 
+	std::string outstr ( str );
+	outstr.insert (0, 1, '\'');
+	outstr += '\''; 
+	return outstr;
+}
 void OSCControler::run ()
 {
 	fOsc->start (fFactory->root(), fUDPPort, fUDPOut, fUPDErr, fDestAddress.c_str());
 	oscout << OSCStart("Faust OSC version") << versionstr() << "-"
-	<< fFactory->root()->getName() << "is running on UDP ports "<<  fUDPPort << fUDPOut << fUPDErr << OSCEnd();
+	<< quote(fFactory->root()->getName()).c_str() << "is running on UDP ports "<<  fUDPPort << fUDPOut << fUPDErr << OSCEnd();
 }
 
 //--------------------------------------------------------------------------
