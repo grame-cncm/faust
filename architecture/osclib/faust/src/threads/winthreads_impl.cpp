@@ -27,72 +27,40 @@
 
 
 //_____________________________________________________________________
+static DWORD WINAPI  baseThreadProc (LPVOID  ptr)
+{
+	TThreads* thread = (TThreads*)ptr;
+	thread->running (true);
+	thread->run();
+	thread->running (false);
+	return 0;
+}
+
+//_____________________________________________________________________
 TThreads::TThreads () : fThread(0) {}
-
-//_____________________________________________________________________
-TThreads::TThreads (ThreadProcPtr proc, void * arg, int priority)
-	: fThread (0)
-{
-	Create (proc, arg, priority);
-}
-
-//_____________________________________________________________________
-int	TThreads::MapPriority (int priority)
-{
-	static BOOL classSet = FALSE;
-	switch (priority) {
-		case ClientHighPriority:
-			return THREAD_PRIORITY_HIGHEST;
-		case ClientRTPriority:
-			return THREAD_PRIORITY_TIME_CRITICAL;
-		case ServerHighPriority:
-			if (!classSet) 
-				classSet=SetPriorityClass (GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-			return THREAD_PRIORITY_HIGHEST;
-		case ServerRTPriority:
-			if (!classSet) 
-				classSet=SetPriorityClass (GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-			SetPriorityClass (GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
-			return THREAD_PRIORITY_TIME_CRITICAL;
-		default:
-			return THREAD_PRIORITY_NORMAL;
-	}
-}
 
 //_____________________________________________________________________
 int	TThreads::SetPriority (int priority)
 {
-	priority = MapPriority(priority);
-	if (GetThreadPriority (fThread) == priority)
-		return TRUE;
-	if (!SetThreadPriority (fThread, MapPriority(priority)))
+	if (!SetThreadPriority (fThread, priority))
 		return TRUE;
 	return FALSE;
 }
 
 //_____________________________________________________________________
-int	TThreads::Create (ThreadProcPtr proc, void * arg, int priority)
+bool TThreads::start (int priority)
 {
 	DWORD id;
-	fThread = CreateThread(NULL, 0, proc, arg, 0, &id);
+	fThread = CreateThread(NULL, 0, baseThreadProc, this, 0, &id);
 	if (fThread) {
 		SetPriority (priority);
-		return TRUE;
+		return true;	
 	}
-	return FALSE;
+	return false;	
 }
 
 //_____________________________________________________________________
-void TThreads::Join (int timeout)
-{
-	if (fThread) {
-		WaitForSingleObject (fThread, timeout ? timeout : INFINITE);
-		fThread = 0;
-	}
-}
-
-//_____________________________________________________________________
-void TThreads::Stop ()
+void TThreads::quit ()
 {
 	if (fThread) {
 		WaitForSingleObject (fThread, 1000);

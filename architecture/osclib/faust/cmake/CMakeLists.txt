@@ -89,6 +89,4 @@ else (WIN32)
  set (OUTLIB "lib${TARGET}.a")
 endif (WIN32)
 
-add_custom_command (TARGET ${TARGET} POST_BUILD 
-	COMMAND libtool -static ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${OUTLIB} ${OSCPACK} -o ${LIBDIR}/lib${TARGET}.a)
 
