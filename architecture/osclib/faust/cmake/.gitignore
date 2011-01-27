@@ -1,0 +1,9 @@
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Debug/
+OSCFaust.build/
+OSCFaust.xcodeproj/
+Release/
+build/
+cmake_install.cmake
