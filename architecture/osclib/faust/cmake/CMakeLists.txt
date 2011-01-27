@@ -63,19 +63,13 @@ set(INCL ${INCL} "${ROOT}/threads")					# add other include folders
 
 #######################################
 # set libraries
-#if(APPLE)
-#	set(LIBS  ${OSC_PATH}/cmake/Release/liboscpack.a)
-#elseif(UNIX)
-#	set(LIBS  ${OSC_PATH}/cmake/Release/liboscpack.a)
-#elseif(WIN32)
-#	set(LIBS  ws2_32.lib ${OSC_PATH}/cmake/Release/oscpack.lib)
-#endif(APPLE)
-
-if(WIN32)
-	set(OSCPACK  ${OSC_PATH}/cmake/Release/oscpack.lib)
-else(WIN32)
+if(APPLE)
 	set(OSCPACK  ${OSC_PATH}/cmake/Release/liboscpack.a)
-endif(WIN32)
+elseif(UNIX)
+	set(OSCPACK  ${OSC_PATH}/cmake/liboscpack.a)
+elseif(WIN32)
+	set(OSCPACK  ${OSC_PATH}/cmake/Release/oscpack.lib)
+endif(APPLE)
 
 #######################################
 # set targets
