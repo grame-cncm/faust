@@ -32,8 +32,8 @@
 namespace oscfaust
 {
 
-#define kVersion	0.50f
-#define kVersionStr	"0.50"
+#define kVersion	0.60f
+#define kVersionStr	"0.60"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -109,7 +109,8 @@ void OSCControler::closegroup ()
 void OSCControler::run ()
 {
 	fOsc->start (fFactory->root(), fUDPPort, fUDPOut, fUPDErr, fDestAddress.c_str());
-	oscout << OSCStart("Faust OSC version ") << versionstr() <<  OSCEnd();
+	oscout << OSCStart("Faust OSC version") << versionstr() << "-"
+	<< fFactory->root()->getName() << "is running on UDP ports "<<  fUDPPort << fUDPOut << fUPDErr << OSCEnd();
 }
 
 //--------------------------------------------------------------------------
