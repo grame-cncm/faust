@@ -58,6 +58,7 @@ class MessageDriven : public MessageProcessor, public smartable
 
 		void			add ( SMessageDriven node )	{ fSubNodes.push_back (node); }
 		const char*		getName() const				{ return fName.c_str(); }
+		int				size () const				{ return fSubNodes.size (); }
 };
 
 } // end namespoace
