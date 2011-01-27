@@ -43,15 +43,16 @@ class FaustNode : public MessageDriven
 	float	fMin, fMax;
 
 	protected:
-				 FaustNode(const char *name, float* zone, float init, float min, float max) 
-					: MessageDriven (name), fZone(zone), fMin(min), fMax(max) { *zone = init; }
+				 FaustNode(const char *name, float* zone, float init, float min, float max, const char* prefix) 
+					: MessageDriven (name, prefix), fZone(zone), fMin(min), fMax(max) { *zone = init; }
 		virtual ~FaustNode() {}
 
 	public:
-		static SFaustNode create (const char* name, float* zone, float init, float min, float max)	
-							{ return new FaustNode(name, zone, init, min, max); }
+		static SFaustNode create (const char* name, float* zone, float init, float min, float max, const char* prefix)	
+							{ return new FaustNode(name, zone, init, min, max, prefix); }
 
 		virtual void	accept( const Message* msg );
+		virtual void	get (unsigned long ipdest) const;		///< handler for the 'get' message
 };
 
 } // end namespoace

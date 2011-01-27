@@ -5,6 +5,22 @@
 =================================================================
 
 -----------------------------------------------------------------
+    Note about the OSC messages and address space
+-----------------------------------------------------------------
+The OSC address space adheres strictly to the hierarchy defined by
+the 'addnode' and 'opengroup' calls.
+A node expects to receive OSC messages with a single float value 
+as parameter. This is a strict policy, which means that messages
+with several parameters are rejected and parameters with a parameter
+other than a float value too.
+
+The library provides a simple support for querying the system with 
+a 'get' message that can be sent to any valid OSC address. 
+The 'get' message is propagated to every node that respond with its
+osc address and current values (value, min and max).
+
+
+-----------------------------------------------------------------
     Note about network management
 -----------------------------------------------------------------
 The default UDP ports are chosen in an unassigned range 

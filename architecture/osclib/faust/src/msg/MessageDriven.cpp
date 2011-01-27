@@ -42,11 +42,29 @@ void MessageDriven::processMessage( const Message* msg )
 }
 
 //--------------------------------------------------------------------------
+string MessageDriven::getOSCAddress() const
+{
+	string address(fOSCPrefix);
+	address += "/";
+	address += fName;
+	return address;
+}
+
+//--------------------------------------------------------------------------
+void MessageDriven::get (unsigned long ipdest) const
+{
+	for (vector<SMessageDriven>::const_iterator i = fSubNodes.begin(); i != fSubNodes.end(); i++)
+		(*i)->get (ipdest);
+}
+
+//--------------------------------------------------------------------------
 void MessageDriven::accept( const Message* msg )
 {
-#if OSCFAUSTDEBUG
-	OSCFErr << getName() << "unexpected accept method call" << OSCFEndl;
-#endif
+	if (msg->size() != 1) return;
+	string val;
+	if (msg->param(0, val)) {
+		if (val == "get") get (msg->src());
+	}
 }
 
 //--------------------------------------------------------------------------

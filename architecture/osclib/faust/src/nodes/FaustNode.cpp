@@ -23,6 +23,7 @@
 
 #include "FaustNode.h"
 #include "Message.h"
+#include "OSCStream.h"
 
 namespace oscfaust
 {
@@ -39,5 +40,11 @@ void FaustNode::accept( const Message* msg )
 	}
 }
 
+
+//--------------------------------------------------------------------------
+void FaustNode::get (unsigned long ipdest ) const
+{
+	oscout << OSCStart(getOSCAddress().c_str()) << 	*fZone << fMin << fMax << OSCEnd();
+}
 
 } // end namespoace

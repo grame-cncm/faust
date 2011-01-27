@@ -27,22 +27,30 @@
 #include "FaustNode.h"
 #include "MessageDriven.h"
 
+using namespace std;
+
 namespace oscfaust
 {
 
 //--------------------------------------------------------------------------
 void FaustFactory::addnode (const char* label, float* zone, float init, float min, float max)
 {
-	fNodes.top()->add( FaustNode::create (label, zone, init, min, max) );
+	string prefix = fNodes.size() ? fNodes.top()->getOSCAddress() : "/";
+	fNodes.top()->add( FaustNode::create (label, zone, init, min, max, prefix.c_str()) );
 }
 
 //--------------------------------------------------------------------------
 void FaustFactory::opengroup (const char* label)
 {
-	SMessageDriven group = MessageDriven::create (label);
-	if (!fNodes.size()) fRoot = group;
-	else fNodes.top()->add( group );
-	fNodes.push (group);
+	if (!fNodes.size()) {
+		fRoot = MessageDriven::create (label, "");
+		fNodes.push (fRoot);
+	}
+	else {
+		SMessageDriven group = MessageDriven::create (label, fNodes.top()->getOSCAddress().c_str());
+		fNodes.top()->add( group );
+		fNodes.push (group);
+	}
 }
 
 //--------------------------------------------------------------------------
