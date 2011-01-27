@@ -201,3 +201,26 @@ lowShelf(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).lowShelf : biquad;
 highShelf(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).highShelf : biquad;
 
 
+
+
+//-------------------------------------------------------------------------
+// Implementation of Max/MSP line~. Generate signal ramp or envelope 
+// 
+// USAGE : line(value, time)
+// 	value : the desired output value
+//	time  : the interpolation time to reach this value (in milliseconds)
+//
+// NOTE : the interpolation process is restarted every time the desired
+// output value changes. The interpolation time is sampled only then.
+//-------------------------------------------------------------------------
+
+line (value, time) = state ~ ( _ , _ ) : ! , _ 
+	with {
+		state (t , c) = nt , if( nt <= 0 , value , c + (value - c) / nt)
+		with {
+			nt = if( value != value' , samples, t - 1) ;
+			samples = time * SR / 1000.0 ;
+		} ;
+	} ;
+
+
