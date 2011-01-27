@@ -37,7 +37,6 @@ namespace oscfaust
 void MessageDriven::processMessage( const Message* msg )
 {
 	const string addr = msg->address();
-std::cout << getName() << " MessageDriven::processMessage regexp " << OSCAddress::addressFirst(addr).c_str() << std::endl;
 	OSCRegexp r (OSCAddress::addressFirst(addr).c_str());
 	return propose (msg, &r, OSCAddress::addressTail (addr));
 }
@@ -53,22 +52,17 @@ void MessageDriven::accept( const Message* msg )
 //--------------------------------------------------------------------------
 void MessageDriven::propose( const Message* msg, const OSCRegexp* r, const std::string addrTail)
 {
-std::cout << getName() << " MessageDriven::propose" << std::endl;
 	if (r->match(getName())) {
 		if (addrTail.empty()) {
-std::cout << getName() << " MessageDriven::propose -> accept" << std::endl;
 			accept(msg);
 		}
 		else {
-std::cout << getName() << " MessageDriven::propose -> subs count " << fSubNodes.size() << std::endl;
 			OSCRegexp rtail (OSCAddress::addressFirst(addrTail).c_str());
 			for (vector<SMessageDriven>::iterator i = fSubNodes.begin(); i != fSubNodes.end(); i++) {
-std::cout << getName() << " MessageDriven::propose -> sub " << (*i)->getName() << std::endl;
 				(*i)->propose (msg, &rtail, OSCAddress::addressTail(addrTail));
 			}
 		}
 	}
-	else std::cout << getName() << " bad address " << msg->address() << std::endl;
 }
 
 } // end namespoace
