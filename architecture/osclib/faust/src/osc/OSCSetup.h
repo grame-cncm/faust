@@ -43,7 +43,7 @@ class OSCSetup
 		 		 OSCSetup() : fOSCThread(0) {} 
 		virtual ~OSCSetup();
 
-		bool start(MessageProcessor* mp, int inPort, int outPort, int errPort, const char* address);
+		bool start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address);
 
 		void stop();
 		bool running() const;

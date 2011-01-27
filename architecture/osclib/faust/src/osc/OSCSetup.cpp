@@ -21,9 +21,10 @@
 
 */
 
+#include <iostream>
 #include <stdexcept>
-#include "OSCSetup.h"
 
+#include "OSCSetup.h"
 #include "TThreads.h"
 #include "OSCListener.h"
 
@@ -54,21 +55,30 @@ OSCSetup::~OSCSetup()			{ stop(); }
 bool OSCSetup::running() const	{ return fOSCThread ? fOSCThread->isRunning() : false; }
 
 //--------------------------------------------------------------------------
-bool OSCSetup::start(MessageProcessor* mp, int inPort, int outPort, int errPort, const char* address )
+bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address )
 {
-	try {
-		OSCStream::start();
-		oscout.setPort(outPort);
-		oscerr.setPort (errPort);
-		oscout.setAddress(address);
-		oscerr.setAddress(address);
-		fOSCThread = new OscThread (mp, inPort);
-		fOSCThread->start();
-		return true;
-	}
-	catch (std::runtime_error e) {
-		return false;
-	}
+	int port = inPort;
+	bool done = false;
+	do {
+		try {
+			OSCStream::start();
+			oscout.setPort(outPort);
+			oscerr.setPort (errPort);
+			oscout.setAddress(address);
+			oscerr.setAddress(address);
+			fOSCThread = new OscThread (mp, port);
+			fOSCThread->start();
+			done = true;
+		}
+		catch (std::runtime_error e) {
+			if ( port - inPort > 1000) return false;
+			do {
+				port++;
+			} while ((port == outPort) || (port == errPort));
+		}
+	} while (!done);
+	inPort = port;
+	return true;
 }
 
 //--------------------------------------------------------------------------
