@@ -34,7 +34,7 @@ endif(APPLE)
 #######################################
 # set directories, src and headers.
 set (ROOT 			${CMAKE_CURRENT_SOURCE_DIR}/../src)
-set (LIBDIR 		${CMAKE_CURRENT_SOURCE_DIR}/../lib)
+set (LIBDIR 		${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set (SRCFOLDERS 	lib ../include msg osc nodes)
 set (OSC_PATH  		"${ROOT}/../../oscpack")
 
@@ -63,29 +63,38 @@ set(INCL ${INCL} "${ROOT}/threads")					# add other include folders
 
 #######################################
 # set libraries
-if(APPLE)
-	set(LIBS  ${OSC_PATH}/cmake/Release/liboscpack.a)
-elseif(UNIX)
-	set(LIBS  -L${OSC_PATH}/cmake -loscpack)
-elseif(WIN32)
-	set(LIBS  ws2_32.lib ${OSC_PATH}/cmake/Release/oscpack.lib)
-endif(APPLE)
+#if(APPLE)
+#	set(LIBS  ${OSC_PATH}/cmake/Release/liboscpack.a)
+#elseif(UNIX)
+#	set(LIBS  ${OSC_PATH}/cmake/Release/liboscpack.a)
+#elseif(WIN32)
+#	set(LIBS  ws2_32.lib ${OSC_PATH}/cmake/Release/oscpack.lib)
+#endif(APPLE)
+
+if(WIN32)
+	set(OSCPACK  ${OSC_PATH}/cmake/Release/oscpack.lib)
+else(WIN32)
+	set(OSCPACK  ${OSC_PATH}/cmake/Release/liboscpack.a)
+endif(WIN32)
 
 #######################################
 # set targets
 include_directories (${INCL} ${OSC_PATH} )
 
-add_library ( ${TARGET} STATIC ${SRCFILES} ${HEADERFILES} )
+add_library ( ${TARGET} STATIC ${SRCFILES} ${HEADERFILES} ${OSCPACK} )
 set_source_files_properties (${HEADERFILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_target_properties (${TARGET} PROPERTIES VERSION ${version} )
-target_link_libraries ( ${TARGET} ${LIBS} )
+
+if(WIN32)
+  target_link_libraries ( ${TARGET} ws2_32.lib )
+endif(WIN32)
 
 if (WIN32)
- set (OUTLIB "${TARGET}.dll")
+ set (OUTLIB "${TARGET}.lib")
 else (WIN32)
  set (OUTLIB "lib${TARGET}.a")
 endif (WIN32)
 
 add_custom_command (TARGET ${TARGET} POST_BUILD 
-	COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${OUTLIB} ${LIBDIR})
+	COMMAND libtool -static ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${OUTLIB} ${OSCPACK} -o ${LIBDIR}/lib${TARGET}.a)
 
