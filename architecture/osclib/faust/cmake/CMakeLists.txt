@@ -63,13 +63,11 @@ set(INCL ${INCL} "${ROOT}/threads")					# add other include folders
 
 #######################################
 # set libraries
-if(APPLE)
-	set(OSCPACK  ${OSC_PATH}/cmake/Release/liboscpack.a)
-elseif(UNIX)
-	set(OSCPACK  ${OSC_PATH}/cmake/liboscpack.a)
-elseif(WIN32)
-	set(OSCPACK  ${OSC_PATH}/cmake/Release/oscpack.lib)
-endif(APPLE)
+if(WIN32)
+	set(OSCPACK  ${ROOT}/../../oscpack.lib)
+else(WIN32)
+	set(OSCPACK  ${ROOT}/../../liboscpack.a)
+endif(WIN32)
 
 #######################################
 # set targets
@@ -77,7 +75,10 @@ include_directories (${INCL} ${OSC_PATH} )
 
 add_library ( ${TARGET} STATIC ${SRCFILES} ${HEADERFILES} ${OSCPACK} )
 set_source_files_properties (${HEADERFILES} PROPERTIES HEADER_FILE_ONLY TRUE)
-set_target_properties (${TARGET} PROPERTIES VERSION ${version} )
+set_target_properties (${TARGET} PROPERTIES 
+	VERSION ${version} 
+	ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${ROOT}/../.."
+)
 
 if(WIN32)
   target_link_libraries ( ${TARGET} ws2_32.lib )
