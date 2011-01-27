@@ -33,16 +33,16 @@ namespace oscfaust
 //--------------------------------------------------------------------------
 void FaustFactory::addnode (const char* label, float* zone, float init, float min, float max)
 {
-//	std::cout << "FaustFactory::addnode " << label << std::endl;
 	fNodes.top()->add( FaustNode::create (label, zone, init, min, max) );
 }
 
 //--------------------------------------------------------------------------
 void FaustFactory::opengroup (const char* label)
 {
-//	std::cout << "FaustFactory::opengroup " << label << std::endl;
-	fNodes.push (MessageDriven::create (label) );
-	if (!fRoot) fRoot = fNodes.top();
+	SMessageDriven group = MessageDriven::create (label);
+	if (!fNodes.size()) fRoot = group;
+	else fNodes.top()->add( group );
+	fNodes.push (group);
 }
 
 //--------------------------------------------------------------------------
