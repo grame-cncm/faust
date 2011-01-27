@@ -40,7 +40,12 @@ namespace oscfaust
 //--------------------------------------------------------------------------
 OSCListener::OSCListener(MessageProcessor *mp, int port) 
 		: fSocket(0), fMsgHandler(mp), 
-		  fRunning(false), fPort(port) {}
+		  fRunning(false), fPort(port) 
+{
+	fSocket = new UdpListeningReceiveSocket(IpEndpointName( IpEndpointName::ANY_ADDRESS, fPort ), this);
+	fPort = 0;
+}
+
 OSCListener::~OSCListener()	{ stop(); delete fSocket; }
 
 //--------------------------------------------------------------------------
@@ -49,12 +54,11 @@ void OSCListener::run()
 	fRunning = true;
 	while (fRunning) {
 		try {
-			if (!fSocket) fSocket = new UdpListeningReceiveSocket(IpEndpointName( IpEndpointName::ANY_ADDRESS, fPort ), this);
-			else if (fPort) {
+			if (fPort) {
 				delete fSocket;
 				fSocket = new UdpListeningReceiveSocket(IpEndpointName( IpEndpointName::ANY_ADDRESS, fPort ), this);
+				fPort = 0;
 			}
-			fPort = 0;
 			fSocket->Run();
 		}
 		catch (osc::Exception e) {
