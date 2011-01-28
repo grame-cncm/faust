@@ -77,6 +77,7 @@ add_library ( ${TARGET} STATIC ${SRCFILES} ${HEADERFILES} ${OSCPACK} )
 set_source_files_properties (${HEADERFILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_target_properties (${TARGET} PROPERTIES 
 	VERSION ${version} 
+	ARCHIVE_OUTPUT_DIRECTORY "${ROOT}/../.."
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${ROOT}/../.."
 )
 

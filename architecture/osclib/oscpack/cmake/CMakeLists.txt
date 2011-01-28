@@ -60,7 +60,9 @@ ADD_LIBRARY( oscpack STATIC ${OSC_SRC} ${IP_SRC} ${IP_IMPL_SRC} )
 if (CMAKE_HOST_WIN32)
 	TARGET_LINK_LIBRARIES( oscpack ws2_32 winmm)
 endif (CMAKE_HOST_WIN32)
-set_target_properties (oscpack PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OSCPACK}/..)
+set_target_properties (oscpack PROPERTIES 
+	ARCHIVE_OUTPUT_DIRECTORY ${OSCPACK}/..
+	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OSCPACK}/..)
 
 if (${GENTOOLS})
   message (STATUS "Generating tools. Use -DGENTOOLS=0 to change")
