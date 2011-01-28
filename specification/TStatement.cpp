@@ -15,7 +15,6 @@ void TStoreStatement::generate(ostream* dst, int n)
     fIndex->generate(dst, n);
     *dst << " = ";
     fValue->generate(dst, n);
-
 }
 
 void TBlockStatement::generate(ostream* dst, int n)
@@ -32,7 +31,7 @@ void TBlockStatement::generate(ostream* dst, int n)
 void TLoopStatement::generate(ostream* dst, int n)
 {
     vector<TStatement*>::const_iterator it;
-    tab(n, *dst); *dst << "for ("; fIndex->generate(dst, n); *dst << ", "<< fSize << ") {" << endl;;
+    tab(n, *dst); *dst << "for ("; fIndex->generate(dst, n); *dst << ", "<< fSize << ") {" << endl;
     fCode->generate(dst, n+1);
     tab(n, *dst); *dst << "}" << endl;
 }
@@ -40,7 +39,16 @@ void TLoopStatement::generate(ostream* dst, int n)
 void TSubLoopStatement::generate(ostream* dst, int n)
 {
     vector<TStatement*>::const_iterator it;
-    tab(n, *dst); *dst << "nestedfor ("; fIndex->generate(dst, n); *dst << ", "<< fSize << ") {" << endl;;
+    tab(n, *dst); *dst << "nestedfor ("; fIndex->generate(dst, n); *dst << ", "<< fSize << ") {" << endl;
     fCode->generate(dst, n+1);
     tab(n, *dst); *dst << "}";
 }
+
+void TIfStatement::generate(ostream* dst, int n)
+{
+    vector<TStatement*>::const_iterator it;
+    tab(n, *dst); *dst << "if ("; fValue->generate(dst, n); *dst << ") {" << endl;
+    fCode->generate(dst, n+1);
+    tab(n, *dst); *dst << "}";
+}
+

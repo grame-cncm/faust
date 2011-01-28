@@ -14,7 +14,7 @@ V : compilation value
 V = int | float | Load(A, I) | P(V1,..)
 
 S : compilation statement
-S : T A | Store(A, I, V) | Loop(i, n) { S* } | SubLoop(i, n) { S* }
+S : T A | Store(A, I, V) | { S* } | Loop(i, n) { S* } | SubLoop(i, n) { S* } | If(e) { S* }
 
 I : access indexes
 I : int | A | Binop(i1, i2)      (with Binop : +,-,*,/)
@@ -179,7 +179,7 @@ CA[O, Os, Serialize(E), Is] : T A x [I] x E x [I] ==> void
 
 if not shared (Serialize(E)) :
 
-+   if (Is%n == 0) {
++   If (Is%n == 0) {
 +       CA[cast(T[n],O), Os, E, Is/n]  (here we "divide" Is by n..)
 +   }
 

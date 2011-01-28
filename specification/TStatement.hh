@@ -4,7 +4,6 @@
 #include "TPrintable.hh"
 #include "TType.hh"
 #include "TIndex.hh"
-
 #include <vector>
 
 struct TValue;
@@ -64,6 +63,18 @@ struct TSubLoopStatement : public TLoopStatement
     virtual void generate(ostream* dst, int n);
 
 };
+
+struct TIfStatement : public TStatement
+{
+    TValue* fValue;
+    TBlockStatement* fCode;
+
+    TIfStatement(TValue* value, TBlockStatement* code):fValue(value), fCode(code) {}
+
+    virtual void generate(ostream* dst, int n);
+
+};
+
 
 #endif
 

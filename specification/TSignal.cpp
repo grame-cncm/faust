@@ -63,7 +63,6 @@ TValue* TPrimOp::compileSample(TListIndex* Is)
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, loop_code_block));
 
     return MR_LOAD(new_out, Is);
-
 }
 
 TValue* TVectorize::compileSample(TListIndex* Is)
@@ -141,6 +140,7 @@ void TSerialize::compileStatement(TDeclareStatement* address, TListIndex* Os, TL
     // if not shared
 
     // if shared
+    MR_STORE(address, Os, compileSample(Is));
 }
 
 TValue* TSerialize::compileSample(TListIndex* Is)
