@@ -29,14 +29,21 @@ namespace oscfaust
 {
 
 //--------------------------------------------------------------------------
+void FaustNode::store( float val )
+{
+	if (val > fMax) val = fMax;
+	else if (val < fMin) val = fMin;
+	*fZone = val;
+}
+
+//--------------------------------------------------------------------------
 void FaustNode::accept( const Message* msg )
 {
-	if (msg->size() != 1) return;
-	float val;
-	if (msg->param(0, val)) {
-		if (val > fMax) val = fMax;
-		else if (val < fMin) val = fMin;
-		*fZone = val;
+	if (msg->size() == 1) {
+		int ival; float fval;
+		if (msg->param(0, fval)) store (fval);
+		else if (msg->param(0, ival)) store (float(ival));	
+		else MessageDriven::accept(msg);
 	}
 	else MessageDriven::accept(msg);
 }

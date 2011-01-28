@@ -41,6 +41,8 @@ class FaustNode : public MessageDriven
 {
 	float *	fZone;
 	float	fMin, fMax;
+	
+	void store (float val);
 
 	protected:
 				 FaustNode(const char *name, float* zone, float init, float min, float max, const char* prefix) 
