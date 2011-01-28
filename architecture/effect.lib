@@ -1055,8 +1055,7 @@ with {
   fsmax = 48000.0;  // highest sampling rate that will be used
 
   fdn_group(x) = hgroup(
-    "[0]  ~ ZITA_REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER ALLPASS-COMB REVERBERATOR (8x8)
-     [tooltip: See Faust's effect.lib for documentation and references]", x);
+    "[0] Zita_Rev1 [tooltip: ~ ZITA REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER ALLPASS-COMB REVERBERATOR (8x8). See Faust's effect.lib for documentation and references]", x);
 
   in_group(x) = fdn_group(hgroup("[1] Input", x));
 
