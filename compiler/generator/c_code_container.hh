@@ -51,12 +51,9 @@ class CCodeContainer : public virtual CodeContainer {
     public:
 
         CCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "")
-            :CodeContainer(numInputs, numOutputs), fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
+            : fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
         {
-            fNumInputs = numInputs;
-            fNumOutputs = numOutputs;
-            fInputRates.resize(numInputs);
-            fOutputRates.resize(numOutputs);
+            initializeCodeContainer(numInputs, numOutputs);
         }
         virtual ~CCodeContainer()
         {}

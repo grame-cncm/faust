@@ -127,8 +127,10 @@ class LLVMCodeContainer : public virtual CodeContainer {
     public:
 
         LLVMCodeContainer(int numInputs, int numOutputs, const string& prefix = "")
-            :CodeContainer(numInputs, numOutputs), fPrefix(prefix)
+            : fPrefix(prefix)
         {
+            initializeCodeContainer(numInputs, numOutputs);
+
             InitializeNativeTarget();
             fModule = new Module("Faust LLVM backend", getGlobalContext());
             fBuilder = new IRBuilder<>(getGlobalContext());
@@ -144,8 +146,9 @@ class LLVMCodeContainer : public virtual CodeContainer {
         }
 
          LLVMCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, const string& prefix = "")
-            :CodeContainer(numInputs, numOutputs), fPrefix(prefix)
+            : fPrefix(prefix)
         {
+            initializeCodeContainer(numInputs, numOutputs);
             fModule = module;
             fBuilder = builder;
             fNeedDelete = false;

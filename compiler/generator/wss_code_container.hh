@@ -54,9 +54,10 @@ private:
 
 public:
     WSSCodeContainer(int numInputs, int numOutputs, string const & objName)
-        :CodeContainer(numInputs, numOutputs), fObjName(objName),
+        : fObjName(objName),
         fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
     {
+        initializeCodeContainer(numInputs, numOutputs);
         fFullCount = "fullcount";
     }
 

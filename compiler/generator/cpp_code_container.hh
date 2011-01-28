@@ -59,12 +59,9 @@ class CPPCodeContainer : public virtual CodeContainer {
     public:
 
         CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :CodeContainer(numInputs, numOutputs), fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
+            : fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
         {
-            fNumInputs = numInputs;
-            fNumOutputs = numOutputs;
-            fInputRates.resize(numInputs);
-            fOutputRates.resize(numOutputs);
+            initializeCodeContainer(numInputs, numOutputs);
         }
 
         virtual void produceClass();

@@ -42,8 +42,8 @@ class OpenMPCodeContainer : public virtual CodeContainer {
         StatementInst* fGlobalLoopBlock;
 
         OpenMPCodeContainer(int numInputs, int numOutputs)
-            :CodeContainer(numInputs, numOutputs)
         {
+            initializeCodeContainer(numInputs, numOutputs);
             fFullCount = "fullcount";
         }
 

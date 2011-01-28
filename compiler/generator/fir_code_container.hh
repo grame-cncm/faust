@@ -47,8 +47,9 @@ public:
 
 protected:
     FirCodeContainer(int numInputs, int numOutputs)
-        :CodeContainer(numInputs, numOutputs)
-    {}
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+    }
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
     void produceInternal() {}

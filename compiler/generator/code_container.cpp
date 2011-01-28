@@ -49,26 +49,16 @@ map<Typed::VarType, BasicTyped*> BasicTyped::gTypeTable;
 // Table of all declared variables during one evaluation
 map<string, Typed*> gVarTable;
 
-CodeContainer::CodeContainer(int numInputs, int numOutputs)
-    :fNumInputs(numInputs), fNumOutputs(numOutputs),
-    fInputRates(numInputs), fOutputRates(numOutputs),
-    fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
-    fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
-    fDeclarationInstructions(InstBuilder::genBlockInst()),
-    fInitInstructions(InstBuilder::genBlockInst()),
-    fDestroyInstructions(InstBuilder::genBlockInst()),
-    fStaticInitInstructions(InstBuilder::genBlockInst()),
-    fComputeBlockInstructions(InstBuilder::genBlockInst()),
-    fComputeFunctions(InstBuilder::genBlockInst()),
-    fUserInterfaceInstructions(InstBuilder::genBlockInst()),
-    fSubContainerType(kInt), fFullCount("count")
+void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
 {
-    fCurLoop = new CodeLoop(0, "i");
+    fNumInputs = numInputs;
+    fNumOutputs = numOutputs;
+    fInputRates.resize(numInputs, 0);
+    fOutputRates.resize(numOutputs, 0);
 }
 
 CodeContainer::CodeContainer()
-    :fNumInputs(2), fNumOutputs(2),
-    fInputRates(2), fOutputRates(2),
+    :fNumInputs(-1), fNumOutputs(-1),
     fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
     fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
     fDeclarationInstructions(InstBuilder::genBlockInst()),

@@ -44,8 +44,8 @@ protected:
 public:
 
     VectorCodeContainer(int numInputs, int numOutputs)
-        :CodeContainer(numInputs, numOutputs)
     {
+        initializeCodeContainer(numInputs, numOutputs);
         fFullCount = "fullcount";
     }
 

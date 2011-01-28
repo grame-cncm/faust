@@ -128,7 +128,7 @@ class CodeContainer {
       public:
 
         CodeContainer();
-        CodeContainer(int numInputs, int numOutputs);
+        void initializeCodeContainer(int numInputs, int numOutputs);
         virtual ~CodeContainer();
 
         CodeLoop* getCurLoop() { return fCurLoop; }
