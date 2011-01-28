@@ -29,13 +29,15 @@
 #include "OSCControler.h"
 #include "FaustFactory.h"
 #include "OSCSetup.h"
+#include "OSCFError.h"
+#include "RootNode.h"
 
 
 namespace oscfaust
 {
 
-#define kVersion	0.60f
-#define kVersionStr	"0.60"
+#define kVersion	 0.90f
+#define kVersionStr	"0.90"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -66,13 +68,12 @@ static const char* getDestOption (int argc, char *argv[], const std::string& opt
 
 //--------------------------------------------------------------------------
 OSCControler::OSCControler (int argc, char *argv[])
-	:	fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2),
-		fDestAddress("localhost")
+	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2)
 {
 	fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
 	fUDPOut  = getPortOption (argc, argv, kUDPOutOpt, fUDPOut);
 	fUPDErr  = getPortOption (argc, argv, kUDPErrOpt, fUPDErr);
-	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, fDestAddress.c_str());
+	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
 
 	fFactory = new FaustFactory();
 	fOsc = new OSCSetup();
@@ -114,11 +115,19 @@ static std::string quote (const char* str)	{
 	outstr += '\''; 
 	return outstr;
 }
+
 void OSCControler::run ()
 {
-	fOsc->start (fFactory->root(), fUDPPort, fUDPOut, fUPDErr, fDestAddress.c_str());
-	oscout << OSCStart("Faust OSC version") << versionstr() << "-"
-	<< quote(fFactory->root()->getName()).c_str() << "is running on UDP ports "<<  fUDPPort << fUDPOut << fUPDErr << OSCEnd();
+	SMessageDriven root = fFactory->root();
+	if (root) {
+		RootNode * rootnode = dynamic_cast<RootNode*> ((MessageDriven*)root);
+		if (rootnode) rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
+		fOsc->start (root, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
+		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
+				<< quote(root->getName()).c_str() << "is running on UDP ports "
+				<<  fUDPPort << fUDPOut << fUPDErr << OSCEnd();
+		if (!rootnode) OSCFErr << root->getName() << ": is not a root node, 'hello' message won't be supported" << OSCFEndl;
+	}
 }
 
 //--------------------------------------------------------------------------

@@ -58,10 +58,10 @@ class OSCControler
 		void run ();
 		void quit ();
 		
-		int			getUDPPort() const		{ return fUDPPort; }
-		int			getUDPOut() const		{ return fUDPOut; }
-		int			getUDPErr() const		{ return fUPDErr; }
-		const char* getDesAddress() const	{ return fDestAddress.c_str(); }
+		int	getUDPPort()			{ return fUDPPort; }
+		int	getUDPOut()				{ return fUDPOut; }
+		int	getUDPErr()				{ return fUPDErr; }
+		const char*	getDesAddress() { return fDestAddress.c_str(); }
 
 		static float version();
 		static const char* versionstr();
