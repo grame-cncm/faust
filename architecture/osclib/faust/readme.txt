@@ -14,10 +14,18 @@ as parameter. This is a strict policy, which means that messages
 with several parameters are rejected and parameters with a parameter
 other than a float value too.
 
+*** 'get' message ***
 The library provides a simple support for querying the system with 
 a 'get' message that can be sent to any valid OSC address. 
-The 'get' message is propagated to every node that respond with its
-osc address and current values (value, min and max).
+The 'get' message is propagated to every terminal node that responds 
+with its osc address and current values (value, min and max).
+
+*** 'hello' message ***
+The library provides a simple support for modules discovery with a
+'hello' message that can be sent to any module root address. The module 
+responds with its root address, followed by its IP address, followed 
+by the UDP ports numbers (listening port, output port, error port).
+See the note about network management below for ports numbering scheme.
 
 
 -----------------------------------------------------------------
