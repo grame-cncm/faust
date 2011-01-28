@@ -10,9 +10,9 @@
 The OSC address space adheres strictly to the hierarchy defined by
 the 'addnode' and 'opengroup' calls.
 A node expects to receive OSC messages with a single float value 
-as parameter. This is a strict policy, which means that messages
-with several parameters are rejected and parameters with a parameter
-other than a float value too.
+as parameter. This policy is strict for the parameters count, but
+relaxed for the parameter type: OSC int values are accepted and 
+casted to float.
 
 *** 'get' message ***
 The library provides a simple support for querying the system with 
