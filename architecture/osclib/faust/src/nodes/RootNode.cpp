@@ -73,15 +73,23 @@ void RootNode::accept( const Message* msg )
 	else MessageDriven::accept (msg);
 }
 
+//--------------------------------------------------------------------------
+void RootNode::setPorts (int* in, int* out, int* err)
+{
+	fUPDIn  = in;
+	fUDPOut = out;
+	fUDPErr = err;
+}
 
 //--------------------------------------------------------------------------
 void RootNode::hello (unsigned long ipdest ) const
 {
-	unsigned long savedip = oscout.getAddress();
-	oscout.setAddress(ipdest);
-	oscout  << OSCStart(getOSCAddress().c_str()) << 	getIP() 
-			<< OSCControler::getUDPPort() << OSCControler::getUDPOut() << OSCControler::getUDPErr() << OSCEnd();
-	oscout.setAddress(savedip);
+	if (fUPDIn && fUDPOut && fUDPErr) {
+		unsigned long savedip = oscout.getAddress();
+		oscout.setAddress(ipdest);
+		oscout  << OSCStart(getOSCAddress().c_str()) << getIP() << *fUPDIn << *fUDPOut << *fUDPErr << OSCEnd();
+		oscout.setAddress(savedip);
+	}
 }
 
 } // end namespoace

@@ -39,8 +39,9 @@ typedef class SMARTP<RootNode>	SRootNode;
 //--------------------------------------------------------------------------
 class RootNode : public MessageDriven
 {
+	int *fUPDIn, *fUDPOut, *fUDPErr;
 	protected:
-				 RootNode(const char *name) : MessageDriven (name, "") {}
+				 RootNode(const char *name) : MessageDriven (name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0) {}
 		virtual ~RootNode() {}
 
 	public:
@@ -48,6 +49,7 @@ class RootNode : public MessageDriven
 
 		virtual void	accept( const Message* msg );
 				void	hello (unsigned long ipdest) const;		///< handler for the 'hello' message
+				void	setPorts (int* in, int* out, int* err);
 };
 
 } // end namespoace
