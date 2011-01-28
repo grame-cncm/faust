@@ -25,6 +25,7 @@
 
 #include "FaustFactory.h"
 #include "FaustNode.h"
+#include "RootNode.h"
 #include "MessageDriven.h"
 
 using namespace std;
@@ -43,7 +44,7 @@ void FaustFactory::addnode (const char* label, float* zone, float init, float mi
 void FaustFactory::opengroup (const char* label)
 {
 	if (!fNodes.size()) {
-		fRoot = MessageDriven::create (label, "");
+		fRoot = RootNode::create (label);
 		fNodes.push (fRoot);
 	}
 	else {
