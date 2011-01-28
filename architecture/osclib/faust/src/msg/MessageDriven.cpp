@@ -33,6 +33,8 @@ using namespace std;
 namespace oscfaust
 {
 
+static const char * kGetMsg = "get";
+
 //--------------------------------------------------------------------------
 void MessageDriven::processMessage( const Message* msg )
 {
@@ -60,11 +62,9 @@ void MessageDriven::get (unsigned long ipdest) const
 //--------------------------------------------------------------------------
 void MessageDriven::accept( const Message* msg )
 {
-	if (msg->size() != 1) return;
 	string val;
-	if (msg->param(0, val)) {
-		if (val == "get") get (msg->src());
-	}
+	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kGetMsg)) 
+		get (msg->src());
 }
 
 //--------------------------------------------------------------------------

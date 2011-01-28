@@ -38,13 +38,17 @@ void FaustNode::accept( const Message* msg )
 		else if (val < fMin) val = fMin;
 		*fZone = val;
 	}
+	else MessageDriven::accept(msg);
 }
 
 
 //--------------------------------------------------------------------------
 void FaustNode::get (unsigned long ipdest ) const
 {
+	unsigned long savedip = oscout.getAddress();
+	oscout.setAddress(ipdest);
 	oscout << OSCStart(getOSCAddress().c_str()) << 	*fZone << fMin << fMax << OSCEnd();
+	oscout.setAddress(savedip);
 }
 
 } // end namespoace
