@@ -145,6 +145,18 @@ interpolate(i) = *(1.0-i),*(i) : +;
 if(cond,thn,els) = select2(cond,els,thn);
 
 
+//-----------------------------------------------------------------
+// countdown(count,trig) 
+// start counting down from count, count-1,...,0 when trig > 0
+//-----------------------------------------------------------------
+countdown(count, trig)	= \(c).(if(trig>0, count, max(0, c-1))) ~_;
+
+//-----------------------------------------------------------------
+// countup(count,trig) 
+// start counting down from 0, 1, ... count-1, count when trig > 0
+//-----------------------------------------------------------------
+countup(count, trig)	= \(c).(if(trig>0, 0, min(count, c+1))) ~_;
+
 /******************************************************************
  *  Hadamard matrix function
  *  Implementation contributed by Remy Muller
