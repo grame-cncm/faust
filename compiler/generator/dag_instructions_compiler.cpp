@@ -39,6 +39,7 @@
 #include "simplify.hh"
 #include "xtended.hh"
 #include "prim2.hh"
+#include "sigrateinference.hh"
 
 extern int gMaxCopyDelay;
 extern bool gOpenCLSwitch;
@@ -91,6 +92,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree sig = hd(L);
             string name = subst("output$0", T(index));
 
+            int rate = getSigRate(sig);
+            fContainer->setOutputRate(index, rate);
+
             //fContainer->openLoop(getFreshID("i"));
             fContainer->openLoop("i");
 
@@ -107,6 +111,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         for (int index = 0; isList(L); L = tl(L), index++) {
             Tree sig = hd(L);
             string name = subst("fOutput$0", T(index));
+
+            int rate = getSigRate(sig);
+            fContainer->setOutputRate(index, rate);
 
             //fContainer->openLoop(getFreshID("i"));
             fContainer->openLoop("i");
