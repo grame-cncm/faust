@@ -71,6 +71,15 @@ TSignal* test21()
     return new TConcat(new TVectorize(new TInput(0), 4), new TVectorize(new TInput(1), 3));
 }
 
+TSignal* test22()
+{
+    return new TVectorAt(new TVectorize(new TInput(0), 4), new TInt(3));
+}
+
+TSignal* test23()
+{
+    return new TVectorAt(new TConcat(new TVectorize(new TInput(0), 4), new TVectorize(new TInput(1), 3)), new TInt(3));
+}
 
 
 int main()
@@ -104,7 +113,9 @@ int main()
     //compiler.compileTop(test11());
     //compiler.compileTop(test12());
     //compiler.compileTop(test13());
-    compiler.compileTop(test21());
+    //compiler.compileTop(test21());
+    //compiler.compileTop(test22());
+    compiler.compileTop(test23());
 
 	return 0;
 }

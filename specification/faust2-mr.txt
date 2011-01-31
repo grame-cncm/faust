@@ -233,7 +233,7 @@ CS[E1#E2, Is] : E x [I] x [I] ==> V
 +		SubLoop(k, n) {
 +           CA[W, [j,k], E1, [j,k]]
 +       }
-+		SubLoop(k, n) {
++		SubLoop(k, m) {
 +           CA[W, [j,n+k], E2, [j,k]]
 +       }
 +   }

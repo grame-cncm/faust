@@ -4,6 +4,8 @@
 #include <vector>
 #include "TPrintable.hh"
 #include "Text.hh"
+//#include "TValue.hh"
+
 
 struct TIndex : public TPrintable
 {
@@ -11,6 +13,16 @@ struct TIndex : public TPrintable
 
     virtual void generate(ostream* dst, int n) = 0;
 };
+
+
+/*
+struct TIndex : public TValue
+{
+    virtual ~TIndex() {}
+
+    virtual void generate(ostream* dst, int n) = 0;
+};
+*/
 
 struct TVarIndex : public TIndex
 {

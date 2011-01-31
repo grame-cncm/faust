@@ -63,7 +63,7 @@ struct TInput : public TSignal
 
     //virtual TType* getType() { return new VectorType(new TFloatType(), gVecSize); }
     virtual TType* getType() { return new TFloatType(); }
-    virtual int getRate() { return 4; }
+    virtual int getRate() { return 12; }
 };
 
 struct TPrimOp : public TSignal
@@ -148,12 +148,12 @@ struct TConcat : public TSignal
     }
 };
 
-struct TDelayAt : public TSignal
+struct TVectorAt : public TSignal
 {
     TSignal*	fExp1;
 	TSignal*	fExp2;
 
-    TDelayAt(TSignal* x, TSignal* y) : fExp1(x), fExp2(y) {}
+    TVectorAt(TSignal* x, TSignal* y) : fExp1(x), fExp2(y) {}
 
     virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
@@ -183,6 +183,27 @@ struct TDelayLine : public TSignal
 
     virtual TType* getType() = 0;
     virtual int getRate() = 0;
+};
+
+struct TDelayAt : public TSignal
+{
+    TSignal*	fExp1;
+	TSignal*	fExp2;
+
+    TDelayAt(TSignal* x, TSignal* y) : fExp1(x), fExp2(y) {}
+
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual TValue* compileSample(TListIndex*);
+
+    virtual TType* getType()
+    {
+        // TODO
+    }
+
+    virtual int getRate()
+    {
+        return fExp1->getRate();
+    }
 };
 
 struct TRecProj : public TSignal
