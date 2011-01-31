@@ -65,37 +65,6 @@ TValue* TPrimOp::compileSample(TListIndex* Is)
     return MR_LOAD(new_out, Is);
 }
 
-TValue* TVectorize::compileSample(TListIndex* Is)
-{
-    // T = type(E)
-    // T[n] = type(vectorize(E))
-
-    // n * m = rate(E)
-    // m = rate(vectorize(E))
-
-    int rate = getRate();
-    TType* type = getType();
-
-    // Declare output
-    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpVectorize"), MR_VECTOR_TYPE(type, rate * gVecSize));
-
-    // Compute new indexes
-    TIndex* var_j = MR_VAR("j");
-    TIndex* var_k = MR_VAR("k");
-
-    TListIndex* new_in_list = MR_INDEX_LIST();
-    new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
-    new_in_list = MR_PUSH_INDEX(new_in_list, var_k);
-
-    TListIndex* new_out_list = MR_INDEX_LIST();
-    new_out_list = MR_PUSH_INDEX(new_out_list, MR_ADD(MR_MUL(var_j, MR_INT(fSize)), var_k));
-
-    // TO FINISH
-
-    // Final value
-    return MR_LOAD(new_out, Is);
-}
-
 void TVectorize::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
     // T = type(E)
@@ -130,6 +99,37 @@ void TVectorize::compileStatement(TDeclareStatement* address, TListIndex* Os, TL
     // TO FINISH
 
     //gExternalBlock->fCode.push_back(new TSubLoopStatement(fSize, loop_id, cur_block));
+}
+
+TValue* TVectorize::compileSample(TListIndex* Is)
+{
+    // T = type(E)
+    // T[n] = type(vectorize(E))
+
+    // n * m = rate(E)
+    // m = rate(vectorize(E))
+
+    int rate = getRate();
+    TType* type = getType();
+
+    // Declare output
+    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpVectorize"), MR_VECTOR_TYPE(type, rate * gVecSize));
+
+    // Compute new indexes
+    TIndex* var_j = MR_VAR("j");
+    TIndex* var_k = MR_VAR("k");
+
+    TListIndex* new_in_list = MR_INDEX_LIST();
+    new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
+    new_in_list = MR_PUSH_INDEX(new_in_list, var_k);
+
+    TListIndex* new_out_list = MR_INDEX_LIST();
+    new_out_list = MR_PUSH_INDEX(new_out_list, MR_ADD(MR_MUL(var_j, MR_INT(fSize)), var_k));
+
+    // TO FINISH
+
+    // Final value
+    return MR_LOAD(new_out, Is);
 }
 
 void TSerialize::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
