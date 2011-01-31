@@ -43,6 +43,7 @@ TBlockStatement* MR_BLOCK() { return new TBlockStatement(); }
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement) { block->fCode.push_back(statement); return block; }
 TStoreStatement* MR_STORE(TDeclareStatement* addr, TListIndex* list, TValue* val) { return new TStoreStatement(addr, list, val); }
 TLoopStatement* MR_LOOP(int size, TIndex* index, TBlockStatement* code) { return new TLoopStatement(size, index, code); }
+TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code) { return new TSubLoopStatement(size, index, code); }
 TIfStatement* MR_IF(TValue* test, TBlockStatement* code) { return new TIfStatement(test, code); }
 
 // Values

@@ -15,7 +15,6 @@ using namespace std;
 
 int gVecSize = 32;
 TBlockStatement* gExternalBlock = NULL;
-TBlockStatement* gCurBlock = NULL;
 
 TSignal* test1()
 {
@@ -57,6 +56,16 @@ TSignal* test11()
     return new TSerialize(new TVectorize(new TInput(0), 4));
 }
 
+TSignal* test12()
+{
+    return new TSerialize(new TSerialize(new TVectorize(new TVectorize(new TInput(0), 4), 3)));
+}
+
+TSignal* test13()
+{
+    return new TSerialize(new TVectorize(new TSerialize(new TVectorize(new TInput(0), 4)), 3));
+}
+
 TSignal* test21()
 {
     return new TConcat(new TVectorize(new TInput(0), 4), new TVectorize(new TInput(1), 3));
@@ -89,9 +98,12 @@ int main()
     //compiler.compileTop(test2());
     //compiler.compileTop(test3());
     //compiler.compileTop(test4());
-    compiler.compileTop(test5());
+    //compiler.compileTop(test5());
     //compiler.compileTop(test6());
     //compiler.compileTop(test10());
+    compiler.compileTop(test11());
+    //compiler.compileTop(test12());
+    //compiler.compileTop(test13());
     //compiler.compileTop(test21());
 
 	return 0;

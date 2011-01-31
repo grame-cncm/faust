@@ -6,7 +6,6 @@
 
 extern int gVecSize;
 extern TBlockStatement* gExternalBlock;
-extern TBlockStatement* gCurBlock;
 
 struct TCompiler
 {
@@ -31,11 +30,11 @@ struct TCompiler
         index_list = MR_PUSH_INDEX(index_list, in);
 
         // Compilation
-        gCurBlock = MR_BLOCK();
+        TBlockStatement* sub_block = MR_BLOCK();
         gExternalBlock = MR_BLOCK();
-        signal->compileStatement(address, index_list, index_list);
+        signal->compileStatement(sub_block, address, index_list, index_list);
 
-        TLoopStatement* global_loop = MR_LOOP(rate * gVecSize, in, gCurBlock);
+        TLoopStatement* global_loop = MR_LOOP(rate * gVecSize, in, sub_block);
 
         // Code generation
         gExternalBlock->generate(&cout, 0);

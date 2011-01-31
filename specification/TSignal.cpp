@@ -4,9 +4,9 @@
 
 extern int gVecSize;
 
-void TFloat::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TFloat:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
-    gCurBlock->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TFloat::compileSample(TListIndex* Is)
@@ -14,9 +14,9 @@ TValue* TFloat::compileSample(TListIndex* Is)
     return MR_FLOAT_VAL(fValue);
 }
 
-void TInt::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TInt:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
-    gCurBlock->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TInt::compileSample(TListIndex* Is)
@@ -24,9 +24,9 @@ TValue* TInt::compileSample(TListIndex* Is)
     return MR_INT_VAL(fValue);
 }
 
-void TInput::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TInput:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
-     gCurBlock->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+     block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TInput::compileSample(TListIndex* Is)
@@ -34,9 +34,9 @@ TValue* TInput::compileSample(TListIndex* Is)
     return MR_LOAD(MR_ADDR(subst("input$0", T(fIndex)), MR_VECTOR_TYPE(MR_FLOAT_TYPE(), gVecSize)), Is);
 }
 
-void TPrimOp::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TPrimOp:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
-    gCurBlock->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TPrimOp::compileSample(TListIndex* Is)
@@ -65,7 +65,7 @@ TValue* TPrimOp::compileSample(TListIndex* Is)
     return MR_LOAD(new_out, Is);
 }
 
-void TVectorize::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TVectorize:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
     // T = type(E)
     // T[n] = type(vectorize(E))
@@ -76,29 +76,19 @@ void TVectorize::compileStatement(TDeclareStatement* address, TListIndex* Os, TL
     int rate = getRate();
     TType* type = getType();
 
-    // shared
-    //gCurBlock->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
-
     // not shared
+
     TIndex* var_k = MR_VAR("k");
     TListIndex* new_in_list = MR_ADD(MR_MUL(Is, MR_INT(fSize)), var_k);
     TListIndex* new_out_list = MR_PUSH_INDEX(Os, var_k);
 
     // Wrapping loop
-    // Keep cur block
-    TBlockStatement* old_block = gCurBlock;
+    TBlockStatement* sub_block = MR_BLOCK();
+    fExp->compileStatement(sub_block, address, new_out_list, new_in_list);
+    block->fCode.push_back(MR_SUBLOOP(fSize, var_k, sub_block));
 
-    TBlockStatement* gCurBlock = MR_BLOCK();
-    fExp->compileStatement(address, new_out_list, new_in_list);
-
-    //old_block->fCode.push_back(new TSubLoopStatement(fSize, loop_id, gCurBlock));
-
-    // Restore cur block
-    //gCurBlock = old_block;
-
-    // TO FINISH
-
-    //gExternalBlock->fCode.push_back(new TSubLoopStatement(fSize, loop_id, cur_block));
+    // shared
+    //block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TVectorize::compileSample(TListIndex* Is)
@@ -120,39 +110,56 @@ TValue* TVectorize::compileSample(TListIndex* Is)
     TIndex* var_k = MR_VAR("k");
 
     TListIndex* new_in_list = MR_INDEX_LIST();
-    new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
-    new_in_list = MR_PUSH_INDEX(new_in_list, var_k);
+    new_in_list = MR_PUSH_INDEX(new_in_list, MR_ADD(MR_MUL(var_j, MR_INT(fSize)), var_k));
 
     TListIndex* new_out_list = MR_INDEX_LIST();
-    new_out_list = MR_PUSH_INDEX(new_out_list, MR_ADD(MR_MUL(var_j, MR_INT(fSize)), var_k));
+    new_out_list = MR_PUSH_INDEX(new_out_list, var_j);
+    new_out_list = MR_PUSH_INDEX(new_out_list, var_k);
 
-    // TO FINISH
+    // Wrapping loop
+    TBlockStatement* sub_block = MR_BLOCK();
+    fExp->compileStatement(sub_block, new_out, new_out_list, new_in_list);
+    TSubLoopStatement* sub_loop = MR_SUBLOOP(fSize, var_k, sub_block);
+
+    TBlockStatement* block = MR_BLOCK();
+    block->fCode.push_back(sub_loop);
+    gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
     // Final value
     return MR_LOAD(new_out, Is);
 }
 
-void TSerialize::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TSerialize::compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
     int rate = getRate();
+    int m = fExp->getRate();
+    cerr << "TSerialize:: compileStatement " << m << endl;
+    assert(m > 0);
+    int n = rate / m;
     TType* type = getType();
 
     // if not shared
 
+    TBlockStatement* sub_block = MR_BLOCK();
+    // TODO : add "if"
+
+    TListIndex* new_in_list = MR_DIV(Is, MR_INT(n));
+    fExp->compileStatement(sub_block, address, Os, new_in_list);  // Cast ??
+    block->fCode.push_back(sub_block);
+
     // if shared
-    MR_STORE(address, Os, compileSample(Is));
+    ///block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TSerialize::compileSample(TListIndex* Is)
 {
     int rate = getRate();
-    int n = fExp->getRate();
+    int m = fExp->getRate();
+    int n = rate / m;
     TType* type = getType();
-    VectorType* vec_type = dynamic_cast<VectorType*>(type);
-    assert(vec_type);
 
     // Declare output
-    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpSerialize"), MR_VECTOR_TYPE(vec_type->fType, rate * gVecSize));
+    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpSerialize"), MR_VECTOR_TYPE(type, rate * gVecSize));
 
     // Compute new indexes
     TIndex* var_j = MR_VAR("j");
@@ -165,7 +172,14 @@ TValue* TSerialize::compileSample(TListIndex* Is)
     TListIndex* new_out_list = MR_INDEX_LIST();
     new_out_list = MR_PUSH_INDEX(new_out_list, MR_ADD(MR_MUL(var_j, MR_INT(n)), var_k));
 
-     // TO FINISH
+    // Wrapping loop
+    TBlockStatement* sub_block = MR_BLOCK();
+    fExp->compileStatement(sub_block, new_out, new_out_list, new_in_list);
+    TSubLoopStatement* sub_loop = MR_SUBLOOP(n, var_k, sub_block);
+
+    TBlockStatement* block = MR_BLOCK();
+    block->fCode.push_back(sub_loop);
+    gExternalBlock->fCode.push_back(MR_LOOP(m * gVecSize, var_j, block));
 
     // Final value
     return MR_LOAD(new_out, Is);
@@ -181,7 +195,7 @@ TType* TConcat::getType()
     return MR_VECTOR_TYPE(vec1_type->fType, vec1_type->fSize + vec2_type->fSize);
 }
 
-void TConcat::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TConcat:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
     int rate = getRate();
     TType* type = getType();
@@ -190,12 +204,12 @@ void TConcat::compileStatement(TDeclareStatement* address, TListIndex* Os, TList
 
     // if not shared
     /*
-    fExp1->compileStatement(address, Os, Is);
-    fExp2->compileStatement(address, MR_ADD(Os, MR_INT(size1)), Is);
+    fExp1->compileStatement(block, address, Os, Is);
+    fExp2->compileStatement(block, address, MR_ADD(Os, MR_INT(size1)), Is);
     */
 
     // if shared
-    gCurBlock->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TConcat::compileSample(TListIndex* Is)
@@ -225,16 +239,26 @@ TValue* TConcat::compileSample(TListIndex* Is)
     new_out_list2 = MR_PUSH_INDEX(new_out_list2, MR_ADD(MR_INT(size1), var_k));
 
     // Compile sub-expressions
-    fExp1->compileStatement(new_out, new_out_list1, new_in_list);
-    fExp2->compileStatement(new_out, new_out_list2, new_in_list);
+    TBlockStatement* sub_block1 = MR_BLOCK();
+    fExp1->compileStatement(sub_block1, new_out, new_out_list1, new_in_list);
+    TSubLoopStatement* sub_loop1 = MR_SUBLOOP(size1, var_k, sub_block1);
+
+    TBlockStatement* sub_block2 = MR_BLOCK();
+    fExp2->compileStatement(sub_block2, new_out, new_out_list2, new_in_list);
+    TSubLoopStatement* sub_loop2 = MR_SUBLOOP(size1, var_k, sub_block2);
+
+    TBlockStatement* block = MR_BLOCK();
+    block->fCode.push_back(sub_loop1);
+    block->fCode.push_back(sub_loop2);
+    gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
     // Final value
     return MR_LOAD(new_out, Is);
 }
 
-void TDelayAt::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TDelayAt:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
-    gCurBlock->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TDelayAt::compileSample(TListIndex* Is)
@@ -242,7 +266,7 @@ TValue* TDelayAt::compileSample(TListIndex* Is)
     //return MR_LOAD(fExp1->compileSample(Is),
 }
 
-void TDelayLine::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TDelayLine:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
 
 }
@@ -252,7 +276,7 @@ TValue* TDelayLine::compileSample(TListIndex* Is)
 
 }
 
-void TRecProj::compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+void TRecProj:: compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
 
 }

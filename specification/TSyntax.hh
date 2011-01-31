@@ -36,6 +36,8 @@ TBlockStatement* MR_BLOCK();
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement);
 TStoreStatement* MR_STORE(TDeclareStatement* addr, TListIndex* list, TValue* val);
 TLoopStatement* MR_LOOP(int size, TIndex* index, TBlockStatement* code);
+TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code);
+
 TIfStatement* MR_IF(TValue* test, TBlockStatement* code);
 
 // Value language

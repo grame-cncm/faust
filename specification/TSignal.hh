@@ -13,13 +13,12 @@ struct TBlockStatement;
 
 extern int gVecSize;
 extern TBlockStatement* gExternalBlock;
-extern TBlockStatement* gCurBlock;
 
 struct TSignal : public TTypable, public TRateable
 {
     virtual ~TSignal () {}
 
-	virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is) = 0;
+	virtual void compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is) = 0;
     virtual TValue* compileSample(TListIndex*) = 0;
 
 };
@@ -30,7 +29,7 @@ struct TFloat : public TSignal
 
     TFloat(float value):fValue(value) {}
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     virtual TType* getType() { return new TFloatType(); }
@@ -44,7 +43,7 @@ struct TInt : public TSignal
 
     TInt(int value):fValue(value) {}
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     virtual TType* getType() { return new TIntType(); }
@@ -59,12 +58,12 @@ struct TInput : public TSignal
 
     virtual ~TInput() {}
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex* index);
 
     //virtual TType* getType() { return new VectorType(new TFloatType(), gVecSize); }
     virtual TType* getType() { return new TFloatType(); }
-    virtual int getRate() { return 1; }
+    virtual int getRate() { return 4; }
 };
 
 struct TPrimOp : public TSignal
@@ -75,7 +74,7 @@ struct TPrimOp : public TSignal
 
     TPrimOp(TSignal* x, TSignal* y, const string op) : fExp1(x), fExp2(y), fOp(op) {}
 
-	virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+	virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex* Is);
 
     virtual TType* getType()  { return fExp1->getType(); }  // Here assume a PrimOp that keeps the same type
@@ -89,7 +88,7 @@ struct TVectorize : public TSignal
 
     TVectorize(TSignal* x, int size):fExp(x), fSize(size) { }
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     // T = type(E)
@@ -108,7 +107,7 @@ struct TSerialize : public TSignal
 
     TSerialize(TSignal* x):fExp(x) { }
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     // T[n] = type(E)
@@ -139,7 +138,7 @@ struct TConcat : public TSignal
 
     TConcat(TSignal* x, TSignal* y) : fExp1(x), fExp2(y) {}
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     virtual TType* getType();
@@ -156,7 +155,7 @@ struct TDelayAt : public TSignal
 
     TDelayAt(TSignal* x, TSignal* y) : fExp1(x), fExp2(y) {}
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     virtual TType* getType()
@@ -179,7 +178,7 @@ struct TDelayLine : public TSignal
 
     TDelayLine(TSignal* x) : fExp(x) { }
 
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     virtual TType* getType() = 0;
@@ -188,7 +187,7 @@ struct TDelayLine : public TSignal
 
 struct TRecProj : public TSignal
 {
-    virtual void compileStatement(TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     virtual TType* getType() = 0;
