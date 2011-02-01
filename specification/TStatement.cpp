@@ -20,12 +20,9 @@ void TStoreStatement::generate(ostream* dst, int n)
 void TBlockStatement::generate(ostream* dst, int n)
 {
     vector<TStatement*>::const_iterator it;
-    tab(n, *dst);
-    *dst << "block {" << endl;
     for (it = fCode.begin(); it != fCode.end(); it++) {
         (*it)->generate(dst, n+1);
     }
-    tab(n, *dst); *dst << "}" << endl;
 }
 
 void TLoopStatement::generate(ostream* dst, int n)
