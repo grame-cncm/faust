@@ -119,8 +119,8 @@ int main()
     //compiler.compileTop(test13());
     //compiler.compileTop(test21());
     //compiler.compileTop(test22());
-    //compiler.compileTop(test23());
-    compiler.compileTop(test30());
+    compiler.compileTop(test23());
+    //compiler.compileTop(test30());
 
 	return 0;
 }

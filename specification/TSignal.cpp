@@ -77,7 +77,7 @@ void TVectorize::compileStatement(TBlockStatement* block, TDeclareStatement* add
     TType* type = getType();
 
     // not shared
-
+    /*
     TIndex* var_k = MR_VAR(getFreshID("k"));
     TListIndex* new_in_list = MR_ADD(MR_MUL(Is, MR_INT(fSize)), var_k);
     TListIndex* new_out_list = MR_PUSH_INDEX(Os, var_k);
@@ -86,10 +86,10 @@ void TVectorize::compileStatement(TBlockStatement* block, TDeclareStatement* add
     TBlockStatement* sub_block = MR_BLOCK();
     fExp->compileStatement(sub_block, address, new_out_list, new_in_list);
     block->fCode.push_back(MR_SUBLOOP(fSize, var_k, sub_block));
-
+    */
 
     // shared
-    //block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TVectorize::compileSample(TListIndex* Is)
@@ -226,6 +226,7 @@ TValue* TConcat::compileSample(TListIndex* Is)
     TIndex* var_j = MR_VAR(getFreshID("j"));
     TIndex* var_k = MR_VAR(getFreshID("k"));
 
+    /*
     TListIndex* new_in_list = MR_INDEX_LIST();
     new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
     new_in_list = MR_PUSH_INDEX(new_in_list, var_k);
@@ -250,6 +251,24 @@ TValue* TConcat::compileSample(TListIndex* Is)
     TBlockStatement* block = MR_BLOCK();
     block->fCode.push_back(sub_loop1);
     block->fCode.push_back(sub_loop2);
+    gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
+    */
+
+    TListIndex* new_in_list = MR_INDEX_LIST();
+    new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
+
+    TListIndex* new_out_list1 = MR_INDEX_LIST();
+    new_out_list1 = MR_PUSH_INDEX(new_out_list1, var_j);
+    new_out_list1 = MR_PUSH_INDEX(new_out_list1, MR_INT(0));
+
+    TListIndex* new_out_list2 = MR_INDEX_LIST();
+    new_out_list2 = MR_PUSH_INDEX(new_out_list2, var_j);
+    new_out_list2 = MR_PUSH_INDEX(new_out_list2, MR_INT(size1));
+
+    TBlockStatement* block = MR_BLOCK();
+    fExp1->compileStatement(block, new_out, new_out_list1, new_in_list);
+    fExp2->compileStatement(block, new_out, new_out_list2, new_in_list);
+
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
     // Final value
