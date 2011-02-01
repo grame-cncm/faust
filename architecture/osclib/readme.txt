@@ -8,7 +8,7 @@
 
 The Faust OSC library project depends on the oscpack library, which 
 is included in this distribution. You should first compile the oscpack 
-library before compiling the FAUST OSC library. Both libraries relies
+library before compiling the FAUST OSC library. Both libraries rely
 on CMake, a cross-platform, open-source build system 
 (see at http://www.cmake.org).
 
