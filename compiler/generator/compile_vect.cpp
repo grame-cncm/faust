@@ -47,7 +47,7 @@ void VectorCompiler::compileMultiSignal (Tree L)
         Tree sig = hd(L);
         fClass->openLoop("count");
         fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
-        fClass->closeLoop();
+        fClass->closeLoop(sig);
     }
     
     generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));

@@ -115,7 +115,7 @@ protected:
 
     void    openLoop(const string& size);
     void    openLoop(Tree recsymbol, const string& size);
-    void    closeLoop(Tree sig=0);
+    void    closeLoop(Tree sig);
 
     void    setLoopProperty(Tree sig, Loop* l);     ///< Store the loop used to compute a signal
     bool    getLoopProperty(Tree sig, Loop*& l);    ///< Returns the loop used to compute a signal
