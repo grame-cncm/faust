@@ -81,6 +81,10 @@ TSignal* test23()
     return new TVectorAt(new TConcat(new TVectorize(new TInput(0), 4), new TVectorize(new TInput(1), 3)), new TInt(3));
 }
 
+TSignal* test30()
+{
+    return new TDelayAt(new TDelayLine(new TInput(0), 100), new TInt(3));
+}
 
 int main()
 {
@@ -115,7 +119,8 @@ int main()
     //compiler.compileTop(test13());
     //compiler.compileTop(test21());
     //compiler.compileTop(test22());
-    compiler.compileTop(test23());
+    //compiler.compileTop(test23());
+    compiler.compileTop(test30());
 
 	return 0;
 }

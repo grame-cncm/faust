@@ -28,7 +28,7 @@ TIndex* MR_MUL(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "*"); }
 TIndex* MR_DIV(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "/"); }
 
 TListIndex* MR_ADD(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "+")); return new_list; }
-TListIndex* MR_SUB(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "_")); return new_list; }
+TListIndex* MR_SUB(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "-")); return new_list; }
 TListIndex* MR_MUL(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "*")); return new_list; }
 TListIndex* MR_DIV(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "/")); return new_list; }
 

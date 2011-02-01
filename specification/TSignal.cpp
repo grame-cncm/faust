@@ -52,7 +52,7 @@ TValue* TPrimOp::compileSample(TListIndex* Is)
     TIndex* var_j = MR_VAR(getFreshID("j"));
     TListIndex* var_loop = MR_INDEX_LIST();
     var_loop = MR_PUSH_INDEX(var_loop, var_j);
-    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpBinOp"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TDeclareStatement* new_out = MR_ADDR(getFreshID("BinOp"), MR_VECTOR_TYPE(type, rate * gVecSize));
 
     // Internal block
     TBlockStatement* loop_code_block = MR_BLOCK();
@@ -104,7 +104,7 @@ TValue* TVectorize::compileSample(TListIndex* Is)
     TType* type = getType();
 
     // Declare output
-    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpVectorize"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TDeclareStatement* new_out = MR_ADDR(getFreshID("Vectorize"), MR_VECTOR_TYPE(type, rate * gVecSize));
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -160,7 +160,7 @@ TValue* TSerialize::compileSample(TListIndex* Is)
     TType* type = getType();
 
     // Declare output
-    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpSerialize"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TDeclareStatement* new_out = MR_ADDR(getFreshID("Serialize"), MR_VECTOR_TYPE(type, rate * gVecSize));
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -221,7 +221,7 @@ TValue* TConcat::compileSample(TListIndex* Is)
     int size2 = fExp2->getType()->getSize();
 
     // Declare output
-    TDeclareStatement* new_out = MR_ADDR(getFreshID("TmpConcat"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TDeclareStatement* new_out = MR_ADDR(getFreshID("Concat"), MR_VECTOR_TYPE(type, rate * gVecSize));
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
     TIndex* var_k = MR_VAR(getFreshID("k"));
@@ -282,6 +282,52 @@ void TDelayLine::compileStatement(TBlockStatement* block, TDeclareStatement* add
 TValue* TDelayLine::compileSample(TListIndex* Is)
 {
 
+}
+
+TDeclareStatement* TDelayLine::compile()
+{
+    int rate = getRate();
+    TType* type = getType();
+
+    // fMaxDelay is small
+
+    // Declare output
+    TDeclareStatement* new_out = MR_ADDR(getFreshID("DelayLine"), MR_VECTOR_TYPE(type, rate * gVecSize));
+
+    // TODO : fill DL
+
+    // Compute new indexes
+    TIndex* var_j = MR_VAR(getFreshID("j"));
+
+    TListIndex* new_in_list = MR_INDEX_LIST();
+    new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
+
+    TListIndex* new_out_list = MR_INDEX_LIST();
+    new_out_list = MR_PUSH_INDEX(new_out_list, MR_ADD(var_j, MR_INT(fMaxDelay)));
+
+    TBlockStatement* block = MR_BLOCK();
+    fExp->compileStatement(block, new_out, new_in_list, new_out_list);
+    gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
+
+    return new_out;
+}
+
+void TDelayAt::compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
+{
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+}
+
+TValue* TDelayAt::compileSample(TListIndex* Is)
+{
+    TDelayLine* delay_line = dynamic_cast<TDelayLine*>(fExp1);
+    assert(delay_line);
+
+    TDeclareStatement* new_out = delay_line->compile();
+
+    TValue* res2 = fExp2->compileSample(Is);
+    TIntValue* id = dynamic_cast<TIntValue*>(res2);
+
+    return MR_LOAD(new_out, MR_SUB(Is, MR_INT(id->fValue)));
 }
 
 void TRecProj::compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)

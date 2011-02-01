@@ -174,15 +174,24 @@ struct TVectorAt : public TSignal
 
 struct TDelayLine : public TSignal
 {
-	TSignal*	fExp;
+	TSignal* fExp;
+    int fMaxDelay;
 
-    TDelayLine(TSignal* x) : fExp(x) { }
+    TDelayLine(TSignal* x, int delay) : fExp(x), fMaxDelay(delay) { }
 
     virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
+    virtual TDeclareStatement* compile();
 
-    virtual TType* getType() = 0;
-    virtual int getRate() = 0;
+    virtual TType* getType()
+    {
+        return fExp->getType();
+    }
+
+    virtual int getRate()
+    {
+        return fExp->getRate();
+    }
 };
 
 struct TDelayAt : public TSignal
@@ -197,7 +206,7 @@ struct TDelayAt : public TSignal
 
     virtual TType* getType()
     {
-        // TODO
+        return fExp1->getType();
     }
 
     virtual int getRate()
