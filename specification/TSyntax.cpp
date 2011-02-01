@@ -47,12 +47,13 @@ TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code) { 
 TIfStatement* MR_IF(TValue* test, TBlockStatement* code) { return new TIfStatement(test, code); }
 
 // Values
+TNullValue* MR_NULL() { return new TNullValue(); }
 TFloatValue* MR_FLOAT_VAL(float val) { return new TFloatValue(val); }
 TIntValue* MR_INT_VAL(int val) { return new TIntValue(val); }
 TLoadValue* MR_LOAD(TDeclareStatement* addr, TListIndex* index) { return new TLoadValue(addr, index); }
 
 TPrimOpValue* MR_ADD(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "+"); }
-TPrimOpValue* MR_SUB(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "_"); }
+TPrimOpValue* MR_SUB(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "-"); }
 TPrimOpValue* MR_MUL(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "*"); }
 TPrimOpValue* MR_DIV(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "/"); }
 TPrimOpValue* MR_OP(TValue* v1, TValue* v2, const string& op)  { return new TPrimOpValue(v1, v2, op); }

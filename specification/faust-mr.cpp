@@ -66,6 +66,21 @@ TSignal* test13()
     return new TSerialize(new TVectorize(new TSerialize(new TVectorize(new TInput(0), 4)), 3));
 }
 
+TSignal* test14()
+{
+    return new TPrimOp(new TVectorize(new TInput(0), 4), new TVectorize(new TInput(1), 4), "+");
+}
+
+TSignal* test15()
+{
+    return new TSerialize(new TPrimOp(new TVectorize(new TInput(0), 4), new TVectorize(new TInput(1), 4), "+"));
+}
+
+TSignal* test16()
+{
+    return new TSerialize(new TSerialize(new TPrimOp(new TVectorize(new TVectorize(new TInput(0), 4), 3), new TVectorize(new TVectorize(new TInput(1), 4), 3), "+")));
+}
+
 TSignal* test21()
 {
     return new TConcat(new TVectorize(new TInput(0), 4), new TVectorize(new TInput(1), 3));
@@ -88,11 +103,12 @@ TSignal* test30()
 
 TSignal* test40()
 {
-    TRecProj* rec_group = new TRecProj(2);
-    rec_group->fCode.push_back(new TInput(0));
-    rec_group->fCode.push_back(new TInput(1));
-    rec_group->fCode.push_back(new TInput(2));
-    return rec_group;
+    string group = "group1";
+    TRecGroup* rec_group = new TRecGroup(group);
+    rec_group->fCode.push_back(new TPrimOp(new TInput(0), new TRecProj(group, 0), "+"));
+    rec_group->fCode.push_back(new TPrimOp(new TInput(1), new TRecProj(group, 1), "*"));
+    rec_group->fCode.push_back(new TInput(4));
+    return new TRecProj(group, 1);
 }
 
 
@@ -127,12 +143,13 @@ int main()
     //compiler.compileTop(test11());
     //compiler.compileTop(test12());
     //compiler.compileTop(test13());
+    //compiler.compileTop(test16());
     //compiler.compileTop(test21());
     //compiler.compileTop(test22());
-    compiler.compileTop(test23());
+    //compiler.compileTop(test23());
     //compiler.compileTop(test30());
 
-    //compiler.compileTop(test40());
+    compiler.compileTop(test40());
 
 	return 0;
 }

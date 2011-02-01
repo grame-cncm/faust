@@ -5,7 +5,7 @@
 #include "TValue.hh"
 #include "TStatement.hh"
 #include "TIndex.hh"
-
+#include <map>
 
 #include <assert.h>
 
@@ -215,18 +215,52 @@ struct TDelayAt : public TSignal
     }
 };
 
-struct TRecProj : public TSignal
+struct TRecGroup : public TSignal
 {
+    string fRecGroup;
     vector<TSignal*> fCode;
-    int fProj;
 
-    TRecProj(int proj):fProj(proj) {}
+    static map<string, TRecGroup*> gRecDecEnv;
+    static map<string, int> gRecCompEnv;
+    static map<string, TDeclareStatement*> gRecProjCompEnv;
+
+    TRecGroup(const string& group):fRecGroup(group)
+    {
+        gRecDecEnv[group] = this;
+    }
 
     virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
-    virtual TType* getType() { assert(fProj <= fCode.size()); return fCode[fProj]->getType(); }
-    virtual int getRate() { assert(fProj <= fCode.size()); return fCode[fProj]->getRate(); }
+    virtual TType* getType() { assert(false); }
+    virtual int getRate() { assert(false); }
+
+};
+
+struct TRecProj : public TSignal
+{
+    string fRecGroup;
+    int fProj;
+
+    TRecProj(const string& group, int proj):fRecGroup(group), fProj(proj) {}
+
+    virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
+    virtual TValue* compileSample(TListIndex*);
+
+    virtual TType* getType()
+    {
+        assert(TRecGroup::gRecDecEnv.find(fRecGroup) != TRecGroup::gRecDecEnv.end());
+        TRecGroup* rec_group = TRecGroup::gRecDecEnv[fRecGroup];
+        assert(fProj <= rec_group->fCode.size());
+        return rec_group->fCode[fProj]->getType();
+    }
+    virtual int getRate()
+    {
+        assert(TRecGroup::gRecDecEnv.find(fRecGroup) != TRecGroup::gRecDecEnv.end());
+        TRecGroup* rec_group = TRecGroup::gRecDecEnv[fRecGroup];
+        assert(fProj <= rec_group->fCode.size());
+        return rec_group->fCode[fProj]->getRate();
+    }
 
 };
 

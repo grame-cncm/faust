@@ -5,11 +5,23 @@
 #include "TStatement.hh"
 #include "TIndex.hh"
 
+#include <assert.h>
+
 struct TValue : public TPrintable
 {
     virtual ~TValue() {}
 
 	virtual TType* getType() = 0;
+
+};
+
+struct TNullValue : public TValue
+{
+    TNullValue() {}
+
+	virtual TType* getType() { assert(false); }
+
+    virtual void generate(ostream* dst, int n) { *dst << "NullValue"; }
 
 };
 

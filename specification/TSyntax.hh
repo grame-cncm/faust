@@ -41,6 +41,7 @@ TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code);
 TIfStatement* MR_IF(TValue* test, TBlockStatement* code);
 
 // Value language
+TNullValue* MR_NULL();
 TFloatValue* MR_FLOAT_VAL(float val);
 TIntValue* MR_INT_VAL(int val);
 
