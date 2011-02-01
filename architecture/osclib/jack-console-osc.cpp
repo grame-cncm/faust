@@ -122,7 +122,7 @@ public:
 	// -- passive widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 	
@@ -201,7 +201,7 @@ public:
 	// -- passive widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) 	{}
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) 	{}
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
 
