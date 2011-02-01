@@ -68,7 +68,7 @@ string  VectorCompiler::CS (Tree sig)
     int         i;
     Tree        x;
     string      code;
-	//cerr << "ENTER CS : "<< ppsig(sig) << endl;
+    cerr << "ENTER CS : "<< ppsig(sig) << endl;
     if (!getCompiledExpression(sig, code)) {
         code = generateCode(sig);
 		//cerr << "CS : " << code << " for " << ppsig(sig) << endl;
@@ -98,7 +98,7 @@ string  VectorCompiler::CS (Tree sig)
 			}
         }
     }
-	//cerr << "EXIT CS : "<< ppsig(sig) << "---code---> " << code << endl;
+    cerr << "EXIT CS : "<< ppsig(sig) << "---code---> " << code << endl;
 	return code;
 }
 
