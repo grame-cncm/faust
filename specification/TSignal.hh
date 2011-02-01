@@ -217,11 +217,16 @@ struct TDelayAt : public TSignal
 
 struct TRecProj : public TSignal
 {
+    vector<TSignal*> fCode;
+    int fProj;
+
+    TRecProj(int proj):fProj(proj) {}
+
     virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
-    virtual TType* getType() = 0;
-    virtual int getRate() = 0;
+    virtual TType* getType() { assert(fProj <= fCode.size()); return fCode[fProj]->getType(); }
+    virtual int getRate() { assert(fProj <= fCode.size()); return fCode[fProj]->getRate(); }
 
 };
 

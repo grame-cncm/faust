@@ -86,6 +86,16 @@ TSignal* test30()
     return new TDelayAt(new TDelayLine(new TInput(0), 100), new TInt(3));
 }
 
+TSignal* test40()
+{
+    TRecProj* rec_group = new TRecProj(2);
+    rec_group->fCode.push_back(new TInput(0));
+    rec_group->fCode.push_back(new TInput(1));
+    rec_group->fCode.push_back(new TInput(2));
+    return rec_group;
+}
+
+
 int main()
 {
     /*
@@ -121,6 +131,8 @@ int main()
     //compiler.compileTop(test22());
     compiler.compileTop(test23());
     //compiler.compileTop(test30());
+
+    //compiler.compileTop(test40());
 
 	return 0;
 }

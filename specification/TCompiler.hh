@@ -37,7 +37,13 @@ struct TCompiler
         TLoopStatement* global_loop = MR_LOOP(rate * gVecSize, in, sub_block);
 
         // Code generation
+        cout << endl << "-----------------" << endl;
+        cout << "Separated loops" << endl;
+        cout << "-----------------" << endl;
         gExternalBlock->generate(&cout, 0);
+        cout << endl << "-----------------" << endl;
+        cout << "Result" << endl;
+        cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
     }
 

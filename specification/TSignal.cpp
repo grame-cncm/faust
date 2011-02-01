@@ -351,12 +351,42 @@ TValue* TDelayAt::compileSample(TListIndex* Is)
 
 void TRecProj::compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
 {
-
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TRecProj::compileSample(TListIndex* Is)
 {
+    TBlockStatement* block = MR_BLOCK();
+    TDeclareStatement* res_out = NULL;
 
+    int rate = getRate();
+
+    // Compute new indexes
+    TIndex* var_j = MR_VAR(getFreshID("j"));
+
+    TListIndex* new_in_list = MR_INDEX_LIST();
+    new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
+
+    TListIndex* new_out_list = MR_INDEX_LIST();
+    new_out_list = MR_PUSH_INDEX(new_out_list, var_j);
+
+    vector<TSignal*>::const_iterator it;
+    int i = 0;
+    for (it = fCode.begin(); it != fCode.end(); it++, i++) {
+
+        TType* type = (*it)->getType();
+
+        // Declare output
+        TDeclareStatement* new_out = MR_ADDR(getFreshID("RecLine"), MR_VECTOR_TYPE(type, rate * gVecSize));
+        if (i == fProj) res_out = new_out;
+
+        (*it)->compileStatement(block, new_out, new_in_list, new_out_list);
+    }
+
+    gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
+
+    assert(res_out);
+    return MR_LOAD(res_out, Is);
 }
 
 

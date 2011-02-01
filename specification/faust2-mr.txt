@@ -281,7 +281,7 @@ CS[Proj(n, g = (E0, E1, ...)), Is] : E x [I] x [I] ==> V
 +	T0 W0[r*VS + m0]
 +	T1 W1[r*VS + m1]
 +   ....
-+	Loop(j, m*VS) {
++	Loop(j, r*VS) {
 +       CA[W0, [j], E0, [j]]
 +       CA[W1, [j], E1, [j]]
 +       ....

@@ -21,7 +21,7 @@ void TBlockStatement::generate(ostream* dst, int n)
 {
     vector<TStatement*>::const_iterator it;
     for (it = fCode.begin(); it != fCode.end(); it++) {
-        (*it)->generate(dst, n+1);
+        (*it)->generate(dst, n);
     }
 }
 
