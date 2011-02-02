@@ -66,9 +66,9 @@ grain(id, pos, sdur, gamp, sel, sig)
 	= sig : delay10s(pos) : grainenv(sdur, gamp, (sel==id));
 
 trig = (integrate(1) % 7 == 3);
-selector = integrate(1) % 7;
+selector_ = integrate(1) % 7;
 
 
 //process 	= integrate(1), slope(trig), max(0.0,bidule(trig));
 //process 	= integrate(1), trig, grainenv(10, 2.8, trig, 1);
-process 	= integrate(1), trig, grain(3, 2, 10, 1, selector, integrate(1));
+process 	= integrate(1), trig, grain(3, 2, 10, 1, selector_, integrate(1));

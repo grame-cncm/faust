@@ -99,7 +99,7 @@ SH(t) = *(t): +~*(1-t);
 
 
 trig = (integrate(1) % 7 == 3);
-selector = irnd(0, 20);
+selector_ = irnd(0, 20);
 
 
 //process 	= integrate(1), slope(trig), max(0.0,bidule(trig));
