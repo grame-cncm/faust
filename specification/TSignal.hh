@@ -62,7 +62,7 @@ struct TInput : public TSignal
     virtual TValue* compileSample(TListIndex* index);
 
     virtual TType* getType() { return new TFloatType(); }
-    virtual int getRate() { return 4; }
+    virtual int getRate() { return 12; }
 };
 
 struct TPrimOp : public TSignal
@@ -96,7 +96,10 @@ struct TVectorize : public TSignal
 
     // n * m = rate(E)
     // m = rate(vectorize(E))
-    virtual int getRate() { return fExp->getRate() / fSize; }
+    virtual int getRate() {
+        //cerr << "TVectorize::getRate " << fExp->getRate() << " " << fSize << endl;
+        return fExp->getRate() / fSize;
+    }
 
 };
 
@@ -126,6 +129,7 @@ struct TSerialize : public TSignal
         TType* exp_type = fExp->getType();
         TVectorType* vector_type = dynamic_cast<TVectorType*>(exp_type);
         assert(vector_type);
+        //cerr << "TSerialize::getRate " << fExp->getRate() << " " << vector_type->fSize << endl;
         return fExp->getRate() * vector_type->fSize;
     }
 };

@@ -146,13 +146,11 @@ void TSerialize::compileStatement(TBlockStatement* block, TDeclareStatement* add
 
     TListIndex* new_in_list = MR_DIV(Is, MR_INT(n));
 
-    /*
     fExp->compileStatement(sub_block,
         MR_ADDR(address->fName, MR_CAST_TYPE(address->fType, MR_VECTOR_TYPE(type, n))),
         Os, new_in_list);
-    */
 
-    fExp->compileStatement(sub_block, address, Os, new_in_list);  // Cast ??
+    //fExp->compileStatement(sub_block, address, Os, new_in_list);  // Cast ??
 
     block->fCode.push_back(MR_IF(MR_DIV(Is, MR_INT(n)), sub_block));
 

@@ -36,7 +36,7 @@ TListIndex* MR_DIV(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->
 TType* MR_VECTOR_TYPE(TType* type, int rate) { return new TVectorType(type, rate); }
 TType* MR_INT_TYPE() { return new TIntType(); };
 TType* MR_FLOAT_TYPE() { return new TFloatType(); };
-//TType* MR_CAST_TYPE(TType* type1, TType* type2) { return new TCastType(type1, type2); }
+TType* MR_CAST_TYPE(TType* type1, TType* type2) { return new TCastType(type1, type2); }
 
 // Statements
 TDeclareStatement* MR_ADDR(const string& name, TType* type) { return new TDeclareStatement(name, type); }

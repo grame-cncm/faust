@@ -58,6 +58,12 @@ TSignal* test11()
 
 TSignal* test12()
 {
+    /*
+    TSignal* t1 = new TVectorize(new TVectorize(new TInput(0), 4), 3);
+    TSignal* t2 = new TVectorize(new TInput(0), 4);
+    cerr << "test12 " << t1->getRate() << endl;
+    cerr << "test12 " << t2->getRate() << endl;
+    */
     return new TSerialize(new TSerialize(new TVectorize(new TVectorize(new TInput(0), 4), 3)));
 }
 
@@ -139,8 +145,8 @@ int main()
     //compiler.compileTop(test5());
     //compiler.compileTop(test6());
     //compiler.compileTop(test10());
-    compiler.compileTop(test11());
-    //compiler.compileTop(test12());
+    //compiler.compileTop(test11());
+    compiler.compileTop(test12());
     //compiler.compileTop(test13());
     //compiler.compileTop(test16());
     //compiler.compileTop(test21());

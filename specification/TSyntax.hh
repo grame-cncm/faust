@@ -29,7 +29,7 @@ TListIndex* MR_PUSH_INDEX(TListIndex* list, TIndex* index);
 TType*  MR_VECTOR_TYPE(TType* type, int size);
 TType*  MR_INT_TYPE();
 TType*  MR_FLOAT_TYPE();
-//TType*  MR_CAST_TYPE(TType* type1, TType* type2);
+TType*  MR_CAST_TYPE(TType* type1, TType* type2);
 
 // Statement language
 TDeclareStatement* MR_ADDR(const string& name, TType* type);
