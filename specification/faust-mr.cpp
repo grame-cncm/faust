@@ -103,12 +103,11 @@ TSignal* test30()
 
 TSignal* test40()
 {
-    string group = "group1";
-    TRecGroup* rec_group = new TRecGroup(group);
-    rec_group->fCode.push_back(new TPrimOp(new TInput(0), new TRecProj(group, 0), "+"));
-    rec_group->fCode.push_back(new TPrimOp(new TInput(1), new TRecProj(group, 1), "*"));
-    rec_group->fCode.push_back(new TInput(4));
-    return new TRecProj(group, 1);
+    TRecGroup* rec_group = new TRecGroup("RecGroup1");
+    rec_group->fCode.push_back(new TPrimOp(new TInput(0), new TRecProj(rec_group, 0), "+"));
+    rec_group->fCode.push_back(new TPrimOp(new TInput(1), new TRecProj(rec_group, 1), "*"));
+    rec_group->fCode.push_back(new TInput(2));
+    return new TRecProj(rec_group, 1);
 }
 
 

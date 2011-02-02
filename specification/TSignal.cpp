@@ -322,7 +322,6 @@ TValue* TDelayAt::compileSample(TListIndex* Is)
 
 // Recursive groups
 
-map<string, TRecGroup*> TRecGroup::gRecDecEnv;
 map<string, int> TRecGroup::gRecCompEnv;
 map<string, TDeclareStatement*> TRecGroup::gRecProjCompEnv;
 
@@ -338,9 +337,8 @@ TValue* TRecGroup::compileSample(TListIndex* Is)
     assert(fCode.size() > 0);
     int rate = fCode[0]->getRate();
 
-    if (TRecGroup::gRecCompEnv.find(fRecGroup) != TRecGroup::gRecCompEnv.end()) {
-        // Nothing to do
-    } else {
+    // If not yet compiled
+    if (TRecGroup::gRecCompEnv.find(fRecGroup) == TRecGroup::gRecCompEnv.end()) {
 
         // Group is now compiled
         TRecGroup::gRecCompEnv[fRecGroup] = 1;
@@ -388,14 +386,11 @@ void TRecProj::compileStatement(TBlockStatement* block, TDeclareStatement* addre
 
 TValue* TRecProj::compileSample(TListIndex* Is)
 {
-    assert(TRecGroup::gRecDecEnv.find(fRecGroup) != TRecGroup::gRecDecEnv.end());
-    TRecGroup* rec_group = TRecGroup::gRecDecEnv[fRecGroup];
-
     // Compile recursive group
-    rec_group->compileSample(Is);
+    fRecGroup->compileSample(Is);
 
     // Get the projection
-    string rec_proj = subst("$0$1", fRecGroup, T(fProj));
+    string rec_proj = subst("$0$1", fRecGroup->fRecGroup, T(fProj));
     assert(TRecGroup::gRecProjCompEnv.find(rec_proj) != TRecGroup::gRecProjCompEnv.end());
     return MR_LOAD(TRecGroup::gRecProjCompEnv[rec_proj], Is);
 }

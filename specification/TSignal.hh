@@ -220,14 +220,11 @@ struct TRecGroup : public TSignal
     string fRecGroup;
     vector<TSignal*> fCode;
 
-    static map<string, TRecGroup*> gRecDecEnv;
     static map<string, int> gRecCompEnv;
     static map<string, TDeclareStatement*> gRecProjCompEnv;
 
     TRecGroup(const string& group):fRecGroup(group)
-    {
-        gRecDecEnv[group] = this;
-    }
+    {}
 
     virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
@@ -239,27 +236,23 @@ struct TRecGroup : public TSignal
 
 struct TRecProj : public TSignal
 {
-    string fRecGroup;
+    TRecGroup* fRecGroup;
     int fProj;
 
-    TRecProj(const string& group, int proj):fRecGroup(group), fProj(proj) {}
+    TRecProj(TRecGroup* group, int proj):fRecGroup(group), fProj(proj) {}
 
     virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex*);
 
     virtual TType* getType()
     {
-        assert(TRecGroup::gRecDecEnv.find(fRecGroup) != TRecGroup::gRecDecEnv.end());
-        TRecGroup* rec_group = TRecGroup::gRecDecEnv[fRecGroup];
-        assert(fProj <= rec_group->fCode.size());
-        return rec_group->fCode[fProj]->getType();
+        assert(fProj <= fRecGroup->fCode.size());
+        return fRecGroup->fCode[fProj]->getType();
     }
     virtual int getRate()
     {
-        assert(TRecGroup::gRecDecEnv.find(fRecGroup) != TRecGroup::gRecDecEnv.end());
-        TRecGroup* rec_group = TRecGroup::gRecDecEnv[fRecGroup];
-        assert(fProj <= rec_group->fCode.size());
-        return rec_group->fCode[fProj]->getRate();
+        assert(fProj <= fRecGroup->fCode.size());
+        return fRecGroup->fCode[fProj]->getRate();
     }
 
 };
