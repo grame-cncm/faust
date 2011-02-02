@@ -33,9 +33,10 @@ TListIndex* MR_MUL(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->
 TListIndex* MR_DIV(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "/")); return new_list; }
 
 // Types
-TType* MR_VECTOR_TYPE(TType* type, int rate) { return new VectorType(type, rate); }
+TType* MR_VECTOR_TYPE(TType* type, int rate) { return new TVectorType(type, rate); }
 TType* MR_INT_TYPE() { return new TIntType(); };
 TType* MR_FLOAT_TYPE() { return new TFloatType(); };
+//TType* MR_CAST_TYPE(TType* type1, TType* type2) { return new TCastType(type1, type2); }
 
 // Statements
 TDeclareStatement* MR_ADDR(const string& name, TType* type) { return new TDeclareStatement(name, type); }
@@ -44,7 +45,7 @@ TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement) { 
 TStoreStatement* MR_STORE(TDeclareStatement* addr, TListIndex* list, TValue* val) { return new TStoreStatement(addr, list, val); }
 TLoopStatement* MR_LOOP(int size, TIndex* index, TBlockStatement* code) { return new TLoopStatement(size, index, code); }
 TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code) { return new TSubLoopStatement(size, index, code); }
-TIfStatement* MR_IF(TValue* test, TBlockStatement* code) { return new TIfStatement(test, code); }
+TIfStatement* MR_IF(TListIndex* test, TBlockStatement* code) { return new TIfStatement(test, code); }
 
 // Values
 TNullValue* MR_NULL() { return new TNullValue(); }

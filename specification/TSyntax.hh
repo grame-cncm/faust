@@ -29,6 +29,7 @@ TListIndex* MR_PUSH_INDEX(TListIndex* list, TIndex* index);
 TType*  MR_VECTOR_TYPE(TType* type, int size);
 TType*  MR_INT_TYPE();
 TType*  MR_FLOAT_TYPE();
+//TType*  MR_CAST_TYPE(TType* type1, TType* type2);
 
 // Statement language
 TDeclareStatement* MR_ADDR(const string& name, TType* type);
@@ -37,8 +38,7 @@ TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement);
 TStoreStatement* MR_STORE(TDeclareStatement* addr, TListIndex* list, TValue* val);
 TLoopStatement* MR_LOOP(int size, TIndex* index, TBlockStatement* code);
 TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code);
-
-TIfStatement* MR_IF(TValue* test, TBlockStatement* code);
+TIfStatement* MR_IF(TListIndex* test, TBlockStatement* code);
 
 // Value language
 TNullValue* MR_NULL();

@@ -61,9 +61,8 @@ struct TInput : public TSignal
     virtual void  compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is);
     virtual TValue* compileSample(TListIndex* index);
 
-    //virtual TType* getType() { return new VectorType(new TFloatType(), gVecSize); }
     virtual TType* getType() { return new TFloatType(); }
-    virtual int getRate() { return 12; }
+    virtual int getRate() { return 4; }
 };
 
 struct TPrimOp : public TSignal
@@ -93,7 +92,7 @@ struct TVectorize : public TSignal
 
     // T = type(E)
     // T[n] = type(vectorize(E))
-    virtual TType* getType() { return new VectorType(fExp->getType(), fSize); }
+    virtual TType* getType() { return new TVectorType(fExp->getType(), fSize); }
 
     // n * m = rate(E)
     // m = rate(vectorize(E))
@@ -115,7 +114,7 @@ struct TSerialize : public TSignal
     virtual TType* getType()
     {
         TType* exp_type = fExp->getType();
-        VectorType* vector_type = dynamic_cast<VectorType*>(exp_type);
+        TVectorType* vector_type = dynamic_cast<TVectorType*>(exp_type);
         assert(vector_type);
         return vector_type->fType;
     }
@@ -125,7 +124,7 @@ struct TSerialize : public TSignal
     virtual int getRate()
     {
         TType* exp_type = fExp->getType();
-        VectorType* vector_type = dynamic_cast<VectorType*>(exp_type);
+        TVectorType* vector_type = dynamic_cast<TVectorType*>(exp_type);
         assert(vector_type);
         return fExp->getRate() * vector_type->fSize;
     }
@@ -161,7 +160,7 @@ struct TVectorAt : public TSignal
     virtual TType* getType()
     {
         TType* type1 = fExp1->getType();
-        VectorType* vec1_type = dynamic_cast<VectorType*>(type1);
+        TVectorType* vec1_type = dynamic_cast<TVectorType*>(type1);
         assert(vec1_type);
         return vec1_type->fType;
     }

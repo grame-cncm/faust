@@ -18,9 +18,9 @@ struct TCompiler
 
     virtual void compileVector(TSignal* signal)
     {
-        int rate = signal->getRate();
+        int output_rate = signal->getRate();
         TType* input_type = signal->getType();
-        TType* output_type = MR_VECTOR_TYPE(MR_FLOAT_TYPE(), gVecSize);
+        TType* output_type = MR_VECTOR_TYPE(MR_FLOAT_TYPE(), output_rate * gVecSize);
 
         // assert output_type == input_type;
 
@@ -33,8 +33,7 @@ struct TCompiler
         TBlockStatement* sub_block = MR_BLOCK();
         gExternalBlock = MR_BLOCK();
         signal->compileStatement(sub_block, address, index_list, index_list);
-
-        TLoopStatement* global_loop = MR_LOOP(rate * gVecSize, in, sub_block);
+        TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, in, sub_block);
 
         // Code generation
         cout << endl << "-----------------" << endl;

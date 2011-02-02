@@ -180,7 +180,7 @@ CA[O, Os, Serialize(E), Is] : T A x [I] x E x [I] ==> void
 if not shared (Serialize(E)) :
 
 +   If (Is%n == 0) {
-+       CA[cast(T[n],O), Os, E, Is/n]  (here we "divide" Is by n..)
++       CA[cast([n]T,O), Os, E, Is/n]  (here we "divide" Is by n..)
 +   }
 
 if shared (Serialize(E)) :
@@ -238,7 +238,7 @@ CS[E1#E2, Is] : E x [I] x [I] ==> V
 
 
 ===============================================================================
-E1[E2] : takes value of a signal at a given index
+E1[E2] : take value of a signal at a given index
 ===============================================================================
        r = rate(E1[E2]) = rate(E1) = rate(E2)
     [n]T = type(E1)

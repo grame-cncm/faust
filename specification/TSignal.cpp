@@ -31,7 +31,7 @@ void TInput::compileStatement(TBlockStatement* block, TDeclareStatement* address
 
 TValue* TInput::compileSample(TListIndex* Is)
 {
-    return MR_LOAD(MR_ADDR(subst("input$0", T(fIndex)), MR_VECTOR_TYPE(MR_FLOAT_TYPE(), gVecSize)), Is);
+    return MR_LOAD(MR_ADDR(subst("input$0", T(fIndex)), MR_VECTOR_TYPE(getType(), getRate() * gVecSize)), Is);
 }
 
 void TPrimOp::compileStatement(TBlockStatement* block, TDeclareStatement* address, TListIndex* Os, TListIndex* Is)
@@ -145,11 +145,19 @@ void TSerialize::compileStatement(TBlockStatement* block, TDeclareStatement* add
     // TODO : add "if"
 
     TListIndex* new_in_list = MR_DIV(Is, MR_INT(n));
+
+    /*
+    fExp->compileStatement(sub_block,
+        MR_ADDR(address->fName, MR_CAST_TYPE(address->fType, MR_VECTOR_TYPE(type, n))),
+        Os, new_in_list);
+    */
+
     fExp->compileStatement(sub_block, address, Os, new_in_list);  // Cast ??
-    block->fCode.push_back(MR_IF(MR_INT_VAL(1), sub_block));
+
+    block->fCode.push_back(MR_IF(MR_DIV(Is, MR_INT(n)), sub_block));
 
     // if shared
-    //k->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    //block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TSerialize::compileSample(TListIndex* Is)
@@ -190,8 +198,8 @@ TType* TConcat::getType()
 {
     TType* type1 = fExp1->getType();
     TType* type2 = fExp2->getType();
-    VectorType* vec1_type = dynamic_cast<VectorType*>(type1);
-    VectorType* vec2_type = dynamic_cast<VectorType*>(type2);
+    TVectorType* vec1_type = dynamic_cast<TVectorType*>(type1);
+    TVectorType* vec2_type = dynamic_cast<TVectorType*>(type2);
     assert(vec1_type && vec2_type && vec1_type->fType->equal(vec2_type->fType));
     return MR_VECTOR_TYPE(vec1_type->fType, vec1_type->fSize + vec2_type->fSize);
 }

@@ -44,7 +44,7 @@ void TSubLoopStatement::generate(ostream* dst, int n)
 void TIfStatement::generate(ostream* dst, int n)
 {
     vector<TStatement*>::const_iterator it;
-    tab(n, *dst); *dst << "if ("; fValue->generate(dst, n); *dst << ") {" << endl;
+    tab(n, *dst); *dst << "if ("; fIndex->generate(dst, n); *dst << ") {" << endl;
     fCode->generate(dst, n+1);
     tab(n, *dst); *dst << "}";
 }

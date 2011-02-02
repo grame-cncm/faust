@@ -66,10 +66,10 @@ struct TSubLoopStatement : public TLoopStatement
 
 struct TIfStatement : public TStatement
 {
-    TValue* fValue;
+    TListIndex* fIndex;
     TBlockStatement* fCode;
 
-    TIfStatement(TValue* value, TBlockStatement* code):fValue(value), fCode(code) {}
+    TIfStatement(TListIndex* index, TBlockStatement* code):fIndex(index), fCode(code) {}
 
     virtual void generate(ostream* dst, int n);
 
