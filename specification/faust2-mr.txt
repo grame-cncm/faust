@@ -195,7 +195,7 @@ CS[Serialize(E), Is] : E x [I] x [I] ==> V
 +	T W[n*m*VS]
 +	Loop(j, n*m*VS) {
 +       If (j%n == 0) {
-+           CA[cast([n]T,O), Os, E, j/n]  (here we "divide" Is by n..)
++           CA[cast([n]T,W), [j], E, [j/n]]  (here we "divide" j by n..)
 +       }
 +	}
 

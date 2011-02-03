@@ -172,13 +172,13 @@ int main()
     //compiler.compileTop(test6());
     //compiler.compileTop(test10());
 
-    compiler.compileTop(test11());
+    //compiler.compileTop(test11());
 
-    //compiler.compileTop(test12());
-    //compiler.compileTop(test13());
-    //compiler.compileTop(test16());
-    //compiler.compileTop(test21());
-    //compiler.compileTop(test22());
+    compiler.compileTop(test12());
+    compiler.compileTop(test13());
+    compiler.compileTop(test16());
+    compiler.compileTop(test21());
+    compiler.compileTop(test22());
     compiler.compileTop(test23());
     //compiler.compileTop(test30());
 

@@ -78,7 +78,7 @@ void TVectorize::compileStatement(TBlockStatement* block, TDeclareStatement* add
 
     // not shared
 
-
+    /*
     TIndex* var_k = MR_VAR(getFreshID("k"));
     TListIndex* new_in_list = MR_ADD(MR_MUL(Is, MR_INT(fSize)), var_k);
     TListIndex* new_out_list = MR_PUSH_INDEX(Os, var_k);
@@ -88,10 +88,10 @@ void TVectorize::compileStatement(TBlockStatement* block, TDeclareStatement* add
     TBlockStatement* sub_block = MR_BLOCK();
     fExp->compileStatement(sub_block, address, new_out_list, new_in_list);
     block->fCode.push_back(MR_SUBLOOP(fSize, var_k, sub_block));
-
+    */
 
     // shared
-   // block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
+    block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
 
 TValue* TVectorize::compileSample(TListIndex* Is)
@@ -142,16 +142,16 @@ void TSerialize::compileStatement(TBlockStatement* block, TDeclareStatement* add
     TType* type = getType();
 
     // if not shared
-    /*
-    TBlockStatement* sub_block = MR_BLOCK();
+
+   /* TBlockStatement* sub_block = MR_BLOCK();
     TListIndex* new_in_list = MR_DIV(Is, MR_INT(n));
     fExp->compileStatement(sub_block,
                         MR_ADDR(address->fName, MR_CAST_TYPE(address->fType, MR_VECTOR_TYPE(type, n))),
                         Os,
                         new_in_list);
     block->fCode.push_back(MR_IF(MR_MOD(Is, MR_INT(n)), sub_block));
-    */
 
+    */
     // if shared
     block->fCode.push_back(MR_STORE(address, Os, compileSample(Is)));
 }
@@ -170,21 +170,21 @@ TValue* TSerialize::compileSample(TListIndex* Is)
     TIndex* var_j = MR_VAR(getFreshID("j"));
     TIndex* var_k = MR_VAR(getFreshID("k"));
 
+    TBlockStatement* sub_block = MR_BLOCK();
     TListIndex* new_in_list = MR_INDEX_LIST();
-    new_in_list = MR_PUSH_INDEX(new_in_list, var_j);
-    new_in_list = MR_PUSH_INDEX(new_in_list, var_k);
+    new_in_list = MR_PUSH_INDEX(new_in_list, MR_DIV(var_j, MR_INT(n)));
 
     TListIndex* new_out_list = MR_INDEX_LIST();
-    new_out_list = MR_PUSH_INDEX(new_out_list, MR_ADD(MR_MUL(var_j, MR_INT(n)), var_k));
+    new_out_list = MR_PUSH_INDEX(new_out_list, var_j);
 
-    // Wrapping loop
-    TBlockStatement* sub_block = MR_BLOCK();
-    fExp->compileStatement(sub_block, new_out, new_out_list, new_in_list);
-    TSubLoopStatement* sub_loop = MR_SUBLOOP(n, var_k, sub_block);
+    fExp->compileStatement(sub_block,
+                        MR_ADDR(new_out->fName, MR_CAST_TYPE(new_out->fType, MR_VECTOR_TYPE(type, n))),
+                        new_out_list,
+                        new_in_list);
+    TBlockStatement* sub_block2 = MR_BLOCK();
+    sub_block2->fCode.push_back(MR_IF(MR_MOD(MR_PUSH_INDEX(MR_INDEX_LIST(), var_j), MR_INT(n)), sub_block));
 
-    TBlockStatement* block = MR_BLOCK();
-    block->fCode.push_back(sub_loop);
-    gExternalBlock->fCode.push_back(MR_LOOP(m * gVecSize, var_j, block));
+    gExternalBlock->fCode.push_back(MR_LOOP(n * m * gVecSize, var_j, sub_block2));
 
     // Final value
     return MR_LOAD(new_out, Is);
