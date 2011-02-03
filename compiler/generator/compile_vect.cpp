@@ -68,7 +68,7 @@ string  VectorCompiler::CS (Tree sig)
     int         i;
     Tree        x;
     string      code;
-    cerr << "ENTER CS : "<< ppsig(sig) << endl;
+    //cerr << "ENTER VectorCompiler::CS : "<< ppsig(sig) << endl;
     if (!getCompiledExpression(sig, code)) {
         code = generateCode(sig);
 		//cerr << "CS : " << code << " for " << ppsig(sig) << endl;
@@ -98,8 +98,70 @@ string  VectorCompiler::CS (Tree sig)
 			}
         }
     }
-    cerr << "EXIT CS : "<< ppsig(sig) << "---code---> " << code << endl;
+    //cerr << "EXIT VectorCompiler::CS : "<< ppsig(sig) << "---code---> " << code << endl;
 	return code;
+}
+
+string VectorCompiler::generateCode (Tree sig)
+{
+    generateCodeRecursions(sig);
+    return generateCodeNonRec(sig);
+}
+
+void VectorCompiler::generateCodeRecursions (Tree sig)
+{
+    int     i;
+    Tree    e1, e2, id, body, rec;
+    string  code;
+    //cerr << "VectorCompiler::generateCodeRecursions( " << ppsig(sig) << " )" << endl;
+    if (getCompiledExpression(sig, code)) {
+        //cerr << "** ALREADY VISITED : " << code << " ===> " << ppsig(sig) << endl;
+        if( isRec(sig, id, body) ) {
+            //cerr << "check for recursive dependency 1" << endl;
+            Loop*   tl = fClass->topLoop();
+            if (tl->findRecDefinition(sig)) {
+                tl->addRecDependency(sig);
+            }
+        } else if (isProj(sig, &i, rec)) {
+            //cerr <<  "check for recursive dependency 2" << endl;
+            Loop*   tl = fClass->topLoop();
+            if (tl->findRecDefinition(rec)) {
+                tl->addRecDependency(rec);
+            }
+        } else if (isSigFixDelay(sig, e1, e2) && isProj(e1, &i, rec)) {
+            //cerr <<  "check for recursive dependency 3" << endl;
+            Loop*   tl = fClass->topLoop();
+            if (tl->findRecDefinition(rec)) {
+                tl->addRecDependency(rec);
+            }
+        }
+        return;
+    } else if( isRec(sig, id, body) ) {
+        //cerr << "we have a recursive expression non compiled yet : " << ppsig(sig) << endl;
+        setCompiledExpression(sig, "[RecursionVisited]");
+        fClass->openLoop(sig, "count");
+        generateRec(sig, id, body);
+        fClass->closeLoop(sig);
+    } else {
+        // we go down the expression
+        vector<Tree>  subsigs;
+        int n = getSubSignals(sig, subsigs, false);
+        for (int i=0; i<n; i++) { generateCodeRecursions(subsigs[i]); }
+    }
+}
+
+string VectorCompiler::generateCodeNonRec (Tree sig)
+{
+    string  code;
+    if (getCompiledExpression(sig, code)) {
+        // already visited
+        return code;
+    } else {
+        //cerr << "VectorCompiler::generateCodeNonRec( " << ppsig(sig) << " )" << endl;
+        code = generateLoopCode(sig);
+        setCompiledExpression(sig, code);
+        return code;
+    }
 }
 
 /**
@@ -107,7 +169,7 @@ string  VectorCompiler::CS (Tree sig)
  * @param sig the signal expression to compile.
  * @return the C code translation of sig as a string
  */
-string VectorCompiler::generateCode (Tree sig)
+string VectorCompiler::generateLoopCode (Tree sig)
 {
     int     i;
     Tree    x;
@@ -115,7 +177,7 @@ string VectorCompiler::generateCode (Tree sig)
 
     l = fClass->topLoop();
     assert(l);
-
+    //cerr << "VectorCompiler::OLDgenerateCode " << ppsig(sig) << endl;
     if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
@@ -294,7 +356,7 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
     mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
     if (! getVectorNameProperty(exp, vecname)) {
-        cerr << "no vector name for " << ppsig(exp) << endl;
+        cerr << "ERROR no vector name for " << ppsig(exp) << endl;
         exit(1);
     }
 

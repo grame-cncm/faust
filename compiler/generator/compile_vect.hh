@@ -53,6 +53,10 @@ protected:
 
     virtual string      CS (Tree sig);
     virtual string      generateCode (Tree sig);
+    virtual void        generateCodeRecursions (Tree sig);
+    virtual string      generateCodeNonRec (Tree sig);
+    virtual string      generateLoopCode (Tree sig);
+
     virtual string      generateCacheCode(Tree sig, const string& exp);
     virtual void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
     virtual string      generateVariableStore(Tree sig, const string& exp);
