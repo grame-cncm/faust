@@ -81,6 +81,7 @@ bool Loop::isEmpty()
 void Loop::addRecDependency(Tree t)
 {
     if (t != fRecSymbol) {
+        //cerr << this << "->addRecDependency("<< *t << ")" << endl;
         fRecDependencies.insert(t);
     }
 }
