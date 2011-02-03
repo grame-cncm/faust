@@ -44,6 +44,7 @@ struct TCompiler
         cout << "Result" << endl;
         cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
+        cout << endl;
     }
 
 };

@@ -21,6 +21,7 @@ TListIndex* MR_ADD(TListIndex* list, TIndex* v2);
 TListIndex* MR_SUB(TListIndex* list, TIndex* v2);
 TListIndex* MR_MUL(TListIndex* list, TIndex* v2);
 TListIndex* MR_DIV(TListIndex* list, TIndex* v2);
+TListIndex* MR_MOD(TListIndex* list, TIndex* v2);
 
 TListIndex* MR_INDEX_LIST();
 TListIndex* MR_PUSH_INDEX(TListIndex* list, TIndex* index);

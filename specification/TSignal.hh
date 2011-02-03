@@ -53,8 +53,9 @@ struct TInt : public TSignal
 struct TInput : public TSignal
 {
     int fIndex;
+    int fRate;
 
-    TInput(int index):fIndex(index) {}
+    TInput(int index, int rate):fIndex(index), fRate(rate) {}
 
     virtual ~TInput() {}
 
@@ -62,7 +63,7 @@ struct TInput : public TSignal
     virtual TValue* compileSample(TListIndex* index);
 
     virtual TType* getType() { return new TFloatType(); }
-    virtual int getRate() { return 12; }
+    virtual int getRate() { return fRate; }
 };
 
 struct TPrimOp : public TSignal

@@ -64,7 +64,7 @@ struct TVectorType : public TType
 
     virtual ~TVectorType() {}
 
-	virtual void generate(ostream* dst, int n) { fType->generate(dst, n); *dst << " [" << fSize << "]";  }
+	virtual void generate(ostream* dst, int n) { fType->generate(dst, n); *dst << "[" << fSize << "]";  }
 
     virtual int getSize() { return fSize; }
 
@@ -105,7 +105,7 @@ struct TCastType : public TType
     TCastType(TType* type1, TType* type2):fOld(type1), fNew(type2)
     {
         bool res = checkCast(type1, type2);
-        printf("checkCast %d\n", res);
+        //printf("checkCast %d\n", res);
     }
 
 	virtual void generate(ostream* dst, int n) { *dst << "{"; fOld->generate(dst, n); *dst << "->"; fNew->generate(dst, n); *dst << "}"; }
