@@ -198,6 +198,11 @@ bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
  */
 string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
 {
+    //cerr << "ScalarCompiler::setCompiledExpression : " << cexp << " ==> " << ppsig(sig) << endl;
+    string old; if (fCompileProperty.get(sig, old) && (old != cexp)) {
+        cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
+        exit(1);
+    }
     fCompileProperty.set(sig, cexp);
 	return cexp;
 }
@@ -829,7 +834,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
             delay[i] = fOccMarkup.retrieve(e)->getMaxDelay();
         } else {
             // this projection is not used therefore
-            // we should not generte code for it
+            // we should not generate code for it
             used[i] = false;
         }
     }
