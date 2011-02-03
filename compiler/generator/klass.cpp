@@ -93,7 +93,7 @@ bool Klass::getLoopProperty(Tree sig, Loop*& l)
 void Klass::openLoop(const string& size)
 {
     fTopLoop = new Loop(fTopLoop, size);
-	//cerr << "openLoop(" << size << ") ----> " << fTopLoop << endl;
+    //cerr << "\nOPEN SHARED LOOP(" << size << ") ----> " << fTopLoop << endl;
 }
 
 /**
@@ -104,7 +104,7 @@ void Klass::openLoop(const string& size)
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
     fTopLoop = new Loop(recsymbol, fTopLoop, size);
-	//cerr << "openLoop(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
+    //cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 
 /**
@@ -117,22 +117,16 @@ void Klass::closeLoop(Tree sig)
     Loop* l = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     assert(fTopLoop);
-	//cerr << "close loop :" << l << endl;
+    //cerr << "CLOSE LOOP :" << l << "\n" << endl;
 
     if (l->isEmpty() || l->hasRecDependencies()) {
         // empty or dependent loop -> absorbed by enclosing one
-		//cerr << "absorbtion : " << fTopLoop << "----absorb----> " << l << endl;
+        //cerr << "absorbtion : " << fTopLoop << "----absorb----> " << l << endl;
         fTopLoop->absorb(l);
         delete l;
     } else {
         // we have an independent loop
-		if (sig) {
-			setLoopProperty(sig,l);     // associate the signal
-			//cerr << "setLoopProperty : "<< ppsig(sig) << "----loop prop---> "<< l << endl;
-		} else {
-			//cerr << "***ETRANGE**** no signal for loop "<< l << endl;
-		}
-		//cerr << "backward dependency added : " << fTopLoop << "----depends on----> " << l << endl;
+        setLoopProperty(sig,l);     // associate the signal
         fTopLoop->fBackwardLoopDependencies.insert(l);
     }
 }
