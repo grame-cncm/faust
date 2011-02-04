@@ -160,7 +160,7 @@ Tree    symlist(Tree sig)
             }
         }
         SymListProp.set(sig, S);
-        cerr << "symlist of " << ppsig(sig) << " ===> " << *S << endl;
+        //cerr << "symlist of " << ppsig(sig) << " ===> " << *S << endl;
         return S;
     }
 }

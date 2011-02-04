@@ -64,6 +64,12 @@ bool Loop::hasRecDependencies()
     return !fRecDependencies.empty(); 
 }
 
+bool Loop::hasRecDependencyIn(Tree S)
+{
+    Loop* l = this;
+    while ( l && !isElement(l->fRecSymbol,S) ) l=l->fEnclosingLoop;
+    return l != 0;
+}
 
 /**
  * Test if a loop is empty that is if it contains no lines of code). 

@@ -48,6 +48,8 @@
 #include "Text.hh"
 #include "signals.hh"
 #include "ppsig.hh"
+#include "recursivness.hh"
+
 
 extern bool gVectorSwitch;
 extern bool gDeepFirstSwitch;
@@ -119,7 +121,9 @@ void Klass::closeLoop(Tree sig)
     assert(fTopLoop);
     //cerr << "CLOSE LOOP :" << l << "\n" << endl;
 
-    if (l->isEmpty() || l->hasRecDependencies()) {
+    Tree S = symlist(sig);
+    //if (l->isEmpty() || l->hasRecDependencies()) {
+    if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
         // empty or dependent loop -> absorbed by enclosing one
         //cerr << "absorbtion : " << fTopLoop << "----absorb----> " << l << endl;
         fTopLoop->absorb(l);

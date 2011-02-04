@@ -75,6 +75,7 @@ public:
 
     bool isEmpty();                         ///< true when the loop doesn't contain any line of code
     bool hasRecDependencies();              ///< returns true is this loop has recursive dependencies
+    bool hasRecDependencyIn(Tree S);        ///< returns true is this loop or its ancestors define a symbol in S
     void addRecDependency(Tree t);          ///< Check for a recursive dependecy and add it if needed
     bool findRecDefinition(Tree t);         ///< indicates a dependency with an enclosing loop 
 
