@@ -23,6 +23,10 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "recursivness.hh"
+#include "property.hh"
+
+#include "signals.hh"
+#include "ppsig.hh"
 
 /**
  * @file recursivness.cpp
@@ -120,3 +124,44 @@ static int position (Tree env, Tree t, int p)
 	if (hd(env) == t) return p;
 	else return position (tl(env), t, p+1);
 }
+
+
+//-----------------------------------list recursive symbols-----------------------
+
+
+
+/**
+ * return the set of recursive symbols appearing in a signal.
+ * @param sig the signal to analyze
+ * @return the set of symbols
+ */
+
+// the property used to memoize the results
+property<Tree>  SymListProp;
+
+Tree    symlist(Tree sig)
+{
+    Tree l;
+    if (SymListProp.get(sig, l)) {
+        return l;
+    } else {
+        Tree S = nil;
+        Tree id, body;
+        if (isRec(sig, id, body)) {
+            SymListProp.set(sig,singleton(sig));
+            for (int i=0; i<len(body); i++) {
+                S = setUnion(S,symlist(nth(body,i)));
+            }
+        } else {
+            vector<Tree> subsigs;
+            int n = getSubSignals(sig, subsigs, false);
+            for (int i=0; i<n; i++) {
+                S = setUnion(S,symlist(subsigs[i]));
+            }
+        }
+        SymListProp.set(sig, S);
+        cerr << "symlist of " << ppsig(sig) << " ===> " << *S << endl;
+        return S;
+    }
+}
+
