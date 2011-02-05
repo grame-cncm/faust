@@ -139,29 +139,41 @@ static int position (Tree env, Tree t, int p)
 // the property used to memoize the results
 property<Tree>  SymListProp;
 
-Tree    symlist(Tree sig)
+Tree    REALsymlist(Tree sig, Tree visited)
 {
-    Tree l;
-    if (SymListProp.get(sig, l)) {
-        return l;
+    Tree S;
+    if (SymListProp.get(sig, S)) {
+        return S;
+    } else if (isElement(sig,visited)){
+        return nil;
     } else {
-        Tree S = nil;
+        Tree visited2 = addElement(sig,visited);
         Tree id, body;
         if (isRec(sig, id, body)) {
-            SymListProp.set(sig,singleton(sig));
+            Tree U = singleton(sig);
             for (int i=0; i<len(body); i++) {
-                S = setUnion(S,symlist(nth(body,i)));
+                U = setUnion(U, REALsymlist(nth(body,i), visited2));
             }
+            return U;
         } else {
             vector<Tree> subsigs;
             int n = getSubSignals(sig, subsigs, false);
+            Tree U = nil;
             for (int i=0; i<n; i++) {
-                S = setUnion(S,symlist(subsigs[i]));
+                U = setUnion(U, REALsymlist(subsigs[i], visited2));
             }
+            return U;
         }
-        SymListProp.set(sig, S);
-        //cerr << "symlist of " << ppsig(sig) << " ===> " << *S << endl;
-        return S;
     }
 }
 
+Tree    symlist(Tree sig)
+{
+    Tree    S;
+    if (!SymListProp.get(sig, S)) {
+        S = REALsymlist(sig, nil);
+        SymListProp.get(sig, S);
+    }
+    //cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
+    return S;
+}
