@@ -39,7 +39,7 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param size the number of iterations of the loop
  */
 Loop::Loop( Tree recsymbol, Loop* encl, const string& size) 
-        : fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0) 
+        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0)
 {}
 
 
@@ -49,7 +49,7 @@ Loop::Loop( Tree recsymbol, Loop* encl, const string& size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0)
+        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0)
 {}
 
 
@@ -59,15 +59,11 @@ Loop::Loop(Loop* encl, const string& size)
  * returns true is this loop has recursive dependencies
  * and must be included in an enclosing loop
  */
-bool Loop::hasRecDependencies()                  
-{ 
-    return !fRecDependencies.empty(); 
-}
 
 bool Loop::hasRecDependencyIn(Tree S)
 {
     Loop* l = this;
-    while ( l && !isElement(l->fRecSymbol,S) ) l=l->fEnclosingLoop;
+    while ( l && isNil(setIntersection(l->fRecSymbolSet,S)) ) l=l->fEnclosingLoop;
     return l != 0;
 }
 
@@ -78,30 +74,6 @@ bool Loop::hasRecDependencyIn(Tree S)
 bool Loop::isEmpty()                  
 { 
     return fPreCode.empty() && fExecCode.empty() && fPostCode.empty() && (fExtraLoops.begin()==fExtraLoops.end()); 
-}
-
-
-/**
- * Add a recursive dependency, unless it is itself
- */
-void Loop::addRecDependency(Tree t)
-{
-    if (t != fRecSymbol) {
-        //cerr << this << "->addRecDependency("<< *t << ")" << endl;
-        fRecDependencies.insert(t);
-    }
-}
-
-
-/**
- * Search if t is defined in this loop
- * or the enclosing ones 
- */
-bool Loop::findRecDefinition(Tree t)
-{
-    Loop* l = this;
-    while (l && l->fRecSymbol != t) l=l->fEnclosingLoop;
-    return l != 0;
 }
 
 /**
@@ -142,10 +114,7 @@ void Loop::absorb (Loop* l)
 { 
     // the loops must have the same number of iterations
     assert(fSize == l->fSize); 
-
-    // update recursive dependencies by adding those from the absorbed loop
-    fRecDependencies.insert(l->fRecDependencies.begin(), l->fRecDependencies.end());  
-    if (fIsRecursive) fRecDependencies.erase(fRecSymbol); 
+    fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
     // update loop dependencies by adding those from the absorbed loop
     fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(), l->fBackwardLoopDependencies.end());  

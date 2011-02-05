@@ -52,11 +52,10 @@ using namespace std;
 struct Loop
 {
     const bool          fIsRecursive;       ///< recursive loops can't be SIMDed
-    const Tree          fRecSymbol;         ///< recursive loops define a recursive symbol
+    Tree                fRecSymbolSet;      ///< recursive loops define a set of recursive symbol
     Loop* const         fEnclosingLoop;     ///< Loop from which this one originated
     const string        fSize;              ///< number of iterations of the loop
     // fields concerned by absorbsion
-    set<Tree>           fRecDependencies;   ///< Loops having recursive dependencies must be merged
     set<Loop*>          fBackwardLoopDependencies;  ///< Loops that must be computed before this one
     set<Loop*>          fForwardLoopDependencies;   ///< Loops that will be computed after this one
     list<string>        fPreCode;           ///< code to execute at the begin of the loop
@@ -74,10 +73,7 @@ public:
     Loop(Loop* encl, const string& size);   ///< create a non recursive loop
 
     bool isEmpty();                         ///< true when the loop doesn't contain any line of code
-    bool hasRecDependencies();              ///< returns true is this loop has recursive dependencies
     bool hasRecDependencyIn(Tree S);        ///< returns true is this loop or its ancestors define a symbol in S
-    void addRecDependency(Tree t);          ///< Check for a recursive dependecy and add it if needed
-    bool findRecDefinition(Tree t);         ///< indicates a dependency with an enclosing loop 
 
     void addPreCode (const string& str);        ///< add a line of C++ code pre code
     void addExecCode (const string& str);       ///< add a line of C++ code
