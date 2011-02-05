@@ -119,10 +119,9 @@ void Klass::closeLoop(Tree sig)
     Loop* l = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     assert(fTopLoop);
-    //cerr << "CLOSE LOOP :" << l << "\n" << endl;
 
     Tree S = symlist(sig);
-    //if (l->isEmpty() || l->hasRecDependencies()) {
+    //cerr << "CLOSE LOOP :" << l << " with symbols " << *S << "\n" << endl;
     if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
         // empty or dependent loop -> absorbed by enclosing one
         //cerr << "absorbtion : " << fTopLoop << "----absorb----> " << l << endl;

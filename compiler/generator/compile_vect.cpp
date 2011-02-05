@@ -65,8 +65,6 @@ void VectorCompiler::compileMultiSignal (Tree L)
  */
 string  VectorCompiler::CS (Tree sig)
 {
-    int         i;
-    Tree        x;
     string      code;
     //cerr << "ENTER VectorCompiler::CS : "<< ppsig(sig) << endl;
     if (!getCompiledExpression(sig, code)) {
@@ -77,10 +75,8 @@ string  VectorCompiler::CS (Tree sig)
         // check for recursive dependencies
         Loop*   ls;
         Loop*   tl = fClass->topLoop();
-        if (isProj(sig, &i, x) && tl->findRecDefinition(x)) {
-            tl->addRecDependency(x);
-			//cerr << "in CS : add rec dependency : " << tl << " --symbol--> " << x << endl;
-		} else if (fClass->getLoopProperty(sig,ls)) {
+
+        if (fClass->getLoopProperty(sig,ls)) {
 			//cerr << "in CS : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
 			tl->fBackwardLoopDependencies.insert(ls);
 		} else {
@@ -110,31 +106,11 @@ string VectorCompiler::generateCode (Tree sig)
 
 void VectorCompiler::generateCodeRecursions (Tree sig)
 {
-    int     i;
-    Tree    e1, e2, id, body, rec;
+    Tree    id, body;
     string  code;
     //cerr << "VectorCompiler::generateCodeRecursions( " << ppsig(sig) << " )" << endl;
     if (getCompiledExpression(sig, code)) {
         //cerr << "** ALREADY VISITED : " << code << " ===> " << ppsig(sig) << endl;
-        if( isRec(sig, id, body) ) {
-            //cerr << "check for recursive dependency 1" << endl;
-            Loop*   tl = fClass->topLoop();
-            if (tl->findRecDefinition(sig)) {
-                tl->addRecDependency(sig);
-            }
-        } else if (isProj(sig, &i, rec)) {
-            //cerr <<  "check for recursive dependency 2" << endl;
-            Loop*   tl = fClass->topLoop();
-            if (tl->findRecDefinition(rec)) {
-                tl->addRecDependency(rec);
-            }
-        } else if (isSigFixDelay(sig, e1, e2) && isProj(e1, &i, rec)) {
-            //cerr <<  "check for recursive dependency 3" << endl;
-            Loop*   tl = fClass->topLoop();
-            if (tl->findRecDefinition(rec)) {
-                tl->addRecDependency(rec);
-            }
-        }
         return;
     } else if( isRec(sig, id, body) ) {
         //cerr << "we have a recursive expression non compiled yet : " << ppsig(sig) << endl;
@@ -182,9 +158,8 @@ string VectorCompiler::generateLoopCode (Tree sig)
         // we need a separate loop unless it's an old recursion
         if (isProj(sig, &i, x)) {
             // projection of a recursive group x
-            if (l->findRecDefinition(x)) {
+            if (l->hasRecDependencyIn(singleton(x))) {
                 // x is already in the loop stack
-                l->addRecDependency(x);
                 return ScalarCompiler::generateCode(sig);
             } else {
                 // x must be defined
