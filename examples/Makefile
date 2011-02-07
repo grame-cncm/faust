@@ -2,7 +2,7 @@ MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2'
 #MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 MYGCCFLAGS := '-O2 -march=native -ffast-math'
 #MYGCCFLAGS := '-O3'
-VSIZE := 1024
+VSIZE := 128
 
 SC_SOURCE_DIR = ../../supercollider
 
@@ -17,7 +17,7 @@ ijackgtk :
 
 ijackvec :
 	install -d ijackvecdir
-	$(MAKE) DEST='ijackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs $(VSIZE)' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ijackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 ijackomp :
 	install -d ijackompdir
@@ -33,7 +33,7 @@ gjackgtk :
 
 gjackvec :
 	install -d gjackvecdir
-	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs $(VSIZE)' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='-L/usr/local/lib `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 gjackomp :
 	install -d gjackompdir
