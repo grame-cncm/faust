@@ -27,6 +27,10 @@
 
 #include "signals.hh"
 #include "ppsig.hh"
+#include "set"
+
+using namespace std;
+
 
 /**
  * @file recursivness.cpp
@@ -139,20 +143,20 @@ static int position (Tree env, Tree t, int p)
 // the property used to memoize the results
 property<Tree>  SymListProp;
 
-Tree    REALsymlist(Tree sig, Tree visited)
+Tree    symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
     if (SymListProp.get(sig, S)) {
         return S;
-    } else if (isElement(sig,visited)){
+    } else if ( visited.count(sig) > 0 ){
         return nil;
     } else {
-        Tree visited2 = addElement(sig,visited);
+        visited.insert(sig);
         Tree id, body;
         if (isRec(sig, id, body)) {
             Tree U = singleton(sig);
             for (int i=0; i<len(body); i++) {
-                U = setUnion(U, REALsymlist(nth(body,i), visited2));
+                U = setUnion(U, symlistVisit(nth(body,i), visited));
             }
             return U;
         } else {
@@ -160,7 +164,7 @@ Tree    REALsymlist(Tree sig, Tree visited)
             int n = getSubSignals(sig, subsigs, false);
             Tree U = nil;
             for (int i=0; i<n; i++) {
-                U = setUnion(U, REALsymlist(subsigs[i], visited2));
+                U = setUnion(U, symlistVisit(subsigs[i], visited));
             }
             return U;
         }
@@ -171,8 +175,9 @@ Tree    symlist(Tree sig)
 {
     Tree    S;
     if (!SymListProp.get(sig, S)) {
-        S = REALsymlist(sig, nil);
-        SymListProp.get(sig, S);
+        set<Tree> visited;
+        S = symlistVisit(sig, visited);
+        SymListProp.set(sig, S);
     }
     //cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
     return S;
