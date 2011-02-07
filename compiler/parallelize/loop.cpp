@@ -38,8 +38,8 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
-Loop::Loop( Tree recsymbol, Loop* encl, const string& size) 
-        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0)
+Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
+        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
@@ -49,7 +49,7 @@ Loop::Loop( Tree recsymbol, Loop* encl, const string& size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0)
+        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
@@ -133,6 +133,13 @@ void Loop::absorb (Loop* l)
  */
 void Loop::println(int n, ostream& fout)
 {
+    // track multi-print errors
+    fPrinted++;
+    if ( fPrinted > 1 ) {
+        cerr << "ERROR loop " << this << "printed " << fPrinted << " times" << endl;
+    }
+
+
     for (list<Loop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
         (*s)->println(n, fout);
     }

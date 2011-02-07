@@ -66,7 +66,9 @@ struct Loop
     int                 fIndex;             ///< used during scheduler mode code generation
     // new fields
     int					fUseCount;			///< how many loops depend on this one
-    list<Loop*>			fExtraLoops;		///< extra loops that where in sequences				
+    list<Loop*>			fExtraLoops;		///< extra loops that where in sequences
+
+    int                 fPrinted;           ///< true when loop has been printed (to track multi-print errors)
 
 public:
     Loop(Tree recsymbol, Loop* encl, const string& size);   ///< create a recursive loop
