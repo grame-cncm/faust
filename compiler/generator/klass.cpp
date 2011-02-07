@@ -120,18 +120,28 @@ void Klass::closeLoop(Tree sig)
     fTopLoop = l->fEnclosingLoop;
     assert(fTopLoop);
 
+    //l->println(4, cerr);
+    //cerr << endl;
+
     Tree S = symlist(sig);
-    //cerr << "CLOSE LOOP :" << l << " with symbols " << *S << "\n" << endl;
+    //cerr << "CLOSE LOOP :" << l << " with symbols " << *S  << endl;
     if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
         // empty or dependent loop -> absorbed by enclosing one
-        //cerr << "absorbtion : " << fTopLoop << "----absorb----> " << l << endl;
+       //cerr << "absorbed by : " << fTopLoop << endl;
         fTopLoop->absorb(l);
-        delete l;
+        //delete l; HACK !!!
     } else {
         // we have an independent loop
         setLoopProperty(sig,l);     // associate the signal
         fTopLoop->fBackwardLoopDependencies.insert(l);
+        // we need to indicate that all recursive symbols defined
+        // in this loop are defined in this loop
+        for (Tree lsym=l->fRecSymbolSet; !isNil(lsym); lsym=tl(lsym)) {
+            this->setLoopProperty(hd(lsym), l);
+            //cerr << "loop " << l << " defines " << *hd(lsym) << endl;
+        }
     }
+    //cerr << "\n" << endl;
 }
 
 /**
