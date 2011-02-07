@@ -72,26 +72,40 @@ string  VectorCompiler::CS (Tree sig)
 		//cerr << "CS : " << code << " for " << ppsig(sig) << endl;
         setCompiledExpression(sig, code);
     } else {
-        // check for recursive dependencies
+        // we require an already compiled expression
+        // therefore we must update the dependecies of
+        // the current loop
+        int     i;
+        Tree	x, d, r;
         Loop*   ls;
         Loop*   tl = fClass->topLoop();
 
         if (fClass->getLoopProperty(sig,ls)) {
-			//cerr << "in CS : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
+            // sig has a loop property
+            //cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
 			tl->fBackwardLoopDependencies.insert(ls);
-		} else {
-			Tree	x,d;
-			if (isSigFixDelay(sig, x, d)) {
-				if (fClass->getLoopProperty(x,ls)) {
-					//cerr << "in CS : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
-					tl->fBackwardLoopDependencies.insert(ls);
-				} else {
-					//cerr << "IMPOSSIBLE (dans l'etat des connaissances)" << endl;
-					//exit(1);
-				}
-			} else {
-				//cerr << "in CS :  no loop property for : " << ppsig(sig) << endl;
-			}
+
+        } else if (isSigFixDelay(sig, x, d) && fClass->getLoopProperty(x,ls)) {
+            //cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            tl->fBackwardLoopDependencies.insert(ls);
+
+        } else if (isSigFixDelay(sig, x, d) && isProj(x, &i, r) && fClass->getLoopProperty(r,ls)) {
+            //cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            tl->fBackwardLoopDependencies.insert(ls);
+
+        } else if (isProj(sig, &i, r) && fClass->getLoopProperty(r,ls)) {
+            //cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            tl->fBackwardLoopDependencies.insert(ls);
+
+        } else {
+            if (isProj(sig, &i, r)) {
+                //cerr << "SYMBOL RECURSIF EN COURS ??? " << *r << endl;
+            } else if (getSigType(sig)->variability()<kSamp) {
+                //cerr << "SLOW EXPRESSION " << endl;
+            } else {
+                //cerr << "Expression absorbée" << *sig << endl;
+            }
+
         }
     }
     //cerr << "EXIT VectorCompiler::CS : "<< ppsig(sig) << "---code---> " << code << endl;
