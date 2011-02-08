@@ -1914,7 +1914,7 @@ struct InstBuilder
                     const string& arg4, Typed::VarType arg4_ty);
 
     // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation unicity.
-    static DeclareTypeInst* genType(AudioType* type, int rate, int vector_size);
+    static DeclareTypeInst* genType(AudioType* type);
 
 };
 
