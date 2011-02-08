@@ -152,16 +152,6 @@ Type operator| ( const Type& t1, const Type& t2)
 					interval() /// achanger
 					);
 
-    } else if ( (vt1 = isVectorType(t1)) && (vt2 = isVectorType(t2)) ) {
-        if (vt1->size() != vt2->size()) {
-            printf("Type error: cannot unify vector types of different sizes!");
-            exit(1);
-        }
-        Type dt1 = vt1->dereferenceType();
-        Type dt2 = vt2->dereferenceType();
-
-        return new FaustVectorType(vt1->size(), dt1 | dt2 );
-
 	} else if ( (tt1 = isTableType(t1)) && (tt2 = isTableType(t2)) ) {
 
 		return new TableType( tt1->content() | tt2->content() );
@@ -173,7 +163,31 @@ Type operator| ( const Type& t1, const Type& t2)
 		for (int i=0; i<n; i++) { v.push_back( (*nt1)[i] | (*nt2)[i]); }
 		return new TupletType( v );
 
-	} else {
+    } else if ( (vt1 = isVectorType(t1)) && (vt2 = isVectorType(t2)) ) {
+        vector<int> dimensions1, dimensions2;
+        typedef vector<int>::const_reverse_iterator rit;
+        dimensions1 = vt1->dimensions();
+        dimensions2 = vt2->dimensions();
+
+        rit i1 = dimensions1.rbegin(); rit i2 = dimensions2.rbegin();
+        for( ; i1 != dimensions1.rend() || i2 != dimensions2.rend(); ++i1, ++i2)
+            if (*i1 != *i2) {
+                cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
+                exit(1);
+            }
+
+        if (dimensions1.size() > dimensions2.size())
+            return vt1->promote(vt2);
+        else
+            return vt2->promote(vt1);
+
+    } else if ( (vt1 = isVectorType(t1)) && (st2 = isSimpleType(t2)) ) {
+        return vt1->promote(st2);
+
+    } else if ( (st1 = isSimpleType(t1)) && (vt2 = isVectorType(t2)) ) {
+        return vt2->promote(st1);
+
+    } else {
 
 		cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
 		exit(1);
