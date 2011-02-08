@@ -133,13 +133,6 @@ void Loop::absorb (Loop* l)
  */
 void Loop::println(int n, ostream& fout)
 {
-    // track multi-print errors
-    fPrinted++;
-    if ( fPrinted > 1 ) {
-        cerr << "ERROR loop " << this << "printed " << fPrinted << " times" << endl;
-    }
-
-
     for (list<Loop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
         (*s)->println(n, fout);
     }
