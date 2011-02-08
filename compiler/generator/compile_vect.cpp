@@ -243,7 +243,13 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             if (verySimple(sig)) {
                 return exp;
             } else {
-                return subst("$0[i]", vname);
+                if (d < gMaxCopyDelay) {
+                    return subst("$0[i]", vname);
+                } else {
+                    // we use a ring buffer
+                    string mask = T(pow2limit(d + gVecSize)-1);
+                    return subst("$0[($0_idx+i) & $1]", vname, mask);
+                }
             }
         } else {
             // not delayed
