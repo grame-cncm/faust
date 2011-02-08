@@ -1524,7 +1524,7 @@ struct InstBuilder
     static DeclareTypeInst* genDeclareTypeInst(const string& name, Typed* type)
         {return new DeclareTypeInst(name, type);}
 
-    static DeclareTypeInst* genDeclareType(Typed * tp) {return NULL;}
+    static DeclareTypeInst* genDeclareTypeInst(Typed * tp) {return NULL;}
 
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
