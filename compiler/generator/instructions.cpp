@@ -159,7 +159,7 @@ static property<DeclareTypeInst* > gFirTypeProperty;
 
 map<string, int> InstBuilder::fIDCounters;
 
-DeclareTypeInst* InstBuilder::genType(AudioType* type)
+DeclareTypeInst* InstBuilder::genType(AudioType* type, int rate, int vector_size)
 {
     Tree shared_type = signalTypeToSharedType(type);
     DeclareTypeInst* dec_type;
@@ -167,7 +167,8 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
     if (gFirTypeProperty.get(shared_type, dec_type)) {
         return dec_type;
     } else {
-        DeclareTypeInst* dec_type = genDeclareTypeInst(getFreshID("vecType"), sharedTypeToFirType(shared_type));
+        DeclareTypeInst* dec_type
+            = genDeclareTypeInst(getFreshID("vecType"), InstBuilder::genArrayTyped(sharedTypeToFirType(shared_type), rate * vector_size));
         gFirTypeProperty.set(shared_type, dec_type);
         return dec_type;
     }
