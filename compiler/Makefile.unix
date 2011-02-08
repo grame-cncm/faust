@@ -260,7 +260,7 @@ generator/floats.o: generator/floats.hh
 generator/klass.o: generator/floats.hh tlib/smartpointer.hh generator/klass.hh signals/sigtype.hh signals/interval.hh
 generator/klass.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/klass.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
-generator/klass.o: generator/Text.hh signals/signals.hh signals/binop.hh signals/ppsig.hh
+generator/klass.o: generator/Text.hh signals/signals.hh signals/binop.hh signals/ppsig.hh signals/recursivness.hh
 generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/occurences.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/occurences.hh
 generator/occurences.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigtyperules.hh
@@ -333,7 +333,8 @@ signals/ppsig.o: signals/recursivness.hh
 signals/prim2.o: signals/prim2.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/prim2.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
-signals/recursivness.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
+signals/recursivness.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/property.hh
+signals/recursivness.o: signals/ppsig.hh
 signals/signals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/signals.o: tlib/shlysis.hh signals/binop.hh
 signals/sigorderrules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh signals/sigprint.hh
