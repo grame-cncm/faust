@@ -120,7 +120,13 @@ class StringTypeManager {
             } else if (fun_typed) {
                 return "FUN TYPE";
             } else if (array_typed) {
-                return fTypeDirectTable[array_typed->getType()];
+                BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+                assert(basic_typed1);
+                std::ostringstream num_str;
+                num_str << array_typed->fSize;
+                return (array_typed->fSize == 0)
+                    ? fTypeDirectTable[array_typed->getType()]
+                    : generateType(array_typed->fType) + "[" + num_str.str() + "]";
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
@@ -144,7 +150,8 @@ class StringTypeManager {
             if (basic_typed) {
                 return fTypeDirectTable[basic_typed->fType] + " " + name;
             } else if (named_typed) {
-                return named_typed->fName + generateType(named_typed->fType) + " " + name;
+                //return named_typed->fName + generateType(named_typed->fType) + " " + name;
+                return named_typed->fName + " " + name;
             } else if (fun_typed) {
                 return "FUN TYPE";
             } else if (array_typed) {
@@ -152,7 +159,8 @@ class StringTypeManager {
                 num_str << array_typed->fSize;
                 return (array_typed->fSize == 0)
                     ? generateType(array_typed->fType) + "* " + name
-                    : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
+                    //: generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
+                    : generateType(array_typed->fType) + "[" + num_str.str() + "] " + name;
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;

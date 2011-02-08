@@ -1043,11 +1043,13 @@ struct DeclareFunInst : public StatementInst
 
 struct DeclareTypeInst : public StatementInst
 {
-   string fName;
-   Typed* fType;
+    NamedTyped* fType;
 
-   DeclareTypeInst(const string& name, Typed* type)
-        :fName(name), fType(type)
+    DeclareTypeInst(const string& name, Typed* type)
+        :fType(new NamedTyped(name, type))
+    {}
+    DeclareTypeInst(NamedTyped* type)
+        :fType(type)
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1128,7 +1130,7 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         virtual StatementInst* visit(DeclareTypeInst* inst)
         {
-            return new DeclareTypeInst(inst->fName, inst->fType->clone(this));
+            return new DeclareTypeInst(dynamic_cast<NamedTyped*>(inst->fType->clone(this)));
         }
 
         // Memory
@@ -1538,8 +1540,6 @@ struct InstBuilder
 
     static DeclareTypeInst* genDeclareTypeInst(const string& name, Typed* type)
         {return new DeclareTypeInst(name, type);}
-
-    static DeclareTypeInst* genDeclareTypeInst(Typed * tp) {return NULL;}
 
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
