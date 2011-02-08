@@ -4,15 +4,15 @@
 	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
 
-	This is sample code. This file is provided as an example of minimal 
-	FAUST architecture file. Redistribution and use in source and binary 
+	This is sample code. This file is provided as an example of minimal
+	FAUST architecture file. Redistribution and use in source and binary
 	forms, with or without modification, in part or in full are permitted.
-	In particular you can create a derived work of this FAUST architecture 
+	In particular you can create a derived work of this FAUST architecture
 	and distribute that work under terms of your choice.
 
 	This sample code is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  ************************************************************************
  ************************************************************************/
 
@@ -73,15 +73,18 @@ public:
 	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 
+    virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
+	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+
 	virtual void openFrameBox(const char* label) = 0;
 	virtual void openTabBox(const char* label) = 0;
 	virtual void openHorizontalBox(const char* label) = 0;
 	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
-    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
 
-    virtual void declare(float* zone, const char* key, const char* value) = 0;
+    virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
 
