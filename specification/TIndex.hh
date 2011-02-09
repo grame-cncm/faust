@@ -4,8 +4,6 @@
 #include <vector>
 #include "TPrintable.hh"
 #include "Text.hh"
-//#include "TValue.hh"
-
 
 struct TIndex : public TPrintable
 {
@@ -13,16 +11,6 @@ struct TIndex : public TPrintable
 
     virtual void generate(ostream* dst, int n) = 0;
 };
-
-
-/*
-struct TIndex : public TValue
-{
-    virtual ~TIndex() {}
-
-    virtual void generate(ostream* dst, int n) = 0;
-};
-*/
 
 struct TVarIndex : public TIndex
 {
@@ -64,46 +52,6 @@ struct TBinOpIndex : public TIndex
         fExp2->generate(dst, n);
         *dst << ")";
     }
-};
-
-struct TListIndex
-{
-    vector<TIndex*> fIndexList;
-
-    TListIndex() {}
-
-    virtual ~TListIndex() {}
-
-    virtual void generate(ostream* dst, int n)
-    {
-        vector<TIndex*>::const_iterator it;
-        *dst << "(";
-        for (it = fIndexList.begin(); it != fIndexList.end(); it++) {
-            (*it)->generate(dst, n+1);
-        }
-        *dst << ")";
-    }
-
-    TListIndex* copy()
-    {
-        TListIndex* copy = new TListIndex();
-        vector<TIndex*>::const_iterator it;
-        for (it = fIndexList.begin(); it != fIndexList.end(); it++) {
-            copy->fIndexList.push_back(*it);
-        }
-        return copy;
-    }
-
-    TIndex* getStreamIndex()
-    {
-        return (fIndexList.size() > 0) ? fIndexList[fIndexList.size() - 1] : 0;
-    }
-
-    void setStreamIndex(TIndex* index)
-    {
-       fIndexList[fIndexList.size() - 1] = index;
-    }
-
 };
 
 #endif

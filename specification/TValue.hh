@@ -65,14 +65,13 @@ struct TVarValue : public TValue
 
 struct TLoadValue : public TValue
 {
-    TDeclareStatement* fAddress;
-    TListIndex* fIndex;
+    TAddress* fAddress;
 
-    TLoadValue(TDeclareStatement* address, TListIndex* index):fAddress(address), fIndex(index) {}
+    TLoadValue(TAddress* address):fAddress(address) {}
 
-	virtual TType* getType() { return fAddress->fType; }
+	virtual TType* getType() { return fAddress->getType(); }
 
-    virtual void generate(ostream* dst, int n) { fAddress->generate(dst, n); fIndex->generate(dst, n);}
+    virtual void generate(ostream* dst, int n) { fAddress->generate(dst, n); }
 
 };
 

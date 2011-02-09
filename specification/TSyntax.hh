@@ -16,15 +16,7 @@ TIndex* MR_ADD(TIndex* v1, TIndex* v2);
 TIndex* MR_SUB(TIndex* v1, TIndex* v2);
 TIndex* MR_MUL(TIndex* v1, TIndex* v2);
 TIndex* MR_DIV(TIndex* v1, TIndex* v2);
-
-TListIndex* MR_ADD(TListIndex* list, TIndex* v2);
-TListIndex* MR_SUB(TListIndex* list, TIndex* v2);
-TListIndex* MR_MUL(TListIndex* list, TIndex* v2);
-TListIndex* MR_DIV(TListIndex* list, TIndex* v2);
-TListIndex* MR_MOD(TListIndex* list, TIndex* v2);
-
-TListIndex* MR_INDEX_LIST();
-TListIndex* MR_PUSH_INDEX(TListIndex* list, TIndex* index);
+TIndex* MR_MOD(TIndex* v1, TIndex* v2);
 
 // Type language
 TType*  MR_VECTOR_TYPE(TType* type, int size);
@@ -32,21 +24,27 @@ TType*  MR_INT_TYPE();
 TType*  MR_FLOAT_TYPE();
 TType*  MR_CAST_TYPE(TType* type1, TType* type2);
 
+// Address language
+TVector* MR_VECTOR(const string& name, TType* type);
+TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id);
+TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type);
+TAddress* MR_SHIFT_ADDRESS(TAddress* address, TIndex* id);
+
 // Statement language
-TDeclareStatement* MR_ADDR(const string& name, TType* type);
+TDeclareStatement* MR_DEC(TVector* vector);
 TBlockStatement* MR_BLOCK();
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement);
-TStoreStatement* MR_STORE(TDeclareStatement* addr, TListIndex* list, TValue* val);
+TStoreStatement* MR_STORE(TAddress* addr, TValue* val);
 TLoopStatement* MR_LOOP(int size, TIndex* index, TBlockStatement* code);
 TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code);
-TIfStatement* MR_IF(TListIndex* test, TBlockStatement* code);
+TIfStatement* MR_IF(TIndex* test, TBlockStatement* code);
 
 // Value language
 TNullValue* MR_NULL();
 TFloatValue* MR_FLOAT_VAL(float val);
 TIntValue* MR_INT_VAL(int val);
 
-TLoadValue* MR_LOAD(TDeclareStatement* addr, TListIndex* index);
+TLoadValue* MR_LOAD(TAddress* addr);
 
 TPrimOpValue* MR_ADD(TValue* v1, TValue* v2);
 TPrimOpValue* MR_SUB(TValue* v1, TValue* v2);

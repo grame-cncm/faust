@@ -4,15 +4,13 @@
 
 void TDeclareStatement::generate(ostream* dst, int n)
 {
-    fType->generate(dst, n);
-    *dst << " " << fName;
+    fVector->generate(dst, n);
 }
 
 void TStoreStatement::generate(ostream* dst, int n)
 {
     tab(n, *dst);
     fAddress->generate(dst, n);
-    fIndex->generate(dst, n);
     *dst << " = ";
     fValue->generate(dst, n);
 }

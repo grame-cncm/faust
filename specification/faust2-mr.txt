@@ -191,7 +191,7 @@ CA[O, Serialize(E), I] : A x E x Id ==> void
 if not shared (Serialize(E)) :
 
 +   If (I%n == 0) {
-+       CA[cast(O,[n]T), E, I/n]  (here we "divide" I by n...)
++       CA[Cast(O,[n]T), E, I/n]  (here we "divide" I by n...)
 +   }
 
 if shared (Serialize(E)) :

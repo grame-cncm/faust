@@ -19,19 +19,17 @@ string getFreshID(const string& prefix)
 TIndex* MR_VAR(const string& name) { return new TVarIndex(name); }
 TIndex* MR_INT(int id) { return new TIntIndex(id); }
 
-TListIndex* MR_INDEX_LIST() { return new TListIndex(); }
-TListIndex* MR_PUSH_INDEX(TListIndex* list, TIndex* index) { TListIndex* new_list = list->copy(); new_list->fIndexList.push_back(index); return new_list;}
-
 TIndex* MR_ADD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "+"); }
 TIndex* MR_SUB(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "-"); }
 TIndex* MR_MUL(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "*"); }
 TIndex* MR_DIV(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "/"); }
+TIndex* MR_MOD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "%"); }
 
-TListIndex* MR_ADD(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "+")); return new_list; }
-TListIndex* MR_SUB(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "-")); return new_list; }
-TListIndex* MR_MUL(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "*")); return new_list; }
-TListIndex* MR_DIV(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "/")); return new_list; }
-TListIndex* MR_MOD(TListIndex* list, TIndex* v2) { TListIndex* new_list = list->copy(); assert(new_list->getStreamIndex()); new_list->setStreamIndex(new TBinOpIndex(new_list->getStreamIndex(), v2, "%")); return new_list; }
+// Address language
+TVector* MR_VECTOR(const string& name, TType* type) { return new TVector(name, type); }
+TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id) { return new TIndexAddress(address, id); }
+TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddress(address, type); }
+TAddress* MR_SHIFT_ADDRESS(TAddress* address, TIndex* id) { return new TShiftAddress(address, id); }
 
 // Types
 TType* MR_VECTOR_TYPE(TType* type, int rate) { return new TVectorType(type, rate); }
@@ -40,19 +38,19 @@ TType* MR_FLOAT_TYPE() { return new TFloatType(); };
 TType* MR_CAST_TYPE(TType* type1, TType* type2) { return new TCastType(type1, type2); }
 
 // Statements
-TDeclareStatement* MR_ADDR(const string& name, TType* type) { return new TDeclareStatement(name, type); }
+TDeclareStatement* MR_DEC(TVector* vector) { return new TDeclareStatement(vector); }
 TBlockStatement* MR_BLOCK() { return new TBlockStatement(); }
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement) { block->fCode.push_back(statement); return block; }
-TStoreStatement* MR_STORE(TDeclareStatement* addr, TListIndex* list, TValue* val) { return new TStoreStatement(addr, list, val); }
+TStoreStatement* MR_STORE(TAddress* addr, TValue* val) { return new TStoreStatement(addr, val); }
 TLoopStatement* MR_LOOP(int size, TIndex* index, TBlockStatement* code) { return new TLoopStatement(size, index, code); }
 TSubLoopStatement* MR_SUBLOOP(int size, TIndex* index, TBlockStatement* code) { return new TSubLoopStatement(size, index, code); }
-TIfStatement* MR_IF(TListIndex* test, TBlockStatement* code) { return new TIfStatement(test, code); }
+TIfStatement* MR_IF(TIndex* test, TBlockStatement* code) { return new TIfStatement(test, code); }
 
 // Values
 TNullValue* MR_NULL() { return new TNullValue(); }
 TFloatValue* MR_FLOAT_VAL(float val) { return new TFloatValue(val); }
 TIntValue* MR_INT_VAL(int val) { return new TIntValue(val); }
-TLoadValue* MR_LOAD(TDeclareStatement* addr, TListIndex* index) { return new TLoadValue(addr, index); }
+TLoadValue* MR_LOAD(TAddress* addr) { return new TLoadValue(addr); }
 
 TPrimOpValue* MR_ADD(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "+"); }
 TPrimOpValue* MR_SUB(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "-"); }

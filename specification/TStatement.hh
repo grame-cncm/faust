@@ -4,6 +4,7 @@
 #include "TPrintable.hh"
 #include "TType.hh"
 #include "TIndex.hh"
+#include "TAddress.hh"
 #include <vector>
 
 struct TValue;
@@ -17,10 +18,9 @@ struct TStatement : public TPrintable
 
 struct TDeclareStatement : public TStatement
 {
-    string fName;
-    TType* fType;
+    TVector* fVector;
 
-    TDeclareStatement(const string& name, TType* type):fName(name), fType(type) {}
+    TDeclareStatement(TVector* vector):fVector(vector) {}
     virtual ~TDeclareStatement() {}
 
     virtual void generate(ostream* dst, int n);
@@ -28,11 +28,10 @@ struct TDeclareStatement : public TStatement
 
 struct TStoreStatement : public TStatement
 {
-    TDeclareStatement* fAddress;
-    TListIndex* fIndex;
+    TAddress* fAddress;
     TValue* fValue;
 
-    TStoreStatement(TDeclareStatement* address, TListIndex* Os, TValue* value):fAddress(address), fIndex(Os), fValue(value){}
+    TStoreStatement(TAddress* address, TValue* value):fAddress(address), fValue(value){}
 
     virtual void generate(ostream* dst, int n);
 };
@@ -66,10 +65,10 @@ struct TSubLoopStatement : public TLoopStatement
 
 struct TIfStatement : public TStatement
 {
-    TListIndex* fIndex;
+    TIndex* fIndex;
     TBlockStatement* fCode;
 
-    TIfStatement(TListIndex* index, TBlockStatement* code):fIndex(index), fCode(code) {}
+    TIfStatement(TIndex* index, TBlockStatement* code):fIndex(index), fCode(code) {}
 
     virtual void generate(ostream* dst, int n);
 

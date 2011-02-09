@@ -24,15 +24,13 @@ struct TCompiler
 
         // assert output_type == input_type;
 
-        TDeclareStatement* address = MR_ADDR("output", output_type);
+        TAddress* address = MR_VECTOR("output", output_type);
         TIndex* in = MR_VAR("i");
-        TListIndex* index_list = MR_INDEX_LIST();
-        index_list = MR_PUSH_INDEX(index_list, in);
 
         // Compilation
         TBlockStatement* sub_block = MR_BLOCK();
         gExternalBlock = MR_BLOCK();
-        signal->compileStatement(sub_block, address, index_list, index_list);
+        signal->compileStatement(sub_block, address, in);
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, in, sub_block);
 
         // Code generation
