@@ -33,11 +33,11 @@
 
  ************************************************************************
  ************************************************************************/
-
 /* link with  */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <limits.h>
 #include <math.h>
 #include <errno.h>
@@ -55,6 +55,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <stack>
 
 #include <iostream>
 #include <fstream>
@@ -78,7 +79,7 @@ using namespace std;
     #define AVOIDDENORMALS 
 #endif
 
-//#define BENCHMARKMODE
+#define BENCHMARKMODE
 
 
 struct Meta : map<const char*, const char*>
@@ -108,13 +109,7 @@ inline int 		int2pow2 (int x)	        { int r=0; while ((1<<r)<x) r++; return r;
 *******************************************************************************
 *******************************************************************************/
 
-
-
 <<includeIntrinsic>>
-
-
-
-
 
 
 /******************************************************************************
@@ -126,30 +121,211 @@ inline int 		int2pow2 (int x)	        { int r=0; while ((1<<r)<x) r++; return r;
 *******************************************************************************
 *******************************************************************************/
 
+
+
+
+/*******************************************************************************
+ * UI : Faust User Interface
+ * This abstract class contains only the method that the faust compiler can
+ * generate to describe a DSP interface.
+ ******************************************************************************/
+
+class UI
+{
+	
+ public:
+		
+	UI() {	}
+	
+	virtual ~UI() {	}
+	
+    // -- active widgets
+    
+    virtual void addButton(const char* label, float* zone) = 0;
+    virtual void addToggleButton(const char* label, float* zone) = 0;
+    virtual void addCheckButton(const char* label, float* zone) = 0;
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    
+    // -- passive widgets
+    
+    virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+    
+    // -- widget's layouts
+    
+    virtual void openTabBox(const char* label) = 0;
+    virtual void openHorizontalBox(const char* label) = 0;
+    virtual void openVerticalBox(const char* label) = 0;
+
+    virtual void closeBox() = 0;
+        
+	// -- metadata declarations
+	
+    virtual void declare(float* zone, const char* key, const char* value) {}
+};
+
+
+
+/*******************************************************************************
+ * FUI : used to save and recall the state of the user interface
+ * This class provides essentially two new methods saveState() and recallState()
+ * used to save on file and recall from file the state of the user interface. 
+ * The file is human readble and editable
+ ******************************************************************************/
+
+class FUI  : public UI
+{
+	stack<string>		fGroupStack;
+	vector<string>		fNameList;
+	map<string, float*>	fName2Zone;
+
+ protected:
+ 	
+ 	// labels are normalized by replacing white spaces by underscores and by
+ 	// removing parenthesis
+	string normalizeLabel(const char* label) 
+	{
+		string 	s;
+		char 	c;
+		
+		while (c=*label++) {
+			if (isspace(c)) 				{ s += '_'; }
+			else if (c == '(' | c == ')' ) 	{ }
+			else 							{ s += c; }
+		}
+		return s;
+	}
+	
+	// add an element by relating its full name and memory zone
+	virtual void addElement (const char* label, float* zone)
+	{
+		string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
+		fNameList.push_back(fullname);
+		fName2Zone[fullname] = zone;
+	}
+
+	// keep track of full group names in a stack
+	virtual void pushGroupLabel(const char* label)
+	{
+		if (fGroupStack.empty()) {
+			fGroupStack.push(normalizeLabel(label));
+		} else {
+			fGroupStack.push(fGroupStack.top() + '/' + normalizeLabel(label));
+		}
+	}
+
+	virtual void popGroupLabel() 							
+	{ 
+		fGroupStack.pop(); 
+	};
+
+ public:
+		
+	FUI() 			{}
+	virtual ~FUI() 	{}
+	
+	// -- Save and recall methods
+	
+	// save the zones values and full names
+	virtual void saveState(const char* filename)	
+	{
+		ofstream f(filename);
+		
+		for (int i=0; i<fNameList.size(); i++) { 
+			string	n = fNameList[i];
+			float*	z = fName2Zone[n];
+			f << *z << ' ' << n << endl;
+		} 
+		
+		f << endl;
+		f.close();
+	}
+	
+	// recall the zones values and full names
+	virtual void recallState(const char* filename)	
+	{
+		ifstream f(filename);
+		float	v;
+		string	n;
+		
+		while (f.good()) {
+			f >> v >> n;
+			if (fName2Zone.count(n)>0) {
+				*(fName2Zone[n]) = v;
+			} else {
+				cerr << "recallState : parameter not found : " << n << " with value : " << v << endl;
+			}
+		}
+		f.close();
+	}
+
+
+
+    // -- active widgets (just add an element)
+    
+    virtual void addButton(const char* label, float* zone) 			{ addElement(label, zone); }
+    virtual void addToggleButton(const char* label, float* zone) 	{ addElement(label, zone); }
+    virtual void addCheckButton(const char* label, float* zone) 	{ addElement(label, zone); }
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)  
+    																{ addElement(label, zone); }
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 
+    																{ addElement(label, zone); }
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) 
+    																{ addElement(label, zone); }
+    
+    // -- passive widgets (are ignored)
+    
+    virtual void addNumDisplay(const char* label, float* zone, int precision) {};
+    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {};
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {};
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) {};
+    
+    // -- widget's layouts (just keep track of group labels)
+
+    virtual void openFrameBox(const char* label) 		{ pushGroupLabel(label); }
+    virtual void openTabBox(const char* label) 			{ pushGroupLabel(label); }
+    virtual void openHorizontalBox(const char* label) 	{ pushGroupLabel(label); }
+    virtual void openVerticalBox(const char* label)  	{ pushGroupLabel(label); }
+
+    virtual void closeBox() 							{ popGroupLabel(); };
+        
+	// -- metadata are not used
+	
+    virtual void declare(float* zone, const char* key, const char* value) {}
+};
+
+
+/*******************************************************************************
+ * GUI : Abstract Graphic User Interface
+ * Provides additional macchanismes to synchronize widgets and zones. Widgets
+ * should both reflect the value of a zone and allow to change this value.
+ ******************************************************************************/
+
 struct uiItem;
 typedef void (*uiCallback)(float val, void* data);
 
-/**
- * Graphic User Interface : abstract definition
- */
 
-class UI
+class GUI : public UI
 {
 	typedef list<uiItem*> clist;
 	typedef map<float*, clist*> zmap;
 	
  private:
- 	static list<UI*>	fGuiList;
+ 	static list<GUI*>	fGuiList;
 	zmap				fZoneMap;
 	bool				fStopped;
 	
  public:
 		
-	UI() : fStopped(false) {	
+	GUI() : fStopped(false) {	
 		fGuiList.push_back(this);
 	}
 	
-	virtual ~UI() {
+	virtual ~GUI() {
 		// suppression de this dans fGuiList
 	}
 
@@ -161,88 +337,27 @@ class UI
 		fZoneMap[z]->push_back(c);
 	} 	
 
-	// -- saveState(filename) : save the value of every zone to a file
-	
-	void saveState(const char* filename)	
-	{
-		ofstream f(filename);
-		
-		for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
-			f << *(i->first) << ' ';
-		} 
-		
-		f << endl;
-		f.close();
-	}
-
-	// -- recallState(filename) : load the value of every zone from a file
-	
-	void recallState(const char* filename)	
-	{
-		ifstream f(filename);
-		if (f.good()) {
-			for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
-				f >> *(i->first);
-			} 
-		}
-		f.close();
-	}
-	
 	void updateAllZones();
 	
 	void updateZone(float* z);
 	
 	static void updateAllGuis()
 	{
-		list<UI*>::iterator g;
+		list<GUI*>::iterator g;
 		for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
 			(*g)->updateAllZones();
 		}
 	}
-        
-        // -- active widgets
-        
-        virtual void addButton(const char* label, float* zone) = 0;
-        virtual void addToggleButton(const char* label, float* zone) = 0;
-        virtual void addCheckButton(const char* label, float* zone) = 0;
-        virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        virtual void addKnob(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-        
-        // -- passive widgets
-        
-        virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-        virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
-        virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-        virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-        
-        void addCallback(float* zone, uiCallback foo, void* data);
-        
-        // -- widget's layouts
-        
-        virtual void openFrameBox(const char* label) = 0;
-        virtual void openTabBox(const char* label) = 0;
-        virtual void openHorizontalBox(const char* label) = 0;
-        virtual void openVerticalBox(const char* label) = 0;
-
-        // -- extra widget's layouts
-    
-        virtual void openDialogBox(const char* label, float* zone) = 0;
-        virtual void openEventBox(const char* label) = 0;
-        virtual void openHandleBox(const char* label) = 0;
-        virtual void openExpanderBox(const char* label, float* zone) = 0;
-
-        virtual void closeBox() = 0;
-        
-        virtual void show() {};
-        virtual void run() {};
+    void addCallback(float* zone, uiCallback foo, void* data);
+    virtual void show() {};	
+    virtual void run() {};
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
     virtual void declare(float* zone, const char* key, const char* value) {}
 };
+
 
 
 /**
@@ -253,11 +368,11 @@ class uiItem
 {
   protected :
 		  
-	UI*		fGUI;
+	GUI*		fGUI;
 	float*		fZone;
 	float		fCache;
 	
-	uiItem (UI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
+	uiItem (GUI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
 		ui->registerZone(zone, this); 
 	}
@@ -289,7 +404,7 @@ struct uiCallbackItem : public uiItem
 	uiCallback	fCallback;
 	void*		fData;
 	
-	uiCallbackItem(UI* ui, float* zone, uiCallback foo, void* data) 
+	uiCallbackItem(GUI* ui, float* zone, uiCallback foo, void* data) 
 			: uiItem(ui, zone), fCallback(foo), fData(data) {}
 	
 	virtual void 	reflectZone() {		
@@ -305,7 +420,7 @@ struct uiCallbackItem : public uiItem
  * Update all user items reflecting zone z
  */
 
-inline void UI::updateZone(float* z)
+inline void GUI::updateZone(float* z)
 {
 	float 	v = *z;
 	clist* 	l = fZoneMap[z];
@@ -319,7 +434,7 @@ inline void UI::updateZone(float* z)
  * Update all user items not up to date
  */
 
-inline void UI::updateAllZones()
+inline void GUI::updateAllZones()
 {
 	for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
 		float* 	z = m->first;
@@ -331,10 +446,11 @@ inline void UI::updateAllZones()
 	}
 }
 
-inline void UI::addCallback(float* zone, uiCallback foo, void* data) 
+inline void GUI::addCallback(float* zone, uiCallback foo, void* data) 
 { 
 	new uiCallbackItem(this, zone, foo, data); 
 };
+
 
 /******************************************************************************
 *******************************************************************************
@@ -923,11 +1039,11 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 }
 
 
-class GTKUI : public UI
+class GTKUI : public GUI
 {
  private :
     static bool                         fInitialized;
-    static list<UI*>                    fGuiList;
+    static list<GUI*>                   fGuiList;
     static map<float*, float>           fGuiSize;       // map widget zone with widget size coef
     static map<float*, string>          fTooltip;       // map widget zone with tooltip strings
     static set<float*>                  fKnobSet;       // set of widget zone to be knobs
@@ -1010,7 +1126,7 @@ class GTKUI : public UI
 
 // global static fields
 
-list<UI*>                   UI::fGuiList;
+list<GUI*>                   GUI::fGuiList;
 
 bool                        GTKUI::fInitialized = false;
 map<float*, float>          GTKUI::fGuiSize;
@@ -1268,7 +1384,7 @@ void GTKUI::openEventBox(const char* label)
 struct uiExpanderBox : public uiItem
 {
     GtkExpander* fButton;
-    uiExpanderBox(UI* ui, float* zone, GtkExpander* b) : uiItem(ui, zone), fButton(b) {}
+    uiExpanderBox(GUI* ui, float* zone, GtkExpander* b) : uiItem(ui, zone), fButton(b) {}
     static void expanded (GtkWidget *widget, gpointer data)
     {
         float   v = gtk_expander_get_expanded  (GTK_EXPANDER(widget));
@@ -1327,7 +1443,7 @@ struct uiButton : public uiItem
 {
     GtkButton*  fButton;
     
-    uiButton (UI* ui, float* zone, GtkButton* b) : uiItem(ui, zone), fButton(b) {}
+    uiButton (GUI* ui, float* zone, GtkButton* b) : uiItem(ui, zone), fButton(b) {}
     
     static void pressed( GtkWidget *widget, gpointer   data )
     {
@@ -1369,7 +1485,7 @@ struct uiToggleButton : public uiItem
 {
     GtkToggleButton* fButton;
     
-    uiToggleButton(UI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
+    uiToggleButton(GUI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
     
     static void toggled (GtkWidget *widget, gpointer data)
     {
@@ -1454,7 +1570,7 @@ struct uiCheckButton : public uiItem
 {
     GtkToggleButton* fButton;
     
-    uiCheckButton(UI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
+    uiCheckButton(GUI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
     
     static void toggled (GtkWidget *widget, gpointer data)
     {
@@ -1489,7 +1605,7 @@ struct uiAdjustment : public uiItem
 {
     GtkAdjustment* fAdj;
     
-    uiAdjustment(UI* ui, float* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
+    uiAdjustment(GUI* ui, float* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
     
     static void changed (GtkWidget *widget, gpointer data)
     {
@@ -1512,7 +1628,7 @@ struct uiValueDisplay : public uiItem
 	GtkLabel* fLabel;
 	int	fPrecision ;
 
-	uiValueDisplay(UI* ui, float* zone, GtkLabel* label, int precision)
+	uiValueDisplay(GUI* ui, float* zone, GtkLabel* label, int precision)
 		: uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
 
 	virtual void reflectZone()
@@ -1693,7 +1809,7 @@ struct uiBargraph : public uiItem
     float               fMin;
     float               fMax;
     
-    uiBargraph(UI* ui, float* zone, GtkProgressBar* pbar, float lo, float hi) 
+    uiBargraph(GUI* ui, float* zone, GtkProgressBar* pbar, float lo, float hi) 
             : uiItem(ui, zone), fProgressBar(pbar), fMin(lo), fMax(hi) {}
 
     float scale(float v)        { return (v-fMin)/(fMax-fMin); }
@@ -1743,7 +1859,7 @@ struct uiNumDisplay : public uiItem
     GtkLabel* fLabel;
     int fPrecision;
     
-    uiNumDisplay(UI* ui, float* zone, GtkLabel* label, int precision) 
+    uiNumDisplay(GUI* ui, float* zone, GtkLabel* label, int precision) 
             : uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
 
     virtual void reflectZone()  
@@ -1787,7 +1903,7 @@ struct uiTextDisplay : public uiItem
         int                         fNum;
         
         
-        uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
+        uiTextDisplay (GUI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
                         : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
         {
                 fNum = 0;
@@ -1836,7 +1952,7 @@ void GTKUI::show()
     
 static gboolean callUpdateAllGuis(gpointer)
 { 
-    UI::updateAllGuis(); 
+    GUI::updateAllGuis(); 
     return TRUE;
 }
 
@@ -1894,7 +2010,7 @@ class dsp {
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp	DSP;
+mydsp*	DSP;
 
 
 
@@ -2013,7 +2129,7 @@ int process (jack_nframes_t nframes, void *arg)
 	    gOutChannel[i] = (float *)jack_port_get_buffer(output_ports[i], nframes);
 	}
     STARTMESURE
-	DSP.compute(nframes, gInChannel, gOutChannel);
+	DSP->compute(nframes, gInChannel, gOutChannel);
     STOPMESURE  
 	return 0;
 }
@@ -2034,7 +2150,8 @@ int process (jack_nframes_t nframes, void *arg)
 
 int main(int argc, char *argv[] )
 {
-    UI*                 interface;
+    FUI*              	finterface;
+    GTKUI*              interface;
     jack_client_t*      client; 
     char                buf [256];
     char                rcfilename[256];
@@ -2045,6 +2162,11 @@ int main(int argc, char *argv[] )
 
     AVOIDDENORMALS;
 
+	DSP = new mydsp();
+	if (DSP==0) {
+		fprintf (stderr, "Can't allocate signal processor object !\n");
+        exit (1);
+    }
     jname = basename (argv [0]);
     client = jack_client_open (jname, (jack_options_t) 0, &jackstat);
     if (client == 0) {
@@ -2058,8 +2180,8 @@ int main(int argc, char *argv[] )
     jack_set_process_callback(client, process, 0);
     jack_on_shutdown(client, jack_shutdown, 0);
     
-    gNumInChans = DSP.getNumInputs();
-    gNumOutChans = DSP.getNumOutputs();
+    gNumInChans = DSP->getNumInputs();
+    gNumOutChans = DSP->getNumOutputs();
     
     for (int i = 0; i < gNumInChans; i++) {
         snprintf(buf, 256, "in_%d", i);
@@ -2070,14 +2192,16 @@ int main(int argc, char *argv[] )
         output_ports[i] = jack_port_register(client, buf,JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
     }
     
+    finterface = new FUI();
     interface = new GTKUI (jname, &argc, &argv);
-    DSP.init(jack_get_sample_rate(client));
-    DSP.buildUserInterface(interface);
+    DSP->init(jack_get_sample_rate(client));
+    DSP->buildUserInterface(finterface);
+	DSP->buildUserInterface(interface);
 
     home = getenv ("HOME");
     if (home == 0) home = ".";
     snprintf(rcfilename, 256, "%s/.%src", home, jname);
-    interface->recallState(rcfilename);
+    finterface->recallState(rcfilename);
 
     if (jack_activate(client)) {
         fprintf(stderr, "Can't activate JACK client\n");
@@ -2111,7 +2235,7 @@ int main(int argc, char *argv[] )
     }
     
     jack_client_close(client);
-    interface->saveState(rcfilename);
+    finterface->saveState(rcfilename);
 
 #ifdef BENCHMARKMODE
     printstats();
