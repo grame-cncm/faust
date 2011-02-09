@@ -45,7 +45,11 @@ struct TIndexAddress : public TAddress
     virtual void generate(ostream* dst, int n)
     {
         fAddress->generate(dst, n);
-        fIndex->generate(dst, n);
+        if (dynamic_cast<TVarIndex*>(fIndex)) {
+            *dst << "("; fIndex->generate(dst, n); *dst << ")";
+        } else {
+            fIndex->generate(dst, n);
+        }
     }
 
     virtual TType* getType() { return fAddress->getType(); }

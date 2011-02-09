@@ -20,7 +20,10 @@ struct TVarIndex : public TIndex
 
     virtual ~TVarIndex() {}
 
-    virtual void generate(ostream* dst, int n) { *dst << "(" << fName << ")"; }
+    virtual void generate(ostream* dst, int n)
+    {
+        *dst << fName;
+    }
 };
 
 struct TIntIndex : public TIndex
@@ -31,7 +34,10 @@ struct TIntIndex : public TIndex
 
     virtual ~TIntIndex() {}
 
-    virtual void generate(ostream* dst, int n) { *dst << "(" << fIndex << ")"; }
+    virtual void generate(ostream* dst, int n)
+    {
+        *dst << fIndex;
+    }
 };
 
 struct TBinOpIndex : public TIndex

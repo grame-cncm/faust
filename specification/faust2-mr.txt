@@ -166,7 +166,7 @@ CS[Vectorize(n,E),I] : E x Id ==> V
 -------------------------------------------------------------------------------
 	j and k are fresh loop indexes
 
-+	T[n] W[m*VS]
++	[n]T W[m*VS]
 +	Loop(j, m*VS) {
 +		SubLoop(k, n) {
 +			CA[Addr(Addr(W,j),k), E, j*n+k]
@@ -206,7 +206,7 @@ CS[Serialize(E), I] : E x Id ==> V
 +	T W[n*m*VS]
 +	Loop(j, n*m*VS) {
 +       If (j%n == 0) {
-+           CA[Addr(Cast(W,[n]T),j), E, j/n]  (here we "divide" j by n..)
++           CA[Cast(Addr(W,j),[n]T), E, j/n]  (here we "divide" j by n..)
 +       }
 +	}
 

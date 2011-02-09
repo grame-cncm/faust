@@ -135,6 +135,9 @@ void TSerialize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     assert(m > 0);
     int n = rate / m;
     TType* type = getType();
+    cout << " TSerialize::compileStatement " << endl;
+    type->generate(&cout, 0);
+    address->generate(&cout, 0);
 
     // if not shared
 
@@ -170,8 +173,9 @@ TValue* TSerialize::compileSample(TIndex* index)
     MR_PUSH_BLOCK(sub_block, MR_DEC(new_out_vec));
 
     fExp->compileStatement(sub_block,
-                        MR_INDEX_ADDRESS(MR_CAST_ADDRESS(new_out_vec, MR_VECTOR_TYPE(type, n)), var_j),
+                        MR_CAST_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_VECTOR_TYPE(type, n)),
                         new_in);
+
     TBlockStatement* sub_block2 = MR_BLOCK();
     sub_block2->fCode.push_back(MR_IF(MR_MOD(var_j, MR_INT(n)), sub_block));
 
