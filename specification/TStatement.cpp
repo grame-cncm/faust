@@ -4,6 +4,8 @@
 
 void TDeclareStatement::generate(ostream* dst, int n)
 {
+    tab(n, *dst);
+    *dst << "Dec ";
     fVector->generate(dst, n);
 }
 

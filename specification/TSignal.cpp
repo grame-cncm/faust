@@ -42,9 +42,10 @@ void TPrimOp::compileStatement(TBlockStatement* block, TAddress* address, TIndex
 TValue* TPrimOp::compileSample(TIndex* index)
 {
     // not shared
-    //return MR_OP(fExp1->compileSample(Is), fExp2->compileSample(Is), fOp);
+    //return MR_OP(fExp1->compileSample(index), fExp2->compileSample(index), fOp);
 
     // shared
+
 
     int rate = getRate();
     TType* type = getType();
@@ -55,13 +56,14 @@ TValue* TPrimOp::compileSample(TIndex* index)
     // Internal block
     TBlockStatement* loop_code_block = MR_BLOCK();
     MR_PUSH_BLOCK(loop_code_block, MR_DEC(new_out_vec));
-    TStatement* res = MR_STORE(new_out_vec, MR_OP(fExp1->compileSample(var_j), fExp2->compileSample(var_j), fOp));
+    TStatement* res = MR_STORE(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_OP(fExp1->compileSample(var_j), fExp2->compileSample(var_j), fOp));
     MR_PUSH_BLOCK(loop_code_block, res);
 
     // Wrapping loop
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, loop_code_block));
 
     return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, index));
+
 }
 
 void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
@@ -113,6 +115,7 @@ TValue* TVectorize::compileSample(TIndex* index)
 
     // Wrapping loop
     TBlockStatement* sub_block = MR_BLOCK();
+    MR_PUSH_BLOCK(sub_block, MR_DEC(new_out_vec));
     fExp->compileStatement(sub_block, MR_INDEX_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), var_k), new_in);
     TSubLoopStatement* sub_loop = MR_SUBLOOP(fSize, var_k, sub_block);
 
@@ -134,6 +137,7 @@ void TSerialize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     TType* type = getType();
 
     // if not shared
+
     /*
     TBlockStatement* sub_block = MR_BLOCK();
     TIndex* new_in = MR_DIV(index, MR_INT(n));
@@ -162,6 +166,8 @@ TValue* TSerialize::compileSample(TIndex* index)
 
     TBlockStatement* sub_block = MR_BLOCK();
     TIndex* new_in = MR_DIV(var_j, MR_INT(n));
+
+    MR_PUSH_BLOCK(sub_block, MR_DEC(new_out_vec));
 
     fExp->compileStatement(sub_block,
                         MR_INDEX_ADDRESS(MR_CAST_ADDRESS(new_out_vec, MR_VECTOR_TYPE(type, n)), var_j),
@@ -219,6 +225,9 @@ TValue* TConcat::compileSample(TIndex* index)
     TIndex* var_j = MR_VAR(getFreshID("j"));
 
     TBlockStatement* block = MR_BLOCK();
+
+    MR_PUSH_BLOCK(block, MR_DEC(new_out_vec));
+
     fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), type1), var_j);
     fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_SHIFT_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(size1)), type2), var_j);
 
@@ -272,6 +281,9 @@ TVector* TDelayLine::compile()
     TIndex* var_j = MR_VAR(getFreshID("j"));
 
     TBlockStatement* block = MR_BLOCK();
+
+    MR_PUSH_BLOCK(block, MR_DEC(new_out_vec));
+
     fExp->compileStatement(block, MR_SHIFT_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(fMaxDelay)), var_j);
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
@@ -337,6 +349,9 @@ TValue* TRecGroup::compileSample(TIndex* index)
                 new_out_vec = TRecGroup::gRecProjCompEnv[rec_proj];
             } else {
                 new_out_vec = MR_VECTOR(rec_proj, MR_VECTOR_TYPE(type, rate * gVecSize));
+
+                MR_PUSH_BLOCK(block, MR_DEC(new_out_vec));
+
                 TRecGroup::gRecProjCompEnv[rec_proj] = new_out_vec;  // Insert compiled projection
                 (*it)->compileStatement(block, MR_INDEX_ADDRESS(new_out_vec, var_j) , var_j);
             }

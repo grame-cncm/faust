@@ -25,8 +25,9 @@ struct TVector : public TAddress
 
     virtual void generate(ostream* dst, int n)
     {
-        // *dst << fName; fType->generate(dst, n);
-        *dst << fName;
+        fType->generate(dst, n);
+        *dst << " " << fName;
+
     }
 
     virtual TType* getType() { return fType; }
@@ -43,7 +44,8 @@ struct TIndexAddress : public TAddress
 
     virtual void generate(ostream* dst, int n)
     {
-
+        fAddress->generate(dst, n);
+        fIndex->generate(dst, n);
     }
 
     virtual TType* getType() { return fAddress->getType(); }
@@ -60,10 +62,11 @@ struct TCastAddress : public TAddress
 
     virtual void generate(ostream* dst, int n)
     {
-
+        fAddress->generate(dst, n);
+        *dst << "{"; fAddress->getType()->generate(dst, n); *dst << "->"; fType->generate(dst, n); *dst << "}";
     }
 
-    virtual TType* getType() { return fAddress->getType(); }
+    virtual TType* getType() { return fType; }
 };
 
 struct TShiftAddress : public TAddress
@@ -77,7 +80,9 @@ struct TShiftAddress : public TAddress
 
     virtual void generate(ostream* dst, int n)
     {
-
+        fAddress->generate(dst, n);
+        *dst << "++";
+        fIndex->generate(dst, n);
     }
 
     virtual TType* getType() { return fAddress->getType(); }

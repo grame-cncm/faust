@@ -24,13 +24,13 @@ struct TCompiler
 
         // assert output_type == input_type;
 
-        TAddress* address = MR_VECTOR("output", output_type);
+        TVector* new_out_vec = MR_VECTOR("output", output_type);
         TIndex* in = MR_VAR("i");
 
         // Compilation
         TBlockStatement* sub_block = MR_BLOCK();
         gExternalBlock = MR_BLOCK();
-        signal->compileStatement(sub_block, address, in);
+        signal->compileStatement(sub_block, MR_INDEX_ADDRESS(new_out_vec, in), in);
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, in, sub_block);
 
         // Code generation
