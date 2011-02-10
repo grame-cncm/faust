@@ -1,8 +1,20 @@
-//
-//  CocoaUI.h
-//
-//  Copyright Grame 2010. All rights reserved.
-//
+/************************************************************************
+ ************************************************************************
+    FAUST Architecture File
+	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+
+	This is sample code. This file is provided as an example of minimal
+	FAUST architecture file. Redistribution and use in source and binary
+	forms, with or without modification, in part or in full are permitted.
+	In particular you can create a derived work of this FAUST architecture
+	and distribute that work under terms of your choice.
+
+	This sample code is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ ************************************************************************
+ ************************************************************************/
 
 #import <UIKit/UIKit.h>
 #import "iPhoneViewController.h"
@@ -29,7 +41,7 @@ using namespace std;
 
 class UI;
 
-@interface uiItem : NSObject 
+@interface uiItem : NSObject
 {
 	UI* fGUI;
 	float* fZone;
@@ -39,7 +51,7 @@ class UI;
 - (id)initWithValues:(UI*)ui:(float*)zone;
 - (void)modifyZone:(float)v;
 - (float)cache;
-- (void)reflectZone;	
+- (void)reflectZone;
 
 @end
 
@@ -51,70 +63,70 @@ class UI
 {
 	typedef list<uiItem*> clist;
 	typedef map<float*, clist*> zmap;
-	
+
  protected:
- 
+
  	static list<UI*> fGuiList;
 	zmap fZoneMap;
 	bool fStopped;
-	
+
  public:
-		
-	UI() : fStopped(false) 
-    {	
+
+	UI() : fStopped(false)
+    {
 		fGuiList.push_back(this);
 	}
-	
-	virtual ~UI() 
+
+	virtual ~UI()
     {
 		// suppression de this dans fGuiList
 	}
 
 	// -- registerZone(z,c) : zone management
-	
+
 	void registerZone(float* z, uiItem* c)
 	{
         if (fZoneMap.find(z) == fZoneMap.end()) {
             fZoneMap[z] = new clist();
         }
 		fZoneMap[z]->push_back(c);
-	} 	
+	}
 
 	// -- saveState(filename) : save the value of every zone to a file
-	
-	void saveState(const char* filename)	
+
+	void saveState(const char* filename)
 	{
 		ofstream f(filename);
-        
+
         if (!f.is_open()) {
         } else {
-            for (zmap::iterator i = fZoneMap.begin(); i != fZoneMap.end(); i++) { 
+            for (zmap::iterator i = fZoneMap.begin(); i != fZoneMap.end(); i++) {
                 f << *(i->first) << ' ';
-            } 
+            }
         }
-		
+
 		f << endl;
 		f.close();
 	}
 
 	// -- recallState(filename) : load the value of every zone from a file
-	
-	void recallState(const char* filename)	
+
+	void recallState(const char* filename)
 	{
 		ifstream f(filename);
 		if (f.good()) {
-            for (zmap::iterator i = fZoneMap.begin(); i != fZoneMap.end(); i++) { 
+            for (zmap::iterator i = fZoneMap.begin(); i != fZoneMap.end(); i++) {
 				f >> *(i->first);
-			} 
+			}
 		}
 		f.close();
         updateAllZones();
 	}
-	
+
 	void updateAllZones();
-	
+
 	void updateZone(float* z);
-	
+
 	static void updateAllGuis()
 	{
 		list<UI*>::iterator g;
@@ -122,27 +134,27 @@ class UI
 			(*g)->updateAllZones();
 		}
 	}
-        
+
     // -- active widgets
-    
+
     virtual void addButton(const char* label, float* zone) = 0;
     virtual void addToggleButton(const char* label, float* zone) = 0;
     virtual void addCheckButton(const char* label, float* zone) = 0;
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-    
+
     // -- passive widgets
-    
+
     virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
     virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-    
+
     //void addCallback(float* zone, uiCallback foo, void* data);
-    
+
     // -- widget's layouts
-    
+
     virtual void openFrameBox(const char* label) = 0;
     virtual void openTabBox(const char* label) = 0;
     virtual void openHorizontalBox(const char* label) = 0;
@@ -156,10 +168,10 @@ class UI
     virtual void openExpanderBox(const char* label, float* zone) = 0;
 
     virtual void closeBox() = 0;
-    
+
     virtual void show() {};
     virtual void run() {};
-	
+
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
@@ -174,7 +186,7 @@ void UI::updateZone(float* z)
 {
 	float v = *z;
  	clist* l = fZoneMap[z];
-    
+
 	for (clist::iterator c = l->begin(); c != l->end(); c++) {
 		if ([(*c) cache] != v) [(*c) reflectZone];
 	}
@@ -197,9 +209,9 @@ inline void UI::updateAllZones()
 }
 
 /*
-inline void UI::addCallback(float* zone, uiCallback foo, void* data) 
-{ 
-	new uiCallbackItem(this, zone, foo, data); 
+inline void UI::addCallback(float* zone, uiCallback foo, void* data)
+{
+	new uiCallbackItem(this, zone, foo, data);
 };
 */
 
@@ -209,21 +221,21 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 #define SCREEN_WIDTH    320
 #define SCREEN_HEIGHT   480
 
-@implementation uiItem 
+@implementation uiItem
 
 - (id)initWithValues:(UI*)ui:(float*)zone
 {
-    fGUI = ui;  
+    fGUI = ui;
     fZone = zone;
     fCache = -123456.654321;
-    ui->registerZone(zone, self); 
+    ui->registerZone(zone, self);
     return self;
 }
 
 - (void)modifyZone:(float)v
-{ 
-    fCache = v; 
-    
+{
+    fCache = v;
+
     if (*fZone != v) {
         *fZone = v;
         fGUI->updateZone(fZone);
@@ -244,7 +256,7 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 
 // -------------------------- Slider -----------------------------------
 
-@interface uiSlider : uiItem 
+@interface uiSlider : uiItem
 {
     UISlider* fSlider;
     UITextField* fTextField;
@@ -256,12 +268,12 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 
 @end
 
-@implementation uiSlider 
+@implementation uiSlider
 
 - (id)initWithValues:(int)index:(UI*)ui:(iPhoneViewController*)controler:(const char*)name:(float*)zone:(float)init:(float)min:(float)max:(float)step
 {
-    if (self = [super initWithValues:ui:zone]) { 
-  
+    if (self = [super initWithValues:ui:zone]) {
+
         CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 130.0, 30.0);
         UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
         [label setFont:[UIFont boldSystemFontOfSize:12]];
@@ -270,7 +282,7 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
         label.textColor = [UIColor blackColor ];
         label.backgroundColor = [UIColor lightGrayColor];
         [controler.view addSubview:label];
-        
+
         CGRect frame = CGRectMake(130.0f, OFFSET_Y + WIDGET_SLICE * index, 110.0f, 7.0f);
         fSlider = [[UISlider alloc] initWithFrame:frame];
         [fSlider addTarget:self action:@selector(changed:)forControlEvents:UIControlEventValueChanged];
@@ -279,7 +291,7 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
         fSlider.continuous = YES;
         fSlider.value = init;
         [controler.view addSubview:fSlider];
-        
+
         CGRect textFieldFrame = CGRectMake(250.0, OFFSET_Y + WIDGET_SLICE * index, 60.0, 20.0);
         fTextField = [[UITextField alloc] initWithFrame:textFieldFrame];
         [fTextField setBorderStyle:UITextBorderStyleLine];
@@ -303,14 +315,14 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 }
 
 - (void)reflectZone;
-{ 
+{
     float v = *fZone;
-    fCache = v; 
-    fSlider.value = v; 
+    fCache = v;
+    fSlider.value = v;
     [fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", v]];
 }
-    
-- (void)dealloc 
+
+- (void)dealloc
 {
     [fSlider release];
     [fTextField release];
@@ -324,23 +336,23 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 #define kStdButtonWidth		100.0
 #define kStdButtonHeight	40.0
 
-@interface uiButton : uiItem 
+@interface uiButton : uiItem
 {
     UIButton* fButton;
 }
 
 - (void)pressed:(UIButton*)sender;
 - (void)released:(UIButton*)sender;
-- (void)reflectZone;	
+- (void)reflectZone;
 - (id)initWithValues:(int)index:(UI*)ui:(iPhoneViewController*)controler:(const char*)label:(float*)zone;
 
 @end
 
-@implementation uiButton 
+@implementation uiButton
 
 - (id)initWithValues:(int)index:(UI*)ui:(iPhoneViewController*)controler:(const char*)name:(float*)zone
 {
-     if (self = [super initWithValues:ui:zone]) { 
+     if (self = [super initWithValues:ui:zone]) {
         fButton = [[UIButton buttonWithType:UIButtonTypeRoundedRect] retain];
 		fButton.frame = CGRectMake(SCREEN_WIDTH/2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight);
         [fButton setTitle:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding] forState:UIControlStateNormal];
@@ -367,9 +379,9 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
     float v = *fZone;
     fCache = v;
     //if (v > 0.0) gtk_button_pressed(fButton); else gtk_button_released(fButton);
-}	
+}
 
-- (void)dealloc 
+- (void)dealloc
 {
     [fButton release];
     [super dealloc];
@@ -379,7 +391,7 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 
 // ------------------------------ Num Entry -----------------------------------
 
-@interface uiNumEntry : uiItem 
+@interface uiNumEntry : uiItem
 {
     UITextField* fTextField;
 }
@@ -388,11 +400,11 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 
 @end
 
-@implementation uiNumEntry 
+@implementation uiNumEntry
 
 - (id)initWithValues:(int)index:(UI*)ui:(iPhoneViewController*)controler:(const char*)label:(float*)zone:(float)init:(float)min:(float)max:(float)step
 {
-    if (self = [super initWithValues:ui:zone]) { 
+    if (self = [super initWithValues:ui:zone]) {
         CGRect textFieldFrame = CGRectMake(SCREEN_WIDTH/2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight);
         fTextField = [[UITextField alloc] initWithFrame:textFieldFrame];
         [fTextField setTextColor:[UIColor blackColor]];
@@ -400,13 +412,13 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
         [fTextField setPlaceholder:@"<enter text>"];
         [fTextField setBackgroundColor:[UIColor whiteColor]];
         fTextField.keyboardType = UIKeyboardTypeDefault;
-        
+
         [controler.view addSubview:fTextField];
     }
     return self;
 }
 
-- (void)dealloc 
+- (void)dealloc
 {
     [fTextField release];
     [super dealloc];
@@ -423,9 +435,9 @@ private:
     UIWindow* fWindow;
     iPhoneViewController* fViewController;
     Meta* fMetadata;
-    
+
     list <uiItem*> fWidgetList;
-    
+
     void insert(const char* label, uiItem* widget)
 	{
          fWidgetList.push_back(widget);
@@ -439,20 +451,20 @@ public:
     // virtual void declare (float* zone, const char* key, const char* value);
     // virtual int checkLabelOptions (GtkWidget* widget, const string& fullLabel, string& simplifiedLabel);
     // virtual void checkForTooltip (float* zone, GtkWidget* widget);
-    
+
     // -- layout groups
-    
+
     CocoaUI(UIWindow* window, iPhoneViewController* viewController, Meta* metadata)
     {
         fViewController = viewController;
         fWindow = window;
         fMetadata = metadata;
-        
+
          CGRect titleFrame = CGRectMake(0.0, 0.0f, 320.0, 75.0);
          UIView *titleView = [[UIView alloc] initWithFrame:titleFrame];
          titleView.backgroundColor = [UIColor brownColor];
          [fViewController.view addSubview:titleView];
-        
+
         if (fMetadata->find("name") != fMetadata->end()) {
             const char* name = (*fMetadata->find("name")).second;
             CGRect labelFrame = CGRectMake(0.0, 20.0f, 320.0, 30.0);
@@ -464,7 +476,7 @@ public:
             label.backgroundColor = [UIColor brownColor];
             [fViewController.view addSubview:label];
         }
-        
+
         if (fMetadata->find("author") != fMetadata->end()) {
             const char* name = (*fMetadata->find("author")).second;
             CGRect labelFrame = CGRectMake(0.0, 45.0f, 320.0, 30.0);
@@ -476,17 +488,17 @@ public:
             label.backgroundColor = [UIColor brownColor];
             [fViewController.view addSubview:label];
         }
-           
+
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];
     }
-    
+
     ~CocoaUI()
     {
         [fViewController release];
         [fWindow release];
     }
-    
+
     virtual void openFrameBox(const char* label)
     {}
     virtual void openTabBox(const char* label = "")
@@ -506,14 +518,14 @@ public:
     {}
     virtual void openExpanderBox(const char* label, float* zone)
     {}
-    
+
     virtual void closeBox()
     {}
-    
+
     //virtual void adjustStack(int n);
 
     // -- active widgets
-    
+
     virtual void addButton(const char* label, float* zone)
     {
         uiItem* item = [[uiButton alloc] initWithValues:fWidgetList.size():this:fViewController:label:zone];
@@ -527,7 +539,7 @@ public:
     {
         uiItem* item = [[uiSlider alloc] initWithValues:fWidgetList.size():this:fViewController:label:zone:init:min:max:step];
         insert(label, item);
-    }  
+    }
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
         uiItem* item = [[uiSlider alloc] initWithValues:fWidgetList.size():this:fViewController:label:zone:init:min:max:step];
@@ -538,9 +550,9 @@ public:
         uiItem* item = [[uiNumEntry alloc] initWithValues:fWidgetList.size():this:fViewController:label:zone:init:min:max:step];
         insert(label, item);
     }
-    
+
     // -- passive display widgets
-    
+
     virtual void addNumDisplay(const char* label, float* zone, int precision)
     {}
     virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max)
@@ -549,15 +561,15 @@ public:
     {}
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {}
-    
+
     virtual void show()
     {}
     virtual void run()
     {}
-    
+
     virtual void declare(float* zone, const char* key, const char* value)
     {}
-    
+
 };
 
 
