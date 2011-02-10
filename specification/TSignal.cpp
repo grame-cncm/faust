@@ -79,7 +79,7 @@ void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIn
 
     // not shared
 
-    /*
+
     TIndex* var_k = MR_VAR(getFreshID("k"));
     TIndex* new_in = MR_ADD(MR_MUL(index, MR_INT(fSize)), var_k);
 
@@ -87,10 +87,10 @@ void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     TBlockStatement* sub_block = MR_BLOCK();
     fExp->compileStatement(sub_block, MR_INDEX_ADDRESS(address, var_k), new_in);
     block->fCode.push_back(MR_SUBLOOP(fSize, var_k, sub_block));
-    */
+
 
     // shared
-    block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    //block->fCode.push_back(MR_STORE(address, compileSample(index)));
 }
 
 TValue* TVectorize::compileSample(TIndex* index)
@@ -135,23 +135,25 @@ void TSerialize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     assert(m > 0);
     int n = rate / m;
     TType* type = getType();
-    cout << " TSerialize::compileStatement " << endl;
+    cout << " TSerialize::compileStatement " << "n: " <<  n << endl;
     type->generate(&cout, 0);
+    cout << endl;
     address->generate(&cout, 0);
+    cout << endl;
 
     // if not shared
 
-    /*
+
     TBlockStatement* sub_block = MR_BLOCK();
     TIndex* new_in = MR_DIV(index, MR_INT(n));
     fExp->compileStatement(sub_block,
                         MR_CAST_ADDRESS(address, MR_VECTOR_TYPE(type, n)),
                         new_in);
     block->fCode.push_back(MR_IF(MR_MOD(index, MR_INT(n)), sub_block));
-    */
+
 
     // if shared
-    block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    //block->fCode.push_back(MR_STORE(address, compileSample(index)));
 }
 
 TValue* TSerialize::compileSample(TIndex* index)

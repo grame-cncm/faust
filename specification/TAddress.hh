@@ -60,7 +60,8 @@ struct TCastAddress : public TAddress
     TAddress* fAddress;
     TType* fType;
 
-    TCastAddress(TAddress* address, TType* type):fAddress(address), fType(type){}
+    TCastAddress(TAddress* address, TType* type):fAddress(address), fType(type)
+    {}
 
     virtual ~TCastAddress() {}
 

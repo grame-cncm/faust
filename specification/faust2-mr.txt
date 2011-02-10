@@ -19,20 +19,59 @@ E = InX | P(E1,..) | Num(x) | Vectorize(n,E) | Serialize(E) | E1#E2 | E1[E2] | D
 A : address
 A : W | Cast(A, T) | Addr(A, I) | Shift(A, I)
 
+Cast(A, T)  : cast the vector with the type T
+Addr(A, I)  : get the element of W at index I
+Shift(A, I) : shift (with internal type of W) the current element of W with index I
+
+(Shift(Addr([n]T N, i), j)) ==> cast the i element of N (with [n]T) in T, then shift by j
+
 V : compilation value
 V = int | float | Load(A) | P(V1,..)
 
 S : compilation statement
 S : Dec(W) | Store(A, V) | { S* } | Loop(i, n) { S* } | SubLoop(i, n) { S* } | If(e) { S* }
 
+An address A has a type given with typeAddr : A ==> T
 
-Cast(A, T)  : cast the vector with the type T
-Addr(A, I)  : get the element of W at index I
-Shift(A, I) : shift (with internal type of W) the current element of W with index I
+typeAddr : A ==> T
 
-type(W)     : W ==> T
+typeAddr(W)             = T
+typeAddr(Cast(A, T))    = T
+typeAddr(Addr(A, I))    = typeIndexAddr(A)
+typeAddr(Shift(A, I))   = typeIndexAddr(A)
 
-A compilation value V has a type given with type(V) = T
+typeIndexAddr : T ==> T
+
+typeIndexAddr int   = error
+typeIndexAddr float = error
+typeIndexAddr [n]T  = T
+
+A compilation value V has a type given with typeVal : V ==> T
+
+typeVal : V ==> T
+
+typeVal(int)        = int
+typeVal(float)      = float
+typeVal(Load(A))    = typeAddr(A)
+typeVal(P(V1,..))   = combType(typeVal(V1),typeVal(V2),...)
+
+combType2 : T1 x T2 ==> T
+
+combType2 int float     =  float
+combType2 float int     =  float
+
+combType2 [n]T float    =  [n]T
+combType2 [n]T int      =  [n]T
+
+combType2 int [n]T      =  [n]T
+combType2 float [n]T    =  [n]T
+
+combType2 [n]T T        =  [n]T
+combType2 T [n]T        =  [n]T
+
+combType2 [n]T [n]T     =  [n]T
+
+combType2 [n]T [m]T     =  error
 
 In each compilation rule:
 
