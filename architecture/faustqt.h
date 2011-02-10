@@ -934,30 +934,221 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 *******************************************************************************
 *******************************************************************************/
 
+
+/******************************************************************************
+*******************************************************************************
+
+							IMPLEMENTATION OF UI ITEMS
+							   (QT 4.3 for FAUST)
+
+*******************************************************************************
+*******************************************************************************/
+
+
+
+
+/*******************************************************************************
+ * UI : Faust User Interface
+ * This abstract class contains only the method that the faust compiler can
+ * generate to describe a DSP interface.
+ ******************************************************************************/
+
+class UI
+{
+	
+ public:
+		
+	UI() {	}
+	
+	virtual ~UI() {	}
+	
+    // -- active widgets
+    
+    virtual void addButton(const char* label, float* zone) = 0;
+    virtual void addToggleButton(const char* label, float* zone) = 0;
+    virtual void addCheckButton(const char* label, float* zone) = 0;
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
+    
+    // -- passive widgets
+    
+    virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
+    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+    
+    // -- widget's layouts
+    
+    virtual void openTabBox(const char* label) = 0;
+    virtual void openHorizontalBox(const char* label) = 0;
+    virtual void openVerticalBox(const char* label) = 0;
+
+    virtual void closeBox() = 0;
+        
+	// -- metadata declarations
+	
+    virtual void declare(float* /*zone*/, const char* /*key*/, const char* /*value*/) {}
+};
+
+
+
+/*******************************************************************************
+ * FUI : used to save and recall the state of the user interface
+ * This class provides essentially two new methods saveState() and recallState()
+ * used to save on file and recall from file the state of the user interface. 
+ * The file is human readble and editable
+ ******************************************************************************/
+
+class FUI  : public UI
+{
+	stack<string>		fGroupStack;
+	vector<string>		fNameList;
+	map<string, float*>	fName2Zone;
+
+ protected:
+ 	
+ 	// labels are normalized by replacing white spaces by underscores and by
+ 	// removing parenthesis
+	string normalizeLabel(const char* label) 
+	{
+		string 	s;
+		char 	c;
+		
+		while ((c=*label++)) {
+			if (isspace(c)) 					{ s += '_'; }
+			else if ((c == '(') | (c == ')') ) 	{ }
+			else 								{ s += c; }
+		}
+		return s;
+	}
+	
+	// add an element by relating its full name and memory zone
+	virtual void addElement (const char* label, float* zone)
+	{
+		string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
+		fNameList.push_back(fullname);
+		fName2Zone[fullname] = zone;
+	}
+
+	// keep track of full group names in a stack
+	virtual void pushGroupLabel(const char* label)
+	{
+		if (fGroupStack.empty()) {
+			fGroupStack.push(normalizeLabel(label));
+		} else {
+			fGroupStack.push(fGroupStack.top() + '/' + normalizeLabel(label));
+		}
+	}
+
+	virtual void popGroupLabel() 							
+	{ 
+		fGroupStack.pop(); 
+	};
+
+ public:
+		
+	FUI() 			{}
+	virtual ~FUI() 	{}
+	
+	// -- Save and recall methods
+	
+	// save the zones values and full names
+	virtual void saveState(const char* filename)	
+	{
+		ofstream f(filename);
+		
+		for (unsigned int i=0; i<fNameList.size(); i++) { 
+			string	n = fNameList[i];
+			float*	z = fName2Zone[n];
+			f << *z << ' ' << n << endl;
+		} 
+		
+		f << endl;
+		f.close();
+	}
+	
+	// recall the zones values and full names
+	virtual void recallState(const char* filename)	
+	{
+		ifstream f(filename);
+		float	v;
+		string	n;
+		
+		while (f.good()) {
+			f >> v >> n;
+			if (fName2Zone.count(n)>0) {
+				*(fName2Zone[n]) = v;
+			} else {
+				cerr << "recallState : parameter not found : " << n << " with value : " << v << endl;
+			}
+		}
+		f.close();
+	}
+
+
+
+    // -- active widgets (just add an element)
+    
+    virtual void addButton(const char* label, float* zone) 			{ addElement(label, zone); }
+    virtual void addToggleButton(const char* label, float* zone) 	{ addElement(label, zone); }
+    virtual void addCheckButton(const char* label, float* zone) 	{ addElement(label, zone); }
+    virtual void addVerticalSlider(const char* label, float* zone, float /*init*/, float /*min*/, float /*max*/, float /*step*/)  
+    																{ addElement(label, zone); }
+    virtual void addHorizontalSlider(const char* label, float* zone, float /*init*/, float /*min*/, float /*max*/, float /*step*/) 
+    																{ addElement(label, zone); }
+    virtual void addNumEntry(const char* label, float* zone, float /*init*/, float /*min*/, float /*max*/, float /*step*/) 
+    																{ addElement(label, zone); }
+    
+    // -- passive widgets (are ignored)
+    
+    virtual void addNumDisplay(const char* /*label*/, float* /*zone*/, int /*precision*/) {};
+    virtual void addTextDisplay(const char* /*label*/, float* /*zone*/, const char* /*names*/[], float /*min*/, float /*max*/) {};
+    virtual void addHorizontalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {};
+    virtual void addVerticalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {};
+    
+    // -- widget's layouts (just keep track of group labels)
+
+    virtual void openFrameBox(const char* label) 		{ pushGroupLabel(label); }
+    virtual void openTabBox(const char* label) 			{ pushGroupLabel(label); }
+    virtual void openHorizontalBox(const char* label) 	{ pushGroupLabel(label); }
+    virtual void openVerticalBox(const char* label)  	{ pushGroupLabel(label); }
+
+    virtual void closeBox() 							{ popGroupLabel(); };
+        
+	// -- metadata are not used
+	
+    virtual void declare(float* /*zone*/, const char* /*key*/, const char* /*value*/) {}
+};
+
+
+/*******************************************************************************
+ * GUI : Abstract Graphic User Interface
+ * Provides additional macchanismes to synchronize widgets and zones. Widgets
+ * should both reflect the value of a zone and allow to change this value.
+ ******************************************************************************/
+
 struct uiItem;
 typedef void (*uiCallback)(float val, void* data);
 
-/**
- * Graphic User Interface : abstract definition
- */
 
-class UI
+class GUI : public UI
 {
 	typedef list<uiItem*> clist;
 	typedef map<float*, clist*> zmap;
 	
  private:
- 	static list<UI*>	fGuiList;
+ 	static list<GUI*>	fGuiList;
 	zmap				fZoneMap;
 	bool				fStopped;
 	
  public:
 		
-	UI() : fStopped(false) {	
+	GUI() : fStopped(false) {	
 		fGuiList.push_back(this);
 	}
 	
-	virtual ~UI() {
+	virtual ~GUI() {
 		// suppression de this dans fGuiList
 	}
 
@@ -969,101 +1160,47 @@ class UI
 		fZoneMap[z]->push_back(c);
 	} 	
 
-	// -- saveState(filename) : save the value of every zone to a file
-	
-	void saveState(const char* filename)	
-	{
-		ofstream f(filename);
-		
-		for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
-			f << *(i->first) << ' ';
-		} 
-		
-		f << endl;
-		f.close();
-	}
-
-	// -- recallState(filename) : load the value of every zone from a file
-	
-	void recallState(const char* filename)	
-	{
-		ifstream f(filename);
-		if (f.good()) {
-			for (zmap::iterator i=fZoneMap.begin(); i!=fZoneMap.end(); i++) { 
-				f >> *(i->first);
-			} 
-		}
-		f.close();
-	}
-	
 	void updateAllZones();
 	
 	void updateZone(float* z);
 	
 	static void updateAllGuis()
 	{
-		list<UI*>::iterator g;
+		list<GUI*>::iterator g;
 		for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
 			(*g)->updateAllZones();
 		}
 	}
+    void addCallback(float* zone, uiCallback foo, void* data);
+    virtual void show() {};	
+    virtual void run() {};
 	
-	
-	// debut remplacement '= 0;' par '{}'
-	// -- active widgets
-	
-	virtual void addButton(const char* label, float* zone) = 0;
-	virtual void addToggleButton(const char* label, float* zone) = 0;
-	virtual void addCheckButton(const char* label, float* zone) = 0;
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;	
-	
-	// -- passive widgets
-	
-	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-	
-    // -- widget's layouts
-	
-	virtual void openFrameBox(const char* label) = 0;
-	virtual void openTabBox(const char* label) = 0;
-	virtual void openHorizontalBox(const char* label) = 0;
-	virtual void openVerticalBox(const char* label) = 0;
-	virtual void closeBox() = 0;
-	
-	virtual void run() = 0;
-	
-	// fin remplacement
-
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
-    virtual void declare(float*, const char*, const char*) {}
+    virtual void declare(float* /*zone*/, const char* /*key*/, const char* /*value*/) {}
 };
 
-
 /**
- * A User Interface Item that can reflect and modify a floating point zone
+ * User Interface Item: abstract definition
  */
 
 class uiItem
 {
   protected :
 		  
-	UI*			fGUI;
+	GUI*		fGUI;
 	float*		fZone;
 	float		fCache;
 	
-	uiItem (UI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
+	uiItem (GUI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
 		ui->registerZone(zone, this); 
 	}
 	
 	
   public :
+	virtual ~uiItem() {}
 	
 	void modifyZone(float v) 	
 	{ 
@@ -1079,11 +1216,12 @@ class uiItem
 };
 
 
+
 /**
  * Update all user items reflecting zone z
  */
 
-inline void UI::updateZone(float* z)
+inline void GUI::updateZone(float* z)
 {
 	float 	v = *z;
 	clist* 	l = fZoneMap[z];
@@ -1093,11 +1231,12 @@ inline void UI::updateZone(float* z)
 }
 
 
+
 /**
  * Update all user items not up to date
  */
 
-inline void UI::updateAllZones()
+inline void GUI::updateAllZones()
 {
 	for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
 		float* 	z = m->first;
@@ -1110,17 +1249,6 @@ inline void UI::updateAllZones()
 }
 
 
-
-/******************************************************************************
-*******************************************************************************
-
-							IMPLEMENTATION OF UI ITEMS
-							   (QT 4.3 for FAUST)
-
-*******************************************************************************
-*******************************************************************************/
-
-
 class uiButton : public QObject, public uiItem
 {
     Q_OBJECT
@@ -1128,7 +1256,7 @@ class uiButton : public QObject, public uiItem
  public :
 	QAbstractButton* 	fButton;
 	
-	uiButton (UI* ui, float* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
+	uiButton (GUI* ui, float* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
 	
 
 	virtual void reflectZone() 	
@@ -1151,7 +1279,7 @@ class uiCheckButton : public QObject, public uiItem
  public :
 	QCheckBox* 	fCheckBox;
 	
-	uiCheckButton (UI* ui, float* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
+	uiCheckButton (GUI* ui, float* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
 	
 	virtual void reflectZone() 	
 	{ 
@@ -1185,7 +1313,7 @@ class uiSlider : public QObject, public uiItem
 	float		fMax;
 	float		fStep;
 
-	uiSlider (UI* ui, float* zone, QSlider* slider, float cur, float lo, float hi, float step) 
+	uiSlider (GUI* ui, float* zone, QSlider* slider, float cur, float lo, float hi, float step) 
 		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
 	{
 		fSlider->setMinimum(0);
@@ -1227,7 +1355,7 @@ class uiKnob : public QObject, public uiItem
 	float				fMax;
 	float				fStep;
 
-	uiKnob (UI* ui, float* zone, QAbstractSlider* slider, float cur, float lo, float hi, float step) 
+	uiKnob (GUI* ui, float* zone, QAbstractSlider* slider, float cur, float lo, float hi, float step) 
 		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
 	{
 		fSlider->setMinimum(0);
@@ -1261,7 +1389,7 @@ class uiBargraph : public QObject, public uiItem
     float           fMax;
     int             fStep;
 
-    uiBargraph (UI* ui, float* zone, QProgressBar* bar, float lo, float hi) 
+    uiBargraph (GUI* ui, float* zone, QProgressBar* bar, float lo, float hi) 
         : uiItem(ui, zone), fBar(bar), fMin(lo), fMax(hi), fStep(1024) 
     {
         fBar->setRange(0, fStep);
@@ -1287,7 +1415,7 @@ class uiBargraph2 : public QObject, public uiItem
  public :
     AbstractDisplay*   fBar;
 
-    uiBargraph2 (UI* ui, float* zone, AbstractDisplay* bar, float lo, float hi)
+    uiBargraph2 (GUI* ui, float* zone, AbstractDisplay* bar, float lo, float hi)
         : uiItem(ui, zone), fBar(bar)
     {
         fBar->setRange(lo, hi);
@@ -1317,7 +1445,7 @@ class uiNumEntry : public QObject, public uiItem
 	float				fStep;
 	int					fDecimals;
 
-	uiNumEntry (UI* ui, float* zone, QDoubleSpinBox* numEntry, float cur, float lo, float hi, float step) 
+	uiNumEntry (GUI* ui, float* zone, QDoubleSpinBox* numEntry, float cur, float lo, float hi, float step) 
 		: uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
 	{
 		fDecimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
@@ -1357,7 +1485,7 @@ class uiNumEntry : public QObject, public uiItem
 *******************************************************************************/
 
 
-class QTGUI : public QObject, public UI
+class QTGUI : public QObject, public GUI
 {
     Q_OBJECT
 	QApplication		fAppl;

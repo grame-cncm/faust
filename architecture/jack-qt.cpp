@@ -310,7 +310,7 @@ void* jackthread(void* arg)
 *******************************************************************************
 *******************************************************************************/
     
-list<UI*>               UI::fGuiList;
+list<GUI*>               GUI::fGuiList;
 map<float*, float>      QTGUI::fGuiSize;       // map widget zone with widget size coef
 map<float*, string>     QTGUI::fTooltip;       // map widget zone with tooltip strings
 set<float*>             QTGUI::fKnobSet;       // set of widget zone to be knobs
@@ -333,7 +333,8 @@ int main( int argc, char *argv[] )
 {
 	//gtk_init (&argc, &argv);
 	
-	UI* 				interface = new QTGUI(argc, argv);
+	GUI* 				interface = new QTGUI(argc, argv);
+	FUI* 				finterface = new FUI();
 	jack_client_t*		client;	
 	char				jackname[256];
 	char				rcfilename[256];
@@ -376,8 +377,9 @@ int main( int argc, char *argv[] )
 	
 	DSP.init(jack_get_sample_rate(client));
 	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 	
-	interface->recallState(rcfilename);
+	finterface->recallState(rcfilename);
 
 	physicalInPorts = (char **)jack_get_ports(client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
 	physicalOutPorts = (char **)jack_get_ports(client, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
@@ -411,7 +413,7 @@ int main( int argc, char *argv[] )
 	}
 	
 	jack_client_close(client);
-	interface->saveState(rcfilename);
+	finterface->saveState(rcfilename);
 
 #ifdef BENCHMARKMODE
     printstats();
