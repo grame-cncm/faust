@@ -105,7 +105,7 @@ CV[O, E] = compile vector, fill vector W with count*rate samples of signal E
 -------------------------------------------------------------------------------
    	r = rate(E)
    	T = type(E)
-	[r*VS]T = type(T)
+	[r*VS]T = type(O)
 	i = fresh index
 
 +	Loop(i, r*count) {
@@ -179,7 +179,7 @@ Vectorize(n,E) : create a signal of vectors of size n and rate r/n
    	 T = type(E)
 
  	 m = rate(Vectorize(n,E))
-      [n]T = type(Vectorize(n,E))
+  [n]T = type(Vectorize(n,E))
 
 -------------------------------------------------------------------------------
 CA[O, Vectorize(n,E), I] : A x E x Id ==> void
@@ -263,7 +263,7 @@ CA[O, E1#E2, I] : A x E x Id ==> void
 
 if not shared (E1#E2) :
 
-+	CA[Cast(O,[n]T), E1, I]
++	CA[Cast(O[0],[n]T), E1, I]
 +	CA[Cast(O[n],[m]T), E2, I]  (here we "move" O by n..)
 
 if shared (E1#E2) :
@@ -277,7 +277,7 @@ CS[E1#E2, I] : E x Id ==> V
 
 +	[n+m]T W[r*VS]
 +	Loop(j, r*VS) {
-+		CA[Cast(W[j],[n]T), E1, j]
++		CA[Cast(W[j][0],[n]T), E1, j]
 +		CA[Cast(W[j][n],[m]T), E2, j]
 +   }
 
