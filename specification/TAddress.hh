@@ -73,25 +73,6 @@ struct TCastAddress : public TAddress
     virtual TType* getType() { return fType; }
 };
 
-struct TShiftAddress : public TAddress
-{
-    TAddress* fAddress;
-    TIndex* fIndex;
-
-    TShiftAddress(TAddress* address, TIndex* index):fAddress(address), fIndex(index){}
-
-    virtual ~TShiftAddress() {}
-
-    virtual void generate(ostream* dst, int n)
-    {
-        fAddress->generate(dst, n);
-        *dst << "++";
-        fIndex->generate(dst, n);
-    }
-
-    virtual TType* getType() { return fAddress->getType(); }
-};
-
 #endif
 
 

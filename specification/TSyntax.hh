@@ -22,13 +22,11 @@ TIndex* MR_MOD(TIndex* v1, TIndex* v2);
 TType*  MR_VECTOR_TYPE(TType* type, int size);
 TType*  MR_INT_TYPE();
 TType*  MR_FLOAT_TYPE();
-TType*  MR_CAST_TYPE(TType* type1, TType* type2);
 
 // Address language
 TVector* MR_VECTOR(const string& name, TType* type);
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id);
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type);
-TAddress* MR_SHIFT_ADDRESS(TAddress* address, TIndex* id);
 
 // Statement language
 TDeclareStatement* MR_DEC(TVector* vector);

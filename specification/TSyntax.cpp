@@ -29,13 +29,11 @@ TIndex* MR_MOD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "%"); }
 TVector* MR_VECTOR(const string& name, TType* type) { return new TVector(name, type); }
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id) { return new TIndexAddress(address, id); }
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddress(address, type); }
-TAddress* MR_SHIFT_ADDRESS(TAddress* address, TIndex* id) { return new TShiftAddress(address, id); }
 
 // Types
 TType* MR_VECTOR_TYPE(TType* type, int size) { return new TVectorType(type, size); }
 TType* MR_INT_TYPE() { return new TIntType(); };
 TType* MR_FLOAT_TYPE() { return new TFloatType(); };
-TType* MR_CAST_TYPE(TType* type1, TType* type2) { return new TCastType(type1, type2); }
 
 // Statements
 TDeclareStatement* MR_DEC(TVector* vector) { return new TDeclareStatement(vector); }
