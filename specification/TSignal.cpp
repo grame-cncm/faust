@@ -43,26 +43,28 @@ void TPrimOp::compileStatement(TBlockStatement* block, TAddress* address, TIndex
 TValue* TPrimOp::compileSample(TIndex* index)
 {
     // not shared
-    //return MR_OP(fExp1->compileSample(index), fExp2->compileSample(index), fOp);
+    if (!gPrim) {
+        return MR_OP(fExp1->compileSample(index), fExp2->compileSample(index), fOp);
+    } else {
+        // shared
 
-    // shared
+        int rate = getRate();
+        TType* type = getType();
 
-    int rate = getRate();
-    TType* type = getType();
+        TIndex* var_j = MR_VAR(getFreshID("j"));
+        TVector* new_out_vec = MR_VECTOR(getFreshID("BinOp"), MR_VECTOR_TYPE(type, rate * gVecSize));
 
-    TIndex* var_j = MR_VAR(getFreshID("j"));
-    TVector* new_out_vec = MR_VECTOR(getFreshID("BinOp"), MR_VECTOR_TYPE(type, rate * gVecSize));
+        // Internal block
+        TBlockStatement* loop_code_block = MR_BLOCK();
+        MR_PUSH_BLOCK(loop_code_block, MR_DEC(new_out_vec));
+        TStatement* res = MR_STORE(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_OP(fExp1->compileSample(var_j), fExp2->compileSample(var_j), fOp));
+        MR_PUSH_BLOCK(loop_code_block, res);
 
-    // Internal block
-    TBlockStatement* loop_code_block = MR_BLOCK();
-    MR_PUSH_BLOCK(loop_code_block, MR_DEC(new_out_vec));
-    TStatement* res = MR_STORE(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_OP(fExp1->compileSample(var_j), fExp2->compileSample(var_j), fOp));
-    MR_PUSH_BLOCK(loop_code_block, res);
+        // Wrapping loop
+        gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, loop_code_block));
 
-    // Wrapping loop
-    gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, loop_code_block));
-
-    return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, index));
+        return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, index));
+    }
 }
 
 void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
@@ -80,19 +82,18 @@ void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     CHECK_TYPE(address->getType(), type);
 
     // not shared
+    if (!gVec) {
+        TIndex* var_k = MR_VAR(getFreshID("k"));
+        TIndex* new_in = MR_ADD(MR_MUL(index, MR_INT(fSize)), var_k);
 
-    /*
-    TIndex* var_k = MR_VAR(getFreshID("k"));
-    TIndex* new_in = MR_ADD(MR_MUL(index, MR_INT(fSize)), var_k);
-
-    // Wrapping loop
-    TBlockStatement* sub_block = MR_BLOCK();
-    fExp->compileStatement(sub_block, MR_INDEX_ADDRESS(address, var_k), new_in);
-    block->fCode.push_back(MR_SUBLOOP(fSize, var_k, sub_block));
-    */
-
-    // shared
-    block->fCode.push_back(MR_STORE(address, compileSample(index)));
+        // Wrapping loop
+        TBlockStatement* sub_block = MR_BLOCK();
+        fExp->compileStatement(sub_block, MR_INDEX_ADDRESS(address, var_k), new_in);
+        block->fCode.push_back(MR_SUBLOOP(fSize, var_k, sub_block));
+    } else {
+        // shared
+        block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    }
 }
 
 TValue* TVectorize::compileSample(TIndex* index)
@@ -145,16 +146,16 @@ void TSerialize::compileStatement(TBlockStatement* block, TAddress* address, TIn
 
     // if not shared
 
-    TBlockStatement* sub_block = MR_BLOCK();
-    TIndex* new_in = MR_DIV(index, MR_INT(n));
-    fExp->compileStatement(sub_block,
-                        MR_CAST_ADDRESS(address, MR_VECTOR_TYPE(type, n)),
-                        new_in);
-    block->fCode.push_back(MR_IF(MR_MOD(index, MR_INT(n)), sub_block));
-
-
-    // if shared
-    //block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    if (!gSer) {
+        TBlockStatement* sub_block = MR_BLOCK();
+        TIndex* new_in = MR_DIV(index, MR_INT(n));
+        fExp->compileStatement(sub_block,
+                            MR_CAST_ADDRESS(address, MR_VECTOR_TYPE(type, n)),
+                            new_in);
+        block->fCode.push_back(MR_IF(MR_MOD(index, MR_INT(n)), sub_block));
+    } else {
+        block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    }
 }
 
 TValue* TSerialize::compileSample(TIndex* index)
@@ -214,14 +215,13 @@ void TConcat::compileStatement(TBlockStatement* block, TAddress* address, TIndex
     CHECK_TYPE(address->getType(), type);
 
     // if not shared
-
-    /*
-    fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(0)), type1), index);
-    fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(size1)), type2), index);
-    */
-
-    // if shared
-    block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    if (!gConcat) {
+        fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(0)), type1), index);
+        fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(size1)), type2), index);
+    } else {
+        // if shared
+        block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    }
 }
 
 TValue* TConcat::compileSample(TIndex* index)

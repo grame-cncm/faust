@@ -43,7 +43,9 @@ TSignal* test2(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test2");
+    gSer = ser;
+    gConcat = concat;
+    Display("test2");
     return new TFloat(10.f);
 }
 
@@ -51,7 +53,9 @@ TSignal* test3(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test3");
+    gSer = ser;
+    gConcat = concat;
+    Display("test3");
     return new TInput(0, 1);
 }
 
@@ -59,7 +63,9 @@ TSignal* test4(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test4");
+    gSer = ser;
+    gConcat = concat;
+    Display("test4");
     return new TPrimOp(new TInput(0, 1), new TInput(1, 1), "+");
 }
 
@@ -67,7 +73,9 @@ TSignal* test5(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test5");
+    gSer = ser;
+    gConcat = concat;
+    Display("test5");
     return new TPrimOp(new TPrimOp(new TInput(0, 1), new TFloat(10.f), "+"), new TPrimOp(new TInput(0, 1), new TInput(1, 1), "+"), "*");
 }
 
@@ -75,7 +83,9 @@ TSignal* test6(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test6");
+    gSer = ser;
+    gConcat = concat;
+    Display("test6");
     return new TPrimOp(new TPrimOp(new TInput(0, 1), new TFloat(10.f), "+"), new TFloat(10.f), "*");
 }
 
@@ -84,7 +94,9 @@ TSignal* test10(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test10");
+    gSer = ser;
+    gConcat = concat;
+    Display("test10");
     return new TVectorize(new TInput(0, 4), 4);
 }
 
@@ -101,7 +113,9 @@ TSignal* test11bis(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test11bis");
+    gConcat = concat;
+    gSer = ser;
+    Display("test11bis");
     return new TVectorize(new TVectorize(new TInput(0, 12), 4), 3);
 }
 
@@ -109,7 +123,9 @@ TSignal* test12(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test12");
+    gSer = ser;
+    gConcat = concat;
+    Display("test12");
     return new TSerialize(new TSerialize(new TVectorize(new TVectorize(new TInput(0, 12), 4), 3)));
 }
 
@@ -118,7 +134,9 @@ TSignal* test13(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test13");
+    gSer = ser;
+    gConcat = concat;
+    Display("test13");
     return new TVectorize(new TSerialize(new TVectorize(new TInput(0, 12), 4)), 3);
 }
 
@@ -127,7 +145,9 @@ TSignal* test14(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test14");
+    gSer = ser;
+    gConcat = concat;
+    Display("test14");
     return new TPrimOp(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 4), 4), "+");
 }
 
@@ -135,7 +155,9 @@ TSignal* test15(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test15");
+    gSer = ser;
+    gConcat = concat;
+    Display("test15");
     return new TSerialize(new TPrimOp(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 4), 4), "+"));
 }
 
@@ -143,7 +165,9 @@ TSignal* test16(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test16");
+    gSer = ser;
+    gConcat = concat;
+    Display("test16");
     return new TSerialize(new TSerialize(new TPrimOp(new TVectorize(new TVectorize(new TInput(0, 12), 4), 3), new TVectorize(new TVectorize(new TInput(1, 12), 4), 3), "+")));
 }
 
@@ -151,7 +175,9 @@ TSignal* test21(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test21");
+    gSer = ser;
+    gConcat = concat;
+    Display("test21");
     return new TSerialize(new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3)));
 }
 
@@ -159,7 +185,9 @@ TSignal* test22(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test22");
+    gSer = ser;
+    gConcat = concat;
+    Display("test22");
     return new TVectorAt(new TVectorize(new TInput(0, 4), 4), new TInt(3));
 }
 
@@ -167,7 +195,9 @@ TSignal* test23(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test23");
+    gSer = ser;
+    gConcat = concat;
+    Display("test23");
     return new TVectorAt(new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3)), new TInt(3));
 }
 
@@ -175,7 +205,9 @@ TSignal* test30(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test30");
+    gSer = ser;
+    gConcat = concat;
+    Display("test30");
     return new TDelayAt(new TDelayLine(new TInput(0, 1), 100), new TInt(3));
 }
 
@@ -183,7 +215,9 @@ TSignal* test40(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test40");
+    gSer = ser;
+    gConcat = concat;
+    Display("test40");
     TRecGroup* rec_group = new TRecGroup("RecGroup1");
     rec_group->fCode.push_back(new TPrimOp(new TInput(0, 1), new TRecProj(rec_group, 0), "+"));
     rec_group->fCode.push_back(new TPrimOp(new TInput(1, 1), new TRecProj(rec_group, 1), "*"));
