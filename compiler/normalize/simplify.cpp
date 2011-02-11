@@ -85,7 +85,7 @@ static Tree simplification (Tree sig)
 {
 	assert(sig);
 	int		opnum;
-	Tree	t1, t2;
+	Tree	t1, t2, t3, t4;
 
 	xtended* xt = (xtended*) getUserData(sig);
 	// primitive elements
@@ -112,7 +112,7 @@ static Tree simplification (Tree sig)
 		else 								return normalizeAddTerm(sig);
 
 	} else if (isSigDelay1(sig, t1)) {
-		
+
 		return normalizeDelay1Term (t1);
 
 	} else if (isSigFixDelay(sig, t1, t2)) {
@@ -126,10 +126,10 @@ static Tree simplification (Tree sig)
 		double 	x;
 		Node 	n1 = t1->node();
 
-		if (isInt(n1, &i)) 			return t1; 
+		if (isInt(n1, &i)) 			return t1;
 		if (isDouble(n1, &x)) 		return tree(int(x));
 		if (isSigIntCast(t1, tx)) 	return t1;
-		
+
 		return sig;
 
 	} else if (isSigFloatCast(sig, t1)) {
@@ -142,8 +142,31 @@ static Tree simplification (Tree sig)
 		if (isInt(n1, &i)) 				return tree(double(i));
 		if (isDouble(n1, &x)) 			return t1;
 		if (isSigFloatCast(t1, tx)) 	return t1;
-		
+
 		return sig;
+
+     } else if (isSigSelect2(sig, t1, t2, t3)){
+
+        Node n1 = t1->node();
+
+        if (isZero(n1)) return t2;
+        if (isNum(n1))  return t3;
+
+        if (t2==t3) return t2;
+
+        return sig;
+
+    } else if (isSigSelect3(sig, t1, t2, t3, t4)){
+
+        Node n1 = t1->node();
+
+        if (isZero(n1)) return t2;
+        if (isOne(n1))  return t3;
+        if (isNum(n1))  return t4;
+
+        if (t3==t4) return simplification(sigSelect2(t1,t2,t3));
+
+        return sig;
 
 	} else {
 
@@ -151,11 +174,9 @@ static Tree simplification (Tree sig)
 	}
 }
 
-
-
 /**
  * Recursively transform a graph by applying a function f.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)]) 
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
  */
 static Tree sigMap (Tree key, tfun f, Tree t)
 {
@@ -209,9 +230,9 @@ static Tree sigMap (Tree key, tfun f, Tree t)
 
 
 /**
- * Like SigMap, recursively transform a graph by applying a 
+ * Like SigMap, recursively transform a graph by applying a
  * function f. But here recursive trees are also renamed.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)]) 
+ * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
  */
 static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
 {
