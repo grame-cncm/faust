@@ -7,9 +7,6 @@ extern int gVecSize;
 
 void TFloat::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
 {
-    // Type checking
-    //assert(address->getType().equal(
-
     block->fCode.push_back(MR_STORE(address, compileSample(index)));
 }
 
@@ -50,7 +47,6 @@ TValue* TPrimOp::compileSample(TIndex* index)
 
     // shared
 
-
     int rate = getRate();
     TType* type = getType();
 
@@ -67,7 +63,6 @@ TValue* TPrimOp::compileSample(TIndex* index)
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, loop_code_block));
 
     return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, index));
-
 }
 
 void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
@@ -141,23 +136,14 @@ void TSerialize::compileStatement(TBlockStatement* block, TAddress* address, TIn
 {
     int rate = getRate();
     int m = fExp->getRate();
-    //cerr << "TSerialize::compileStatement " << m << endl;
     assert(m > 0);
     int n = rate / m;
     TType* type = getType();
-    /*
-    cout << " TSerialize::compileStatement " << "n: " <<  n << endl;
-    type->generate(&cout, 0);
-    cout << endl;
-    address->generate(&cout, 0);
-    cout << endl;
-    */
 
     // Address type checking
     CHECK_TYPE(address->getType(), type);
 
     // if not shared
-
 
     TBlockStatement* sub_block = MR_BLOCK();
     TIndex* new_in = MR_DIV(index, MR_INT(n));
@@ -391,9 +377,7 @@ TValue* TRecGroup::compileSample(TIndex* index)
                 new_out_vec = TRecGroup::gRecProjCompEnv[rec_proj];
             } else {
                 new_out_vec = MR_VECTOR(rec_proj, MR_VECTOR_TYPE(type, rate * gVecSize));
-
                 MR_PUSH_BLOCK(block, MR_DEC(new_out_vec));
-
                 TRecGroup::gRecProjCompEnv[rec_proj] = new_out_vec;  // Insert compiled projection
                 (*it)->compileStatement(block, MR_INDEX_ADDRESS(new_out_vec, var_j) , var_j);
             }
@@ -414,12 +398,18 @@ void TRecProj::compileStatement(TBlockStatement* block, TAddress* address, TInde
 
 TValue* TRecProj::compileSample(TIndex* index)
 {
+    TType* type = getType();
+
     // Compile recursive group
     fRecGroup->compileSample(index);
 
     // Get the projection
     string rec_proj = subst("$0$1", fRecGroup->fRecGroup, T(fProj));
     assert(TRecGroup::gRecProjCompEnv.find(rec_proj) != TRecGroup::gRecProjCompEnv.end());
+
+    // Output type checking
+    CHECK_TYPE(type, MR_INDEX_ADDRESS(TRecGroup::gRecProjCompEnv[rec_proj], index)->getType());
+
     return MR_LOAD(MR_INDEX_ADDRESS(TRecGroup::gRecProjCompEnv[rec_proj], index));
 }
 

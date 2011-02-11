@@ -172,7 +172,7 @@ int main()
     //compiler.compileTop(test23());
     compiler.compileTop(test30());
 
-    //compiler.compileTop(test40());
+    compiler.compileTop(test40());
 
 
 	return 0;
