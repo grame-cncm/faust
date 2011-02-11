@@ -21,22 +21,18 @@ struct TCompiler
         int output_rate = signal->getRate();
         TType* input_type = signal->getType();
         TType* output_type = MR_VECTOR_TYPE(MR_FLOAT_TYPE(), output_rate * gVecSize);
-
-        /*
-        input_type->generate(&cout, 0);
-        output_type->generate(&cout, 0);
-
-        assert(output_type->equal(input_type));
-        */
-
         TVector* new_out_vec = MR_VECTOR("output", output_type);
-        TIndex* in = MR_VAR("i");
+        TIndex* var_in = MR_VAR("i");
+        TAddress* out_address = MR_INDEX_ADDRESS(new_out_vec, var_in);
+
+        input_type->generate(&cout, 0);
+        out_address->generate(&cout, 0);
 
         // Compilation
         TBlockStatement* sub_block = MR_BLOCK();
         gExternalBlock = MR_BLOCK();
-        signal->compileStatement(sub_block, MR_INDEX_ADDRESS(new_out_vec, in), in);
-        TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, in, sub_block);
+        signal->compileStatement(sub_block, out_address, var_in);
+        TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, var_in, sub_block);
 
         // Code generation
         cout << endl << "-----------------" << endl;
