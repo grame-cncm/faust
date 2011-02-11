@@ -23,6 +23,7 @@ static void Display(const string& test)
     cout << "====================="<< endl;
 }
 
+// Not compatible type  (input ==> int)
 TSignal* test1()
 {
     Display("test1");
@@ -59,6 +60,7 @@ TSignal* test6()
     return new TPrimOp(new TPrimOp(new TInput(0, 1), new TFloat(10.f), "+"), new TFloat(10.f), "*");
 }
 
+// Not compatible type  (input ==> float[4])
 TSignal* test10()
 {
     Display("test10");
@@ -71,6 +73,7 @@ TSignal* test11()
     return new TSerialize(new TVectorize(new TInput(0, 4), 4));
 }
 
+// Not compatible type  (input ==> float[4][3])
 TSignal* test11bis()
 {
     Display("test11bis");
@@ -79,22 +82,18 @@ TSignal* test11bis()
 
 TSignal* test12()
 {
-    /*
-    TSignal* t1 = new TVectorize(new TVectorize(new TInput(0), 4), 3);
-    TSignal* t2 = new TVectorize(new TInput(0), 4);
-    cerr << "test12 " << t1->getRate() << endl;
-    cerr << "test12 " << t2->getRate() << endl;
-    */
     Display("test12");
     return new TSerialize(new TSerialize(new TVectorize(new TVectorize(new TInput(0, 12), 4), 3)));
 }
 
+// Not compatible type  (input ==> float[3])
 TSignal* test13()
 {
     Display("test13");
-    return new TSerialize(new TVectorize(new TSerialize(new TVectorize(new TInput(0, 12), 4)), 3));
+    return new TVectorize(new TSerialize(new TVectorize(new TInput(0, 12), 4)), 3);
 }
 
+// Not compatible type  (input ==> float[4])
 TSignal* test14()
 {
     Display("test14");
@@ -150,46 +149,28 @@ TSignal* test40()
 
 int main()
 {
-    /*
-	TExp* e = new TGroup(2, new TGroup(8, new TOp(new TInput(16), new TNumber(16,10)) ) );
-	TExp* f = new TLin(cprod(new TNumber(1, 0.5), new TOp(new TInput(1), new TNumber(1, 10))));
-	TExp* g = new TAccess( cprod( new TNumber(1, 0.5),
-	                              new TNumber(1, 10) ),
-	                       new TNumber(1, 0.0) );
-
-	TType t = f->type();
-	cout << "type of f is : " << t.str() << endl;
-	cout << "speed of f is : " << f->speed() << endl;
-
-	cout << "for (int i=0; i<count; i++) {" << endl;
-	e->compile(1, "output1", TIndex("i"), TIndex("i"));
-	f->compile(1, "output2", TIndex("i").mult(2), TIndex("i"));
-	g->compile(1, "output3", TIndex("i"), TIndex("i"));
-	cout << "}" << endl;
-    */
-
     TCompiler compiler;
 
     //compiler.compileTop(test1());
-    //compiler.compileTop(test2());
+    compiler.compileTop(test2());
     compiler.compileTop(test3());
-    //compiler.compileTop(test4());
-    //compiler.compileTop(test5());
-    //compiler.compileTop(test6());
+    compiler.compileTop(test4());
+    compiler.compileTop(test5());
+    compiler.compileTop(test6());
 
     //compiler.compileTop(test10());
-    //compiler.compileTop(test11());
+    compiler.compileTop(test11());
     //compiler.compileTop(test11bis());
-    //compiler.compileTop(test12());
-    compiler.compileTop(test13());
+    compiler.compileTop(test12());
+    //compiler.compileTop(test13());
     //compiler.compileTop(test14());
-    //compiler.compileTop(test15());
-    //compiler.compileTop(test16());
+    compiler.compileTop(test15());
+    compiler.compileTop(test16());
 
     compiler.compileTop(test21());
-    //compiler.compileTop(test22());
+    compiler.compileTop(test22());
     //compiler.compileTop(test23());
-    //compiler.compileTop(test30());
+    compiler.compileTop(test30());
 
     //compiler.compileTop(test40());
 

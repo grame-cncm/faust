@@ -1,11 +1,15 @@
 #include "TSignal.hh"
-
 #include "TSyntax.hh"
+
+#include <assert.h>
 
 extern int gVecSize;
 
 void TFloat::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
 {
+    // Type checking
+    //assert(address->getType().equal(
+
     block->fCode.push_back(MR_STORE(address, compileSample(index)));
 }
 
@@ -77,9 +81,12 @@ void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     int rate = getRate();
     TType* type = getType();
 
+    // Address type checking
+    CHECK_TYPE(address->getType(), type);
+
     // not shared
 
-
+    /*
     TIndex* var_k = MR_VAR(getFreshID("k"));
     TIndex* new_in = MR_ADD(MR_MUL(index, MR_INT(fSize)), var_k);
 
@@ -87,10 +94,10 @@ void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     TBlockStatement* sub_block = MR_BLOCK();
     fExp->compileStatement(sub_block, MR_INDEX_ADDRESS(address, var_k), new_in);
     block->fCode.push_back(MR_SUBLOOP(fSize, var_k, sub_block));
-
+    */
 
     // shared
-    //block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    block->fCode.push_back(MR_STORE(address, compileSample(index)));
 }
 
 TValue* TVectorize::compileSample(TIndex* index)
@@ -123,6 +130,9 @@ TValue* TVectorize::compileSample(TIndex* index)
     block->fCode.push_back(sub_loop);
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
+    // Output type checking
+    CHECK_TYPE(type, MR_INDEX_ADDRESS(new_out_vec, index)->getType());
+
     // Final value
     return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, index));
 }
@@ -135,11 +145,16 @@ void TSerialize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     assert(m > 0);
     int n = rate / m;
     TType* type = getType();
+    /*
     cout << " TSerialize::compileStatement " << "n: " <<  n << endl;
     type->generate(&cout, 0);
     cout << endl;
     address->generate(&cout, 0);
     cout << endl;
+    */
+
+    // Address type checking
+    CHECK_TYPE(address->getType(), type);
 
     // if not shared
 
@@ -183,6 +198,9 @@ TValue* TSerialize::compileSample(TIndex* index)
 
     gExternalBlock->fCode.push_back(MR_LOOP(n * m * gVecSize, var_j, sub_block2));
 
+    // Output type checking
+    CHECK_TYPE(type, MR_INDEX_ADDRESS(new_out_vec, index)->getType());
+
     // Final value
     return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, index));
 }
@@ -205,6 +223,9 @@ void TConcat::compileStatement(TBlockStatement* block, TAddress* address, TIndex
     TType* type2 = fExp2->getType();
     int size1 = type1->getSize();
     int size2 = type2->getSize();
+
+    // Address type checking
+    CHECK_TYPE(address->getType(), type);
 
     // if not shared
 
@@ -241,6 +262,9 @@ TValue* TConcat::compileSample(TIndex* index)
 
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
+    // Output type checking
+    CHECK_TYPE(type, MR_INDEX_ADDRESS(new_out_vec, index)->getType());
+
     // Final value
     return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, index));
 }
@@ -252,6 +276,8 @@ void TVectorAt::compileStatement(TBlockStatement* block, TAddress* address, TInd
 
 TValue* TVectorAt::compileSample(TIndex* index)
 {
+    TType* type = getType();
+
     TValue* res1 = fExp1->compileSample(index);
     TValue* res2 = fExp2->compileSample(index);
 
@@ -259,6 +285,9 @@ TValue* TVectorAt::compileSample(TIndex* index)
     TLoadValue* val = dynamic_cast<TLoadValue*>(res1);
 
     assert(id && val);
+
+    // Output type checking
+    CHECK_TYPE(type, MR_INDEX_ADDRESS(val->fAddress, MR_INT(id->fValue))->getType());
 
     return MR_LOAD(MR_INDEX_ADDRESS(val->fAddress, MR_INT(id->fValue)));
 }
@@ -305,6 +334,8 @@ void TDelayAt::compileStatement(TBlockStatement* block, TAddress* address, TInde
 
 TValue* TDelayAt::compileSample(TIndex* index)
 {
+    TType* type = getType();
+
     TDelayLine* delay_line = dynamic_cast<TDelayLine*>(fExp1);
     assert(delay_line);
 
@@ -312,6 +343,9 @@ TValue* TDelayAt::compileSample(TIndex* index)
 
     TValue* res2 = fExp2->compileSample(index);
     TIntValue* id = dynamic_cast<TIntValue*>(res2);
+
+    // Output type checking
+    CHECK_TYPE(type, MR_INDEX_ADDRESS(new_out_vec, MR_SUB(index, MR_INT(id->fValue)))->getType());
 
     return MR_LOAD(MR_INDEX_ADDRESS(new_out_vec, MR_SUB(index, MR_INT(id->fValue))));
 }

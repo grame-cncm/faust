@@ -32,7 +32,7 @@ TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddr
 TAddress* MR_SHIFT_ADDRESS(TAddress* address, TIndex* id) { return new TShiftAddress(address, id); }
 
 // Types
-TType* MR_VECTOR_TYPE(TType* type, int rate) { return new TVectorType(type, rate); }
+TType* MR_VECTOR_TYPE(TType* type, int size) { return new TVectorType(type, size); }
 TType* MR_INT_TYPE() { return new TIntType(); };
 TType* MR_FLOAT_TYPE() { return new TFloatType(); };
 TType* MR_CAST_TYPE(TType* type1, TType* type2) { return new TCastType(type1, type2); }
@@ -57,4 +57,15 @@ TPrimOpValue* MR_SUB(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "
 TPrimOpValue* MR_MUL(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "*"); }
 TPrimOpValue* MR_DIV(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "/"); }
 TPrimOpValue* MR_OP(TValue* v1, TValue* v2, const string& op)  { return new TPrimOpValue(v1, v2, op); }
+
+
+void CHECK_TYPE(TType* type1, TType* type2)
+{
+    cout << "CHECK_TYPE" << endl;
+    type1->generate(&cout, 0);
+    cout << endl;
+    type2->generate(&cout, 0);
+    cout << endl;
+    assert(type1->equal(type2));
+}
 

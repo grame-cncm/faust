@@ -25,8 +25,10 @@ struct TCompiler
         TIndex* var_in = MR_VAR("i");
         TAddress* out_address = MR_INDEX_ADDRESS(new_out_vec, var_in);
 
-        input_type->generate(&cout, 0);
-        out_address->generate(&cout, 0);
+        // Type checking
+        CHECK_TYPE(input_type, out_address->getType());
+
+        assert(input_type->equal(out_address->getType()));
 
         // Compilation
         TBlockStatement* sub_block = MR_BLOCK();
