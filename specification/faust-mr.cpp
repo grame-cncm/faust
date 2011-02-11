@@ -16,6 +16,11 @@ using namespace std;
 int gVecSize = 32;
 TBlockStatement* gExternalBlock = NULL;
 
+bool gPrim = true;
+bool gVec = true;
+bool gSer = true;
+bool gConcat = true;
+
 static void Display(const string& test)
 {
     cout << "====================="<< endl;
@@ -24,121 +29,161 @@ static void Display(const string& test)
 }
 
 // Not compatible type  (input ==> int)
-TSignal* test1()
+TSignal* test1(bool prim, bool vec, bool ser, bool concat)
 {
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;
+    gConcat = concat;
     Display("test1");
     return new TInt(5);
 }
 
-TSignal* test2()
+TSignal* test2(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test2");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test2");
     return new TFloat(10.f);
 }
 
-TSignal* test3()
+TSignal* test3(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test3");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test3");
     return new TInput(0, 1);
 }
 
-TSignal* test4()
+TSignal* test4(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test4");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test4");
     return new TPrimOp(new TInput(0, 1), new TInput(1, 1), "+");
 }
 
-TSignal* test5()
+TSignal* test5(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test5");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test5");
     return new TPrimOp(new TPrimOp(new TInput(0, 1), new TFloat(10.f), "+"), new TPrimOp(new TInput(0, 1), new TInput(1, 1), "+"), "*");
 }
 
-TSignal* test6()
+TSignal* test6(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test6");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test6");
     return new TPrimOp(new TPrimOp(new TInput(0, 1), new TFloat(10.f), "+"), new TFloat(10.f), "*");
 }
 
 // Not compatible type  (input ==> float[4])
-TSignal* test10()
+TSignal* test10(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test10");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test10");
     return new TVectorize(new TInput(0, 4), 4);
 }
 
-TSignal* test11()
+TSignal* test11(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test11");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test11");
     return new TSerialize(new TVectorize(new TInput(0, 4), 4));
 }
 
 // Not compatible type  (input ==> float[4][3])
-TSignal* test11bis()
+TSignal* test11bis(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test11bis");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test11bis");
     return new TVectorize(new TVectorize(new TInput(0, 12), 4), 3);
 }
 
-TSignal* test12()
+TSignal* test12(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test12");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test12");
     return new TSerialize(new TSerialize(new TVectorize(new TVectorize(new TInput(0, 12), 4), 3)));
 }
 
 // Not compatible type  (input ==> float[3])
-TSignal* test13()
+TSignal* test13(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test13");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test13");
     return new TVectorize(new TSerialize(new TVectorize(new TInput(0, 12), 4)), 3);
 }
 
 // Not compatible type  (input ==> float[4])
-TSignal* test14()
+TSignal* test14(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test14");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test14");
     return new TPrimOp(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 4), 4), "+");
 }
 
-TSignal* test15()
+TSignal* test15(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test15");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test15");
     return new TSerialize(new TPrimOp(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 4), 4), "+"));
 }
 
-TSignal* test16()
+TSignal* test16(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test16");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test16");
     return new TSerialize(new TSerialize(new TPrimOp(new TVectorize(new TVectorize(new TInput(0, 12), 4), 3), new TVectorize(new TVectorize(new TInput(1, 12), 4), 3), "+")));
 }
 
-TSignal* test21()
+TSignal* test21(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test21");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test21");
     return new TSerialize(new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3)));
 }
 
-TSignal* test22()
+TSignal* test22(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test22");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test22");
     return new TVectorAt(new TVectorize(new TInput(0, 4), 4), new TInt(3));
 }
 
-TSignal* test23()
+TSignal* test23(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test23");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test23");
     return new TVectorAt(new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3)), new TInt(3));
 }
 
-TSignal* test30()
+TSignal* test30(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test30");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test30");
     return new TDelayAt(new TDelayLine(new TInput(0, 1), 100), new TInt(3));
 }
 
-TSignal* test40()
+TSignal* test40(bool prim, bool vec, bool ser, bool concat)
 {
-    Display("test40");
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;    Display("test40");
     TRecGroup* rec_group = new TRecGroup("RecGroup1");
     rec_group->fCode.push_back(new TPrimOp(new TInput(0, 1), new TRecProj(rec_group, 0), "+"));
     rec_group->fCode.push_back(new TPrimOp(new TInput(1, 1), new TRecProj(rec_group, 1), "*"));
@@ -146,33 +191,44 @@ TSignal* test40()
     return new TRecProj(rec_group, 1);
 }
 
-
 int main()
 {
     TCompiler compiler;
 
     //compiler.compileTop(test1());
-    compiler.compileTop(test2());
-    compiler.compileTop(test3());
-    compiler.compileTop(test4());
-    compiler.compileTop(test5());
-    compiler.compileTop(test6());
+    //compiler.compileTop(test2(true, true, true, true));
+    //compiler.compileTop(test3(true, true, true, true));
+    //compiler.compileTop(test4(true, true, true, true));
+    //compiler.compileTop(test5(true, true, true, true));
+    //compiler.compileTop(test6(true, true, true, true));
 
-    //compiler.compileTop(test10());
-    compiler.compileTop(test11());
-    //compiler.compileTop(test11bis());
-    compiler.compileTop(test12());
-    //compiler.compileTop(test13());
-    //compiler.compileTop(test14());
-    compiler.compileTop(test15());
-    compiler.compileTop(test16());
+    //compiler.compileTop(test10(true, true, true, true));
+    //compiler.compileTop(test11(true, true, true, true));
 
-    compiler.compileTop(test21());
-    compiler.compileTop(test22());
-    //compiler.compileTop(test23());
-    compiler.compileTop(test30());
+    //compiler.compileTop(test11bis(true, true, true, true));
+    //compiler.compileTop(test12(true, true, true, true));
 
-    compiler.compileTop(test40());
+    //compiler.compileTop(test13(true, true, true, true));
+    //compiler.compileTop(test14(true, true, true, true));
+
+    compiler.compileTop(test15(true, true, true, true));
+    compiler.compileTop(test15(true, false, true, true));
+    compiler.compileTop(test15(true, true, false, true));
+    compiler.compileTop(test15(true, false, false, true));
+
+    compiler.compileTop(test15(false, true, true, true));
+    compiler.compileTop(test15(false, false, true, true));
+    compiler.compileTop(test15(false, true, false, true));
+    compiler.compileTop(test15(false, false, false, true));
+
+    //compiler.compileTop(test16(true, true, true, true));
+
+    //compiler.compileTop(test21(true, true, true, true));
+    //compiler.compileTop(test22(true, true, true, true));
+    //compiler.compileTop(test23(true, true, true, true));
+    //compiler.compileTop(test30(true, true, true, true));
+
+    //compiler.compileTop(test40(true, true, true, true));
 
 
 	return 0;

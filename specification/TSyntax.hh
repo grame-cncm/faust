@@ -52,6 +52,11 @@ TPrimOpValue* MR_OP(TValue* v1, TValue* v2, const string& op);
 
 void CHECK_TYPE(TType* type1, TType* type2);
 
+extern bool gPrim;
+extern bool gVec;
+extern bool gSer;
+extern bool gConcat;
+
 #endif
 
 
