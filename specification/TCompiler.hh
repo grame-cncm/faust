@@ -22,7 +22,12 @@ struct TCompiler
         TType* input_type = signal->getType();
         TType* output_type = MR_VECTOR_TYPE(MR_FLOAT_TYPE(), output_rate * gVecSize);
 
-        // assert output_type == input_type;
+        /*
+        input_type->generate(&cout, 0);
+        output_type->generate(&cout, 0);
+
+        assert(output_type->equal(input_type));
+        */
 
         TVector* new_out_vec = MR_VECTOR("output", output_type);
         TIndex* in = MR_VAR("i");

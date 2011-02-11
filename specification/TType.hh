@@ -15,6 +15,8 @@ struct TType : public TPrintable
 
     virtual bool equal(TType* type) = 0;
 
+    virtual TType* deref() = 0;
+
 };
 
 struct TTypable
@@ -39,6 +41,12 @@ struct TIntType : public TType
     {
         return dynamic_cast<TIntType*>(type);
     }
+
+    virtual TType* deref()
+    {
+        cerr << "Error : derefencing int type !!" << endl;
+        assert(false);
+    }
 };
 
 struct TFloatType : public TType
@@ -52,6 +60,12 @@ struct TFloatType : public TType
     virtual bool equal(TType* type)
     {
         return dynamic_cast<TFloatType*>(type);
+    }
+
+    virtual TType* deref()
+    {
+        cerr << "Error : derefencing float type !!" << endl;
+        assert(false);
     }
 };
 
@@ -74,6 +88,10 @@ struct TVectorType : public TType
         return vec_type && fSize == vec_type->fSize && fType->equal(vec_type->fType);
     }
 
+    virtual TType* deref()
+    {
+        return fType;
+    }
 };
 
 
@@ -115,6 +133,11 @@ struct TCastType : public TType
     virtual bool equal(TType* type)
     {
         return fNew->equal(type);
+    }
+
+    virtual TType* deref()
+    {
+        return fNew->deref();
     }
 };
 

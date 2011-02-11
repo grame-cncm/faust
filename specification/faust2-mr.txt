@@ -34,8 +34,7 @@ typeAddr : A ==> T
 
 typeAddr(W)             = T
 typeAddr(Cast(A, T))    = T
-typeAddr(Addr(A, I))    = typeIndexAddr(A)
-typeAddr(Shift(A, I))   = typeIndexAddr(A)
+typeAddr(A[I])          = typeIndexAddr(A)
 
 typeIndexAddr : T ==> T
 
@@ -264,7 +263,7 @@ CA[O, E1#E2, I] : A x E x Id ==> void
 if not shared (E1#E2) :
 
 +	CA[Cast(O[0],[n]T), E1, I]
-+	CA[Cast(O[n],[m]T), E2, I]  (here we "move" O by n..)
++	CA[Cast(O[n],[m]T), E2, I]  (here we "move" O by n...)
 
 if shared (E1#E2) :
 

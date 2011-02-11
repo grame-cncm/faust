@@ -208,11 +208,13 @@ void TConcat::compileStatement(TBlockStatement* block, TAddress* address, TIndex
 
     // if not shared
 
-    fExp1->compileStatement(block, MR_CAST_ADDRESS(address, type1), index);
-    fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_SHIFT_ADDRESS(address, MR_INT(size1)), type2), index);
+    /*
+    fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(0)), type1), index);
+    fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(size1)), type2), index);
+    */
 
     // if shared
-    //block->fCode.push_back(MR_STORE(address, compileSample(index)));
+    block->fCode.push_back(MR_STORE(address, compileSample(index)));
 }
 
 TValue* TConcat::compileSample(TIndex* index)
@@ -234,8 +236,8 @@ TValue* TConcat::compileSample(TIndex* index)
 
     MR_PUSH_BLOCK(block, MR_DEC(new_out_vec));
 
-    fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), type1), var_j);
-    fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_SHIFT_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(size1)), type2), var_j);
+    fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(0)), type1), var_j);
+    fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(size1)), type2), var_j);
 
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
@@ -290,7 +292,7 @@ TVector* TDelayLine::compile()
 
     MR_PUSH_BLOCK(block, MR_DEC(new_out_vec));
 
-    fExp->compileStatement(block, MR_SHIFT_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(fMaxDelay)), var_j);
+    fExp->compileStatement(block, MR_INDEX_ADDRESS(new_out_vec, MR_ADD(var_j, MR_INT(fMaxDelay))), var_j);
     gExternalBlock->fCode.push_back(MR_LOOP(rate * gVecSize, var_j, block));
 
     return new_out_vec;

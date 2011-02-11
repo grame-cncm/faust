@@ -45,14 +45,13 @@ struct TIndexAddress : public TAddress
     virtual void generate(ostream* dst, int n)
     {
         fAddress->generate(dst, n);
-        if (dynamic_cast<TVarIndex*>(fIndex)) {
-            *dst << "("; fIndex->generate(dst, n); *dst << ")";
-        } else {
-            fIndex->generate(dst, n);
-        }
+        *dst << "("; fIndex->generate(dst, n); *dst << ")";
     }
 
-    virtual TType* getType() { return fAddress->getType(); }
+    virtual TType* getType()
+    {
+        return fAddress->getType()->deref();
+    }
 };
 
 struct TCastAddress : public TAddress

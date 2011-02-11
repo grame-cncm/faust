@@ -116,7 +116,7 @@ TSignal* test16()
 TSignal* test21()
 {
     Display("test21");
-    return new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3));
+    return new TSerialize(new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3)));
 }
 
 TSignal* test22()
