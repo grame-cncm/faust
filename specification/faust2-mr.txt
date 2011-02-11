@@ -14,7 +14,7 @@ Id : access indexes
 Id : int | N | Binop(i1, i2)      (with Binop : +,-,*,/)
 
 E : signal expression
-E = InX | P(E1,..) | Num(x) | Vectorize(n,E) | Serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | Proj(n, g = (E0,E1,...))
+E = InX | P(E1,..) | Num(x) | Vectorize(n,E) | Serialize(E) | E1#E2 | E1[E2] | DL(E1)@E2 | Proj(n, g = (E0,E1,...)) | Decimate(n,o,E)
 
 A : address
 A : W | Cast(A, T) | A[I]

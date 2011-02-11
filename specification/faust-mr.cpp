@@ -161,6 +161,16 @@ TSignal* test15(bool prim, bool vec, bool ser, bool concat)
     return new TSerialize(new TPrimOp(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 4), 4), "+"));
 }
 
+TSignal* test15bis(bool prim, bool vec, bool ser, bool concat)
+{
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;
+    gConcat = concat;
+    Display("test15bis");
+    return new TPrimOp(new TSerialize(new TVectorize(new TInput(0, 4), 4)), new TSerialize(new TVectorize(new TInput(1, 4), 4)), "+");
+}
+
 TSignal* test16(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
@@ -245,21 +255,51 @@ int main()
     //compiler.compileTop(test13(true, true, true, true));
     //compiler.compileTop(test14(true, true, true, true));
 
-    compiler.compileTop(test15(true, true, true, true));
-    compiler.compileTop(test15(true, false, true, true));
-    compiler.compileTop(test15(true, true, false, true));
-    compiler.compileTop(test15(true, false, false, true));
+    //compiler.compileTop(test15(true, true, true, true));
+    //compiler.compileTop(test15(true, false, true, true));
+    //compiler.compileTop(test15(true, true, false, true));
+    //compiler.compileTop(test15(true, false, false, true));
 
-    compiler.compileTop(test15(false, true, true, true));
-    compiler.compileTop(test15(false, false, true, true));
-    compiler.compileTop(test15(false, true, false, true));
-    compiler.compileTop(test15(false, false, false, true));
+    //compiler.compileTop(test15(false, true, true, true));
+    //compiler.compileTop(test15(false, false, true, true));
+    //compiler.compileTop(test15(false, true, false, true));
+    //compiler.compileTop(test15(false, false, false, true));
+
+    //compiler.compileTop(test15bis(true, true, true, true));
+    //compiler.compileTop(test15bis(true, false, true, true));
+    //compiler.compileTop(test15bis(true, true, false, true));
+    //compiler.compileTop(test15bis(true, false, false, true));
+
+    //compiler.compileTop(test15bis(false, true, true, true));
+    //compiler.compileTop(test15bis(false, false, true, true));
+    //compiler.compileTop(test15bis(false, true, false, true));
+    //compiler.compileTop(test15bis(false, false, false, true));
 
     //compiler.compileTop(test16(true, true, true, true));
 
     //compiler.compileTop(test21(true, true, true, true));
+    //compiler.compileTop(test21(true, false, true, true));
+    //compiler.compileTop(test21(true, true, false, true));
+    //compiler.compileTop(test21(true, false, false, true));
+
+    //compiler.compileTop(test21(true, true, true, false));
+    //compiler.compileTop(test21(true, false, true, false));
+    //compiler.compileTop(test21(true, true, false, false));
+    //compiler.compileTop(test21(true, false, false, false));
+
+    //compiler.compileTop(test22(true, true, true, false));
+    //compiler.compileTop(test22(true, false, true, false));
+    //compiler.compileTop(test22(true, true, false, false));
+    //compiler.compileTop(test22(true, false, false, false));
+
+
     //compiler.compileTop(test22(true, true, true, true));
-    //compiler.compileTop(test23(true, true, true, true));
+
+    compiler.compileTop(test23(true, true, true, true));
+    compiler.compileTop(test23(true, false, true, true));
+    compiler.compileTop(test23(true, true, false, true));
+    compiler.compileTop(test23(true, false, false, true));
+
     //compiler.compileTop(test30(true, true, true, true));
 
     //compiler.compileTop(test40(true, true, true, true));
