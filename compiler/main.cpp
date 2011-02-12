@@ -349,7 +349,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2010, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2011, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 
