@@ -90,9 +90,11 @@ class InstructionsCompiler {
 
         /* wrapper functions to access code container */
         StatementInst* pushInitMethod(StatementInst* inst)              { return fContainer->pushInitMethod(inst); }
+        StatementInst* pushPostInitMethod(StatementInst* inst)          { return fContainer->pushPostInitMethod(inst); }
         StatementInst* pushFrontInitMethod(StatementInst* inst)         { return fContainer->pushFrontInitMethod(inst); }
         StatementInst* pushDestroyMethod(StatementInst* inst)           { return fContainer->pushDestroyMethod(inst); }
         StatementInst* pushStaticInitMethod(StatementInst* inst)        { return fContainer->pushStaticInitMethod(inst); }
+        StatementInst* pushPostStaticInitMethod(StatementInst* inst)    { return fContainer->pushPostStaticInitMethod(inst); }
         StatementInst* pushComputeBlockMethod(StatementInst* inst)      { return fContainer->pushComputeBlockMethod(inst); }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst)     { return fContainer->pushUserInterfaceMethod(inst); }
 

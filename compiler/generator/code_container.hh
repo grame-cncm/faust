@@ -66,12 +66,14 @@ class CodeContainer {
 
         // Init method
         BlockInst* fInitInstructions;
+        BlockInst* fPostInitInstructions;
 
         // To be used in delete method
         BlockInst* fDestroyInstructions;
 
         // Static init method
         BlockInst* fStaticInitInstructions;
+        BlockInst* fPostStaticInitInstructions;
 
         // Compute method
         BlockInst* fComputeBlockInstructions;
@@ -230,12 +232,20 @@ class CodeContainer {
             if (fInitInstructions->fCode.size() > 0) {
                 fInitInstructions->accept(visitor);
             }
+
+            if (fPostInitInstructions->fCode.size() > 0) {
+                fPostInitInstructions->accept(visitor);
+            }
         }
 
         void generateStaticInit(InstVisitor* visitor)
         {
             if (fStaticInitInstructions->fCode.size() > 0) {
                 fStaticInitInstructions->accept(visitor);
+            }
+
+            if (fPostStaticInitInstructions->fCode.size() > 0) {
+                fPostStaticInitInstructions->accept(visitor);
             }
         }
 
@@ -268,9 +278,11 @@ class CodeContainer {
         }
 
         StatementInst* pushInitMethod(StatementInst* inst) { fInitInstructions->pushBackInst(inst); return inst; }
+        StatementInst* pushPostInitMethod(StatementInst* inst) { fPostInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushFrontInitMethod(StatementInst* inst) { fInitInstructions->pushFrontInst(inst); return inst; }
         StatementInst* pushDestroyMethod(StatementInst* inst) { fDestroyInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushStaticInitMethod(StatementInst* inst) { fStaticInitInstructions->pushBackInst(inst); return inst; }
+        StatementInst* pushPostStaticInitMethod(StatementInst* inst) { fPostStaticInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushComputeBlockMethod(StatementInst* inst) { fComputeBlockInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }
 
