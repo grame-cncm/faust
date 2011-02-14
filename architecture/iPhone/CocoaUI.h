@@ -30,9 +30,6 @@
 	that work under terms of your choice, so long as this FAUST
 	architecture section is not modified.
 
-	MAX MSP SDK : in order to compile a MaxMSP external with this
-	architecture file you will need the official MaxMSP SDK from
-	cycling'74. Please check the corresponding license.
 
  ************************************************************************
  ************************************************************************/
