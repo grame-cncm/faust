@@ -85,7 +85,7 @@ static Tree simplification (Tree sig)
 {
 	assert(sig);
 	int		opnum;
-	Tree	t1, t2;
+	Tree    t1, t2, t3, t4;
 
 	xtended* xt = (xtended*) getUserData(sig);
 	// primitive elements
@@ -158,14 +158,33 @@ static Tree simplification (Tree sig)
 
 		return sig;
 
-	} else {
+    } else if (isSigSelect2(sig, t1, t2, t3)){
 
-		return sig;
-	}
+         Node n1 = t1->node();
+
+         if (isZero(n1)) return t2;
+         if (isNum(n1))  return t3;
+
+         if (t2==t3) return t2;
+
+         return sig;
+
+    } else if (isSigSelect3(sig, t1, t2, t3, t4)){
+
+         Node n1 = t1->node();
+
+         if (isZero(n1)) return t2;
+         if (isOne(n1))  return t3;
+         if (isNum(n1))  return t4;
+
+         if (t3==t4 && t2==t3) return t2;
+
+         return sig;
+
+    } else {
+        return sig;
+    }
 }
-
-
-
 
 #if 0
 static void eraseProperties (Tree key, Tree t)
