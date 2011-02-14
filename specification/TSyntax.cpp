@@ -59,11 +59,13 @@ TPrimOpValue* MR_OP(TValue* v1, TValue* v2, const string& op)  { return new TPri
 
 void CHECK_TYPE(TType* type1, TType* type2)
 {
+    /*
     cout << "CHECK_TYPE" << endl;
     type1->generate(&cout, 0);
     cout << endl;
     type2->generate(&cout, 0);
     cout << endl;
     assert(type1->equal(type2));
+    */
 }
 

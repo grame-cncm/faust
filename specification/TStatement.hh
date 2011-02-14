@@ -14,6 +14,7 @@ struct TStatement : public TPrintable
     virtual ~TStatement() {}
 
     virtual void generate(ostream* dst, int n) = 0;
+    virtual void generateCPP(ostream* dst, int n) = 0;
 };
 
 struct TDeclareStatement : public TStatement
@@ -24,6 +25,7 @@ struct TDeclareStatement : public TStatement
     virtual ~TDeclareStatement() {}
 
     virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
 };
 
 struct TStoreStatement : public TStatement
@@ -34,6 +36,7 @@ struct TStoreStatement : public TStatement
     TStoreStatement(TAddress* address, TValue* value):fAddress(address), fValue(value){}
 
     virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
 };
 
 struct TBlockStatement : public TStatement
@@ -41,6 +44,7 @@ struct TBlockStatement : public TStatement
     vector<TStatement*> fCode;
 
     virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
 };
 
 struct TLoopStatement : public TStatement
@@ -52,6 +56,7 @@ struct TLoopStatement : public TStatement
     TLoopStatement(int size, TIndex* index, TBlockStatement* code):fSize(size), fIndex(index), fCode(code) {}
 
     virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
 
 };
 
@@ -60,6 +65,7 @@ struct TSubLoopStatement : public TLoopStatement
     TSubLoopStatement(int size, TIndex* index, TBlockStatement* code):TLoopStatement(size, index, code) {}
 
     virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
 
 };
 
@@ -71,6 +77,7 @@ struct TIfStatement : public TStatement
     TIfStatement(TIndex* index, TBlockStatement* code):fIndex(index), fCode(code) {}
 
     virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
 
 };
 

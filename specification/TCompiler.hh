@@ -6,6 +6,7 @@
 
 extern int gVecSize;
 extern TBlockStatement* gExternalBlock;
+extern TBlockStatement* gDecBlock;
 
 struct TCompiler
 {
@@ -33,10 +34,12 @@ struct TCompiler
         // Compilation
         TBlockStatement* sub_block = MR_BLOCK();
         gExternalBlock = MR_BLOCK();
+        gDecBlock = MR_BLOCK();
         signal->compileStatement(sub_block, out_address, var_in);
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, var_in, sub_block);
 
         // Code generation
+        /*
         cout << endl << "-----------------" << endl;
         cout << "Separated loops" << endl;
         cout << "-----------------" << endl;
@@ -45,6 +48,24 @@ struct TCompiler
         cout << "Result" << endl;
         cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
+        cout << endl;
+        */
+
+
+        cout << endl << "// -----------------" << endl;
+        cout << "// Declaration block" << endl;
+        cout << "// -----------------" << endl;
+        gDecBlock->generateCPP(&cout, 0);
+
+        cout << endl << endl  << "// -----------------" << endl;
+        cout << "// Separated loops" << endl;
+        cout << "// -----------------" << endl;
+        gExternalBlock->generateCPP(&cout, 0);
+
+        cout << endl << "// -----------------" << endl;
+        cout << "// Result" << endl;
+        cout << "// -----------------" << endl;
+        global_loop->generateCPP(&cout, 0);
         cout << endl;
     }
 

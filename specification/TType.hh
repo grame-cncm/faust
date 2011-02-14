@@ -10,6 +10,7 @@ struct TType : public TPrintable
     virtual ~TType () {}
 
 	virtual void generate(ostream* dst, int n) = 0;
+    virtual void generateCPP(ostream* dst, int n) = 0;
 
     virtual int getSize()  = 0;
 
@@ -34,6 +35,7 @@ struct TIntType : public TType
     virtual ~TIntType() {}
 
 	virtual void generate(ostream* dst, int n) { *dst << "int"; }
+    virtual void generateCPP(ostream* dst, int n) { *dst << "int"; }
 
     virtual int getSize() { return 0; }
 
@@ -54,6 +56,7 @@ struct TFloatType : public TType
     virtual ~TFloatType() {}
 
 	virtual void generate(ostream* dst, int n) { *dst << "float"; }
+    virtual void generateCPP(ostream* dst, int n) { *dst << "float"; }
 
     virtual int getSize() { return 0; }
 
@@ -79,6 +82,7 @@ struct TVectorType : public TType
     virtual ~TVectorType() {}
 
 	virtual void generate(ostream* dst, int n) { fType->generate(dst, n); *dst << "[" << fSize << "]";  }
+    virtual void generateCPP(ostream* dst, int n) { fType->generateCPP(dst, n); *dst << "[" << fSize << "]";  }
 
     virtual int getSize() { return fSize; }
 

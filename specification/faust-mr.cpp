@@ -15,6 +15,7 @@ using namespace std;
 
 int gVecSize = 32;
 TBlockStatement* gExternalBlock = NULL;
+TBlockStatement* gDecBlock = NULL;
 
 bool gPrim = true;
 bool gVec = true;
@@ -247,7 +248,7 @@ int main()
     //compiler.compileTop(test6(true, true, true, true));
 
     //compiler.compileTop(test10(true, true, true, true));
-    //compiler.compileTop(test11(true, true, true, true));
+    compiler.compileTop(test11(true, true, true, true));
 
     //compiler.compileTop(test11bis(true, true, true, true));
     //compiler.compileTop(test12(true, true, true, true));
@@ -295,10 +296,10 @@ int main()
 
     //compiler.compileTop(test22(true, true, true, true));
 
-    compiler.compileTop(test23(true, true, true, true));
-    compiler.compileTop(test23(true, false, true, true));
-    compiler.compileTop(test23(true, true, false, true));
-    compiler.compileTop(test23(true, false, false, true));
+    //compiler.compileTop(test23(true, true, true, true));
+    //compiler.compileTop(test23(true, false, true, true));
+    //compiler.compileTop(test23(true, true, false, true));
+    //compiler.compileTop(test23(true, false, false, true));
 
     //compiler.compileTop(test30(true, true, true, true));
 

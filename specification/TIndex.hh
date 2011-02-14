@@ -10,6 +10,7 @@ struct TIndex : public TPrintable
     virtual ~TIndex() {}
 
     virtual void generate(ostream* dst, int n) = 0;
+    virtual void generateCPP(ostream* dst, int n) = 0;
 };
 
 struct TVarIndex : public TIndex
@@ -24,6 +25,11 @@ struct TVarIndex : public TIndex
     {
         *dst << fName;
     }
+
+    virtual void generateCPP(ostream* dst, int n)
+    {
+        *dst << fName;
+    }
 };
 
 struct TIntIndex : public TIndex
@@ -35,6 +41,11 @@ struct TIntIndex : public TIndex
     virtual ~TIntIndex() {}
 
     virtual void generate(ostream* dst, int n)
+    {
+        *dst << fIndex;
+    }
+
+    virtual void generateCPP(ostream* dst, int n)
     {
         *dst << fIndex;
     }
@@ -56,6 +67,15 @@ struct TBinOpIndex : public TIndex
         fExp1->generate(dst, n);
         *dst << fOp;
         fExp2->generate(dst, n);
+        *dst << ")";
+    }
+
+    virtual void generateCPP(ostream* dst, int n)
+    {
+        *dst << "(";
+        fExp1->generateCPP(dst, n);
+        *dst << fOp;
+        fExp2->generateCPP(dst, n);
         *dst << ")";
     }
 };

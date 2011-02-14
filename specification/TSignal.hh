@@ -13,6 +13,7 @@ struct TBlockStatement;
 
 extern int gVecSize;
 extern TBlockStatement* gExternalBlock;
+extern TBlockStatement* gDecBlock;
 
 struct TSignal : public TTypable, public TRateable
 {

@@ -22,6 +22,7 @@ struct TNullValue : public TValue
 	virtual TType* getType() { assert(false); }
 
     virtual void generate(ostream* dst, int n) { *dst << "NullValue"; }
+    virtual void generateCPP(ostream* dst, int n) { *dst << "NullValue"; }
 
 };
 
@@ -34,6 +35,7 @@ struct TFloatValue : public TValue
 	virtual TType* getType() { return new TFloatType(); }
 
     virtual void generate(ostream* dst, int n) { *dst << fValue; }
+    virtual void generateCPP(ostream* dst, int n) { *dst << fValue; }
 
 };
 
@@ -46,6 +48,7 @@ struct TIntValue : public TValue
 	virtual TType* getType() { return new TIntType(); }
 
     virtual void generate(ostream* dst, int n) { *dst << fValue; }
+    virtual void generateCPP(ostream* dst, int n) { *dst << fValue; }
 
 };
 
@@ -60,6 +63,7 @@ struct TVarValue : public TValue
 	virtual TType* getType() = 0;
 
     virtual void generate(ostream* dst, int n) { *dst << fName; }
+    virtual void generateCPP(ostream* dst, int n) { *dst << fName; }
 
 };
 
@@ -72,6 +76,7 @@ struct TLoadValue : public TValue
 	virtual TType* getType() { return fAddress->getType(); }
 
     virtual void generate(ostream* dst, int n) { fAddress->generate(dst, n); }
+    virtual void generateCPP(ostream* dst, int n) { fAddress->generateCPP(dst, n); }
 
 };
 
@@ -87,6 +92,7 @@ struct TVectorValue : public TValue
 	virtual TType* getType() { return new TVectorType(fValue->getType(), fSize); }
 
     virtual void generate(ostream* dst, int n) { fValue->generate(dst, n); tab(n, *dst);; *dst << "[" << fSize << "]";}
+    virtual void generateCPP(ostream* dst, int n) { fValue->generateCPP(dst, n); tab(n, *dst);; *dst << "[" << fSize << "]";}
 
 };
 
@@ -101,6 +107,7 @@ struct TPrimOpValue : public TValue
 	virtual TType* getType() { return fVal1->getType(); } // Here assume a PrimOp that keeps the same type
 
     virtual void generate(ostream* dst, int n) { fVal1->generate(dst, n); *dst << " " << fOp << " "; fVal2->generate(dst, n);}
+    virtual void generateCPP(ostream* dst, int n) { fVal1->generateCPP(dst, n); *dst << " " << fOp << " "; fVal2->generateCPP(dst, n);}
 
 };
 
