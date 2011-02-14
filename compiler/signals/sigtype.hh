@@ -128,6 +128,11 @@ class AudioType
             ->promoteBoolean(rhs->boolean())
             ->promoteInterval(rhs->getInterval());
     }
+
+    virtual int dimension() const
+    {
+        return 0;
+    }
 };
 
 //printing
@@ -364,6 +369,11 @@ public:
 
     AudioType * dereferenceType(void)   { return fType; }
     int size(void) const                { return fSize; }
+
+    int dimension() const
+    {
+        return dimensions().size();
+    }
 
     std::vector<int> dimensions() const
     {
