@@ -209,7 +209,7 @@ TSignal* test23(bool prim, bool vec, bool ser, bool concat)
     gSer = ser;
     gConcat = concat;
     Display("test23");
-    return new TVectorAt(new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3)), new TInt(3));
+    return new TVectorAt(new TConcat(new TVectorize(new TInput(0, 4), 4), new TVectorize(new TInput(1, 3), 3)), new TInt(0));
 }
 
 TSignal* test30(bool prim, bool vec, bool ser, bool concat)

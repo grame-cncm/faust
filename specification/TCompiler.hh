@@ -37,7 +37,7 @@ struct TCompiler
         signal->compileStatement(sub_block, out_address, var_in);
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, var_in, sub_block);
 
-
+        /*
         // Pseudo code generation
         cout << endl << "-----------------" << endl;
         cout << "Separated loops" << endl;
@@ -48,7 +48,7 @@ struct TCompiler
         cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
         cout << endl;
-
+        */
 
         // C++ code generation
         cout << "#include <stdio.h>" << endl;
@@ -56,13 +56,14 @@ struct TCompiler
 
         cout << "void process() {" << endl;
 
-        cout << "float input0[32];" << endl;
-        cout << "float input1[32];" << endl;
-        cout << "float input2[32];" << endl;
-        cout << "float input3[32];" << endl;
-        cout << "float output[32];" << endl;
+        cout << "float input0[32 * 16];" << endl;  // Should use real input rate....
+        cout << "float input1[32 * 16];" << endl;
+        cout << "float input2[32 * 16];" << endl;
+        cout << "float input3[32 * 16];" << endl;
+        cout << "float output[32 * 16];" << endl;
 
-        cout << "for (int i = 0; i < 32; i++) {" << endl;
+        // Should use real input rate....
+        cout << "for (int i = 0; i < 32 * 16; i++) {" << endl;
         cout << "    input0[i] = float(i);" << endl;
         cout << "    input1[i] = float(i);" << endl;
         cout << "    input2[i] = float(i);" << endl;
