@@ -32,7 +32,7 @@ void TInput::compileStatement(TBlockStatement* block, TAddress* address, TIndex*
 
 TValue* TInput::compileSample(TIndex* index)
 {
-    return MR_LOAD(MR_INDEX_ADDRESS(MR_VECTOR(subst("input$0", T(fIndex)), MR_VECTOR_TYPE(getType(), getRate() * gVecSize)), index));
+    return MR_LOAD(MR_INDEX_ADDRESS(MR_VECTOR(subst("input$0", T(fIndex)), getType(), getRate() * gVecSize), index));
 }
 
 void TPrimOp::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
@@ -52,7 +52,7 @@ TValue* TPrimOp::compileSample(TIndex* index)
         TType* type = getType();
 
         TIndex* var_j = MR_VAR(getFreshID("j"));
-        TVector* new_out_vec = MR_VECTOR(getFreshID("BinOp"), MR_VECTOR_TYPE(type, rate * gVecSize));
+        TVector* new_out_vec = MR_VECTOR(getFreshID("BinOp"), type, rate * gVecSize);
 
         // Internal block
         TBlockStatement* loop_code_block = MR_BLOCK();
@@ -96,6 +96,8 @@ void TVectorize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     }
 }
 
+TType* TVectorize::getType() { return MR_VECTOR_TYPE(fExp->getType(), fSize); }
+
 TValue* TVectorize::compileSample(TIndex* index)
 {
     // T = type(E)
@@ -108,7 +110,7 @@ TValue* TVectorize::compileSample(TIndex* index)
     TType* type = getType();
 
     // Declare output
-    TVector* new_out_vec = MR_VECTOR(getFreshID("Vectorize"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TVector* new_out_vec = MR_VECTOR(getFreshID("Vectorize"), type, rate * gVecSize);
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -149,6 +151,7 @@ void TSerialize::compileStatement(TBlockStatement* block, TAddress* address, TIn
     if (!gSer) {
         TBlockStatement* sub_block = MR_BLOCK();
         TIndex* new_in = MR_DIV(index, MR_INT(n));
+        MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(MR_VECTOR_TYPE(type, n)));
         fExp->compileStatement(sub_block,
                             MR_CAST_ADDRESS(address, MR_VECTOR_TYPE(type, n)),
                             new_in);
@@ -166,7 +169,7 @@ TValue* TSerialize::compileSample(TIndex* index)
     TType* type = getType();
 
     // Declare output
-    TVector* new_out_vec = MR_VECTOR(getFreshID("Serialize"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TVector* new_out_vec = MR_VECTOR(getFreshID("Serialize"), type, rate * gVecSize);
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -175,7 +178,7 @@ TValue* TSerialize::compileSample(TIndex* index)
     TIndex* new_in = MR_DIV(var_j, MR_INT(n));
 
     MR_PUSH_BLOCK(gDecBlock, MR_DEC(new_out_vec));
-
+    MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(MR_VECTOR_TYPE(type, n)));
     fExp->compileStatement(sub_block,
                         MR_CAST_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_VECTOR_TYPE(type, n)),
                         new_in);
@@ -216,6 +219,8 @@ void TConcat::compileStatement(TBlockStatement* block, TAddress* address, TIndex
 
     // if not shared
     if (!gConcat) {
+        MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(type1));
+        MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(type2));
         fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(0)), type1), index);
         fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(address, MR_INT(size1)), type2), index);
     } else {
@@ -234,7 +239,7 @@ TValue* TConcat::compileSample(TIndex* index)
     int size2 = type2->getSize();
 
     // Declare output
-    TVector* new_out_vec = MR_VECTOR(getFreshID("Concat"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TVector* new_out_vec = MR_VECTOR(getFreshID("Concat"), type, rate * gVecSize);
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -296,7 +301,7 @@ TVector* TDelayLine::compile()
     // fMaxDelay is small
 
     // Declare output
-    TVector* new_out_vec = MR_VECTOR(getFreshID("DelayLine"), MR_VECTOR_TYPE(type, rate * gVecSize));
+    TVector* new_out_vec = MR_VECTOR(getFreshID("DelayLine"), type, rate * gVecSize);
 
     // TODO : fill DL
 
@@ -376,7 +381,7 @@ TValue* TRecGroup::compileSample(TIndex* index)
             if (TRecGroup::gRecProjCompEnv.find(rec_proj) != TRecGroup::gRecProjCompEnv.end()) {
                 new_out_vec = TRecGroup::gRecProjCompEnv[rec_proj];
             } else {
-                new_out_vec = MR_VECTOR(rec_proj, MR_VECTOR_TYPE(type, rate * gVecSize));
+                new_out_vec = MR_VECTOR(rec_proj, type, rate * gVecSize);
                 MR_PUSH_BLOCK(gDecBlock, MR_DEC(new_out_vec));
                 TRecGroup::gRecProjCompEnv[rec_proj] = new_out_vec;  // Insert compiled projection
                 (*it)->compileStatement(block, MR_INDEX_ADDRESS(new_out_vec, var_j) , var_j);

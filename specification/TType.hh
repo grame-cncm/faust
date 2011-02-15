@@ -2,8 +2,11 @@
 #define __TType__
 
 #include "TPrintable.hh"
+#include "Text.hh"
 
 #include <assert.h>
+
+string getFreshID(const string& prefix);
 
 struct TType : public TPrintable
 {
@@ -11,6 +14,7 @@ struct TType : public TPrintable
 
 	virtual void generate(ostream* dst, int n) = 0;
     virtual void generateCPP(ostream* dst, int n) = 0;
+    virtual void generateDef(ostream* dst, int n) = 0;
 
     virtual int getSize()  = 0;
 
@@ -36,6 +40,7 @@ struct TIntType : public TType
 
 	virtual void generate(ostream* dst, int n) { *dst << "int"; }
     virtual void generateCPP(ostream* dst, int n) { *dst << "int"; }
+    virtual void generateDef(ostream* dst, int n) {}
 
     virtual int getSize() { return 0; }
 
@@ -46,7 +51,7 @@ struct TIntType : public TType
 
     virtual TType* deref()
     {
-        cerr << "Error : derefencing int type !!" << endl;
+        cerr << "Error : dereferencing int type !!" << endl;
         assert(false);
     }
 };
@@ -57,6 +62,7 @@ struct TFloatType : public TType
 
 	virtual void generate(ostream* dst, int n) { *dst << "float"; }
     virtual void generateCPP(ostream* dst, int n) { *dst << "float"; }
+    virtual void generateDef(ostream* dst, int n) {}
 
     virtual int getSize() { return 0; }
 
@@ -67,7 +73,7 @@ struct TFloatType : public TType
 
     virtual TType* deref()
     {
-        cerr << "Error : derefencing float type !!" << endl;
+        cerr << "Error : dereferencing float type !!" << endl;
         assert(false);
     }
 };
@@ -76,13 +82,34 @@ struct TVectorType : public TType
 {
     TType* fType;
     int fSize;
+    string fDecName;
+    bool fGenerated;
 
-    TVectorType(TType* type, int size):fType(type), fSize(size) {}
+    TVectorType(TType* type, int size):fType(type), fSize(size)
+    {
+        fDecName = getFreshID("VecType");
+        //fType->generate(&cout, 0);
+        //cout << "TVectorType " << fDecName << " " << size << endl;
+        fGenerated = false;
+    }
 
     virtual ~TVectorType() {}
 
 	virtual void generate(ostream* dst, int n) { fType->generate(dst, n); *dst << "[" << fSize << "]";  }
-    virtual void generateCPP(ostream* dst, int n) { fType->generateCPP(dst, n); *dst << "[" << fSize << "]";  }
+    virtual void generateCPP(ostream* dst, int n)
+    {
+        *dst  << fDecName;
+    }
+
+    virtual void generateDef(ostream* dst, int n)
+    {
+        if (!fGenerated) {
+            fType->generateDef(dst, n+1);
+            *dst << endl;
+            *dst << "struct " << fDecName; *dst << " {" << endl; fType->generateCPP(dst, n+1);  *dst << " f" << "[" << fSize << "];" << endl; *dst << "};";
+            fGenerated = true;
+        }
+    }
 
     virtual int getSize() { return fSize; }
 

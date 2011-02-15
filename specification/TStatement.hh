@@ -28,6 +28,17 @@ struct TDeclareStatement : public TStatement
     virtual void generateCPP(ostream* dst, int n);
 };
 
+struct TDeclareTypeStatement : public TStatement
+{
+    TType* fType;
+
+    TDeclareTypeStatement(TType* type):fType(type) {}
+    virtual ~TDeclareTypeStatement() {}
+
+    virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
+};
+
 struct TStoreStatement : public TStatement
 {
     TAddress* fAddress;

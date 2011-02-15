@@ -24,12 +24,13 @@ TType*  MR_INT_TYPE();
 TType*  MR_FLOAT_TYPE();
 
 // Address language
-TVector* MR_VECTOR(const string& name, TType* type);
+TVector* MR_VECTOR(const string& name, TType* type, int size);
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id);
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type);
 
 // Statement language
 TDeclareStatement* MR_DEC(TVector* vector);
+TDeclareTypeStatement* MR_DEC_TYPE(TType* type);
 TBlockStatement* MR_BLOCK();
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement);
 TStoreStatement* MR_STORE(TAddress* addr, TValue* val);

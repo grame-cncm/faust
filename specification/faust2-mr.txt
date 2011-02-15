@@ -8,7 +8,7 @@ T = int | float | [n]T
 N : symbolic name
 
 W : vector
-W : T N
+W : T n N
 
 Id : access indexes
 Id : int | N | Binop(i1, i2)      (with Binop : +,-,*,/)
@@ -32,7 +32,7 @@ An address A has a type given with typeAddr : A ==> T
 
 typeAddr : A ==> T
 
-typeAddr(W)             = T
+typeAddr(W = T n N)     = [n]T
 typeAddr(Cast(A, T))    = T
 typeAddr(A[I])          = typeIndexAddr(A)
 

@@ -94,7 +94,7 @@ struct TVectorize : public TSignal
 
     // T = type(E)
     // T[n] = type(vectorize(E))
-    virtual TType* getType() { return new TVectorType(fExp->getType(), fSize); }
+    virtual TType* getType();
 
     // n * m = rate(E)
     // m = rate(vectorize(E))

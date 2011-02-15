@@ -18,14 +18,16 @@ struct TVector : public TAddress
 {
     TType* fType;
     string fName;
+    int fSize;
 
-    TVector(const string& name, TType* type):fName(name), fType(type){}
+    TVector(const string& name, TType* type, int size):fName(name), fType(type), fSize(size){}
 
     virtual ~TVector() {}
 
     virtual void generate(ostream* dst, int n)
     {
         fType->generate(dst, n);
+        *dst << "[" << fSize << "]";
         *dst << " " << fName;
     }
 
@@ -56,12 +58,18 @@ struct TIndexAddress : public TAddress
     virtual void generateCPP(ostream* dst, int n)
     {
         fAddress->generateCPP(dst, n);
-        *dst << "["; fIndex->generateCPP(dst, n); *dst << "]";
+        if (dynamic_cast<TIndexAddress*>(fAddress)) {
+            *dst << ".f[";
+        } else {
+            *dst << "[";
+        }
+        fIndex->generateCPP(dst, n);
+        *dst << "]";
     }
 
     virtual TType* getType()
     {
-        return fAddress->getType()->deref();
+        return fAddress->getType();
     }
 };
 
@@ -83,10 +91,11 @@ struct TCastAddress : public TAddress
 
     virtual void generateCPP(ostream* dst, int n)
     {
-        *dst << "(";
+        *dst << "(*(";
         fType->generateCPP(dst, n);
-        *dst << ")";
+        *dst << "*)&(";
         fAddress->generateCPP(dst, n);
+        *dst << "))";
     }
 
     virtual TType* getType() { return fType; }

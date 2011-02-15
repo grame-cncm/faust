@@ -89,7 +89,7 @@ struct TVectorValue : public TValue
 
     virtual ~TVectorValue() {}
 
-	virtual TType* getType() { return new TVectorType(fValue->getType(), fSize); }
+	virtual TType* getType();
 
     virtual void generate(ostream* dst, int n) { fValue->generate(dst, n); tab(n, *dst);; *dst << "[" << fSize << "]";}
     virtual void generateCPP(ostream* dst, int n) { fValue->generateCPP(dst, n); tab(n, *dst);; *dst << "[" << fSize << "]";}

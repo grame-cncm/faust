@@ -24,9 +24,9 @@ bool gConcat = true;
 
 static void Display(const string& test)
 {
-    cout << "====================="<< endl;
-    cout << test<< endl;
-    cout << "====================="<< endl;
+    cout << "// ====================="<< endl;
+    cout << "// "<< test<< endl;
+    cout << "// ====================="<< endl;
 }
 
 // Not compatible type  (input ==> int)
@@ -248,10 +248,13 @@ int main()
     //compiler.compileTop(test6(true, true, true, true));
 
     //compiler.compileTop(test10(true, true, true, true));
-    compiler.compileTop(test11(true, true, true, true));
+    //compiler.compileTop(test11(true, true, true, true));
 
     //compiler.compileTop(test11bis(true, true, true, true));
     //compiler.compileTop(test12(true, true, true, true));
+    compiler.compileTop(test12(true, false, true, true));
+    //compiler.compileTop(test12(true, true, false, true));
+    //compiler.compileTop(test12(true, false, false, true));
 
     //compiler.compileTop(test13(true, true, true, true));
     //compiler.compileTop(test14(true, true, true, true));

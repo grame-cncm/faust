@@ -21,8 +21,7 @@ struct TCompiler
     {
         int output_rate = signal->getRate();
         TType* input_type = signal->getType();
-        TType* output_type = MR_VECTOR_TYPE(MR_FLOAT_TYPE(), output_rate * gVecSize);
-        TVector* new_out_vec = MR_VECTOR("output", output_type);
+        TVector* new_out_vec = MR_VECTOR("output", MR_FLOAT_TYPE(), output_rate * gVecSize);
         TIndex* var_in = MR_VAR("i");
         TAddress* out_address = MR_INDEX_ADDRESS(new_out_vec, var_in);
 
@@ -38,8 +37,8 @@ struct TCompiler
         signal->compileStatement(sub_block, out_address, var_in);
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, var_in, sub_block);
 
-        // Code generation
         /*
+        // Pseudo code generation
         cout << endl << "-----------------" << endl;
         cout << "Separated loops" << endl;
         cout << "-----------------" << endl;
@@ -51,6 +50,26 @@ struct TCompiler
         cout << endl;
         */
 
+        // C++ code generation
+        cout << "#include <stdio.h>" << endl;
+        cout << "#include <string.h>" << endl;
+
+        cout << "void process() {" << endl;
+
+        cout << "float input0[32];" << endl;
+        cout << "float input1[32];" << endl;
+        cout << "float input2[32];" << endl;
+        cout << "float input3[32];" << endl;
+        cout << "float output[32];" << endl;
+
+        cout << "for (int i = 0; i < 32; i++) {" << endl;
+        cout << "    input0[i] = float(i);" << endl;
+        cout << "    input1[i] = float(i);" << endl;
+        cout << "    input2[i] = float(i);" << endl;
+        cout << "    input3[i] = float(i);" << endl;
+        cout << "}" << endl;
+
+        cout << " memset(output, 0, sizeof(float) * 32);" << endl;
 
         cout << endl << "// -----------------" << endl;
         cout << "// Declaration block" << endl;
@@ -67,6 +86,17 @@ struct TCompiler
         cout << "// -----------------" << endl;
         global_loop->generateCPP(&cout, 0);
         cout << endl;
+
+        cout << "for (int i = 0; i < 32; i++) {" << endl;
+        cout << "    printf(\"output %f \\n\", output[i]);" << endl;
+        cout << "}" << endl;
+
+        cout << "}" << endl;
+
+        cout << "int main() {" << endl;
+        cout << "    process();" << endl;
+        cout << "}" << endl;
+
     }
 
 };
