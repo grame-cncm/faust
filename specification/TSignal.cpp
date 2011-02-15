@@ -248,6 +248,9 @@ TValue* TConcat::compileSample(TIndex* index)
 
     MR_PUSH_BLOCK(gDecBlock, MR_DEC(new_out_vec));
 
+    MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(type1));
+    MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(type2));
+
     fExp1->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(0)), type1), var_j);
     fExp2->compileStatement(block, MR_CAST_ADDRESS(MR_INDEX_ADDRESS(MR_INDEX_ADDRESS(new_out_vec, var_j), MR_INT(size1)), type2), var_j);
 

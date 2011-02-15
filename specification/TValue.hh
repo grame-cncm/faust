@@ -80,22 +80,6 @@ struct TLoadValue : public TValue
 
 };
 
-struct TVectorValue : public TValue
-{
-    TValue* fValue;
-    int fSize;
-
-    TVectorValue(TValue* val, int size):fValue(val), fSize(size) {}
-
-    virtual ~TVectorValue() {}
-
-	virtual TType* getType();
-
-    virtual void generate(ostream* dst, int n) { fValue->generate(dst, n); tab(n, *dst);; *dst << "[" << fSize << "]";}
-    virtual void generateCPP(ostream* dst, int n) { fValue->generateCPP(dst, n); tab(n, *dst);; *dst << "[" << fSize << "]";}
-
-};
-
 struct TPrimOpValue : public TValue
 {
  	TValue*	fVal1;

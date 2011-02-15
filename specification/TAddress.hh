@@ -40,39 +40,6 @@ struct TVector : public TAddress
     virtual TType* getType() { return fType; }
 };
 
-struct TIndexAddress : public TAddress
-{
-    TAddress* fAddress;
-    TIndex* fIndex;
-
-    TIndexAddress(TAddress* address, TIndex* index):fAddress(address), fIndex(index){}
-
-    virtual ~TIndexAddress() {}
-
-    virtual void generate(ostream* dst, int n)
-    {
-        fAddress->generate(dst, n);
-        *dst << "("; fIndex->generate(dst, n); *dst << ")";
-    }
-
-    virtual void generateCPP(ostream* dst, int n)
-    {
-        fAddress->generateCPP(dst, n);
-        if (dynamic_cast<TIndexAddress*>(fAddress)) {
-            *dst << ".f[";
-        } else {
-            *dst << "[";
-        }
-        fIndex->generateCPP(dst, n);
-        *dst << "]";
-    }
-
-    virtual TType* getType()
-    {
-        return fAddress->getType();
-    }
-};
-
 struct TCastAddress : public TAddress
 {
     TAddress* fAddress;
@@ -100,6 +67,40 @@ struct TCastAddress : public TAddress
 
     virtual TType* getType() { return fType; }
 };
+
+struct TIndexAddress : public TAddress
+{
+    TAddress* fAddress;
+    TIndex* fIndex;
+
+    TIndexAddress(TAddress* address, TIndex* index):fAddress(address), fIndex(index){}
+
+    virtual ~TIndexAddress() {}
+
+    virtual void generate(ostream* dst, int n)
+    {
+        fAddress->generate(dst, n);
+        *dst << "("; fIndex->generate(dst, n); *dst << ")";
+    }
+
+    virtual void generateCPP(ostream* dst, int n)
+    {
+        fAddress->generateCPP(dst, n);
+        if (dynamic_cast<TIndexAddress*>(fAddress) || dynamic_cast<TCastAddress*>(fAddress)) {
+            *dst << ".f[";
+        } else {
+            *dst << "[";
+        }
+        fIndex->generateCPP(dst, n);
+        *dst << "]";
+    }
+
+    virtual TType* getType()
+    {
+        return fAddress->getType();
+    }
+};
+
 
 #endif
 
