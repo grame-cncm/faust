@@ -1754,14 +1754,25 @@ struct InstBuilder
         return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
     }
 
-    static LoadVarInst* genLoadArrayStructVar(string vname, ValueInst* index)
+    template <typename Iterator>
+    static LoadVarInst* genLoadArrayStructVar(string vname, Iterator indexBegin, Iterator indexEnd)
     {
-        return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
+        typedef reverse_iterator<Iterator> Rit;
+        Rit rbegin (indexEnd);
+        Rit rend (indexBegin);
+
+        Address * address = genNamedAddress(vname, Address::kStruct);
+        for (Rit it = rbegin; it != rend; ++it)
+            address = genIndexedAddress(address, *it);
+
+        return genLoadVarInst(address);
     }
 
-    static LoadVarInst* genLoadArrayStructVar(string vname, ValueInst* id1, ValueInst* id2)
+    static LoadVarInst* genLoadArrayStructVar(string vname, ValueInst* index)
     {
-        return genLoadVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id2), id1));
+        vector<ValueInst*> indices;
+        indices.push_back(index);
+        return genLoadArrayStructVar(vname, indices.begin(), indices.end());
     }
 
     static LoadVarInst* genLoadArrayStructVar(string vname)
@@ -1779,14 +1790,25 @@ struct InstBuilder
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
     }
 
-    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* index, ValueInst* exp)
+    template <typename Iterator>
+    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
     {
-        return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index), exp);
+        typedef reverse_iterator<Iterator> Rit;
+        Rit rbegin (indexEnd);
+        Rit rend (indexBegin);
+
+        Address * address = genNamedAddress(vname, Address::kStruct);
+        for (Rit it = rbegin; it != rend; ++it)
+            address = genIndexedAddress(address, *it);
+
+        return genStoreVarInst(address, exp);
     }
 
-    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* id1, ValueInst* id2, ValueInst* exp)
+    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* index, ValueInst* exp)
     {
-        return genStoreVarInst(genIndexedAddress(genIndexedAddress(genNamedAddress(vname, Address::kStruct), id2), id1), exp);
+        vector<ValueInst*> indices;
+        indices.push_back(index);
+        return genStoreArrayStructVar(vname, exp, indices.begin(), indices.end());
     }
 
     static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp)
@@ -1949,6 +1971,7 @@ struct InstBuilder
     // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation unicity.
     static DeclareTypeInst* genType(AudioType* type);
 
+    static Typed* mapFIRType(AudioType* type);
 };
 
 
