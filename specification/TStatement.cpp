@@ -62,7 +62,6 @@ void TDeclareStatement::generateCPP(ostream* dst, int n)
 {
     tab(n, *dst);
     fVector->fType->generateDef(dst, n);
-    *dst << endl << endl;
     fVector->fType->generateCPP(dst, n);
     *dst << " ";
     *dst << fVector->fName;
@@ -74,7 +73,7 @@ void TDeclareTypeStatement::generateCPP(ostream* dst, int n)
 {
     tab(n, *dst);
     fType->generateDef(dst, n);
-    *dst << endl << endl;
+    *dst << endl;
 }
 
 void TStoreStatement::generateCPP(ostream* dst, int n)

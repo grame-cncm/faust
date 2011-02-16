@@ -52,51 +52,54 @@ struct TCompiler
 
         // C++ code generation
         cout << "#include <stdio.h>" << endl;
-        cout << "#include <string.h>" << endl;
+        cout << "#include <string.h>" << endl << endl;
 
-        cout << "void process() {" << endl;
-
-        cout << "float input0[32 * 16];" << endl;  // Should use real input rate....
-        cout << "float input1[32 * 16];" << endl;
-        cout << "float input2[32 * 16];" << endl;
-        cout << "float input3[32 * 16];" << endl;
-        cout << "float output[32 * 16];" << endl;
-
-        // Should use real input rate....
-        cout << "for (int i = 0; i < 32 * 16; i++) {" << endl;
-        cout << "    input0[i] = float(i);" << endl;
-        cout << "    input1[i] = float(i);" << endl;
-        cout << "    input2[i] = float(i);" << endl;
-        cout << "    input3[i] = float(i);" << endl;
-        cout << "}" << endl;
-
-        cout << " memset(output, 0, sizeof(float) * 32);" << endl;
-
-        cout << endl << "// -----------------" << endl;
+        cout << "// -----------------" << endl;
         cout << "// Declaration block" << endl;
         cout << "// -----------------" << endl;
         gDecBlock->generateCPP(&cout, 0);
 
-        cout << endl << endl  << "// -----------------" << endl;
-        cout << "// Separated loops" << endl;
-        cout << "// -----------------" << endl;
-        gExternalBlock->generateCPP(&cout, 0);
 
-        cout << endl << "// -----------------" << endl;
-        cout << "// Result" << endl;
-        cout << "// -----------------" << endl;
-        global_loop->generateCPP(&cout, 0);
+        cout << endl << "void process()" << endl;
+        cout << "{" << endl;
+
+        cout << "\tfloat input0[32 * 16];" << endl;  // Should use real input rate....
+        cout << "\tfloat input1[32 * 16];" << endl;
+        cout << "\tfloat input2[32 * 16];" << endl;
+        cout << "\tfloat input3[32 * 16];" << endl;
+        cout << "\tfloat output[32 * 16];" << endl;
+
+        // Should use real input rate....
+        cout << "\tfor (int i = 0; i < 32 * 16; i++) {" << endl;
+        cout << "\t\tinput0[i] = float(i);" << endl;
+        cout << "\t\tinput1[i] = float(i);" << endl;
+        cout << "\t\tinput2[i] = float(i);" << endl;
+        cout << "\t\tinput3[i] = float(i);" << endl;
+        cout << "\t}" << endl;
+
+        cout << "\tmemset(output, 0, sizeof(float) * 32);" << endl;
+
+        cout << endl << endl  << "\t// -----------------" << endl;
+        cout << "\t// Separated loops" << endl;
+        cout << "\t// -----------------" << endl;
+        gExternalBlock->generateCPP(&cout, 1);
+
+        cout << endl << "\t// -----------------" << endl;
+        cout << "\t// Result" << endl;
+        cout << "\t// -----------------" << endl;
+        global_loop->generateCPP(&cout, 1);
         cout << endl;
 
-        cout << "for (int i = 0; i < 32; i++) {" << endl;
-        cout << "    printf(\"output %f \\n\", output[i]);" << endl;
-        cout << "}" << endl;
+        cout << "\tfor (int i = 0; i < 32; i++) {" << endl;
+        cout << "\t\tprintf(\"output %f \\n\", output[i]);" << endl;
+        cout << "\t}" << endl;
 
-        cout << "}" << endl;
+        cout << "}" << endl << endl;
 
-        cout << "int main() {" << endl;
-        cout << "    process();" << endl;
-        cout << "}" << endl;
+        cout << "int main()" << endl;
+         cout << "{" << endl;
+        cout << "\tprocess();" << endl;
+        cout << "}" << endl << endl;
 
     }
 

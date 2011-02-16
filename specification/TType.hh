@@ -105,8 +105,18 @@ struct TVectorType : public TType
     {
         if (!fGenerated) {
             fType->generateDef(dst, n+1);
-            *dst << endl;
-            *dst << "struct " << fDecName; *dst << " {" << endl; fType->generateCPP(dst, n+1);  *dst << " f" << "[" << fSize << "];" << endl; *dst << "};";
+           // *dst << endl;
+            tab(n, *dst);
+            *dst << "struct " << fDecName;
+            *dst << " {" << endl;
+            tab(n+1, *dst);
+            fType->generateCPP(dst, n+1);
+            *dst << " f" << "[" << fSize << "];" << endl;
+            tab(n+1, *dst); *dst << fDecName << " operator+(const " << fDecName << "& val)" << " {}" << endl;
+            tab(n+1, *dst); *dst << fDecName << " operator-(const " << fDecName << "& val)" << " {}" << endl;
+            tab(n+1, *dst); *dst << fDecName << " operator*(const " << fDecName << "& val)" << " {}" << endl;
+            tab(n+1, *dst); *dst << fDecName << " operator/(const " << fDecName << "& val)" << " {}" << endl;
+            tab(n, *dst); *dst << "};";
             fGenerated = true;
         }
     }
