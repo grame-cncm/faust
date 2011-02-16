@@ -2,6 +2,8 @@
 #include "TStatement.hh"
 #include "TValue.hh"
 
+// Pseudo code generation
+
 void TDeclareStatement::generate(ostream* dst, int n)
 {
     tab(n, *dst);
@@ -56,7 +58,7 @@ void TIfStatement::generate(ostream* dst, int n)
     tab(n, *dst); *dst << "}";
 }
 
-//// CPP
+// CPP generation
 
 void TDeclareStatement::generateCPP(ostream* dst, int n)
 {

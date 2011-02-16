@@ -105,7 +105,8 @@ TSignal* test11(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
     gVec = vec;
-    gSer = ser;    Display("test11");
+    gSer = ser;
+    Display("test11");
     return new TSerialize(new TVectorize(new TInput(0, 4), 4));
 }
 
@@ -263,9 +264,9 @@ int main()
     //compiler.compileTop(test14(true, true, true, true));
 
     //compiler.compileTop(test15(true, true, true, true));
-    //compiler.compileTop(test15(true, false, true, true));
+    compiler.compileTop(test15(true, false, true, true));
     //compiler.compileTop(test15(true, true, false, true));
-    compiler.compileTop(test15(true, false, false, true));
+    //compiler.compileTop(test15(true, false, false, true));
 
     //compiler.compileTop(test15(false, true, true, true));
     //compiler.compileTop(test15(false, false, true, true));

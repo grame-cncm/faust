@@ -88,8 +88,6 @@ struct TVectorType : public TType
     TVectorType(TType* type, int size):fType(type), fSize(size)
     {
         fDecName = getFreshID("VecType");
-        //fType->generate(&cout, 0);
-        //cout << "TVectorType " << fDecName << " " << size << endl;
         fGenerated = false;
     }
 
@@ -105,7 +103,17 @@ struct TVectorType : public TType
     {
         tab(n+1, *dst); *dst << fDecName << " operator" << op << "(const " << fDecName << "& val)" << " {" << endl;
             tab(n+2, *dst); *dst << "for (int i = 0; i < " << fSize << "; i++) {" << endl;
-            tab(n+3, *dst); *dst << "f[i] " << op << "= val.f[i];" << endl;
+                tab(n+3, *dst); *dst << "f[i] " << op << "= val.f[i];" << endl;
+            tab(n+2, *dst); *dst << "}" << endl;
+            tab(n+2, *dst); *dst << "return *this;" << endl;
+        tab(n+1, *dst); *dst << "}" << endl;
+    }
+
+    void generatePolyScalar(ostream* dst, int n, const string& op)
+    {
+        tab(n+1, *dst); *dst << fDecName << " operator" << op << "(float val)" << " {" << endl;
+            tab(n+2, *dst); *dst << "for (int i = 0; i < " << fSize << "; i++) {" << endl;
+                tab(n+3, *dst); *dst << "f[i] " << op << "= val;" << endl;
             tab(n+2, *dst); *dst << "}" << endl;
             tab(n+2, *dst); *dst << "return *this;" << endl;
         tab(n+1, *dst); *dst << "}" << endl;
@@ -126,6 +134,11 @@ struct TVectorType : public TType
             generatePoly(dst, n, "-");
             generatePoly(dst, n, "*");
             generatePoly(dst, n, "/");
+
+            generatePolyScalar(dst, n, "+");
+            generatePolyScalar(dst, n, "-");
+            generatePolyScalar(dst, n, "*");
+            generatePolyScalar(dst, n, "/");
 
             tab(n, *dst); *dst << "};";
             fGenerated = true;
