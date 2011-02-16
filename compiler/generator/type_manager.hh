@@ -120,7 +120,26 @@ class StringTypeManager {
             } else if (fun_typed) {
                 return "FUN TYPE";
             } else if (array_typed) {
-                return fTypeDirectTable[array_typed->getType()];
+                BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+                ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+                NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+                StructTyped* struct_typed1 = dynamic_cast<StructTyped*>(array_typed->fType);
+                std::ostringstream num_str;
+                num_str << array_typed->fSize;
+                if (basic_typed1) {
+                    return (array_typed->fSize == 0)
+                        ? fTypeDirectTable[array_typed->getType()]
+                        : generateType(array_typed->fType) + "[" + num_str.str() + "]";
+                } else if (array_typed1) {
+                    return generateType(array_typed1) + "[" + num_str.str() + "]";
+                } else if (named_typed1) {
+                    return named_typed1->fName + "[" + num_str.str() + "]";
+                } else if (struct_typed1) {
+                    return struct_typed1->fName + " f" + "[" + num_str.str() + "]";
+                } else {
+                    assert(false);
+                    return "";
+                }
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
@@ -144,15 +163,33 @@ class StringTypeManager {
             if (basic_typed) {
                 return fTypeDirectTable[basic_typed->fType] + " " + name;
             } else if (named_typed) {
+                // TODO : break code with subclasses
                 return named_typed->fName + generateType(named_typed->fType) + " " + name;
+                //return named_typed->fName + " " + name;
             } else if (fun_typed) {
                 return "FUN TYPE";
             } else if (array_typed) {
+                BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+                ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+                NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+                StructTyped* struct_typed1 = dynamic_cast<StructTyped*>(array_typed->fType);
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
-                return (array_typed->fSize == 0)
-                    ? generateType(array_typed->fType) + "* " + name
-                    : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
+                if (basic_typed1) {
+                    return (array_typed->fSize == 0)
+                        ? generateType(array_typed->fType) + "* " + name
+                        : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
+                        //: generateType(array_typed->fType) + "[" + num_str.str() + "] " + name;
+                } else if (array_typed1) {
+                    return generateType(array_typed1) + " " + name + "[" + num_str.str() + "]";
+                } else if (named_typed1) {
+                    return named_typed1->fName + " " + name + "[" + num_str.str() + "]";
+                } else if (struct_typed1) {
+                    return struct_typed1->fName + " " + name +  + "[" + num_str.str() + "]";
+                } else {
+                    assert(false);
+                    return "";
+                }
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;

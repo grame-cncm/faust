@@ -244,24 +244,36 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             gGlobalTable[inst->fName] = 1;
         }
 
+        virtual void visit(IndexedAddress* indexed)
+        {
+            indexed->fAddress->accept(this);
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+            *fOut << "]";
+        }
+
         virtual void visit(LoadVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             if (named) {
                 *fOut << named->getName();
             } else {
+                /*
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
                 *fOut << "]";
+                */
+                *fOut << indexed->getName();
+                indexed->accept(this);
             }
         }
 
         virtual void visit(LoadVarAddressInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             if (named) {
                 *fOut << "&" << named->getName();
@@ -274,15 +286,20 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(StoreVarInst* inst)
         {
-            NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
             if (named) {
                 *fOut << named->getName() << " = ";
             } else {
+                /*
                 *fOut << indexed->getName() << "[";
-                indexed->fIndex->accept(this);
+                indexed->fAddress->accept(this);
                 *fOut << "] = ";
+                */
+                *fOut << indexed->getName();
+                indexed->accept(this);
+                *fOut << " = ";
             }
             inst->fValue->accept(this);
             EndLine();
@@ -775,5 +792,85 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
 };
 
+class MRCPPInstVisitor : public CPPInstVisitor {
+
+    private:
+
+        map <string, StructTyped*> gTypeTable;
+
+    public:
+
+        MRCPPInstVisitor(std::ostream* out, int tab = 0)
+            :CPPInstVisitor(out, tab)
+        {}
+
+        virtual ~MRCPPInstVisitor()
+        {}
+
+        void visitStructAddress(StructTyped* struct_type, IndexedAddress* indexed)
+        {
+            ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(struct_type->fType);
+            assert(array_type);
+            StructTyped* struct_type1 = dynamic_cast<StructTyped*>(array_type->fType);
+            BasicTyped* basic_type1 = dynamic_cast<BasicTyped*>(array_type->fType);
+            IndexedAddress* indexed1 = dynamic_cast<IndexedAddress*>(indexed->fAddress);
+
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+
+            if (indexed1) {
+                *fOut << "].f";
+            } else {
+                *fOut << "]";
+            }
+
+            if (struct_type1 && indexed1) {
+                visitStructAddress(struct_type1, indexed1);
+            } else if (basic_type1 && indexed1) {
+                visitAddress(indexed1);
+            }
+        }
+
+        void visitAddress(IndexedAddress* indexed)
+        {
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+            *fOut << "]";
+        }
+
+        virtual void visit(IndexedAddress* indexed)
+        {
+            // Struct type access
+            if (gVarTable.find(indexed->getName()) != gVarTable.end()) {
+                Typed* var_type = gVarTable[indexed->getName()];
+                ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
+                assert(array_type);
+                StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);
+                if (struct_type) {
+                    visitStructAddress(struct_type, indexed);
+                    return;
+                }
+            }
+
+            // Default case
+            visitAddress(indexed);
+        }
+
+        virtual void visit(DeclareTypeInst* inst)
+        {
+            StructTyped* struct_typed = dynamic_cast<StructTyped*>(inst->fType);
+
+            // Check if type is already generated
+            if (struct_typed && gTypeTable.find(struct_typed->fName) == gTypeTable.end()) {
+                Typed* sub_type = struct_typed->fType;
+                *fOut << "struct " << struct_typed->fName << " {" << endl;
+                *fOut << "\t" << generateType(sub_type, "f"); EndLine();
+                *fOut << "}";
+                EndLine();
+                gTypeTable[struct_typed->fName] = struct_typed;
+            }
+        }
+
+};
 
 #endif

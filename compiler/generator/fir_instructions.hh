@@ -89,7 +89,28 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else if (fun_typed) {
                 return "Function type";
             } else if (array_typed) {
-                return "\"" + fTypeDirectTable[array_typed->getType()] + "\"";
+                BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
+                ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+                NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
+                std::ostringstream num_str;
+                num_str << array_typed->fSize;
+                if (basic_typed1) {
+                    /*
+                    return (array_typed->fSize == 0)
+                        ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
+                        : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\"";
+                    */
+                    return (array_typed->fSize == 0)
+                        ? fTypeDirectTable[basic_typed1->fType]
+                        : fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]";
+                } else if (array_typed1) {
+                    return generateType(array_typed1) + "[" + num_str.str() + "]";
+                } else if (named_typed1) {
+                    return named_typed1->fName + "[" + num_str.str() + "]";
+                } else {
+                    assert(false);
+                    return "";
+                }
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
@@ -113,17 +134,34 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             if (basic_typed) {
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\", " + name;
             } else if (named_typed) {
-                return named_typed->fName + generateType(named_typed->fType) + ", " + name;
+                // TODO : break code with subclasses
+                //return named_typed->fName + generateType(named_typed->fType) + ", " + name;
+                return named_typed->fName + ", " + name;
             } else if (fun_typed) {
                 return "Function type";
             } else if (array_typed) {
                 BasicTyped* basic_typed1 = dynamic_cast<BasicTyped*>(array_typed->fType);
-                assert(basic_typed1);
+                ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(array_typed->fType);
+                NamedTyped* named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
-                return (array_typed->fSize == 0)
-                    ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
-                    : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_str.str() + "]";
+                if (basic_typed1) {
+                    return (array_typed->fSize == 0)
+                        /*
+                        ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
+                        : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_str.str() + "]";
+                        */
+                        ? fTypeDirectTable[basic_typed1->fType] + "*, " + name
+                        : fTypeDirectTable[basic_typed1->fType] + ", " + name + "[" + num_str.str() + "]";
+                        //: "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\", " + name;
+                } else if (array_typed1) {
+                    return generateType(array_typed1) + "[" + num_str.str() + "]";
+                } else if (named_typed1) {
+                    return named_typed1->fName + "[" + num_str.str() + "]";
+                } else {
+                    assert(false);
+                    return "";
+                }
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
@@ -238,6 +276,12 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             EndLine();
         }
 
+        virtual void visit(DeclareTypeInst* inst)
+        {
+            *fOut << "DeclareTypeInst(" << generateType(inst->fType) << ")";
+            EndLine();
+        }
+
         virtual void visit(RetInst* inst)
         {
             if (inst->fResult) {
@@ -295,6 +339,14 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             gGlobalTable[inst->fName] = 1;
         }
 
+        virtual void visit(IndexedAddress* indexed)
+        {
+            indexed->fAddress->accept(this);
+            *fOut << "[";
+            indexed->fIndex->accept(this);
+            *fOut << "]";
+        }
+
         virtual void visit(LoadVarInst* inst)
         {
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
@@ -309,9 +361,13 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             if (named) {
                 *fOut << named->getName();
             } else {
+                /*
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
                 *fOut << "]";
+                */
+                *fOut << indexed->getName();
+                indexed->accept(this);
             }
             *fOut << ")";
         }
@@ -346,9 +402,14 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             if (named) {
                 *fOut << named->getName() << ", ";
             } else {
+                /*
                 *fOut << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
                 *fOut << "], ";
+                */
+                *fOut << indexed->getName();
+                indexed->accept(this);
+                *fOut << " = ";
             }
 
             inst->fValue->accept(this);
