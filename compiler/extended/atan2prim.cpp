@@ -9,26 +9,26 @@ class Atan2Prim : public xtended
 {
 
  public:
- 
+
  	Atan2Prim() : xtended("atan2") {}
-	
+
 	virtual unsigned int 	arity () { return 2; }
-	
+
 	virtual bool	needCache ()	{ return true; }
-	
+
 	virtual Type 	infereSigType (const vector<Type>& args)
 	{
 		assert (args.size() == 2);
 		return floatCast(args[0]|args[1]);
 	}
-	
-	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	
-	
+
+	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
+
 	virtual int infereSigOrder (const vector<int>& args) {
 		return max(args[0], args[1]);
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args) 
+	virtual Tree	computeSigOutput (const vector<Tree>& args)
 	{
 		assert (args.size() == 2);
 		num n,m;
@@ -38,12 +38,12 @@ class Atan2Prim : public xtended
 			return tree(symbol(), args[0], args[1]);
 		}
 	}
-    
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
+
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
         assert (args.size() == arity());
 		assert (types.size() == arity());
-        
+
         Typed::VarType result_type;
         if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
         vector<Typed::VarType> arg_types;
@@ -53,18 +53,18 @@ class Atan2Prim : public xtended
             if (((*it)->nature() == kInt)) t1 = Typed::kInt; else t1 = itfloat();
             arg_types.push_back(t1);
         }
-        
+
         return container->pushFunction(subst("atan2$0", isuffix()), result_type, arg_types, args);
     }
-	
+
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());
-		
+
         return subst("\\arctan\\frac{$0}{$1}", args[0], args[1]);
 	}
-	
+
 };
 
 

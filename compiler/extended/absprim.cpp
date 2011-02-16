@@ -49,12 +49,12 @@ class AbsPrim : public xtended
 			return tree(symbol(), args[0]);
 		}
 	}
-    
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type>& types)
+
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
         assert (args.size() == arity());
 		assert (types.size() == arity());
-        
+
         Typed::VarType result_type;
         if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
         vector<Typed::VarType> arg_types;
@@ -64,7 +64,7 @@ class AbsPrim : public xtended
             if (((*it)->nature() == kInt)) t1 = Typed::kInt; else t1 = itfloat();
             arg_types.push_back(t1);
         }
-        
+
         Type t = infereSigType(types);
 		if (t->nature() == kReal) {
             return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
@@ -77,7 +77,7 @@ class AbsPrim : public xtended
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());
-		
+
 		Type t = infereSigType(types);
 		return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
 	}
