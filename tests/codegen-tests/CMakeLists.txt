@@ -6,7 +6,7 @@ list(REMOVE_ITEM tests freeverb.dsp)
 if (EXTENSIVE_TESTSUITE)
   set(flags vec scal omp fun sch)
 else()
-  set(flags vec scal)
+  set(flags vec scal sch)
 endif()
 
 foreach(flag ${flags})
