@@ -101,21 +101,32 @@ struct TVectorType : public TType
         *dst  << fDecName;
     }
 
+    void generatePoly(ostream* dst, int n, const string& op)
+    {
+        tab(n+1, *dst); *dst << fDecName << " operator" << op << "(const " << fDecName << "& val)" << " {" << endl;
+            tab(n+2, *dst); *dst << "for (int i = 0; i < " << fSize << "; i++) {" << endl;
+            tab(n+3, *dst); *dst << "f[i] " << op << "= val.f[i];" << endl;
+            tab(n+2, *dst); *dst << "}" << endl;
+            tab(n+2, *dst); *dst << "return *this;" << endl;
+        tab(n+1, *dst); *dst << "}" << endl;
+    }
+
     virtual void generateDef(ostream* dst, int n)
     {
         if (!fGenerated) {
             fType->generateDef(dst, n+1);
-           // *dst << endl;
             tab(n, *dst);
             *dst << "struct " << fDecName;
             *dst << " {" << endl;
             tab(n+1, *dst);
             fType->generateCPP(dst, n+1);
             *dst << " f" << "[" << fSize << "];" << endl;
-            tab(n+1, *dst); *dst << fDecName << " operator+(const " << fDecName << "& val)" << " {}" << endl;
-            tab(n+1, *dst); *dst << fDecName << " operator-(const " << fDecName << "& val)" << " {}" << endl;
-            tab(n+1, *dst); *dst << fDecName << " operator*(const " << fDecName << "& val)" << " {}" << endl;
-            tab(n+1, *dst); *dst << fDecName << " operator/(const " << fDecName << "& val)" << " {}" << endl;
+
+            generatePoly(dst, n, "+");
+            generatePoly(dst, n, "-");
+            generatePoly(dst, n, "*");
+            generatePoly(dst, n, "/");
+
             tab(n, *dst); *dst << "};";
             fGenerated = true;
         }
