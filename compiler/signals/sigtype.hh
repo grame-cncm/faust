@@ -128,6 +128,11 @@ class AudioType
             ->promoteBoolean(rhs->boolean())
             ->promoteInterval(rhs->getInterval());
     }
+
+    virtual int dimension() const
+    {
+        return 0;
+    }
 };
 
 //printing
@@ -345,7 +350,7 @@ private:
           AudioType(n, v, c, vec, b, i), fSize(size), fType(type)
     {}
 
-  public:
+public:
     FaustVectorType(int size, AudioType * type) :
           AudioType(*type), fSize(size), fType(type)
     {}
@@ -364,6 +369,35 @@ private:
 
     AudioType * dereferenceType(void)   { return fType; }
     int size(void) const                { return fSize; }
+
+    int dimension() const
+    {
+        return dimensions().size();
+    }
+
+    std::vector<int> dimensions() const
+    {
+        std::vector<int> ret;
+        ret.push_back(fSize);
+        FaustVectorType * vt = dynamic_cast<FaustVectorType*>(fType);
+        if (vt) {
+            std::vector<int> base = vt->dimensions();
+            ret.insert(ret.end(), base.begin(), base.end());
+        }
+        return ret;
+    }
+
+    bool isParentOf(AudioType * type) {
+        if (type == fType)
+            return true;
+        FaustVectorType * vt = dynamic_cast<FaustVectorType*>(fType);
+        if (vt)
+            return vt->isParentOf(type);
+        else
+            return false;
+    }
+
+
 };
 
 //-------------------------------------------------

@@ -637,9 +637,6 @@ static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2)
     Type t1 = T(s1,env);
     Type t2 = T(s2,env);
 
-    Type vt1 = isVectorType(t1);
-    Type vt2 = isVectorType(t2);
-
     Type ret = t1 | t2;
 
     interval newInterval = arithmetic(i, t1->getInterval(), t2->getInterval());
