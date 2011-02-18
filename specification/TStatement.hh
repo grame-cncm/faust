@@ -19,9 +19,9 @@ struct TStatement : public TPrintable
 
 struct TDeclareStatement : public TStatement
 {
-    TVector* fVector;
+    TVectorAddress* fVector;
 
-    TDeclareStatement(TVector* vector):fVector(vector) {}
+    TDeclareStatement(TVectorAddress* vector):fVector(vector) {}
     virtual ~TDeclareStatement() {}
 
     virtual void generate(ostream* dst, int n);

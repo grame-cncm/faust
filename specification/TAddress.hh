@@ -14,15 +14,15 @@ struct TAddress : public TPrintable {
     virtual TType* getType() = 0;
 };
 
-struct TVector : public TAddress
+struct TVectorAddress : public TAddress
 {
     TType* fType;
     string fName;
     int fSize;
 
-    TVector(const string& name, TType* type, int size):fName(name), fType(type), fSize(size){}
+    TVectorAddress(const string& name, TType* type, int size):fName(name), fType(type), fSize(size){}
 
-    virtual ~TVector() {}
+    virtual ~TVectorAddress() {}
 
     virtual void generate(ostream* dst, int n)
     {

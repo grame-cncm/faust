@@ -26,7 +26,7 @@ TIndex* MR_DIV(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "/"); }
 TIndex* MR_MOD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "%"); }
 
 // Address language
-TVector* MR_VECTOR(const string& name, TType* type, int size) { return new TVector(name, type, size); }
+TVectorAddress* MR_VECTOR(const string& name, TType* type, int size) { return new TVectorAddress(name, type, size); }
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id) { return new TIndexAddress(address, id); }
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddress(address, type); }
 
@@ -55,7 +55,7 @@ TType* MR_INT_TYPE() { return new TIntType(); };
 TType* MR_FLOAT_TYPE() { return new TFloatType(); };
 
 // Statements
-TDeclareStatement* MR_DEC(TVector* vector) { return new TDeclareStatement(vector); }
+TDeclareStatement* MR_DEC(TVectorAddress* vector) { return new TDeclareStatement(vector); }
 TDeclareTypeStatement* MR_DEC_TYPE(TType* type) { return new TDeclareTypeStatement(type); }
 TBlockStatement* MR_BLOCK() { return new TBlockStatement(); }
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement) { block->fCode.push_back(statement); return block; }
