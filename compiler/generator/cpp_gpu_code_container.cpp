@@ -289,7 +289,11 @@ void CPPOpenCLCodeContainer::produceClass()
                 // Wait for computation end
                 tab(n+3, *fOut); *fOut << "err = clFinish(dsp->fCommands);";
                 tab(n+3, *fOut); *fOut << "if (getenv(\"OCL_GPU_LOAD\") && strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10)) {";
-                    tab(n+4, *fOut); *fOut << "cout << \"Execution time = \" << 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000) << \"%\" << endl;";
+                    tab(n+4, *fOut); *fOut << "int val = strtol(getenv(\"OCL_GPU_LOAD\"), NULL, 10);";
+                    tab(n+4, *fOut); *fOut << "int gpu_load = 100 * executionTime(dsp_execution) * double(dsp->fSamplingFreq) / (double(dsp->fCount) * 1000);";
+                    tab(n+4, *fOut); *fOut << "if (gpu_load > val) {";
+                        tab(n+5, *fOut); *fOut << "cout << \"Execution time = \" <<  gpu_load << \"%\" << endl;";
+                    tab(n+4, *fOut); *fOut << "}" << endl;
                 tab(n+3, *fOut); *fOut << "}" << endl;
 
             tab(n+2, *fOut); *fOut << "}";
@@ -299,7 +303,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
         tab(n+1, *fOut); *fOut << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "int err;";
-            tab(n+2, *fOut); *fOut << "int gpu = 1;";
+            tab(n+2, *fOut); *fOut << "int gpu = (getenv(\"OCL_GPU\") ? strtol(getenv(\"OCL_GPU\"), NULL, 10) : 0);";
             tab(n+2, *fOut); *fOut << "cl_uint num_devices;";
             tab(n+2, *fOut); *fOut << "char* program_src;";
 
@@ -332,7 +336,7 @@ void CPPOpenCLCodeContainer::produceClass()
                 tab(n+3, *fOut); *fOut << "goto error;";
             tab(n+2, *fOut); *fOut << "}";
 
-            tab(n+2, *fOut); *fOut << "fDeviceID = fDevicesTable[0];";
+            tab(n+2, *fOut); *fOut << "fDeviceID = fDevicesTable[(getenv(\"OCL_GPU_DEVICE\") ? strtol(getenv(\"OCL_GPU_DEVICE\"), NULL, 10) : 0)];";
 
             // Print device name
             tab(n+2, *fOut); *fOut << "char cDevName[1024];";
