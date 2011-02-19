@@ -812,7 +812,7 @@ peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 //   Proceedings of the IEEE, 76(1):19-37, Jan. 1988.  (See pp. 29-30.)
 //
 peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
-  A = tf2(k2, k1*(1+k2), 1, k1*(1+k2), k2) <: _,_;
+  A = tf2(k2, k1*(1+k2), 1, k1*(1+k2), k2) <: _,_; // allpass
   k1 = 0.0 - cos(2.0*PI*fx/SR);
   k2 = (1.0 - tanPiBT)/(1.0 + tanPiBT);
   K = db2linear(Lfx);
