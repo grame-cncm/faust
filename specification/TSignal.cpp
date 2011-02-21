@@ -32,7 +32,7 @@ void TInput::compileStatement(TBlockStatement* block, TAddress* address, TIndex*
 
 TValue* TInput::compileSample(TIndex* index)
 {
-    return MR_LOAD(MR_INDEX_ADDRESS(MR_VECTOR(subst("input$0", T(fIndex)), getType(), getRate() * gVecSize), index));
+    return MR_LOAD(MR_INDEX_ADDRESS(MR_VECTOR_ADDRESS(subst("input$0", T(fIndex)), getType(), getRate() * gVecSize), index));
 }
 
 void TPrimOp::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
@@ -52,7 +52,7 @@ TValue* TPrimOp::compileSample(TIndex* index)
         TType* type = getType();
 
         TIndex* var_j = MR_VAR(getFreshID("j"));
-        TVectorAddress* new_out_vec = MR_VECTOR(getFreshID("BinOp"), type, rate * gVecSize);
+        TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("BinOp"), type, rate * gVecSize);
 
         // Internal block
         TBlockStatement* loop_code_block = MR_BLOCK();
@@ -110,7 +110,7 @@ TValue* TVectorize::compileSample(TIndex* index)
     TType* type = getType();
 
     // Declare output
-    TVectorAddress* new_out_vec = MR_VECTOR(getFreshID("Vectorize"), type, rate * gVecSize);
+    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Vectorize"), type, rate * gVecSize);
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -169,7 +169,7 @@ TValue* TSerialize::compileSample(TIndex* index)
     TType* type = getType();
 
     // Declare output
-    TVectorAddress* new_out_vec = MR_VECTOR(getFreshID("Serialize"), type, rate * gVecSize);
+    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Serialize"), type, rate * gVecSize);
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -239,7 +239,7 @@ TValue* TConcat::compileSample(TIndex* index)
     int size2 = type2->getSize();
 
     // Declare output
-    TVectorAddress* new_out_vec = MR_VECTOR(getFreshID("Concat"), type, rate * gVecSize);
+    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Concat"), type, rate * gVecSize);
 
     // Compute new indexes
     TIndex* var_j = MR_VAR(getFreshID("j"));
@@ -304,7 +304,7 @@ TVectorAddress* TDelayLine::compile()
     // fMaxDelay is small
 
     // Declare output
-    TVectorAddress* new_out_vec = MR_VECTOR(getFreshID("DelayLine"), type, rate * gVecSize);
+    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("DelayLine"), type, rate * gVecSize);
 
     // TODO : fill DL
 
@@ -384,7 +384,7 @@ TValue* TRecGroup::compileSample(TIndex* index)
             if (TRecGroup::gRecProjCompEnv.find(rec_proj) != TRecGroup::gRecProjCompEnv.end()) {
                 new_out_vec = TRecGroup::gRecProjCompEnv[rec_proj];
             } else {
-                new_out_vec = MR_VECTOR(rec_proj, type, rate * gVecSize);
+                new_out_vec = MR_VECTOR_ADDRESS(rec_proj, type, rate * gVecSize);
                 MR_PUSH_BLOCK(gDecBlock, MR_DEC(new_out_vec));
                 TRecGroup::gRecProjCompEnv[rec_proj] = new_out_vec;  // Insert compiled projection
                 (*it)->compileStatement(block, MR_INDEX_ADDRESS(new_out_vec, var_j) , var_j);

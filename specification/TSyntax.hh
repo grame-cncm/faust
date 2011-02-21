@@ -24,7 +24,7 @@ TType*  MR_INT_TYPE();
 TType*  MR_FLOAT_TYPE();
 
 // Address language
-TVectorAddress* MR_VECTOR(const string& name, TType* type, int size);
+TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type, int size);
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id);
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type);
 

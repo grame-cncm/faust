@@ -26,7 +26,7 @@ TIndex* MR_DIV(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "/"); }
 TIndex* MR_MOD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "%"); }
 
 // Address language
-TVectorAddress* MR_VECTOR(const string& name, TType* type, int size) { return new TVectorAddress(name, type, size); }
+TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type, int size) { return new TVectorAddress(name, type, size); }
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id) { return new TIndexAddress(address, id); }
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddress(address, type); }
 

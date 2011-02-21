@@ -21,7 +21,7 @@ struct TCompiler
     {
         int output_rate = signal->getRate();
         TType* input_type = signal->getType();
-        TVectorAddress* new_out_vec = MR_VECTOR("output", MR_FLOAT_TYPE(), output_rate * gVecSize);
+        TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS("output", MR_FLOAT_TYPE(), output_rate * gVecSize);
         TIndex* var_in = MR_VAR("i");
         TAddress* out_address = MR_INDEX_ADDRESS(new_out_vec, var_in);
 
