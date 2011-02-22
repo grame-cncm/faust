@@ -51,8 +51,8 @@ struct TCompiler
         */
 
         // C++ code generation
-        /*
-        cout << "#include <stdio.h>" << endl;
+
+       /* cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
 
         cout << "// -----------------" << endl;
@@ -101,7 +101,9 @@ struct TCompiler
          cout << "{" << endl;
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
-        */
+
+
+      */
 
         // C++ code generation without alisasing
         cout << "#include <stdio.h>" << endl;

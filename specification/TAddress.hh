@@ -33,13 +33,11 @@ struct TVectorAddress : public TAddress
 
     virtual void generateCPP(ostream* dst, int n)
     {
-        //fType->generateCPP(dst, n);
         *dst << fName;
     }
 
     virtual void generateCPPNoAlias(ostream* dst, int n)
     {
-        //fType->generateCPP(dst, n);
         *dst << fName;
     }
 
@@ -112,12 +110,8 @@ struct TIndexAddress : public TAddress
 
     virtual void generateCPPNoAlias(ostream* dst, int n)
     {
-        fAddress->generateCPP(dst, n);
-        if (dynamic_cast<TIndexAddress*>(fAddress) || dynamic_cast<TCastAddress*>(fAddress)) {
-            *dst << ".f[";
-        } else {
-            *dst << "[";
-        }
+        fAddress->generateCPPNoAlias(dst, n);
+        *dst << "[";
         fIndex->generateCPPNoAlias(dst, n);
         *dst << "]";
     }

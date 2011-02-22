@@ -134,7 +134,7 @@ void TIfStatement::generateCPP(ostream* dst, int n)
 void TDeclareStatement::generateCPPNoAlias(ostream* dst, int n)
 {
     tab(n, *dst);
-    fVector->fType->generateDef(dst, n);
+    fVector->fType->generateDefNoAlias(dst, n);
     fVector->fType->generateCPPNoAlias(dst, n);
     *dst << " ";
     *dst << fVector->fName;
@@ -145,16 +145,19 @@ void TDeclareStatement::generateCPPNoAlias(ostream* dst, int n)
 void TDeclareTypeStatement::generateCPPNoAlias(ostream* dst, int n)
 {
     tab(n, *dst);
-    fType->generateDef(dst, n);
+    fType->generateDefNoAlias(dst, n);
     *dst << endl;
 }
 
 void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
 {
+    // TODO : generate additionnal nested loops to access complex typed addresses and values
     tab(n, *dst);
     fAddress->generateCPPNoAlias(dst, n);
+    //fAddress->getType()->generate(dst, n);
     *dst << " = ";
-    fValue->generateCPP(dst, n);
+    fValue->generateCPPNoAlias(dst, n);
+    //fValue->getType()->generate(dst, n);
     *dst << ";";
 }
 
@@ -162,7 +165,7 @@ void TBlockStatement::generateCPPNoAlias(ostream* dst, int n)
 {
     vector<TStatement*>::const_iterator it;
     for (it = fCode.begin(); it != fCode.end(); it++) {
-        (*it)->generateCPP(dst, n);
+        (*it)->generateCPPNoAlias(dst, n);
     }
 }
 

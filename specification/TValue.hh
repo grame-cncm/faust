@@ -97,7 +97,13 @@ struct TPrimOpValue : public TValue
 
     virtual void generate(ostream* dst, int n) { fVal1->generate(dst, n); *dst << " " << fOp << " "; fVal2->generate(dst, n);}
     virtual void generateCPP(ostream* dst, int n) { fVal1->generateCPP(dst, n); *dst << " " << fOp << " "; fVal2->generateCPP(dst, n);}
-    virtual void generateCPPNoAlias(ostream* dst, int n) { fVal1->generateCPPNoAlias(dst, n); *dst << " " << fOp << " "; fVal2->generateCPPNoAlias(dst, n);}
+    virtual void generateCPPNoAlias(ostream* dst, int n)
+    {
+        // TODO : generate additionnal nested loops to access complex typed addresses and values
+        fVal1->generateCPPNoAlias(dst, n);
+        *dst << " " << fOp << " ";
+        fVal2->generateCPPNoAlias(dst, n);
+    }
 
 };
 

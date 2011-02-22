@@ -16,6 +16,7 @@ struct TType : public TPrintable
     virtual void generateCPP(ostream* dst, int n) = 0;
     virtual void generateCPPNoAlias(ostream* dst, int n) = 0;
     virtual void generateDef(ostream* dst, int n) = 0;
+    virtual void generateDefNoAlias(ostream* dst, int n) = 0;
 
     virtual int getSize()  = 0;
 
@@ -43,6 +44,7 @@ struct TIntType : public TType
     virtual void generateCPP(ostream* dst, int n) { *dst << "int"; }
     virtual void generateCPPNoAlias(ostream* dst, int n) { *dst << "int"; }
     virtual void generateDef(ostream* dst, int n) {}
+    virtual void generateDefNoAlias(ostream* dst, int n) {}
 
     virtual int getSize() { return 0; }
 
@@ -66,6 +68,7 @@ struct TFloatType : public TType
     virtual void generateCPP(ostream* dst, int n) { *dst << "float"; }
     virtual void generateCPPNoAlias(ostream* dst, int n) { *dst << "float"; }
     virtual void generateDef(ostream* dst, int n) {}
+    virtual void generateDefNoAlias(ostream* dst, int n) {}
 
     virtual int getSize() { return 0; }
 
@@ -130,8 +133,8 @@ struct TVectorType : public TType
     virtual void generateDef(ostream* dst, int n)
     {
         if (!fGenerated) {
-            fType->generateDef(dst, n+1);
-            tab(n, *dst);
+            //fType->generateDef(dst, n+1);
+            //tab(n, *dst);
             *dst << "struct " << fDecName;
             *dst << " {" << endl;
             tab(n+1, *dst);
@@ -149,6 +152,19 @@ struct TVectorType : public TType
             generatePolyScalar(dst, n, "/");
 
             tab(n, *dst); *dst << "};";
+            fGenerated = true;
+        }
+    }
+
+    virtual void generateDefNoAlias(ostream* dst, int n)
+    {
+        if (!fGenerated) {
+            //fType->generateDefNoAlias(dst, n+1);
+            //tab(n, *dst);
+            *dst << "typedef ";
+            fType->generateCPPNoAlias(dst, n);
+            *dst << " " << fDecName;
+            *dst << "[" << fSize << "];" ;
             fGenerated = true;
         }
     }
