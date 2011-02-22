@@ -14,6 +14,7 @@ struct TType : public TPrintable
 
 	virtual void generate(ostream* dst, int n) = 0;
     virtual void generateCPP(ostream* dst, int n) = 0;
+    virtual void generateCPPNoAlias(ostream* dst, int n) = 0;
     virtual void generateDef(ostream* dst, int n) = 0;
 
     virtual int getSize()  = 0;
@@ -40,6 +41,7 @@ struct TIntType : public TType
 
 	virtual void generate(ostream* dst, int n) { *dst << "int"; }
     virtual void generateCPP(ostream* dst, int n) { *dst << "int"; }
+    virtual void generateCPPNoAlias(ostream* dst, int n) { *dst << "int"; }
     virtual void generateDef(ostream* dst, int n) {}
 
     virtual int getSize() { return 0; }
@@ -62,6 +64,7 @@ struct TFloatType : public TType
 
 	virtual void generate(ostream* dst, int n) { *dst << "float"; }
     virtual void generateCPP(ostream* dst, int n) { *dst << "float"; }
+    virtual void generateCPPNoAlias(ostream* dst, int n) { *dst << "float"; }
     virtual void generateDef(ostream* dst, int n) {}
 
     virtual int getSize() { return 0; }
@@ -95,6 +98,11 @@ struct TVectorType : public TType
 
 	virtual void generate(ostream* dst, int n) { fType->generate(dst, n); *dst << "[" << fSize << "]";  }
     virtual void generateCPP(ostream* dst, int n)
+    {
+        *dst  << fDecName;
+    }
+
+    virtual void generateCPPNoAlias(ostream* dst, int n)
     {
         *dst  << fDecName;
     }

@@ -15,6 +15,7 @@ struct TStatement : public TPrintable
 
     virtual void generate(ostream* dst, int n) = 0;
     virtual void generateCPP(ostream* dst, int n) = 0;
+    virtual void generateCPPNoAlias(ostream* dst, int n) = 0;
 };
 
 struct TDeclareStatement : public TStatement
@@ -26,6 +27,7 @@ struct TDeclareStatement : public TStatement
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
 };
 
 struct TDeclareTypeStatement : public TStatement
@@ -37,6 +39,7 @@ struct TDeclareTypeStatement : public TStatement
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
 };
 
 struct TStoreStatement : public TStatement
@@ -48,6 +51,7 @@ struct TStoreStatement : public TStatement
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
 };
 
 struct TBlockStatement : public TStatement
@@ -56,6 +60,7 @@ struct TBlockStatement : public TStatement
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
 };
 
 struct TLoopStatement : public TStatement
@@ -68,6 +73,7 @@ struct TLoopStatement : public TStatement
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
 
 };
 
@@ -77,6 +83,7 @@ struct TSubLoopStatement : public TLoopStatement
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
 
 };
 
@@ -89,6 +96,7 @@ struct TIfStatement : public TStatement
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
 
 };
 

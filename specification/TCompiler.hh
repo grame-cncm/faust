@@ -51,6 +51,7 @@ struct TCompiler
         */
 
         // C++ code generation
+        /*
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
 
@@ -98,6 +99,57 @@ struct TCompiler
 
         cout << "int main()" << endl;
          cout << "{" << endl;
+        cout << "\tprocess();" << endl;
+        cout << "}" << endl << endl;
+        */
+
+        // C++ code generation without alisasing
+        cout << "#include <stdio.h>" << endl;
+        cout << "#include <string.h>" << endl << endl;
+
+        cout << "// -----------------" << endl;
+        cout << "// Declaration block" << endl;
+        cout << "// -----------------" << endl;
+        gDecBlock->generateCPPNoAlias(&cout, 0);
+
+        cout << endl << "void process()" << endl;
+        cout << "{" << endl;
+
+        cout << "\tfloat input0[32 * 16];" << endl;  // Should use real input rate....
+        cout << "\tfloat input1[32 * 16];" << endl;
+        cout << "\tfloat input2[32 * 16];" << endl;
+        cout << "\tfloat input3[32 * 16];" << endl;
+        cout << "\tfloat output[32 * 16];" << endl;
+
+        // Should use real input rate....
+        cout << "\tfor (int i = 0; i < 32 * 16; i++) {" << endl;
+        cout << "\t\tinput0[i] = float(i);" << endl;
+        cout << "\t\tinput1[i] = float(i);" << endl;
+        cout << "\t\tinput2[i] = float(i);" << endl;
+        cout << "\t\tinput3[i] = float(i);" << endl;
+        cout << "\t}" << endl;
+
+        cout << "\tmemset(output, 0, sizeof(float) * 32);" << endl;
+
+        cout << endl << endl  << "\t// -----------------" << endl;
+        cout << "\t// Separated loops" << endl;
+        cout << "\t// -----------------" << endl;
+        gExternalBlock->generateCPPNoAlias(&cout, 1);
+
+        cout << endl << "\t// -----------------" << endl;
+        cout << "\t// Result" << endl;
+        cout << "\t// -----------------" << endl;
+        global_loop->generateCPPNoAlias(&cout, 1);
+        cout << endl;
+
+        cout << "\tfor (int i = 0; i < 32; i++) {" << endl;
+        cout << "\t\tprintf(\"output %f \\n\", output[i]);" << endl;
+        cout << "\t}" << endl;
+
+        cout << "}" << endl << endl;
+
+        cout << "int main()" << endl;
+        cout << "{" << endl;
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
 

@@ -128,3 +128,74 @@ void TIfStatement::generateCPP(ostream* dst, int n)
     fCode->generateCPP(dst, n+1);
     tab(n, *dst); *dst << "}";
 }
+
+// CPP generation no alias
+
+void TDeclareStatement::generateCPPNoAlias(ostream* dst, int n)
+{
+    tab(n, *dst);
+    fVector->fType->generateDef(dst, n);
+    fVector->fType->generateCPPNoAlias(dst, n);
+    *dst << " ";
+    *dst << fVector->fName;
+    *dst << "[" << fVector->fSize << "]";
+    *dst << ";" << endl;
+}
+
+void TDeclareTypeStatement::generateCPPNoAlias(ostream* dst, int n)
+{
+    tab(n, *dst);
+    fType->generateDef(dst, n);
+    *dst << endl;
+}
+
+void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
+{
+    tab(n, *dst);
+    fAddress->generateCPPNoAlias(dst, n);
+    *dst << " = ";
+    fValue->generateCPP(dst, n);
+    *dst << ";";
+}
+
+void TBlockStatement::generateCPPNoAlias(ostream* dst, int n)
+{
+    vector<TStatement*>::const_iterator it;
+    for (it = fCode.begin(); it != fCode.end(); it++) {
+        (*it)->generateCPP(dst, n);
+    }
+}
+
+void TLoopStatement::generateCPPNoAlias(ostream* dst, int n)
+{
+    vector<TStatement*>::const_iterator it;
+    tab(n, *dst); *dst << "for (int "; fIndex->generateCPPNoAlias(dst, n);
+        *dst << " = 0; ";
+        fIndex->generateCPPNoAlias(dst, n);
+        *dst << " < " << fSize << "; ";
+        fIndex->generateCPPNoAlias(dst, n);
+        *dst << "++) {" << endl;
+    fCode->generateCPPNoAlias(dst, n+1);
+    tab(n, *dst); *dst << "}" << endl;
+}
+
+void TSubLoopStatement::generateCPPNoAlias(ostream* dst, int n)
+{
+    vector<TStatement*>::const_iterator it;
+    tab(n, *dst); *dst << "for (int "; fIndex->generateCPPNoAlias(dst, n);
+        *dst << " = 0; ";
+        fIndex->generateCPPNoAlias(dst, n);
+        *dst << " < " << fSize << "; ";
+        fIndex->generateCPPNoAlias(dst, n);
+        *dst << "++) {" << endl;
+    fCode->generateCPPNoAlias(dst, n+1);
+    tab(n, *dst); *dst << "}" << endl;
+}
+
+void TIfStatement::generateCPPNoAlias(ostream* dst, int n)
+{
+    vector<TStatement*>::const_iterator it;
+    tab(n, *dst); *dst << "if ("; fIndex->generateCPPNoAlias(dst, n); *dst << " == 0) {" << endl;
+    fCode->generateCPPNoAlias(dst, n+1);
+    tab(n, *dst); *dst << "}";
+}
