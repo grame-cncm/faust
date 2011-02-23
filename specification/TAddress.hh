@@ -24,24 +24,11 @@ struct TVectorAddress : public TAddress
 
     virtual ~TVectorAddress() {}
 
-    virtual void generate(ostream* dst, int n)
-    {
-        fType->generate(dst, n);
-        *dst << "[" << fSize << "]";
-        *dst << " " << fName;
-    }
+    virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
+    virtual TType* getType();
 
-    virtual void generateCPP(ostream* dst, int n)
-    {
-        *dst << fName;
-    }
-
-    virtual void generateCPPNoAlias(ostream* dst, int n)
-    {
-        *dst << fName;
-    }
-
-    virtual TType* getType() { return fType; }
 };
 
 struct TCastAddress : public TAddress
@@ -54,31 +41,11 @@ struct TCastAddress : public TAddress
 
     virtual ~TCastAddress() {}
 
-    virtual void generate(ostream* dst, int n)
-    {
-        fAddress->generate(dst, n);
-        *dst << "{"; fAddress->getType()->generate(dst, n); *dst << "->"; fType->generate(dst, n); *dst << "}";
-    }
+    virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
+    virtual TType* getType();
 
-    virtual void generateCPP(ostream* dst, int n)
-    {
-        *dst << "(*(";
-        fType->generateCPP(dst, n);
-        *dst << "*)&(";
-        fAddress->generateCPP(dst, n);
-        *dst << "))";
-    }
-
-    virtual void generateCPPNoAlias(ostream* dst, int n)
-    {
-        *dst << "(*(";
-        fType->generateCPPNoAlias(dst, n);
-        *dst << "*)&(";
-        fAddress->generateCPPNoAlias(dst, n);
-        *dst << "))";
-    }
-
-    virtual TType* getType() { return fType; }
 };
 
 struct TIndexAddress : public TAddress
@@ -90,36 +57,11 @@ struct TIndexAddress : public TAddress
 
     virtual ~TIndexAddress() {}
 
-    virtual void generate(ostream* dst, int n)
-    {
-        fAddress->generate(dst, n);
-        *dst << "("; fIndex->generate(dst, n); *dst << ")";
-    }
+    virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
+    virtual TType* getType();
 
-    virtual void generateCPP(ostream* dst, int n)
-    {
-        fAddress->generateCPP(dst, n);
-        if (dynamic_cast<TIndexAddress*>(fAddress) || dynamic_cast<TCastAddress*>(fAddress)) {
-            *dst << ".f[";
-        } else {
-            *dst << "[";
-        }
-        fIndex->generateCPP(dst, n);
-        *dst << "]";
-    }
-
-    virtual void generateCPPNoAlias(ostream* dst, int n)
-    {
-        fAddress->generateCPPNoAlias(dst, n);
-        *dst << "[";
-        fIndex->generateCPPNoAlias(dst, n);
-        *dst << "]";
-    }
-
-    virtual TType* getType()
-    {
-        return fAddress->getType();
-    }
 };
 
 

@@ -151,13 +151,13 @@ void TDeclareTypeStatement::generateCPPNoAlias(ostream* dst, int n)
 
 void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
 {
-    // TODO : generate additionnal nested loops to access complex typed addresses and values
+    // TODO : generate additional nested loops to access complex typed addresses and values
     tab(n, *dst);
     fAddress->generateCPPNoAlias(dst, n);
-    //fAddress->getType()->generate(dst, n);
+    fAddress->getType()->generate(dst, n);
     *dst << " = ";
     fValue->generateCPPNoAlias(dst, n);
-    //fValue->getType()->generate(dst, n);
+    fValue->getType()->generate(dst, n);
     *dst << ";";
 }
 

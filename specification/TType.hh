@@ -133,8 +133,6 @@ struct TVectorType : public TType
     virtual void generateDef(ostream* dst, int n)
     {
         if (!fGenerated) {
-            //fType->generateDef(dst, n+1);
-            //tab(n, *dst);
             *dst << "struct " << fDecName;
             *dst << " {" << endl;
             tab(n+1, *dst);
@@ -159,8 +157,6 @@ struct TVectorType : public TType
     virtual void generateDefNoAlias(ostream* dst, int n)
     {
         if (!fGenerated) {
-            //fType->generateDefNoAlias(dst, n+1);
-            //tab(n, *dst);
             *dst << "typedef ";
             fType->generateCPPNoAlias(dst, n);
             *dst << " " << fDecName;
