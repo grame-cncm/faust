@@ -52,6 +52,10 @@ struct TStoreStatement : public TStatement
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);
     virtual void generateCPPNoAlias(ostream* dst, int n);
+
+    void generateSubLoops(ostream* dst, int n, const vector<int>& dimensions, int deep);
+    TValue* generateSubValues(TValue* value, const vector<int>& dim);
+    TAddress* generateSubAddress(TAddress* address, const vector<int>& dim);
 };
 
 struct TBlockStatement : public TStatement

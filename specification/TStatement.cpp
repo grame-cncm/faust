@@ -1,6 +1,7 @@
 
 #include "TStatement.hh"
 #include "TValue.hh"
+#include "TSyntax.hh"
 
 // Pseudo code generation
 
@@ -149,16 +150,75 @@ void TDeclareTypeStatement::generateCPPNoAlias(ostream* dst, int n)
     *dst << endl;
 }
 
+// Re-generate values with corrected indexing
+TValue* TStoreStatement::generateSubValues(TValue* value, const vector<int>& dim)
+{
+    TLoadValue* load_value = dynamic_cast<TLoadValue*>(value);
+    TPrimOpValue* prim_value = dynamic_cast<TPrimOpValue*>(value);
+
+    if (load_value) {
+        return MR_LOAD(generateSubAddress(load_value->fAddress, dim));
+    } else if (prim_value) {
+        return MR_OP(generateSubValues(prim_value->fVal1, dim), generateSubValues(prim_value->fVal2, dim), prim_value->fOp);
+    } else {
+        return value;
+    }
+}
+
+// Re-generate address with corrected indexing
+TAddress* TStoreStatement::generateSubAddress(TAddress* address, const vector<int>& dim)
+{
+    TAddress* address1 = address;
+    for (int i = 0; i < dim.size(); i++) {
+        string index = subst("w$0", T(i));
+        address1 = MR_INDEX_ADDRESS(address1, MR_VAR(index));
+    }
+    return address1;
+}
+
+void TStoreStatement::generateSubLoops(ostream* dst, int n, const vector<int>& dim, int deep)
+{
+    if (deep == dim.size()) {
+        tab(n, *dst);
+
+        // Recompute address
+        generateSubAddress(fAddress, dim)->generateCPPNoAlias(dst, n);
+        //fAddress->generateCPPNoAlias(dst, n);
+
+        *dst << " = ";
+
+        generateSubValues(fValue, dim)->generateCPPNoAlias(dst, n);
+        //fValue->generateCPPNoAlias(dst, n);
+
+        *dst << ";" << endl;
+    } else {
+        tab(n, *dst);
+        string index = subst("w$0", T(deep));
+        *dst << "for (int " << index << " = 0; " << index << " < " << dim[deep] << "; " << index << "++) {" << endl;
+
+        generateSubLoops(dst, n+1, dim, deep+1);
+
+        tab(n, *dst);
+        *dst << "}" << endl;
+    }
+}
+
 void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
 {
-    // TODO : generate additional nested loops to access complex typed addresses and values
-    tab(n, *dst);
-    fAddress->generateCPPNoAlias(dst, n);
-    fAddress->getType()->generate(dst, n);
-    *dst << " = ";
-    fValue->generateCPPNoAlias(dst, n);
-    fValue->getType()->generate(dst, n);
-    *dst << ";";
+    //CHECK_EQUAL_TYPE(fAddress->getType(), fValue->getType());
+
+    // Operation on "simple" (= float) type
+    if (dynamic_cast<TFloatType*>(fAddress->getType())) {
+        tab(n, *dst);
+        fAddress->generateCPPNoAlias(dst, n);
+        *dst << " = ";
+        fValue->generateCPPNoAlias(dst, n);
+        *dst << ";";
+    } else {
+        TVectorType* vec_type = dynamic_cast<TVectorType*>(fAddress->getType());
+        assert(vec_type);
+        generateSubLoops(dst, n, vec_type->dimensions(), 0);
+    }
 }
 
 void TBlockStatement::generateCPPNoAlias(ostream* dst, int n)

@@ -177,6 +177,19 @@ struct TVectorType : public TType
     {
         return fType;
     }
+
+    vector<int> dimensions() const
+    {
+        std::vector<int> ret;
+        ret.push_back(fSize);
+        TVectorType * vt = dynamic_cast<TVectorType*>(fType);
+        if (vt) {
+            vector<int> base = vt->dimensions();
+            ret.insert(ret.end(), base.begin(), base.end());
+        }
+        return ret;
+    }
+
 };
 
 #endif
