@@ -55,22 +55,6 @@ struct TIntValue : public TValue
 
 };
 
-struct TVarValue : public TValue
-{
-    string fName;
-
-    TVarValue(const string& name):fName(name) {}
-
-    virtual ~TVarValue() {}
-
-	virtual TType* getType() = 0;
-
-    virtual void generate(ostream* dst, int n) { *dst << fName; }
-    virtual void generateCPP(ostream* dst, int n) { *dst << fName; }
-    virtual void generateCPPNoAlias(ostream* dst, int n) { *dst << fName; }
-
-};
-
 struct TLoadValue : public TValue
 {
     TAddress* fAddress;
