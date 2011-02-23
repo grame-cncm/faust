@@ -77,10 +77,10 @@ TPrimOpValue* MR_DIV(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "
 TPrimOpValue* MR_OP(TValue* v1, TValue* v2, const string& op)  { return new TPrimOpValue(v1, v2, op); }
 
 
-void CHECK_TYPE(TType* type1, TType* type2)
+void CHECK_EQUAL_TYPE(TType* type1, TType* type2)
 {
 
-    cout << "CHECK_TYPE" << endl;
+    cout << "CHECK_EQUAL_TYPE" << endl;
     type1->generate(&cout, 0);
     cout << endl;
     type2->generate(&cout, 0);

@@ -26,11 +26,7 @@ struct TCompiler
         TAddress* out_address = MR_INDEX_ADDRESS(new_out_vec, var_in);
 
         // Type checking
-        new_out_vec->getType()->generate(&cout, 0);
-
-        CHECK_TYPE(input_type, out_address->getType());
-
-        assert(input_type->equal(out_address->getType()));
+        CHECK_EQUAL_TYPE(input_type, out_address->getType());
 
         // Compilation
         TBlockStatement* sub_block = MR_BLOCK();
@@ -53,8 +49,8 @@ struct TCompiler
         */
 
         // C++ code generation
-
-       /* cout << "#include <stdio.h>" << endl;
+        /*
+        cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
 
         cout << "// -----------------" << endl;
@@ -103,9 +99,7 @@ struct TCompiler
          cout << "{" << endl;
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
-
-
-      */
+        */
 
         // C++ code generation without aliasing
 

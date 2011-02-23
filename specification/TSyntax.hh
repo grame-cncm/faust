@@ -51,7 +51,7 @@ TPrimOpValue* MR_MUL(TValue* v1, TValue* v2);
 TPrimOpValue* MR_DIV(TValue* v1, TValue* v2);
 TPrimOpValue* MR_OP(TValue* v1, TValue* v2, const string& op);
 
-void CHECK_TYPE(TType* type1, TType* type2);
+void CHECK_EQUAL_TYPE(TType* type1, TType* type2);
 
 extern bool gPrim;
 extern bool gVec;
