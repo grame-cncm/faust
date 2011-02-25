@@ -36,15 +36,19 @@ namespace oscfaust
 //--------------------------------------------------------------------------
 void FaustFactory::addnode (const char* label, float* zone, float init, float min, float max)
 {
-	string prefix = fNodes.size() ? fNodes.top()->getOSCAddress() : "/";
-	fNodes.top()->add( FaustNode::create (label, zone, init, min, max, prefix.c_str()) );
+	SMessageDriven top = fNodes.size() ? fNodes.top() : fRoot;
+	if (top) {
+//		string prefix = fNodes.size() ? top->getOSCAddress() : "/";
+		string prefix = top->getOSCAddress();
+		top->add( FaustNode::create (label, zone, init, min, max, prefix.c_str()) );
+	}
 }
 
 //--------------------------------------------------------------------------
 void FaustFactory::opengroup (const char* label)
 {
 	if (!fNodes.size()) {
-		fRoot = RootNode::create (label);
+		fRoot = RootNode::create (label, fIO);
 		fNodes.push (fRoot);
 	}
 	else {

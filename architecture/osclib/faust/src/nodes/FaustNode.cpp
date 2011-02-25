@@ -37,15 +37,16 @@ void FaustNode::store( float val )
 }
 
 //--------------------------------------------------------------------------
-void FaustNode::accept( const Message* msg )
+bool FaustNode::accept( const Message* msg )
 {
 	if (msg->size() == 1) {
 		int ival; float fval;
 		if (msg->param(0, fval)) store (fval);
 		else if (msg->param(0, ival)) store (float(ival));	
-		else MessageDriven::accept(msg);
+		else return MessageDriven::accept(msg);
+		return true;		return true;
 	}
-	else MessageDriven::accept(msg);
+	return MessageDriven::accept(msg);
 }
 
 

@@ -28,6 +28,7 @@
 #include "Message.h"
 #include "OSCStream.h"
 #include "OSCControler.h"
+#include "OSCIO.h"
 #include "ip/NetworkingUtils.h"
 
 using namespace std;
@@ -64,13 +65,40 @@ string getIP()
 }
 
 //--------------------------------------------------------------------------
-void RootNode::accept( const Message* msg )
+bool RootNode::acceptSignal( const Message* msg )
+{
+	bool ret = true;
+	int n = msg->size();
+	if (n) {
+		float val, * buff = new float[n];
+		for (int i = 0; i < n ; i++) {
+			if (msg->param(i, val))
+				buff[i] = val;
+			else {
+				ret = false;
+				break;
+			}
+		}
+		if (ret) fIO->receive (n, buff);
+		delete buff;
+	}
+	else ret = false;
+	return ret;
+}
+
+//--------------------------------------------------------------------------
+bool RootNode::accept( const Message* msg )
 {
 	string val;
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kHelloMsg) ) {
 		hello (msg->src());
+		return true;
 	}
-	else MessageDriven::accept (msg);
+	else if (MessageDriven::accept (msg))
+		return true;
+	else if (fIO) 
+		return acceptSignal (msg);
+	return false;
 }
 
 //--------------------------------------------------------------------------

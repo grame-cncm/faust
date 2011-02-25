@@ -22,39 +22,28 @@
 */
 
 
-#ifndef __FaustNode__
-#define __FaustNode__
+#ifndef __OSCIO__
+#define __OSCIO__
 
 #include <string>
-#include <vector>
-
-#include "MessageDriven.h"
 
 namespace oscfaust
 {
 
-class FaustNode;
-typedef class SMARTP<FaustNode>	SFaustNode;
-
 //--------------------------------------------------------------------------
-class FaustNode : public MessageDriven
-{
-	float *	fZone;
-	float	fMin, fMax;
-	
-	void store (float val);
-
-	protected:
-				 FaustNode(const char *name, float* zone, float init, float min, float max, const char* prefix) 
-					: MessageDriven (name, prefix), fZone(zone), fMin(min), fMax(max) { *zone = init; }
-		virtual ~FaustNode() {}
-
+class OSCIO
+{	
+	std::string	fDest;
 	public:
-		static SFaustNode create (const char* name, float* zone, float init, float min, float max, const char* prefix)	
-							{ return new FaustNode(name, zone, init, min, max, prefix); }
+				 OSCIO(const char *dst) : fDest(dst) {}
+		virtual ~OSCIO() {} 
 
-		virtual bool	accept( const Message* msg );
-		virtual void	get (unsigned long ipdest) const;		///< handler for the 'get' message
+		virtual void	receive( int nframes, float * val ) = 0;
+		virtual int		numOutputs() const = 0;
+		virtual int		numInputs() const = 0;
+		virtual void 	send ( int nframes, float * val, int chan ) const;
+		const char* 	dest () const				{ return fDest.c_str(); }
+		void			setDest (const char *dst)	{ fDest = dst; }
 };
 
 } // end namespoace

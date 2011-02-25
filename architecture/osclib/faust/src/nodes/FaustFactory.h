@@ -32,6 +32,7 @@
 namespace oscfaust
 {
 
+class OSCIO;
 class MessageDriven;
 typedef class SMARTP<MessageDriven>	SMessageDriven;
 
@@ -40,9 +41,10 @@ class FaustFactory
 {
 	std::stack<SMessageDriven>	fNodes;
 	SMessageDriven			fRoot;
+	OSCIO * fIO;
 
 	public:
-				 FaustFactory() {}
+				 FaustFactory(OSCIO * io=0) : fIO(io) {}
 		virtual ~FaustFactory() {}
 
 		void addnode (const char* label, float* zone, float init, float min, float max);

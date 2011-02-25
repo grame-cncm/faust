@@ -31,13 +31,15 @@
 #include "OSCSetup.h"
 #include "OSCFError.h"
 #include "RootNode.h"
+#include "OSCIO.h"
 
+using namespace std;
 
 namespace oscfaust
 {
 
-#define kVersion	 0.90f
-#define kVersionStr	"0.90"
+#define kVersion	 0.91f
+#define kVersionStr	"0.91"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -67,15 +69,15 @@ static const char* getDestOption (int argc, char *argv[], const std::string& opt
 
 
 //--------------------------------------------------------------------------
-OSCControler::OSCControler (int argc, char *argv[])
-	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2)
+OSCControler::OSCControler (int argc, char *argv[], OSCIO* io)
+	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io)
 {
 	fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
 	fUDPOut  = getPortOption (argc, argv, kUDPOutOpt, fUDPOut);
 	fUPDErr  = getPortOption (argc, argv, kUDPErrOpt, fUPDErr);
 	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
 
-	fFactory = new FaustFactory();
+	fFactory = new FaustFactory(io);
 	fOsc = new OSCSetup();
 }
 
@@ -125,10 +127,15 @@ void OSCControler::run ()
 		fOsc->start (root, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
 				<< quote(root->getName()).c_str() << "is running on UDP ports "
-				<<  fUDPPort << fUDPOut << fUPDErr << OSCEnd();
+				<<  fUDPPort << fUDPOut << fUPDErr;
+		if (fIO) oscout << " using OSC IO - in chans: " << fIO->numInputs() << " out chans: " << fIO->numOutputs();
+		oscout << OSCEnd();
 		if (!rootnode) OSCFErr << root->getName() << ": is not a root node, 'hello' message won't be supported" << OSCFEndl;
 	}
 }
+
+//--------------------------------------------------------------------------
+const char*	OSCControler::getRootName()	{ return fFactory->root()->getName(); }
 
 //--------------------------------------------------------------------------
 void OSCControler::quit ()

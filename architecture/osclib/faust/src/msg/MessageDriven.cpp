@@ -60,11 +60,14 @@ void MessageDriven::get (unsigned long ipdest) const
 }
 
 //--------------------------------------------------------------------------
-void MessageDriven::accept( const Message* msg )
+bool MessageDriven::accept( const Message* msg )
 {
 	string val;
-	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kGetMsg)) 
+	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kGetMsg)) {
 		get (msg->src());
+		return true;
+	}
+	return false;
 }
 
 //--------------------------------------------------------------------------

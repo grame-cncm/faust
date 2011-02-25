@@ -31,6 +31,7 @@
 namespace oscfaust
 {
 
+class OSCIO;
 class OSCSetup;
 class FaustFactory;
 
@@ -40,6 +41,7 @@ class OSCControler
 	std::string		fDestAddress;
 	FaustFactory *	fFactory;
 	OSCSetup*		fOsc;
+	OSCIO*			fIO;
 
 	public:
 		/*
@@ -49,7 +51,7 @@ class OSCControler
 		*/
 		enum { kUDPBasePort = 5510};
 
-				 OSCControler (int argc, char *argv[]);
+				 OSCControler (int argc, char *argv[], OSCIO* io);
 		virtual ~OSCControler ();
 	
 		void addnode (const char* label, float* zone, float init, float min, float max);
@@ -62,6 +64,7 @@ class OSCControler
 		int	getUDPOut()				{ return fUDPOut; }
 		int	getUDPErr()				{ return fUPDErr; }
 		const char*	getDesAddress() { return fDestAddress.c_str(); }
+		const char*	getRootName();
 
 		static float version();
 		static const char* versionstr();

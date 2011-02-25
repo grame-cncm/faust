@@ -33,6 +33,7 @@
 namespace oscfaust
 {
 
+class OSCIO;
 class RootNode;
 typedef class SMARTP<RootNode>	SRootNode;
 
@@ -40,14 +41,17 @@ typedef class SMARTP<RootNode>	SRootNode;
 class RootNode : public MessageDriven
 {
 	int *fUPDIn, *fUDPOut, *fUDPErr;
+	OSCIO * fIO;
+	
 	protected:
-				 RootNode(const char *name) : MessageDriven (name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0) {}
+				 RootNode(const char *name, OSCIO* io=0) : MessageDriven (name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fIO(io) {}
 		virtual ~RootNode() {}
 
 	public:
-		static SRootNode create (const char* name) { return new RootNode(name); }
+		static SRootNode create (const char* name, OSCIO* io=0) { return new RootNode(name, io); }
 
-		virtual void	accept( const Message* msg );
+		virtual bool	accept( const Message* msg );
+				bool	acceptSignal( const Message* msg );
 				void	hello (unsigned long ipdest) const;		///< handler for the 'hello' message
 				void	setPorts (int* in, int* out, int* err);
 };

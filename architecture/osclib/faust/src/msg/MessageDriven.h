@@ -55,7 +55,7 @@ class MessageDriven : public MessageProcessor, public smartable
 
 		virtual void	processMessage( const Message* msg );
 		virtual void	propose( const Message* msg, const OSCRegexp* regexp, const std::string addrTail);
-		virtual void	accept( const Message* msg );
+		virtual bool	accept( const Message* msg );
 		virtual void	get (unsigned long ipdest) const;		///< handler for the 'get' message
 
 		void			add ( SMessageDriven node )	{ fSubNodes.push_back (node); }

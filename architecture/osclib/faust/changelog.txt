@@ -8,5 +8,9 @@ research@grame.fr
 Copyright GRAME (c) 2011
 
 ----------------------------------------------------
+Version 0.91                           [Feb 25 2011]
+- OSC data input/output support added
+
+----------------------------------------------------
 Version 0.90                           [Jan 28 2011]
 - first release 
