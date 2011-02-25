@@ -42,12 +42,14 @@ void TPrimOp::compileStatement(TBlockStatement* block, TAddress* address, TIndex
 
 TValue* TPrimOp::compileSample(TIndex* index)
 {
+    // Expression type checking
+    //CHECK_EQUAL_TYPE(fExp1->getType(), fExp2->getType());
+
     // not shared
     if (!gPrim) {
         return MR_OP(fExp1->compileSample(index), fExp2->compileSample(index), fOp);
     } else {
         // shared
-
         int rate = getRate();
         TType* type = getType();
 

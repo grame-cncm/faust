@@ -157,8 +157,9 @@ TValue* TStoreStatement::generateSubValues(TValue* value, const vector<int>& dim
     TPrimOpValue* prim_value = dynamic_cast<TPrimOpValue*>(value);
 
     if (load_value) {
-        return MR_LOAD(generateSubAddress(load_value->fAddress, dim));
+        return MR_LOAD(generateSubAddressLoad(load_value->fAddress, dim));
     } else if (prim_value) {
+        // Here we assume equals types...
         return MR_OP(generateSubValues(prim_value->fVal1, dim), generateSubValues(prim_value->fVal2, dim), prim_value->fOp);
     } else {
         return value;
@@ -166,7 +167,17 @@ TValue* TStoreStatement::generateSubValues(TValue* value, const vector<int>& dim
 }
 
 // Re-generate address with corrected indexing
-TAddress* TStoreStatement::generateSubAddress(TAddress* address, const vector<int>& dim)
+TAddress* TStoreStatement::generateSubAddressStore(TAddress* address, const vector<int>& dim)
+{
+    TAddress* address1 = address;
+    for (int i = 0; i < dim.size(); i++) {
+        string index = subst("w$0", T(i));
+        address1 = MR_INDEX_ADDRESS(address1, MR_VAR(index));
+    }
+    return MR_INDEX_ADDRESS(address1->getVector(), address1->rewriteIndex(0));
+}
+
+TAddress* TStoreStatement::generateSubAddressLoad(TAddress* address, const vector<int>& dim)
 {
     TAddress* address1 = address;
     for (int i = 0; i < dim.size(); i++) {
@@ -180,24 +191,17 @@ void TStoreStatement::generateSubLoops(ostream* dst, int n, const vector<int>& d
 {
     if (deep == dim.size()) {
         tab(n, *dst);
-
-        // Recompute address
-        generateSubAddress(fAddress, dim)->generateCPPNoAlias(dst, n);
-        //fAddress->generateCPPNoAlias(dst, n);
-
+        // Recompute address with corrected indexing
+        generateSubAddressStore(fAddress, dim)->generateCPPNoAlias(dst, n);
         *dst << " = ";
-
+        // Recompute address with corrected indexing
         generateSubValues(fValue, dim)->generateCPPNoAlias(dst, n);
-        //fValue->generateCPPNoAlias(dst, n);
-
         *dst << ";" << endl;
     } else {
         tab(n, *dst);
         string index = subst("w$0", T(deep));
         *dst << "for (int " << index << " = 0; " << index << " < " << dim[deep] << "; " << index << "++) {" << endl;
-
         generateSubLoops(dst, n+1, dim, deep+1);
-
         tab(n, *dst);
         *dst << "}" << endl;
     }
@@ -210,7 +214,8 @@ void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
     // Operation on "simple" (= float) type
     if (dynamic_cast<TFloatType*>(fAddress->getType())) {
         tab(n, *dst);
-        fAddress->generateCPPNoAlias(dst, n);
+        TAddress* new_address = MR_INDEX_ADDRESS(fAddress->getVector(), fAddress->rewriteIndex(0));
+        new_address->generateCPPNoAlias(dst, n);
         *dst << " = ";
         fValue->generateCPPNoAlias(dst, n);
         *dst << ";";

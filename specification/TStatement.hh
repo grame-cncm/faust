@@ -55,7 +55,9 @@ struct TStoreStatement : public TStatement
 
     void generateSubLoops(ostream* dst, int n, const vector<int>& dimensions, int deep);
     TValue* generateSubValues(TValue* value, const vector<int>& dim);
-    TAddress* generateSubAddress(TAddress* address, const vector<int>& dim);
+    TAddress* generateSubAddressLoad(TAddress* address, const vector<int>& dim);
+    TAddress* generateSubAddressStore(TAddress* address, const vector<int>& dim);
+
 };
 
 struct TBlockStatement : public TStatement

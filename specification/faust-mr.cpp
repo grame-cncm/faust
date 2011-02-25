@@ -173,6 +173,18 @@ TSignal* test15bis(bool prim, bool vec, bool ser, bool concat)
     return new TPrimOp(new TSerialize(new TVectorize(new TInput(0, 4), 4)), new TSerialize(new TVectorize(new TInput(1, 4), 4)), "+");
 }
 
+TSignal* test15ter(bool prim, bool vec, bool ser, bool concat)
+{
+    gPrim = prim;
+    gVec = vec;
+    gSer = ser;
+    gConcat = concat;
+    Display("test15ter");
+    return new TSerialize(new TSerialize(new TPrimOp(
+        new TVectorize(new TVectorize(new TInput(0, 12), 4), 3),
+        new TVectorize(new TVectorize(new TInput(1, 12), 4), 3), "+")));
+}
+
 TSignal* test16(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
@@ -255,7 +267,7 @@ int main()
     //compiler.compileTop(test11(true, false, false, true));
 
     //compiler.compileTop(test11bis(true, true, true, true));
-    //compiler.compileTop(test12(true, true, true, true));
+    compiler.compileTop(test12(true, true, true, true));
     //compiler.compileTop(test12(true, false, true, true));
     //compiler.compileTop(test12(true, true, false, true));
     //compiler.compileTop(test12(true, false, false, true));
@@ -268,7 +280,7 @@ int main()
     //compiler.compileTop(test15(true, true, false, true));
     //compiler.compileTop(test15(true, false, false, true));
 
-    compiler.compileTop(test15(false, true, true, true));
+    //compiler.compileTop(test15(false, true, true, true));
     //compiler.compileTop(test15(false, false, true, true));
     //compiler.compileTop(test15(false, true, false, true));
     //compiler.compileTop(test15(false, false, false, true));
@@ -282,6 +294,11 @@ int main()
     //compiler.compileTop(test15bis(false, false, true, true));
     //compiler.compileTop(test15bis(false, true, false, true));
     //compiler.compileTop(test15bis(false, false, false, true));
+
+    //compiler.compileTop(test15ter(false, true, true, true));
+    //compiler.compileTop(test15ter(false, false, true, true));
+    //compiler.compileTop(test15ter(false, true, false, true));
+    //compiler.compileTop(test15ter(false, false, false, true));
 
     //compiler.compileTop(test16(true, true, true, true));
 

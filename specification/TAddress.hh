@@ -12,6 +12,11 @@ struct TAddress : public TPrintable {
     virtual ~TAddress() {}
 
     virtual TType* getType() = 0;
+
+    virtual TIndex* rewriteIndex(TIndex* index) = 0;
+    virtual TAddress* rewriteAddress(TIndex* index) = 0;
+
+    virtual TAddress* getVector() = 0;
 };
 
 struct TVectorAddress : public TAddress
@@ -28,6 +33,11 @@ struct TVectorAddress : public TAddress
     virtual void generateCPP(ostream* dst, int n);
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
+
+    virtual TIndex* rewriteIndex(TIndex* index);
+    virtual TAddress* rewriteAddress(TIndex* index);
+
+    virtual TAddress* getVector() { return this; }
 
 };
 
@@ -46,6 +56,11 @@ struct TCastAddress : public TAddress
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
 
+    virtual TIndex* rewriteIndex(TIndex* index);
+    virtual TAddress* rewriteAddress(TIndex* index);
+
+    virtual TAddress* getVector() { return fAddress->getVector(); }
+
 };
 
 struct TIndexAddress : public TAddress
@@ -61,6 +76,11 @@ struct TIndexAddress : public TAddress
     virtual void generateCPP(ostream* dst, int n);
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
+
+    virtual TIndex* rewriteIndex(TIndex* index);
+    virtual TAddress* rewriteAddress(TIndex* index);
+
+    virtual TAddress* getVector() { return fAddress->getVector(); }
 
 };
 

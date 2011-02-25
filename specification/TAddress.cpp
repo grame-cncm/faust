@@ -24,6 +24,17 @@ TType* TVectorAddress::getType()
     return MR_VECTOR_TYPE(fType, fSize);
 }
 
+TIndex* TVectorAddress::rewriteIndex(TIndex* index)
+{
+    //cout << "TVectorAddress::rewriteIndex " << fName << endl;
+    return index;
+}
+
+TAddress* TVectorAddress::rewriteAddress(TIndex* index)
+{
+    return this;
+}
+
 void TCastAddress::generate(ostream* dst, int n)
 {
     fAddress->generate(dst, n);
@@ -49,6 +60,16 @@ void TCastAddress::generateCPPNoAlias(ostream* dst, int n)
 }
 
 TType* TCastAddress::getType() { return fType; }
+
+TIndex* TCastAddress::rewriteIndex(TIndex* index)
+{
+    return MR_DIV(fAddress->rewriteIndex(index), MR_INT(fType->getSize()));
+}
+
+TAddress* TCastAddress::rewriteAddress(TIndex* index)
+{
+    return fAddress->rewriteAddress(index);
+}
 
 void TIndexAddress::generate(ostream* dst, int n)
 {
@@ -81,3 +102,22 @@ TType* TIndexAddress::getType()
     return fAddress->getType()->deref();
 }
 
+TIndex* TIndexAddress::rewriteIndex(TIndex* index)
+{
+    TVectorAddress* vec_address = dynamic_cast<TVectorAddress*>(fAddress);
+    if (vec_address)
+        return fIndex;
+    else
+        return MR_ADD(MR_MUL(fAddress->rewriteIndex(index), MR_INT(fAddress->getType()->getSize())), fIndex);
+}
+
+TAddress* TIndexAddress::rewriteAddress(TIndex* index)
+{
+    fIndex->generate(&cout, 0);
+    cout << endl;
+    TVectorAddress* vec_address = dynamic_cast<TVectorAddress*>(fAddress);
+    if (vec_address)
+        return new TIndexAddress(fAddress, index);
+    else
+        return fAddress->rewriteAddress(MR_ADD(MR_MUL(fAddress->rewriteIndex(index), MR_INT(fAddress->getType()->getSize())), fIndex));
+}
