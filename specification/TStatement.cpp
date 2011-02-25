@@ -214,8 +214,7 @@ void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
     // Operation on "simple" (= float) type
     if (dynamic_cast<TFloatType*>(fAddress->getType())) {
         tab(n, *dst);
-        TAddress* new_address = MR_INDEX_ADDRESS(fAddress->getVector(), fAddress->rewriteIndex(0));
-        new_address->generateCPPNoAlias(dst, n);
+        MR_INDEX_ADDRESS(fAddress->getVector(), fAddress->rewriteIndex(0))->generateCPPNoAlias(dst, n);
         *dst << " = ";
         fValue->generateCPPNoAlias(dst, n);
         *dst << ";";

@@ -216,7 +216,7 @@ Serialize(E) : Serialize a signal of vectors
      m = rate(E)
   [n]T = type(E)
 
-   n.m = rate(Serialize(E))
+   n*m = rate(Serialize(E))
      T = type(Serialize(E))
 
 -------------------------------------------------------------------------------
