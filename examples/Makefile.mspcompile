@@ -6,7 +6,7 @@ processor := $(shell uname -p)
 CC=g++
 #CC=/Developer/usr/bin/llvm-g++
 
-INC	:= -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes
+INC	:= -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -I $(PWD)
 
 all :  $(appl)
 
