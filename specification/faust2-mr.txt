@@ -208,7 +208,7 @@ CS[Vectorize(n,E),I] : E x Id ==> V
 +		}
 +	}
 
->	Load(W[j]) (of type [n]T)
+>	Load(W[I]) (of type [n]T)
 
 ===============================================================================
 Serialize(E) : Serialize a signal of vectors
