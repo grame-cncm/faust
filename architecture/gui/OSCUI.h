@@ -6,6 +6,7 @@
 */
 
 #include "OSCControler.h"
+#include "UI.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -39,7 +40,7 @@ all the other osc excluded characters with '-' (hyphen)
 This solution is implemented in the proposed OSC UI;
 */
 
-
+class oscfaust::OSCIO;
 class OSCUI : public UI 
 {
 	oscfaust::OSCControler*	fCtrl;
@@ -47,9 +48,9 @@ class OSCUI : public UI
 	
  public:
 		
-	OSCUI(char* applicationname, int argc, char *argv[]) : UI() 
+	OSCUI(char* applicationname, int argc, char *argv[], oscfaust::OSCIO* io=0) : UI() 
     { 
-		fCtrl = new oscfaust::OSCControler(argc, argv); 
+		fCtrl = new oscfaust::OSCControler(argc, argv, io); 
 //		fCtrl->opengroup(applicationname);
 	}
 	
@@ -79,6 +80,7 @@ class OSCUI : public UI
 	virtual void show() {}
 
 	void run()											{ fCtrl->run(); }
+	const char* getRootName()							{ return fCtrl->getRootName(); }
 };
 
 					
