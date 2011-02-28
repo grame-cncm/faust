@@ -26,14 +26,20 @@ TIndex* MR_DIV(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "/"); }
 TIndex* MR_MOD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "%"); }
 
 // Address language
+
+#ifdef ALT_VECTOR
 TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type, int size) { return new TVectorAddress(name, type, size); }
+#else
+TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type) { return new TVectorAddress(name, type); }
+#endif
+
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id) { return new TIndexAddress(address, id); }
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddress(address, type); }
 
 // Types
 vector<TVectorType*> gTypeTable;
 
-TType* MR_VECTOR_TYPE(TType* type, int size)
+TVectorType* MR_VECTOR_TYPE(TType* type, int size)
 {
     vector<TVectorType*>::const_iterator it;
     for (it = gTypeTable.begin(); it != gTypeTable.end(); it++) {
@@ -46,13 +52,13 @@ TType* MR_VECTOR_TYPE(TType* type, int size)
     //type->generate(&cout, 0);
     //cout << "MR_VECTOR_TYPE before " << " " << size << endl;
 
-    TVectorType* new_type = new TVectorType(type, size);
+    TVectorType* new_type = new TVectorType(type, size, getFreshID("VecType"));
     gTypeTable.push_back(new_type);
     //cout << "MR_VECTOR_TYPE created " << new_type->fDecName << endl;
     return new_type;
 }
-TType* MR_INT_TYPE() { return new TIntType(); };
-TType* MR_FLOAT_TYPE() { return new TFloatType(); };
+TIntType* MR_INT_TYPE() { return new TIntType(); };
+TFloatType* MR_FLOAT_TYPE() { return new TFloatType(); };
 
 // Statements
 TDeclareStatement* MR_DEC(TVectorAddress* vector) { return new TDeclareStatement(vector); }

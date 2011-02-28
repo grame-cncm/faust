@@ -68,7 +68,9 @@ void TDeclareStatement::generateCPP(ostream* dst, int n)
     fVector->fType->generateCPP(dst, n);
     *dst << " ";
     *dst << fVector->fName;
+#ifdef ALT_VECTOR
     *dst << "[" << fVector->fSize << "]";
+#endif
     *dst << ";" << endl;
 }
 
@@ -139,7 +141,9 @@ void TDeclareStatement::generateCPPNoAlias(ostream* dst, int n)
     fVector->fType->generateCPPNoAlias(dst, n);
     *dst << " ";
     *dst << fVector->fName;
+#ifdef ALT_VECTOR
     *dst << "[" << fVector->fSize << "]";
+#endif
     *dst << ";" << endl;
 }
 
@@ -175,6 +179,8 @@ TAddress* TStoreStatement::generateSubAddressStore(TAddress* address, const vect
         address1 = MR_INDEX_ADDRESS(address1, MR_VAR(index));
     }
     return MR_INDEX_ADDRESS(address1->getVector(), address1->rewriteIndex(0));
+
+    //return address1->rewriteAddress(MR_VAR("dummy"));
 }
 
 TAddress* TStoreStatement::generateSubAddressLoad(TAddress* address, const vector<int>& dim)
@@ -215,6 +221,10 @@ void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
     if (dynamic_cast<TFloatType*>(fAddress->getType())) {
         tab(n, *dst);
         MR_INDEX_ADDRESS(fAddress->getVector(), fAddress->rewriteIndex(0))->generateCPPNoAlias(dst, n);
+
+        //TAddress* address1 = fAddress->rewriteAddress(MR_VAR("dummy"));
+        //address1->generateCPPNoAlias(dst, n);
+
         *dst << " = ";
         fValue->generateCPPNoAlias(dst, n);
         *dst << ";";

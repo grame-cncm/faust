@@ -19,12 +19,17 @@ TIndex* MR_DIV(TIndex* v1, TIndex* v2);
 TIndex* MR_MOD(TIndex* v1, TIndex* v2);
 
 // Type language
-TType*  MR_VECTOR_TYPE(TType* type, int size);
-TType*  MR_INT_TYPE();
-TType*  MR_FLOAT_TYPE();
+TVectorType* MR_VECTOR_TYPE(TType* type, int size);
+TIntType* MR_INT_TYPE();
+TFloatType* MR_FLOAT_TYPE();
 
 // Address language
+#ifdef ALT_VECTOR
 TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type, int size);
+#else
+TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type);
+#endif
+
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id);
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type);
 

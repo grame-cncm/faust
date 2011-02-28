@@ -8,7 +8,7 @@ T = int | float | [n]T
 N : symbolic name
 
 W : vector
-W : T n N
+W : [n]T N  (or W : T n N)
 
 Id : access indexes
 Id : int | N | Binop(i1, i2)      (with Binop : +,-,*,/)

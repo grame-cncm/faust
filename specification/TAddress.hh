@@ -19,11 +19,13 @@ struct TAddress : public TPrintable {
     virtual TAddress* getVector() = 0;
 };
 
+#ifdef ALT_VECTOR
+
 struct TVectorAddress : public TAddress
 {
     TType* fType;
-    string fName;
     int fSize;
+    string fName;
 
     TVectorAddress(const string& name, TType* type, int size):fName(name), fType(type), fSize(size){}
 
@@ -40,6 +42,35 @@ struct TVectorAddress : public TAddress
     virtual TAddress* getVector() { return this; }
 
 };
+
+
+#else
+
+struct TVectorAddress : public TAddress
+{
+    TType* fType;
+    string fName;
+
+    TVectorAddress(const string& name, TType* type):fName(name), fType(type)
+    {
+        assert(dynamic_cast<TVectorType*>(type));
+    }
+
+    virtual ~TVectorAddress() {}
+
+    virtual void generate(ostream* dst, int n);
+    virtual void generateCPP(ostream* dst, int n);
+    virtual void generateCPPNoAlias(ostream* dst, int n);
+    virtual TType* getType();
+
+    virtual TIndex* rewriteIndex(TIndex* index);
+    virtual TAddress* rewriteAddress(TIndex* index);
+
+    virtual TAddress* getVector() { return this; }
+
+};
+
+#endif
 
 struct TCastAddress : public TAddress
 {
