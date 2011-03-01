@@ -76,9 +76,7 @@ void TDeclareStatement::generateCPP(ostream* dst, int n)
 
 void TDeclareTypeStatement::generateCPP(ostream* dst, int n)
 {
-    tab(n, *dst);
     fType->generateDef(dst, n);
-    *dst << endl;
 }
 
 void TStoreStatement::generateCPP(ostream* dst, int n)
@@ -136,7 +134,6 @@ void TIfStatement::generateCPP(ostream* dst, int n)
 
 void TDeclareStatement::generateCPPNoAlias(ostream* dst, int n)
 {
-    tab(n, *dst);
     fVector->fType->generateDefNoAlias(dst, n);
     fVector->fType->generateCPPNoAlias(dst, n);
     *dst << " ";
@@ -149,9 +146,7 @@ void TDeclareStatement::generateCPPNoAlias(ostream* dst, int n)
 
 void TDeclareTypeStatement::generateCPPNoAlias(ostream* dst, int n)
 {
-    tab(n, *dst);
     fType->generateDefNoAlias(dst, n);
-    *dst << endl;
 }
 
 // Re-generate values with corrected indexing

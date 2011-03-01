@@ -61,6 +61,7 @@ struct TCompiler
 
         // C++ code generation
 
+
 #ifdef ALT_VECTOR
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
@@ -163,6 +164,7 @@ struct TCompiler
 
         // C++ code generation without aliasing
         /*
+#ifdef ALT_VECTOR
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
 
@@ -211,7 +213,58 @@ struct TCompiler
         cout << "{" << endl;
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
-        */
+  #else
+
+        cout << "#include <stdio.h>" << endl;
+        cout << "#include <string.h>" << endl << endl;
+
+        cout << "// -----------------" << endl;
+        cout << "// Declaration block" << endl;
+        cout << "// -----------------" << endl;
+        gDecBlock->generateCPPNoAlias(&cout, 0);
+
+        cout << endl << "void process()" << endl;
+        cout << "{" << endl;
+
+        cout << "\t" << vec_type->fDecName << " input0;" << endl;  // Should use real input rate....
+        cout << "\t" << vec_type->fDecName << " input1;" << endl;
+        cout << "\t" << vec_type->fDecName << " input2;" << endl;
+        cout << "\t" << vec_type->fDecName << " input3;" << endl;
+        cout << "\t" << vec_type->fDecName << " output;" << endl;
+
+        // Should use real input rate....
+        cout << "\tfor (int i = 0; i < sizeof(" << vec_type->fDecName << ") / sizeof(float); i++) {" << endl;
+        cout << "\t\tinput0[i] = float(i);" << endl;
+        cout << "\t\tinput1[i] = float(i);" << endl;
+        cout << "\t\tinput2[i] = float(i);" << endl;
+        cout << "\t\tinput3[i] = float(i);" << endl;
+        cout << "\t\toutput[i] = 0.f;" << endl;
+        cout << "\t}" << endl;
+
+        cout << endl << endl  << "\t// -----------------" << endl;
+        cout << "\t// Separated loops" << endl;
+        cout << "\t// -----------------" << endl;
+        gExternalBlock->generateCPPNoAlias(&cout, 1);
+
+        cout << endl << "\t// -----------------" << endl;
+        cout << "\t// Result" << endl;
+        cout << "\t// -----------------" << endl;
+        global_loop->generateCPPNoAlias(&cout, 1);
+        cout << endl;
+
+        cout << "\tfor (int i = 0; i < sizeof(" << vec_type->fDecName << ") / sizeof(float); i++) {" << endl;
+        cout << "\t\tprintf(\"output %f \\n\", output[i]);" << endl;
+        cout << "\t}" << endl;
+
+        cout << "}" << endl << endl;
+
+        cout << "int main()" << endl;
+        cout << "{" << endl;
+        cout << "\tprocess();" << endl;
+        cout << "}" << endl << endl;
+#endif
+*/
+
     }
 
 };

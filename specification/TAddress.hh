@@ -43,7 +43,6 @@ struct TVectorAddress : public TAddress
 
 };
 
-
 #else
 
 struct TVectorAddress : public TAddress

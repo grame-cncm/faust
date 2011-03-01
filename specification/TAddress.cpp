@@ -16,14 +16,14 @@ void TVectorAddress::generateCPP(ostream* dst, int n)
     *dst << fName;
 }
 
-TType* TVectorAddress::getType()
-{
-    return MR_VECTOR_TYPE(fType, fSize);
-}
-
 void TVectorAddress::generateCPPNoAlias(ostream* dst, int n)
 {
     *dst << fName;
+}
+
+TType* TVectorAddress::getType()
+{
+    return MR_VECTOR_TYPE(fType, fSize);
 }
 
 #else
