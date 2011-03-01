@@ -68,7 +68,11 @@ ialsasch :
 
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB=' -I/usr/local/lib/faust/ `pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+
+oscjackgtk :
+	install -d oscjackgtkdir
+	$(MAKE) DEST='oscjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-DOSCCTRL -I/usr/local/lib/faust -I/usr/local/lib/faust/gui/ -I/usr/local/lib/faust/osclib/faust/ -Iosclib/faust/include -Losclib -loscpack -lOSCFaust `pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir

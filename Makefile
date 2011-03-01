@@ -52,6 +52,9 @@ install :
 	cp -r architecture/VST $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/iPhone
 	cp -r architecture/iPhone $(prefix)/lib/faust/
+	cp -r architecture/audio $(prefix)/lib/faust/
+	cp -r architecture/gui $(prefix)/lib/faust/
+	cp -r architecture/osclib $(prefix)/lib/faust/
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 
