@@ -173,6 +173,14 @@ TAddress* TStoreStatement::generateSubAddressStore(TAddress* address, const vect
         string index = subst("w$0", T(i));
         address1 = MR_INDEX_ADDRESS(address1, MR_VAR(index));
     }
+
+    /*
+    address1->getType()->generate(&cout, 0);
+    cout << endl;
+    address1->generate(&cout, 0);
+    cout << endl;
+    */
+
     return MR_INDEX_ADDRESS(address1->getVector(), address1->rewriteIndex(0));
 
     //return address1->rewriteAddress(MR_VAR("dummy"));

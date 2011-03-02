@@ -131,7 +131,6 @@ TSignal* test12(bool prim, bool vec, bool ser, bool concat)
     return new TSerialize(new TSerialize(new TVectorize(new TVectorize(new TInput(0, 12), 4), 3)));
 }
 
-// Not compatible type  (input ==> float[3])
 TSignal* test13(bool prim, bool vec, bool ser, bool concat)
 {
     gPrim = prim;
@@ -139,7 +138,7 @@ TSignal* test13(bool prim, bool vec, bool ser, bool concat)
     gSer = ser;
     gConcat = concat;
     Display("test13");
-    return new TVectorize(new TSerialize(new TVectorize(new TInput(0, 12), 4)), 3);
+    return new TSerialize(new TVectorize(new TSerialize(new TVectorize(new TInput(0, 12), 4)), 3));
 }
 
 // Not compatible type  (input ==> float[4])
@@ -274,10 +273,14 @@ int main()
     //compiler.compileTop(test12(true, false, false, true));
 
     //compiler.compileTop(test13(true, true, true, true));
+    //compiler.compileTop(test13(true, false, true, true));
+    //compiler.compileTop(test13(true, true, false, true));
+    //compiler.compileTop(test13(true, false, false, true));
+
     //compiler.compileTop(test14(true, true, true, true));
 
-    compiler.compileTop(test15(true, true, true, true));
-    //compiler.compileTop(test15(true, false, true, true));
+    //compiler.compileTop(test15(true, true, true, true));
+    compiler.compileTop(test15(true, false, true, true));
     //compiler.compileTop(test15(true, true, false, true));
     //compiler.compileTop(test15(true, false, false, true));
 

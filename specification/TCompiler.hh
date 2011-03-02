@@ -47,7 +47,7 @@ struct TCompiler
 
 
         // Pseudo code generation
-        /*
+/*
         cout << endl << "-----------------" << endl;
         cout << "Separated loops" << endl;
         cout << "-----------------" << endl;
@@ -57,7 +57,7 @@ struct TCompiler
         cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
         cout << endl;
-        */
+*/
 
         // C++ code generation
 
@@ -101,7 +101,7 @@ struct TCompiler
         global_loop->generateCPP(&cout, 1);
         cout << endl;
 
-        cout << "\tfor (int i = 0; i < 32; i++) {" << endl;
+        cout << "\tfor (int i = 0; i < 32 * 16; i++) {" << endl;
         cout << "\t\tprintf(\"output %f \\n\", output[i]);" << endl;
         cout << "\t}" << endl;
 
@@ -162,8 +162,9 @@ struct TCompiler
         cout << "}" << endl << endl;
 #endif
 
+
         // C++ code generation without aliasing
-        /*
+/*
 #ifdef ALT_VECTOR
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
@@ -203,7 +204,7 @@ struct TCompiler
         global_loop->generateCPPNoAlias(&cout, 1);
         cout << endl;
 
-        cout << "\tfor (int i = 0; i < 32; i++) {" << endl;
+        cout << "\tfor (int i = 0; i < 32 * 16; i++) {" << endl;
         cout << "\t\tprintf(\"output %f \\n\", output[i]);" << endl;
         cout << "\t}" << endl;
 

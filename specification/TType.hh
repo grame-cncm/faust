@@ -111,11 +111,7 @@ struct TVectorType : public TType
     {
         tab(n+1, *dst); *dst << fDecName << " operator" << op << "(const " << fDecName << "& val)" << " {" << endl;
             tab(n+2, *dst); *dst << "for (int i = 0; i < " << fSize << "; i++) {" << endl;
-            #ifdef ALT_VECTOR
-                tab(n+3, *dst); *dst << "f[i] " << op << "= val.f[i];" << endl;
-            #else
-                tab(n+3, *dst); *dst << "f[i] = f[i] " << op << " val.f[i];" << endl;
-            #endif
+            tab(n+3, *dst); *dst << "f[i] = f[i] " << op << " val.f[i];" << endl;
             tab(n+2, *dst); *dst << "}" << endl;
             tab(n+2, *dst); *dst << "return *this;" << endl;
         tab(n+1, *dst); *dst << "}" << endl;
@@ -125,11 +121,7 @@ struct TVectorType : public TType
     {
         tab(n+1, *dst); *dst << fDecName << " operator" << op << "(float val)" << " {" << endl;
             tab(n+2, *dst); *dst << "for (int i = 0; i < " << fSize << "; i++) {" << endl;
-            #ifdef ALT_VECTOR
-                tab(n+3, *dst); *dst << "f[i] " << op << "= val;" << endl;
-            #else
-                tab(n+3, *dst); *dst << "f[i] = f[i] " << op << " val;" << endl;
-            #endif
+            tab(n+3, *dst); *dst << "f[i] = f[i] " << op << " val;" << endl;
             tab(n+2, *dst); *dst << "}" << endl;
             tab(n+2, *dst); *dst << "return *this;" << endl;
         tab(n+1, *dst); *dst << "}" << endl;
