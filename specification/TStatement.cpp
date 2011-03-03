@@ -173,17 +173,8 @@ TAddress* TStoreStatement::generateSubAddressStore(TAddress* address, const vect
         string index = subst("w$0", T(i));
         address1 = MR_INDEX_ADDRESS(address1, MR_VAR(index));
     }
-
-    /*
-    address1->getType()->generate(&cout, 0);
-    cout << endl;
-    address1->generate(&cout, 0);
-    cout << endl;
-    */
-
-    return MR_INDEX_ADDRESS(address1->getVector(), address1->rewriteIndex(0));
-
-    //return address1->rewriteAddress(MR_VAR("dummy"));
+    list<TAddress*> address_list;
+    return address1->rewriteAddress(address_list);
 }
 
 TAddress* TStoreStatement::generateSubAddressLoad(TAddress* address, const vector<int>& dim)
@@ -203,7 +194,7 @@ void TStoreStatement::generateSubLoops(ostream* dst, int n, const vector<int>& d
         // Recompute address with corrected indexing
         generateSubAddressStore(fAddress, dim)->generateCPPNoAlias(dst, n);
         *dst << " = ";
-        // Recompute address with corrected indexing
+        // Recompute address
         generateSubValues(fValue, dim)->generateCPPNoAlias(dst, n);
         *dst << ";" << endl;
     } else {
@@ -223,11 +214,8 @@ void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
     // Operation on "simple" (= float) type
     if (dynamic_cast<TFloatType*>(fAddress->getType())) {
         tab(n, *dst);
-        MR_INDEX_ADDRESS(fAddress->getVector(), fAddress->rewriteIndex(0))->generateCPPNoAlias(dst, n);
-
-        //TAddress* address1 = fAddress->rewriteAddress(MR_VAR("dummy"));
-        //address1->generateCPPNoAlias(dst, n);
-
+        list<TAddress*> address_list;
+        fAddress->rewriteAddress(address_list)->generateCPPNoAlias(dst, n);
         *dst << " = ";
         fValue->generateCPPNoAlias(dst, n);
         *dst << ";";

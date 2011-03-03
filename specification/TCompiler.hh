@@ -61,7 +61,7 @@ struct TCompiler
 
         // C++ code generation
 
-
+/*
 #ifdef ALT_VECTOR
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
@@ -161,10 +161,10 @@ struct TCompiler
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
 #endif
-
+*/
 
         // C++ code generation without aliasing
-/*
+
 #ifdef ALT_VECTOR
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
@@ -264,7 +264,7 @@ struct TCompiler
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
 #endif
-*/
+
 
     }
 

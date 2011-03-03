@@ -5,18 +5,14 @@
 #include "TType.hh"
 #include "TIndex.hh"
 
-#include <vector>
+#include <list>
 
 struct TAddress : public TPrintable {
 
     virtual ~TAddress() {}
 
     virtual TType* getType() = 0;
-
-    virtual TIndex* rewriteIndex(TIndex* index) = 0;
-    virtual TAddress* rewriteAddress(TIndex* index) = 0;
-
-    virtual TAddress* getVector() = 0;
+    virtual TAddress* rewriteAddress(list<TAddress*>& address_list) = 0;
 };
 
 #ifdef ALT_VECTOR
@@ -35,11 +31,7 @@ struct TVectorAddress : public TAddress
     virtual void generateCPP(ostream* dst, int n);
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
-
-    virtual TIndex* rewriteIndex(TIndex* index);
-    virtual TAddress* rewriteAddress(TIndex* index);
-
-    virtual TAddress* getVector() { return this; }
+    virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
 
 };
 
@@ -61,11 +53,7 @@ struct TVectorAddress : public TAddress
     virtual void generateCPP(ostream* dst, int n);
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
-
-    virtual TIndex* rewriteIndex(TIndex* index);
-    virtual TAddress* rewriteAddress(TIndex* index);
-
-    virtual TAddress* getVector() { return this; }
+    virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
 
 };
 
@@ -85,11 +73,7 @@ struct TCastAddress : public TAddress
     virtual void generateCPP(ostream* dst, int n);
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
-
-    virtual TIndex* rewriteIndex(TIndex* index);
-    virtual TAddress* rewriteAddress(TIndex* index);
-
-    virtual TAddress* getVector() { return fAddress->getVector(); }
+    virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
 
 };
 
@@ -106,14 +90,9 @@ struct TIndexAddress : public TAddress
     virtual void generateCPP(ostream* dst, int n);
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
-
-    virtual TIndex* rewriteIndex(TIndex* index);
-    virtual TAddress* rewriteAddress(TIndex* index);
-
-    virtual TAddress* getVector() { return fAddress->getVector(); }
+    virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
 
 };
-
 
 #endif
 

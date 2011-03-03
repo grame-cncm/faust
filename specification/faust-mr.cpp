@@ -280,8 +280,8 @@ int main()
     //compiler.compileTop(test14(true, true, true, true));
 
     //compiler.compileTop(test15(true, true, true, true));
-    compiler.compileTop(test15(true, false, true, true));
-    //compiler.compileTop(test15(true, true, false, true));
+    //compiler.compileTop(test15(true, false, true, true));
+    compiler.compileTop(test15(true, true, false, true));
     //compiler.compileTop(test15(true, false, false, true));
 
     //compiler.compileTop(test15(false, true, true, true));
