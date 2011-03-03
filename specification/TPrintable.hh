@@ -19,7 +19,7 @@ struct TPrintable
 };
 
 
-//#define ALT_VECTOR 1
+#define ALT_VECTOR 1
 
 #endif
 

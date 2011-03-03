@@ -268,7 +268,7 @@ int main()
 
     //compiler.compileTop(test11bis(true, true, true, true));
     //compiler.compileTop(test12(true, true, true, true));
-    //compiler.compileTop(test12(true, false, true, true));
+    compiler.compileTop(test12(true, false, true, true));
     //compiler.compileTop(test12(true, true, false, true));
     //compiler.compileTop(test12(true, false, false, true));
 
@@ -281,7 +281,7 @@ int main()
 
     //compiler.compileTop(test15(true, true, true, true));
     //compiler.compileTop(test15(true, false, true, true));
-    compiler.compileTop(test15(true, true, false, true));
+    //compiler.compileTop(test15(true, true, false, true));
     //compiler.compileTop(test15(true, false, false, true));
 
     //compiler.compileTop(test15(false, true, true, true));

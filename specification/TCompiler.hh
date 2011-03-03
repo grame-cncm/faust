@@ -45,10 +45,14 @@ struct TCompiler
         signal->compileStatement(sub_block, out_address, var_in);
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, var_in, sub_block);
 
-
         // Pseudo code generation
-/*
-        cout << endl << "-----------------" << endl;
+
+        cout << "// -----------------" << endl;
+        cout << "// Declaration block" << endl;
+        cout << "// -----------------" << endl;
+        gDecBlock->generate(&cout, 0);
+
+        cout << endl << endl << "-----------------" << endl;
         cout << "Separated loops" << endl;
         cout << "-----------------" << endl;
         gExternalBlock->generate(&cout, 0);
@@ -57,7 +61,6 @@ struct TCompiler
         cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
         cout << endl;
-*/
 
         // C++ code generation
 
@@ -90,7 +93,7 @@ struct TCompiler
 
         cout << "\tmemset(output, 0, sizeof(float) * 32 * 16);" << endl;
 
-        cout << endl << endl  << "\t// -----------------" << endl;
+        cout << endl << endl << "\t// -----------------" << endl;
         cout << "\t// Separated loops" << endl;
         cout << "\t// -----------------" << endl;
         gExternalBlock->generateCPP(&cout, 1);
@@ -164,7 +167,7 @@ struct TCompiler
 */
 
         // C++ code generation without aliasing
-
+/*
 #ifdef ALT_VECTOR
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
@@ -264,7 +267,7 @@ struct TCompiler
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
 #endif
-
+*/
 
     }
 

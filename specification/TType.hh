@@ -96,7 +96,10 @@ struct TVectorType : public TType
 
     virtual ~TVectorType() {}
 
-	virtual void generate(ostream* dst, int n) { fType->generate(dst, n); *dst << "[" << fSize << "]";  }
+	virtual void generate(ostream* dst, int n)
+    {
+       fType->generate(dst, n); *dst << "[" << fSize << "]";
+    }
     virtual void generateCPP(ostream* dst, int n)
     {
         *dst  << fDecName;

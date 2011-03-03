@@ -149,7 +149,7 @@ void TDeclareTypeStatement::generateCPPNoAlias(ostream* dst, int n)
     fType->generateDefNoAlias(dst, n);
 }
 
-// Re-generate values with corrected indexing
+// Re-generate values with corrected addresses
 TValue* TStoreStatement::generateSubValues(TValue* value, const vector<int>& dim)
 {
     TLoadValue* load_value = dynamic_cast<TLoadValue*>(value);
