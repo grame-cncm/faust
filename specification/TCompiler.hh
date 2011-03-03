@@ -46,7 +46,7 @@ struct TCompiler
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, var_in, sub_block);
 
         // Pseudo code generation
-
+/*
         cout << "// -----------------" << endl;
         cout << "// Declaration block" << endl;
         cout << "// -----------------" << endl;
@@ -61,7 +61,7 @@ struct TCompiler
         cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
         cout << endl;
-
+*/
         // C++ code generation
 
 /*
@@ -167,7 +167,7 @@ struct TCompiler
 */
 
         // C++ code generation without aliasing
-/*
+
 #ifdef ALT_VECTOR
         cout << "#include <stdio.h>" << endl;
         cout << "#include <string.h>" << endl << endl;
@@ -267,7 +267,7 @@ struct TCompiler
         cout << "\tprocess();" << endl;
         cout << "}" << endl << endl;
 #endif
-*/
+
 
     }
 

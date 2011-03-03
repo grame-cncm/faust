@@ -13,6 +13,7 @@ struct TAddress : public TPrintable {
 
     virtual TType* getType() = 0;
     virtual TAddress* rewriteAddress(list<TAddress*>& address_list) = 0;
+    virtual TAddress* linearizeAddress(list<TAddress*>& address_list) = 0;
 };
 
 #ifdef ALT_VECTOR
@@ -32,6 +33,7 @@ struct TVectorAddress : public TAddress
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
     virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
+    virtual TAddress* linearizeAddress(list<TAddress*>& address_list);
 
 };
 
@@ -54,6 +56,7 @@ struct TVectorAddress : public TAddress
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
     virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
+    virtual TAddress* linearizeAddress(list<TAddress*>& address_list);
 
 };
 
@@ -74,6 +77,7 @@ struct TCastAddress : public TAddress
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
     virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
+    virtual TAddress* linearizeAddress(list<TAddress*>& address_list);
 
 };
 
@@ -91,6 +95,7 @@ struct TIndexAddress : public TAddress
     virtual void generateCPPNoAlias(ostream* dst, int n);
     virtual TType* getType();
     virtual TAddress* rewriteAddress(list<TAddress*>& address_list);
+    virtual TAddress* linearizeAddress(list<TAddress*>& address_list);
 
 };
 

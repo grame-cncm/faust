@@ -4,7 +4,6 @@
 #include "TSyntax.hh"
 
 // Pseudo code generation
-
 void TDeclareStatement::generate(ostream* dst, int n)
 {
     tab(n, *dst);
@@ -60,7 +59,6 @@ void TIfStatement::generate(ostream* dst, int n)
 }
 
 // CPP generation
-
 void TDeclareStatement::generateCPP(ostream* dst, int n)
 {
     tab(n, *dst);
@@ -131,7 +129,6 @@ void TIfStatement::generateCPP(ostream* dst, int n)
 }
 
 // CPP generation no alias
-
 void TDeclareStatement::generateCPPNoAlias(ostream* dst, int n)
 {
     fVector->fType->generateDefNoAlias(dst, n);
@@ -209,7 +206,7 @@ void TStoreStatement::generateSubLoops(ostream* dst, int n, const vector<int>& d
 
 void TStoreStatement::generateCPPNoAlias(ostream* dst, int n)
 {
-    //CHECK_EQUAL_TYPE(fAddress->getType(), fValue->getType());
+    CHECK_EQUAL_TYPE(fAddress->getType(), fValue->getType());
 
     // Operation on "simple" (= float) type
     if (dynamic_cast<TFloatType*>(fAddress->getType())) {

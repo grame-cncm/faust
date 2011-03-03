@@ -2,7 +2,6 @@
 #include <map>
 
 extern int gVecSize;
-
 map<string, int> gIDCounters;
 
 string getFreshID(const string& prefix)
@@ -25,14 +24,12 @@ TIndex* MR_MUL(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "*"); }
 TIndex* MR_DIV(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "/"); }
 TIndex* MR_MOD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "%"); }
 
-// Address language
-
+// Addresses
 #ifdef ALT_VECTOR
 TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type, int size) { return new TVectorAddress(name, type, size); }
 #else
 TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type) { return new TVectorAddress(name, type); }
 #endif
-
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id) { return new TIndexAddress(address, id); }
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddress(address, type); }
 
@@ -45,16 +42,11 @@ TVectorType* MR_VECTOR_TYPE(TType* type, int size)
     for (it = gTypeTable.begin(); it != gTypeTable.end(); it++) {
         TVectorType* vec_type = (*it);
         if (vec_type->fType->equal(type) && vec_type->fSize == size) {
-            //cout << "MR_VECTOR_TYPE found " << vec_type->fDecName << endl;
             return *it;
         }
     }
-    //type->generate(&cout, 0);
-    //cout << "MR_VECTOR_TYPE before " << " " << size << endl;
-
     TVectorType* new_type = new TVectorType(type, size, getFreshID("VecType"));
     gTypeTable.push_back(new_type);
-    //cout << "MR_VECTOR_TYPE created " << new_type->fDecName << endl;
     return new_type;
 }
 TIntType* MR_INT_TYPE() { return new TIntType(); };
@@ -82,7 +74,6 @@ TPrimOpValue* MR_MUL(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "
 TPrimOpValue* MR_DIV(TValue* v1, TValue* v2) { return new TPrimOpValue(v1, v2, "/"); }
 TPrimOpValue* MR_OP(TValue* v1, TValue* v2, const string& op)  { return new TPrimOpValue(v1, v2, op); }
 
-
 void CHECK_EQUAL_TYPE(TType* type1, TType* type2)
 {
     /*
@@ -91,8 +82,7 @@ void CHECK_EQUAL_TYPE(TType* type1, TType* type2)
     cout << endl;
     type2->generate(&cout, 0);
     cout << endl;
-    assert(type1->equal(type2));
     */
-
+    assert(type1->equal(type2));
 }
 

@@ -94,6 +94,57 @@ TAddress* TVectorAddress::rewriteAddress(list<TAddress*>& address_list)
     return new_address;
 }
 
+TAddress* TVectorAddress::linearizeAddress(list<TAddress*>& address_list)
+{
+    list<TAddress*>::iterator it1 = address_list.begin();
+    TVectorType* vec_type = dynamic_cast<TVectorType*>(fType);
+    assert(vec_type);
+    vector<int> dims;
+    vector<TIndex*> indexes;
+
+    TVectorType* new_vec_type = vec_type;
+
+    vec_type->generate(&cout, 0);
+
+    for (it1 = address_list.begin(); it1 != address_list.end(); it1++) {
+        TCastAddress* cast_address = dynamic_cast<TCastAddress*>(*it1);
+        TIndexAddress* index_address = dynamic_cast<TIndexAddress*>(*it1);
+         if (cast_address) {
+            int size = cast_address->fType->getSize();
+            new_vec_type = MR_VECTOR_TYPE(MR_VECTOR_TYPE(new_vec_type->fType, size), new_vec_type->getSize()/size);
+            new_vec_type->generate(&cout, 0);
+
+         } else if (index_address) {
+            indexes.push_back(index_address->fIndex);
+         }
+    }
+
+    new_vec_type->generate(&cout, 0);
+
+    /*
+
+    for (it1 = address_list.begin(); it1 != address_list.end(); it1++) {
+        TCastAddress* cast_address = dynamic_cast<TCastAddress*>(*it1);
+        TIndexAddress* index_address = dynamic_cast<TIndexAddress*>(*it1);
+         if (cast_address) {
+             dims.push_back(cast_address->fType->getSize());
+         } else if (index_address) {
+            indexes.push_back(index_address->fIndex);
+         }
+    }
+    */
+
+    dims = new_vec_type->dimensions();
+    TIndex* new_index = indexes[0];
+    cout << "dims size "<< dims.size() << "indexes size " << indexes.size() << endl;
+    for (int i = 0; i < dims.size()-1; i++) {
+        new_index = MR_ADD(MR_MUL(new_index, MR_INT(dims[i+1])), indexes[i+1]);
+    }
+
+
+    return MR_INDEX_ADDRESS(this, new_index);
+}
+
 void TCastAddress::generate(ostream* dst, int n)
 {
     fAddress->generate(dst, n);
@@ -124,6 +175,12 @@ TAddress* TCastAddress::rewriteAddress(list<TAddress*>& address_list)
 {
     address_list.push_front(this);
     return fAddress->rewriteAddress(address_list);
+}
+
+TAddress* TCastAddress::linearizeAddress(list<TAddress*>& address_list)
+{
+    address_list.push_front(this);
+    return fAddress->linearizeAddress(address_list);
 }
 
 void TIndexAddress::generate(ostream* dst, int n)
@@ -161,4 +218,10 @@ TAddress* TIndexAddress::rewriteAddress(list<TAddress*>& address_list)
 {
     address_list.push_front(this);
     return fAddress->rewriteAddress(address_list);
+}
+
+TAddress* TIndexAddress::linearizeAddress(list<TAddress*>& address_list)
+{
+    address_list.push_front(this);
+    return fAddress->linearizeAddress(address_list);
 }
