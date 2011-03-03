@@ -245,14 +245,10 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         it++;
         IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
         assert(arg1);
+        assert(arg1->fNum > 0);
 
         stringstream num;
-        int val = arg1->fNum;
-        if (val < 0) {
-            num << "_" << -val;
-        } else {
-            num << val;
-        }
+        num << arg1->fNum;
         string faust_power = name + num.str();
 
         // Expand the pow depending of the exposant argument

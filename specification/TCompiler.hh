@@ -46,7 +46,7 @@ struct TCompiler
         TLoopStatement* global_loop = MR_LOOP(output_rate * gVecSize, var_in, sub_block);
 
         // Pseudo code generation
-/*
+
         cout << "// -----------------" << endl;
         cout << "// Declaration block" << endl;
         cout << "// -----------------" << endl;
@@ -61,7 +61,7 @@ struct TCompiler
         cout << "-----------------" << endl;
         global_loop->generate(&cout, 0);
         cout << endl;
-*/
+
         // C++ code generation
 
 /*

@@ -94,7 +94,13 @@ static Tree simplification (Tree sig)
 		//return 3;
 		vector<Tree> args;
 		for (int i=0; i<sig->arity(); i++) { args.push_back( sig->branch(i) ); }
-		return xt->computeSigOutput(args);
+
+        // to avoid negative power to further normalization
+        if (xt != gPowPrim) {
+            return xt->computeSigOutput(args);
+        } else {
+            return normalizeAddTerm(xt->computeSigOutput(args));
+        }
 
 	} else if (isSigBinOp(sig, &opnum, t1, t2)) {
         if (isVectorType(t1->getType()) ||
