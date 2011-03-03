@@ -1,4 +1,5 @@
 #include "TSyntax.hh"
+
 #include <map>
 
 extern int gVecSize;
@@ -28,7 +29,7 @@ TIndex* MR_MOD(TIndex* v1, TIndex* v2) { return new TBinOpIndex(v1, v2, "%"); }
 #ifdef ALT_VECTOR
 TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type, int size) { return new TVectorAddress(name, type, size); }
 #else
-TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type) { return new TVectorAddress(name, type); }
+TNamedAddress* MR_VECTOR_ADDRESS(const string& name, TType* type) { return new TNamedAddress(name, type); }
 #endif
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id) { return new TIndexAddress(address, id); }
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type) { return new TCastAddress(address, type); }
@@ -53,7 +54,12 @@ TIntType* MR_INT_TYPE() { return new TIntType(); };
 TFloatType* MR_FLOAT_TYPE() { return new TFloatType(); };
 
 // Statements
+#ifdef ALT_VECTOR
 TDeclareStatement* MR_DEC(TVectorAddress* vector) { return new TDeclareStatement(vector); }
+#else
+TDeclareStatement* MR_DEC(TNamedAddress* vector) { return new TDeclareStatement(vector); }
+#endif
+
 TDeclareTypeStatement* MR_DEC_TYPE(TType* type) { return new TDeclareTypeStatement(type); }
 TBlockStatement* MR_BLOCK() { return new TBlockStatement(); }
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement) { block->fCode.push_back(statement); return block; }

@@ -65,7 +65,7 @@ TValue* TPrimOp::compileSample(TIndex* index)
     #else
         TType* vec_type = MR_VECTOR_TYPE(type, rate * gVecSize);
         MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(vec_type));
-        TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("BinOp"), vec_type);
+        TNamedAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("BinOp"), vec_type);
     #endif
 
         // Internal block
@@ -129,7 +129,7 @@ TValue* TVectorize::compileSample(TIndex* index)
 #else
     TType* vec_type = MR_VECTOR_TYPE(type, rate * gVecSize);
     MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(vec_type));
-    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Vectorize"), vec_type);
+    TNamedAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Vectorize"), vec_type);
 #endif
 
     // Compute new indexes
@@ -194,7 +194,7 @@ TValue* TSerialize::compileSample(TIndex* index)
 #else
     TType* vec_type = MR_VECTOR_TYPE(type, rate * gVecSize);
     MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(vec_type));
-    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Serialize"), vec_type);
+    TNamedAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Serialize"), vec_type);
 #endif
 
     // Compute new indexes
@@ -270,7 +270,7 @@ TValue* TConcat::compileSample(TIndex* index)
 #else
     TType* vec_type = MR_VECTOR_TYPE(type, rate * gVecSize);
     MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(vec_type));
-    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Concat"), vec_type);
+    TNamedAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("Concat"), vec_type);
 #endif
 
     // Compute new indexes
@@ -328,7 +328,11 @@ TValue* TDelayLine::compileSample(TIndex* index)
 
 }
 
+#ifdef ALT_VECTOR
 TVectorAddress* TDelayLine::compile()
+#else
+TNamedAddress* TDelayLine::compile()
+#endif
 {
     int rate = getRate();
     TType* type = getType();
@@ -341,7 +345,7 @@ TVectorAddress* TDelayLine::compile()
 #else
     TType* vec_type = MR_VECTOR_TYPE(type, rate * gVecSize);
     MR_PUSH_BLOCK(gDecBlock, MR_DEC_TYPE(vec_type));
-    TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("DelayLine"), vec_type);
+    TNamedAddress* new_out_vec = MR_VECTOR_ADDRESS(getFreshID("DelayLine"), vec_type);
 #endif
 
     // TODO : fill DL
@@ -370,8 +374,11 @@ TValue* TDelayAt::compileSample(TIndex* index)
 
     TDelayLine* delay_line = dynamic_cast<TDelayLine*>(fExp1);
     assert(delay_line);
-
+#ifdef ALT_VECTOR
     TVectorAddress* new_out_vec = delay_line->compile();
+#else
+    TNamedAddress* new_out_vec = delay_line->compile();
+#endif
 
     TValue* res2 = fExp2->compileSample(index);
     TIntValue* id = dynamic_cast<TIntValue*>(res2);
@@ -385,8 +392,11 @@ TValue* TDelayAt::compileSample(TIndex* index)
 // Recursive groups
 
 map<string, int> TRecGroup::gRecCompEnv;
+#ifdef ALT_VECTOR
 map<string, TVectorAddress*> TRecGroup::gRecProjCompEnv;
-
+#else
+map<string, TNamedAddress*> TRecGroup::gRecProjCompEnv;
+#endif
 void TRecGroup::compileStatement(TBlockStatement* block, TAddress* address, TIndex* index)
 {
     block->fCode.push_back(MR_STORE(address, compileSample(index)));
@@ -413,10 +423,13 @@ TValue* TRecGroup::compileSample(TIndex* index)
         for (it = fCode.begin(); it != fCode.end(); it++, i++) {
 
             TType* type = (*it)->getType();
-
+        #ifdef ALT_VECTOR
             // Declare output
             TVectorAddress* new_out_vec;
-
+        #else
+            // Declare output
+            TNamedAddress* new_out_vec;
+        #endif
             // Look if projection is already compiled
             string rec_proj = subst("$0$1", fRecGroup, T(i));
             if (TRecGroup::gRecProjCompEnv.find(rec_proj) != TRecGroup::gRecProjCompEnv.end()) {

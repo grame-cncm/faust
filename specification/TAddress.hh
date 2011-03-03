@@ -39,17 +39,17 @@ struct TVectorAddress : public TAddress
 
 #else
 
-struct TVectorAddress : public TAddress
+struct TNamedAddress : public TAddress
 {
     TType* fType;
     string fName;
 
-    TVectorAddress(const string& name, TType* type):fName(name), fType(type)
+    TNamedAddress(const string& name, TType* type):fName(name), fType(type)
     {
         assert(dynamic_cast<TVectorType*>(type));
     }
 
-    virtual ~TVectorAddress() {}
+    virtual ~TNamedAddress() {}
 
     virtual void generate(ostream* dst, int n);
     virtual void generateCPP(ostream* dst, int n);

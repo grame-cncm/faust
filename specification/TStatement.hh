@@ -20,9 +20,15 @@ struct TStatement : public TPrintable
 
 struct TDeclareStatement : public TStatement
 {
+#ifdef ALT_VECTOR
     TVectorAddress* fVector;
 
     TDeclareStatement(TVectorAddress* vector):fVector(vector) {}
+#else
+    TNamedAddress* fVector;
+
+    TDeclareStatement(TNamedAddress* vector):fVector(vector) {}
+#endif
     virtual ~TDeclareStatement() {}
 
     virtual void generate(ostream* dst, int n);

@@ -25,7 +25,7 @@ struct TCompiler
         TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS("output", MR_FLOAT_TYPE(), output_rate * gVecSize);
     #else
         TVectorType* vec_type = MR_VECTOR_TYPE(MR_FLOAT_TYPE(), output_rate * gVecSize);
-        TVectorAddress* new_out_vec = MR_VECTOR_ADDRESS("output", vec_type);
+        TNamedAddress* new_out_vec = MR_VECTOR_ADDRESS("output", vec_type);
     #endif
         TIndex* var_in = MR_VAR("i");
         TAddress* out_address = MR_INDEX_ADDRESS(new_out_vec, var_in);

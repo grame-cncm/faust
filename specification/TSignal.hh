@@ -186,7 +186,11 @@ struct TDelayLine : public TSignal
 
     virtual void  compileStatement(TBlockStatement* block, TAddress* address, TIndex* index);
     virtual TValue* compileSample(TIndex*);
+#ifdef ALT_VECTOR
     virtual TVectorAddress* compile();
+#else
+    virtual TNamedAddress* compile();
+#endif
 
     virtual TType* getType()
     {
@@ -226,7 +230,11 @@ struct TRecGroup : public TSignal
     vector<TSignal*> fCode;
 
     static map<string, int> gRecCompEnv;
+#ifdef ALT_VECTOR
     static map<string, TVectorAddress*> gRecProjCompEnv;
+#else
+    static map<string, TNamedAddress*> gRecProjCompEnv;
+#endif
 
     TRecGroup(const string& group):fRecGroup(group)
     {}

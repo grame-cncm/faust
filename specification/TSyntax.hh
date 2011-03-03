@@ -27,14 +27,18 @@ TFloatType* MR_FLOAT_TYPE();
 #ifdef ALT_VECTOR
 TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type, int size);
 #else
-TVectorAddress* MR_VECTOR_ADDRESS(const string& name, TType* type);
+TNamedAddress* MR_VECTOR_ADDRESS(const string& name, TType* type);
 #endif
 
 TAddress* MR_INDEX_ADDRESS(TAddress* address, TIndex* id);
 TAddress* MR_CAST_ADDRESS(TAddress* address, TType* type);
 
 // Statement language
+#ifdef ALT_VECTOR
 TDeclareStatement* MR_DEC(TVectorAddress* vector);
+#else
+TDeclareStatement* MR_DEC(TNamedAddress* vector);
+#endif
 TDeclareTypeStatement* MR_DEC_TYPE(TType* type);
 TBlockStatement* MR_BLOCK();
 TBlockStatement* MR_PUSH_BLOCK(TBlockStatement* block, TStatement* statement);
