@@ -250,12 +250,19 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
     sort(V.begin(), V.end());
   
     // Mean of 10 best values (gives relatively stable results)
-    uint64 meavalx = meanValue(V.begin()+KMESURE/2 - 5, V.begin()+KMESURE/2 + 5);			
+    uint64 meaval00 = meanValue(V.begin(), V.begin()+ 5);			
+    uint64 meaval25 = meanValue(V.begin()+KMESURE/4 - 2, V.begin()+KMESURE/4 + 3);			
+    uint64 meaval50 = meanValue(V.begin()+KMESURE/2 - 2, V.begin()+KMESURE/2 + 3);			
+    uint64 meaval75 = meanValue(V.begin()+3*KMESURE/4 - 2, V.begin()+3*KMESURE/4 + 3);			
+    uint64 meaval100 = meanValue(V.end() - 5, V.end());			
   
     //printing
-    cout << megapersec(bsize, ichans+ochans, meavalx) << "\tMB/s"
-         << '\t' << applname
-         << '\t' << "(clocks/sec : " << rdtscpersec() << ")"
+    cout << applname
+         << '\t' << megapersec(bsize, ichans+ochans, meaval00) 
+         << '\t' << megapersec(bsize, ichans+ochans, meaval25) 
+         << '\t' << megapersec(bsize, ichans+ochans, meaval50) 
+         << '\t' << megapersec(bsize, ichans+ochans, meaval75) 
+         << '\t' << megapersec(bsize, ichans+ochans, meaval100) 
          << endl;
     
 }
