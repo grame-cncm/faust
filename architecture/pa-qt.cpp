@@ -37,8 +37,8 @@
 #include <libgen.h>
 #include <iostream>
 
-#include "misc.h"
 #include "gui/faustqt.h"
+#include "misc.h"
 #include "audio/portaudio-dsp.h"
 
 #ifdef OSCCTRL

@@ -37,13 +37,14 @@
 #include <libgen.h>
 #include <iostream>
 
+#include "gui/faustqt.h"
 #include "misc.h"
 #include "audio/jack-dsp.h"
-#include "gui/faustqt.h"
 
 #ifdef OSCCTRL
 #include "gui/OSCUI.h"
 #endif
+
 
 
 /**************************BEGIN USER SECTION **************************/
