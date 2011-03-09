@@ -117,7 +117,7 @@ class UI
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
-    virtual void declare(float* zone, const char* key, const char* value) {}
+    virtual void declare(float* /*zone*/, const char* /*key*/, const char* /*value*/) {}
 };
 
 
