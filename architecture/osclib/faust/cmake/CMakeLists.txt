@@ -20,7 +20,7 @@ else(WIN32)
 	add_definitions(-Wall)
 endif(WIN32)
 
-if(APPLE)
+if(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
 	if (${CMAKE_SYSTEM_VERSION} VERSION_LESS 9.0.0)
 		set (CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.4u.sdk)
 	else (${CMAKE_SYSTEM_VERSION} VERSION_LESS 9.0.0)
@@ -29,7 +29,7 @@ if(APPLE)
 
 	set (CMAKE_OSX_ARCHITECTURES "i386 x86_64")
 	set (CMAKE_C++_FLAGS -mmacosx-version-min=10.4)
-endif(APPLE)
+endif(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
 
 #######################################
 # set directories, src and headers.
