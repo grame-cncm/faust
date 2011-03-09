@@ -40,7 +40,7 @@ all the other osc excluded characters with '-' (hyphen)
 This solution is implemented in the proposed OSC UI;
 */
 
-class oscfaust::OSCIO;
+//class oscfaust::OSCIO;
 class OSCUI : public UI 
 {
 	oscfaust::OSCControler*	fCtrl;

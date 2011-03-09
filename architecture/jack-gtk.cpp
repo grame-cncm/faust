@@ -35,11 +35,12 @@
  ************************************************************************/
 
 #include <libgen.h>
+#include <stdlib.h>
 #include <iostream>
 
+#include "gui/faustgtk.h"
 #include "misc.h"
 #include "audio/jack-dsp.h"
-#include "gui/faustgtk.h"
 
 #ifdef OSCCTRL
 #include "gui/OSCUI.h"
