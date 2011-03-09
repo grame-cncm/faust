@@ -126,11 +126,13 @@ void Klass::closeLoop(Tree sig)
     Tree S = symlist(sig);
     //cerr << "CLOSE LOOP :" << l << " with symbols " << *S  << endl;
     if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
+         cout << " will absorb" << endl;
         // empty or dependent loop -> absorbed by enclosing one
        //cerr << "absorbed by : " << fTopLoop << endl;
         fTopLoop->absorb(l);
         //delete l; HACK !!!
     } else {
+        cout << " will NOT absorb" << endl;
         // we have an independent loop
         setLoopProperty(sig,l);     // associate the signal
         fTopLoop->fBackwardLoopDependencies.insert(l);
@@ -261,16 +263,16 @@ void Klass::printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visite
 {
 	// avoid printing already printed loops
 	if (isElement(visited, l)) return;
-	
+
 	// remember we have printed this loop
 	visited.insert(l);
-	
+
 	// print the dependencies loops (that need to be computed before this one)
 	for (lset::const_iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
         printLoopDeepFirst(n, fout, *p, visited);
     }
     // the print the loop itself
-    tab(n, fout); 
+    tab(n, fout);
     tab(n, fout); fout << "// LOOP " << l << ", ORDER " << l->fOrder << endl;
     l->println(n+1, fout);
 }
@@ -321,15 +323,15 @@ static void groupSeqLoops(Loop* l)
 void Klass::buildTasksList()
 {
     lgraph G;
-    
+
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
-    
+
     sortGraph(fTopLoop, G);
     int index_task = START_TASK_INDEX;
-    
+
     addDeclCode("TaskGraph fGraph;");
     addDeclCode("FAUSTFLOAT** input;");
     addDeclCode("FAUSTFLOAT** output;");
@@ -339,7 +341,7 @@ void Klass::buildTasksList()
     addDeclCode("DSPThreadPool* fThreadPool;");
     addDeclCode("int fStaticNumThreads;");
     addDeclCode("int fDynamicNumThreads;");
-    
+
     // Compute forward dependencies
     for (int l=G.size()-1; l>=0; l--) {
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
@@ -350,7 +352,7 @@ void Klass::buildTasksList()
             index_task++;
         }
     }
-    
+
     // Compute ready tasks list
     vector<int> task_num;
     for (int l=G.size()-1; l>=0; l--) {
@@ -361,13 +363,13 @@ void Klass::buildTasksList()
             }
         }
     }
-    
+
     if (task_num.size() < START_TASK_MAX) {
-    
+
         // Push ready tasks thread 0, execute one task directly
-        
+
         addZone3("if (cur_thread == 0) {");
-           
+
         Loop* keep = NULL;
         for (int l=G.size()-1; l>=0; l--) {
             lset::const_iterator next;
@@ -381,32 +383,32 @@ void Klass::buildTasksList()
                 }
             }
         }
-        
+
         if (keep != NULL) {
             addZone3(subst("    tasknum = $0;", T(keep->fIndex)));
         }
-        
+
         addZone3("} else {");
         addZone3("    tasknum = TaskQueue::GetNextTask(cur_thread, fDynamicNumThreads);");
         addZone3("}");
-    
+
     } else {
-        
+
         // Cut ready tasks list and have each thread (dynamically) use a subpart
         addZone3(subst("int task_list_size = $0;", T((int)task_num.size())));
         stringstream buf;
         buf << "int task_list[" << task_num.size() << "] = {";
         for(size_t i = 0; i < task_num.size(); i++) {
             buf << task_num[i];
-            if (i != (task_num.size() - 1))  
+            if (i != (task_num.size() - 1))
                 buf << ",";
         }
         buf << "};";
-        
+
         addZone3(buf.str());
         addZone3("taskqueue.InitTaskList(task_list_size, task_list, fDynamicNumThreads, cur_thread, tasknum);");
     }
-  
+
     // Last stage connected to end task
     if (G[0].size() > 1) {
         addZone2c("// Initialize end task, if more than one input");
@@ -414,7 +416,7 @@ void Klass::buildTasksList()
     } else {
         addZone2c("// End task has only one input, so will be directly activated");
     }
-    
+
     // Compute init section
     addZone2c("// Only initialize taks with more than one input");
     for (int l=G.size()-1; l>=0; l--) {
@@ -426,12 +428,12 @@ void Klass::buildTasksList()
             }
         }
     }
-    
+
     addInitCode("fStaticNumThreads = get_max_cpu();");
     addInitCode("fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
     addInitCode("fThreadPool = DSPThreadPool::Init();");
     addInitCode("fThreadPool->StartAll(fStaticNumThreads - 1, false);");
-    
+
     gTaskCount = 0;
 }
 
@@ -444,20 +446,20 @@ void Klass::printLoopGraphVector(int n, ostream& fout)
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
-    
+
     lgraph G;
     sortGraph(fTopLoop, G);
-    
+
 #if 1
     // EXPERIMENTAL
     if (gVectorSwitch && gDeepFirstSwitch) {
         set<Loop*> visited;
         printLoopDeepFirst(n, fout, fTopLoop, visited);
         return;
-    } 
+    }
 #endif
-    
-    // normal mode 
+
+    // normal mode
     for (int l=G.size()-1; l>=0; l--) {
         if (gVectorSwitch) { tab(n, fout); fout << "// SECTION : " << G.size() - l; }
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
@@ -475,10 +477,10 @@ void Klass::printLoopGraphOpenMP(int n, ostream& fout)
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
-    
+
     lgraph G;
     sortGraph(fTopLoop, G);
-    
+
     // OpenMP mode : add OpenMP directives
     for (int l=G.size()-1; l>=0; l--) {
         tab(n, fout); fout << "// SECTION : " << G.size() - l;
@@ -495,16 +497,16 @@ void Klass::printLoopGraphScheduler(int n, ostream& fout)
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
-    
+
     lgraph G;
     sortGraph(fTopLoop, G);
-    
+
     // OpenMP mode : add OpenMP directives
     for (int l=G.size()-1; l>0; l--) {
         tab(n, fout); fout << "// SECTION : " << G.size() - l;
         printLoopLevelScheduler(n, G.size() - l, G[l], fout);
     }
-    
+
     printLastLoopLevelScheduler(n, G.size(), G[0], fout);
 }
 
@@ -545,8 +547,8 @@ void Klass::printLoopGraphInternal(int n, ostream& fout)
 {
     lgraph G;
     sortGraph(fTopLoop, G);
-    
-    // normal mode 
+
+    // normal mode
     for (int l=G.size()-1; l>=0; l--) {
         if (gVectorSwitch) { tab(n, fout); fout << "// SECTION : " << G.size() - l; }
         for (lset::const_iterator p =G[l].begin(); p!=G[l].end(); p++) {
@@ -611,7 +613,7 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout)
                 (*p)->println(n+1, fout);
             }
         tab(n, fout); fout << "} ";
-    } 
+    }
 }
 
 /**
@@ -621,16 +623,16 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset& L, ostream& fout)
 void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset& L, ostream& fout)
 {
     if (nonRecursiveLevel(L) && L.size() == 1 && !(*L.begin())->isEmpty()) {
-        
+
         lset::const_iterator p =L.begin();
         tab(n, fout); fout << "case " << gTaskCount++ << ": { ";
         (*p)->println(n+1, fout);
         tab(n+1, fout); fout << "tasknum = LAST_TASK_INDEX;";
         tab(n+1, fout); fout << "break;";
         tab(n, fout); fout << "} ";
-        
+
     } else if (L.size() > 1) {
-        
+
         for (lset::const_iterator p =L.begin(); p!=L.end(); p++) {
             tab(n, fout); fout << "case " << gTaskCount++ << ": { ";
             (*p)->println(n+1, fout);
@@ -638,16 +640,16 @@ void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset& L, ostream&
             tab(n+1, fout); fout << "break;";
             tab(n, fout); fout << "} ";
         }
-        
+
     } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
-        
+
         lset::const_iterator p =L.begin();
         tab(n, fout); fout << "case " << gTaskCount++ << ": { ";
         (*p)->println(n+1, fout);
         tab(n+1, fout); fout << "tasknum = LAST_TASK_INDEX;";
         tab(n+1, fout); fout << "break;";
         tab(n, fout); fout << "} ";
-        
+
     }
 }
 
@@ -655,19 +657,19 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
 {
     tab(n, fout); fout << "case " << gTaskCount++ << ": { ";
     (*p)->println(n+1, fout);
-    
+
     // One output only
     if ((*p)->fForwardLoopDependencies.size() == 1) {
-        
+
         lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
         if ((*p1)->fBackwardLoopDependencies.size () == 1) {
             tab(n+1, fout); fout << subst("tasknum = $0;", T((*p1)->fIndex));
         } else {
             tab(n+1, fout); fout << subst("fGraph.ActivateOneOutputTask(taskqueue, $0, tasknum);", T((*p1)->fIndex));
         }
-        
+
     } else {
-        
+
         Loop* keep = NULL;
         // Find one output with only one backward dependencies
         for (lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin(); p1!=(*p)->fForwardLoopDependencies.end(); p1++) {
@@ -676,11 +678,11 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
                 break;
             }
         }
-        
+
         if (keep == NULL) {
             tab(n+1, fout); fout << "tasknum = WORK_STEALING_INDEX;";
-        }                
-        
+        }
+
         for (lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin(); p1!=(*p)->fForwardLoopDependencies.end(); p1++) {
             if ((*p1)->fBackwardLoopDependencies.size () == 1) {  // Task is the only input
                 if (*p1 != keep) {
@@ -694,14 +696,14 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream& fout)
                 }
             }
         }
-        
+
         if (keep != NULL) {
             tab(n+1, fout); fout << subst("tasknum = $0;", T(keep->fIndex)); // Last one
         } else {
             tab(n+1, fout); fout << "fGraph.GetReadyTask(taskqueue, tasknum);"; // Last one
         }
     }
-    
+
     tab(n+1, fout); fout << "break;";
     tab(n, fout); fout << "} ";
 }
@@ -736,7 +738,7 @@ void Klass::println(int n, ostream& fout)
     } else {
         tab(n,fout); fout << "class " << fKlassName << " : public " << fSuperKlassName << "{";
     }
- 
+
     if (gUIMacroSwitch) {
         tab(n,fout); fout << "  public:";
     } else {
@@ -750,13 +752,13 @@ void Klass::println(int n, ostream& fout)
 	tab(n,fout); fout << "  public:";
 
     printMetadata(n+1, gMetaDataSet, fout);
-    
+
     if (gSchedulerSwitch) {
         tab(n+1,fout); fout << "virtual ~mydsp() \t{ "
                             << "DSPThreadPool::Destroy()"
                             << "; }";
     }
-    
+
     tab(n+1,fout); fout     << "virtual int getNumInputs() \t{ "
                     << "return " << fNumInputs
                     << "; }";
@@ -835,7 +837,7 @@ void Klass::printComputeMethodScalar(int n, ostream& fout)
 }
 
 /**
- * Uses loops of constant gVecSize boundary in order to provide the 
+ * Uses loops of constant gVecSize boundary in order to provide the
  * C compiler with more optimisation opportunities. Improves performances
  * in general, but not always
  */
@@ -975,23 +977,23 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
     tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
-        
+
         // Init input and output
         tab(n+2,fout); fout << "// Init input and output";
         printlines (n+2, fZone3aCode, fout);
         printlines (n+2, fZone3bCode, fout);
-        
+
         tab(n+2,fout); fout << "// Init graph state";
-        tab(n+2,fout); fout << "initState(fTasksList);"; 
-        tab(n+2,fout); fout << "bool is_finished = false;"; 
-        tab(n+2,fout); fout << "unsigned int index_in = 0;"; 
-        tab(n+2,fout); fout << "unsigned int index_out = 0;"; 
+        tab(n+2,fout); fout << "initState(fTasksList);";
+        tab(n+2,fout); fout << "bool is_finished = false;";
+        tab(n+2,fout); fout << "unsigned int index_in = 0;";
+        tab(n+2,fout); fout << "unsigned int index_out = 0;";
         tab(n+2,fout); fout << "int count = min ("<< gVecSize << ", fullcount);";
-        
+
         tab(n+2,fout); fout << "InitSchedulingMap();";
         tab(n+2,fout); fout << "#pragma omp parallel";
         printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
-        
+
         tab(n+2,fout); fout << "{";
             tab(n+3,fout); fout << "while (!is_finished) {";
                 tab(n+4,fout); fout << "Task* task = searchTaskToAcquire(fTasksList);";
@@ -1000,10 +1002,10 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
                     tab(n+5,fout); fout << "do {";
                         tab(n+6,fout); fout << "AddTaskToScheduling(task);";
                         tab(n+6,fout); fout << "switch (task->fNum) {";
-                        
+
                             // DSP tasks
                             printLoopGraph (n+7,fout);
-                        
+
                             // Input task
                             tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
                             printlines (n+8, fZone6Code, fout);
@@ -1011,27 +1013,27 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
                             tab(n+8, fout); fout << "last_cycle_for_thread = (index_in > fullcount);";
                             tab(n+8, fout); fout << "break;";
                             tab(n+7, fout); fout << "} ";
-                            
+
                             // Output task
                             tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
                             printlines (n+8, fZone7Code, fout);
                             tab(n+8, fout); fout << "index_out += count;";
                             tab(n+8, fout); fout << "last_cycle_for_thread = (index_out > fullcount);";
                             tab(n+8, fout); fout << "break;";
-                            tab(n+7, fout); fout << "} ";   
-                            
-                            // End task      
-                            tab(n+7, fout); fout << "case " << gTaskCount++ << ": { "; 
+                            tab(n+7, fout); fout << "} ";
+
+                            // End task
+                            tab(n+7, fout); fout << "case " << gTaskCount++ << ": { ";
                             tab(n+8, fout); fout << "is_finished = ((index_in >= fullcount) && (index_out >= fullcount));";
                             tab(n+8, fout); fout << "break;";
-                            tab(n+7, fout); fout << "} ";                 
-                        
+                            tab(n+7, fout); fout << "} ";
+
                         tab(n+6,fout); fout << "}";
                         tab(n+6,fout); fout << "if (last_cycle_for_thread) break;";
-                     
+
                     tab(n+5,fout); fout << "} while ((task = task->concludeAndTryToAcquireNext()) != NULL);";
                 tab(n+4,fout); fout << "}";
-            tab(n+3,fout); fout << "}";          
+            tab(n+3,fout); fout << "}";
         tab(n+2,fout); fout << "}";
         tab(n+2,fout); fout << "PrintSchedulingMap();";
     tab(n+1,fout); fout << "}";
@@ -1041,70 +1043,70 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
 void Klass::printComputeMethodScheduler (int n, ostream& fout)
 {
     tab(n+1,fout); fout << "void display() {";
-        tab(n+2,fout); fout << "fGraph.Display();"; 
+        tab(n+2,fout); fout << "fGraph.Display();";
     tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
-    
+
         tab(n+2,fout); fout << "GetRealTime();";
-    
+
         tab(n+2,fout); fout << "this->input = input;";
         tab(n+2,fout); fout << "this->output = output;";
-    
+
         tab(n+2,fout); fout << "StartMeasure();";
-    
+
         tab(n+2,fout); fout << "for (fIndex = 0; fIndex < fullcount; fIndex += " << gVecSize << ") {";
-    
+
         tab(n+3,fout); fout << "fFullCount = min ("<< gVecSize << ", fullcount-fIndex);";
-        tab(n+3,fout); fout << "TaskQueue::Init();"; 
+        tab(n+3,fout); fout << "TaskQueue::Init();";
         printlines (n+3, fZone2cCode, fout);
-    
-        tab(n+3,fout); fout << "fIsFinished = false;"; 
-        tab(n+3,fout); fout << "fThreadPool->SignalAll(fDynamicNumThreads - 1, this);"; 
-        tab(n+3,fout); fout << "computeThread(0);"; 
-        tab(n+3,fout); fout << "while (!fThreadPool->IsFinished()) {}"; 
-    
+
+        tab(n+3,fout); fout << "fIsFinished = false;";
+        tab(n+3,fout); fout << "fThreadPool->SignalAll(fDynamicNumThreads - 1, this);";
+        tab(n+3,fout); fout << "computeThread(0);";
+        tab(n+3,fout); fout << "while (!fThreadPool->IsFinished()) {}";
+
         tab(n+2,fout); fout << "}";
-    
+
         tab(n+2,fout); fout << "StopMeasure(fStaticNumThreads, fDynamicNumThreads);";
-    
+
     tab(n+1,fout); fout << "}";
-    
+
     tab(n+1,fout); fout << "void computeThread(int cur_thread) {";
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
-        
+
         tab(n+2,fout); fout << "// Init graph state";
-        
+
         tab(n+2,fout); fout << "{";
             tab(n+3,fout); fout << "TaskQueue taskqueue(cur_thread);";
             tab(n+3,fout); fout << "int tasknum = -1;";
             tab(n+3,fout); fout << "int count = fFullCount;";
-       
+
             // Init input and output
             tab(n+3,fout); fout << "// Init input and output";
             printlines (n+3, fZone3Code, fout);
-         
+
             tab(n+3,fout); fout << "while (!fIsFinished) {";
                  tab(n+4,fout); fout << "switch (tasknum) {";
-                        
+
                     // Work stealing task
                     tab(n+5, fout); fout << "case WORK_STEALING_INDEX: { ";
                         tab(n+6, fout); fout << "tasknum = TaskQueue::GetNextTask(cur_thread, fDynamicNumThreads);";
                         tab(n+6, fout); fout << "break;";
                     tab(n+5, fout); fout << "} ";
-    
-                    // End task      
-                    tab(n+5, fout); fout << "case LAST_TASK_INDEX: { "; 
+
+                    // End task
+                    tab(n+5, fout); fout << "case LAST_TASK_INDEX: { ";
                         tab(n+6, fout); fout << "fIsFinished = true;";
                         tab(n+6, fout); fout << "break;";
-                    tab(n+5, fout); fout << "} "; 
-    
+                    tab(n+5, fout); fout << "} ";
+
                     gTaskCount = START_TASK_INDEX;
-                                
+
                     // DSP tasks
                     printLoopGraphScheduler (n+5,fout);
-                
+
                  tab(n+4,fout); fout << "}";
             tab(n+3,fout); fout << "}";
         tab(n+2,fout); fout << "}";

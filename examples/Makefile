@@ -1,5 +1,6 @@
 MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2' 
-MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+#MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 #MYGCCFLAGS := '-O2 -march=native -ffast-math'
 #MYGCCFLAGS := '-O3'
 VSIZE := 256
@@ -68,7 +69,7 @@ ialsasch :
 
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`'  CXXFLAGS=$(MYGCCFLAGS)  -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir
