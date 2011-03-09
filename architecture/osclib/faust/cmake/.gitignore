@@ -2,8 +2,9 @@ CMakeCache.txt
 CMakeFiles/
 CMakeScripts/
 Debug/
-OSCFaust.build/
-OSCFaust.xcodeproj/
+OSCFaust.*
 Release/
 build/
 cmake_install.cmake
+Makefile
+

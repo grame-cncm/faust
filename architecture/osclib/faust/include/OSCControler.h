@@ -51,7 +51,7 @@ class OSCControler
 		*/
 		enum { kUDPBasePort = 5510};
 
-				 OSCControler (int argc, char *argv[], OSCIO* io);
+				 OSCControler (int argc, char *argv[], OSCIO* io=0);
 		virtual ~OSCControler ();
 	
 		void addnode (const char* label, float* zone, float init, float min, float max);
