@@ -35,20 +35,19 @@
  ************************************************************************/
 
 #include <libgen.h>
-#include <math.h>
+#include <stdlib.h>
 #include <iostream>
 
-#include "gui/console.h"
+#include "gui/faustgtk.h"
 #include "misc.h"
-#include "audio/jack-dsp.h"
+#include "audio/alsa-dsp.h"
 
 #ifdef OSCCTRL
 #include "gui/OSCUI.h"
 #endif
 
-using namespace std;
 
-
+/**************************BEGIN USER SECTION **************************/
 /******************************************************************************
 *******************************************************************************
 
@@ -59,54 +58,49 @@ using namespace std;
 
 <<includeIntrinsic>>
 
-/******************************************************************************
-*******************************************************************************
 
-								USER INTERFACE
-
-*******************************************************************************
-/**************************BEGIN USER SECTION **************************/
-		
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp		DSP;
-list<UI*>	UI::fGuiList;
-	
+mydsp	DSP;
+
+//list<UI*>               UI::fGuiList;
+
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[] )
 {
-	char	jackname[256];
-	snprintf(jackname, 255, "%s", basename(argv[0]));
+	gtk_init (&argc, &argv);
 
-	CMDUI* interface = new CMDUI(argc, argv);
+	char* name = basename (argv [0]);
+    char  rcfilename[256];
+	char* home = getenv("HOME");
+	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+
+	UI* interface = new GTKUI (name, &argc, &argv);
 	DSP.buildUserInterface(interface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(jackname, argc, argv);
+	UI*	oscinterface = new OSCUI(name, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
-	jackaudio audio;
-	audio.init(jackname, &DSP);
-	interface->process_command();
+	alsaaudio audio (argc, argv, &DSP);
+	audio.init(name, &DSP);
+	interface->recallState(rcfilename);	
 	audio.start();
-		
+	
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
 	interface->run();
-	
 	audio.stop();
-	return 0;
-} 
-
-
-		
+	interface->saveState(rcfilename);
+  	return 0;
+}
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
