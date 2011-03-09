@@ -141,11 +141,13 @@ class portaudio : public audio {
 
 		allocChannels(fBufferSize, max(fDevNumInChans, fDsp->getNumInputs()), max(fDevNumOutChans, fDsp->getNumOutputs()));
 		fDsp->init(fSampleRate);
+		return true;
 	}
 	
 	virtual bool start() {
 		pa_error(Pa_OpenDefaultStream(&fAudioStream, fDevNumInChans, fDevNumOutChans, paFloat32, fSampleRate, fBufferSize, audioCallback, this));
 		Pa_StartStream(fAudioStream);
+		return true;
 	}
 	
 	virtual void stop() {
