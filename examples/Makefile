@@ -1,11 +1,17 @@
-MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2' 
+
+ifeq ($(OSC),1)
+ OSCCTRL := "-DOSCCTRL -I/usr/local/lib/faust/osclib"
+ QTDEFS  := "DEFINES += OSCCTRL"
+ OSCLIB  := -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack
+endif
+
+MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
 #MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
-MYGCCFLAGS := '-O2 -march=native -ffast-math'
+MYGCCFLAGS := '-O2 -march=native -ffast-math $(OSCCTRL)'
 #MYGCCFLAGS := '-O3'
 VSIZE := 1024
 
 SC_SOURCE_DIR = ../../supercollider
-
 
 all : jackgtk
 
@@ -48,7 +54,7 @@ puredata :
 
 alsagtk :
 	install -d alsagtkdir
-	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-I/usr/local/lib/faust/ -lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0` $(OSCLIB)'  CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 ialsagtk :
 	install -d ialsagtkdir
@@ -68,11 +74,7 @@ ialsasch :
 
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB=' -I/usr/local/lib/faust/ `pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
-
-oscjackgtk :
-	install -d oscjackgtkdir
-	$(MAKE) DEST='oscjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-DOSCCTRL -I/usr/local/lib/faust -I/usr/local/lib/faust/gui/ -I/usr/local/lib/faust/osclib/faust/ -Iosclib/faust/include -Losclib -loscpack -lOSCFaust `pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I/usr/local/lib/faust/ `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir
@@ -80,7 +82,7 @@ msjackgtk :
 
 jackqt :
 	install -d jackqtdir
-	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack' -f Makefile.qtcompile
+	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
 
 jackqtsch :
 	install -d jackqtschdir
@@ -88,7 +90,7 @@ jackqtsch :
 
 paqt :
 	install -d paqtdir
-	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio' -f Makefile.qtcompile
+	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio'  DEFS=$(QTDEFS) -f Makefile.qtcompile
 
 caqt :
 	install -d caqtdir
@@ -96,7 +98,7 @@ caqt :
 
 alsaqt :
 	install -d alsaqtdir
-	$(MAKE) DEST='alsaqtdir/' ARCH='alsa-qt.cpp' LIB='-lpthread -lasound' -f Makefile.qtcompile
+	$(MAKE) DEST='alsaqtdir/' ARCH='alsa-qt.cpp' LIB='-lpthread -lasound $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
 
 ladspa :
 	install -d ladspadir
@@ -128,7 +130,7 @@ osswx :
 
 pagtk :
 	install -d pagtkdir
-	$(MAKE) DEST='pagtkdir/' ARCH='pa-gtk.cpp' LIB='-lpthread  -lportaudio `pkg-config gtk+-2.0  --cflags --libs`' -f Makefile.compile
+	$(MAKE) DEST='pagtkdir/' ARCH='pa-gtk.cpp' LIB='-I/usr/local/lib/faust/ -lpthread  -lportaudio `pkg-config gtk+-2.0  --cflags --libs` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 pawx :
 	install -d pawxdir
@@ -191,7 +193,7 @@ gparbench :
 sndfile :
 	install -d sndfiledir
 	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-lsndfile' -f Makefile.compile
-
+CXXFLAGS=$(OSCCTRL)
 plot :
 	install -d plotdir
 	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' LIB='' -f Makefile.compile
@@ -218,25 +220,25 @@ supercollider :
 
 jackconsole :
 	install -d jackconsoledir
-	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' VEC='-vec -vs $(VSIZE)' LIB='`pkg-config --cflags --libs jack `' -f Makefile.compile
+	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' VEC='-vec -vs $(VSIZE)' LIB='-I/usr/local/lib/faust/ `pkg-config --cflags --libs jack ` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 mathdoc :
 	$(MAKE) -f Makefile.mathdoc
 
 help:
-	@echo "make alsagtk       : compile examples as ALSA applications with a GTK Graphical User Interface"
-	@echo "make alsaqt        : compile examples as ALSA applications with a QT4 Graphical User Interface"
-	@echo "make sndfile       : compile examples as sound file processors with a Command line User Interface"
-	@echo "make jackconsole   : compile examples as JACK applications with a Command line User Interface"
-	@echo "make jackgtk       : compile examples as JACK applications with a GTK Graphical User Interface"
-	@echo "make jackqt        : compile examples as JACK applications with a QT4 Graphical User Interface"
-	@echo "make jackwx        : compile examples as JACK applications with a wxWindows Graphical User Interface"
-	@echo "make ossgtk        : compile examples as OSS applications with a GTK Graphical User Interface"
-	@echo "make osswx         : compile examples as OSS applications with a wxWindows Graphical User Interface"
-	@echo "make pagtk         : compile examples as PortAudio applications with a GTK Graphical User Interface"
-	@echo "make paqt          : compile examples as PortAudio applications with a QT4 Graphical User Interface"
-	@echo "make pawx          : compile examples as PortAudio applications with a wxWindows Graphical User Interface"
-	@echo "make caqt          : compile examples as CoreAudio applications with a QT4 Graphical User Interface"
+	@echo "make alsagtk     [OSC=1] : compile examples as ALSA applications with a GTK Graphical User Interface"
+	@echo "make alsaqt      [OSC=1] : compile examples as ALSA applications with a QT4 Graphical User Interface"
+	@echo "make sndfile             : compile examples as sound file processors with a Command line User Interface"
+	@echo "make jackconsole [OSC=1] : compile examples as JACK applications with a Command line User Interface"
+	@echo "make jackgtk     [OSC=1] : compile examples as JACK applications with a GTK Graphical User Interface"
+	@echo "make jackqt      [OSC=1] : compile examples as JACK applications with a QT4 Graphical User Interface"
+	@echo "make jackwx              : compile examples as JACK applications with a wxWindows Graphical User Interface"
+	@echo "make ossgtk              : compile examples as OSS applications with a GTK Graphical User Interface"
+	@echo "make osswx               : compile examples as OSS applications with a wxWindows Graphical User Interface"
+	@echo "make pagtk               : compile examples as PortAudio applications with a GTK Graphical User Interface"
+	@echo "make paqt                : compile examples as PortAudio applications with a QT4 Graphical User Interface"
+	@echo "make pawx                : compile examples as PortAudio applications with a wxWindows Graphical User Interface"
+	@echo "make caqt                : compile examples as CoreAudio applications with a QT4 Graphical User Interface"
 	@echo "--------------------------------------------"
 	@echo "make ladspa        : compile examples as LADSPA plugins"
 	@echo "make csound        : compile examples as CSOUND opcodes"
