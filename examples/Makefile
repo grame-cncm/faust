@@ -90,11 +90,11 @@ jackqtsch :
 
 paqt :
 	install -d paqtdir
-	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio'  DEFS=$(QTDEFS) -f Makefile.qtcompile
+	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio $(OSCLIB)'  DEFS=$(QTDEFS) -f Makefile.qtcompile
 
 caqt :
 	install -d caqtdir
-	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices' -f Makefile.qtcompile
+	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB)'  DEFS=$(QTDEFS)  -f Makefile.qtcompile
 
 alsaqt :
 	install -d alsaqtdir
@@ -235,10 +235,10 @@ help:
 	@echo "make jackwx              : compile examples as JACK applications with a wxWindows Graphical User Interface"
 	@echo "make ossgtk              : compile examples as OSS applications with a GTK Graphical User Interface"
 	@echo "make osswx               : compile examples as OSS applications with a wxWindows Graphical User Interface"
-	@echo "make pagtk               : compile examples as PortAudio applications with a GTK Graphical User Interface"
-	@echo "make paqt                : compile examples as PortAudio applications with a QT4 Graphical User Interface"
+	@echo "make pagtk       [OSC=1] : compile examples as PortAudio applications with a GTK Graphical User Interface"
+	@echo "make paqt        [OSC=1] : compile examples as PortAudio applications with a QT4 Graphical User Interface"
 	@echo "make pawx                : compile examples as PortAudio applications with a wxWindows Graphical User Interface"
-	@echo "make caqt                : compile examples as CoreAudio applications with a QT4 Graphical User Interface"
+	@echo "make caqt        [OSC=1] : compile examples as CoreAudio applications with a QT4 Graphical User Interface"
 	@echo "--------------------------------------------"
 	@echo "make ladspa        : compile examples as LADSPA plugins"
 	@echo "make csound        : compile examples as CSOUND opcodes"
