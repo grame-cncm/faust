@@ -29,7 +29,12 @@
 #include "OSCStream.h"
 #include "OSCControler.h"
 #include "OSCIO.h"
-#include "ip/NetworkingUtils.h"
+
+#ifdef WIN32
+# include "Winsock2.h"
+#else
+# include "ip/NetworkingUtils.h"
+#endif
 
 using namespace std;
 
