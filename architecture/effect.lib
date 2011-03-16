@@ -829,8 +829,13 @@ with {
   bhadamard(n) = bus(n) <: (bus(n):>bus(n/2)) , ((bus(n/2),(bus(n/2):par(i,n/2,*(-1)))) :> bus(n/2))
                  : (bhadamard(n/2) , bhadamard(n/2));
 
+  // Experimental nonlinearities:
+  // nonlinallpass = apnl(nonl,-nonl);
+  // nonlinallpass(x) = allpassnn(3,(nonl*PI*(x,x*x,x*x*x))); // filter.lib
+     nonlinallpass = _; // maybe later (for metallic plates and such) ...
+
   filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) 
-                         :> *(loopgainmax) / sqrt(N) : apnl(nonl,-nonl)
+                         :> *(loopgainmax) / sqrt(N) : nonlinallpass
   with {
     dur(j) = take(j+1,durs);
     n60(j) = dur(j)*SR; // decay time in samples
@@ -1160,4 +1165,71 @@ with {
     [tooltip: Output scale factor]", -40, -70, 40, 0.1)) 
     : smooth(0.999) : db2linear; 
 
+};
+
+//---------------------------------- mesh_square ------------------------------
+// Square Rectangular Digital Waveguide Mesh
+//
+// USAGE:
+//   bus(4*N) : mesh_square(N) : bus(4*N);
+//
+// WHERE
+//   N = number of nodes along each edge - a power of two (1,2,4,8,...)
+//
+// EXAMPLE: Reflectively terminated mesh impulsed at one corner:
+//   mesh_square_test(N,x) = mesh_square(N)~(busi(4*N,x)) // input to corner
+//      with { busi(N,x) = bus(N) : par(i,N,*(-1)) : par(i,N-1,_), +(x); };
+//   process = 1-1' : mesh_square_test(4); // all modes excited forever
+//
+// REQUIRES: math.lib.
+//
+// REFERENCE:
+//   https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html
+
+// four-port scattering junction:
+mesh_square(1)
+  = bus(4) <: par(i,4,*(-1)), (bus(4) :> (*(.5)) <: bus(4)) :> bus(4);
+
+// rectangular NxN square waveguide mesh:
+mesh_square(N) = bus(4*N) : (route_inputs(N/2) : par(i,4,mesh_square(N/2)))
+	  ~(prune_feedback(N/2))
+	  : prune_outputs(N/2) : route_outputs(N/2) : bus(4*N)
+with {
+  block(N) = par(i,N,!);
+
+  // select block i of N, block size = M:
+  s(i,N,M) = par(j, M*N, Sv(i, j))
+     with { Sv(i,i) = bus(N); Sv(i,j) = block(N); };
+
+  // prune mesh outputs down to the signals which make it out:
+  prune_outputs(N)
+    = bus(16*N) :
+      block(N), bus(N),   block(N), bus(N),
+      block(N), bus(N),   bus(N),   block(N),
+      bus(N),   block(N), block(N), bus(N),
+      bus(N),   block(N), bus(N),   block(N)
+      : bus(8*N);
+
+  // collect mesh outputs into standard order (N,W,E,S):
+  route_outputs(N)
+    = bus(8*N)
+      <: s(4,N,8),s(5,N,8), s(0,N,8),s(2,N,8),
+         s(3,N,8),s(7,N,8), s(1,N,8),s(6,N,8)
+      : bus(8*N);
+
+  // collect signals used as feedback:
+  prune_feedback(N) = bus(16*N) :
+      bus(N),   block(N), bus(N),   block(N),
+      bus(N),   block(N), block(N), bus(N),
+      block(N), bus(N),   bus(N),   block(N),
+      block(N), bus(N),   block(N), bus(N) :
+      bus(8*N);
+
+  // route mesh inputs (feedback, external inputs):
+  route_inputs(N) = bus(8*N), bus(8*N)
+  <:s(8,N,16),s(4,N,16), s(12,N,16),s(3,N,16),
+    s(9,N,16),s(6,N,16), s(1,N,16),s(14,N,16),
+    s(0,N,16),s(10,N,16), s(13,N,16),s(7,N,16),
+    s(2,N,16),s(11,N,16), s(5,N,16),s(15,N,16)
+    : bus(16*N);
 };

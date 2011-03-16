@@ -287,6 +287,7 @@ with {
 //
 // REFERENCES
 //   1. https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html
+//      https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html
 //   2. Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976
 //
 // QUICK GUIDE
@@ -314,19 +315,28 @@ allpassn(n,sv) = _ <: ((+ <: (allpassn(n-1,sv)),*(s))~(*(-s))) : _',_ :+
 with { s = take(n,sv); };
 
 // power-normalized (reflection coefficients s = sin(t)):
-allpassnn(0,t) = _;
-allpassnn(n,t) = _ <: *(s), (*(c) : (+ : allpassnn(n-1,t))~(*(-s))) : _,*(c)':+
-with { c=cos(take(n,t));  s=sin(take(n,t)); };
+allpassnn(0,tv) = _;
+allpassnn(n,tv) = _ <: *(s), (*(c) : (+ 
+          : allpassnn(n-1,tv))~(*(-s))) : _,*(c)' : +
+with { c=cos(take(n,tv));  s=sin(take(n,tv)); };
+
+// power-normalized with sparse delays dv(n)>1:
+allpassnns(0,tv,dmax,dv) = _;
+allpassnns(n,tv,dmax,dv) = _ <: *(s), (*(c) : (+ : dl
+           : allpassnns(n-1,tv,dmax,dv))~(*(-s))) : _,*(c)' : +
+with { c=cos(take(n,tv));  s=sin(take(n,tv));
+       dl=delay(dmax,(take(n,dv)-1)); };
 
 // Kelly-Lochbaum:
 allpassnkl(0,sv) = _;
-allpassnkl(n,sv) = _ <: *(s),(*(1+s):(+:allpassnn(n-1,sv))~(*(-s))):_,*(1-s)':+
+allpassnkl(n,sv) = _ <: *(s),(*(1+s) : (+
+                   : allpassnn(n-1,sv))~(*(-s))) : _,*(1-s)' : +
 with { s = take(n,sv); };
 
 // one-multiply:
 allpassn1m(0,sv) = _;
-allpassn1m(n,sv)= _ <: _,_ : ((+:*(s)<:_,_),_:_,+:cross
-		  :allpassn1m(n-1,sv),_)~(*(-1)):_',_:+
+allpassn1m(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : cross
+		  : allpassn1m(n-1,sv),_)~(*(-1)) : _',_ : +
 with {s = take(n,sv); cross = _,_ <: !,_,_,!; };
 
 //===== Digital Filter Sections Specified as Analog Filter Sections =====
