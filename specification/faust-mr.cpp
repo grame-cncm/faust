@@ -248,6 +248,12 @@ TSignal* test40(bool prim, bool vec, bool ser, bool concat)
     return new TRecProj(rec_group, 1);
 }
 
+// vectorize(4):*(2):serialize:+(1);
+TSignal* test50(bool prim, bool vec, bool ser, bool concat)
+{
+    return new TPrimOp(new TSerialize(new TPrimOp(new TVectorize(new TInput(0, 4), 4), new TFloat(2.f), "*")),  new TFloat(1.f), "+");
+}
+
 int main()
 {
     TCompiler compiler;
@@ -269,7 +275,7 @@ int main()
     //compiler.compileTop(test11bis(true, true, true, true));
     //compiler.compileTop(test12(true, true, true, true));
     //compiler.compileTop(test12(true, false, true, true));
-    compiler.compileTop(test12(true, true, false, true));
+    //compiler.compileTop(test12(true, true, false, true));
     //compiler.compileTop(test12(true, false, false, true));
 
     //compiler.compileTop(test13(true, true, true, true));
@@ -333,6 +339,7 @@ int main()
 
     //compiler.compileTop(test40(true, true, true, true));
 
+    compiler.compileTop(test50(true, true, true, true));
 
 	return 0;
 }
