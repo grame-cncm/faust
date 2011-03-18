@@ -105,6 +105,7 @@ class StringTypeManager {
             fInvertTypeTable["void*"] = Typed::kVoid_ptr;
         }
 
+        /*
         string generateType(Typed* type)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
@@ -190,6 +191,67 @@ class StringTypeManager {
                     assert(false);
                     return "";
                 }
+            } else if (vector_typed) {
+                std::ostringstream num_str;
+                num_str << vector_typed->fSize;
+                return (vector_typed->fSize == 0)
+                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
+            } else {
+                assert(false);
+                return "";
+            }
+        }
+        */
+
+        string generateType(Typed* type)
+        {
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+            FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
+
+            if (basic_typed) {
+                return fTypeDirectTable[basic_typed->fType];
+            } else if (named_typed) {
+                return generateType(named_typed->fType) + " " + named_typed->fName;
+            } else if (fun_typed) {
+                return "FUN TYPE";
+            } else if (array_typed) {
+                return fTypeDirectTable[array_typed->getType()];
+            } else if (vector_typed) {
+                std::ostringstream num_str;
+                num_str << vector_typed->fSize;
+                return (vector_typed->fSize == 0)
+                    ? "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                    : "valarray<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
+            } else {
+                assert(false);
+                return "";
+            }
+        }
+
+        string generateType(Typed* type, const string& name)
+        {
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+            FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
+
+            if (basic_typed) {
+                return fTypeDirectTable[basic_typed->fType] + " " + name;
+            } else if (named_typed) {
+                return named_typed->fName + generateType(named_typed->fType) + " " + name;
+            } else if (fun_typed) {
+                return "FUN TYPE";
+            } else if (array_typed) {
+                std::ostringstream num_str;
+                num_str << array_typed->fSize;
+                return (array_typed->fSize == 0)
+                    ? generateType(array_typed->fType) + "* " + name
+                    : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
