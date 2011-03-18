@@ -26,6 +26,7 @@
 #include "device.h"
 #include <vector>
 #include <string>
+#include <set>
 
 using namespace std;
 
@@ -40,15 +41,56 @@ struct point
 {
     double  x;
     double  y;
-    bool    invisible;
+    double  z;
 
-    //point() : x(0.0), y(0.0), invisible(false) {}
-    //point(double f, bool inv=false) : x(f), y(f), invisible(inv) {}
-    point(double u, double v, bool inv=false) : x(u), y(v), invisible(inv)  {}
-    point(const point& p) : x(p.x), y(p.y), invisible(p.invisible) {}
+    point(double u, double v, double w=1) : x(u), y(v), z(w)  {}
+    point(const point& p) : x(p.x), y(p.y), z(p.z) {}
+    bool operator<(const point& p) const {
+        if (x < p.x) return true;
+        else if (x > p.x) return false;
+        else if (y < p.y) return true;
+        else if (y > p.y) return false;
+        else if (z < p.z) return true;
+        else return false;
+    }
+};
+
+struct trait
+{
+    point   start;
+    point   end;
+    bool    hasRealInput;
+    bool    hasRealOutput;
+
+    trait(const point& p1, const point& p2) : start(p1), end(p2)    {}
+    void draw(device& dev) const { dev.trait(start.x, start.y, end.x, end.y); }
+
+    bool operator<(const trait& t) const {
+        if (start < t.start) return true;
+        else if (t.start < start) return false;
+        else if (end < t.end) return true;
+        else return false;
+    }
+};
+
+struct collector
+{
+    set<point>  fOutputs;       // collect real outputs
+    set<point>  fInputs;        // collect real inputs
+    set<trait>  fTraits;        // collect traits to draw
+    set<trait>  fWithInput;     // collect traits with a real input
+    set<trait>  fWithOutput;    // collect traits with a real output
+
+    void addOutput(const point& p)  { fOutputs.insert(p); }
+    void addInput(const point& p)   { fInputs.insert(p); }
+    void addTrait(const trait& t)   { fTraits.insert(t); }
+    void computeVisibleTraits();
+    bool isVisible(const trait& t);
+    void draw(device& dev);
 };
 
 enum { kLeftRight=1, kRightLeft=-1 };
+
 
 
 /**
@@ -102,8 +144,9 @@ class schema
 
  	// abstract interface for subclasses
 	virtual void 	place(double x, double y, int orientation) 	= 0;
-	virtual void 	draw(device& dev) 							= 0;
-	virtual point	inputPoint(unsigned int i) const			= 0;
+    virtual void 	draw(device& dev) 							= 0;
+    virtual void 	collectTraits(collector& c)					= 0;
+    virtual point	inputPoint(unsigned int i) const			= 0;
 	virtual point 	outputPoint(unsigned int i)const			= 0;
 };
 

@@ -74,6 +74,16 @@ void cableSchema::draw(device& dev)
 {
 }
 
+
+
+/**
+ * Nothing to collect. Actual collect will take place when the wires
+ * are enlargered
+ */
+void cableSchema::collectTraits(collector& c)
+{
+}
+
 /**
  *input and output points are the same as the width is 0
  */

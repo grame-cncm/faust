@@ -69,12 +69,12 @@ void enlargedSchema::place(double ox, double oy, int orientation)
 
 	for (unsigned int i=0; i < inputs(); i++) {
 		point p = fSchema->inputPoint(i);
-        fInputPoint[i] = point(p.x-dx, p.y, p.invisible);
+        fInputPoint[i] = point(p.x-dx, p.y, p.z);
 	}
 
 	for (unsigned int i=0; i < outputs(); i++) {
 		point p = fSchema->outputPoint(i);
-        fOutputPoint[i] = point(p.x+dx, p.y, p.invisible);
+        fOutputPoint[i] = point(p.x+dx, p.y, p.z);
 	}
 
 	endPlace();
@@ -106,21 +106,47 @@ point enlargedSchema::outputPoint(unsigned int i)	const
  */
 void enlargedSchema::draw(device& dev)
 {
-	assert(placed());
+    assert(placed());
 
-	fSchema->draw(dev);
+    fSchema->draw(dev);
+#if 0
+    // draw enlarge input wires
+    for (unsigned int i=0; i<inputs(); i++) {
+        point p = inputPoint(i);
+        point q = fSchema->inputPoint(i);
+        if ( (p.z>=0) && (q.z>=0) ) dev.trait(p.x, p.y, q.x, q.y);
+    }
 
-	// draw enlarge input wires
-	for (unsigned int i=0; i<inputs(); i++) {
-		point p = inputPoint(i);
-		point q = fSchema->inputPoint(i);
-        if ( !(p.invisible | q.invisible) ) dev.trait(p.x, p.y, q.x, q.y);
-	}
+    // draw enlarge output wires
+    for (unsigned int i=0; i<outputs(); i++) {
+        point p = outputPoint(i);
+        point q = fSchema->outputPoint(i);
+        if ( (p.z>=0) && (q.z>=0) ) dev.trait(p.x, p.y, q.x, q.y);
+    }
+#endif
+}
 
-	// draw enlarge output wires
-	for (unsigned int i=0; i<outputs(); i++) {
-		point p = outputPoint(i);
-		point q = fSchema->outputPoint(i);
-        if ( !(p.invisible | q.invisible) ) dev.trait(p.x, p.y, q.x, q.y);
-	}
+/**
+ * Draw the enlarged schema. This methos can only
+ * be called after the block have been placed
+ */
+void enlargedSchema::collectTraits(collector& c)
+{
+    assert(placed());
+
+    fSchema->collectTraits(c);
+
+    // draw enlarge input wires
+    for (unsigned int i=0; i<inputs(); i++) {
+        point p = inputPoint(i);
+        point q = fSchema->inputPoint(i);
+        c.addTrait(trait(p,q));
+    }
+
+    // draw enlarge output wires
+    for (unsigned int i=0; i<outputs(); i++) {
+        point p = outputPoint(i);
+        point q = fSchema->outputPoint(i);
+        c.addTrait(trait(p,q));
+    }
 }

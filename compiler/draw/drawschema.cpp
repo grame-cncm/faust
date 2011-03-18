@@ -245,10 +245,12 @@ static void writeSchemaFile(Tree bd)
 		SVGDev dev(s1.str().c_str(), ts->width(), ts->height());
 		ts->place(0,0, kLeftRight);
 		ts->draw(dev);
+        { collector c; ts->collectTraits(c); c.draw(dev); }
 	} else {
 		PSDev dev(s1.str().c_str(), ts->width(), ts->height());
 		ts->place(0,0, kLeftRight);
 		ts->draw(dev);
+        { collector c; ts->collectTraits(c); c.draw(dev); }
 	}
 }
 

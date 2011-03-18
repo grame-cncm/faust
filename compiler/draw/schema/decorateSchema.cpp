@@ -69,12 +69,12 @@ void decorateSchema::place(double ox, double oy, int orientation)
 
 	for (unsigned int i=0; i < inputs(); i++) {
 		point p = fSchema->inputPoint(i);
-        fInputPoint[i] = point(p.x-m, p.y, p.invisible);
+        fInputPoint[i] = point(p.x-m, p.y, p.z);
 	}
 
 	for (unsigned int i=0; i < outputs(); i++) {
 		point p = fSchema->outputPoint(i);
-        fOutputPoint[i] = point(p.x+m, p.y, p.invisible);
+        fOutputPoint[i] = point(p.x+m, p.y, p.z);
 	}
 
 	endPlace();
@@ -101,46 +101,71 @@ point decorateSchema::outputPoint(unsigned int i) const
 }
 
 /**
- * Draw the enlarged schema. This methos can only
+ * Draw the enlarged schema. This methods can only
  * be called after the block have been placed
  */
 void decorateSchema::draw(device& dev)
 {
-	assert(placed());
+    assert(placed());
 
-	fSchema->draw(dev);
+    fSchema->draw(dev);
+#if 0
+    // draw enlarge input wires
+    for (unsigned int i=0; i<inputs(); i++) {
+        point p = inputPoint(i);
+        point q = fSchema->inputPoint(i);
+        dev.trait(p.x, p.y, q.x, q.y);
+    }
 
-	// draw enlarge input wires
-	for (unsigned int i=0; i<inputs(); i++) {
-		point p = inputPoint(i);
-		point q = fSchema->inputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
-	}
+    // draw enlarge output wires
+    for (unsigned int i=0; i<outputs(); i++) {
+        point p = outputPoint(i);
+        point q = fSchema->outputPoint(i);
+        dev.trait(p.x, p.y, q.x, q.y);
+    }
+#endif
+    // define the coordinates of the frame
+    double tw = (2+fText.size())*dLetter*0.75;
+    double x0 = x() + fMargin/2;				// left
+    double y0 = y() + fMargin/2;				// top
+    double x1 = x() + width() - fMargin/2;		// right
+    double y1 = y() + height() - fMargin/2;		// bottom
+    //double tl = x0 + 2*dWire;					// left of text zone
+    double tl = x() + fMargin;					// left of text zone
+    double tr = min(tl+tw, x1);					// right of text zone
 
-	// draw enlarge output wires
-	for (unsigned int i=0; i<outputs(); i++) {
-		point p = outputPoint(i);
-		point q = fSchema->outputPoint(i);
-		dev.trait(p.x, p.y, q.x, q.y);
-	}
+    // draw the surronding frame
+    dev.dasharray(x0, y0, x0, y1);				// left line
+    dev.dasharray(x0, y1, x1, y1);				// bottom line
+    dev.dasharray(x1, y1, x1, y0);				// right line
+    dev.dasharray(x0, y0, tl, y0);				// top segment before text
+    dev.dasharray(tr, y0, x1, y0);				// top segment after text
 
-	// define the coordinates of the frame
-	double tw = (2+fText.size())*dLetter*0.75;
-	double x0 = x() + fMargin/2;				// left
-	double y0 = y() + fMargin/2;				// top
-	double x1 = x() + width() - fMargin/2;		// right
-	double y1 = y() + height() - fMargin/2;		// bottom
-	//double tl = x0 + 2*dWire;					// left of text zone
-	double tl = x() + fMargin;					// left of text zone
-	double tr = min(tl+tw, x1);					// right of text zone
+    // draw the label
+    dev.label(tl, y0, fText.c_str());	//
+}
 
-	// draw the surronding frame
-	dev.dasharray(x0, y0, x0, y1);				// left line
-	dev.dasharray(x0, y1, x1, y1);				// bottom line
-	dev.dasharray(x1, y1, x1, y0);				// right line
-	dev.dasharray(x0, y0, tl, y0);				// top segment before text
-	dev.dasharray(tr, y0, x1, y0);				// top segment after text
+/**
+ * Draw the enlarged schema. This methods can only
+ * be called after the block have been placed
+ */
+void decorateSchema::collectTraits(collector& c)
+{
+    assert(placed());
 
-	// draw the label
-	dev.label(tl, y0, fText.c_str());	//
+    fSchema->collectTraits(c);
+
+    // draw enlarge input wires
+    for (unsigned int i=0; i<inputs(); i++) {
+        point p = inputPoint(i);
+        point q = fSchema->inputPoint(i);
+        c.addTrait(trait(p,q));
+    }
+
+    // draw enlarge output wires
+    for (unsigned int i=0; i<outputs(); i++) {
+        point p = outputPoint(i);
+        point q = fSchema->outputPoint(i);
+        c.addTrait(trait(p,q));
+    }
 }

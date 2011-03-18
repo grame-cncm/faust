@@ -78,6 +78,12 @@ point parSchema::outputPoint(unsigned int i) const
 
 void parSchema::draw(device& dev)
 {
-	fSchema1->draw(dev);
-	fSchema2->draw(dev);
+    fSchema1->draw(dev);
+    fSchema2->draw(dev);
+}
+
+void parSchema::collectTraits(collector& c)
+{
+    fSchema1->collectTraits(c);
+    fSchema2->collectTraits(c);
 }

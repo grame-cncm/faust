@@ -54,9 +54,7 @@ static char* xmlcode(const char* name, char* name2)
 SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 {
 	double gScale = 0.5;
-//	if ((fic_repr = fopen(addFileNum(ficName),"w+")) == NULL) {
 	if ((fic_repr = fopen(ficName,"w+")) == NULL) {
-	//if((fic_repr = fopen(ficName,"w+")) == NULL) {
 		cout<<"Impossible de creer ou d'ouvrir "<<ficName<<endl;
 	}
 
@@ -64,7 +62,6 @@ SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 	fprintf(fic_repr,"<?xml version=\"1.0\"?>\n");
 	// + DTD ...
 	// viewBox:
-	//fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" preserveAspectRatio=\"xMidYMid meet\" viewBox=\"0 0 %f %f\" width=\"200mm\" height=\"150mm\" >\n",largeur,hauteur);
 	fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 %f %f\" width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n", largeur, hauteur, largeur*gScale, hauteur*gScale);
 
     if (gShadowBlur) {
@@ -101,8 +98,6 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
     }
 
 	// draw the rectangle
-	//fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"shape-rendering: crispEdges; stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
-	//fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke: black;stroke-width:0.25;fill:%s;\"/>\n", x, y, l, h, color);
 	fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:%s;\"/>\n", x, y, l, h, color);
 	if (link != 0 && link[0]!=0) {
 		// close the optional link tag
@@ -140,7 +135,6 @@ void SVGDev::carre(double x,double y,double cote)
 
 void SVGDev::trait(double x1,double y1,double x2,double y2)
 {
-	//fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"shape-rendering: crispEdges; stroke:black; stroke-linecap:round; stroke-width:0.25;\"/>\n",x1,y1,x2,y2);
 	fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke:black; stroke-linecap:round; stroke-width:0.25;\"/>\n",x1,y1,x2,y2);
 }
 
@@ -152,16 +146,13 @@ void SVGDev::dasharray(double x1,double y1,double x2,double y2)
 void SVGDev::text(double x,double y,const char* name)
 {
 	char name2[256];
-	//fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"8\" text-anchor=\"middle\">%s</text>\n",x,y+3,xmlcode(name,name2));
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\" text-anchor=\"middle\" fill=\"#FFFFFF\">%s</text>\n",x,y+2,xmlcode(name,name2));
 }
 
 void SVGDev::label(double x,double y,const char* name)
 {
 	char name2[256];
-//	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" style=\"font-family:Courier;font-weight:normal;font-style:normal;font-size:7\">%s</text>\n",x,y+2,xmlcode(name,name2));
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\">%s</text>\n",x,y+2,xmlcode(name,name2));
-//	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Courier\" font-size=\"7\" fill=\"#000000\">%s</text>\n",x,y+2,xmlcode(name,name2));
 }
 
 void SVGDev::markSens(double x,double y,int sens)

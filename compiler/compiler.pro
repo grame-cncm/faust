@@ -230,4 +230,5 @@ SOURCES += main.cpp \
     draw/schema/seqSchema.cpp \
     draw/schema/splitSchema.cpp \
     draw/schema/topSchema.cpp \
-    evaluate/environment.cpp
+    evaluate/environment.cpp \
+    draw/schema/collector.cpp
