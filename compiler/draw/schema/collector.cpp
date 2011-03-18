@@ -29,21 +29,36 @@ using namespace std;
 void collector::computeVisibleTraits()
 {
     bool modified;
-    while (modified) {
+
+    do {
         modified = false;
         for (set<trait>::iterator p = fTraits.begin(); p != fTraits.end(); p++) {
-            if (fOutputs.count(p->start)) {
-                fWithInput.insert(*p);
-                fOutputs.insert(p->end);
-                modified = true;
+            if (fWithInput.count(*p) == 0) {        // not connected to a real output
+                if (fOutputs.count(p->start) > 0) {
+                    fWithInput.insert(*p);          // the cable is connected to a real output
+                    fOutputs.insert(p->end);        // end become a real output too
+                    modified = true;
+                }
+                if (fOutputs.count(p->end) > 0) {
+                    fWithInput.insert(*p);          // the cable is connected to a real output
+                    fOutputs.insert(p->start);      // start become a real output too
+                    modified = true;
+                }
             }
-            if (fInputs.count(p->end)) {
-                fWithOutput.insert(*p);
-                fInputs.insert(p->start);
-                modified = true;
+            if (fWithOutput.count(*p) == 0) {       // not connected to a real input
+                if (fInputs.count(p->start) > 0) {
+                    fWithOutput.insert(*p);         // the cable is connected to a real input
+                    fInputs.insert(p->end);         // end become a real input too
+                    modified = true;
+                }
+                if (fInputs.count(p->end) > 0) {
+                    fWithOutput.insert(*p);         // the cable is connected to a real input
+                    fInputs.insert(p->start);       // start become a real input too
+                    modified = true;
+                }
             }
         }
-    }
+    } while (modified);
 }
 
 bool collector::isVisible(const trait& t)

@@ -120,13 +120,13 @@ void topSchema::collectTraits(collector& c)
     // draw arrows at output points of schema
     for (unsigned int i=0; i<fSchema->inputs(); i++) {
         point p = fSchema->inputPoint(i);
-        c.addInput(p);;
+        c.addOutput(p);;
     }
 
     // draw arrows at output points of schema
     for (unsigned int i=0; i<fSchema->outputs(); i++) {
         point p = fSchema->outputPoint(i);
-        c.addOutput(p);;
+        c.addInput(p);;
     }
 
 
