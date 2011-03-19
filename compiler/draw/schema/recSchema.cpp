@@ -139,7 +139,7 @@ void recSchema::draw(device& dev)
     for (unsigned int i=0; i<outputs(); i++) {
         point p = fSchema1->outputPoint(i);
         point q = outputPoint(i);
-        dev.trait(p.x, p.y, q.x, q.y);
+        //dev.trait(p.x, p.y, q.x, q.y);
     }
 
     // draw the input lines
@@ -147,7 +147,7 @@ void recSchema::draw(device& dev)
     for (unsigned int i=0; i<inputs(); i++) {
         point p = fSchema1->inputPoint(i+skip);
         point q = inputPoint(i);
-        dev.trait(p.x, p.y, q.x, q.y);
+        //dev.trait(p.x, p.y, q.x, q.y);
     }
 
     // draw the feedback connections to each fSchema2 input
@@ -178,15 +178,15 @@ void recSchema::collectTraits(collector& c)
     for (unsigned int i=0; i<outputs(); i++) {
         point p = fSchema1->outputPoint(i);
         point q = outputPoint(i);
-        c.addTrait(trait(p,q));
+        c.addTrait(trait(p,q));     // in->out order
     }
 
     // draw the input lines
     unsigned int skip = fSchema2->outputs();
     for (unsigned int i=0; i<inputs(); i++) {
-        point p = fSchema1->inputPoint(i+skip);
-        point q = inputPoint(i);
-        c.addTrait(trait(p,q));
+        point p = inputPoint(i);
+        point q = fSchema1->inputPoint(i+skip);
+        c.addTrait(trait(p,q));     // in->out order
     }
 
     // draw the feedback connections to each fSchema2 input
@@ -227,6 +227,7 @@ void recSchema::collectFeedback(collector& c, const point& src, const point& dst
     double	ox = src.x + ((orientation()==kLeftRight) ? dx : -dx);
     double	ct = (orientation()==kLeftRight) ? dWire/2 : -dWire/2;
 
+    c.addOutput(point(ox, src.y-ct));
     c.addTrait(trait(point(ox, src.y-ct), point(ox, dst.y)));
     c.addTrait(trait(point(ox, dst.y), point(dst.x, dst.y)));
 }

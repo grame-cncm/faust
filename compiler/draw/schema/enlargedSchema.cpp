@@ -69,12 +69,12 @@ void enlargedSchema::place(double ox, double oy, int orientation)
 
 	for (unsigned int i=0; i < inputs(); i++) {
 		point p = fSchema->inputPoint(i);
-        fInputPoint[i] = point(p.x-dx, p.y, p.z);
+        fInputPoint[i] = point(p.x-dx, p.y); //, p.z);
 	}
 
 	for (unsigned int i=0; i < outputs(); i++) {
 		point p = fSchema->outputPoint(i);
-        fOutputPoint[i] = point(p.x+dx, p.y, p.z);
+        fOutputPoint[i] = point(p.x+dx, p.y); //, p.z);
 	}
 
 	endPlace();
@@ -140,13 +140,13 @@ void enlargedSchema::collectTraits(collector& c)
     for (unsigned int i=0; i<inputs(); i++) {
         point p = inputPoint(i);
         point q = fSchema->inputPoint(i);
-        c.addTrait(trait(p,q));
+        c.addTrait(trait(p,q));     // in->out direction
     }
 
     // draw enlarge output wires
     for (unsigned int i=0; i<outputs(); i++) {
-        point p = outputPoint(i);
         point q = fSchema->outputPoint(i);
-        c.addTrait(trait(p,q));
+        point p = outputPoint(i);
+        c.addTrait(trait(q,p));     // in->out direction
     }
 }

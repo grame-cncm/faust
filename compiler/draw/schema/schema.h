@@ -43,7 +43,7 @@ struct point
     double  y;
     double  z;
 
-    point(double u, double v, double w=1) : x(u), y(v), z(w)  {}
+    point(double u, double v) : x(u), y(v), z(1)  {}
     point(const point& p) : x(p.x), y(p.y), z(p.z) {}
     bool operator<(const point& p) const {
         if (x < p.x) return true;

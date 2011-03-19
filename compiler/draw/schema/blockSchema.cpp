@@ -178,8 +178,8 @@ void blockSchema::draw(device& dev)
 	drawRectangle(dev);
 	drawText(dev);
 	drawOrientationMark(dev);
-//	drawInputWires(dev);
-//	drawOutputWires(dev);
+    drawInputWires(dev);
+    drawOutputWires(dev);
 }
 
 /**
@@ -226,7 +226,7 @@ void blockSchema::drawOrientationMark(device& dev)
 
 	dev.markSens( px, py, orientation() );
 }
-#if 0
+#if 1
 /**
  * Draw horizontal arrows from the input points to the
  * blockSchema rectangle
@@ -237,7 +237,7 @@ void blockSchema::drawInputWires(device& dev)
 
     for (unsigned int i=0; i<inputs(); i++) {
         point p = fInputPoint[i];
-        dev.trait(p.x, p.y, p.x+dx, p.y);
+        //dev.trait(p.x, p.y, p.x+dx, p.y);
         dev.fleche(p.x+dx, p.y, 0, orientation());
     }
 }
@@ -252,7 +252,7 @@ void blockSchema::drawOutputWires(device& dev)
 
     for (unsigned int i=0; i<outputs(); i++) {
         point p = fOutputPoint[i];
-        dev.trait(p.x, p.y, p.x-dx, p.y);
+        //dev.trait(p.x, p.y, p.x-dx, p.y);
     }
 }
 #endif
@@ -277,8 +277,8 @@ void blockSchema::collectInputWires(collector& c)
 
     for (unsigned int i=0; i<inputs(); i++) {
         point p = fInputPoint[i];
-        c.addInput(p);
-        c.addTrait(trait(point(p.x, p.y), point(p.x+dx, p.y)));
+        c.addTrait(trait(point(p.x, p.y), point(p.x+dx, p.y)));     // in->out direction
+        c.addInput(point(p.x+dx, p.y));
     }
 }
 
@@ -292,8 +292,8 @@ void blockSchema::collectOutputWires(collector& c)
 
     for (unsigned int i=0; i<outputs(); i++) {
         point p = fOutputPoint[i];
-        c.addOutput(fOutputPoint[i]);
-        c.addTrait(trait(point(p.x, p.y), point(p.x-dx, p.y)));
+        c.addTrait(trait(point(p.x-dx, p.y), point(p.x, p.y)));     // in->out direction
+        c.addOutput(point(p.x-dx, p.y));
     }
 }
 

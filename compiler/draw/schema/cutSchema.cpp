@@ -43,7 +43,7 @@ schema* makeCutSchema ()
  * makeCutSchema.
  */
 cutSchema::cutSchema ()
-    : 	schema (0, 0, 0, 0), fPoint(0,0,-1)
+    : 	schema (1, 0, 0, dWire/100.0), fPoint(0,0)
 {}
 
 
@@ -53,7 +53,7 @@ cutSchema::cutSchema ()
 void cutSchema::place(double ox, double oy, int orientation)
 {
 	beginPlace(ox, oy, orientation);
-    fPoint = point(ox, oy + height()*0.5, -1);
+    fPoint = point(ox, oy + height()*0.5); //, -1);
 	endPlace();
 }
 
@@ -84,7 +84,7 @@ point cutSchema::inputPoint(unsigned int i) const
 point cutSchema::outputPoint(unsigned int) const
 {
 	assert(false);
-    return point(-1,-1,true);
+    return point(-1,-1);
 }
 
 

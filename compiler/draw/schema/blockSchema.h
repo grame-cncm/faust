@@ -68,8 +68,8 @@ class blockSchema : public schema
   	void drawRectangle(device& dev);
 	void drawText(device& dev);
 	void drawOrientationMark(device& dev);
-//	void drawInputWires(device& dev);
-//	void drawOutputWires(device& dev);
+    void drawInputWires(device& dev);
+    void drawOutputWires(device& dev);
 
     void collectTraits(collector& c);
     void collectInputWires(collector& c);
