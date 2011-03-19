@@ -165,60 +165,60 @@ void seqSchema::drawInternalWires(device& dev)
 		for (int i=0; i<N; i++) {
 			point src = fSchema1->outputPoint(i);
 			point dst = fSchema2->inputPoint(i);
-            if (dst.z>0) {
-                int d = direction(src,dst);
-                if (d != dir) {
-                    // compute attributes of new direction
-                    switch (d) {
-                        case kUpDir 	: mx = 0; dx = dWire; break;
-                        case kDownDir	: mx = fHorzGap; dx = -dWire; break;
-                        default			: mx = 0; dx = 0; break;
-                    }
-                    dir = d;
-                } else {
-                    // move in same direction
-                    mx = mx +dx;
+
+            int d = direction(src,dst);
+            if (d != dir) {
+                // compute attributes of new direction
+                switch (d) {
+                    case kUpDir 	: mx = 0; dx = dWire; break;
+                    case kDownDir	: mx = fHorzGap; dx = -dWire; break;
+                    default			: mx = 0; dx = 0; break;
                 }
-                if (src.y == dst.y) {
-                    // draw straight cable
-                    dev.trait(src.x, src.y, dst.x, dst.y);
-                } else {
-                    // draw zizag cable
-                    dev.trait(src.x, src.y, src.x+mx, src.y);
-                    dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
-                    dev.trait(src.x+mx, dst.y, dst.x, dst.y);
-                }
+                dir = d;
+            } else {
+                // move in same direction
+                mx = mx +dx;
             }
+            if (src.y == dst.y) {
+                // draw straight cable
+                dev.trait(src.x, src.y, dst.x, dst.y);
+            } else {
+                // draw zizag cable
+                dev.trait(src.x, src.y, src.x+mx, src.y);
+                dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
+                dev.trait(src.x+mx, dst.y, dst.x, dst.y);
+            }
+
         }
 	} else {
 		// draw right left cables
 		for (int i=0; i<N; i++) {
 			point src = fSchema1->outputPoint(i);
 			point dst = fSchema2->inputPoint(i);
-            if (dst.z>0) {
-                int d = direction(src,dst);
-                if (d != dir) {
-                    // compute attributes of new direction
-                    switch (d) {
-                        case kUpDir 	: mx = -fHorzGap; dx = dWire; break;
-                        case kDownDir	: mx = 0; dx = -dWire; break;
-                        default			: mx = 0; dx = 0; break;
-                    }
-                    dir = d;
-                } else {
-                    // move in same direction
-                    mx = mx +dx;
+
+            int d = direction(src,dst);
+            if (d != dir) {
+                // compute attributes of new direction
+                switch (d) {
+                    case kUpDir 	: mx = -fHorzGap; dx = dWire; break;
+                    case kDownDir	: mx = 0; dx = -dWire; break;
+                    default			: mx = 0; dx = 0; break;
                 }
-                if (src.y == dst.y) {
-                    // draw straight cable
-                    dev.trait(src.x, src.y, dst.x, dst.y);
-                } else {
-                    // draw zizag cable
-                    dev.trait(src.x, src.y, src.x+mx, src.y);
-                    dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
-                    dev.trait(src.x+mx, dst.y, dst.x, dst.y);
-                }
+                dir = d;
+            } else {
+                // move in same direction
+                mx = mx +dx;
             }
+            if (src.y == dst.y) {
+                // draw straight cable
+                dev.trait(src.x, src.y, dst.x, dst.y);
+            } else {
+                // draw zizag cable
+                dev.trait(src.x, src.y, src.x+mx, src.y);
+                dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
+                dev.trait(src.x+mx, dst.y, dst.x, dst.y);
+            }
+
         }
 	}
 }
@@ -244,60 +244,60 @@ void seqSchema::collectInternalWires(collector& c)
         for (int i=0; i<N; i++) {
             point src = fSchema1->outputPoint(i);
             point dst = fSchema2->inputPoint(i);
-            if (dst.z>0) {
-                int d = direction(src,dst);
-                if (d != dir) {
-                    // compute attributes of new direction
-                    switch (d) {
-                        case kUpDir 	: mx = 0; dx = dWire; break;
-                        case kDownDir	: mx = fHorzGap; dx = -dWire; break;
-                        default			: mx = 0; dx = 0; break;
-                    }
-                    dir = d;
-                } else {
-                    // move in same direction
-                    mx = mx +dx;
+
+            int d = direction(src,dst);
+            if (d != dir) {
+                // compute attributes of new direction
+                switch (d) {
+                    case kUpDir 	: mx = 0; dx = dWire; break;
+                    case kDownDir	: mx = fHorzGap; dx = -dWire; break;
+                    default			: mx = 0; dx = 0; break;
                 }
-                if (src.y == dst.y) {
-                    // draw straight cable
-                    c.addTrait(trait(point(src.x, src.y), point(dst.x, dst.y)));
-                } else {
-                    // draw zizag cable
-                    c.addTrait(trait(point(src.x, src.y), point(src.x+mx, src.y)));
-                    c.addTrait(trait(point(src.x+mx, src.y), point(src.x+mx, dst.y)));
-                    c.addTrait(trait(point(src.x+mx, dst.y), point(dst.x, dst.y)));
-                }
+                dir = d;
+            } else {
+                // move in same direction
+                mx = mx +dx;
             }
+            if (src.y == dst.y) {
+                // draw straight cable
+                c.addTrait(trait(point(src.x, src.y), point(dst.x, dst.y)));
+            } else {
+                // draw zizag cable
+                c.addTrait(trait(point(src.x, src.y), point(src.x+mx, src.y)));
+                c.addTrait(trait(point(src.x+mx, src.y), point(src.x+mx, dst.y)));
+                c.addTrait(trait(point(src.x+mx, dst.y), point(dst.x, dst.y)));
+            }
+
         }
     } else {
         // draw right left cables
         for (int i=0; i<N; i++) {
             point src = fSchema1->outputPoint(i);
             point dst = fSchema2->inputPoint(i);
-            if (dst.z>0) {
-                int d = direction(src,dst);
-                if (d != dir) {
-                    // compute attributes of new direction
-                    switch (d) {
-                        case kUpDir 	: mx = -fHorzGap; dx = dWire; break;
-                        case kDownDir	: mx = 0; dx = -dWire; break;
-                        default			: mx = 0; dx = 0; break;
-                    }
-                    dir = d;
-                } else {
-                    // move in same direction
-                    mx = mx +dx;
+
+            int d = direction(src,dst);
+            if (d != dir) {
+                // compute attributes of new direction
+                switch (d) {
+                    case kUpDir 	: mx = -fHorzGap; dx = dWire; break;
+                    case kDownDir	: mx = 0; dx = -dWire; break;
+                    default			: mx = 0; dx = 0; break;
                 }
-                if (src.y == dst.y) {
-                    // draw straight cable
-                    c.addTrait(trait(point(src.x, src.y), point(dst.x, dst.y)));
-                } else {
-                    // draw zizag cable
-                    c.addTrait(trait(point(src.x, src.y), point(src.x+mx, src.y)));
-                    c.addTrait(trait(point(src.x+mx, src.y), point(src.x+mx, dst.y)));
-                    c.addTrait(trait(point(src.x+mx, dst.y), point(dst.x, dst.y)));
-                }
+                dir = d;
+            } else {
+                // move in same direction
+                mx = mx +dx;
             }
+            if (src.y == dst.y) {
+                // draw straight cable
+                c.addTrait(trait(point(src.x, src.y), point(dst.x, dst.y)));
+            } else {
+                // draw zizag cable
+                c.addTrait(trait(point(src.x, src.y), point(src.x+mx, src.y)));
+                c.addTrait(trait(point(src.x+mx, src.y), point(src.x+mx, dst.y)));
+                c.addTrait(trait(point(src.x+mx, dst.y), point(dst.x, dst.y)));
+            }
+
         }
     }
 }

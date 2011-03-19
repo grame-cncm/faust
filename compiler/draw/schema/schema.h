@@ -41,17 +41,15 @@ struct point
 {
     double  x;
     double  y;
-    double  z;
 
-    point(double u, double v) : x(u), y(v), z(1)  {}
-    point(const point& p) : x(p.x), y(p.y), z(p.z) {}
+    point(double u, double v) : x(u), y(v) {}
+    point(const point& p) : x(p.x), y(p.y) {}
+
     bool operator<(const point& p) const {
-        if (x < p.x) return true;
-        else if (x > p.x) return false;
-        else if (y < p.y) return true;
-        else if (y > p.y) return false;
-        else if (z < p.z) return true;
-        else return false;
+        if (x < p.x)        return true;
+        else if (x > p.x)   return false;
+        else if (y < p.y)   return true;
+        else                return false;
     }
 };
 
@@ -66,10 +64,10 @@ struct trait
     void draw(device& dev) const { dev.trait(start.x, start.y, end.x, end.y); }
 
     bool operator<(const trait& t) const {
-        if (start < t.start) return true;
-        else if (t.start < start) return false;
-        else if (end < t.end) return true;
-        else return false;
+        if (start < t.start)        return true;
+        else if (t.start < start)   return false;
+        else if (end < t.end)       return true;
+        else                        return false;
     }
 };
 
