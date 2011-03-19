@@ -52,7 +52,7 @@ class recSchema : public schema
     void 			drawFeedback(device& dev, const point& src, const point& dst, double dx);
     void 			drawFeedfront(device& dev, const point& src, const point& dst, double dx);
 
-    void 			collectFeedback(collector& c, const point& src, const point& dst, double dx);
+    void 			collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out);
     void 			collectFeedfront(collector& c, const point& src, const point& dst, double dx);
 
 };
