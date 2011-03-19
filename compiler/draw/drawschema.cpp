@@ -323,6 +323,11 @@ static char* legalFileName(Tree t, int n, char* dst)
 
 
 //------------------------ generating the schema -------------------------
+/**
+ * Compute the Pure Routing property, that is expressions
+ * only made of cut, wires and slots. No labels will be
+ * dispayed for pure routing expressions.
+ */
 property<bool> gPureRoutingProperty;
 
 static bool isPureRouting(Tree t)
