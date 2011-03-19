@@ -58,6 +58,7 @@
 #include "compatibility.hh"
 #include "names.hh"
 #include "description.hh"
+#include "property.hh"
 
 
 
@@ -322,6 +323,31 @@ static char* legalFileName(Tree t, int n, char* dst)
 
 
 //------------------------ generating the schema -------------------------
+property<bool> gPureRoutingProperty;
+
+static bool isPureRouting(Tree t)
+{
+    bool    r;
+    int     ID;
+    Tree    x,y;
+
+    if (gPureRoutingProperty.get(t,r)) {
+        return r;
+    } else if (    isBoxCut(t)
+                || isBoxWire(t)
+                || isBoxSlot(t, &ID)
+                || (isBoxPar(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxSeq(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxSplit(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxMerge(t,x,y) && isPureRouting(x) && isPureRouting(y))
+              ) {
+        gPureRoutingProperty.set(t,true);
+        return true;
+    } else {
+        gPureRoutingProperty.set(t,false);
+        return false;
+    }
+}
 
 /**
  * Generate an appropriate schema according to
@@ -351,7 +377,7 @@ static schema* generateDiagramSchema(Tree t)
 		scheduleDrawing(t);
 		return makeBlockSchema(ins, outs, s.str(), linkcolor, l.str());
 
-	} else  if (getDefNameProperty(t, id) && ! isBoxSlot(t)) {
+    } else  if (getDefNameProperty(t, id) && ! isPureRouting(t)) {
 		// named case : not a slot, with a name
 		// draw a line around the object with its name
 		stringstream 	s; s << tree2str(id);
