@@ -34,7 +34,7 @@
  */
 class blockSchema : public schema
 {
-  private:
+  protected:
 	const string	fText;			///< Text to be displayed
 	const string	fColor;			///< color of the box
 	const string	fLink;			///< option URL link
@@ -56,7 +56,7 @@ class blockSchema : public schema
 	virtual point	inputPoint(unsigned int i) const;
 	virtual point 	outputPoint(unsigned int i) const;
 
-  private:
+  protected:
 	blockSchema (	unsigned int inputs, unsigned int outputs,
 					double width, double height,
   					const string& name, const string& color,

@@ -117,6 +117,7 @@
 #define uicolor "#477881"
 #define slotcolor "#47945E"
 #define numcolor "#f44800"
+#define invcolor "#f44444"
 #endif
 
 using namespace std;
@@ -354,6 +355,31 @@ static bool isPureRouting(Tree t)
     }
 }
 
+
+/**
+ * isInverter(t) returns true if t == '*(-1)'. This test is used
+ * to simplify diagram by using a special symbol for inverters.
+ */
+Tree gInverter[4];
+
+static bool isInverter(Tree t)
+{
+    // init gInverted table. For some reason doesn't work if done outside
+    if (gInverter[0] == 0) {
+        gInverter[0] = boxSeq(boxPar(boxWire(), boxInt(-1)),boxPrim2(sigMul));
+        gInverter[1] = boxSeq(boxPar(boxInt(-1), boxWire()),boxPrim2(sigMul));
+        gInverter[2] = boxSeq(boxPar(boxWire(), boxReal(-1.0)),boxPrim2(sigMul));
+        gInverter[3] = boxSeq(boxPar(boxReal(-1.0), boxWire()),boxPrim2(sigMul));
+    };
+
+    //cerr << "isInverter " << t << '$' << boxpp(t) << endl;
+    for (int i=0; i<4; i++) {
+        if (t == gInverter[i]) return true;
+    }
+    return false;
+}
+
+
 /**
  * Generate an appropriate schema according to
  * the type of block diagram. When folding is requiered,
@@ -416,6 +442,8 @@ static schema* generateInsideSchema(Tree t)
 	xtended* xt = (xtended*)getUserData(t);
 
 	if (xt)							{ return makeBlockSchema(xt->arity(), 1, xt->name(), normalcolor, ""); }
+
+    else if (isInverter(t))         { return makeInverterSchema(invcolor); }
 
 	else if (isBoxInt(t, &i))		{ stringstream 	s; s << i; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
 	else if (isBoxReal(t, &r)) 		{ stringstream 	s; s << r; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }

@@ -84,17 +84,32 @@ PSDev::~PSDev()
 
 void PSDev::rect(double x,double y,double l,double h, const char*, const char*)
 {
-	fprintf(fic_repr,"gsave\n");
-	fprintf(fic_repr,"newpath\n");
-	//fprintf(fic_repr,"1.5 unit setlinewidth\n");
-	fprintf(fic_repr,"1.0 unit setlinewidth\n");
-	fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);    
-	fprintf(fic_repr,"0 unit %f unit rlineto\n",h);
-	fprintf(fic_repr,"%f unit 0 unit rlineto\n",l);
-	fprintf(fic_repr,"0 unit %f unit rlineto\n",-h);
-	fprintf(fic_repr,"closepath\n");              
-	fprintf(fic_repr,"stroke\n");
-	fprintf(fic_repr,"grestore\n");
+    fprintf(fic_repr,"gsave\n");
+    fprintf(fic_repr,"newpath\n");
+    //fprintf(fic_repr,"1.5 unit setlinewidth\n");
+    fprintf(fic_repr,"1.0 unit setlinewidth\n");
+    fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",h);
+    fprintf(fic_repr,"%f unit 0 unit rlineto\n",l);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",-h);
+    fprintf(fic_repr,"closepath\n");
+    fprintf(fic_repr,"stroke\n");
+    fprintf(fic_repr,"grestore\n");
+}
+
+void PSDev::triangle(double x,double y,double l,double h, const char*, const char*)
+{
+    fprintf(fic_repr,"gsave\n");
+    fprintf(fic_repr,"newpath\n");
+    //fprintf(fic_repr,"1.5 unit setlinewidth\n");
+    fprintf(fic_repr,"1.0 unit setlinewidth\n");
+    fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",h);
+    fprintf(fic_repr,"%f unit 0 unit rlineto\n",l);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",-h);
+    fprintf(fic_repr,"closepath\n");
+    fprintf(fic_repr,"stroke\n");
+    fprintf(fic_repr,"grestore\n");
 }
 
 void PSDev::rond(double x,double y,double rayon)

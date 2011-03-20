@@ -157,6 +157,7 @@ schema* makeBlockSchema 	(unsigned int inputs,
 							 const string& link);
 
 schema* makeCableSchema 	(unsigned int n=1);
+schema* makeInverterSchema 	(const string& color);
 schema* makeCutSchema 		();
 schema* makeEnlargedSchema 	(schema* s, double width);
 schema* makeParSchema 		(schema* s1, schema* s2);
