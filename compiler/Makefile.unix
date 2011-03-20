@@ -373,9 +373,12 @@ draw/device/PSDev.o: draw/device/PSDev.h draw/device/device.h tlib/compatibility
 draw/device/SVGDev.o: draw/device/SVGDev.h draw/device/device.h
 draw/schema/blockSchema.o: draw/schema/blockSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/cableSchema.o: draw/schema/cableSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/collector.o: draw/schema/schema.h draw/device/device.h
 draw/schema/cutSchema.o: draw/schema/cutSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/decorateSchema.o: draw/schema/decorateSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/enlargedSchema.o: draw/schema/enlargedSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/inverterSchema.o: draw/schema/inverterSchema.h draw/schema/blockSchema.h draw/schema/schema.h
+draw/schema/inverterSchema.o: draw/device/device.h
 draw/schema/mergeSchema.o: draw/schema/mergeSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/parSchema.o: draw/schema/parSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/recSchema.o: draw/schema/recSchema.h draw/schema/schema.h draw/device/device.h
