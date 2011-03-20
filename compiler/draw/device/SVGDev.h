@@ -34,7 +34,7 @@ class SVGDev : public device
 		SVGDev(const char*,double,double);
 		~SVGDev();
         void rect(double x,double y,double l,double h, const char* color, const char* link);
-        void triangle(double x,double y,double l,double h, const char* color, const char* link);
+        void triangle(double x,double y,double l,double h, const char* color, const char* link, bool leftright);
         void rond(double x,double y,double rayon);
         void carre(double x,double y,double cote);
         void fleche(double x,double y,double rotation,int sens);

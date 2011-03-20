@@ -97,7 +97,7 @@ void PSDev::rect(double x,double y,double l,double h, const char*, const char*)
     fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::triangle(double x,double y,double l,double h, const char*, const char*)
+void PSDev::triangle(double x,double y,double l,double h, const char*, const char*, bool leftright)
 {
     fprintf(fic_repr,"gsave\n");
     fprintf(fic_repr,"newpath\n");

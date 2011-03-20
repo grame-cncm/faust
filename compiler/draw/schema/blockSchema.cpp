@@ -208,6 +208,7 @@ void blockSchema::drawText(device& dev)
 			);
 }
 
+
 /**
  * Draw the orientation mark, a small point that indicates
  * the first input (like integrated circuits)
@@ -248,7 +249,7 @@ void blockSchema::drawInputWires(device& dev)
  */
 void blockSchema::drawOutputWires(device& dev)
 {
-    double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+    //double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
     for (unsigned int i=0; i<outputs(); i++) {
         point p = fOutputPoint[i];

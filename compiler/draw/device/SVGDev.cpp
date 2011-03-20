@@ -110,33 +110,27 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
 //    points="350,180 380,180 380,160 410,160 410,180 440,180 440,140 470,140 470,180
 //    500,180 500,120 530,120 530,180" />
 
-void SVGDev::triangle(double x,double y,double l,double h, const char* color, const char* link)
+void SVGDev::triangle(double x,double y,double l,double h, const char* color, const char* link, bool leftright)
 {
     char buf[512];
     if (link != 0 && link[0]!=0) {
         // open the optional link tag
         fprintf(fic_repr,"<a xlink:href=\"%s\">\n", xmlcode(link, buf));
     }
-#if 0
-    // draw the shadow
-    if (gShadowBlur) {
-        fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0.1\" ry=\"0.1\" style=\"stroke:none;fill:#aaaaaa;;filter:url(#filter);\"/>\n",x+1,y+1,l,h);
-    } else {
-        fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:#cccccc;\"/>\n",x+1,y+1,l,h);
-    }
-
-    // draw the rectangle
-    fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:%s;\"/>\n", x, y, l, h, color);
-    if (link != 0 && link[0]!=0) {
-        // close the optional link tag
-        fprintf(fic_repr,"</a>\n");
-    }
-#endif
-
     // draw triangle+circle
     float r = 1.5; // circle radius
-    fprintf(fic_repr,"<polygon fill=\"white\" stroke=\"black\" stroke-width=\".25\" points=\"%f,%f %f,%f %f,%f\"/>\n",x,y, x+l-2*r,y+h/2.0, x,y+h);
-    fprintf(fic_repr,"<circle  fill=\"white\" stroke=\"black\" stroke-width=\".25\" cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n",x+l-r,y+h/2.0, r);
+    float x0, x1, x2;
+    if (leftright) {
+        x0 = x;
+        x1 = x+l-2*r;
+        x2 = x+l-r;
+    } else {
+        x0 = x+l;
+        x1 = x+2*r;
+        x2 = x+r;
+    }
+    fprintf(fic_repr,"<polygon fill=\"%s\" stroke=\"black\" stroke-width=\".25\" points=\"%f,%f %f,%f %f,%f\"/>\n", color, x0,y, x1,y+h/2.0, x0,y+h);
+    fprintf(fic_repr,"<circle  fill=\"%s\" stroke=\"black\" stroke-width=\".25\" cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n", color, x2, y+h/2.0, r);
 }
 
 void SVGDev::rond(double x,double y,double rayon)

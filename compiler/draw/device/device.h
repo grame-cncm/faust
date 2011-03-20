@@ -34,7 +34,7 @@ class device
 	public:
         virtual ~device() {}
         virtual void rect(double x,double y,double l,double h, const char* color, const char* link)=0;
-        virtual void triangle(double x,double y,double l,double h, const char* color, const char* link)=0;
+        virtual void triangle(double x,double y,double l,double h, const char* color, const char* link, bool leftright)=0;
         virtual void rond(double x,double y,double rayon)=0;
         virtual void carre(double x,double y,double cote)=0;
         virtual void fleche(double x,double y,double rotation,int sens)=0;

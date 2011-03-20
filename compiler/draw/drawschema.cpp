@@ -117,7 +117,7 @@
 #define uicolor "#477881"
 #define slotcolor "#47945E"
 #define numcolor "#f44800"
-#define invcolor "#f44444"
+#define invcolor "#ffffff"
 #endif
 
 using namespace std;
@@ -324,36 +324,6 @@ static char* legalFileName(Tree t, int n, char* dst)
 
 
 //------------------------ generating the schema -------------------------
-/**
- * Compute the Pure Routing property, that is expressions
- * only made of cut, wires and slots. No labels will be
- * dispayed for pure routing expressions.
- */
-property<bool> gPureRoutingProperty;
-
-static bool isPureRouting(Tree t)
-{
-    bool    r;
-    int     ID;
-    Tree    x,y;
-
-    if (gPureRoutingProperty.get(t,r)) {
-        return r;
-    } else if (    isBoxCut(t)
-                || isBoxWire(t)
-                || isBoxSlot(t, &ID)
-                || (isBoxPar(t,x,y) && isPureRouting(x) && isPureRouting(y))
-                || (isBoxSeq(t,x,y) && isPureRouting(x) && isPureRouting(y))
-                || (isBoxSplit(t,x,y) && isPureRouting(x) && isPureRouting(y))
-                || (isBoxMerge(t,x,y) && isPureRouting(x) && isPureRouting(y))
-              ) {
-        gPureRoutingProperty.set(t,true);
-        return true;
-    } else {
-        gPureRoutingProperty.set(t,false);
-        return false;
-    }
-}
 
 
 /**
@@ -377,6 +347,39 @@ static bool isInverter(Tree t)
         if (t == gInverter[i]) return true;
     }
     return false;
+}
+
+
+/**
+ * Compute the Pure Routing property, that is expressions
+ * only made of cut, wires and slots. No labels will be
+ * dispayed for pure routing expressions.
+ */
+property<bool> gPureRoutingProperty;
+
+static bool isPureRouting(Tree t)
+{
+    bool    r;
+    int     ID;
+    Tree    x,y;
+
+    if (gPureRoutingProperty.get(t,r)) {
+        return r;
+    } else if (    isBoxCut(t)
+                || isBoxWire(t)
+                || isInverter(t)
+                || isBoxSlot(t, &ID)
+                || (isBoxPar(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxSeq(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxSplit(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxMerge(t,x,y) && isPureRouting(x) && isPureRouting(y))
+              ) {
+        gPureRoutingProperty.set(t,true);
+        return true;
+    } else {
+        gPureRoutingProperty.set(t,false);
+        return false;
+    }
 }
 
 
