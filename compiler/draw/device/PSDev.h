@@ -40,7 +40,7 @@ class PSDev : public device
 		void fleche(double,double,double,int);
 		void trait(double,double,double,double);
 		void dasharray(double,double,double,double);
-		void text(double,double,const char*);
+        void text(double,double,const char*, const char* link);
 		void label(double,double,const char*);
 		void markSens(double,double,int);
 		void Error(const char*,const char*,int,double,double,double);

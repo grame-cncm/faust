@@ -170,10 +170,19 @@ void SVGDev::dasharray(double x1,double y1,double x2,double y2)
 	fprintf(fic_repr,"<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke: black; stroke-linecap:round; stroke-width:0.25; stroke-dasharray:3,3;\"/>\n",x1,y1,x2,y2);
 }
 
-void SVGDev::text(double x,double y,const char* name)
+void SVGDev::text(double x,double y,const char* name, const char* link)
 {
-	char name2[256];
+    char buf[512];
+    if (link != 0 && link[0]!=0) {
+        // open the optional link tag
+        fprintf(fic_repr,"<a xlink:href=\"%s\">\n", xmlcode(link, buf));
+    }
+    char name2[256];
 	fprintf(fic_repr,"<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\" text-anchor=\"middle\" fill=\"#FFFFFF\">%s</text>\n",x,y+2,xmlcode(name,name2));
+    if (link != 0 && link[0]!=0) {
+        // close the optional link tag
+        fprintf(fic_repr,"</a>\n");
+    }
 }
 
 void SVGDev::label(double x,double y,const char* name)

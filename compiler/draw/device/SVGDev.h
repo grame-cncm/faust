@@ -40,7 +40,7 @@ class SVGDev : public device
         void fleche(double x,double y,double rotation,int sens);
         void trait(double x1,double y1,double x2,double y2);
         void dasharray(double x1,double y1,double x2,double y2);
-        void text(double x,double y,const char* name);
+        void text(double x,double y,const char* name, const char* link);
         void label(double x,double y,const char* name);
         void markSens(double x,double y,int sens);
         void Error(const char* message, const char* reason,int nb_error,double x,double y,double largeur);

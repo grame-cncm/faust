@@ -204,7 +204,8 @@ void blockSchema::drawText(device& dev)
 {
 	dev.text( 	x() + width()/2,
 				y() + height()/2,
-				fText.c_str()
+                fText.c_str(),
+                fLink.c_str()
 			);
 }
 

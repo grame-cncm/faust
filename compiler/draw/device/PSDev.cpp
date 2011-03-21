@@ -194,7 +194,7 @@ void PSDev::dasharray(double x1,double y1,double x2,double y2)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::text(double x,double y,const char* nom)
+void PSDev::text(double x,double y,const char* nom, const char* link)
 {
 	fprintf(fic_repr,"newpath\n");
     //fprintf(fic_repr,"%f unit %f unit moveto\n",(x-4)-(strlen(nom)-1)*3.8,y+2);
