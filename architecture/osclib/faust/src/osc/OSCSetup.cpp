@@ -84,10 +84,12 @@ bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort
 //--------------------------------------------------------------------------
 void OSCSetup::stop()
 {
-	fOSCThread->stop();
-	OSCStream::stop();
-	delete fOSCThread;
-	fOSCThread = 0;
+	if (fOSCThread) {
+		fOSCThread->stop();
+		OSCStream::stop();
+		delete fOSCThread;
+		fOSCThread = 0;
+	}
 }
 
 } // end namespoace

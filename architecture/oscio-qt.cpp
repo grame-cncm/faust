@@ -88,7 +88,6 @@ int main( int argc, char *argv[] )
 	oscdsp osca (dst, argc, argv);
 	OSCUI*	oscinterface = new OSCUI(name, argc, argv, &osca);
 	DSP.buildUserInterface(oscinterface);
-	oscinterface->addToggleButton("OSC IO", &oscio);
 	
 	snprintf(dst, 257, "/%s/", oscinterface->getRootName());
 	osca.setDest (dst);
@@ -99,8 +98,9 @@ int main( int argc, char *argv[] )
 	
 	oscinterface->run();
 	interface->run();	
-	interface->saveState(rcfilename);
 	osca.stop();
+	interface->saveState(rcfilename);
+	delete oscinterface;
   	return 0;
 }
 
