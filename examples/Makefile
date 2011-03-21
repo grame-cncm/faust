@@ -101,6 +101,11 @@ oscioqt :
 	install -d oscioqtdir
 	$(MAKE) DEST='oscioqtdir/' ARCH='oscio-qt.cpp' LIB='-ljack $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
 
+osciogtk :  OSCLIB = -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack
+osciogtk :
+	install -d osciogtkdir
+	$(MAKE) DEST='osciogtkdir/' ARCH='oscio-gtk.cpp' LIB='-I/usr/local/lib/faust/ `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=-I/usr/local/lib/faust/osclib -f Makefile.compile
+
 alsaqt :
 	install -d alsaqtdir
 	$(MAKE) DEST='alsaqtdir/' ARCH='alsa-qt.cpp' LIB='-lpthread -lasound $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
