@@ -48,7 +48,7 @@ class OSCUI : public UI
 	
  public:
 		
-	OSCUI(char* applicationname, int argc, char *argv[], oscfaust::OSCIO* io=0) : UI() 
+	OSCUI(char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0) : UI() 
     { 
 		fCtrl = new oscfaust::OSCControler(argc, argv, io); 
 //		fCtrl->opengroup(applicationname);

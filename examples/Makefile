@@ -96,6 +96,11 @@ caqt :
 	install -d caqtdir
 	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB)'  DEFS=$(QTDEFS)  -f Makefile.qtcompile
 
+oscioqt :  OSCLIB = -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack
+oscioqt :
+	install -d oscioqtdir
+	$(MAKE) DEST='oscioqtdir/' ARCH='oscio-qt.cpp' LIB='-ljack $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
+
 alsaqt :
 	install -d alsaqtdir
 	$(MAKE) DEST='alsaqtdir/' ARCH='alsa-qt.cpp' LIB='-lpthread -lasound $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
@@ -239,6 +244,7 @@ help:
 	@echo "make paqt        [OSC=1] : compile examples as PortAudio applications with a QT4 Graphical User Interface"
 	@echo "make pawx                : compile examples as PortAudio applications with a wxWindows Graphical User Interface"
 	@echo "make caqt        [OSC=1] : compile examples as CoreAudio applications with a QT4 Graphical User Interface"
+	@echo "make oscioqt             : compile examples as OSC driven applications with a QT4 Graphical User Interface"
 	@echo "--------------------------------------------"
 	@echo "make ladspa        : compile examples as LADSPA plugins"
 	@echo "make csound        : compile examples as CSOUND opcodes"

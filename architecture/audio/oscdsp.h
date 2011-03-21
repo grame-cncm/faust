@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include "audio/audio.h"
+#include "audio/dsp.h"
 #include "OSCIO.h"
 
 /******************************************************************************
@@ -26,7 +27,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 			 }
 	virtual ~oscdsp() { stop(); }
 	
-	virtual bool start(const char*name, dsp* DSP) {
+	virtual bool init(const char*name, dsp* DSP) {
 		fDsp = DSP;
 		fDsp->init(44100);
 		fInBuffers  = new float*[numInputs()];
@@ -37,7 +38,9 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 			fOutBuffers [i] = new float[kMaxBuffer];
 		return true;
 	}
-	virtual void stop() {}
+	
+	virtual bool start()	{ return true; }
+	virtual void stop()		{}
 
 	void compute( int nframes ) {
 		fDsp->compute(nframes, fInBuffers, fOutBuffers);

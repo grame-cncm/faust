@@ -37,9 +37,9 @@
 #include <libgen.h>
 #include <iostream>
 
-#include "misc.h"
 #include "gui/faustqt.h"
 #include "gui/OSCUI.h"
+#include "misc.h"
 #include "audio/oscdsp.h"
 
 
@@ -93,8 +93,9 @@ int main( int argc, char *argv[] )
 	snprintf(dst, 257, "/%s/", oscinterface->getRootName());
 	osca.setDest (dst);
 	
-	osca.start (name, &DSP);	
+	osca.init (name, &DSP);	
 	interface->recallState(rcfilename);
+	osca.start ();	
 	
 	oscinterface->run();
 	interface->run();	
