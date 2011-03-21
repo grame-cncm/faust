@@ -757,7 +757,7 @@ map<float*, string>     QTGUI::fUnit;           // map widget zone with unit str
 set<float*>             QTGUI::fKnobSet;       // set of widget zone to be knobs
 set<float*>             QTGUI::fLedSet;        // set of widget zone to be LEDs
 
-UI* 		interface;
+GUI* 		interface;
 
 /******************************************************************************
 *******************************************************************************

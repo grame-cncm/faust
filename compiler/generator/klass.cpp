@@ -126,13 +126,13 @@ void Klass::closeLoop(Tree sig)
     Tree S = symlist(sig);
     //cerr << "CLOSE LOOP :" << l << " with symbols " << *S  << endl;
     if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
-         cout << " will absorb" << endl;
+        //cout << " will absorb" << endl;
         // empty or dependent loop -> absorbed by enclosing one
-       //cerr << "absorbed by : " << fTopLoop << endl;
+        //cerr << "absorbed by : " << fTopLoop << endl;
         fTopLoop->absorb(l);
         //delete l; HACK !!!
     } else {
-        cout << " will NOT absorb" << endl;
+        // cout << " will NOT absorb" << endl;
         // we have an independent loop
         setLoopProperty(sig,l);     // associate the signal
         fTopLoop->fBackwardLoopDependencies.insert(l);
