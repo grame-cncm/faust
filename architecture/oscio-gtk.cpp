@@ -99,6 +99,7 @@ int main( int argc, char *argv[] )
 	interface->run();	
 	interface->saveState(rcfilename);
 	osca.stop();
+	delete oscinterface;
   	return 0;
 }
 
