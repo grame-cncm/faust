@@ -61,8 +61,8 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3} $OMP $OSCDEFS "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` -o "${f%.dsp}"
-	) > /dev/null
+		${CXX=g++} ${CXXFLAGS=-O3} $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
+	) #> /dev/null
 	rm "$f.cpp"
 
 	# collect binary file name for FaustGIDE
