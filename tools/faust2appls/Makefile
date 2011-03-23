@@ -1,4 +1,9 @@
-prefix := /usr/local
+DESTDIR ?= 
+PREFIX ?= /usr/local
+
+MAKEFILE := Makefile.unix
+
+prefix := $(DESTDIR)$(PREFIX)
 dest   := $(prefix)/bin
 
 help:

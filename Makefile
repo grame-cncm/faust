@@ -60,6 +60,7 @@ install :
 	cp architecture/osclib/faust/include/*.h $(prefix)/lib/faust/osclib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
+	make -C tools/faust2appls install
 
 
 uninstall :
