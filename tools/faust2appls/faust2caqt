@@ -1,4 +1,34 @@
-#!/bin/bash
+#!/bin/sh
+
+OSCINC=""
+QTDEFS=""
+OSCLIB=""
+
+function usage {
+	echo "usage: $(basename $0) [-osc] <dsp files>"
+	echo "                   -osc : embed the osc architecture."
+}
+
+function check {
+	if [ $1 -eq 0 ]; then
+		usage
+		exit 1
+	fi
+}
+
+function checkosc {
+	if [ $1 == "-osc" ]; then
+ 	 OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
+	 QTDEFS="DEFINES += OSCCTRL"
+	 OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+	 return 0
+	fi
+	return 1
+}
+
+check $#
+checkosc $1 && shift
+check $#
 
 if [[ $(uname) == Darwin ]]; then
 	#On Darwin build a CoreAudio QT4 application using g++
@@ -12,7 +42,7 @@ if [[ $(uname) == Darwin ]]; then
 
 		faust -a ca-qt.cpp $f -o $TMP/${f%.dsp}.cpp
 		
-		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
+		cd $TMP; qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
 		cd $TMP; qmake -spec macx-g++
 		cd $TMP; make 
 		cd $CUR; rm -rf ${f%.dsp}.app

@@ -7,6 +7,10 @@
 #                                                                   #
 #####################################################################
 
+OSCINC=""
+QTDEFS=""
+OSCLIB=""
+
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -36,6 +40,10 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-osc" ]; then
+		 OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
+		 QTDEFS="DEFINES += OSCCTRL"
+		 OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -75,7 +83,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-        qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-ljack" "HEADERS+=/usr/local/lib/faust/faustqt.h"
+        qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-ljack $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
 	    qmake $SPEC
         make
     ) > /dev/null
