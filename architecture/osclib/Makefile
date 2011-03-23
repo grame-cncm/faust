@@ -1,15 +1,14 @@
 
-
-all : liboscpack.a libOSCFaust.a
-
-liboscpack.a :
-	cd oscpack/cmake && cmake -G "Unix Makefiles"
+all : oscpack/cmake/Makefile faust/cmake/Makefile
 	make -C oscpack/cmake
-
-libOSCFaust.a :
-	cd faust/cmake && cmake -G "Unix Makefiles"
 	make -C faust/cmake
 
+oscpack/cmake/Makefile:
+	cd oscpack/cmake && cmake -G "Unix Makefiles"
+
+faust/cmake/Makefile:
+	cd faust/cmake && cmake -G "Unix Makefiles"
+	
 clean :
 	make -C oscpack/cmake clean
 	rm   -f oscpack/cmake/CMakeCache.txt
