@@ -47,8 +47,8 @@
 #include "gui/OSCUI.h"
 #endif
 
-
 /**************************BEGIN USER SECTION **************************/
+
 /******************************************************************************
 *******************************************************************************
 
@@ -68,32 +68,32 @@
 					
 mydsp	DSP;
 
-//list<UI*>               UI::fGuiList;
+list<GUI*>               GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-	gtk_init (&argc, &argv);
+	char	appname[256];
+	char  	rcfilename[256];
+	char* 	home = getenv("HOME");
+	
+	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	char* name = basename (argv [0]);
-    char  rcfilename[256];
-	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
-
-	GUI* interface 	= new GTKUI (name, &argc, &argv);
+	GUI* interface 	= new GTKUI (appname, &argc, &argv);
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(name, argc, argv);
+	GUI*	oscinterface = new OSCUI(appname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
 	alsaaudio audio (argc, argv, &DSP);
-	audio.init(name, &DSP);
+	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
@@ -101,9 +101,12 @@ int main(int argc, char *argv[] )
 	oscinterface->run();
 #endif
 	interface->run();
+	
 	audio.stop();
 	finterface->saveState(rcfilename);
   	return 0;
 }
+
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

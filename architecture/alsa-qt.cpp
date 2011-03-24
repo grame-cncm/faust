@@ -67,29 +67,31 @@
 					
 mydsp	DSP;
 
-list<UI*>               UI::fGuiList;
+list<GUI*>               GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[] )
 {
-	char* name = basename (argv [0]);
+	char* appname = basename (argv [0]);
     char  rcfilename[256];
 	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	UI* interface = new QTGUI(argc, argv);
+	GUI* interface = new QTGUI(argc, argv);
+	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(name, argc, argv);
+	GUI* oscinterface = new OSCUI(appname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
 	alsaaudio audio (argc, argv, &DSP);
-	audio.init(name, &DSP);
-	interface->recallState(rcfilename);	
+	audio.init(appname, &DSP);
+	finterface->recallState(rcfilename);	
 	audio.start();
 	
 #ifdef OSCCTRL
@@ -97,7 +99,7 @@ int main(int argc, char *argv[] )
 #endif
 	interface->run();
 	audio.stop();
-	interface->saveState(rcfilename);
+	finterface->saveState(rcfilename);
   	return 0;
 }
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

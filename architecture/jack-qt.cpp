@@ -35,6 +35,7 @@
  ************************************************************************/
 
 #include <libgen.h>
+#include <stdlib.h>
 #include <iostream>
 
 #include "gui/FUI.h"
@@ -46,8 +47,6 @@
 #include "gui/OSCUI.h"
 #endif
 
-
-
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -57,6 +56,7 @@
 
 *******************************************************************************
 *******************************************************************************/
+
 <<includeIntrinsic>>
 
 
@@ -70,21 +70,17 @@ mydsp	DSP;
 
 list<GUI*>               GUI::fGuiList;
 
-/******************************************************************************
-*******************************************************************************
-
-                                MAIN PLAY THREAD
-
-*******************************************************************************
-*******************************************************************************/
-int main( int argc, char *argv[] )
+//-------------------------------------------------------------------------
+// 									MAIN
+//-------------------------------------------------------------------------
+int main(int argc, char *argv[])
 {
-	char	jackname[256];
+	char	appname[256];
 	char	rcfilename[256];
-	char* home = getenv("HOME");
+	char* 	home = getenv("HOME");
 
-	snprintf(jackname, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
 	GUI* interface = new QTGUI(argc, argv);
 	FUI* finterface	= new FUI();
@@ -92,12 +88,12 @@ int main( int argc, char *argv[] )
 	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(jackname, argc, argv);
+	GUI*	oscinterface = new OSCUI(appname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 	
 	jackaudio audio;
-	audio.init(jackname, &DSP);
+	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
@@ -113,5 +109,4 @@ int main( int argc, char *argv[] )
 
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-					
 

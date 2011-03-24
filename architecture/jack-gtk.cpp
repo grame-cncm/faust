@@ -38,7 +38,6 @@
 #include <stdlib.h>
 #include <iostream>
 
-
 #include "gui/FUI.h"
 #include "misc.h"
 #include "gui/faustgtk.h"
@@ -48,9 +47,8 @@
 #include "gui/OSCUI.h"
 #endif
 
-using namespace std;
-
 /**************************BEGIN USER SECTION **************************/
+
 /******************************************************************************
 *******************************************************************************
 
@@ -70,31 +68,32 @@ using namespace std;
 					
 mydsp	DSP;
 
+list<GUI*>                   GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-	gtk_init (&argc, &argv);
+	char	appname[256];
+	char  	rcfilename[256];
+	char* 	home = getenv("HOME");
+	
+	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	char* jname = basename (argv [0]);
-    char  rcfilename[256];
-	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
-
-	GUI* interface 	= new GTKUI (jname, &argc, &argv);
+	GUI* interface 	= new GTKUI (appname, &argc, &argv);
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(jname, argc, argv);
+	GUI*	oscinterface = new OSCUI(appname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
 	jackaudio audio;
-	audio.init(jname, &DSP);
+	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
@@ -110,5 +109,4 @@ int main(int argc, char *argv[] )
 
 		
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-					
 
