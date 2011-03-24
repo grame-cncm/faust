@@ -38,14 +38,17 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "gui/faustgtk.h"
+
+#include "gui/FUI.h"
 #include "misc.h"
+#include "gui/faustgtk.h"
 #include "audio/jack-dsp.h"
 
 #ifdef OSCCTRL
 #include "gui/OSCUI.h"
 #endif
 
+using namespace std;
 
 /**************************BEGIN USER SECTION **************************/
 /******************************************************************************
@@ -67,7 +70,6 @@
 					
 mydsp	DSP;
 
-//list<UI*>               UI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -81,17 +83,19 @@ int main(int argc, char *argv[] )
 	char* home = getenv("HOME");
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 
-	UI* interface = new GTKUI (jname, &argc, &argv);
+	GUI* interface 	= new GTKUI (jname, &argc, &argv);
+	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(jname, argc, argv);
+	GUI*	oscinterface = new OSCUI(jname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
 	jackaudio audio;
 	audio.init(jname, &DSP);
-	interface->recallState(rcfilename);	
+	finterface->recallState(rcfilename);	
 	audio.start();
 	
 #ifdef OSCCTRL
@@ -100,7 +104,7 @@ int main(int argc, char *argv[] )
 	interface->run();
 	
 	audio.stop();
-	interface->saveState(rcfilename);
+	finterface->saveState(rcfilename);
   	return 0;
 }
 

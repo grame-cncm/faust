@@ -1,8 +1,7 @@
+#ifndef FAUST_GTKUI_H
+#define FAUST_GTKUI_H
 
-#ifndef __faustgtk__
-#define __faustgtk__
-
-#include "UI.h"
+#include "GUI.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -27,7 +26,6 @@ using namespace std;
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
-
 
 #define stackSize 256
 
@@ -604,11 +602,11 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 }
 
 
-class GTKUI : public UI
+class GTKUI : public GUI
 {
  private :
     static bool                         fInitialized;
-    static list<UI*>                    fGuiList;
+    static list<GUI*>                   fGuiList;
     static map<float*, float>           fGuiSize;       // map widget zone with widget size coef
     static map<float*, string>          fTooltip;       // map widget zone with tooltip strings
     static set<float*>                  fKnobSet;       // set of widget zone to be knobs
@@ -691,7 +689,7 @@ class GTKUI : public UI
 
 // global static fields
 
-list<UI*>                   UI::fGuiList;
+list<GUI*>                   GUI::fGuiList;
 
 bool                        GTKUI::fInitialized = false;
 map<float*, float>          GTKUI::fGuiSize;
@@ -949,7 +947,7 @@ void GTKUI::openEventBox(const char* label)
 struct uiExpanderBox : public uiItem
 {
     GtkExpander* fButton;
-    uiExpanderBox(UI* ui, float* zone, GtkExpander* b) : uiItem(ui, zone), fButton(b) {}
+    uiExpanderBox(GUI* ui, float* zone, GtkExpander* b) : uiItem(ui, zone), fButton(b) {}
     static void expanded (GtkWidget *widget, gpointer data)
     {
         float   v = gtk_expander_get_expanded  (GTK_EXPANDER(widget));
@@ -1008,7 +1006,7 @@ struct uiButton : public uiItem
 {
     GtkButton*  fButton;
     
-    uiButton (UI* ui, float* zone, GtkButton* b) : uiItem(ui, zone), fButton(b) {}
+    uiButton (GUI* ui, float* zone, GtkButton* b) : uiItem(ui, zone), fButton(b) {}
     
     static void pressed( GtkWidget *widget, gpointer   data )
     {
@@ -1050,7 +1048,7 @@ struct uiToggleButton : public uiItem
 {
     GtkToggleButton* fButton;
     
-    uiToggleButton(UI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
+    uiToggleButton(GUI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
     
     static void toggled (GtkWidget *widget, gpointer data)
     {
@@ -1135,7 +1133,7 @@ struct uiCheckButton : public uiItem
 {
     GtkToggleButton* fButton;
     
-    uiCheckButton(UI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
+    uiCheckButton(GUI* ui, float* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
     
     static void toggled (GtkWidget *widget, gpointer data)
     {
@@ -1170,7 +1168,7 @@ struct uiAdjustment : public uiItem
 {
     GtkAdjustment* fAdj;
     
-    uiAdjustment(UI* ui, float* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
+    uiAdjustment(GUI* ui, float* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
     
     static void changed (GtkWidget *widget, gpointer data)
     {
@@ -1193,7 +1191,7 @@ struct uiValueDisplay : public uiItem
 	GtkLabel* fLabel;
 	int	fPrecision ;
 
-	uiValueDisplay(UI* ui, float* zone, GtkLabel* label, int precision)
+	uiValueDisplay(GUI* ui, float* zone, GtkLabel* label, int precision)
 		: uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
 
 	virtual void reflectZone()
@@ -1374,7 +1372,7 @@ struct uiBargraph : public uiItem
     float               fMin;
     float               fMax;
     
-    uiBargraph(UI* ui, float* zone, GtkProgressBar* pbar, float lo, float hi) 
+    uiBargraph(GUI* ui, float* zone, GtkProgressBar* pbar, float lo, float hi) 
             : uiItem(ui, zone), fProgressBar(pbar), fMin(lo), fMax(hi) {}
 
     float scale(float v)        { return (v-fMin)/(fMax-fMin); }
@@ -1424,7 +1422,7 @@ struct uiNumDisplay : public uiItem
     GtkLabel* fLabel;
     int fPrecision;
     
-    uiNumDisplay(UI* ui, float* zone, GtkLabel* label, int precision) 
+    uiNumDisplay(GUI* ui, float* zone, GtkLabel* label, int precision) 
             : uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
 
     virtual void reflectZone()  
@@ -1468,7 +1466,7 @@ struct uiTextDisplay : public uiItem
         int                         fNum;
         
         
-        uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
+        uiTextDisplay (GUI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
                         : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
         {
                 fNum = 0;
@@ -1517,7 +1515,7 @@ void GTKUI::show()
     
 static gboolean callUpdateAllGuis(gpointer)
 { 
-    UI::updateAllGuis(); 
+    GUI::updateAllGuis(); 
     return TRUE;
 }
 
@@ -1532,4 +1530,7 @@ void GTKUI::run()
     stop();
 }
 
+
+
 #endif
+
