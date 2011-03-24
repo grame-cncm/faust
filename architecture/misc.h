@@ -17,10 +17,21 @@
     #define AVOIDDENORMALS 
 #endif
 
-struct Meta : std::map<const char*, const char*>
+struct XXXX_Meta : std::map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
+
+struct Meta
+{
+    virtual void declare (const char* key, const char* value) = 0;
+};
+
+struct MY_Meta : Meta, std::map<const char*, const char*>
+{
+    void declare (const char* key, const char* value) { (*this)[key]=value; }
+};
+
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))

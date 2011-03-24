@@ -38,8 +38,9 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "gui/faustgtk.h"
+#include "gui/FUI.h"
 #include "misc.h"
+#include "gui/faustgtk.h"
 #include "audio/alsa-dsp.h"
 
 #ifdef OSCCTRL
@@ -79,19 +80,21 @@ int main(int argc, char *argv[] )
 	char* name = basename (argv [0]);
     char  rcfilename[256];
 	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
 
-	UI* interface = new GTKUI (name, &argc, &argv);
+	GUI* interface 	= new GTKUI (name, &argc, &argv);
+	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(name, argc, argv);
+	GUI*	oscinterface = new OSCUI(name, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
 	alsaaudio audio (argc, argv, &DSP);
 	audio.init(name, &DSP);
-	interface->recallState(rcfilename);	
+	finterface->recallState(rcfilename);	
 	audio.start();
 	
 #ifdef OSCCTRL
@@ -99,7 +102,7 @@ int main(int argc, char *argv[] )
 #endif
 	interface->run();
 	audio.stop();
-	interface->saveState(rcfilename);
+	finterface->saveState(rcfilename);
   	return 0;
 }
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

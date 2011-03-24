@@ -45,9 +45,9 @@ class FUI  : public UI
 		string 	s;
 		char 	c;
 		
-		while (c=*label++) {
+		while ((c=*label++)) {
 			if (isspace(c)) 				{ s += '_'; }
-			else if (c == '(' | c == ')' ) 	{ }
+			else if ((c == '(') | (c == ')') ) 	{ }
 			else 							{ s += c; }
 		}
 		return s;
@@ -88,7 +88,7 @@ class FUI  : public UI
 	{
 		ofstream f(filename);
 		
-		for (int i=0; i<fNameList.size(); i++) { 
+		for (unsigned int i=0; i<fNameList.size(); i++) { 
 			string	n = fNameList[i];
 			float*	z = fName2Zone[n];
 			f << *z << ' ' << n << endl;
@@ -123,19 +123,19 @@ class FUI  : public UI
     virtual void addButton(const char* label, float* zone) 			{ addElement(label, zone); }
     virtual void addToggleButton(const char* label, float* zone) 	{ addElement(label, zone); }
     virtual void addCheckButton(const char* label, float* zone) 	{ addElement(label, zone); }
-    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)  
+    virtual void addVerticalSlider(const char* label, float* zone, float , float , float , float )  
     																{ addElement(label, zone); }
-    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 
+    virtual void addHorizontalSlider(const char* label, float* zone, float , float , float , float ) 
     																{ addElement(label, zone); }
-    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) 
+    virtual void addNumEntry(const char* label, float* zone, float , float , float , float ) 
     																{ addElement(label, zone); }
     
     // -- passive widgets (are ignored)
     
-    virtual void addNumDisplay(const char* label, float* zone, int precision) {};
-    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {};
-    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {};
-    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) {};
+    virtual void addNumDisplay(const char* , float* , int ) {};
+    virtual void addTextDisplay(const char* , float* , const char*[], float , float ) {};
+    virtual void addHorizontalBargraph(const char* , float* , float , float ) {};
+    virtual void addVerticalBargraph(const char* , float* , float , float ) {};
     
     // -- widget's layouts (just keep track of group labels)
 
@@ -148,7 +148,7 @@ class FUI  : public UI
         
 	// -- metadata are not used
 	
-    virtual void declare(float* zone, const char* key, const char* value) {}
+    virtual void declare(float* , const char* , const char* ) {}
 };
 #endif
 

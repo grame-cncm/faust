@@ -55,7 +55,7 @@
 #include <QWidget>
 #include <QtGui>
 
-#include "UI.h"
+#include "GUI.h"
 
 //----------------------------------
 
@@ -930,7 +930,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 /******************************************************************************
 *******************************************************************************
 
-							IMPLEMENTATION OF UI ITEMS
+							IMPLEMENTATION OF GUI ITEMS
 							   (QT 4.3 for FAUST)
 
 *******************************************************************************
@@ -944,7 +944,7 @@ class uiButton : public QObject, public uiItem
  public :
 	QAbstractButton* 	fButton;
 	
-	uiButton (UI* ui, float* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
+	uiButton (GUI* ui, float* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
 	
 
 	virtual void reflectZone() 	
@@ -967,7 +967,7 @@ class uiCheckButton : public QObject, public uiItem
  public :
 	QCheckBox* 	fCheckBox;
 	
-	uiCheckButton (UI* ui, float* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
+	uiCheckButton (GUI* ui, float* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
 	
 	virtual void reflectZone() 	
 	{ 
@@ -1001,7 +1001,7 @@ class uiSlider : public QObject, public uiItem
 	float		fMax;
 	float		fStep;
 
-	uiSlider (UI* ui, float* zone, QSlider* slider, float cur, float lo, float hi, float step) 
+	uiSlider (GUI* ui, float* zone, QSlider* slider, float cur, float lo, float hi, float step) 
 		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
 	{
 		fSlider->setMinimum(0);
@@ -1043,7 +1043,7 @@ class uiKnob : public QObject, public uiItem
 	float				fMax;
 	float				fStep;
 
-	uiKnob (UI* ui, float* zone, QAbstractSlider* slider, float cur, float lo, float hi, float step) 
+	uiKnob (GUI* ui, float* zone, QAbstractSlider* slider, float cur, float lo, float hi, float step) 
 		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
 	{
 		fSlider->setMinimum(0);
@@ -1077,7 +1077,7 @@ class uiBargraph : public QObject, public uiItem
     float           fMax;
     int             fStep;
 
-    uiBargraph (UI* ui, float* zone, QProgressBar* bar, float lo, float hi) 
+    uiBargraph (GUI* ui, float* zone, QProgressBar* bar, float lo, float hi) 
         : uiItem(ui, zone), fBar(bar), fMin(lo), fMax(hi), fStep(1024) 
     {
         fBar->setRange(0, fStep);
@@ -1103,7 +1103,7 @@ class uiBargraph2 : public QObject, public uiItem
  public :
     AbstractDisplay*   fBar;
 
-    uiBargraph2 (UI* ui, float* zone, AbstractDisplay* bar, float lo, float hi)
+    uiBargraph2 (GUI* ui, float* zone, AbstractDisplay* bar, float lo, float hi)
         : uiItem(ui, zone), fBar(bar)
     {
         fBar->setRange(lo, hi);
@@ -1133,7 +1133,7 @@ class uiNumEntry : public QObject, public uiItem
 	float				fStep;
 	int					fDecimals;
 
-	uiNumEntry (UI* ui, float* zone, QDoubleSpinBox* numEntry, float cur, float lo, float hi, float step) 
+	uiNumEntry (GUI* ui, float* zone, QDoubleSpinBox* numEntry, float cur, float lo, float hi, float step) 
 		: uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
 	{
 		fDecimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
@@ -1173,7 +1173,7 @@ class uiNumEntry : public QObject, public uiItem
 *******************************************************************************/
 
 
-class QTGUI : public QObject, public UI
+class QTGUI : public QObject, public GUI
 {
     Q_OBJECT
 	QApplication		fAppl;

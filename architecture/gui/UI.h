@@ -43,7 +43,7 @@ class UI
         
 	// -- metadata declarations
 	
-    virtual void declare(float* zone, const char* key, const char* value) {}
+    virtual void declare(float* , const char* , const char* ) {}
 };
 
 #endif

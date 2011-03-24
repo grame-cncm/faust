@@ -37,8 +37,9 @@
 #include <libgen.h>
 #include <iostream>
 
-#include "gui/faustqt.h"
+#include "gui/FUI.h"
 #include "misc.h"
+#include "gui/faustqt.h"
 #include "audio/jack-dsp.h"
 
 #ifdef OSCCTRL
@@ -67,7 +68,7 @@
 					
 mydsp	DSP;
 
-list<UI*>               UI::fGuiList;
+list<GUI*>               GUI::fGuiList;
 
 /******************************************************************************
 *******************************************************************************
@@ -85,17 +86,19 @@ int main( int argc, char *argv[] )
 	snprintf(jackname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 
-	UI* interface = new QTGUI(argc, argv);
+	GUI* interface = new QTGUI(argc, argv);
+	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(jackname, argc, argv);
+	GUI*	oscinterface = new OSCUI(jackname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 	
 	jackaudio audio;
 	audio.init(jackname, &DSP);
-	interface->recallState(rcfilename);	
+	finterface->recallState(rcfilename);	
 	audio.start();
 	
 #ifdef OSCCTRL
@@ -104,7 +107,7 @@ int main( int argc, char *argv[] )
 	interface->run();
 	
 	audio.stop();
-	interface->saveState(rcfilename);
+	finterface->saveState(rcfilename);
   	return 0;
 }
 
