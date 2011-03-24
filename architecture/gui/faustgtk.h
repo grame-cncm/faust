@@ -606,7 +606,6 @@ class GTKUI : public GUI
 {
  private :
     static bool                         fInitialized;
-    static list<GUI*>                   fGuiList;
     static map<float*, float>           fGuiSize;       // map widget zone with widget size coef
     static map<float*, string>          fTooltip;       // map widget zone with tooltip strings
     static set<float*>                  fKnobSet;       // set of widget zone to be knobs
@@ -688,8 +687,6 @@ class GTKUI : public GUI
 *******************************************************************************/
 
 // global static fields
-
-list<GUI*>                   GUI::fGuiList;
 
 bool                        GTKUI::fInitialized = false;
 map<float*, float>          GTKUI::fGuiSize;
