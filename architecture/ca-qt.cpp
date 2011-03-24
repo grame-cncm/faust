@@ -36,8 +36,10 @@
 
 
 #include <libgen.h>
+#include <stdlib.h>
 #include <iostream>
 
+#include "gui/FUI.h"
 #include "gui/faustqt.h"
 #include "misc.h"
 #include "audio/coreaudio-dsp.h"
@@ -66,7 +68,7 @@
 					
 mydsp	DSP;
 
-list<UI*>               UI::fGuiList;
+list<GUI*>               GUI::fGuiList;
 
 /******************************************************************************
 *******************************************************************************
@@ -95,17 +97,19 @@ int main( int argc, char *argv[] )
     long srate = (long)lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
 
-	UI* interface = new QTGUI(argc, argv);
+	GUI* interface = new QTGUI(argc, argv);
 	DSP.buildUserInterface(interface);
+	FUI* finterface	= new FUI();
+	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(name, argc, argv);
+	GUI*	oscinterface = new OSCUI(name, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 	
 	coreaudio audio(srate, fpb);
 	audio.init(name, &DSP);
-	interface->recallState(rcfilename);	
+	finterface->recallState(rcfilename);	
 	audio.start();
 	
 #ifdef OSCCTRL
@@ -114,7 +118,7 @@ int main( int argc, char *argv[] )
 	interface->run();
 	
 	audio.stop();
-	interface->saveState(rcfilename);
+	finterface->saveState(rcfilename);
   	return 0;
 }
 
