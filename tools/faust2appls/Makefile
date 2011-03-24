@@ -12,6 +12,7 @@ help:
 	@echo Call 'make install dest=/your/install/dir' to install to another location.
 
 install:
+	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2caqt $(dest)
 	install faust2csound $(dest)

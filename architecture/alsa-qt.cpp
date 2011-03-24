@@ -38,8 +38,9 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "gui/faustqt.h"
+#include "gui/FUI.h"
 #include "misc.h"
+#include "gui/faustqt.h"
 #include "audio/alsa-dsp.h"
 
 #ifdef OSCCTRL
@@ -98,6 +99,7 @@ int main(int argc, char *argv[] )
 	oscinterface->run();
 #endif
 	interface->run();
+	
 	audio.stop();
 	finterface->saveState(rcfilename);
   	return 0;
