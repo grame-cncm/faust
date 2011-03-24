@@ -6,7 +6,7 @@
 */
 
 #include "OSCControler.h"
-#include "UI.h"
+#include "GUI.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -41,14 +41,14 @@ This solution is implemented in the proposed OSC UI;
 */
 
 //class oscfaust::OSCIO;
-class OSCUI : public UI 
+class OSCUI : public GUI 
 {
 	oscfaust::OSCControler*	fCtrl;
 	const char* tr(const char* label) const;	
 	
  public:
 		
-	OSCUI(char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0) : UI() 
+	OSCUI(char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0) : GUI() 
     { 
 		fCtrl = new oscfaust::OSCControler(argc, argv, io); 
 //		fCtrl->opengroup(applicationname);
