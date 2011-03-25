@@ -43,12 +43,17 @@ $(DEST)%.app : %.dsp
 hdir1 := $(wildcard /usr/local/lib/faust/faustqt.h)
 hdir2 := $(wildcard /usr/share/faust/faustqt.h)
 hdir := $(if $(hdir2),$(dir $(hdir2)),$(dir $(hdir1)))
+qm4 := $(shell which qmake-qt4)
+qm := $(if $(qm4),$(qm4),qmake)
+#qmd := -d
+qmd :=
+
 $(DEST)% : %.dsp
 	rm -rf $(TMP)
 	install -d $(TMP)
 	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
-	cd $(TMP); qmake -project "INCLUDEPATH+=$(hdir)" "LIBS+=$(LIB)" "HEADERS+=$(hdir)faustqt.h" 
-	cd $(TMP); qmake $(SPEC)
+	cd $(TMP); $(qm) -project $(qmd) "INCLUDEPATH+=$(hdir)" "LIBS+=$(LIB)" "HEADERS+=$(hdir)faustqt.h" 
+	cd $(TMP); $(qm) $(SPEC) $(qmd)
 	make -C $(TMP)
 	mv $(TMP)/$(<:.dsp=) $@
 	rm -rf $(TMP)
