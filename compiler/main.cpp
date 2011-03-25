@@ -112,7 +112,7 @@ Tree			gExpandedDefList;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
-bool            gShadowBlur     = false;
+bool            gShadowBlur     = true;
 bool            gGraphSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
