@@ -40,11 +40,14 @@ $(DEST)%.app : %.dsp
 
 
 ### Linux
+hdir1 := $(wildcard /usr/local/lib/faust/faustqt.h)
+hdir2 := $(wildcard /usr/share/faust/faustqt.h)
+hdir := $(if $(hdir1),$(dir $(hdir1)),$(dir $(hdir2)))
 $(DEST)% : %.dsp
 	rm -rf $(TMP)
 	install -d $(TMP)
 	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
-	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
+	cd $(TMP); qmake -project "INCLUDEPATH+=$(hdir)/" "LIBS+=$(LIB)" "HEADERS+=$(hdir)/faustqt.h" 
 	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)
 	mv $(TMP)/$(<:.dsp=) $@
