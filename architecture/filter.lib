@@ -317,20 +317,20 @@ with { s = take(n,sv); };
 // power-normalized (reflection coefficients s = sin(t)):
 allpassnn(0,tv) = _;
 allpassnn(n,tv) = _ <: *(s), (*(c) : (+ 
-          : allpassnn(n-1,tv))~(*(-s))) : _,*(c)' : +
+        : allpassnn(n-1,tv))~(*(-s))) : _, mem*c : +
 with { c=cos(take(n,tv));  s=sin(take(n,tv)); };
 
 // power-normalized with sparse delays dv(n)>1:
 allpassnns(0,tv,dmax,dv) = _;
 allpassnns(n,tv,dmax,dv) = _ <: *(s), (*(c) : (+ : dl
-           : allpassnns(n-1,tv,dmax,dv))~(*(-s))) : _,*(c)' : +
+           : allpassnns(n-1,tv,dmax,dv))~(*(-s))) : _, mem*c : +
 with { c=cos(take(n,tv));  s=sin(take(n,tv));
        dl=delay(dmax,(take(n,dv)-1)); };
 
 // Kelly-Lochbaum:
 allpassnkl(0,sv) = _;
 allpassnkl(n,sv) = _ <: *(s),(*(1+s) : (+
-                   : allpassnn(n-1,sv))~(*(-s))) : _,*(1-s)' : +
+                   : allpassnn(n-1,sv))~(*(-s))) : _, mem*(1-s) : +
 with { s = take(n,sv); };
 
 // one-multiply:
