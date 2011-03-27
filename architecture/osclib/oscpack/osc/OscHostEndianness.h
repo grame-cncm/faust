@@ -59,6 +59,13 @@
 #undef OSC_HOST_LITTLE_ENDIAN
 #endif
 
+#elif defined(__x86_64__)
+
+/* assume this is linux on x86_64 and that it is always little endian */
+
+#define OSC_HOST_LITTLE_ENDIAN 1
+#undef OSC_HOST_BIG_ENDIAN
+
 #else
 
 #error please edit OSCHostEndianness.h to configure endianness
