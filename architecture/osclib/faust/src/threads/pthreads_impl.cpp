@@ -21,6 +21,9 @@
 
 */
 
+#ifdef WIN32
+
+#else
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,3 +80,4 @@ void TThreads::quit ()
 		fThread = 0;
 	}
 }
+#endif

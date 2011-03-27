@@ -20,6 +20,7 @@
   research@grame.fr
 
 */
+#ifdef WIN32
 
 #include <windows.h>
 
@@ -68,3 +69,5 @@ void TThreads::quit ()
 		fThread = 0;
 	}
 }
+
+#endif
