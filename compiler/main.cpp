@@ -112,7 +112,7 @@ Tree			gExpandedDefList;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
-bool            gShadowBlur     = true;
+bool            gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
 bool            gGraphSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
