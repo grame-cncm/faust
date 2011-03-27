@@ -7,7 +7,7 @@
 #			
 ###############################################################
 
-.PHONY: all clean
+.PHONY: all clean depend
 
 
 all : liboscpack.a libOSCFaust.a
@@ -32,4 +32,8 @@ clean :
 	rm -f libOSCFaust.a
 	make -C oscpack clean
 	make -C faust clean
+
+depend :
+	make -C oscpack depend
+	make -C faust depend
 

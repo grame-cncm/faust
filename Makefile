@@ -39,6 +39,7 @@ clean :
 
 depend :
 	$(MAKE) -C compiler -f $(MAKEFILE) depend
+	$(MAKE) -C architecture/osclib depend
 
 
 doc :
