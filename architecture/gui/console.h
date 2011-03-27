@@ -36,7 +36,7 @@
 #ifndef __faustconsole__
 #define __faustconsole__
 
-#include "UI.h"
+#include "GUI.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,7 +61,7 @@ struct param {
 	param(float* z, float a, float b) : fZone(z), fMin(a), fMax(b) {}
 };
 	
-class CMDUI : public UI
+class CMDUI : public GUI
 {
 	int					fArgc;
 	char**				fArgv;
@@ -88,7 +88,7 @@ class CMDUI : public UI
 	
 public:
 		
-	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("--"); }
+	CMDUI(int argc, char *argv[]) : GUI(), fArgc(argc), fArgv(argv) { fPrefix.push("--"); }
 	virtual ~CMDUI() {}
 	
 	virtual void addButton(const char* label, float* zone) 		{};
@@ -113,7 +113,7 @@ public:
 	// -- passive widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) 	{}
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) 	{}
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
 

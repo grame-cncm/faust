@@ -74,7 +74,7 @@ using namespace std;
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
 mydsp		DSP;
-list<UI*>	UI::fGuiList;
+list<GUI*>	GUI::fGuiList;
 	
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -88,7 +88,7 @@ int main(int argc, char *argv[] )
 	DSP.buildUserInterface(interface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(jackname, argc, argv);
+	GUI*	oscinterface = new OSCUI(jackname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
