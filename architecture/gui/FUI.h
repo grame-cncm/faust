@@ -47,7 +47,7 @@ class FUI  : public UI
 		
 		while ((c=*label++)) {
 			if (isspace(c)) 				{ s += '_'; }
-			else if ((c == '(') | (c == ')') ) 	{ }
+			//else if ((c == '(') | (c == ')') ) 	{ }
 			else 							{ s += c; }
 		}
 		return s;
