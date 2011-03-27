@@ -37,6 +37,7 @@
 #include <libgen.h>
 #include <iostream>
 
+#include "gui/FUI.h"
 #include "misc.h"
 #include "audio/portaudio-dsp.h"
 #include "gui/faustgtk.h"
@@ -64,11 +65,12 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
 mydsp		DSP;
-list<UI*>	UI::fGuiList;
+list<GUI*>	GUI::fGuiList;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
+#if 0
 int main(int argc, char *argv[] )
 {
 	gtk_init (&argc, &argv);
@@ -78,11 +80,11 @@ int main(int argc, char *argv[] )
 	char* home = getenv("HOME");
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 
-	UI* interface = new GTKUI (name, &argc, &argv);
+	GUI* interface = new GTKUI (name, &argc, &argv);
 	DSP.buildUserInterface(interface);
 
 #ifdef OSCCTRL
-	UI*	oscinterface = new OSCUI(jname, argc, argv);
+	GUI*	oscinterface = new OSCUI(jname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 	
@@ -91,7 +93,7 @@ int main(int argc, char *argv[] )
 	portaudio audio (srate, fpb);
 
 	audio.init(name, &DSP);
-	interface->recallState(rcfilename);	
+	//interface->recallState(rcfilename);	
 	audio.start();
 	
 #ifdef OSCCTRL
@@ -100,9 +102,56 @@ int main(int argc, char *argv[] )
 	interface->run();
 	
 	audio.stop();
-	interface->saveState(rcfilename);
+	//interface->saveState(rcfilename);
   	return 0;
 }
+#endif
+
+
+long lopt (char *argv[], const char *name, long def) 
+{
+	int	i;
+	for (i=0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
+	return def;
+}
+
+int main(int argc, char *argv[])
+{
+	char	appname[256];
+	char  	rcfilename[256];
+	char* 	home = getenv("HOME");
+	
+	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+
+	GUI* interface 	= new GTKUI (appname, &argc, &argv);
+	FUI* finterface	= new FUI();
+	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
+
+#ifdef OSCCTRL
+	GUI* oscinterface = new OSCUI(appname, argc, argv);
+	DSP.buildUserInterface(oscinterface);
+#endif
+
+    long srate = (long)lopt(argv, "--frequency", 44100);
+    int	fpb = lopt(argv, "--buffer", 128);
+    
+	portaudio audio (srate, fpb);
+	audio.init(appname, &DSP);
+	finterface->recallState(rcfilename);	
+	audio.start();
+	
+#ifdef OSCCTRL
+	oscinterface->run();
+#endif
+	interface->run();
+	
+	audio.stop();
+	finterface->saveState(rcfilename);
+  	return 0;
+}
+
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
