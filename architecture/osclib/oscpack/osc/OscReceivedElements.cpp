@@ -132,7 +132,7 @@ int64 ToInt64( const char *p )
 #ifdef OSC_HOST_LITTLE_ENDIAN
     union{
         osc::int64 i;
-        char c[4];
+        char c[8];
     } u;
 
     u.c[0] = p[7];
@@ -156,7 +156,7 @@ uint64 ToUInt64( const char *p )
 #ifdef OSC_HOST_LITTLE_ENDIAN
     union{
         osc::uint64 i;
-        char c[4];
+        char c[8];
     } u;
 
     u.c[0] = p[7];
