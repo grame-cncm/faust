@@ -1,4 +1,4 @@
-version := 0.9.38
+version := 0.9.40
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
