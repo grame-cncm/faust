@@ -1818,10 +1818,13 @@ class QTGUI : public QObject, public GUI
 
 	// ------------------------- Groups -----------------------------------
 
-	virtual void openHorizontalBox(const char* label) { openBox(label, new QHBoxLayout()); }
+	virtual void openHorizontalBox(const char* label) 
+	{ 
+		openBox(label, new QHBoxLayout()); 
+	}
 
-	virtual void openVerticalBox(const char* label) 	{
-        printf("openVerticalBox  %s\n", label);
+	virtual void openVerticalBox(const char* label) 	
+	{
         openBox(label, new QVBoxLayout()); 
     }
 
