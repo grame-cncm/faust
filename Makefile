@@ -13,6 +13,7 @@ zname := faust-$(version)
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C architecture/osclib
 
 
 .PHONY: clean depend install ininstall dist parser help
@@ -34,6 +35,7 @@ parser :
 clean :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean
 	$(MAKE) -C examples clean
+	$(MAKE) -C architecture/osclib clean
 
 depend :
 	$(MAKE) -C compiler -f $(MAKEFILE) depend
@@ -44,7 +46,7 @@ doc :
 
 
 install :
-	mkdir -p $(prefix)/lib/faust/
+	mkdir -p $(prefix)/lib/faust/osclib
 	mkdir -p $(prefix)/bin/
 	install compiler/faust $(prefix)/bin/
 	install -m 0644 $(arch) $(prefix)/lib/faust/
@@ -52,8 +54,13 @@ install :
 	cp -r architecture/VST $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/iPhone
 	cp -r architecture/iPhone $(prefix)/lib/faust/
+	cp -r architecture/audio $(prefix)/lib/faust/
+	cp -r architecture/gui $(prefix)/lib/faust/
+	cp architecture/osclib/lib*.a $(prefix)/lib/faust/osclib
+	cp architecture/osclib/faust/include/*.h $(prefix)/lib/faust/osclib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
+	make -C tools/faust2appls install
 
 
 uninstall :

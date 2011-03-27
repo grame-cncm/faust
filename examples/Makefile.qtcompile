@@ -31,7 +31,7 @@ all : $(appls)
 $(DEST)%.app : %.dsp
 	install -d $(TMP)
 	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
-	cd $(TMP); qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/faustqt.h" 
+	cd $(TMP); qmake -project "$(DEFS)" "INCLUDEPATH+=/usr/local/lib/faust/" "INCLUDEPATH+=/usr/local/lib/faust/osclib" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" 
 	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)
 	rm -rf $@
@@ -52,8 +52,8 @@ $(DEST)% : %.dsp
 	rm -rf $(TMP)
 	install -d $(TMP)
 	faust -a $(ARCH) $(VEC) $< -o $(TMP)/$<.cpp
-	cd $(TMP); $(qm) -project $(qmd) "INCLUDEPATH+=$(hdir)" "LIBS+=$(LIB)" "HEADERS+=$(hdir)faustqt.h" 
-	cd $(TMP); $(qm) $(SPEC) $(qmd)
+	cd $(TMP); qmake -project "$(DEFS)" "INCLUDEPATH+=/usr/local/lib/faust/" "INCLUDEPATH+=/usr/local/lib/faust/osclib" "LIBS+=$(LIB)" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" 
+	cd $(TMP); qmake $(SPEC)
 	make -C $(TMP)
 	mv $(TMP)/$(<:.dsp=) $@
 	rm -rf $(TMP)

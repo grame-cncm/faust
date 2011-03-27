@@ -1,25 +1,37 @@
-prefix := /usr/local
+DESTDIR ?= 
+PREFIX ?= /usr/local
+
+MAKEFILE := Makefile.unix
+
+prefix := $(DESTDIR)$(PREFIX)
+dest   := $(prefix)/bin
+
+help:
+	@echo This is a makefile to install the Faust tools.
+	@echo The only target is 'install'. Install directory is $(dest) by default. 
+	@echo Call 'make install dest=/your/install/dir' to install to another location.
 
 install:
-	install faust2alsa $(prefix)/bin
-	install faust2caqt $(prefix)/bin
-	install faust2csound $(prefix)/bin
-	install faust2eps $(prefix)/bin
-	install faust2firefox $(prefix)/bin
-	install faust2jack $(prefix)/bin
-	install faust2jackinternal $(prefix)/bin
-	install faust2jackserver $(prefix)/bin
-	install faust2jaqt $(prefix)/bin
-	install faust2mathdoc $(prefix)/bin
-	install faust2mathviewer $(prefix)/bin
-	install faust2msp $(prefix)/bin
-	install faust2octave $(prefix)/bin
-	install faust2paqt $(prefix)/bin
-	install faust2pdf $(prefix)/bin
-	install faust2plot $(prefix)/bin
-	install faust2png $(prefix)/bin
-	install faust2puredata $(prefix)/bin
-	install faust2svg $(prefix)/bin
-	install faust2graph $(prefix)/bin
-	install faust2graphviewer $(prefix)/bin
+	install faust2alqt $(dest)
+	install faust2alsa $(dest)
+	install faust2caqt $(dest)
+	install faust2csound $(dest)
+	install faust2eps $(dest)
+	install faust2firefox $(dest)
+	install faust2jack $(dest)
+	install faust2jackinternal $(dest)
+	install faust2jackserver $(dest)
+	install faust2jaqt $(dest)
+	install faust2mathdoc $(dest)
+	install faust2mathviewer $(dest)
+	install faust2msp $(dest)
+	install faust2octave $(dest)
+	install faust2paqt $(dest)
+	install faust2pdf $(dest)
+	install faust2plot $(dest)
+	install faust2png $(dest)
+	install faust2puredata $(dest)
+	install faust2svg $(dest)
+	install faust2graph $(dest)
+	install faust2graphviewer $(dest)
 

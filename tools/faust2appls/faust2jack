@@ -1,9 +1,10 @@
 #!/bin/bash
 
+OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to jack-gtk                 #
-#               (c) Grame, 2009                                     #
+#               (c) Grame, 2009-2011                                #
 #                                                                   #
 #####################################################################
 
@@ -36,6 +37,8 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-osc" ]; then
+		 OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -58,8 +61,8 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3} $OMP "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` -o "${f%.dsp}"
-	) > /dev/null
+		${CXX=g++} ${CXXFLAGS=-O3} $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
+	) #> /dev/null
 	rm "$f.cpp"
 
 	# collect binary file name for FaustGIDE

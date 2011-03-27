@@ -1,0 +1,10 @@
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Debug/
+OSCFaust.*
+Release/
+build/
+cmake_install.cmake
+Makefile
+

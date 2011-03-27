@@ -1,0 +1,11 @@
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Debug/
+Release/
+build/
+cmake_install.cmake
+oscpack.build/
+oscpack.xcodeproj/
+Makefile
+
