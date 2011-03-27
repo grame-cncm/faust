@@ -1,17 +1,35 @@
+###############################################################
+#
+#			Build liboscpack.a and libOSCFaust.a the 2
+#			static libraries needed to provide support
+#           for Open Sound Control in Faust generated
+#           applications.
+#			
+###############################################################
 
-all : oscpack/cmake/Makefile faust/cmake/Makefile
-	make -C oscpack/cmake
-	make -C faust/cmake
+.PHONY: all clean
 
-oscpack/cmake/Makefile:
-	cd oscpack/cmake && cmake -G "Unix Makefiles"
 
-faust/cmake/Makefile:
-	cd faust/cmake && cmake -G "Unix Makefiles"
+all : liboscpack.a libOSCFaust.a
+
+
+liboscpack.a : oscpack/liboscpack.a
+	cp oscpack/liboscpack.a $@
+
+libOSCFaust.a : faust/libOSCFaust.a
+	cp faust/libOSCFaust.a $@
+	
+	
+oscpack/liboscpack.a:
+	make -C oscpack
+	
+faust/libOSCFaust.a:
+	make -C faust
+	
 	
 clean :
-	make -C oscpack/cmake clean
-	rm   -f oscpack/cmake/CMakeCache.txt
-	make -C faust/cmake clean
-	rm   -f faust/cmake/CMakeCache.txt
+	rm -f liboscpack.a 
+	rm -f libOSCFaust.a
+	make -C oscpack clean
+	make -C faust clean
 
