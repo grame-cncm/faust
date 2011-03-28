@@ -7,6 +7,10 @@
 #                                                                   #
 #####################################################################
 
+OSCINC=""
+QTDEFS=""
+OSCLIB=""
+
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -36,6 +40,10 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-osc" ]; then
+		 OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
+		 QTDEFS="DEFINES += OSCCTRL"
+		 OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -65,7 +73,7 @@ for p in $FILES; do
 	SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
-    TDR=$(mktemp -d)
+    TDR=$(mktemp -d faust.XXX)
 	TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
@@ -75,14 +83,14 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-        qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "LIBS+=-lportaudio" "HEADERS+=/usr/local/lib/faust/faustqt.h"
+        qmake -project "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-lportaudio $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
 	    qmake $SPEC
         make
     ) > /dev/null
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
-    cp "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
-	rm -rf "$TDR"
+    cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+    rm -rf "$TDR"
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
