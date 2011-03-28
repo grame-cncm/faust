@@ -52,7 +52,7 @@ done
 
 	
 #-------------------------------------------------------------------
-# compile the *.dsp files using GTK on linux
+# compile the *.dsp files using JACK-GTK on linux
 #
 for f in $FILES; do
 	
@@ -62,10 +62,10 @@ for f in $FILES; do
 	# compile c++ to binary
 	(
 		${CXX=g++} ${CXXFLAGS=-O3} $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
-	) #> /dev/null
+	) > /dev/null
 	rm "$f.cpp"
 
-	# collect binary file name for FaustGIDE
+	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
 
