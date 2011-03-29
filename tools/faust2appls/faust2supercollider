@@ -1,0 +1,127 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to supercollider            #
+#               (c) Grame, 2010                                     #
+#                                                                   #
+#####################################################################
+
+#-------------------------------------------------------------------
+# Supercollider headers : path to the folder containing :
+# plugin_interface/, common/ and server/ headers
+
+# Possible path
+
+SC0="/usr/include/SuperCollider"
+SC1="/usr/include/supercollider"
+SC2="/usr/local/include/SuperCollider"
+SC3="/usr/local/include/supercollider"
+
+# check if directory exists
+
+if [ -d $SC0 ]; then
+	SC=$SC0
+elif [ -d $SC1 ]; then
+	SC=$SC1
+elif [ -d $SC2 ]; then
+	SC=$SC2
+elif [ -d $SC3 ]; then
+	SC=$SC3
+else 
+	echo "Can't find SuperCollider headers"
+	exit 1
+fi 
+
+INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/"
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"
+	fi
+done
+
+
+#-------------------------------------------------------------------
+# Check plateform specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    EXT="scx"
+	SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN -DNDEBUG -bundle "
+elif [[ $(uname) == Linux ]]; then
+    EXT="so"
+	SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX -DNDEBUG -shared -fPIC"
+else
+	echo "unsupported plateform"
+	exit 1
+fi
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+	SRCDIR=$(dirname "$p")
+
+    # creates a temporary dir
+    TDR=$(mktemp -d faust.XXX)
+	TMP=$TDR/${f%.dsp}
+    mkdir "$TMP"
+
+    # compile the .dsp file to c++ and xml
+    faust -xml "$SRCDIR/$f" -o /dev/null;
+    mv "$SRCDIR/$f.xml" $TMP/
+    faust -a supercollider.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+
+    # compile c++ to binary
+    (
+        cd "$TMP"
+        faust2sc $f.xml > "${f%.dsp}.sc" 2>/dev/null
+        ${CXX=g++}  -O3 $SCFLAGS $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+    )> /dev/null
+
+    ## move the produced files from tmp to source dir
+    cp "$TMP/${f%.dsp}.$EXT" "$SRCDIR/${f%.dsp}.$EXT"
+    cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
+	rm -rf "$TDR"
+
+    # collects all the files produced
+     BINARIES="$BINARIES$SRCDIR/${f%.dsp}.$EXT;$SRCDIR/${f%.dsp}.sc;"
+
+done
+
+# return the binaries names
+echo "$BINARIES"
