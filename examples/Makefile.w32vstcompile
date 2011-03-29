@@ -7,7 +7,7 @@
 
 #------------------------------------------------------------------------------
 # 1/ VST SDK Should be installed somewhere
-VST=../vstsdk2.4
+VST=/usr/local/lib/vstsdk2.4
 
 #------------------------------------------------------------------------------
 # 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
