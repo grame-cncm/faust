@@ -1,0 +1,17 @@
+#N canvas 270 70 354 802 10;
+#X obj 51 620 audio-out;
+#X obj 51 9 midi-in 8;
+#X obj 51 504 freeverb;
+#X obj 51 356 chorus;
+#X obj 51 60 organ;
+#X connect 1 0 4 0;
+#X connect 1 1 4 1;
+#X connect 2 0 0 0;
+#X connect 2 1 0 1;
+#X connect 2 2 0 2;
+#X connect 3 0 2 0;
+#X connect 3 1 2 1;
+#X connect 3 2 2 2;
+#X connect 4 0 3 0;
+#X connect 4 1 3 1;
+#X connect 4 2 3 2;

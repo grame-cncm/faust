@@ -1,0 +1,69 @@
+#N canvas 168 355 506 340 10;
+#X obj 40 62 bng 15 250 50 0 \$0-stop \$0-stop stop 0 -6 0 10 -261689
+-1 -258699;
+#X obj 143 29 nbx 5 14 10 1000 0 0 \$0-delta \$0-delta empty 0 -6 0
+10 -228992 -1 -1 130 256;
+#X obj 99 62 bng 15 250 50 0 \$0-next empty step 0 -6 0 10 -228992
+-1 -1;
+#X obj 7 29 hsl 128 15 10 1000 0 0 \$0-delta \$0-delta pulse -2 -6
+0 10 -228992 -1 -1 1539 1;
+#X msg 58 213 stop;
+#X obj 5 62 bng 15 250 50 0 \$0-start empty start 0 -6 0 10 -228992
+-1 -62784;
+#X obj 69 62 bng 15 250 50 0 \$0-cont empty cont 0 -6 0 10 -225271
+-1 -1;
+#X msg 222 215 reset;
+#X obj 135 307 outlet;
+#X obj 101 125 r \$0-start;
+#X obj 191 125 r \$0-stop;
+#X obj 16 125 r \$0-cont;
+#X obj 279 215 r \$0-next;
+#X obj 329 142 f \$0;
+#X obj 329 113 loadbang;
+#X obj 58 245 metro 500;
+#X obj 296 11 inlet;
+#X obj 296 75 s \$0-stop;
+#X obj 296 42 route stop float;
+#X obj 131 62 bng 15 250 50 0 \$0-reset empty reset 0 -6 0 10 -228992
+-1 -1;
+#X obj 222 164 r \$0-reset;
+#X obj 182 62 bng 15 50 50 0 empty \$0-blink empty 0 -6 0 10 -262144
+-260818 -1;
+#X obj 12 308 s \$0-blink;
+#X obj 372 75 s \$0-delta;
+#X msg 329 173 \; \$1-delta 250;
+#X obj 116 213 r \$0-delta;
+#X obj 101 155 t b b b;
+#X obj 197 280 f 250;
+#X msg 426 144 1;
+#X obj 426 170 s \$0-toggle;
+#X obj 182 3 tgl 15 0 \$0-toggle \$0-toggle empty 0 -6 0 10 -262144
+-1 -1 1 1;
+#X obj 110 262 r \$0-toggle;
+#X obj 57 279 spigot;
+#X connect 4 0 15 0;
+#X connect 7 0 8 0;
+#X connect 9 0 26 0;
+#X connect 10 0 4 0;
+#X connect 11 0 15 0;
+#X connect 12 0 8 0;
+#X connect 13 0 24 0;
+#X connect 14 0 13 0;
+#X connect 14 0 28 0;
+#X connect 15 0 32 0;
+#X connect 16 0 18 0;
+#X connect 18 0 17 0;
+#X connect 18 1 23 0;
+#X connect 20 0 7 0;
+#X connect 25 0 15 1;
+#X connect 25 0 8 0;
+#X connect 25 0 27 1;
+#X connect 26 0 15 0;
+#X connect 26 1 7 0;
+#X connect 26 2 27 0;
+#X connect 27 0 8 0;
+#X connect 28 0 29 0;
+#X connect 31 0 32 1;
+#X connect 32 0 22 0;
+#X connect 32 0 8 0;
+#X coords 0 -1 1 1 200 80 1 0 0;

@@ -1,0 +1,30 @@
+#N canvas 461 275 522 377 12;
+#X obj 33 235 netreceive 4711 1;
+#X obj 278 276 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 320 291 del 10;
+#X text 29 12 Control the Pure runtime remotely. You can use pdsend
+to send messages to UDP port 4711 (modify the port number below as
+needed).;
+#X obj 278 238 inlet;
+#X obj 33 257 route bang;
+#X obj 100 310 pure-runtime;
+#X obj 100 337 outlet;
+#X obj 181 337 outlet;
+#X text 27 63 - A 'bang' message restarts the Pure runtime environment.
+Use this after modifying the definition of Pure objects in script files
+to quickly reload all scripts and reconfigure the Pure objects accordingly.
+;
+#X text 27 134 - Any other message should be of the form 'receiver
+message' \, indicating that the given message should be sent to the
+given receiver. This is intended to provide some kind of remote control
+over the patch \, see the pd-pure README for details.;
+#X connect 0 0 5 0;
+#X connect 1 0 2 0;
+#X connect 2 0 6 0;
+#X connect 4 0 5 0;
+#X connect 5 0 1 0;
+#X connect 5 1 6 0;
+#X connect 6 0 7 0;
+#X connect 6 1 8 0;
+#X coords 0 -1 1 1 115 20 1 180 275;

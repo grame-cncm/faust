@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.6: http://docutils.sourceforge.net/" />
+<title>faust2pd</title>
+<meta name="author" content="Albert Graef &lt;Dr.Graef&#64;t-online.de&gt;" />
+<meta name="copyright" content="Copyright (c) 2009 by Albert Graef. Distributed under the GNU Public License V3, see COPYING for details." />
+<meta name="date" content="2009-03-25" />
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 5631 2008-08-24 13:01:23Z goodger $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="faust2pd">
+<h1 class="title">faust2pd</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Author:</th>
+<td>Albert Graef &lt;<a class="reference external" href="mailto:Dr.Graef&#64;t-online.de">Dr.Graef&#64;t-online.de</a>&gt;</td></tr>
+<tr><th class="docinfo-name">Copyright:</th>
+<td>Copyright (c) 2009 by Albert Graef. Distributed under the GNU
+Public License V3, see COPYING for details.</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2009-03-25</td></tr>
+</tbody>
+</table>
+<p>This package contains software which makes it easier to use Faust DSPs with Pd
+and the Pure programming language. The main component is the faust2pd script
+which creates GUI wrappers for Faust DSPs. The package also includes a bunch
+of examples. The software is distributed under the GPL; see the COPYING file
+for details.</p>
+<p><strong>NOTE:</strong> This faust2pd version is written in Pure and was ported from an
+earlier version written in Pure's predecessor Q. The version of the script
+provided here should be 100% backward-compatible to those previous versions,
+except for the following changes:</p>
+<ul class="simple">
+<li>The (rarely used) -f (a.k.a. --fake-buttons) option was renamed to -b.</li>
+<li>A new -f (a.k.a. --font-size) option was added to change the font size
+of the GUI elements.</li>
+<li>Most command line options can now also be specified using special
+<tt class="docutils literal"><span class="pre">[pd:...]</span></tt> tags in the Faust source.</li>
+</ul>
+<p>Also note that you can now run the script on 64 bit systems (Q never worked
+there).</p>
+<p>As of version 2.1, the faust2pd script is now compiled to a native executable
+before installation. This makes the program start up much faster, which is a
+big advantage because most xml files don't take long to be processed. You'll
+need Pure 0.21 or later and llvm-gcc to make this work.</p>
+<p>For Windows users, there's an MSI package of Faust available at the <a class="reference external" href="http://pure-lang.googlecode.com">Pure</a>
+website, which also includes faust2pd.</p>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="auto-toc simple">
+<li><a class="reference internal" href="#requirements" id="id1">1&nbsp;&nbsp;&nbsp;Requirements</a></li>
+<li><a class="reference internal" href="#installation" id="id2">2&nbsp;&nbsp;&nbsp;Installation</a></li>
+<li><a class="reference internal" href="#quickstart" id="id3">3&nbsp;&nbsp;&nbsp;Quickstart</a></li>
+<li><a class="reference internal" href="#control-interface" id="id4">4&nbsp;&nbsp;&nbsp;Control Interface</a></li>
+<li><a class="reference internal" href="#examples" id="id5">5&nbsp;&nbsp;&nbsp;Examples</a></li>
+<li><a class="reference internal" href="#wrapping-dsps-with-faust2pd" id="id6">6&nbsp;&nbsp;&nbsp;Wrapping DSPs with faust2pd</a></li>
+<li><a class="reference internal" href="#conclusion" id="id7">7&nbsp;&nbsp;&nbsp;Conclusion</a><ul class="auto-toc">
+<li><a class="reference internal" href="#acknowledgements" id="id8">7.1&nbsp;&nbsp;&nbsp;Acknowledgements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#appendix-faustxml" id="id9">8&nbsp;&nbsp;&nbsp;Appendix: faustxml</a><ul class="auto-toc">
+<li><a class="reference internal" href="#usage" id="id10">8.1&nbsp;&nbsp;&nbsp;Usage</a></li>
+<li><a class="reference internal" href="#data-structure" id="id11">8.2&nbsp;&nbsp;&nbsp;Data Structure</a></li>
+<li><a class="reference internal" href="#operations" id="id12">8.3&nbsp;&nbsp;&nbsp;Operations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<h1><a class="toc-backref" href="#id1">1&nbsp;&nbsp;&nbsp;Requirements</a></h1>
+<p>faust2pd is known to work on Linux and Windows, and there shouldn't be any
+major roadblocks preventing it to work on other systems supported by Pure.</p>
+<p>The faust2pd script is written in the <a class="reference external" href="http://pure-lang.googlecode.com">Pure</a> programming language and requires
+Pure's XML module, so you need to install these to make it work. Install the
+latest pure*.tar.gz and pure-xml*.tar.gz packages and you should be set. (Pure
+0.21 or later is required.) Also make sure that the llvm and llvm-gcc packages
+are installed, as described in the Pure INSTALL file, they are <em>both</em> needed
+to enable Pure's batch compiler.</p>
+<p>To run the seqdemo example, you'll also need the Pd Pure external
+(pd-pure*.tar.gz), also available at the <a class="reference external" href="http://pure-lang.googlecode.com">Pure</a> website.</p>
+<p>To compile the examples, you'll need GNU C++ and make, <a class="reference external" href="http://puredata.info">Pd</a> and, of course,
+<a class="reference external" href="http://faudiostream.sf.net">Faust</a>. Make sure you get a recent version of Faust; Faust releases &gt;0.9.8
+include the puredata architecture necessary to create Pd externals from Faust
+DSPs.</p>
+</div>
+<div class="section" id="installation">
+<h1><a class="toc-backref" href="#id2">2&nbsp;&nbsp;&nbsp;Installation</a></h1>
+<p>Run <tt class="docutils literal"><span class="pre">make</span></tt> and <tt class="docutils literal"><span class="pre">make</span> <span class="pre">install</span></tt> to compile and install the faust2pd program
+on your system. You can set the installation prefix by running make as <tt class="docutils literal"><span class="pre">make</span>
+<span class="pre">install</span> <span class="pre">prefix=/some/path</span></tt>. Default installation prefix is /usr/local,
+faust2pd is installed in the bin directory below that.</p>
+<p>Optionally, you can also run <tt class="docutils literal"><span class="pre">make</span> <span class="pre">install-pd</span></tt> to copy the supporting Pd
+abstractions (faust-*.pd) to your lib/pd/extra directory, so that you can use
+the patches generated by faust2pd without copying these abstractions to your
+working directory. The Makefile tries to guess the prefix of your Pd
+installation, if it guesses wrong, you can specify the prefix explicitly by
+running make as <tt class="docutils literal"><span class="pre">make</span> <span class="pre">install-pd</span> <span class="pre">pdprefix=/some/path</span></tt>.</p>
+<p>The included faustxml.pure script provides access to Faust-generated dsp
+descriptions in xml files to Pure scripts. This may have uses beyond faust2pd,
+but isn't normally installed. If you want to use this module, you can just
+copy it to your Pure library directory.</p>
+</div>
+<div class="section" id="quickstart">
+<h1><a class="toc-backref" href="#id3">3&nbsp;&nbsp;&nbsp;Quickstart</a></h1>
+<p>Run <tt class="docutils literal"><span class="pre">make</span> <span class="pre">examples</span></tt> to compile the Faust examples included in this package
+to corresponding Pd plugins. After that you should be able to run the patches
+in the various subdirectories of the examples directory. Everything is set up
+so that you can try the examples &quot;in-place&quot;, without installing anything
+except the required software as noted in <a class="reference internal" href="#requirements">Requirements</a> above. You can also run
+<tt class="docutils literal"><span class="pre">make</span> <span class="pre">realclean</span></tt> before <tt class="docutils literal"><span class="pre">make</span></tt> to regenerate everything from scratch (this
+requires faust2pd, so this will only work if you already installed the Pure
+interpreter).</p>
+<p>Faust Pd plugins work in much the same way as the well-known plugin~ object
+(which interfaces to LADSPA plugins), except that each Faust DSP is compiled
+to its own Pd external. Under Linux, the basic compilation process is as
+follows (taking the freeverb module from the Faust distribution as an
+example):</p>
+<pre class="literal-block">
+# compile the Faust source to a C++ module using the &quot;puredata&quot; architecture
+faust -a puredata.cpp freeverb.dsp -o freeverb.cpp
+# compile the C++ module to a Pd plugin
+g++ -shared -Dmydsp=freeverb freeverb.cpp -o freeverb~.pd_linux
+</pre>
+<p>By these means, a Faust DSP named <tt class="docutils literal"><span class="pre">xyz</span></tt> with n audio inputs and m audio
+outputs becomes a Pd object <tt class="docutils literal"><span class="pre">xyz~</span></tt> with n+1 inlets and m+1 outlets. The
+leftmost inlet/outlet pair is for control messages only. This allows you to
+inspect and change the controls the unit provides, as detailed below. The
+remaining inlets and outlets are the audio inputs and outputs of the unit,
+respectively. For instance, <tt class="docutils literal"><span class="pre">freeverb.dsp</span></tt> becomes the Pd object
+<tt class="docutils literal"><span class="pre">freeverb~</span></tt> which, in addition to the control inlet/outlet pair, has 2 audio
+inputs and outputs.</p>
+<p>When creating a Faust object it is also possible to specify, as optional
+creation parameters, an extra unit name (this is explained in the following
+section) and a sample rate. If no sample rate is specified explicitly, it
+defaults to the sample rate at which Pd is executing. (Usually it is not
+necessary or even desirable to override the default choice, but this might
+occasionally be useful for debugging purposes.)</p>
+<p>As already mentioned, the main ingredient of this package is a Pure script
+named &quot;faust2pd&quot; which allows you to create Pd abstractions as &quot;wrappers&quot;
+around Faust units. The wrappers generated by faust2pd can be used in Pd
+patches just like any other Pd objects. They are much easier to operate than
+the &quot;naked&quot; Faust plugins themselves, as they also provide &quot;graph-on-parent&quot;
+GUI elements to inspect and change the control values.</p>
+<p>The process to compile a plugin and build a wrapper patch is very similar to
+what we've seen above. You only have to add the -xml option when invoking the
+Faust compiler and run faust2pd on the resulting XML file:</p>
+<pre class="literal-block">
+# compile the Faust source and generate the xml file
+faust -a puredata.cpp -xml freeverb.dsp -o freeverb.cpp
+# compile the C++ module to a Pd plugin
+g++ -shared -Dmydsp=freeverb freeverb.cpp -o freeverb~.pd_linux
+# generate the Pd patch from the xml file
+faust2pd freeverb.dsp.xml
+</pre>
+<p>Please see <a class="reference internal" href="#wrapping-dsps-with-faust2pd">Wrapping DSPs with faust2pd</a> below for further details.</p>
+<p>Note that, just as with other Pd externals and abstractions, the compiled
+.pd_linux modules and wrapper patches must be put somewhere where Pd can find
+them. To these ends you can either move the files into the directory with the
+patches that use the plugin, or you can put them into the lib/pd/extra
+directory or some other directory on Pd's library path for system-wide use.</p>
+<p>Also, faust2pd-generated wrappers use a number of supporting abstractions (the
+faust-*.pd files in the faust2pd sources), so you have to put these into the
+directory of the main patch or install them under lib/pd/extra as well. (The
+<tt class="docutils literal"><span class="pre">make</span> <span class="pre">pd-install</span></tt> step does the latter, see <a class="reference internal" href="#installation">Installation</a> above.)</p>
+</div>
+<div class="section" id="control-interface">
+<h1><a class="toc-backref" href="#id4">4&nbsp;&nbsp;&nbsp;Control Interface</a></h1>
+<p>The control inlet of a Faust plugin understands messages in one of the
+following forms:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">bang</span></tt>, which reports all available controls of the unit on the control
+outlet, in the form: <tt class="docutils literal"><span class="pre">type</span> <span class="pre">name</span> <span class="pre">val</span> <span class="pre">init</span> <span class="pre">min</span> <span class="pre">max</span> <span class="pre">step</span></tt>, where <tt class="docutils literal"><span class="pre">type</span></tt> is
+the type of the control as specified in the Faust source (<tt class="docutils literal"><span class="pre">checkbox</span></tt>,
+<tt class="docutils literal"><span class="pre">nentry</span></tt>, etc.), <tt class="docutils literal"><span class="pre">name</span></tt> its (fully qualified) name, <tt class="docutils literal"><span class="pre">val</span></tt> the current
+value, and <tt class="docutils literal"><span class="pre">init</span></tt>, <tt class="docutils literal"><span class="pre">min</span></tt>, <tt class="docutils literal"><span class="pre">max</span></tt>, <tt class="docutils literal"><span class="pre">step</span></tt> the initial value, minimum,
+maximum and stepsize of the control, respectively.</li>
+<li><tt class="docutils literal"><span class="pre">foo</span> <span class="pre">0.99</span></tt>, which sets the control <tt class="docutils literal"><span class="pre">foo</span></tt> to the value 0.99, and outputs
+nothing.</li>
+<li>Just <tt class="docutils literal"><span class="pre">foo</span></tt>, which outputs the (fully qualified) name and current value of
+the <tt class="docutils literal"><span class="pre">foo</span></tt> control on the control outlet.</li>
+</ul>
+<p>Control names can be specified in their fully qualified form, like e.g.
+<tt class="docutils literal"><span class="pre">/gnu/bar/foo</span></tt> which indicates the control <tt class="docutils literal"><span class="pre">foo</span></tt> in the subgroup <tt class="docutils literal"><span class="pre">bar</span></tt>
+of the topmost group <tt class="docutils literal"><span class="pre">gnu</span></tt>, following the hierarchical group layout defined
+in the Faust source. This lets you distinguish between different controls with
+the same name which are located in different groups. To find out about all the
+controls of a unit and their fully qualified names, you can bang the control
+inlet of the unit as described above, and connect its control outlet to a
+<tt class="docutils literal"><span class="pre">print</span></tt> object, which will cause the descriptions of all controls to be
+printed in Pd's main window. (The same information can also be used, e.g., to
+initialize GUI elements with the proper values. Patches generated with
+faust2pd rely on this.)</p>
+<p>You can also specify just a part of the control path (like <tt class="docutils literal"><span class="pre">bar/foo</span></tt> or just
+<tt class="docutils literal"><span class="pre">foo</span></tt> in the example above) which means that the message applies to <em>all</em>
+controls which have the given pathname as the final portion of their fully
+qualified name. Thus, if there is more than one <tt class="docutils literal"><span class="pre">foo</span></tt> control in different
+groups of the Faust unit then sending the message <tt class="docutils literal"><span class="pre">foo</span></tt> to the control inlet
+will report the fully qualified name and value for each of them. Likewise,
+sending <tt class="docutils literal"><span class="pre">foo</span> <span class="pre">0.99</span></tt> will set the value of all controls named <tt class="docutils literal"><span class="pre">foo</span></tt> at once.</p>
+<p>Concerning the naming of Faust controls in Pd you should also note the
+following:</p>
+<ul class="simple">
+<li>A unit name can be specified at object creation time, in which case the
+given symbol is used as a prefix for all control names of the unit. E.g.,
+the control <tt class="docutils literal"><span class="pre">/gnu/bar/foo</span></tt> of an object <tt class="docutils literal"><span class="pre">baz~</span></tt> created with <tt class="docutils literal"><span class="pre">baz~</span>
+<span class="pre">baz1</span></tt> has the fully qualified name <tt class="docutils literal"><span class="pre">/baz1/gnu/bar/foo</span></tt>. This lets you
+distinguish different instances of an object such as, e.g., different voices
+of a polyphonic synth unit.</li>
+<li>Pd's input syntax for symbols is rather restrictive. Therefore group and
+control names in the Faust source are mangled into a form which only
+contains alphanumeric characters and hyphens, so that the control names are
+always legal Pd symbols. For instance, a Faust control name like <tt class="docutils literal"><span class="pre">meter</span> <span class="pre">#1</span>
+<span class="pre">(dB)</span></tt> will become <tt class="docutils literal"><span class="pre">meter-1-dB</span></tt> which can be input directly as a symbol in
+Pd without any problems.</li>
+<li>&quot;Anonymous&quot; groups and controls (groups and controls which have empty labels
+in the Faust source) are omitted from the path specification. E.g., if
+<tt class="docutils literal"><span class="pre">foo</span></tt> is a control located in a main group with an empty name then the
+fully qualified name of the control is just <tt class="docutils literal"><span class="pre">/foo</span></tt> rather than <tt class="docutils literal"><span class="pre">//foo</span></tt>.
+Likewise, an anonymous control in the group <tt class="docutils literal"><span class="pre">/foo/bar</span></tt> is named just
+<tt class="docutils literal"><span class="pre">/foo/bar</span></tt> instead of <tt class="docutils literal"><span class="pre">/foo/bar/</span></tt>.</li>
+</ul>
+<p>Last but not least, there is also a special control named <tt class="docutils literal"><span class="pre">active</span></tt> which is
+generated automatically for your convenience. The default behaviour of this
+control is as follows:</p>
+<ul class="simple">
+<li>When <tt class="docutils literal"><span class="pre">active</span></tt> is nonzero (the default), the unit works as usual.</li>
+<li>When <tt class="docutils literal"><span class="pre">active</span></tt> is zero, and the unit's number of audio inputs and outputs
+match, then the audio input is simply passed through.</li>
+<li>When <tt class="docutils literal"><span class="pre">active</span></tt> is zero, but the unit's number of audio inputs and outputs
+do <em>not</em> match, then the unit generates silence.</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">active</span></tt> control frequently alleviates the need for special &quot;bypass&quot; or
+&quot;mute&quot; controls in the Faust source. However, if the default behaviour of the
+generated control is not appropriate you can also define your own custom
+version of <tt class="docutils literal"><span class="pre">active</span></tt> explicitly in the Faust program; in this case the custom
+version will override the default one.</p>
+</div>
+<div class="section" id="examples">
+<h1><a class="toc-backref" href="#id5">5&nbsp;&nbsp;&nbsp;Examples</a></h1>
+<p>In the examples subdirectory you'll find a bunch of sample Faust DSPs and Pd
+patches illustrating how Faust units are used in Pd.</p>
+<ul class="simple">
+<li>The examples/basic/test.pd patch demonstrates the basics of operating &quot;bare&quot;
+Faust plugins in Pd. You'll rarely have to do this when using the wrappers
+generated with the faust2pd program, but it is a useful starting point to
+take a look behind the scenes anyway.</li>
+<li>The examples/faust directory contains all the examples from (an earlier
+version of) the Faust distribution, along with corresponding Pd wrappers
+generated with faust2pd. Have a look at examples/faust/faustdemo.pd to see
+some of the DSPs in action. Note that not all examples from the Faust
+distribution are working out of the box because of name clashes with Pd
+builtins, so we renamed those. We also edited some of the .dsp sources
+(e.g., turning buttons into checkboxes or sliders into nentries) where this
+seemed necessary to make it easier to operate the Pd patches.</li>
+<li>The examples/synth directory contains various plugins and patches showing
+how to implement polyphonic synthesizers using Faust units. Take a look at
+examples/synth/synth.pd for an example. If you have properly configured your
+interfaces then you should be able to play the synthesizer via Pd's MIDI
+input.</li>
+<li>The examples/seqdemo/seqdemo.pd patch demonstrates how to operate a
+multitimbral synth, built with Faust units, in an automatic fashion using a
+pattern sequencer programmed in Pure. This example requires the Pure
+interpreter as well as the pd-pure plugin available from
+<a class="reference external" href="http://pure-lang.googlecode.com">http://pure-lang.googlecode.com</a>.</li>
+</ul>
+</div>
+<div class="section" id="wrapping-dsps-with-faust2pd">
+<h1><a class="toc-backref" href="#id6">6&nbsp;&nbsp;&nbsp;Wrapping DSPs with faust2pd</a></h1>
+<p>The faust2pd script generates Pd patches from the dsp.xml files created by
+Faust when run with the -xml option. Most of the sample patches were actually
+created that way. After installation you can run the script as follows:</p>
+<pre class="literal-block">
+faust2pd [-hVbs] [-f size] [-o output-file] [-n #voices]
+  [-r max] [-X patterns] [-x width] [-y height] input-file
+</pre>
+<p>The default output filename is <tt class="docutils literal"><span class="pre">input-file</span></tt> with new extension
+<tt class="docutils literal"><span class="pre">.pd</span></tt>. Thus, <tt class="docutils literal"><span class="pre">faust2pd</span> <span class="pre">filename.dsp.xml</span></tt> creates a Pd patch named
+<tt class="docutils literal"><span class="pre">filename.pd</span></tt> from the Faust XML description in <tt class="docutils literal"><span class="pre">filename.dsp.xml</span></tt>.</p>
+<p>The faust2pd program understands a number of options which affect the layout
+of the GUI elements and the contents of the generated patch. Here is a brief
+list of the available options:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
+<td>display a short help message and exit</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-V</span>, <span class="option">--version</span></kbd></td>
+<td>display the version number and exit</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-b</span>, <span class="option">--fake-buttons</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>replace buttons (bangs) with checkboxes (toggles)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-f</span>, <span class="option">--font-size</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>font size for GUI elements (10 by default)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-n</span>, <span class="option">--nvoices</span></kbd></td>
+<td>create a synth patch with the given number of voices</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-o</span>, <span class="option">--output-file</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>output file name (.pd file)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-r</span>, <span class="option">--radio-sliders</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>radio controls for sliders</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-s</span>, <span class="option">--slider-nums</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>sliders with additional number control</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-X</span>, <span class="option">--exclude</span></kbd></td>
+<td>exclude controls matching the given glob patterns</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-x</span>, <span class="option">--width</span></kbd></td>
+<td>maximum width of the GUI area</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-y</span>, <span class="option">--height</span></kbd></td>
+<td>maximum height of the GUI area</td></tr>
+</tbody>
+</table>
+<p>Just like the Faust plugin itself, the generated patch has a control
+input/output as the leftmost inlet/outlet pair, and the remaining plugs are
+signal inlets and outlets for each audio input/output of the Faust
+unit. However, the control inlet/outlet pair works slightly different from
+that of the Faust plugin. Instead of being used for control replies, the
+control outlet of the patch simply passes through its control input (after
+processing messages which are understood by the wrapped plugin). By these
+means control messages can flow along with the audio signal through an entire
+chain of Faust units. (You can find an example of this in
+examples/faust/faustdemo.pd.) Moreover, when generating a polyphonic synth
+patch using the -n option then there will actually be two control inlets, one
+for note messages and one for ordinary control messages; this is illustrated
+in the examples/synth/synth.pd example.</p>
+<p>The generated patch also includes the necessary GUI elements to see and change
+all (active and passive) controls of the Faust unit. Faust control elements
+are mapped to Pd GUI elements in an obvious fashion, following the horizontal
+and vertical layout specified in the Faust source. The script also adds
+special buttons for resetting all controls to their defaults and to operate
+the special <tt class="docutils literal"><span class="pre">active</span></tt> control.</p>
+<p>This generally works very well, but you should be aware that the control GUIs
+generated by faust2pd are somewhat hampered by the limited range of GUI
+elements available in a vanilla Pd installation. As a remedy, faust2pd
+provides various options to change the content of the generated wrapper and
+work around these limitations.</p>
+<ul class="simple">
+<li>There are no real button widgets as required by the Faust specification,
+so bangs are used instead. There is a global delay time for switching the
+control from 1 back to 0, which can be changed by sending a value in
+milliseconds to the <tt class="docutils literal"><span class="pre">faust-delay</span></tt> receiver. If you need interactive
+control over the switching time then it is better to use checkboxes instead,
+or you can have faust2pd automatically substitute checkboxes for all buttons
+in a patch by invoking it with the -f a.k.a. --fake-buttons option.</li>
+<li>Sliders in Pd do not display their value in numeric form so it may be hard
+to figure out what the current value is. Therefore faust2pd has an option -s
+a.k.a. --slider-nums which causes it to add a number box to each slider
+control. (This flag also applies to Faust's passive bargraph controls, as
+these are implemented using sliders, see below.)</li>
+<li>Pd's sliders also have no provision for specifying a stepsize, so they are
+an awkward way to input integral values from a small range. OTOH, Faust
+doesn't support the &quot;radio&quot; control elements which Pd provides for that
+purpose. As a remedy, faust2pd allows you to specify the option -r max
+(a.k.a. --radio-sliders=max) to indicate that sliders with integral values
+from the range 0..max-1 are to be mapped to corresponding Pd radio controls.</li>
+<li>Faust's bargraphs are emulated using sliders. Note that these are passive
+controls which just display a value computed by the Faust unit. A different
+background color is used for these widgets so that you can distinguish them
+from the ordinary (active) slider controls. The values shown in passive
+controls are sampled every 40 ms by default. You can change this value by
+sending an appropriate message to the global <tt class="docutils literal"><span class="pre">faust-timer</span></tt> receiver.</li>
+<li>Since Pd has no &quot;tabbed&quot; (notebook-like) GUI element, Faust's tgroups are
+mapped to hgroups instead. It may be difficult to present large and
+complicated control interfaces without tabbed dialogs, though. As a remedy,
+you can control the amount of horizontal or vertical space available for the
+GUI area with the -x and -y (a.k.a. --width and --height) options and
+faust2pd will then try to break rows and columns in the layout to make
+everything fit within that area. (This feature has only been tested with
+simple layouts so far, so beware.)</li>
+<li>You can also exclude certain controls from appearing in the GUI using the -X
+option. This option takes a comma-separated list of shell glob patterns
+indicating either just the names or the fully qualified paths of Faust
+controls which are to be excluded from the GUI. For instance, the option
+<tt class="docutils literal"><span class="pre">-X</span> <span class="pre">'volume,meter*,faust/resonator?/*'</span></tt> will exclude all volume controls,
+all controls whose names start with <tt class="docutils literal"><span class="pre">meter</span></tt>, and all controls in groups
+matching <tt class="docutils literal"><span class="pre">faust/resonator?</span></tt>. (Note that the argument to -X has to be
+quoted if it contains any wildchards such as <tt class="docutils literal"><span class="pre">*</span></tt> and <tt class="docutils literal"><span class="pre">?</span></tt>, so that the
+shell doesn't try to expand the patterns beforehand. Also note that only one
+-X option is recognized, so you have to specify all controls to be excluded
+as a single option.)</li>
+<li>Faust group labels are not shown at all, since I haven't found an easy way
+to draw some kind of labelled frame in Pd yet.</li>
+</ul>
+<p>Despite these limitations, faust2pd appears to work rather well, at least for
+the kind of DSPs found in the Faust distribution. (Still, for more complicated
+control surfaces and interfaces to be used on stage you'll probably have to
+edit the generated GUI layouts by hand.)</p>
+<p>For convenience, all the content-related command line options mentioned above
+can also be specified in the Faust source, as special tags in the label of the
+toplevel group of the dsp. These take the form <tt class="docutils literal"><span class="pre">[pd:option]</span></tt> or
+<tt class="docutils literal"><span class="pre">[pd:option=value]</span></tt> where <tt class="docutils literal"><span class="pre">option</span></tt> is any of the (long) options understood
+by faust2pd. For instance:</p>
+<pre class="literal-block">
+process = vgroup(&quot;mysynth [pd:nvoices=8] [pd:slider-nums]&quot;, ...);
+</pre>
+<p>Source options carrying arguments, like <tt class="docutils literal"><span class="pre">nvoices</span></tt> in the above example, can
+also be overridden with corresponding command line options.</p>
+</div>
+<div class="section" id="conclusion">
+<h1><a class="toc-backref" href="#id7">7&nbsp;&nbsp;&nbsp;Conclusion</a></h1>
+<p>Creating Faust plugins for use with Pd has never been easier before, so I hope
+that you'll soon have much joy trying your Faust programs in Pd. Add Pd-Pure
+to this, and you can program all your specialized audio and control objects
+using two modern-style functional languages which are much more fun than
+C/C++. Of course there's an initial learning curve to be mastered, but IMHO it
+is well worth the effort. The bottomline is that Pd+Faust+Pure really makes an
+excellent combo which provides you with a powerful, programmable interactive
+environment for creating advanced computer music and multimedia applications
+with ease.</p>
+<p>Enjoy! :)</p>
+<div class="section" id="acknowledgements">
+<h2><a class="toc-backref" href="#id8">7.1&nbsp;&nbsp;&nbsp;Acknowledgements</a></h2>
+<p>Thanks are due to Yann Orlarey for his wonderful Faust, which makes developing
+DSP algorithms so much more easy and fun.</p>
+<!--  -->
+</div>
+</div>
+<div class="section" id="appendix-faustxml">
+<h1><a class="toc-backref" href="#id9">8&nbsp;&nbsp;&nbsp;Appendix: faustxml</a></h1>
+<p>The faustxml module is provided along with faust2pd to retrieve the
+description of a Faust DSP from its XML file as a data structure which
+is ready to be processed by Pure programs. It may also be useful in other
+Pure applications which need to inspect description of Faust DSPs.</p>
+<p>The main entry point is the <a class="reference internal" href="#info">info</a> function which takes the name of a
+Faust-generated XML file as argument and returns a tuple <tt class="docutils literal"><span class="pre">(name,</span> <span class="pre">descr,</span>
+<span class="pre">version,</span> <span class="pre">in,</span> <span class="pre">out,</span> <span class="pre">controls)</span></tt> with the name, description, version, number
+of inputs and outputs and the toplevel group with the descriptions of the
+controls of the dsp. A couple of other convenience functions are provided
+to deal with the control descriptions.</p>
+<div class="section" id="usage">
+<h2><a class="toc-backref" href="#id10">8.1&nbsp;&nbsp;&nbsp;Usage</a></h2>
+<p>Use the following declaration to import this module in your programs:</p>
+<pre class="literal-block">
+using faustxml;
+</pre>
+<p>For convenience, you can also use the following to get access to the
+module's namespace:</p>
+<pre class="literal-block">
+using namespace faustxml;
+</pre>
+</div>
+<div class="section" id="data-structure">
+<h2><a class="toc-backref" href="#id11">8.2&nbsp;&nbsp;&nbsp;Data Structure</a></h2>
+<p>The following constructors are used to represent the UI controls of Faust
+DSPs:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">button|checkbox</span> <span class="pre">label</span></tt>: A button or checkbox with the given
+label.</li>
+<li><tt class="docutils literal"><span class="pre">nentry|vslider|hslider</span> <span class="pre">(label,init,min,max,step)</span></tt>: A
+numeric input control with the given label, initial value, range and
+stepwidth.</li>
+<li><tt class="docutils literal"><span class="pre">vbargraph|hbargraph</span> <span class="pre">(label,min,max)</span></tt>: A numeric output control
+with the given label and range.</li>
+<li><tt class="docutils literal"><span class="pre">vgroup|hgroup|tgroup</span> <span class="pre">(label,controls)</span></tt>: A group with the
+given label and list of controls in the group.</li>
+</ul>
+<!--  -->
+</div>
+<div class="section" id="operations">
+<h2><a class="toc-backref" href="#id12">8.3&nbsp;&nbsp;&nbsp;Operations</a></h2>
+<a name="controlp"><dl class="docutils" id="controlp">
+<dt><tt class="docutils literal"><span class="pre">controlp</span> <span class="pre">x</span></tt></dt>
+<dd>Check for control description values.</dd>
+</dl>
+<a name="control_type"><a name="control_label"><a name="control_args"><dl class="docutils" id="control-args">
+<span id="control-label"></span><span id="control-type"></span><dt><tt class="docutils literal"><span class="pre">control_type</span> <span class="pre">x</span></tt>, <tt class="docutils literal"><span class="pre">control_label</span> <span class="pre">x</span></tt>, <tt class="docutils literal"><span class="pre">control_args</span> <span class="pre">x</span></tt></dt>
+<dd>Access functions for the various components of a control description.</dd>
+</dl>
+<a name="controls"><dl class="docutils" id="controls">
+<dt><tt class="docutils literal"><span class="pre">controls</span> <span class="pre">x</span></tt></dt>
+<dd>This function returns a flat representation of a control group <tt class="docutils literal"><span class="pre">x</span></tt> as a
+list of basic control descriptions, which provides a quick way to access
+all the control values of a Faust DSP. The grouping controls themselves
+are omitted. You can pass the last component of the return value of the
+<a class="reference internal" href="#info">info</a> function to this function.</dd>
+</dl>
+<a name="pcontrols"><dl class="docutils" id="pcontrols">
+<dt><tt class="docutils literal"><span class="pre">pcontrols</span> <span class="pre">x</span></tt></dt>
+<dd>Works like the <a class="reference internal" href="#controls">controls</a> function above, but also replaces the label of
+each basic control with a fully qualified path consisting of all control
+labels leading up to the given control. Thus, e.g., the label of a slider
+<tt class="docutils literal"><span class="pre">&quot;gain&quot;</span></tt> inside a group <tt class="docutils literal"><span class="pre">&quot;voice#0&quot;</span></tt> inside the main <tt class="docutils literal"><span class="pre">&quot;faust&quot;</span></tt> group
+will be denoted by the label <tt class="docutils literal"><span class="pre">&quot;faust/voice#0/gain&quot;</span></tt>.</dd>
+</dl>
+<a name="info"><dl class="docutils" id="info">
+<dt><tt class="docutils literal"><span class="pre">info</span> <span class="pre">fname</span></tt></dt>
+<dd>Extract the description of a Faust DSP from its XML file. This is the
+main entry point. Returns a tuple with the name, description and version
+of the DSP, as well as the number of inputs and outputs and the toplevel
+group with all the control descriptions. Raises an exception if the XML
+file doesn't exist or contains invalid contents.</dd>
+</dl>
+<p>Example:</p>
+<pre class="literal-block">
+&gt; using faustxml;
+&gt; let name,descr,version,in,out,group =
+&gt;   faustxml::info &quot;examples/basic/freeverb.dsp.xml&quot;;
+&gt; name,descr,version,in,out;
+&quot;freeverb&quot;,&quot;freeverb -- a Schroeder reverb&quot;,&quot;1.0&quot;,2,2
+&gt; using system;
+&gt; do (puts.str) $ faustxml::pcontrols group;
+faustxml::hslider (&quot;freeverb/damp&quot;,0.5,0.0,1.0,0.025)
+faustxml::hslider (&quot;freeverb/roomsize&quot;,0.5,0.0,1.0,0.025)
+faustxml::hslider (&quot;freeverb/wet&quot;,0.3333,0.0,1.0,0.025)
+</pre>
+</div>
+</div>
+</div>
+</body>
+</html>

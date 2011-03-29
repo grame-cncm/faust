@@ -1,0 +1,663 @@
+#! /usr/local/bin/pure -x
+
+/* Copyright (c) 2009 by Albert Graef.
+
+   This is free software; you can redistribute it and/or modify it under the
+   terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2, or (at your option) any later version.
+
+   This software is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+   more details.
+
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation, Inc., 675
+   Mass Ave, Cambridge, MA 02139, USA. */
+
+// This is set at build time.
+let version = "@version@";
+
+using dict, faustxml, getopt, system;
+using namespace faustxml;
+
+/* Constructors to represent Pd messages and objects. */
+
+public obj msg text connect coords send receive route
+  bng tgl nbx hsl vsl hradio vradio;
+
+send = s;
+receive = r;
+
+/* Merge subpatches. */
+
+merge a b	= a+map (shift (nobjs a)) b with
+  shift n (connect x i y j)
+		= connect (x+n) i (y+n) j;
+  shift _ x	= x otherwise;
+  nobjs objs	= #filter isobj objs;
+  isobj (f@_ x)	= isobj f;
+  isobj x	= any ((===)x) [obj,msg,text] otherwise;
+end;
+
+/* Move subpatches on the canvas. */
+
+move dx dy objs	= map (move dx dy) objs if listnp objs;
+move dx dy (obj x y)
+		= obj (x+dx) (y+dy);
+move dx dy (msg x y)
+		= msg (x+dx) (y+dy);
+move dx dy (f@_ x)
+		= move dx dy f x;
+move dx dy x	= x otherwise;
+
+/* Write dsp and synth patches to a file. */
+
+write_dsp info outname
+		= fputs "#N canvas 0 0 450 300 10;\n" f $$
+		  do (write_obj f) objs
+		    when name,_ = info;
+		      outname = if null outname then name+".pd" else outname;
+		      f = fopen outname "w";
+		      if pointerp f then ()
+		      else throw $ outname+strerror errno;
+		      objs = make_dsp info;
+		    end;
+
+write_synth n info outname
+		= fputs "#N canvas 0 0 450 300 10;\n" f $$
+		  do (write_obj f) objs
+		    when name,_ = info;
+		      outname = if null outname then name+".pd" else outname;
+		      f = fopen outname "w";
+		      if pointerp f then ()
+		      else throw $ outname+strerror errno;
+		      objs = make_synth n info;
+		    end;
+
+write_obj f x	= fprintf f "#X %s;\n" $ obj_str x;
+
+obj_str (f@_ x::string)
+		= obj_str f if null x;
+		= obj_str f+" \\"+x if x!0 == "$";
+		= obj_str f+" "+x otherwise;
+obj_str (f@_ x::int)
+		= obj_str f+sprintf " %d" x otherwise;
+obj_str (f@_ x::double)
+		= obj_str f+sprintf " %g" x otherwise;
+obj_str (f@_ x)	= obj_str f+" "+str x;
+obj_str f	= str f otherwise;
+
+/* Construct dsp and synth patches. */
+
+comment y	= [text 0 (y+10) $ sprintf "Generated %s by faust2pd v%s. \
+See http://faust.grame.fr and http://pure-lang.googlecode.com."
+		   (strftime "%c" (localtime time),version)];
+
+make_dsp (name,descr,version,in,out,layout)
+		= merge dsp controls +
+		  (if null controls then []
+		   else [coords 0 (-1) 1 1 x (y-10) 1 0 0]) +
+		  comment y
+		    when controls = filter is_dsp_control $
+		      pdcontrols layout; k = #controls;
+		      x,y,controls = make_controls layout controls;
+		      dsp = move 10 (y+60) $
+		      make_simple (name+"~") in out;
+		    end;
+
+make_synth n (name,descr,version,in,out,layout)
+		= merge voices controls +
+		  (if null controls then []
+		   else [coords 0 (-1) 1 1 x (y-10) 1 0 0]) +
+		  comment y
+		    when controls = filter is_voice_control $
+		      pdcontrols layout; k = #controls;
+		      x,y,controls = make_controls layout controls;
+		      voices = move 10 (y+60) $
+		      make_voices (name+"~") out n;
+		    end;
+
+// check for the "active" control which is treated specially
+is_dsp_control c
+		= name~="active"
+		    when name = last $ split "/" $ control_label c end;
+
+// check for "active" and special voice controls (freq/gain/gate) which
+// shouldn't be exposed in the GUI
+is_voice_control c
+		= ~any ((==)name) ["active","freq","gain","gate"]
+		    when name = last $ split "/" $ control_label c end;
+
+/* Create the dsp subpatch. */
+
+make_simple dsp in out
+=						// -- objects --
+
+  [obj (i*60) 0 "inlet~" |			// 0..in-1	inlet~
+   i = 1..in] +
+  [obj 0 0 "inlet",				// in		inlet
+   obj (max 2 (in+1)*60) 0 receive "$0-read",	// in+1		receive $0-read
+   obj (max 2 (in+1)*60) 30 "faust-control" "$0",
+						// in+2	      faust-control $0
+   obj (max 2 (in+1)*60) 60 send "$0-write",	// in+3		s $0-write
+   obj 0 60 receive "$0-in",			// in+4		receive $0-in
+   obj 0 90 dsp,				// in+5		dsp
+   obj 0 120 send "$0-out"] +			// in+6		s $0-out
+  [obj (i*60) 150 "outlet~" |			// in+7..in+7+out-1
+   i = 1..out] +				//		outlet~
+  [obj 0 150 "outlet"] +			// in+7+out	outlet
+
+						// -- connections --
+
+  [connect in 0 (in+2) 0,			// inlet -> faust-control
+   connect (in+1) 0 (in+2) 0,			// receive $0-read -> faust-control
+   connect (in+2) 0 (in+3) 0,			// faust-control -> s $0-write
+   connect (in+5) 0 (in+6) 0,			// dsp -> s $0-out
+   connect in 0 (in+7+out) 0,			// inlet -> outlet
+   connect (in+4) 0 (in+5) 0] +			// receive $0-in -> dsp
+  [connect (i-1) 0 (in+5) i |			// inlet~ -> dsp
+   i = 1..in] +
+  [connect (in+5) i (in+7+i-1) 0 |		// dsp -> outlet~
+   i = 1..out];
+
+/* Create the synth subpatch. */
+
+make_voices dsp out n
+=						// -- objects --
+
+  [obj 0 0 "inlet",				// 0		inlet #1
+   obj 120 0 "inlet",				// 1		inlet #2
+   obj 180 0 receive "$0-read",			// 2		r $0-read
+   obj 120 30 receive "$0-all",			// 3		r $0-all
+   obj 180 30 "faust-control" "$0",		// 4	      faust-control $0
+   obj 180 60 send "$0-write",			// 5		s $0-write
+   obj 120 60 receive "$0-in",			// 6		r $0-in
+   obj 120 ((n+1)*30+60) send "$0-out"] +	// 7		s $0-out
+  cat [[obj 0 (i*30+60) "faust-gate" i,		// 8,10..2*n+6	faust-gate 1..n
+	obj 120 (i*30+60) dsp] |		// 9,11..2*n+7	dsp #1..n
+       i = 1..n] +
+  [obj (i*60+120) ((n+1)*30+90) "outlet~" |	// 2*n+8..2*n+8+out-1
+   i = 0..out-1] +				//		outlet~ #1..n
+  [obj 0 ((n+1)*30+90) "outlet"] +		// 2*n+8+out	outlet
+
+						// -- connections --
+
+  [connect 1 0 4 0,				// inlet #2 -> faust-control
+   connect 2 0 4 0,				// r $0-read -> faust-control
+   connect 4 0 5 0,				// faust-control -> s $0-write
+   connect 1 0 (2*n+8+out) 0,			// inlet #2 -> outlet
+   connect 6 0 9 0,				// r $0-in -> dsp #1
+   connect 9 0 7 0] +				// dsp #1 -> s $0-out
+  cat [[connect 0 0 (2*i+8) 0,			// inlet #1 -> faust-gate 1..n
+	connect (2*i+8) 0 (2*i+9) 0,		// faust-gate 1..n -> dsp #1..n
+	connect 3 0 (2*i+9) 0] |		// r $0-all -> dsp #1..n
+       i = 0..n-1] +
+  [connect (2*i+9) (j+1) (2*n+8+j) 0 |		// dsp #1..n -> outlet~ #1..n
+   i = 0..n-1; j = 0..out-1];
+
+/* Create the GUI+controls subpatch. */
+
+const black = -1;
+const white = -0x40000;
+const gray  = -0x38e39;
+
+/* FIXME: The following is mostly guesswork, so you might have to customize
+   this. Maybe these values should be configurable from the command line, or a
+   better layout algorithm should be designed which also takes into account
+   the widget labels. */
+
+const button_x,button_y = 50,30;
+const nentry_x,nentry_y = 75,30;
+const hslider_x,hslider_y = 150,30;
+const vslider_x,vslider_y = 50,150;
+
+make_controls layout controls
+		= x,y,c
+		    if ~null gui
+		    when x,y,gui = make_gui layout;
+		      c = move (max 450 (x+30)) 10 $
+		      make_control_objs controls;
+		      c = merge gui c;
+		    end;
+		= 0,0,[] otherwise;
+
+/* Create the GUI subpatch. */
+
+let fn1,fn2 = 10,10; // default GUI font sizes, adapt as needed
+
+make_gui layout	= x,y,c+
+		  [obj (x-38) 3 bng 15 250 50 1 "$0-init" "$0-ignore"
+		   "empty" 0 (-6) 0 fn1 white black black,
+		   obj (x-18) 3 tgl 15 1 "$0-active" "$0-active"
+		   "empty" 0 (-6) 0 fn1 white black black 1 1]
+		    if ~null c
+		    when x,y,c = make_group "" (10,30) layout end;
+		= 0,0,[] otherwise;
+
+make_group path (x,y) (tgroup g)
+		= make_group path (x,y) (hgroup g);
+make_group path (x,y) (hgroup (name,items))
+		= //printf "end %s\n" $ join2 path $ mangle name $$
+		  x,y,cat (reverse c)
+		    when _,_,_,_,x,y,c =
+		      //printf "hgroup %s\n" $ join2 path $ mangle name $$
+		      foldl (hstep (make_group (join2 path (mangle name))))
+		      (x,y,x,y,x,y,[]) items;
+		    end;
+make_group path (x,y) (vgroup (name,items))
+		= //printf "end %s\n" $ join2 path $ mangle name $$
+		  x,y,cat (reverse c)
+		    when _,_,_,_,x,y,c =
+		      //printf "vgroup %s\n" $ join2 path $ mangle name $$
+		      foldl (vstep (make_group (join2 path (mangle name))))
+		      (x,y,x,y,x,y,[]) items;
+		    end;
+make_group path (x,y) item
+		= //printf "%s [%s] item %s\n" (str (x,y),path,str item) $$
+		  add_widget path (x,y) item;
+
+hstep f (x0,y0,x1,y1,x2,y2,c) item
+		= hbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		    when x,y,c1 = f (x1,y1) item end;
+hbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		= x0,y0,x,y1,max x2 x,max y2 y,c1:c
+		    if width<=0 || x<=width || x1<=x0;
+		= hbreak f (x0,y0,x0,y2,x2,y2,c) item (f (x0,y2) item);
+vstep f (x0,y0,x1,y1,x2,y2,c) item
+		= vbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		    when x,y,c1 = f (x1,y1) item end;
+vbreak f (x0,y0,x1,y1,x2,y2,c) item (x,y,c1)
+		= x0,y0,x1,y,max x2 x,max y2 y,c1:c
+		    if height<=0 || y<=height || y1<=y0;
+		= vbreak f (x0,y0,x2,y0,x2,y2,c) item (f (x2,y0) item);
+
+checkname name	= "empty" if null name;
+		= name otherwise;
+
+match_control path name pat
+		= fnmatch pat (join2 path name) 0 if index pat "/" >= 0;
+		= fnmatch pat name 0 otherwise;
+
+let gmax = max;
+add_widget path (x,y) item
+		= x,y,[]
+		    if null (join2 path name) ||
+		      any (match_control path name) exclude
+		    when name = mangle $ control_label item end;
+add_widget path (x,y) (button name)
+		= add_widget path (x,y) (checkbox name) if fake_buttons_flag;
+add_widget path (x,y) (button name)
+		= x+button_x,y+button_y,
+		  [obj x y bng 15 250 50 0 s s
+		   name 0 (-6) 0 fn1 white black black]
+		    when name = mangle name;
+		      s = control_sym $ join2 path name;
+		      name = checkname name;
+		    end
+		    if nvoices==0 ||
+		      ~any ((==)name) ["freq","gain","gate"];
+add_widget path (x,y) (checkbox name)
+		= x+button_x,y+button_y,
+		  [obj x y tgl 15 0 s s
+		   name 0 (-6) 0 fn1 white black black 0 1]
+		    when name = mangle name;
+		      s = control_sym $ join2 path name;
+		      name = checkname name;
+		    end
+		    if nvoices==0 ||
+		      ~any ((==)name) ["freq","gain","gate"];
+add_widget path (x,y) (nentry (name,init,min,max,_))
+		= x+nentry_x,y+nentry_y,
+		  [obj x y nbx 5 14 min max 0 0 s s
+		   name 0 (-6) 0 fn2 white black black 256]
+		    when name = mangle name;
+		      s = control_sym $ join2 path name;
+		      name = checkname name;
+		    end
+		    if nvoices==0 ||
+		      ~any ((==)name) ["freq","gain","gate"];
+add_widget path (x,y) (hslider (name,init,min,max,step))
+		= if radio_sliders>0 && min==0 &&
+		    step==1 && max<radio_sliders then
+		    x+gmax hslider_x (radio_sliders*15),y+hslider_y,
+		    [obj x y hradio 15 1 0 (max+1) s s
+		     name 0 (-6) 0 fn1 white black black 0]
+		  else if slider_nums_flag then
+		    x+hslider_x+nentry_x,y+hslider_y,
+		    [obj x y hsl 128 15 min max 0 0 s s
+		     name (-2) (-6) 0 fn1 white black black 0 1,
+		     obj (x+hslider_x) y nbx 5 14 min max 0 0 s s
+		     "empty" 0 (-6) 0 fn2 white black black 256]
+		  else
+		    x+hslider_x,y+hslider_y,
+		    [obj x y hsl 128 15 min max 0 0 s s
+		     name (-2) (-6) 0 fn1 white black black 0 1]
+		    when name = mangle name;
+		      s = control_sym $ join2 path name;
+		      name = checkname name;
+		    end
+		    if nvoices==0 ||
+		      ~any ((==)name) ["freq","gain","gate"];
+add_widget path (x,y) (vslider (name,init,min,max,step))
+		= if radio_sliders>0 && min==0 &&
+		    step==1 && max<radio_sliders then
+		    x+vslider_x,y+gmax vslider_y (radio_sliders*15),
+		    [obj x y vradio 15 1 0 (max+1) s s
+		     name 0 (-6) 0 fn1 white black black 0]
+		  else if slider_nums_flag then
+		    x+nentry_x,y+vslider_y+nentry_y,
+		    [obj x y vsl 15 128 min max 0 0 s s
+		     name 0 (-8) 0 fn1 white black black 0 1,
+		     obj x (y+vslider_y-10) nbx 5 14 min max 0 0 s s
+		     "empty" 0 (-6) 0 fn2 white black black 256]
+		  else
+		    x+vslider_x,y+vslider_y,
+		    [obj x y vsl 15 128 min max 0 0 s s
+		     name 0 (-8) 0 fn1 white black black 0 1]
+		    when name = mangle name;
+		      s = control_sym $ join2 path name;
+		      name = checkname name;
+		    end
+		    if nvoices==0 ||
+		      ~any ((==)name) ["freq","gain","gate"];
+add_widget path (x,y) (hbargraph (name,min,max))
+		= if slider_nums_flag then
+		    x+hslider_x+nentry_x,y+hslider_y,
+		    [obj x y hsl 128 15 min max 0 0 s s
+		     name (-2) (-6) 0 fn1 gray black black 0 1,
+		     obj (x+hslider_x) y nbx 5 14 min max 0 0 s s
+		     "empty" 0 (-6) 0 fn2 gray black black 256]
+		  else
+		    x+hslider_x,y+hslider_y,
+		    [obj x y hsl 128 15 min max 0 0 s s
+		     name (-2) (-6) 0 fn1 gray black black 0 1]
+		    when name = mangle name;
+		      s = control_sym $ join2 path name;
+		      name = checkname name;
+		    end
+		    if nvoices==0 ||
+		      ~any ((==)name) ["freq","gain","gate"];
+add_widget path (x,y) (vbargraph (name,min,max))
+		= if slider_nums_flag then
+		    x+nentry_x,y+vslider_y+nentry_y,
+		    [obj x y vsl 15 128 min max 0 0 s s
+		     name 0 (-8) 0 fn1 gray black black 0 1,
+		     obj x (y+vslider_y-10) nbx 5 14 min max 0 0 s s
+		     "empty" 0 (-6) 0 fn2 gray black black 256]
+		  else
+		    x+vslider_x,y+vslider_y,
+		    [obj x y vsl 15 128 min max 0 0 s s
+		     name 0 (-8) 0 fn1 gray black black 0 1]
+		    when name = mangle name;
+		      s = control_sym $ join2 path name;
+		      name = checkname name;
+		    end
+		    if nvoices==0 ||
+		      ~any ((==)name) ["freq","gain","gate"];
+add_widget _ (x,y) _
+		= x,y,[] otherwise;
+
+/* Create the control objects and wiring. */
+
+make_control_objs controls
+		= [obj 0 0 receive "$0-init",
+		   obj dx 0 send (if nvoices>0 then "$0-all" else "$0-in"),
+		   obj (dx+dx div 2) 0 send "$0-read",
+		   obj (2*dx) 0 receive "$0-write"] + c
+		    when controls = checkbox "active":controls;
+		      dx = foldl max 0 $ map ((#).control_label) controls;
+		      dx = (dx+7)*8;
+		      _,c = foldl (control_objs dx) (0,[]) controls;
+		    end;
+
+control_objs dx (j,c) (button name)
+		= control_objs dx (j,c) (checkbox name) if fake_buttons_flag;
+control_objs dx (j,c) (button name)
+		= (j+1,c+button_control_objs dx j name s 0)
+		    when s = control_sym name end;
+control_objs dx (j,c) (checkbox "active")
+		= (j+1,c+activate_control_objs dx j "active" s 1)
+		    when s = control_sym "active" end;
+control_objs dx (j,c) (checkbox name)
+		= (j+1,c+active_control_objs dx j name s 0)
+		    when s = control_sym name end;
+control_objs dx (j,c) (nentry (name,init,_))
+		= (j+1,c+active_control_objs dx j name s init)
+		    when s = control_sym name end;
+control_objs dx (j,c) (hslider (name,init,_))
+		= (j+1,c+active_control_objs dx j name s init)
+		    when s = control_sym name end;
+control_objs dx (j,c) (vslider (name,init,_))
+		= (j+1,c+active_control_objs dx j name s init)
+		    when s = control_sym name end;
+control_objs dx (j,c) (hbargraph (name,_))
+		= (j+1,c+passive_control_objs dx j name s 0)
+		    when s = control_sym name end;
+control_objs dx (j,c) (vbargraph (name,_))
+		= (j+1,c+passive_control_objs dx j name s 0)
+		    when s = control_sym name end;
+control_objs _ (j,c) _
+		= (j,c) otherwise;
+
+control_sym name
+		= sprintf "$0-%s" $ substr name 1 (#name-1) if name!0=="/";
+		= sprintf "$0-%s" name otherwise;
+
+activate_control_objs dx j name s init
+		= [msg 0 ((2*j+1)*20) init,
+		   obj 0 ((2*j+2)*20) send s,
+		   //connect 0 0 (6*j+4) 0,
+		   connect (6*j+4) 0 (6*j+5) 0,
+		   obj dx ((2*j+1)*20) receive s,
+		   msg dx ((2*j+2)*20) name "$1",
+		   connect (6*j+6) 0 (6*j+7) 0,
+		   connect (6*j+7) 0 1 0,
+		   obj (2*dx) ((2*j+1)*20) route name,
+		   obj (2*dx) ((2*j+2)*20) send s,
+		   connect (if j>0 then 6*j+2 else 3)
+		   (if j>0 then 1 else 0) (6*j+8) 0,
+		   connect (6*j+8) 0 (6*j+9) 0];
+
+active_control_objs dx j name s init
+		= [msg 0 ((2*j+1)*20) init,
+		   obj 0 ((2*j+2)*20) send s,
+		   connect 0 0 (6*j+4) 0,
+		   connect (6*j+4) 0 (6*j+5) 0,
+		   obj dx ((2*j+1)*20) receive s,
+		   msg dx ((2*j+2)*20) name "$1",
+		   connect (6*j+6) 0 (6*j+7) 0,
+		   connect (6*j+7) 0 1 0,
+		   obj (2*dx) ((2*j+1)*20) route name,
+		   obj (2*dx) ((2*j+2)*20) send s,
+		   connect (if j>0 then 6*j+2 else 3)
+		   (if j>0 then 1 else 0) (6*j+8) 0,
+		   connect (6*j+8) 0 (6*j+9) 0];
+
+button_control_objs dx j name s init
+		= [msg 0 ((2*j+1)*20) init,
+		   obj 0 ((2*j+2)*20) "faust-s" s,
+		   connect 0 0 (6*j+4) 0,
+		   connect (6*j+4) 0 (6*j+5) 0,
+		   obj dx ((2*j+1)*20) receive s,
+		   obj dx ((2*j+2)*20) "faust-r" name,
+		   connect (6*j+6) 0 (6*j+7) 0,
+		   connect (6*j+7) 0 1 0,
+		   obj (2*dx) ((2*j+1)*20) route name,
+		   obj (2*dx) ((2*j+2)*20) "faust-s" s,
+		   connect (if j>0 then 6*j+2 else 3)
+		   (if j>0 then 1 else 0) (6*j+8) 0,
+		   connect (6*j+8) 0 (6*j+9) 0];
+
+passive_control_objs dx j name s init
+		= [msg 0 ((2*j+1)*20) init,
+		   obj 0 ((2*j+2)*20) send s,
+		   connect 0 0 (6*j+4) 0,
+		   connect (6*j+4) 0 (6*j+5) 0,
+		   obj dx ((2*j+1)*20) "faust-timer" "$0",
+		   msg dx ((2*j+2)*20) name,
+		   connect (6*j+6) 0 (6*j+7) 0,
+		   connect (6*j+7) 0 2 0,
+		   obj (2*dx) ((2*j+1)*20) route name,
+		   obj (2*dx) ((2*j+2)*20) send s,
+		   connect (if j>0 then 6*j+2 else 3)
+		   (if j>0 then 1 else 0) (6*j+8) 0,
+		   connect (6*j+8) 0 (6*j+9) 0];
+
+/* Make control names as in faustxml.pure but with name mangling and "/" in
+   front. */
+
+mangle s	= join "-" $ filter (\x->~null x) $
+		  regsplit "[^A-Za-z0-9]+" REG_EXTENDED s 0
+when
+  s = strcat $ regsplit "[ \t]*\\[[^]]+\\][ \t]*" REG_EXTENDED s 0;
+end;
+
+pdcontrols x	= filter (((~=)"/").control_label) $ controls "" x with
+  controls path x
+		= case x of
+		    f@_ (lbl::string,ctrls@[]) |
+		    f@_ (lbl::string,ctrls@(_:_))
+		      = catmap (controls (join2 path lbl)) ctrls
+		        when lbl = mangle lbl end;
+		    f@_ (lbl::string,args)
+		      = [f (join2 path lbl,args)]
+		        when lbl = mangle lbl end;
+		    f@_ lbl::string
+		      = [f (join2 path lbl)]
+		        when lbl = mangle lbl end;
+		  end;
+end if controlp x;
+
+join2 "" s	= "/"+s;
+join2 s ""	= s;
+join2 s t	= s+"/"+t otherwise;
+
+/* main program */
+
+error msg::string
+		= fprintf stderr "%s: %s\n" (prog,msg) $$ exit 1;
+error x		= fprintf stderr "%s: unknown error (%s)\n" (prog,str x) $$
+		  exit 1;
+
+invalid_option opt
+		= error $ sprintf "invalid option %s, try -h for help" opt;
+
+invalid_src_option opt
+		= error $ sprintf "invalid option %s in source" opt;
+
+get_set_opt opt	= case myopts!![opt] of
+		   [val::string] = split "," val;
+		   _ = [] otherwise;
+		  end;
+
+get_int_opt opt	= case myopts!![opt] of
+		   [val::string] = check_int_opt opt val if ~null val;
+		   _ = 0 otherwise;
+		  end;
+
+extern int atoi(char*);
+check_int_opt opt val
+		= n if n>0 when n = atoi val end;
+		= error $ sprintf "invalid option value %s %s" (opt,val);
+
+print_usage prog
+		= printf
+"faust2pd version %s, Copyright (c) 2009 by Albert Graef\n\
+Usage: %s [-hVbs] [-f size] [-o output-file] [-n #voices]\n\
+  [-r max] [-X patterns] [-x width] [-y height] input-file\n\
+Options:\n\
+-h, --help          display this help message and exit\n\
+-V, --version       display the version number and exit\n\
+-b, --fake-buttons  replace buttons (bangs) with checkboxes (toggles)\n\
+-f, --font-size     font size for GUI elements (10 by default)\n\
+-n, --nvoices       create a synth patch with the given number of voices\n\
+-o, --output-file   output file name ('.pd' file)\n\
+-r, --radio-sliders radio controls for sliders with values 0..max-1\n\
+-s, --slider-nums   sliders with additional number control\n\
+-X, --exclude       exclude controls matching the given glob patterns\n\
+-x, --width         maximum width of the GUI area\n\
+-y, --height        maximum height of the GUI area\n\
+input-file          input file name ('.dsp.xml' file)\n\
+Default output-file is input-file with new extension '.pd'.\n"
+		  (version,prog) $$ exit 0;
+
+print_version	= printf
+"faust2pd version %s, Copyright (c) 2009 by Albert Graef\n" version $$
+		  exit 0;
+
+let opts        = [("--help", "-h", NOARG),
+		   ("--version", "-V", NOARG),
+		   ("--fake-buttons", "-b", NOARG),
+		   ("--slider-nums", "-s", NOARG),
+		   ("--radio-sliders", "-r", REQARG),
+		   ("--nvoices", "-n", REQARG),
+		   ("--font-size", "-f", REQARG),
+		   ("--width", "-x", REQARG),
+		   ("--height", "-y", REQARG),
+		   ("--exclude", "-X", REQARG),
+		   ("--output-file", "-o", REQARG)];
+
+//let compiling = 1;
+//let argv = ["faust2pd","test/organ.dsp.xml"];
+let prog,myargs = case argv of prog:args = prog,args; _ = "faust2pd",[] end;
+
+//let prog = "faust2pd";
+
+let myopts,myargs = catch invalid_option $ getopt opts myargs;
+let myopts = dict myopts;
+let help_flag = member myopts "--help";
+let version_flag = member myopts "--version";
+
+if compiling then
+  ()
+else if version_flag then
+  print_version
+else if help_flag then
+  print_usage prog
+else if null myargs then
+  error "no source file specified, try -h for help"
+else if #myargs>1 then
+  error "more than one source file specified, try -h for help"
+else ();
+
+let xmlname:_ = if compiling then [""] else myargs;
+
+let outname = if member myopts "--output-file" then
+                myopts!"--output-file"
+              else ();
+
+if outname===xmlname then
+  error "output would overwrite source file, aborting"
+else ();
+
+attrs s		= regexg (\info->info!3) "\\[pd:([^]]+)\\]" REG_EXTENDED s 0;
+
+let dsp_info => (src_opts,_) =
+  if compiling then () => ([],[])
+  else
+  (dsp_info => catch invalid_src_option (getopt opts src_opts) when
+     setlocale LC_ALL "C";
+     dsp_info = catch error (faustxml::info xmlname);
+     src_opts = case dsp_info!5 of
+                  _ (label,_) = ["--"+opt | opt = attrs label];
+                  _ = [];
+                end;
+   end);
+
+/* Command line options always override what's in the source. */
+let myopts = dict (src_opts+members myopts);
+
+let fake_buttons_flag = member myopts "--fake-buttons";
+let slider_nums_flag = member myopts "--slider-nums";
+let [radio_sliders,nvoices,height,width,fnsize] = map get_int_opt
+  ["--radio-sliders","--nvoices","--height","--width","--font-size"];
+let exclude = get_set_opt "--exclude";
+
+let fn1,fn2 = if fnsize>0 then fnsize,fnsize else fn1,fn2;
+
+main		= catch error mainprog $$ exit 0;
+mainprog	= write_synth nvoices dsp_info outname if nvoices>0;
+		= write_dsp dsp_info outname otherwise;
+
+if compiling then () else main;

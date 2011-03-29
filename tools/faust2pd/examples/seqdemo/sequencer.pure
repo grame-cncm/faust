@@ -1,0 +1,110 @@
+
+/* A basic pd-pure pattern sequencing example. This Pure script generates the
+   sequences played by the seqdemo.pd patch. */
+
+using math;
+
+/* Simple (monophonic) musical patterns with aleatoric elements represented as
+   streams. */
+
+rand m::int	= int (uint random/0x100000000*(m+1));
+rand (n::int,m::int)
+		= rand (m-n) + n;
+
+/* Choose an element at random. */
+
+choose xs	= (xs!rand (#xs-1));
+
+/* Concatenate a recursive pattern to a flat sequence. */
+
+mkseq []	= [];
+mkseq (x:xs)	= catmap mkseq (x:xs);
+mkseq x		= [x] otherwise;
+
+/* Sample patterns. pat1 is shamelessly pilfered from the SuperCollider
+   documentation, pat2 is a finite section of pat1, and pat3 is a simple
+   random C minor arpeggio. */
+
+pat1		= [[24, 31, 36, 43, 48, 55,
+		    [[60, choose [63, 65], 67, choose [70, 72, 74]] |
+		     i = 1..rand (2,5)],
+		    [choose [74, 75, 77, 79, 81] |
+		     i = 1..rand (3,8)]] |
+		   i = 1..inf];
+
+pat2		= [[24, 31, 36, 43, 48, 55,
+		    [[60, choose [63, 65], 67, choose [70, 72, 74]] |
+		     i = 1..rand (2,5)],
+		    [choose [74, 75, 77, 79, 81] |
+		     i = 1..rand (3,8)]] |
+		   i = 1..rand (2,5)];
+
+pat3		= [[60,60,choose [63,67]] | i = 1..inf];
+
+/* The sequencer object. */
+
+nullary bang reset; // we respond to these
+nullary stop note pan wet; // we generate these
+
+sequencer = process
+
+with
+
+  /* Process events. Respond to the messages 'bang' (produce the next stream
+     member), 'reset' (rewind the stream to the beginning), numbers (change
+     the note duration a.k.a. delta time value) and a pattern (to switch
+     patterns on the fly). Last but not least we also send back a 'stop'
+     message when the stream ends (of course this will only happen if the
+     sequence is finite). */
+
+  process x::double
+		= () when put dur x end;
+  process pat@(_:_)
+		= ()
+		    when pat = mkseq pat;
+		      put time 0; put ctr 0;
+		      put seq pat; put seq0 pat;
+		    end;
+  process reset	= () when put seq (get seq0); put time 0; end;
+  process bang	= case get seq of
+		    n:seq1 = event n when
+		        put seq seq1; put time (get dur);
+		      end;
+		    _ = stop;
+		  end;
+  process _	= stop;
+
+  /* Turn a stream member (a note number in this case) into a sequence of
+     events (a.k.a. Pd messages). The sample event function below illustrates
+     how to carry around some state (a running counter in this case) in order
+     to implement some dynamic effects, and how to do random pitch, velocity
+     and onset variations on the fly. Also note that here we return an entire
+     "bundle" (i.e., list) of Pd messages for each pattern element. */
+
+  event n	= [// play a note on voice #2:
+		   t 2 note n 1 d,
+		   // vary the pan and wet controls of voice #2 in a periodic
+		   // fashion to simulate a sound source walking around in
+		   // circles:
+		   t 2 pan (0.4+0.3*u),
+		   t 2 wet (0.35+0.1*w),
+		   // play the same note, delayed by a small amount of time,
+		   // transposed down an octave and slightly detuned,
+		   // alternating between voice #1 and voice #3:
+		   (t+dt) (2*k+1) note (n-12+dn) v d]
+		    when i = getctr ctr; k = i mod 2;
+		      x = i mod 100/100*2*pi; u = cos x; w = sin x;
+		      t = get time; d = get dur; dt = rand (0,10);
+		      dn = rand (-20,20)/1000;
+		      v = rand (90,120)/100;
+		    end;
+  getctr c	= k when k = get c; put c (k+1) end;
+
+end
+
+when
+  // initialize
+  dur = ref 500; time = ref 0; ctr = ref 0;
+  pat = mkseq pat1;
+  seq = ref pat; seq0 = ref pat;
+end;
