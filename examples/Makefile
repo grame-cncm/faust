@@ -153,7 +153,7 @@ bundle :
 	install -d bundledir
 	$(MAKE) DEST='bundledir/' ARCH='module.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.compile
 
-msp :
+maxmsp msp :
 	install -d mspdir
 	$(MAKE) DEST='mspdir/' ARCH='max-msp.cpp' LIB='' -f Makefile.mspcompile
 
