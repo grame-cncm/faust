@@ -43,7 +43,8 @@ $(DEST)%.app : %.dsp
 hdir1 := $(wildcard /usr/local/lib/faust/gui/faustqt.h)
 hdir2 := $(wildcard /usr/share/faust/faustqt.h)
 hdir3 := $(wildcard /usr/local/lib/faust/faustqt.h)
-hdir := $(if $(hdir1),$(dir $(hdir1)),$(if $(hdir2 $(dir $(hdir2)),$(dir $dir3))))
+hdir12 := $(if $(hdir2),$(dir $(hdir2)),$(dir $(hdir3)))
+hdir := $(if $(hdir1),$(dir $(hdir1)),$(hdir12))
 qm4 := $(shell which qmake-qt4)
 qm := $(if $(qm4),$(qm4),qmake)
 #qmd := -d
