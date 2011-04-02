@@ -338,8 +338,8 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
    flanger_stereo_demo(x,y) = attach(x,flangeview),y : 
      *(level),*(level) : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
 
-   lfol = component("osc.lib").oscrs; // sine for left channel
-   lfor = component("osc.lib").oscrc; // cosine for right channel
+   lfol = component("oscillator.lib").oscrs; // sine for left channel
+   lfor = component("oscillator.lib").oscrc; // cosine for right channel
    dmax = 2048;
    dflange = 0.001 * SR * 
      del_group(hslider("[1] Flange Delay [unit:ms] [style:knob]", 10, 0, 20, 0.001));
@@ -391,8 +391,8 @@ with {
      };
      SR = component("music.lib").SR;
      R = exp(-pi*width/SR);
-     cososc = component("osc.lib").oscrc;
-     sinosc = component("osc.lib").oscrs;
+     cososc = component("oscillator.lib").oscrc;
+     sinosc = component("oscillator.lib").oscrs;
      osc = cososc(speed) * phase01 + sinosc(speed) * (1-phase01);
      lfo = (1-osc)/2; // in [0,1]
      pi = 4*atan(1);
@@ -903,7 +903,7 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
   
   inx = x*mutegain + (pulseL+pulseC) + pn;
   iny = y*mutegain + (pulseR+pulseC) + pn;
-  pn = 0.1*pinkin*component("osc.lib").pink_noise;
+  pn = 0.1*pinkin*component("oscillator.lib").pink_noise;
 };
 
 //------------------------- fdnrev0_demo ---------------------------
