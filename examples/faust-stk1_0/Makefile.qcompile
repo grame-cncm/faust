@@ -1,0 +1,17 @@
+DEST	:= qdir/
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+modules	:= $(addprefix $(DEST),  $(dspsrc:%.dsp=%.so))
+
+###allcpp: $(cppsrc)
+
+allmodules: $(modules)
+
+$(DEST)%.so: $(DEST)%.cpp
+	$(CXX) -shared -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+
+$(DEST)%.cpp: %.dsp 
+	faust $(VEC) -a q.cpp $< -o $@
+
+clean:
+	rm -rf $(DEST)

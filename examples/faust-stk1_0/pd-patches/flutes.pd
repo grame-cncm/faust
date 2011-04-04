@@ -1,0 +1,15 @@
+#N canvas 22 22 974 784 10;
+#X msg 540 617 \; pd dsp 1;
+#X msg 540 655 \; pd dsp 0;
+#X obj 290 568 audio-out;
+#X obj 334 11 midi-in 2;
+#X obj 8 76 flute;
+#X obj 488 77 flutestk;
+#X connect 3 0 4 0;
+#X connect 3 0 5 0;
+#X connect 3 1 4 1;
+#X connect 3 1 5 1;
+#X connect 4 1 2 1;
+#X connect 4 2 2 2;
+#X connect 5 1 2 1;
+#X connect 5 2 2 2;

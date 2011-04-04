@@ -1,0 +1,48 @@
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=~.mxo))
+processor := $(shell uname -p)
+
+CC=g++
+#CC=/Developer/usr/bin/llvm-g++
+
+INC	:= -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -I $(PWD)
+
+all :  $(appl)
+
+$(DEST)%~.mxo : %.dsp Info.plist.template
+	install -d $@/Contents/MacOS
+	faust $(VEC) -g -vs 2048 -a $(ARCH) $< -o $@/$(<:.dsp=.cpp)
+	#faust -sch -g -vs 2048 $(VEC) -a $(ARCH) $< -o $@/$(<:.dsp=.cpp)
+ifeq ($(processor), i386)
+	$(CC) -arch i386 -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.i386.o)
+	$(CC) -framework MaxAPI -framework Carbon -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle $@/$(<:.dsp=.i386.o) -o $@/$(<:.dsp=.i386~) 
+	$(CC) -arch ppc -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.ppc.o)
+	$(CC) -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle $@/$(<:.dsp=.ppc.o) -o $@/$(<:.dsp=.ppc~)
+	sed s/FOO/$(<:.dsp=~)/ <Info.plist.template >$@/Contents/Info.plist
+	lipo -create $@/$(<:.dsp=.i386~) $@/$(<:.dsp=.ppc~) -output $@/Contents/MacOS/$(<:.dsp=~)
+	rm -f $@/$(<:.dsp=.ppc~) $@/$(<:.dsp=.ppc.o) $@/$(<:.dsp=.i386.o) $@/$(<:.dsp=.i386~)
+else
+	g++ -arch ppc -fpascal-strings -fasm-blocks -g -O3 $(INC)  -c $@/$(<:.dsp=.cpp) -o $@/$(<:.dsp=.ppc.o)
+	g++ -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle $@/$(<:.dsp=.ppc.o) -o $@/$(<:.dsp=.ppc~)
+	sed s/FOO/$(<:.dsp=~)/ <Info.plist.template >$@/Contents/Info.plist
+	lipo -create $@/$(<:.dsp=.ppc~) -output $@/Contents/MacOS/$(<:.dsp=~)
+	rm -f $@/$(<:.dsp=.ppc~) $@/$(<:.dsp=.ppc.o)
+endif
+
+Info.plist.template :
+	echo '<?xml version="1.0" encoding="UTF-8"?>' > Info.plist.template
+	echo '<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'  >> Info.plist.template
+	echo '<plist version="1.0">'  		>> Info.plist.template
+	echo '<dict>'  				>> Info.plist.template
+	echo '	<key>CFBundleExecutable</key>'  >> Info.plist.template
+	echo '	<string>FOO</string>'  		>> Info.plist.template
+	echo '	<key>CFBundleName</key>'  	>> Info.plist.template
+	echo '	<string>FOO</string>'  		>> Info.plist.template
+	echo '	<key>CFBundlePackageType</key>'  >> Info.plist.template
+	echo '	<string>iLaX</string>'  	>> Info.plist.template
+	echo '</dict>'  			>> Info.plist.template
+	echo '</plist>'  			>> Info.plist.template
+
+clean :
+	rm -f $(DEST)

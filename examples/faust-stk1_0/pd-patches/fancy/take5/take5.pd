@@ -1,0 +1,38 @@
+#N canvas 11 22 745 777 10;
+#X msg 642 600 \; pd dsp 1;
+#X msg 642 638 \; pd dsp 0;
+#X obj 18 547 audio-out;
+#X obj 418 639 seq;
+#X msg 450 569 bang;
+#X msg 450 596 stop;
+#X msg 500 595 pause;
+#X msg 560 595 continue;
+#X text 488 568 play;
+#X obj 418 666 midiout;
+#X obj 335 573 loadbang;
+#X obj 18 79 piano;
+#X obj 18 28 midi-in 6;
+#X obj 362 24 midi-in 2;
+#X obj 263 79 blowHole;
+#X msg 335 597 read take5.mid;
+#X text 290 707 In order to have this example work \, input device
+and output device in MIDI settings must be set to the same internal
+driver. Also \, "midi-in 6" must use the midi channel 1 and midi-in
+2 channel 2;
+#X text 79 8 MIDI channel must be set to 1;
+#X text 424 6 MIDI channel must be set to 2;
+#X connect 3 0 9 0;
+#X connect 4 0 3 0;
+#X connect 5 0 3 0;
+#X connect 6 0 3 0;
+#X connect 7 0 3 0;
+#X connect 10 0 15 0;
+#X connect 11 1 2 1;
+#X connect 11 2 2 2;
+#X connect 12 0 11 0;
+#X connect 12 1 11 1;
+#X connect 13 0 14 0;
+#X connect 13 1 14 1;
+#X connect 14 1 2 1;
+#X connect 14 2 2 2;
+#X connect 15 0 3 0;
