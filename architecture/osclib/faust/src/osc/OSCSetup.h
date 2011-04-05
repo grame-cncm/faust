@@ -36,9 +36,12 @@ namespace oscfaust
 class OscThread;
 class MessageProcessor;
 //--------------------------------------------------------------------------
+/*!
+	\brief network management utility
+*/
 class OSCSetup
 {
-	OscThread*			fOSCThread;
+	OscThread*	fOSCThread;		// a thread that is listening to the osc in socket
 	public:
 		 		 OSCSetup() : fOSCThread(0) {} 
 		virtual ~OSCSetup();

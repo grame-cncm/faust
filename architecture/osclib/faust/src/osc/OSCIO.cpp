@@ -32,11 +32,11 @@ namespace oscfaust
 void OSCIO::send ( int nframes, float * val, int chan ) const
 {
 	std::stringstream dst;
-	dst << dest() << chan;
-	oscout << OSCStart(dst.str().c_str());
+	dst << dest() << chan;					// first set the destination osc address
+	oscout << OSCStart(dst.str().c_str());	// then starts the osc out stream
 	for (int n=0; n<nframes; n++)
-		oscout << val[n];
-	oscout << OSCEnd();	
+		oscout << val[n];					// and send the values
+	oscout << OSCEnd();						// end of stream (and actual transmission)
 }
 
 

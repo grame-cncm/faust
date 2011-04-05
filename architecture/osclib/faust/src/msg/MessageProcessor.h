@@ -29,6 +29,9 @@ namespace oscfaust
 
 class Message;
 //--------------------------------------------------------------------------
+/*!
+	\brief an abstract class for objects able to process OSC messages	
+*/
 class MessageProcessor
 {
 	public:

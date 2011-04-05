@@ -47,6 +47,8 @@ static const char* kUDPErrOpt	= "-errport";
 static const char* kUDPDestOpt	= "-dest";
 
 //--------------------------------------------------------------------------
+// utilities for command line arguments 
+//--------------------------------------------------------------------------
 static int getPortOption (int argc, char *argv[], const std::string& option, int defaultValue)
 {
 	for (int i=0; i < argc-1; i++) {
@@ -118,18 +120,26 @@ static std::string quote (const char* str)	{
 	return outstr;
 }
 
+// start the network services
 void OSCControler::run ()
 {
-	SMessageDriven root = fFactory->root();
+	SMessageDriven root = fFactory->root();		// first get the root node
 	if (root) {
+		// and cast it to a RootNode
 		RootNode * rootnode = dynamic_cast<RootNode*> ((MessageDriven*)root);
+		// informs the root node of the udp ports numbers (required to handle the 'hello' message
 		if (rootnode) rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
+		// starts the network services
 		fOsc->start (root, fUDPPort, fUDPOut, fUPDErr, getDesAddress());
+
+		// and outputs a message on the osc output port
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
 				<< quote(root->getName()).c_str() << "is running on UDP ports "
 				<<  fUDPPort << fUDPOut << fUPDErr;
 		if (fIO) oscout << " using OSC IO - in chans: " << fIO->numInputs() << " out chans: " << fIO->numOutputs();
 		oscout << OSCEnd();
+
+		// that should not occur unless a derivative changes the root node type
 		if (!rootnode) OSCFErr << root->getName() << ": is not a root node, 'hello' message won't be supported" << OSCFEndl;
 	}
 }

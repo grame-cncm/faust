@@ -39,11 +39,15 @@ static const char * kGetMsg = "get";
 void MessageDriven::processMessage( const Message* msg )
 {
 	const string addr = msg->address();
+
+	// create a regular expression
 	OSCRegexp r (OSCAddress::addressFirst(addr).c_str());
+	// and call propose with this regexp and with the dest osc address tail
 	return propose (msg, &r, OSCAddress::addressTail (addr));
 }
 
 //--------------------------------------------------------------------------
+// the full OSC address is simply the prefix + '/' + name
 string MessageDriven::getOSCAddress() const
 {
 	string address(fOSCPrefix);
@@ -53,8 +57,10 @@ string MessageDriven::getOSCAddress() const
 }
 
 //--------------------------------------------------------------------------
+// terminal nodes should override the get method
 void MessageDriven::get (unsigned long ipdest) const
 {
+	// basic get handler propagates the get call to subnodes
 	for (vector<SMessageDriven>::const_iterator i = fSubNodes.begin(); i != fSubNodes.end(); i++)
 		(*i)->get (ipdest);
 }
@@ -63,6 +69,7 @@ void MessageDriven::get (unsigned long ipdest) const
 bool MessageDriven::accept( const Message* msg )
 {
 	string val;
+	// the basic accept method only checks for the 'get' message
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kGetMsg)) {
 		get (msg->src());
 		return true;
@@ -73,13 +80,14 @@ bool MessageDriven::accept( const Message* msg )
 //--------------------------------------------------------------------------
 void MessageDriven::propose( const Message* msg, const OSCRegexp* r, const std::string addrTail)
 {
-	if (r->match(getName())) {
-		if (addrTail.empty()) {
-			accept(msg);
+	if (r->match(getName())) {			// try to match the regular expression with the object name. 
+		if (addrTail.empty()) {			// it matches and the tail is empty
+			accept(msg);				// then call accept()
 		}
-		else {
+		else {							// it matches but the tail is not empty
 			OSCRegexp rtail (OSCAddress::addressFirst(addrTail).c_str());
 			for (vector<SMessageDriven>::iterator i = fSubNodes.begin(); i != fSubNodes.end(); i++) {
+				// then propagate propose() to subnodes with a new regexp and a new tail
 				(*i)->propose (msg, &rtail, OSCAddress::addressTail(addrTail));
 			}
 		}

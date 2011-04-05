@@ -29,22 +29,22 @@ namespace oscfaust
 {
 
 //--------------------------------------------------------------------------
-void FaustNode::store( float val )
+bool FaustNode::store( float val )
 {
 	if (val > fMax) val = fMax;
 	else if (val < fMin) val = fMin;
 	*fZone = val;
+	return true;
 }
 
 //--------------------------------------------------------------------------
 bool FaustNode::accept( const Message* msg )
 {
-	if (msg->size() == 1) {
+	if (msg->size() == 1) {			// checks for the message parameters count
+									// messages with a param count other than 1 are rejected
 		int ival; float fval;
-		if (msg->param(0, fval)) store (fval);
-		else if (msg->param(0, ival)) store (float(ival));	
-		else return MessageDriven::accept(msg);
-		return true;		return true;
+		if (msg->param(0, fval)) return store (fval);				// accepts float values
+		else if (msg->param(0, ival)) return store (float(ival));	// but accepts also int values
 	}
 	return MessageDriven::accept(msg);
 }
@@ -53,10 +53,11 @@ bool FaustNode::accept( const Message* msg )
 //--------------------------------------------------------------------------
 void FaustNode::get (unsigned long ipdest ) const
 {
-	unsigned long savedip = oscout.getAddress();
-	oscout.setAddress(ipdest);
+	unsigned long savedip = oscout.getAddress();		// saves the current destination IP
+	oscout.setAddress(ipdest);							// sets the osc stream dest IP
+	// send a state message on 'get' request
 	oscout << OSCStart(getOSCAddress().c_str()) << 	*fZone << fMin << fMax << OSCEnd();
-	oscout.setAddress(savedip);
+	oscout.setAddress(savedip);							// and restores the destination IP
 }
 
 } // end namespoace

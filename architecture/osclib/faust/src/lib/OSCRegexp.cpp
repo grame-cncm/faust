@@ -30,6 +30,8 @@ namespace oscfaust
 OSCRegexp::OSCRegexp (const char* oscre) : fRegexp (OSCRe2Re(oscre).c_str()) {}
 
 //--------------------------------------------------------------------------
+// translates an OSC regexp into a regexp
+// see OSC documentation
 std::string OSCRegexp::OSCRe2Re (const char* re)
 {
 	std::string outstr;

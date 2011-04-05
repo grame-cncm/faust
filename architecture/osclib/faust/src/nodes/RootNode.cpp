@@ -70,6 +70,8 @@ string getIP()
 }
 
 //--------------------------------------------------------------------------
+// signal data handler
+//--------------------------------------------------------------------------
 bool RootNode::acceptSignal( const Message* msg )
 {
 	bool ret = true;
@@ -77,14 +79,14 @@ bool RootNode::acceptSignal( const Message* msg )
 	if (n) {
 		float val, * buff = new float[n];
 		for (int i = 0; i < n ; i++) {
-			if (msg->param(i, val))
+			if (msg->param(i, val))			// assumes that it receives float values only
 				buff[i] = val;
-			else {
-				ret = false;
-				break;
+			else {							// in case not
+				ret = false;				// set return code to false
+				break;						// and stops reading data
 			}
 		}
-		if (ret) fIO->receive (n, buff);
+		if (ret) fIO->receive (n, buff);	// call the IO controler receive method with the float data
 		delete buff;
 	}
 	else ret = false;
@@ -95,14 +97,15 @@ bool RootNode::acceptSignal( const Message* msg )
 bool RootNode::accept( const Message* msg )
 {
 	string val;
+	// checks for the 'hello' message first
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kHelloMsg) ) {
 		hello (msg->src());
 		return true;
 	}
-	else if (MessageDriven::accept (msg))
+	else if (MessageDriven::accept (msg))	// next checks for standard handlers ('get' for example)
 		return true;
-	else if (fIO) 
-		return acceptSignal (msg);
+	else if (fIO)							// when still not handled and if a IO controler is set
+		return acceptSignal (msg);			// try to read signal data
 	return false;
 }
 
@@ -117,11 +120,12 @@ void RootNode::setPorts (int* in, int* out, int* err)
 //--------------------------------------------------------------------------
 void RootNode::hello (unsigned long ipdest ) const
 {
-	if (fUPDIn && fUDPOut && fUDPErr) {
-		unsigned long savedip = oscout.getAddress();
-		oscout.setAddress(ipdest);
+	if (fUPDIn && fUDPOut && fUDPErr) {					// on 'hello' request
+		unsigned long savedip = oscout.getAddress();	// saves the current dest IP
+		oscout.setAddress(ipdest);						// set the destination IP
+		// and sends its address + the udp port numbers (in, out and err)
 		oscout  << OSCStart(getOSCAddress().c_str()) << getIP() << *fUPDIn << *fUDPOut << *fUDPErr << OSCEnd();
-		oscout.setAddress(savedip);
+		oscout.setAddress(savedip);						// and restores the dest IP
 	}
 }
 

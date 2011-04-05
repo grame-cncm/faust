@@ -37,7 +37,11 @@ namespace oscfaust
 
 //--------------------------------------------------------------------------
 /*!
-	\brief an OSC listener that converts OSC input to IMessage
+	\brief an OSC listener that converts OSC input to Messages
+	
+	OSCListener makes the glue between the oscpack library
+	and the faust lib osc messages representation
+	\see Message in Message.h
 */
 class OSCListener : public osc::OscPacketListener, public smartable
 {

@@ -37,12 +37,15 @@ class FaustNode;
 typedef class SMARTP<FaustNode>	SFaustNode;
 
 //--------------------------------------------------------------------------
+/*!
+	\brief a faust node is a terminal node and represents a faust parameter controler
+*/
 class FaustNode : public MessageDriven
 {
-	float *	fZone;
-	float	fMin, fMax;
+	float *	fZone;			// the parameter memory zone
+	float	fMin, fMax;		// the min and max values
 	
-	void store (float val);
+	bool store (float val);
 
 	protected:
 				 FaustNode(const char *name, float* zone, float init, float min, float max, const char* prefix) 
@@ -53,7 +56,7 @@ class FaustNode : public MessageDriven
 		static SFaustNode create (const char* name, float* zone, float init, float min, float max, const char* prefix)	
 							{ return new FaustNode(name, zone, init, min, max, prefix); }
 
-		virtual bool	accept( const Message* msg );
+		virtual bool	accept( const Message* msg );			///< handler for the 'accept' message
 		virtual void	get (unsigned long ipdest) const;		///< handler for the 'get' message
 };
 

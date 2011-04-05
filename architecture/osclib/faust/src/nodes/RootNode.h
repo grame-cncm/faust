@@ -38,10 +38,16 @@ class RootNode;
 typedef class SMARTP<RootNode>	SRootNode;
 
 //--------------------------------------------------------------------------
+/*!
+	\brief a faust root node
+
+	A Faust root node handles the \c 'hello' message and provides support
+	for incoming osc signal data. 
+*/
 class RootNode : public MessageDriven
 {
-	int *fUPDIn, *fUDPOut, *fUDPErr;
-	OSCIO * fIO;
+	int *fUPDIn, *fUDPOut, *fUDPErr;	// the osc port numbers (required by the hello method)
+	OSCIO * fIO;						// an OSC IO controler
 	
 	protected:
 				 RootNode(const char *name, OSCIO* io=0) : MessageDriven (name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fIO(io) {}
@@ -51,8 +57,9 @@ class RootNode : public MessageDriven
 		static SRootNode create (const char* name, OSCIO* io=0) { return new RootNode(name, io); }
 
 		virtual bool	accept( const Message* msg );
-				bool	acceptSignal( const Message* msg );
-				void	hello (unsigned long ipdest) const;		///< handler for the 'hello' message
+				
+				bool	acceptSignal( const Message* msg );				///< handler for signal data
+				void	hello (unsigned long ipdest) const;				///< handler for the 'hello' message
 				void	setPorts (int* in, int* out, int* err);
 };
 
