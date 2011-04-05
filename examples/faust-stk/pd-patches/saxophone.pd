@@ -1,0 +1,10 @@
+#N canvas 223 61 501 634 10;
+#X msg 415 491 \; pd dsp 1;
+#X msg 415 528 \; pd dsp 0;
+#X obj 170 445 audio-out;
+#X obj 125 20 midi-in 2;
+#X obj 19 77 saxophony;
+#X connect 3 0 4 0;
+#X connect 3 1 4 1;
+#X connect 4 1 2 1;
+#X connect 4 2 2 2;
