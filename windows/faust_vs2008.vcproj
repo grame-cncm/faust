@@ -332,6 +332,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\compiler\draw\schema\collector.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\compiler\draw\schema\cutSchema.cpp"
 					>
 				</File>
@@ -353,6 +357,14 @@
 				</File>
 				<File
 					RelativePath="..\compiler\draw\schema\enlargedSchema.h"
+					>
+				</File>
+				<File
+					RelativePath="..\compiler\draw\schema\inverterSchema.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\compiler\draw\schema\inverterSchema.h"
 					>
 				</File>
 				<File
