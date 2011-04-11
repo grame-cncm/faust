@@ -442,12 +442,6 @@ void printheader(ostream& dst)
 *****************************************************************/
 
 
-static string dirname(const string& path)
-{
-    char s[1024];
-    strncpy(s, path.c_str(), 1024);
-    return string(dirname(s));
-}
 
 /**
  * transform a filename "faust/example/noise.dsp" into
@@ -475,10 +469,10 @@ static void initFaustDirectories()
 {
     char s[1024];
     getFaustPathname(s, 1024);
-    dirname(s);
-    gFaustDirectory = s;
-	gFaustSuperDirectory = dirname(gFaustDirectory);
-	gFaustSuperSuperDirectory = dirname(gFaustSuperDirectory);
+
+    gFaustDirectory = filedirname(s);
+    gFaustSuperDirectory = filedirname(gFaustDirectory);
+    gFaustSuperSuperDirectory = filedirname(gFaustSuperDirectory);
     if (gInputFiles.empty()) {
         gMasterDocument = "Unknown";
         gMasterDirectory = ".";
@@ -486,7 +480,7 @@ static void initFaustDirectories()
 		gDocName = "faustdoc";
     } else {
         gMasterDocument = *gInputFiles.begin();
-        gMasterDirectory = dirname(gMasterDocument);
+        gMasterDirectory = filedirname(gMasterDocument);
 		gMasterName = fxname(gMasterDocument);
 		gDocName = fxname(gMasterDocument);
     }

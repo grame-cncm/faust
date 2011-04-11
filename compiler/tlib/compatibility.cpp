@@ -26,7 +26,7 @@
 	#include <windows.h>
 	#include "math.h"
 
-#ifdef _MBCS
+#if defined(_MBCS) || __MINGW32__
 	bool chdir(const char* path)
 	{
 		return !SetCurrentDirectory(path);
@@ -172,10 +172,6 @@
 		return x;
 	}
 #endif
-	char*	dirname(char *path)
-	{
-		return path;
-	}
 
 #else // Linux
 
