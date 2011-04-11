@@ -3,15 +3,17 @@ system	:= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 subprojects := ip ip/posix osc
-sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix /*.cpp)  $(wildcard osc/*.cpp)
+sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
 
-elifeq ($(system), Linux)
+else 
+ifeq ($(system), Linux)
 subprojects := ip ip/posix osc
-sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix /*.cpp)  $(wildcard osc/*.cpp)
+sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
 
 else
 subprojects := ip ip/win32 osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/win32/*.cpp)  $(wildcard osc/*.cpp)
+endif
 endif
 
 VPATH = $(subprojects)
