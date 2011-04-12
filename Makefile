@@ -2,6 +2,7 @@ version := 0.9.40
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
+CROSS=i586-mingw32msvc-
 
 MAKEFILE := Makefile.unix
 
@@ -14,6 +15,10 @@ zname := faust-$(version)
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
+
+win32 :
+	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
+	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
 
 .PHONY: clean depend install ininstall dist parser help
