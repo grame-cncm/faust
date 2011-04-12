@@ -130,7 +130,6 @@ class Message
 			/*!
 				\brief a message constructor
 				\param address the message destination address
-				\param msg the message message
 				\param args the message parameters
 			*/
 			 Message(const std::string& address, const argslist& args) 

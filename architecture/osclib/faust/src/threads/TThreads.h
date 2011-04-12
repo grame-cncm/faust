@@ -44,6 +44,12 @@
 #endif
 
 //___________________________________________________________________
+/*!
+	\brief cross platform threads support
+
+	Based on pthread on linux and mac and 
+	Windows native threads on Windows
+*/
 class TThreads
 {
 	public:
