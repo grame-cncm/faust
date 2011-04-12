@@ -1,5 +1,5 @@
 libname     := liboscpack.a
-system	:= $(shell uname -s)
+system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 subprojects := ip ip/posix osc
