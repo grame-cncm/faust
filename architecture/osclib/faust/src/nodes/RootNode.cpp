@@ -31,7 +31,7 @@
 #include "OSCIO.h"
 
 #ifdef WIN32
-# include "Winsock2.h"
+# include "winsock2.h"
 #else
 # include "ip/NetworkingUtils.h"
 #endif
