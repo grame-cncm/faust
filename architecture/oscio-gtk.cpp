@@ -36,7 +36,9 @@
 
 #include <libgen.h>
 #include <iostream>
+#include <list>
 
+#include "gui/FUI.h"
 #include "gui/faustgtk.h"
 #include "gui/OSCUI.h"
 #include "misc.h"
@@ -63,6 +65,8 @@
 					
 mydsp	DSP;
 
+list<GUI*>                   GUI::fGuiList;
+
 /******************************************************************************
 *******************************************************************************
 
@@ -80,8 +84,10 @@ int main( int argc, char *argv[] )
 	snprintf(dst, 257, "/%s/", name);
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
 
-	UI* interface = new GTKUI (name, &argc, &argv);
+	GUI* interface = new GTKUI (name, &argc, &argv);
+	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
 
 	oscdsp osca (dst, argc, argv);
 	OSCUI*	oscinterface = new OSCUI(name, argc, argv, &osca);
@@ -92,12 +98,12 @@ int main( int argc, char *argv[] )
 	osca.setDest (dst);
 	
 	osca.init (name, &DSP);	
-	interface->recallState(rcfilename);
+	finterface->recallState(rcfilename);
 	osca.start ();	
 	
 	oscinterface->run();
 	interface->run();	
-	interface->saveState(rcfilename);
+	finterface->saveState(rcfilename);
 	osca.stop();
 	delete oscinterface;
   	return 0;
