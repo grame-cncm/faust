@@ -1,0 +1,12 @@
+
+- basic/test.pd: Basic example of Pd-Faust externals, without faust2pd.
+
+- faust/faustdemo.pd: Sample dsps from the Faust distribution, with
+  faust2pd-generated GUIs.
+
+- synth/synth.pd: A complete MIDI-driven synth-effects chain. Only Faust
+  synths and effects with faust2pd-generated GUIs were used in this example.
+
+- seqdemo/seqdemo.pd: A step sequencer example. The sound generation is done
+  with Faust dsps, the sequencer is implemented in Pure. (This needs pd-pure
+  to run, get it at http://pure-lang.googlecode.com/.)

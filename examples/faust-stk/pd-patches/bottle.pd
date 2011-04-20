@@ -1,0 +1,10 @@
+#N canvas 160 22 509 730 10;
+#X msg 387 581 \; pd dsp 1;
+#X msg 387 619 \; pd dsp 0;
+#X obj 131 536 audio-out;
+#X obj 125 20 midi-in 2;
+#X obj 19 77 blowBottle;
+#X connect 3 0 4 0;
+#X connect 3 1 4 1;
+#X connect 4 1 2 1;
+#X connect 4 2 2 2;

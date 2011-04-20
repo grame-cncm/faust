@@ -34,7 +34,7 @@
  */
 class blockSchema : public schema
 {
-  private:
+  protected:
 	const string	fText;			///< Text to be displayed
 	const string	fColor;			///< color of the box
 	const string	fLink;			///< option URL link
@@ -56,7 +56,7 @@ class blockSchema : public schema
 	virtual point	inputPoint(unsigned int i) const;
 	virtual point 	outputPoint(unsigned int i) const;
 
-  private:
+  protected:
 	blockSchema (	unsigned int inputs, unsigned int outputs,
 					double width, double height,
   					const string& name, const string& color,
@@ -68,8 +68,12 @@ class blockSchema : public schema
   	void drawRectangle(device& dev);
 	void drawText(device& dev);
 	void drawOrientationMark(device& dev);
-	void drawInputWires(device& dev);
-	void drawOutputWires(device& dev);
+    void drawInputWires(device& dev);
+    void drawOutputWires(device& dev);
+
+    void collectTraits(collector& c);
+    void collectInputWires(collector& c);
+    void collectOutputWires(collector& c);
 
 };
 

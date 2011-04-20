@@ -1,0 +1,31 @@
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+
+# Setup this variable to access the VST SDK files
+vst_sdk := "/Volumes/Document1/Developpement/ProjectsCVS/JackCVS/JackOSX/jackosx/jackplugins/JACK-ASinsert/VST/VSTSDK"
+
+# Setup this variable with the location for the compiled VST plug-ins
+install_plug_ins := "/Library/Audio/Plug-Ins/VST"
+
+all :  $(appl)
+
+	
+$(DEST)% : %.dsp
+	install -d $@
+	cp -r $(vst_sdk) $@
+	cp -r /usr/local/lib/faust/VST/* $@
+	faust $(VEC) -a $(ARCH) $< -o $@/vst-output.cpp
+	mv  $@/vst-output.cpp  $@/$(<:.dsp=.cpp)
+	sed -e 's/vst-output.cpp/$(<:.dsp=.cpp)/'  $@/VST.xcode/project.pbxproj > $@/VST.xcode/new_project.pbxproj &&  mv $@/VST.xcode/new_project.pbxproj $@/VST.xcode/project.pbxproj
+	sed -e 's/XXXX/$(<:.dsp=)/'  $@/Info.plist  >  $@/new_Info.plist  &&  mv $@/new_Info.plist $@/Info.plist
+	xcodebuild -project $@/VST.xcode clean
+	xcodebuild -project $@/VST.xcode
+	mv $@/build/FaustVST.vst $@/build/$(<:.dsp=.vst)
+	rm -r $@/build/VST.build
+	install -d $(install_plug_ins)
+	cp -r $@/build/$(<:.dsp=.vst) $(install_plug_ins)
+	
+
+clean :
+	rm -f $(DEST)

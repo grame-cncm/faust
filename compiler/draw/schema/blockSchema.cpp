@@ -70,8 +70,8 @@ blockSchema::blockSchema (	unsigned int inputs,
 	  	fColor(color),
 	  	fLink(link)
 {
-	for (unsigned int i=0; i<inputs; i++) 	fInputPoint.push_back(point(0));
-	for (unsigned int i=0; i<outputs; i++) 	fOutputPoint.push_back(point(0));
+    for (unsigned int i=0; i<inputs; i++) 	fInputPoint.push_back(point(0,0));
+    for (unsigned int i=0; i<outputs; i++) 	fOutputPoint.push_back(point(0,0));
 }
 
 /**
@@ -178,8 +178,8 @@ void blockSchema::draw(device& dev)
 	drawRectangle(dev);
 	drawText(dev);
 	drawOrientationMark(dev);
-	drawInputWires(dev);
-	drawOutputWires(dev);
+    drawInputWires(dev);
+    drawOutputWires(dev);
 }
 
 /**
@@ -204,9 +204,11 @@ void blockSchema::drawText(device& dev)
 {
 	dev.text( 	x() + width()/2,
 				y() + height()/2,
-				fText.c_str()
+                fText.c_str(),
+                fLink.c_str()
 			);
 }
+
 
 /**
  * Draw the orientation mark, a small point that indicates
@@ -226,20 +228,20 @@ void blockSchema::drawOrientationMark(device& dev)
 
 	dev.markSens( px, py, orientation() );
 }
-
+#if 1
 /**
  * Draw horizontal arrows from the input points to the
  * blockSchema rectangle
  */
 void blockSchema::drawInputWires(device& dev)
 {
-	double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+    double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
-	for (unsigned int i=0; i<inputs(); i++) {
-		point p = fInputPoint[i];
-		dev.line(p.x, p.y, p.x+dx, p.y);
-		dev.arrow(p.x+dx, p.y, 0, orientation());
-	}
+    for (unsigned int i=0; i<inputs(); i++) {
+        point p = fInputPoint[i];
+        //dev.trait(p.x, p.y, p.x+dx, p.y);
+        dev.fleche(p.x+dx, p.y, 0, orientation());
+    }
 }
 
 /**
@@ -248,12 +250,53 @@ void blockSchema::drawInputWires(device& dev)
  */
 void blockSchema::drawOutputWires(device& dev)
 {
-	double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+    //double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
-	for (unsigned int i=0; i<outputs(); i++) {
-		point p = fOutputPoint[i];
-		dev.line(p.x, p.y, p.x-dx, p.y);
-	}
+    for (unsigned int i=0; i<outputs(); i++) {
+        point p = fOutputPoint[i];
+        //dev.trait(p.x, p.y, p.x-dx, p.y);
+    }
+}
+#endif
+
+/**
+ * Draw horizontal arrows from the input points to the
+ * blockSchema rectangle
+ */
+void blockSchema::collectTraits(collector& c)
+{
+    collectInputWires(c);
+    collectOutputWires(c);
+}
+
+/**
+ * Draw horizontal arrows from the input points to the
+ * blockSchema rectangle
+ */
+void blockSchema::collectInputWires(collector& c)
+{
+    double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+
+    for (unsigned int i=0; i<inputs(); i++) {
+        point p = fInputPoint[i];
+        c.addTrait(trait(point(p.x, p.y), point(p.x+dx, p.y)));     // in->out direction
+        c.addInput(point(p.x+dx, p.y));
+    }
+}
+
+/**
+ * Draw horizontal line from the blockSchema rectangle to the
+ * output points
+ */
+void blockSchema::collectOutputWires(collector& c)
+{
+    double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+
+    for (unsigned int i=0; i<outputs(); i++) {
+        point p = fOutputPoint[i];
+        c.addTrait(trait(point(p.x-dx, p.y), point(p.x, p.y)));     // in->out direction
+        c.addOutput(point(p.x-dx, p.y));
+    }
 }
 
 

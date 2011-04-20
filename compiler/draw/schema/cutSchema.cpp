@@ -43,7 +43,7 @@ schema* makeCutSchema ()
  * makeCutSchema.
  */
 cutSchema::cutSchema ()
-	: 	schema (1, 0, 0, dWire)
+    : 	schema (1, 0, 0, dWire/100.0), fPoint(0,0)
 {}
 
 
@@ -53,7 +53,7 @@ cutSchema::cutSchema ()
 void cutSchema::place(double ox, double oy, int orientation)
 {
 	beginPlace(ox, oy, orientation);
-	fPoint = point(ox, oy + height()*0.5);
+    fPoint = point(ox, oy + height()*0.5); //, -1);
 	endPlace();
 }
 
@@ -63,8 +63,11 @@ void cutSchema::place(double ox, double oy, int orientation)
  */
 void cutSchema::draw(device& dev)
 {
-	dev.circle(fPoint.x, fPoint.y, dWire/8.0);
+    //dev.rond(fPoint.x, fPoint.y, dWire/8.0);
 }
+
+void cutSchema::collectTraits(collector& c)
+{}
 
 /**
  * By definition a Cut has only one input point
@@ -81,7 +84,7 @@ point cutSchema::inputPoint(unsigned int i) const
 point cutSchema::outputPoint(unsigned int) const
 {
 	assert(false);
-	return point(-1,-1);
+    return point(-1,-1);
 }
 
 

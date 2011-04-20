@@ -26,6 +26,7 @@
 #include "device.h"
 #include <vector>
 #include <string>
+#include <set>
 
 using namespace std;
 
@@ -38,16 +39,56 @@ const double dVert = 4;				///< marge verticale
 
 struct point
 {
-	double x;
-	double y;
+    double  x;
+    double  y;
 
-	point() : x(0.0), y(0.0) {}
-	point(double f) : x(f),y(f) {}
-	point(double u, double v) : x(u), y(v) {}
-	point(const point& p) : x(p.x), y(p.y) {}
+    point(double u, double v) : x(u), y(v) {}
+    point(const point& p) : x(p.x), y(p.y) {}
+
+    bool operator<(const point& p) const {
+        if (x < p.x)        return true;
+        else if (x > p.x)   return false;
+        else if (y < p.y)   return true;
+        else                return false;
+    }
+};
+
+struct trait
+{
+    point   start;
+    point   end;
+    bool    hasRealInput;
+    bool    hasRealOutput;
+
+    trait(const point& p1, const point& p2) : start(p1), end(p2)    {}
+    void draw(device& dev) const { dev.trait(start.x, start.y, end.x, end.y); }
+
+    bool operator<(const trait& t) const {
+        if (start < t.start)        return true;
+        else if (t.start < start)   return false;
+        else if (end < t.end)       return true;
+        else                        return false;
+    }
+};
+
+struct collector
+{
+    set<point>  fOutputs;       // collect real outputs
+    set<point>  fInputs;        // collect real inputs
+    set<trait>  fTraits;        // collect traits to draw
+    set<trait>  fWithInput;     // collect traits with a real input
+    set<trait>  fWithOutput;    // collect traits with a real output
+
+    void addOutput(const point& p)  { fOutputs.insert(p); }
+    void addInput(const point& p)   { fInputs.insert(p); }
+    void addTrait(const trait& t)   { fTraits.insert(t); }
+    void computeVisibleTraits();
+    bool isVisible(const trait& t);
+    void draw(device& dev);
 };
 
 enum { kLeftRight=1, kRightLeft=-1 };
+
 
 
 /**
@@ -101,8 +142,9 @@ class schema
 
  	// abstract interface for subclasses
 	virtual void 	place(double x, double y, int orientation) 	= 0;
-	virtual void 	draw(device& dev) 							= 0;
-	virtual point	inputPoint(unsigned int i) const			= 0;
+    virtual void 	draw(device& dev) 							= 0;
+    virtual void 	collectTraits(collector& c)					= 0;
+    virtual point	inputPoint(unsigned int i) const			= 0;
 	virtual point 	outputPoint(unsigned int i)const			= 0;
 };
 
@@ -115,6 +157,7 @@ schema* makeBlockSchema 	(unsigned int inputs,
 							 const string& link);
 
 schema* makeCableSchema 	(unsigned int n=1);
+schema* makeInverterSchema 	(const string& color);
 schema* makeCutSchema 		();
 schema* makeEnlargedSchema 	(schema* s, double width);
 schema* makeParSchema 		(schema* s1, schema* s2);

@@ -104,21 +104,46 @@ point mergeSchema::outputPoint(unsigned int i) const
  */
 void mergeSchema::draw(device& dev)
 {
-	assert(placed());
+    assert(placed());
 
-	// draw the two subdiagrams
-	fSchema1->draw(dev);
-	fSchema2->draw(dev);
+    // draw the two subdiagrams
+    fSchema1->draw(dev);
+    fSchema2->draw(dev);
 
-	unsigned int r = fSchema2->inputs();
-	assert(r>0);
+#if 0
+    unsigned int r = fSchema2->inputs();
+    assert(r>0);
 
-	// draw the connections between them
-	for (unsigned int i=0; i<fSchema1->outputs(); i++) {
-		point p = fSchema1->outputPoint(i);
-		point q = fSchema2->inputPoint(i%r);
-		dev.line(p.x, p.y, q.x, q.y);
-	}
+    // draw the connections between them
+    for (unsigned int i=0; i<fSchema1->outputs(); i++) {
+        point p = fSchema1->outputPoint(i);
+        point q = fSchema2->inputPoint(i%r);
+        dev.trait(p.x, p.y, q.x, q.y);
+    }
+#endif
+}
+
+
+/**
+ * Draw the two sub schema and the connections between them
+ */
+void mergeSchema::collectTraits(collector& c)
+{
+    assert(placed());
+
+    // draw the two subdiagrams
+    fSchema1->collectTraits(c);
+    fSchema2->collectTraits(c);
+
+    unsigned int r = fSchema2->inputs();
+    assert(r>0);
+
+    // draw the connections between them
+    for (unsigned int i=0; i<fSchema1->outputs(); i++) {
+        point p = fSchema1->outputPoint(i);
+        point q = fSchema2->inputPoint(i%r);
+        c.addTrait(trait(p,q));
+    }
 }
 
 

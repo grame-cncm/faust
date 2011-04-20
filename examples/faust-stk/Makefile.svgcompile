@@ -1,0 +1,12 @@
+src  	:= $(wildcard *.dsp)
+target 	:= $(src:.dsp=.dsp-svg)
+
+all :  $(target)
+
+
+%.dsp-svg : %.dsp
+	faust -svg $< > /dev/null
+	
+
+clean :
+	rm -rf $(target)

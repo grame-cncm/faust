@@ -130,7 +130,8 @@ HEADERS += boxes/boxcomplexity.h \
     draw/schema/seqSchema.h \
     draw/schema/splitSchema.h \
     draw/schema/topSchema.h \
-    evaluate/environment.hh
+    evaluate/environment.hh \
+    draw/schema/inverterSchema.h
 SOURCES += main.cpp \
     boxes/boxcomplexity.cpp \
     boxes/boxes.cpp \
@@ -230,4 +231,6 @@ SOURCES += main.cpp \
     draw/schema/seqSchema.cpp \
     draw/schema/splitSchema.cpp \
     draw/schema/topSchema.cpp \
-    evaluate/environment.cpp
+    evaluate/environment.cpp \
+    draw/schema/collector.cpp \
+    draw/schema/inverterSchema.cpp

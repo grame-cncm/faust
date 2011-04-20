@@ -1,0 +1,16 @@
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+
+all :  $(appl)
+
+$(DEST)% : %.dsp
+	install -d $@
+	cp -r /usr/local/lib/faust/iPhone/* $@
+	faust $(VEC) -a $(ARCH) $< -o $@/iphone-faust.h
+	xcodebuild -project $@/iPhone.xcodeproj PRODUCT_NAME=$(<:.dsp=)
+	cp -r $@/build/Release-iphoneos/$(<:.dsp=.app) $@/../
+	rm -r $@
+
+clean :
+	rm -f $(DEST)

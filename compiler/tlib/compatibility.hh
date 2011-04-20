@@ -39,7 +39,6 @@ char*	getcwd(char* str, unsigned int size);
 int		isatty(int file);
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
-char*	dirname(char *path);
 
 
 #define snprintf _snprintf

@@ -61,7 +61,7 @@ filtercoeff(f0, dBgain, Q) = environment
 		HPF = rbjcoef( a0, a1, a2, b0, b1, b2 ) 
   				with {
 				    b0 =  (1 + cos(w0))/2;
-				    b1 = -(1 + cos(w0));
+				    b1 = -1 - cos(w0);
 				    b2 =  (1 + cos(w0))/2;
 				    a0 =   1 + alpha;
 				    a1 =  -2*cos(w0);

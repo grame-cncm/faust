@@ -45,6 +45,7 @@ class enlargedSchema : public schema
 	virtual void 	draw(device& dev);
 	virtual point	inputPoint(unsigned int i) 	const;
 	virtual point 	outputPoint(unsigned int i)	const;
+    virtual void    collectTraits(collector& c);
 };
 
 #endif

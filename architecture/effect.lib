@@ -221,6 +221,20 @@ crybaby_demo = bypass1(bp, crybaby(wah)) with {
    wah = crybaby_group(hslider("[1] Wah [tooltip: wah pedal angle between 0 (rocked back) and 1 (rocked forward)]",0.8,0,1,0.01));
 };
 
+//------------ apnl(a1,a2) ---------------
+// Passive Nonlinear Allpass:
+// switch between allpass coefficient a1 and a2 at signal zero crossings
+// REFERENCE: 
+//  "A Passive Nonlinear Digital Filter Design ..."
+//  by John R. Pierce and Scott A. Van Duyne, 
+//  JASA, vol. 101, no. 2, pp. 1120-1126, 1997
+// Written by Romain Michon and JOS based on Pierce switching springs idea:
+  apnl(a1,a2,x) = nonLinFilter
+  with{
+   condition = _>0;
+   nonLinFilter = (x - _ <: _*(condition*a1 + (1-condition)*a2),_')~_ :> +;
+  };
+
 //------------ piano_dispersion_filter(M,B,f0) ---------------
 // Piano dispersion allpass filter in closed form 
 //
@@ -324,8 +338,8 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
    flanger_stereo_demo(x,y) = attach(x,flangeview),y : 
      *(level),*(level) : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
 
-   lfol = component("osc.lib").oscrs; // sine for left channel
-   lfor = component("osc.lib").oscrc; // cosine for right channel
+   lfol = component("oscillator.lib").oscrs; // sine for left channel
+   lfor = component("oscillator.lib").oscrc; // cosine for right channel
    dmax = 2048;
    dflange = 0.001 * SR * 
      del_group(hslider("[1] Flange Delay [unit:ms] [style:knob]", 10, 0, 20, 0.001));
@@ -377,8 +391,8 @@ with {
      };
      SR = component("music.lib").SR;
      R = exp(-pi*width/SR);
-     cososc = component("osc.lib").oscrc;
-     sinosc = component("osc.lib").oscrs;
+     cososc = component("oscillator.lib").oscrc;
+     sinosc = component("oscillator.lib").oscrs;
      osc = cososc(speed) * phase01 + sinosc(speed) * (1-phase01);
      lfo = (1-osc)/2; // in [0,1]
      pi = 4*atan(1);
@@ -777,7 +791,7 @@ reverb_demo(x) = reverbs(x) with {
 //
 // USAGE: 
 //   <1,2,4,...,N signals> <: 
-//   fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax) :> 
+//   fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :> 
 //   <1,2,4,...,N signals>
 //
 // WHERE 
@@ -788,13 +802,14 @@ reverb_demo(x) = reverbs(x) with {
 //   freqs  = NB-1 crossover frequencies separating desired frequency bands
 //   durs   = NB decay times (t60) desired for the various bands
 //   loopgainmax = scalar gain between 0 and 1 used to "squelch" the reverb
+//   nonl = nonlinearity (0 to 0.999..., 0 being linear)
 //
 // REFERENCE: 
 //   https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html
 //
 // DEPENDENCIES: filter.lib (filterbank)
 
-fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax) 
+fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax, nonl) 
   = (bus(2*N) :> bus(N) : delaylines(N)) ~ 
     (delayfilters(N,freqs,durs) : feedbackmatrix(N)) 
 with {
@@ -808,10 +823,19 @@ with {
 // -1 is for feedback delay:
   delaylines(N) = par(i,N,(delay(dlmax(i),(delayval(i)-1))));
   delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
-  feedbackmatrix(N) = hadamard(N); // math.lib
+  feedbackmatrix(N) = bhadamard(N);
+  vbutterfly(n) = bus(n) <: (bus(n):>bus(n/2)) , ((bus(n/2),(bus(n/2):par(i,n/2,*(-1)))) :> bus(n/2));
+  bhadamard(2) = bus(2) <: +,-; 
+  bhadamard(n) = bus(n) <: (bus(n):>bus(n/2)) , ((bus(n/2),(bus(n/2):par(i,n/2,*(-1)))) :> bus(n/2))
+                 : (bhadamard(n/2) , bhadamard(n/2));
+
+  // Experimental nonlinearities:
+  // nonlinallpass = apnl(nonl,-nonl);
+  // nonlinallpass(x) = allpassnn(3,(nonl*PI*(x,x*x,x*x*x))); // filter.lib
+     nonlinallpass = _; // maybe later (for metallic plates and such) ...
 
   filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) 
-                         :> *(loopgainmax) / sqrt(N)
+                         :> *(loopgainmax) / sqrt(N) : nonlinallpass
   with {
     dur(j) = take(j+1,durs);
     n60(j) = dur(j)*SR; // decay time in samples
@@ -879,7 +903,7 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
   
   inx = x*mutegain + (pulseL+pulseC) + pn;
   iny = y*mutegain + (pulseR+pulseC) + pn;
-  pn = 0.1*pinkin*component("osc.lib").pink_noise;
+  pn = 0.1*pinkin*component("oscillator.lib").pink_noise;
 };
 
 //------------------------- fdnrev0_demo ---------------------------
@@ -896,7 +920,7 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
 //      = odd positive integer
 
 fdnrev0_demo(N,NB,BBSO,x,y) = stereo_reverb_tester(revin_group,x,y)
-	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax) 
+	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) 
           :> *(gain),*(gain)
 with {
   MAXDELAY = 8192; // sync w delays and prime_power_delays above
@@ -911,18 +935,22 @@ with {
   t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
   path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
   revin_group(x)  = fdn_group(hgroup("[4] Input Controls", x));
+  nonl_group(x) = revin_group(vgroup("[4] Nonnlinearity",x));
   quench_group(x) = revin_group(vgroup("[3] Reverb State",x));
+
+  nonl = nonl_group(hslider("[style:knob] [tooltip: nonlinear mode coupling]",
+	    0, -0.999, 0.999, 0.001));
   loopgainmax = 1.0-0.5*quench_group(button("[1] Quench
          [tooltip: Hold down 'Quench' to clear the reverberator]"));
 
   pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]
     [tooltip: This length (in meters) determines the shortest delay-line used in the FDN reverberator.
     	      Think of it as the shortest wall-to-wall separation in the room.]", 
-	    46, 3, 63, 0.1));
+	    46, 0.1, 63, 0.1));
   pathmax = path_group(hslider("[2] max acoustic ray length [unit:m]
     [tooltip: This length (in meters) determines the longest delay-line used in the FDN reverberator.
     	      Think of it as the largest wall-to-wall separation in the room.]", 
-	    63, 3, 63, 0.1));
+	    63, 0.1, 63, 0.1));
 
   defdur(i) = 1.9*(0.7^float(-i));
   durvals(i) = t60_group(vslider("[%i] %i [unit:s]
@@ -944,7 +972,7 @@ with {
 
 //----------------------------- zita_rev1_engine ---------------------------
 // Approximate implementation of the FOSS Linux reverb zita-rev1
-// by Fons Adriaensen  <fons@kokkinizita.net>.  This is an FDN reverb with
+// by Fons Adriaensen <fons@kokkinizita.net>.  This is an FDN reverb with
 // allpass comb filters in each feedback delay in addition to the 
 // damping filters.  Only stereo mode is implemented (no Ambisonic mode).
 //
@@ -959,22 +987,23 @@ with {
 //   t60m  = desired decay time (t60) at midrange frequencies
 //   fsmax = maximum sampling rate to be used
 //
-// REFERENCE: 
+// REFERENCES:
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
+//   https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html
 //
 // DEPENDENCIES: 
-//   filter.lib (for allpass_comb, lowpass, and smooth)
-//   math.lib (for hadamard(N), take, etc.)
+//   filter.lib (allpass_comb, lowpass, smooth)
+//   math.lib (hadamard, take, etc.)
 
 zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax) = 
-delay_stereo(rdel) : distrib2(N) 
+in_delay : distrib2(N) 
  : ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~ 
    (delayfilters(N,freqs,durs) : fbdelaylines(N)))
  : output2(N) // no ambisonics mode
 with {
   N = 8;
 
-  delay_stereo(rdel) = delay_mono(rdel),delay_mono(rdel);
+  in_delay = delay_mono(rdel),delay_mono(rdel);
   delay_mono(rdel) = delay(8192,SR*rdel*0.001) * 0.3;
 
   distrib2(N) = _,_ <: fanflip(N);
@@ -986,17 +1015,16 @@ with {
   outmix(4) = !,butterfly(2),!; // probably the result of some experimenting!
   outmix(N) = outmix(N/2),par(i,N/2,!);
 
-  // feedback delay-line lengths in seconds:
-
-  // can't use fsmax = SR because SR is not bounded at compile time
-
-  apdelays = ( 0.020346, 0.024421, 0.031604, 0.027333, 0.022904, 
-               0.029291, 0.013458, 0.019123); // feedforward delays in seconds
+  // Delay-line lengths in seconds:
+  apdelays = (0.020346, 0.024421, 0.031604, 0.027333, 0.022904, 
+              0.029291, 0.013458, 0.019123); // feedforward delays in seconds
   tdelays = ( 0.153129, 0.210389, 0.127837, 0.256891, 0.174713, 
               0.192303, 0.125000, 0.219991); // total delays in seconds
   tdelay(i) = floor(0.5 + SR*take(i+1,tdelays)); // samples
   apdelay(i) = floor(0.5 + SR*take(i+1,apdelays));
   fbdelay(i) = tdelay(i) - apdelay(i);
+  // NOTE: Since SR is not bounded at compile time, we can't use it to
+  // allocate delay lines; hence, the fsmax parameter:
   tdelaymaxfs(i) = floor(0.5 + fsmax*take(i+1,tdelays));
   apdelaymaxfs(i) = floor(0.5 + fsmax*take(i+1,apdelays));
   fbdelaymaxfs(i) = tdelaymaxfs(i) - apdelaymaxfs(i);
@@ -1046,7 +1074,7 @@ with {
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
 //
 // DEPENDENCIES: 
-//   filter.lib (for peak_eq_rm)
+//   filter.lib (peak_eq_rm)
 
 zita_rev1(x,y) = zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
 	  : out_eq : dry_wet(x,y) : out_level
@@ -1109,7 +1137,7 @@ with {
   eq2_group(x) = fdn_group(hgroup("[4] RM Peaking Equalizer 2", x));
 
   eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob]
-       [tooltip: Center-frequency of second-order peaking Regalia-Mitra equalizer section 2]",
+       [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 2]",
        315, 40, 2500, 1));
   
   eq2l = eq2_group(vslider("[2] Eq2 Level [unit:dB] [style:knob]
@@ -1137,4 +1165,71 @@ with {
     [tooltip: Output scale factor]", -40, -70, 40, 0.1)) 
     : smooth(0.999) : db2linear; 
 
+};
+
+//---------------------------------- mesh_square ------------------------------
+// Square Rectangular Digital Waveguide Mesh
+//
+// USAGE:
+//   bus(4*N) : mesh_square(N) : bus(4*N);
+//
+// WHERE
+//   N = number of nodes along each edge - a power of two (1,2,4,8,...)
+//
+// EXAMPLE: Reflectively terminated mesh impulsed at one corner:
+//   mesh_square_test(N,x) = mesh_square(N)~(busi(4*N,x)) // input to corner
+//      with { busi(N,x) = bus(N) : par(i,N,*(-1)) : par(i,N-1,_), +(x); };
+//   process = 1-1' : mesh_square_test(4); // all modes excited forever
+//
+// REQUIRES: math.lib.
+//
+// REFERENCE:
+//   https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html
+
+// four-port scattering junction:
+mesh_square(1)
+  = bus(4) <: par(i,4,*(-1)), (bus(4) :> (*(.5)) <: bus(4)) :> bus(4);
+
+// rectangular NxN square waveguide mesh:
+mesh_square(N) = bus(4*N) : (route_inputs(N/2) : par(i,4,mesh_square(N/2)))
+	  ~(prune_feedback(N/2))
+	  : prune_outputs(N/2) : route_outputs(N/2) : bus(4*N)
+with {
+  block(N) = par(i,N,!);
+
+  // select block i of N, block size = M:
+  s(i,N,M) = par(j, M*N, Sv(i, j))
+     with { Sv(i,i) = bus(N); Sv(i,j) = block(N); };
+
+  // prune mesh outputs down to the signals which make it out:
+  prune_outputs(N)
+    = bus(16*N) :
+      block(N), bus(N),   block(N), bus(N),
+      block(N), bus(N),   bus(N),   block(N),
+      bus(N),   block(N), block(N), bus(N),
+      bus(N),   block(N), bus(N),   block(N)
+      : bus(8*N);
+
+  // collect mesh outputs into standard order (N,W,E,S):
+  route_outputs(N)
+    = bus(8*N)
+      <: s(4,N,8),s(5,N,8), s(0,N,8),s(2,N,8),
+         s(3,N,8),s(7,N,8), s(1,N,8),s(6,N,8)
+      : bus(8*N);
+
+  // collect signals used as feedback:
+  prune_feedback(N) = bus(16*N) :
+      bus(N),   block(N), bus(N),   block(N),
+      bus(N),   block(N), block(N), bus(N),
+      block(N), bus(N),   bus(N),   block(N),
+      block(N), bus(N),   block(N), bus(N) :
+      bus(8*N);
+
+  // route mesh inputs (feedback, external inputs):
+  route_inputs(N) = bus(8*N), bus(8*N)
+  <:s(8,N,16),s(4,N,16), s(12,N,16),s(3,N,16),
+    s(9,N,16),s(6,N,16), s(1,N,16),s(14,N,16),
+    s(0,N,16),s(10,N,16), s(13,N,16),s(7,N,16),
+    s(2,N,16),s(11,N,16), s(5,N,16),s(15,N,16)
+    : bus(16*N);
 };

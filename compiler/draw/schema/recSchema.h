@@ -44,12 +44,16 @@ class recSchema : public schema
 	virtual void 	draw(device& dev);
 	virtual point	inputPoint(unsigned int i)	const;
 	virtual point 	outputPoint(unsigned int i)	const;
+    virtual void 	collectTraits(collector& c);
 
   private:
 	recSchema (schema* s1, schema* s2, double width);
 	void 			drawDelaySign(device& dev, double x, double y, double size);
-  	void 			drawFeedback(device& dev, const point& src, const point& dst, double dx);
-  	void 			drawFeedfront(device& dev, const point& src, const point& dst, double dx);
+    void 			drawFeedback(device& dev, const point& src, const point& dst, double dx);
+    void 			drawFeedfront(device& dev, const point& src, const point& dst, double dx);
+
+    void 			collectFeedback(collector& c, const point& src, const point& dst, double dx, const point& out);
+    void 			collectFeedfront(collector& c, const point& src, const point& dst, double dx);
 
 };
 

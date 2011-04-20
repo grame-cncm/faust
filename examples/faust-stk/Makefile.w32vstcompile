@@ -1,0 +1,58 @@
+################################################################################
+#
+#              CROSSCOMPILATION FROM LINUX OF VST PLUGINS FOR WINDOWS
+#              Faust Project, Y. Orlarey - Grame
+#
+################################################################################
+
+#------------------------------------------------------------------------------
+# 1/ VST SDK Should be installed somewhere
+VST=../vstsdk2.4
+
+#------------------------------------------------------------------------------
+# 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
+#CROSS=i386-mingw32-
+CROSS=i586-mingw32msvc-
+CXX=$(CROSS)g++
+CXXFLAGS=-I$(VST) -I$(VST)/public.sdk/source/vst2.x -DBUILDING_DLL -mno-cygwin
+LDFLAGS=
+DLLWRAP=$(CROSS)dllwrap --target=i386-mingw32 -mno-cygwin
+STRIP=$(CROSS)strip
+
+
+#------------------------------------------------------------------------------
+# 3/ we transform all .dsp Faust codes into the corresponding dll
+DSP= $(wildcard *.dsp)
+DLL= $(addprefix $(DEST), $(DSP:.dsp=.dll))
+
+##PLUGIN= $(SRC:.dsp=)
+##DLL=$(PLUGIN).dll
+#
+
+all : $(DLL)
+
+# how to generate the cpp file from the faust source
+$(DEST)%.cpp : %.dsp
+	faust -a vst2p4.cpp $< -o $@
+
+# we need to create the .def file needed to generate the .dll
+$(DEST)%.def :
+	@echo LIBRARY     $(@:.def=) 						 > $@
+	@echo DESCRIPTION \'Faust generated VST plugin\' 	>> $@
+	@echo EXPORTS     main=VSTPluginMain 				>> $@
+
+
+$(DEST)%.dll: $(DEST)%.o  $(DEST)%.def $(DEST)audioeffect.o $(DEST)audioeffectx.o $(DEST)vstplugmain.o
+	$(DLLWRAP) --driver-name $(CXX) --def $(@:.dll=.def) $^ -o $@
+	$(STRIP) $@
+
+$(DEST)audioeffect.o: $(VST)/public.sdk/source/vst2.x/audioeffect.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(DEST)audioeffectx.o: $(VST)/public.sdk/source/vst2.x/audioeffectx.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(DEST)vstplugmain.o: $(VST)/public.sdk/source/vst2.x/vstplugmain.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+ 
+

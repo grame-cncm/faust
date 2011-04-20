@@ -91,19 +91,43 @@ point topSchema::outputPoint(unsigned int i) const
  */
 void topSchema::draw(device& dev)
 {
-	assert(placed());
+    assert(placed());
 
-	// draw a background white rectangle
-	dev.rect(x(), y(), width()-1, height()-1, "#ffffff", fLink.c_str());
+    // draw a background white rectangle
+    dev.rect(x(), y(), width()-1, height()-1, "#ffffff", fLink.c_str());
 
-	// draw the label
-	dev.label(x()+fMargin, y()+fMargin/2, fText.c_str());
+    // draw the label
+    dev.label(x()+fMargin, y()+fMargin/2, fText.c_str());
 
-	fSchema->draw(dev);
+    fSchema->draw(dev);
 
-	// draw arrows at output points of schema
-	for (unsigned int i=0; i<fSchema->outputs(); i++) {
-		point p = fSchema->outputPoint(i);
-		dev.arrow(p.x, p.y, 0, orientation());
-	}
+    // draw arrows at output points of schema
+    for (unsigned int i=0; i<fSchema->outputs(); i++) {
+        point p = fSchema->outputPoint(i);
+        dev.fleche(p.x, p.y, 0, orientation());
+    }
+}
+
+/**
+ * Draw the enlarged schema. This methos can only
+ * be called after the block have been placed
+ */
+void topSchema::collectTraits(collector& c)
+{
+    assert(placed());
+    fSchema->collectTraits(c);
+
+    // draw arrows at output points of schema
+    for (unsigned int i=0; i<fSchema->inputs(); i++) {
+        point p = fSchema->inputPoint(i);
+        c.addOutput(p);;
+    }
+
+    // draw arrows at output points of schema
+    for (unsigned int i=0; i<fSchema->outputs(); i++) {
+        point p = fSchema->outputPoint(i);
+        c.addInput(p);;
+    }
+
+
 }

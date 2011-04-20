@@ -1,0 +1,22 @@
+DEST	:= ladspadir/
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+modules	:= $(addprefix $(DEST),  $(dspsrc:%.dsp=%.so))
+os 	:= $(shell uname)
+
+###allcpp: $(cppsrc)
+
+allmodules: $(modules)
+
+$(DEST)%.so: $(DEST)%.cpp
+ifeq ($(os), Darwin)
+	$(CXX) -fPIC -bundle -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+else
+	$(CXX) -fPIC -shared -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+endif
+
+$(DEST)%.cpp: %.dsp 
+	faust $(VEC) -a ladspa.cpp $< -o $@
+
+clean:
+	rm -rf $(DEST)

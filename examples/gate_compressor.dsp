@@ -1,4 +1,4 @@
-ol = library("osc.lib");
+ol = library("oscillator.lib");
 el = library("effect.lib");
 fl = library("filter.lib");
 

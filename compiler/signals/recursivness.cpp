@@ -23,6 +23,14 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "recursivness.hh"
+#include "property.hh"
+
+#include "signals.hh"
+#include "ppsig.hh"
+#include "set"
+
+using namespace std;
+
 
 /**
  * @file recursivness.cpp
@@ -119,4 +127,58 @@ static int position (Tree env, Tree t, int p)
 	if (isNil(env)) return 0;	// was not in the environment
 	if (hd(env) == t) return p;
 	else return position (tl(env), t, p+1);
+}
+
+
+//-----------------------------------list recursive symbols-----------------------
+
+
+
+/**
+ * return the set of recursive symbols appearing in a signal.
+ * @param sig the signal to analyze
+ * @return the set of symbols
+ */
+
+// the property used to memoize the results
+property<Tree>  SymListProp;
+
+Tree    symlistVisit(Tree sig, set<Tree>& visited)
+{
+    Tree S;
+    if (SymListProp.get(sig, S)) {
+        return S;
+    } else if ( visited.count(sig) > 0 ){
+        return nil;
+    } else {
+        visited.insert(sig);
+        Tree id, body;
+        if (isRec(sig, id, body)) {
+            Tree U = singleton(sig);
+            for (int i=0; i<len(body); i++) {
+                U = setUnion(U, symlistVisit(nth(body,i), visited));
+            }
+            return U;
+        } else {
+            vector<Tree> subsigs;
+            int n = getSubSignals(sig, subsigs, false);
+            Tree U = nil;
+            for (int i=0; i<n; i++) {
+                U = setUnion(U, symlistVisit(subsigs[i], visited));
+            }
+            return U;
+        }
+    }
+}
+
+Tree    symlist(Tree sig)
+{
+    Tree    S;
+    if (!SymListProp.get(sig, S)) {
+        set<Tree> visited;
+        S = symlistVisit(sig, visited);
+        SymListProp.set(sig, S);
+    }
+    //cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
+    return S;
 }

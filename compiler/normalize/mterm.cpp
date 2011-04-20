@@ -83,7 +83,7 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
 	//cerr << "isSigPow("<< *sig << ')' << endl;
 	xtended* p = (xtended*) getUserData(sig);
 	if (p == gPowPrim) {
-		if (isSigInt(sig->branch(1), &n)) {
+       if (isSigInt(sig->branch(1), &n)) {
 			x = sig->branch(0);
 			//cerr << "factor of isSigPow " << *x << endl;
 			return true;
@@ -431,6 +431,7 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 	cerr << "combineMulDiv (" << M << "/"  << D << "*" << ppsig(f)<< "**" << q << endl;
 	#endif
 	if (f) {
+        assert(q != 0);
 		if (q > 0) {
 			combineMulLeft(M, buildPowTerm(f,q));
 		} else if (q < 0) {
@@ -522,7 +523,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
         }
 
 		assert(RR);
-		//cerr << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
+        //cerr << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
 		return RR;
 	}
 }

@@ -976,6 +976,11 @@ generator/mr_dag_instructions_compiler.o: /usr/local/include/llvm/SymbolTableLis
 generator/mr_dag_instructions_compiler.o: /usr/local/include/llvm/ADT/ilist.h
 generator/mr_dag_instructions_compiler.o: /usr/local/include/llvm/Support/ConstantFolder.h signals/prim2.hh
 generator/mr_dag_instructions_compiler.o: signals/sigrateinference.hh
+generator/floats.o: generator/floats.hh
+generator/klass.o: generator/floats.hh tlib/smartpointer.hh generator/klass.hh signals/sigtype.hh signals/interval.hh
+generator/klass.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+generator/klass.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
+generator/klass.o: generator/Text.hh signals/signals.hh signals/binop.hh signals/ppsig.hh signals/recursivness.hh
 generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/occurences.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/occurences.hh
 generator/occurences.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
@@ -1195,7 +1200,8 @@ signals/prim2.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals
 signals/prim2.o: signals/binop.hh tlib/property.hh generator/Text.hh
 signals/ratemap.o: signals/ratemap.hpp tlib/tree.hh tlib/symbol.hh tlib/node.hh
 signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
-signals/recursivness.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
+signals/recursivness.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/property.hh
+signals/recursivness.o: signals/ppsig.hh
 signals/signals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/signals.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/signals.o: generator/instructions.hh tlib/property.hh generator/Text.hh
@@ -1310,9 +1316,12 @@ draw/device/PSDev.o: draw/device/PSDev.h draw/device/device.h tlib/compatibility
 draw/device/SVGDev.o: draw/device/SVGDev.h draw/device/device.h
 draw/schema/blockSchema.o: draw/schema/blockSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/cableSchema.o: draw/schema/cableSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/collector.o: draw/schema/schema.h draw/device/device.h
 draw/schema/cutSchema.o: draw/schema/cutSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/decorateSchema.o: draw/schema/decorateSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/enlargedSchema.o: draw/schema/enlargedSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/inverterSchema.o: draw/schema/inverterSchema.h draw/schema/blockSchema.h draw/schema/schema.h
+draw/schema/inverterSchema.o: draw/device/device.h
 draw/schema/mergeSchema.o: draw/schema/mergeSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/parSchema.o: draw/schema/parSchema.h draw/schema/schema.h draw/device/device.h
 draw/schema/recSchema.o: draw/schema/recSchema.h draw/schema/schema.h draw/device/device.h

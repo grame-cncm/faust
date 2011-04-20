@@ -58,7 +58,8 @@
 #include "compatibility.hh"
 #include "names.hh"
 #include "description.hh"
-#include "ensure.hh"
+#include "property.hh"
+
 
 
 #if 0
@@ -70,7 +71,7 @@
 #endif
 
 #if 0
-#define linkcolor "#F57900"
+#define linkcolor "#F57900" 
 #define normalcolor "#4B71A1"
 #define uicolor "#47945E"
 #define slotcolor "#EDD400"
@@ -78,7 +79,7 @@
 #endif
 
 #if 0
-#define linkcolor "#47945E"
+#define linkcolor "#47945E" 
 #define normalcolor "#4B71A1"
 #define uicolor "#f44800"
 #define slotcolor "#EDD400"
@@ -86,7 +87,7 @@
 #endif
 
 #if 0
-#define linkcolor "#47945E"
+#define linkcolor "#47945E" 
 #define normalcolor "#4B71A1"
 #define uicolor "#816647"
 #define slotcolor "#EDD400"
@@ -94,7 +95,7 @@
 #endif
 
 #if 0
-#define linkcolor "#003366"
+#define linkcolor "#003366" 
 #define normalcolor "#4B71A1"
 #define uicolor "#816647"
 #define slotcolor "#EDD400"
@@ -102,7 +103,7 @@
 #endif
 
 #if 0
-#define linkcolor "#003366"
+#define linkcolor "#003366" 
 #define normalcolor "#4B71A1"
 #define uicolor "#477881"
 #define slotcolor "#816647"
@@ -111,11 +112,12 @@
 
 
 #if 1
-#define linkcolor "#003366"
+#define linkcolor "#003366" 
 #define normalcolor "#4B71A1"
 #define uicolor "#477881"
 #define slotcolor "#47945E"
 #define numcolor "#f44800"
+#define invcolor "#ffffff"
 #endif
 
 using namespace std;
@@ -224,11 +226,11 @@ static void writeSchemaFile(Tree bd)
 
 	gOccurrences = new Occurrences(bd);
 
-	bool hasname = getDefNameProperty(bd, id);
+	bool hasname = getDefNameProperty(bd, id); 
 
 	//assert(hasname);
 	if (!hasname) {
-		// create an arbitrary name
+		// create an arbitrary name 
 		id = tree(Node(unique("diagram_")));
 	}
 
@@ -245,10 +247,16 @@ static void writeSchemaFile(Tree bd)
 		SVGDev dev(s1.str().c_str(), ts->width(), ts->height());
 		ts->place(0,0, kLeftRight);
 		ts->draw(dev);
+        { collector c; ts->collectTraits(c); c.draw(dev); }
 	} else {
 		PSDev dev(s1.str().c_str(), ts->width(), ts->height());
 		ts->place(0,0, kLeftRight);
 		ts->draw(dev);
+        {
+            collector c;
+            ts->collectTraits(c);
+            c.draw(dev);
+        }
 	}
 }
 
@@ -306,7 +314,7 @@ static char* legalFileName(Tree t, int n, char* dst)
 		}
 	}
 	dst[i] = 0;
-	if (strcmp(dst, "process") != 0) {
+	if (strcmp(dst, "process") != 0) { 
 		// if it is not process add the hex address to make the name unique
 		snprintf(&dst[i], n-i, "-%p", t);
 	}
@@ -316,6 +324,66 @@ static char* legalFileName(Tree t, int n, char* dst)
 
 
 //------------------------ generating the schema -------------------------
+
+
+/**
+ * isInverter(t) returns true if t == '*(-1)'. This test is used
+ * to simplify diagram by using a special symbol for inverters.
+ */
+Tree gInverter[4];
+
+static bool isInverter(Tree t)
+{
+    // init gInverted table. For some reason doesn't work if done outside
+    if (gInverter[0] == 0) {
+        gInverter[0] = boxSeq(boxPar(boxWire(), boxInt(-1)),boxPrim2(sigMul));
+        gInverter[1] = boxSeq(boxPar(boxInt(-1), boxWire()),boxPrim2(sigMul));
+        gInverter[2] = boxSeq(boxPar(boxWire(), boxReal(-1.0)),boxPrim2(sigMul));
+        gInverter[3] = boxSeq(boxPar(boxReal(-1.0), boxWire()),boxPrim2(sigMul));
+        gInverter[4] = boxSeq(boxPar(boxInt(0), boxWire()),boxPrim2(sigSub));
+        gInverter[5] = boxSeq(boxPar(boxReal(0.0), boxWire()),boxPrim2(sigSub));
+    };
+
+    //cerr << "isInverter " << t << '$' << boxpp(t) << endl;
+    for (int i=0; i<6; i++) {
+        if (t == gInverter[i]) return true;
+    }
+    return false;
+}
+
+
+/**
+ * Compute the Pure Routing property, that is expressions
+ * only made of cut, wires and slots. No labels will be
+ * dispayed for pure routing expressions.
+ */
+property<bool> gPureRoutingProperty;
+
+static bool isPureRouting(Tree t)
+{
+    bool    r;
+    int     ID;
+    Tree    x,y;
+
+    if (gPureRoutingProperty.get(t,r)) {
+        return r;
+    } else if (    isBoxCut(t)
+                || isBoxWire(t)
+                || isInverter(t)
+                || isBoxSlot(t, &ID)
+                || (isBoxPar(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxSeq(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxSplit(t,x,y) && isPureRouting(x) && isPureRouting(y))
+                || (isBoxMerge(t,x,y) && isPureRouting(x) && isPureRouting(y))
+              ) {
+        gPureRoutingProperty.set(t,true);
+        return true;
+    } else {
+        gPureRoutingProperty.set(t,false);
+        return false;
+    }
+}
+
 
 /**
  * Generate an appropriate schema according to
@@ -345,7 +413,7 @@ static schema* generateDiagramSchema(Tree t)
 		scheduleDrawing(t);
 		return makeBlockSchema(ins, outs, s.str(), linkcolor, l.str());
 
-	} else  if (getDefNameProperty(t, id) && ! isBoxSlot(t)) {
+    } else  if (getDefNameProperty(t, id) && ! isPureRouting(t)) {
 		// named case : not a slot, with a name
 		// draw a line around the object with its name
 		stringstream 	s; s << tree2str(id);
@@ -379,6 +447,8 @@ static schema* generateInsideSchema(Tree t)
 	xtended* xt = (xtended*)getUserData(t);
 
 	if (xt)							{ return makeBlockSchema(xt->arity(), 1, xt->name(), normalcolor, ""); }
+
+    else if (isInverter(t))         { return makeInverterSchema(invcolor); }
 
 	else if (isBoxInt(t, &i))		{ stringstream 	s; s << i; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
 	else if (isBoxReal(t, &r)) 		{ stringstream 	s; s << r; return makeBlockSchema(0, 1, s.str(), numcolor, "" ); }
@@ -528,7 +598,7 @@ static schema* generateBargraphSchema(Tree t)
  */
 static schema* generateInputSlotSchema(Tree a)
 {
-	Tree id; ensure(getDefNameProperty(a, id));
+	Tree id; assert(getDefNameProperty(a, id));
 	stringstream s; s << tree2str(id);
 	return makeBlockSchema(1, 0, s.str(), slotcolor, "");
 }
@@ -540,7 +610,7 @@ static schema* generateInputSlotSchema(Tree a)
  */
 static schema* generateOutputSlotSchema(Tree a)
 {
-	Tree id; ensure(getDefNameProperty(a, id));
+	Tree id; assert(getDefNameProperty(a, id));
 	stringstream s; s << tree2str(id);
 	return makeBlockSchema(0, 1, s.str(), slotcolor, "");
 }

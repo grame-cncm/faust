@@ -30,5 +30,7 @@ extern Tree RECURSIVNESS;
 void 	recursivnessAnnotation(Tree sig);
 int 	getRecursivness(Tree t);
 
+Tree    symlist(Tree sig);
+
 #endif
 

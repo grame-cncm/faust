@@ -47,10 +47,12 @@ class seqSchema : public schema
 	virtual void 	draw(device& dev);
 	virtual point	inputPoint(unsigned int i)	const;
 	virtual point 	outputPoint(unsigned int i)	const;
+    virtual void    collectTraits(collector& c);
 
   private:
  	seqSchema (schema* s1, schema* s2, double hgap);
- 	void 			drawInternalWires(device& dev);
+    void    drawInternalWires(device& dev);
+    void    collectInternalWires(collector& c);
 };
 
 

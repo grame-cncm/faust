@@ -1,9 +1,10 @@
 #!/bin/bash
 
+OSCDEFS=""
 #####################################################################
 #                                                                   #
-#        Compiles Faust programs into an alsa-gtk application      #
-#               (c) Grame, 2009                                     #
+#               Compiles Faust programs to alsa-gtk                 #
+#               (c) Grame, 2009-2011                                #
 #                                                                   #
 #####################################################################
 
@@ -36,6 +37,8 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-osc" ]; then
+		 OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -46,18 +49,27 @@ for p in $@; do
 done
 
 
+
+	
 #-------------------------------------------------------------------
-# compile the *.dsp files
+# compile the *.dsp files using ALSA and GTK on linux
 #
-for SRC in $FILES; do
-    faust -a alsa-gtk.cpp $OPTIONS "$SRC" -o "$SRC.cpp"
+for f in $FILES; do
+	
+	# compile faust to c++
+	faust -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3} $OMP "$SRC.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` -o "${SRC%.dsp}"
+		${CXX=g++} ${CXXFLAGS=-O3} $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
 	) > /dev/null
-    rm "$SRC.cpp"
-    BINARIES="$BINARIES${SRC%.dsp};"
+	rm "$f.cpp"
+
+	# collect binary file name for FaustGIDE
+	BINARIES="$BINARIES${f%.dsp};"
 done
 
-# return the binaries names
-echo "$BINARIES"
+
+echo $BINARIES
+
+

@@ -42,7 +42,7 @@ schema* makeCableSchema (unsigned int n)
 cableSchema::cableSchema (unsigned int n)
 	: 	schema (n, n, 0, n*dWire)
 {
-	for (unsigned int i=0; i<n; i++) 	fPoint.push_back(point(0));
+    for (unsigned int i=0; i<n; i++) 	fPoint.push_back(point(0,0));
 }
 
 
@@ -71,6 +71,16 @@ void cableSchema::place(double ox, double oy, int orientation)
  * are enlargered
  */
 void cableSchema::draw(device& dev)
+{
+}
+
+
+
+/**
+ * Nothing to collect. Actual collect will take place when the wires
+ * are enlargered
+ */
+void cableSchema::collectTraits(collector& c)
 {
 }
 

@@ -121,7 +121,7 @@ bool			gLLVM64         = true;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
-bool            gShadowBlur     = false;
+bool            gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
 bool            gGraphSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
@@ -385,7 +385,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST: DSP to C, C++, JAVA, LLVM compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2010, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2011, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 void printhelp()
@@ -509,10 +509,10 @@ static void initFaustDirectories()
 {
     char s[1024];
     getFaustPathname(s, 1024);
-    dirname(s);
-    gFaustDirectory = s;
-	gFaustSuperDirectory = dirname(gFaustDirectory);
-	gFaustSuperSuperDirectory = dirname(gFaustSuperDirectory);
+
+    gFaustDirectory = filedirname(s);
+    gFaustSuperDirectory = filedirname(gFaustDirectory);
+    gFaustSuperSuperDirectory = filedirname(gFaustSuperDirectory);
     if (gInputFiles.empty()) {
         gMasterDocument = "Unknown";
         gMasterDirectory = ".";
@@ -520,7 +520,7 @@ static void initFaustDirectories()
 		gDocName = "faustdoc";
     } else {
         gMasterDocument = *gInputFiles.begin();
-        gMasterDirectory = dirname(gMasterDocument);
+        gMasterDirectory = filedirname(gMasterDocument);
 		gMasterName = fxname(gMasterDocument);
 		gDocName = fxname(gMasterDocument);
     }

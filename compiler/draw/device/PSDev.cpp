@@ -84,20 +84,35 @@ PSDev::~PSDev()
 
 void PSDev::rect(double x,double y,double l,double h, const char*, const char*)
 {
-	fprintf(fic_repr,"gsave\n");
-	fprintf(fic_repr,"newpath\n");
-	//fprintf(fic_repr,"1.5 unit setlinewidth\n");
-	fprintf(fic_repr,"1.0 unit setlinewidth\n");
-	fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);    
-	fprintf(fic_repr,"0 unit %f unit rlineto\n",h);
-	fprintf(fic_repr,"%f unit 0 unit rlineto\n",l);
-	fprintf(fic_repr,"0 unit %f unit rlineto\n",-h);
-	fprintf(fic_repr,"closepath\n");              
-	fprintf(fic_repr,"stroke\n");
-	fprintf(fic_repr,"grestore\n");
+    fprintf(fic_repr,"gsave\n");
+    fprintf(fic_repr,"newpath\n");
+    //fprintf(fic_repr,"1.5 unit setlinewidth\n");
+    fprintf(fic_repr,"1.0 unit setlinewidth\n");
+    fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",h);
+    fprintf(fic_repr,"%f unit 0 unit rlineto\n",l);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",-h);
+    fprintf(fic_repr,"closepath\n");
+    fprintf(fic_repr,"stroke\n");
+    fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::circle(double x,double y,double rayon)
+void PSDev::triangle(double x,double y,double l,double h, const char*, const char*, bool leftright)
+{
+    fprintf(fic_repr,"gsave\n");
+    fprintf(fic_repr,"newpath\n");
+    //fprintf(fic_repr,"1.5 unit setlinewidth\n");
+    fprintf(fic_repr,"1.0 unit setlinewidth\n");
+    fprintf(fic_repr,"%f unit %f unit moveto\n",x,y);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",h);
+    fprintf(fic_repr,"%f unit 0 unit rlineto\n",l);
+    fprintf(fic_repr,"0 unit %f unit rlineto\n",-h);
+    fprintf(fic_repr,"closepath\n");
+    fprintf(fic_repr,"stroke\n");
+    fprintf(fic_repr,"grestore\n");
+}
+
+void PSDev::rond(double x,double y,double rayon)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -106,7 +121,7 @@ void PSDev::circle(double x,double y,double rayon)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::arrow(double x,double y,double rotation,int sens)
+void PSDev::fleche(double x,double y,double rotation,int sens)
 {
 	if(sens == 1)
 	{	
@@ -142,7 +157,7 @@ void PSDev::arrow(double x,double y,double rotation,int sens)
 	}
 }
 
-void PSDev::square(double x,double y,double cote)
+void PSDev::carre(double x,double y,double cote)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"newpath\n");
@@ -156,7 +171,7 @@ void PSDev::square(double x,double y,double cote)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::line(double x1,double y1,double x2,double y2)
+void PSDev::trait(double x1,double y1,double x2,double y2)
 {
 	fprintf(fic_repr,"gsave\n");
 	fprintf(fic_repr,"0.3 setgray\n");
@@ -179,7 +194,7 @@ void PSDev::dasharray(double x1,double y1,double x2,double y2)
 	fprintf(fic_repr,"grestore\n");
 }
 
-void PSDev::text(double x,double y,const char* nom)
+void PSDev::text(double x,double y,const char* nom, const char* link)
 {
 	fprintf(fic_repr,"newpath\n");
     //fprintf(fic_repr,"%f unit %f unit moveto\n",(x-4)-(strlen(nom)-1)*3.8,y+2);

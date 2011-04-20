@@ -1,0 +1,10 @@
+#N canvas 160 22 504 567 10;
+#X msg 387 424 \; pd dsp 1;
+#X msg 387 462 \; pd dsp 0;
+#X obj 131 379 audio-out;
+#X obj 125 20 midi-in 2;
+#X obj 19 77 glassHarmonica;
+#X connect 3 0 4 0;
+#X connect 3 1 4 1;
+#X connect 4 1 2 1;
+#X connect 4 2 2 2;

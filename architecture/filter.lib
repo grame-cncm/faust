@@ -244,8 +244,8 @@ fir(B,x) = sum(i,count(B),take(i+1,B)*(x@i)); // count & take in math.lib
 // USAGE: 
 //   _ : wgr(f,r) : _
 // where
-//   f : resonance frequency (Hz)
-//   r : loss factor for exponential decay 
+//   f = resonance frequency (Hz)
+//   r = loss factor for exponential decay
 //        (set to 1 to make a numerically stable oscillator)
 //
 // Reference:
@@ -264,11 +264,11 @@ with {
 // USAGE: 
 //   _ : nlf2(f,r) : _
 // where
-//   f : resonance frequency (Hz)
-//   r : loss factor for exponential decay 
+//   f = resonance frequency (Hz)
+//   r = loss factor for exponential decay
 //        (set to 1 to make a sinusoidal oscillator)
 //
-// Reference:
+// REFERENCE:
 // https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html
 //
 nlf2(f,r,x) = ((_<:_,_),(_<:_,_) : (*(s),*(c),*(c),*(0-s)) :> 
@@ -279,6 +279,65 @@ with {
   s = sin(th);
   cross = _,_ <: !,_,_,!;
 };
+
+//===================== Ladder/Lattice Allpass Filters ======================
+// An allpass filter has gain 1 at every frequency, but variable phase.
+// Ladder/lattice allpass filters are specified by reflection coefficients.
+// They are defined here as nested allpass filters, hence the names allpassn*.
+//
+// REFERENCES
+//   1. https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html
+//      https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html
+//   2. Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976
+//
+// QUICK GUIDE
+//   allpassn   - two-multiply lattice - each section is two multiply-adds
+//   allpassnn  - normalized form - four multiplies and two adds per section,
+//                but coefficients can be time varying and nonlinear without
+//                "parametric amplification" (modulation of signal energy).
+//   allpassnkl - Kelly-Lochbaum form - four multiplies and two adds per
+//                section, but all signals have an immediate physical
+//                interpretation as traveling pressure waves, etc.
+//   allpassn1m - One-multiply form - one multiply and three adds per section.
+//                Normally the most efficient in special-purpose hardware.
+//
+// TYPICAL USAGE
+//   _ : allpassn(N,sv) : _
+// where
+//   N  = allpass order (number of ladder or lattice sections)
+//   sv = (s1,s2,...,sN) = reflection coefficients (between -1 and 1).
+//        For allpassnn only, sv is replaced by tv, where sv(i) = sin(tv(i)),
+//        where tv(i) may range between -PI and PI.
+//
+// two-multiply:
+allpassn(0,sv) = _;
+allpassn(n,sv) = _ <: ((+ <: (allpassn(n-1,sv)),*(s))~(*(-s))) : _',_ :+
+with { s = take(n,sv); };
+
+// power-normalized (reflection coefficients s = sin(t)):
+allpassnn(0,tv) = _;
+allpassnn(n,tv) = _ <: *(s), (*(c) : (+ 
+        : allpassnn(n-1,tv))~(*(-s))) : _, mem*c : +
+with { c=cos(take(n,tv));  s=sin(take(n,tv)); };
+
+// power-normalized with sparse delays dv(n)>1:
+allpassnns(0,tv,dmax,dv) = _;
+allpassnns(n,tv,dmax,dv) = _ <: *(s), (*(c) : (+ : dl
+           : allpassnns(n-1,tv,dmax,dv))~(*(-s))) : _, mem*c : +
+with { c=cos(take(n,tv));  s=sin(take(n,tv));
+       dl=delay(dmax,(take(n,dv)-1)); };
+
+// Kelly-Lochbaum:
+allpassnkl(0,sv) = _;
+allpassnkl(n,sv) = _ <: *(s),(*(1+s) : (+
+                   : allpassnn(n-1,sv))~(*(-s))) : _, mem*(1-s) : +
+with { s = take(n,sv); };
+
+// one-multiply:
+allpassn1m(0,sv) = _;
+allpassn1m(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : cross
+		  : allpassn1m(n-1,sv),_)~(*(-1)) : _',_ : +
+with {s = take(n,sv); cross = _,_ <: !,_,_,!; };
 
 //===== Digital Filter Sections Specified as Analog Filter Sections =====
 //
@@ -812,7 +871,7 @@ peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 //   Proceedings of the IEEE, 76(1):19-37, Jan. 1988.  (See pp. 29-30.)
 //
 peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
-  A = tf2(k2, k1*(1+k2), 1, k1*(1+k2), k2) <: _,_;
+  A = tf2(k2, k1*(1+k2), 1, k1*(1+k2), k2) <: _,_; // allpass
   k1 = 0.0 - cos(2.0*PI*fx/SR);
   k2 = (1.0 - tanPiBT)/(1.0 + tanPiBT);
   K = db2linear(Lfx);

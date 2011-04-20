@@ -374,6 +374,10 @@ FILE* fopensearch(const char* filename, string& fullpath)
 (((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
 #endif /* DIR_SEPARATOR_2 */
 
+
+/**
+ * returns a pointer on the basename part of name
+ */
 const char* filebasename(const char* name)
 {
 #if defined (HAVE_DOS_BASED_FILE_SYSTEM)
@@ -393,3 +397,27 @@ const char* filebasename(const char* name)
 	return base;
 }
 
+
+/**
+ * returns a string containing the dirname of name
+ * If no dirname, returns "."
+ */
+string filedirname(const string& name)
+{
+    const char*         base = filebasename(name.c_str());
+    const unsigned int  size = base-name.c_str();
+    string              dirname;
+
+    if (size==0) {
+        dirname += '.';
+
+    } else if (size==1) {
+        dirname += name[0];
+
+    } else {
+        for (unsigned int i=0; i<size-1; i++) {
+            dirname += name[i];
+        }
+    }
+    return dirname;
+}

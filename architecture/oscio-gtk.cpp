@@ -1,0 +1,115 @@
+/************************************************************************
+
+	IMPORTANT NOTE : this file contains two clearly delimited sections : 
+	the ARCHITECTURE section (in two parts) and the USER section. Each section 
+	is governed by its own copyright and license. Please check individually 
+	each section for license and copyright information.
+*************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
+    FAUST Architecture File
+	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it 
+    and/or modify it under the terms of the GNU General Public License 
+	as published by the Free Software Foundation; either version 3 of 
+	the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License 
+	along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+	EXCEPTION : As a special exception, you may create a larger work 
+	that contains this FAUST architecture section and distribute  
+	that work under terms of your choice, so long as this FAUST 
+	architecture section is not modified. 
+
+
+ ************************************************************************
+ ************************************************************************/
+
+#include <libgen.h>
+#include <iostream>
+#include <list>
+
+#include "gui/FUI.h"
+#include "gui/faustgtk.h"
+#include "gui/OSCUI.h"
+#include "misc.h"
+#include "audio/oscdsp.h"
+
+
+/**************************BEGIN USER SECTION **************************/
+
+/******************************************************************************
+*******************************************************************************
+
+							       VECTOR INTRINSICS
+
+*******************************************************************************
+*******************************************************************************/
+<<includeIntrinsic>>
+
+
+<<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+					
+mydsp	DSP;
+
+list<GUI*>                   GUI::fGuiList;
+
+/******************************************************************************
+*******************************************************************************
+
+                                MAIN PLAY THREAD
+
+*******************************************************************************
+*******************************************************************************/
+int main( int argc, char *argv[] )
+{
+	char	name[256], dst[258];
+	char	rcfilename[256]; float oscio = 0;
+
+	char* home = getenv("HOME");
+	snprintf(name, 255, "%s", basename(argv[0]));
+	snprintf(dst, 257, "/%s/", name);
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
+
+	GUI* interface = new GTKUI (name, &argc, &argv);
+	FUI* finterface	= new FUI();
+	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(finterface);
+
+	oscdsp osca (dst, argc, argv);
+	OSCUI*	oscinterface = new OSCUI(name, argc, argv, &osca);
+	DSP.buildUserInterface(oscinterface);
+	oscinterface->addToggleButton("OSC IO", &oscio);
+	
+	snprintf(dst, 257, "/%s/", oscinterface->getRootName());
+	osca.setDest (dst);
+	
+	osca.init (name, &DSP);	
+	finterface->recallState(rcfilename);
+	osca.start ();	
+	
+	oscinterface->run();
+	interface->run();	
+	finterface->saveState(rcfilename);
+	osca.stop();
+	delete oscinterface;
+  	return 0;
+}
+
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+					
+

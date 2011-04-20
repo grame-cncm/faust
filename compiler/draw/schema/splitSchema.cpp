@@ -82,6 +82,7 @@ void splitSchema::place(double ox, double oy, int orientation)
 	endPlace();
 }
 
+
 /**
  * The inputs of s1 <: s2 are the inputs of s1
  */
@@ -105,21 +106,47 @@ point splitSchema::outputPoint(unsigned int i) const
  */
 void splitSchema::draw(device& dev)
 {
-	assert(placed());
+    assert(placed());
 
-	// draw the two subdiagrams
-	fSchema1->draw(dev);
-	fSchema2->draw(dev);
+    // draw the two subdiagrams
+    fSchema1->draw(dev);
+    fSchema2->draw(dev);
 
-	unsigned int r = fSchema1->outputs();
-	assert(r>0);
+    unsigned int r = fSchema1->outputs();
+    assert(r>0);
+#if 0
+    // draw the connections between them
+    for (unsigned int i=0; i<fSchema2->inputs(); i++) {
+        point p = fSchema1->outputPoint(i%r);
+        point q = fSchema2->inputPoint(i);
+        if(p.z>0) {
+            dev.trait(p.x, p.y, q.x, q.y);
+        }
+    }
+#endif
+}
 
-	// draw the connections between them
-	for (unsigned int i=0; i<fSchema2->inputs(); i++) {
-		point p = fSchema1->outputPoint(i%r);
-		point q = fSchema2->inputPoint(i);
-		dev.line(p.x, p.y, q.x, q.y);
-	}
+
+/**
+ * Draw the two sub schema and the connections between them
+ */
+void splitSchema::collectTraits(collector& c)
+{
+    assert(placed());
+
+    // draw the two subdiagrams
+    fSchema1->collectTraits(c);
+    fSchema2->collectTraits(c);
+
+    unsigned int r = fSchema1->outputs();
+    assert(r>0);
+
+    // draw the connections between them
+    for (unsigned int i=0; i<fSchema2->inputs(); i++) {
+        point p = fSchema1->outputPoint(i%r);
+        point q = fSchema2->inputPoint(i);
+        c.addTrait(trait(point(p.x, p.y), point(q.x, q.y)));
+    }
 }
 
 

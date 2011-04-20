@@ -1,4 +1,4 @@
-ol = library("osc.lib");
+ol = library("oscillator.lib");
 fl = library("filter.lib");
 
 //process = ol.sawtooth_demo : fl.parametric_eq_demo : 
