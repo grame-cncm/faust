@@ -45,12 +45,18 @@ void MessageDriven::processMessage( const Message* msg )
 	// and call propose with this regexp and with the dest osc address tail
 	propose (msg, &r, OSCAddress::addressTail (addr));
 	
-	// try alias version
-	for (int i=0; i<size(); i++) {
-		if (subnode(i)->name() == "alias") {
-			OSCRegexp r2 ("alias");
-			// and call propose with this regexp and with the dest osc address tail
-			subnode(i)->propose (msg, &r2, addr);
+	if (addr != "/*") {
+		cout << "(alias) MessageDriven::processMessage ";
+		msg->print(cout);
+		cout << endl;
+	
+		// try alias version
+		for (int i=0; i<size(); i++) {
+			if (subnode(i)->name() == "alias") {
+				OSCRegexp r2 ("alias");
+				// and call propose with this regexp and with the dest osc address tail
+				subnode(i)->propose (msg, &r2, addr);
+			}
 		}
 	}
 }
