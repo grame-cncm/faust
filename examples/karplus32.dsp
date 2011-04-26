@@ -30,8 +30,8 @@ size 		= hslider("excitation (samples)", 128, 2, 512, 1);
 // Resonator
 //-----------------
 
-dur 		= hslider("duration (samples)", 128, 2, 512, 1);
-att 		= hslider("attenuation", 0.1, 0, 1, 0.01);
+dur 		= hslider("duration (samples) [osc:/1/fader2]", 128, 2, 512, 1);
+att 		= hslider("attenuation [osc:/1/rotary3]", 0.01, 0, 0.25, 0.001);
 average(x)	= (x+x')/2;
 
 resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
@@ -40,17 +40,17 @@ resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
 // Polyphony
 //-----------------
 
-detune 		= hslider("detune", 32, 0, 512, 1);
-polyphony 	= hslider("polyphony", 1, 0, 32, 1);
+detune 		= hslider("detune[osc:/1/rotary6]", 32, 0, 512, 1);
+polyphony 		= hslider("polyphony [osc:/1/rotary5]", 1, 0, 32, 1);
 
 
 
-output 		= hslider("output volume", 0.5, 0, 1, 0.1);
+output 		= hslider("output volume [osc:/1/fader1]", 0.5, 0, 1, 0.1);
 
 
 process =  vgroup("karplus32",
 	 		   	vgroup("noise generator", noise * hslider("level", 0.5, 0, 1, 0.1))
-				 : vgroup("excitator", *(button("play [osc:/joue]"): trigger(size)))
+				 : vgroup("excitator", *(button("play [osc:/1/push1]"): trigger(size)))
 				<: vgroup("resonator x32", par(i,32, resonator(dur+i*detune, att) * (polyphony > i)))
 				:> *(output),*(output)
 			);
