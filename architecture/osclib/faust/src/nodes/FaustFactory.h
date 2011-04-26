@@ -50,6 +50,10 @@ class FaustFactory
 	SMessageDriven			fRoot;		// keep track of the root node
 	OSCIO * fIO;						// hack to support audio IO via OSC, actually the field is given to the root node
 
+	private:
+		SMessageDriven 	followPath	(SMessageDriven fRoot, const std::string& fullpath, std::string& pathtoleaf);
+		void 			createNodeChain	(SMessageDriven node, const std::string& pathtoleaf, float* zone, float imin, float imax, float init, float min, float max);
+
 	public:
 				 FaustFactory(OSCIO * io=0) : fIO(io) {}
 		virtual ~FaustFactory() {}

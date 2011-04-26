@@ -27,6 +27,7 @@
 #include "FaustNode.h"
 #include "RootNode.h"
 #include "MessageDriven.h"
+#include "OSCAddress.h"
 
 using namespace std;
 
@@ -43,19 +44,57 @@ void FaustFactory::addnode (const char* label, float* zone, float init, float mi
 	}
 }
 
+
 void FaustFactory::addfullpathnode (const string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
 {
+	string	remainingpath;
+	SMessageDriven node = followPath(fRoot, string("/alias")+fullpath, remainingpath);
+	createNodeChain(node, remainingpath, zone, imin, imax, init, min, max);
+}
+
+SMessageDriven FaustFactory::followPath(SMessageDriven node, const string& fullpath, string& remainingpath)
+{
+	if (fullpath.size()>0) {
+		string label = OSCAddress::addressFirst (fullpath);
+		for (int i = 0; i < node->size(); i++) {
+			if (node->subnode(i)->name() == label) {
+				return followPath(node->subnode(i), OSCAddress::addressTail(fullpath), remainingpath);
+			}
+		}
+	}
+	remainingpath = fullpath;
+	return node;
+}
+
+void FaustFactory::createNodeChain(SMessageDriven node, const string& pathtoleaf, float* zone, float imin, float imax, float init, float min, float max)
+{
+	if (pathtoleaf.size() > 0) {
+		string label 	= OSCAddress::addressFirst (pathtoleaf);
+		string tail 	= OSCAddress::addressTail (pathtoleaf);
+		if (tail.size() == 0) {
+			string prefix = node->getOSCAddress();
+			node->add( FaustNode::create (label.c_str(), zone, imin, imax, init, min, max, prefix.c_str()) );
+		} else {
+			SMessageDriven group = MessageDriven::create (label.c_str(), node->getOSCAddress().c_str());
+			node->add(group);
+			createNodeChain(group, tail, zone, imin, imax, init, min, max);
+		}
+	} else {
+		cerr << "osc address too short" << endl;
+	}
 }
 
 
 //--------------------------------------------------------------------------
 void FaustFactory::opengroup (const char* label)
 {
-	if (fNodes.size() == 0) {					// the stack is empty: creates a root node 
-		fRoot = RootNode::create (label, fIO);	// and gives the root node a possible OSCIO controler
-		fNodes.push (fRoot);
-	} else {
+	if (fNodes.size() == 0) {	
+		// the stack is empty: creates a root node 
+		// and gives the root node a possible OSCIO controler
+		fRoot = RootNode::create (label, fIO);	
+		fNodes.push (fRoot);					
 		
+	} else {
 		// search for previously created group before ceating a new one
 		SMessageDriven node = fNodes.top();
 		int i=0; while ( (i < node->size()) && (node->subnode(i)->name() != label) ) i++;
@@ -70,18 +109,6 @@ void FaustFactory::opengroup (const char* label)
 			fNodes.push (group);
 		}
 
-		
-/*		SMessageDriven node = fNodes.top();
-		for (int i = 0; i < node->size(); i++) {
-			if (node->subnode(i)->name() == label) {
-				fNodes.push(node->subnode(i));
-				return;
-			}
-		}
-		// we need to create a new node
-		SMessageDriven group = MessageDriven::create (label, node->getOSCAddress().c_str());
-		node->add( group );
-		fNodes.push (group);*/
 	}
 }
 
