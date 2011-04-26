@@ -113,7 +113,9 @@ class MessageDriven : public MessageProcessor, public smartable
 		const char*		getName() const				{ return fName.c_str(); }
 		std::string		getOSCAddress() const;
 		int				size () const				{ return fSubNodes.size (); }
-
+		
+		const std::string&	name() const			{ return fName; }
+		SMessageDriven	subnode (int i) 			{ return fSubNodes[i]; }
 };
 
 } // end namespoace
