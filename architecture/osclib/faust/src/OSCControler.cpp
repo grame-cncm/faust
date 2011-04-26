@@ -100,6 +100,12 @@ void OSCControler::addnode (const char* label, float* zone, float init, float mi
 	fFactory->addnode (label, zone, init, min, max);
 }
 
+void OSCControler::addfullpathnode (const string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
+{
+//	fFactory->addfullpathnode (fullpath, zone, imin, imax, init, min, max);
+}
+
+
 //--------------------------------------------------------------------------
 void OSCControler::opengroup (const char* label)
 {
