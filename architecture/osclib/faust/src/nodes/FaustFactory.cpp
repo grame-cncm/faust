@@ -43,17 +43,45 @@ void FaustFactory::addnode (const char* label, float* zone, float init, float mi
 	}
 }
 
+void FaustFactory::addfullpathnode (const string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
+{
+}
+
+
 //--------------------------------------------------------------------------
 void FaustFactory::opengroup (const char* label)
 {
-	if (!fNodes.size()) {						// the stack is empty: creates a root node 
+	if (fNodes.size() == 0) {					// the stack is empty: creates a root node 
 		fRoot = RootNode::create (label, fIO);	// and gives the root node a possible OSCIO controler
 		fNodes.push (fRoot);
-	}
-	else {
-		SMessageDriven group = MessageDriven::create (label, fNodes.top()->getOSCAddress().c_str());
-		fNodes.top()->add( group );
-		fNodes.push (group);
+	} else {
+		
+		// search for previously created group before ceating a new one
+		SMessageDriven node = fNodes.top();
+		int i=0; while ( (i < node->size()) && (node->subnode(i)->name() != label) ) i++;
+		
+		if (i < node->size()) {
+			// found, make it top of stack
+			fNodes.push(node->subnode(i));
+		} else {
+			// not found, create a new group and make it top of stack
+			SMessageDriven group = MessageDriven::create (label, node->getOSCAddress().c_str());
+			node->add( group );
+			fNodes.push (group);
+		}
+
+		
+/*		SMessageDriven node = fNodes.top();
+		for (int i = 0; i < node->size(); i++) {
+			if (node->subnode(i)->name() == label) {
+				fNodes.push(node->subnode(i));
+				return;
+			}
+		}
+		// we need to create a new node
+		SMessageDriven group = MessageDriven::create (label, node->getOSCAddress().c_str());
+		node->add( group );
+		fNodes.push (group);*/
 	}
 }
 

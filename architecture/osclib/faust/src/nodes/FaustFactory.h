@@ -26,6 +26,7 @@
 #define __FaustFactory__
 
 #include <stack>
+#include <string>
 
 #include "MessageDriven.h"
 
@@ -54,6 +55,7 @@ class FaustFactory
 		virtual ~FaustFactory() {}
 
 		void addnode (const char* label, float* zone, float init, float min, float max);
+		void addfullpathnode (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max);
 		void opengroup (const char* label);
 		void closegroup ();
 
