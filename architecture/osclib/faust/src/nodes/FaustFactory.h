@@ -39,16 +39,16 @@ typedef class SMARTP<MessageDriven>	SMessageDriven;
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a factory to build a memory representation
+	\brief a factory to build a OSC UI hierarchy
 	
 	Actually, makes use of a stack to build the UI hierarchy.
 	It includes a pointer to a OSCIO controler, but just to give it to the root node.
 */
 class FaustFactory
 {
-	std::stack<SMessageDriven>	fNodes;	// maintains the current hierarchy level
-	SMessageDriven			fRoot;		// keep track of the root node
-	OSCIO * fIO;						// hack to support audio IO via OSC, actually the field is given to the root node
+	std::stack<SMessageDriven>	fNodes;		///< maintains the current hierarchy level
+	SMessageDriven				fRoot;		///< keep track of the root node
+	OSCIO * 					fIO;		///< hack to support audio IO via OSC, actually the field is given to the root node
 
 	private:
 		SMessageDriven 	followPath	(SMessageDriven fRoot, const std::string& fullpath, std::string& pathtoleaf);
