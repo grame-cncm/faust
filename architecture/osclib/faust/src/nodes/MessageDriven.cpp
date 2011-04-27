@@ -22,6 +22,7 @@
 */
 
 #include <iostream>
+#include <sstream>
 
 #include "Message.h"
 #include "MessageDriven.h"
@@ -46,16 +47,33 @@ void MessageDriven::processMessage( const Message* msg )
 	propose (msg, &r, OSCAddress::addressTail (addr));
 	
 	if (addr != "/*") {
-		cout << "(alias) MessageDriven::processMessage ";
-		msg->print(cout);
-		cout << endl;
-	
-		// try alias version
+		// search for alias root (fixme : could be stored in a field)
+		MessageDriven * aliasroot = 0;
 		for (int i=0; i<size(); i++) {
 			if (subnode(i)->name() == "alias") {
-				OSCRegexp r2 ("alias");
-				// and call propose with this regexp and with the dest osc address tail
-				subnode(i)->propose (msg, &r2, addr);
+				aliasroot = subnode(i);
+			}
+		}
+	
+		// if we have aliases in the tree
+		// we need to check if the message if for an alias address
+		if (aliasroot != 0) {
+			OSCRegexp r2 ("alias");
+			
+			if (msg->size() == 1) {
+				aliasroot->propose (msg, &r2, addr);
+			} else if (msg->size() > 1) {
+				// we simulated several messages
+				for (int i=0; i< msg->size(); i++) {
+					ostringstream 	as; as << addr << '/' << i;
+					string 			a(as.str());
+					Message 		m(a);
+					float			v;
+					
+					msg->param(i, v);
+					m.add(v);
+					aliasroot->propose (&m, &r2, a);
+				}
 			}
 		}
 	}
