@@ -7,6 +7,7 @@
 
 #include "OSCControler.h"
 #include "GUI.h"
+#include <vector>
 
 /******************************************************************************
 *******************************************************************************
@@ -40,11 +41,24 @@ all the other osc excluded characters with '-' (hyphen)
 This solution is implemented in the proposed OSC UI;
 */
 
+using namespace std;
+
 //class oscfaust::OSCIO;
 class OSCUI : public GUI 
 {
 	oscfaust::OSCControler*	fCtrl;
-	const char* tr(const char* label) const;	
+	vector<const char*>		fAlias;
+	
+	const char* tr(const char* label) const;
+	
+	// add all accumulated alias
+	void addalias(float* zone, float init, float min, float max) 
+	{
+		for (unsigned int i=0; i<fAlias.size(); i++) {
+			fCtrl->addfullpathnode(fAlias[i], zone, 0, 1, init, min, max);
+		}
+		fAlias.clear();
+	}
 	
  public:
 		
@@ -57,12 +71,12 @@ class OSCUI : public GUI
 	virtual ~OSCUI() { delete fCtrl; }
 	
 	// -- active widgets
-	virtual void addButton(const char* label, float* zone) 															{ fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addToggleButton(const char* label, float* zone) 													{ fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addCheckButton(const char* label, float* zone) 													{ fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float /*step*/) 			{ fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addButton(const char* label, float* zone) 															{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addToggleButton(const char* label, float* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addCheckButton(const char* label, float* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float /*step*/) 			{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
 	
 	// -- passive widgets
 	
@@ -76,6 +90,12 @@ class OSCUI : public GUI
 	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
 	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
 	virtual void closeBox() 							{ fCtrl->closegroup(); }
+	
+	virtual void declare(float* , const char* key , const char* alias) 
+	{ 
+		if (strcasecmp(key,"OSC")==0) fAlias.push_back(alias);
+	}
+
 
 	virtual void show() {}
 

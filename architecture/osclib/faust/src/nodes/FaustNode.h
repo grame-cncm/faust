@@ -36,6 +36,24 @@ namespace oscfaust
 class FaustNode;
 typedef class SMARTP<FaustNode>	SFaustNode;
 
+/**
+ * map (rescale) input values to output values
+ */
+struct mapping
+{
+	const float fMinIn;	
+	const float fMaxIn;
+	const float fMinOut;
+	const float fMaxOut;
+	const float fScale;
+
+	mapping(float imin, float imax, float omin, float omax) : fMinIn(imin), fMaxIn(imax), 
+											fMinOut(omin), fMaxOut(omax), 
+											fScale( (fMaxOut-fMinOut)/(fMaxIn-fMinIn) ) {}
+	float scale (float x) { float z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x; return fMinOut + (z - fMinIn) * fScale; }
+};
+
+
 //--------------------------------------------------------------------------
 /*!
 	\brief a faust node is a terminal node and represents a faust parameter controler
@@ -43,18 +61,26 @@ typedef class SMARTP<FaustNode>	SFaustNode;
 class FaustNode : public MessageDriven
 {
 	float *	fZone;			// the parameter memory zone
-	float	fMin, fMax;		// the min and max values
+	mapping	fMapping;
 	
 	bool store (float val);
 
 	protected:
-				 FaustNode(const char *name, float* zone, float init, float min, float max, const char* prefix) 
-					: MessageDriven (name, prefix), fZone(zone), fMin(min), fMax(max) { *zone = init; }
+		FaustNode(const char *name, float* zone, float init, float min, float max, const char* prefix) 
+			: MessageDriven (name, prefix), fZone(zone), fMapping(min, max, min, max) 
+			{ *zone = init; }
+			
+		FaustNode(const char *name, float* zone,  float imin, float imax, float init, float min, float max, const char* prefix) 
+			: MessageDriven (name, prefix), fZone(zone), fMapping(imin, imax, min, max) 
+			{ *zone = init; }
 		virtual ~FaustNode() {}
 
 	public:
 		static SFaustNode create (const char* name, float* zone, float init, float min, float max, const char* prefix)	
 							{ return new FaustNode(name, zone, init, min, max, prefix); }
+		static SFaustNode create (const char* name, float* zone, float imin, float imax, float init, float min, float max, const char* prefix)	
+							{ return new FaustNode(name, zone, imin, imax, init, min, max, prefix); }
+
 
 		virtual bool	accept( const Message* msg );			///< handler for the 'accept' message
 		virtual void	get (unsigned long ipdest) const;		///< handler for the 'get' message
