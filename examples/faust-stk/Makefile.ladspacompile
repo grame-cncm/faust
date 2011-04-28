@@ -1,3 +1,4 @@
+ARCH    := ladspa.cpp
 DEST	:= ladspadir/
 dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
@@ -16,7 +17,7 @@ else
 endif
 
 $(DEST)%.cpp: %.dsp 
-	faust $(VEC) -a ladspa.cpp $< -o $@
+	faust $(VEC) -a $(ARCH) $< -o $@
 
 clean:
 	rm -rf $(DEST)
