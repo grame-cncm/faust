@@ -66,7 +66,7 @@ The \lstinline!faust2mathdoc! script calls \lstinline!faust --mathdoc! first, th
 \subsection{Online examples}
 \label{sec:mdoc-examples}
 
-To have an idea of the results of this mathematical documentation, which captures the mathematical semantic of \faust programs, you can look at two pdf files online:
+To get an idea of the results of this mathematical documentation, which captures the mathematical semantic of \faust programs, you can look at two pdf files online:
 \begin{itemize}
 \item \myurl{http://faust.grame.fr/pdf/karplus.pdf} (automatic documentation),
 \item \myurl{http://faust.grame.fr/pdf/noise.pdf} (manual documentation).
@@ -207,13 +207,13 @@ The following listing shows the input Faust code, parsed to compile this mathema
 \end{lstlisting}
 \normalsize
 
-The next page gather the four resulting pages of \lstinline!noise.pdf!, in small size, to give an idea.
+The following page which gathers the four resulting pages of \lstinline!noise.pdf! in small size. might give you an idea of the produced documentation.
 
 
 \subsection{The -stripmdoc option}
 \label{sec:striping-option}
 
-As you can see on the resulting file \lstinline!noisemetadata.pdf! on its pages 3 and 4, the listing of the input code (section\,4) contains all the mathdoc text (here colored in grey). As it may be unneeded for certain uses (see Goals, section \ref{sec:goals-of-mdoc}), we provide an option to strip mathdoc contents directly at compilation stage: \lstinline!-stripmdoc! (short) or \lstinline!--strip-mdoc-tags! (long).
+As you can see on the resulting file \lstinline!noisemetadata.pdf! on its pages 3 and 4, the listing of the input code (section\,4) contains all the mathdoc text (here colored in grey). As it may be useless in certain cases (see Goals, section \ref{sec:goals-of-mdoc}), we provide an option to strip mathdoc contents directly at compilation stage: \lstinline!-stripmdoc! (short) or \lstinline!--strip-mdoc-tags! (long).
 
 
 \section{Localization of mathdoc files}
@@ -226,7 +226,7 @@ The \lstinline!faust2mathdoc! script also supports this option, plus a third sho
 faust2mathdoc -l fr myfaustfile.dsp
 \end{lstlisting}
 
-If you'd like to contribute to the localization effort, feel free to translate the mathdoc texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.). As these files are dynamically loaded, simply adding a new file with an appropriate name should work.
+If you would like to contribute to the localization effort, feel free to translate the mathdoc texts from any of the \lstinline!mathdoctexts-*.txt! files, that are in the \lstinline!architecture! directory (\lstinline!mathdoctexts-fr.txt!, \lstinline!mathdoctexts-it.txt!, etc.). As these files are dynamically loaded, just adding a new file with an appropriate name should work.
 
 \includepdf[pages=-, frame=true, angle=-90, scale=0.75, nup=1x2]{images/noisemetadata}
 
@@ -235,7 +235,7 @@ If you'd like to contribute to the localization effort, feel free to translate t
 \label{sec:mdoc-summary}
 
 \begin{enumerate}
-\item First, to get the full mathematical documentation stuff done on your faust file, call \lstinline!faust2mathdoc myfaustfile.dsp!.
+\item First, to get the full mathematical documentation done on your faust file, call \lstinline!faust2mathdoc myfaustfile.dsp!.
 \item Then, open the pdf file \lstinline!myfaustfile-mdoc/pdf/myfaustfile.pdf!.
 \item That's all !
 \end{enumerate}

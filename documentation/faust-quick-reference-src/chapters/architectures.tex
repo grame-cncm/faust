@@ -10,7 +10,7 @@ A \faust program describes a \emph{signal processor}, a pure computation that ma
 An \emph{architecture file} describes how to relate a \faust program to the external world, in particular the audio drivers and the user interface to be used. This approach allows a single \faust program to be easily deployed to a large variety of audio standards (Max/MSP externals, PD externals, VST plugins, CoreAudio applications, Jack applications, iPhone, etc.). 
 
 The architecture to be used is specified at compile time with the \lstinline'-a' options. For example
-\lstinline'faust -a jack-gtk.cpp foo.dsp' indicates to use the Jack GTK architecture when compiling \code{foo.dsp}
+\lstinline'faust -a jack-gtk.cpp foo.dsp' indicates to use the Jack GTK architecture when compiling \code{foo.dsp}.
 
 \begin{table}[htdp]
 \begin{center}
@@ -61,7 +61,7 @@ The main available architecture files are listed table \ref{tab:availablearch}. 
 
 \section{Audio architecture modules} 
 An \emph{audio architecture module} typically connects a \faust program to the audio drivers.
-It is responsible for allocating and releasing the audio channels and to call the \faust \code{dsp::compute} method to handle incoming audio buffers and/or to produce audio output. It is also responsible for presenting the audio as non-interleaved float data, normalized between -1.0 and 1.0.
+It is responsible for allocating and releasing the audio channels and for calling the \faust \code{dsp::compute} method to handle incoming audio buffers and/or to produce audio output. It is also responsible for presenting the audio as non-interleaved float data, normalized between -1.0 and 1.0.
 
 A \faust audio architecture module derives an \emph{audio} class defined as below:
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
@@ -133,7 +133,7 @@ Pure \cite{graef09}				& Linux, Mac OS X, Windows \\
 \section{UI architecture modules} \label{sec:gui}
 %---------------------------------------------------
 
-A UI architecture module is a glue between user actions (via graphic widgets, command line parameters, OSC messages, etc.) and the \faust program to control. 
+A UI architecture module links user actions (via graphic widgets, command line parameters, OSC messages, etc.) with the \faust program to control. 
 It is responsible for associating program parameters to user interface elements and to update parameter's values according to user actions. This association is triggered by the \code{dsp::buildUserInterface} call, where the \code{dsp} asks a UI object to build the DSP module controllers.
 
 Since the interface is basically graphic oriented, the main concepts are \emph{widget} based: a UI architecture module is semantically oriented to handle active widgets, passive widgets and widgets layout.
@@ -252,8 +252,8 @@ OSC  & OSC control (see \ref{sec:oscgui}) \\
 \section{OSC architecture modules} \label{sec:osc}
 %---------------------------------------------------
 
-The OSC \cite{OSC} support opens the \faust applications control to any OSC capable application or programming language.
-It also transforms a full range of devices embedding sensors (wiimote, smart phones, ...) into physical interfaces for \faust applications control, allowing a direct use as music instruments.
+The OSC \cite{OSC} support opens \faust application's control to any OSC capable application or programming language.
+It also transforms a full range of devices embedding sensors (wiimote, smart phones, ...) into physical interfaces for \faust application's control, allowing a direct use like musical instruments.
 
 The \faust OSC architecture is twofold: it is declined as a UI architecture and also as an audio architecture, proposing a new and original way to make digital signal computation.
 
@@ -261,7 +261,7 @@ The \faust OSC architecture is twofold: it is declined as a UI architecture and 
 \subsection{OSC GUI architecture module}
 \label{sec:oscgui}
 
-The OSC UI architecture transforms each UI active widget addition into an \code{addnode} call, ignores the passive widgets and transforms containers calls (\code{openXxxBox, closeBox}) into \code{opengroup} and \code{closegroup} calls.
+The OSC UI architecture transforms each UI active widget addition into an \code{addnode} call, ignores the passive widgets and transforms container calls (\code{openXxxBox, closeBox}) into \code{opengroup} and \code{closegroup} calls.
 
 \subsubsection{OSC address space and messages} 
 The OSC address space adheres strictly to the hierarchy defined by the \code{addnode} and \code{opengroup, closegroup} calls. It supports the OSC pattern matching mechanism as described in \cite{OSC}.
@@ -298,14 +298,14 @@ CoreAudio		& Cocoa 		& not yet\\
 \hline
 \end{tabular}
 \end{center}
-\caption{OSC support in \faust applications architectures.}
+\caption{OSC support in \faust application's architectures.}
 \label{tab:oscarch}
 \end{table}
 
 
 Two additional messages are defined to provide \faust applications discovery and address space discoveries:
 \begin{itemize}
-\item the \code{hello} message: accepted by any module root address. The module responds with its root address, followed by its IP address, followed by the UDP ports numbers (listening port, output port, error port).
+\item the \code{hello} message: accepted by any module root address. The module responds with its root address, followed by its IP address and the UDP port numbers (listening port, output port, error port).
 See the network management section below for ports numbering scheme.
 \item the \code{get} message: accepted by any valid OSC address. The \code{get} message is propagated to every terminal node that responds with its OSC address and current values (value, min and max).
 \end{itemize}
@@ -322,15 +322,15 @@ Consider the \emph{noise} module provided with the \faust examples:
 The OSC module makes use of three different UDP port numbers:
 \begin{itemize}
 \item 5510 is the listening port number: control messages should be addressed to this port.
-\item 5511 is the output port number: answers to query messages are send to this port.
-\item 5512 is the error port number: used for asynchronous errors notifications.
+\item 5511 is the output port number: answers to query messages are sent to this port.
+\item 5512 is the error port number: used for asynchronous error notifications.
 \end{itemize}
 
 When the UDP listening port number is busy (for instance in case of multiple \faust programs running), the system automatically looks for the next available port number. Unless otherwise specified by the command line, the UDP output port numbers are unchanged. 
 
-A program sends its name (actually its root address) and allocated ports numbers on the OSC output port on startup.
+A program sends its name (actually its root address) and allocated port numbers on the OSC output port on startup.
 
-Ports numbers can be changed on the command line with the following options: \\
+Port numbers can be changed on the command line with the following options: \\
 \hspace*{6mm}\lstinline'[-port | -outport | -errport] number'
 
 The default UDP output streams destination is \code{localhost}. It can also be changed with the command line option \\
@@ -345,7 +345,7 @@ Some remote controllers, like TouchOSC on Android, can only transmit predefined 
 
 Such messages can be used to control a specific program parameter by inserting an OSC metadata \lstinline'[osc:/path/name]' in its label. For example \lstinline'vslider("Volume", 0, 0, 1, 0.1)' can be controlled by TouchOSC fader 1 by indicating its OSC address : \lstinline'vslider("Volume[osc:/1/fader1]", 0, 0, 1, 0.1)' (see table \ref{tab:oscalias} for a more complete list of aliases).  
 
-By default the incoming value range is assumed to be between 0 and 1. But it is possible to indicate a different range : \lstinline'[osc:/path/name min max]'. When incoming messages provide more than one value it is possible to select the one to use with an additional suffix (numbered starting form 0) to the pathname.  For instance \lstinline'vslider("Volume[osc:/accxyz/1 -10 10]", 0, 0, 1, 0.1)' would allow to control the volume using the $y$ accelerometers mapping the incoming value from range $[-10..10]$ to $[0..1]$.
+By default the incoming value range is assumed to be between 0 and 1. But it is possible to indicate a different range : \lstinline'[osc:/path/name min max]'. When incoming messages provide more than one value it is possible to select the right one with an additional suffix (numbered starting form 0) to the pathname.  For instance \lstinline'vslider("Volume[osc:/accxyz/1 -10 10]", 0, 0, 1, 0.1)' would allow to control the volume using the $y$ accelerometer. Moreover the accelerometer's values are mapped from range $[-10..10]$ to range $[0..1]$.
 
 
 \begin{table}[htdp]
@@ -382,7 +382,7 @@ By default the incoming value range is assumed to be between 0 and 1. But it is 
 \hline
 \end{tabular}
 \end{center}
-\caption{Examples of OSC message aliases for TouchOSC (layout Mix2). Since most of these messages, but accelerometers, produce values in the default range $[0..1]$ , there is no need to indicate this range. Accelerometers producing values in a different range $[-10..10]$, this range has to be indicated. }
+\caption{Examples of OSC message aliases for TouchOSC (layout Mix2). Since most of these messages produce values in the default range $[0..1]$ , there is no need to indicate this range. Accelerometers producing values in a different range, this range $[-10..10]$ has to be indicated. }
 \label{tab:oscalias}
 \end{table}
 
@@ -391,7 +391,7 @@ By default the incoming value range is assumed to be between 0 and 1. But it is 
 \subsection{OSC audio architecture}
 \label{sec:oscaudio}
 
-The OSC audio architecture implements an audio architecture where audio inputs and outputs are replaced by OSC messages. Using this architecture, a \faust module accepts arbitrary data streams on its root OSC address, and handles this input stream as interleaved signals. Thus, each incoming OSC packet addressed to a module root triggers a computation loop, where as much values as the number of incoming frames are computed.
+The OSC audio architecture implements an audio architecture where audio inputs and outputs are replaced by OSC messages. Using this architecture, a \faust module accepts arbitrary data streams on its root OSC address, and handles this input stream as interleaved signals. Thus, each incoming OSC packet addressed to a module root triggers a computation loop, where as many values as the number of incoming frames are computed.
 
 The output of the signal computation is sent to the OSC output port as non-interleaved data to the OSC addresses \code{/root/n} where \code{root} is the module root address and \code{n} is the output number (indexed from 0).
 
@@ -405,5 +405,5 @@ the message \\
 \hspace*{6mm}\code{/split/1 0.3}
 
 
-The OSC audio architecture provides a very convenient way to execute a signal processing at an arbitrary rate, allowing even to make step by step computation. Connecting the output OSC signals to Max/MSP or to a system like INScore\footnote{\url{http://inscore.sf.net}}, featuring a powerful dynamic signals representation system \cite{Fober:10c}, provides a close examination of the computation results.
+The OSC audio architecture provides a very convenient way to execute a signal processing at an arbitrary rate, even allowing to make step by step computation. Connecting the output OSC signals to Max/MSP or to a system like INScore\footnote{\url{http://inscore.sf.net}}\cite{Fober:10c}, provides a close examination of the computation results.
 
