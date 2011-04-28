@@ -1,0 +1,409 @@
+%---------------------------------------------------
+\chapter{Architecture files} \label{sec:audio}
+%---------------------------------------------------
+
+A \faust program describes a \emph{signal processor}, a pure computation that maps \emph{input signals} to \emph{output signals}. It says nothing about audio drivers or GUI toolkits. This missing information is provided by \emph{architecture files}. 
+
+%The role of \emph{architecture files} is to provide this missing information. 
+
+
+An \emph{architecture file} describes how to relate a \faust program to the external world, in particular the audio drivers and the user interface to be used. This approach allows a single \faust program to be easily deployed to a large variety of audio standards (Max/MSP externals, PD externals, VST plugins, CoreAudio applications, Jack applications, iPhone, etc.). 
+
+The architecture to be used is specified at compile time with the \lstinline'-a' options. For example
+\lstinline'faust -a jack-gtk.cpp foo.dsp' indicates to use the Jack GTK architecture when compiling \code{foo.dsp}
+
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{File name}			& \textbf{Description}   \\
+\hline
+\texttt{alchemy-as.cpp} 	& Flash - ActionScript plugin \\
+\texttt{ca-qt.cpp} 			& CoreAudio QT4 standalone application  \\
+\texttt{jack-gtk.cpp} 		& Jack GTK standalone application  \\
+\texttt{jack-qt.cpp} 		& Jack QT4 standalone application  \\
+\texttt{jack-console.cpp} 	& Jack command line application  \\
+\texttt{jack-internal.cpp} 	& Jack serve plugin  \\
+%%\texttt{jack-wx.cpp} 		& Jack wxWindows standalone application  \\
+\texttt{alsa-gtk.cpp} 		& ALSA GTK standalone application  \\
+\texttt{alsa-qt.cpp} 		& ALSA QT4 standalone application  \\
+\texttt{oss-gtk.cpp} 		& OSS GTK standalone application  \\
+%%\texttt{oss-wx.cpp} 		& OSS wxWindows standalone application  \\
+\texttt{pa-gtk.cpp} 		& PortAudio GTK standalone application  \\
+\texttt{pa-qt.cpp} 			& PortAudio QT4 standalone application  \\
+%%\texttt{pa-wx.cpp} 		& PortAudio wxWindows standalone application  \\
+\hline
+\texttt{max-msp.cpp} 		& Max/MSP external  \\
+\texttt{vst.cpp} 			& VST plugin  \\
+\texttt{vst2p4.cpp} 		& VST 2.4 plugin  \\
+\texttt{vsti-mono.cpp} 		& VSTi mono instrument  \\
+\texttt{ladspa.cpp} 		& LADSPA plugin  \\
+\texttt{q.cpp} 				& Q language plugin  \\
+\texttt{supercollider.cpp} 	& SuperCollider Unit Generator  \\
+\texttt{snd-rt-gtk.cpp} 	& Snd-RT music programming language  \\
+\texttt{csound.cpp} 		& CSOUND opcode  \\
+\texttt{puredata.cpp} 		& PD external  \\
+\hline
+\texttt{sndfile.cpp} 		& sound file transformation command \\
+\texttt{bench.cpp} 			& speed benchmark   \\
+\texttt{octave.cpp} 		& Octave plugin   \\
+\texttt{plot.cpp} 			& Command line application    \\
+\texttt{sndfile.cpp} 		& Command line application    \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Available architectures.}
+\label{tab:availablearch}
+\end{table}%
+
+
+The main available architecture files are listed table \ref{tab:availablearch}. Since \faust 0.9.40 some of these architectures are a modular combination of an \emph{audio module} and one or more \emph{user interface modules}. Among these user interface modules OSCUI provide supports for Open Sound Control allowing \faust programs to be controlled by OSC messages. 
+
+\section{Audio architecture modules} 
+An \emph{audio architecture module} typically connects a \faust program to the audio drivers.
+It is responsible for allocating and releasing the audio channels and to call the \faust \code{dsp::compute} method to handle incoming audio buffers and/or to produce audio output. It is also responsible for presenting the audio as non-interleaved float data, normalized between -1.0 and 1.0.
+
+A \faust audio architecture module derives an \emph{audio} class defined as below:
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+class audio {
+ public:
+           audio() {}
+  virtual ~audio() {}
+  virtual bool init(const char*, dsp*) = 0;
+  virtual bool start()                 = 0;
+  virtual void stop()                  = 0;
+};
+\end{lstlisting} 
+
+
+The API is simple enough to give a great flexibility to audio architectures implementations. The \code{init} method should initialize the audio. At \code{init} exit, the system should be in a safe state to recall the \code{dsp} object state.
+
+Table \ref{tab:aarch} gives the audio architectures currently available for various operating systems.
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+\bf{Audio system} & \bf{Operating system} \\
+\hline
+Alsa  & Linux \\
+Core audio 		& Mac OS X, iOS \\
+Jack 				& Linux, Mac OS X, Windows \\
+Portaudio 			& Linux, Mac OS X, Windows \\
+OSC {\footnotesize (see \ref{sec:oscaudio})} & Linux, Mac OS X, Windows \\
+VST					& Mac OS X, Windows \\
+Max/MSP				& Mac OS X, Windows \\
+CSound				& Linux, Mac OS X, Windows \\
+SuperCollider		& Linux, Mac OS X, Windows \\
+PureData			& Linux, Mac OS X, Windows \\
+Pure \cite{graef09}				& Linux, Mac OS X, Windows \\
+\hline
+\end{tabular}
+\end{center}
+\caption{\faust audio architectures.}
+\label{tab:aarch}
+\end{table}%
+ 
+
+% \begin{table}[htdp]
+% \begin{center}
+% \begin{tabular}{|c|l|}
+% \hline
+% Name 	& System \\
+% \hline
+% ladspa        & \href{http://www.ladspa.org/}{LADSPA} plugins \\
+% csound        & \href{http://csounds.com/}{CSOUND} opcodes \\
+% csounddouble  & double precision CSOUND opcodes \\
+% maxmsp        & \href{http://cycling74.com/products/maxmspjitter/}{Max/MSP} externals \\
+% vst           & native \href{http://en.wikipedia.org/wiki/Virtual_Studio_Technology}{VST} plugins \\
+% w32vst        & windows VST plugins \\
+% supercollider & \href{http://www.audiosynth.com/}{Supercollider} plugins \\
+% puredata      & \href{http://puredata.info/}{Puredata} externals \\
+% Q             & \href{http://q-lang.sourceforge.net/}{Q} plugins \\
+% Pure          & \href{http://code.google.com/p/pure-lang/}{Pure} plugins \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \caption{\faust plugins architectures}
+% \label{tab:aarch}
+% \end{table}%
+% 
+
+
+%---------------------------------------------------
+\section{UI architecture modules} \label{sec:gui}
+%---------------------------------------------------
+
+A UI architecture module is a glue between user actions (via graphic widgets, command line parameters, OSC messages, etc.) and the \faust program to control. 
+It is responsible for associating program parameters to user interface elements and to update parameter's values according to user actions. This association is triggered by the \code{dsp::buildUserInterface} call, where the \code{dsp} asks a UI object to build the DSP module controllers.
+
+Since the interface is basically graphic oriented, the main concepts are \emph{widget} based: a UI architecture module is semantically oriented to handle active widgets, passive widgets and widgets layout.
+
+A \faust UI architecture module derives an \emph{UI} class (Figure \ref{tab:ui}). 
+
+\begin{figure}[htdp]
+\begin{center}
+%\begin{lstlisting}[basicstyle=\ttfamily\tiny\color{yotxt}]
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+class UI
+{
+ public:
+           UI() {}
+  virtual ~UI() {}
+
+   -- active widgets
+  virtual void addButton(const char* l, float* z)       = 0;
+  virtual void addToggleButton(const char* l, float* z) = 0;
+  virtual void addCheckButton(const char* l, float* z)  = 0;
+  
+  virtual void addVerticalSlider(const char* l, float* z, 
+          float init, float min, float max, float step) = 0;
+          
+  virtual void addHorizontalSlider(const char* l, float* z, 
+          float init, float min, float max, float step) = 0;
+          
+  virtual void addNumEntry(const char* l, float* z, 
+      float init, float min, float max, float step)     = 0;
+      
+   -- passive widgets
+  virtual void addNumDisplay(const char* l, float* z,
+                                                 int p) = 0;
+                                                 
+  virtual void addTextDisplay(const char* l, float* z, 
+             const char* names[], float min, float max) = 0;
+             
+  virtual void addHorizontalBargraph(const char* l,
+                        float* z, float min, float max) = 0;
+                        
+  virtual void addVerticalBargraph(const char* l, 
+                        float* z, float min, float max) = 0; 
+                        
+   -- widget layouts
+  virtual void openTabBox(const char* l)                = 0;
+  virtual void openHorizontalBox(const char* l)         = 0;
+  virtual void openVerticalBox(const char* l)           = 0;
+  virtual void closeBox()                               = 0;
+        
+   -- metadata declarations
+  virtual void declare(float*, const char*, const char* ) {}
+};
+\end{lstlisting} 
+\end{center}
+\caption{UI, the root user interface class.}
+\label{tab:ui}
+\end{figure}
+
+%---------------------------------------------------
+\subsection{Active widgets}
+\label{sec:awidget}
+Active widgets are graphical elements that control a parameter value. They are initialized with the widget name and a pointer to the linked value.
+The widget currently considered are \code{Button},  \code{ToggleButton},  \code{CheckButton},  \code{VerticalSlider},  \code{HorizontalSlider} and  \code{NumEntry}. \\
+A GUI architecture must implement a method \\
+\code{addXxx (const char* name, float* zone, ...)} for each active widget.
+Additional parameters are available for \code{Slider} and \code{NumEntry}: the \code{init} value, the \code{min} and \code{max} values and the \code{step}.
+
+%---------------------------------------------------
+\subsection{Passive widgets}
+\label{sec:pwidget}
+Passive widgets are graphical elements that reflect values. Similarly to active widgets, they are initialized with the widget name and a pointer to the linked value.
+The widget currently considered are \code{NumDisplay},  \code{TextDisplay},  \code{HorizontalBarGraph} and  \code{VerticalBarGraph}. \\
+A UI architecture must implement a method \\
+\code{addxxx (const char* name, float* zone, ...)} for each passive widget.
+Additional parameters are available, depending on the passive widget type.
+
+%---------------------------------------------------
+\subsection{Widgets layout}
+\label{sec:wlayout}
+Generally, a  GUI is hierarchically organized into boxes and/or tab boxes. 
+A UI architecture must support the following methods to setup this hierarchy : \\
+\htab\code{openTabBox (const char* label)} \\
+\htab\code{openHorizontalBox (const char* label)} \\
+\htab\code{openVerticalBox (const char* label)} \\
+\htab\code{closeBox (const char* label)} \\
+Note that all the widgets are added to the current box.
+
+%---------------------------------------------------
+\subsection{Metadata}
+\label{sec:metadata}
+The \faust language allows widget labels to contain metadata enclosed in square brackets. These metadata are handled at GUI level by a \code{declare} method taking as argument, a pointer to the widget associated zone, the metadata key and value: \\
+\htab\code{declare(float* zone, const char* key, const char* value)} \\
+
+
+%%Table \ref{tab:uiarch} gives the UI architectures currently available.
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+\bf{UI} & \bf{Comment} \\
+\hline
+console  & a textual command line UI \\
+GTK  & a GTK-based GUI \\
+Qt   & a multi-platform Qt-based GUI \\
+FUI  & a file-based UI to store and recall modules states \\
+OSC  & OSC control (see \ref{sec:oscgui}) \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Available UI architectures.}
+\label{tab:uiarch}
+\end{table}%
+
+
+%---------------------------------------------------
+\section{OSC architecture modules} \label{sec:osc}
+%---------------------------------------------------
+
+The OSC \cite{OSC} support opens the \faust applications control to any OSC capable application or programming language.
+It also transforms a full range of devices embedding sensors (wiimote, smart phones, ...) into physical interfaces for \faust applications control, allowing a direct use as music instruments.
+
+The \faust OSC architecture is twofold: it is declined as a UI architecture and also as an audio architecture, proposing a new and original way to make digital signal computation.
+
+%---------------------------------------------------
+\subsection{OSC GUI architecture module}
+\label{sec:oscgui}
+
+The OSC UI architecture transforms each UI active widget addition into an \code{addnode} call, ignores the passive widgets and transforms containers calls (\code{openXxxBox, closeBox}) into \code{opengroup} and \code{closegroup} calls.
+
+\subsubsection{OSC address space and messages} 
+The OSC address space adheres strictly to the hierarchy defined by the \code{addnode} and \code{opengroup, closegroup} calls. It supports the OSC pattern matching mechanism as described in \cite{OSC}.
+
+A node expects to receive OSC messages with a single float value as parameter. This policy is strict for the parameters count, but relaxed for the parameter type: OSC int values are accepted and casted to float.
+
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\bf{Audio system} 	& \bf{Environment} & \bf{OSC support}	\\
+\hline
+\OSTab{Linux} \\
+%\multicolumn{3}{|l|}{Linux} \\
+\hline
+Alsa  			& GTK, Qt				& yes\\
+Jack 			& GTK, Qt, Console		& yes\\
+PortAudio 		& GTK, Qt				& yes\\
+\hline
+\OSTab{Mac OS X} \\
+\hline
+CoreAudio 		& Qt 			& yes\\
+Jack 			& Qt, Console & yes\\
+PortAudio 		& Qt 			& yes\\
+\hline
+\OSTab{Windows} \\
+\hline
+Jack 			& Qt, Console & yes\\
+PortAudio 		& Qt 			& yes\\
+\hline
+\OSTab{iOS (iPhone)} \\
+\hline
+CoreAudio		& Cocoa 		& not yet\\
+\hline
+\end{tabular}
+\end{center}
+\caption{OSC support in \faust applications architectures.}
+\label{tab:oscarch}
+\end{table}
+
+
+Two additional messages are defined to provide \faust applications discovery and address space discoveries:
+\begin{itemize}
+\item the \code{hello} message: accepted by any module root address. The module responds with its root address, followed by its IP address, followed by the UDP ports numbers (listening port, output port, error port).
+See the network management section below for ports numbering scheme.
+\item the \code{get} message: accepted by any valid OSC address. The \code{get} message is propagated to every terminal node that responds with its OSC address and current values (value, min and max).
+\end{itemize}
+
+\textbf{Example:} \\
+Consider the \emph{noise} module provided with the \faust examples:
+\begin{itemize}
+\item it sends \code{/noise 192.168.0.1 5510 5511 5512} \\in answer to a \code{hello} message,
+\item it sends \code{/noise/Volume 0.8 0. 1.} \\in answer to a \code{get} message.
+\end{itemize}
+
+ 
+\subsubsection{Network management.}
+The OSC module makes use of three different UDP port numbers:
+\begin{itemize}
+\item 5510 is the listening port number: control messages should be addressed to this port.
+\item 5511 is the output port number: answers to query messages are send to this port.
+\item 5512 is the error port number: used for asynchronous errors notifications.
+\end{itemize}
+
+When the UDP listening port number is busy (for instance in case of multiple \faust programs running), the system automatically looks for the next available port number. Unless otherwise specified by the command line, the UDP output port numbers are unchanged. 
+
+A program sends its name (actually its root address) and allocated ports numbers on the OSC output port on startup.
+
+Ports numbers can be changed on the command line with the following options: \\
+\hspace*{6mm}\lstinline'[-port | -outport | -errport] number'
+
+The default UDP output streams destination is \code{localhost}. It can also be changed with the command line option \\
+\hspace*{6mm}\code{-dest address} where address is a host name or an IP number.
+
+%---------------------------------------------------
+\subsection{OSC message aliases}
+\label{sec:oscaudio}
+Alias is a metadata-based mechanism allowing to map arbitrary incoming OSC messages to program parameters. 
+%%This is  convenient when one has no control on the OSC messages emitted. 
+Some remote controllers, like TouchOSC on Android, can only transmit predefined messages, for example \lstinline'/1/push1 1.000000' when push button 1 is pressed, \lstinline'/accxyz -0.421380 0.268151 9.232041' for the x, y and z accelerometers, \lstinline'/1/fader1 0.563994' when fader 1 is moved, etc. 
+
+Such messages can be used to control a specific program parameter by inserting an OSC metadata \lstinline'[osc:/path/name]' in its label. For example \lstinline'vslider("Volume", 0, 0, 1, 0.1)' can be controlled by TouchOSC fader 1 by indicating its OSC address : \lstinline'vslider("Volume[osc:/1/fader1]", 0, 0, 1, 0.1)' (see table \ref{tab:oscalias} for a more complete list of aliases).  
+
+By default the incoming value range is assumed to be between 0 and 1. But it is possible to indicate a different range : \lstinline'[osc:/path/name min max]'. When incoming messages provide more than one value it is possible to select the one to use with an additional suffix (numbered starting form 0) to the pathname.  For instance \lstinline'vslider("Volume[osc:/accxyz/1 -10 10]", 0, 0, 1, 0.1)' would allow to control the volume using the $y$ accelerometers mapping the incoming value from range $[-10..10]$ to $[0..1]$.
+
+
+\begin{table}[htdp]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\bf{alias} 	& \bf{description}	\\
+\hline
+\lstinline'[osc:/1/rotary1]' & top left rotary knob\\
+\lstinline'[osc:/1/rotary2]' & middle left rotary knob\\
+\lstinline'[osc:/1/rotary3]' & bottom left rotary knob\\
+\lstinline'[osc:/1/push1]' & bottom left push button\\
+\lstinline'[osc:/1/push2]' & bottom center left push button\\
+\hline
+\lstinline'[osc:/1/toggle1]' & top center left toggle button\\
+\lstinline'[osc:/1/toggle2]' & middle center left toggle button\\
+\lstinline'[osc:/1/fader1]' & center left vertical fader\\
+\hline
+\lstinline'[osc:/1/toggle3]' & top center right toggle button\\
+\lstinline'[osc:/1/toggle4]' & middle center right toggle button\\
+\lstinline'[osc:/1/fader2]' & center right vertical toggle button\\
+\hline
+\lstinline'[osc:/1/rotary4]' & top right rotary knob\\
+\lstinline'[osc:/1/rotary5]' & middle right rotary knob\\
+\lstinline'[osc:/1/rotary6]' & bottom right rotary knob\\
+\lstinline'[osc:/1/push3]' & bottom center right push button\\
+\lstinline'[osc:/1/push4]' & bottom right push button\\
+\hline
+\lstinline'[osc:/1/fader3]' & bottom horizontal fader\\
+\hline
+\lstinline'[osc:/accxyz/0 -10 10]' &  $x$ accelerometer\\
+\lstinline'[osc:/accxyz/1 -10 10]' &  $y$ accelerometer\\
+\lstinline'[osc:/accxyz/2 -10 10]' &  $z$ accelerometer\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Examples of OSC message aliases for TouchOSC (layout Mix2). Since most of these messages, but accelerometers, produce values in the default range $[0..1]$ , there is no need to indicate this range. Accelerometers producing values in a different range $[-10..10]$, this range has to be indicated. }
+\label{tab:oscalias}
+\end{table}
+
+
+%---------------------------------------------------
+\subsection{OSC audio architecture}
+\label{sec:oscaudio}
+
+The OSC audio architecture implements an audio architecture where audio inputs and outputs are replaced by OSC messages. Using this architecture, a \faust module accepts arbitrary data streams on its root OSC address, and handles this input stream as interleaved signals. Thus, each incoming OSC packet addressed to a module root triggers a computation loop, where as much values as the number of incoming frames are computed.
+
+The output of the signal computation is sent to the OSC output port as non-interleaved data to the OSC addresses \code{/root/n} where \code{root} is the module root address and \code{n} is the output number (indexed from 0).
+
+For example: \\
+consider a \faust program named \emph{split} and defined by:\\
+\hspace*{6mm} \lstinline'process = _ <: _,_' \\
+the message \\
+\hspace*{6mm} \code{/split 0.3}
+\\ will produce the 2 following messages as output: \\
+\hspace*{6mm}\code{/split/0 0.3}\\
+\hspace*{6mm}\code{/split/1 0.3}
+
+
+The OSC audio architecture provides a very convenient way to execute a signal processing at an arbitrary rate, allowing even to make step by step computation. Connecting the output OSC signals to Max/MSP or to a system like INScore\footnote{\url{http://inscore.sf.net}}, featuring a powerful dynamic signals representation system \cite{Fober:10c}, provides a close examination of the computation results.
+
