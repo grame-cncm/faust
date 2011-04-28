@@ -1,0 +1,23 @@
+ARCH    := dssi.cpp
+DEST	:= dssidir/
+dspsrc  := $(wildcard *.dsp)
+cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
+modules	:= $(addprefix $(DEST),  $(dspsrc:%.dsp=%.so))
+os 	:= $(shell uname)
+
+###allcpp: $(cppsrc)
+
+allmodules: $(modules)
+
+$(DEST)%.so: $(DEST)%.cpp
+ifeq ($(os), Darwin)
+	$(CXX) -I. -Wall -O2 -fPIC -DPIC -bundle $(CXXFLAGS) $< -o $@
+else
+	$(CXX) -I. -Wall -O2 -fPIC -DPIC -shared $(CXXFLAGS) $< -o $@
+endif
+
+$(DEST)%.cpp: %.dsp 
+	faust $(VEC) -a $(ARCH) $< -o $@
+
+clean:
+	rm -rf $(DEST)
