@@ -330,7 +330,7 @@ static char* legalFileName(Tree t, int n, char* dst)
  * isInverter(t) returns true if t == '*(-1)'. This test is used
  * to simplify diagram by using a special symbol for inverters.
  */
-Tree gInverter[4];
+Tree gInverter[6];
 
 static bool isInverter(Tree t)
 {

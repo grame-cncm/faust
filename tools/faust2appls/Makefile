@@ -16,6 +16,8 @@ install:
 	install faust2alsa $(dest)
 	install faust2caqt $(dest)
 	install faust2csound $(dest)
+	install faust2ladspa $(dest)
+	install faust2dssi $(dest)
 	install faust2eps $(dest)
 	install faust2firefox $(dest)
 	install faust2jack $(dest)
