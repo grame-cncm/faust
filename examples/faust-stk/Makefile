@@ -127,6 +127,10 @@ ladspa :
 	install -d ladspadir
 	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
 
+dssi :
+	install -d dssidir
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.dssicompile
+
 ladspasch :
 	install -d ladspaschdir
 	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
@@ -138,7 +142,7 @@ csound :
 csounddouble :
 	install -d csounddoubledir
 	$(MAKE) DEST='csounddoubledir/' VEC='-double' -f Makefile.csound
-	
+
 jackwx :
 	install -d jackwxdir
 	$(MAKE) DEST='jackwxdir/' ARCH='jack-wx.cpp' LIB='`pkg-config jack  --cflags --libs` `wx-config --cflags --libs`' -f Makefile.compile
