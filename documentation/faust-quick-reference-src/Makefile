@@ -1,4 +1,4 @@
-faust-quick-reference.pdf : faust-quick-reference.tex
+faust-quick-reference.pdf : faust-quick-reference.tex chapters/*.tex
 	pdflatex faust-quick-reference.tex
 	rail faust-quick-reference
 	pdflatex faust-quick-reference.tex

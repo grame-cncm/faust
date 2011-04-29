@@ -31,9 +31,7 @@ namespace oscfaust
 //--------------------------------------------------------------------------
 bool FaustNode::store( float val )
 {
-	if (val > fMax) val = fMax;
-	else if (val < fMin) val = fMin;
-	*fZone = val;
+	*fZone = fMapping.scale(val);
 	return true;
 }
 
@@ -56,7 +54,7 @@ void FaustNode::get (unsigned long ipdest ) const
 	unsigned long savedip = oscout.getAddress();		// saves the current destination IP
 	oscout.setAddress(ipdest);							// sets the osc stream dest IP
 	// send a state message on 'get' request
-	oscout << OSCStart(getOSCAddress().c_str()) << 	*fZone << fMin << fMax << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << 	*fZone << fMapping.fMinOut << fMapping.fMaxOut << OSCEnd();
 	oscout.setAddress(savedip);							// and restores the destination IP
 }
 

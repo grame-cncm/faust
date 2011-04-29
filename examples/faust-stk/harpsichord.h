@@ -7,6 +7,7 @@
 #define _LOOKUP_TABLE_H_
 
 double DryTapAmpT60_points[16*2] = {
+//  NoteNumber(A440=69), T60(sec)
 	21.001,0.491,
 	26.587,0.498,
 	34.249,0.470,

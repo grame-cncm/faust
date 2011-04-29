@@ -95,7 +95,7 @@ vibratoEnvelope = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoR
 vibrato = osc(vibratoFreq)*vibratoEnvelope*0.1;
 
 //Noise + vibrato + pressure
-blow = pressureEnvelope <: (noiseGain*noise*_) + vibrato + (pressure*1.1*_);
+blow = 10.0^(-16) + pressureEnvelope <: (noiseGain*noise*_) + vibrato + (pressure*1.1*_);
 
 process = blow : ((+ : delay1) ~ (cubic : (+ : jetFilter : delay2 : NLFM) ~ 
 	(* (feedback2) : /(2)))*(feedback1)) : *(gain) : stereo : hgroup("Reverb[6]",component("freeverb.dsp"));

@@ -55,10 +55,9 @@ typedef class SMARTP<MessageDriven>	SMessageDriven;
 */
 class MessageDriven : public MessageProcessor, public smartable
 {
-	std::string						fName;			// the node name
-	std::string						fOSCPrefix;		// the node OSC address prefix: actually the full OSC address
-													// is fOSCPrefix + '/' + fName (as shown by getOSCAddress())
-	std::vector<SMessageDriven>		fSubNodes;		// the subnodes of the current node
+	std::string						fName;			///< the node name
+	std::string						fOSCPrefix;		///< the node OSC address prefix (OSCAddress = fOSCPrefix + '/' + fName)
+	std::vector<SMessageDriven>		fSubNodes;		///< the subnodes of the current node
 
 	protected:
 				 MessageDriven(const char *name, const char *oscprefix) : fName (name), fOSCPrefix(oscprefix) {}
@@ -113,7 +112,9 @@ class MessageDriven : public MessageProcessor, public smartable
 		const char*		getName() const				{ return fName.c_str(); }
 		std::string		getOSCAddress() const;
 		int				size () const				{ return fSubNodes.size (); }
-
+		
+		const std::string&	name() const			{ return fName; }
+		SMessageDriven	subnode (int i) 			{ return fSubNodes[i]; }
 };
 
 } // end namespoace

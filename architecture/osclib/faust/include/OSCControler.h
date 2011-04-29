@@ -40,7 +40,7 @@ class FaustFactory;
 	\brief the main Faust OSC Lib API
 	
 	The OSCControler is essentially a glue between the memory representation (in charge of the FaustFactory), 
-	and the net<ork services (in charge of OSCSetup).
+	and the network services (in charge of OSCSetup).
 */
 class OSCControler
 {
@@ -65,6 +65,7 @@ class OSCControler
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
 		void addnode (const char* label, float* zone, float init, float min, float max);
+		void addfullpathnode (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max);
 		void opengroup (const char* label);
 		void closegroup ();
 
