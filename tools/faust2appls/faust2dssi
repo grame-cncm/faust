@@ -1,0 +1,90 @@
+#!/bin/bash
+
+OSCDEFS=""
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to dssi plugins             #
+#               (c) Grame, 2011                                #
+#                                                                   #
+#####################################################################
+
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ $p = "-osc" ]; then
+    	#option ignored for dssi plugins
+		 OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+
+
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    SPEC="-bundle"
+else
+	SPEC="-shared"
+fi
+
+
+
+
+	
+#-------------------------------------------------------------------
+# compile the *.dsp files using ALSA and GTK on linux
+#
+for f in $FILES; do
+
+	dst="${f%.dsp}.so"
+	
+	# compile faust to c++
+	faust -a dssi.cpp $OPTIONS "$f" -o "$f.cpp"
+
+	# compile c++ to binary
+	(
+		${CXX=g++} -I. -Wall -O2 -fPIC -DPIC $SPEC $CXXFLAGS "$f.cpp" -o $dst
+	) > /dev/null
+	rm "$f.cpp"
+
+	# collect binary file name for FaustGIDE
+	BINARIES="$BINARIES$dst;"
+done
+
+
+echo $BINARIES
+
+
