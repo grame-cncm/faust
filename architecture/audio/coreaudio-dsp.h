@@ -1,8 +1,8 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
+	IMPORTANT NOTE : this file contains two clearly delimited sections :
+	the ARCHITECTURE section (in two parts) and the USER section. Each section
+	is governed by its own copyright and license. Please check individually
 	each section for license and copyright information.
 *************************************************************************/
 
@@ -15,9 +15,9 @@
     FAUST Architecture File
 	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 3 of
 	the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -25,13 +25,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License 
+    You should have received a copy of the GNU General Public License
 	along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work 
-	that contains this FAUST architecture section and distribute  
-	that work under terms of your choice, so long as this FAUST 
-	architecture section is not modified. 
+	EXCEPTION : As a special exception, you may create a larger work
+	that contains this FAUST architecture section and distribute
+	that work under terms of your choice, so long as this FAUST
+	architecture section is not modified.
 
 
  ************************************************************************
@@ -89,6 +89,7 @@ typedef	UInt8	CAAudioHardwareDeviceSectionID;
 #define	kAudioDeviceSectionWildcard	((CAAudioHardwareDeviceSectionID)0xFF)
 
 dsp * gDsp;
+
 class TCoreAudioRenderer
 {
     private:
@@ -97,31 +98,31 @@ class TCoreAudioRenderer
 		AudioUnit fAUHAL;
         AudioObjectID fPluginID;    // Used for aggregate device
          bool fState;
-		
+
 		OSStatus GetDefaultDevice(int inChan, int outChan, int samplerate, AudioDeviceID* id);
-                            
+
         OSStatus CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice);
         OSStatus CreateAggregateDeviceAux(vector<AudioDeviceID> captureDeviceID, vector<AudioDeviceID> playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice);
         OSStatus DestroyAggregateDevice();
-        
+
         OSStatus GetDeviceNameFromID(AudioDeviceID id, char* name);
-        
+
         int SetupSampleRateAux(AudioDeviceID inDevice, int samplerate);
-        
+
 		static OSStatus Render(void *inRefCon,
                                AudioUnitRenderActionFlags *ioActionFlags,
                                const AudioTimeStamp *inTimeStamp,
                                UInt32 inBusNumber,
                                UInt32 inNumberFrames,
                                AudioBufferList *ioData);
-                               
-                               
+
+
         static OSStatus SRNotificationCallback(AudioDeviceID inDevice,
                                             UInt32 inChannel,
                                             Boolean	isInput,
                                             AudioDevicePropertyID inPropertyID,
                                             void* inClientData);
-  
+
     public:
 
         TCoreAudioRenderer()
@@ -264,7 +265,7 @@ OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, int sampl
     if ((res = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice,
                                         &theSize, &outDefault)) != noErr)
         return res;
-	
+
 	// Duplex mode
 	if (inChan > 0 && outChan > 0) {
 		// Get the device only if default input and output are the same
@@ -285,19 +286,19 @@ OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, int sampl
 	} else {
 		return kAudioHardwareBadDeviceError;
 	}
-	
+
 	return noErr;
 }
 
-OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice) 
+OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID, AudioDeviceID playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice)
 {
     OSStatus err = noErr;
     AudioObjectID sub_device[32];
     UInt32 outSize = sizeof(sub_device);
-    
+
     err = AudioDeviceGetProperty(captureDeviceID, 0, kAudioDeviceSectionGlobal, kAudioAggregateDevicePropertyActiveSubDeviceList, &outSize, sub_device);
     vector<AudioDeviceID> captureDeviceIDArray;
-    
+
     if (err != noErr) {
         printf("Input device does not have subdevices\n");
         captureDeviceIDArray.push_back(captureDeviceID);
@@ -308,10 +309,10 @@ OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID
             captureDeviceIDArray.push_back(sub_device[i]);
         }
     }
-    
-    err = AudioDeviceGetProperty(playbackDeviceID, 0, kAudioDeviceSectionGlobal, kAudioAggregateDevicePropertyActiveSubDeviceList, &outSize, sub_device);    
+
+    err = AudioDeviceGetProperty(playbackDeviceID, 0, kAudioDeviceSectionGlobal, kAudioAggregateDevicePropertyActiveSubDeviceList, &outSize, sub_device);
     vector<AudioDeviceID> playbackDeviceIDArray;
-    
+
     if (err != noErr) {
         printf("Output device does not have subdevices\n");
         playbackDeviceIDArray.push_back(playbackDeviceID);
@@ -322,7 +323,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDevice(AudioDeviceID captureDeviceID
             playbackDeviceIDArray.push_back(sub_device[i]);
         }
     }
-    
+
     return CreateAggregateDeviceAux(captureDeviceIDArray, playbackDeviceIDArray, samplerate, outAggregateDevice);
 }
 
@@ -398,7 +399,7 @@ int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerat
             usleep(100000);
             printf("Wait count = %d\n", count);
         }
-        
+
         // Check new sample rate
         outSize =  sizeof(Float64);
         err = AudioDeviceGetProperty(inDevice, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, &outSize, &sampleRate);
@@ -416,14 +417,14 @@ int TCoreAudioRenderer::SetupSampleRateAux(AudioDeviceID inDevice, int samplerat
     return 0;
 }
 
-OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> captureDeviceID, vector<AudioDeviceID> playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice) 
+OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> captureDeviceID, vector<AudioDeviceID> playbackDeviceID, int samplerate, AudioDeviceID* outAggregateDevice)
 {
     OSStatus osErr = noErr;
     UInt32 outSize;
     Boolean outWritable;
-    
+
     bool fClockDriftCompensate = true;
-    
+
     // Prepare sub-devices for clock drift compensation
     // Workaround for bug in the HAL : until 10.6.2
     AudioObjectPropertyAddress theAddressOwned = { kAudioObjectPropertyOwnedObjects, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster };
@@ -432,7 +433,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
     AudioClassID inClass = kAudioSubDeviceClassID;
     void* theQualifierData = &inClass;
     UInt32 subDevicesNum = 0;
-     
+
     //---------------------------------------------------------------------------
     // Setup SR of both devices otherwise creating AD may fail...
     //---------------------------------------------------------------------------
@@ -440,18 +441,18 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
     UInt32 clockdomain = 0;
     outSize = sizeof(UInt32);
     bool need_clock_drift_compensation = false;
-    
+
     for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
         if (SetupSampleRateAux(captureDeviceID[i], samplerate) < 0) {
             printf("TCoreAudioRenderer::CreateAggregateDevice : cannot set SR of input device\n");
         } else  {
             // Check clock domain
-            osErr = AudioDeviceGetProperty(captureDeviceID[i], 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyClockDomain, &outSize, &clockdomain); 
+            osErr = AudioDeviceGetProperty(captureDeviceID[i], 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyClockDomain, &outSize, &clockdomain);
             if (osErr != 0) {
                 printf("TCoreAudioRenderer::CreateAggregateDevice : kAudioDevicePropertyClockDomain error\n");
                 printError(osErr);
             } else {
-                keptclockdomain = (keptclockdomain == 0) ? clockdomain : keptclockdomain; 
+                keptclockdomain = (keptclockdomain == 0) ? clockdomain : keptclockdomain;
                 printf("TCoreAudioRenderer::CreateAggregateDevice : input clockdomain = %d\n", clockdomain);
                 if (clockdomain != 0 && clockdomain != keptclockdomain) {
                     printf("TCoreAudioRenderer::CreateAggregateDevice : devices do not share the same clock!! clock drift compensation would be needed...\n");
@@ -460,18 +461,18 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
             }
         }
     }
-    
+
     for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
         if (SetupSampleRateAux(playbackDeviceID[i], samplerate) < 0) {
             printf("TCoreAudioRenderer::CreateAggregateDevice : cannot set SR of output device\n");
         } else {
             // Check clock domain
-            osErr = AudioDeviceGetProperty(playbackDeviceID[i], 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyClockDomain, &outSize, &clockdomain); 
+            osErr = AudioDeviceGetProperty(playbackDeviceID[i], 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyClockDomain, &outSize, &clockdomain);
             if (osErr != 0) {
                 printf("TCoreAudioRenderer::CreateAggregateDevice : kAudioDevicePropertyClockDomain error\n");
                 printError(osErr);
             } else {
-                keptclockdomain = (keptclockdomain == 0) ? clockdomain : keptclockdomain; 
+                keptclockdomain = (keptclockdomain == 0) ? clockdomain : keptclockdomain;
                 printf("TCoreAudioRenderer::CreateAggregateDevice : output clockdomain = %d", clockdomain);
                 if (clockdomain != 0 && clockdomain != keptclockdomain) {
                     printf("TCoreAudioRenderer::CreateAggregateDevice : devices do not share the same clock!! clock drift compensation would be needed...\n");
@@ -480,7 +481,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
             }
         }
     }
-    
+
     // If no valid clock domain was found, then assume we have to compensate...
     if (keptclockdomain == 0) {
         need_clock_drift_compensation = true;
@@ -489,18 +490,18 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
     //---------------------------------------------------------------------------
     // Start to create a new aggregate by getting the base audio hardware plugin
     //---------------------------------------------------------------------------
-    
+
     char device_name[256];
     for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
         GetDeviceNameFromID(captureDeviceID[i], device_name);
         printf("Separated input = '%s' \n", device_name);
     }
-    
+
     for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
         GetDeviceNameFromID(playbackDeviceID[i], device_name);
         printf("Separated output = '%s' \n", device_name);
     }
-   
+
     osErr = AudioHardwareGetPropertyInfo(kAudioHardwarePropertyPlugInForBundleID, &outSize, &outWritable);
     if (osErr != noErr) {
         printf("TCoreAudioRenderer::CreateAggregateDevice : AudioHardwareGetPropertyInfo kAudioHardwarePropertyPlugInForBundleID error\n");
@@ -511,7 +512,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
     AudioValueTranslation pluginAVT;
 
     CFStringRef inBundleRef = CFSTR("com.apple.audio.CoreAudio");
-   
+
     pluginAVT.mInputData = &inBundleRef;
     pluginAVT.mInputDataSize = sizeof(inBundleRef);
     pluginAVT.mOutputData = &fPluginID;
@@ -532,22 +533,22 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
 
     CFStringRef AggregateDeviceNameRef = CFSTR("JackDuplex");
     CFStringRef AggregateDeviceUIDRef = CFSTR("com.grame.JackDuplex");
-    
+
     // add the name of the device to the dictionary
     CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceNameKey), AggregateDeviceNameRef);
 
     // add our choice of UID for the aggregate device to the dictionary
     CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceUIDKey), AggregateDeviceUIDRef);
-    
+
     // add a "private aggregate key" to the dictionary
     int value = 1;
     CFNumberRef AggregateDeviceNumberRef = CFNumberCreate(NULL, kCFNumberIntType, &value);
-    
+
     SInt32 system;
     Gestalt(gestaltSystemVersion, &system);
-     
+
     printf("TCoreAudioRenderer::CreateAggregateDevice : system version = %x limit = %x\n", system, 0x00001054);
-    
+
     // Starting with 10.5.4 systems, the AD can be internal... (better)
     if (system < 0x00001054) {
         printf("TCoreAudioRenderer::CreateAggregateDevice : public aggregate device....\n");
@@ -555,16 +556,16 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         printf("TCoreAudioRenderer::CreateAggregateDevice : private aggregate device....\n");
         CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceIsPrivateKey), AggregateDeviceNumberRef);
     }
-    
+
     // Prepare sub-devices for clock drift compensation
     CFMutableArrayRef subDevicesArrayClock = NULL;
-    
+
     /*
     if (fClockDriftCompensate) {
         if (need_clock_drift_compensation) {
             jack_info("Clock drift compensation activated...");
             subDevicesArrayClock = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-            
+
             for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
                 CFStringRef UID = GetDeviceName(captureDeviceID[i]);
                 if (UID) {
@@ -575,7 +576,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
                     CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
                 }
             }
-            
+
             for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
                 CFStringRef UID = GetDeviceName(playbackDeviceID[i]);
                 if (UID) {
@@ -586,7 +587,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
                     CFArrayAppendValue(subDevicesArrayClock, subdeviceAggDeviceDict);
                 }
             }
-            
+
             // add sub-device clock array for the aggregate device to the dictionary
             CFDictionaryAddValue(aggDeviceDict, CFSTR(kAudioAggregateDeviceSubDeviceListKey), subDevicesArrayClock);
         } else {
@@ -594,14 +595,14 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         }
     }
     */
-    
+
     //-------------------------------------------------
     // Create a CFMutableArray for our sub-device list
     //-------------------------------------------------
-    
+
     // we need to append the UID for each device to a CFMutableArray, so create one here
     CFMutableArrayRef subDevicesArray = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-    
+
     vector<CFStringRef> captureDeviceUID;
     for (UInt32 i = 0; i < captureDeviceID.size(); i++) {
         CFStringRef ref = GetDeviceName(captureDeviceID[i]);
@@ -611,7 +612,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         // input sub-devices in this example, so append the sub-device's UID to the CFArray
         CFArrayAppendValue(subDevicesArray, ref);
    }
-    
+
     vector<CFStringRef> playbackDeviceUID;
     for (UInt32 i = 0; i < playbackDeviceID.size(); i++) {
         CFStringRef ref = GetDeviceName(playbackDeviceID[i]);
@@ -621,11 +622,11 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         // output sub-devices in this example, so append the sub-device's UID to the CFArray
         CFArrayAppendValue(subDevicesArray, ref);
     }
-  
+
     //-----------------------------------------------------------------------
     // Feed the dictionary to the plugin, to create a blank aggregate device
     //-----------------------------------------------------------------------
- 
+
     AudioObjectPropertyAddress pluginAOPA;
     pluginAOPA.mSelector = kAudioPlugInCreateAggregateDevice;
     pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
@@ -638,7 +639,7 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         printError(osErr);
         goto error;
     }
-    
+
     osErr = AudioObjectGetPropertyData(fPluginID, &pluginAOPA, sizeof(aggDeviceDict), &aggDeviceDict, &outDataSize, outAggregateDevice);
     if (osErr != noErr) {
         printf("TCoreAudioRenderer::CreateAggregateDevice : AudioObjectGetPropertyData error\n");
@@ -664,10 +665,10 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         printError(osErr);
         goto error;
     }
-    
+
     // pause again to give the changes time to take effect
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
-    
+
     //-----------------------
     // Set the master device
     //-----------------------
@@ -684,36 +685,36 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         printError(osErr);
         goto error;
     }
-    
+
     // pause again to give the changes time to take effect
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
-  
+
     // Prepare sub-devices for clock drift compensation
     // Workaround for bug in the HAL : until 10.6.2
-    
+
     if (fClockDriftCompensate) {
         if (need_clock_drift_compensation) {
             printf("Clock drift compensation activated...\n");
-       
+
             // Get the property data size
             osErr = AudioObjectGetPropertyDataSize(*outAggregateDevice, &theAddressOwned, theQualifierDataSize, theQualifierData, &outSize);
             if (osErr != noErr) {
                 printf("TCoreAudioRenderer::CreateAggregateDevice kAudioObjectPropertyOwnedObjects error\n");
                 printError(osErr);
             }
-            
+
             //	Calculate the number of object IDs
             subDevicesNum = outSize / sizeof(AudioObjectID);
             printf("TCoreAudioRenderer::CreateAggregateDevice clock drift compensation, number of sub-devices = %d\n", subDevicesNum);
             AudioObjectID subDevices[subDevicesNum];
             outSize = sizeof(subDevices);
-            
+
             osErr = AudioObjectGetPropertyData(*outAggregateDevice, &theAddressOwned, theQualifierDataSize, theQualifierData, &outSize, subDevices);
             if (osErr != noErr) {
                 printf("TCoreAudioRenderer::CreateAggregateDevice kAudioObjectPropertyOwnedObjects error\n");
                 printError(osErr);
             }
-            
+
             // Set kAudioSubDevicePropertyDriftCompensation property...
             for (UInt32 index = 0; index < subDevicesNum; ++index) {
                 UInt32 theDriftCompensationValue = 1;
@@ -726,22 +727,22 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
         } else {
             printf("Clock drift compensation was asked but is not needed (devices use the same clock domain)\n");
         }
-    }    
-    
+    }
+
     // pause again to give the changes time to take effect
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
-       
+
     //----------
     // Clean up
     //----------
-    
+
     // release the private AD key
     CFRelease(AggregateDeviceNumberRef);
 
     // release the CF objects we have created - we don't need them any more
     CFRelease(aggDeviceDict);
     CFRelease(subDevicesArray);
-    
+
     if (subDevicesArrayClock)
         CFRelease(subDevicesArrayClock);
 
@@ -749,20 +750,20 @@ OSStatus TCoreAudioRenderer::CreateAggregateDeviceAux(vector<AudioDeviceID> capt
     for (UInt32 i = 0; i < captureDeviceUID.size(); i++) {
         CFRelease(captureDeviceUID[i]);
     }
-    
+
     for (UInt32 i = 0; i < playbackDeviceUID.size(); i++) {
         CFRelease(playbackDeviceUID[i]);
     }
-    
+
     printf("New aggregate device %d\n", *outAggregateDevice);
     return noErr;
-    
+
 error:
     DestroyAggregateDevice();
     return -1;
 }
 
-OSStatus TCoreAudioRenderer::DestroyAggregateDevice() 
+OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
 {
     OSStatus osErr = noErr;
     AudioObjectPropertyAddress pluginAOPA;
@@ -770,25 +771,25 @@ OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
     pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
     pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
     UInt32 outDataSize;
-     
+
     if (fPluginID > 0)   {
-      
+
         osErr = AudioObjectGetPropertyDataSize(fPluginID, &pluginAOPA, 0, NULL, &outDataSize);
         if (osErr != noErr) {
             printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
             printError(osErr);
             return osErr;
         }
-            
+
         osErr = AudioObjectGetPropertyData(fPluginID, &pluginAOPA, 0, NULL, &outDataSize, &fDeviceID);
         if (osErr != noErr) {
             printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
             printError(osErr);
             return osErr;
         }
-        
+
     }
-    
+
     return noErr;
 }
 
@@ -802,14 +803,14 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	Boolean isWritable;
 	AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
     long in_nChannels, out_nChannels;
-    
+
     printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
-    
+
     SInt32 major;
     SInt32 minor;
     Gestalt(gestaltSystemVersionMajor, &major);
     Gestalt(gestaltSystemVersionMinor, &minor);
-    
+
     // Starting with 10.6 systems, the HAL notification thread is created internally
     if (major == 10 && minor >= 6) {
         CFRunLoopRef theRunLoop = NULL;
@@ -820,12 +821,12 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             printError(osErr);
         }
     }
-	
+
 	if (GetDefaultDevice(inChan, outChan, samplerate,&fDeviceID) != noErr) {
 		printf("Cannot open default device\n");
 		return OPEN_ERR;
 	}
-	
+
 	// Setting buffer size
     outSize = sizeof(UInt32);
     err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyBufferFrameSize, outSize, &bufferSize);
@@ -871,7 +872,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 		printError(err1);
         goto error;
 	}
-    
+
     enableIO = 1;
     err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
     if (err1 != noErr) {
@@ -879,7 +880,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err1);
         goto error;
     }
-    
+
     enableIO = 1;
     err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
     if (err1 != noErr) {
@@ -887,7 +888,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         printError(err1);
         goto error;
     }
-    
+
     err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &fDeviceID, sizeof(AudioDeviceID));
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_CurrentDevice\n");
@@ -929,7 +930,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 
     /*
     Just ignore this case : seems to work without any further change...
-     
+
     if (outChan > out_nChannels) {
         printf("This device hasn't required output channels\n");
         goto error;
@@ -969,7 +970,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             printError(err1);
         }
     }
-	
+
     if (inChan > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
         err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
@@ -978,7 +979,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             printError(err1);
         }
         PrintStreamDesc(&srcFormat);
-        
+
         srcFormat.mSampleRate = samplerate;
         srcFormat.mFormatID = kAudioFormatLinearPCM;
         srcFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
@@ -987,16 +988,16 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         srcFormat.mBytesPerFrame = sizeof(float);
         srcFormat.mChannelsPerFrame = inChan;
         srcFormat.mBitsPerChannel = 32;
-        
+
         PrintStreamDesc(&srcFormat);
-        
+
         err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
         }
     }
-	
+
     if (outChan > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
         err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
@@ -1005,7 +1006,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
             printError(err1);
         }
         PrintStreamDesc(&dstFormat);
-        
+
         dstFormat.mSampleRate = samplerate;
         dstFormat.mFormatID = kAudioFormatLinearPCM;
         dstFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
@@ -1014,7 +1015,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         dstFormat.mBytesPerFrame = sizeof(float);
         dstFormat.mChannelsPerFrame = outChan;
         dstFormat.mBitsPerChannel = 32;
-        
+
         PrintStreamDesc(&dstFormat);
 
         err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
@@ -1059,7 +1060,7 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
         fInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(float));
         fInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(float);
     }
- 	
+
     return NO_ERR;
 
 error:
@@ -1083,7 +1084,7 @@ long TCoreAudioRenderer::Close()
 long TCoreAudioRenderer::Start()
 {
 	OSStatus err = AudioOutputUnitStart(fAUHAL);
-  
+
     if (err != noErr) {
         printf("Error while opening device : device open error \n");
         return OPEN_ERR;
@@ -1132,15 +1133,15 @@ class coreaudio : public audio {
 		}
         return true;
     }
-	
-	virtual bool start() {			
+
+	virtual bool start() {
 		if (audio_device.Start() < 0) {
 			printf("Cannot start CoreAudio device\n");
 			return false;
 		}
 		return true;
 	}
-	
+
 	virtual void stop() {
 		audio_device.Stop();
 		audio_device.Close();
@@ -1149,7 +1150,7 @@ class coreaudio : public audio {
 };
 
 #endif
-		
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-					
+
 
