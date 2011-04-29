@@ -40,7 +40,7 @@ src/msg/Message.o: src/msg/Message.h src/lib/smartpointer.h src/lib/OSCFError.h 
 src/msg/Message.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h
 src/msg/Message.o: ../oscpack/ip/UdpSocket.h ../oscpack/ip/NetworkingUtils.h ../oscpack/ip/IpEndpointName.h
 src/nodes/FaustFactory.o: src/nodes/FaustFactory.h src/nodes/MessageDriven.h src/msg/MessageProcessor.h
-src/nodes/FaustFactory.o: src/lib/smartpointer.h src/nodes/FaustNode.h src/nodes/RootNode.h
+src/nodes/FaustFactory.o: src/lib/smartpointer.h src/nodes/FaustNode.h src/nodes/RootNode.h src/osc/OSCAddress.h
 src/nodes/FaustNode.o: src/nodes/FaustNode.h src/nodes/MessageDriven.h src/msg/MessageProcessor.h
 src/nodes/FaustNode.o: src/lib/smartpointer.h src/msg/Message.h src/osc/OSCStream.h
 src/nodes/FaustNode.o: ../oscpack/osc/OscOutboundPacketStream.h ../oscpack/osc/OscTypes.h ../oscpack/osc/OscException.h
