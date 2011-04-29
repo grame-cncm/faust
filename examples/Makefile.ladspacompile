@@ -10,9 +10,9 @@ allmodules: $(modules)
 
 $(DEST)%.so: $(DEST)%.cpp
 ifeq ($(os), Darwin)
-	$(CXX) -fPIC -bundle -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+	$(CXX) $(LIB) -bundle -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
 else
-	$(CXX) -fPIC -shared -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+	$(CXX) $(LIB) -shared -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
 endif
 
 $(DEST)%.cpp: %.dsp 
