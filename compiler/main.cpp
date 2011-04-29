@@ -477,13 +477,6 @@ void printheader(ostream& dst)
  					 			MAIN
 *****************************************************************/
 
-static string dirname(const string& path)
-{
-    char s[1024];
-    strncpy(s, path.c_str(), 1024);
-    return string(dirname(s));
-}
-
 /**
  * transform a filename "faust/example/noise.dsp" into
  * the corresponding fx name "noise"

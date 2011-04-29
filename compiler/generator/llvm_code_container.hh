@@ -38,7 +38,11 @@
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
 
+#ifdef LLVM_28
 #include <llvm/System/Host.h>
+#endif
+
+#include <llvm/Support/Host.h>
 
 using namespace std;
 using namespace llvm;
