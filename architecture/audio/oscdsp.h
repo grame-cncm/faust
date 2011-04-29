@@ -14,19 +14,21 @@
 
 *******************************************************************************
 *******************************************************************************/
+
 #define kMaxBuffer 4096
+
 class oscdsp : public audio, public oscfaust::OSCIO {
 	dsp*	 fDsp;
 	float ** fInBuffers, **fOutBuffers;
 
  public:
-			 oscdsp(const char * dst, int argc, char *argv[]) : OSCIO(dst), fDsp(0), fInBuffers(0), fOutBuffers(0) 
-			 { 
+			 oscdsp(const char * dst, int argc, char *argv[]) : OSCIO(dst), fDsp(0), fInBuffers(0), fOutBuffers(0)
+			 {
 				for (int i = 1; i < argc-1; i++)
 					if (!strcmp(argv[i], "-iodst")) setDest (argv[i+1]);
 			 }
 	virtual ~oscdsp() { stop(); }
-	
+
 	virtual bool init(const char*name, dsp* DSP) {
 		fDsp = DSP;
 		fDsp->init(44100);
@@ -38,7 +40,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 			fOutBuffers [i] = new float[kMaxBuffer];
 		return true;
 	}
-	
+
 	virtual bool start()	{ return true; }
 	virtual void stop()		{}
 
@@ -55,7 +57,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 			return;
 		}
 
-		int chan = 0, frame = 0; 
+		int chan = 0, frame = 0;
 		for (int i=0; i < nvalues; i++) {
 			int c = chan % inChans;
 			fInBuffers[c][frame] = val[i];
@@ -69,7 +71,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 		compute (frame);
 	}
 	int		numOutputs() const	{ return fDsp ? fDsp->getNumOutputs() : 0; }
-	int		numInputs() const	{ return fDsp ? fDsp->getNumInputs() : 0; } 
+	int		numInputs() const	{ return fDsp ? fDsp->getNumInputs() : 0; }
 };
 
 #endif

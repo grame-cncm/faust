@@ -1,17 +1,12 @@
 #ifndef FAUST_FUI_H
 #define FAUST_FUI_H
 
-
-
 #include "UI.h"
-
 
 #include <string>
 #include <map>
 #include <set>
 #include <vector>
-
-
 #include <stack>
 
 #include <iostream>
@@ -20,8 +15,6 @@
 using namespace std;
 
 #if 1
-
-
 
 /*******************************************************************************
  * FUI : used to save and recall the state of the user interface
