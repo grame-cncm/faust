@@ -6,7 +6,7 @@ ifeq ($(OSC),1)
 endif
 
 MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
-MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' $(OSCCTRL)'
+MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
 
 VSIZE := 256
 
@@ -112,6 +112,10 @@ alsaqt :
 ladspa :
 	install -d ladspadir
 	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+	
+dssi :
+	install -d dssidir
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.dssicompile
 
 ladspasch :
 	install -d ladspaschdir
@@ -251,6 +255,7 @@ help:
 	@echo "make oscioqt             : compile examples as OSC driven applications with a QT4 Graphical User Interface"
 	@echo "--------------------------------------------"
 	@echo "make ladspa        : compile examples as LADSPA plugins"
+	@echo "make dssi          : compile examples as DSSI plugins"
 	@echo "make csound        : compile examples as CSOUND opcodes"
 	@echo "make csounddouble  : compile examples as double precision CSOUND opcodes"
 	@echo "make maxmsp        : compile examples as Max/MSP externals"
