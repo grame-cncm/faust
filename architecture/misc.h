@@ -14,7 +14,7 @@
         #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
     #endif
 #else
-    #define AVOIDDENORMALS 
+    #define AVOIDDENORMALS
 #endif
 
 struct XXXX_Meta : std::map<const char*, const char*>
@@ -31,7 +31,6 @@ struct MY_Meta : Meta, std::map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
-
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))

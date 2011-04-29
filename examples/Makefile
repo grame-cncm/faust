@@ -111,11 +111,11 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I/usr/local/lib/faust/ -fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
 
 ladspasch :
 	install -d ladspaschdir
-	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I/usr/local/lib/faust/ -fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
 
 csound :
 	install -d csounddir
@@ -151,7 +151,7 @@ module :
 
 bundle :
 	install -d bundledir
-	$(MAKE) DEST='bundledir/' ARCH='module.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.compile
+	$(MAKE) DEST='bundledir/' ARCH='module.cpp' LIB='-I/usr/local/lib/faust/ -fPIC -bundle' EXT='.so' -f Makefile.compile
 
 maxmsp msp :
 	install -d mspdir
@@ -201,7 +201,7 @@ gparbench :
 
 sndfile :
 	install -d sndfiledir
-	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-lsndfile' -f Makefile.compile
+	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-I/usr/local/lib/faust/ -lsndfile'  -f Makefile.compile
 CXXFLAGS=$(OSCCTRL)
 plot :
 	install -d plotdir
