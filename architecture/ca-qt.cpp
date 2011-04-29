@@ -85,7 +85,7 @@ long lopt(char *argv[], const char *name, long def)
 	return def;
 }
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
 	char name[256];
 	char rcfilename[256];
