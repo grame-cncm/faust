@@ -1,0 +1,171 @@
+This document describes the various messages TouchOSC (Android) can send
+expressed as Faust metadata ready to be inserted in widget labels.
+
+================================================================================
+						       Accelerometer
+================================================================================
+
+[osc:/accxyz/0 -10 10]  	x-accelerometer
+[osc:/accxyz/1 -10 10]  	y-accelerometer
+[osc:/accxyz/Z -10 10]  	z-accelerometer
+
+
+
+================================================================================
+						       Layout : simple
+================================================================================
+
+
+page 1
+--------------------------------------------------------------------------------
+[osc:/1/fader5]
+
+[osc:/1/fader1]
+[osc:/1/toggle1]
+
+[osc:/1/fader2]
+[osc:/1/toggle2]
+
+[osc:/1/fader3]
+[osc:/1/toggle3]
+
+[osc:/1/fader4]
+[osc:/1/toggle4]
+
+
+
+page 2 ( 4x4 matrix )
+--------------------------------------------------------------------------------
+[osc:/2/push1]   [osc:/2/push2]   [osc:/2/push3]   [osc:/2/push4] 
+[osc:/2/push5]   [osc:/2/push6]   [osc:/2/push7]   [osc:/2/push8] 
+[osc:/2/push9]   [osc:/2/push10]  [osc:/2/push11]  [osc:/2/push12] 
+[osc:/2/push13]  [osc:/2/push14]  [osc:/2/push15]  [osc:/2/push16] 
+
+[osc:/2/toggle1] [osc:/2/toggle2] [osc:/2/toggle3] [osc:/2/toggle4]
+
+
+
+Page 3 (2D-joystick)
+--------------------------------------------------------------------------------
+[osc:/3/xy/0]	x-coord
+[osc:/3/xy/1]	y-coord
+
+[osc:/3/toggle1] [osc:/3/toggle2] [osc:/3/toggle3] [osc:/3/toggle4]
+
+
+
+Page 4 (8x8 matrix)
+--------------------------------------------------------------------------------
+[osc:/4/multitoggle/1/1] [osc:/4/multitoggle/2/1] ... [osc:/4/multitoggle/8/1]
+[osc:/4/multitoggle/1/2] [osc:/4/multitoggle/2/2] ... [osc:/4/multitoggle/8/2]
+.
+.
+.
+[osc:/4/multitoggle/1/8] [osc:/4/multitoggle/2/8] ... [osc:/4/multitoggle/8/8]
+
+[osc:/4/toggle1]     [osc:/4/toggle2]     [osc:/4/toggle3]    [osc:/4/toggle4]
+
+
+================================================================================
+						       Layout : Mix 2
+================================================================================
+
+
+page 1
+--------------------------------------------------------------------------------
+[osc:/1/rotary1]	[osc:/1/toggle1] 	[osc:/1/toggle3]	[osc:/1/rotary4]
+					[osc:/1/toggle2] 	[osc:/1/toggle4]
+[osc:/1/rotary2]											[osc:/1/rotary5]
+					[osc:/1/fader1] 	[osc:/1/fader2]		
+[osc:/1/rotary3]											[osc:/1/rotary6]
+[osc:/1/push1] 		[osc:/1/push2] 		[osc:/1/push3] 		[osc:/1/push4]
+
+							[osc:/1/fader3]
+
+
+page 2 (2 banks of 16 faders)
+--------------------------------------------------------------------------------
+[osc:/2/multifader1/1] 			...			[osc:/2/multifader1/16]
+	
+[osc:/2/multifader2/1] 			...			[osc:/2/multifader2/16]	
+
+
+page 3 (2 2D-joysticks)
+--------------------------------------------------------------------------------
+[osc:/3/xy1/0]	x-coord
+[osc:/3/xy1/1]	y-coord
+
+[osc:/3/xy2/0]	x-coord
+[osc:/3/xy2/1]	y-coord
+
+
+================================================================================
+						       Layout : Mix 16
+================================================================================
+
+
+page 1
+--------------------------------------------------------------------------------
+[osc:/1/fader1]					
+[osc:/1/toggle1]
+
+[osc:/1/fader2]
+[osc:/1/toggle2]			[osc:/1/xy/0]	x-coord
+							[osc:/1/xy/1]	y-coord
+[osc:/1/fader3]							
+[osc:/1/toggle3]			[osc:/1/fader4]
+
+[osc:/1/push1] [osc:/1/push2] [osc:/1/push3] [osc:/1/push4] [osc:/1/push5]
+
+
+page 2
+--------------------------------------------------------------------------------
+
+[osc:/2/fader1 ] [osc:/2/fader2 ]  ...  [osc:/2/fader8 ] 
+
+[osc:/2/toggle1] [osc:/2/toggle2]  ...  [osc:/2/toggle8]
+
+
+page 3
+--------------------------------------------------------------------------------
+
+[osc:/3/fader1 ] [osc:/3/fader2 ]  ...  [osc:/3/fader8 ] 
+
+[osc:/3/toggle1] [osc:/3/toggle2]  ...  [osc:/3/toggle8]
+
+
+page 4 (2 banks of 24 faders)
+--------------------------------------------------------------------------------
+[osc:/4/multifader1/1] 			...			[osc:/4/multifader1/24]
+	
+[osc:/4/multifader2/1] 			...			[osc:/4/multifader2/24]	
+
+
+================================================================================
+						       Layout : Keys
+================================================================================
+
+
+page 1 (1 octave keyboard)
+--------------------------------------------------------------------------------
+
+[osc:/1/push1] [osc:/1/push2] ... [osc:/1/push12]
+
+
+page 2 (1 octave keyboard)
+--------------------------------------------------------------------------------
+
+[osc:/2/push1] [osc:/2/push2] ... [osc:/2/push12]
+
+
+page 3 (sliders + rotary)
+--------------------------------------------------------------------------------
+													[osc:/3/rotary1]
+											[osc:/3/push3] [osc:/3/push4] 
+											[osc:/3/push1] [osc:/3/push2]
+
+[osc:/3/fader1][osc:/3/fader2][osc:/3/fader3 ][osc:/3/fader4 ][osc:/3/fader5 ] 
+                              [osc:/3/toggle1][osc:/3/toggle2][osc:/3/toggle3]
+                              
+                              
+
