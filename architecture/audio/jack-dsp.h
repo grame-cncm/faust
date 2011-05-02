@@ -47,33 +47,33 @@ class jackaudio : public audio {
 	#else
 		jack_set_process_callback(fClient, _process, this);
 	#endif
-		
+
 		jack_set_sample_rate_callback(fClient, _srate, 0);
 		jack_on_shutdown(fClient, _jack_shutdown, 0);
-		
+
 		fNumInChans  = fDsp->getNumInputs();
 		fNumOutChans = fDsp->getNumOutputs();
-		
+
 		for (int i = 0; i < fNumInChans; i++) {
 			char buf[256];
-			snprintf(buf, 256, "in_%d", i); 
+			snprintf(buf, 256, "in_%d", i);
 			fInput_ports[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
 		}
 		for (int i = 0; i < fNumOutChans; i++) {
 			char buf[256];
-			snprintf(buf, 256, "out_%d", i); 
+			snprintf(buf, 256, "out_%d", i);
 			fOutput_ports[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 		}
 		fDsp->init(jack_get_sample_rate(fClient));
 		return true;
 	}
-	
-	virtual bool start() {			
+
+	virtual bool start() {
 		if (jack_activate(fClient)) {
 			fprintf(stderr, "cannot activate client");
 			return false;
 		}
-		
+
 		char** physicalInPorts = (char **)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
 		char** physicalOutPorts = (char **)jack_get_ports(fClient, NULL, NULL, JackPortIsPhysical|JackPortIsOutput);
 		if (physicalOutPorts != NULL) {
@@ -86,10 +86,10 @@ class jackaudio : public audio {
 		}
 		return true;
 	}
-	
+
 	virtual void stop() {
 		if (fClient) {
-			jack_deactivate(fClient);	
+			jack_deactivate(fClient);
 			for (int i = 0; i < fNumInChans; i++)
 				jack_port_unregister(fClient, fInput_ports[i]);
 			for (int i = 0; i < fNumOutChans; i++)
@@ -99,7 +99,6 @@ class jackaudio : public audio {
 		}
 	}
 
-	
 	// jack callbacks
 	int	process (jack_nframes_t nframes) {
 		AVOIDDENORMALS;
@@ -108,9 +107,9 @@ class jackaudio : public audio {
 		for (int i = 0; i < fNumOutChans; i++)
 			fOutChannel[i] = (float *)jack_port_get_buffer(fOutput_ports[i], nframes);
 		fDsp->compute(nframes, fInChannel, fOutChannel);
-		return 0;		
+		return 0;
 	}
-	
+
 #ifdef _OPENMP
 	void process_thread () {
 		jack_nframes_t nframes;
@@ -123,9 +122,8 @@ class jackaudio : public audio {
 #endif
 };
 
-
 //----------------------------------------------------------------------------
-// Jack Callbacks 
+// Jack Callbacks
 //----------------------------------------------------------------------------
 static int _srate(jack_nframes_t nframes, void *)
 {
@@ -138,7 +136,7 @@ static void _jack_shutdown(void *)
 	exit(1);
 }
 
-static int _process (jack_nframes_t nframes, void *client)
+static int _process(jack_nframes_t nframes, void *client)
 {
 	jackaudio* jackclient = (jackaudio*)client;
 	return jackclient->process (nframes);

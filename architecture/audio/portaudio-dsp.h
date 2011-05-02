@@ -1,8 +1,8 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
+	IMPORTANT NOTE : this file contains two clearly delimited sections :
+	the ARCHITECTURE section (in two parts) and the USER section. Each section
+	is governed by its own copyright and license. Please check individually
 	each section for license and copyright information.
 *************************************************************************/
 
@@ -12,9 +12,9 @@
     FAUST Architecture File
 	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 3 of
 	the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -22,13 +22,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License 
+    You should have received a copy of the GNU General Public License
 	along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work 
-	that contains this FAUST architecture section and distribute  
-	that work under terms of your choice, so long as this FAUST 
-	architecture section is not modified. 
+	EXCEPTION : As a special exception, you may create a larger work
+	that contains this FAUST architecture section and distribute
+	that work under terms of your choice, so long as this FAUST
+	architecture section is not modified.
 
 
  ************************************************************************
@@ -55,8 +55,7 @@ static void pa_error(int err)
 		printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
 		exit(1);
 	}
-}	
-
+}
 
 /******************************************************************************
 *******************************************************************************
@@ -81,11 +80,10 @@ class portaudio : public audio {
 	float* 	fInChannel[256];
 	float* 	fOutChannel[256];
 
-
 	//----------------------------------------------------------------------------
 	// allocated the noninterleaved input and output channels for FAUST
 	//----------------------------------------------------------------------------
-	void allocChannels (int size, int numInChan, int numOutChan) 
+	void allocChannels (int size, int numInChan, int numOutChan)
 	{
 		assert (numInChan < 256);
 		assert (numOutChan < 256);
@@ -95,45 +93,45 @@ class portaudio : public audio {
 			for (int j = 0; j < size; j++)
 				fInChannel[i][j] = 0.0;
 		}
-		
+
 		for (int i = 0; i < numOutChan; i++) {
 			fOutChannel[i] = (float*) calloc (size, sizeof(float));
 			for (int j = 0; j < size; j++)
 				fOutChannel[i][j] = 0.0;
 		}
 	}
-	
+
 	public:
-			 portaudio (long srate, long bsize) : fDsp(0), fAudioStream(0),
+			 portaudio(long srate, long bsize) : fDsp(0), fAudioStream(0),
 				fSampleRate(srate), fBufferSize(bsize), fDevNumInChans(0), fDevNumOutChans(0) {}
-	virtual ~portaudio () { stop(); }
+	virtual ~portaudio() { stop(); }
 
 	virtual bool init(const char* name, dsp* DSP){
 		fDsp = DSP;
 		pa_error(Pa_Initialize());
-		
+
 		const PaDeviceInfo*	idev = Pa_GetDeviceInfo(Pa_GetDefaultInputDevice());
 		const PaDeviceInfo*	odev = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
-		
+
 		fDevNumInChans = (fDsp->getNumInputs() > 0) ? idev->maxInputChannels : 0 ;
 		fDevNumOutChans = (fDsp->getNumOutputs() > 0) ? odev->maxOutputChannels : 0;
-		
+
 		PaStreamParameters inputParameters;
 		PaStreamParameters outputParameters;
-		
+
 		inputParameters.device = Pa_GetDefaultInputDevice();
 		inputParameters.sampleFormat = paFloat32;
 		inputParameters.channelCount = fDevNumInChans;
 		inputParameters.hostApiSpecificStreamInfo = 0;
-		
+
 		outputParameters.device = Pa_GetDefaultOutputDevice();
 		outputParameters.sampleFormat = paFloat32;
 		outputParameters.channelCount = fDevNumOutChans;
 		outputParameters.hostApiSpecificStreamInfo = 0;
-		
+
 		PaError err;
 		if ((err = Pa_IsFormatSupported(
-			((fDevNumInChans > 0) ? &inputParameters : 0), 
+			((fDevNumInChans > 0) ? &inputParameters : 0),
 			((fDevNumOutChans > 0) ? &outputParameters : 0), fSampleRate)) != 0) {
 			printf("stream format is not supported err = %d\n", err);
 			exit(1);
@@ -143,13 +141,13 @@ class portaudio : public audio {
 		fDsp->init(fSampleRate);
 		return true;
 	}
-	
+
 	virtual bool start() {
 		pa_error(Pa_OpenDefaultStream(&fAudioStream, fDevNumInChans, fDevNumOutChans, paFloat32, fSampleRate, fBufferSize, audioCallback, this));
 		Pa_StartStream(fAudioStream);
 		return true;
 	}
-	
+
 	virtual void stop() {
 		if (fAudioStream) {
 			Pa_StopStream (fAudioStream);
@@ -161,14 +159,14 @@ class portaudio : public audio {
 	int processAudio(const float *ibuf, float *obuf, unsigned long frames) {
 		const float* fInputBuffer = ibuf;
 		float* fOutputBuffer = obuf;
-			
+
 		// split input samples
 		for (unsigned long s = 0; s < frames; s++) {
 			for (int c = 0; c < fDevNumInChans; c++) {
 				fInChannel[c][s] = fInputBuffer[c + s*fDevNumInChans];
 			}
 		}
-		
+
 		// process samples
 		fDsp->compute(frames, fInChannel, fOutChannel);
 
@@ -183,7 +181,7 @@ class portaudio : public audio {
 };
 
 //----------------------------------------------------------------------------
-// Port Audio Callback 
+// Port Audio Callback
 //----------------------------------------------------------------------------
 static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * drv)
 {

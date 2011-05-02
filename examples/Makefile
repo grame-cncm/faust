@@ -5,11 +5,10 @@ ifeq ($(OSC),1)
  OSCLIB  := -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack
 endif
 
-MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2' 
-#MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
-MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
-#MYGCCFLAGS := '-O3'
-VSIZE := 1024
+MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
+MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+
+VSIZE := 256
 
 SC_SOURCE_DIR = ../../supercollider
 
@@ -141,11 +140,15 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I/usr/local/lib/faust/ -fPIC' EXT='.so' -f Makefile.ladspacompile
+	
+dssi :
+	install -d dssidir
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-I/usr/local/lib/faust/ -fPIC -bundle' EXT='.so' -f Makefile.dssicompile
 
 ladspasch :
 	install -d ladspaschdir
-	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I/usr/local/lib/faust/ -fPIC' EXT='.so' -f Makefile.ladspacompile
 
 csound :
 	install -d csounddir
@@ -181,7 +184,7 @@ module :
 
 bundle :
 	install -d bundledir
-	$(MAKE) DEST='bundledir/' ARCH='module.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.compile
+	$(MAKE) DEST='bundledir/' ARCH='module.cpp' LIB='-I/usr/local/lib/faust/ -fPIC -bundle' EXT='.so' -f Makefile.compile
 
 maxmsp msp :
 	install -d mspdir
@@ -238,7 +241,7 @@ gparbench :
 
 sndfile :
 	install -d sndfiledir
-	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-lsndfile' -f Makefile.compile
+	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-I/usr/local/lib/faust/ -lsndfile'  -f Makefile.compile
 CXXFLAGS=$(OSCCTRL)
 plot :
 	install -d plotdir
@@ -288,6 +291,7 @@ help:
 	@echo "make oscioqt             : compile examples as OSC driven applications with a QT4 Graphical User Interface"
 	@echo "--------------------------------------------"
 	@echo "make ladspa        : compile examples as LADSPA plugins"
+	@echo "make dssi          : compile examples as DSSI plugins"
 	@echo "make csound        : compile examples as CSOUND opcodes"
 	@echo "make csounddouble  : compile examples as double precision CSOUND opcodes"
 	@echo "make maxmsp        : compile examples as Max/MSP externals"

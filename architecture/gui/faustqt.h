@@ -3,9 +3,9 @@
     FAUST Architecture File
 	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 3 of
 	the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -13,9 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License 
+    You should have received a copy of the GNU General Public License
 	along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
+
  ************************************************************************
  ************************************************************************/
 #ifndef __faustqt__
@@ -73,7 +73,7 @@ using namespace std;
 //   This widget is based on a design by Thorsten Wilms,
 //   implemented by Chris Cannam in Rosegarden,
 //   adapted for QSynth by Pedro Lopez-Cabanillas,
-//   improved for Qt4 by David Garc�a Garzon.
+//   improved for Qt4 by David Garcia Garzon.
 //
 
 #define DIAL_MIN      (0.25 * M_PI)
@@ -85,7 +85,7 @@ class qsynthDialVokiStyle : public QCommonStyle
 public:
 	qsynthDialVokiStyle() {};
 	virtual ~qsynthDialVokiStyle() {};
-	
+
     virtual void drawComplexControl(ComplexControl cc, const QStyleOptionComplex *opt, QPainter *p, const QWidget *widget = 0) const
 	{
 		if (cc != QStyle::CC_Dial)
@@ -93,11 +93,11 @@ public:
 			QCommonStyle::drawComplexControl(cc, opt, p, widget);
 			return;
 		}
-		
-		const QStyleOptionSlider *dial = qstyleoption_cast<const QStyleOptionSlider *>(opt); 
+
+		const QStyleOptionSlider *dial = qstyleoption_cast<const QStyleOptionSlider *>(opt);
 		if (dial == NULL)
 			return;
-		
+
 		double angle = DIAL_MIN // offset
 			+ (DIAL_RANGE *
 				(double(dial->sliderValue - dial->minimum) /
@@ -119,12 +119,12 @@ public:
 		int shineExtension = shineCenter * 4;
 		int shadowShift = shineCenter * 2;
 		int meterWidth = side - 2 * scaleShadowWidth;
-		
+
 		QPalette pal = opt->palette;
 		QColor knobColor = pal.mid().color();
 		QColor borderColor = knobColor.light();
-		QColor meterColor = (dial->state & State_Enabled) ? 
-                            QColor("orange") : pal.mid().color();   
+		QColor meterColor = (dial->state & State_Enabled) ?
+                            QColor("orange") : pal.mid().color();
                          // pal.highlight().color() : pal.mid().color();
 		QColor background = pal.window().color();
 
@@ -240,11 +240,11 @@ public:
 		pen.setWidth(pointerWidth);
 		p->setPen(pen);
 		p->drawLine(QLineF(xcenter - 1, ycenter - 1, x - 1, y - 1));
-		
+
 		// done
 		p->restore();
 	}
-	
+
 };
 //
 //===============================END QSYNTHKNOB======================================
@@ -288,7 +288,7 @@ class AbstractDisplay : public QWidget
         {
             if (v < fMin)       v = fMin;
             else if (v > fMax)  v = fMax;
-            
+
             if (v != fValue) {
                 fValue = v;
                 update();
@@ -303,7 +303,7 @@ class AbstractDisplay : public QWidget
 class dbAbstractDisplay : public AbstractDisplay
 {
     protected :
-    
+
         float           fScaleMin;
         float           fScaleMax;
         vector<int>     fLevel;
@@ -356,7 +356,7 @@ class dbAbstractDisplay : public AbstractDisplay
                 fLevel.push_back(-10);
                 fBrush.push_back(QBrush(g));
             }
-            
+
             { // level until -6 dB
                 QColor c(160, 220, 20, alpha);
                 QLinearGradient g(0,0,x,1-x);
@@ -435,7 +435,7 @@ class dbAbstractDisplay : public AbstractDisplay
 class dbLED : public dbAbstractDisplay
 {
     protected:
-         
+
         /**
          * Draw the LED using a color depending of its value in dB
          */
@@ -445,15 +445,15 @@ class dbLED : public dbAbstractDisplay
             painter.drawRect(rect());
 
             if (fValue <= fLevel[0]) {
-            
+
                 // interpolate the first color on the alpha channel
                 QColor c(40, 160, 40) ;
                 float a = (fValue-fMin)/(fLevel[0]-fMin);
                 c.setAlphaF(a);
                 painter.fillRect(rect(), c);
-                
+
             } else {
-                    
+
                 // find the minimal level > value
                 int l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
                 painter.fillRect(rect(), fBrush[l]);
@@ -479,9 +479,9 @@ class dbLED : public dbAbstractDisplay
 class LED : public AbstractDisplay
 {
     QColor  fColor;
-    
+
     protected:
-         
+
         /**
          * Draw the LED using a transparency depending of its value
          */
@@ -518,7 +518,7 @@ class linBargraph : public AbstractDisplay
 {
     protected :
         QBrush  fBrush;
-        
+
         /**
          * No scale implemented yet
          */
@@ -526,7 +526,7 @@ class linBargraph : public AbstractDisplay
         {
             painter->drawRect(0,0,width(),height());
         }
-              
+
         /**
          * The length of the rectangle is proportional to the value
          */
@@ -535,7 +535,7 @@ class linBargraph : public AbstractDisplay
             int     w = width();
             int     h = height();
             float   v = (fValue-fMin)/(fMax-fMin);
-                
+
             if (h>w) {
                 // draw vertical rectangle
                 painter->fillRect(0,(1-v)*h,w, v*h, fBrush);
@@ -543,9 +543,9 @@ class linBargraph : public AbstractDisplay
                 // draw horizontal rectangle
                 painter->fillRect(0, 0, h, v*w, fBrush);
             }
-                
+
         }
-              
+
         virtual void paintEvent ( QPaintEvent *)
         {
             QPainter painter(this);
@@ -619,7 +619,7 @@ class linHorizontalBargraph : public linBargraph
 class dbBargraph : public dbAbstractDisplay
 {
     QBrush  fBackColor;
-    
+
     protected :
 
         // These two abstract methods are implemented
@@ -627,7 +627,7 @@ class dbBargraph : public dbAbstractDisplay
         // in dbVerticalBargraph and dbHorizontalBargraph
         virtual void paintMark(QPainter* painter, float v) const = 0;
         virtual int paintSegment (QPainter* painter, int pos, float v, const QBrush& b) const = 0;
-        
+
         /**
          * Draw the logarithmic scale
          */
@@ -640,8 +640,8 @@ class dbBargraph : public dbAbstractDisplay
             for (float v = -6; v < fMax; v += 3) paintMark(painter, v);
             painter->restore();
         }
-        
-        
+
+
         /**
          * Draw the content using colored segments
          */
@@ -661,7 +661,7 @@ class dbBargraph : public dbAbstractDisplay
 
             painter->drawRect(0,0,width(),height());
        }
-        
+
 
         virtual void paintEvent ( QPaintEvent *)
         {
@@ -674,7 +674,7 @@ class dbBargraph : public dbAbstractDisplay
 
         dbBargraph(float lo, float hi) : dbAbstractDisplay(lo,hi)
         {
-        
+
             QFont f = this->font();
             f.setPointSize(6);
             this->setFont(f);
@@ -717,7 +717,7 @@ class dbVerticalBargraph : public dbBargraph
                 painter->drawText(r, Qt::AlignRight|Qt::AlignVCenter, QString::number(v));
             }
         }
-        
+
         /**
          * Paint a color segment
          */
@@ -764,7 +764,7 @@ class dbHorizontalBargraph : public dbBargraph
 
             return w - w*(s1-sx)/(s1-s0);
         }
-    
+
         /**
          * Paint an horizontal graduation mark
          */
@@ -775,7 +775,7 @@ class dbHorizontalBargraph : public dbBargraph
             QRect r(x-n,0,2*n, height());
             painter->drawText(r, Qt::AlignHCenter|Qt::AlignVCenter, QString::number(v));
         }
-            
+
         /**
          * Paint a horizontal color segment
          */
@@ -940,22 +940,22 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 class uiButton : public QObject, public uiItem
 {
     Q_OBJECT
-			
+
  public :
 	QAbstractButton* 	fButton;
-	
-	uiButton (GUI* ui, float* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
-	
 
-	virtual void reflectZone() 	
-	{ 
+	uiButton (GUI* ui, float* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
+
+
+	virtual void reflectZone()
+	{
 		float v = *fZone;
-		fCache = v; 
+		fCache = v;
 		fButton->setDown( v > 0.0 );
 	}
-	
+
  public slots :
-	void pressed()		{ modifyZone(1.0); }	 
+	void pressed()		{ modifyZone(1.0); }
 	void released()		{ modifyZone(0.0); }
 };
 
@@ -963,21 +963,21 @@ class uiButton : public QObject, public uiItem
 class uiCheckButton : public QObject, public uiItem
 {
     Q_OBJECT
-			
+
  public :
 	QCheckBox* 	fCheckBox;
-	
+
 	uiCheckButton (GUI* ui, float* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
-	
-	virtual void reflectZone() 	
-	{ 
+
+	virtual void reflectZone()
+	{
 		float v = *fZone;
-		fCache = v; 
+		fCache = v;
 		fCheckBox->setCheckState( (v < 0.5) ? Qt::Unchecked : Qt::Checked );
 	}
-	
+
  public slots :
-	void setState(int v)		{ modifyZone(float(v>0)); }	 
+	void setState(int v)		{ modifyZone(float(v>0)); }
 };
 
 
@@ -987,13 +987,13 @@ class uiSlider : public QObject, public uiItem
 
 	int		faust2qt(float x) 	{ return int(0.5 + (x-fMin)/fStep); }
 	float	qt2faust (int v)	{ return fMin + v*fStep; }
-	int		optimalTick()		{ 
-				float x=fStep; 
-				while((fMax-fMin)/x > 50) x*=10; 
-				while((fMax-fMin)/x < 10) x/=2; 
-				return faust2qt(fMin+x); 
+	int		optimalTick()		{
+				float x=fStep;
+				while((fMax-fMin)/x > 50) x*=10;
+				while((fMax-fMin)/x < 10) x/=2;
+				return faust2qt(fMin+x);
 			}
-			
+
  public :
 	QSlider* 	fSlider;
 	float		fCur;
@@ -1001,25 +1001,25 @@ class uiSlider : public QObject, public uiItem
 	float		fMax;
 	float		fStep;
 
-	uiSlider (GUI* ui, float* zone, QSlider* slider, float cur, float lo, float hi, float step) 
-		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
+	uiSlider (GUI* ui, float* zone, QSlider* slider, float cur, float lo, float hi, float step)
+		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
 	{
 		fSlider->setMinimum(0);
-		fSlider->setMaximum(faust2qt(fMax)); 
+		fSlider->setMaximum(faust2qt(fMax));
 		fSlider->setValue(faust2qt(fCur));
 		fSlider->setTickInterval(optimalTick());
 		*fZone = fCur;
 	}
-	
-	virtual void reflectZone() 	
-	{ 
+
+	virtual void reflectZone()
+	{
 		float 	v = *fZone;
-		fCache = v; 
+		fCache = v;
 		fSlider->setValue(faust2qt(v));
 	}
-	
+
  public slots :
-	void setValue(int v)		{ modifyZone(qt2faust(v)); }	 
+	void setValue(int v)		{ modifyZone(qt2faust(v)); }
 };
 
 
@@ -1029,13 +1029,13 @@ class uiKnob : public QObject, public uiItem
 
 	int		faust2qt(float x) 	{ return int(0.5 + (x-fMin)/fStep); }
 	float	qt2faust (int v)	{ return fMin + v*fStep; }
-	int		optimalTick()		{ 
-				float x=fStep; 
-				while((fMax-fMin)/x > 50) x*=10; 
-				while((fMax-fMin)/x < 10) x/=2; 
-				return faust2qt(fMin+x); 
+	int		optimalTick()		{
+				float x=fStep;
+				while((fMax-fMin)/x > 50) x*=10;
+				while((fMax-fMin)/x < 10) x/=2;
+				return faust2qt(fMin+x);
 			}
-			
+
  public :
 	QAbstractSlider* 	fSlider;
 	float				fCur;
@@ -1043,25 +1043,25 @@ class uiKnob : public QObject, public uiItem
 	float				fMax;
 	float				fStep;
 
-	uiKnob (GUI* ui, float* zone, QAbstractSlider* slider, float cur, float lo, float hi, float step) 
-		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
+	uiKnob (GUI* ui, float* zone, QAbstractSlider* slider, float cur, float lo, float hi, float step)
+		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
 	{
 		fSlider->setMinimum(0);
-		fSlider->setMaximum(faust2qt(fMax)); 
+		fSlider->setMaximum(faust2qt(fMax));
 		fSlider->setValue(faust2qt(fCur));
 		//fSlider->setTickInterval(optimalTick());
 		*fZone = fCur;
 	}
-	
-	virtual void reflectZone() 	
-	{ 
+
+	virtual void reflectZone()
+	{
 		float 	v = *fZone;
-		fCache = v; 
+		fCache = v;
 		fSlider->setValue(faust2qt(v));
 	}
-	
+
  public slots :
-	void setValue(int v)		{ modifyZone(qt2faust(v)); }	 
+	void setValue(int v)		{ modifyZone(qt2faust(v)); }
 };
 
 
@@ -1070,23 +1070,23 @@ class uiBargraph : public QObject, public uiItem
     Q_OBJECT
 
     int     faust2qt(float x)   { return int(0.5 + (x-fMin)/(fMax-fMin)*fStep); }
-            
+
  public :
     QProgressBar*   fBar;
     float           fMin;
     float           fMax;
     int             fStep;
 
-    uiBargraph (GUI* ui, float* zone, QProgressBar* bar, float lo, float hi) 
-        : uiItem(ui, zone), fBar(bar), fMin(lo), fMax(hi), fStep(1024) 
+    uiBargraph (GUI* ui, float* zone, QProgressBar* bar, float lo, float hi)
+        : uiItem(ui, zone), fBar(bar), fMin(lo), fMax(hi), fStep(1024)
     {
         fBar->setRange(0, fStep);
         fBar->setValue(0);
         *fZone = 0;
     }
-    
-    virtual void reflectZone()  
-    { 
+
+    virtual void reflectZone()
+    {
         float   v = *fZone;
         fCache = v;
         int x = faust2qt(v);
@@ -1099,7 +1099,7 @@ class uiBargraph : public QObject, public uiItem
 class uiBargraph2 : public QObject, public uiItem
 {
     Q_OBJECT
-            
+
  public :
     AbstractDisplay*   fBar;
 
@@ -1110,9 +1110,9 @@ class uiBargraph2 : public QObject, public uiItem
         fBar->setValue(lo);
         *fZone = lo;
     }
-    
-    virtual void reflectZone()  
-    { 
+
+    virtual void reflectZone()
+    {
         float   v = *fZone;
         fCache = v;
         fBar->setValue(v);
@@ -1133,31 +1133,31 @@ class uiNumEntry : public QObject, public uiItem
 	float				fStep;
 	int					fDecimals;
 
-	uiNumEntry (GUI* ui, float* zone, QDoubleSpinBox* numEntry, float cur, float lo, float hi, float step) 
-		: uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step) 
+	uiNumEntry (GUI* ui, float* zone, QDoubleSpinBox* numEntry, float cur, float lo, float hi, float step)
+		: uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step)
 	{
 		fDecimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
 
 		fNumEntry->setMinimum(fMin);
-		fNumEntry->setMaximum(fMax); 
+		fNumEntry->setMaximum(fMax);
 		fNumEntry->setSingleStep(fStep);
 		fNumEntry->setDecimals(fDecimals);
 		fNumEntry->setValue(fCur);
 		*fZone = fCur;
 	}
-	
 
-	virtual void reflectZone() 	
-	{ 
+
+	virtual void reflectZone()
+	{
 		float 	v = *fZone;
-		fCache = v; 
+		fCache = v;
 		fNumEntry->setValue(v);
 	}
-	
+
  public slots :
-	void setValue(double v)		{ 
-		modifyZone(float(v)); 
-	}	 
+	void setValue(double v)		{
+		modifyZone(float(v));
+	}
 };
 
 
@@ -1189,9 +1189,9 @@ class QTGUI : public QObject, public GUI
 
 
     /**
-    * Format tooltip string by replacing some white spaces by 
+    * Format tooltip string by replacing some white spaces by
 	* return characters so that line width doesn't exceed n.
-	* Limitation : long words exceeding n are not cut 
+	* Limitation : long words exceeding n are not cut
     */
 	virtual string formatTooltip(int n, const string& tt)
 	{
@@ -1263,7 +1263,7 @@ class QTGUI : public QObject, public GUI
     */
 
     int checkLabelOptions(QWidget* widget, const string& fullLabel, string& simplifiedLabel)
-    {   
+    {
         map<string, string> metadata;
         extractMetadata(fullLabel, simplifiedLabel, metadata);
 
@@ -1304,7 +1304,7 @@ class QTGUI : public QObject, public GUI
         extractMetadata(fulllabel, label, metadata);
   		layout->setMargin(5);
 		QWidget* box;
-               
+
         if (isTabContext()) {
 			box = new QWidget();
             // set background color
@@ -1321,7 +1321,7 @@ class QTGUI : public QObject, public GUI
 			layout->setMargin(0);
 			box = new QWidget();
 		}
-               
+
         box->setLayout(layout);
         if (metadata.count("tooltip")) {
             box->setToolTip(metadata["tooltip"].c_str());
@@ -1330,7 +1330,7 @@ class QTGUI : public QObject, public GUI
         fGroupStack.push(box);
     }
 
-	void openTab(const char* label) 
+	void openTab(const char* label)
 	{
 		QTabWidget* group = new QTabWidget();
 		if (fStyle) group->setStyle(fStyle);
@@ -1338,19 +1338,19 @@ class QTGUI : public QObject, public GUI
 		fGroupStack.push(group);
 	}
 
-	
+
   public slots :
 	void update()		{
         //std::cout << '.' << std::endl;
 		updateAllZones();
-	}	 
+	}
 
   public:
 
 	QTGUI(int argc, char* argv[], QStyle* style = 0) : fAppl(argc, argv), fTimer(0), fStyle(style){
         //fGroupStack.push(new QMainWindow());
     }
-	
+
 	virtual ~QTGUI() {}
 
 	virtual void run()
@@ -1509,7 +1509,7 @@ class QTGUI : public QObject, public GUI
 	virtual void openHorizontalBox(const char* label) { openBox(label, new QHBoxLayout()); }
 
 	virtual void openVerticalBox(const char* label) 	{
-        openBox(label, new QVBoxLayout()); 
+        openBox(label, new QVBoxLayout());
     }
 
     virtual void openFrameBox(const char* ) 		{ }
@@ -1517,7 +1517,7 @@ class QTGUI : public QObject, public GUI
 
 	virtual void closeBox()
 	{
-		QWidget* group = fGroupStack.top(); 
+		QWidget* group = fGroupStack.top();
 		fGroupStack.pop();
 		if (fGroupStack.empty()) { group->show(); }
 	}
@@ -1529,12 +1529,12 @@ class QTGUI : public QObject, public GUI
 		QAbstractButton* 	w = new QPushButton(label);
 		uiButton* 			c = new uiButton(this, zone, w);
 
-		insert(label, w);	
+		insert(label, w);
 		QObject::connect(w, SIGNAL(pressed()), c, SLOT(pressed()));
 		QObject::connect(w, SIGNAL(released()), c, SLOT(released()));
         checkForTooltip(zone, w);
 	}
-    
+
     virtual void addToggleButton(const char* , float* )
     {}
 
@@ -1543,7 +1543,7 @@ class QTGUI : public QObject, public GUI
 		QCheckBox* 	w = new QCheckBox(label);
 		uiCheckButton* 	c = new uiCheckButton(this, zone, w);
 
-		insert(label, w);	
+		insert(label, w);
 		QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
         checkForTooltip(zone, w);
 	}
@@ -1677,16 +1677,16 @@ class QTGUI : public QObject, public GUI
 
     virtual void addNumDisplay(const char*, float*, int)
     {}
-    
+
 	virtual void addTextDisplay(const char*, float*, const char* [], float, float)
     {}
-    
+
     virtual void addHorizontalBargraph(const char* label , float* zone, float min, float max)
     {
         AbstractDisplay*  bargraph;
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
-        
+
         if (fLedSet.count(zone)) {
             if (db) {
                 bargraph = new dbLED(min, max);
@@ -1700,7 +1700,7 @@ class QTGUI : public QObject, public GUI
                 bargraph = new linHorizontalBargraph(min, max);
             }
         }
-        
+
         new uiBargraph2(this, zone, bargraph, min, max);
         insert(label, bargraph);
         closeBox();
@@ -1712,7 +1712,7 @@ class QTGUI : public QObject, public GUI
         AbstractDisplay*  bargraph;
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
-        
+
         if (fLedSet.count(zone)) {
             if (db) {
                 bargraph = new dbLED(min, max);

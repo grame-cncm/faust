@@ -7,12 +7,12 @@
 // modify it under the terms of the GNU General Public License as
 // published by the Free Software Foundation; either version 2 of the
 // License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -30,7 +30,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <iostream> 
+#include <iostream>
 #include <oct.h>
 
 
@@ -79,37 +79,37 @@ class UI
 {
 	bool	fStopped;
 public:
-		
+
 	UI() : fStopped(false) {}
 	virtual ~UI() {}
-	
+
 	// -- active widgets
-	
+
 	virtual void addButton(const char* label, float* zone) = 0;
 	virtual void addToggleButton(const char* label, float* zone) = 0;
 	virtual void addCheckButton(const char* label, float* zone) = 0;
 	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	
+
 	// -- passive widgets
-	
+
 	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
 	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-	
+
 	// -- frames and labels
-	
+
 	virtual void openFrameBox(const char* label) = 0;
 	virtual void openTabBox(const char* label) = 0;
 	virtual void openHorizontalBox(const char* label) = 0;
 	virtual void openVerticalBox(const char* label) = 0;
 	virtual void closeBox() = 0;
-	
+
 	virtual void show() = 0;
 	virtual void run() = 0;
-	
+
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
@@ -132,7 +132,7 @@ class FNUI : public UI
 public:
 	FNUI() : UI() { numOptions=0; }
 	virtual ~FNUI() {}
-	
+
 
 	void addOption(const char* label, float* zone, float init, float min, float max)
 	{
@@ -147,24 +147,24 @@ public:
 	{
 		addOption(label,zone,0,0,1);
 	}
-	
+
 	virtual int getNumOptions() { return numOptions; }
 
 	virtual void addToggleButton(const char* label, float* zone)
 	{
 		addOption(label,zone,0,0,1);
 	}
-	
+
 	virtual void addCheckButton(const char* label, float* zone)
 	{
 		addOption(label,zone,0,0,1);
 	}
-		
+
 	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 	{
 		addOption(label,zone,init,min,max);
 	}
-		
+
 	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 	{
 		addOption(label,zone,init,min,max);
@@ -174,25 +174,25 @@ public:
 	{
 		addOption(label,zone,init,min,max);
 	}
-		
+
 	// -- passive widgets
-	
+
 	virtual void addNumDisplay(const char* label, float* zone, int precision) {}
 	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) {}
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) {}
-	
+
 
 	virtual void openFrameBox(const char* label)		{ }
 	virtual void openTabBox(const char* label)              { }
 	virtual void openHorizontalBox(const char* label)	{ }
 	virtual void openVerticalBox(const char* label)		{ }
-	
-	//	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
+
+	//virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
 	//virtual void openTabBox(const char* label)              { openAnyBox(label); }
 	//virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
 	//virtual void openVerticalBox(const char* label)		{ openAnyBox(label); }
-	
+
 	//virtual void closeBox() { fPrefix.pop(); }
 	virtual void closeBox() { }
 	virtual void run() 	{}
@@ -215,7 +215,7 @@ public:
 //----------------------------------------------------------------
 //  abstract definition of a signal processor
 //----------------------------------------------------------------
-			
+
 class dsp {
  protected:
 	int fSamplingFreq;
@@ -229,12 +229,12 @@ class dsp {
 	virtual void init(int samplingRate) 			= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
-		
+
 
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
-		
+
 
 <<includeclass>>
 
@@ -269,7 +269,7 @@ interpolate_ctrlin (float *vals, NDArray in, int n)
 
   for (int j=0; j<(nin-1); j++) {
 	  float del;
-	  int seglength = irat; 
+	  int seglength = irat;
 	  rest += frat;
 	  if (rest >= 1.0) {
 		  seglength ++;
@@ -289,7 +289,7 @@ interpolate_ctrlin (float *vals, NDArray in, int n)
 
 
 
-DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,    
+DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 	   "type " QUOTEME(FAUST_FUNC_NAME) "() to see the arguments.\n")
 {
   int nargin = args.length();
@@ -313,13 +313,13 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
   octave_value_list retval;
   octave_value tmp;
 
-  FNUI* interface = new FNUI(); 
+  FNUI* interface = new FNUI();
   DSP.buildUserInterface(interface);
 
   // check if global variable FAUST_BLOCKSIZE is set.
   tmp = get_global_value ("FAUST_BLOCKSIZE", true);
-  if (tmp.is_defined ()) 
-	  bsize = (int) tmp.scalar_value();  
+  if (tmp.is_defined ())
+	  bsize = (int) tmp.scalar_value();
   else {
 	  bsize = DEFAULT_BLOCKSIZE;
   }
@@ -343,19 +343,19 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
   if (nargin < numIn || nargin == 0) {
 	  if (numOut>1) {
 		  octave_stdout << "[out1";
-		  for (i=2; i<=numOut; i++) 
+		  for (i=2; i<=numOut; i++)
 			  octave_stdout << ",out" << i;
 		  octave_stdout << "] = " << QUOTEME(FAUST_FUNC_NAME) << "(";
 	  } else {
 		  octave_stdout << "out = " << QUOTEME(FAUST_FUNC_NAME) << "(";
 	  }
-	  if (numIn == 0) 
+	  if (numIn == 0)
 		  octave_stdout << "numsamps";
 	  else
 		  octave_stdout << "in1";
-	  for (i=2; i<=numIn; i++) 
+	  for (i=2; i<=numIn; i++)
 		  octave_stdout << ", in" << i;
-	  for (i=0; i<numOpts; i++) 
+	  for (i=0; i<numOpts; i++)
 		  octave_stdout << ", " << opts[i].fName;
 	  octave_stdout << ")\n";
 	  delete interface;
@@ -375,10 +375,10 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 		  octave_idx_type nr = args(i).matrix_value().rows();
 		  octave_idx_type nc = args(i).matrix_value().columns();
 		  if (nr == 1) {
-			  if (nc > maxInputLength) 
+			  if (nc > maxInputLength)
 				  maxInputLength = nc;
 		  } else if (nc == 1) {
-			  if (nr > maxInputLength) 
+			  if (nr > maxInputLength)
 				  maxInputLength = nr;
 		  } else {
 			  maxInputLength = nc;
@@ -390,10 +390,10 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 
   ctrllength = (maxInputLength+bsize-1)/bsize;
 
-  // check for arguments that should serve as control inputs 
+  // check for arguments that should serve as control inputs
   for (i=ctrlargoff; i<nargin; i++) {
 	  if ((i-ctrlargoff) < numOpts) {
-		  NDArray v = args(i).array_value(); 
+		  NDArray v = args(i).array_value();
 		  if (v.length() > 1) {
 			  allscalarctrls = 0;
 			  opts[i-ctrlargoff].fVals = (float*) ALLOC(sizeof(float)*ctrllength);
@@ -404,13 +404,13 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 		  }
 	  }
   }
-	  
+
   for (i=0; i<numOpts; i++) {
 	  octave_stdout << "Parameter " << opts[i].fName << ": " << *opts[i].fZone << "\n";
   }
 
   finputs = (float**) ALLOC(sizeof(float*) * numIn);
-  foutputs = (float**) ALLOC(sizeof(float*) * numOut);  
+  foutputs = (float**) ALLOC(sizeof(float*) * numOut);
 
   // Copy the matrix and convert to floats - This is a real slowdown!
   for (i=0; i<numIn; i++) {
@@ -421,11 +421,11 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 	  p = finputs[i];
 	  if (m.rows() > m.columns()) {
 		  for (int j=0; j<m.rows(); j++) {
-			  *p++ = (float) m(j,0); 
+			  *p++ = (float) m(j,0);
 		  }
 	  } else {
 		  for (int j=0; j<m.columns(); j++) {
-			  *p++ = (float) m(0,j); 
+			  *p++ = (float) m(0,j);
 		  }
 	  }
   }
@@ -445,7 +445,7 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 	  float **fouts;
 	  fins = (float**) ALLOC(sizeof(float*) * numIn);
 	  fouts = (float**) ALLOC(sizeof(float*) * numOut);
-	  memcpy(fins, finputs, sizeof(float*)*numIn);	  
+	  memcpy(fins, finputs, sizeof(float*)*numIn);
 	  memcpy(fouts, foutputs, sizeof(float*)*numOut);
 	  while (nleft > 0) {
 		  int n = min(bsize, nleft);
@@ -457,9 +457,9 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 		  DSP.compute(n, fins, fouts);
 		  nleft -= n;
 		  k++;
-		  for (i=0; i<numIn; i++) 
+		  for (i=0; i<numIn; i++)
 			  fins[i] += n;
-		  for (i=0; i<numOut; i++) 
+		  for (i=0; i<numOut; i++)
 			  fouts[i] += n;
 	  }
 	  FREE(fins);
@@ -469,7 +469,7 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
   // copy the output from the float arrays (and free all tmp memory if malloc is used)
   for (i=0; i<numOut; i++) {
 	  Matrix output = Matrix(1, maxInputLength);
-	  for (int j=0; j<maxInputLength; j++) 
+	  for (int j=0; j<maxInputLength; j++)
 		  output(0, j) = (double) foutputs[i][j];
 	  FREE(foutputs[i]);
 	  retval(i) = output;
@@ -487,4 +487,4 @@ DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 
   delete interface;
   return retval;
-} 
+}

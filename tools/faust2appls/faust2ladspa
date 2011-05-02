@@ -1,0 +1,94 @@
+#!/bin/bash
+
+OSCDEFS=""
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to ladspa plugins           #
+#               (c) Grame, 2011                                     #
+#                                                                   #
+#####################################################################
+
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+
+CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' 
+
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ $p = "-osc" ]; then
+    	#option ignored for plugins
+		OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+
+
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    SPEC="-fPIC -bundle"
+else
+	SPEC="-fPIC -shared"
+fi
+
+
+
+
+	
+#-------------------------------------------------------------------
+# compile the *.dsp files as ladspa plugins
+#
+for f in $FILES; do
+
+	dst="${f%.dsp}.so"
+	module=`basename $f .dsp`
+	
+	# compile faust to c++
+	faust -a ladspa.cpp $OPTIONS "$f" -o "$f.cpp"
+
+	# compile c++ to binary
+	(
+		${CXX=g++} $CXXFLAGS $SPEC -Dmydsp=$module "$f.cpp" -o $dst
+	) #> /dev/null
+	#rm "$f.cpp"
+
+	# collect binary file name for FaustGIDE
+	BINARIES="$BINARIES$dst;"
+done
+
+
+echo $BINARIES
+
+
