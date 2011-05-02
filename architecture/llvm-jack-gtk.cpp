@@ -26,7 +26,6 @@
 #include <libgen.h>
 #include <jack/jack.h>
 
-
 using namespace std;
 
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
@@ -44,7 +43,6 @@ using namespace std;
 
 //#define BENCHMARKMODE
 
-
 #ifdef __APPLE__
 #include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
 #endif
@@ -53,7 +51,6 @@ using namespace std;
 typedef long long unsigned int UInt64;
 typedef unsigned int UInt32;
 #endif
-
 
 #ifdef __cplusplus
 extern "C"

@@ -17,10 +17,9 @@
 
 using namespace std;
 
-struct Meta : map<const char*, const char*>
-{
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
-};
+#include "gui/GUI.h"
+#include "audio/dsp.h"
+#include "misc.h"
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
@@ -80,9 +79,6 @@ template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 *******************************************************************************
 *******************************************************************************/
 
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
 <<includeIntrinsic>>
 
 /******************************************************************************
@@ -93,52 +89,10 @@ template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 *******************************************************************************
 *******************************************************************************/
 
-class UI
-{
-	bool	fStopped;
-public:
-
-	UI() : fStopped(false) {}
-	virtual ~UI() {}
-
-	// -- active widgets
-
-	virtual void addButton(const char* label, float* zone) = 0;
-	virtual void addToggleButton(const char* label, float* zone) = 0;
-	virtual void addCheckButton(const char* label, float* zone) = 0;
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-
-	// -- passive widgets
-
-	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-
-	// -- frames and labels
-
-	virtual void openFrameBox(const char* label) = 0;
-	virtual void openTabBox(const char* label) = 0;
-	virtual void openHorizontalBox(const char* label) = 0;
-	virtual void openVerticalBox(const char* label) = 0;
-	virtual void closeBox() = 0;
-
-	virtual void show() = 0;
-	virtual void run() = 0;
-
-	void stop()		{ fStopped = true; }
-	bool stopped() 	{ return fStopped; }
-
-    virtual void declare(float* zone, const char* key, const char* value) {}
-};
-
 struct param {
 	float* fZone; float fMin; float fMax;
 	param(float* z, float init, float a, float b) : fZone(z), fMin(a), fMax(b) { *z = init; }
 };
-
 
 class CMDUI : public UI
 {
@@ -272,7 +226,7 @@ public:
 	// -- passive widgets
 
 	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) 	{}
+	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) 	{}
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
 
@@ -328,26 +282,6 @@ public:
 
 };
 
-//----------------------------------------------------------------
-//  signal processor definition
-//----------------------------------------------------------------
-
-class dsp {
- protected:
-	int fSamplingFreq;
- public:
-	dsp() {}
-	virtual ~dsp() {}
-
-	virtual int getNumInputs() 										= 0;
-	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
- 	virtual void conclude() 										{}
-};
-
-
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
@@ -389,7 +323,6 @@ class channels
 	}
 
 	float**	buffers()		{ return fBuffers; }
-
 
 };
 
