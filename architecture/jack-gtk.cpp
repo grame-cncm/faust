@@ -66,7 +66,7 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp	DSP;
+mydsp*	DSP;
 
 list<GUI*>                   GUI::fGuiList;
 
@@ -82,18 +82,23 @@ int main(int argc, char *argv[])
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
+	DSP = new mydsp();
+	if (DSP==0) {
+		cerr << "Unable to allocate Faust DSP object" << endl;
+		exit(1);
+	}
 	GUI* interface 	= new GTKUI (appname, &argc, &argv);
 	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(interface);
-	DSP.buildUserInterface(finterface);
+	DSP->buildUserInterface(interface);
+	DSP->buildUserInterface(finterface);
 
 #ifdef OSCCTRL
 	GUI*	oscinterface = new OSCUI(appname, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+	DSP->buildUserInterface(oscinterface);
 #endif
 
 	jackaudio audio;
-	audio.init(appname, &DSP);
+	audio.init(appname, DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
@@ -104,6 +109,7 @@ int main(int argc, char *argv[])
 	
 	audio.stop();
 	finterface->saveState(rcfilename);
+	delete DSP;
   	return 0;
 }
 
