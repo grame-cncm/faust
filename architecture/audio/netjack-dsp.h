@@ -41,16 +41,18 @@
 #include "dsp.h"
 #include <jack/net.h>
 
-typedef void (*shutdown) (void *);
-
 class netjackaudio : public audio {
 
 
         dsp* fDsp;
         jack_net_slave_t* fNet;
-        shutdown fRestart;
         int fCelt;
 
+        static void net_shutdown(void *)
+        {
+            printf("network failure...\n");
+            exit(1);
+        }
 
         static int net_process(jack_nframes_t buffer_size,
                         int,
@@ -71,11 +73,8 @@ class netjackaudio : public audio {
 
     public:
 
-        netjackaudio(int celt, shutdown restart)
-        {
-            fCelt = celt;
-            fRestart = restart;
-        }
+        netjackaudio(int celt):fCelt(celt)
+        {}
 
         bool init(const char* name, dsp* DSP)
         {
@@ -96,7 +95,7 @@ class netjackaudio : public audio {
             }
 
             jack_set_net_slave_process_callback(fNet, net_process, this);
-            jack_set_net_slave_shutdown_callback(fNet, fRestart, 0);
+            jack_set_net_slave_shutdown_callback(fNet, net_shutdown, 0);
 
             fDsp->init(result.sample_rate);
             return true;
