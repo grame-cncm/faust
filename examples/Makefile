@@ -90,6 +90,10 @@ jackqtsch :
 	install -d jackqtschdir
 	$(MAKE) DEST='jackqtschdir/' ARCH='jack-qt.cpp' VEC='-sch -vs $(VSIZE)' LIB='-ljack' -f Makefile.qtcompile
 
+netjackqt :
+	install -d netjackqtdir
+	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
+
 paqt :
 	install -d paqtdir
 	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio $(OSCLIB)'  DEFS=$(QTDEFS) -f Makefile.qtcompile

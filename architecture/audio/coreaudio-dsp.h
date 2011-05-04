@@ -1115,6 +1115,7 @@ long TCoreAudioRenderer::Stop()
 *******************************************************************************
 *******************************************************************************/
 class coreaudio : public audio {
+
     TCoreAudioRenderer audio_device;
 	long			fSampleRate, fFramesPerBuf;
 
