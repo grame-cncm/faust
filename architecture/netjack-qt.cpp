@@ -66,9 +66,25 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp	DSP;
+mydsp DSP;
 
-list<GUI*>               GUI::fGuiList;
+netjackaudio* netjack;
+
+list<GUI*> GUI::fGuiList;
+
+static void net_restart(void *)
+{
+    netjack->stop();
+    if (!netjack->start()) {
+        printf("restart failed...");
+        exit(1);
+    }
+}
+
+static void net_shutdown(void *)
+{
+    exit(1);
+}
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -80,7 +96,7 @@ int main(int argc, char *argv[])
 	char* 	home = getenv("HOME");
 
     int	celt = lopt(argv, "--celt", -1);
-    bool	retry = lopt(argv, "--retry", false);
+    bool restart = lopt(argv, "--restart", false);
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
@@ -95,17 +111,21 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(oscinterface);
 #endif
 
-	netjackaudio audio(celt, retry);
-	audio.init(appname, &DSP);
+	netjack = new netjackaudio(celt, (restart) ? net_restart : net_shutdown);
+	if (!netjack->init(appname, &DSP)) {
+        return 0;
+    }
 	finterface->recallState(rcfilename);
-	audio.start();
+	if (!netjack->start()) {
+        return 0;
+    }
 
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
 	interface->run();
 
-	audio.stop();
+	netjack->stop();
 	finterface->saveState(rcfilename);
   	return 0;
 }
