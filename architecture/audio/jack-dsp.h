@@ -43,7 +43,7 @@ class jackaudio : public audio {
 			return false;
 		}
 	#ifdef _OPENMP
-		jack_set_process_thread(fClient, _jackthread, client);
+		jack_set_process_thread(fClient, _jackthread, this);
 	#else
 		jack_set_process_callback(fClient, _process, this);
 	#endif
@@ -145,7 +145,7 @@ static int _process(jack_nframes_t nframes, void *client)
 #ifdef _OPENMP
 static void* _jackthread(void* arg)
 {
-	jackaudio* jackclient = (jackaudio*)client;
+	jackaudio* jackclient = (jackaudio*)arg;
 	jackclient->process_thread();
 	return 0;
 }

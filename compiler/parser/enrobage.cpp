@@ -132,6 +132,7 @@ ifstream* open_arch_stream(const char* filename)
 			if (f->is_open()) return f; else delete f;
 		}
     }
+	err = chdir(old);
 	if ( (chdir(gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
 		//cout << "enrobage.cpp : 'architecture' directory found in gFaustDirectory" << endl;
         ifstream* f = new ifstream();
@@ -304,12 +305,12 @@ FILE* fopensearch(const char* filename, string& fullpath)
     	buildFullPathname(fullpath, filename); 
     	return f;
     }
+    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
+    	return f;
+    }
     char *envpath = getenv("FAUST_LIB_PATH");
     if ((f = fopenat(fullpath, envpath, filename))) {
 		return f;
-    }
-    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
-    	return f;
     }
     if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
     	return f;
@@ -331,12 +332,12 @@ FILE* fopensearch(const char* filename, string& fullpath)
     	buildFullPathname(fullpath, filename); 
     	return f;
     }
+    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
+    	return f;
+    }
     char *envpath = getenv("FAUST_LIB_PATH");
     if ((f = fopenat(fullpath, envpath, filename))) {
 		return f;
-    }
-    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
-    	return f;
     }
     if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
     	return f;
