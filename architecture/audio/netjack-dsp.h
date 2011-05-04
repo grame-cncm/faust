@@ -46,6 +46,7 @@ class netjackaudio : public audio {
 
         dsp* fDsp;
         jack_net_slave_t* fNet;
+        int fCelt;
 
         static void net_shutdown(void *)
         {
@@ -71,10 +72,22 @@ class netjackaudio : public audio {
 
     public:
 
+        netjackaudio(int celt, bool retry)
+        {
+            fCelt = celt;
+        }
+
         bool init(const char* name, dsp* DSP)
         {
             fDsp = DSP;
-            jack_slave_t request = { DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0, DEFAULT_MTU, -1, JackFloatEncoder, 0, JackSlowMode };
+            jack_slave_t request = {
+                DSP->getNumInputs(),
+                DSP->getNumOutputs(),
+                0, 0,
+                DEFAULT_MTU, -1, (fCelt > 0) ? JackCeltEncoder: JackFloatEncoder,
+                (fCelt > 0) ? fCelt : 0,
+                JackSlowMode
+            };
             jack_master_t result;
 
             if ((fNet = jack_net_slave_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, name, &request, &result)) == 0) {

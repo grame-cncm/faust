@@ -79,6 +79,9 @@ int main(int argc, char *argv[])
 	char	rcfilename[256];
 	char* 	home = getenv("HOME");
 
+    int	celt = lopt(argv, "--celt", -1);
+    bool	retry = lopt(argv, "--retry", false);
+
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
@@ -92,7 +95,7 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(oscinterface);
 #endif
 
-	netjackaudio audio;
+	netjackaudio audio(celt, retry);
 	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);
 	audio.start();

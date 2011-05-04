@@ -38,5 +38,12 @@ struct MY_Meta : Meta, std::map<const char*, const char*>
 inline int		lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
 inline int 		int2pow2 (int x)		{ int r=0; while ((1<<r)<x) r++; return r; }
 
+long lopt(char *argv[], const char *name, long def)
+{
+	int	i;
+	for (i=0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
+	return def;
+}
+
 #endif
 
