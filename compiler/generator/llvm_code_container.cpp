@@ -112,8 +112,7 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
 
     llvm_fill_args.push_back(PointerType::get(buffer_type, 0));
     FunctionType* llvm_fill_type = FunctionType::get(fBuilder->getVoidTy(), llvm_fill_args, false);
-
-    Function* llvm_fill = Function::Create(llvm_fill_type, GlobalValue::ExternalLinkage, "fill" + fPrefix, fModule);
+    Function* llvm_fill = Function::Create(llvm_fill_type, GlobalValue::InternalLinkage, "fill" + fPrefix, fModule);
     llvm_fill->setCallingConv(CallingConv::C);
     llvm_fill->setAlignment(2);
 
@@ -206,26 +205,26 @@ void LLVMCodeContainer::generateComputeEnd()
     verifyFunction(*llvm_compute);
 }
 
-void LLVMCodeContainer::generateGetNumInputs()
+void LLVMCodeContainer::generateGetNumInputs(bool internal)
 {
     vector<const llvm::Type*> llvm_getNumInputs_args;
     llvm_getNumInputs_args.push_back(fDSP_ptr);
     FunctionType* llvm_getNumInputs_type = FunctionType::get(fBuilder->getInt32Ty(), llvm_getNumInputs_args, false);
 
-    Function* input_fun = Function::Create(llvm_getNumInputs_type, Function::ExternalLinkage, "getNumInputs" + fPrefix, fModule);
+    Function* input_fun = Function::Create(llvm_getNumInputs_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "getNumInputs" + fPrefix, fModule);
     input_fun->setCallingConv(CallingConv::C);
     BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", input_fun);
     ReturnInst::Create(getGlobalContext(), genInt32(fNumInputs), block);
     verifyFunction(*input_fun);
 }
 
-void LLVMCodeContainer::generateGetNumOutputs()
+void LLVMCodeContainer::generateGetNumOutputs(bool internal)
 {
     vector<const llvm::Type*> llvm_getNumOutputs_args;
     llvm_getNumOutputs_args.push_back(fDSP_ptr);
     FunctionType* llvm_getNumOuputs_type = FunctionType::get(fBuilder->getInt32Ty(), llvm_getNumOutputs_args, false);
 
-    Function* output_fun = Function::Create(llvm_getNumOuputs_type, Function::ExternalLinkage, "getNumOutputs" + fPrefix, fModule);
+    Function* output_fun = Function::Create(llvm_getNumOuputs_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "getNumOutputs" + fPrefix, fModule);
     output_fun->setCallingConv(CallingConv::C);
     BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", output_fun);
     ReturnInst::Create(getGlobalContext(), genInt32(fNumOutputs), block);
@@ -265,14 +264,14 @@ void LLVMCodeContainer::generateClassInitEnd()
     verifyFunction(*llvm_classInit);
 }
 
-void LLVMCodeContainer::generateInstanceInitBegin(int sample_freq_field)
+void LLVMCodeContainer::generateInstanceInitBegin(int sample_freq_field, bool internal)
 {
     vector<const llvm::Type*> llvm_instanceInit_args;
     llvm_instanceInit_args.push_back(fDSP_ptr);
     llvm_instanceInit_args.push_back(fBuilder->getInt32Ty());
     FunctionType* llvm_instanceInit_type = FunctionType::get(fBuilder->getVoidTy(), llvm_instanceInit_args, false);
 
-    Function* llvm_instanceInit = Function::Create(llvm_instanceInit_type, Function::ExternalLinkage, "instanceInit" + fPrefix, fModule);
+    Function* llvm_instanceInit = Function::Create(llvm_instanceInit_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "instanceInit" + fPrefix, fModule);
     llvm_instanceInit->setCallingConv(CallingConv::C);
     llvm_instanceInit->setAlignment(2);
 
@@ -415,13 +414,13 @@ void LLVMCodeContainer::produceInternal()
     generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
-    fDSP_ptr = fTypeBuilder.getDSPType(false);
+    fDSP_ptr = fTypeBuilder.getDSPType(true, false);
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     fStruct_UI_ptr = fTypeBuilder.getUIType();
     LlvmValue fUIInterface_ptr = fTypeBuilder.getUIPtr();
 
-    generateGetNumInputs();
-    generateGetNumOutputs();
+    generateGetNumInputs(true);
+    generateGetNumOutputs(true);
 
     // TODO : Input and output rates
 
@@ -437,7 +436,7 @@ void LLVMCodeContainer::produceInternal()
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);
 
-    generateInstanceInitBegin(fields_names["fSamplingFreq"]);
+    generateInstanceInitBegin(fields_names["fSamplingFreq"], true);
     generateInit(fCodeProducer);
     generateInstanceInitEnd();
 
@@ -471,7 +470,7 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
-    fDSP_ptr = fTypeBuilder.getDSPType();
+    fDSP_ptr = fTypeBuilder.getDSPType(false);
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     fStruct_UI_ptr = fTypeBuilder.getUIType();
     LlvmValue fUIInterface_ptr = fTypeBuilder.getUIPtr();

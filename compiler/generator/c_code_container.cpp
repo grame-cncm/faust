@@ -100,28 +100,28 @@ void CCodeContainer::produceInternal()
 
     // Memory methods
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << fPrefix << "* " << " new" << fPrefix << "() { "
+    tab(n, *fOut); *fOut << "static " << fPrefix << "* " << " new" << fPrefix << "() { "
                         << "return (" << fPrefix << fStructName  << "*)malloc(sizeof(" << fPrefix << fStructName << "))"
                         << "; }";
 
-    tab(n, *fOut); *fOut << "void " << "delete" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "static void " << "delete" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
                         << "free(dsp)"
                         << "; }";
 
     // Input method
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "int getNumInputs" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "static int getNumInputs" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
                         << "return " << fNumInputs
                         << "; }";
 
     // Output method
-    tab(n, *fOut); *fOut << "int getNumOutputs" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "static int getNumOutputs" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
                         << "return " << fNumOutputs
                         << "; }";
 
     // Init
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << "instanceInit" << fPrefix << "(" << fPrefix << fStructName << "* dsp, int samplingFreq) {";
+    tab(n, *fOut); *fOut << "static void " << "instanceInit" << fPrefix << "(" << fPrefix << fStructName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateInit(&fCodeProducer);
@@ -131,9 +131,9 @@ void CCodeContainer::produceInternal()
     tab(n, *fOut);
     string counter = "count";
     if (fSubContainerType == kInt) {
-        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, int* output) {", counter);
+        tab(n, *fOut); *fOut << "static void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, int* output) {", counter);
     } else {
-        tab(n, *fOut); *fOut << "void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, $1* output) {", counter, ifloat());
+        tab(n, *fOut); *fOut << "static void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, $1* output) {", counter, ifloat());
     }
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);

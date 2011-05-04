@@ -205,7 +205,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         llvm::PointerType* fStruct_UI_ptr;
         LlvmValue fUIInterface_ptr;
 
-        virtual void generateFreeDsp(llvm::PointerType* dsp_type_ptr)
+        virtual void generateFreeDsp(llvm::PointerType* dsp_type_ptr, bool internal)
         {
             // free
             PointerType* free_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
@@ -225,7 +225,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             vector<const llvm::Type*> llvm_free_dsp_args;
             llvm_free_dsp_args.push_back(dsp_type_ptr);
             FunctionType* llvm_free_dsp_type = FunctionType::get(fBuilder->getVoidTy(), llvm_free_dsp_args, false);
-            Function* func_llvm_free_dsp = Function::Create(llvm_free_dsp_type, GlobalValue::ExternalLinkage, "delete" + fPrefix, fModule);
+            Function* func_llvm_free_dsp = Function::Create(llvm_free_dsp_type, (internal)? Function::InternalLinkage : Function::ExternalLinkage, "delete" + fPrefix, fModule);
             func_llvm_free_dsp->setCallingConv(CallingConv::C);
 
             // llvm_free_dsp block
@@ -244,7 +244,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             verifyFunction(*func_llvm_free_dsp);
         }
 
-        void generateMemory(llvm::PointerType* dsp_type_ptr)
+        void generateMemory(llvm::PointerType* dsp_type_ptr, bool internal)
         {
             // malloc
             PointerType* malloc_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
@@ -263,7 +263,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // llvm_create_dsp
             vector<const llvm::Type*> llvm_create_dsp_args;
             FunctionType* llvm_create_dsp_type = FunctionType::get(dsp_type_ptr, llvm_create_dsp_args, false);
-            Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type, GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
+            Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type, (internal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
             func_llvm_create_dsp->setCallingConv(CallingConv::C);
 
             // llvm_create_dsp block
@@ -535,7 +535,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             }
         }
 
-        llvm::PointerType* getDSPType(bool generate_ui = true)
+        llvm::PointerType* getDSPType(bool internal, bool generate_ui = true)
         {
             llvm::StructType* dsp_type;
             llvm::PointerType* dsp_type_ptr;
@@ -548,10 +548,10 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // type->dump();
 
             // Create llvm_free_dsp function
-            generateFreeDsp(dsp_type_ptr);
+            generateFreeDsp(dsp_type_ptr, internal);
 
             // Creates DSP free/delete functions
-            generateMemory(dsp_type_ptr);
+            generateMemory(dsp_type_ptr, internal);
 
             // Creates struct.Meta and struct.UI and prepare llvm_buildUserInterface
             generateDataStruct(dsp_type_ptr, generate_ui);
@@ -582,7 +582,7 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
 
     protected:
 
-        void generateFreeDsp(llvm::PointerType* dsp_type_ptr)
+        void generateFreeDsp(llvm::PointerType* dsp_type_ptr, bool internal)
         {
             // free
             PointerType* free_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
@@ -619,7 +619,7 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
             vector<const llvm::Type*> llvm_free_dsp_args;
             llvm_free_dsp_args.push_back(dsp_type_ptr);
             FunctionType* llvm_free_dsp_type = FunctionType::get(fBuilder->getVoidTy(), llvm_free_dsp_args, false);
-            Function* func_llvm_free_dsp = Function::Create(llvm_free_dsp_type, GlobalValue::ExternalLinkage, "delete" + fPrefix, fModule);
+            Function* func_llvm_free_dsp = Function::Create(llvm_free_dsp_type, (internal)? Function::InternalLinkage : Function::ExternalLinkage, "delete" + fPrefix, fModule);
             func_llvm_free_dsp->setCallingConv(CallingConv::C);
 
             // llvm_free_dsp block
@@ -1144,7 +1144,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // Creates function
                 FunctionType* fun_type = FunctionType::get(return_type, fun_args_type, false);
-                function = Function::Create(fun_type, GlobalValue::ExternalLinkage, inst->fName, fModule);
+                function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
 
                 // Set name for function arguments
