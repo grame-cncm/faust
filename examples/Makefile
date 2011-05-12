@@ -119,6 +119,10 @@ jackqtsch :
 	install -d jackqtschdir
 	$(MAKE) DEST='jackqtschdir/' ARCH='jack-qt.cpp' VEC='-sch -vs $(VSIZE)' LIB='-ljack' -f Makefile.qtcompile
 
+netjackqt :
+	install -d netjackqtdir
+	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
+
 paqt :
 	install -d paqtdir
 	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio $(OSCLIB)'  DEFS=$(QTDEFS) -f Makefile.qtcompile
@@ -143,15 +147,15 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/ -fPIC' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/ -fPIC' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 dssi :
 	install -d dssidir
-	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-I$(LIB)/faust/ -fPIC -bundle' EXT='.so' -f Makefile.dssicompile
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-I$(LIB)/faust/ -fPIC -bundle' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
 
 ladspasch :
 	install -d ladspaschdir
-	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(LIB)/faust/ -fPIC' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(LIB)/faust/ -fPIC' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 csound :
 	install -d csounddir

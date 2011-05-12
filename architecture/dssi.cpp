@@ -194,7 +194,7 @@ class Voice;
 // Global data
 ////////////////////////////////////////////////////////////////////////////////
 // Maximum polyphony, must be at least 1 (TODO make this configurable at compile / runtime?)
-const int MAX_POLYPHONY = 8;
+const int MAX_POLYPHONY = 5;
 // Descriptor
 DSSI_Descriptor* g_dssi_descriptor;
 // Additional data for descriptor:
@@ -864,6 +864,8 @@ void Plugin::addSamples(int samples)
             }
         }
     }
+
+    AVOIDDENORMALS;
 
     // Add all voices together
     for (v = 0; v < m_voices.size(); v++)

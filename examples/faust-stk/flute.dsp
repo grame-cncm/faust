@@ -17,7 +17,7 @@ gate = button("h:Basic Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
 noiseGain = hslider("h:Physical and Nonlinearity/v:Physical Parameters/Noise Gain 
 [2][tooltip:Breath noise gain (value between 0 and 1)]",0.2,0,1,0.01)/100;
 pressure = hslider("h:Physical and Nonlinearity/v:Physical Parameters/Pressure 
-[2][tooltip:Breath pressure (value bewteen 0 and 1)]",0.99,0,1,0.01) : smooth(0.999);
+[2][tooltip:Breath pressure (value between 0 and 1)]",0.99,0,1,0.01) : smooth(0.999) + 10.0^(-15.0);
 
 typeModulation = nentry("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Modulation Type 
 [3][tooltip: 0=theta is modulated by the incoming signal; 1=theta is modulated by the averaged incoming signal;
@@ -95,7 +95,7 @@ vibratoEnvelope = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoR
 vibrato = osc(vibratoFreq)*vibratoEnvelope*0.1;
 
 //Noise + vibrato + pressure
-blow = 10.0^(-16) + pressureEnvelope <: (noiseGain*noise*_) + vibrato + (pressure*1.1*_);
+blow = pressureEnvelope <: (noiseGain*noise*_) + vibrato + (pressure*1.1*_);
 
 process = blow : ((+ : delay1) ~ (cubic : (+ : jetFilter : delay2 : NLFM) ~ 
 	(* (feedback2) : /(2)))*(feedback1)) : *(gain) : stereo : hgroup("Reverb[6]",component("freeverb.dsp"));

@@ -53,7 +53,6 @@ static void pa_error(int err)
 {
 	if (err != paNoError) {
 		printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
-		exit(1);
 	}
 }
 
@@ -65,41 +64,42 @@ static void pa_error(int err)
 *******************************************************************************
 *******************************************************************************/
 class portaudio : public audio {
-	dsp*			fDsp;
-    PaStream*		fAudioStream;
-	long fSampleRate, fBufferSize;
-	//----------------------------------------------------------------------------
-	// 	number of physical input and output channels of the PA device
-	//----------------------------------------------------------------------------
-	int		fDevNumInChans;
-	int		fDevNumOutChans;
 
-	//----------------------------------------------------------------------------
-	// tables of noninterleaved input and output channels for FAUST
-	//----------------------------------------------------------------------------
-	float* 	fInChannel[256];
-	float* 	fOutChannel[256];
+        dsp*			fDsp;
+        PaStream*		fAudioStream;
+        long fSampleRate, fBufferSize;
+        //----------------------------------------------------------------------------
+        // 	number of physical input and output channels of the PA device
+        //----------------------------------------------------------------------------
+        int		fDevNumInChans;
+        int		fDevNumOutChans;
 
-	//----------------------------------------------------------------------------
-	// allocated the noninterleaved input and output channels for FAUST
-	//----------------------------------------------------------------------------
-	void allocChannels (int size, int numInChan, int numOutChan)
-	{
-		assert (numInChan < 256);
-		assert (numOutChan < 256);
+        //----------------------------------------------------------------------------
+        // tables of noninterleaved input and output channels for FAUST
+        //----------------------------------------------------------------------------
+        float* 	fInChannel[256];
+        float* 	fOutChannel[256];
 
-		for (int i = 0; i < numInChan; i++) {
-			fInChannel[i] = (float*) calloc (size, sizeof(float));
-			for (int j = 0; j < size; j++)
-				fInChannel[i][j] = 0.0;
-		}
+        //----------------------------------------------------------------------------
+        // allocated the noninterleaved input and output channels for FAUST
+        //----------------------------------------------------------------------------
+        void allocChannels (int size, int numInChan, int numOutChan)
+        {
+            assert (numInChan < 256);
+            assert (numOutChan < 256);
 
-		for (int i = 0; i < numOutChan; i++) {
-			fOutChannel[i] = (float*) calloc (size, sizeof(float));
-			for (int j = 0; j < size; j++)
-				fOutChannel[i][j] = 0.0;
-		}
-	}
+            for (int i = 0; i < numInChan; i++) {
+                fInChannel[i] = (float*) calloc (size, sizeof(float));
+                for (int j = 0; j < size; j++)
+                    fInChannel[i][j] = 0.0;
+            }
+
+            for (int i = 0; i < numOutChan; i++) {
+                fOutChannel[i] = (float*) calloc (size, sizeof(float));
+                for (int j = 0; j < size; j++)
+                    fOutChannel[i][j] = 0.0;
+            }
+        }
 
 	public:
 			 portaudio(long srate, long bsize) : fDsp(0), fAudioStream(0),
@@ -134,7 +134,7 @@ class portaudio : public audio {
 			((fDevNumInChans > 0) ? &inputParameters : 0),
 			((fDevNumOutChans > 0) ? &outputParameters : 0), fSampleRate)) != 0) {
 			printf("stream format is not supported err = %d\n", err);
-			exit(1);
+			return false;
 		}
 
 		allocChannels(fBufferSize, max(fDevNumInChans, fDsp->getNumInputs()), max(fDevNumOutChans, fDsp->getNumOutputs()));

@@ -6,7 +6,7 @@ ifeq ($(OSC),1)
 endif
 
 MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
-MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' $(OSCCTRL)'
+MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
 
 VSIZE := 256
 
@@ -125,15 +125,15 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-fPIC -bundle' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 dssi :
 	install -d dssidir
-	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.dssicompile
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-fPIC -bundle' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
 
 ladspasch :
 	install -d ladspaschdir
-	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-fPIC -bundle' EXT='.so' -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-fPIC -bundle' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 csound :
 	install -d csounddir
