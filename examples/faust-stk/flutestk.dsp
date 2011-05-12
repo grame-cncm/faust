@@ -98,7 +98,7 @@ vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,g
 
 //Breath pressure is controlled by an Attack / Decay / Sustain / Release envelope
 envelopeBreath = pressure*adsr(pressure*envelopeAttack,envelopeDecay,80,envelopeRelease,gate);
-breathPressure = envelopeBreath + envelopeBreath*(noiseGain*noise + vibrato);
+breathPressure = envelopeBreath + envelopeBreath*(noiseGain*noise + vibrato) + 10.0^(-15.0);
 
 //delay lines
 jetDelay = fdelay(4096,jetDelayLength);
