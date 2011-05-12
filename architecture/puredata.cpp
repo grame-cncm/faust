@@ -32,6 +32,20 @@
 
 using namespace std;
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+  #warning *** puredata.cpp: NO SSE FLAG (denormals may slow things down) ***
+  #define AVOIDDENORMALS
+#endif
+
 struct Meta 
 {
     void declare (const char* key, const char* value) {}
@@ -478,6 +492,7 @@ static t_int *faust_perform(t_int *w)
   t_faust *x = (t_faust *)(w[1]);
   int n = (int)(w[2]);
   if (!x->dsp || !x->buf) return (w+3);
+  AVOIDDENORMALS;
   if (x->xfade > 0) {
     float d = 1.0f/x->n_xfade, f = (x->xfade--)*d;
     d = d/n;

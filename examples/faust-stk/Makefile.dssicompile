@@ -11,7 +11,7 @@ allmodules: $(modules)
 
 $(DEST)%.so: $(DEST)%.cpp
 ifeq ($(os), Darwin)
-	$(CXX) -I. -Wall -O2 -fPIC -DPIC -bundle $(CXXFLAGS) $< -o $@
+	$(CXX) -I. -Wall -O2 -fPIC -DPIC -bundle $< -o $@
 else
 	$(CXX) -I. -Wall -O2 -fPIC -DPIC -shared $(CXXFLAGS) $< -o $@
 endif

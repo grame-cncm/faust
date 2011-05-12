@@ -12,9 +12,9 @@ VSIZE := 256
 
 SC_SOURCE_DIR = ../../supercollider
 
-all :
+all puredata:
 	install -d puredatadir
-	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' INC='-I/opt/local/include' LIB='-L/opt/local/lib' F2PDFLAGS='-n 2 -s' -f Makefile.pdcompile
+	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' INC='-I/opt/local/include' LIB='-L/opt/local/lib' F2PDFLAGS='-n 2 -s' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
 
 pdpoly2 :
 	install -d puredatadir

@@ -52,7 +52,7 @@ svg:
 
 puredata :
 	install -d puredatadir
-	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='' -f Makefile.pdcompile
+	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
 
 alsagtk :
 	install -d alsagtkdir

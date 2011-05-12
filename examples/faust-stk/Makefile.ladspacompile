@@ -11,7 +11,7 @@ allmodules: $(modules)
 
 $(DEST)%.so: $(DEST)%.cpp
 ifeq ($(os), Darwin)
-	$(CXX) -I. -fPIC -bundle -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+	$(CXX) -I. -fPIC -bundle -O3 -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
 else
 	$(CXX) -I. -fPIC -shared -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
 endif

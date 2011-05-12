@@ -8,9 +8,11 @@ os 	:= $(shell uname)
 
 allmodules: $(modules)
 
+#FIXME: Should use $(LINUXCFLAGS) and $(DARWINCFLAGS) below:
+
 $(DEST)%.so: $(DEST)%.cpp
 ifeq ($(os), Darwin)
-	$(CXX) $(LIB) -bundle -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
+	$(CXX) $(LIB) -bundle -O3 -msse -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
 else
 	$(CXX) $(LIB) -shared -O3 $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
 endif
