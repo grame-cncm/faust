@@ -53,6 +53,7 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
 #include <llvm/Support/PluginLoader.h>
+#include <llvm/Support/system_error.h>
 #include <llvm/Linker.h>
 #include <llvm/Target/TargetSelect.h>
 
@@ -2075,10 +2076,19 @@ using namespace llvm;
 static Module* LoadModule(std::string Filename)
 {
     LLVMContext &Context = getGlobalContext();
+    /*
     std::string ErrorMessage;
     std::auto_ptr<MemoryBuffer> Buffer(
                    MemoryBuffer::getFileOrSTDIN(Filename, &ErrorMessage));
  	return (Buffer.get()) ? ParseBitcodeFile(Buffer.get(), Context, &ErrorMessage) : 0;
+    */
+    std::string ErrorMessage;
+    OwningPtr<MemoryBuffer> Buffer;
+    if (error_code ec = MemoryBuffer::getFileOrSTDIN(Filename, Buffer))
+        ErrorMessage = ec.message();
+    Module *Result = 0;
+    if (Buffer.get())
+        return ParseBitcodeFile(Buffer.get(), Context, &ErrorMessage);
 }
 
 class LLVMLoader : public dsp {

@@ -212,7 +212,7 @@ iphonenet :
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
 llvm-loader:
-	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -o llvm-jack-gtk-loader
+	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --libs all --libdir` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -o llvm-jack-gtk-loader
 
 #../architecture/scheduler.cpp 
 
