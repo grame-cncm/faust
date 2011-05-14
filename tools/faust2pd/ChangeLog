@@ -1,3 +1,10 @@
+2009-08-08  Albert Graef  <Dr.Graef@t-online.de>
+
+	+ Release 2.2
+
+	* faustxml.pure: Compatibility fixes for Pure 0.26+ (new nonfix
+	keyword).
+
 2009-03-25  Albert Graef  <Dr.Graef@t-online.de>
 
 	+ Release 2.1

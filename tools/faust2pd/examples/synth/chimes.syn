@@ -71,7 +71,7 @@ excitator(t)	= t : hgroup("1-excitator", adsr(0, xdecay, 0, 0) : *(noise));
 /* Bank of 5 resonators. */
 
 resonator(f,t,i,hrm,amp,decay,rq)
-		= (f,t) : hgroup("2-resonator-%i", g)
+		= (f,t,_) : hgroup("2-resonator-%i", g)
 with {
 	g(f,t)	= resonz(R,h)*(amp*b*env)
 	with {

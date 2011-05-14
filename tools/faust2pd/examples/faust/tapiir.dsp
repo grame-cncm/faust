@@ -28,10 +28,8 @@ gain  		= vslider("gain", 1,0,1,0.1);
 del 		= vslider("delay (sec)", 0, 0, 5, 0.01) * SR;
 
 
-// bus, mixer and matrix
+// mixer and matrix
 //-----------------------------------------------------------
-
-bus(n) 				= 	par(i,n,_);
 
 mixer(taps,lines) 	= 	par(i,taps,*(tap(i))),
 						par(i,lines,*(in(i)))

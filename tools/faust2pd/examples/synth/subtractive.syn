@@ -75,7 +75,7 @@ saw(x)	= x/PI-1;
 
 smooth(c) = *(1-c) : +~*(c);
 
-process	= tblosc(1<<16, saw, freq, 0) : ((env,freq) : filter) :
+process	= tblosc(1<<16, saw, freq, 0) : ((env,freq,_) : filter) :
 	  *(env * (gain/*:smooth(0.999)*/))
         : vgroup("3-master", *(vol) : panner(pan))
 with {

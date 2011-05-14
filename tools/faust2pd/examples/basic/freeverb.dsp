@@ -67,7 +67,7 @@ combfeed 		= roomsizeSlider;
 // Comb and Allpass filters
 //-------------------------
 
-allpass(dt,fb) = (_,_ <: (*(fb):+:@(dt)), -) ~ _ : (!,_);
+allpass(dt,fb) = (_,_ <: (*(fb),_:+:@(dt)), -) ~ _ : (!,_);
 
 comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 
