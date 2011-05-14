@@ -107,7 +107,7 @@ for p in $FILES; do
     	cp "$TMP/${f%.dsp}.pd" "$SRCDIR/${f%.dsp}.pd"
     	BINARIES="$BINARIES$SRCDIR/${f%.dsp}.pd;"
     fi
-    #rm -rf "$TDR"
+    rm -rf "$TDR"
 
 
 done
