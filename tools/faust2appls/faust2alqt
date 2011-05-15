@@ -24,7 +24,7 @@ OSCLIB=""
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+		CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2'
     fi
 done
 
