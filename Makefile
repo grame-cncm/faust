@@ -97,7 +97,7 @@ dist :
 # make a faust distribution by cloning the git repository
 clonedist :
 	git clone git://faudiostream.git.sourceforge.net/gitroot/faudiostream/faudiostream faust-$(version)
-	rm -f faust-$(version)/.git
+	rm -rf faust-$(version)/.git
 	rm -f faust-$(version).tar.gz
 	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
