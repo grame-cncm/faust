@@ -94,6 +94,14 @@ dist :
 	tar czfv faust-$(version).tar.gz faust-$(version)
 	rm -rf faust-$(version)
 
+# make a faust distribution by cloning the git repository
+clonedist :
+	git clone git://faudiostream.git.sourceforge.net/gitroot/faudiostream/faudiostream faust-$(version)
+	rm -rf faust-$(version)/.git
+	rm -f faust-$(version).tar.gz
+	tar czfv faust-$(version).tar.gz faust-$(version)
+	rm -rf faust-$(version)
+
 archive :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean
 	$(MAKE) -C examples clean

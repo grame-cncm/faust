@@ -43,8 +43,8 @@ pat3		= [[60,60,choose [63,67]] | i = 1..inf];
 
 /* The sequencer object. */
 
-nullary bang reset; // we respond to these
-nullary stop note pan wet; // we generate these
+nonfix bang reset; // we respond to these
+nonfix stop note pan wet; // we generate these
 
 sequencer = process
 

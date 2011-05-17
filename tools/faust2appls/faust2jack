@@ -10,6 +10,13 @@ OSCDEFS=""
 
 
 #-------------------------------------------------------------------
+# Default compilation flags for gcc and icc :
+#
+MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+
+
+#-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
@@ -18,12 +25,15 @@ OSCDEFS=""
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
+CXX=g++
+CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
-		CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2'
+		CXXFLAGS=$MYICCFLAGS
     fi
 done
+
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -61,7 +71,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3} $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 

@@ -7,6 +7,23 @@
 #                                                                   #
 #####################################################################
 
+createInfoPList() {
+	(
+	echo '<?xml version="1.0" encoding="UTF-8"?>'
+	echo '<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+	echo '<plist version="1.0">'
+	echo '<dict>'
+	echo '	<key>CFBundleExecutable</key>'
+	echo "	<string>$1</string>"
+	echo '	<key>CFBundleName</key>'
+	echo "	<string>$1</string>"
+	echo '	<key>CFBundlePackageType</key>'
+	echo '	<string>iLaX</string>'
+	echo '</dict>'
+	echo '</plist>'
+	) > "$2"
+}
+
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -58,6 +75,8 @@ fi
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
+PATH=$PATH:/usr/local/bin
+
 for p in $FILES; do
 
     #INC=-I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes
@@ -79,11 +98,11 @@ for p in $FILES; do
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	$CC -arch i386 -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.i386.o" 
-       	$CC -framework MaxAPI -framework Carbon -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.i386.o" -o "${f%.dsp}.i386~"  
-	$CC -arch ppc -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.ppc.o" 
-	$CC -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle "${f%.dsp}.ppc.o"  -o "${f%.dsp}.ppc~" 
-	sed s/FOO/"${f%.dsp}~"/ <../../Info.plist.template >"${f%.dsp}$EXT/Contents/Info.plist"
+	$CC -arch i386 -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/lib/faust -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.i386.o"
+	$CC -framework MaxAPI -framework Carbon -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.i386.o" -o "${f%.dsp}.i386~"
+	$CC -arch ppc -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/lib/faust -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.ppc.o"
+	$CC -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle "${f%.dsp}.ppc.o"  -o "${f%.dsp}.ppc~"
+	createInfoPList "${f%.dsp}~" "${f%.dsp}$EXT/Contents/Info.plist"
 	lipo -create "${f%.dsp}.i386~" "${f%.dsp}.ppc~"  -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
 
     ) > /dev/null

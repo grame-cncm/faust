@@ -14,13 +14,13 @@ import("music.lib");
 //		phases, and the envelop signal y itself.
 //-------------------------------------------------
 
-envelop(a,d,s,r,t) = adsr ~ (_,_) : !						// The 2 'state' signal are feedback
+envelop(a,d,s,r,t) = adsr ~ (_,_) : (!,_) // The 2 'state' signal are feedback
     with {
-		adsr (p2,y) = (t>0) & (p2|(y>=1)),					// p2 = decay-sustain phase
-					  y + p1*a - (p2&(y>s))*d*y - p3*r*y	// y  = envelop signal
+		adsr (p2,y) = (t>0) & (p2|(y>=1)), // p2 = decay-sustain phase
+		y + p1*a - (p2&(y>s))*d*y - p3*r*y	// y  = envelop signal
 		with {
-			p1 = (p2==0) & (t>0) & (y<1);					// p1 = attack phase
-			p3 = (t<=0) & (y>0);							// p3 = release phase
+			p1 = (p2==0) & (t>0) & (y<1); // p1 = attack phase
+			p3 = (t<=0) & (y>0); // p3 = release phase
 		};
     };
 

@@ -49,6 +49,20 @@
 #include "misc.h"
 #include "audio/dsp.h"
 
+// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
+// flags to avoid costly denormals
+#ifdef __SSE__
+    #include <xmmintrin.h>
+    #ifdef __SSE2__
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
+    #else
+        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
+    #endif
+#else
+    #warning *** ladspa.cpp: NO SSE FLAG (denormals may slow things down) ***
+    #define AVOIDDENORMALS
+#endif
+
 #define sym(name) xsym(name)
 #define xsym(name) #name
 
@@ -448,6 +462,7 @@ void run_method (LADSPA_Handle Instance, unsigned long SampleCount)
 {
 	PLUGIN* p = (PLUGIN*) Instance;
 	p->fPortData->updateCtrlZones();
+	AVOIDDENORMALS;
 	p->fDsp->compute(SampleCount, p->fPortData->getInputs(), p->fPortData->getOutputs());
 }
 

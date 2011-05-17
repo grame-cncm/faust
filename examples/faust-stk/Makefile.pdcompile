@@ -17,14 +17,13 @@ FREEVERB 		:= freeverb.dsp.xml
 ### include dir must contain m_pd.h
 ###
 LINUXCFLAGS 	:= -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC \
-    -Wall -W -Wshadow -Wno-unused -Wno-parentheses -Wno-switch $(CFLAGS)
+                   -Wall $(CXXFLAGS)
 LINUXINCLUDE 	:= -I/usr/include/pdextended
 
 ###--------------------------------------------
 ### compilation flags for Darwin
 ###
-DARWINCFLAGS 	:= -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC \
-      -Wall -W -Wshadow -Wno-unused -Wno-parentheses -Wno-switch $(CFLAGS)
+DARWINCFLAGS 	:= -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC -Wall -msse
 DYNLOAD_FLAGS	:= -bundle -undefined suppress -flat_namespace
 DARWININCLUDE 	:= -I/Applications/Pd-extended.app/Contents/Resources/include/
 

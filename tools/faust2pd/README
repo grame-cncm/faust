@@ -1,12 +1,13 @@
 
-========
-faust2pd
-========
+======================================
+faust2pd: Pd Patch Generator for Faust
+======================================
 
-:Author: Albert Graef <Dr.Graef@t-online.de>
-:Copyright: Copyright (c) 2009 by Albert Graef. Distributed under the GNU
-  Public License V3, see COPYING for details.
-:Date: 2009-03-25
+Version 2.4
+
+Albert Graef <Dr.Graef@t-online.de>
+
+Source: http://pure-lang.googlecode.com/files/faust2pd-2.4.tar.gz
 
 This package contains software which makes it easier to use Faust DSPs with Pd
 and the Pure programming language. The main component is the faust2pd script
@@ -14,26 +15,26 @@ which creates GUI wrappers for Faust DSPs. The package also includes a bunch
 of examples. The software is distributed under the GPL; see the COPYING file
 for details.
 
-**NOTE:** This faust2pd version is written in Pure and was ported from an
-earlier version written in Pure's predecessor Q. The version of the script
-provided here should be 100% backward-compatible to those previous versions,
-except for the following changes:
+.. note:: This faust2pd version is written in Pure and was ported from an
+   earlier version written in Pure's predecessor Q. The version of the script
+   provided here should be 100% backward-compatible to those previous
+   versions, except for the following changes:
 
-- The (rarely used) -f (a.k.a. --fake-buttons) option was renamed to -b.
+   - The (rarely used) -f (a.k.a. --fake-buttons) option was renamed to -b.
 
-- A new -f (a.k.a. --font-size) option was added to change the font size
-  of the GUI elements.
+   - A new -f (a.k.a. --font-size) option was added to change the font size
+     of the GUI elements.
 
-- Most command line options can now also be specified using special
-  ``[pd:...]`` tags in the Faust source.
+   - Most command line options can now also be specified using special
+     ``[pd:...]`` tags in the Faust source.
 
-Also note that you can now run the script on 64 bit systems (Q never worked
-there).
+   Also note that you can now run the script on 64 bit systems (Q never worked
+   there).
 
 As of version 2.1, the faust2pd script is now compiled to a native executable
 before installation. This makes the program start up much faster, which is a
 big advantage because most xml files don't take long to be processed. You'll
-need Pure 0.21 or later and llvm-gcc to make this work.
+need Pure 0.21 or later to make this work.
 
 For Windows users, there's an MSI package of Faust available at the Pure_
 website, which also includes faust2pd.
@@ -43,18 +44,36 @@ website, which also includes faust2pd.
 .. contents::
 .. sectnum::
 
+Copying
+=======
+
+Copyright (c) 2009-2010 by Albert Graef.
+
+faust2pd is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+faust2pd is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <http://www.gnu.org/licenses/>.
+
 Requirements
 ============
 
-faust2pd is known to work on Linux and Windows, and there shouldn't be any
-major roadblocks preventing it to work on other systems supported by Pure.
+faust2pd is known to work on Linux, Mac OS X, and Windows, and there shouldn't be any
+major roadblocks preventing it to work on other systems supported by Pure.  On the Mac,
+faust2pd has been tested with the MacPorts ports of pure and pure-xml installed.
 
 The faust2pd script is written in the Pure_ programming language and requires
 Pure's XML module, so you need to install these to make it work. Install the
 latest pure*.tar.gz and pure-xml*.tar.gz packages and you should be set. (Pure
-0.21 or later is required.) Also make sure that the llvm and llvm-gcc packages
-are installed, as described in the Pure INSTALL file, they are *both* needed
-to enable Pure's batch compiler.
+0.21 or later is required.) Also make sure that the LLVM base package is
+installed, as described in the Pure INSTALL file, some LLVM utilities are
+needed to make Pure's batch compiler work.
 
 To run the seqdemo example, you'll also need the Pd Pure external
 (pd-pure*.tar.gz), also available at the Pure_ website.
@@ -70,6 +89,9 @@ DSPs.
 Installation
 ============
 
+Get the latest source from
+http://pure-lang.googlecode.com/files/faust2pd-@version@.tar.gz.
+
 Run ``make`` and ``make install`` to compile and install the faust2pd program
 on your system. You can set the installation prefix by running make as ``make
 install prefix=/some/path``. Default installation prefix is /usr/local,
@@ -83,9 +105,12 @@ installation, if it guesses wrong, you can specify the prefix explicitly by
 running make as ``make install-pd pdprefix=/some/path``.
 
 The included faustxml.pure script provides access to Faust-generated dsp
-descriptions in xml files to Pure scripts. This may have uses beyond faust2pd,
-but isn't normally installed. If you want to use this module, you can just
-copy it to your Pure library directory.
+descriptions in xml files to Pure scripts. This module is described in its own
+appendix__ below. It may have uses beyond faust2pd, but isn't normally
+installed. If you want to use this module, you can just copy it to your Pure
+library directory.
+
+__ `Appendix: faustxml`_
 
 Quickstart
 ==========
@@ -103,7 +128,9 @@ Faust Pd plugins work in much the same way as the well-known plugin~ object
 (which interfaces to LADSPA plugins), except that each Faust DSP is compiled
 to its own Pd external. Under Linux, the basic compilation process is as
 follows (taking the freeverb module from the Faust distribution as an
-example)::
+example):
+
+.. code-block:: sh
 
   # compile the Faust source to a C++ module using the "puredata" architecture
   faust -a puredata.cpp freeverb.dsp -o freeverb.cpp
@@ -135,7 +162,9 @@ GUI elements to inspect and change the control values.
 
 The process to compile a plugin and build a wrapper patch is very similar to
 what we've seen above. You only have to add the -xml option when invoking the
-Faust compiler and run faust2pd on the resulting XML file::
+Faust compiler and run faust2pd on the resulting XML file:
+
+.. code-block:: sh
 
   # compile the Faust source and generate the xml file
   faust -a puredata.cpp -xml freeverb.dsp -o freeverb.cpp
@@ -371,7 +400,7 @@ work around these limitations.
   ``-X 'volume,meter*,faust/resonator?/*'`` will exclude all volume controls,
   all controls whose names start with ``meter``, and all controls in groups
   matching ``faust/resonator?``. (Note that the argument to -X has to be
-  quoted if it contains any wildchards such as ``*`` and ``?``, so that the
+  quoted if it contains any wildcards such as ``*`` and ``?``, so that the
   shell doesn't try to expand the patterns beforehand. Also note that only one
   -X option is recognized, so you have to specify all controls to be excluded
   as a single option.)
@@ -408,11 +437,10 @@ excellent combo which provides you with a powerful, programmable interactive
 environment for creating advanced computer music and multimedia applications
 with ease.
 
-Enjoy! :)
-
 Acknowledgements
 ----------------
 
 Thanks are due to Yann Orlarey for his wonderful Faust, which makes developing
-DSP algorithms so much more easy and fun.
+DSP algorithms so easy and fun.
 
+.. Appendix follows here.

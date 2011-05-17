@@ -84,6 +84,7 @@
         #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
     #endif
 #else
+    #warning *** dssi.cpp: NO SSE FLAG (denormals may slow things down) ***
     #define AVOIDDENORMALS
 #endif
 

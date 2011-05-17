@@ -15,14 +15,13 @@ F2PDFLAGS 		:= -r 10 -s
 ### compilation flags for Linux
 ###
 LINUXCFLAGS 	:= -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC \
-    -Wall -W -Wshadow -Wno-unused -Wno-parentheses -Wno-switch $(CFLAGS)
-LINUXINCLUDE 	:=
+                   -Wall $(CXXFLAGS)
+LINUXINCLUDE 	:= -I/usr/include/pdextended
 
 ###--------------------------------------------
 ### compilation flags for Darwin
 ###
-DARWINCFLAGS 	:= -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC \
-      -Wall -W -Wshadow -Wno-unused -Wno-parentheses -Wno-switch $(CFLAGS)
+DARWINCFLAGS 	:= -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC -Wall -msse
 DYNLOAD_FLAGS	:= -bundle -undefined suppress -flat_namespace
 DARWININCLUDE 	:= -I/Applications/Pd-extended.app/Contents/Resources/include/
 

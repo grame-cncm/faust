@@ -20,7 +20,7 @@
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+		CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2'
     fi
 done
 
@@ -50,12 +50,26 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    LIB="-I/usr/include/pd -bundle -undefined suppress -flat_namespace"
+    CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math"
+    LIB="-I/Applications/Pd-extended.app/Contents/Resources/include/ -bundle -undefined suppress -flat_namespace"    
     EXT="~.pd_darwin"
 else
+    CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -ffast-math"
     LIB="-I/usr/include/pd -fPIC -shared"
     EXT="~.pd_linux"
 fi
+
+
+#-------------------------------------------------------------------
+# Check for faust2pd
+#
+FAUST2PD=$(which faust2pd)
+if [ ! ${FAUST2PD:0:1} = "/" ]; then
+	FAUST2PD="notcommand"
+fi
+
+
+
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
@@ -64,11 +78,11 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
-    TDR=$(mktemp -d)
-	TMP=$TDR/${f%.dsp}
+    TDR=$(mktemp -d faust.XXX)
+    TMP=$TDR/${f%.dsp}
     mkdir "$TMP"
 
     # compile faust to c++ and xml
@@ -80,16 +94,21 @@ for p in $FILES; do
     (
         cd "$TMP"
         ${CXX=g++} $CXXFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
-        faust2pd -s $f.xml
+        if [ -x $FAUST2PD ]; then
+        	faust2pd -s $f.xml
+        fi
     ) > /dev/null
 
     ##rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
-    cp "$TMP/${f%.dsp}.pd" "$SRCDIR/${f%.dsp}.pd"
-	##rm -rf "$TDR"
-
     # collects all the files produced
-     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;$SRCDIR/${f%.dsp}.pd;"
+    BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+    if [ -x $FAUST2PD ]; then
+    	cp "$TMP/${f%.dsp}.pd" "$SRCDIR/${f%.dsp}.pd"
+    	BINARIES="$BINARIES$SRCDIR/${f%.dsp}.pd;"
+    fi
+    rm -rf "$TDR"
+
 
 done
 

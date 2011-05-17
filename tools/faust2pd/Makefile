@@ -1,7 +1,7 @@
 
 # Package name and version number:
 dist = faust2pd-$(version)
-version = 2.1
+version = 2.4
 
 # Default installation prefix:
 prefix = /usr/local
@@ -27,7 +27,7 @@ endif
 
 DESTDIR=
 
-DISTFILES = Makefile COPYING ChangeLog README faust2pd.html config.guess *.pure *.pd examples/README examples/*/Makefile examples/*/*.dsp examples/*/*.syn examples/*/*.pd examples/*/*.pure examples/*/*.xml
+DISTFILES = Makefile COPYING ChangeLog README config.guess *.pure *.pd examples/README examples/*/Makefile examples/*/*.dsp examples/*/*.syn examples/*/*.pd examples/*/*.pure examples/*/*.xml
 
 .PHONY: all examples clean distclean realclean install uninstall
 
@@ -41,11 +41,11 @@ clean:
 	for x in basic faust synth seqdemo; do make -C examples/$$x clean; done
 
 distclean:
-	rm -f faust2pd$(EXE) *.txt *.tex *.pdf
+	rm -f faust2pd$(EXE)
 	for x in basic faust synth seqdemo; do make -C examples/$$x distclean; done
 
 realclean:
-	rm -f faust2pd$(EXE) *.txt *.tex *.pdf
+	rm -f faust2pd$(EXE)
 	for x in basic faust synth seqdemo; do make -C examples/$$x realclean; done
 
 # as of pure-0.21, we can compile the script to an executable
@@ -94,29 +94,9 @@ distcheck: dist
 	cd $(dist) && make all examples && make install install-pd DESTDIR=./BUILD
 	rm -rf $(dist)
 
-# Generate the documentation. This needs docutils.
+# Generate the documentation.
 
 sources = faustxml.pure
-target = faust2pd
 
-.PHONY: html tex pdf
-
-html: $(target).html
-tex: $(target).tex
-pdf: $(target).pdf
-
-$(target).txt: README $(sources)
+faust2pd.txt: README $(sources)
 	pure-doc $(sources) | cat README - > $@
-
-%.html: %.txt
-	rst2html.py $< $@
-
-%.tex: %.txt
-	rst2latex.py $< $@
-
-# This also requires that you have TeX installed.
-
-%.pdf: %.tex
-	pdflatex $<
-	pdflatex $<
-	rm -f *.aux *.log *.out

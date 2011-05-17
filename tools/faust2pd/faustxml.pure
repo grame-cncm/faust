@@ -1,10 +1,26 @@
 
-/* faustxml.pure: Parse a Faust XML file. Copyright (c) 2009 Albert Graef. */
+/* faustxml.pure: Parse a Faust XML file. */
+
+/* Copyright (c) 2009 by Albert Graef.
+
+   This is free software; you can redistribute it and/or modify it under the
+   terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 3, or (at your option) any later version.
+
+   This software is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+   more details.
+
+   You should have received a copy of the GNU General Public License along
+   with this program. If not, see <http://www.gnu.org/licenses/>. */
 
 using dict, system, xml;
 namespace faustxml;
 
-/* ..
+/* .. default-domain:: pure
+   .. module:: faustxml
+   .. namespace:: faustxml
 
    Appendix: faustxml
    ==================
@@ -14,7 +30,7 @@ namespace faustxml;
    is ready to be processed by Pure programs. It may also be useful in other
    Pure applications which need to inspect description of Faust DSPs.
 
-   The main entry point is the info_ function which takes the name of a
+   The main entry point is the :func:`info` function which takes the name of a
    Faust-generated XML file as argument and returns a tuple ``(name, descr,
    version, in, out, controls)`` with the name, description, version, number
    of inputs and outputs and the toplevel group with the descriptions of the
@@ -39,20 +55,30 @@ namespace faustxml;
    The following constructors are used to represent the UI controls of Faust
    DSPs:
 
-   - ``button|checkbox label``: A button or checkbox with the given
-     label.
+   .. constructor:: button label
+      		    checkbox label
 
-   - ``nentry|vslider|hslider (label,init,min,max,step)``: A
-     numeric input control with the given label, initial value, range and
-     stepwidth.
+      A button or checkbox with the given label.
 
-   - ``vbargraph|hbargraph (label,min,max)``: A numeric output control
-     with the given label and range.
+   .. constructor:: nentry (label,init,min,max,step)
+      		    vslider (label,init,min,max,step)
+		    hslider (label,init,min,max,step)
 
-   - ``vgroup|hgroup|tgroup (label,controls)``: A group with the
-     given label and list of controls in the group. */
+      A numeric input control with the given label, initial value, range and
+      stepwidth.
 
-nullary button checkbox nentry vslider hslider vbargraph hbargraph
+   .. constructor:: vbargraph (label,min,max)
+      		    hbargraph (label,min,max)
+
+      A numeric output control with the given label and range.
+
+   .. constructor:: vgroup (label,controls)
+      		    hgroup (label,controls)
+		    tgroup (label,controls)
+
+      A group with the given label and list of controls in the group. */
+
+nonfix button checkbox nentry vslider hslider vbargraph hbargraph
   vgroup hgroup tgroup;
 
 public controlp;
@@ -62,10 +88,9 @@ public controlp;
    Operations
    ----------
 
-   .. _controlp:
+   .. function:: controlp x
 
-   ``controlp x``
-     Check for control description values. */
+      Check for control description values. */
 
 controlp x
 = case x of
@@ -74,12 +99,11 @@ controlp x
     _ = false;
   end;
 
-/* .. _control_type:
-   .. _control_label:
-   .. _control_args:
+/* .. function:: control_type x
+      		 control_label x
+		 control_args x
 
-   ``control_type x``, ``control_label x``, ``control_args x``
-     Access functions for the various components of a control description. */
+      Access functions for the various components of a control description. */
 
 public control_type control_label control_args;
 
@@ -91,38 +115,37 @@ control_label x@(_ (label,_)) = label if controlp x;
 control_args x@(_ _::string) = () if controlp x;
 control_args x@(_ (_,args)) = args if controlp x;
 
-/* .. _controls:
-
-   ``controls x``
-     This function returns a flat representation of a control group ``x`` as a
-     list of basic control descriptions, which provides a quick way to access
-     all the control values of a Faust DSP. The grouping controls themselves
-     are omitted. You can pass the last component of the return value of the
-     info_ function to this function. */
+/* .. function:: controls x
+ 
+      This function returns a flat representation of a control group ``x`` as
+      a list of basic control descriptions, which provides a quick way to
+      access all the control values of a Faust DSP. The grouping controls
+      themselves are omitted. You can pass the last component of the return
+      value of the :func:`info` function to this function. */
 
 public controls;
 
 controls x@(_ args)
 = case args of
-    _,ctrls = catmap controls ctrls if listnp ctrls;
+    _,ctrls = catmap controls ctrls if listp ctrls;
     _ = [x] otherwise;
   end if controlp x;
 
-/* .. _pcontrols:
-
-   ``pcontrols x``
-     Works like the controls_ function above, but also replaces the label of
-     each basic control with a fully qualified path consisting of all control
-     labels leading up to the given control. Thus, e.g., the label of a slider
-     ``"gain"`` inside a group ``"voice#0"`` inside the main ``"faust"`` group
-     will be denoted by the label ``"faust/voice#0/gain"``. */
+/* .. function:: pcontrols x
+ 
+      Works like the :func:`controls` function above, but also replaces the label of
+      each basic control with a fully qualified path consisting of all control
+      labels leading up to the given control. Thus, e.g., the label of a
+      slider ``"gain"`` inside a group ``"voice#0"`` inside the main
+      ``"faust"`` group will be denoted by the label
+      ``"faust/voice#0/gain"``. */
 
 public pcontrols;
 
 pcontrols x = controls "" x with
   controls path (f@_ (label::string,args))
 			= catmap (controls (join path label)) args
-			    if listnp args;
+			    if listp args;
 			= [f (join path label,args)];
   controls path (f@_ label::string)
 			= [f (join path label)];
@@ -131,14 +154,13 @@ pcontrols x = controls "" x with
   join s t		= s+"/"+t otherwise;
 end if controlp x;
 
-/* .. _info:
-
-   ``info fname``
-     Extract the description of a Faust DSP from its XML file. This is the
-     main entry point. Returns a tuple with the name, description and version
-     of the DSP, as well as the number of inputs and outputs and the toplevel
-     group with all the control descriptions. Raises an exception if the XML
-     file doesn't exist or contains invalid contents.
+/* .. function:: info fname
+ 
+      Extract the description of a Faust DSP from its XML file. This is the
+      main entry point. Returns a tuple with the name, description and version
+      of the DSP, as well as the number of inputs and outputs and the toplevel
+      group with all the control descriptions. Raises an exception if the XML
+      file doesn't exist or contains invalid contents.
 
    Example::
 
@@ -157,7 +179,7 @@ end if controlp x;
 
 public info;
 
-private basename trim str_val tree;
+private basename trim str_val tree node;
 private parse parse_doc parse_node parse_prop parse_type
   parse_control make_control parse_group make_group;
 
@@ -247,8 +269,8 @@ parse_type s::string = eval $ "faustxml::"+s;
 
 parse_control (node (xml::element "widget" _ attrs) params)
 = case attrs!!["type","id"]+params!!["label"] of
-    [type,id,label] =
-      make_control (atoi id) type (str_val label) params;
+    [ty,id,label] =
+      make_control (atoi id) ty (str_val label) params;
     _ = throw "invalid XML data" otherwise;
   end when
     attrs = dict attrs; params = dict $ map param params with
@@ -259,31 +281,31 @@ parse_control (node (xml::element "widget" _ attrs) params)
   end;
 parse_control _ = throw "invalid XML data" otherwise;
 
-make_control id type label params
-= id => parse_type type label if any ((==)type) ["button","checkbox"];
+make_control id ty label params
+= id => parse_type ty label if any ((==)ty) ["button","checkbox"];
 = case params!!["init","min","max","step"] of
     res@[init,min,max,step] =
-      id => parse_type type (label,tuple (map atof res));
+      id => parse_type ty (label,tuple (map atof res));
     _ = throw "invalid XML data" otherwise;
-  end if any ((==)type) ["vslider","hslider","nentry"];
+  end if any ((==)ty) ["vslider","hslider","nentry"];
 = case params!!["min","max"] of
     res@[min,max] =
-      id => parse_type type (label,tuple (map atof res));
+      id => parse_type ty (label,tuple (map atof res));
     _ = throw "invalid XML data" otherwise;
-  end if any ((==)type) ["vbargraph","hbargraph"];
+  end if any ((==)ty) ["vbargraph","hbargraph"];
 make_control _ _ _ _ = throw "invalid XML data" otherwise;
 
 parse_group cdict (node (xml::element "group" _ attrs) params)
 = case attrs!!["type"] of
-    [type] = make_group cdict type params;
+    [ty] = make_group cdict ty params;
     _ = throw "invalid XML data" otherwise;
   end when attrs = dict attrs end;
 parse_group cdict (node (xml::element "widgetref" _ ["id"=>id::string]) [])
 = case cdict!![atoi id] of [c] = c; _ = throw "invalid XML data"; end;
 parse_group _ _ = throw "invalid XML data" otherwise;
 
-make_group cdict type (node (xml::element "label" _ _) label:params)
-= case parse_type type (str_val label,map (parse_group cdict) params) of
+make_group cdict ty (node (xml::element "label" _ _) label:params)
+= case parse_type ty (str_val label,map (parse_group cdict) params) of
     c = c if stringp label && controlp c;
     _ = throw "invalid XML data" otherwise;
   end when label = parse_node label end;
