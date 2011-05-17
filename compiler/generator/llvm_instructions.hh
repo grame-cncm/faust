@@ -797,8 +797,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* const_string2 = fBuilder->CreateConstGEP2_32(llvm_value, 0, 0);
 
             // Generates access to zone
-            int index = fDSPFieldsNames[inst->fZone];
-            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, index);
+            Value* zone_ptr;
+            if (inst->fZone == "0") {
+                zone_ptr = Constant::getNullValue(fTypeMap[Typed::kFloat_ptr]);
+            } else {
+                int index = fDSPFieldsNames[inst->fZone];
+                zone_ptr = fBuilder->CreateStructGEP(dsp, index);
+            }
 
             Value* idx2[4];
             idx2[0] = fUIInterface_ptr;

@@ -79,7 +79,13 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            *fOut << "interface->declare(" << "interface->uiInterface, " << "&dsp->" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")"; EndLine();
+            // Special case
+            if (inst->fZone == "0") {
+                *fOut << "interface->declare(" << "interface->uiInterface, " << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")";
+            } else {
+                *fOut << "interface->declare(" << "interface->uiInterface, " << "&dsp->" << inst->fZone <<", " << "\"" <<inst->fKey << "\"" << ", " <<  "\"" << inst->fValue << "\"" << ")";
+            }
+            EndLine();
         }
 
         virtual void visit(OpenboxInst* inst)
