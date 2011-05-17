@@ -795,7 +795,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Generates access to zone
             Value* zone_ptr;
             if (inst->fZone == "0") {
-                zone_ptr = Constant::getNullValue(fTypeMap[Typed::kFloat_ptr]);
+                zone_ptr = Constant::getNullValue( (itfloat() == Typed::kFloat) ? fTypeMap[Typed::kFloat_ptr] : fTypeMap[Typed::kDouble_ptr]);
             } else {
                 int index = fDSPFieldsNames[inst->fZone];
                 zone_ptr = fBuilder->CreateStructGEP(dsp, index);
