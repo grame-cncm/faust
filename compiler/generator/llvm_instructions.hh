@@ -238,7 +238,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst0 = CallInst::Create(func_free, inst2, "", entry_func_llvm_free_dsp);
             call_inst0->setCallingConv(CallingConv::C);
-            call_inst0->setTailCall(true);
 
             ReturnInst::Create(getGlobalContext(), entry_func_llvm_free_dsp);
             verifyFunction(*func_llvm_free_dsp);
@@ -274,7 +273,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             CastInst* size = new PtrToIntInst(ptr_size, fBuilder->getInt64Ty(), "size", entry_func_llvm_create_dsp);
             CallInst* call_inst1 = CallInst::Create(func_malloc, size, "", entry_func_llvm_create_dsp);
             call_inst1->setCallingConv(CallingConv::C);
-            call_inst1->setTailCall(true);
             CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
             ReturnInst::Create(getGlobalContext(), call_inst2, entry_func_llvm_create_dsp);
             verifyFunction(*func_llvm_create_dsp);
@@ -632,11 +630,9 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
 
             CallInst* call_inst1 = CallInst::Create(func_destroy, ptr_dsp, "", entry_func_llvm_free_dsp);
             call_inst1->setCallingConv(CallingConv::C);
-            call_inst1->setTailCall(true);
 
             CallInst* call_inst0 = CallInst::Create(func_free, inst2, "", entry_func_llvm_free_dsp);
             call_inst0->setCallingConv(CallingConv::C);
-            call_inst0->setTailCall(true);
 
             ReturnInst::Create(getGlobalContext(), entry_func_llvm_free_dsp);
             verifyFunction(*func_llvm_free_dsp);
@@ -813,7 +809,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+4);
             call_inst->setCallingConv(CallingConv::C);
-            call_inst->setTailCall(true);
         }
 
         virtual void visit(OpenboxInst* inst)
@@ -846,7 +841,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst = fBuilder->CreateCall2(mth, fUIInterface_ptr, const_string);
             call_inst->setCallingConv(CallingConv::C);
-            call_inst->setTailCall(true);
         }
 
         virtual void visit(CloseboxInst* inst)
@@ -864,7 +858,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst = fBuilder->CreateCall(mth, fUIInterface_ptr);
             call_inst->setCallingConv(CallingConv::C);
-            call_inst->setTailCall(true);
         }
 
         void addGenericButton(const string& label, const string& zone, const string& button_type)
@@ -891,7 +884,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst = fBuilder->CreateCall3(mth, fUIInterface_ptr, const_string, zone_ptr);
             call_inst->setCallingConv(CallingConv::C);
-            call_inst->setTailCall(true);
         }
 
         virtual void visit(AddButtonInst* inst)
@@ -942,7 +934,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+7);
             call_inst->setCallingConv(CallingConv::C);
-            call_inst->setTailCall(true);
         }
 
         virtual void visit(AddSliderInst* inst)
@@ -990,7 +981,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+5);
             call_inst->setCallingConv(CallingConv::C);
-            call_inst->setTailCall(true);
         }
 
         virtual void visit(AddBargraphInst* inst)
@@ -1848,7 +1838,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             CallInst* call_inst = fBuilder->CreateCall(function, fun_args.begin(), fun_args.end());
             call_inst->setCallingConv(CallingConv::C);
-            call_inst->setTailCall(true);
 
             //fModule->dump();
 
