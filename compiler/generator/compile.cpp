@@ -168,7 +168,24 @@ void Compiler::generateUserInterfaceTree(Tree t)
 	if (isUiFolder(t, label, elements)) {
 		const int		orient = tree2int(left(label));
 		const char * 	str = tree2str(right(label));
-		const char * 	model;
+        const char * 	model;
+
+        // extract metadata from group label str resulting in a simplifiedLabel
+		// and metadata declarations for fictive zone at address 0
+        string  simplifiedLabel;
+        map<string, set<string> >   metadata;
+        extractMetadata(str, simplifiedLabel, metadata);
+
+        // add metadata if any
+        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
+            const string& key = i->first;
+            const set<string>& values = i->second;
+            for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
+                fClass->addUICode(subst("interface->declare($0, \"$1\", \"$2\");", "0", wdel(key) ,wdel(*j)));
+            }
+        }
+        //-----------------
+
 
 		switch (orient) {
 			case 0 : model = "interface->openVerticalBox(\"$0\");"; break;
@@ -178,7 +195,7 @@ void Compiler::generateUserInterfaceTree(Tree t)
 					fprintf(stderr, "error in user interface generation 1\n");
 				exit(1);
 		}
-		fClass->addUICode(subst(model, str));
+        fClass->addUICode(subst(model, simplifiedLabel));
 		generateUserInterfaceElements(elements);
 		fClass->addUICode("interface->closeBox();");
 
