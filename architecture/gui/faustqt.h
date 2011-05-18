@@ -1179,6 +1179,7 @@ class QTGUI : public QObject, public GUI
 	QApplication		fAppl;
 	QTimer*				fTimer;
 	QStyle*			 	fStyle;
+	string				gGroupTooltip;
 	stack<QWidget* > 	fGroupStack;
 
     map<float*, float>           fGuiSize;       // map widget zone with widget size coef
@@ -1206,7 +1207,6 @@ class QTGUI : public QObject, public GUI
 				lri = lws;
 			}
 		}
-		cout << ss;
 		return ss;
 	}
 
@@ -1217,24 +1217,32 @@ class QTGUI : public QObject, public GUI
     */
     virtual void declare(float* zone, const char* key, const char* value)
     {
-        if (strcmp(key,"size")==0) {
-            fGuiSize[zone]=atof(value);
-        }
-        else if (strcmp(key,"tooltip")==0) {
-            fTooltip[zone] = formatTooltip(30, value) ;
-        }
-        else if (strcmp(key,"unit")==0) {
-            fUnit[zone] = value ;
-        }
-		else if (strcmp(key,"style")==0) {
-		// else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
-            if (strcmp(value,"knob") == 0) {
-				fKnobSet.insert(zone);
-			} else if (strcmp(value,"led") == 0) {
-                fLedSet.insert(zone);
-            }
-        }
-    }
+		if (zone == 0) {
+			// special zone 0 means group metadata
+			if (strcmp(key,"tooltip")==0) {
+				// only group tooltip are currently implemented
+				gGroupTooltip = formatTooltip(30, value);
+			}
+		} else {
+			if (strcmp(key,"size")==0) {
+				fGuiSize[zone]=atof(value);
+			}
+			else if (strcmp(key,"tooltip")==0) {
+				fTooltip[zone] = formatTooltip(30, value) ;
+			}
+			else if (strcmp(key,"unit")==0) {
+				fUnit[zone] = value ;
+			}
+			else if (strcmp(key,"style")==0) {
+			// else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
+				if (strcmp(value,"knob") == 0) {
+					fKnobSet.insert(zone);
+				} else if (strcmp(value,"led") == 0) {
+					fLedSet.insert(zone);
+				}
+			}
+		}
+	}
 
 	bool isTabContext()
 	{
@@ -1323,9 +1331,13 @@ class QTGUI : public QObject, public GUI
 		}
 
         box->setLayout(layout);
-        if (metadata.count("tooltip")) {
+/*        if (metadata.count("tooltip")) {
             box->setToolTip(metadata["tooltip"].c_str());
-        }
+        }*/
+        if (gGroupTooltip != string()) {
+			box->setToolTip(gGroupTooltip.c_str());
+			gGroupTooltip = string();
+		}
         insert(label.c_str(), box);
         fGroupStack.push(box);
     }
@@ -1506,14 +1518,18 @@ class QTGUI : public QObject, public GUI
 
 	// ------------------------- Groups -----------------------------------
 
-	virtual void openHorizontalBox(const char* label) { openBox(label, new QHBoxLayout()); }
+	virtual void openHorizontalBox(const char* label) { 
+		openBox(label, new QHBoxLayout());
+	}
 
 	virtual void openVerticalBox(const char* label) 	{
         openBox(label, new QVBoxLayout());
     }
 
     virtual void openFrameBox(const char* ) 		{ }
-	virtual void openTabBox(const char* label) 		{ openTab(label); }
+	virtual void openTabBox(const char* label) 		{ 
+		openTab(label);
+	}
 
 	virtual void closeBox()
 	{
