@@ -609,6 +609,7 @@ class GTKUI : public GUI
     static map<float*, float>           fGuiSize;       // map widget zone with widget size coef
     static map<float*, string>          fTooltip;       // map widget zone with tooltip strings
     static set<float*>                  fKnobSet;       // set of widget zone to be knobs
+	string								gGroupTooltip;
     
     bool isKnob(float* zone){return fKnobSet.count(zone) > 0;}
     
@@ -787,17 +788,25 @@ void GTKUI::closeBox()
  */
 void GTKUI::declare(float* zone, const char* key, const char* value)
 {
-    if (strcmp(key,"size")==0) {
-        fGuiSize[zone]=atof(value);
-    }
-    else if (strcmp(key,"tooltip")==0) {
-        fTooltip[zone] = formatTooltip(30,value) ;
-    }
-    else if (strcmp(key,"style")==0) {
-		if (strcmp(value,"knob") == 0) {
-			fKnobSet.insert(zone);
+	if (zone == 0) {
+		// special zone 0 means group metadata
+		if (strcmp(key,"tooltip")==0) {
+			// only group tooltip are currently implemented
+			gGroupTooltip = formatTooltip(30, value);
 		}
-    }
+	} else {
+		if (strcmp(key,"size")==0) {
+			fGuiSize[zone]=atof(value);
+		}
+		else if (strcmp(key,"tooltip")==0) {
+			fTooltip[zone] = formatTooltip(30,value) ;
+		}
+		else if (strcmp(key,"style")==0) {
+			if (strcmp(value,"knob") == 0) {
+				fKnobSet.insert(zone);
+			}
+		}
+	}
 }
         
         
@@ -821,6 +830,14 @@ int GTKUI::checkLabelOptions(GtkWidget* widget, const string& fullLabel, string&
         return 1;
     }
 
+	//---------------------
+	if (gGroupTooltip != string()) {
+		gtk_tooltips_set_tip (gtk_tooltips_new (), widget, gGroupTooltip.c_str(), NULL);
+		gGroupTooltip = string();
+	}
+	
+	//----------------------
+	
     // no adjustement of the stack needed
     return 0;
 }
