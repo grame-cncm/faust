@@ -655,7 +655,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
 	  pd_error(x, "[faust] %s: bad control argument: %s",
 		   x->label->c_str(), label);
       }
-    if (count == 0 && strcmp(label, "active") == 0)
+    if (count == 0 && strcmp(label, "active") == 0) {
       if (argc == 0) {
 	t_atom arg;
 	SETFLOAT(&arg, (float)x->active);
@@ -667,6 +667,7 @@ static void faust_any(t_faust *x, t_symbol *s, int argc, t_atom *argv)
 	x->active = (int)f;
 	x->xfade = x->n_xfade;
       }
+    }
   }
 }
 
@@ -715,8 +716,8 @@ static void *faust_new(t_symbol *s, int argc, t_atom *argv)
     x->outputs = (t_sample**)malloc(x->n_out*sizeof(t_sample*));
     x->buf = (t_sample**)malloc(x->n_out*sizeof(t_sample*));
   }
-  if (x->n_in > 0 && x->inputs == NULL ||
-      x->n_out > 0 && (x->outputs == NULL || x->buf == NULL))
+  if ((x->n_in > 0 && x->inputs == NULL) ||
+      (x->n_out > 0 && (x->outputs == NULL || x->buf == NULL)))
     goto error;
   for (int i = 0; i < x->n_out; i++)
     x->buf[i] = NULL;
