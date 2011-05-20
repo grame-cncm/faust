@@ -755,31 +755,6 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
     rev2N( 16, 12,0.7);
 };
 
-//------------------------- reverb_demo ---------------------------
-// USAGE: _ : reverb_demo : _,_ ;
-
-reverb_demo(x) = reverbs(x) with {
-
-   reverb_group(y)  = hgroup("VINTAGE SCHROEDER-CHOWNING ARTIFICIAL REVERBERATORS
-     [tooltip: See Faust's effect.lib for documentation and references]", y);
-   jcrev_group(y)  = reverb_group(vgroup("[1] JCREV",y));
-   sat_group(y)  = reverb_group(vgroup("[2] SATREV",y));
-
-   direct = _ <: _,_;
-
-   tp1 = 100*(i1-i1')>0;
-   tp2 = 100*(i2-i2')>0;
-
-   reverbs(x) = (x*g0:direct), (x*g1+tp1:jcrev), (x*g2+tp2:satrev) :> _,_;
-   // Consider including a library version of freeverb from Faust examples
-      
-   g0 = reverb_group(checkbox("[0] Direct Signal [tooltip:Enable direct signal]"));
-   g1 = jcrev_group(checkbox("[1] JCRev [tooltip:Enable JCRev]"));
-   i1 = jcrev_group(button("[2] Test [tooltip:Feed an impulse to JCRev]"));
-   g2 = sat_group(checkbox("[1] SATRev [tooltip:Enable SATRev]"));
-   i2 = sat_group(button("[2] Test [tooltip:Feed an impulse to SATRev]"));
-};
-
 //-------------------------------- freeverb --------------------------------
 // Freeverb is a widely used, free, open-source Schroeder reverb contributed
 // by ``Jezar at Dreampoint.'' See <faust_distribution>/examples/freeverb.dsp
