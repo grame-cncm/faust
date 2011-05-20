@@ -43,7 +43,6 @@
 
 class netjackaudio : public audio {
 
-
         dsp* fDsp;
         jack_net_slave_t* fNet;
         int fCelt;
@@ -55,18 +54,18 @@ class netjackaudio : public audio {
         }
 
         static int net_process(jack_nframes_t buffer_size,
-                        int,
-                        float** audio_input_buffer,
-                        int,
-                        void**,
-                        int,
-                        float** audio_output_buffer,
-                        int,
-                        void**,
-                        void* data)
+                                int,
+                                float** audio_input_buffer,
+                                int,
+                                void**,
+                                int,
+                                float** audio_output_buffer,
+                                int,
+                                void**,
+                                void* arg)
         {
             AVOIDDENORMALS;
-            netjackaudio* obj = (netjackaudio*)data;
+            netjackaudio* obj = (netjackaudio*)arg;
             obj->fDsp->compute(buffer_size, audio_input_buffer, audio_output_buffer);
             return 0;
         }
@@ -83,12 +82,14 @@ class netjackaudio : public audio {
                 DSP->getNumInputs(),
                 DSP->getNumOutputs(),
                 0, 0,
-                DEFAULT_MTU, -1, (fCelt > 0) ? JackCeltEncoder: JackFloatEncoder,
+                DEFAULT_MTU,
+                -1,
+                (fCelt > 0) ? JackCeltEncoder: JackFloatEncoder,
                 (fCelt > 0) ? fCelt : 0,
                 JackSlowMode
             };
-            jack_master_t result;
 
+            jack_master_t result;
             if ((fNet = jack_net_slave_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, name, &request, &result)) == 0) {
                 printf("jack remote server not running ?\n");
                 return false;
