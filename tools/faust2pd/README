@@ -3,11 +3,9 @@
 faust2pd: Pd Patch Generator for Faust
 ======================================
 
-Version 2.4
+Version @version@, |today|
 
 Albert Graef <Dr.Graef@t-online.de>
-
-Source: http://pure-lang.googlecode.com/files/faust2pd-2.4.tar.gz
 
 This package contains software which makes it easier to use Faust DSPs with Pd
 and the Pure programming language. The main component is the faust2pd script
@@ -33,11 +31,7 @@ for details.
 
 As of version 2.1, the faust2pd script is now compiled to a native executable
 before installation. This makes the program start up much faster, which is a
-big advantage because most xml files don't take long to be processed. You'll
-need Pure 0.21 or later to make this work.
-
-For Windows users, there's an MSI package of Faust available at the Pure_
-website, which also includes faust2pd.
+big advantage because most xml files don't take long to be processed.
 
 .. _Pure: http://pure-lang.googlecode.com
 
@@ -47,7 +41,7 @@ website, which also includes faust2pd.
 Copying
 =======
 
-Copyright (c) 2009-2010 by Albert Graef.
+Copyright (c) 2009-2011 by Albert Graef.
 
 faust2pd is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
@@ -64,14 +58,14 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 Requirements
 ============
 
-faust2pd is known to work on Linux, Mac OS X, and Windows, and there shouldn't be any
-major roadblocks preventing it to work on other systems supported by Pure.  On the Mac,
-faust2pd has been tested with the MacPorts ports of pure and pure-xml installed.
+faust2pd is known to work on Linux, Mac OS X, and Windows, and there shouldn't
+be any major roadblocks preventing it to work on other systems supported by
+Pure.
 
 The faust2pd script is written in the Pure_ programming language and requires
 Pure's XML module, so you need to install these to make it work. Install the
 latest pure*.tar.gz and pure-xml*.tar.gz packages and you should be set. (Pure
-0.21 or later is required.) Also make sure that the LLVM base package is
+0.47 or later is required.) Also make sure that the LLVM base package is
 installed, as described in the Pure INSTALL file, some LLVM utilities are
 needed to make Pure's batch compiler work.
 

@@ -19,8 +19,20 @@ PDLIB = -Wl,--enable-auto-import -lpd
 endif
 ifneq "$(findstring x86_64-,$(host))" ""
 # 64 bit, needs -fPIC flag
-PIC = -fPIC
+EXTRA_CFLAGS += -fPIC
 endif
+ifneq "$(findstring x86,$(host))" ""
+# architecture-specific options for x86 and x86_64
+EXTRA_CFLAGS += -msse -ffast-math
+endif
+
+# Try to figure out the Pd include directory.
+pdincdir = $(strip $(shell pkg-config pd --cflags-only-I 2>/dev/null))
+ifeq "$(pdincdir)" ""
+# Try some common locations.
+pdincdir = $(addprefix -I,$(shell ls -d /usr/local/include/pdextended /usr/local/include/pd /usr/include/pdextended /usr/include/pd 2>/dev/null))
+endif
+EXTRA_CFLAGS += $(pdincdir)
 
 # Define the desired number of voices for synth (.syn) plugins here:
 NVOICES = 8
@@ -71,7 +83,7 @@ realclean: distclean
 	faust -xml $< -o /dev/null
 
 %~$(DLL): %.cpp
-	g++ $(shared) $(PIC) -Dmydsp=$(@:%~$(DLL)=%) -o $@ $< $(PDLIB)
+	$(CXX) $(shared) $(EXTRA_CFLAGS) $(CFLAGS) -Dmydsp=$(@:%~$(DLL)=%) $< -o $@ $(PDLIB)
 
 %.pd: %.dsp.xml
 	$(faust2pd) -s $<
