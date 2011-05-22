@@ -11,8 +11,8 @@
 #X obj 418 666 midiout;
 #X obj 335 573 loadbang;
 #X obj 18 79 piano;
-#X obj 18 28 midi-in 6;
-#X obj 362 24 midi-in 2;
+#X obj 18 28 midi-in 6 1;
+#X obj 362 24 midi-in 2 2;
 #X obj 263 79 blowHole;
 #X msg 335 597 read take5.mid;
 #X text 290 707 In order to have this example work \, input device
