@@ -10,8 +10,20 @@ PDLIB = -Wl,--enable-auto-import -lpd
 endif
 ifneq "$(findstring x86_64-,$(host))" ""
 # 64 bit, needs -fPIC flag
-PIC = -fPIC
+EXTRA_CFLAGS += -fPIC
 endif
+ifneq "$(findstring x86,$(host))" ""
+# architecture-specific options for x86 and x86_64
+EXTRA_CFLAGS += -msse -ffast-math
+endif
+
+# Try to figure out the Pd include directory.
+pdincdir = $(strip $(shell pkg-config pd --cflags-only-I 2>/dev/null))
+ifeq "$(pdincdir)" ""
+# Try some common locations.
+pdincdir = $(addprefix -I,$(shell ls -d /usr/local/include/pdextended /usr/local/include/pd /usr/include/pdextended /usr/include/pd 2>/dev/null))
+endif
+EXTRA_CFLAGS += $(pdincdir)
 
 dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(dspsrc:.dsp=.cpp)
@@ -20,8 +32,6 @@ svg 	:= $(dspsrc:.dsp=.svg)
 xml 	:= $(dspsrc:.dsp=.dsp.xml)
 pd 	:= $(dspsrc:.dsp=.pd)
 libs    := $(wildcard *.lib)
-
-CFLAGS = $(PIC)
 
 ARCH     = puredata.cpp
 #FAUST2PD = faust2pd
@@ -39,7 +49,7 @@ svg: $(svg)
 xml: $(xml)
 
 %~$(DLL): %.cpp
-	$(CXX) $(CFLAGS) $(shared) -Dmydsp=$(@:%~$(DLL)=%) $< -o $@ $(PDLIB)
+	$(CXX) $(shared) $(EXTRA_CFLAGS) $(CFLAGS) -Dmydsp=$(@:%~$(DLL)=%) $< -o $@ $(PDLIB)
 
 %.cpp: %.dsp
 	faust $(VEC) -a $(ARCH) $< -o $@
