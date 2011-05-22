@@ -945,22 +945,21 @@ with {
      // (can cause infinite loop:) with { db2linear(x) = pow(10, x/20.0); };
 };
 
-//----------------------------- zita_rev1_engine ---------------------------
-// Approximate implementation of the FOSS Linux reverb zita-rev1
+//------------------------------- zita_rev_fdn -------------------------------
+// Internal 8x8 late-reverberation FDN used in the FOSS Linux reverb zita-rev1
 // by Fons Adriaensen <fons@kokkinizita.net>.  This is an FDN reverb with
 // allpass comb filters in each feedback delay in addition to the 
-// damping filters.  Only stereo mode is implemented (no Ambisonic mode).
+// damping filters.
 //
 // USAGE: 
-//   _,_ : zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax) : _,_
+//   bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : bus(8)
 //
 // WHERE 
-//   rdel  = delay (in ms) before reverberation begins
-//   f1    = crossover frequency separating dc and midrange frequencies
-//   f2    = frequency above f1 where T60 = t60m/2 (see below)
-//   t60dc = desired decay time (t60) at frequency 0
-//   t60m  = desired decay time (t60) at midrange frequencies
-//   fsmax = maximum sampling rate to be used
+//   f1    = crossover frequency (Hz) separating dc and midrange frequencies
+//   f2    = frequency (Hz) above f1 where T60 = t60m/2 (see below)
+//   t60dc = desired decay time (t60) at frequency 0 (sec)
+//   t60m  = desired decay time (t60) at midrange frequencies (sec)
+//   fsmax = maximum sampling rate to be used (Hz)
 //
 // REFERENCES:
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
@@ -970,25 +969,11 @@ with {
 //   filter.lib (allpass_comb, lowpass, smooth)
 //   math.lib (hadamard, take, etc.)
 
-zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax) = 
-in_delay : distrib2(N) 
- : ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~ 
+zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) =
+  ((bus(2*N) :> allpass_combs(N) : feedbackmatrix(N)) ~
    (delayfilters(N,freqs,durs) : fbdelaylines(N)))
- : output2(N) // no ambisonics mode
 with {
   N = 8;
-
-  in_delay = delay_mono(rdel),delay_mono(rdel);
-  delay_mono(rdel) = delay(8192,SR*rdel*0.001) * 0.3;
-
-  distrib2(N) = _,_ <: fanflip(N);
-  fanflip(4) = _,_,*(-1),*(-1);
-  fanflip(N) = fanflip(N/2),fanflip(N/2);
-
-  output2(N) = outmix(N) : *(t1),*(t1);
-  t1 = 0.37; // zita-rev1 linearly ramps from 0 to t1 over one buffer
-  outmix(4) = !,butterfly(2),!; // probably the result of some experimenting!
-  outmix(N) = outmix(N/2),par(i,N/2,!);
 
   // Delay-line lengths in seconds:
   apdelays = (0.020346, 0.024421, 0.031604, 0.027333, 0.022904, 
@@ -1038,8 +1023,67 @@ with {
   };
 };
 
+// Stereo input delay used by zita_rev1 in both stereo and ambisonics mode:
+zita_in_delay(rdel) = zita_delay_mono(rdel), zita_delay_mono(rdel) with {
+  zita_delay_mono(rdel) = delay(8192,SR*rdel*0.001) * 0.3;
+};
+
+// Stereo input mapping used by zita_rev1 in both stereo and ambisonics mode:
+zita_distrib2(N) = _,_ <: fanflip(N) with {
+   fanflip(4) = _,_,*(-1),*(-1);
+   fanflip(N) = fanflip(N/2),fanflip(N/2);
+};
+
+//---------------------------- zita_rev1_stereo ---------------------------
+// Extend zita_rev_fdn to include zita_rev1 input/output mapping in stereo mode.
+//
+// USAGE:
+//   _,_ : zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) : _,_
+//
+// WHERE
+//   rdel  = delay (in ms) before reverberation begins (e.g., 0 to ~100 ms)
+//   (remaining args and refs as for zita_rev_fdn above)
+
+zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) =
+   zita_in_delay(rdel)
+ : zita_distrib2(N)
+ : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax)
+ : output2(N)
+with {
+ N = 8;
+ output2(N) = outmix(N) : *(t1),*(t1);
+ t1 = 0.37; // zita-rev1 linearly ramps from 0 to t1 over one buffer
+ outmix(4) = !,butterfly(2),!; // probably the result of some experimenting!
+ outmix(N) = outmix(N/2),par(i,N/2,!);
+
+};
+
+//----------------------------- zita_rev1_ambi ---------------------------
+// Extend zita_rev_fdn to include zita_rev1 input/output mapping in
+// ambisonics mode.
+//
+// USAGE:
+//   _,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_
+//
+// WHERE
+//   rgxyz = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9)
+//   (remaining args and refs as for zita_rev1_stereo above)
+
+zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) =
+   zita_in_delay(rdel)
+ : zita_distrib2(N)
+ : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax)
+ : output4(N) // ambisonics mode
+with {
+  N=8;
+  output4(N) = select4 : *(t0),*(t1),*(t1),*(t1);
+  select4 = _,_,_,!,_,!,!,! : _,_,cross with { cross(x,y) = y,x; };
+  t0 = 1.0/sqrt(2.0);
+  t1 = t0 * 10.0^(0.05 * rgxyz);
+};
+
 //---------------------------------- zita_rev1 ------------------------------
-// Example GUI for zita_rev1_engine (mostly following the Linux zita-rev1 GUI).
+// Example GUI for zita_rev1_stereo (mostly following the Linux zita-rev1 GUI).
 //
 // Only the dry/wet and output level parameters are "dezippered" here.  If 
 // parameters are to be varied in real time, use "smooth(0.999)" or the like
@@ -1051,7 +1095,7 @@ with {
 // DEPENDENCIES: 
 //   filter.lib (peak_eq_rm)
 
-zita_rev1(x,y) = zita_rev1_engine(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
+zita_rev1(x,y) = zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
 	  : out_eq : dry_wet(x,y) : out_level
 with {
 
