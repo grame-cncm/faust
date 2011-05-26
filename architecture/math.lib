@@ -40,8 +40,7 @@ declare license "LGPL";
 
 // -- Utilities and constants
 
-//SR 			= min(192000, max(1, fconstant(int fSamplingFreq, <math.h>)));
-SR 			= fconstant(int fSamplingFreq, <math.h>);
+SR 			= min(192000, max(1, fconstant(int fSamplingFreq, <math.h>)));
 BS          = fvariable(int count, <math.h>);
 
 PI          = 3.1415926535897932385;
