@@ -286,7 +286,7 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigReal(sig, &r)) 			return new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
 
-	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1,1));
+	else if (isSigInput(sig, &i))			return new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval()); //interval(-1,1));
 
 	else if (isSigOutput(sig, &i, s1)) 	return sampCast(T(s1,env));
 
