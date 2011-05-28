@@ -113,42 +113,37 @@ void JAVACodeContainer::produceInternal()
 
         tab(n+1, *fOut);
 
-        if (gUIMacroSwitch) {
-            tab(n, *fOut); *fOut << "  public:";
-        } else {
-            tab(n, *fOut); *fOut << "  private:";
-        }
         tab(n+1, *fOut);
 
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "  public:";
+        tab(n, *fOut);
 
          // Memory methods
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fKlassName << "* " << "new" <<  fKlassName << "() { "
-                            << "return (" << fKlassName << "*) new "<< fKlassName << "()"
+        tab(n+1, *fOut); *fOut << fKlassName << "[] " << "new" <<  fKlassName << "() { "
+                            << "return (" << fKlassName << "[]) new "<< fKlassName << "()"
                             << "; }";
 
-        tab(n+1, *fOut); *fOut << "void " << "delete(" << fKlassName << "* dsp) { "
+        tab(n+1, *fOut); *fOut << "void " << "delete(" << fKlassName << "[] dsp) { "
                               << "; }";
 
         // Input method
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "int getNumInputs() { "
+        tab(n+1, *fOut); *fOut << "public int getNumInputs() { "
                             << "return " << fNumInputs
                             << "; }";
 
         // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs() { "
+        tab(n+1, *fOut); *fOut << "public int getNumOutputs() { "
                             << "return " << fNumOutputs
                             << "; }";
 
         // Inits
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void init(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "public void init(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
@@ -158,9 +153,9 @@ void JAVACodeContainer::produceInternal()
         string counter = "count";
         tab(n+1, *fOut);
         if (fSubContainerType == kInt) {
-            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, int* output) {", counter);
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, int[] output) {", counter);
         } else {
-            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1* output) {", counter, ifloat());
+            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1[] output) {", counter, ifloat());
         }
         tab(n+2, *fOut);
         fCodeProducer.Tab(n+2);
@@ -188,15 +183,8 @@ void JAVACodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "final class " << fKlassName << " extends " << fSuperKlassName << " {";
+    tab(n, *fOut); *fOut << "class " << fKlassName << " extends " << fSuperKlassName << " {";
 
-        tab(n+1, *fOut);
-
-        if (gUIMacroSwitch) {
-            tab(n, *fOut); *fOut << "  public:";
-        } else {
-            tab(n, *fOut); *fOut << "  private:";
-        }
         tab(n+1, *fOut);
 
         // Sub containers
@@ -207,11 +195,11 @@ void JAVACodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "  public:";
+        tab(n, *fOut); // *fOut << "  public:";
 
         // Print metadata declaration
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut   << "void metadata(Meta* m) { ";
+        tab(n+1, *fOut); *fOut   << "public void metadata(Meta m) { ";
 
         for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
             if (i->first != tree("author")) {
@@ -230,18 +218,18 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}" << endl;
 
         // Input method
-        tab(n+1, *fOut); *fOut << "int getNumInputs() { "
+        tab(n+1, *fOut); *fOut << "public int getNumInputs() { "
                             << "return " << fNumInputs
                             << "; }";
 
         // Output method
-        tab(n+1, *fOut); *fOut << "int getNumOutputs() { "
+        tab(n+1, *fOut); *fOut << "public int getNumOutputs() { "
                             << "return " << fNumOutputs
                             << "; }";
 
         // Inits
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "static public void classInit(int samplingFreq) {";
             if (fStaticInitInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
@@ -250,21 +238,21 @@ void JAVACodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void instanceInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "public void instanceInit(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void init(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "public void init(int samplingFreq) {";
             tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
             tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
 
         // User interface
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "void buildUserInterface(UI* interface) {";
+        tab(n+1, *fOut); *fOut << "public void buildUserInterface(UI ui_interface) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateUserInterface(&fCodeProducer);
@@ -281,22 +269,12 @@ void JAVACodeContainer::produceClass()
 
     tab(n, *fOut); *fOut << "};\n" << endl;
 
-    // Generate user interface macros if needed
-	if (gUIMacroSwitch) {
-		tab(n, *fOut); *fOut << "#ifdef FAUST_UIMACROS";
-            tab(n+1, *fOut); *fOut << "#define FAUST_INPUTS " << fNumInputs;
-            tab(n+1, *fOut); *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
-            tab(n+1, *fOut); *fOut << "#define FAUST_ACTIVES " << fNumActives;
-            tab(n+1, *fOut); *fOut << "#define FAUST_PASSIVES " << fNumPassives;
-			printlines(n+1, fUIMacro, *fOut);
-		tab(n, *fOut); *fOut << "#endif";
-	}
 }
 
 void JAVAScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("void compute(int $0, $1** inputs, $1** outputs) {", fFullCount,  xfloat());
+    tab(n+1, *fOut); *fOut << subst("public void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount,  ifloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -322,7 +300,7 @@ void JAVAVectorCodeContainer::generateCompute(int n)
 {
     // Compute
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount, ifloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 

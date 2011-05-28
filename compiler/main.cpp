@@ -715,7 +715,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     }
                 }
 
-                printfloatdef(*dst);
+                if (gOutputLang != "java")
+                   printfloatdef(*dst);
                 container->produceClass();
                 streamCopyUntilEnd(*enrobage, *dst);
                 if (gSchedulerSwitch) {
@@ -730,7 +731,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 exit(1);
             }
         } else {
-            printfloatdef(*dst);
+            if (gOutputLang != "java")
+               printfloatdef(*dst);
             container->produceClass();
         }
     }
