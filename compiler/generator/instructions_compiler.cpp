@@ -657,9 +657,9 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     for (int i = 0; i< ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
-        ::Type t1 = getSigType(parameter);
-        args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), InstBuilder::genBasicTyped((t1->nature() == kInt) ? Typed::kInt : itfloat())));
-        args_value.push_back(CS(parameter));
+        BasicTyped* argtype = InstBuilder::genBasicTyped((ffargtype(ff, i) == kInt) ? Typed::kInt : itfloat());
+        args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
+        args_value.push_back(InstBuilder::genCastNumInst(CS(parameter), argtype));
     }
 
     // Add function declaration

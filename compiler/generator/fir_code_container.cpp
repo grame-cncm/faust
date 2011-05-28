@@ -67,9 +67,12 @@ CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs)
 void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst)
 {
     // Subclasses
+
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+        *dst << "======= Sub class begin ==========" << std::endl << std::endl;
         (*it)->dump(dst);
+        *dst << "======= Sub class end ==========" << std::endl << std::endl;
     }
 
     /// User Interface
@@ -81,6 +84,13 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* 
     }
 
     // General
+    if (fExtGlobalDeclarationInstructions->fCode.size() > 0) {
+        *dst << "======= Global external declarations ==========" << std::endl;
+        *dst << std::endl;
+        fExtGlobalDeclarationInstructions->accept(&firvisitor);
+        *dst << std::endl;
+    }
+
     if (fGlobalDeclarationInstructions->fCode.size() > 0) {
         *dst << "======= Global declarations ==========" << std::endl;
         *dst << std::endl;
