@@ -1142,6 +1142,10 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 
     fContainer->addIncludeFile(file);
 
+    // Keep SRT state
+    if (name == "fSamplingFreq")
+        fContainer->setGeneratedSR();
+
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
 		getTypedNames(getSigType(sig), "Vec", ctype, vname);

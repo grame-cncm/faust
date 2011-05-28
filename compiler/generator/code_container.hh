@@ -99,7 +99,6 @@ class CodeContainer {
         int fNumPassives;      ///< number of passive widgets in the UI (bargraphs, etc.)
 
         int fSubContainerType;
-
         string fFullCount;
 
         void incUIActiveCount()    { fNumActives++; }
@@ -127,6 +126,9 @@ class CodeContainer {
 
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
 
+        bool fGeneratedSR;
+
+
       public:
 
         CodeContainer();
@@ -134,6 +136,11 @@ class CodeContainer {
         virtual ~CodeContainer();
 
         CodeLoop* getCurLoop() { return fCurLoop; }
+
+        void setGeneratedSR()
+        {
+            fGeneratedSR = true;
+        }
 
         void openLoop(string index_name, int size = 0);
         void openLoop(Tree recsymbol, string index_name, int size = 0);
@@ -157,7 +164,7 @@ class CodeContainer {
         void addLibrary(const string& str)      { fLibrarySet.insert(str); }
 
         void printLibrary(ostream& fout);
-         void printIncludeFile(ostream& fout);
+        void printIncludeFile(ostream& fout);
 
         void setLoopProperty(Tree sig, CodeLoop* l);     ///< Store the loop used to compute a signal
         bool getLoopProperty(Tree sig, CodeLoop*& l);    ///< Returns the loop used to compute a signal
