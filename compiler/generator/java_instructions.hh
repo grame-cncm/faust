@@ -77,20 +77,15 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         }
 
         string createVarAccess(string varname){
-          return "new FaustVarAccess(){public void set(float val){" + varname + "=val;}" +
-                 "public float get(){return (float)" + varname + ";}}";
+          return "new FaustVarAccess(){public String getId(){return \""+varname+"\";}" +
+            "public void set(float val){" + varname + "=val;}" +
+            "public float get(){return (float)" + varname + ";}}";
         }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            // TODO
-            // Special case
-            if (inst->fZone == "0") {
-                *fOut << "// ui_interface.declare(" << inst->fZone <<", " << inst->fKey << ", " <<  inst->fValue << ")";
-            } else {
-                *fOut << "// ui_interface.declare(" << "&" << inst->fZone <<", " << inst->fKey << ", " <<  inst->fValue << ")";
-            }
-            EndLine();
+          *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" <<  inst->fValue << "\")";
+          EndLine();
         }
 
         virtual void visit(OpenboxInst* inst)

@@ -38,11 +38,15 @@ class Meta{
 }
 
 interface FaustVarAccess{
+    public String getId();
     public void set(float val);
     public float get();
 }
 
 class UI{
+
+    public void declare(String id, String key, String value){}
+
     // -- layout groups
     
     public void openFrameBox(String label){}   
@@ -80,7 +84,6 @@ class UI{
 }
 
 class dsp{
-    float fSamplingFreq;
 }
 
 
