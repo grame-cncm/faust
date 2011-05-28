@@ -148,9 +148,8 @@ void CCodeContainer::produceClass()
 {
     int n = 0;
 
-    // Generates fSamplingFreq field and initialize it with the "samplingFreq" parameter of the init function
-    pushGlobalDeclare(InstBuilder::genDecGlobalVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
-    pushFrontInitMethod(InstBuilder::genStoreGlobalVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+    // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
+    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     // Libraries
     printLibrary(*fOut);

@@ -1145,13 +1145,21 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
 		getTypedNames(getSigType(sig), "Vec", ctype, vname);
-		generateDelayVec(sig, InstBuilder::genLoadGlobalVar(name), ctype, vname, o->getMaxDelay());
+		generateDelayVec(sig,
+            (name == "fSamplingFreq") ? InstBuilder::genLoadStructVar(name) : InstBuilder::genLoadGlobalVar(name),
+            ctype, vname, o->getMaxDelay());
 	}
 
     int sig_type = getSigType(sig)->nature();
-    pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name,
-        InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
-    return InstBuilder::genLoadGlobalVar(name);
+    if (name == "fSamplingFreq") {
+        pushDeclare(InstBuilder::genDecStructVar(name,
+            InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
+        return InstBuilder::genLoadStructVar(name);
+    } else {
+        pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name,
+            InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
+        return InstBuilder::genLoadGlobalVar(name);
+    }
 }
 
 ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string& file, const string& name)

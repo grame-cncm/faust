@@ -260,7 +260,7 @@ void CPPCodeContainer::produceClass()
     int n = 0;
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
-    pushFrontInitMethod(InstBuilder::genStoreGlobalVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+    pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     // Libraries
     printLibrary(*fOut);
