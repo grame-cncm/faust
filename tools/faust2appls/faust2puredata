@@ -93,7 +93,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
         cd "$TMP"
-        ${CXX=g++} $CXXFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
+        ${CXX=g++} -I$CUR $CXXFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
         if [ -x $FAUST2PD ]; then
         	faust2pd -s $f.xml
         fi

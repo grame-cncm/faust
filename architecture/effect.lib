@@ -184,7 +184,14 @@ wah4_demo = bypass1(bp, wah4(fr)) with {
 // Also, avoid very high resonance frequencies (e.g., 5kHz or above).
 };
 
-//------------------------ crybaby(wah) -----------------------------
+//------------------------ autowah(level) -----------------------------
+// Auto-wah effect
+// USAGE: _ : autowah(level) : _;
+// where level = amount of effect desired (0 to 1).
+//
+autowah(level,x) = level * crybaby(amp_follower(0.1,x),x) + (1.0-level)*x;
+
+//-------------------------- crybaby(wah) -----------------------------
 // Digitized CryBaby wah pedal
 // USAGE: _ : crybaby(wah) : _;
 // where wah = "pedal angle" from 0 to 1.

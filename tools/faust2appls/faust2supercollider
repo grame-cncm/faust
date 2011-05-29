@@ -110,7 +110,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         faust2sc $f.xml > "${f%.dsp}.sc" 2>/dev/null
-        ${CXX=g++}  -O3 $SCFLAGS $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        ${CXX=g++}  -O3 $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
     )> /dev/null
 
     ## move the produced files from tmp to source dir
