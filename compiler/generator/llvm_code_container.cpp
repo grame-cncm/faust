@@ -211,7 +211,7 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     llvm_getSR_args.push_back(fDSP_ptr);
     FunctionType* llvm_getSR_type = FunctionType::get(fBuilder->getInt32Ty(), llvm_getSR_args, false);
 
-    Function* sr_fun = Function::Create(llvm_getSR_type, Function::ExternalLinkage, "getSampteRate" + fPrefix, fModule);
+    Function* sr_fun = Function::Create(llvm_getSR_type, Function::ExternalLinkage, "getSampleRate" + fPrefix, fModule);
     sr_fun->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_SR_args_it = sr_fun->arg_begin();
