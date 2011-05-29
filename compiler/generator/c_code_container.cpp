@@ -217,6 +217,11 @@ void CCodeContainer::produceClass()
 
     tab(n, *fOut); *fOut << "}" << endl;
 
+    // Get sample rate method
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getSampleRate(" << fPrefix << fStructName << "* dsp) { "
+                        << "return dsp->fSamplingFreq"
+                        << "; }";
+
     // Input method
     tab(n, *fOut); *fOut << "int " << fPrefix << "getNumInputs(" << fPrefix << fStructName << "* dsp) { "
                         << "return " << fNumInputs

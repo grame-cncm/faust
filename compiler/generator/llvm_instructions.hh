@@ -795,10 +795,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Generates access to zone
             Value* zone_ptr;
             if (inst->fZone == "0") {
-                zone_ptr = Constant::getNullValue( (itfloat() == Typed::kFloat) ? fTypeMap[Typed::kFloat_ptr] : fTypeMap[Typed::kDouble_ptr]);
+                zone_ptr = Constant::getNullValue((itfloat() == Typed::kFloat) ? fTypeMap[Typed::kFloat_ptr] : fTypeMap[Typed::kDouble_ptr]);
             } else {
-                int index = fDSPFieldsNames[inst->fZone];
-                zone_ptr = fBuilder->CreateStructGEP(dsp, index);
+                int field_index = fDSPFieldsNames[inst->fZone];
+                zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
             }
 
             Value* idx2[4];
@@ -879,8 +879,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
-            int index = fDSPFieldsNames[zone];
-            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, index);
+            int field_index = fDSPFieldsNames[zone];
+            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
 
             CallInst* call_inst = fBuilder->CreateCall3(mth, fUIInterface_ptr, const_string, zone_ptr);
             call_inst->setCallingConv(CallingConv::C);
@@ -920,8 +920,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
-            int index = fDSPFieldsNames[zone];
-            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, index);
+            int field_index = fDSPFieldsNames[zone];
+            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
 
             Value* idx2[7];
             idx2[0] = fUIInterface_ptr;
@@ -969,8 +969,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
-            int index = fDSPFieldsNames[zone];
-            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, index);
+            int field_index = fDSPFieldsNames[zone];
+            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
 
             Value* idx2[5];
             idx2[0] = fUIInterface_ptr;

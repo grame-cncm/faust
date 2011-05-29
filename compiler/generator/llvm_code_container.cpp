@@ -205,6 +205,29 @@ void LLVMCodeContainer::generateComputeEnd()
     verifyFunction(*llvm_compute);
 }
 
+void LLVMCodeContainer::generateGetSampleRate(int field_index)
+{
+    vector<const llvm::Type*> llvm_getSR_args;
+    llvm_getSR_args.push_back(fDSP_ptr);
+    FunctionType* llvm_getSR_type = FunctionType::get(fBuilder->getInt32Ty(), llvm_getSR_args, false);
+
+    Function* sr_fun = Function::Create(llvm_getSR_type, Function::ExternalLinkage, "getSampteRate" + fPrefix, fModule);
+    sr_fun->setCallingConv(CallingConv::C);
+
+    Function::arg_iterator llvm_SR_args_it = sr_fun->arg_begin();
+    Value* dsp = llvm_SR_args_it++;
+    dsp->setName("dsp");
+
+    BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", sr_fun);
+    fBuilder->SetInsertPoint(block);
+
+    Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+    Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
+
+    ReturnInst::Create(getGlobalContext(), load_ptr, block);
+    verifyFunction(*sr_fun);
+}
+
 void LLVMCodeContainer::generateGetNumInputs(bool internal)
 {
     vector<const llvm::Type*> llvm_getNumInputs_args;
@@ -264,7 +287,7 @@ void LLVMCodeContainer::generateClassInitEnd()
     verifyFunction(*llvm_classInit);
 }
 
-void LLVMCodeContainer::generateInstanceInitBegin(int sample_freq_field, bool internal)
+void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
 {
     vector<const llvm::Type*> llvm_instanceInit_args;
     llvm_instanceInit_args.push_back(fDSP_ptr);
@@ -436,7 +459,7 @@ void LLVMCodeContainer::produceInternal()
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);
 
-    generateInstanceInitBegin(fields_names["fSamplingFreq"], true);
+    generateInstanceInitBegin(true);
     generateInit(fCodeProducer);
     generateInstanceInitEnd();
 
@@ -476,6 +499,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     fStruct_UI_ptr = fTypeBuilder.getUIType();
     LlvmValue fUIInterface_ptr = fTypeBuilder.getUIPtr();
 
+    generateGetSampleRate(fields_names["fSamplingFreq"]);
+
     generateGetNumInputs();
     generateGetNumOutputs();
 
@@ -495,7 +520,7 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateStaticInit(fCodeProducer);
     generateClassInitEnd();
 
-    generateInstanceInitBegin(fields_names["fSamplingFreq"]);
+    generateInstanceInitBegin();
     generateInit(fCodeProducer);
     generateInstanceInitEnd();
 
