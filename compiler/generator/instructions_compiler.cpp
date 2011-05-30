@@ -643,7 +643,6 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, 
     return generateCacheCode(sig, res);
 }
 
-// TODO
 ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
     fContainer->addIncludeFile(ffincfile(ff));
@@ -666,7 +665,8 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : Typed::kFloat));
     pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
 
-    return generateCacheCode(sig, InstBuilder::genFunCallInst(funname, args_value));
+    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value),
+        InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat())));
 }
 
 ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
