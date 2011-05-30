@@ -657,13 +657,13 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     for (int i = 0; i< ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
-        BasicTyped* argtype = InstBuilder::genBasicTyped((ffargtype(ff, i) == kInt) ? Typed::kInt : itfloat());
+        BasicTyped* argtype = InstBuilder::genBasicTyped((ffargtype(ff, i) == kInt) ? Typed::kInt : Typed::kFloat);
         args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
         args_value.push_back(InstBuilder::genCastNumInst(CS(parameter), argtype));
     }
 
     // Add function declaration
-    fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : itfloat()));
+    fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped((ffrestype(ff) == kInt) ? Typed::kInt : Typed::kFloat));
     pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
 
     return generateCacheCode(sig, InstBuilder::genFunCallInst(funname, args_value));
