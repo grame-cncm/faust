@@ -241,6 +241,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             ReturnInst::Create(getGlobalContext(), entry_func_llvm_free_dsp);
             verifyFunction(*func_llvm_free_dsp);
+            fBuilder->ClearInsertionPoint();
         }
 
         void generateMemory(llvm::PointerType* dsp_type_ptr, bool internal)
@@ -276,6 +277,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
             ReturnInst::Create(getGlobalContext(), call_inst2, entry_func_llvm_create_dsp);
             verifyFunction(*func_llvm_create_dsp);
+            fBuilder->ClearInsertionPoint();
         }
 
         void generateUIGlue()
@@ -530,6 +532,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
                 // Compile code in this block
                 inst->fCode->accept(this);
                 verifyFunction(*function);
+                fBuilder->ClearInsertionPoint();
             }
         }
 
@@ -636,6 +639,7 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
 
             ReturnInst::Create(getGlobalContext(), entry_func_llvm_free_dsp);
             verifyFunction(*func_llvm_free_dsp);
+            fBuilder->ClearInsertionPoint();
         }
 
     public:
@@ -1163,6 +1167,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 //function->dump();
                 verifyFunction(*function);
+                fBuilder->ClearInsertionPoint();
             }
 
             // No result

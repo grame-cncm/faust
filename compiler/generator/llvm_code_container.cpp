@@ -143,6 +143,7 @@ void LLVMCodeContainer::generateFillEnd()
 
     //llvm_fill->dump();
     verifyFunction(*llvm_fill);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateComputeBegin(const string& counter)
@@ -203,15 +204,15 @@ void LLVMCodeContainer::generateComputeEnd()
 
     //llvm_compute->dump();
     verifyFunction(*llvm_compute);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateGetSampleRate(int field_index)
 {
     vector<const llvm::Type*> llvm_getSR_args;
     llvm_getSR_args.push_back(fDSP_ptr);
-    IRBuilder<>* builder = new IRBuilder<>(getGlobalContext());
 
-    FunctionType* llvm_getSR_type = FunctionType::get(builder->getInt32Ty(), llvm_getSR_args, false);
+    FunctionType* llvm_getSR_type = FunctionType::get(fBuilder->getInt32Ty(), llvm_getSR_args, false);
 
     Function* sr_fun = Function::Create(llvm_getSR_type, Function::ExternalLinkage, "getSampleRate" + fPrefix, fModule);
     sr_fun->setCallingConv(CallingConv::C);
@@ -221,15 +222,15 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     dsp->setName("dsp");
 
     BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", sr_fun);
-    builder->SetInsertPoint(block);
+    fBuilder->SetInsertPoint(block);
 
-    Value* zone_ptr = builder->CreateStructGEP(dsp, field_index);
-    Value* load_ptr = builder->CreateLoad(zone_ptr);
+    Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+    Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
 
     ReturnInst::Create(getGlobalContext(), load_ptr, block);
     verifyFunction(*sr_fun);
-    delete builder;
-}
+    fBuilder->ClearInsertionPoint();
+ }
 
 void LLVMCodeContainer::generateGetNumInputs(bool internal)
 {
@@ -241,7 +242,9 @@ void LLVMCodeContainer::generateGetNumInputs(bool internal)
     input_fun->setCallingConv(CallingConv::C);
     BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", input_fun);
     ReturnInst::Create(getGlobalContext(), genInt32(fNumInputs), block);
+
     verifyFunction(*input_fun);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateGetNumOutputs(bool internal)
@@ -254,7 +257,9 @@ void LLVMCodeContainer::generateGetNumOutputs(bool internal)
     output_fun->setCallingConv(CallingConv::C);
     BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", output_fun);
     ReturnInst::Create(getGlobalContext(), genInt32(fNumOutputs), block);
+
     verifyFunction(*output_fun);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateClassInitBegin()
@@ -288,6 +293,7 @@ void LLVMCodeContainer::generateClassInitEnd()
 
     //llvm_classInit->dump();
     verifyFunction(*llvm_classInit);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
@@ -324,6 +330,7 @@ void LLVMCodeContainer::generateInstanceInitEnd()
 
     //llvm_instanceInit->dump();
     verifyFunction(*llvm_instanceInit);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateDestroyBegin()
@@ -348,6 +355,7 @@ void LLVMCodeContainer::generateDestroyEnd()
 
     //llvm_destroy->dump();
     verifyFunction(*llvm_destroy);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateInitFun()
@@ -388,6 +396,7 @@ void LLVMCodeContainer::generateInitFun()
 
     ReturnInst::Create(getGlobalContext(), return_block2);
     verifyFunction(*llvm_init);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateMetadata()
@@ -427,6 +436,7 @@ void LLVMCodeContainer::generateBuildUserInterfaceEnd()
     // Insert return block
     fBuilder->CreateBr(return_block);
     verifyFunction(*llvm_buildUserInterface);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::produceInternal()
@@ -842,6 +852,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
 
     //llvm_computethread->dump();
     verifyFunction(*llvm_computethread);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
@@ -874,6 +885,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
     //llvm_computethread->dump();
     verifyFunction(*llvm_computethread);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMWorkStealingCodeContainer::generateCompute()
