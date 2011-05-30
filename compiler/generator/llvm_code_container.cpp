@@ -209,7 +209,9 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 {
     vector<const llvm::Type*> llvm_getSR_args;
     llvm_getSR_args.push_back(fDSP_ptr);
-    FunctionType* llvm_getSR_type = FunctionType::get(fBuilder->getInt32Ty(), llvm_getSR_args, false);
+    IRBuilder<>* builder = new IRBuilder<>(getGlobalContext());
+
+    FunctionType* llvm_getSR_type = FunctionType::get(builder->getInt32Ty(), llvm_getSR_args, false);
 
     Function* sr_fun = Function::Create(llvm_getSR_type, Function::ExternalLinkage, "getSampleRate" + fPrefix, fModule);
     sr_fun->setCallingConv(CallingConv::C);
@@ -219,13 +221,14 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     dsp->setName("dsp");
 
     BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", sr_fun);
-    fBuilder->SetInsertPoint(block);
+    builder->SetInsertPoint(block);
 
-    Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
-    Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
+    Value* zone_ptr = builder->CreateStructGEP(dsp, field_index);
+    Value* load_ptr = builder->CreateLoad(zone_ptr);
 
     ReturnInst::Create(getGlobalContext(), load_ptr, block);
     verifyFunction(*sr_fun);
+    delete builder;
 }
 
 void LLVMCodeContainer::generateGetNumInputs(bool internal)
@@ -373,7 +376,6 @@ void LLVMCodeContainer::generateInitFun()
     assert(llvm_classInit);
     CallInst* call_inst1 = CallInst::Create(llvm_classInit, params1.begin(), params1.end(), "", return_block2);
     call_inst1->setCallingConv(CallingConv::C);
-    call_inst1->setTailCall(true);
 
     vector<Value*> params2;
     params2.push_back(arg1);
@@ -383,7 +385,6 @@ void LLVMCodeContainer::generateInitFun()
     assert(llvm_instanceInit);
     CallInst* call_inst2 = CallInst::Create(llvm_instanceInit, params2.begin(), params2.end(), "", return_block2);
     call_inst2->setCallingConv(CallingConv::C);
-    call_inst2->setTailCall(true);
 
     ReturnInst::Create(getGlobalContext(), return_block2);
     verifyFunction(*llvm_init);
@@ -869,7 +870,6 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
     CallInst* call_inst = fBuilder->CreateCall2(llvm_computethreadInternal, fBuilder->CreateBitCast(arg1, fDSP_ptr), arg2);
     call_inst->setCallingConv(CallingConv::C);
-    call_inst->setTailCall(true);
     fBuilder->CreateRetVoid();
 
     //llvm_computethread->dump();
