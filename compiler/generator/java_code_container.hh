@@ -67,7 +67,7 @@ class JAVACodeContainer : public virtual CodeContainer {
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-         static CodeContainer* createContainer(int numInputs, int numOutputs, ostream* dst);
+         static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst);
 };
 
 class JAVAScalarCodeContainer : public JAVACodeContainer {

@@ -45,6 +45,7 @@ extern bool gOpenMPSwitch;
 extern bool gSchedulerSwitch;
 extern bool gVectorSwitch;
 extern int gFloatSize;
+extern string gClassName;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -114,7 +115,6 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
     FunctionType* llvm_fill_type = FunctionType::get(fBuilder->getVoidTy(), llvm_fill_args, false);
     Function* llvm_fill = Function::Create(llvm_fill_type, GlobalValue::InternalLinkage, "fill" + fPrefix, fModule);
     llvm_fill->setCallingConv(CallingConv::C);
-    llvm_fill->setAlignment(2);
 
     Function::arg_iterator llvm_fill_args_it = llvm_fill->arg_begin();
     Value* arg1 = llvm_fill_args_it++;
@@ -167,7 +167,6 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
 
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fPrefix, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
-    llvm_compute->setAlignment(2);
 
     SmallVector<AttributeWithIndex, 4> attributes;
     AttributeWithIndex PAWI;
@@ -270,7 +269,6 @@ void LLVMCodeContainer::generateClassInitBegin()
 
     Function* llvm_classInit = Function::Create(llvm_classInit_type, Function::ExternalLinkage, "classInit" + fPrefix, fModule);
     llvm_classInit->setCallingConv(CallingConv::C);
-    llvm_classInit->setAlignment(2);
 
     Function::arg_iterator llvm_classInit_args_it = llvm_classInit->arg_begin();
     Value* sample_freq = llvm_classInit_args_it++;
@@ -305,7 +303,6 @@ void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
 
     Function* llvm_instanceInit = Function::Create(llvm_instanceInit_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "instanceInit" + fPrefix, fModule);
     llvm_instanceInit->setCallingConv(CallingConv::C);
-    llvm_instanceInit->setAlignment(2);
 
     Function::arg_iterator llvm_instanceInit_args_it = llvm_instanceInit->arg_begin();
     Value* dsp = llvm_instanceInit_args_it++;
@@ -367,7 +364,6 @@ void LLVMCodeContainer::generateInitFun()
 
     Function* llvm_init = Function::Create(llvm_init_type, Function::ExternalLinkage, "init" + fPrefix, fModule);
     llvm_init->setCallingConv(CallingConv::C);
-    llvm_init->setAlignment(2);
 
     Function::arg_iterator llvm_init_args_it = llvm_init->arg_begin();
     Value* arg1 = llvm_init_args_it++;
@@ -408,7 +404,6 @@ void LLVMCodeContainer::generateMetadata()
 
     Function* llvm_metaData = Function::Create(llvm_metaData_type, GlobalValue::ExternalLinkage, fPrefix + "llvm_metadata", fModule);
     llvm_metaData->setCallingConv(CallingConv::C);
-    llvm_metaData->setAlignment(2);
 
     // Name arguments
     Function::arg_iterator llvm_metaData_args_it = llvm_metaData->arg_begin();
@@ -493,7 +488,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
         pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
     pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
-    fPrefix = "_llvm";
+    //fPrefix = gClassName + "_llvm";
+    fPrefix = gClassName;
 
     // Sub containers
     generateSubContainers();
@@ -827,7 +823,6 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadBegin()
 
     Function* llvm_computethread = Function::Create(llvm_computethread_type, GlobalValue::ExternalLinkage, "computeThread", fModule);
     llvm_computethread->setCallingConv(CallingConv::C);
-    llvm_computethread->setAlignment(2);
 
     Function::arg_iterator llvm_computethread_args_it = llvm_computethread->arg_begin();
     Value* arg1 = llvm_computethread_args_it++;
@@ -865,7 +860,6 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
     Function* llvm_computethread = Function::Create(llvm_computethread_type, GlobalValue::ExternalLinkage, "computeThreadExternal", fModule);
     llvm_computethread->setCallingConv(CallingConv::C);
-    llvm_computethread->setAlignment(2);
 
     Function::arg_iterator llvm_computethread_args_it = llvm_computethread->arg_begin();
     Value* arg1 = llvm_computethread_args_it++;

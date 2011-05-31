@@ -60,6 +60,7 @@ extern bool gVectorSwitch;
 extern int gVecSize;
 extern bool gOpenCLSwitch;
 extern bool gCUDASwitch;
+extern string gClassName;
 
 std::ostream* Printable::fOut = &cout;
 
@@ -862,7 +863,7 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 
 ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 {
-    string cname = getFreshID("SIG");
+    string cname = getFreshID(gClassName + "SIG");
 	string signame = getFreshID("sig");
 
     CodeContainer* subcontainer = signal2Container(cname, content);
@@ -886,7 +887,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 
 ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 {
-    string cname = getFreshID("SIG");
+    string cname = getFreshID(gClassName + "SIG");
 	string signame = getFreshID("sig");
 
 	CodeContainer* subcontainer = signal2Container(cname, content);

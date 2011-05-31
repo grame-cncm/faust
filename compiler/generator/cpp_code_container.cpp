@@ -54,7 +54,7 @@ CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int s
     return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* CPPCodeContainer::createContainer(int numInputs, int numOutputs, ostream* dst)
+CodeContainer* CPPCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -64,9 +64,9 @@ CodeContainer* CPPCodeContainer::createContainer(int numInputs, int numOutputs, 
             exit(1);
         }
         if (gVectorSwitch) {
-            container = new CPPOpenCLVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            container = new CPPOpenCLVectorCodeContainer(name, super, numInputs, numOutputs, dst);
         } else {
-            container = new CPPOpenCLCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            container = new CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, dst);
         }
     } else if (gCUDASwitch) {
         if (gFunTaskSwitch) {
@@ -74,18 +74,18 @@ CodeContainer* CPPCodeContainer::createContainer(int numInputs, int numOutputs, 
             exit(1);
         }
         if (gVectorSwitch) {
-            container = new CPPCUDAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            container = new CPPCUDAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
         } else {
-            container = new CPPCUDACodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+            container = new CPPCUDACodeContainer(name, super, numInputs, numOutputs, dst);
         }
     } else if (gOpenMPSwitch) {
-        container = new CPPOpenMPCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        container = new CPPOpenMPCodeContainer(name, super, numInputs, numOutputs, dst);
     } else if (gSchedulerSwitch) {
-        container = new CPPWorkStealingCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        container = new CPPWorkStealingCodeContainer(name, super, numInputs, numOutputs, dst);
     } else if (gVectorSwitch) {
-        container = new CPPVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        container = new CPPVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
-        container = new CPPScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
+        container = new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
 
     return container;

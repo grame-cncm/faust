@@ -33,6 +33,8 @@ extern string gFaustSuperSuperDirectory;
 extern string gFaustSuperDirectory;
 extern string gFaustDirectory;
 extern string gMasterDirectory;
+extern string gClassName;
+
 //----------------------------------------------------------------
 
 
@@ -45,6 +47,35 @@ static bool isBlank(const string& s) {
     }
     return true;
 }
+
+
+/**
+ * Replace every occurrence of oldstr by newstr inside str. str is modified
+ * and returned as reference for convenience
+ */
+static string& replaceOccurences(string& str, const string& oldstr, const string& newstr)
+{
+    string::size_type l1 = oldstr.length();
+    string::size_type l2 = newstr.length();
+
+    string::size_type pos = str.find(oldstr);
+    while ( pos != string::npos) {
+        str.replace(pos, l1, newstr);
+        pos = str.find(oldstr, pos + l2);
+    }
+    return str;
+}
+
+
+/**
+ * Used when copying architecture files to replace default mydsp
+ * class name with the user specified one
+ */
+static string& replaceClassName(string& str)
+{
+    return replaceOccurences(str, "mydsp", gClassName);
+}
+
 
 /**
  * Copy or remove license header. Architecture files can contain a header specifying
@@ -89,7 +120,7 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
 {
     string	s;
-    while ( getline(src,s) && (s != until) ) dst << s << endl;
+    while ( getline(src,s) && (s != until) ) dst << replaceClassName(s) << endl;
 }
 
 /**
@@ -98,7 +129,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
 void streamCopy(istream& src, ostream& dst)
 { 
 	string	s;
-	while ( getline(src,s)) dst << s << endl;
+    while ( getline(src,s)) dst << replaceClassName(s) << endl;
 }
 
 /**
@@ -107,7 +138,7 @@ void streamCopy(istream& src, ostream& dst)
 void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
 	string	s;
-	while ( getline(src,s) ) dst << s << endl;
+    while ( getline(src,s) ) dst << replaceClassName(s) << endl;
 }
 
 

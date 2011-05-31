@@ -46,14 +46,12 @@ extern bool gFunTaskSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 
-// Scalar
-JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
-    :JAVACodeContainer(name, super, numInputs, numOutputs, out)
+CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-     fSubContainerType = sub_container_type;
+    return new JAVAScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* JAVACodeContainer::createContainer(int numInputs, int numOutputs, ostream* dst)
+CodeContainer* JAVACodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -73,21 +71,23 @@ CodeContainer* JAVACodeContainer::createContainer(int numInputs, int numOutputs,
         cerr << "ERROR : Scheduler mode not supported for Java" << endl;
         exit(1);
     } else if (gVectorSwitch) {
-        container = new JAVAVectorCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst);
+        container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
-        container = new JAVAScalarCodeContainer("mydsp", "dsp", numInputs, numOutputs, dst, kInt);
+        container = new JAVAScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
 
     return container;
 }
 
+// Scalar
+JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
+    :JAVACodeContainer(name, super, numInputs, numOutputs, out)
+{
+     fSubContainerType = sub_container_type;
+}
+
 JAVAScalarCodeContainer::~JAVAScalarCodeContainer()
 {}
-
-CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
-{
-    return new JAVAScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
-}
 
 void JAVACodeContainer::printIncludeFile(ostream& fout)
 {

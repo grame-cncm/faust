@@ -51,7 +51,7 @@ CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub
     return new CScalarCodeContainer("", 0, 1, fOut, sub_container_type, name);
 }
 
-CodeContainer* CCodeContainer::createContainer(int numInputs, int numOutputs, ostream* dst)
+CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     gDSPStruct = true;
     CodeContainer* container;
@@ -66,13 +66,13 @@ CodeContainer* CCodeContainer::createContainer(int numInputs, int numOutputs, os
     }
 
     if (gOpenMPSwitch) {
-        container = new COpenMPCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+        container = new COpenMPCodeContainer(name, numInputs, numOutputs, dst, "c_");
     } else if (gSchedulerSwitch) {
-        container = new CWorkStealingCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+        container = new CWorkStealingCodeContainer(name, numInputs, numOutputs, dst, "c_");
     } else if (gVectorSwitch) {
-        container = new CVectorCodeContainer("mydsp", numInputs, numOutputs, dst, "c_");
+        container = new CVectorCodeContainer(name, numInputs, numOutputs, dst, "c_");
     } else {
-        container = new CScalarCodeContainer("mydsp", numInputs, numOutputs, dst, kInt, "c_");
+        container = new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, "c_");
     }
 
     return container;
