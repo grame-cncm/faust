@@ -1949,17 +1949,17 @@ struct UIGlue {
 
 typedef struct llvm_dsp {};
 
-llvm_dsp* new_llvm();
-void delete_llvm(llvm_dsp*);
+llvm_dsp* new_mydsp();
+void delete_mydsp(llvm_dsp*);
 
-int getNumInputs_llvm(llvm_dsp*);
-int getNumOutputs_llvm(llvm_dsp*);
+int getNumInputs_mydsp(llvm_dsp*);
+int getNumOutputs_mydsp(llvm_dsp*);
 
-void init_llvm(llvm_dsp*, int);
-void classInit_llvm(int);
-void instanceInit_llvm(llvm_dsp*, int);
-void buildUserInterface_llvm(llvm_dsp*, UIGlue*);
-void compute_llvm(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
+void init_mydsp(llvm_dsp*, int);
+void classInit_mydsp(int);
+void instanceInit_mydsp(llvm_dsp*, int);
+void buildUserInterface_mydsp(llvm_dsp*, UIGlue*);
+void compute_mydsp(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
 
 typedef llvm_dsp* (* newDspFun) ();
 typedef void (* deleteDspFun) (llvm_dsp* self);
@@ -2141,15 +2141,15 @@ class LLVMLoader : public dsp {
             OurFPM.doInitialization();
             fManager = &OurFPM;
 
-			fNew = (newDspFun)LoadOptimize("new_llvm");
-         	fDelete = (deleteDspFun)LoadOptimize("delete_llvm");
-			fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_llvm");
-         	fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_llvm");
-			fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_llvm");
-			fInit = (initFun)LoadOptimize("init_llvm");
-            fClassInit = (classInitFun)LoadOptimize("classInit_llvm");
-            fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_llvm");
-        	fCompute = (computeFun)LoadOptimize("compute_llvm");
+			fNew = (newDspFun)LoadOptimize("new_mydsp");
+         	fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
+			fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
+         	fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
+			fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
+			fInit = (initFun)LoadOptimize("init_mydsp");
+            fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
+            fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
+        	fCompute = (computeFun)LoadOptimize("compute_mydsp");
         	fDsp = fNew();
 		} else {
 			 throw new std::bad_alloc;

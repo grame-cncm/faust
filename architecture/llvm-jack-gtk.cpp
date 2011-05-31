@@ -1916,18 +1916,18 @@ struct UIGlue {
 
 typedef struct llvm_dsp {};
 
-llvm_dsp* new_llvm();
-void delete_llvm(llvm_dsp*);
+llvm_dsp* new_mydsp();
+void delete_mydsp(llvm_dsp*);
 
-int getNumInputs_llvm(llvm_dsp*);
-int getNumOutputs_llvm(llvm_dsp*);
+int getNumInputs_mydsp(llvm_dsp*);
+int getNumOutputs_mydsp(llvm_dsp*);
 
-void init_llvm(llvm_dsp*, int);
-void classInit_llvm(int);
-void instanceInit_llvm(llvm_dsp*, int);
-void buildUserInterface_llvm(llvm_dsp*, UIGlue*);
+void init_mydsp(llvm_dsp*, int);
+void classInit_mydsp(int);
+void instanceInit_mydsp(llvm_dsp*, int);
+void buildUserInterface_mydsp(llvm_dsp*, UIGlue*);
 
-void compute_llvm(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
+void compute_mydsp(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
 
 void openFrameBoxGlue(void* cpp_interface, const char* label)
 {
@@ -2040,29 +2040,29 @@ class llvmdsp : public dsp {
 
 	llvmdsp()
 	{
-        fDsp = new_llvm();
+        fDsp = new_mydsp();
     }
 
 	virtual ~llvmdsp()
 	{
-		delete_llvm(fDsp);
+		delete_mydsp(fDsp);
 	}
 
-	virtual int getNumInputs() 	{ return getNumInputs_llvm(fDsp); }
-	virtual int getNumOutputs() { return getNumOutputs_llvm(fDsp); }
+	virtual int getNumInputs() 	{ return getNumInputs_mydsp(fDsp); }
+	virtual int getNumOutputs() { return getNumOutputs_mydsp(fDsp); }
 
 	static void classInit(int samplingFreq)
     {
-        classInit_llvm(samplingFreq);
+        classInit_mydsp(samplingFreq);
     }
 
 	virtual void instanceInit(int samplingFreq)
     {
-		instanceInit_llvm(fDsp, samplingFreq);
+		instanceInit_mydsp(fDsp, samplingFreq);
 	}
 
 	virtual void init(int samplingFreq) {
-		init_llvm(fDsp, samplingFreq);
+		init_mydsp(fDsp, samplingFreq);
 	}
 
 	virtual void buildUserInterface(UI* interface)
@@ -2085,12 +2085,12 @@ class llvmdsp : public dsp {
         glue.addHorizontalBargraph = addHorizontalBargraphGlue;
         glue.addVerticalBargraph = addVerticalBargraphGlue;
         glue.declare = declareGlue;
-        buildUserInterface_llvm(fDsp, &glue);
+        buildUserInterface_mydsp(fDsp, &glue);
  	}
 
 	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     {
-		compute_llvm(fDsp, count, input, output);
+		compute_mydsp(fDsp, count, input, output);
 	}
 };
 

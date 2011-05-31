@@ -488,8 +488,7 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
         pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
     pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
-    //fPrefix = gClassName + "_llvm";
-    fPrefix = gClassName;
+    fPrefix = "_" + gClassName;
 
     // Sub containers
     generateSubContainers();
