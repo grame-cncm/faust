@@ -736,7 +736,7 @@ void Klass::println(int n, ostream& fout)
     if (gSchedulerSwitch) {
         tab(n,fout); fout << "class " << fKlassName << " : public " << fSuperKlassName << ", public Runnable {";
     } else {
-        tab(n,fout); fout << "class " << fKlassName << " : public " << fSuperKlassName << "{";
+        tab(n,fout); fout << "class " << fKlassName << " : public " << fSuperKlassName << " {";
     }
 
     if (gUIMacroSwitch) {
@@ -754,7 +754,7 @@ void Klass::println(int n, ostream& fout)
     printMetadata(n+1, gMetaDataSet, fout);
 
     if (gSchedulerSwitch) {
-        tab(n+1,fout); fout << "virtual ~mydsp() \t{ "
+        tab(n+1,fout); fout << "virtual ~" << fKlassName << "() \t{ "
                             << "DSPThreadPool::Destroy()"
                             << "; }";
     }

@@ -152,6 +152,8 @@ int             gFloatSize = 1;
 
 bool			gPrintFileListSwitch = false;
 
+string			gClassName		= "mydsp";
+
 //-- command line tools
 
 static bool isCmd(const char* cmd, const char* kw1)
@@ -319,6 +321,10 @@ bool process_cmdline(int argc, char* argv[])
             gDumpNorm = true;
             i += 1;
 
+		} else if (isCmd(argv[i], "-cn", "--class-name")) {
+			gClassName = argv[i+1];
+			i += 2;
+
         } else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
@@ -383,7 +389,8 @@ void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
-    cout << "-o <file> \tC++ output file\n";
+	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
+	cout << "-o <file> \tC++ output file\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
@@ -607,9 +614,9 @@ int main (int argc, char* argv[])
 	startTiming("compilation");
 
 	Compiler* C;
-    if (gSchedulerSwitch)   C = new SchedulerCompiler("mydsp", "dsp", numInputs, numOutputs);
-    else if (gVectorSwitch) C = new VectorCompiler("mydsp", "dsp", numInputs, numOutputs);
-	else                    C = new ScalarCompiler("mydsp", "dsp", numInputs, numOutputs);
+	if (gSchedulerSwitch)   C = new SchedulerCompiler(gClassName, "dsp", numInputs, numOutputs);
+	else if (gVectorSwitch) C = new VectorCompiler(gClassName, "dsp", numInputs, numOutputs);
+	else                    C = new ScalarCompiler(gClassName, "dsp", numInputs, numOutputs);
 
 	if (gPrintXMLSwitch) C->setDescription(new Description());
 	if (gPrintDocSwitch) C->setDescription(new Description());
