@@ -46,12 +46,12 @@
 #include "prim2.hh"
 #include "xtended.hh"
 
-//#include "contextor.hh"
 #include "compatibility.hh"
 #include "ppsig.hh"
 
 extern bool	gLessTempSwitch;
-extern int	gMaxCopyDelay;
+extern int gMaxCopyDelay;
+extern string gClassName;
 
 static Klass* signal2klass (const string& name, Tree sig)
 {
@@ -738,7 +738,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 
 	// declaration de la table
 	fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
-	fClass->addStaticFields(subst("$0 \tmydsp::$1[$2];", ctype, vname, T(size)));
+	fClass->addStaticFields(subst("$0 \t$1::$2[$3];", ctype, gClassName, vname, T(size)));
 
 	// initialisation du generateur de contenu
 	fClass->addStaticInitCode(subst("$0.init(samplingFreq);", cexp));
