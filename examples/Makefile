@@ -123,6 +123,10 @@ netjackqt :
 	install -d netjackqtdir
 	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
 
+jackwt :
+	install -d jackwtdir
+	$(MAKE) DEST='jackwtdir/' ARCH='jack-wt.cpp' LIB='-I$(LIB)/faust/ -ljack -lwt -lwthttp -lboost_signals-mt $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.compile
+
 paqt :
 	install -d paqtdir
 	$(MAKE) DEST='paqtdir/' ARCH='pa-qt.cpp' LIB='-lportaudio $(OSCLIB)'  DEFS=$(QTDEFS) -f Makefile.qtcompile
