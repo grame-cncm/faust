@@ -6,7 +6,12 @@ ifeq ($(OSC),1)
 endif
 
 MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
+
+ifeq ($(system), Darwin)
 MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+else
+MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+endif
 
 VSIZE := 256
 
@@ -84,15 +89,15 @@ msjackgtk :
 
 jackqt :
 	install -d jackqtdir
-	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
+	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack $(OSCLIB)' DEFS=$(QTDEFS) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
 jackqtsch :
 	install -d jackqtschdir
-	$(MAKE) DEST='jackqtschdir/' ARCH='jack-qt.cpp' VEC='-sch -vs $(VSIZE)' LIB='-ljack' -f Makefile.qtcompile
+	$(MAKE) DEST='jackqtschdir/' ARCH='jack-qt.cpp' VEC='-sch -vs $(VSIZE)' LIB='-ljack' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
 netjackqt :
 	install -d netjackqtdir
-	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
+	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB)' DEFS=$(QTDEFS) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
 jackwt :
 	install -d jackwtdir
@@ -104,7 +109,7 @@ paqt :
 
 caqt :
 	install -d caqtdir
-	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB)'  DEFS=$(QTDEFS)  -f Makefile.qtcompile
+	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS)  DEFS=$(QTDEFS)  -f Makefile.qtcompile
 
 oscioqt :  OSCLIB = -L$(LIB)/faust/osclib -lOSCFaust -loscpack
 oscioqt :
