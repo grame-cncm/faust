@@ -45,15 +45,15 @@ class CCodeContainer : public virtual CodeContainer {
 
         CInstVisitor fCodeProducer;
         std::ostream* fOut;
-        string fStructName;
         string fPrefix;   // Prefix for function name
 
     public:
 
         CCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "")
-            : fCodeProducer(out, name, prefix), fOut(out), fStructName(name), fPrefix(prefix)
+            : fCodeProducer(out, name, prefix), fOut(out), fPrefix(prefix)
         {
             initializeCodeContainer(numInputs, numOutputs);
+            fKlassName = name;
         }
         virtual ~CCodeContainer()
         {}

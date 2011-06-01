@@ -651,7 +651,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     if (gOutputLang == "llvm") {
 
-        container = LLVMCodeContainer::createContainer(numInputs, numOutputs, dst);
+        container = LLVMCodeContainer::createContainer(gClassName, numInputs, numOutputs, dst);
 
         if (gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);

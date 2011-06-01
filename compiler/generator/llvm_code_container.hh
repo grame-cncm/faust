@@ -58,7 +58,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         Module* fModule;
         IRBuilder<>* fBuilder;
         LLVMInstVisitor* fCodeProducer;
-        string fPrefix;   // Prefix for function name
+        //string fPrefix;   // Prefix for function name
         bool fNeedDelete;
 
         void generateComputeBegin(const string& counter);
@@ -132,10 +132,10 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
     public:
 
-        LLVMCodeContainer(int numInputs, int numOutputs, const string& prefix = "")
-            : fPrefix(prefix)
+        LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
         {
             initializeCodeContainer(numInputs, numOutputs);
+            fKlassName = name;
 
             InitializeNativeTarget();
             fModule = new Module("Faust LLVM backend", getGlobalContext());
@@ -151,10 +151,10 @@ class LLVMCodeContainer : public virtual CodeContainer {
             fOutputRates.resize(numOutputs);
         }
 
-         LLVMCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, const string& prefix = "")
-            : fPrefix(prefix)
+         LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, IRBuilder<>* builder)
         {
             initializeCodeContainer(numInputs, numOutputs);
+            fKlassName = name;
             fModule = module;
             fBuilder = builder;
             fNeedDelete = false;
@@ -174,7 +174,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(int numInputs, int numOutputs, ostream* dst);
+        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst);
 
 };
 
@@ -184,8 +184,8 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
 
     public:
 
-        LLVMScalarCodeContainer(int numInputs, int numOutputs, const string& module_name = "");
-        LLVMScalarCodeContainer(int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, int sub_container_type, const string& prefix = "");
+        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
+        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, int sub_container_type);
         virtual ~LLVMScalarCodeContainer();
 
         void generateCompute();
@@ -198,7 +198,7 @@ class LLVMVectorCodeContainer : public VectorCodeContainer, public LLVMCodeConta
 
     public:
 
-        LLVMVectorCodeContainer(int numInputs, int numOutputs, const string& module_name = "");
+        LLVMVectorCodeContainer(const string& name, int numInputs, int numOutputs);
         virtual ~LLVMVectorCodeContainer();
 
         void generateCompute();
@@ -224,7 +224,7 @@ class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeConta
 
     public:
 
-        LLVMOpenMPCodeContainer(int numInputs, int numOutputs, const string& module_name = "");
+        LLVMOpenMPCodeContainer(const string& name, int numInputs, int numOutputs);
         virtual ~LLVMOpenMPCodeContainer();
 
         void generateCompute();
@@ -241,7 +241,7 @@ class LLVMWorkStealingCodeContainer : public WSSCodeContainer, public LLVMCodeCo
 
     public:
 
-        LLVMWorkStealingCodeContainer(int numInputs, int numOutputs, const string& module_name = "");
+        LLVMWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs);
         virtual ~LLVMWorkStealingCodeContainer();
 
         void generateCompute();

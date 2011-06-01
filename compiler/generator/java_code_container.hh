@@ -46,15 +46,15 @@ class JAVACodeContainer : public virtual CodeContainer {
 
         JAVAInstVisitor fCodeProducer;
         std::ostream* fOut;
-        string fKlassName;
         string fSuperKlassName;
 
     public:
 
         JAVACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
+            :fCodeProducer(out), fOut(out), fSuperKlassName(super)
         {
             initializeCodeContainer(numInputs, numOutputs);
+            fKlassName = name;
         }
         virtual ~JAVACodeContainer()
         {}

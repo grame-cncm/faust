@@ -56,6 +56,7 @@ class CodeContainer {
 
         int fNumInputs;
         int fNumOutputs;
+        string fKlassName;
         vector<int> fInputRates;
         vector<int> fOutputRates;
 
@@ -304,6 +305,8 @@ class CodeContainer {
                 (*it)->produceInternal();
             }
         }
+
+        string getClassName() { return fKlassName; }
 
         // UI construction
         void addUIMacro(const string& str)  { fUIMacro.push_back(str); }

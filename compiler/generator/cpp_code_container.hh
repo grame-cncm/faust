@@ -49,7 +49,6 @@ class CPPCodeContainer : public virtual CodeContainer {
 
         CPPInstVisitor fCodeProducer;
         std::ostream* fOut;
-        string fKlassName;
         string fSuperKlassName;
 
         void produceInfoFunctions(int tabs, const string& classname, bool isVirtual);
@@ -59,9 +58,10 @@ class CPPCodeContainer : public virtual CodeContainer {
     public:
 
         CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            : fCodeProducer(out), fOut(out), fKlassName(name), fSuperKlassName(super)
+            : fCodeProducer(out), fOut(out), fSuperKlassName(super)
         {
             initializeCodeContainer(numInputs, numOutputs);
+            fKlassName = name;
         }
 
         virtual void produceClass();

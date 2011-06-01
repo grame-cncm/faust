@@ -87,7 +87,7 @@ void CCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "struct " << fPrefix << fStructName << " {";
+    tab(n, *fOut); *fOut << "struct " << fPrefix << fKlassName << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -101,27 +101,27 @@ void CCodeContainer::produceInternal()
     // Memory methods
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "static " << fPrefix << "* " << " new" << fPrefix << "() { "
-                        << "return (" << fPrefix << fStructName  << "*)malloc(sizeof(" << fPrefix << fStructName << "))"
+                        << "return (" << fPrefix << fKlassName  << "*)malloc(sizeof(" << fPrefix << fKlassName << "))"
                         << "; }";
 
-    tab(n, *fOut); *fOut << "static void " << "delete" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "static void " << "delete" << fPrefix << "(" << fPrefix << fKlassName << "* dsp) { "
                         << "free(dsp)"
                         << "; }";
 
     // Input method
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static int getNumInputs" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "static int getNumInputs" << fPrefix << "(" << fPrefix << fKlassName << "* dsp) { "
                         << "return " << fNumInputs
                         << "; }";
 
     // Output method
-    tab(n, *fOut); *fOut << "static int getNumOutputs" << fPrefix << "(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "static int getNumOutputs" << fPrefix << "(" << fPrefix << fKlassName << "* dsp) { "
                         << "return " << fNumOutputs
                         << "; }";
 
     // Init
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static void " << "instanceInit" << fPrefix << "(" << fPrefix << fStructName << "* dsp, int samplingFreq) {";
+    tab(n, *fOut); *fOut << "static void " << "instanceInit" << fPrefix << "(" << fPrefix << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateInit(&fCodeProducer);
@@ -131,9 +131,9 @@ void CCodeContainer::produceInternal()
     tab(n, *fOut);
     string counter = "count";
     if (fSubContainerType == kInt) {
-        tab(n, *fOut); *fOut << "static void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, int* output) {", counter);
+        tab(n, *fOut); *fOut << "static void " << "fill" << fPrefix << "(" << fPrefix << fKlassName << subst("* dsp, int $0, int* output) {", counter);
     } else {
-        tab(n, *fOut); *fOut << "static void " << "fill" << fPrefix << "(" << fPrefix << fStructName << subst("* dsp, int $0, $1* output) {", counter, ifloat());
+        tab(n, *fOut); *fOut << "static void " << "fill" << fPrefix << "(" << fPrefix << fKlassName << subst("* dsp, int $0, $1* output) {", counter, ifloat());
     }
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
@@ -165,7 +165,7 @@ void CCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "struct " << fPrefix << fStructName << " {";
+    tab(n, *fOut); *fOut << "struct " << fPrefix << fKlassName << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -178,12 +178,12 @@ void CCodeContainer::produceClass()
 
     // Memory methods
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << fPrefix << fStructName << "* " << fPrefix << "newDsp() { "
-                        << "return (" << fPrefix << fStructName  << "*)malloc(sizeof(" << fPrefix << fStructName << "))"
+    tab(n, *fOut); *fOut << fPrefix << fKlassName << "* " << fPrefix << "newDsp() { "
+                        << "return (" << fPrefix << fKlassName  << "*)malloc(sizeof(" << fPrefix << fKlassName << "))"
                         << "; }";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static void destroyDsp(" << fPrefix << fStructName << "* dsp) {";
+    tab(n, *fOut); *fOut << "static void destroyDsp(" << fPrefix << fKlassName << "* dsp) {";
                     if (fDestroyInstructions->fCode.size() > 0) {
                         tab(n+1, *fOut);
                         fDestroyInstructions->accept(&fCodeProducer);
@@ -191,7 +191,7 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);  *fOut << "}";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "deleteDsp(" << fPrefix << fStructName << "* dsp) { ";
+    tab(n, *fOut); *fOut << "void " << fPrefix << "deleteDsp(" << fPrefix << fKlassName << "* dsp) { ";
         tab(n+1, *fOut); *fOut << "destroyDsp(dsp);";
         tab(n+1, *fOut); *fOut << "free(dsp);";
     tab(n, *fOut);  *fOut << "}";
@@ -218,22 +218,22 @@ void CCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "}" << endl;
 
     // Get sample rate method
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getSampleRate(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getSampleRate(" << fPrefix << fKlassName << "* dsp) { "
                         << "return dsp->fSamplingFreq"
                         << "; }";
 
     // Input method
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getNumInputs(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getNumInputs(" << fPrefix << fKlassName << "* dsp) { "
                         << "return " << fNumInputs
                         << "; }";
 
     // Output method
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getNumOutputs(" << fPrefix << fStructName << "* dsp) { "
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getNumOutputs(" << fPrefix << fKlassName << "* dsp) { "
                         << "return " << fNumOutputs
                         << "; }";
 
     // Input Rates
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getInputRate(" << fPrefix << fStructName << "* dsp, int channel) { ";
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getInputRate(" << fPrefix << fKlassName << "* dsp, int channel) { ";
         tab(n+1, *fOut); *fOut << "switch (channel) {";
             for (int i = 0; i != fNumInputs; ++i) {
                 tab(n+2, *fOut); *fOut << "case " << i << ": return " << fInputRates[i] << ";";
@@ -243,7 +243,7 @@ void CCodeContainer::produceClass()
    tab(n, *fOut); *fOut << "}";
 
      // Output Rates
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getOutputRate(" << fPrefix << fStructName << "* dsp, int channel) { ";
+    tab(n, *fOut); *fOut << "int " << fPrefix << "getOutputRate(" << fPrefix << fKlassName << "* dsp, int channel) { ";
         tab(n+1, *fOut); *fOut << "switch (channel) {";
             for (int i = 0; i != fNumOutputs; ++i) {
                 tab(n+2, *fOut); *fOut << "case " << i << ": return " << fOutputRates[i] << ";";
@@ -264,21 +264,21 @@ void CCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "instanceInit(" << fPrefix << fStructName << "* dsp, int samplingFreq) {";
+    tab(n, *fOut); *fOut << "void " << fPrefix << "instanceInit(" << fPrefix << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateInit(&fCodeProducer);
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "init(" << fPrefix << fStructName << "* dsp, int samplingFreq) {";
+    tab(n, *fOut); *fOut << "void " << fPrefix << "init(" << fPrefix << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut); *fOut << fPrefix << "classInit(samplingFreq);";
         tab(n+1, *fOut); *fOut << fPrefix << "instanceInit(dsp, samplingFreq);";
     tab(n, *fOut); *fOut << "}";
 
     // User interface
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "buildUserInterface(" << fPrefix << fStructName << "* dsp, UIGlue* interface) {";
+    tab(n, *fOut); *fOut << "void " << fPrefix << "buildUserInterface(" << fPrefix << fKlassName << "* dsp, UIGlue* interface) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateUserInterface(&fCodeProducer);
@@ -314,7 +314,7 @@ void CScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -344,7 +344,7 @@ void CVectorCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -370,7 +370,7 @@ void COpenMPCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -402,7 +402,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Generates "computeThread" code
-    tab(n, *fOut); *fOut << "void computeThread(" << fPrefix << fStructName << "* dsp, int num_thread) {";
+    tab(n, *fOut); *fOut << "void computeThread(" << fPrefix << fKlassName << "* dsp, int num_thread) {";
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -413,7 +413,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
 
     // Compute "compute" declaration
 
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fStructName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -423,6 +423,6 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     tab(n, *fOut); *fOut << "}" << endl;
 
     tab(n, *fOut); *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
-        tab(n+1, *fOut); *fOut << "computeThread((" << fPrefix << fStructName << "*)dsp, num_thread);";
+        tab(n+1, *fOut); *fOut << "computeThread((" << fPrefix << fKlassName << "*)dsp, num_thread);";
     tab(n, *fOut); *fOut << "}" << endl;
 }
