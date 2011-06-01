@@ -738,7 +738,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 
 	// declaration de la table
 	fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
-	fClass->addStaticFields(subst("$0 \tmydsp::$1[$2];", ctype, vname, T(size)));
+    fClass->addStaticFields(subst("$0 \t$3::$1[$2];", ctype, vname, T(size), fClass->getClassName() ));
 
 	// initialisation du generateur de contenu
 	fClass->addStaticInitCode(subst("$0.init(samplingFreq);", cexp));
