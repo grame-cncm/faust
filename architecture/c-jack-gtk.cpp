@@ -1978,28 +1978,28 @@ class Cdsp : public dsp {
 
 	Cdsp()
 	{
-        fDsp = c_newDsp();
+        fDsp = new_mydsp();
 	}
 
 	virtual ~Cdsp()
 	{
-		c_deleteDsp(fDsp);
+		delete_mydsp(fDsp);
 	}
-	virtual int getNumInputs() 	{ return c_getNumInputs(fDsp); }
-	virtual int getNumOutputs() { return c_getNumOutputs(fDsp); }
+	virtual int getNumInputs() 	{ return getNumInputs_mydsp(fDsp); }
+	virtual int getNumOutputs() { return getNumOutputs_mydsp(fDsp); }
 
 	static void classInit(int samplingFreq)
     {
-        c_classInit(samplingFreq);
+        classInit_mydsp(samplingFreq);
     }
 
 	virtual void instanceInit(int samplingFreq)
     {
-		c_instanceInit(fDsp, samplingFreq);
+		instanceInit_mydsp(fDsp, samplingFreq);
 	}
 
 	virtual void init(int samplingFreq) {
-		c_init(fDsp, samplingFreq);
+		init_mydsp(fDsp, samplingFreq);
 	}
 
 	virtual void buildUserInterface(UI* interface)
@@ -2023,12 +2023,12 @@ class Cdsp : public dsp {
         glue.addVerticalBargraph = addVerticalBargraphGlue;
         glue.declare = declareGlue;
 
-        c_buildUserInterface(fDsp, &glue);
+        buildUserInterface_mydsp(fDsp, &glue);
   	}
 
 	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     {
-		c_compute(fDsp, count, input, output);
+		compute_mydsp(fDsp, count, input, output);
 	}
 };
 

@@ -65,14 +65,16 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
         exit(1);
     }
 
+    string prefix = "c";
+
     if (gOpenMPSwitch) {
-        container = new COpenMPCodeContainer(name, numInputs, numOutputs, dst, "c_");
+        container = new COpenMPCodeContainer(name, numInputs, numOutputs, dst, prefix);
     } else if (gSchedulerSwitch) {
-        container = new CWorkStealingCodeContainer(name, numInputs, numOutputs, dst, "c_");
+        container = new CWorkStealingCodeContainer(name, numInputs, numOutputs, dst, prefix);
     } else if (gVectorSwitch) {
-        container = new CVectorCodeContainer(name, numInputs, numOutputs, dst, "c_");
+        container = new CVectorCodeContainer(name, numInputs, numOutputs, dst, prefix);
     } else {
-        container = new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, "c_");
+        container = new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, prefix);
     }
 
     return container;
@@ -148,6 +150,8 @@ void CCodeContainer::produceClass()
 {
     int n = 0;
 
+    fKlassName = "_" + fKlassName;
+
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     if (!fGeneratedSR)
         pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
@@ -178,12 +182,12 @@ void CCodeContainer::produceClass()
 
     // Memory methods
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << fPrefix << fKlassName << "* " << fPrefix << "newDsp() { "
+    tab(n, *fOut); *fOut << fPrefix << fKlassName << "* " << "new" << fKlassName << "(){ "
                         << "return (" << fPrefix << fKlassName  << "*)malloc(sizeof(" << fPrefix << fKlassName << "))"
                         << "; }";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static void destroyDsp(" << fPrefix << fKlassName << "* dsp) {";
+    tab(n, *fOut); *fOut << "static void " << "destroy" << fKlassName << "(" << fPrefix << fKlassName << "* dsp) {";
                     if (fDestroyInstructions->fCode.size() > 0) {
                         tab(n+1, *fOut);
                         fDestroyInstructions->accept(&fCodeProducer);
@@ -191,15 +195,15 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);  *fOut << "}";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "deleteDsp(" << fPrefix << fKlassName << "* dsp) { ";
-        tab(n+1, *fOut); *fOut << "destroyDsp(dsp);";
+    tab(n, *fOut); *fOut << "void " << "delete" << fKlassName << "(" << fPrefix << fKlassName << "* dsp) { ";
+        tab(n+1, *fOut); *fOut << "destroy" << fKlassName << "(dsp);";
         tab(n+1, *fOut); *fOut << "free(dsp);";
     tab(n, *fOut);  *fOut << "}";
 
 
     // Print metadata declaration
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "metadata(Meta* m) { ";
+    tab(n, *fOut); *fOut << "void " << "metadata(Meta* m) { ";
 
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
@@ -218,22 +222,22 @@ void CCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "}" << endl;
 
     // Get sample rate method
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getSampleRate(" << fPrefix << fKlassName << "* dsp) { "
+    tab(n, *fOut); *fOut << "int " << "getSampleRate" << fKlassName << "(" << fPrefix << fKlassName << "* dsp) { "
                         << "return dsp->fSamplingFreq"
                         << "; }";
 
     // Input method
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getNumInputs(" << fPrefix << fKlassName << "* dsp) { "
+    tab(n, *fOut); *fOut << "int " << "getNumInputs" << fKlassName << "(" << fPrefix << fKlassName << "* dsp) { "
                         << "return " << fNumInputs
                         << "; }";
 
     // Output method
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getNumOutputs(" << fPrefix << fKlassName << "* dsp) { "
+    tab(n, *fOut); *fOut << "int " << "getNumOutputs" << fKlassName << "(" << fPrefix << fKlassName << "* dsp) { "
                         << "return " << fNumOutputs
                         << "; }";
 
     // Input Rates
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getInputRate(" << fPrefix << fKlassName << "* dsp, int channel) { ";
+    tab(n, *fOut); *fOut << "int " << "getInputRate" << fKlassName << "(" << fPrefix << fKlassName << "* dsp, int channel) { ";
         tab(n+1, *fOut); *fOut << "switch (channel) {";
             for (int i = 0; i != fNumInputs; ++i) {
                 tab(n+2, *fOut); *fOut << "case " << i << ": return " << fInputRates[i] << ";";
@@ -243,7 +247,7 @@ void CCodeContainer::produceClass()
    tab(n, *fOut); *fOut << "}";
 
      // Output Rates
-    tab(n, *fOut); *fOut << "int " << fPrefix << "getOutputRate(" << fPrefix << fKlassName << "* dsp, int channel) { ";
+    tab(n, *fOut); *fOut << "int " << "getOutputRate" << fKlassName << "(" << fPrefix << fKlassName << "* dsp, int channel) { ";
         tab(n+1, *fOut); *fOut << "switch (channel) {";
             for (int i = 0; i != fNumOutputs; ++i) {
                 tab(n+2, *fOut); *fOut << "case " << i << ": return " << fOutputRates[i] << ";";
@@ -254,7 +258,7 @@ void CCodeContainer::produceClass()
 
     // Inits
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "classInit(int samplingFreq) {";
+    tab(n, *fOut); *fOut << "void " << "classInit" << fKlassName << "(int samplingFreq) {";
         if (fStaticInitInstructions->fCode.size() > 0) {
             tab(n+1, *fOut);
             CInstVisitor codeproducer(fOut, "", "");
@@ -264,21 +268,21 @@ void CCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "instanceInit(" << fPrefix << fKlassName << "* dsp, int samplingFreq) {";
+    tab(n, *fOut); *fOut << "void " << "instanceInit" << fKlassName << "(" << fPrefix << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateInit(&fCodeProducer);
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "init(" << fPrefix << fKlassName << "* dsp, int samplingFreq) {";
-        tab(n+1, *fOut); *fOut << fPrefix << "classInit(samplingFreq);";
-        tab(n+1, *fOut); *fOut << fPrefix << "instanceInit(dsp, samplingFreq);";
+    tab(n, *fOut); *fOut << "void " << "init" << fKlassName << "(" << fPrefix << fKlassName << "* dsp, int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "classInit" << fKlassName << "(samplingFreq);";
+        tab(n+1, *fOut); *fOut << "instanceInit" << fKlassName << "(dsp, samplingFreq);";
     tab(n, *fOut); *fOut << "}";
 
     // User interface
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "buildUserInterface(" << fPrefix << fKlassName << "* dsp, UIGlue* interface) {";
+    tab(n, *fOut); *fOut << "void " << "buildUserInterface" << fKlassName << "(" << fPrefix << fKlassName << "* dsp, UIGlue* interface) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateUserInterface(&fCodeProducer);
@@ -314,7 +318,7 @@ void CScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << "compute" << fKlassName << "(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -344,7 +348,7 @@ void CVectorCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << "compute" << fKlassName << "(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -370,7 +374,7 @@ void COpenMPCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << "compute" << fKlassName << "(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -402,7 +406,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Generates "computeThread" code
-    tab(n, *fOut); *fOut << "void computeThread(" << fPrefix << fKlassName << "* dsp, int num_thread) {";
+    tab(n, *fOut); *fOut << "static void " << "computeThread(" << fPrefix << fKlassName << "* dsp, int num_thread) {";
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -413,7 +417,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
 
     // Compute "compute" declaration
 
-    tab(n, *fOut); *fOut << "void " << fPrefix << "compute(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    tab(n, *fOut); *fOut << "void " << "compute" << fKlassName << "(" << fPrefix << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+1, *fOut);
     fCodeProducer.Tab(n+1);
 
@@ -422,7 +426,7 @@ void CWorkStealingCodeContainer::generateCompute(int n)
 
     tab(n, *fOut); *fOut << "}" << endl;
 
-    tab(n, *fOut); *fOut << "void computeThreadExternal(void* dsp, int num_thread) {";
+    tab(n, *fOut); *fOut << "void " << "computeThreadExternal(void* dsp, int num_thread) {";
         tab(n+1, *fOut); *fOut << "computeThread((" << fPrefix << fKlassName << "*)dsp, num_thread);";
     tab(n, *fOut); *fOut << "}" << endl;
 }
