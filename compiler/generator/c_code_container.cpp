@@ -203,7 +203,7 @@ void CCodeContainer::produceClass()
 
     // Print metadata declaration
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << "metadata(Meta* m) { ";
+    tab(n, *fOut); *fOut << "void " << "metadata" << fKlassName << "(Meta* m) { ";
 
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
