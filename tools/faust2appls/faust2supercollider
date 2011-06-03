@@ -106,10 +106,10 @@ for p in $FILES; do
     mv "$SRCDIR/$f.xml" $TMP/
     faust -a supercollider.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
-    # compile c++ to binary
+    # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
         cd "$TMP"
-        faust2sc $f.xml > "${f%.dsp}.sc" 2>/dev/null
+        faust2sc --prefix=Faust $f.xml > "${f%.dsp}.sc" 2>/dev/null
         ${CXX=g++}  -O3 $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
     )> /dev/null
 

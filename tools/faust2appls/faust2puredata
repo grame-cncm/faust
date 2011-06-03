@@ -55,7 +55,7 @@ if [[ $(uname) == Darwin ]]; then
     EXT="~.pd_darwin"
 else
     CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -ffast-math"
-    LIB="-I/usr/include/pd -fPIC -shared"
+    LIB="-I/usr/include/pd -I/usr/include/pdextended -fPIC -shared"
     EXT="~.pd_linux"
 fi
 

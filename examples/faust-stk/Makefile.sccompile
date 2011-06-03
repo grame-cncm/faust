@@ -31,7 +31,7 @@ $(DEST)%.cpp: %.dsp
 	faust -a $(ARCH) $< -o $@
 
 $(DEST)%.so: $(DEST)%.cpp
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(LIB) $< -o $@
+	$(CXX) -I. $(CXXFLAGS) $(OPTFLAGS) $(LIB) $< -o $@
 
 $(DEST)%.sc : %.dsp.xml
 	faust2sc --prefix=Faust $< --output=$@

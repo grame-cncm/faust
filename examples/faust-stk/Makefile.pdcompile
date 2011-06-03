@@ -25,7 +25,7 @@ LINUXINCLUDE 	:= -I/usr/include/pdextended
 ###
 DARWINCFLAGS 	:= -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC -Wall -msse
 DYNLOAD_FLAGS	:= -bundle -undefined suppress -flat_namespace
-DARWININCLUDE 	:= -I/Applications/Pd-extended.app/Contents/Resources/include/
+DARWININCLUDE 	:= -I/Applications/Pd-extended.app/Contents/Resources/include/  -I/opt/local/include
 
 ###--------------------------------------------
 ### check what type of modules to build (MacOSX Darwin or Linux)
@@ -65,10 +65,10 @@ $(DEST)%.pd: %.dsp
 	rm -f $<.xml
 
 $(DEST)%~.pd_linux: $(DEST)%.cpp
-	$(CXX) $(INC) $(LINUXCFLAGS) $(LINUXINCLUDE) $(LIB) $(OPTIONAL) -shared -Dmydsp=$(patsubst %~.pd_linux,%,$(notdir $@)) $< -o $@
+	$(CXX) $(LINUXCFLAGS) $(LINUXINCLUDE) $(OPTIONAL) -shared -Dmydsp=$(patsubst %~.pd_linux,%,$(notdir $@)) $< -o $@
 
 $(DEST)%~.pd_darwin: $(DEST)%.cpp
-	$(CXX) $(INC) $(DARWINCFLAGS) $(DARWININCLUDE) $(LIB) $(DYNLOAD_FLAGS) $(OPTIONAL) -Dmydsp=$(patsubst %~.pd_darwin,%,$(notdir $@)) $< -o $@
+	$(CXX) $(DARWINCFLAGS) $(DARWININCLUDE) $(DYNLOAD_FLAGS) $(OPTIONAL) -Dmydsp=$(patsubst %~.pd_darwin,%,$(notdir $@)) $< -o $@
 
 clean:
 	rm -rf $(DEST)
