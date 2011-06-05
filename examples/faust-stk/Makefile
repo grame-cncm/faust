@@ -265,9 +265,6 @@ q :
 	install -d qdir
 	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='' -f Makefile.qcompile
 
-sctest:
-	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' test -f Makefile.sccompile
-
 supercollider sc:
 	install -d supercolliderdir
 	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' -f Makefile.sccompile
