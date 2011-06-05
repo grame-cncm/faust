@@ -1,9 +1,12 @@
 # Makefile to produce supercollider plugins with Faust
-# 	'foo.dsp' -> 'foo.so' and 'foo.sc'
+#  'foo.dsp' -> 'foo.so|scx' and 'foo.sc' which can be copied to
+#  $HOME/share/SuperCollider/Extensions (Linux) or 
+#  [$HOME]/Library/Application Support/SuperCollider/Extensions (Darwin)
 
 system		:= $(shell uname -s)
 dspsrc  	:= $(wildcard *.dsp)
 scfiles		:= $(addprefix $(DEST), $(dspsrc:.dsp=.sc))
+scxfiles	:= $(addprefix $(DEST), $(dspsrc:.dsp=.scx))
 sofiles		:= $(addprefix $(DEST), $(dspsrc:.dsp=.so))
 
 # Directory containing SuperCollider header files (Darwin case, no pkg-config assumed):
@@ -27,11 +30,13 @@ MYCFLAGS 	:= $(CXXFLAGS) $(DARWINCFLAGS) -I$(SCINC)/common -I$(SCINC)/server -I$
 OBJT 		:= -bundle -undefined suppress -flat_namespace -funroll-loops -fomit-frame-pointer
 SEDFLAG1	:=
 SEDFLAG2	:=d
+otodo		:=scxfiles
 else
 MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
 OBJT 		:= -shared
 SEDFLAG1	:=s
 SEDFLAG2	:=/i
+otodo		:=sofiles
 endif
 
 ###--------------------------------------------
@@ -41,9 +46,9 @@ endif
 helper:=$(shell whereis faust2sc)
 
 ifeq ($(helper),faust2sc:)
-	todo:=$(sofiles)
+	todo:=$(otodo)
 else
-	todo:=$(sofiles) $(scfiles)
+	todo:=$(otodo) $(scfiles)
 endif
 
 
@@ -60,6 +65,9 @@ $(DEST)%.cpp: %.dsp.noname
 	faust -a $(ARCH) $< -o $@
 
 $(DEST)%.so: $(DEST)%.cpp
+	$(CXX) -I. $(MYCFLAGS) $(OPTFLAGS) $(OBJT) $< -o $@
+
+$(DEST)%.scx: $(DEST)%.cpp
 	$(CXX) -I. $(MYCFLAGS) $(OPTFLAGS) $(OBJT) $< -o $@
 
 $(DEST)%.sc : %.dsp.noname.xml
