@@ -272,6 +272,9 @@ supercollider sc:
 	install -d supercolliderdir
 	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' -f Makefile.sccompile
 
+sctest:
+	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' test -f Makefile.sccompile
+
 # supercollider :
 # 	ls *.dsp | ../../tools/scbuilder/scbuilder \
 # 			FAUST2SC=../../tools/faust2sc-1.0.0/faust2sc \
