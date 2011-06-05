@@ -24,11 +24,13 @@ SCINC := $(if $(wildcard $(dir3)),$(dir3),$(SCINC))
 ifeq ($(system),Darwin)
 MYCFLAGS 	:= $(CXXFLAGS) -I/usr/local/include -I/opt/local/include -I/usr/include -I/usr/include/machine -I$(SCINC)/common -I$(SCINC)/server -I$(SCINC)/plugin_interface
 OBJT 		:= -bundle -undefined suppress -flat_namespace -funroll-loops -fomit-frame-pointer
-SEDFLAG		:=
+SEDFLAG1	:=
+SEDFLAG2	:=d
 else
 MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
 OBJT 		:= -shared
-SEDFLAG		:= i
+SEDFLAG1	:=s
+SEDFLAG2	:=/i
 endif
 
 ###--------------------------------------------
@@ -66,4 +68,12 @@ $(DEST)%.sc : %.dsp.noname.xml
 	faust --xml -o /dev/null $<
 
 %.dsp.noname: %.dsp
-	sed -e 's/^\s*declare\s\s*name\s.*//$(SEDFLAG)' $< >$@
+	sed -e '$(SEDFLAG1)/[ ^I]*declare[ ^I]*name[ ^I].*/$(SEDFLAG2)' $< >$@
+
+# Make one case and leave intermediate make-products lying around:
+test:
+	sed -e '$(SEDFLAG1)/[ ^I]*declare[ ^I]*name[ ^I].*/$(SEDFLAG2)' harpsi.dsp > harpsi.dsp.noname
+	faust --xml -o /dev/null harpsi.dsp.noname
+	faust -a $(ARCH) harpsi.dsp.noname -o harpsi.cpp
+	$(CXX) -I. $(MYCFLAGS) $(OPTFLAGS) $(OBJT) harpsi.cpp -o harpsi.so
+	faust2sc --prefix=Faust harpsi.dsp.noname.xml --output=harpsi.sc
