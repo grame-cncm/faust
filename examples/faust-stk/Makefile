@@ -265,11 +265,9 @@ q :
 	install -d qdir
 	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='' -f Makefile.qcompile
 
-SCCFLAGS := $(MYGCCFLAGS:'=) `pkg-config --cflags libscsynth`'
-
 supercollider sc:
 	install -d supercolliderdir
-	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(SCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' -f Makefile.sccompile
+	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' -f Makefile.sccompile
 
 # supercollider :
 # 	ls *.dsp | ../../tools/scbuilder/scbuilder \

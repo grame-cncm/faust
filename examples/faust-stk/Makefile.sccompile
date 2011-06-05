@@ -1,13 +1,35 @@
 # Makefile to produce supercollider plugins with Faust
 # 	'foo.dsp' -> 'foo.so' and 'foo.sc'
-#
 
+system		:= $(shell uname -s)
 dspsrc  	:= $(wildcard *.dsp)
 scfiles		:= $(addprefix $(DEST), $(dspsrc:.dsp=.sc))
 sofiles		:= $(addprefix $(DEST), $(dspsrc:.dsp=.so))
-CXXFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
-LIB 		:= -shared
 
+# Directory containing SuperCollider header files (Darwin case, no pkg-config assumed):
+dir1 := /usr/local/include/SuperCollider
+dir2 := /opt/local/include/SuperCollider
+dir3 := $(SUPERCOLLIDER_HEADERS)
+
+# There is a bug in GNU Make on Mac OS X (Xcode 4.0, Build 4A304a) which
+# results in $(wildcard <specific_file>) being nil when <specific_file>
+# exists.  As a result, we obtain and truth-test a list of files instead of one:
+SCINC := $(if $(wildcard $(dir1)),$(dir1),)
+SCINC := $(if $(wildcard $(dir2)),$(dir2),$(SCINC))
+SCINC := $(if $(wildcard $(dir3)),$(dir3),$(SCINC))
+
+###--------------------------------------------
+### check what type of modules to build (MacOSX Darwin or Linux)
+###
+ifeq ($(system),Darwin)
+MYCFLAGS 	:= $(CXXFLAGS) -I/usr/local/include -I/opt/local/include -I/usr/include -I/usr/include/machine -I$(SCINC)/common -I$(SCINC)/server -I$(SCINC)/plugin_interface
+OBJT 		:= -bundle -undefined suppress -flat_namespace -funroll-loops -fomit-frame-pointer
+SEDFLAG		:=
+else
+MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
+OBJT 		:= -shared
+SEDFLAG		:= i
+endif
 
 ###--------------------------------------------
 ### Will use faust2sc to create the class file
@@ -35,7 +57,7 @@ $(DEST)%.cpp: %.dsp.noname
 	faust -a $(ARCH) $< -o $@
 
 $(DEST)%.so: $(DEST)%.cpp
-	$(CXX) -I. $(CXXFLAGS) $(OPTFLAGS) $(LIB) $< -o $@
+	$(CXX) -I. $(MYCFLAGS) $(OPTFLAGS) $(OBJT) $< -o $@
 
 $(DEST)%.sc : %.dsp.noname.xml
 	faust2sc --prefix=Faust $< --output=$@
@@ -44,4 +66,4 @@ $(DEST)%.sc : %.dsp.noname.xml
 	faust --xml -o /dev/null $<
 
 %.dsp.noname: %.dsp
-	sed -e 's/^\s*declare\s\s*name\s.*//i' $< >$@
+	sed -e 's/^\s*declare\s\s*name\s.*//$(SEDFLAG)' $< >$@
