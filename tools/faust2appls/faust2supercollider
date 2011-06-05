@@ -13,15 +13,15 @@
 
 # Possible path
 
-SC0="/usr/include/SuperCollider"
-SC1="/usr/include/supercollider"
-SC2="/usr/local/include/SuperCollider"
-SC3="/usr/local/include/supercollider"
-SC4=$SUPERCOLLIDER_HEADERS
+SC0=$SUPERCOLLIDER_HEADERS
+SC1="/usr/include/SuperCollider"
+SC2="/usr/include/supercollider"
+SC3="/usr/local/include/SuperCollider"
+SC4="/usr/local/include/supercollider"
 
 # check if directory exists
 
-if [ -d $SC0 ]; then
+if [ -d $SC0/plugin_interface ]; then
 	SC=$SC0
 elif [ -d $SC1 ]; then
 	SC=$SC1
@@ -29,7 +29,7 @@ elif [ -d $SC2 ]; then
 	SC=$SC2
 elif [ -d $SC3 ]; then
 	SC=$SC3
-elif [ -d $SC4/plugin_interface ]; then
+elif [ -d $SC4 ]; then
 	SC=$SC4
 else 
 	echo "Can't find SuperCollider headers"

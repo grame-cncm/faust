@@ -27,15 +27,21 @@ endif
 
 all : $(todo)
 
-$(DEST)%.cpp: %.dsp
+# TEMPORARY WORKAROUND: We strip out the <name> metadata here because it
+# is used for the SuperCollider class name and shared-object load module
+# and fails to work when the name contains spaces:
+
+$(DEST)%.cpp: %.dsp.noname
 	faust -a $(ARCH) $< -o $@
 
 $(DEST)%.so: $(DEST)%.cpp
 	$(CXX) -I. $(CXXFLAGS) $(OPTFLAGS) $(LIB) $< -o $@
 
-$(DEST)%.sc : %.dsp.xml
+$(DEST)%.sc : %.dsp.noname.xml
 	faust2sc --prefix=Faust $< --output=$@
 
-%.dsp.xml: %.dsp
+%.dsp.noname.xml: %.dsp.noname
 	faust --xml -o /dev/null $<
 
+%.dsp.noname: %.dsp
+	sed -e 's/^\s*declare\s\s*name\s.*//i' $< >$@

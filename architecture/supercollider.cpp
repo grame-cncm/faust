@@ -477,7 +477,7 @@ void Faust_next_clear(Faust* unit, int inNumSamples)
     ClearUnitOutputs(unit, inNumSamples);
 }
 
-void Faust_Ctor(Faust* unit)
+void Faust_Ctor(Faust* unit)  // module constructor
 {
     // init dsp
     unit->mDSP.instanceInit((int)SAMPLERATE);
@@ -543,7 +543,7 @@ void Faust_Ctor(Faust* unit)
     }
 }
 
-void Faust_Dtor(Faust* unit)
+void Faust_Dtor(Faust* unit)  // module destructor
 {
     if (unit->mInBufValue) {
         RTFree(unit->mWorld, unit->mInBufValue);
@@ -570,7 +570,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
 
     if (name.empty()) {
         // Catch empty name
-        Print("Faust: empty unit generator name\n"
+        Print("*** Faust: supercollider.cpp: "
+	      "Could not create unit-generator module name from filename\n"
               "       bailing out ...\n");
         return;
     }
