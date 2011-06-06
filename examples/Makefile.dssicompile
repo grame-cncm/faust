@@ -3,18 +3,19 @@ DEST	:= dssidir/
 dspsrc  := $(wildcard *.dsp)
 cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 modules	:= $(addprefix $(DEST),  $(dspsrc:%.dsp=%.so))
-os 	:= $(shell uname)
 
 ###allcpp: $(cppsrc)
 
 allmodules: $(modules)
 
-$(DEST)%.so: $(DEST)%.cpp
-ifeq ($(os), Darwin)
-	$(CXX) -I. -Wall -O2 -fPIC -DPIC -bundle $(CXXFLAGS) $< -o $@
+ifeq ($(system), Darwin)
+SHAREDFLAG := -bundle
 else
-	$(CXX) -I. -Wall -O2 -fPIC -DPIC -shared $(CXXFLAGS) $< -o $@
+SHAREDFLAG := -shared
 endif
+
+$(DEST)%.so: $(DEST)%.cpp
+	$(CXX) -I. -Wall $(LIB) -fPIC -DPIC $(SHAREDFLAG) $(CXXFLAGS) -Dmydsp=$(patsubst %.so,%,$(notdir $@)) $< -o $@
 
 $(DEST)%.cpp: %.dsp 
 	faust $(VEC) -a $(ARCH) $< -o $@

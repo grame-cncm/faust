@@ -85,7 +85,12 @@ module Faust
     def initialize(node)
       @type = node.attributes["type"]
       @id   = node.attributes["id"]
-      @label = node.elements["label"].text
+      if (node.elements["label"].text)
+        @label = node.elements["label"].text
+      else
+        print_info("No label for widget ID #{id} - calling it widget#{id}\n")
+        @label = "widget#{id}"
+      end
       dict = node.elements
       @init = dict["init"].to_f
       @min  = dict["min"].to_f

@@ -1,12 +1,24 @@
+# Directory containing Faust .lib and .cpp architecture files:
+ck1 := /opt/local/lib/faust/music.lib
+ck2 := /usr/local/lib/faust/music.lib
+ck3 := $(FAUST_LIB_PATH)/faust/music.lib
+LIB := $(if $(wildcard $(ck1)),/opt/local/lib,"")
+LIB := $(if $(wildcard $(ck2)),/usr/local/lib,$(LIB))
+LIB := $(if $(wildcard $(ck3)),$(FAUST_LIB_PATH),$(LIB))
 
 ifeq ($(OSC),1)
- OSCCTRL := "-DOSCCTRL -I/usr/local/lib/faust/osclib"
+ OSCCTRL := "-DOSCCTRL -I$(LIB)/faust/osclib"
  QTDEFS  := "DEFINES += OSCCTRL"
- OSCLIB  := -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack
+ OSCLIB  := -L$(LIB)/faust/osclib -lOSCFaust -loscpack
 endif
 
 MYICCFLAGS := '-O3 -xT -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
+
+ifeq ($(system), Darwin)
 MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+else
+MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+endif
 
 VSIZE := 256
 
@@ -15,9 +27,6 @@ SC_SOURCE_DIR = ../../supercollider
 all : jackgtk
 
 test: ijackgtk ijackvec ijackomp gjackgtk gjackvec gjackomp
-
-ENVLIB := $(FAUST_LIB_PATH)
-LIB := $(if $(ENVLIB),$(ENVLIB),/usr/local/lib)
 
 ijackgtk :
 	install -d ijackgtkdir
@@ -52,7 +61,7 @@ svg:
 
 puredata :
 	install -d puredatadir
-	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
+	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='-I$(LIB)/faust/' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
 
 alsagtk :
 	install -d alsagtkdir
@@ -113,15 +122,15 @@ msjackgtk :
 
 jackqt :
 	install -d jackqtdir
-	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
+	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack $(OSCLIB)' DEFS=$(QTDEFS) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
 jackqtsch :
 	install -d jackqtschdir
-	$(MAKE) DEST='jackqtschdir/' ARCH='jack-qt.cpp' VEC='-sch -vs $(VSIZE)' LIB='-ljack' -f Makefile.qtcompile
+	$(MAKE) DEST='jackqtschdir/' ARCH='jack-qt.cpp' VEC='-sch -vs $(VSIZE)' LIB='-ljack' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
 netjackqt :
 	install -d netjackqtdir
-	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.qtcompile
+	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB)' DEFS=$(QTDEFS) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
 jackwt :
 	install -d jackwtdir
@@ -133,7 +142,7 @@ paqt :
 
 caqt :
 	install -d caqtdir
-	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB)'  DEFS=$(QTDEFS)  -f Makefile.qtcompile
+	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS)  DEFS=$(QTDEFS)  -f Makefile.qtcompile
 
 oscioqt :  OSCLIB = -L$(LIB)/faust/osclib -lOSCFaust -loscpack
 oscioqt :
@@ -151,15 +160,15 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/ -fPIC' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
-
-dssi :
-	install -d dssidir
-	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-I$(LIB)/faust/ -fPIC -bundle' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 ladspasch :
 	install -d ladspaschdir
-	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(LIB)/faust/ -fPIC' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+
+dssi :
+	install -d dssidir
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
 
 csound :
 	install -d csounddir
@@ -266,17 +275,19 @@ q :
 	install -d qdir
 	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='' -f Makefile.qcompile
 
-# supercollider :
-# 	install -d supercolliderdir
-# 	$(MAKE) DEST='supercolliderdir/' ARCH='../architecture/supercollider.cpp' CXXFLAGS='`pkg-config --cflags libscsynth`' LIB='-fPIC -shared' EXT='.so' -f Makefile.sccompile
+SCCFLAGS := $(MYGCCFLAGS:'=) `pkg-config --cflags libscsynth`'
 
-supercollider :
-	ls *.dsp | ../tools/scbuilder/scbuilder \
-			FAUST2SC=../tools/faust2sc-1.0.0/faust2sc \
-			FAUST2SC_PREFIX="Faust_" \
-			SC_SOURCE_DIR=$(SC_SOURCE_DIR) \
-			BUILD_DIR=supercolliderdir \
-			$(SCONS_OPTIONS)
+supercollider sc:
+	install -d supercolliderdir
+	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(SCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' -f Makefile.sccompile
+
+# supercollider :
+# 	ls *.dsp | ../tools/scbuilder/scbuilder \
+# 			FAUST2SC=../tools/faust2sc-1.0.0/faust2sc \
+# 			FAUST2SC_PREFIX="Faust_" \
+# 			SC_SOURCE_DIR=$(SC_SOURCE_DIR) \
+# 			BUILD_DIR=supercolliderdir \
+# 			$(SCONS_OPTIONS)
 
 jackconsole :
 	install -d jackconsoledir
