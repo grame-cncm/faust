@@ -250,7 +250,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
 
         stringstream num;
         num << arg1->fNum;
-        string faust_power = name + num.str();
+        string faust_power = name + num.str() + ((result == Typed::kInt) ? "_i" : "_f");
 
         // Expand the pow depending of the exposant argument
         BlockInst* block = InstBuilder::genBlockInst();
