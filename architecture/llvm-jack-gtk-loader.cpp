@@ -46,7 +46,6 @@
 #include <llvm/Analysis/LoopPass.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Support/CommandLine.h>
-#include <llvm/System/DynamicLibrary.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
@@ -56,8 +55,7 @@
 #include <llvm/Support/system_error.h>
 #include <llvm/Linker.h>
 #include <llvm/Target/TargetSelect.h>
-
-#include <llvm/System/Host.h>
+#include <llvm/Support/Host.h>
 
 
 using namespace std;
@@ -2120,8 +2118,23 @@ class LLVMLoader : public dsp {
 
      	if (fModule) {
             std::string ErrorMessage;
-            fJIT = EngineBuilder(fModule).create();
+
+            EngineBuilder builder(fModule);
+            /*
+            builder.setMArch(MArch);
+            builder.setMCPU(MCPU);
+            builder.setMAttrs(MAttrs);
+            builder.setErrorStr(&ErrorMsg);
+            builder.setEngineKind(ForceInterpreter
+                                    ? EngineKind::Interpreter
+                                    : EngineKind::JIT);
+            */
+            builder.setOptLevel(CodeGenOpt::Aggressive);
+            fJIT = builder.create();
+
+            //fJIT = EngineBuilder(fModule).create();
             assert(fJIT);
+            fJIT->DisableLazyCompilation(true);
             fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
             //module->dump();
 
