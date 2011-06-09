@@ -195,7 +195,7 @@ class Voice;
 // Global data
 ////////////////////////////////////////////////////////////////////////////////
 // Maximum polyphony, must be at least 1 (TODO make this configurable at compile / runtime?)
-const int MAX_POLYPHONY = 5;
+const int MAX_POLYPHONY = 64;
 // Descriptor
 DSSI_Descriptor* g_dssi_descriptor;
 // Additional data for descriptor:
