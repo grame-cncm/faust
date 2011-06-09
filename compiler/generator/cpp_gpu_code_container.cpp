@@ -44,8 +44,6 @@ void CPPGPUCodeContainer::prepareFIR(void)
     fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
 }
 
-
-
 void CPPOpenCLCodeContainer::produceInternal()
 {
     int n = 0;

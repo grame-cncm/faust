@@ -23,13 +23,12 @@
 #define _OPENCL_INSTRUCTIONS_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
 
 		Historique :
 		-----------
 
 ***********************************************************************/
+
 using namespace std;
 
 #include <string>

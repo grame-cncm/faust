@@ -23,8 +23,6 @@
 #define _DAG_INSTRUCTION_COMPILER_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
 
 		Historique :
 		-----------

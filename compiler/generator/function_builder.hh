@@ -23,8 +23,6 @@
 #define _FUNCTION_BUILDER_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
 
 		Historique :
 		-----------

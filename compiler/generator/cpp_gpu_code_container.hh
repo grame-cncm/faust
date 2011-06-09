@@ -23,13 +23,12 @@
 #define _CPP_GPU_CODE_CONTAINER_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
 
 		Historique :
 		-----------
 
 ***********************************************************************/
+
 #include "cpp_code_container.hh"
 
 class CPPGPUCodeContainer : public CPPCodeContainer {
@@ -511,7 +510,6 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
 
     protected:
-
 
     public:
 

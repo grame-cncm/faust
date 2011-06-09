@@ -23,13 +23,12 @@
 #define _INSTRUCTION_COMPILER_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
 
 		Historique :
 		-----------
 
 ***********************************************************************/
+
 #include <string>
 #include <list>
 #include <set>

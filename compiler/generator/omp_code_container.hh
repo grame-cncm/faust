@@ -19,16 +19,15 @@
  ************************************************************************
  ************************************************************************/
 
-/**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
+#ifndef _OMP_CODE_CONTAINER_H
+#define _OMP_CODE_CONTAINER_H
 
+/**********************************************************************
 
 		Historique :
 		-----------
 
 ***********************************************************************/
-#ifndef _OMP_CODE_CONTAINER_H
-#define _OMP_CODE_CONTAINER_H
 
 #include "code_container.hh"
 
@@ -46,7 +45,6 @@ class OpenMPCodeContainer : public virtual CodeContainer {
             initializeCodeContainer(numInputs, numOutputs);
             fFullCount = "fullcount";
         }
-
 
 };
 

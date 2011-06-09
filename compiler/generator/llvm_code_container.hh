@@ -23,8 +23,6 @@
 #define _LLVM_CODE_CONTAINER_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
 
 		Historique :
 		-----------

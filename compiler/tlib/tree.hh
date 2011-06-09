@@ -89,7 +89,7 @@ typedef CTree* Tree;
 typedef map<Tree, Tree>	plist;
 typedef vector<Tree>	tvec;
 
-struct AudioType;
+class AudioType;
 
 /**
  * A CTree = (Node x [CTree]) is a Node associated with a list of subtrees called branches.

@@ -23,13 +23,12 @@
 #define _CPP_CODE_CONTAINER_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
 
 		Historique :
 		-----------
 
 ***********************************************************************/
+
 #include "code_container.hh"
 #include "cpp_instructions.hh"
 #include "opencl_instructions.hh"

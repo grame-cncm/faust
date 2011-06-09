@@ -67,12 +67,11 @@ CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs)
 void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst)
 {
     // Subclasses
-
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        *dst << "======= Sub class begin ==========" << std::endl << std::endl;
+        *dst << "======= Sub classes begin ==========" << std::endl << std::endl;
         (*it)->dump(dst);
-        *dst << "======= Sub class end ==========" << std::endl << std::endl;
+        *dst << "======= Sub classes end ==========" << std::endl << std::endl;
     }
 
     /// User Interface

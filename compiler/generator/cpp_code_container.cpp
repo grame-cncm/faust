@@ -37,13 +37,10 @@ using namespace std;
 
 extern bool gUIMacroSwitch;
 extern int gVectorLoopVariant;
-extern bool gOpenMPLoop;
-extern bool gVectorSwitch;
 extern bool gOpenCLSwitch;
 extern bool gCUDASwitch;
 extern bool gOpenMPSwitch;
 extern bool gSchedulerSwitch;
-extern bool gVectorSwitch;
 extern bool gFunTaskSwitch;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
