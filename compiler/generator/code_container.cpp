@@ -415,7 +415,7 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
         else
             loop->generateDAGVecLoop(block, omp, 4);
         */
-        Loop2FunctionBuider builder(subst("fun$0", T(loop_num)), block, gDSPStruct);
+        Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gDSPStruct);
         fComputeFunctions->pushBackInst(builder.fFunctionDef);
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive function $0", T(loop_num)) : subst("// Vectorizable function $0", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);

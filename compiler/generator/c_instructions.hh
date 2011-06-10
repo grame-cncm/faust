@@ -56,11 +56,11 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
     public:
 
-        CInstVisitor(std::ostream* out, const string& structname, const string& prefix, int tab = 0)
+        CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
             :fTab(tab), fOut(out), fFinishLine(true)
         {
-            fTypeDirectTable[Typed::kObj] = prefix + structname;
-            fTypeDirectTable[Typed::kObj_ptr] = prefix + structname + "*";
+            fTypeDirectTable[Typed::kObj] = structname;
+            fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
         }
 
         virtual ~CInstVisitor()
@@ -208,7 +208,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
             // Prototype
             if (inst->fType->fAttribute & FunTyped::kLocal)
-                 *fOut << "static inline ";
+                 *fOut << "static ";
 
             if (inst->fType->fAttribute & FunTyped::kVirtual)
                  *fOut << "virtual ";

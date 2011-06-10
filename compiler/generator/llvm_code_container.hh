@@ -56,7 +56,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
         Module* fModule;
         IRBuilder<>* fBuilder;
         LLVMInstVisitor* fCodeProducer;
-        //string fPrefix;   // Prefix for function name
         bool fNeedDelete;
 
         void generateComputeBegin(const string& counter);

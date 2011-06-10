@@ -44,12 +44,11 @@ class CCodeContainer : public virtual CodeContainer {
 
         CInstVisitor fCodeProducer;
         std::ostream* fOut;
-        string fPrefix;   // Prefix for function name
 
     public:
 
-        CCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "")
-            : fCodeProducer(out, name, prefix), fOut(out), fPrefix(prefix)
+        CCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+            : fCodeProducer(out, name), fOut(out)
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
@@ -73,7 +72,7 @@ class CScalarCodeContainer : public CCodeContainer {
 
     public:
 
-        CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, const string& prefix = "");
+        CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~CScalarCodeContainer();
 
         void generateCompute(int tab);
@@ -86,7 +85,7 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
 
     public:
 
-        CVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
+        CVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CVectorCodeContainer();
 
         void generateCompute(int n);
@@ -99,7 +98,7 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
 
     public:
 
-        COpenMPCodeContainer(const string& name,int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
+        COpenMPCodeContainer(const string& name,int numInputs, int numOutputs, std::ostream* out);
         virtual ~COpenMPCodeContainer();
 
         void generateCompute(int tab);
@@ -112,7 +111,7 @@ class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContaine
 
     public:
 
-        CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, const string& prefix = "");
+        CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CWorkStealingCodeContainer();
 
         void generateCompute(int tab);

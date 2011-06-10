@@ -219,7 +219,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
             // Prototype
             if (inst->fType->fAttribute & FunTyped::kLocal)
-                 *fOut << "inline ";
+                 *fOut << " ";
 
             if (inst->fType->fAttribute & FunTyped::kVirtual)
                  *fOut << "virtual ";
