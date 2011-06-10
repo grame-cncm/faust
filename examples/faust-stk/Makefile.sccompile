@@ -30,13 +30,13 @@ MYCFLAGS 	:= $(CXXFLAGS) $(DARWINCFLAGS) -I$(SCINC)/common -I$(SCINC)/server -I$
 OBJT 		:= -bundle -undefined suppress -flat_namespace -funroll-loops -fomit-frame-pointer
 SEDFLAG1	:=
 SEDFLAG2	:=d
-otodo		:=scxfiles
+otodo		:=$(scxfiles)
 else
 MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
 OBJT 		:= -shared
 SEDFLAG1	:=s
 SEDFLAG2	:=/i
-otodo		:=sofiles
+otodo		:=$(sofiles)
 endif
 
 ###--------------------------------------------
