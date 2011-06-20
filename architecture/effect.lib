@@ -954,7 +954,7 @@ with {
 
 //------------------------------- zita_rev_fdn -------------------------------
 // Internal 8x8 late-reverberation FDN used in the FOSS Linux reverb zita-rev1
-// by Fons Adriaensen <fons@kokkinizita.net>.  This is an FDN reverb with
+// by Fons Adriaensen <fons@linuxaudio.org>.  This is an FDN reverb with
 // allpass comb filters in each feedback delay in addition to the 
 // damping filters.
 //
