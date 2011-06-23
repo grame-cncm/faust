@@ -1248,7 +1248,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                     // We want to see array like [256 x float] as a float*
                     fCurValue = LoadArrayAsPointer(zone_ptr, inst->fAddress->getAccess() & Address::kVolatile);
-
                     fCurValue = genVectorLoad(zone_ptr, fCurValue, inst->fSize);
 
                 } else if (named_address->fAccess & Address::kFunArgs) {
@@ -1267,16 +1266,17 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     } while (function_args_it != function->arg_end());
                     //cerr << "named_address->fName " << named_address->fName << endl;
                     assert(found);
-                    fCurValue = arg;
+                    fCurValue = genVectorLoad(NULL, arg, inst->fSize);
+
                     // Direct access Declare/Store ==> Load
                 } else if (named_address->fAccess & Address::kLink) {
                     fCurValue = fDSPStackVars[named_address->fName];
                 } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                     //cerr << named_address->fName << endl;
                     assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
+
                     // We want to see array like [256 x float] as a float*
                     fCurValue = LoadArrayAsPointer(fDSPStackVars[named_address->fName], inst->fAddress->getAccess() & Address::kVolatile);
-
                     fCurValue = genVectorLoad(fDSPStackVars[named_address->fName], fCurValue, inst->fSize);
 
                 } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
@@ -1287,9 +1287,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         //fCurValue->dump();
                     } else {
                         assert(fModule->getGlobalVariable(named_address->fName, true));
+
                         // We want to see array like [256 x float] as a float*
                         fCurValue = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
-
                         fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize);
                     }
                 }
@@ -1322,8 +1322,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr1 = fBuilder->CreateGEP(dsp, idx, idx+2);
                     Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
                     Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
-                    fCurValue = fBuilder->CreateLoad(load_ptr3);
 
+                    fCurValue = fBuilder->CreateLoad(load_ptr3);
                     fCurValue = genPointer2VectorLoad(load_ptr3, fCurValue, inst->fSize);
 
                 } else if (named_address->fAccess & Address::kFunArgs) {
@@ -1346,8 +1346,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     // Result is in fCurValue
                     indexed_address->fIndex->accept(this);
                     Value* load_ptr = fBuilder->CreateGEP(arg, fCurValue);
-                    fCurValue = fBuilder->CreateLoad(load_ptr);
 
+                    fCurValue = fBuilder->CreateLoad(load_ptr);
                     fCurValue = genPointer2VectorLoad(load_ptr, fCurValue, inst->fSize);
 
                 } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
@@ -1358,8 +1358,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     assert(fDSPStackVars[named_address->fName]);
                     Value* load_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
                     Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
-                    fCurValue = fBuilder->CreateLoad(load_ptr2);
 
+                    fCurValue = fBuilder->CreateLoad(load_ptr2);
                     fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize);
 
                 } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
@@ -1370,8 +1370,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     // We want to see array like [256 x float] as a float*
                     Value* load_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
                     Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
-                    fCurValue = fBuilder->CreateLoad(load_ptr2);
 
+                    fCurValue = fBuilder->CreateLoad(load_ptr2);
                     fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize);
 
                 } else {
@@ -2243,9 +2243,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             assert(arg1);
             assert(arg2);
-            //cerr << "generateBinopAux ARGS" << endl;
-            //arg1->dump();
-            //arg2->dump();
+            /*
+            cerr << "generateBinopAux ARGS" << endl;
+            arg1->dump();
+            arg1->getType()->dump();
+            arg2->dump();
+            arg2->getType()->dump();
+            */
 
             assert(fBuilder);
 

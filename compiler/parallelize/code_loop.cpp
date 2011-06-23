@@ -73,17 +73,21 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
     virtual ValueInst* visit(LoadVarInst* inst)
     {
         if (inst->fAddress->getAccess() != Address::kLoop) {
-            return new LoadVarInst(inst->fAddress->clone(this), fSize);
-        } else
+            // Switch to scalar mode for address indexing
+            return new LoadVarInst(inst->fAddress->clone(new BasicCloneVisitor()), fSize);
+        } else {
             return BasicCloneVisitor::visit(inst);
-    }
+        }
+     }
 
     virtual ValueInst* visit(LoadVarAddressInst* inst)
     {
         if (inst->fAddress->getAccess() != Address::kLoop) {
-            return new LoadVarAddressInst(inst->fAddress->clone(this), fSize);
-        }  else
+            // Switch to scalar mode for address indexing
+            return new LoadVarAddressInst(inst->fAddress->clone(new BasicCloneVisitor()), fSize);
+        }  else {
             return BasicCloneVisitor::visit(inst);
+        }
     }
 
     virtual ValueInst* visit(CastNumInst* inst)
@@ -93,8 +97,9 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
         // Vector result when argument is vectorized
         if (cloned_inst->fSize > 1) {
             return new CastNumInst(cloned_inst, inst->fTyped->clone(this), fSize);
-        }  else
+        }  else {
             return BasicCloneVisitor::visit(inst);
+        }
     }
 
     virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
@@ -110,8 +115,9 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
         // Vector result when both arguments are vectorized
         if (cloned_inst1->fSize > 1 && cloned_inst2->fSize > 1) {
             return new BinopInst(inst->fOpcode, cloned_inst1, cloned_inst2, fSize);
-        } else
+        } else {
             return BasicCloneVisitor::visit(inst);
+        }
     }
 
     virtual ValueInst* visit(FunCallInst* inst)
@@ -128,8 +134,9 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
         // Vector result when all arguments are vectorized
         if (all_vectorized) {
             return new FunCallInst(inst->fName, cloned_args, inst->fMethod, fSize);
-        } else
+        } else {
             return BasicCloneVisitor::visit(inst);
+        }
     }
 
     virtual ValueInst* visit(Select2Inst* inst)
@@ -139,9 +146,11 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
         // Vector result when fCond is vectorized
         if (cloned_inst->fSize > 1) {
             return new Select2Inst(cloned_inst, inst->fThen->clone(this), inst->fElse->clone(this), fSize);
-        } else
+        } else {
             return BasicCloneVisitor::visit(inst);
+        }
     }
+
 };
 
 void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool omp, int size)

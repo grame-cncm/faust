@@ -396,7 +396,12 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         {
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            *fOut << "StoreVarInst(";
+
+            if (inst->fValue->fSize > 1) {
+                *fOut << "StoreVarInstVec<" << inst->fValue->fSize << ">(";
+            } else {
+                *fOut << "StoreVarInst(";
+            }
 
             if (named) {
                 *fOut << named->getName() << ", ";
