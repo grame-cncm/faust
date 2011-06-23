@@ -7,7 +7,7 @@ LIB := $(if $(wildcard $(ck2)),/usr/local/lib,$(LIB))
 LIB := $(if $(wildcard $(ck3)),$(FAUST_LIB_PATH),$(LIB))
 
 ifeq ($(OSC),1)
- OSCCTRL := "-DOSCCTRL -I$(LIB)/faust/osclib"
+ OSCCTRL := -DOSCCTRL -I$(LIB)/faust/osclib
  QTDEFS  := "DEFINES += OSCCTRL"
  OSCLIB  := -L$(LIB)/faust/osclib -lOSCFaust -loscpack
 endif
@@ -31,7 +31,6 @@ test: ijackgtk ijackvec ijackomp gjackgtk gjackvec gjackomp
 ijackgtk :
 	install -d ijackgtkdir
 	$(MAKE) DEST='ijackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(LIB)/faust/  `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
-#	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(LIB)/faust/ `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 ijackvec :
 	install -d ijackvecdir
@@ -86,7 +85,7 @@ ialsasch :
 
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(LIB)/faust/ `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(LIB)/faust/ `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir
