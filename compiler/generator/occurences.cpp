@@ -101,7 +101,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 
 	if (occ==0) {
 		// 1) We build initial occurence information
-		Type	ty = getSigType(t);
+		Type	ty = getCertifiedSigType(t);
 		int v0 = ty->variability();
 		int r0 = getRecursivness(t);
 
@@ -111,7 +111,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 		// We mark the subtrees of t
         Tree c, x, y, z;
 		if (isSigFixDelay(t,x,y)) {
-			Type g2 = getSigType(y);
+			Type g2 = getCertifiedSigType(y);
 			int d2 = checkDelayInterval(g2);
 			assert(d2>=0);
 			incOcc(env, v0, r0, d2, x);

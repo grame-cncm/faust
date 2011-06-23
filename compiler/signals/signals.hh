@@ -281,7 +281,6 @@ Tree sigCartesianProd (Tree s1, Tree s2, Tree box);
 int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen=true);
 
 
-
 /**
  * Test if exp is very simple that is it
  * can't be considered a real component

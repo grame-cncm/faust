@@ -38,4 +38,6 @@ install:
 	install ../faust2sc-1.0.0/faust2sc $(dest)
 	install faust2graph $(dest)
 	install faust2graphviewer $(dest)
+	install faust2sig $(dest)
+	install faust2sigviewer $(dest)
 

@@ -187,26 +187,10 @@ Tree CTree::make(const Node& n, const tvec& br)
 
 ostream& CTree::print (ostream& fout) const
 {
-	if (gDetails) {
-		// print the adresse of the tree
+    if (gDetails) {
+        // print the adresse of the tree
 		fout << "<" << this << ">@";
-	}
-	/*
-	switch (node().type()) {
-		case kIntNode :
-			fout << node().getInt();
-			break;
-		case kFloatNode :
-			fout << node().getFloat();
-			break;
-		case kSymNode :
-			fout << name(node().getSym());
-			break;
-		case kPointerNode :
-			fout << node().getPointer();
-			break;
-	}
-	*/
+    }
 	fout << node();
 	int a = arity();
 	if (a > 0) {

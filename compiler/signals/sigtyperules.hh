@@ -28,10 +28,6 @@
 #include "sigtype.hh"
 
 
-//--------------------------------------------------------------------------
-// NULLENV : empty type environment (also property key for closed term type)
-
-extern Tree NULLENV;
 extern bool gVectorSwitch;
 
 
@@ -56,13 +52,32 @@ Tree addEnv(Tree var, ::Type tp, Tree env);
 //--------------------------------------------------------------------------
 //	typeAnnotation : annotate a term with type information
 
+/** \file sigtyperules.hh
+ * API to the typing system of signals
+ *
+ * Two functions are provided :
+ *
+ * \li void typeAnnotation(Tree term)       : annotates a signal term and its subterms with type information
+ * \li Type getCertifiedSigType(Tree term)  : return the type of a previously annotated signal term
+ *
+ * TypeAnnotation must be called first to annotate a signal or a list of signals, before being able to
+ * call getCertifiedType on any subterms. GetCertifiedType will produce an error if a term was not
+ * previously annotated.
+ *
+ **/
+
+/**
+ *	Annotates a signal term and its subterms with type information
+ */
 void typeAnnotation(Tree term);
 
 
-//--------------------------------------------------------------------------
-//	sigType : return the type information of a term
 
-//Type sigType(Tree term);
+/**
+ *	Return the type of a previously annotated signal term
+ */
+Type getCertifiedSigType(Tree term);
+
 
 #endif
 

@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "tree.hh"
 #include "smartpointer.hh"
 #include "interval.hh"
 #include "instructions.hh"
@@ -253,10 +254,27 @@ class SimpleType : public AudioType
     virtual AudioType* castInterval(const interval& i)      { return new SimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean, i); }
 };
 
+/*
 inline Type intCast (Type t)	                        { return t->castNature(kInt); }
 inline Type floatCast (Type t)	                        { return t->castNature(kReal); }
 inline Type sampCast (Type t)	                        { return t->promoteVariability(kSamp); }
 inline Type castInterval (Type t, const interval& i)    { return t->castInterval(i); }
+*/
+
+inline Type intCast (Type t)	{ return new SimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type floatCast (Type t)	{ return new SimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type sampCast (Type t)	{ return new SimpleType(t->nature(), kSamp, t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
+inline Type boolCast (Type t)   { return new SimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), kBool, t->getInterval()); }
+inline Type numCast (Type t)    { return new SimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), kNum, t->getInterval()); }
+inline Type vecCast (Type t)    { return new SimpleType(t->nature(), t->variability(), t->computability(), kVect, t->boolean(), t->getInterval()); }
+inline Type scalCast (Type t)   { return new SimpleType(t->nature(), t->variability(), t->computability(), kScal, t->boolean(), t->getInterval()); }
+inline Type truescalCast (Type t){ return new SimpleType(t->nature(), t->variability(), t->computability(), kTrueScal, t->boolean(), t->getInterval()); }
+
+inline Type castInterval (Type t, const interval& i)
+{
+	return new SimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean(), i);
+}
+
 
 /**
  * The type of a table of audio data.
@@ -273,9 +291,26 @@ class TableType : public AudioType
 		  AudioType(t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean()),
 		  fContent(t) {}		///< construct a TableType with a content of a type t
 
-	TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i = interval()) :
+    TableType(const Type& t, int v, int c) :
+		  AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting variability and computability
+
+	TableType(const Type& t, int n, int v, int c) :
+		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability and computability
+
+	TableType(const Type& t, int n, int v, int c, int vec) :
+		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()),
+		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability and vectorability
+
+	TableType(const Type& t, int n, int v, int c, int vec, int b) :
+		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
+		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
+
+	TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i) :
 		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b, i),
 		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
+
 
 	Type content() const				{ return fContent; 	}		///< return the type of data store in the table
 	virtual ostream& print(ostream& dst) const;						///< print a TableType
@@ -304,9 +339,13 @@ class TupletType : public AudioType
 	vector<Type> fComponents;
 
   public:
-	TupletType(const vector<Type>& vt) :
-		  AudioType(mergenature(vt),mergevariability(vt),mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), mergeinterval(vt)),
-		  fComponents(vt) {}
+    TupletType() :
+          AudioType(0,0,0)
+          {}
+
+    TupletType(const vector<Type>& vt) :
+          AudioType(mergenature(vt),mergevariability(vt),mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), mergeinterval(vt)),
+          fComponents(vt) {}
 
 	TupletType(const vector<Type>& vt, int n, int v, int c) :
 		  AudioType(n|mergenature(vt), v|mergevariability(vt), c|mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), interval()),
@@ -424,6 +463,7 @@ extern Type TEXEC;
 
 extern Type TINPUT;
 extern Type TGUI;
+extern Type TGUI01;
 extern Type INT_TGUI;
 extern Type TREC;
 
@@ -483,7 +523,8 @@ int checkDelayInterval(Type t);		///< Check if the interval of t is appropriate 
 //--------------------------------------------------
 // conversion de type
 
-string cType (Type t);
 Typed::VarType ctType (Type t);
+
+Tree codeAudioType(AudioType* t);   ///< Code an audio type as a tree (memoization)
 
 #endif
