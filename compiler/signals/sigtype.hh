@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "tree.hh"
 #include "smartpointer.hh"
 #include "interval.hh"
 
@@ -320,9 +321,13 @@ class TupletType : public AudioType
 	vector<Type> fComponents;
 	
   public:
-	TupletType(const vector<Type>& vt) : 
-		  AudioType(mergenature(vt),mergevariability(vt),mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), mergeinterval(vt)), 
-		  fComponents(vt) {}
+    TupletType() :
+          AudioType(0,0,0)
+          {}
+
+    TupletType(const vector<Type>& vt) :
+          AudioType(mergenature(vt),mergevariability(vt),mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), mergeinterval(vt)),
+          fComponents(vt) {}
 
 	TupletType(const vector<Type>& vt, int n, int v, int c) : 
 		  AudioType(n|mergenature(vt), v|mergevariability(vt), c|mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), interval()), 
@@ -377,6 +382,7 @@ extern Type TEXEC;
 
 extern Type TINPUT;
 extern Type TGUI;
+extern Type TGUI01;
 extern Type INT_TGUI;
 extern Type TREC;
 
@@ -436,6 +442,8 @@ int checkDelayInterval(Type t);		///< Check if the interval of t is appropriate 
 // conversion de type
 
 string cType (Type t);
+
+Tree codeAudioType(AudioType* t);   ///< Code an audio type as a tree (memoization)
 
 
 #endif

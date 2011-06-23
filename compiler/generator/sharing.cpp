@@ -116,7 +116,7 @@ void ScalarCompiler::sharingAnnotation(int vctxt, Tree sig)
 
 	} else {
 		// it is our first visit,
-		int v = getSigType(sig)->variability();
+		int v = getCertifiedSigType(sig)->variability();
 
 		// check "time sharing" cases
 		if (v < vctxt) {

@@ -331,6 +331,7 @@ static void buildFullPathname(string& fullpath, const char* filename)
 FILE* fopensearch(const char* filename, string& fullpath)
 {   
     FILE* f;
+    char* envpath;
 
     if ((f = fopen(filename, "r"))) { 
     	buildFullPathname(fullpath, filename); 
@@ -339,9 +340,8 @@ FILE* fopensearch(const char* filename, string& fullpath)
     if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
     	return f;
     }
-    char *envpath = getenv("FAUST_LIB_PATH");
-    if ((f = fopenat(fullpath, envpath, filename))) {
-		return f;
+    if ((envpath = getenv("FAUST_LIB_PATH")) && (f = fopenat(fullpath, envpath, filename))) {
+        return f;
     }
     if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
     	return f;
@@ -358,6 +358,7 @@ FILE* fopensearch(const char* filename, string& fullpath)
 FILE* fopensearch(const char* filename, string& fullpath)
 {   
     FILE* f;
+    char* envpath;
 
     if ((f = fopen(filename, "r"))) { 
     	buildFullPathname(fullpath, filename); 
@@ -366,8 +367,7 @@ FILE* fopensearch(const char* filename, string& fullpath)
     if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
     	return f;
     }
-    char *envpath = getenv("FAUST_LIB_PATH");
-    if ((f = fopenat(fullpath, envpath, filename))) {
+    if ((envpath = getenv("FAUST_LIB_PATH")) && (f = fopenat(fullpath, envpath, filename))) {
 		return f;
     }
     if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 

@@ -131,7 +131,8 @@ HEADERS += boxes/boxcomplexity.h \
     draw/schema/splitSchema.h \
     draw/schema/topSchema.h \
     evaluate/environment.hh \
-    draw/schema/inverterSchema.h
+    draw/schema/inverterSchema.h \
+    draw/sigToGraph.hh
 SOURCES += main.cpp \
     boxes/boxcomplexity.cpp \
     boxes/boxes.cpp \
@@ -233,4 +234,5 @@ SOURCES += main.cpp \
     draw/schema/topSchema.cpp \
     evaluate/environment.cpp \
     draw/schema/collector.cpp \
-    draw/schema/inverterSchema.cpp
+    draw/schema/inverterSchema.cpp \
+    draw/sigToGraph.cpp

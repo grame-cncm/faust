@@ -1,0 +1,7 @@
+#!/bin/bash
+for f in $@; do
+    faust -sg $f -o /dev/null
+	dot -Tpdf $f-sig.dot -o $f-sig.pdf
+	rm $f-sig.dot
+done
+

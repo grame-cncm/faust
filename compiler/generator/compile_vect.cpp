@@ -100,7 +100,7 @@ string  VectorCompiler::CS (Tree sig)
         } else {
             if (isProj(sig, &i, r)) {
                 //cerr << "SYMBOL RECURSIF EN COURS ??? " << *r << endl;
-            } else if (getSigType(sig)->variability()<kSamp) {
+            } else if (getCertifiedSigType(sig)->variability()<kSamp) {
                 //cerr << "SLOW EXPRESSION " << endl;
             } else {
                 //cerr << "Expression absorbée" << *sig << endl;
@@ -204,7 +204,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 {
     string      vname, ctype;
     int         sharing = getSharingCount(sig);
-    Type        t = getSigType(sig);
+    Type        t = getCertifiedSigType(sig);
     Occurences* o = fOccMarkup.retrieve(sig);
     int         d = o->getMaxDelay();
 
@@ -216,7 +216,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
         } else {
             // it is a non-sample expressions but used delayed
             // we need a delay line
-			getTypedNames(getSigType(sig), "Vec", ctype, vname);
+			getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
             if ((sharing > 1) && !verySimple(sig)) {
                 // first cache this expression because it
                 // it is shared and complex
@@ -236,7 +236,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
         // sample-rate signal
         if (d > 0) {
             // used delayed : we need a delay line
-            getTypedNames(getSigType(sig), "Yec", ctype, vname);
+            getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
             generateDelayLine(ctype, vname, d, exp);
             setVectorNameProperty(sig, vname);
 
@@ -256,7 +256,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             if ( sharing > 1 && ! verySimple(sig) ) {
                 // shared and not simple : we need a vector
                 // cerr << "ZEC : " << ppsig(sig) << endl;
-                getTypedNames(getSigType(sig), "Zec", ctype, vname);
+                getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
                 generateDelayLine(ctype, vname, d, exp);
                 setVectorNameProperty(sig, vname);
                 return subst("$0[i]", vname);
@@ -276,7 +276,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 bool VectorCompiler::needSeparateLoop(Tree sig)
 {
     Occurences* o = fOccMarkup.retrieve(sig);
-    Type        t = getSigType(sig);
+    Type        t = getCertifiedSigType(sig);
     int         c = getSharingCount(sig);
     bool        b;
 
@@ -321,9 +321,9 @@ void VectorCompiler::generateDelayLine(const string& ctype, const string& vname,
 
 string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
 {
-    Type        t = getSigType(sig);
+    Type        t = getCertifiedSigType(sig);
 
-    if (getSigType(sig)->variability() == kSamp) {
+    if (getCertifiedSigType(sig)->variability() == kSamp) {
         string      vname, ctype;
         getTypedNames(t, "Vector", ctype, vname);
         vectorLoop(ctype, vname, exp);

@@ -21,6 +21,7 @@
  
  
  
+#include "tree.hh"
 #include "sigtype.hh"
 
 
@@ -119,6 +120,7 @@ Type TEXEC 	= new SimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
 
 Type TINPUT	= new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
 Type TGUI	= new SimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
+Type TGUI01	= new SimpleType(kReal, kBlock,kExec, kVect, kNum, interval(0,1));
 Type INT_TGUI   = new SimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
 //Type TREC   = new SimpleType(kInt,  kSamp, kInit, kVect, kNum, interval()); // kVect ou kScal ?
 Type TREC   = TINT;
@@ -137,7 +139,7 @@ Type operator| ( const Type& t1, const Type& t2)
 					st1->computability()|st2->computability(),
 					st1->vectorability()|st2->vectorability(),
 					st1->boolean()|st2->boolean(),
-					interval() /// achanger
+                    reunion(st1->getInterval(), st2->getInterval())
 					);
 		
 	} else if ( (tt1 = isTableType(t1)) && (tt2 = isTableType(t2)) ) {
@@ -168,8 +170,17 @@ bool operator== ( const Type& t1, const Type& t2)
 	if (t1->variability() != t2->variability()) 	return false;
 	if (t1->computability() != t2->computability()) return false;
 	
-	if ( (st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2)) ) return (st1->nature() == st2->nature())&&(st1->vectorability() == st2->vectorability())&&(st1->boolean() == st2->boolean());
-	if ( (tt1 = isTableType(t1)) && (tt2 = isTableType(t2)) )	return tt1->content()== tt2->content();	
+    if ( (st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2)) )
+        return     (st1->nature() == st2->nature())
+                && (st1->variability() == st2->variability())
+                && (st1->computability() == st2->computability())
+                && (st1->vectorability() == st2->vectorability())
+                && (st1->boolean() == st2->boolean())
+                && (st1->getInterval().lo == st2->getInterval().lo)
+                && (st1->getInterval().hi == st2->getInterval().hi)
+                && (st1->getInterval().valid == st2->getInterval().valid);
+    if ( (tt1 = isTableType(t1)) && (tt2 = isTableType(t2)) )
+        return tt1->content()== tt2->content();
 	if ( (nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2)) ) {
 		int a1 = nt1->arity();
 		int a2 = nt2->arity();
@@ -293,3 +304,100 @@ string cType (Type t)
 {
 	return (t->nature() == kInt) ? "int" : "float";
 }
+
+
+
+/*****************************************************************************
+ *
+ *      codeAudioType(Type) -> Tree
+ *      Code an audio type as a tree in order to benefit of memoization
+ *
+ *****************************************************************************/
+
+
+Sym SIMPLETYPE = symbol ("SimpleType");
+Sym TABLETYPE = symbol ("TableType");
+Sym TUPLETTYPE = symbol ("TupletType");
+
+static Tree  codeSimpleType(SimpleType* st);
+static Tree  codeTableType(TableType* st);
+static Tree  codeTupletType(TupletType* st);
+
+
+/**
+ * codeAudioType(Type) -> Tree
+ * Code an audio type as a tree in order to benefit of memoization
+ * The type field (of the coded type) is used to store the audio
+ * type
+ */
+Tree codeAudioType(AudioType* t)
+{
+    SimpleType 	*st;
+    TableType   *tt;
+    TupletType	*nt;
+
+    Tree        r;
+
+    if ((st = isSimpleType(t))) {
+        r = codeSimpleType(st);
+    } else if ((tt = isTableType(t))) {
+        r = codeTableType(tt);
+    } else if ((nt = isTupletType(t))) {
+        r = codeTupletType(nt);
+    } else {
+        cerr << "ERROR in codeAudioType() : invalide pointer " << t << endl;
+        exit(1);
+    }
+
+    r->setType(t);
+    return r;
+
+}
+
+
+/**
+ * Code a simple audio type as a tree in order to benefit of memoization
+ */
+static Tree  codeSimpleType(SimpleType* st)
+{
+    vector<Tree> elems;
+    elems.push_back(tree(st->nature()));
+    elems.push_back(tree(st->variability()));
+    elems.push_back(tree(st->computability()));
+    elems.push_back(tree(st->vectorability()));
+    elems.push_back(tree(st->boolean()));
+
+    elems.push_back(tree(st->getInterval().valid));
+    elems.push_back(tree(st->getInterval().lo));
+    elems.push_back(tree(st->getInterval().hi));
+
+    return CTree::make(SIMPLETYPE, elems);
+
+}
+
+
+
+/**
+ * Code a table type as a tree in order to benefit of memoization
+ */
+
+static Tree  codeTableType(TableType* tt)
+{
+    return tree(TABLETYPE, codeAudioType(tt->content()));
+}
+
+
+
+/**
+ * Code a tuplet type as a tree in order to benefit of memoization
+ */
+
+static Tree codeTupletType(TupletType* nt)
+{
+    vector<Tree> elems;
+    for (int i=0; i<nt->arity(); i++) {
+        elems.push_back(codeAudioType((*nt)[i]));
+    }
+    return CTree::make(TUPLETTYPE, elems);
+}
+

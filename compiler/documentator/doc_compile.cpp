@@ -279,7 +279,7 @@ string DocCompiler::generateNumber (Tree sig, const string& exp)
 
 	// check for number occuring in delays
 	if (o->getMaxDelay()>0) {
-		getTypedNames(getSigType(sig), "r", ctype, vname);
+		getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
 		gDocNoticeFlagMap["recursigs"] = true;
 		//cerr << "- r : generateNumber : \"" << vname << "\"" << endl;            
 		generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
@@ -298,7 +298,7 @@ string DocCompiler::generateFConst (Tree sig, const string& file, const string& 
     Occurences* o = fOccMarkup.retrieve(sig);
 
     if (o->getMaxDelay()>0) {
-        getTypedNames(getSigType(sig), "r", ctype, vname);
+        getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
 		gDocNoticeFlagMap["recursigs"] = true;
 		//cerr << "- r : generateFConst : \"" << vname << "\"" << endl;            
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
@@ -323,7 +323,7 @@ string DocCompiler::generateFVar (Tree sig, const string& file, const string& ex
     Occurences* o = fOccMarkup.retrieve(sig);
 
     if (o->getMaxDelay()>0) {
-        getTypedNames(getSigType(sig), "r", ctype, vname);
+        getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
 		gDocNoticeFlagMap["recursigs"] = true;
 		//cerr << "- r : generateFVar : \"" << vname << "\"" << endl;            
 		setVectorNameProperty(sig, vname);
@@ -416,8 +416,8 @@ string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, in
         rpar = "\\right) ";
     }
 	
-	Type t1 = getSigType(arg1);
-	Type t2 = getSigType(arg2);
+	Type t1 = getCertifiedSigType(arg1);
+	Type t2 = getCertifiedSigType(arg2);
 	bool intOpDetected = false;
 	if ( (t1->nature() == kInt) && (t2->nature() == kInt) ) {
 		intOpDetected = true;
@@ -547,7 +547,7 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
         if (getVectorNameProperty(sig, vectorname)) {
 			return exp;
 		}
-        getTypedNames(getSigType(sig), "r", ctype, vname);
+        getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
 		gDocNoticeFlagMap["recursigs"] = true;
 		//cerr << "- r : generateCacheCode : vame=\"" << vname << "\", for sig=\"" << ppsig(sig) << "\"" << endl;
         if (sharing>1) {
@@ -578,7 +578,7 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
 string DocCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string      vname, ctype;
-    Type        t = getSigType(sig);
+    Type        t = getCertifiedSigType(sig);
 	
     switch (t->variability()) {
 			
@@ -691,7 +691,7 @@ string DocCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, c
 {
 	string varname = getFreshID("{u_g}");
 
-	Type t = getSigType(sig);
+	Type t = getCertifiedSigType(sig);
 	switch (t->variability()) {
 
 		case kKonst :
@@ -711,7 +711,7 @@ string DocCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, c
 {
 	string varname = getFreshID("{u_g}");
 
-	Type t = getSigType(sig);
+	Type t = getCertifiedSigType(sig);
 	switch (t->variability()) {
 
 		case kKonst :
@@ -769,7 +769,7 @@ string DocCompiler::generateDocConstantTbl (Tree /*tbl*/, Tree size, Tree isig)
     }
 
     // allocate a name v_i for the table
-    getTypedNames(getSigType(isig), "v", ctype, vname);
+    getTypedNames(getCertifiedSigType(isig), "v", ctype, vname);
 	
     // add a comment on tables in the notice
 		gDocNoticeFlagMap["tablesigs"] = true;
@@ -834,7 +834,7 @@ string DocCompiler::generateDocWriteTbl (Tree /*tbl*/, Tree size, Tree isig, Tre
 
 
     // allocate a name w_i for the table
-    getTypedNames(getSigType(isig), "w", ctype, vname);
+    getTypedNames(getCertifiedSigType(isig), "w", ctype, vname);
 
     // add a comment on tables in the notice
     gDocNoticeFlagMap["tablesigs"] = true;
@@ -924,7 +924,7 @@ void DocCompiler::generateRec(Tree sig, Tree var, Tree le, int priority)
             // this projection is used
             used[i] = true;
 			//cerr << "generateRec : used[" << i << "] = true" << endl;            
-            getTypedNames(getSigType(e), "r", ctype[i],  vname[i]);
+            getTypedNames(getCertifiedSigType(e), "r", ctype[i],  vname[i]);
 			gDocNoticeFlagMap["recursigs"] = true;
 			//cerr << "- r : generateRec setVectorNameProperty : \"" << vname[i] << "\"" << endl;
 			setVectorNameProperty(e, vname[i]);
@@ -1072,7 +1072,7 @@ string DocCompiler::generateXtended 	(Tree sig, int priority)
 
 	for (int i=0; i<sig->arity(); i++) {
 		args.push_back(CS(sig->branch(i), 0));
-		types.push_back(getSigType(sig->branch(i)));
+		types.push_back(getCertifiedSigType(sig->branch(i)));
 	}
 
 	if (p->needCache()) {
@@ -1178,7 +1178,7 @@ string DocCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay, int priori
 string DocCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
 	string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
-	if (getSigType(sig)->variability() < kSamp) {
+	if (getCertifiedSigType(sig)->variability() < kSamp) {
         return exp;
 	} else {
 		return s;
