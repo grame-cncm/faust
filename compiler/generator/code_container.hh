@@ -49,6 +49,7 @@
 class CodeContainer {
 
     protected:
+
         list <CodeContainer*> fSubContainers;
 
         int fNumInputs;

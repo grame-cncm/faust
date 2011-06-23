@@ -154,6 +154,9 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
         block->pushBackInst(InstBuilder::genLabelInst("// Pre code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+        }
         pushBlock(fPreInst, block);
     }
 
@@ -167,18 +170,24 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
         VectorCloneVisitor vector_cloner(size);
         BlockInst* cloned = dynamic_cast<BlockInst*>(fComputeInst->clone(&vector_cloner));
 
+        block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp for"));
+        }
+
         BlockInst* block1 = InstBuilder::genBlockInst();
         pushBlock(cloned, block1);
 
         ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1);
-
-        block->pushBackInst(InstBuilder::genLabelInst("// Compute code"));
         block->pushBackInst(loop);
     }
 
     // Generate code after the loop
     if (fPostInst->fCode.size() > 0) {
         block->pushBackInst(InstBuilder::genLabelInst("// Post code"));
+        if (omp) {
+            block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
+        }
         pushBlock(fPostInst, block);
     }
 }
@@ -196,6 +205,7 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
+
         DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
         ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));

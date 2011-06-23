@@ -418,34 +418,38 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(FloatNumInst* inst)
         {
-            if (inst->fSize > 1)
+            if (inst->fSize > 1) {
                 *fOut << "FloatVec<" << inst->fSize << ">(" << checkFloat(inst->fNum) << ")";
-            else
+            } else {
                 *fOut << "Float(" << checkFloat(inst->fNum) << ")";
+            }
         }
 
         virtual void visit(IntNumInst* inst)
         {
-            if (inst->fSize > 1)
+            if (inst->fSize > 1) {
                 *fOut << "IntVec<" << inst->fSize << ">(" << inst->fNum  << ")";
-            else
+            } else {
                 *fOut << "Int(" << inst->fNum  << ")";
+            }
         }
 
         virtual void visit(BoolNumInst* inst)
         {
-            if (inst->fSize > 1)
+            if (inst->fSize > 1) {
                 *fOut << "BoolVec<" << inst->fSize << ">(" << inst->fNum  << ")";
-            else
+            } else {
                 *fOut << "Bool(" << inst->fNum  << ")";
+            }
         }
 
         virtual void visit(DoubleNumInst* inst)
         {
-            if (inst->fSize > 1)
+            if (inst->fSize > 1) {
                 *fOut << "DoubleVec<" << inst->fSize << ">(" << inst->fNum  << ")";
-            else
+            } else {
                 *fOut << "Double(" << inst->fNum  << ")";
+            }
         }
 
         virtual void visit(BinopInst* inst)
@@ -469,7 +473,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(CastNumInst* inst)
         {
-             if (inst->fSize > 1) {
+            if (inst->fSize > 1) {
                 *fOut << "CastNumInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "CastNumInst(";

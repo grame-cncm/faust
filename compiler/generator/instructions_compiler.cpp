@@ -1142,7 +1142,7 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 
     fContainer->addIncludeFile(file);
 
-    // Keep SR state
+    // Keep SR generation state
     if (name == "fSamplingFreq")
         fContainer->setGeneratedSR();
 

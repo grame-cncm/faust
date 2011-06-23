@@ -409,12 +409,14 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
         BlockInst* block = InstBuilder::genBlockInst();
 
         loop->generateDAGLoop(block, count, omp);
+
         /*
         if (loop->fIsRecursive)
-            loop->generateDAGLoop(block, omp);
+            loop->generateDAGLoop(block, count, omp);
         else
-            loop->generateDAGVecLoop(block, omp, 4);
+            loop->generateDAGVecLoop(block, count, omp, 4);
         */
+
         Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gDSPStruct);
         fComputeFunctions->pushBackInst(builder.fFunctionDef);
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive function $0", T(loop_num)) : subst("// Vectorizable function $0", T(loop_num))));
@@ -423,11 +425,12 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
 
         loop->generateDAGLoop(loop_code, count, omp);
+
         /*
         if (loop->fIsRecursive)
-            loop->generateDAGLoop(loop_code, omp);
+            loop->generateDAGLoop(loop_code, count, omp);
         else
-            loop->generateDAGVecLoop(loop_code, omp, 4);
+            loop->generateDAGVecLoop(loop_code, count, omp, 4);
         */
     }
 }

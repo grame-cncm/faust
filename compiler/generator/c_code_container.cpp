@@ -65,8 +65,6 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
         exit(1);
     }
 
-    //string prefix = "c";
-
     if (gOpenMPSwitch) {
         container = new COpenMPCodeContainer(name, numInputs, numOutputs, dst);
     } else if (gSchedulerSwitch) {
