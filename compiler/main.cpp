@@ -144,9 +144,10 @@ list<string>	gInputFiles;
 bool            gPatternEvalMode = false;
 
 bool            gVectorSwitch   = false;
-bool            gDeepFirstSwitch= false;
+bool            gDeepFirstSwitch = false;
 int             gVecSize        = 32;
 int             gVectorLoopVariant = 0;
+int             gVecLoopSize = 0;
 
 bool            gOpenMPSwitch   = false;
 bool            gOpenMPLoop     = false;
@@ -155,6 +156,7 @@ bool            gOpenCLSwitch  = false;
 bool            gCUDASwitch = false;
 bool			gGroupTaskSwitch = false;
 bool			gFunTaskSwitch = false;
+
 
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
@@ -276,6 +278,10 @@ bool process_cmdline(int argc, char* argv[])
             gVectorSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-vls", "--vec-loop-size")) {
+            gVecLoopSize = atoi(argv[i+1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-scal", "--scalar")) {
             gVectorSwitch = false;
             i += 1;
@@ -386,6 +392,11 @@ bool process_cmdline(int argc, char* argv[])
     // adjust related options
     if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
 
+    if (gVecLoopSize > gVecSize) {
+        cerr << "[-vls = "<< gVecLoopSize << "] has to be <= [-vs = " << gVecSize << "]" << endl;
+        exit(1);
+    }
+
 	return err == 0;
 }
 
@@ -434,6 +445,7 @@ void printhelp()
     cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
+    cout << "-vls <n>  \t--vec-loop-size  size of the vector DSP loop \n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";

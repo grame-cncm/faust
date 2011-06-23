@@ -42,6 +42,7 @@ extern bool gOpenMPLoop;
 extern bool gDeepFirstSwitch;
 extern bool gFunTaskSwitch;
 extern bool gDSPStruct;
+extern int gVecLoopSize;
 
 // Basic type creation
 map<Typed::VarType, BasicTyped*> BasicTyped::gTypeTable;
@@ -408,14 +409,11 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
     if (gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();
 
-        loop->generateDAGLoop(block, count, omp);
-
-        /*
-        if (loop->fIsRecursive)
+        if (gVecLoopSize > 0 && !loop->fIsRecursive) {
+            loop->generateDAGVecLoop(block, count, omp, gVecLoopSize);
+        } else {
             loop->generateDAGLoop(block, count, omp);
-        else
-            loop->generateDAGVecLoop(block, count, omp, 4);
-        */
+        }
 
         Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gDSPStruct);
         fComputeFunctions->pushBackInst(builder.fFunctionDef);
@@ -424,14 +422,11 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
     } else {
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
 
-        loop->generateDAGLoop(loop_code, count, omp);
-
-        /*
-        if (loop->fIsRecursive)
+        if (gVecLoopSize > 0 && !loop->fIsRecursive) {
+            loop->generateDAGVecLoop(loop_code, count, omp, gVecLoopSize);
+        } else {
             loop->generateDAGLoop(loop_code, count, omp);
-        else
-            loop->generateDAGVecLoop(loop_code, count, omp, 4);
-        */
+        }
     }
 }
 
