@@ -250,14 +250,14 @@ static loopDetector LD(1024, 1);
 static Node EVALPROPERTY(symbol("EvalProperty"));
 
 /**
- * set the type annotation of sig
- * @param sig the signal we want to type
- * @param t the type of the signal
+ * set the value of box in the environment env
+ * @param box the block diagram we have evaluated
+ * @param env the evaluation environment
+ * @param value the evaluated block diagram
  */
 void setEvalProperty(Tree box, Tree env, Tree value)
 {
-	//cerr << "setSigType(" << *sig << ", " << t << ")" << endl;
-	setProperty(box, tree(EVALPROPERTY,env), value);
+    setProperty(box, tree(EVALPROPERTY,env), value);
 }
 
 

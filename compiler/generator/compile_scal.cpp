@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <math.h>
@@ -48,14 +49,19 @@
 
 #include "compatibility.hh"
 #include "ppsig.hh"
+#include "sigToGraph.hh"
 
-extern bool	gLessTempSwitch;
-extern int gMaxCopyDelay;
-extern string gClassName;
+using namespace std;
+
+extern bool     gDrawSignals;
+extern bool     gLessTempSwitch;
+extern int      gMaxCopyDelay;
+extern string   gClassName;
+extern string   gMasterDocument;
 
 static Klass* signal2klass (const string& name, Tree sig)
 {
-	Type t = getSigType(sig); //, NULLENV);
+	Type t = getCertifiedSigType(sig); //, NULLENV);
 	if (t->nature() == kInt) {
 
 		ScalarCompiler C( new SigIntGenKlass(name) );
@@ -115,6 +121,11 @@ startTiming("ScalarCompiler::prepare");
 	sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
 endTiming("ScalarCompiler::prepare");
+
+    if (gDrawSignals) {
+        ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
+        sigToGraph(L3, dotfile);
+    }
   	return L3;
 }
 
@@ -312,7 +323,7 @@ string ScalarCompiler::generateNumber (Tree sig, const string& exp)
 
 	// check for number occuring in delays
 	if (o->getMaxDelay()>0) {
-		getTypedNames(getSigType(sig), "Vec", ctype, vname);
+		getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
 	}
 	return exp;
@@ -331,7 +342,7 @@ string ScalarCompiler::generateFConst (Tree sig, const string& file, const strin
     addIncludeFile(file);
 
     if (o->getMaxDelay()>0) {
-        getTypedNames(getSigType(sig), "Vec", ctype, vname);
+        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
     }
     return exp;
@@ -428,7 +439,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 	// check for expression occuring in delays
 	if (o->getMaxDelay()>0) {
 
-        getTypedNames(getSigType(sig), "Vec", ctype, vname);
+        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing>1) {
             return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
         } else {
@@ -455,7 +466,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string      vname, ctype;
-    Type        t = getSigType(sig);
+    Type        t = getCertifiedSigType(sig);
 
     switch (t->variability()) {
 
@@ -555,7 +566,7 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
 	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-	Type t = getSigType(sig);
+	Type t = getCertifiedSigType(sig);
 	switch (t->variability()) {
 
 		case kKonst :
@@ -582,7 +593,7 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 	fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-	Type t = getSigType(sig);
+	Type t = getCertifiedSigType(sig);
 	switch (t->variability()) {
 
 		case kKonst :
@@ -673,7 +684,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
-	Type t = getSigType(content);//, tEnv);
+	Type t = getCertifiedSigType(content);//, tEnv);
 	if (t->nature() == kInt) {
 		vname = getFreshID("itbl");
 		ctype = "int";
@@ -727,7 +738,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
-	Type t = getSigType(content);//, tEnv);
+	Type t = getCertifiedSigType(content);//, tEnv);
 	if (t->nature() == kInt) {
 		vname = getFreshID("itbl");
 		ctype = "int";
@@ -829,7 +840,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
         if (fOccMarkup.retrieve(e)) {
             // this projection is used
             used[i] = true;
-            getTypedNames(getSigType(e), "Rec", ctype[i],  vname[i]);
+            getTypedNames(getCertifiedSigType(e), "Rec", ctype[i],  vname[i]);
             setVectorNameProperty(e, vname[i]);
             delay[i] = fOccMarkup.retrieve(e)->getMaxDelay();
         } else {
@@ -854,7 +865,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
 
 string ScalarCompiler::generatePrefix (Tree sig, Tree x, Tree e)
 {
-	Type te = getSigType(sig);//, tEnv);
+	Type te = getCertifiedSigType(sig);//, tEnv);
 
 	string vperm = getFreshID("M");
 	string vtemp = getFreshID("T");
@@ -924,10 +935,10 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
 #if 0
 string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
-    Type t  = getSigType(sig);
-    Type t1 = getSigType(s1);
-    Type t2 = getSigType(s2);
-    Type t3 = getSigType(s3);
+    Type t  = getCertifiedSigType(sig);
+    Type t1 = getCertifiedSigType(s1);
+    Type t2 = getCertifiedSigType(s2);
+    Type t3 = getCertifiedSigType(s3);
     Type w  = min(t1,min(t2,t3));
 
     string type = cType(t);
@@ -1004,7 +1015,7 @@ string ScalarCompiler::generateXtended 	(Tree sig)
 
 	for (int i=0; i<sig->arity(); i++) {
 		args.push_back(CS(sig->branch(i)));
-		types.push_back(getSigType(sig->branch(i)));
+		types.push_back(getCertifiedSigType(sig->branch(i)));
 	}
 
 	if (p->needCache()) {
@@ -1133,7 +1144,7 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
 	string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
-	if (getSigType(sig)->variability() < kSamp) {
+	if (getCertifiedSigType(sig)->variability() < kSamp) {
         return exp;
 	} else {
 		return s;

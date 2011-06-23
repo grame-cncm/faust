@@ -1,4 +1,6 @@
 #include <signals.hh>
+#include <property.hh>
+
 /**
  * Extract the sub signals of a signal expression, that is not
  * necesseraly all the subtrees.
@@ -62,7 +64,8 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ vsigs.push_back(z); return 1;	}
 	else if ( isSigAttach(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
-    else if ( isList(sig) )                         { int n = 0; while (!isNil(sig)) { vsigs.push_back(hd(sig)); sig = tl(sig); n++; } return n; }
+    else if ( isList(sig) )                         { vsigs.push_back(hd(sig)); vsigs.push_back(tl(sig));  return 2; }
+    else if ( isNil(sig) )                          { return 0; }
 
 	else {
 		cerr << "ERROR, unrecognized signal : " << *sig << endl;
@@ -70,4 +73,3 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	}
 	return 0;
 }
-

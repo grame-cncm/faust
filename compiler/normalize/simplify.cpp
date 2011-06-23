@@ -342,6 +342,8 @@ Tree DOCTABLES = tree(symbol("DocTablesProp"));
 
 static Tree docTableConverter (Tree sig);
 
+static Tree NULLENV = tree(symbol("NullRenameEnv"));
+
 Tree docTableConvertion (Tree sig)
 {
     Tree r  = sigMapRename(DOCTABLES, NULLENV, docTableConverter, sig);
