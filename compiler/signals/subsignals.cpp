@@ -67,8 +67,16 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
     else if ( isList(sig) )                         { vsigs.push_back(hd(sig)); vsigs.push_back(tl(sig));  return 2; }
     else if ( isNil(sig) )                          { return 0; }
 
+    // multirate extension
+
+    else if ( isSigVectorize(sig, x, y) )           { vsigs.push_back(x); vsigs.push_back(y); return 2; }
+    else if ( isSigSerialize(sig, x) )              { vsigs.push_back(x); return 1; }
+    else if ( isSigConcat(sig, x, y) )              { vsigs.push_back(x); vsigs.push_back(y); return 2; }
+    else if ( isSigVectorAt(sig, x, y) )            { vsigs.push_back(x); vsigs.push_back(y); return 2; }
+
+
 	else {
-		cerr << "ERROR, unrecognized signal : " << *sig << endl;
+        cerr << "ERROR in getSubSignals(),   unrecognized signal : " << *sig << endl;
 		exit(1);
 	}
 	return 0;
