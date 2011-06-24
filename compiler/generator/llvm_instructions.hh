@@ -1181,7 +1181,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 //load->getType()->dump();
                 //VectorType::get(load->getType(), size)->dump();
                 Value* casted_load_ptr = fBuilder->CreateBitCast(load_ptr, PointerType::get(VectorType::get(load->getType(), size), 0));
-                return fBuilder->CreateLoad(casted_load_ptr);
+
+                // By default: non aligned vector load
+                LoadInst* load_inst = fBuilder->CreateLoad(casted_load_ptr);
+                load_inst->setAlignment(1);
+                return load_inst;
             } else {
                 return load;
             }
@@ -1499,7 +1503,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 //store->dump();
                 //store->getType()->dump();
                 Value* casted_store_ptr = fBuilder->CreateBitCast(store_ptr, PointerType::get(store->getType(), 0));
-                fBuilder->CreateStore(store, casted_store_ptr, vola);
+
+                // By default: non aligned vector store
+                StoreInst* store_inst = fBuilder->CreateStore(store, casted_store_ptr, vola);
+                store_inst->setAlignment(1);
             } else {
                 //cerr << "genVectorStore scalar" << endl;
                 //store_ptr->dump();
@@ -1991,6 +1998,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Prepare exec_code block
             BasicBlock* exec_block = BasicBlock::Create(getGlobalContext(), "exec_code", function);
 
+            // Create the exit_block and insert it
+            BasicBlock* exit_block = BasicBlock::Create(getGlobalContext(), "exit_block", function);
+
             // Link init_block and exec_block
             fBuilder->CreateBr(exec_block);
 
@@ -2026,10 +2036,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Add a new entry to the PHI node for the backedge
             phi_node->addIncoming(next_index, current_block);
 
-            // Create the exit_block and insert it
-            BasicBlock* exit_block = BasicBlock::Create(getGlobalContext(), "exit_block", function);
-
-            // Insert the conditional branch into the end of loopend_block
+            // Insert the conditional branch into the last block of loop
             fBuilder->CreateCondBr(end_cond, exec_block, exit_block);
 
             // Move insertion in exit_block
