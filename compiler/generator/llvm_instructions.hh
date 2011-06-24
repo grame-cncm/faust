@@ -1172,7 +1172,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = NULL;
         }
 
-        Value* genPointer2VectorLoad(Value* load_ptr, Value* load, int size)
+        Value* genPointer2VectorLoad(Value* load_ptr, Value* load, int size, bool aligned)
         {
             if (size > 1) {
                 //cerr << "genPointer2VectorLoad" << endl;
@@ -1184,14 +1184,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // By default: non aligned vector load
                 LoadInst* load_inst = fBuilder->CreateLoad(casted_load_ptr);
-                load_inst->setAlignment(1);
+                if (!aligned)
+                    load_inst->setAlignment(1);
                 return load_inst;
             } else {
                 return load;
             }
         }
 
-        Value* genScalar2VectorLoad(Value* load, int size)
+        Value* genScalar2VectorLoad(Value* load, int size, bool aligned)
         {
             if (size > 1) {
                 //cerr << "genScalar2VectorLoad" << endl;
@@ -1222,12 +1223,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        Value* genVectorLoad(Value* load_ptr, Value* load, int size)
+        Value* genVectorLoad(Value* load_ptr, Value* load, int size, bool aligned)
         {
             if (isa<PointerType>(load->getType())) {
-                return genPointer2VectorLoad(load_ptr, load, size);
+                return genPointer2VectorLoad(load_ptr, load, size, aligned);
             } else {
-                return genScalar2VectorLoad(load, size);
+                return genScalar2VectorLoad(load, size, aligned);
             }
         }
 
@@ -1252,7 +1253,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                     // We want to see array like [256 x float] as a float*
                     fCurValue = LoadArrayAsPointer(zone_ptr, inst->fAddress->getAccess() & Address::kVolatile);
-                    fCurValue = genVectorLoad(zone_ptr, fCurValue, inst->fSize);
+                    fCurValue = genVectorLoad(zone_ptr, fCurValue, inst->fSize, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kFunArgs) {
                     // Get the enclosing function
@@ -1270,7 +1271,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     } while (function_args_it != function->arg_end());
                     //cerr << "named_address->fName " << named_address->fName << endl;
                     assert(found);
-                    fCurValue = genVectorLoad(NULL, arg, inst->fSize);
+                    fCurValue = genVectorLoad(NULL, arg, inst->fSize, inst->fAligned);
 
                     // Direct access Declare/Store ==> Load
                 } else if (named_address->fAccess & Address::kLink) {
@@ -1281,7 +1282,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                     // We want to see array like [256 x float] as a float*
                     fCurValue = LoadArrayAsPointer(fDSPStackVars[named_address->fName], inst->fAddress->getAccess() & Address::kVolatile);
-                    fCurValue = genVectorLoad(fDSPStackVars[named_address->fName], fCurValue, inst->fSize);
+                    fCurValue = genVectorLoad(fDSPStackVars[named_address->fName], fCurValue, inst->fSize, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
 
@@ -1294,7 +1295,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                         // We want to see array like [256 x float] as a float*
                         fCurValue = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
-                        fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize);
+                        fCurValue = genVectorLoad(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fSize, inst->fAligned);
                     }
                 }
             }
@@ -1328,7 +1329,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
 
                     fCurValue = fBuilder->CreateLoad(load_ptr3);
-                    fCurValue = genPointer2VectorLoad(load_ptr3, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr3, fCurValue, inst->fSize, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kFunArgs) {
                     // Get the enclosing function
@@ -1352,7 +1353,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr = fBuilder->CreateGEP(arg, fCurValue);
 
                     fCurValue = fBuilder->CreateLoad(load_ptr);
-                    fCurValue = genPointer2VectorLoad(load_ptr, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr, fCurValue, inst->fSize, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                     // Compute index, result is in fCurValue
@@ -1364,7 +1365,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
 
                     fCurValue = fBuilder->CreateLoad(load_ptr2);
-                    fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
                    // Compute index, result is in fCurValue
@@ -1376,7 +1377,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
 
                     fCurValue = fBuilder->CreateLoad(load_ptr2);
-                    fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize);
+                    fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize, inst->fAligned);
 
                 } else {
                     // Default
@@ -1495,7 +1496,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        void genVectorStore(Value* store_ptr, Value* store, int size, bool vola = false)
+        void genVectorStore(Value* store_ptr, Value* store, int size, bool vola, bool aligned)
         {
             if (size > 1) {
                 //cerr << "genVectorStore vector" << endl;
@@ -1506,7 +1507,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // By default: non aligned vector store
                 StoreInst* store_inst = fBuilder->CreateStore(store, casted_store_ptr, vola);
-                store_inst->setAlignment(1);
+                if (!aligned)
+                    store_inst->setAlignment(1);
             } else {
                 //cerr << "genVectorStore scalar" << endl;
                 //store_ptr->dump();
@@ -1536,7 +1538,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* store_ptr = fBuilder->CreateStructGEP(dsp, field_index);
 
                     //fBuilder->CreateStore(fCurValue, store_ptr, inst->fAddress->getAccess() & Address::kVolatile);
-                    genVectorStore(store_ptr, fCurValue, inst->fAddress->getAccess() & Address::kVolatile);
+                    genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, inst->fAligned);
 
                  } else if (named_address->fAccess & Address::kFunArgs) {
                     // Result is in fCurValue
@@ -1558,7 +1560,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     assert(found);
 
                     // fBuilder->CreateStore(fCurValue, arg);
-                    genVectorStore(arg, fCurValue, inst->fValue->fSize);
+                    genVectorStore(arg, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, inst->fAligned);
 
                 // Direct access Declare/Store ==> Load
                 } else if (named_address->fAccess & Address::kLink) {
@@ -1572,7 +1574,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     inst->fValue->accept(this);
 
                     //fBuilder->CreateStore(fCurValue, fDSPStackVars[named_address->fName], inst->fAddress->getAccess() & Address::kVolatile);
-                    genVectorStore(fDSPStackVars[named_address->fName], fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile);
+                    genVectorStore(fDSPStackVars[named_address->fName], fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile, inst->fAligned);
 
                  } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
                     // Result is in fCurValue
@@ -1582,7 +1584,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                     //fBuilder->CreateStore(fCurValue, fModule->getGlobalVariable(named_address->fName, true), inst->fAddress->getAccess() & Address::kVolatile);
                     //fCurValue->dump();
-                    genVectorStore(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile);
+                    genVectorStore(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile, inst->fAligned);
                 }
             }
 
@@ -1616,7 +1618,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     inst->fValue->accept(this);
 
                     //fBuilder->CreateStore(fCurValue, store_ptr);
-                    genVectorStore(store_ptr, fCurValue, inst->fValue->fSize);
+                    genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kFunArgs) {
                     // Get the enclosing function
@@ -1644,7 +1646,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     inst->fValue->accept(this);
 
                     //fBuilder->CreateStore(fCurValue, store_ptr);
-                    genVectorStore(store_ptr, fCurValue, inst->fValue->fSize);
+                    genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                     //cout <<  "named_address->fName " << named_address->fName.c_str() << endl;
@@ -1661,7 +1663,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     inst->fValue->accept(this);
 
                     //fBuilder->CreateStore(fCurValue, store_ptr2);
-                    genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize);
+                    genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, inst->fAligned);
 
                 } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
                     // Compute index, result is in fCurValue
@@ -1676,7 +1678,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     inst->fValue->accept(this);
 
                     //fBuilder->CreateStore(fCurValue, store_ptr2);
-                    genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize);
+                    genVectorStore(store_ptr2, fCurValue, inst->fValue->fSize,  named_address->fAccess & Address::kVolatile, inst->fAligned);
 
                 } else {
                     // default

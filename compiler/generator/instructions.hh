@@ -799,9 +799,10 @@ struct DropInst : public StatementInst
 struct LoadVarInst : public ValueInst
 {
     Address* fAddress;
+    bool fAligned;
 
-    LoadVarInst(Address* address, int size = 1)
-        :ValueInst(size), fAddress(address)
+    LoadVarInst(Address* address, int size = 1, bool aligned = false)
+        :ValueInst(size), fAddress(address), fAligned(aligned)
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -812,9 +813,10 @@ struct LoadVarInst : public ValueInst
 struct LoadVarAddressInst : public ValueInst
 {
     Address* fAddress;
+    bool fAligned;
 
-    LoadVarAddressInst(Address* address, int size = 1)
-        :ValueInst(size), fAddress(address)
+    LoadVarAddressInst(Address* address, int size = 1, bool aligned = false)
+        :ValueInst(size), fAddress(address), fAligned(aligned)
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -826,9 +828,10 @@ struct StoreVarInst : public StatementInst
 {
     Address* fAddress;
     ValueInst* fValue;
+    bool fAligned;
 
-    StoreVarInst(Address* address, ValueInst* value)
-        :fAddress(address), fValue(value)
+    StoreVarInst(Address* address, ValueInst* value, bool aligned = false)
+        :fAddress(address), fValue(value), fAligned(aligned)
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1161,9 +1164,9 @@ class BasicCloneVisitor : public CloneVisitor {
         }
 
         // Memory
-        virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this), inst->fSize); }
-        virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize); }
-        virtual StatementInst* visit(StoreVarInst* inst) { return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
+        virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this), inst->fSize, inst->fAligned); }
+        virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize, inst->fAligned); }
+        virtual StatementInst* visit(StoreVarInst* inst) { return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this), inst->fAligned); }
 
         // Addresses
         virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, address->fAccess); }
@@ -1574,9 +1577,9 @@ struct InstBuilder
         {return new DeclareTypeInst(type);}
 
     // Memory
-    static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
-    static LoadVarAddressInst* genLoadVarAddressInst(Address* address, int size = 1) { return new LoadVarAddressInst(address, size); }
-    static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value) {return new StoreVarInst(address, value); }
+    static LoadVarInst* genLoadVarInst(Address* address, int size = 1, bool aligned = false) { return new LoadVarInst(address, size, aligned); }
+    static LoadVarAddressInst* genLoadVarAddressInst(Address* address, int size = 1, bool aligned = false) { return new LoadVarAddressInst(address, size, aligned); }
+    static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value, bool aligned = false) {return new StoreVarInst(address, value, aligned); }
 
     // Numbers
     static FloatNumInst* genFloatNumInst(float num, int size = 1) { return new FloatNumInst(num, size);}
