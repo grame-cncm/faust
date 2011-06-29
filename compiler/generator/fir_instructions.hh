@@ -489,24 +489,9 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << ")";
         }
 
-        void generateFaustPower(ValueInst* arg1, ValueInst* arg2)
-        {}
-
-        void generateFaustPowerAux(ValueInst* arg1, int arg2)
-        {}
-
         virtual void visit(FunCallInst* inst)
         {
-            if (inst->fName == "faustpower") {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                ValueInst* arg1 = (*it);
-                it++;
-                ValueInst* arg2 = (*it);
-                generateFaustPower(arg1, arg2);
-                return;
-            }
-
-            if (inst->fSize > 1) {
+             if (inst->fSize > 1) {
                 *fOut << "FunCallInstVec<" << inst->fSize << ">(";
             } else {
                 *fOut << "FunCallInst(";

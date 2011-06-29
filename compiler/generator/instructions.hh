@@ -1398,14 +1398,7 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         InstVisitor* fScalarVisitor;
         InstVisitor* fVectorVisitor;
 
-        void Dispatch2Visitor(ValueInst* inst)
-        {
-            if (inst->fSize == 1) {
-                fScalarVisitor->visit(inst);
-            } else {
-                fVectorVisitor->visit(inst);
-            }
-        }
+        void Dispatch2Visitor(ValueInst* inst);
 
     public:
 
@@ -1431,11 +1424,15 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
 
         virtual void visit(StoreVarInst* inst)
         {
+            /*
             if (inst->fValue->fSize == 1) {
                 fScalarVisitor->visit(inst);
             } else {
                 fVectorVisitor->visit(inst);
             }
+            */
+
+            fScalarVisitor->visit(inst);
         }
 
         virtual void visit(FloatNumInst* inst)

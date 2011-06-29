@@ -404,29 +404,29 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool is
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
+void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp)
+{
+    if (gVecLoopSize > 0 && !loop->fIsRecursive) {
+        loop->generateDAGVecLoop(block, count, omp, gVecLoopSize);
+    } else {
+        loop->generateDAGLoop(block, count, omp);
+    }
+}
+
 void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst * count, int loop_num, bool omp)
 {
     if (gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();
-
-        if (gVecLoopSize > 0 && !loop->fIsRecursive) {
-            loop->generateDAGVecLoop(block, count, omp, gVecLoopSize);
-        } else {
-            loop->generateDAGLoop(block, count, omp);
-        }
-
+        // Generates scalar or vectorized loop
+        generateDAGLoopInternal(loop, block, count, omp);
         Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gDSPStruct);
         fComputeFunctions->pushBackInst(builder.fFunctionDef);
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive function $0", T(loop_num)) : subst("// Vectorizable function $0", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);
     } else {
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("// Recursive loop $0", T(loop_num)) : subst("// Vectorizable loop $0", T(loop_num))));
-
-        if (gVecLoopSize > 0 && !loop->fIsRecursive) {
-            loop->generateDAGVecLoop(loop_code, count, omp, gVecLoopSize);
-        } else {
-            loop->generateDAGLoop(loop_code, count, omp);
-        }
+        // Generates scalar or vectorized loop
+        generateDAGLoopInternal(loop, loop_code, count, omp);
     }
 }
 

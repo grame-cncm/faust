@@ -623,7 +623,8 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
                 // TODO
                 // *fOut << fScalarBinOpTable[inst->fOpcode] << "(" << res1 << ", 1, " << res2 << fCurValue << ", 1, " << inst->fSize << ")";
             } else {
-                // Scalar-Vec operation
+                // Scalar operation
+                CPPVecInstVisitor::visit(inst);
             }
 
             EndLine();

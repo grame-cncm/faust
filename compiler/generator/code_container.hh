@@ -124,9 +124,9 @@ class CodeContainer {
         }
 
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
+        void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp);
 
         bool fGeneratedSR;
-
 
       public:
 

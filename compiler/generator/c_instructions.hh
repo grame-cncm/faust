@@ -335,23 +335,8 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fInst->accept(this);
         }
 
-        void generateFaustPower(ValueInst* arg1, ValueInst* arg2)
-        {}
-
-         void generateFaustPowerAux(ValueInst* arg1, int arg2)
-        {}
-
         virtual void visit(FunCallInst* inst)
         {
-            if (inst->fName == "faustpower") {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
-                ValueInst* arg1 = (*it);
-                it++;
-                ValueInst* arg2 = (*it);
-                generateFaustPower(arg1, arg2);
-                return;
-            }
-
             *fOut << inst->fName << "(";
             list<ValueInst*>::const_iterator it;
 

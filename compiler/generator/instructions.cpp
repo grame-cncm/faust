@@ -168,6 +168,20 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
     return dec_type;
 }
 
+void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
+{
+    printf("Dispatch2Visitor %d\n", inst->fSize);
+     fScalarVisitor->visit(inst);
+
+    /*
+    if (inst->fSize == 1) {
+        fScalarVisitor->visit(inst);
+    } else {
+        fVectorVisitor->visit(inst);
+    }
+    */
+}
+
 /*
 static Typed* sharedTypeToFirType(Tree t)
 {
