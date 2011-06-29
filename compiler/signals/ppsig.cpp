@@ -228,7 +228,12 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ printui(fout, "vbargraph", label, x, y, z); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ printui(fout, "hbargraph", label, x, y, z); }
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
-	
+
+    else if ( isSigVectorize(sig,x,y))              { printfun(fout, "vectorize", x, y); }
+    else if ( isSigSerialize(sig,x))                { printfun(fout, "linearize", x); }
+    else if ( isSigVectorAt(sig,x,y))               { printfun(fout, "vectorAt", x, y); }
+    else if ( isSigConcat(sig,x,y))                 { printfun(fout, "concat", x, y); }
+
 	else {
         cerr << "NOT A SIGNAL : " << *sig << endl;
         //exit(1);

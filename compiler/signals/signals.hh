@@ -124,8 +124,8 @@ bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
 
 // multirate
-Tree sigVectorize (Tree s1, Tree s2);
-bool isSigVectorize (Tree a, Tree& s1, Tree& s2);
+Tree sigVectorize (Tree n, Tree s);
+bool isSigVectorize (Tree a, Tree& n, Tree& s);
 
 Tree sigSerialize (Tree s);
 bool isSigSerialize (Tree a, Tree& s);

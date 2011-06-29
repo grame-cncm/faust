@@ -92,9 +92,9 @@ class AudioType
 
 	
   public :		  
-	AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i=interval()) 
+    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i=interval())
 		  : fNature(n), fVariability(v), fComputability(c), 
-		    fVectorability(vec), fBoolean(b), 
+            fVectorability(vec), fBoolean(b),
 		    fInterval(i) {}									///< constructs an abstract audio type	
   	virtual ~AudioType() 									{} 	///< not really useful here, but make compiler happier
 	
@@ -102,8 +102,8 @@ class AudioType
 	int 	variability() 	const	{ return fVariability; }	///< returns how fast values change (constant, by blocks, by samples)
 	int 	computability() const	{ return fComputability;}	///< returns when values are available (compilation, initialisation, execution)
 	int 	vectorability() const 	{ return fVectorability;} 	///< returns when a signal can be vectorized
-	int 	boolean() 		const	{ return fBoolean; } 		///< returns when a signal stands for a boolean value
-	
+    int 	boolean() 		const	{ return fBoolean; } 		///< returns when a signal stands for a boolean value
+
 	interval getInterval() 	const	{ return fInterval; }		///< returns the interval (min dn max values) of a signal
 
 	
@@ -179,9 +179,9 @@ inline int mergevectorability(const vector<Type>& v)
  */
 inline int mergeboolean(const vector<Type>& v)
 {
-	int r = 0;
-	for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->boolean();
-	return r;
+    int r = 0;
+    for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->boolean();
+    return r;
 }
 
 
@@ -357,6 +357,46 @@ class TupletType : public AudioType
 
 
 
+/**
+ * The type T = vector(n, T') of a signal of vectors of fixed size n and elements of type T'
+ * The following properties hold :
+ *     nature(vector(n,T')) = nature(T')
+ *     variability(vector(n,T')) = variability(T')
+ *     computability(vector(n,T')) = computability(T')
+ *     vectorability(vector(n,T')) = ???                    (so probably no)
+ *     boolean(vector(n,T')) = false                        (a vector is not a boolean)
+ *     getInterval(vector(n,T')) = getInterval(T')          (is it meanuful ?)
+ */
+class VectorType : public AudioType
+{
+  protected:
+    int         fSize;          ///< size of the vector
+    Type        fContent;       ///< type of the elements
+
+  public:
+    VectorType(int n, const Type& t) : AudioType(t->nature(), t->variability(), t->computability(), t->vectorability(),
+                                                 t->boolean(), t->getInterval()),
+                                       fSize(n),
+                                       fContent(t)
+          {}
+
+
+    int size() const                { return fSize; }
+    Type content() const            { return fContent; }
+
+    virtual ostream& print(ostream& dst) const;
+
+    virtual AudioType* promoteNature(int n)                 { return new VectorType(fSize, fContent->promoteNature(n)); }           ///< promote the nature of a type
+    virtual AudioType* promoteVariability(int v)			{ return new VectorType(fSize, fContent->promoteVariability(v)); }      ///< promote the variability of a type
+    virtual AudioType* promoteComputability(int c)			{ return new VectorType(fSize, fContent->promoteComputability(c)); }	///< promote the computability of a type
+    virtual AudioType* promoteVectorability(int vec)		{ return new VectorType(fSize, fContent->promoteVectorability(vec)); }	///< promote the vectorability of a type
+    virtual AudioType* promoteBoolean(int b)        		{ return new VectorType(fSize, fContent->promoteBoolean(b)); }          ///< promote the booleanity of a type
+
+
+};
+
+
+
 
 //-------------------------------------------------
 //-------------------------------------------------
@@ -413,6 +453,7 @@ inline bool operator>=(const Type& t1, const Type& t2) { return t2<=t1; }
 SimpleType* 	isSimpleType (AudioType* t);
 TableType* 		isTableType  (AudioType* t);
 TupletType* 	isTupletType (AudioType* t);
+VectorType* 	isVectorType (AudioType* t);
 
 
 //--------------------------------------------------
@@ -422,6 +463,7 @@ ostream& operator<<(ostream& dst, const SimpleType& t);
 ostream& operator<<(ostream& dst, const Type& t);
 ostream& operator<<(ostream& dst, const TableType& t);
 ostream& operator<<(ostream& dst, const TupletType& t);
+ostream& operator<<(ostream& dst, const VectorType& t);
 
 
 //--------------------------------------------------

@@ -562,6 +562,56 @@ Tree substitute (Tree t, Tree id, Tree val)
 }
 	
 	
-	
 
-	
+
+
+
+//------------------------------------------------------------------------------
+// Fun : implementation of functions as set of pairs (key x value)
+// such that key are uniques : forall (k1,v1) and (k2,v2) in F, k1=k2 ==> v1=v2
+// Uses the order on key to speedup search
+//------------------------------------------------------------------------------
+
+/**
+  * Add a pair key x value to "function" l
+  */
+Tree addFun(Tree k, Tree v, Tree l)
+{
+    if (isList(l)) {
+        Tree r = hd(hd(l));
+        if (k < r) {
+            return cons(cons(k,v),l);
+        } else if (k == r) {
+            return cons(cons(k,v),tl(l));
+        } else {
+            return cons(hd(l), addFun(k,v,tl(l)));
+        }
+    } else {
+        return cons(cons(k,v),nil);
+    }
+}
+
+/**
+  * Get value associated to key k in "function" l
+  * returns true if a value was found.
+  */
+
+bool getFun(Tree k, Tree& v, Tree l)
+{
+    if (isNil(l)) {
+        return false;
+    } else {
+        assert (isList(l));
+        Tree r = hd(hd(l));
+        if (k < r) {
+            return false;
+        } else if (k == r) {
+            v = tl(hd(l));
+            return true;
+        } else {
+            return getFun(k,v,tl(l));
+        }
+    }
+}
+
+

@@ -122,8 +122,8 @@ bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ retur
 // multirate
 
 Sym SIGVECTORIZE = symbol ("SigVectorize");
-Tree sigVectorize (Tree s1, Tree s2)                    { return tree(SIGVECTORIZE, s1, s2); }
-bool isSigVectorize (Tree a, Tree& s1, Tree& s2)        { return isTree(a, SIGVECTORIZE, s1, s2); }
+Tree sigVectorize (Tree n, Tree s)                       { return tree(SIGVECTORIZE, n, s); }
+bool isSigVectorize (Tree a, Tree& n, Tree& s)           { return isTree(a, SIGVECTORIZE, n, s); }
 
 Sym SIGSERIALIZE = symbol ("SigSerialize");
 Tree sigSerialize (Tree s1)                             { return tree(SIGSERIALIZE, s1); }

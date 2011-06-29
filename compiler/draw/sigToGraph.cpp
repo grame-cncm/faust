@@ -239,8 +239,13 @@ static string sigLabel(Tree sig)
 #endif
     else if ( isSigAttach(sig, x, y) )              { fout << "attach";		}
 
+    else if ( isSigVectorize(sig, x, y) )      { fout << "vectorize";		}
+    else if ( isSigSerialize(sig, x) )         { fout << "serialize";		}
+    else if ( isSigConcat(sig, x, y) )         { fout << "#";		}
+    else if ( isSigVectorAt(sig, x, y) )       { fout << "[]";		}
+
     else {
-        cerr << "ERROR, unrecognized signal : " << *sig << endl;
+        cerr << "ERROR in sigLabel(), unrecognized signal : " << *sig << endl;
         exit(1);
     }
 

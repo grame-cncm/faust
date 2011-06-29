@@ -74,7 +74,7 @@ ostream& TableType::print(ostream& dst) const
 	fContent->print(dst);
 	return dst << ')'; 
 }
-	
+
 
 
 /**
@@ -82,17 +82,28 @@ ostream& TableType::print(ostream& dst) const
  */
 ostream& TupletType::print(ostream& dst) const
 {
-	dst << "KB?S"[variability()]
-		<< "CI?E"[computability()] 
-		<< " " << fInterval
-		<< " : {"; 
-	string sep = "";
-	for (unsigned int i = 0; i < fComponents.size(); i++, sep="*") {
-		dst << sep;
-		fComponents[i]->print(dst);
-	} 
-	dst << '}';
-	return  dst; 
+    dst << "KB?S"[variability()]
+        << "CI?E"[computability()]
+        << " " << fInterval
+        << " : {";
+    string sep = "";
+    for (unsigned int i = 0; i < fComponents.size(); i++, sep="*") {
+        dst << sep;
+        fComponents[i]->print(dst);
+    }
+    dst << '}';
+    return  dst;
+}
+
+
+
+/**
+ * Print the content of a vector type on a stream
+ */
+ostream& VectorType::print(ostream& dst) const
+{
+    dst << "vector[" << fSize << "," << fContent << "]";
+    return dst;
 }
 
 
@@ -230,6 +241,7 @@ Type operator* 	(const Type& t1, const Type& t2)
 SimpleType*	isSimpleType(AudioType* t)	{ return dynamic_cast<SimpleType*>(t); }
 TableType* 	isTableType(AudioType* t)	{ return dynamic_cast<TableType*>(t);  }
 TupletType*	isTupletType(AudioType* t)	{ return dynamic_cast<TupletType*>(t); }
+VectorType* isVectorType(AudioType* t)	{ return dynamic_cast<VectorType*>(t); }
 
 
 
