@@ -1150,22 +1150,22 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     Value* llvm_arg = args++;
                     llvm_arg->setName((*it)->fName);
                 }
-            }
-            //function->dump();
-
-            // If there is a body, compile it
-            if (inst->fCode->fCode.size() > 0) {
-
-                // Prepare a block to insert into
-                BasicBlock* code_block = BasicBlock::Create(getGlobalContext(), "code_block", function);
-                fBuilder->SetInsertPoint(code_block);
-
-                // Compile code in this block
-                inst->fCode->accept(this);
 
                 //function->dump();
-                verifyFunction(*function);
-                fBuilder->ClearInsertionPoint();
+
+                // If there is a body, compile it
+                if (inst->fCode->fCode.size() > 0) {
+
+                    // Prepare a block to insert into
+                    BasicBlock* code_block = BasicBlock::Create(getGlobalContext(), "code_block", function);
+                    fBuilder->SetInsertPoint(code_block);
+
+                    // Compile code in this block
+                    inst->fCode->accept(this);
+                    //function->dump();
+                    verifyFunction(*function);
+                    fBuilder->ClearInsertionPoint();
+                }
             }
 
             // No result

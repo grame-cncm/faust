@@ -6,8 +6,8 @@ all :  $(appl)
 
 $(DEST)% : %.dsp
 	cp /usr/local/lib/faust/$(ARCH) $(DEST)
-	faust -vec -lv 1  -lang llvm  -vs 64 -vls 4 $< -o $@.bc
-	#faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
+	#faust -vec -lv 1  -lang llvm  -vs 64 -vls 4 $< -o $@.bc
+	faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
 	#faust  -lang llvm  $< -o $@.bc
 	#faust -sch  -lang llvm  -vs 64 $< -o $@.bc
 	opt -S -O3 $@.bc -o $@.ll
