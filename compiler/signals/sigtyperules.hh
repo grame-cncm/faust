@@ -26,6 +26,7 @@
 
 #include "signals.hh"
 #include "sigtype.hh"
+#include "sigraterules.hh"
 
 
 extern bool gVectorSwitch;
