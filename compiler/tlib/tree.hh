@@ -114,16 +114,18 @@ class CTree
 
  public:
 	static bool			gDetails;					///< Ctree::print() print with more details when true
+    static unsigned int gVisitTime;                 ///< Should be incremented for each new visit to keep track of visited tree.
 
  private:
 	// fields
-	Tree		fNext;				///< next tree in the same hashtable entry
-	Node		fNode;				///< the node content of the tree
-	void*		fType;				///< the type of a tree 
-	plist		fProperties;		///< the properties list attached to the tree
-	unsigned int		fHashKey;			///< the hashtable key
-	int			fAperture;			///< how "open" is a tree (synthezised field)
-	tvec		fBranch;			///< the subtrees
+    Tree            fNext;				///< next tree in the same hashtable entry
+    Node            fNode;				///< the node content of the tree
+    void*           fType;				///< the type of a tree
+    plist           fProperties;		///< the properties list attached to the tree
+    unsigned int	fHashKey;			///< the hashtable key
+    int             fAperture;			///< how "open" is a tree (synthezised field)
+    unsigned int	fVisitTime;			///< keep track of visits
+    tvec            fBranch;			///< the subtrees
 
 	CTree (unsigned int hk, const Node& n, const tvec& br); 						///< construction is private, uses tree::make instead
 
@@ -154,6 +156,12 @@ class CTree
 	void		setType(void* t) 	{ fType = t; }
 	void*		getType() 			{ return fType; }
 	
+    // Keep track of visited trees (WARNING : non reentrant)
+    static void     startNewVisit()                 { ++gVisitTime; }
+    bool            isAlreadyVisited()              { return fVisitTime==gVisitTime; }
+    void            setVisited()                    { assert(fVisitTime!=gVisitTime); fVisitTime=gVisitTime; }
+
+
 	// Property list of a tree
 	void		setProperty(Tree key, Tree value) { fProperties[key] = value; }
 	void		clearProperty(Tree key) { fProperties.erase(key); }

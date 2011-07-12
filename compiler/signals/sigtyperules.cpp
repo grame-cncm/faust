@@ -110,12 +110,14 @@ void typeAnnotation(Tree sig)
     //cerr << --TABBER << "EXIT TYPE ANNOTATION OF " << *sig << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
 
     bool    success;
-    Tree    ME = inferreMultiRates(sig, success);
+    Tree    RE = inferreMultiRates(sig, success);
     if (success) {
-        printRateEnvironmentList(cerr, ME); cerr << endl;
+        printRateEnvironment(cerr, RE); cerr << endl;
     } else {
         cerr << "ERROR can't inferre rate environment of " << ppsig(sig) << endl;
     }
+
+
 }
 
 

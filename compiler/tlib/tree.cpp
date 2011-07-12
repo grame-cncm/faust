@@ -97,7 +97,8 @@ static void error(const char * s, Tree t)
 
 
 Tree CTree::gHashTable[kHashTableSize];
-bool CTree::gDetails = false;
+bool CTree::gDetails            = false;
+unsigned int CTree::gVisitTime  = 0;                 ///< Should be incremented for each new visit to keep track of visited tree.
 
 // Constructor : add the tree to the hash table
 CTree::CTree (unsigned int hk, const Node& n, const tvec& br) 
@@ -105,6 +106,7 @@ CTree::CTree (unsigned int hk, const Node& n, const tvec& br)
 		fType(0),
 		fHashKey(hk), 
 	 	fAperture(calcTreeAperture(n,br)), 
+        fVisitTime(0),
 		fBranch(br) 
 { 
 	// link dans la hash table

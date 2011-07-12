@@ -43,15 +43,137 @@
 /**
 
 ========================================== RATE INFERENCE =========================================
+                                         [Public functions]
 
 
 */
+
+/**************************************************************************************************
+
+                                        Internal prototypes
+
+ **************************************************************************************************/
+
+static void doInferreRate(Tree sig, int* rate, Tree& renv);
+static void inferreRate(Tree sig, int* rate, Tree& E);
+static Tree addToMultiRates(Tree E1, Tree LE, bool& success);
+static Tree addRecursiveSignals(Tree lsig);
+static Tree doAddRecursiveSignals(Tree sig, Tree accSig);
+static Tree flatRateEnvironmentList(Tree lre);
+
+static int computeRate(Tree sig, Tree renv, property<int>& rateProperty);
+
+
+
+/**************************************************************************************************
+ **************************************************************************************************
+ **************************************************************************************************
+
+                                        Public Functions
+
+ **************************************************************************************************
+ **************************************************************************************************
+ **************************************************************************************************/
+
+/**
+  * Inferre the rate of a list of signals.
+  */
+Tree inferreMultiRates(Tree lsig1, bool& success)
+{
+    vector<Tree>    sigs;
+    vector<Tree>    envs;
+    vector<int>     rates;
+
+    Tree lsig2 = addRecursiveSignals(lsig1);
+    cerr << "lsig2 = " << *lsig2 << endl;
+
+    while (isList(lsig2)) {
+        Tree s = hd(lsig2); lsig2 = tl(lsig2);
+        Tree E; int r; inferreRate(s, &r, E);
+        if (r==0) {
+            success = false;
+            cerr << "ERROR inferreMultiRates failed 1" << endl;
+            return nil;
+        }
+        sigs.push_back(s);
+        envs.push_back(E);
+        rates.push_back(r);
+    }
+
+    // combines all the rate environements
+    Tree LE = nil;
+    success = true;
+    for (unsigned int i=0; success && i<envs.size(); i++) {
+        LE = addToMultiRates(envs[i], LE, success);
+    }
+    cerr << "multirates :"; printRateEnvironmentList(cerr, LE); cerr << endl;
+    Tree RE = flatRateEnvironmentList(LE);
+    cerr << "flat rate  :"; printRateEnvironment(cerr, RE); cerr << endl;
+
+    return RE;
+}
+
+
+/**
+  * Print a rate environment
+  */
+ostream&  printRateEnvironment(ostream& fout, Tree E)
+{
+    string sep = "";
+    fout << "rates {";
+    while (isList(E)) {
+        fout << sep << ppsig(hd(hd(E))) << ":" << tree2int(tl(hd(E)));
+        sep=",";
+        E = tl(E);
+    }
+    fout << "}";
+    return fout;
+}
+
+
+/**
+  * Print a list of rate environments
+  */
+ostream&  printRateEnvironmentList(ostream& fout, Tree LE)
+{
+    string sep = "";
+    fout << "multi{";
+    while (isList(LE)) {
+        fout << sep; printRateEnvironment(fout, hd(LE));
+        sep="++";
+        LE = tl(LE);
+    }
+    fout << "}";
+    return fout;
+}
+
+
+
+/**************************************************************************************************
+ **************************************************************************************************
+ **************************************************************************************************
+
+                                        IMPLEMENTATION
+
+ **************************************************************************************************
+ **************************************************************************************************
+ **************************************************************************************************/
 
 
 /**
   * Greatest common divisor
   */
-int gcd(int a, int b)
+static int TRACED_gcd(int a, int b);
+
+static int gcd(int a, int b)
+{
+    int r = TRACED_gcd(a,b);
+    cerr << TABBER << "gcd(" << a << ',' << b <<") = " << r << endl;
+    return r;
+}
+
+
+static int TRACED_gcd(int a, int b)
 {
     return (b==0) ? a : gcd (b, a%b);
 }
@@ -59,17 +181,56 @@ int gcd(int a, int b)
 /**
   * Least common multiple
   */
-int lcm(int a, int b)
+static int lcm(int a, int b)
 {
-    return (a*b)/gcd(a,b);
+    int r = (a*b)/gcd(a,b);
+    cerr << TABBER << "lcm(" << a << ',' << b <<") = " << r << endl;
+    return r;
 }
 
 
-
-
 /**
+ * Add to a list of existing signals lsig the list of recursive signals apprearing in lsig
+ */
 
-========================================== RATE ENVIRONMENTS =========================================
+static Tree addRecursiveSignals(Tree lsig)
+{
+    CTree::startNewVisit();
+
+    Tree lsig2 = lsig;
+    while (isList(lsig)) {
+        lsig2 = doAddRecursiveSignals(hd(lsig), lsig2);
+        lsig = tl(lsig);
+    }
+    return lsig2;
+}
+
+
+static Tree doAddRecursiveSignals(Tree sig, Tree accSig)
+{
+    cerr << ++TABBER << "doAddRecursiveSignals(" << *sig << ',' << *accSig << ')' << endl;
+    if ( ! sig->isAlreadyVisited() ) {
+        int     i;
+        Tree    rsig, id, body;
+        sig->setVisited();
+        if (isProj(sig,&i,rsig) && isRec(rsig, id, body)) {
+            Tree p = nth(body,i);
+            accSig = doAddRecursiveSignals(p, cons(p,accSig));
+        } else {
+            assert(!isProj(sig,&i,rsig));
+
+            vector<Tree>    subsigs;
+            getSubSignals(sig,subsigs,false);
+            for (unsigned int i=0; i<subsigs.size(); i++) {
+                accSig = doAddRecursiveSignals(subsigs[i], accSig);
+            }
+        }
+    }
+    cerr << --TABBER << "doAddRecursiveSignals(" << *sig << ',' << *accSig << ") -> " << *accSig << endl;
+    return accSig;
+}
+
+/** *********************************** RATE ENVIRONMENTS ************************************************
 
 A rate environement E = {(s1,r1), (s2,r2), ...} is a set of pairs associating a signal and a rate. The
 signals are unique : if (s1,r1) and (s2,r2) are in E then s1=s2 => r1=r2.
@@ -77,7 +238,7 @@ signals are unique : if (s1,r1) and (s2,r2) are in E then s1=s2 => r1=r2.
 The environment is kept ordered
 
 
-*/
+**********************************************************************************************************/
 
 
 
@@ -85,7 +246,7 @@ The environment is kept ordered
 /**
   * Add a pair signal s1 x rate r1 to rate environment E
   */
-Tree addRateEnv(Tree s1, int r1, Tree E)
+static Tree addRateEnv(Tree s1, int r1, Tree E)
 {
     if (isList(E)) {
         Tree s2 = hd(hd(E));
@@ -106,7 +267,19 @@ Tree addRateEnv(Tree s1, int r1, Tree E)
   * multiply by n all the rates of rate environment E
   * E={(s1,r1),...} -> E'={(s1,n.r1),...}
   */
-Tree multRateEnv(int n, Tree E)
+static Tree TRACED_multRateEnv(int n, Tree E);
+
+static Tree multRateEnv(int n, Tree E)
+{
+    cerr << ++TABBER << "multRateEnv(" << n << ", " << *E << ")" << endl;
+    Tree result = TRACED_multRateEnv(n, E);
+    cerr << --TABBER << "multRateEnv(" << n << ", " << *E << ") -> " << *result << endl;
+    return result;
+
+}
+
+
+static Tree TRACED_multRateEnv(int n, Tree E)
 {
     if (isList(E)) {
         Tree p = hd(E);
@@ -125,7 +298,7 @@ Tree multRateEnv(int n, Tree E)
   * returns true if a value was found.
   */
 
-bool getRateEnv(Tree k, int* i, Tree l)
+static bool getRateEnv(Tree k, int* i, Tree l)
 {
     if (isNil(l)) {
         return false;
@@ -150,7 +323,7 @@ bool getRateEnv(Tree k, int* i, Tree l)
   * are linked by the same ratio
   */
 
-bool checkRatesCompatible(Tree R1, Tree R2, int n1, int n2)
+static bool checkRatesCompatible(Tree R1, Tree R2, int n1, int n2)
 {
     if (isNil(R1) || isNil(R2)) {
         return true;
@@ -185,7 +358,7 @@ bool checkRatesCompatible(Tree R1, Tree R2, int n1, int n2)
   * signals in common
   */
 
-bool areRatesIndependent(Tree R1, Tree R2)
+static bool areRatesIndependent(Tree R1, Tree R2)
 {
     if (isNil(R1) || isNil(R2)) {
         return true;
@@ -214,7 +387,7 @@ bool areRatesIndependent(Tree R1, Tree R2)
   * are linked by the same ratio
   */
 
-bool areRatesCompatible(Tree R1, Tree R2, int& n1, int& n2)
+static bool areRatesCompatible(Tree R1, Tree R2, int& n1, int& n2)
 {
     if (isNil(R1) || isNil(R2)) {
 
@@ -248,7 +421,12 @@ bool areRatesCompatible(Tree R1, Tree R2, int& n1, int& n2)
 
             int  m = lcm(r1, r2);
 
-            return checkRatesCompatible(tl(R1), tl(R2), m/r1, m/r2);
+            // we update the n1 and n2 coefficients
+            n1 = m/r1;
+            n2 = m/r2;
+
+            // and we check that the rest of the environments are compatible
+            return checkRatesCompatible(tl(R1), tl(R2), n1, n2);
         }
     }
 }
@@ -259,11 +437,25 @@ bool areRatesCompatible(Tree R1, Tree R2, int& n1, int& n2)
   * compatible if common expressions have same rate.
   * Returns the merge environment and success flag
   */
+static Tree TRACED_mergeRateEnvironment(Tree R1, Tree R2, bool& success);
 
-Tree mergeRateEnvironment(Tree R1, Tree R2, bool& success)
+static Tree mergeRateEnvironment(Tree R1, Tree R2, bool& success)
 {
-    //cerr << ++TABBER << "mergeRateEnvironment (" << *R1 << ", " << *R2 << ")" << endl;
+    cerr << ++TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ")" << endl;
+    Tree result = TRACED_mergeRateEnvironment(R1, R2, success);
+    if (success) {
+        cerr << --TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ") -> " << *result << endl;
+    } else {
+        cerr << --TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ") -> FAILED" << endl;
+    }
+    return result;
+}
 
+
+
+
+static Tree TRACED_mergeRateEnvironment(Tree R1, Tree R2, bool& success)
+{
     if (isNil(R1)) {
 
         success = true;
@@ -307,21 +499,36 @@ Tree mergeRateEnvironment(Tree R1, Tree R2, bool& success)
     }
 }
 
-
-
-
-property<int>   gComputeRateProperty;
-
-static void setComputeRateProperty(Tree sig, Tree renv, int rate)
+/**
+ * Merge a list of independent rate environments into a single rate environment
+ */
+static Tree flatRateEnvironmentList(Tree lre)
 {
-    gComputeRateProperty.set(cons(sig,renv),rate);
+    Tree    e = nil;
+    bool    success = true;
+    while (isList(lre)) {
+        e = mergeRateEnvironment(hd(lre),e, success);
+        assert(success); // can't failed if environments are independant
+        lre = tl(lre);
+    }
+    return e;
 }
 
-static bool getComputeRateProperty(Tree sig, Tree renv, int& rate)
+#if 1
+
+#if 0
+property<int>   xxxgComputeRateProperty;
+
+static void xxxsetComputeRateProperty(Tree sig, Tree renv, int rate)
 {
-    return gComputeRateProperty.get(cons(sig,renv),rate);
+    xxxgComputeRateProperty.set(cons(sig,renv),rate);
 }
 
+static bool xxxgetComputeRateProperty(Tree sig, Tree renv, int& rate)
+{
+    return xxxgComputeRateProperty.get(cons(sig,renv),rate);
+}
+#endif
 
 /**
  * Compute the rate of a signal according to a rate environment indicating rates for input signals
@@ -329,16 +536,16 @@ static bool getComputeRateProperty(Tree sig, Tree renv, int& rate)
  * @param renv the rate environment
  * @return the type of sig according to environment env
  */
-static int doComputeRate(Tree sig, Tree renv);
+static int doComputeRate(Tree sig, Tree renv, property<int>& rateProperty);
 
-static int computeRate(Tree sig, Tree renv)
+static int computeRate(Tree sig, Tree renv, property<int>& rateProperty)
 {
     int r;
-    if (getComputeRateProperty(sig,renv,r)) {
+    if (rateProperty.get(sig, r)) {
         return r;
     } else {
-        r = doComputeRate(sig, renv);
-        setComputeRateProperty(sig, renv, r);
+        r = doComputeRate(sig, renv, rateProperty);
+        rateProperty.set(sig, r);
         return r;
     }
 }
@@ -346,7 +553,7 @@ static int computeRate(Tree sig, Tree renv)
 /**
   * We assume types have been computed. We will use them to compute the rates.
   */
-static int doComputeRate(Tree sig, Tree renv)
+static int doComputeRate(Tree sig, Tree renv, property<int>& rateProperty)
 {
     Tree    n, x;
 
@@ -354,13 +561,13 @@ static int doComputeRate(Tree sig, Tree renv)
 
         VectorType* vt = isVectorType(getCertifiedSigType(sig));
         assert(vt);
-        return computeRate(x,renv) / vt->size();
+        return computeRate(x, renv, rateProperty) / vt->size();
 
     } else if ( isSigSerialize(sig, x)) {
 
         VectorType* vt = isVectorType(getCertifiedSigType(x));
         assert(vt);
-        return vt->size() * computeRate(x,renv);
+        return vt->size() * computeRate(x, renv, rateProperty);
 
     } else {
 
@@ -377,7 +584,7 @@ static int doComputeRate(Tree sig, Tree renv)
             int maxrate = 1;
             int lcmrate = 1;
             for (unsigned int i=0; i<subsigs.size(); i++) {
-                int r = computeRate(subsigs[i], renv);
+                int r = computeRate(subsigs[i], renv, rateProperty);
                 maxrate = max(r, maxrate);
                 lcmrate = lcm(r, lcmrate);
                 if (lcmrate != maxrate) {
@@ -389,7 +596,7 @@ static int doComputeRate(Tree sig, Tree renv)
     }
 }
 
-
+#endif
 
 /**
 
@@ -418,7 +625,6 @@ static bool getInferreRateProperty(Tree sig, int* rate, Tree& renv)
     }
 }
 
-static void doInferreRate(Tree sig, int* rate, Tree& renv);
 
 /**
   * Inferre rate (and rate environment) of a single signal.
@@ -441,8 +647,8 @@ static void inferreRate(Tree sig, int* rate, Tree& E)
   */
 static void doInferreRate(Tree sig, int* rate, Tree& E)
 {
-    Tree    w, x;
-    int     in;
+    Tree    w, x, rsig, id, body;
+    int     i, in;
 
     if ( isSigVectorize(sig, w, x) )  {
 
@@ -475,6 +681,13 @@ static void doInferreRate(Tree sig, int* rate, Tree& E)
     } else if ( isSigInput(sig, &in)) {
 
         // -- rate(input(x)) = 1
+
+        *rate   = 1;
+        E       = addRateEnv(sig,1,nil);
+
+    } else if (isProj(sig,&i,rsig) && isRec(rsig, id, body)) {
+
+        // -- rate(proj(i, x=(E0,E1,...))) = 1
 
         *rate   = 1;
         E       = addRateEnv(sig,1,nil);
@@ -527,7 +740,23 @@ static void doInferreRate(Tree sig, int* rate, Tree& E)
   * Try to add a rate environment E1 to a list of independent rate environments LE
   * Returns a list of independent rate environments
   */
+static Tree addToMultiRates(Tree E1, Tree LE, bool& success);
+static Tree TRACED_addToMultiRates(Tree E1, Tree LE, bool& success);
+
 static Tree addToMultiRates(Tree E1, Tree LE, bool& success)
+{
+    cerr << ++TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ")" << endl;
+    Tree result = TRACED_addToMultiRates(E1, LE, success);
+    if (success) {
+        cerr << --TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ") -> " << *result << endl;
+    } else {
+        cerr << --TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ") -> FAILED" << endl;
+    }
+    return result;
+}
+
+
+static Tree TRACED_addToMultiRates(Tree E1, Tree LE, bool& success)
 {
     if (isNil(LE)) {
         success = true;
@@ -552,69 +781,3 @@ static Tree addToMultiRates(Tree E1, Tree LE, bool& success)
     }
 }
 
-
-/**
-  * Print a rate environment
-  */
-ostream&  printRateEnvironment(ostream& fout, Tree E)
-{
-    string sep = "";
-    fout << "rates{";
-    while (isList(E)) {
-        fout << sep << ppsig(hd(hd(E))) << ":" << tree2int(tl(hd(E)));
-        sep=",";
-        E = tl(E);
-    }
-    fout << "}";
-    return fout;
-}
-
-
-/**
-  * Print a list of rate environments
-  */
-ostream&  printRateEnvironmentList(ostream& fout, Tree LE)
-{
-    string sep = "";
-    fout << "multi{";
-    while (isList(LE)) {
-        fout << sep; printRateEnvironment(fout, hd(LE));
-        sep="++";
-        LE = tl(LE);
-    }
-    fout << "}";
-    return fout;
-}
-
-
-/**
-  * Inferre the rate of a list of signals.
-  */
-Tree inferreMultiRates(Tree lsig, bool& success)
-{
-    vector<Tree>    sigs;
-    vector<Tree>    envs;
-    vector<int>     rates;
-
-    while (isList(lsig)) {
-        Tree s = hd(lsig); lsig = tl(lsig);
-        Tree E; int r; inferreRate(s, &r, E);
-        if (r==0) {
-            success = false;
-            cerr << "ERROR inferreMultiRates failed 1" << endl;
-            return nil;
-        }
-        sigs.push_back(s);
-        envs.push_back(E);
-        rates.push_back(r);
-    }
-
-    // combines all the rate environements
-    Tree LE = nil;
-    success = true;
-    for (unsigned int i=0; success && i<envs.size(); i++) {
-        LE = addToMultiRates(envs[i], LE, success);
-    }
-    cerr << "multirates :" << *LE << endl;
-    return LE;
-}
