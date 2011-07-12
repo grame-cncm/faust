@@ -3,9 +3,21 @@
 
 #include <iostream>
 #include "tlib.hh"
+#include "property.hh"
 
-ostream&  printRateEnvironment(ostream& fout, Tree E);
-Tree inferreMultiRates(Tree lsig, bool& success);
-ostream&  printRateEnvironmentList(ostream& fout, Tree LE);
+
+class RateInferrer
+{
+    bool            fSuccess;       ///< true when rates can be correctly inferred
+    Tree            fFullList;      ///< list of signals + list recursive signals inside
+    Tree            fRateEnv;       ///< list of signals + list recursive signals inside
+    property<int>   fRateProperty;  ///< property used to store the rate of signals
+
+    int computeRate(Tree sig);
+public:
+    RateInferrer(Tree lsig);    ///< list of signals we want to inferre the rates
+    int rate(Tree sig);         ///< returns the rate of sig assuming that sig is a subexpression of lsig
+
+};
 
 #endif // SIGRATERULES_HH

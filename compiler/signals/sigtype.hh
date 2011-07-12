@@ -117,6 +117,8 @@ class AudioType
 	
 	virtual ostream& print(ostream& dst) const		= 0;			///< print nicely a type
 	
+    virtual AudioType* dimensions(vector<int>& D)   = 0;        /// Fill D with the dimensions of the type and returns its base type
+
   protected:	
 	void		setInterval(const interval& r)	{ fInterval = r;}
 
@@ -241,7 +243,7 @@ class SimpleType : public AudioType
 // 		cerr << "gives type " << *t << endl;
 // 		return t;
 // 	}
-
+    virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // scalar have no dimensions
 
 };
 
@@ -306,6 +308,8 @@ class TableType : public AudioType
 	virtual AudioType* promoteBoolean(int b)        		{ return new TableType(fContent, fNature, fVariability, fComputability, fVectorability, b|fBoolean, fInterval); }	///< promote the booleanity of a type
 	//virtual AudioType* promoteInterval(const interval& i)	{ return new TableType(fContent, fNature, fVariability, fComputability, fVectorability, fBoolean, i); }			///< promote the interval of a type
 
+    virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // tables have no dimensions
+
 };
 
 
@@ -352,6 +356,7 @@ class TupletType : public AudioType
 	virtual AudioType* promoteBoolean(int b)        		{ return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, b|fBoolean, fInterval);  }	///< promote the booleanity of a type
 	//virtual AudioType* promoteInterval(const interval& i)	{ return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, fBoolean, i);  }			///< promote the interval of a type
   
+    virtual AudioType* dimensions(vector<int>& D)       { D.clear(); return this; } // tuples have no dimensions
 
 };
 
@@ -386,11 +391,12 @@ class VectorType : public AudioType
 
     virtual ostream& print(ostream& dst) const;
 
-    virtual AudioType* promoteNature(int n)                 { return new VectorType(fSize, fContent->promoteNature(n)); }           ///< promote the nature of a type
-    virtual AudioType* promoteVariability(int v)			{ return new VectorType(fSize, fContent->promoteVariability(v)); }      ///< promote the variability of a type
-    virtual AudioType* promoteComputability(int c)			{ return new VectorType(fSize, fContent->promoteComputability(c)); }	///< promote the computability of a type
-    virtual AudioType* promoteVectorability(int vec)		{ return new VectorType(fSize, fContent->promoteVectorability(vec)); }	///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int b)        		{ return new VectorType(fSize, fContent->promoteBoolean(b)); }          ///< promote the booleanity of a type
+    virtual AudioType* promoteNature(int n)             { return new VectorType(fSize, fContent->promoteNature(n)); }               ///< promote the nature of a type
+    virtual AudioType* promoteVariability(int v)		{ return new VectorType(fSize, fContent->promoteVariability(v)); }          ///< promote the variability of a type
+    virtual AudioType* promoteComputability(int c)		{ return new VectorType(fSize, fContent->promoteComputability(c)); }        ///< promote the computability of a type
+    virtual AudioType* promoteVectorability(int vec)	{ return new VectorType(fSize, fContent->promoteVectorability(vec)); }      ///< promote the vectorability of a type
+    virtual AudioType* promoteBoolean(int b)        	{ return new VectorType(fSize, fContent->promoteBoolean(b)); }              ///< promote the booleanity of a type
+    virtual AudioType* dimensions(vector<int>& D)       { AudioType* t = fContent->dimensions(D); D.push_back(fSize); return t;}    ///< vectors have a dimension
 
 
 };

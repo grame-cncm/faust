@@ -165,6 +165,7 @@ Type operator| ( const Type& t1, const Type& t2)
 		return new TupletType( v );
 		
 	} else {
+
 		
 		cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
 		exit(1);

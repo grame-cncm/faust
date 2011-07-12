@@ -42,6 +42,9 @@
 
 //--------------------------------------------------------------------------
 // prototypes
+static ostream&  printRateEnvironment(ostream& fout, Tree E);
+static Tree inferreMultiRates(Tree lsig, bool& success);
+static ostream&  printRateEnvironmentList(ostream& fout, Tree LE);
 
 static void setSigType(Tree sig, Type t);
 static Type getSigType(Tree sig);
@@ -109,6 +112,7 @@ void typeAnnotation(Tree sig)
     fixInferredType(sig, NULLTYPEENV);
     //cerr << --TABBER << "EXIT TYPE ANNOTATION OF " << *sig << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
 
+#if 0
     bool    success;
     Tree    RE = inferreMultiRates(sig, success);
     if (success) {
@@ -116,7 +120,10 @@ void typeAnnotation(Tree sig)
     } else {
         cerr << "ERROR can't inferre rate environment of " << ppsig(sig) << endl;
     }
+#else
+    //RateInferrer R(sig);
 
+#endif
 
 }
 

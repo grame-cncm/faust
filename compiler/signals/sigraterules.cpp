@@ -54,6 +54,9 @@
 
  **************************************************************************************************/
 
+static Tree inferreMultiRates(Tree lsig1, bool& success);
+static ostream&  printRateEnvironment(ostream& fout, Tree E);
+static ostream&  printRateEnvironmentList(ostream& fout, Tree LE);
 static void doInferreRate(Tree sig, int* rate, Tree& renv);
 static void inferreRate(Tree sig, int* rate, Tree& E);
 static Tree addToMultiRates(Tree E1, Tree LE, bool& success);
@@ -106,9 +109,9 @@ Tree inferreMultiRates(Tree lsig1, bool& success)
     for (unsigned int i=0; success && i<envs.size(); i++) {
         LE = addToMultiRates(envs[i], LE, success);
     }
-    cerr << "multirates :"; printRateEnvironmentList(cerr, LE); cerr << endl;
+    cerr << "***multirates :"; printRateEnvironmentList(cerr, LE); cerr << endl;
     Tree RE = flatRateEnvironmentList(LE);
-    cerr << "flat rate  :"; printRateEnvironment(cerr, RE); cerr << endl;
+    cerr << "***flat rate  :"; printRateEnvironment(cerr, RE); cerr << endl;
 
     return RE;
 }
@@ -168,7 +171,7 @@ static int TRACED_gcd(int a, int b);
 static int gcd(int a, int b)
 {
     int r = TRACED_gcd(a,b);
-    cerr << TABBER << "gcd(" << a << ',' << b <<") = " << r << endl;
+    //cerr << TABBER << "gcd(" << a << ',' << b <<") = " << r << endl;
     return r;
 }
 
@@ -184,7 +187,7 @@ static int TRACED_gcd(int a, int b)
 static int lcm(int a, int b)
 {
     int r = (a*b)/gcd(a,b);
-    cerr << TABBER << "lcm(" << a << ',' << b <<") = " << r << endl;
+    //cerr << TABBER << "lcm(" << a << ',' << b <<") = " << r << endl;
     return r;
 }
 
@@ -780,4 +783,95 @@ static Tree TRACED_addToMultiRates(Tree E1, Tree LE, bool& success)
         }
     }
 }
+
+
+
+RateInferrer::RateInferrer(Tree lsig)
+{
+    cerr << "ENTRE RateInferrer constructor of " << *lsig << endl;
+    if (! (isList(lsig) | isNil(lsig))) {
+        lsig = cons(lsig,nil);
+    }
+    fFullList = addRecursiveSignals(lsig);
+    fRateEnv = inferreMultiRates(lsig, fSuccess);
+    if (fSuccess) {
+        // nit the rate properties for the expressions in the environment
+        for (Tree L=fRateEnv; isList(L); L = tl(L)) {
+            Tree p = hd(L);
+            fRateProperty.set(hd(p),tree2int(tl(p)));
+        }
+    }
+    cerr << "EXIT RateInferrer constructor" << *lsig << endl;
+}
+
+// returns the rate of sig assuming that sig is a subexpression of lsig
+int RateInferrer::rate(Tree sig)
+{
+    int     r;
+
+    if (!fSuccess) {
+        return 0;
+    } else if (fRateProperty.get(sig, r)) {
+        return r;
+    } else {
+        r = computeRate(sig);
+        fRateProperty.set(sig, r);
+        return r;
+    }
+}
+
+int RateInferrer::computeRate(Tree sig)
+{
+    Tree    n, x, rsig, id, body;
+    int     i;
+
+    if ( isSigInput(sig, &i)) {
+
+        cerr << "ERROR: Input " << i << " should have a rate" << endl;
+        return 0;
+
+    } else if ( isProj(sig,&i,rsig) && isRec(rsig, id, body) ) {
+
+        cerr << "ERROR: Recursive signal " << *sig << " should have a rate" << endl;
+        return 0;
+
+    } else if ( isSigVectorize(sig, n, x) ) {
+
+        VectorType* vt = isVectorType(getCertifiedSigType(sig));
+        assert(vt);
+        return rate(x) / vt->size();
+
+    } else if ( isSigSerialize(sig, x)) {
+
+        VectorType* vt = isVectorType(getCertifiedSigType(x));
+        assert(vt);
+        return vt->size() * rate(x);
+
+    } else {
+
+        vector<Tree> subsigs;
+        vector<int> subrates;
+        int n = getSubSignals(sig, subsigs, false);
+        if (n == 0) {
+            // we don't depend of any subsignals, then the rate is 1
+            return 1;
+        } else {
+            // we depend on subsignals, the rate is the highest one
+            // moreover the highest one is a multiple of all other
+            // rates
+            int maxrate = 1;
+            int lcmrate = 1;
+            for (unsigned int i=0; i<subsigs.size(); i++) {
+                int r = rate(subsigs[i]);
+                maxrate = max(r, maxrate);
+                lcmrate = lcm(r, lcmrate);
+                if (lcmrate != maxrate) {
+                    return 0; // rates of arguments are incompatible
+                }
+            }
+            return maxrate;
+        }
+    }
+}
+
 
