@@ -166,7 +166,14 @@ Type operator| ( const Type& t1, const Type& t2)
 		
 	} else {
 
-		
+        vector<int> D1, D2, D3;
+        Type  b1 = t1->dimensions(D1);
+        Type  b2 = t2->dimensions(D2);
+        if (maxdimensions(D1, D2, D3)) {
+            Type b3 = b1|b2;
+            return makeVectorType(b3, D3);
+        }
+
 		cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
 		exit(1);
 		return 0;
@@ -414,3 +421,31 @@ static Tree codeTupletType(TupletType* nt)
     return CTree::make(TUPLETTYPE, elems);
 }
 
+
+/**
+ * Returns true if D1 and D2 are compatible (one is the prefix of the other)).
+ * In this case D3 contains the longuest vector D1 or D2
+ */
+bool maxdimensions(const vector<int>& D1, const vector<int>& D2, vector<int>& D3)
+{
+    int n1 = D1.size();
+    int n2 = D2.size();
+    int i = 0;
+    while ( (i<n1) && (i<n2) && (D1[i]==D2[i]) ) i++;
+    if (i==n1) {
+        D3=D2;
+        return true;
+    } else if (i==n2) {
+        D3=D1;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+Type   makeVectorType(const Type& b, const vector<int>& dim)
+{
+    Type r = b;
+    for (int i=0; i<dim.size(); i++) r = new VectorType(dim[i],r);
+    return r;
+}

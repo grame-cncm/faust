@@ -401,6 +401,9 @@ class VectorType : public AudioType
 
 };
 
+Type   makeVectorType(const Type& b, const vector<int>& dim);
+bool   maxdimensions(const vector<int>& D1, const vector<int>& D2, vector<int>& D3);
+
 
 
 

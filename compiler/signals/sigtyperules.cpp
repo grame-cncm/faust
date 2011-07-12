@@ -82,8 +82,8 @@ static Type infereVectorAtType(Type Tvec, Type Tidx);
 
 
 // Uncomment to activate type inference tracing
-//#define TRACE(x) x
-#define TRACE(x) 0;
+#define TRACE(x) x
+//#define TRACE(x) 0;
 
 
 /**
@@ -464,13 +464,27 @@ static Type infereSigType(Tree sig, Tree env)
 	}
 
 	else if (isSigBinOp(sig, &i, s1, s2)) {
-		//Type t = T(s1,env)|T(s2,env);
+
 		Type t1 = T(s1,env);
 		Type t2 = T(s2,env);
-		Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
+
+        vector<int> D1, D2, D3;
+        Type  b1 = t1->dimensions(D1);
+        Type  b2 = t2->dimensions(D2);
+
+        if (maxdimensions(D1, D2, D3)) {
+            Type  b3 = castInterval(b1 | b2, arithmetic(i, b1->getInterval(), b2->getInterval()));
+            if ((i>=kGT) && (i<=kNE))  b3 = intCast(b3);
+            Type t3 = makeVectorType(b3, D3);
+            return t3;
+        } else {
+            cerr << "ERROR operation on incompatible types : " << *t1 << " and " << *t2
+                 << " in expression : " << ppsig(sig) << endl;
+            exit(1);
+        }
 		//cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
 	  	//return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
-	  	return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
+        //return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
 	}
 
     else if (isSigIntCast(sig, s1))             return intCast(T(s1,env));
