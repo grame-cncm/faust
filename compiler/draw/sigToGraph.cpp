@@ -150,12 +150,18 @@ static string commonattr(Type t)
  */
 static string edgeattr(Type t, int rate)
 {
-    string s;
+    string      s;
+    vector<int> d;
+    Type        b = t->dimensions(d);
 
     s = commonattr(t);
 
     // add rate information as label at the head of the arrow
-    s += subst(" label=\"$0\" fontsize=8", T(rate));
+    s += " label=\"";
+    for (int i=0; i<d.size(); i++) {
+        s += subst("[$0]", T(d[i]));
+    }
+    s += subst("x$0\" fontsize=8", T(rate));
 
     return s;
 }
