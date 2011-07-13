@@ -40,6 +40,8 @@ ostream& operator<<(ostream& dst, const TableType& t) 	{ return  t.print(dst); }
 		
 ostream& operator<<(ostream& dst, const TupletType& t) 	{ return  t.print(dst); }
 
+ostream& operator<<(ostream& dst, const VectorType& t) 	{ return  t.print(dst); }
+
 
 //------------------------------------------------------------------------------------
 //
@@ -184,7 +186,8 @@ bool operator== ( const Type& t1, const Type& t2)
 {
 	SimpleType 	*st1, *st2;
 	TableType	*tt1, *tt2;
-	TupletType	*nt1, *nt2;
+    TupletType	*nt1, *nt2;
+    VectorType	*vt1, *vt2;
 
 	if (t1->variability() != t2->variability()) 	return false;
 	if (t1->computability() != t2->computability()) return false;
@@ -210,6 +213,17 @@ bool operator== ( const Type& t1, const Type& t2)
 			return false;
 		}
 	}
+
+    // compare vector types
+    if ( (vt1 = isVectorType(t1)) && (vt2 = isVectorType(t2)) ) {
+        if (vt1->size() == vt2->size()) {
+            return vt1->content() == vt2->content();
+        } else {
+            return false;
+        }
+    }
+
+    // types are different
 	return false;
 }
 		
@@ -338,10 +352,12 @@ string cType (Type t)
 Sym SIMPLETYPE = symbol ("SimpleType");
 Sym TABLETYPE = symbol ("TableType");
 Sym TUPLETTYPE = symbol ("TupletType");
+Sym VECTORTYPE = symbol ("VectorType");
 
 static Tree  codeSimpleType(SimpleType* st);
 static Tree  codeTableType(TableType* st);
 static Tree  codeTupletType(TupletType* st);
+static Tree  codeVectorType(VectorType* st);
 
 
 /**
@@ -352,9 +368,10 @@ static Tree  codeTupletType(TupletType* st);
  */
 Tree codeAudioType(AudioType* t)
 {
-    SimpleType 	*st;
-    TableType   *tt;
-    TupletType	*nt;
+    SimpleType*     st;
+    TableType*      tt;
+    TupletType*     nt;
+    VectorType*     vt;
 
     Tree        r;
 
@@ -364,6 +381,8 @@ Tree codeAudioType(AudioType* t)
         r = codeTableType(tt);
     } else if ((nt = isTupletType(t))) {
         r = codeTupletType(nt);
+    } else if ((vt = isVectorType(t))) {
+        r = codeVectorType(vt);
     } else {
         cerr << "ERROR in codeAudioType() : invalide pointer " << t << endl;
         exit(1);
@@ -422,15 +441,29 @@ static Tree codeTupletType(TupletType* nt)
 }
 
 
+
+/**
+ * Code a vector type as a tree in order to benefit of memoization
+ */
+
+static Tree codeVectorType(VectorType* vt)
+{
+    assert(vt);
+    cerr << "codeVectorType(" << *vt << ")" << endl;
+    int i = vt->size();
+    return tree(VECTORTYPE, tree(i), codeAudioType(vt->content()));
+}
+
+
 /**
  * Returns true if D1 and D2 are compatible (one is the prefix of the other)).
  * In this case D3 contains the longuest vector D1 or D2
  */
 bool maxdimensions(const vector<int>& D1, const vector<int>& D2, vector<int>& D3)
 {
-    int n1 = D1.size();
-    int n2 = D2.size();
-    int i = 0;
+    unsigned int n1 = D1.size();
+    unsigned int n2 = D2.size();
+    unsigned int i = 0;
     while ( (i<n1) && (i<n2) && (D1[i]==D2[i]) ) i++;
     if (i==n1) {
         D3=D2;
@@ -446,6 +479,6 @@ bool maxdimensions(const vector<int>& D1, const vector<int>& D2, vector<int>& D3
 Type   makeVectorType(const Type& b, const vector<int>& dim)
 {
     Type r = b;
-    for (int i=0; i<dim.size(); i++) r = new VectorType(dim[i],r);
+    for (unsigned   int i=0; i<dim.size(); i++) r = new VectorType(dim[i],r);
     return r;
 }

@@ -441,7 +441,9 @@ static Type infereSigType(Tree sig, Tree env)
 	}
 
 	else if (isSigFixDelay(sig, s1, s2)) 		{ 
-		Type t1 = T(s1,env); 
+        Type vt1 = T(s1,env);
+        vector<int> dim;
+        Type t1 = vt1->dimensions(dim);
 		Type t2 = T(s2,env);
 		interval i = t2->getInterval();
  
@@ -460,7 +462,8 @@ static Type infereSigType(Tree sig, Tree env)
 			exit(1);
 		}
 			
-		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0))); 
+        Type nt1 = castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0)));
+        return makeVectorType(nt1,dim);
 	}
 
 	else if (isSigBinOp(sig, &i, s1, s2)) {
@@ -710,6 +713,8 @@ static Type infereRecType (Tree sig, Tree body, Tree env)
         do {
             t0 = t1;
             t1 = T(body, pushTypeEnv(sig, t0, env));
+            cerr << TABBER << "### T0 is " << *t0 << endl;
+            cerr << TABBER << "and T1 is " << *t1 << endl;
         } while (t1 != t0);
 
         //assert (t1 == t0);
