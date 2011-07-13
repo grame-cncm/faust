@@ -151,7 +151,8 @@ with {
 //   function factored into second-order sections.  As a result, it is
 //   more accurate than moog_vcf above, but its coefficient formulas are
 //   more complex when one or both parameters are varied.  In the limit
-//   as the sampling rate goes to infinity, the two cases become equivalent.
+//   as the sampling rate goes to infinity, the two cases become equivalent
+//   at res = 0 and 1 (res here is the fourth root of that in moog_vcf).
 //
 // REFERENCES: See moog_vcf above.
 //
