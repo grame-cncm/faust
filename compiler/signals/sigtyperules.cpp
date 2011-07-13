@@ -41,6 +41,14 @@
 
 
 //--------------------------------------------------------------------------
+// Uncomment to activate type inference tracing
+
+//#define TRACE(x) x
+#define TRACE(x) 0;
+
+
+
+//--------------------------------------------------------------------------
 // prototypes
 static ostream&  printRateEnvironment(ostream& fout, Tree E);
 static Tree inferreMultiRates(Tree lsig, bool& success);
@@ -74,16 +82,12 @@ static interval arithmetic (int opcode, const interval& x, const interval& y);
 static Tree pushTypeEnv(Tree var, Type tp, Tree env);
 
 
-static Type infereVectorizeType(Type T, Type Tsize);
-static Type infereSerializeType(Type Tvec);
+static Type infereVectorizeType(Tree sig, Type T, Type Tsize);
+static Type infereSerializeType(Tree sig, Type Tvec);
 static Type infereConcatType(Type Tvec1, Type Tvec2);
 static Type infereVectorAtType(Type Tvec, Type Tidx);
 
 
-
-// Uncomment to activate type inference tracing
-#define TRACE(x) x
-//#define TRACE(x) 0;
 
 
 /**
@@ -557,8 +561,8 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isList(sig))                       { return T( hd(sig),env ) * T( tl(sig),env ); }
 
-    else if ( isSigVectorize(sig, x, y) )      return infereVectorizeType(T(x,env), T(y,env));
-    else if ( isSigSerialize(sig, x) )         return infereSerializeType(T(x,env));
+    else if ( isSigVectorize(sig, x, y) )      return infereVectorizeType(sig, T(x,env), T(y,env));
+    else if ( isSigSerialize(sig, x) )         return infereSerializeType(sig, T(x,env));
     else if ( isSigConcat(sig, x, y) )         return infereConcatType(T(x,env), T(y,env));
     else if ( isSigVectorAt(sig, x, y) )       return infereVectorAtType(T(x,env), T(y,env));
 
@@ -699,7 +703,7 @@ static Type initialRecType(Tree t)
  */
 static Type infereRecType (Tree sig, Tree body, Tree env)
 {
-	Type t0, t1;
+    Type    t0, t1;
 
     if ((t1 =  searchTypeEnv(sig, env))) {
 
@@ -708,15 +712,22 @@ static Type infereRecType (Tree sig, Tree body, Tree env)
 
     } else {
 
+        int     watchdog = 10;
+
         // we don't have an hypothesis, we search the smallest fix point
         t1 = initialRecType(body);
         do {
             t0 = t1;
             t1 = T(body, pushTypeEnv(sig, t0, env));
-            cerr << TABBER << "### T0 is " << *t0 << endl;
-            cerr << TABBER << "and T1 is " << *t1 << endl;
-        } while (t1 != t0);
+            TRACE(cerr << TABBER << "IRT T0 is " << *t0 << endl);
+            TRACE(cerr << TABBER << "and T1 is " << *t1 << endl);
+        } while (--watchdog && (t1 != t0));
 
+        if (watchdog == 0) {
+            cerr << "ERROR in recursive expression : " << ppsig(sig) << endl;
+            cerr << "too many 'vectorize' operations " << endl;
+            exit(1);
+        }
         //assert (t1 == t0);
         return t1;
     }
@@ -831,7 +842,7 @@ static interval arithmetic (int opcode, const interval& x, const interval& y)
 
 
 
-static Type infereVectorizeType(Type Tsize, Type T)
+static Type infereVectorizeType(Tree sig, Type Tsize, Type T)
 {
     SimpleType*  st = isSimpleType(Tsize);
     if (st && st->nature()==kInt) {
@@ -840,17 +851,19 @@ static Type infereVectorizeType(Type Tsize, Type T)
             return new VectorType(int(i.lo+0.5), T);
         }
     }
-    cerr << "ERROR infering vectorize type, the size of the vector is not of a valide type : " << *Tsize << endl;
+    cerr << "ERROR in expression : " << ppsig(sig) << endl;
+    cerr << "the size of the vector is not of a valide type : " << *Tsize << endl;
     exit(1);
 }
 
-static Type infereSerializeType(Type Tvec)
+static Type infereSerializeType(Tree sig, Type Tvec)
 {
     VectorType*  vt =  isVectorType(Tvec);
     if (vt) {
         return vt->content();
     } else {
-        cerr << "ERROR infering serialize type, the signal is not of type vector : " << *Tvec << endl;
+        cerr << "ERROR in expression : " << ppsig(sig) << endl;
+        cerr << "the 'serialize' operation can only be used on vectorized signals" << endl;
         exit(1);
     }
 }

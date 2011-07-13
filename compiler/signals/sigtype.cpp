@@ -449,7 +449,7 @@ static Tree codeTupletType(TupletType* nt)
 static Tree codeVectorType(VectorType* vt)
 {
     assert(vt);
-    cerr << "codeVectorType(" << *vt << ")" << endl;
+    //cerr << "codeVectorType(" << *vt << ")" << endl;
     int i = vt->size();
     return tree(VECTORTYPE, tree(i), codeAudioType(vt->content()));
 }

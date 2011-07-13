@@ -40,6 +40,16 @@
 
 
 
+//--------------------------------------------------------------------------
+// Uncomment to activate type inference tracing
+
+//#define TRACE(x) x
+#define TRACE(x) 0;
+
+
+
+
+
 /**
 
 ========================================== RATE INFERENCE =========================================
@@ -88,7 +98,7 @@ Tree inferreMultiRates(Tree lsig1, bool& success)
     vector<int>     rates;
 
     Tree lsig2 = addRecursiveSignals(lsig1);
-    cerr << "lsig2 = " << *lsig2 << endl;
+    TRACE(cerr << "lsig2 = " << *lsig2 << endl);
 
     while (isList(lsig2)) {
         Tree s = hd(lsig2); lsig2 = tl(lsig2);
@@ -109,9 +119,9 @@ Tree inferreMultiRates(Tree lsig1, bool& success)
     for (unsigned int i=0; success && i<envs.size(); i++) {
         LE = addToMultiRates(envs[i], LE, success);
     }
-    cerr << "***multirates :"; printRateEnvironmentList(cerr, LE); cerr << endl;
+    TRACE(cerr << "***multirates :"; printRateEnvironmentList(cerr, LE); cerr << endl);
     Tree RE = flatRateEnvironmentList(LE);
-    cerr << "***flat rate  :"; printRateEnvironment(cerr, RE); cerr << endl;
+    TRACE(cerr << "***flat rate  :"; printRateEnvironment(cerr, RE); cerr << endl);
 
     return RE;
 }
@@ -211,7 +221,7 @@ static Tree addRecursiveSignals(Tree lsig)
 
 static Tree doAddRecursiveSignals(Tree sig, Tree accSig)
 {
-    cerr << ++TABBER << "doAddRecursiveSignals(" << *sig << ',' << *accSig << ')' << endl;
+    TRACE(cerr << ++TABBER << "doAddRecursiveSignals(" << *sig << ',' << *accSig << ')' << endl);
     if ( ! sig->isAlreadyVisited() ) {
         int     i;
         Tree    rsig, id, body;
@@ -229,7 +239,7 @@ static Tree doAddRecursiveSignals(Tree sig, Tree accSig)
             }
         }
     }
-    cerr << --TABBER << "doAddRecursiveSignals(" << *sig << ',' << *accSig << ") -> " << *accSig << endl;
+    TRACE(cerr << --TABBER << "doAddRecursiveSignals(" << *sig << ',' << *accSig << ") -> " << *accSig << endl);
     return accSig;
 }
 
@@ -274,9 +284,9 @@ static Tree TRACED_multRateEnv(int n, Tree E);
 
 static Tree multRateEnv(int n, Tree E)
 {
-    cerr << ++TABBER << "multRateEnv(" << n << ", " << *E << ")" << endl;
+    TRACE(cerr << ++TABBER << "multRateEnv(" << n << ", " << *E << ")" << endl);
     Tree result = TRACED_multRateEnv(n, E);
-    cerr << --TABBER << "multRateEnv(" << n << ", " << *E << ") -> " << *result << endl;
+    TRACE(cerr << --TABBER << "multRateEnv(" << n << ", " << *E << ") -> " << *result << endl);
     return result;
 
 }
@@ -444,12 +454,12 @@ static Tree TRACED_mergeRateEnvironment(Tree R1, Tree R2, bool& success);
 
 static Tree mergeRateEnvironment(Tree R1, Tree R2, bool& success)
 {
-    cerr << ++TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ")" << endl;
+    TRACE(cerr << ++TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ")" << endl);
     Tree result = TRACED_mergeRateEnvironment(R1, R2, success);
     if (success) {
-        cerr << --TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ") -> " << *result << endl;
+        TRACE(cerr << --TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ") -> " << *result << endl);
     } else {
-        cerr << --TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ") -> FAILED" << endl;
+        TRACE(cerr << --TABBER << "mergeRateEnvironment(" << *R1 << ", " << *R2 << ") -> FAILED" << endl);
     }
     return result;
 }
@@ -517,7 +527,7 @@ static Tree flatRateEnvironmentList(Tree lre)
     return e;
 }
 
-#if 1
+#if 0
 
 #if 0
 property<int>   xxxgComputeRateProperty;
@@ -635,12 +645,12 @@ static bool getInferreRateProperty(Tree sig, int* rate, Tree& renv)
   */
 static void inferreRate(Tree sig, int* rate, Tree& E)
 {
-    cerr << ++TABBER << "inferreRate(" << ppsig(sig) << ")" << endl;
+    TRACE(cerr << ++TABBER << "inferreRate(" << ppsig(sig) << ")" << endl);
     if (! getInferreRateProperty(sig, rate, E)) {
         doInferreRate(sig, rate, E);
         setInferreRateProperty(sig, *rate, E);
     }
-    cerr << --TABBER << "inferreRate(" << ppsig(sig) << ") = " << *rate << " with " << *E << endl;
+    TRACE(cerr << --TABBER << "inferreRate(" << ppsig(sig) << ") = " << *rate << " with " << *E << endl);
 }
 
 
@@ -748,12 +758,12 @@ static Tree TRACED_addToMultiRates(Tree E1, Tree LE, bool& success);
 
 static Tree addToMultiRates(Tree E1, Tree LE, bool& success)
 {
-    cerr << ++TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ")" << endl;
+    TRACE(cerr << ++TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ")" << endl);
     Tree result = TRACED_addToMultiRates(E1, LE, success);
     if (success) {
-        cerr << --TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ") -> " << *result << endl;
+        TRACE(cerr << --TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ") -> " << *result << endl);
     } else {
-        cerr << --TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ") -> FAILED" << endl;
+        TRACE(cerr << --TABBER << "addToMultiRates(" << *E1 << ", " << *LE << ") -> FAILED" << endl);
     }
     return result;
 }
@@ -788,7 +798,7 @@ static Tree TRACED_addToMultiRates(Tree E1, Tree LE, bool& success)
 
 RateInferrer::RateInferrer(Tree lsig)
 {
-    cerr << "ENTRE RateInferrer constructor of " << *lsig << endl;
+    TRACE(cerr << "ENTRE RateInferrer constructor of " << *lsig << endl);
     if (! (isList(lsig) | isNil(lsig))) {
         lsig = cons(lsig,nil);
     }
@@ -801,7 +811,7 @@ RateInferrer::RateInferrer(Tree lsig)
             fRateProperty.set(hd(p),tree2int(tl(p)));
         }
     }
-    cerr << "EXIT RateInferrer constructor" << *lsig << endl;
+    TRACE(cerr << "EXIT RateInferrer constructor" << *lsig << endl);
 }
 
 // returns the rate of sig assuming that sig is a subexpression of lsig
@@ -827,12 +837,12 @@ int RateInferrer::computeRate(Tree sig)
 
     if ( isSigInput(sig, &i)) {
 
-        cerr << "ERROR: Input " << i << " should have a rate" << endl;
+        TRACE(cerr << "ERROR: Input " << i << " should have a rate" << endl);
         return 0;
 
     } else if ( isProj(sig,&i,rsig) && isRec(rsig, id, body) ) {
 
-        cerr << "ERROR: Recursive signal " << *sig << " should have a rate" << endl;
+        TRACE(cerr << "ERROR: Recursive signal " << *sig << " should have a rate" << endl);
         return 0;
 
     } else if ( isSigVectorize(sig, n, x) ) {
