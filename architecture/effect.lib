@@ -113,7 +113,7 @@ with {
 };
 
 //------------------------- moog_vcf(res,fr) ---------------------------
-// Moog "Voltage Controlled Filter" (VCF)
+// Moog "Voltage Controlled Filter" (VCF) in "analog" form
 //
 // USAGE: moog_vcf(res,fr), where
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
@@ -121,15 +121,53 @@ with {
 //        (0 is no resonance, 1 is infinite Q)
 // Requires filter.lib.
 //
+// DESCRIPTION: Moog VCF implemented using the same logical block diagram
+//   as the classic analog circuit.  As such, it neglects the one-sample
+//   delay associated with the feedback path around the four one-poles.
+//   This extra delay adds damping at high frequencies (see references
+//   for details).  See moog_vcf_2b for a more accurate implementation.
+//
 // REFERENCES:
-//  https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
-//  https://ccrma.stanford.edu/~jos/pasp/vegf.html
+//   https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
+//   https://ccrma.stanford.edu/~jos/pasp/vegf.html
 // 
 moog_vcf(res,fr) = (+ : seq(i,4,pole(p)) : *(unitygain(p))) ~ *(mk)
 with {
      p = 1.0 - fr * 2.0 * PI / SR; // good approximation for fr << SR
      unitygain(p) = pow(1.0-p,4.0); // one-pole unity-gain scaling
      mk = 0-4.0*max(0,min(res,0.999999)); // need mk > -4 for stability
+};
+
+//------------------------- moog_vcf_2b(res,fr) ---------------------------
+// Moog "Voltage Controlled Filter" (VCF) as two biquads
+//
+// USAGE: moog_vcf_2b(res,fr), where
+//   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
+//   res  = Normalized amount of corner-resonance between 0 and 1
+//        (0 is no resonance, 1 is infinite Q)
+// Requires filter.lib.
+//
+// DESCRIPTION: This is an implementation of the ideal Moog VCF transfer
+//   function factored into second-order sections.  As a result, it is
+//   more accurate than moog_vcf above, but its coefficient formulas are
+//   more complex when one or both parameters are varied.  In the limit
+//   as the sampling rate goes to infinity, the two cases become equivalent
+//   at res = 0 and 1 (res here is the fourth root of that in moog_vcf).
+//
+// REFERENCES: See moog_vcf above.
+//
+moog_vcf_2b(res,fr) = tf2s(0,0,b0,a11,a01,w1) : tf2s(0,0,b0,a12,a02,w1)
+with {
+ s = 1; // minus the open-loop location of all four poles
+ w1 = 2*PI*fr; // frequency-scaling parameter for bilinear xform
+ // Equivalent: w1 = 1; s = 2*PI*fr;
+ k = sqrt(2)*res; // fourth root of Moog VCF feedback gain
+ b0 = s^2;
+ s2k = sqrt(2) * k;
+ a11 = s * (2 + s2k);
+ a12 = s * (2 - s2k);
+ a01 = b0 * (1 + s2k + k^2);
+ a02 = b0 * (1 - s2k + k^2);
 };
 
 //------------------------- moog_vcf_demo ---------------------------
@@ -954,7 +992,7 @@ with {
 
 //------------------------------- zita_rev_fdn -------------------------------
 // Internal 8x8 late-reverberation FDN used in the FOSS Linux reverb zita-rev1
-// by Fons Adriaensen <fons@kokkinizita.net>.  This is an FDN reverb with
+// by Fons Adriaensen <fons@linuxaudio.org>.  This is an FDN reverb with
 // allpass comb filters in each feedback delay in addition to the 
 // damping filters.
 //
