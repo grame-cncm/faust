@@ -23,6 +23,17 @@
  
 #include "tree.hh"
 #include "sigtype.hh"
+#include "property.hh"
+
+int     AudioType::gAllocationCount = 0;
+
+bool    SimpleType::isMaximal() const                             ///< true when type is maximal (and therefore can't change depending of hypothesis)
+{
+    return  (fNature==kReal)
+            && (fVariability==kSamp)
+            && (fComputability==kExec);
+
+}
 
 
 //------------------------------------------------------------------------------------
@@ -76,6 +87,17 @@ ostream& TableType::print(ostream& dst) const
 }
 	
 
+/**
+ *  true when type is maximal (and therefore can't change depending of hypothesis)
+ */
+bool    TableType::isMaximal() const
+{
+    return  (fNature==kReal)
+            && (fVariability==kSamp)
+            && (fComputability==kExec);
+}
+
+
 
 /**
  * Print the content of a tuplet of types on a stream
@@ -96,6 +118,18 @@ ostream& TupletType::print(ostream& dst) const
 }
 
 
+/**
+ *  true when type is maximal (and therefore can't change depending of hypothesis)
+ */
+bool TupletType::isMaximal() const
+{
+    for (unsigned int i = 0; i < fComponents.size(); i++) {
+        if (! fComponents[i]->isMaximal()) return false;
+    }
+    return true;
+}
+
+
 //------------------------------------------------------------------------------------
 //
 //		Construction des types
@@ -105,26 +139,29 @@ ostream& TupletType::print(ostream& dst) const
 
 // Essential predefined types
 
-Type TINT 	= new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-Type TREAL 	= new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
+Type TINT 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+Type TREAL 	= makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
 
-Type TKONST = new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-Type TBLOCK = new SimpleType(kInt, kBlock, kComp, kVect, kNum, interval());
-Type TSAMP 	= new SimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
+Type TKONST = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+Type TBLOCK = makeSimpleType(kInt, kBlock, kComp, kVect, kNum, interval());
+Type TSAMP 	= makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
 
-Type TCOMP 	= new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-Type TINIT 	= new SimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
-Type TEXEC 	= new SimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
+Type TCOMP 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+Type TINIT 	= makeSimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
+Type TEXEC 	= makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
 
 // more predefined types
 
-Type TINPUT	= new SimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
-Type TGUI	= new SimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
-Type TGUI01	= new SimpleType(kReal, kBlock,kExec, kVect, kNum, interval(0,1));
-Type INT_TGUI   = new SimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
-//Type TREC   = new SimpleType(kInt,  kSamp, kInit, kVect, kNum, interval()); // kVect ou kScal ?
-Type TREC   = TINT;
-		
+Type TINPUT	= makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
+Type TGUI	= makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
+Type TGUI01	= makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval(0,1));
+Type INT_TGUI   = makeSimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
+//Type TREC   = makeSimpleType(kInt,  kSamp, kInit, kVect, kNum, interval()); // kVect ou kScal ?
+
+// trying to accelerate type convergence
+//Type TREC   = TINT;
+Type TREC   = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval()); // kVect ou kScal ?
+
 
 Type operator| ( const Type& t1, const Type& t2)
 {
@@ -134,7 +171,7 @@ Type operator| ( const Type& t1, const Type& t2)
 	
 	if ( (st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2)) ) {
 		
-		return new SimpleType(	st1->nature()|st2->nature(),
+        return makeSimpleType(	st1->nature()|st2->nature(),
 					st1->variability()|st2->variability(),
 					st1->computability()|st2->computability(),
 					st1->vectorability()|st2->vectorability(),
@@ -144,7 +181,7 @@ Type operator| ( const Type& t1, const Type& t2)
 		
 	} else if ( (tt1 = isTableType(t1)) && (tt2 = isTableType(t2)) ) {
 		
-		return new TableType( tt1->content() | tt2->content() );
+        return makeTableType( tt1->content() | tt2->content() );
 		
 	} else if ( (nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2)) ) {
 		
@@ -314,6 +351,10 @@ string cType (Type t)
  *
  *****************************************************************************/
 
+// memoized type contruction
+
+property<AudioType*> MemoizedTypes;
+
 
 Sym SIMPLETYPE = symbol ("SimpleType");
 Sym TABLETYPE = symbol ("TableType");
@@ -337,6 +378,8 @@ Tree codeAudioType(AudioType* t)
     TupletType	*nt;
 
     Tree        r;
+
+    if ((r=t->getCode())) return r;
 
     if ((st = isSimpleType(t))) {
         r = codeSimpleType(st);
@@ -375,6 +418,22 @@ static Tree  codeSimpleType(SimpleType* st)
 
 }
 
+AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
+{
+    SimpleType  prototype(n,v,c,vec,b,i);
+    Tree        code = codeAudioType(&prototype);
+
+    AudioType*  t;
+    if (MemoizedTypes.get(code, t)) {
+        return t;
+    } else {
+        AudioType::gAllocationCount++;
+        t = new SimpleType(n,v,c,vec,b,i);
+        MemoizedTypes.set(code, t);
+        t->setCode(code);
+        return t;
+    }
+}
 
 
 /**
@@ -386,6 +445,56 @@ static Tree  codeTableType(TableType* tt)
     return tree(TABLETYPE, codeAudioType(tt->content()));
 }
 
+AudioType* makeTableType(const Type& ct)
+{
+    TableType   prototype(ct);
+    Tree        code = codeAudioType(&prototype);
+
+    AudioType*  tt;
+    if (MemoizedTypes.get(code, tt)) {
+        return tt;
+    } else {
+        AudioType::gAllocationCount++;
+        tt = new TableType(ct);
+        MemoizedTypes.set(code, tt);
+        tt->setCode(code);
+        return tt;
+    }
+}
+
+AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, const interval& i)
+{
+    TableType   prototype(ct,n,v,c,vec,b,i);
+    Tree        code = codeAudioType(&prototype);
+
+    AudioType*  tt;
+    if (MemoizedTypes.get(code, tt)) {
+        return tt;
+    } else {
+        AudioType::gAllocationCount++;
+        tt = new TableType(ct);
+        MemoizedTypes.set(code, tt);
+        tt->setCode(code);
+        return tt;
+    }
+}
+
+AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec)
+{
+    TableType   prototype(ct,n,v,c,vec);
+    Tree        code = codeAudioType(&prototype);
+
+    AudioType*  tt;
+    if (MemoizedTypes.get(code, tt)) {
+        return tt;
+    } else {
+        AudioType::gAllocationCount++;
+        tt = new TableType(ct);
+        MemoizedTypes.set(code, tt);
+        tt->setCode(code);
+        return tt;
+    }
+}
 
 
 /**
@@ -401,3 +510,38 @@ static Tree codeTupletType(TupletType* nt)
     return CTree::make(TUPLETTYPE, elems);
 }
 
+AudioType* makeTupletType(const vector<Type>& vt)
+{
+    TupletType  prototype(vt);
+    Tree        code = codeAudioType(&prototype);
+
+    AudioType*  t;
+    if (MemoizedTypes.get(code, t)) {
+        return t;
+    } else {
+        AudioType::gAllocationCount++;
+        t = new TupletType(vt);
+        MemoizedTypes.set(code, t);
+        t->setCode(code);
+        return t;
+    }
+
+}
+
+AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i)
+{
+    TupletType  prototype(vt,n,v,c,vec,b,i);
+    Tree        code = codeAudioType(&prototype);
+
+    AudioType*  t;
+    if (MemoizedTypes.get(code, t)) {
+        return t;
+    } else {
+        AudioType::gAllocationCount++;
+        t = new TupletType(vt,n,v,c,vec,b,i);
+        MemoizedTypes.set(code, t);
+        t->setCode(code);
+        return t;
+    }
+
+}

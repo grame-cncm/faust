@@ -125,6 +125,9 @@ siglist listConcat(const siglist& a, const siglist& b)
 	return r;
 }
 
+/**
+ * Convert an stl list of signals into a tree list of signals
+ */
 Tree listConvert(const siglist& a)
 {
 	int 	n = a.size();
@@ -418,20 +421,20 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		return makeSigProjList(g, out1);
 	}
 */	
-	else if (isBoxRec(box, t1, t2)) 	{ 
-		// Bug Corrected
-		int in1, out1, in2, out2;
-		getBoxType(t1, &in1, &out1);
-		getBoxType(t2, &in2, &out2);
-		
-		Tree slotenv2 = lift(slotenv); // the environment must also be lifted
-		
-		siglist l0 = makeMemSigProjList(ref(1), in2);
-		siglist l1 = propagate(slotenv2, path, t2, l0);
-		siglist l2 = propagate(slotenv2, path, t1, listConcat(l1,listLift(lsig)));
-		Tree g = rec(listConvert(l2));
-		return makeSigProjList(g, out1);
-	}
+    else if (isBoxRec(box, t1, t2)) 	{
+        // Bug Corrected
+        int in1, out1, in2, out2;
+        getBoxType(t1, &in1, &out1);
+        getBoxType(t2, &in2, &out2);
+
+        Tree slotenv2 = lift(slotenv); // the environment must also be lifted
+
+        siglist l0 = makeMemSigProjList(ref(1), in2);
+        siglist l1 = propagate(slotenv2, path, t2, l0);
+        siglist l2 = propagate(slotenv2, path, t1, listConcat(l1,listLift(lsig)));
+        Tree g = rec(listConvert(l2));
+        return makeSigProjList(g, out1);
+    }
 
 	cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
 	exit(1);

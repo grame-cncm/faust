@@ -117,9 +117,14 @@ startTiming("ScalarCompiler::prepare");
 	}
 
 	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
-	typeAnnotation(L3);				// Annotate L3 with type information
-	sharingAnalysis(L3);			// annotate L3 with sharing count
+
+    startTiming("typeAnnotation");
+        typeAnnotation(L3);				// Annotate L3 with type information
+    endTiming("typeAnnotation");
+
+    sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
+    //annotationStatistics();
 endTiming("ScalarCompiler::prepare");
 
     if (gDrawSignals) {
