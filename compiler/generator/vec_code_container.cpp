@@ -132,10 +132,11 @@ void VectorCodeContainer::processFIR(void)
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 
-    if (gVectorLoopVariant == 0)
+    if (gVectorLoopVariant == 0) {
         fDAGBlock = generateDAGLoopVariant0(fFullCount);
-    else if (gVectorLoopVariant == 1)
+    } else if (gVectorLoopVariant == 1) {
         fDAGBlock = generateDAGLoopVariant1(fFullCount);
-    else
+    } else {
         fDAGBlock = NULL;
+    }
 }
