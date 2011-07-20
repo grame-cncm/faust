@@ -45,14 +45,12 @@
 static void setSigType(Tree sig, Type t);
 //static Type getSigType(Tree sig);
 
-
 static void setInferredTypeProperty(Tree term, Tree env, Type ty);
 static Type getInferredTypeProperty(Tree term, Tree env);
 
-static Type T(Tree term, Tree env);
+static Type initialRecType(Tree t);
 
-static Type getOrInferType(Tree term, Tree env);
-static void fixInferredType(Tree term, Tree env);
+static Type T(Tree term, Tree env);
 
 static Type infereSigType(Tree term, Tree env);
 static Type infereFFType (Tree ff, Tree ls, Tree env);
@@ -72,7 +70,6 @@ static Type infereSerializeType(Tree sig, Tree env, Tree s);
 static Type infereConcatType(Tree sig, Tree env, Tree s1, Tree s2);
 static Type infereVectorAtType(Tree sig, Tree env, Tree s1, Tree s2);
 static interval arithmetic (int opcode, const interval& x, const interval& y);
-static Tree pushTypeEnv(Tree var, Type tp, Tree env);
 
 
 
@@ -87,28 +84,75 @@ static Tree pushTypeEnv(Tree var, Type tp, Tree env);
 static Tree NULLTYPEENV = tree(symbol("NullTypeEnv"));
 
 static int countInferences;
+static int countMaximal;
 
 
 
 /**
  * Fully annotate every subtree of term with type information.
- * In a first step types are inferred with the help of type
- * environments. Then type informations are fixed by removing
- * type environments.
  * @param sig the signal term tree to annotate
  */
+
 void typeAnnotation(Tree sig)
 {
-    countInferences = 0;
+    Tree            sl = symlist(sig);
+    int             n = len(sl);
 
-    //cerr << ++TABBER << "ENTER TYPE ANNOTATION OF " << *sig << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
+    vector<Tree>    vrec, vdef;
+    vector<Type>    vtype;
+
+    //cerr << "Symlist " << *sl << endl;
+    for (Tree l=sl; isList(l); l=tl(l)) {
+        Tree    id, body;
+        assert(isRec(hd(l), id, body));
+
+        vrec.push_back(hd(l));
+        vdef.push_back(body);
+    }
+
+    // init recursive types
+    for (int i=0; i<n; i++) {
+        vtype.push_back(initialRecType(vdef[i]));
+    }
+
+    assert (int(vrec.size())==n);
+    assert (int(vdef.size())==n);
+    assert (int(vtype.size())==n);
+
+    // find least fixpoint
+    for (bool finished = false; !finished; ) {
+
+        // init recursive types
+        CTree::startNewVisit();
+        for (int i=0; i<n; i++) {
+            setSigType(vrec[i], vtype[i]);
+            vrec[i]->setVisited();
+        }
+
+        // compute recursive types
+        for (int i=0; i<n; i++) {
+            vtype[i] = T(vdef[i], NULLTYPEENV);
+        }
+
+        // check finished
+        finished = true;
+        for (int i=0; i<n; i++) {
+            //cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
+            finished =  finished & (getSigType(vrec[i]) == vtype[i]);
+        }
+    }
+
+    // type full term
     T(sig, NULLTYPEENV);
-    //cerr << TABBER << "COUNT INFERENCE " << countInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
-    fixInferredType(sig, NULLTYPEENV);
-    //cerr << --TABBER << "EXIT TYPE ANNOTATION OF " << *sig << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
 }
 
 
+void annotationStatistics()
+{
+    cerr << TABBER << "COUNT INFERENCE  " << countInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
+    cerr << TABBER << "COUNT ALLOCATION " << AudioType::gAllocationCount << endl;
+    cerr << TABBER << "COUNT MAXIMAL " << countMaximal << endl;
+}
 
 /**
  * Retrieve the type of sig and check it exists. Produces an
@@ -118,13 +162,9 @@ void typeAnnotation(Tree sig)
  */
 Type getCertifiedSigType(Tree sig)
 {
-    TRACE(cerr << "[c]" << endl;)
-    AudioType* t = getSigType(sig);
-    if (t==0) {
-        cerr << "ERROR in getCertifiedSigType : no type information available for signal :" << *sig << endl;
-        exit(1);
-    }
-    return t;
+    Type ty = getSigType(sig);
+    assert(ty);
+    return ty;
 }
 
 
@@ -163,49 +203,6 @@ Type getSigType(Tree sig)
 
 
 
-/**************************************************************************
- 	Type Environments : type environmpent are needed to correctly
-	infere the type of an "open" term containing recursive references
-	to an enclosing term. Type environments are also used as a property
-	key to store already computed types
-***************************************************************************/
-
-
-
-/**
- * Add a new binding to a type environment. The type is coded as
- * a tree in order to benefit of memoization
- * @param var the variable
- * @param type the type of the variable
- * @param env the type environment
- * @result a new environment : [(var,type):env]
- */
-static Tree pushTypeEnv(Tree var, Type tp, Tree env)
-{
-    //cerr << "PUSH " << *var << " OF TYPE " << *tp << " IN ENV " << *env << endl;
-    Tree r = cons(cons(var,codeAudioType(tp)),env);
-    return r;
-}
-
-
-/**
- * Search for the type associated to a variable. Return the associated type
- * or 0 if var is not in the environment.
- * @param var the variable to search
- * @param env the type environment
- * @return the type associated to var in env
- */
-static Type searchTypeEnv(Tree var, Tree env)
-{
-    while ( (env != NULLTYPEENV) && (hd(hd(env)) != var) ) { env = tl(env); }
-
-    if (env == NULLTYPEENV) {
-        return 0;
-    } else {
-        return (AudioType*) tl(hd(env))->getType();
-    }
-}
-
 
 /**************************************************************************
 
@@ -213,155 +210,11 @@ static Type searchTypeEnv(Tree var, Tree env)
 
 ***************************************************************************/
 
-
-
-/**
- * Once type inferrence has been done we can fix the type of a signal term
- * because type environments are not needed anymore.
- * @param sig the signal term tree to annotate
- * @param env the type environment
- */
-static void fixInferredType(Tree sig, Tree env)
-{
-    TRACE(cerr << ++TABBER << "ENTER FIX INFERRED TYPE OF " << *sig << " WITH ENV " << *env << endl;)
-    if ((AudioType*)getSigType(sig) == 0) {
-        // the term must have a type for the corresponding env
-        AudioType* ty = getInferredTypeProperty(sig, env);
-        if (ty == (AudioType*)0) {
-            cerr << "ERROR in fixInferredType : NO TYPE PROPERTY FOR " <<  *sig << " WITH ENV " << *env << endl;
-            assert(ty);
-        }
-
-        setSigType(sig, ty);
-
-        // now we must visit its subtrees taking into account
-        // the special cases of recursions and signal generators
-
-        Tree    var, body, x;
-
-        if (isRec(sig, var, body))  {
-            fixInferredType(body, pushTypeEnv(sig, ty, env));
-
-        } else if ( isSigGen(sig, x) ) {
-            fixInferredType(x, NULLTYPEENV);
-
-        } else {
-            // general case we fix the subtrees with the same environment
-            vector<Tree> subsig; int n = getSubSignals(sig, subsig);
-            for (int i = 0; i<n; i++) {
-                fixInferredType(subsig[i], env);
-            }
-        }
-    }
-    TRACE(cerr << --TABBER << "EXIT FIX INFERRED TYPE OF " << *sig << " WITH ENV " << *env << endl;)
-}
-
-
 /**************************************************************************
 
                         Infered Type property
 
 ***************************************************************************/
-
-
-/**
- * Store the infered type of a signal term as a property using the type environment as a key.
- * @param term the signal to annotate
- * @param env the type environment
- * @param the type of term according to the type environment env
- */
-
-static void setInferredTypeProperty(Tree term, Tree env, Type ty)
-{
-    TRACE(cerr << TABBER << "SET INFERRED TYPE PROPERTY OF  " << *term << " IN ENV " << *env << " IS TYPE " <<  *ty << endl;)
-    setProperty(term, env, tree((void*)ty));
-}
-
-
-/**
- * Retrieve the infered type property of a term using the type environment as a key.
- * @param term the signal to annotate
- * @param env the type environment
- * @return the type of sig according to environment env
- */
-
-static Type getInferredTypeProperty(Tree term, Tree env)
-{
-    Tree    tt;
-
-
-    if (getProperty(term, env, tt)) {
-        TRACE(cerr << TABBER << "GET INFERRED TYPE PROPERTY  OF " << *term << " IN ENV " << *env << " IS TYPE " << *(AudioType*)tree2ptr(tt) << endl;)
-        return (AudioType*)tree2ptr(tt);
-    } else {
-        return 0;
-    }
-}
-
-
-
-/**
- * Check if there is no intersection between a set of variables
- * {X1, X2, ...} and a type environment [(Y1,T1), (Y2,T2), ...]
- * return true when there is no intersection (no Yi in {X1, X2, ...}
- */
-static bool isFreeInEnv(Tree set, Tree env)
-{
-    if (env == NULLTYPEENV) {
-        return true;
-    } else if (isElement(hd(hd(env)), set)) {
-        return false;
-    } else {
-        return isFreeInEnv(set, tl(env));
-    }
-}
-
-
-
-
-/**
- * Retrieve or infere the type of a term according to its surrounding type environment
- * @param sig the signal to analyze
- * @param env the type environment
- * @return the type of sig according to environment env
- * @see getCertifiedSigType
- */
-
-static Type getOrInferType(Tree term, Tree env)
-{
-    Type ty;
-
-    if ((ty = getSigType(term))) {
-
-        // we have already a fix type that doesn't depend on any hypothesis
-        return ty;
-
-    } else if ( (env == NULLTYPEENV) ||  isFreeInEnv(symlist(term),env) ) {
-
-        if (env != NULLTYPEENV) {
-            TRACE(cerr << TABBER << "NOTE : We can forget hypothesis environment here " << endl;)
-        }
-        // we don't have a type but we don't depend of any hypothesis
-        ty = infereSigType(term, NULLTYPEENV);
-        setInferredTypeProperty(term, NULLTYPEENV, ty);
-        fixInferredType(term,NULLTYPEENV);
-        return ty;
-
-    } else {
-
-        // we have hypothesis and we depend on them
-        if ( (ty = getInferredTypeProperty(term, env)) ) {
-            // but we have already typed this term with this hypothesis
-             return ty;
-         } else {
-             // we never typed this term with these hypothesis
-             ty = infereSigType(term, env);
-             setInferredTypeProperty(term, env, ty);
-             return ty;
-         }
-    }
-}
-
 
 /**
  * Shortcut to getOrInferType, retrieve or infere the type of a term according to its surrounding type environment
@@ -370,13 +223,22 @@ static Type getOrInferType(Tree term, Tree env)
  * @return the type of sig according to environment env
  * @see getCertifiedSigType
  */
-static Type T(Tree term, Tree env)
+static Type T(Tree term, Tree ignoreenv)
 {
-    TRACE(cerr << ++TABBER << "ENTER T() " << *term << " WITH ENV " << *env << endl;)
-    Type ty = getOrInferType(term, env);
-    TRACE(cerr << --TABBER << "EXIT T() " << *term << " AS TYPE " << *ty << " WITH ENV " << *env << endl;)
+    TRACE(cerr << ++TABBER << "ENTER T() " << *term << endl;)
 
-    return ty;
+    if (term->isAlreadyVisited()) {
+        Type    ty =  getSigType(term);
+        TRACE(cerr << --TABBER << "EXIT 1 T() " << *term << " AS TYPE " << *ty << endl);
+        return ty;
+
+    } else {
+        Type ty = infereSigType(term, ignoreenv);
+        setSigType(term,ty);
+        term->setVisited();
+        TRACE(cerr << --TABBER << "EXIT 2 T() " << *term << " AS TYPE " << *ty << endl);
+        return ty;
+    }
 }
 
 
@@ -398,10 +260,10 @@ static Type infereSigType(Tree sig, Tree env)
 
 		 if ( getUserData(sig) ) 			return infereXType(sig, env);
 
-    else if (isSigInt(sig, &i))             {   Type t = new SimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
+    else if (isSigInt(sig, &i))             {   Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
                                                 /*sig->setType(t);*/ return t; }
 
-    else if (isSigReal(sig, &r)) 			{   Type t = new SimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
+    else if (isSigReal(sig, &r)) 			{   Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
                                                 /*sig->setType(t);*/ return t; }
 
     else if (isSigInput(sig, &i))			{   /*sig->setType(TINPUT);*/ return TINPUT; }
@@ -486,7 +348,7 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isProj(sig, &i, s1))				return infereProjType(T(s1,env),i,kScal);
 
-	else if (isSigTable(sig, id, s1, s2)) 		{ checkInt(checkInit(T(s1,env))); return new TableType(checkInit(T(s2,env))); }
+    else if (isSigTable(sig, id, s1, s2)) 		{ checkInt(checkInit(T(s1,env))); return makeTableType(checkInit(T(s2,env))); }
 
 	else if (isSigWRTbl(sig, id, s1, s2, s3)) 	return infereWriteTableType(T(s1,env), T(s2,env), T(s3,env));
 
@@ -505,7 +367,7 @@ static Type infereSigType(Tree sig, Tree env)
                                                   st2 = isSimpleType(T(s2,env));
                                                   stsel = isSimpleType(T(sel,env));
 
-                                                  return new SimpleType( st1->nature()|st2->nature(),
+                                                  return makeSimpleType( st1->nature()|st2->nature(),
                                                              st1->variability()|st2->variability()|stsel->variability(),
                                                              st1->computability()|st2->computability()|stsel->computability(),
                                                              st1->vectorability()|st2->vectorability()|stsel->vectorability(),
@@ -533,6 +395,7 @@ static Type infereSigType(Tree sig, Tree env)
 	exit(1);
 	return 0;
 }
+
 
 
 /**
@@ -581,7 +444,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 	int c = wi->computability() | wd->computability();
 	int vec = wi->vectorability() | wd->vectorability();
 
-	return new TableType(tt->content(), n, v, c, vec);
+    return makeTableType(tt->content(), n, v, c, vec);
 
 }
 
@@ -666,25 +529,7 @@ static Type initialRecType(Tree t)
  */
 static Type infereRecType (Tree sig, Tree body, Tree env)
 {
-	Type t0, t1;
-
-    if ((t1 =  searchTypeEnv(sig, env))) {
-
-        // we have already an hypothesis for this recursive term
-        return t1;
-
-    } else {
-
-        // we don't have an hypothesis, we search the smallest fix point
-        t1 = initialRecType(body);
-        do {
-            t0 = t1;
-            t1 = T(body, pushTypeEnv(sig, t0, env));
-        } while (t1 != t0);
-
-        //assert (t1 == t0);
-        return t1;
-    }
+    assert(false); // we should not come here
 }
 
 
@@ -699,16 +544,16 @@ static Type infereFFType (Tree ff, Tree ls, Tree env)
 	// rand() c'est a dire que le resultat varie a chaque appel.
 	if (ffarity(ff)==0) {
 		// case of functions like rand()
-		return new SimpleType(ffrestype(ff),kSamp,kInit,kVect,kNum, interval());
+        return makeSimpleType(ffrestype(ff),kSamp,kInit,kVect,kNum, interval());
 	} else {
 		// otherwise variability and computability depends
 		// arguments (OR of all arg types)
-		Type t = new SimpleType(kInt,kKonst,kInit,kVect,kNum, interval());
+        Type t = makeSimpleType(kInt,kKonst,kInit,kVect,kNum, interval());
 		while (isList(ls)) { t = t|T(hd(ls),env); ls=tl(ls); }
 		// but the result type is defined by the function
 
 		//return t;
-		return new SimpleType(	ffrestype(ff),
+        return makeSimpleType(	ffrestype(ff),
 								t->variability(),
 								t->computability(),
 								t->vectorability(),
@@ -726,7 +571,7 @@ static Type infereFConstType (Tree type)
     // une constante externe ne peut pas se calculer au plus tot qu'a
     // l'initialisation. Elle est constante, auquel cas on considere que c'est comme
     // rand() c'est a dire que le resultat varie a chaque appel.
-    return new SimpleType(tree2int(type),kKonst,kInit,kVect,kNum, interval());
+    return makeSimpleType(tree2int(type),kKonst,kInit,kVect,kNum, interval());
 }
 
 
@@ -737,7 +582,7 @@ static Type infereFVarType (Tree type)
 {
     // une variable externe ne peut pas se calculer au plus tot qu'a
     // l'execution. Elle est varie par blocs comme les éléments d'interface utilisateur.
-    return new SimpleType(tree2int(type),kBlock,kExec,kVect,kNum, interval());
+    return makeSimpleType(tree2int(type),kBlock,kExec,kVect,kNum, interval());
 }
 
 

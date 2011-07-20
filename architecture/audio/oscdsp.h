@@ -57,16 +57,10 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 			return;
 		}
 
-		int chan = 0, frame = 0;
 		for (int i=0; i < nvalues; i++) {
-			int c = chan % inChans;
+			int c = i % inChans;
+			int frame = i / inChans;
 			fInBuffers[c][frame] = val[i];
-			if (!c) frame++;
-			chan++;
-		}
-		while (chan % inChans) {
-			fInBuffers[chan % inChans] = 0;
-			chan++;
 		}
 		compute (frame);
 	}

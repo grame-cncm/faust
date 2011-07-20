@@ -161,7 +161,7 @@ Tree    symlistVisit(Tree sig, set<Tree>& visited)
             return U;
         } else {
             vector<Tree> subsigs;
-            int n = getSubSignals(sig, subsigs, false);
+            int n = getSubSignals(sig, subsigs, true); // il faut visiter aussi les tables
             Tree U = nil;
             for (int i=0; i<n; i++) {
                 U = setUnion(U, symlistVisit(subsigs[i], visited));

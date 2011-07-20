@@ -50,6 +50,7 @@
 
 #include "ensure.hh"
 #include "sigrateinference.hh"
+#include "sigToGraph.hh"
 
 using namespace std;
 
@@ -60,6 +61,9 @@ extern bool gVectorSwitch;
 extern int gVecSize;
 extern bool gOpenCLSwitch;
 extern bool gCUDASwitch;
+extern bool gDumpNorm;
+extern bool gDrawSignals;
+extern string   gMasterDocument;
 
 std::ostream* Printable::fOut = &cout;
 
@@ -162,11 +166,35 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 
 Tree InstructionsCompiler::prepare(Tree LS)
 {
- startTiming("CodeLlvmScalarCompiler::prepare");
-	sharingAnalysis(LS);			// annotate L3 with sharing count
-  	fOccMarkup.mark(LS);			// annotate L3 with occurences analysis
- endTiming("CodeLlvmScalarCompiler::prepare");
-  	return LS;
+startTiming("ScalarCompiler::prepare");
+ startTiming("deBruijn2Sym");
+	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
+ endTiming("deBruijn2Sym");
+	Tree L2 = simplify(L1);			// simplify by executing every computable operation
+	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
+
+	// dump normal form
+	if (gDumpNorm) {
+		cout << ppsig(L3) << endl;
+		exit(0);
+	}
+
+	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
+
+    startTiming("typeAnnotation");
+        typeAnnotation(L3);				// Annotate L3 with type information
+    endTiming("typeAnnotation");
+
+    sharingAnalysis(L3);			// annotate L3 with sharing count
+  	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
+    //annotationStatistics();
+endTiming("ScalarCompiler::prepare");
+
+    if (gDrawSignals) {
+        ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
+        sigToGraph(L3, dotfile);
+    }
+  	return L3;
 }
 
 Tree InstructionsCompiler::prepare2(Tree L0)

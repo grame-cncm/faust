@@ -116,6 +116,7 @@ class CTree
 
  public:
 	static bool			gDetails;					///< Ctree::print() print with more details when true
+    static unsigned int gVisitTime;                 ///< Should be incremented for each new visit to keep track of visited tree.
 
  private:
 	// fields
@@ -125,6 +126,7 @@ class CTree
 	plist		fProperties;		///< the properties list attached to the tree
 	unsigned int		fHashKey;			///< the hashtable key
 	int			fAperture;			///< how "open" is a tree (synthezised field)
+    unsigned int	fVisitTime;			///< keep track of visits
 	tvec		fBranch;			///< the subtrees
 
 	CTree (unsigned int hk, const Node& n, const tvec& br); 						///< construction is private, uses tree::make instead
@@ -155,6 +157,11 @@ class CTree
 	// type information
 	void		setType(AudioType* t) 	{ fType = t; }
 	AudioType*	getType() 		        { return fType; }
+
+    // Keep track of visited trees (WARNING : non reentrant)
+    static void     startNewVisit()                 { ++gVisitTime; }
+    bool            isAlreadyVisited()              { return fVisitTime==gVisitTime; }
+    void            setVisited()                    { /*assert(fVisitTime!=gVisitTime);*/ fVisitTime=gVisitTime; }
 
 	// Property list of a tree
 	CTree*		setProperty(Tree key, Tree value) { fProperties[key] = value; return this;}

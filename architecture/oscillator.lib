@@ -207,9 +207,9 @@ with {
 // Reference:
 // https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
 //
-oscwc(fr) = 1-1' : wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
-oscws(fr) = 1-1' : wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
-oscq(fr)  = 1-1' : wgr(fr,1);       // phase quadrature outputs
+oscwc(fr) = impulse : wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
+oscws(fr) = impulse : wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
+oscq(fr)  = impulse : wgr(fr,1);       // phase quadrature outputs
 oscw = oscwc;
 
 //-------------------------- oscrs_demo ---------------------------

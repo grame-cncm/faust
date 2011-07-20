@@ -79,5 +79,10 @@ void typeAnnotation(Tree term);
 Type getCertifiedSigType(Tree term);
 
 
+/**
+ *	print annotation statistics
+ */
+void annotationStatistics();
+
 #endif
 
