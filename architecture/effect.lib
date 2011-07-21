@@ -175,17 +175,20 @@ with {
 
 moog_vcf_demo = bypass1(bp,vcf) with {
    mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)  
-      [tooltip: See Faust's filter.lib for info and references]",x);
+      [tooltip: See Faust's effect.lib for info and references]",x);
 
    meter_group(x) = mvcf_group(vgroup("[0]",x));
+   cb_group(x) = meter_group(hgroup("[0]",x));
 
-   bp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
+   bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
+   ts = cb_group(checkbox("[1] Use Biquads  
+        [tooltip: Select moog_vcf (analog style) or moog_vcf_2b (two-biquad) implementation]"));
 
    freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob] 
 	  [tooltip: The VCF resonates at the corner frequency (specified in
 	   PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat
 	   below the corner frequency, and rolls off -24 dB per octave above.]",
-          25, 1, 88, 0.01) : pianokey2hz);
+          25, 1, 88, 0.01) : pianokey2hz) : smooth(0.999);
 
    res = mvcf_group(hslider("[2] Corner Resonance [style:knob] 
          [tooltip: Amount of resonance near VCF corner frequency 
@@ -196,8 +199,7 @@ moog_vcf_demo = bypass1(bp,vcf) with {
               [tooltip: output level in decibels]",
               5, -60, 20, 0.1)) : component("music.lib").db2linear;
 
-   vcf = outgain * moog_vcf(res,freq:smooth(0.99));
-
+   vcf = _ <: select2(ts,moog_vcf(res,freq),moog_vcf_2b(res,freq)) : *(outgain);
 };
 
 //-------------------------- wah4(fr) -------------------------------
