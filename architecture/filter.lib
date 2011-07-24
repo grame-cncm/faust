@@ -103,7 +103,7 @@ with {
 //----------------------- ff_comb, ff_fcomb ----------------------------
 // Feed-Forward Comb Filter
 // 
-// USAGE: 
+// USAGE:
 //   _ : ff_comb(maxdel,intdel,b0,bM) : _
 //   _ : ff_fcomb(maxdel,del,b0,bM) : _
 // where
@@ -116,7 +116,7 @@ with {
 // Note that ff_comb requires integer delays  (uses delay()  internally)
 // while ff_fcomb takes floating-point delays (uses fdelay() internally).
 //
-// REFERENCE: 
+// REFERENCE:
 //   https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html
 
 ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  delay(maxdel,M) : + ;
@@ -185,59 +185,70 @@ allpass_comb(maxdel,N,aN) = (+ <:
 // The "rev2 section" dates back to the 1960s in computer-music reverberation:
 rev2(maxlen,len,g) = allpass_comb(maxlen,len,-g);
 
-//================ Second Order Digital Filter Sections ================
+//================ Direct-Form Digital Filter Sections ================
 
 // Specified by transfer-function polynomials B(z)/A(z) as in matlab
 
-//----------------------------- tf1 ---------------------------------
-// First-order direct-form digital filter
+//---------------------------- iir (tfN) -------------------------------
+// Nth-order Infinite-Impulse-Response (IIR) digital filter,
+// implemented in terms of the Transfer-Function (TF) coefficients.
+// Such filter structures are termed "direct form".
+//
+// USAGE:
+//   _ : iir(order,bcoeffs,acoeffs) : _
+// where
+//   order = filter order (int) = max(#poles,#zeros)
+//   bcoeffs = (b0,b1,...,b_order) = TF numerator coefficients
+//   acoeffs =    (a1,...,a_order) = TF denominator coeffs (a0=1)
+//
+// REFERENCE:
+//   https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html
 
-tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
+iir(bv,av) = sub ~ fir(av) : fir(bv);
 
-//----------------------------- tf2 ---------------------------------
-// Second-order direct-form digital filter.
-// This is just a copy of TF2(b0,b1,b2,a1,a2) from Faust's music.lib.
-
-tf2(b0,b1,b2,a1,a2) = sub ~ conv2(a1,a2) : conv3(b0,b1,b2)
-with {
-  conv3(k0,k1,k2,x)     = k0*x + k1*x' + k2*x'';
-  conv2(k0,k1,x)        = k0*x + k1*x';
-  sub(x,y)              = y-x;
-};
-
-//----------------------------- tf3 ---------------------------------
-// Third-order direct-form digital filter
-
-tf3(b0,b1,b2,b3,a1,a2,a3) = sub ~ conv3(a1,a2,a3) : conv4(b0,b1,b2,b3)
-with {
-  conv3(k0,k1,k2,x)     = k0*x + k1*x' + k2*x'';
-  conv4(k0,k1,k2,k3,x)  = k0*x + k1*x' + k2*x'' + k3*x''';
-  sub(x,y)              = y-x;
-};
-
-//----------------------------- tf4 ---------------------------------
-// Fourth-order direct-form digital filter
-
-tf4(b0,b1,b2,b3,b4,a1,a2,a3,a4) = sub ~ conv4(a1,a2,a3,a4) 
-                                      : conv5(b0,b1,b2,b3,b4)
-with {
-  conv4(k0,k1,k2,k3,x)    = k0*x + k1*x' + k2*x'' + k3*x''';
-  conv5(k0,k1,k2,k3,k4,x) = k0*x + k1*x' + k2*x'' + k3*x''' + k4*x'''';
-  sub(x,y)                = y-x;
-};
+//----------------------------- sub ---------------------------------
+sub(x,y) = y-x; // move to math.lib?
 
 //----------------------------- fir ---------------------------------
 // FIR filter (convolution of FIR filter coefficients with a signal)
+//
 // USAGE: 
-//   _ : fir(B) : _
-// where B = B0,B1,...,BN is a parallel bank of coefficient signals.
-// NOTE: B is processed using pattern-matching at compile time, 
+//   _ : fir(bv) : _
+// where bv = b0,b1,...,bn is a parallel bank of coefficient signals.
+// NOTE: bv is processed using pattern-matching at compile time,
 //       so it must have this normal form (parallel signals).
 // EXAMPLE: Smoothing white noise with a five-point moving average:
-//   B = .2,.2,.2,.2,.2;
-//   process = noise : fir(B);
+//   bv = .2,.2,.2,.2,.2;
+//   process = noise : fir(bv);
+// EQUIVALENT (note double parens):
+//   process = noise : fir((.2,.2,.2,.2,.2));
 
-fir(B,x) = sum(i,count(B),take(i+1,B)*(x@i)); // count & take in math.lib
+fir(bv) = conv(bv);
+
+//--------------------------- conv, convN -------------------------------
+// Convolution of input signal with given coefficients
+//
+// USAGE:
+//  _ : conv((k1,k2,k3,...,kN)) : _; // Argument = one signal bank
+//  _ : convN(N,(k1,k2,k3,...)) : _; // Useful when N < count((k1,...))
+
+convN(N,kv,x) = sum(i,N,take(i+1,kv) * x@i); // take() defined in math.lib
+
+conv(kv,x) = sum(i,count(kv),take(i+1,kv) * x@i); // count() from math.lib
+
+// Named special cases for backward compatibility:
+// (Current plan is to keep tf1 and tf2 only in future releases)
+
+//----------------------- tf1, tf2, tf3, tf4 -----------------------------
+// tfN = N'th-order direct-form digital filter
+tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
+tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2)); // cf. TF2 in music.lib)
+tf3(b0,b1,b2,b3,a1,a2,a3) = iir((b0,b1,b2,b3),(a1,a2,a3));
+tf4(b0,b1,b2,b3,b4,a1,a2,a3,a4) = iir((b0,b1,b2,b3,b4),(a1,a2,a3,a4));
+
+//===================== Ladder/Lattice Digital Filters ======================
+
+// Useful special cases:
 
 //----------------------------- wgr ---------------------------------
 // Second-order transformer-normalized digital waveguide resonator
@@ -435,7 +446,7 @@ with {
 // usual scale parameter 2*SR.  Algebra carried out in maxima and pasted here.
 //
 tf2sb(b2,b1,b0,a1,a0,w1,wc) = 
-  tf4(b0d/a0d,b1d/a0d,b2d/a0d,b3d/a0d,b4d/a0d,a1d/a0d,a2d/a0d,a3d/a0d,a4d/a0d) with {
+  iir((b0d/a0d,b1d/a0d,b2d/a0d,b3d/a0d,b4d/a0d),(a1d/a0d,a2d/a0d,a3d/a0d,a4d/a0d)) with {
   T = 1.0/float(SR);
   b0d = (4*b0*w1^2+8*b2*wc^2)*T^2+8*b1*w1*T+16*b2;
   b1d = 4*b2*wc^4*T^4+4*b1*wc^2*w1*T^3-16*b1*w1*T-64*b2;
@@ -1066,7 +1077,7 @@ with {
 
 // third-order allpass delay in [2.5,3.5]
 // delay d should be at least 2.5
-fdelay3a(n,d,x) = delay(n,id,x) : tf3(a3,a2,a1,1,a1,a2,a3)
+fdelay3a(n,d,x) = delay(n,id,x) : iir((a3,a2,a1,1),(a1,a2,a3))
 with {
   o = 2.49999;
   dmo = d - o;
