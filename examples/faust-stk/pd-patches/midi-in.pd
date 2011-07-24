@@ -1,4 +1,4 @@
-#N canvas 558 196 650 564 10;
+#N canvas 555 193 650 564 10;
 #X obj 331 8 notein;
 #X obj 336 353 pack f f f;
 #X obj 394 292 / 127;
@@ -12,9 +12,9 @@
 #X obj 50 27 tgl 15 0 \$0-led-1 \$0-led-1 empty 0 -6 0 8 -262144 -1
 -1 0 1;
 #X obj 67 27 tgl 15 0 \$0-led-2 \$0-led-2 empty 0 -6 0 8 -262144 -1
--1 1 1;
+-1 0 1;
 #X obj 84 27 tgl 15 0 \$0-led-3 \$0-led-3 empty 0 -6 0 8 -262144 -1
--1 1 1;
+-1 0 1;
 #X obj 101 27 tgl 15 0 \$0-led-4 \$0-led-4 empty 0 -6 0 8 -262144 -1
 -1 0 1;
 #X obj 260 385 s \$0-leds;
@@ -30,7 +30,7 @@
 #X obj 135 27 tgl 15 0 \$0-led-6 \$0-led-6 empty 0 -6 0 8 -262144 -1
 -1 0 1;
 #X obj 152 27 tgl 15 0 \$0-led-7 \$0-led-7 empty 0 -6 0 8 -262144 -1
--1 1 1;
+-1 0 1;
 #X obj 169 27 tgl 15 0 \$0-led-8 \$0-led-8 empty 0 -6 0 8 -262144 -1
 -1 0 1;
 #X obj 217 3 tgl 15 0 \$0-toggle \$0-toggle empty 0 -6 0 8 -262144
@@ -62,6 +62,9 @@ the inlet \, you can also pass in MIDI style messages \, either note/velocity
 or note/velocity/duration (use a "stop" message to emulate all-notes-off).
 Other (control) messages are simply passed through to the second outlet.
 The creation argument sets the number of voices (8 voices max).;
+#X obj 16 307 loadbang;
+#X obj 16 328 f \$2;
+#X obj 16 349 s \$0-chan;
 #X connect 0 0 43 0;
 #X connect 0 1 2 0;
 #X connect 0 2 42 1;
@@ -103,4 +106,6 @@ The creation argument sets the number of voices (8 voices max).;
 #X connect 44 0 36 0;
 #X connect 44 1 6 0;
 #X connect 44 2 39 0;
+#X connect 46 0 47 0;
+#X connect 47 0 48 0;
 #X coords 0 -1 1 1 235 45 1 0 0;

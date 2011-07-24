@@ -10,31 +10,31 @@ import("instrument.lib");
 
 //==================== GUI SPECIFICATION ================
 
-freq = nentry("h:Basic Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
-gain = nentry("h:Basic Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",0.8,0,1,0.01); 
-gate = button("h:Basic Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]"); 
+freq = nentry("h:Basic_Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
+gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",0.8,0,1,0.01); 
+gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]"); 
 
-stickHardness = hslider("h:Physical and Nonlinearity/v:Physical Parameters/Stick Hardness
+stickHardness = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Stick_Hardness
 [2][tooltip:A value between 0 and 1]",0.25,0,1,0.01);
-reson = nentry("h:Physical and Nonlinearity/v:Physical Parameters/Resonance
+reson = nentry("h:Physical_and_Nonlinearity/v:Physical_Parameters/Resonance
 [2][tooltip:A value between 0 and 1]",1,0,1,1);
-presetNumber = nentry("h:Physical and Nonlinearity/v:Physical Parameters/Preset
+presetNumber = nentry("h:Physical_and_Nonlinearity/v:Physical_Parameters/Preset
 [2][tooltip:0->Marimba, 1->Vibraphone, 2->Agogo, 3->Wood1, 4->Reso, 5->Wood2, 6->Beats, 7->2Fix; 8->Clump]",1,0,8,1);
 
-typeModulation = nentry("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Modulation Type 
+typeModulation = nentry("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Modulation_Type 
 [3][tooltip: 0=theta is modulated by the incoming signal; 1=theta is modulated by the averaged incoming signal;
 2=theta is modulated by the squared incoming signal; 3=theta is modulated by a sine wave of frequency freqMod;
 4=theta is modulated by a sine wave of frequency freq;]",0,0,4,1);
-nonLinearity = hslider("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Nonlinearity 
+nonLinearity = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Nonlinearity 
 [3][tooltip:Nonlinearity factor (value between 0 and 1)]",0,0,1,0.01);
-frequencyMod = hslider("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Modulation Frequency 
+frequencyMod = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Modulation_Frequency 
 [3][unit:Hz][tooltip:Frequency of the sine wave for the modulation of theta (works if Modulation Type=3)]",220,20,1000,0.1);
-nonLinAttack = hslider("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Nonlinearity Attack
+nonLinAttack = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Nonlinearity_Attack
 [3][unit:s][Attack duration of the nonlinearity]",0.1,0,2,0.01);
 
-vibratoFreq = hslider("h:Envelopes and Vibrato/v:Vibrato Parameters/Vibrato Freq 
+vibratoFreq = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Freq 
 [4][unit:Hz]",6,1,15,0.1);
-vibratoGain = hslider("h:Envelopes and Vibrato/v:Vibrato Parameters/Vibrato Gain
+vibratoGain = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Gain
 [4][tooltip:A value between 0 and 1]",0.1,0,1,0.01);
 
 //==================== SIGNAL PROCESSING ================
@@ -106,4 +106,4 @@ process = excitation : sourceFilter : *(gain) <:
 	//resonance
 	(biquadBank <: -(*(directGain))) + (directGain*_) :
 	//vibrato for the vibraphone
-	*(vibrato) : NLFM*0.6 : stereo : hgroup("Reverb[6]",component("freeverb.dsp"));
+	*(vibrato) : NLFM*0.6 : stereo : instrReverb;

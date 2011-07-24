@@ -10,30 +10,30 @@ import("instrument.lib");
 
 //==================== GUI SPECIFICATION ================
 
-freq = nentry("h:Basic Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
-gain = nentry("h:Basic Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",0.8,0,1,0.01); 
-gate = button("h:Basic Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
+freq = nentry("h:Basic_Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
+gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",0.8,0,1,0.01); 
+gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
 
-select = nentry("h:Physical and Nonlinearity/v:Physical Parameters/Excitation Selector
+select = nentry("h:Physical_and_Nonlinearity/v:Physical_Parameters/Excitation_Selector
 [2][tooltip:0=Bow; 1=Strike]",0,0,1,1);
-integrationConstant = hslider("h:Physical and Nonlinearity/v:Physical Parameters/Integration Constant
+integrationConstant = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Integration_Constant
 [2][tooltip:A value between 0 and 1]",0,0,1,0.01);
-baseGain = hslider("h:Physical and Nonlinearity/v:Physical Parameters/Base Gain
+baseGain = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Base_Gain
 [2][tooltip:A value between 0 and 1]",1,0,1,0.01);
-bowPressure = hslider("h:Physical and Nonlinearity/v:Physical Parameters/Bow Pressure
+bowPressure = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Bow_Pressure
 [2][tooltip:Bow pressure on the instrument (Value between 0 and 1)]",0.2,0,1,0.01);
-bowPosition = hslider("h:Physical and Nonlinearity/v:Physical Parameters/Bow Position
+bowPosition = hslider("h:Physical_and_Nonlinearity/v:Physical_Parameters/Bow_Position
 [2][tooltip:Bow position on the instrument (Value between 0 and 1)]",0,0,1,0.01);
 
-typeModulation = nentry("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Modulation Type 
+typeModulation = nentry("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Modulation_Type 
 [3][tooltip: 0=theta is modulated by the incoming signal; 1=theta is modulated by the averaged incoming signal;
 2=theta is modulated by the squared incoming signal; 3=theta is modulated by a sine wave of frequency freqMod;
 4=theta is modulated by a sine wave of frequency freq;]",0,0,4,1);
-nonLinearity = hslider("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Nonlinearity 
+nonLinearity = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Nonlinearity 
 [3][tooltip:Nonlinearity factor (value between 0 and 1)]",0,0,1,0.01);
-frequencyMod = hslider("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Modulation Frequency 
+frequencyMod = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Modulation_Frequency 
 [3][unit:Hz][tooltip:Frequency of the sine wave for the modulation of theta (works if Modulation Type=3)]",220,20,1000,0.1);
-nonLinAttack = hslider("h:Physical and Nonlinearity/v:Nonlinear Filter Parameters/Nonlinearity Attack
+nonLinAttack = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameters/Nonlinearity_Attack
 [3][unit:s][Attack duration of the nonlinearity]",0.1,0,2,0.01);
 
 //==================== MODAL PARAMETERS ================
@@ -119,7 +119,7 @@ stereo = stereoizer(delayLengthBase);
 bowing = bowVelocity - velocityInput <: *(bow(tableOffset,tableSlope)) : /(nModes);
 
 //One resonance
-resonance(x) = + : + (excitation(preset,x)*select) : delayLine(x) : _*basegains(preset,x) : bandPassFilter(x);
+resonance(x) = + : + (excitation(preset,x)*select) : delayLine(x) : *(basegains(preset,x)) : bandPassFilter(x);
 
 process =
 		//Bowed Excitation
@@ -127,4 +127,4 @@ process =
 		//nModes resonances with nModes feedbacks for bow table look-up 
 		par(i,nModes,(resonance(i)~_)))~par(i,nModes,_) :> + : 
 		//Signal Scaling and stereo
-		*(4) : NLFM : stereo : hgroup("Reverb[6]",component("freeverb.dsp"));
+		*(4) : NLFM : stereo : instrReverb;

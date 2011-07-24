@@ -9,20 +9,20 @@ import("music.lib");
 
 //==================== GUI SPECIFICATION ================
 
-freq = nentry("h:Basic Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",120,20,20000,1);
-gain = nentry("h:Basic Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",1,0,1,0.01); 
-gate = button("h:Basic Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
+freq = nentry("h:Basic_Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",120,20,20000,1);
+gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",1,0,1,0.01); 
+gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
 
-touchLength = hslider("v:Physical Parameters/Touch Length
+touchLength = hslider("v:Physical_Parameters/Touch_Length
 [2][tooltip:A value between 0 and 1]",0.15,0,1,0.01)*2;
 
-typeModulation = nentry("v:Nonlinear Filter Parameters/Modulation Type 
+typeModulation = nentry("v:Nonlinear_Filter_Parameters/Modulation_Type 
 [3][tooltip: 0=theta is modulated by the incoming signal; 1=theta is modulated by the averaged incoming signal;
 2=theta is modulated by the squared incoming signal; 3=theta is modulated by a sine wave of frequency freqMod;
 4=theta is modulated by a sine wave of frequency freq;]",0,0,4,1);
-nonLinearity = hslider("v:Nonlinear Filter Parameters/Nonlinearity 
+nonLinearity = hslider("v:Nonlinear_Filter_Parameters/Nonlinearity 
 [3][tooltip:Nonlinearity factor (value between 0 and 1)]",0,0,1,0.01);
-frequencyMod = hslider("v:Nonlinear Filter Parameters/Modulation Frequency 
+frequencyMod = hslider("v:Nonlinear_Filter_Parameters/Modulation_Frequency 
 [3][unit:Hz][tooltip:Frequency of the sine wave for the modulation of theta (works if Modulation Type=3)]",220,20,1000,0.1);
 
 //==================== SIGNAL PROCESSING ======================
@@ -80,4 +80,4 @@ resonanceGain = gate + (gate < 1 <: *(asympT60(1,0.9,0.05)));
 
 process = excitation : 
 	(+)~(delayLine : NLFM : reflexionFilter*resonanceGain) <: 
-	bodyFilter*1.5 + *(0.5) : *(4) : stereo : hgroup("Reverb[4]",component("freeverb.dsp"));
+	bodyFilter*1.5 + *(0.5) : *(4) : stereo : instrReverb;

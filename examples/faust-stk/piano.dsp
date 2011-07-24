@@ -10,17 +10,17 @@ import("instrument.lib");
 
 //==================== GUI SPECIFICATION ================
 
-freq = nentry("h:Basic Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
-gain = nentry("h:Basic Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",1,0,1,0.01); 
-gate = button("h:Basic Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
+freq = nentry("h:Basic_Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
+gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",1,0,1,0.01); 
+gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
 
-brightnessFactor = hslider("v:Physical Parameters/Brightness Factor
+brightnessFactor = hslider("v:Physical_Parameters/Brightness_Factor
 [2][tooltip:A value between 0 and 1]",0,0,1,0.01);
-detuningFactor = hslider("v:Physical Parameters/Detuning Factor
+detuningFactor = hslider("v:Physical_Parameters/Detuning_Factor
 [2][tooltip:A value between 0 and 1]",0.1,0,1,0.01)*10;
-stiffnessFactor = hslider("v:Physical Parameters/Stiffness Factor
+stiffnessFactor = hslider("v:Physical_Parameters/Stiffness_Factor
 [2][tooltip:A value between 0 and 1]",0.28,0,1,0.01)*3.7;
-hammerHardness = hslider("v:Physical Parameters/Hammer Hardness
+hammerHardness = hslider("v:Physical_Parameters/Hammer_Hardness
 [2][tooltip:A value between 0 and 1]",0.1,0,1,0.01)*0.1;
 
 //==================== COMMUTED PIANO PARAMETERS ================
@@ -250,5 +250,5 @@ conditionLowNote = freqn < FIRST_HIGH_NOTE;
 conditionHighNote = freqn >= FIRST_HIGH_NOTE;
 
 process = soundBoard <: (*(conditionLowNote)*6 : hammer : dcBlock1 : coupledStrings <: +(eq)),
-(*(conditionHighNote) : hiPass : dcBlock1 : hammer : dcBlock2a : highBqs : dcBlock2b) :> + : *(2.5) : 
-stereo : hgroup("Reverb[6]",component("freeverb.dsp"));
+(*(conditionHighNote) : hiPass : dcBlock1 : hammer : dcBlock2a : highBqs : dcBlock2b) :> + : *(12) : 
+stereo : instrReverb;
