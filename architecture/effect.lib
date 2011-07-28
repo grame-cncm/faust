@@ -1,7 +1,7 @@
 declare name "Faust Audio Effect Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.32";
+declare version "1.33";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/realsimple/faust_strings/";
 
@@ -118,50 +118,72 @@ with {
 // USAGE: moog_vcf(res,fr), where
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
 //   res  = Normalized amount of corner-resonance between 0 and 1 
-//        (0 is no resonance, 1 is infinite Q)
+//        (0 is no resonance, 1 is maximum)
 // Requires filter.lib.
 //
 // DESCRIPTION: Moog VCF implemented using the same logical block diagram
 //   as the classic analog circuit.  As such, it neglects the one-sample
 //   delay associated with the feedback path around the four one-poles.
-//   This extra delay adds damping at high frequencies (see references
-//   for details).  See moog_vcf_2b for a more accurate implementation.
+//   This extra delay alters the response, especially at high frequencies
+//   (see reference [1] for details).
+//   See moog_vcf_2b below for a more accurate implementation.
 //
 // REFERENCES:
-//   https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
-//   https://ccrma.stanford.edu/~jos/pasp/vegf.html
+//   [1] https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
+//   [2] https://ccrma.stanford.edu/~jos/pasp/vegf.html
 // 
 moog_vcf(res,fr) = (+ : seq(i,4,pole(p)) : *(unitygain(p))) ~ *(mk)
 with {
      p = 1.0 - fr * 2.0 * PI / SR; // good approximation for fr << SR
      unitygain(p) = pow(1.0-p,4.0); // one-pole unity-gain scaling
-     mk = 0-4.0*max(0,min(res,0.999999)); // need mk > -4 for stability
+     mk = -4.0*max(0,min(res,0.999999)); // need mk > -4 for stability
 };
 
-//------------------------- moog_vcf_2b(res,fr) ---------------------------
+//----------------------- moog_vcf_2b[n] ---------------------------
 // Moog "Voltage Controlled Filter" (VCF) as two biquads
 //
-// USAGE: moog_vcf_2b(res,fr), where
-//   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
+// USAGE:
+//   moog_vcf_2b(res,fr)
+//   moog_vcf_2bn(res,fr)
+// where
+//   fr = corner-resonance frequency in Hz
 //   res  = Normalized amount of corner-resonance between 0 and 1
-//        (0 is no resonance, 1 is infinite Q)
-// Requires filter.lib.
+//        (0 is min resonance, 1 is maximum)
 //
-// DESCRIPTION: This is an implementation of the ideal Moog VCF transfer
+// DESCRIPTION: Implementation of the ideal Moog VCF transfer
 //   function factored into second-order sections.  As a result, it is
 //   more accurate than moog_vcf above, but its coefficient formulas are
-//   more complex when one or both parameters are varied.  In the limit
-//   as the sampling rate goes to infinity, the two cases become equivalent
-//   at res = 0 and 1 (res here is the fourth root of that in moog_vcf).
+//   more complex when one or both parameters are varied.  Here, res
+//   is the fourth root of that in moog_vcf, so, as the sampling rate
+//   approaches infinity, moog_vcf(res,fr) becomes equivalent
+//   to moog_vcf_2b[n](res^4,fr) (when res and fr are constant).
 //
-// REFERENCES: See moog_vcf above.
+//   moog_vcf_2b  uses two direct-form biquads (tf2)
+//   moog_vcf_2bn uses two protected normalized-ladder biquads (tf2np)
+//
+// REQUIRES: filter.lib
 //
 moog_vcf_2b(res,fr) = tf2s(0,0,b0,a11,a01,w1) : tf2s(0,0,b0,a12,a02,w1)
 with {
  s = 1; // minus the open-loop location of all four poles
- w1 = 2*PI*fr; // frequency-scaling parameter for bilinear xform
- // Equivalent: w1 = 1; s = 2*PI*fr;
- k = sqrt(2)*res; // fourth root of Moog VCF feedback gain
+ frl = max(20,min(10000,fr)); // limit fr to reasonable 20-10k Hz range
+ w1 = 2*PI*frl; // frequency-scaling parameter for bilinear xform
+ // Equivalent: w1 = 1; s = 2*PI*frl;
+ kmax = sqrt(2)*0.999; // 0.999 gives stability margin (tf2 is unprotected)
+ k = min(kmax,sqrt(2)*res); // fourth root of Moog VCF feedback gain
+ b0 = s^2;
+ s2k = sqrt(2) * k;
+ a11 = s * (2 + s2k);
+ a12 = s * (2 - s2k);
+ a01 = b0 * (1 + s2k + k^2);
+ a02 = b0 * (1 - s2k + k^2);
+};
+
+moog_vcf_2bn(res,fr) = tf2snp(0,0,b0,a11,a01,w1) : tf2snp(0,0,b0,a12,a02,w1)
+with {
+ s = 1; // minus the open-loop location of all four poles
+ w1 = 2*PI*max(fr,20); // frequency-scaling parameter for bilinear xform
+ k = sqrt(2)*0.999*res; // fourth root of Moog VCF feedback gain
  b0 = s^2;
  s2k = sqrt(2) * k;
  a11 = s * (2 + s2k);
@@ -171,6 +193,9 @@ with {
 };
 
 //------------------------- moog_vcf_demo ---------------------------
+// Illustrate and compare all three Moog VCF implementations above
+// (called by <faust>/examples/vcf_wah_pedals.dsp).
+//
 // USAGE: _ : moog_vcf_demo : _;
 
 moog_vcf_demo = bypass1(bp,vcf) with {
@@ -181,25 +206,27 @@ moog_vcf_demo = bypass1(bp,vcf) with {
    cb_group(x) = meter_group(hgroup("[0]",x));
 
    bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
-   ts = cb_group(checkbox("[1] Use Biquads  
-        [tooltip: Select moog_vcf (analog style) or moog_vcf_2b (two-biquad) implementation]"));
+   archsw = cb_group(checkbox("[1] Use Biquads
+   [tooltip: Select moog_vcf_2b (two-biquad) implementation, instead of the default moog_vcf (analog style) implementation]"));
+   bqsw = cb_group(checkbox("[2] Normalized Ladders
+   [tooltip: If using biquads, make them normalized ladders (moog_vcf_2bn)]"));
 
    freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob] 
-	  [tooltip: The VCF resonates at the corner frequency (specified in
-	   PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat
-	   below the corner frequency, and rolls off -24 dB per octave above.]",
-          25, 1, 88, 0.01) : pianokey2hz) : smooth(0.999);
+   [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above.]", 
+   25, 1, 88, 0.01) : pianokey2hz) : smooth(0.999);
 
    res = mvcf_group(hslider("[2] Corner Resonance [style:knob] 
-         [tooltip: Amount of resonance near VCF corner frequency 
-         (specified between 0 and 1)]", 
-         0.9, 0, 1, 0.01));
+   [tooltip: Amount of resonance near VCF corner frequency (specified between 0 and 1)]",
+   0.9, 0, 1, 0.01));
 
    outgain  = meter_group(hslider("[1] VCF Output Level [unit:dB] 
-              [tooltip: output level in decibels]",
-              5, -60, 20, 0.1)) : component("music.lib").db2linear;
+   [tooltip: output level in decibels]",
+   5, -60, 20, 0.1)) : smooth(0.999)
+   : component("music.lib").db2linear;
 
-   vcf = _ <: select2(ts,moog_vcf(res,freq),moog_vcf_2b(res,freq)) : *(outgain);
+   vcfbq =  _ <: select2(bqsw, moog_vcf_2b(res,freq), moog_vcf_2bn(res,freq));
+   vcfarch =  _ <: select2(archsw, moog_vcf(res^4,freq), vcfbq);
+   vcf = vcfarch : *(outgain);
 };
 
 //-------------------------- wah4(fr) -------------------------------
@@ -265,7 +292,7 @@ with {
 crybaby_demo = bypass1(bp, crybaby(wah)) with {
    crybaby_group(x)  = hgroup("CRYBABY [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/vegf.html]", x);
    bp = crybaby_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah pedal has no effect]"));
-   wah = crybaby_group(hslider("[1] Wah [tooltip: wah pedal angle between 0 (rocked back) and 1 (rocked forward)]",0.8,0,1,0.01));
+   wah = crybaby_group(hslider("[1] Wah parameter [tooltip: wah pedal angle between 0 (rocked back) and 1 (rocked forward)]",0.8,0,1,0.01));
 };
 
 //------------ apnl(a1,a2) ---------------
@@ -1051,7 +1078,7 @@ with {
 
   special_lowpass(g,f) = smooth(p) with {
     // unity-dc-gain lowpass needs gain g at frequency f => quadratic formula:
-    p = mbo2 - sqrt(mbo2*mbo2 - 1.0); // other solution is unstable
+    p = mbo2 - sqrt(max(0,mbo2*mbo2 - 1.0)); // other solution is unstable
     mbo2 = (1.0 - gs*c)/(1.0 - gs); // NOTE: must ensure |g|<1 (t60m finite)
     gs = g*g;
     c = cos(2.0*PI*f/float(SR));
@@ -1181,7 +1208,7 @@ with {
 // Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filter.lib):
   pareq_stereo(eqf,eql,Q) = peak_eq_rm(eql,eqf,tpbt), peak_eq_rm(eql,eqf,tpbt)
   with {
-    tpbt = wcT/sqrt(g); // tan(PI*B/SR) where B bandwidth in Hz (Q^2 ~ g/4)
+    tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)
     wcT = 2*PI*eqf/SR;  // peak frequency in rad/sample
     g = db2linear(eql); // peak gain
   };
