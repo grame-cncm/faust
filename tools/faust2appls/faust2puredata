@@ -81,7 +81,7 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
-    TDR=$(mktemp -d faust.XXX)
+    TDR=$(mktemp -d faust.XXXXXX)
     TMP=$TDR/${f%.dsp}
     mkdir "$TMP"
 
