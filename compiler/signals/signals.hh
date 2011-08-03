@@ -122,6 +122,21 @@ Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3);
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
+
+// multirate
+Tree sigVectorize (Tree n, Tree s);
+bool isSigVectorize (Tree a, Tree& n, Tree& s);
+
+Tree sigSerialize (Tree s);
+bool isSigSerialize (Tree a, Tree& s);
+
+Tree sigConcat (Tree s1, Tree s2);
+bool isSigConcat (Tree a, Tree& s1, Tree& s2);
+
+Tree sigVectorAt (Tree s1, Tree s2);
+bool isSigVectorAt (Tree a, Tree& s1, Tree& s2);
+
+
 // arithmetical operations 
 
 Tree sigBinOp	(int op, Tree x, Tree y);
