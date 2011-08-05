@@ -32,7 +32,7 @@ SEDFLAG1	:=
 SEDFLAG2	:=d
 otodo		:=$(scxfiles)
 else
-MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
+MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS) $(LIB)
 OBJT 		:= -shared
 SEDFLAG1	:=s
 SEDFLAG2	:=/i

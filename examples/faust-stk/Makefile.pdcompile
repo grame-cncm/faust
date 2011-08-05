@@ -46,14 +46,16 @@ hasfaust2pd := $(findstring /faust2pd, $(helper))
 
 ifeq ($(hasfaust2pd),)
 	todo:=$(modules)
+	message:="*** Install <faust>/tools/faust2pd if you want the example Pd patches to work ***"
 else
 	todo:=$(modules) $(patches)
+	message:="Compiled: $(todo)"
 endif
 
 ###--------------------------------------------
 
 
-allmodules: $(todo)
+allmodules: $(todo) print_message
 
 $(DEST)%.cpp: %.dsp
 	faust -a $(ARCH) $< -o $@
@@ -69,6 +71,9 @@ $(DEST)%~.pd_linux: $(DEST)%.cpp
 
 $(DEST)%~.pd_darwin: $(DEST)%.cpp
 	$(CXX) $(DARWINCFLAGS) $(DARWININCLUDE) $(DYNLOAD_FLAGS) $(OPTIONAL) -Dmydsp=$(patsubst %~.pd_darwin,%,$(notdir $@)) $< -o $@
+
+print_message:
+	echo $(message) > /dev/null
 
 clean:
 	rm -rf $(DEST)

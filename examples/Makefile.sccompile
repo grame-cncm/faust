@@ -25,6 +25,7 @@ SCINC := $(if $(wildcard $(dir3)),$(dir3),$(SCINC))
 ### check what type of modules to build (MacOSX Darwin or Linux)
 ###
 ifeq ($(system),Darwin)
+### MacOSX:
 DARWINCFLAGS	:= -I/opt/local/include -I/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers
 MYCFLAGS 	:= $(CXXFLAGS) $(DARWINCFLAGS) -I$(SCINC)/common -I$(SCINC)/server -I$(SCINC)/plugin_interface
 OBJT 		:= -bundle -undefined suppress -flat_namespace -funroll-loops -fomit-frame-pointer
@@ -32,7 +33,8 @@ SEDFLAG1	:=
 SEDFLAG2	:=d
 otodo		:=$(scxfiles)
 else
-MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS)
+### Linux:
+MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS) $(LIB)
 OBJT 		:= -shared
 SEDFLAG1	:=s
 SEDFLAG2	:=/i
