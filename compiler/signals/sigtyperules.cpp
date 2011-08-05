@@ -37,10 +37,22 @@
 #include "sigtyperules.hh"
 #include "xtended.hh"
 #include "recursivness.hh"
+#include "sigraterules.hh"
+
+
+//--------------------------------------------------------------------------
+// Uncomment to activate type inference tracing
+
+//#define TRACE(x) x
+#define TRACE(x) 0;
+
 
 
 //--------------------------------------------------------------------------
 // prototypes
+static ostream&  printRateEnvironment(ostream& fout, Tree E);
+static Tree inferreMultiRates(Tree lsig, bool& success);
+static ostream&  printRateEnvironmentList(ostream& fout, Tree LE);
 
 static void setSigType(Tree sig, Type t);
 static Type getSigType(Tree sig);
@@ -63,10 +75,12 @@ static Type infereDocAccessTblType(Type tbl, Type ridx);
 static interval arithmetic (int opcode, const interval& x, const interval& y);
 
 
+static Type infereVectorizeType(Tree sig, Type T, Type Tsize);
+static Type infereSerializeType(Tree sig, Type Tvec);
+static Type infereConcatType(Type Tvec1, Type Tvec2);
+static Type infereVectorAtType(Type Tvec, Type Tidx);
 
-// Uncomment to activate type inferrence tracing
-//#define TRACE(x) x
-#define TRACE(x) 0;
+
 
 
 /**
@@ -135,6 +149,26 @@ void typeAnnotation(Tree sig)
 
     // type full term
     T(sig, NULLTYPEENV);
+
+#if 0
+    //cerr << TABBER << "COUNT INFERENCE " << countInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
+    fixInferredType(sig, NULLTYPEENV);
+    //cerr << --TABBER << "EXIT TYPE ANNOTATION OF " << *sig << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
+
+#if 0
+    bool    success;
+    Tree    RE = inferreMultiRates(sig, success);
+    if (success) {
+        printRateEnvironment(cerr, RE); cerr << endl;
+    } else {
+        cerr << "ERROR can't inferre rate environment of " << ppsig(sig) << endl;
+    }
+#else
+    //RateInferrer R(sig);
+
+#endif
+#endif
+
 }
 
 
@@ -201,6 +235,7 @@ static Type getSigType(Tree sig)
  						Type Inference System
 
 ***************************************************************************/
+
 
 /**************************************************************************
 
@@ -275,7 +310,9 @@ static Type infereSigType(Tree sig, Tree env)
 	}
 
 	else if (isSigFixDelay(sig, s1, s2)) 		{ 
-		Type t1 = T(s1,env); 
+        Type vt1 = T(s1,env);
+        vector<int> dim;
+        Type t1 = vt1->dimensions(dim);
 		Type t2 = T(s2,env);
 		interval i = t2->getInterval();
  
@@ -294,17 +331,32 @@ static Type infereSigType(Tree sig, Tree env)
 			exit(1);
 		}
 			
-		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0))); 
+        Type nt1 = castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0)));
+        return makeVectorType(nt1,dim);
 	}
 
 	else if (isSigBinOp(sig, &i, s1, s2)) {
-		//Type t = T(s1,env)|T(s2,env);
+
 		Type t1 = T(s1,env);
 		Type t2 = T(s2,env);
-		Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
+
+        vector<int> D1, D2, D3;
+        Type  b1 = t1->dimensions(D1);
+        Type  b2 = t2->dimensions(D2);
+
+        if (maxdimensions(D1, D2, D3)) {
+            Type  b3 = castInterval(b1 | b2, arithmetic(i, b1->getInterval(), b2->getInterval()));
+            if ((i>=kGT) && (i<=kNE))  b3 = intCast(b3);
+            Type t3 = makeVectorType(b3, D3);
+            return t3;
+        } else {
+            cerr << "ERROR operation on incompatible types : " << *t1 << " and " << *t2
+                 << " in expression : " << ppsig(sig) << endl;
+            exit(1);
+        }
 		//cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
 	  	//return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
-	  	return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
+        //return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
 	}
 
     else if (isSigIntCast(sig, s1))             return intCast(T(s1,env));
@@ -374,12 +426,16 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isList(sig))                       { return T( hd(sig),env ) * T( tl(sig),env ); }
 
+    else if ( isSigVectorize(sig, x, y) )      return infereVectorizeType(sig, T(x,env), T(y,env));
+    else if ( isSigSerialize(sig, x) )         return infereSerializeType(sig, T(x,env));
+    else if ( isSigConcat(sig, x, y) )         return infereConcatType(T(x,env), T(y,env));
+    else if ( isSigVectorAt(sig, x, y) )       return infereVectorAtType(T(x,env), T(y,env));
+
 	// unrecognized signal here
-	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
+    fprintf(stderr, "ERROR in ***infereSigType()***, unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);
 	return 0;
 }
-
 
 
 /**
@@ -514,6 +570,7 @@ static Type initialRecType(Tree t)
 static Type infereRecType (Tree sig, Tree body, Tree env)
 {
     assert(false); // we should not come here
+
 }
 
 
@@ -621,4 +678,65 @@ static interval arithmetic (int opcode, const interval& x, const interval& y)
     }
 
     return interval();
+}
+
+
+
+static Type infereVectorizeType(Tree sig, Type Tsize, Type T)
+{
+    SimpleType*  st = isSimpleType(Tsize);
+    if (st && st->nature()==kInt) {
+        interval i = Tsize->getInterval();
+        if (i.valid && i.lo >= 0 && i.lo == i.hi) {
+            return new VectorType(int(i.lo+0.5), T);
+        }
+    }
+    cerr << "ERROR in expression : " << ppsig(sig) << endl;
+    cerr << "the size of the vector is not of a valide type : " << *Tsize << endl;
+    exit(1);
+}
+
+static Type infereSerializeType(Tree sig, Type Tvec)
+{
+    VectorType*  vt =  isVectorType(Tvec);
+    if (vt) {
+        return vt->content();
+    } else {
+        cerr << "ERROR in expression : " << ppsig(sig) << endl;
+        cerr << "the 'serialize' operation can only be used on vectorized signals" << endl;
+        exit(1);
+    }
+}
+
+static Type infereConcatType(Type Tvec1, Type Tvec2)
+{
+    VectorType*  vt1 =  isVectorType(Tvec1);
+    VectorType*  vt2 =  isVectorType(Tvec2);
+
+    if (vt1 && vt2) {
+        Type ct1 = vt1->content();
+        Type ct2 = vt2->content();
+        if (ct1 == ct2) {
+            return new VectorType(vt1->size()+vt2->size(), ct1);
+        }
+    }
+    cerr << "ERROR in vector concatenation, the types : " << Tvec1 << " and " << Tvec2 << " are incompatible" << endl;
+    exit(1);
+}
+
+static Type infereVectorAtType(Type Tvec, Type Tidx)
+{
+    VectorType*  vt =  isVectorType(Tvec);
+    SimpleType*  it = isSimpleType(Tidx);
+
+    if (vt && it) {
+        Type ct = vt->content();
+        int  n = vt->size();
+        interval i = it->getInterval();
+        if (i.valid && i.lo >= 0 && i.hi <= n) {
+            return ct;
+        }
+    }
+    cerr << "ERROR in vector access, with types : " << Tvec << " and " << Tidx << endl;
+    exit(1);
 }
