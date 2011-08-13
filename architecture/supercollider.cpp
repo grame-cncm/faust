@@ -1,3 +1,6 @@
+// If other than 'faust2sc --prefix Faust' is used, sed this as well:
+#define SC_FAUST_PREFIX "Faust"
+
 //-------------------------------------------------------------------
 // FAUST architecture file for SuperCollider.
 // Copyright (C) 2005-2008 Stefan Kersten.
@@ -370,6 +373,9 @@ static size_t unitSize();
 // Convert a file name to a valid unit name.
 static std::string fileNameToUnitName(const std::string& fileName);
 
+// Convert the XML unit name to a valid class name.
+static std::string normalizeClassName(const std::string& name);
+
 void initState(const std::string& name, int sampleRate)
 {
     g_unitName = strdup(name.c_str());
@@ -405,6 +411,19 @@ std::string fileNameToUnitName(const std::string& fileName)
 // Globals
 
 static InterfaceTable *ft;
+
+static std::string normalizeClassName(const std::string& name)
+{
+  std::string s;
+  char c;
+
+  int i=0;
+  while (c=name[i++]) {
+    if ( (c != '_') && (c != '-') && (!isspace(c)) ) { s += c; }
+  }
+
+  return s;
+}
 
 extern "C"
 {
@@ -558,11 +577,17 @@ void Faust_Dtor(Faust* unit)  // module destructor
 
 FAUST_EXPORT void load(InterfaceTable* inTable)
 {
+
     ft = inTable;
 
     Meta meta;
     mydsp::metadata(&meta);
-    std::string name(meta["name"]);
+
+// When faust2sc supports metadata tag 'scname':
+//  std::string name = meta["scname"];
+//  name = normalizeClassName(name);
+// Until then, use filename:
+    std::string name = "";
 
     if (name.empty()) {
         name = fileNameToUnitName(__FILE__);
@@ -574,6 +599,12 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
 	      "Could not create unit-generator module name from filename\n"
               "       bailing out ...\n");
         return;
+    }
+
+    name[0] = toupper(name[0]); // SC name convention
+
+    if (strncmp(name.c_str(),SC_FAUST_PREFIX,strlen(SC_FAUST_PREFIX))!=0){
+      name = SC_FAUST_PREFIX + name;
     }
 
     // Initialize global data
