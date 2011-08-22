@@ -1,4 +1,5 @@
-declare name "Nonlinear WaveGuide Flute from STK";
+declare name "FluteSTK";
+declare description "Nonlinear WaveGuide Flute from STK";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";
@@ -117,3 +118,4 @@ process =
 	jetDelay : jetTable) + (_*endReflexion)) ~ (boreDelay : NLFM) : 
 	//output scaling and stereo signal
 	*(0.3*gain) : stereo : instrReverb; 
+

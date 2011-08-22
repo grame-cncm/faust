@@ -1,4 +1,5 @@
-declare name "WaveGuide Commuted Piano";
+declare name "Commuted Piano";
+declare description "WaveGuide Commuted Piano";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
 declare version "1.0";
