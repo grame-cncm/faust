@@ -583,11 +583,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     Meta meta;
     mydsp::metadata(&meta);
 
-// When faust2sc supports metadata tag 'scname':
-//  std::string name = meta["scname"];
-//  name = normalizeClassName(name);
-// Until then, use filename:
-    std::string name = "";
+    std::string name = meta["name"];
+    name = normalizeClassName(name);
 
     if (name.empty()) {
         name = fileNameToUnitName(__FILE__);
