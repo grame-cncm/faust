@@ -27,7 +27,7 @@
 #include <utility>
 #include "compile.hh"
 #include "sigtyperules.hh"
-#include "sigtyperules.hh"
+#include "sigraterules.hh"
 #include "occurences.hh"
 #include "property.hh"
 
