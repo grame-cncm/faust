@@ -28,10 +28,12 @@ bool loopDetector::detect (Tree t)
 		for (unsigned int i = 0; i < vc.size(); i++) {
 			//i--;
 			if (isCycle(vc[i])) {
-				cerr 	<< "ERROR : the Faust compiler has detected an endless cycle of "
+                cerr 	<< "ERROR : after "
+                        << fPhase
+                        << " evaluation steps, the compiler has detected an endless evaluation cycle of "
 						<< vc[i]  
-						<< " evaluations. Last evaluated expression : "
-						<< fPhase << endl;
+                        << " steps"
+                        << endl;
 				exit(1);
 				return true;
 			}
