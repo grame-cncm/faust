@@ -13,6 +13,6 @@ using namespace std;
  * Draw a list of signals L as a directed graph using
  * graphviz's dot language
  */
-void sigToGraph (Tree sig, ofstream& fout, RateInferrer& R);
+void sigToGraph (Tree sig, ofstream& fout, RateInferrer* R);
 
 #endif // SIGTOGRAPH_HH

@@ -50,12 +50,14 @@ class ScalarCompiler : public Compiler
 	OccMarkup					fOccMarkup;
     bool						fHasIota;
 
+    RateInferrer*               fRates;
 
   public:
 
 	ScalarCompiler ( const string& name, const string& super, int numInputs, int numOutputs) :
 		Compiler(name,super,numInputs,numOutputs,false),
-        fHasIota(false)
+        fHasIota(false),
+        fRates(0)
 	{}
 	
 	ScalarCompiler ( Klass* k) : 

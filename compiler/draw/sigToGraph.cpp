@@ -40,7 +40,7 @@
 
 using namespace std;
 
-static void     recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer& R );
+static void     recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R );
 static string   commonattr(Type t);
 static string   nodeattr(Type t);
 static string   edgeattr(Type t, int rate);
@@ -50,7 +50,7 @@ static string   sigLabel(Tree sig);
 /**
  * Draw a list of signals as a directed graph using graphviz's dot language
  */
-void sigToGraph (Tree L, ofstream& fout, RateInferrer& R)
+void sigToGraph (Tree L, ofstream& fout, RateInferrer* R)
 {
     set<Tree>   alreadyDrawn;
 
@@ -62,7 +62,7 @@ void sigToGraph (Tree L, ofstream& fout, RateInferrer& R)
         recdraw(hd(L), alreadyDrawn, fout, R);
 
         fout << "OUTPUT_" << out << "[color=\"red2\" style=\"filled\" fillcolor=\"pink\"];" << endl;
-        fout << 'S' << hd(L) << " -> " << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L)), R.rate(hd(L))) << "];" << endl;
+        fout << 'S' << hd(L) << " -> " << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L)), R->rate(hd(L))) << "];" << endl;
         L = tl(L);
     }
 
@@ -76,7 +76,7 @@ void sigToGraph (Tree L, ofstream& fout, RateInferrer& R)
 /**
  * Draw recursively a signal
  */
-static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer& R )
+static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R )
 {
     //cerr << ++TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
     vector<Tree>    subsig;
@@ -116,7 +116,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer& R 
                 for (int i=0; i<n; i++) {
                     recdraw(subsig[i], drawn, fout, R);
                     fout    << 'S' << subsig[i] << " -> " << 'S' << sig
-                            << "[" << edgeattr(getCertifiedSigType(subsig[i]), R.rate(subsig[i])) << "];"
+                            << "[" << edgeattr(getCertifiedSigType(subsig[i]), R->rate(subsig[i])) << "];"
                             << endl;
                 }
             }

@@ -127,10 +127,10 @@ startTiming("ScalarCompiler::prepare");
     //annotationStatistics();
 endTiming("ScalarCompiler::prepare");
 
-    RateInferrer    rates(L3);
+    fRates = new RateInferrer(L3);
     if (gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
-        sigToGraph(L3, dotfile, rates);
+        sigToGraph(L3, dotfile, fRates);
     }
   	return L3;
 }
