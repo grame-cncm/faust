@@ -83,26 +83,30 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R 
     int             n;
 
     if (drawn.count(sig) == 0) {
-        drawn.insert(sig);
+        // the signal has never been drawn
+        drawn.insert(sig);                  // remember it
         if (isList(sig)) {
+            // it's a list of signals : we draw each signal of the list
             do {
                 recdraw(hd(sig), drawn, fout, R);
                 sig = tl(sig);
             } while (isList(sig));
         } else {
-            // draw the node
+            // it is a regular signal
+            // first draw the node
             fout    << 'S' << sig << "[label=\"" << sigLabel(sig) << "\""
                     << nodeattr(getCertifiedSigType(sig)) << "];"
                     << endl;
 
-            // draw the subsignals
+            // then draw the subsignals if any
             n = getSubSignals(sig, subsig);
             if (n > 0) {
+                Tree id, body;
+                // check special recursion case, recreate a vector of subsignals instead of the
+                // list provided by getSubSignal
                 if (n==1 && isList(subsig[0])) {
-                    Tree id, body;
                     assert(isRec(sig,id,body));
-                    // special recursion case, recreate a vector of subsignals instead of the
-                    // list provided by getSubSignal
+
                     Tree L = subsig[0];
                     subsig.clear();
                     n = 0;
@@ -113,11 +117,20 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R 
                     } while (isList(L));
                 }
 
+                // draw each subsignal
                 for (int i=0; i<n; i++) {
                     recdraw(subsig[i], drawn, fout, R);
-                    fout    << 'S' << subsig[i] << " -> " << 'S' << sig
-                            << "[" << edgeattr(getCertifiedSigType(subsig[i]), R->rate(subsig[i])) << "];"
-                            << endl;
+                    if (isRec(subsig[i],id,body)) {
+                        // special case when source is a recursive group, we don't want a rate
+                        fout    << 'S' << subsig[i] << " -> " << 'S' << sig
+                                << "[style=dashed];"
+                                << endl;
+                    } else {
+                        // special case when source is a recursive group, we don't want a rate
+                        fout    << 'S' << subsig[i] << " -> " << 'S' << sig
+                                << "[" << edgeattr(getCertifiedSigType(subsig[i]), R->rate(subsig[i])) << "];"
+                                << endl;
+                    }
                 }
             }
         }
@@ -150,7 +163,7 @@ static string commonattr(Type t)
 /**
  * Convert a signal type into edge attributes
  */
-static string edgeattr(Type t, int rate)
+    static string edgeattr(Type t, int rate)
 {
     string      s;
     vector<int> d;
