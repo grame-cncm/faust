@@ -294,11 +294,16 @@ module Faust
       name
     end
     def make_class_name(unit_name, prefix)
-      name = prefix + unit_name.encapitalize.sub("-", "_")
-      unless name =~ CLASS_REGEXP
-        raise "invalid class name: \"#{name}\""
+      class_name = unit_name.encapitalize.gsub(/[-_\s]/,"")
+      if prefix == ""
+        prefix = "Faust"
       end
-      name
+      class_name = class_name.sub(/^#{prefix}/i,"")
+      class_name = prefix + unit_name.encapitalize.gsub(/[-_\s]/,"")
+      unless class_name =~ CLASS_REGEXP
+        raise "invalid class name: \"#{class_name}\""
+      end
+      class_name
     end
     module_function :path_to_unitname, :make_class_name
 
@@ -369,7 +374,7 @@ module Faust
 \t*kr {#{self.decl_args}
 \t\t^this.multiNew(#{self.new_args(:control).join(", ")})
 \t}
-\tname { ^\"#{@unit_name}\" }
+\tname { ^\"#{@class_name}\" }
 EOF
         io.print(body)
         generate_outputs(io)

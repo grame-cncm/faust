@@ -1,4 +1,5 @@
-declare name "Banded Waveguide Modeld Tibetan Bowl";
+declare name "Tibetan Bowl";
+declare description "Banded Waveguide Modeld Tibetan Bowl";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";
