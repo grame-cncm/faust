@@ -73,7 +73,7 @@ $(DEST)%~.pd_darwin: $(DEST)%.cpp
 	$(CXX) $(DARWINCFLAGS) $(DARWININCLUDE) $(DYNLOAD_FLAGS) $(OPTIONAL) -Dmydsp=$(patsubst %~.pd_darwin,%,$(notdir $@)) $< -o $@
 
 print_message:
-	echo $(message) > /dev/null
+	echo $(message)
 
 clean:
 	rm -rf $(DEST)

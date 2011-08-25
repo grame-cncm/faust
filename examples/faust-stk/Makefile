@@ -267,18 +267,7 @@ q :
 
 supercollider sc:
 	install -d supercolliderdir
-	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' -f Makefile.sccompile
-
-sctest:
-	$(MAKE) DEST='supercolliderdir/' ARCH='supercollider.cpp' CXXFLAGS=$(MYGCCFLAGS) LIB='-I$(LIB)/faust/ -fPIC -shared' EXT='.so' test -f Makefile.sccompile
-
-# supercollider :
-# 	ls *.dsp | ../../tools/scbuilder/scbuilder \
-# 			FAUST2SC=../../tools/faust2sc-1.0.0/faust2sc \
-# 			FAUST2SC_PREFIX="Faust_" \
-# 			SC_SOURCE_DIR=$(SC_SOURCE_DIR) \
-# 			BUILD_DIR=supercolliderdir \
-# 			$(SCONS_OPTIONS)
+	$(MAKE) DEST='supercolliderdir/' -f Makefile.sccompile
 
 jackconsole :
 	install -d jackconsoledir

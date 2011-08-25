@@ -1,88 +1,43 @@
-# Makefile to produce supercollider plugins with Faust
-#  'foo.dsp' -> 'foo.so|scx' and 'foo.sc' which can be copied to
+# Makefile to produce supercollider plugins with Faust:
+#  'foo.dsp' -> 'foo.so|scx' and 'foo.sc'
+# These two files (scsynth plugin and sclang extension), can be copied to
 #  $HOME/share/SuperCollider/Extensions (Linux) or 
-#  [$HOME]/Library/Application Support/SuperCollider/Extensions (Darwin)
+#  $HOME/Library/Application Support/SuperCollider/Extensions (Mac OS X)
+#
+# The shell script <faust>/tools/faust2appls/faust2supercollider 
+#  needs to be installed somewhere in the user's search path.
 
-system		:= $(shell uname -s)
-dspsrc  	:= $(wildcard *.dsp)
-scfiles		:= $(addprefix $(DEST), $(dspsrc:.dsp=.sc))
-scxfiles	:= $(addprefix $(DEST), $(dspsrc:.dsp=.scx))
-sofiles		:= $(addprefix $(DEST), $(dspsrc:.dsp=.so))
-
-# Directory containing SuperCollider header files (Darwin case, no pkg-config assumed):
-dir1 := /usr/local/include/SuperCollider
-dir2 := /opt/local/include/SuperCollider
-dir3 := $(SUPERCOLLIDER_HEADERS)
-
-# There is a bug in GNU Make on Mac OS X (Xcode 4.0, Build 4A304a) which
-# results in $(wildcard <specific_file>) being nil when <specific_file>
-# exists.  As a result, we obtain and truth-test a list of files instead of one:
-SCINC := $(if $(wildcard $(dir1)),$(dir1),)
-SCINC := $(if $(wildcard $(dir2)),$(dir2),$(SCINC))
-SCINC := $(if $(wildcard $(dir3)),$(dir3),$(SCINC))
-
-###--------------------------------------------
-### check what type of modules to build (MacOSX Darwin or Linux)
-###
-ifeq ($(system),Darwin)
-DARWINCFLAGS	:= -I/opt/local/include -I/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -DNO_LIBSNDFILE -DNDEBUG
-MYCFLAGS 	:= $(CXXFLAGS) $(DARWINCFLAGS) -I$(SCINC)/common -I$(SCINC)/server -I$(SCINC)/plugin_interface
-OBJT 		:= -bundle -undefined suppress -flat_namespace -funroll-loops -fomit-frame-pointer
-SEDFLAG1	:=
-SEDFLAG2	:=d
-otodo		:=$(scxfiles)
+system	:= $(shell uname -s)
+ifeq ($(system), Darwin)
+EXT	:= scx
 else
-MYCFLAGS 	:= `pkg-config --cflags libscsynth` $(CXXFLAGS) $(LIB)
-OBJT 		:= -shared
-SEDFLAG1	:=s
-SEDFLAG2	:=/i
-otodo		:=$(sofiles)
+EXT	:= so
 endif
 
-###--------------------------------------------
-### Will use faust2sc to create the class file
-### only if it is installed
+dspsrc := $(wildcard *.dsp)
+libsrc := $(wildcard *.lib)
+incsrc := $(wildcard *.h)
+allsrc := $(dspsrc) $(libsrc) $(incsrc)
 
-helper:=$(shell whereis faust2sc)
+ifeq ($(DEST),)
+	DEST := ./supercolliderdir
+endif 
 
-ifeq ($(helper),faust2sc:)
-	todo:=$(otodo)
-else
-	todo:=$(otodo) $(scfiles)
-endif
+F2SC = faust2supercollider
 
+### allocate a unique directory for staging
+TMP := $(shell mktemp -d -t F2SC.XXXXXX)
+### --------------------------------------------
 
-###--------------------------------------------
+# NOTE: Some source files need others, so best to copy all together:
+all : $(allsrc) $(DEST) $(TMP)
+	cp -i $(allsrc) $(TMP) || echo "Cannot copy temp source to $(TMP)"
+	(cd $(TMP); for i in $(dspsrc); do $(F2SC) $$i; done)
+	mv $(TMP)/*.sc $(TMP)/*.$(EXT) $(DEST)
+	rm -rf $(TMP)
 
+$(DEST):
+	mkdir -p $(DEST)
 
-all : $(todo)
-
-# TEMPORARY WORKAROUND: We strip out the <name> metadata here because it
-# is used for the SuperCollider class name and shared-object load module
-# and fails to work when the name contains spaces:
-
-$(DEST)%.cpp: %.dsp.noname
-	faust -a $(ARCH) $< -o $@
-
-$(DEST)%.so: $(DEST)%.cpp
-	$(CXX) -I. $(MYCFLAGS) $(OPTFLAGS) $(OBJT) $< -o $@
-
-$(DEST)%.scx: $(DEST)%.cpp
-	$(CXX) -I. $(MYCFLAGS) $(OPTFLAGS) $(OBJT) $< -o $@
-
-$(DEST)%.sc : %.dsp.noname.xml
-	faust2sc --prefix=Faust $< --output=$@
-
-%.dsp.noname.xml: %.dsp.noname
-	faust --xml -o /dev/null $<
-
-%.dsp.noname: %.dsp
-	sed -e '$(SEDFLAG1)/[ ^I]*declare[ ^I]*name[ ^I].*/$(SEDFLAG2)' $< >$@
-
-# Make one case and leave intermediate make-products lying around:
-test:
-	sed -e '$(SEDFLAG1)/[ ^I]*declare[ ^I]*name[ ^I].*/$(SEDFLAG2)' harpsi.dsp > harpsi.dsp.noname
-	faust --xml -o /dev/null harpsi.dsp.noname
-	faust -a $(ARCH) harpsi.dsp.noname -o harpsi.cpp
-	$(CXX) -I. $(MYCFLAGS) $(OPTFLAGS) $(OBJT) harpsi.cpp -o harpsi.so
-	faust2sc --prefix=Faust harpsi.dsp.noname.xml --output=harpsi.sc
+$(TMP):
+	mkdir -p $(TMP)
