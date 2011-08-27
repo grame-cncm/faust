@@ -3,7 +3,6 @@
 #X msg 267 409 \; pd dsp 0;
 #X obj 13 345 audio-out;
 #X obj 13 78 harpsi;
-#X obj 13 27 midi-in 8;
 #X obj 359 249 seq;
 #X msg 293 145 read turkish-march.mid;
 #X msg 391 179 bang;
@@ -15,16 +14,18 @@
 #X obj 293 121 loadbang;
 #X text 335 377 In order to have this example work \, input device
 and output device in MIDI settings must be set to the same internal
-driver. Also \, "midi-in 8" must use the channel 1;
-#X text 71 5 MIDI channel must be set to 1;
+driver. The seq object is included in the pd-extended distribution
+and is part of the cyclone package (http://puredata.info/community/projects/software/cyclone).
+;
+#X obj 13 27 midi-in 8 1;
 #X connect 3 1 2 1;
 #X connect 3 2 2 2;
-#X connect 4 0 3 0;
-#X connect 4 1 3 1;
-#X connect 5 0 12 0;
-#X connect 6 0 5 0;
-#X connect 7 0 5 0;
-#X connect 8 0 5 0;
-#X connect 9 0 5 0;
-#X connect 10 0 5 0;
-#X connect 13 0 6 0;
+#X connect 4 0 11 0;
+#X connect 5 0 4 0;
+#X connect 6 0 4 0;
+#X connect 7 0 4 0;
+#X connect 8 0 4 0;
+#X connect 9 0 4 0;
+#X connect 12 0 5 0;
+#X connect 14 0 3 0;
+#X connect 14 1 3 1;

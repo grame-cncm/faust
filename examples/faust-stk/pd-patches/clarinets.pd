@@ -1,10 +1,10 @@
 #N canvas 22 22 974 784 10;
-#X obj 9 76 clarinet;
-#X msg 540 617 \; pd dsp 1;
-#X msg 540 655 \; pd dsp 0;
-#X obj 290 568 audio-out;
-#X obj 491 66 blowHole;
-#X obj 334 11 midi-in 2;
+#X obj 11 73 clarinet;
+#X msg 507 542 \; pd dsp 1;
+#X msg 507 580 \; pd dsp 0;
+#X obj 257 493 audio-out;
+#X obj 493 63 blowHole;
+#X obj 263 11 midi-in 2;
 #X connect 0 1 3 1;
 #X connect 0 2 3 2;
 #X connect 4 1 3 1;

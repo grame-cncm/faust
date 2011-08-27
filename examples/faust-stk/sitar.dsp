@@ -1,4 +1,5 @@
-declare name "WaveGuide Sitar";
+declare name "Sitar";
+declare description "WaveGuide Sitar";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
 declare version "1.0";
@@ -10,11 +11,11 @@ import("instrument.lib");
 
 //==================== GUI SPECIFICATION ================
 
-freq = nentry("h:Basic Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
-gain = nentry("h:Basic Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",1,0,1,0.01); 
-gate = button("h:Basic Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
+freq = nentry("h:Basic_Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]",440,20,20000,1);
+gain = nentry("h:Basic_Parameters/gain [1][tooltip:Gain (value between 0 and 1)]",1,0,1,0.01); 
+gate = button("h:Basic_Parameters/gate [1][tooltip:noteOn = 1, noteOff = 0]");
 
-resonance = hslider("v:Physical Parameters/Resonance
+resonance = hslider("v:Physical_Parameters/Resonance
 [2][tooltip:A value between 0 and 1]",0.7,0,1,0.01)*0.1;
 
 //==================== SIGNAL PROCESSING ================
@@ -44,4 +45,4 @@ filter = oneZero1(b0,b1)
 	};
 
 process = (*(loopGain) : filter + (envelope*noise*amGain))~delayLine : *(8) : 
-stereo : hgroup("Reverb[3]",component("freeverb.dsp"));
+stereo : instrReverb;

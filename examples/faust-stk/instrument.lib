@@ -8,6 +8,7 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
 import("math.lib");
 import("filter.lib");
+import("effect.lib");
 
 //========================= ENVELOPE GENERATORS ===============================
 
@@ -276,3 +277,22 @@ stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
 		widthdelay = delay(4096,W*periodDuration/2);
 		stereopanner = _,_ : *(1.0-A), *(A);
 	   };
+
+//----------------------- INSTRREVERB ----------------------------
+// GUI for zita_rev1_stereo from effect.lib
+//
+// USAGE:
+//  _,_ : instrRerveb
+
+instrReverb = _,_ <: *(reverbGain),*(reverbGain),*(1 - reverbGain),*(1 - reverbGain) : 
+zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
+       with{
+       reverbGain = hslider("v:Reverb/reverbGain",0.137,0,1,0.01) : smooth(0.999);
+       roomSize = hslider("v:Reverb/roomSize",0.72,0.01,2,0.01);
+       rdel = 20;
+       f1 = 200;
+       f2 = 6000;
+       t60dc = roomSize*3;
+       t60m = roomSize*2;
+       fsmax = 48000;
+       };

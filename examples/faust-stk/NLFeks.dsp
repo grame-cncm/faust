@@ -1,4 +1,4 @@
-declare name "nonlinear EKS";
+declare name "Nonlinear EKS";
 declare author "Julius Smith and Romain Michon";
 declare version "1.0";
 declare license "STK-4.3";
@@ -89,4 +89,4 @@ stereo = stereoizer(P);
 
 stringloop = (+ : fdelay4(Pmax, P-2)) ~ (loopfilter : NLFM);
 
-process = filtered_excitation : stringloop : stereo : component("freeverb.dsp");
+process = filtered_excitation : stringloop : stereo : instrReverb;

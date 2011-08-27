@@ -46,12 +46,8 @@ class loopDetector
 		int				fPhase;
 		
 	public:
-		loopDetector(int buffersize, int checkperiod) : fBuffersize(buffersize), fCheckperiod(checkperiod), fBuffer(buffersize), fPhase(fBuffersize) {}
+        loopDetector(int buffersize, int checkperiod) : fBuffersize(buffersize), fCheckperiod(checkperiod), fBuffer(buffersize), fPhase(0) {}
 		bool 	detect 	(Tree t);
-	private:
-		Tree	get		(int n) { return fBuffer[(fPhase-n)%fBuffersize]; }
-		void	listPossibleCycles (vector<int>& v);
-		bool 	isCycle (int period);
 		
 };
 

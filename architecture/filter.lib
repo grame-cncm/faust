@@ -3,7 +3,7 @@
 declare name "Faust Filter Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.28";
+declare version "1.29";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
 
@@ -122,7 +122,7 @@ with {
 ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  delay(maxdel,M) : + ;
 ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * fdelay(maxdel,M) : + ;
 
-// TEMPORARILY PROVIDED FOR BACKWARD COMPATIBILITY:
+// Typical special case:
 ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 
 //----------------------- fb_comb, fb_fcomb, rev1 -----------------------
@@ -150,7 +150,7 @@ fb_fcomb(maxdel,N,b0,aN) = (+ <: fdelay(maxdel,N),_) ~ *(-aN) : !,*(b0);
 // See the jcrev and brassrev in effect.lib for usage examples.
 rev1(maxdel,N,g) = fb_comb (maxdel,N,1,-g);
 
-// TEMPORARILY PROVIDED FOR BACKWARD COMPATIBILITY:
+// Typical special case:
 fbcombfilter(maxdel,intdel,g) = (+ : delay(maxdel,intdel)) ~ *(g);
 ffbcombfilter(maxdel,del,g) = (+ : fdelay(maxdel,del)) ~ *(g);
 
@@ -173,7 +173,7 @@ ffbcombfilter(maxdel,del,g) = (+ : fdelay(maxdel,del)) ~ *(g);
 // which is a direct-form-1 implementation, requiring two delay lines.
 // The implementation here is direct-form-2 requiring only one delay line.
 // 
-// REFERENCES: 
+// REFERENCES:
 //   https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html
 //   https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html
 //   https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html
@@ -236,19 +236,217 @@ convN(N,kv,x) = sum(i,N,take(i+1,kv) * x@i); // take() defined in math.lib
 
 conv(kv,x) = sum(i,count(kv),take(i+1,kv) * x@i); // count() from math.lib
 
-// Named special cases for backward compatibility:
-// (Current plan is to keep tf1 and tf2 only in future releases)
-
-//----------------------- tf1, tf2, tf3, tf4 -----------------------------
+// Named special cases:
+//----------------------------- tf1, tf2 ---------------------------------
 // tfN = N'th-order direct-form digital filter
 tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
 tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2)); // cf. TF2 in music.lib)
-tf3(b0,b1,b2,b3,a1,a2,a3) = iir((b0,b1,b2,b3),(a1,a2,a3));
-tf4(b0,b1,b2,b3,b4,a1,a2,a3,a4) = iir((b0,b1,b2,b3,b4),(a1,a2,a3,a4));
 
 //===================== Ladder/Lattice Digital Filters ======================
+// Ladder and lattice digital filters generally have superior numerical
+// properties relative to direct-form digital filters.  They can be derived
+// from digital waveguide filters, which gives them a physical interpretation.
 
-// Useful special cases:
+// REFERENCES: 
+//  F. Itakura and S. Saito: "Digital Filtering Techniques for Speech Analysis and Synthesis",
+//     7th Int. Cong. Acoustics, Budapest, 25 C 1, 1971.
+//  J. D. Markel and A. H. Gray: Linear Prediction of Speech, New York: Springer Verlag, 1976.
+//  https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html
+
+//------------------------------ block, crossn,crossn1 ----------------------------------
+// signal block/crossing utilities
+// (move to math.lib?)
+
+// block - terminate n signals (goes with bus(n) in math.lib)
+block(n) = par(i,n,!);
+
+// crossnn - cross two bus(n)s:
+crossnn(n) = bus(n),bus(n) <: block(n),bus(n),bus(n),block(n);
+
+// crossn1 - cross bus(n) and bus(1):
+crossn1(n) = bus(n),(bus(1)<:bus(n)) <: block(n),bus(n),bus(n),block(n):bus(1),block(n-1),bus(n);
+
+//------------------------------- av2sv -----------------------------------
+// Compute reflection coefficients sv from transfer-function denominator av
+//
+// USAGE:
+//   sv = av2sv(av)
+// where
+//   av = parallel signal bank a1,...,aN
+//   sv = parallel signal bank s1,...,sN
+// where si = ith reflection coefficient, and
+//       ai = coefficient of z^(-i) in the filter
+//          transfer-function denominator A(z).
+//
+// REFERENCE:
+//   https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html
+//   (where reflection coefficients are denoted by k rather than s).
+
+av2sv(av) = par(i,M,s(i+1)) with {
+  M = count(av);
+  s(m) = sr(M-m+1); // m=1..M
+  sr(m) = Ari(m,M-m+1); // s_{M-1-m}
+  Ari(m,i) = take(i+1,Ar(m-1));
+  //step-down recursion for lattice/ladder digital filters:
+  Ar(0) = (1,av); // Ar(m) is order M-m (i.e. "reverse-indexed")
+  Ar(m) = 1,par(i,M-m, (Ari(m,i+1) - sr(m)*Ari(m,M-m-i))/(1-sr(m)*sr(m)));
+};
+
+//---------------------------- bvav2nuv --------------------------------
+// Compute lattice tap coefficients from transfer-function coefficients
+//
+// USAGE:
+//   nuv = bvav2nuv(bv,av)
+// where
+//   av = parallel signal bank    a1,...,aN
+//   bv = parallel signal bank b0,b1,...,aN
+//  nuv = parallel signal bank   nu1,...,nuN
+// where nui is the i'th tap coefficient,
+//       bi is the coefficient of z^(-i) in the filter numerator,
+//       ai is the coefficient of z^(-i) in the filter denominator
+
+bvav2nuv(bv,av) = par(m,M+1,nu(m)) with {
+  M = count(av);
+  nu(m) = take(m+1,Pr(M-m)); // m=0..M
+  // lattice/ladder tap parameters:
+  Pr(0) = bv; // Pr(m) is order M-m, 'r' means "reversed"
+  Pr(m) = par(i,M-m+1, (Pri(m,i) - nu(M-m+1)*Ari(m,M-m-i+1)));
+  Pri(m,i) = take(i+1,Pr(m-1));
+  Ari(m,i) = take(i+1,Ar(m-1));
+  //step-down recursion for lattice/ladder digital filters:
+  Ar(0) = (1,av); // Ar(m) is order M-m (recursion index must start at constant)
+  Ar(m) = 1,par(i,M-m, (Ari(m,i+1) - sr(m)*Ari(m,M-m-i))/(1-sr(m)*sr(m)));
+  sr(m) = Ari(m,M-m+1); // s_{M-1-m}
+};
+
+//--------------------------- iir_lat2, allpassnt -----------------------
+
+iir_lat2(bv,av) = allpassnt(M,sv) : sum(i,M+1,*(take(M-i+1,tg)))
+with {
+  M = count(av);
+  sv = av2sv(av); // sv = vector of sin(theta) reflection coefficients
+  tg = bvav2nuv(bv,av); // tg = vector of tap gains
+};
+
+// two-multiply lattice allpass (nested order-1 direct-form-ii allpasses):
+allpassnt(0,sv) = _;
+allpassnt(n,sv) =
+//0:   x <: ((+ <: (allpassnt(n-1,sv)),*(s))~(*(-s))) : _',_ :+
+       _ : ((+ <: (allpassnt(n-1,sv),*(s)))~*(-s)) : fsec(n)
+with {
+  fsec(1) = crossnn(1) : _, (_<:mem,_) : +,_;
+  fsec(n) = crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
+  innertaps(n) = par(i,n,_);
+  sline = _;
+  s = take(n,sv); // reflection coefficient s = sin(theta)
+};
+
+//------------------------------- iir_kl, allpassnklt -------------------------
+iir_kl(bv,av) = allpassnklt(M,sv) : sum(i,M+1,*(tghr(i)))
+with {
+  M = count(av);
+  sv = av2sv(av); // sv = vector of sin(theta) reflection coefficients
+  tg = bvav2nuv(bv,av); // tg = vector of tap gains for 2mul case
+  tgr(i) = take(M+1-i,tg);
+  tghr(n) = tgr(n)/pi(n);
+  pi(0) = 1;
+  pi(n) = pi(n-1)*(1+take(M-n+1,sv)); // all sign parameters '+'
+};
+
+// Kelly-Lochbaum ladder allpass with tap lines:
+allpassnklt(0,sv) = _;
+allpassnklt(n,sv) = _ <: *(s),(*(1+s) : (+
+                   : allpassnklt(n-1,sv))~(*(-s))) : fsec(n)
+with {
+  fsec(1) = sline, (_<:mem*(1-s),_) : sumandtaps(n);
+  fsec(n) = sline, (_<:mem*(1-s),_), par(i,n-1,_) : sumandtaps(n);
+  sline = _;
+  s = take(n,sv);
+  sumandtaps(n) = +,par(i,n,_);
+};
+
+
+//------------------------------- iir_lat1, allpassn1mt -------------------------
+iir_lat1(bv,av) = allpassn1mt(M,sv) : sum(i,M+1,*(tghr(i+1)))
+with {
+  M = count(av);
+  sv = av2sv(av); // sv = vector of sin(theta) reflection coefficients
+  tg = bvav2nuv(bv,av); // tg = vector of tap gains
+  tgr(i) = take(M+2-i,tg); // i=1..M+1 (for "takability")
+  tghr(n)=tgr(n)/pi(n);
+  pi(1) = 1;
+  pi(n) = pi(n-1)*(1+take(M-n+2,sv)); // all sign parameters '+'
+};
+
+// one-multiply lattice allpass with tap lines:
+allpassn1mt(0,sv) = _;
+allpassn1mt(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : crossnn(1)
+		  : allpassn1mt(n-1,sv),_)~(*(-1)) : fsec(n)
+with {
+//0:  fsec(n) = _',_ : +
+  fsec(1) = crossnn(1) : _, (_<:mem,_) : +,_;
+  fsec(n) = crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
+  innertaps(n) = par(i,n,_);
+  sline = _;
+  s = take(n,sv); // reflection coefficient s = sin(theta)
+};
+
+//------------------------------- iir_nl, allpassnnlt -------------------------
+// Normalized ladder filter
+//
+// REFERENCES:
+//   J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.
+//   https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html
+
+iir_nl(bv,av) = allpassnnlt(M,sv) : sum(i,M+1,*(tghr(i)))
+with {
+  M = count(av);
+  sv = av2sv(av); // sv = vector of sin(theta) reflection coefficients
+  tg = bvav2nuv(bv,av); // tg = vector of tap gains for 2mul case
+  tgr(i) = take(M+1-i,tg);
+  tghr(n) = tgr(n)/pi(n);
+  pi(0) = 1;
+  s(n) = take(M-n+1,sv);
+  c(n) = sqrt(max(0,1-s(n)*s(n))); // compiler crashes on sqrt(-)
+  pi(n) = pi(n-1)*c(n);
+};
+
+// Normalized ladder allpass with tap lines:
+allpassnnlt(0,sv) = _;
+allpassnnlt(n,sv) = _ <: *(s),(*(c) : (+
+                   : allpassnnlt(n-1,sv))~(*(-s))) : fsec(n)
+with {
+  fsec(1) = sline, (_<:mem*(c),_) : sumandtaps(n);
+  fsec(n) = sline, (_<:mem*(c),_), par(i,n-1,_) : sumandtaps(n);
+  sline = _;
+  s = take(n,sv);
+  c = sqrt(max(0,1-s*s));
+  sumandtaps(n) = +,par(i,n,_);
+};
+
+//========================= Useful special cases ============================
+
+//-------------------------------- tf2np ------------------------------------
+// tf2np - biquad based on a stable second-order Normalized Ladder Filter
+// (more robust to modulation than tf2 and protected against instability)
+tf2np(b0,b1,b2,a1,a2) = allpassnnlt(M,sv) : sum(i,M+1,*(tghr(i)))
+with {
+  smax = 0.9999; // maximum reflection-coefficient magnitude allowed
+  s2 = max(-smax, min(smax,a2)); // Project both reflection-coefficients
+  s1 = max(-smax, min(smax,a1/(1+a2))); // into the defined stability-region.
+  sv = (s1,s2); // vector of sin(theta) reflection coefficients
+  M = 2;
+  nu(2) = b2;
+  nu(1) = b1 - b2*a1;
+  nu(0) = (b0-b2*a2) - nu(1)*s1;
+  tg = (nu(0),nu(1),nu(2));
+  tgr(i) = take(M+1-i,tg); // vector of tap gains for 2mul case
+  tghr(n) = tgr(n)/pi(n);  // apply pi parameters for NLF case
+  pi(0) = 1;
+  s(n) = take(M-n+1,sv);
+  c(n) = sqrt(1-s(n)*s(n));
+  pi(n) = pi(n-1)*c(n);
+};
 
 //----------------------------- wgr ---------------------------------
 // Second-order transformer-normalized digital waveguide resonator
@@ -259,14 +457,15 @@ tf4(b0,b1,b2,b3,b4,a1,a2,a3,a4) = iir((b0,b1,b2,b3,b4),(a1,a2,a3,a4));
 //   r = loss factor for exponential decay
 //        (set to 1 to make a numerically stable oscillator)
 //
-// Reference:
-// https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
+// REFERENCES:
+//  https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html
+//  https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
 //
 wgr(f,r,x) = (*(G),_<:_,((+:*(C))<:_,_),_:+,_,_:+(x),-) ~ cross : _,*(0-gi)
 with { 
   C = cos(2*PI*f/SR);
-  gi = sqrt((1+C)/(1-C)); // compensate amplitude (only needed when 
-  G = r*(1-1' + gi')/gi;  //   frequency changes substantially)
+  gi = sqrt(max(0,(1+C)/(1-C))); // compensate amplitude (only needed when
+  G = r*(1-1' + gi')/gi;         //   frequency changes substantially)
   cross = _,_ <: !,_,_,!;
 };
 
@@ -341,7 +540,7 @@ with { c=cos(take(n,tv));  s=sin(take(n,tv));
 // Kelly-Lochbaum:
 allpassnkl(0,sv) = _;
 allpassnkl(n,sv) = _ <: *(s),(*(1+s) : (+
-                   : allpassnn(n-1,sv))~(*(-s))) : _, mem*(1-s) : +
+                   : allpassnkl(n-1,sv))~(*(-s))) : _, mem*(1-s) : +
 with { s = take(n,sv); };
 
 // one-multiply:
@@ -352,7 +551,7 @@ with {s = take(n,sv); cross = _,_ <: !,_,_,!; };
 
 //===== Digital Filter Sections Specified as Analog Filter Sections =====
 //
-//----------------------------- tf2s --------------------------------
+//------------------------- tf2s, tf2snp --------------------------------
 // Second-order direct-form digital filter,
 // specified by ANALOG transfer-function polynomials B(s)/A(s),
 // and a frequency-scaling parameter.  Digitization via the
@@ -384,7 +583,20 @@ with {s = take(n,sv); cross = _,_ <: !,_,_,!; };
 //
 tf2s(b2,b1,b0,a1,a0,w1) = tf2(b0d,b1d,b2d,a1d,a2d)
 with {
-  c   = 1/tan((w1)*0.5/SR); // bilinear-transform scale-factor
+  c   = 1/tan(w1*0.5/SR); // bilinear-transform scale-factor
+  csq = c*c;
+  d   = a0 + a1 * c + csq;
+  b0d = (b0 + b1 * c + b2 * csq)/d;
+  b1d = 2 * (b0 - b2 * csq)/d;
+  b2d = (b0 - b1 * c + b2 * csq)/d;
+  a1d = 2 * (a0 - csq)/d;
+  a2d = (a0 - a1*c + csq)/d;
+};
+
+// tf2snp = tf2s but using a protected normalized ladder filter for tf2:
+tf2snp(b2,b1,b0,a1,a0,w1) = tf2np(b0d,b1d,b2d,a1d,a2d)
+with {
+  c   = 1/tan(w1*0.5/SR); // bilinear-transform scale-factor
   csq = c*c;
   d   = a0 + a1 * c + csq;
   b0d = (b0 + b1 * c + b2 * csq)/d;
@@ -530,10 +742,6 @@ with {
     w1 = 2*PI*fc;
   };
 };
-
-//--- named special cases for (temporary) backward compatibility:
-lowpass1 = lowpass(1);
-highpass1 = highpass(1);
 
 //========== Special Filter-Bank Delay-Equalizing Allpass Filters ===========
 //
@@ -733,9 +941,6 @@ with {
   };
 };
 
-// Named special case for (temporary) backward compatibility:
-bandpass6(fl,fu) = bandpass(3,fl,fu);
-  
 //======================= Elliptic Bandpass Filters ============================
 
 //----------------------------- bandpass6e -----------------------------
@@ -1378,9 +1583,3 @@ filterbanki(O,lfreqs) = _ <: bsplit(nb) with
    delayeq(0) = _; // moving the *(-1) here inverts all outputs BUT dc
    delayeq(i) =  ap(i) : delayeq(i-1);
 };
-
-//--- named special cases for (temporary) backward compatibility:
-analyzer3(lfreqs) = analyzer(3,lfreqs);
-analyzer5(lfreqs) = analyzer(5,lfreqs);
-filterbank3(lfreqs) = filterbank(3,lfreqs);
-filterbank5(lfreqs) = filterbank(5,lfreqs);
