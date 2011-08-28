@@ -1,4 +1,5 @@
-declare name "Nonlinear WaveGuide Clarinet with one register hole and one tonehole";
+declare name "BlowHole";
+declare description "Nonlinear WaveGuide Clarinet with one register hole and one tonehole";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";

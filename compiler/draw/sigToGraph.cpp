@@ -102,9 +102,11 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
                     // list provided by getSubSignal
                     Tree L = subsig[0];
                     subsig.clear();
+                    n = 0;
                     do {
                         subsig.push_back(hd(L));
                         L = tl(L);
+                        n += 1;
                     } while (isList(L));
                 }
 
