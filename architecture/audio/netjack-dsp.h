@@ -39,6 +39,7 @@
 
 #include "audio.h"
 #include "dsp.h"
+#include <string>
 #include <jack/net.h>
 
 class netjackaudio : public audio {
@@ -46,6 +47,8 @@ class netjackaudio : public audio {
         dsp* fDsp;
         jack_net_slave_t* fNet;
         int fCelt;
+        std::string fMasterIP;
+        int fMasterPort;
 
         static void net_shutdown(void *)
         {
@@ -72,7 +75,8 @@ class netjackaudio : public audio {
 
     public:
 
-        netjackaudio(int celt):fCelt(celt)
+        netjackaudio(int celt, const std::string master_ip, int master_port)
+            :fCelt(celt), fMasterIP(master_ip), fMasterPort(master_port)
         {}
 
         bool init(const char* name, dsp* DSP)
@@ -86,11 +90,11 @@ class netjackaudio : public audio {
                 -1,
                 (fCelt > 0) ? JackCeltEncoder: JackFloatEncoder,
                 (fCelt > 0) ? fCelt : 0,
-                JackSlowMode
+                2
             };
 
             jack_master_t result;
-            if ((fNet = jack_net_slave_open(DEFAULT_MULTICAST_IP, DEFAULT_PORT, name, &request, &result)) == 0) {
+            if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &result)) == 0) {
                 printf("jack remote server not running ?\n");
                 return false;
             }
