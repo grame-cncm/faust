@@ -244,7 +244,7 @@ bool getArgName(Tree t, Tree& id)
  * @param localValEnv the local environment
  * @return a block diagram in normal form
  */
-static loopDetector LD(1024, 1);
+static loopDetector LD(1024, 512);
 
 
 static Node EVALPROPERTY(symbol("EvalProperty"));
@@ -279,9 +279,8 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	Tree	id;
 	Tree 	result;
 	
-	LD.detect(cons(exp,localValEnv));
-	
-	if (!getEvalProperty(exp, localValEnv, result)) {
+    if (!getEvalProperty(exp, localValEnv, result)) {
+        LD.detect(cons(exp,localValEnv));
         //cerr << "ENTER eval("<< *exp << ") with env " << *localValEnv << endl;
 		result = realeval(exp, visited, localValEnv);
 		setEvalProperty(exp, localValEnv, result);

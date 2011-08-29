@@ -38,10 +38,17 @@ fi
 
 INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/"
 
+if [ $# = 0 ]; then
+    echo USAGE:
+    echo "$0 [-d[ebug]] [-icc] [-omp] file1.dsp [file2.dsp ...]"
+    exit 1
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
+# if -d or -debug               -> F2SC_DEBUG
 # existing *.dsp files          -> FILES
 #
 
@@ -55,6 +62,7 @@ for p in $@; do
 done
 
 #PHASE 2 : dispatch command arguments
+F2SC_DEBUG=0
 for p in $@; do
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
@@ -64,17 +72,31 @@ for p in $@; do
         fi
     fi
 
-    if [ "$p" = -icc ]; then
+    if [ "$p" = -debug ] || [ "$p" = -d ]; then
+	F2SC_DEBUG=1
+    elif [ "$p" = -icc ]; then
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
 	    FILES="$FILES $p"
 	else
+	    echo "*** Faust source-file '$p' not found"
 	    OPTIONS="$OPTIONS $p"
 	fi
 done
 
+if [ $F2SC_DEBUG = 1 ]; then
+    OUTDEV=/dev/tty
+else       
+    OUTDEV=/dev/null
+fi
+
+if [ "$FILES" = "" ]; then
+    echo USAGE:
+    echo "$0 [-d[ebug]] [-icc] [-omp] file1.dsp [file2.dsp ...]"
+    exit 1
+fi
 
 #-------------------------------------------------------------------
 # Check plateform specifics
@@ -112,14 +134,21 @@ for p in $FILES; do
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
         cd "$TMP"
-        faust2sc --prefix=Faust $f.xml > "${f%.dsp}.sc" 2>/dev/null
+        faust2sc --prefix=Faust $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
         ${CXX=g++}  -O3 $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
-    )> /dev/null
+    )> $OUTDEV
 
     ## move the produced files from tmp to source dir
     cp "$TMP/${f%.dsp}.$EXT" "$SRCDIR/${f%.dsp}.$EXT"
     cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
+
+
+    if [ $F2SC_DEBUG = 1 ]; then
+	echo "Retaining intermediate products directory '$TDR'"
+	OUTDEV=/dev/tty
+    else       
 	rm -rf "$TDR"
+    fi
 
     # collects all the files produced
      BINARIES="$BINARIES$SRCDIR/${f%.dsp}.$EXT;$SRCDIR/${f%.dsp}.sc;"

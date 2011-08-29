@@ -1,4 +1,5 @@
-declare name "Voice Formant Instrument";
+declare name "Voice Formant";
+declare description "Voice Formant Instrument";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
 declare version "1.0";
@@ -122,3 +123,4 @@ frica = noise*noiseEnvelope*noiseGain;
 process = voiced : oneZeroFilter : onePoleFilter : 
 		 +(frica) <: filter0,filter1,filter2,filter3 :> + : stereo : 
 		 instrReverb;
+

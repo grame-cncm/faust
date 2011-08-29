@@ -1,4 +1,5 @@
-declare name "Nonlinear WaveGuide Commuted Harpsichord";
+declare name "Harpsichord";
+declare description "Nonlinear WaveGuide Commuted Harpsichord";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";
 declare version "1.0";
@@ -86,3 +87,4 @@ stringLoopGainT = gate*0.9996 + (gate<1)*releaseLoopGain(freqn)*0.9 : smooth(0.9
 string = (*(stringLoopGainT)+_ : delay(4096,delayLength) : loopFilter)~NLFM;
 
 process = soundBoard : string : stereo : instrReverb;
+

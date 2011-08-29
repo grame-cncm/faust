@@ -1,4 +1,5 @@
-declare name "FM synthesizer implemented with a nonlinear passive allpass filter";
+declare name "NLFfm";
+declare description "FM synthesizer implemented with a nonlinear passive allpass filter";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";

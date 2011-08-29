@@ -1,4 +1,5 @@
-declare name "Nonlinear WaveGuide Bowed Instrument";
+declare name "Bowed";
+declare description "Nonlinear WaveGuide Bowed Instrument";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";

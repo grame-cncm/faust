@@ -1,4 +1,5 @@
-declare name "Nonlinear Banded Waveguide Models";
+declare name "Tuned Bar";
+declare description "Nonlinear Banded Waveguide Models";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";
