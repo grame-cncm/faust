@@ -52,8 +52,7 @@ class netjackaudio : public audio {
 
         static void net_shutdown(void *)
         {
-            printf("network failure...\n");
-            exit(1);
+            printf("Network failure, restart...\n");
         }
 
         static int net_process(jack_nframes_t buffer_size,
