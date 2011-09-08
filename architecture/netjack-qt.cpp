@@ -80,6 +80,8 @@ int main(int argc, char *argv[])
 	char* home = getenv("HOME");
 
     int	celt = lopt(argv, "--celt", -1);
+    char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
+    int master_port = lopt(argv, "--p", DEFAULT_PORT);
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
@@ -94,7 +96,7 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(oscinterface);
 #endif
 
-	netjackaudio audio(celt);
+	netjackaudio audio(celt, master_ip, master_port);
 	if (!audio.init(appname, &DSP)) {
         return 0;
     }
