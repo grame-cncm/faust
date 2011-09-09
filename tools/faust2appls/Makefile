@@ -39,5 +39,6 @@ install:
 	install faust2graph $(dest)
 	install faust2graphviewer $(dest)
 	install faust2sig $(dest)
+	install faust2sigsvg $(dest)
 	install faust2sigviewer $(dest)
 
