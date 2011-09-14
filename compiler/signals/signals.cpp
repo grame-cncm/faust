@@ -116,13 +116,16 @@ Sym SIGSELECT3 = symbol ("SigSelect3");
 Tree sigSelect2 (Tree selector, Tree s1, Tree s2, Tree box)			{ return tree(SIGSELECT2, sigIntCast(selector, box), s1, s2)->setProperty(box_symbol, box); }
 bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)		{ return isTree(t, SIGSELECT2, selector, s1, s2); }
 
-//Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIGSELECT3, sigIntCast(selector), s1, s2, s3); }
-
-// Exprimer le "select3" avec le "select2" ?
-Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3, Tree box)		{ return sigSelect2(selector, sigSelect2(selector, s2, s3, box), s1, box)
-                                                                                ->setProperty(box_symbol, box); }
+//Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3, Tree box)    { return tree(SIGSELECT3, sigIntCast(selector, box), s1, s2, s3); }
 
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
+
+//  "select3" expresses with "select2"
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3, Tree box)
+{
+     return sigSelect2(sigBinOp(kEQ, sigIntCast(selector, box), sigInt(0, box), box),
+            sigSelect2(sigBinOp(kEQ, sigIntCast(selector, box), sigInt(1, box), box), s3, s2, box), s1, box)->setProperty(box_symbol, box);
+}
 
 // multirate
 

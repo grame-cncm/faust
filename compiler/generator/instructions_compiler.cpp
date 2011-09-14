@@ -960,7 +960,7 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
 
 ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
-    // TODO
+    // Done at signal level
     return InstBuilder::genNullInst();
 }
 
