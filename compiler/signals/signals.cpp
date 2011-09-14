@@ -120,7 +120,7 @@ bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)		{ return isTree(
 
 bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
 
-//  "select3" expresses with "select2"
+//  "select3" expressed with "select2"
 Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3, Tree box)
 {
      return sigSelect2(sigBinOp(kEQ, sigIntCast(selector, box), sigInt(0, box), box),

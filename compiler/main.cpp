@@ -730,6 +730,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
          ****************************************************************/
         if (gArchFile != "") {
             if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
+
+                tab(0, *dst); *dst << "#ifndef  __" << gClassName << "_H__";
+                tab(0, *dst); *dst << "#define  __" << gClassName << "_H__" << std::endl;
+
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                 streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
 
@@ -750,6 +754,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                         streamCopy(*scheduler_include, *dst);
                     }
                 }
+
+                tab(0, *dst); *dst << "#endif"<< std::endl;
 
             } else {
                 cerr << "ERROR : can't open architecture file " << gArchFile << endl;
