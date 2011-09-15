@@ -127,6 +127,11 @@ string scientific2tenpow (double n)
     if (AlmostEqual(n, M_PI_2)) return "\\frac{\\pi}{2}";
     if (AlmostEqual(n, M_PI_4)) return "\\frac{\\pi}{4}";
     if (AlmostEqual(n, M_E)) return "e";
+    if ((n>0) && AlmostEqual(n, exp(int(log(n))) )) {
+        char tmp[64];
+        snprintf(tmp, 63, "e^{%d}", int(log(n)));
+        return string(tmp);
+    }
     // <---- add more symbolic constants here
 
 
