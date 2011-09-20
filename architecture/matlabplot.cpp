@@ -424,12 +424,15 @@ public:
 
 int main(int argc, char *argv[] )
 {
-    float			fnbsamples;
+    float			fStartAtSample;
+	float			fnbsamples;
 
 
     CMDUI* interface = new CMDUI(argc, argv);
     DSP.buildUserInterface(interface);
-    interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
+	
+    interface->addOption("-s", &fStartAtSample, 0, 0.0, 100000000.0);
+	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
 
     if (DSP.getNumInputs() > 0) {
         fprintf(stderr,
@@ -452,8 +455,20 @@ int main(int argc, char *argv[] )
     // print matlab-compatible matrix syntax followed by a plot command:
     printf("faustout = [ ...\n");
 
-    int nbsamples = int(fnbsamples);
-
+    
+	// skip <start> samples
+	int start = int(fStartAtSample);
+	while (start > kFrames) {
+		DSP.compute(kFrames, 0, chan.buffers());
+		start -= kFrames;
+	}
+	if (start > 0) {
+		DSP.compute(start, 0, chan.buffers());
+	}
+	// end skip
+	
+	
+	int nbsamples = int(fnbsamples);
     while (nbsamples > kFrames) {
 
         DSP.compute(kFrames, 0, chan.buffers());

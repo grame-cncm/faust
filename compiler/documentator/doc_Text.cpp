@@ -30,6 +30,7 @@
 #include <iostream>
 #include <sstream>
 #include <assert.h>
+#include <math.h>
 
 #include "floats.hh"
 
@@ -97,8 +98,44 @@ string docT (double n)
 	return scientific2tenpow(n);
 }
 
+
+/**
+ * Check if two floating point numbers are (almost) equal
+ */
+static bool AlmostEqual(double A, double B)
+{
+    double maxRelativeError = 0.00001;
+    double maxAbsoluteError = 0.00001;
+
+
+    if (fabs(A - B) < maxAbsoluteError)
+        return true;
+    float relativeError;
+    if (fabs(B) > fabs(A))
+        relativeError = fabs((A - B) / B);
+    else
+        relativeError = fabs((A - B) / A);
+    if (relativeError <= maxRelativeError)
+        return true;
+    return false;
+}
+
 string scientific2tenpow (double n)
 {
+    // First try symbolic representation of n
+    if (AlmostEqual(n, M_PI)) return "\\pi ";
+    if (AlmostEqual(n, M_PI_2)) return "\\frac{\\pi}{2}";
+    if (AlmostEqual(n, M_PI_4)) return "\\frac{\\pi}{4}";
+    if (AlmostEqual(n, M_E)) return "e";
+    if ((n>0) && AlmostEqual(n, exp(int(log(n))) )) {
+        char tmp[64];
+        snprintf(tmp, 63, "e^{%d}", int(log(n)));
+        return string(tmp);
+    }
+    // <---- add more symbolic constants here
+
+
+    // Then numerical representation
     char tmp[64];
 	string entree = " * 10^{";
 	char sortie = '}';
