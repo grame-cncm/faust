@@ -20,6 +20,7 @@
 #import "iPhoneViewController.h"
 #include "iphone-faust.h"
 
+
 @implementation iPhoneAppDelegate
 
 @synthesize window;
@@ -27,7 +28,7 @@
 
 TiPhoneCoreAudioRenderer* audio_device = NULL;
 UI* interface = NULL;
-Meta metadata;
+MY_Meta metadata;
 char rcfilename[256];
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application
