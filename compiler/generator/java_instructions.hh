@@ -77,9 +77,12 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         }
 
         string createVarAccess(string varname){
-          return "new FaustVarAccess(){public String getId(){return \""+varname+"\";}" +
-            "public void set(float val){" + varname + "=val;}" +
-            "public float get(){return (float)" + varname + ";}}";
+          return "new FaustVarAccess(){\n" 
+            "\t\t\t\tpublic String getId()       {return \"" + varname + "\";}\n" 
+            "\t\t\t\tpublic void   set(float val){" + varname + "=val;}\n" 
+            "\t\t\t\tpublic float  get()         {return (float)" + varname + ";}\n" 
+            "\t\t\t}\n"
+            "\t\t\t";
         }
 
         virtual void visit(AddMetaDeclareInst* inst)
@@ -157,7 +160,10 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
+              
+                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = ";
+                inst->fValue->accept(this);
+                EndLine();
             } else {
               ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
               if (array_typed && array_typed->fSize>1){
@@ -263,12 +269,12 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(IntNumInst* inst)
         {
-            *fOut << inst->fNum;
+          *fOut << inst->fNum;
         }
 
         virtual void visit(BoolNumInst* inst)
         {
-            *fOut << inst->fNum;
+          *fOut << inst->fNum;
         }
 
         virtual void visit(DoubleNumInst* inst)
@@ -276,8 +282,21 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << inst->fNum;
         }
 
+        bool isBoolOpcode(int o){
+          return o==kGT || o==kLT || o==kLE || o==kEQ || o==kNE;
+        }
+
         virtual void visit(BinopInst* inst)
         {
+          if(isBoolOpcode(inst->fOpcode)){
+            *fOut << "((";
+            inst->fInst1->accept(this);
+            *fOut << " ";
+            *fOut << gBinOpTable[inst->fOpcode]->fName;
+            *fOut << " ";
+            inst->fInst2->accept(this);
+            *fOut << ")?1:0)";
+          }else{
             *fOut << "(";
             inst->fInst1->accept(this);
             *fOut << " ";
@@ -285,6 +304,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << " ";
             inst->fInst2->accept(this);
             *fOut << ")";
+          }
         }
 
         virtual void visit(CastNumInst* inst)
@@ -347,9 +367,9 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "for (";
                 fFinishLine = false;
                 inst->fInit->accept(this);
-                *fOut << "; ";
+                *fOut << "; (";
                 inst->fEnd->accept(this);
-                *fOut << "; ";
+                *fOut << ")==1; ";
                 inst->fIncrement->accept(this);
                 fFinishLine = true;
             *fOut << ") {";

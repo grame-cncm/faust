@@ -89,6 +89,7 @@ JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const strin
 JAVAScalarCodeContainer::~JAVAScalarCodeContainer()
 {}
 
+/*
 void JAVACodeContainer::printIncludeFile(ostream& fout)
 {
     set<string> S;
@@ -99,6 +100,7 @@ void JAVACodeContainer::printIncludeFile(ostream& fout)
         fout << "#import " << *f << "\n";
     }
 }
+*/
 
 void JAVACodeContainer::produceInternal()
 {
@@ -107,7 +109,7 @@ void JAVACodeContainer::produceInternal()
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
-    generateGlobalDeclarations(&fCodeProducer);
+    //generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
@@ -176,14 +178,14 @@ void JAVACodeContainer::produceClass()
 
     // Libraries
     printLibrary(*fOut);
-    printIncludeFile(*fOut);
+    //printIncludeFile(*fOut);
 
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
-    generateGlobalDeclarations(&fCodeProducer);
+    //generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "class " << fKlassName << " extends " << fSuperKlassName << " {";
+    tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
 
         tab(n+1, *fOut);
 

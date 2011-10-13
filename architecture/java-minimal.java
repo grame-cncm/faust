@@ -84,8 +84,6 @@ class UI {
 }
 
 class dsp {
-
-    protected int fSamplingFreq;
 }
 
 
