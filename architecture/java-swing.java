@@ -29,6 +29,9 @@
 
     Only playback is supported.
 
+    Example on how to use it:
+    faust -lang java -a java-swing.java noise.dsp >mydsp.java && javac mydsp.java && java mydsp
+
     Audio playback info gathered from this thread:
     http://www.java-forums.org/awt-swing/2087-make-sound-play-java-application.html
  ***/
@@ -65,24 +68,6 @@ import  sun.audio.*;
 import  java.io.*;
 import javax.sound.sampled.*;
 
-
-public final class Main {
-
-    public static void main(String... aArgs){
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-        }catch (Exception e) {
-            System.out.println("Couldn't set lookandfeel");
-        }
-
-        UI ui = new UI();
-        mydsp my_mydsp = new mydsp();
-        my_mydsp.init(44100);
-        my_mydsp.buildUserInterface(ui);
-        Sound sound = new Sound(my_mydsp);
-    }
-  
-}
 
 class Sound{
     mydsp my_mydsp;
@@ -351,6 +336,22 @@ class dsp{
     double sin(double a){
         return java.lang.Math.sin(a);
     }
+
+
+    public static void main(String... aArgs){
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+        }catch (Exception e) {
+            System.out.println("Couldn't set lookandfeel");
+        }
+        
+        UI ui = new UI();
+        mydsp my_mydsp = new mydsp();
+        my_mydsp.init(44100);
+        my_mydsp.buildUserInterface(ui);
+        Sound sound = new Sound(my_mydsp);
+    }
+  
 }
 
 
