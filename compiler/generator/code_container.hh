@@ -128,6 +128,8 @@ class CodeContainer {
 
         bool fGeneratedSR;
 
+        map <string, int> gPowerGlobalTable;
+
       public:
 
         CodeContainer();
