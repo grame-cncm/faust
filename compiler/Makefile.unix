@@ -14,7 +14,7 @@ CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"
 all : faust
 
 faust : $(objects)
-	$(CXX) $(CXXFLAGS) $(objects) `llvm-config --ldflags --libs all` -o faust
+	$(CXX) $(CXXFLAGS) $(objects) `llvm-config --ldflags --libs all` -ldl -o faust
 
 
 .PHONY: clean depend ctags parser
