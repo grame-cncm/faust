@@ -96,6 +96,10 @@ module Faust
       @min  = dict["min"].to_f
       @max  = dict["max"].to_f
       @step = dict["step"].to_f
+      if (@type == "button")
+        @max  = 1 # no metadata other than name for buttons
+        @step = 1
+      end
     end
   end
 
@@ -294,12 +298,15 @@ module Faust
       name
     end
     def make_class_name(unit_name, prefix)
-      class_name = unit_name.encapitalize.gsub(/[-_\s]/,"")
       if prefix == ""
         prefix = "Faust"
       end
+      class_name = unit_name.encapitalize.gsub(/[-_\s]/,"")
       class_name = class_name.sub(/^#{prefix}/i,"")
-      class_name = prefix + unit_name.encapitalize.gsub(/[-_\s]/,"")
+      class_name = prefix + class_name.encapitalize.gsub(/[-_\s]/,"")
+      if class_name.length > 31 # maximum SC Node ID length is 31 (hashed)
+        class_name = class_name[0,30];
+      end
       unless class_name =~ CLASS_REGEXP
         raise "invalid class name: \"#{class_name}\""
       end
@@ -317,12 +324,16 @@ module Faust
       def sc3_default
         "(#{self.init})"
       end
+      def sc3_default2
+        "=(#{self.init})" # Parens make unary minus work in SC
+      end
     end
 
     class PluginGenerator
       attr_reader :unit_name, :class_name
       def initialize(plugin, options)
         @plugin     = plugin
+        @options    = options
         @unit_name  = plugin.name || SC3::path_to_unitname(plugin.path)
         @class_name = SC3::make_class_name(@unit_name, options["prefix"])
       end
@@ -341,11 +352,33 @@ module Faust
       def control_names
         Language::make_unique(@plugin.ui.active_widgets.collect { |x| x.sc3_identifier })
       end
-      def decl_args
+      def decl_args # "name(default)"
         cnames = self.control_names
         cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default }
         args = self.input_names + cnames.zip(cdefaults).collect { |ary| ary[0] + ary[1] }
         args.empty? ? "" : " | " + args.join(", ") + " |"
+      end
+      def decl_args2 # "name=default"
+        cnames = self.control_names
+        cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default2 }
+        args = self.input_names + cnames.zip(cdefaults).collect { |ary| ary[0] + ary[1] }
+        args.empty? ? "" : args.join(", ") + ";"
+      end
+      def decl_args3 # args in keyword:value form
+        cnames = self.control_names
+        args = self.input_names + cnames.collect { |x| "#{x}" }
+        args.empty? ? "" : args.join(", ")
+      end
+      def decl_metadata
+        cnames = self.control_names
+        cnames.collect! {|x| "    \\"+x+":"}
+        warp = 0
+        cmeta = @plugin.ui.active_widgets.collect \
+          { |x| "[#{x.min}, #{x.max}, #{warp}, #{x.step}, #{x.init}].asSpec" }
+          # \\name1: [minval, maxval, warp, step, default, units].asSpec,
+          # Note: could append x.units as well
+        args = cnames.zip(cmeta).collect { |ary| ary[0] + ary[1] }
+        args.empty? ? "" : args.join(",\n      ")
       end
       def new_args(rate)
         ["'%s'" % rate] + self.input_names + self.control_names
@@ -364,31 +397,62 @@ module Faust
       end
       def generate_decl(io)
         io.print("#{@class_name} : #{self.superclass_name}\n")
+        print_info("UGen: #{@class_name}\n")
       end
       def generate_body(io)
         io.print("{\n")
         body = <<EOF
-\t*ar {#{self.decl_args}
-\t\t^this.multiNew(#{self.new_args(:audio).join(", ")})
-\t}
-\t*kr {#{self.decl_args}
-\t\t^this.multiNew(#{self.new_args(:control).join(", ")})
-\t}
-\tname { ^\"#{@class_name}\" }
+  *ar {#{self.decl_args}
+      ^this.multiNew(#{self.new_args(:audio).join(", ")})
+  }
+
+  *kr {#{self.decl_args}
+      ^this.multiNew(#{self.new_args(:control).join(", ")})
+  } 
 EOF
         io.print(body)
         generate_outputs(io)
+        if @options["synthdef"]
+          generate_synthdef(io)
+        end
+        io.print("\n  name { ^\"#{@class_name}\" }\n")
         io.print("}\n")
       end
       def generate_outputs(io)
         if self.outputs > 1
           io.print <<EOF
-\tinit { | ... theInputs |
-\t\tinputs = theInputs
-\t\t^this.initOutputs(#{self.outputs}, rate)
-\t}
+    init { | ... theInputs |
+        inputs = theInputs
+        ^this.initOutputs(#{self.outputs}, rate)
+    }
 EOF
         end
+      end
+      def generate_synthdef(io)
+        s = @class_name
+        sdname = s[0,1].downcase + s[1 .. s.length]
+        print_info("SynthDef: \\#{sdname}\n")
+        io.print <<EOF
+
+  *initClass {
+    StartUp.add {
+      SynthDesc.mdPlugin = TextArchiveMDPlugin;
+// When SynthDef.writeOnce writes metadata:
+//    SynthDef.writeOnce(\\#{sdname},
+      SynthDef(\\#{sdname},
+        {arg out=0, #{self.decl_args2}
+          Out.ar(out, 
+            #{@class_name}.ar(
+              #{self.decl_args3}
+            )
+          )
+        }, metadata: (specs:( 
+        //\\controlName:[min, max, warp, step, default, units].asSpec,
+      #{self.decl_metadata}
+  ) ) ).store } }
+// When SynthDef.writeOnce writes metadata:
+//) ) ) } }
+EOF
       end
     end
     
@@ -415,16 +479,18 @@ Options:
  -l, --lang     Set output language (haskell, sclang)
  -o, --output   Set output file name
  -p, --prefix   Set class or module prefix
+ -s, --synthdef Emit SynthDef including metadata (sclang)
  -V, --version  Display version information
 EOF
 end
 
 opts = GetoptLong.new(
-  [ "--help",   "-h",   GetoptLong::NO_ARGUMENT ],
-  [ "--lang",   "-l",   GetoptLong::REQUIRED_ARGUMENT ],
-  [ "--output", "-o",   GetoptLong::REQUIRED_ARGUMENT ],
-  [ "--prefix", "-p",   GetoptLong::REQUIRED_ARGUMENT ],
-  [ "--version", "-V",  GetoptLong::NO_ARGUMENT ]
+  [ "--help",     "-h",  GetoptLong::NO_ARGUMENT ],
+  [ "--lang",     "-l",  GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--output",   "-o",  GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--prefix",   "-p",  GetoptLong::REQUIRED_ARGUMENT ],
+  [ "--synthdef", "-s",  GetoptLong::NO_ARGUMENT ],
+  [ "--version",  "-V",  GetoptLong::NO_ARGUMENT ]
 )
 
 LANG_MAP = {
@@ -437,7 +503,8 @@ generator = nil
 output_file = nil
 
 options = {
-  "prefix" => ""
+  "prefix" => "",
+  "synthdef" => false
 }
 
 opts.each { | opt, arg |
@@ -452,6 +519,8 @@ opts.each { | opt, arg |
   when "--prefix"
     options["prefix"] = arg
     options["module"] = arg
+  when "--synthdef"
+    options["synthdef"] = true
   when "--version"
     puts "#{PROGRAM} #{PROGRAM_VERSION}"
     exit(0)
