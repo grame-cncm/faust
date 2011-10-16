@@ -37,6 +37,8 @@
 #import <UIKit/UIKit.h>
 #import "iPhoneViewController.h"
 
+#include "misc.h"
+
 #include <list>
 #include <map>
 
@@ -452,7 +454,7 @@ private:
 
     UIWindow* fWindow;
     iPhoneViewController* fViewController;
-    Meta* fMetadata;
+    MY_Meta* fMetadata;
 
     list <uiItem*> fWidgetList;
 
@@ -472,7 +474,7 @@ public:
 
     // -- layout groups
 
-    CocoaUI(UIWindow* window, iPhoneViewController* viewController, Meta* metadata)
+    CocoaUI(UIWindow* window, iPhoneViewController* viewController, MY_Meta* metadata)
     {
         fViewController = viewController;
         fWindow = window;
