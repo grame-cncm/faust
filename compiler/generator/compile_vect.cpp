@@ -44,9 +44,10 @@ void VectorCompiler::compileMultiSignal (Tree L)
     fClass->addSharedDecl("output");
 
     for (int i = 0; isList(L); L = tl(L), i++) {
+        string iii = "i";
         Tree sig = hd(L);
         fClass->openLoop("count");
-        fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        fClass->addExecCode(subst("output$0[$3] = $2$1;", T(i), CS(sig), xcast(), iii));
         fClass->closeLoop(sig);
     }
 

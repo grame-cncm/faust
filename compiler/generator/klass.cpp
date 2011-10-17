@@ -94,7 +94,7 @@ bool Klass::getLoopProperty(Tree sig, Loop*& l)
  */
 void Klass::openLoop(const string& size)
 {
-    fTopLoop = new Loop(fTopLoop, size);
+    fTopLoop = new Loop(fTopLoop, size, fOversampling);
     //cerr << "\nOPEN SHARED LOOP(" << size << ") ----> " << fTopLoop << endl;
 }
 
@@ -105,7 +105,7 @@ void Klass::openLoop(const string& size)
  */
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
-    fTopLoop = new Loop(recsymbol, fTopLoop, size);
+    fTopLoop = new Loop(recsymbol, fTopLoop, size, fOversampling);
     //cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 

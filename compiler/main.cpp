@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.44"
+#define FAUSTVERSION "0.9.44ovs"
 
 #include <stdio.h>
 #include <string.h>
@@ -138,6 +138,7 @@ bool            gVectorSwitch   = false;
 bool            gDeepFirstSwitch= false;
 int             gVecSize        = 32;
 int             gVectorLoopVariant = 0;
+int             gOversampling   = 0;
 
 bool            gOpenMPSwitch   = false;
 bool            gOpenMPLoop     = false;

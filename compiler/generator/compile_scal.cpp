@@ -164,7 +164,8 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
-		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        string iii = "i";
+        fClass->addExecCode(subst("output$0[$3] = $2$1;", T(i), CS(sig), xcast(), iii));
 	}
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -373,13 +374,15 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
-	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    string iii = "i";
+    return generateCacheCode(sig, subst("$1input$0[$2]", idx, icast(), iii));
 }
 
 
 string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string& arg)
 {
-	string dst = subst("output$0[i]", idx);
+    string iii = "i";
+    string dst = subst("output$0[$1]", idx, iii);
 	fClass->addExecCode(subst("$0 = $2$1;", dst, arg, xcast()));
 	return dst;
 }

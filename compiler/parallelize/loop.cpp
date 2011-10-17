@@ -38,8 +38,8 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
-Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
-        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
+Loop::Loop(Tree recsymbol, Loop* encl, const string& size, int oversampling)
+        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOversampling(oversampling), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
@@ -48,8 +48,8 @@ Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
-Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
+Loop::Loop(Loop* encl, const string& size, int oversampling)
+        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOversampling(oversampling), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
