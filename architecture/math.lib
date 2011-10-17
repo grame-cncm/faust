@@ -165,6 +165,10 @@ countup(count, trig)	= \(c).(if(trig>0, 0, min(count, c+1))) ~_;
 bus(2) = _,_; // avoids a lot of "bus(1)" labels in block diagrams
 bus(n) = par(i, n, _);
 
+// inv(n) : n parallel inverters
+invert(2) = *(-1), *(-1);
+invert(n) = par(i,n,*(-1));
+
 // selector(i,n) : select ith cable among n
 selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
 
@@ -180,5 +184,10 @@ interleave(row,col) = bus(row*col) <: par(r, row, par(c, col, selector(r+c*row,r
 butterfly(n) = bus(n) <: interleave(n/2,2), interleave(n/2,2) : par(i, n/2, +), par(i, n/2, -);
 
 // hadamard(n) : hadamard matrix function of size n = 2^k
-hadamard(2) = butterfly(2);
-hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
+//hadamard(2) = butterfly(2);
+//hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
+
+hadamard(1) = _;
+hadamard(n) = bus(n) <: (bus(n/2), bus(n/2) :> hadamard(n/2)), 
+                        (bus(n/2), invert(n/2) :> hadamard(n/2));
+
