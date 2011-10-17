@@ -33,6 +33,7 @@ install:
 	install faust2plot $(dest)
 	install faust2png $(dest)
 	install faust2puredata $(dest)
+	install faust2pdsynth $(dest)
 	install faust2svg $(dest)
 	install faust2supercollider $(dest)
 	install ../faust2sc-1.0.0/faust2sc $(dest)
