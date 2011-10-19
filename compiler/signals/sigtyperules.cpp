@@ -530,6 +530,7 @@ static Type initialRecType(Tree t)
 static Type infereRecType (Tree sig, Tree body, Tree env)
 {
     assert(false); // we should not come here
+    return 0;
 }
 
 
