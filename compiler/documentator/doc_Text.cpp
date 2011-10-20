@@ -43,7 +43,7 @@
 #endif
 
 #ifndef M_PI_4
-#define M_PI 0.785398163397448309616
+#define M_PI_4 0.785398163397448309616
 #endif
 
 #ifndef M_E
@@ -126,7 +126,7 @@ static bool AlmostEqual(double A, double B)
 
     if (fabs(A - B) < maxAbsoluteError)
         return true;
-    float relativeError;
+    double relativeError;
     if (fabs(B) > fabs(A))
         relativeError = fabs((A - B) / B);
     else
@@ -143,7 +143,7 @@ string scientific2tenpow (double n)
     if (AlmostEqual(n, M_PI_2)) return "\\frac{\\pi}{2}";
     if (AlmostEqual(n, M_PI_4)) return "\\frac{\\pi}{4}";
     if (AlmostEqual(n, M_E)) return "e";
-    if ((n>0) && AlmostEqual(n, exp(int(log(n))) )) {
+    if ((n>0) && AlmostEqual(n, exp(floor(log(n))) )) {
         char tmp[64];
         snprintf(tmp, 63, "e^{%d}", int(log(n)));
         return string(tmp);
