@@ -771,7 +771,12 @@ void Klass::println(int n, ostream& fout)
     tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "virtual void instanceInit(int samplingFreq) {";
-        tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
+        tab(n+2,fout);
+        if (fOversampling>1) {
+            fout << "fSamplingFreq = samplingFreq*" << fOversampling << ';';
+        } else {
+            fout << "fSamplingFreq = samplingFreq;";
+        }
         printlines (n+2, fInitCode, fout);
     tab(n+1,fout); fout << "}";
 

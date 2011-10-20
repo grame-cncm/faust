@@ -41,8 +41,8 @@ class VectorCompiler : public ScalarCompiler
 
 public:
 
-    VectorCompiler (const string& name, const string& super, int numInputs, int numOutputs)
-        : ScalarCompiler(name,super,numInputs,numOutputs)
+    VectorCompiler (const string& name, const string& super, int numInputs, int numOutputs, int oversampling)
+        : ScalarCompiler(name,super,numInputs,numOutputs,oversampling)
         {}
     
     VectorCompiler (Klass* k) : ScalarCompiler(k)

@@ -53,8 +53,8 @@ class ScalarCompiler : public Compiler
 
   public:
 
-	ScalarCompiler ( const string& name, const string& super, int numInputs, int numOutputs) :
-		Compiler(name,super,numInputs,numOutputs,false),
+    ScalarCompiler ( const string& name, const string& super, int numInputs, int numOutputs, int oversampling) :
+        Compiler(name,super,numInputs,numOutputs,false, oversampling),
         fHasIota(false)
 	{}
 	

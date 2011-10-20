@@ -69,7 +69,7 @@ protected:
 	int				fNumOutputs;
     int             fNumActives;                ///< number of active controls in the UI (sliders, buttons, etc.)
     int             fNumPassives;               ///< number of passive widgets in the UI (bargraphs, etc.)
-    int             fOversampling;              ///< O is no oversampling
+    int             fOversampling;              ///< 1 is no oversampling
 
     set<string>			fIncludeFileSet;
 	set<string>			fLibrarySet;

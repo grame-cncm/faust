@@ -150,7 +150,12 @@ void Loop::println(int n, ostream& fout)
         }
 
         tab(n,fout); fout << "// exec code";
-        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        if (fOversampling>1) {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << '*' << fOversampling << "; i++) {";
+        } else {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        }
+
         printlines(n+1, fExecCode, fout);
         tab(n,fout); fout << "}";
 
@@ -218,8 +223,13 @@ void Loop::printoneln(int n, ostream& fout)
             tab(n,fout); 
             fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
         }*/
-            
-        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+
+        if (fOversampling > 1) {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << '*' << fOversampling << "; i++) {";
+        } else {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        }
+
         if (fPreCode.size()>0) {
             tab(n+1,fout); fout << "// pre processing";
             printlines(n+1, fPreCode, fout);

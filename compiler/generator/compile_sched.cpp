@@ -77,7 +77,7 @@ void  SchedulerCompiler::vectorLoop (const string& tname, const string& vecname,
     fClass->addSharedDecl(vecname);
     
     // -- variables moved as class fields...
-    fClass->addDeclCode(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
+    fClass->addDeclCode(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize*fOversampling)));
     
     // -- compute the new samples
     fClass->addExecCode(subst("$0[i] = $1;", vecname, cexp));
@@ -119,7 +119,7 @@ void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, i
         fClass->addSharedDecl(buf);
         
         // -- variables moved as class fields...
-        fClass->addDeclCode(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
+        fClass->addDeclCode(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize*fOversampling), dsize));
         
         fClass->addFirstPrivateDecl(dlname);
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
@@ -130,15 +130,20 @@ void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, i
         // -- compute the new samples
         fClass->addExecCode(subst("$0[i] = $1;", dlname, cexp));
         
+
         // -- copy back to stored samples
-        fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        if (fOversampling>1) {
+            fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count*$3+i];", pmem, buf, dsize, T(fOversampling)));
+        } else {
+            fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        }
         
     } else {
         
         // Implementation of a ring-buffer delayline
         
         // the size should be large enough and aligned on a power of two
-        delay   = pow2limit(delay + gVecSize);
+        delay   = pow2limit(delay + gVecSize*fOversampling);
         string  dsize   = T(delay);
         string  mask    = T(delay-1);
         
@@ -163,6 +168,11 @@ void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, i
         fClass->addExecCode(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask));
         
         // -- save index
-        fClass->addPostCode(subst("$0 = count;", idx_save));
+        if (fOversampling>1) {
+            fClass->addPostCode(subst("$0 = count*$1;", idx_save, T(fOversampling)));
+        } else {
+            fClass->addPostCode(subst("$0 = count;", idx_save));
+        }
+
     }
 }

@@ -54,9 +54,10 @@ protected:
 	bool			fNeedToDeleteClass;
 	Tree			fUIRoot;
 	Description*	fDescription;
+    int             fOversampling;
 
 public:
-	Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec);
+    Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec, int oversampling);
 	Compiler (Klass* k);
 
 	virtual ~Compiler();
