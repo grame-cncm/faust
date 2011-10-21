@@ -495,8 +495,6 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
             fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
         }
 
-        // -- copy back to stored samples
-
 
     } else {
 
