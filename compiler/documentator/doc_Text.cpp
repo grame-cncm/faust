@@ -30,9 +30,25 @@
 #include <iostream>
 #include <sstream>
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 
 #include "floats.hh"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif
+
+#ifndef M_PI_4
+#define M_PI_4 0.785398163397448309616
+#endif
+
+#ifndef M_E
+#define M_E 2.71828182845904523536
+#endif
 
 extern bool gInternDoubleSwitch;
 string scientific2tenpow (double n);
@@ -110,7 +126,7 @@ static bool AlmostEqual(double A, double B)
 
     if (fabs(A - B) < maxAbsoluteError)
         return true;
-    float relativeError;
+    double relativeError;
     if (fabs(B) > fabs(A))
         relativeError = fabs((A - B) / B);
     else
@@ -127,7 +143,7 @@ string scientific2tenpow (double n)
     if (AlmostEqual(n, M_PI_2)) return "\\frac{\\pi}{2}";
     if (AlmostEqual(n, M_PI_4)) return "\\frac{\\pi}{4}";
     if (AlmostEqual(n, M_E)) return "e";
-    if ((n>0) && AlmostEqual(n, exp(int(log(n))) )) {
+    if ((n>0) && AlmostEqual(n, exp(floor(log(n))) )) {
         char tmp[64];
         snprintf(tmp, 63, "e^{%d}", int(log(n)));
         return string(tmp);
@@ -141,14 +157,14 @@ string scientific2tenpow (double n)
 	char sortie = '}';
 	string s;
 	string::size_type ps;
-	
+
 	snprintf(tmp, 63, "%.15g", n); // Warning: over 15 decimals, results are wrong !!
 //	snprintf(tmp, 63, "%f", n);
-	
+
 //	cerr << "doc_Text.cpp : scientific2tenpow : " << n << " -> \"" << tmp << "\"" << endl;
 	s = tmp;
 	ps = s.find('e');
-	
+
 	if (ps != string::npos) {
 		s.replace(ps, 1, "");
 		s.insert(ps, entree);
@@ -157,6 +173,6 @@ string scientific2tenpow (double n)
 	else {
 		//cerr << "doc_Text.cpp : scientific2tenpow : \'e\' non trouvé" << endl;
 	}
-		
+
 	return s;
 }

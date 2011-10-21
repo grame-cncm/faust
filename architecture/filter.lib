@@ -413,6 +413,7 @@ with {
 
 // Normalized ladder allpass with tap lines:
 allpassnnlt(0,sv) = _;
+allpassnnlt(n,scl*(sv)) = allpassnnlt(n,par(i,count(sv),scl*(sv(i))));
 allpassnnlt(n,sv) = _ <: *(s),(*(c) : (+
                    : allpassnnlt(n-1,sv))~(*(-s))) : fsec(n)
 with {

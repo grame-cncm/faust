@@ -40,7 +40,7 @@ INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/"
 
 if [ $# = 0 ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-icc] [-omp] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-icc] [-omp] [-sd] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -49,6 +49,7 @@ fi
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
 # if -d or -debug               -> F2SC_DEBUG
+# if -sd or -synthdef           -> SYNTHDEF
 # existing *.dsp files          -> FILES
 #
 
@@ -63,6 +64,7 @@ done
 
 #PHASE 2 : dispatch command arguments
 F2SC_DEBUG=0
+SYNTHDEF=""
 for p in $@; do
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
@@ -74,6 +76,8 @@ for p in $@; do
 
     if [ "$p" = -debug ] || [ "$p" = -d ]; then
 	F2SC_DEBUG=1
+    elif [ "$p" = -sd ] || [ "$p" = -synthdef ]; then
+	SYNTHDEF="--synthdef"
     elif [ "$p" = -icc ]; then
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
@@ -134,7 +138,7 @@ for p in $FILES; do
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
         cd "$TMP"
-        faust2sc --prefix=Faust $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
+        faust2sc --prefix=Faust $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
         ${CXX=g++}  -O3 $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
     )> $OUTDEV
 
