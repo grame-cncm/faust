@@ -23,7 +23,7 @@ ifeq ($(DEST),)
 	DEST := ./supercolliderdir
 endif 
 
-F2SC = faust2supercollider
+F2SC = faust2supercollider -sd
 
 ### allocate a unique directory for staging
 TMP := $(shell mktemp -d -t F2SC.XXXXXX)

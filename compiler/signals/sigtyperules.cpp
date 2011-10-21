@@ -262,23 +262,23 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigOutput(sig, &i, s1))      return sampCast(T(s1,env));
 
-	else if (isSigDelay1(sig, s1)) 			{ 
-		Type t = T(s1,env); 
-		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0))); 
+	else if (isSigDelay1(sig, s1)) 			{
+		Type t = T(s1,env);
+		return castInterval(sampCast(t), reunion(t->getInterval(), interval(0,0)));
 	}
 
-	else if (isSigPrefix(sig, s1, s2)) 		{ 
-		Type t1 = T(s1,env); 
-		Type t2 = T(s2,env); 
-		checkInit(t1); 
-		return castInterval(sampCast(t1|t2), reunion(t1->getInterval(), t2->getInterval())); 
+	else if (isSigPrefix(sig, s1, s2)) 		{
+		Type t1 = T(s1,env);
+		Type t2 = T(s2,env);
+		checkInit(t1);
+		return castInterval(sampCast(t1|t2), reunion(t1->getInterval(), t2->getInterval()));
 	}
 
-	else if (isSigFixDelay(sig, s1, s2)) 		{ 
-		Type t1 = T(s1,env); 
+	else if (isSigFixDelay(sig, s1, s2)) 		{
+		Type t1 = T(s1,env);
 		Type t2 = T(s2,env);
 		interval i = t2->getInterval();
- 
+
 //        cerr << "for sig fix delay : s1 = "
 //				<< t1 << ':' << ppsig(s1) << ", s2 = "
 //                << t2 << ':' << ppsig(s2) << endl;
@@ -293,8 +293,8 @@ static Type infereSigType(Tree sig, Tree env)
 			cerr << "        " << i << endl;
 			exit(1);
 		}
-			
-		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0))); 
+
+		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0)));
 	}
 
 	else if (isSigBinOp(sig, &i, s1, s2)) {
@@ -321,13 +321,13 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigCheckbox(sig))				{ /*sig->setType(TGUI01);*/ return TGUI01; }
 
-	else if (isSigVSlider(sig,label,cur,min,max,step))		
+	else if (isSigVSlider(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
-	else if (isSigHSlider(sig,label,cur,min,max,step))				
+	else if (isSigHSlider(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
-	else if (isSigNumEntry(sig,label,cur,min,max,step))				
+	else if (isSigNumEntry(sig,label,cur,min,max,step))
 												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
 
     else if (isSigHBargraph(sig, l, x, y, s1))  return T(s1,env);
@@ -514,6 +514,7 @@ static Type initialRecType(Tree t)
 static Type infereRecType (Tree sig, Tree body, Tree env)
 {
     assert(false); // we should not come here
+    return 0;
 }
 
 

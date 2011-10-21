@@ -14,10 +14,10 @@ midikey2hz(x) = 440.0*pow(2.0, (x-69.0)/12); // MIDI key 69 = A440
 pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440
 
 //---------------- cross2, bypass1, bypass2, select2stereo --------------
-// 
+//
 cross2 = _,_,_,_ <: _,!,_,!,!,_,!,_;
 
-bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_) 
+bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
                  with {inswitch = select2(bpc,_,0);};
 
 bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
@@ -33,7 +33,7 @@ select2stereo(bpc) = cross2 : select2(bpc), select2(bpc) : _,_;
 //  L    = desired level (in dB) at Nyquist limit (SR/2), e.g., -60
 //  freq = corner frequency (-3dB point) usually set to fundamental freq
 //
-// REFERENCE: 
+// REFERENCE:
 // https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html
 //
 levelfilter(L,freq,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
@@ -51,10 +51,10 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // Dirt-simple speaker simulator (overall bandpass eq with observed
 // roll-offs above and below the passband).
 //
-// Low-frequency speaker model = +12 dB/octave slope breaking to 
+// Low-frequency speaker model = +12 dB/octave slope breaking to
 // flat near f1. Implemented using two dc blockers in series.
 //
-// High-frequency model = -24 dB/octave slope implemented using a 
+// High-frequency model = -24 dB/octave slope implemented using a
 // fourth-order Butterworth lowpass.
 //
 // Example based on measured Celestion G12 (12" speaker):
@@ -91,24 +91,24 @@ cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : dcblocker;
 //--------------------------- cubicnl_demo --------------------------
 // USAGE: _ : cubicnl_demo : _;
 //
-cubicnl_demo = bypass1(bp, 
-   cubicnl_nodc(drive:smooth(0.999),offset:smooth(0.999))) 
+cubicnl_demo = bypass1(bp,
+   cubicnl_nodc(drive:smooth(0.999),offset:smooth(0.999)))
 with {
-   cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl 
-        [tooltip: Reference: 
+   cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl
+        [tooltip: Reference:
          https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
 //   bypass_group(x) = cnl_group(hgroup("[0]", x));
    slider_group(x)  = cnl_group(hgroup("[1]", x));
-//   bp = bypass_group(checkbox("[0] Bypass  
-   bp = slider_group(checkbox("[0] Bypass  
+//   bp = bypass_group(checkbox("[0] Bypass
+   bp = slider_group(checkbox("[0] Bypass
         [tooltip: When this is checked, the nonlinearity has no effect]"));
-//   drive = slider_group(vslider("[1] Drive [style: knob] 
+//   drive = slider_group(vslider("[1] Drive [style: knob]
    drive = slider_group(hslider("[1] Drive
-                       [tooltip: Amount of distortion]", 
+                       [tooltip: Amount of distortion]",
                        0, 0, 1, 0.01));
-//   offset = slider_group(vslider("[2] Offset [style: knob] 
+//   offset = slider_group(vslider("[2] Offset [style: knob]
    offset = slider_group(hslider("[2] Offset
-                       [tooltip: Brings in even harmonics]", 
+                       [tooltip: Brings in even harmonics]",
                        0, 0, 1, 0.01));
 };
 
@@ -117,7 +117,7 @@ with {
 //
 // USAGE: moog_vcf(res,fr), where
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
-//   res  = Normalized amount of corner-resonance between 0 and 1 
+//   res  = Normalized amount of corner-resonance between 0 and 1
 //        (0 is no resonance, 1 is maximum)
 // Requires filter.lib.
 //
@@ -131,7 +131,7 @@ with {
 // REFERENCES:
 //   [1] https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf
 //   [2] https://ccrma.stanford.edu/~jos/pasp/vegf.html
-// 
+//
 moog_vcf(res,fr) = (+ : seq(i,4,pole(p)) : *(unitygain(p))) ~ *(mk)
 with {
      p = 1.0 - fr * 2.0 * PI / SR; // good approximation for fr << SR
@@ -199,7 +199,7 @@ with {
 // USAGE: _ : moog_vcf_demo : _;
 
 moog_vcf_demo = bypass1(bp,vcf) with {
-   mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)  
+   mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)
       [tooltip: See Faust's effect.lib for info and references]",x);
 
    meter_group(x) = mvcf_group(vgroup("[0]",x));
@@ -211,15 +211,15 @@ moog_vcf_demo = bypass1(bp,vcf) with {
    bqsw = cb_group(checkbox("[2] Normalized Ladders
    [tooltip: If using biquads, make them normalized ladders (moog_vcf_2bn)]"));
 
-   freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob] 
-   [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above.]", 
+   freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob]
+   [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above.]",
    25, 1, 88, 0.01) : pianokey2hz) : smooth(0.999);
 
-   res = mvcf_group(hslider("[2] Corner Resonance [style:knob] 
+   res = mvcf_group(hslider("[2] Corner Resonance [style:knob]
    [tooltip: Amount of resonance near VCF corner frequency (specified between 0 and 1)]",
    0.9, 0, 1, 0.01));
 
-   outgain  = meter_group(hslider("[1] VCF Output Level [unit:dB] 
+   outgain  = meter_group(hslider("[1] VCF Output Level [unit:dB]
    [tooltip: output level in decibels]",
    5, -60, 20, 0.1)) : smooth(0.999)
    : component("music.lib").db2linear;
@@ -233,20 +233,20 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 // Wah effect, 4th order
 // USAGE: wah4(fr), where fr = resonance frequency in Hz
 // REFERENCE "https://ccrma.stanford.edu/~jos/pasp/vegf.html";
-// 
+//
 wah4(fr) = 4*moog_vcf((3.2/4),fr:smooth(0.999));
 
 //------------------------- wah4_demo ---------------------------
 // USAGE: _ : wah4_demo : _;
 
 wah4_demo = bypass1(bp, wah4(fr)) with {
-  wah4_group(x)  = hgroup("WAH4 
+  wah4_group(x)  = hgroup("WAH4
        [tooltip: Fourth-order wah effect made using moog_vcf]", x);
-  bp = wah4_group(checkbox("[0] Bypass 
+  bp = wah4_group(checkbox("[0] Bypass
        [tooltip: When this is checked, the wah pedal has no effect]"));
-  fr = wah4_group(hslider("[1] Resonance Frequency 
+  fr = wah4_group(hslider("[1] Resonance Frequency
        [tooltip: wah resonance frequency in Hz]",
-     200,100,2000,1)); 
+     200,100,2000,1));
 // Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
 // Also, avoid very high resonance frequencies (e.g., 5kHz or above).
 };
@@ -298,9 +298,9 @@ crybaby_demo = bypass1(bp, crybaby(wah)) with {
 //------------ apnl(a1,a2) ---------------
 // Passive Nonlinear Allpass:
 // switch between allpass coefficient a1 and a2 at signal zero crossings
-// REFERENCE: 
+// REFERENCE:
 //  "A Passive Nonlinear Digital Filter Design ..."
-//  by John R. Pierce and Scott A. Van Duyne, 
+//  by John R. Pierce and Scott A. Van Duyne,
 //  JASA, vol. 101, no. 2, pp. 1120-1126, 1997
 // Written by Romain Michon and JOS based on Pierce switching springs idea:
   apnl(a1,a2,x) = nonLinFilter
@@ -310,7 +310,7 @@ crybaby_demo = bypass1(bp, crybaby(wah)) with {
   };
 
 //------------ piano_dispersion_filter(M,B,f0) ---------------
-// Piano dispersion allpass filter in closed form 
+// Piano dispersion allpass filter in closed form
 //
 // ARGUMENTS:
 //   M = number of first-order allpass sections (compile-time only)
@@ -330,19 +330,19 @@ crybaby_demo = bypass1(bp, crybaby(wah)) with {
 // USAGE:
 //  piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay)
 //
-// REFERENCE: 
+// REFERENCE:
 //   "Dispersion Modeling in Waveguide Piano Synthesis
 //    Using Tunable Allpass Filters",
 //   by Jukka Rauhala and Vesa Valimaki, DAFX-2006, pp. 71-76
 //   URL: http://www.dafx.ca/proceedings/papers/p_071.pdf
-//   NOTE: An erratum in Eq. (7) is corrected in Dr. Rauhala's 
+//   NOTE: An erratum in Eq. (7) is corrected in Dr. Rauhala's
 //    encompassing dissertation (and below).
 //   See also: http://www.acoustics.hut.fi/research/asp/piano/
 //
 piano_dispersion_filter(M,B,f0) = -Df0*M,seq(i,M,tf1(a1,1,a1))
 with {
  a1 = (1-D)/(1+D); // By Eq. 3, have D >= 0, hence a1 >= 0 also
- D = exp(Cd - Ikey(f0)*kd); 
+ D = exp(Cd - Ikey(f0)*kd);
  trt = pow(2.0,1.0/12.0); // 12th root of 2
  logb(b,x) = log(x) / log(b); // log-base-b of x
  Ikey(f0) = logb(trt,f0*trt/27.5);
@@ -378,12 +378,12 @@ with {
 //   fb     = feedback gain between 0 and 1 (0 typical)
 //   invert = 0 for normal, 1 to invert sign of flanging sum
 //
-// REFERENCE: 
+// REFERENCE:
 //    https://ccrma.stanford.edu/~jos/pasp/Flanging.html
 //
 flanger_mono(dmax,curdel,depth,fb,invert)
-  = _ <: _, (-:fdelay(dmax,curdel)) ~ *(fb) : _, 
-  *(select2(invert,depth,0-depth)) 
+  = _ <: _, (-:fdelay(dmax,curdel)) ~ *(fb) : _,
+  *(select2(invert,depth,0-depth))
   : + : *(0.5);
 
 flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
@@ -394,7 +394,7 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
 // USAGE:  _,_ : flanger_demo : _,_;
 //
 flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
-   flanger_group(x) = 
+   flanger_group(x) =
     vgroup("FLANGER [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
    meter_group(x) = flanger_group(hgroup("[0]", x));
    ctl_group(x)  = flanger_group(hgroup("[1]", x));
@@ -409,22 +409,22 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
    flangeview = lfor(freq) + lfol(freq) : meter_group(hbargraph(
       "[2] Flange LFO [style: led] [tooltip: Display sum of flange delays]", -1.5,+1.5));
 
-   flanger_stereo_demo(x,y) = attach(x,flangeview),y : 
+   flanger_stereo_demo(x,y) = attach(x,flangeview),y :
      *(level),*(level) : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
 
    lfol = component("oscillator.lib").oscrs; // sine for left channel
    lfor = component("oscillator.lib").oscrc; // cosine for right channel
    dmax = 2048;
-   dflange = 0.001 * SR * 
+   dflange = 0.001 * SR *
      del_group(hslider("[1] Flange Delay [unit:ms] [style:knob]", 10, 0, 20, 0.001));
-   odflange = 0.001 * SR * 
+   odflange = 0.001 * SR *
      del_group(hslider("[2] Delay Offset [unit:ms] [style:knob]", 1, 0, 20, 0.001));
    freq   = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.01));
    depth  = ctl_group(hslider("[2] Depth [style:knob]", 1, 0, 1, 0.001));
    fb     = ctl_group(hslider("[3] Feedback [style:knob]", 0, -0.999, 0.999, 0.001));
    level  = lvl_group(hslider("Flanger Output Level [unit:dB]", 0, -60, 10, 0.1)) : db2linear;
-   curdel1 = odflange+dflange*(1 + lfol(freq))/2; 
-   curdel2 = odflange+dflange*(1 + lfor(freq))/2; 
+   curdel1 = odflange+dflange*(1 + lfol(freq))/2;
+   curdel2 = odflange+dflange*(1 + lfor(freq))/2;
 };
 
 //------- phaser2_mono, phaser2_stereo, phaser2_demo -------
@@ -450,11 +450,11 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
 // REFERENCES:
 //    https://ccrma.stanford.edu/~jos/pasp/Phasing.html
 //    http://www.geofex.com/Article_Folders/phasers/phase.html
-//    'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III, 
+//    'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III,
 //    Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.
 //    CCRMA Tech. Report STAN-M-21: https://ccrma.stanford.edu/STANM/stanms/stanm21/
 
-vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) = 
+vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) =
  (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
 with {
      tf2 = component("filter.lib").tf2;
@@ -476,7 +476,7 @@ with {
      th(i) = (fratio^(i+1))*th1;
 };
 
-phaser2_mono(Notches,phase01,width,frqmin,fratio,frqmax,speed,depth,fb,invert) = 
+phaser2_mono(Notches,phase01,width,frqmin,fratio,frqmax,speed,depth,fb,invert) =
       _ <: *(g1) + g2mi*vibrato2_mono(Notches,phase01,fb,width,frqmin,fratio,frqmax,speed)
 with {               // depth=0 => direct-signal only
      g1 = 1-depth/2; // depth=1 => phaser mode (equal sum of direct and allpass-chain)
@@ -492,7 +492,7 @@ phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert)
 // USAGE:  _,_ : phaser2_demo : _,_;
 //
 phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
-   phaser2_group(x) = 
+   phaser2_group(x) =
     vgroup("PHASER2 [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
    meter_group(x) = phaser2_group(hgroup("[0]", x));
    ctl_group(x)  = phaser2_group(hgroup("[1]", x));
@@ -508,7 +508,7 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
    //flangeview = phaser2_amp_resp : meter_group(hspectrumview("[2] Phaser Amplitude Response", 0,1));
    //phaser2_stereo_demo(x,y) = attach(x,flangeview),y : ...
 
-   phaser2_stereo_demo = *(level),*(level) : 
+   phaser2_stereo_demo = *(level),*(level) :
      phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,mdepth,fb,invert);
 
    Notches = 4; // Compile-time parameter: 2 is typical for analog phaser stomp-boxes
@@ -541,7 +541,7 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
 // REFERENCE:
 // "Applications of Blumlein Shuffling to Stereo Microphone Techniques"
 // Michael A. Gerzon, JAES vol. 42, no. 6, June 1994
-// 
+//
 stereo_width(w) = shuffle : *(mgain),*(sgain) : shuffle
 with {
      shuffle =  _,_ <: +,-; // normally scaled by 1/sqrt(2) for orthonormality,
@@ -551,10 +551,10 @@ with {
 
 //--------------------------- amp_follower ---------------------------
 // Classic analog audio envelope follower with infinitely fast rise and
-// exponential decay.  The amplitude envelope instantaneously follows 
+// exponential decay.  The amplitude envelope instantaneously follows
 // the absolute value going up, but then floats down exponentially.
 //
-// USAGE: 
+// USAGE:
 //    _ : amp_follower(rel) : _
 //
 // where
@@ -572,7 +572,7 @@ amp_follower(rel) = abs : env with {
 //--------------------------- amp_follower_ud ---------------------------
 // Envelope follower with different up and down time-constants
 //
-// USAGE: 
+// USAGE:
 //    _ : amp_follower_ud(att,rel) : _
 //
 // where
@@ -588,7 +588,7 @@ amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 //----------------- gate_mono, gate_stereo -------------------
 // Mono and stereo signal gates
 //
-// USAGE: 
+// USAGE:
 //    _ : gate_mono(thresh,att,hold,rel)   : _
 // or
 //  _,_ : gate_stereo(thresh,att,hold,rel) : _,_
@@ -599,7 +599,7 @@ amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
 //  hold   = hold time = time (sec) gate stays open after signal level < thresh (e.g., 0.1 s)
 //  rel    = release time = time constant (sec) for gate to close (e.g., 0.020 s = 20 ms)
 //
-// REFERENCES: 
+// REFERENCES:
 // - http://en.wikipedia.org/wiki/Noise_gate
 // - http://www.soundonsound.com/sos/apr01/articles/advanced.asp
 // - http://en.wikipedia.org/wiki/Gating_(sound_engineering)
@@ -622,7 +622,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
 //-------------------- compressor_mono, compressor_stereo ----------------------
 // Mono and stereo dynamic range compressor_s
 //
-// USAGE: 
+// USAGE:
 //    _ : compressor_mono(ratio,thresh,att,rel)   : _
 // or
 //  _,_ : compressor_stereo(ratio,thresh,att,rel) : _,_
@@ -631,13 +631,13 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
 //  ratio  = compression ratio (1 = no compression, >1 means compression")
 //  thresh = dB level threshold above which compression kicks in
 //  att    = attack time = time constant (sec) when level & compression going up
-//  rel    = release time = time constant (sec) coming out of compression 
+//  rel    = release time = time constant (sec) coming out of compression
 //
-// REFERENCES: 
+// REFERENCES:
 // - http://en.wikipedia.org/wiki/Dynamic_range_compression
 // - https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html
 // - Albert Graef's <faust2pd>/examples/synth/compressor_.dsp
-// 
+//
 
 compressor_mono(ratio,thresh,att,rel,x) = x * compression_gain_mono(ratio,thresh,att,rel,x);
 
@@ -645,9 +645,9 @@ compressor_stereo(ratio,thresh,att,rel,x,y) = cgm*x, cgm*y with {
   cgm = compression_gain_mono(ratio,thresh,att,rel,abs(x)+abs(y));
 };
 
-compression_gain_mono(ratio,thresh,att,rel) = 
-  amp_follower_ud(att,rel) : linear2db : outminusindb(ratio,thresh) : 
-  kneesmooth(att) : db2linear 
+compression_gain_mono(ratio,thresh,att,rel) =
+  amp_follower_ud(att,rel) : linear2db : outminusindb(ratio,thresh) :
+  kneesmooth(att) : db2linear
 with {
   // kneesmooth(att) installs a "knee" in the dynamic-range compression,
   // where knee smoothness is set equal to half that of the compression-attack.
@@ -673,10 +673,10 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
      meter_group(hbargraph("[1] Gate Gain [unit:dB]  [tooltip: Current gain of the gate in dB]",
       -50,+10)); // [style:led]
 
-   gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y : 
+   gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y :
      gate_stereo(gatethr,gateatt,gatehold,gaterel);
 
-   gatethr = knob_group(hslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]", 
+   gatethr = knob_group(hslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]",
      -30, -120, 0, 0.1));
 
    gateatt = knob_group(hslider("[2] Attack [unit:us] [style:knob]  [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
@@ -685,7 +685,7 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
    gatehold = knob_group(hslider("[3] Hold [unit:ms] [style:knob]  [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
      200, 0, 1000, 1)) : *(0.001) : max(1/SR);
 
-   gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]", 
+   gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]",
      100, 0, 1000, 1)) : *(0.001) : max(1/SR);
 };
 
@@ -701,20 +701,20 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
    cbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the compressor has no effect]"));
 
-   gainview = 
-     compression_gain_mono(ratio,threshold,attack,release) : linear2db : 
+   gainview =
+     compression_gain_mono(ratio,threshold,attack,release) : linear2db :
      meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain of the compressor in dB]",
       -50,+10));
 
    displaygain = _,_ <: _,_,(abs,abs:+) : _,_,gainview : _,attach;
 
-   compressor_stereo_demo = 
-     displaygain(compressor_stereo(ratio,threshold,attack,release)) : 
+   compressor_stereo_demo =
+     displaygain(compressor_stereo(ratio,threshold,attack,release)) :
      *(makeupgain), *(makeupgain);
 
    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 
-   ratio = ctl_group(hslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]", 
+   ratio = ctl_group(hslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]",
      5, 1, 20, 0.1));
 
    threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
@@ -733,7 +733,7 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 };
 
 //------------------------------- limiter_* ------------------------------------
-// USAGE: 
+// USAGE:
 //     _ : limiter_1176_R4_mono   : _;
 //   _,_ : limiter_1176_R4_stereo : _,_;
 //
@@ -747,11 +747,11 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 //   parameters are hardwired to nominal values here.
 //
 // REFERENCE: http://en.wikipedia.org/wiki/1176_Peak_Limiter
-//   Ratios: 4 (moderate compression), 8 (severe compression), 
+//   Ratios: 4 (moderate compression), 8 (severe compression),
 //          12 (mild limiting), or 20 to 1 (hard limiting)
 //   Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176)
 //   Rel: 50-1100 ms (Note: scaled by ratio in the 1176)
-//   Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) 
+//   Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.)
 //     Faster attack gives "more bite" (e.g. on vocals)
 //     He hears a bright, clear eq effect as well (not implemented here)
 //
@@ -761,7 +761,7 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 //========================== Schroeder Reverberators  ======================
 
 //------------------------------ jcrev,satrev ------------------------------
-// USAGE: 
+// USAGE:
 //     _ :  jcrev : _,_,_,_
 //     _ : satrev : _,_
 //
@@ -775,7 +775,7 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 
 // The reverb below was made from a listing of "RV", dated April 14, 1972,
 // which was recovered from an old SAIL DART backup tape.
-// John Chowning thinks this might be the one that became the 
+// John Chowning thinks this might be the one that became the
 // well known and often copied JCREV:
 
 jcrev = *(0.06) : allpass_chain <: comb_bank :> _ <: mix_mtx with {
@@ -785,12 +785,12 @@ jcrev = *(0.06) : allpass_chain <: comb_bank :> _ <: mix_mtx with {
   rev12(len,g) = rev1N(2048,len,g);
   rev14(len,g) = rev1N(4096,len,g);
 
-  allpass_chain = 
-    rev2(512,347,0.7) : 
-    rev2(128,113,0.7) : 
+  allpass_chain =
+    rev2(512,347,0.7) :
+    rev2(128,113,0.7) :
     rev2( 64, 37,0.7);
 
-  comb_bank = 
+  comb_bank =
     rev12(1601,.802),
     rev12(1867,.773),
     rev14(2053,.753),
@@ -815,7 +815,7 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
   rev11(len,g) = rev1N(1024,len,g);
   rev12(len,g) = rev1N(2048,len,g);
 
-  comb_bank = 
+  comb_bank =
     rev11( 778,.827),
     rev11( 901,.805),
     rev11(1011,.783),
@@ -823,9 +823,9 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 
   rev2N = component("filter.lib").rev2;
 
-  allpass_chain = 
-    rev2N(128,125,0.7) : 
-    rev2N( 64, 42,0.7) : 
+  allpass_chain =
+    rev2N(128,125,0.7) :
+    rev2N( 64, 42,0.7) :
     rev2N( 16, 12,0.7);
 };
 
@@ -838,12 +838,12 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 //-------------------------------- fdnrev0 ---------------------------------
 // Pure Feedback Delay Network Reverberator (generalized for easy scaling).
 //
-// USAGE: 
-//   <1,2,4,...,N signals> <: 
-//   fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :> 
+// USAGE:
+//   <1,2,4,...,N signals> <:
+//   fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :>
 //   <1,2,4,...,N signals>
 //
-// WHERE 
+// WHERE
 //   N = 2, 4, 8, ...  (power of 2)
 //   MAXDELAY = power of 2 at least as large as longest delay-line length
 //   delays = N delay lines, N a power of 2, lengths perferably coprime
@@ -853,14 +853,14 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 //   loopgainmax = scalar gain between 0 and 1 used to "squelch" the reverb
 //   nonl = nonlinearity (0 to 0.999..., 0 being linear)
 //
-// REFERENCE: 
+// REFERENCE:
 //   https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html
 //
 // DEPENDENCIES: filter.lib (filterbank)
 
-fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax, nonl) 
-  = (bus(2*N) :> bus(N) : delaylines(N)) ~ 
-    (delayfilters(N,freqs,durs) : feedbackmatrix(N)) 
+fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax, nonl)
+  = (bus(2*N) :> bus(N) : delaylines(N)) ~
+    (delayfilters(N,freqs,durs) : feedbackmatrix(N))
 with {
   N = count(delays);
   NB = count(durs);
@@ -874,16 +874,17 @@ with {
   delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
   feedbackmatrix(N) = bhadamard(N);
   vbutterfly(n) = bus(n) <: (bus(n):>bus(n/2)) , ((bus(n/2),(bus(n/2):par(i,n/2,*(-1)))) :> bus(n/2));
-  bhadamard(2) = bus(2) <: +,-; 
+  bhadamard(2) = bus(2) <: +,-;
   bhadamard(n) = bus(n) <: (bus(n):>bus(n/2)) , ((bus(n/2),(bus(n/2):par(i,n/2,*(-1)))) :> bus(n/2))
                  : (bhadamard(n/2) , bhadamard(n/2));
 
   // Experimental nonlinearities:
   // nonlinallpass = apnl(nonl,-nonl);
-  // nonlinallpass(x) = allpassnn(3,(nonl*PI*(x,x*x,x*x*x))); // filter.lib
-     nonlinallpass = _; // maybe later (for metallic plates and such) ...
+  // s = nonl*PI;
+  // nonlinallpass(x) = allpassnn(3,(s*x,s*x*x,s*x*x*x)); // filter.lib
+     nonlinallpass = _; // disabled by default (rather expensive)
 
-  filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i))) 
+  filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i)))
                          :> *(loopgainmax) / sqrt(N) : nonlinallpass
   with {
     dur(j) = take(j+1,durs);
@@ -896,20 +897,20 @@ with {
 // ---------- prime_power_delays -----
 // Prime Power Delay Line Lengths
 //
-// USAGE: 
+// USAGE:
 //   bus(N) : prime_power_delays(N,pathmin,pathmax) : bus(N);
 //
-// WHERE 
-//   N = positive integer up to 16 
+// WHERE
+//   N = positive integer up to 16
 //       (for higher powers of 2, extend 'primes' array below.)
 //   pathmin = minimum acoustic ray length in the reverberator (in meters)
 //   pathmax = maximum acoustic ray length (meters) - think "room size"
 //
-// DEPENDENCIES: 
-//   math.lib (SR, selector, take) 
+// DEPENDENCIES:
+//   math.lib (SR, selector, take)
 //   music.lib (db2linear)
 //
-// REFERENCE: 
+// REFERENCE:
 //   https://ccrma.stanford.edu/~jos/pasp/Prime_Power_Delay_Line.html
 //
 prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
@@ -938,7 +939,7 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
   ck_group(x) = revin_group(vgroup("[1] Input Config",x));
   mutegain = 1 - ck_group(checkbox("[1] Mute Ext Inputs
          [tooltip: When this is checked, the stereo external audio inputs are disabled (good for hearing the impulse response or pink-noise response alone)]"));
-  pinkin = ck_group(checkbox("[2] Pink Noise 
+  pinkin = ck_group(checkbox("[2] Pink Noise
          [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting the EQ sections)]"));
 
   impulsify = _ <: _,mem : - : >(0);
@@ -949,14 +950,14 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
          [tooltip: Send impulse into LEFT and RIGHT channels]")) : impulsify;
   pulseR =  imp_group(button("[3] Right
          [tooltip: Send impulse into RIGHT channel]")) : impulsify;
-  
+
   inx = x*mutegain + (pulseL+pulseC) + pn;
   iny = y*mutegain + (pulseR+pulseC) + pn;
   pn = 0.1*pinkin*component("oscillator.lib").pink_noise;
 };
 
 //------------------------- fdnrev0_demo ---------------------------
-// USAGE: _,_ : fdnrev0_demo(N,NB,BBSO) : _,_ 
+// USAGE: _,_ : fdnrev0_demo(N,NB,BBSO) : _,_
 // WHERE
 //    N = Feedback Delay Network (FDN) order
 //      = number of delay lines used = order of feedback matrix
@@ -969,7 +970,7 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
 //      = odd positive integer
 
 fdnrev0_demo(N,NB,BBSO,x,y) = stereo_reverb_tester(revin_group,x,y)
-	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) 
+	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
           :> *(gain),*(gain)
 with {
   MAXDELAY = 8192; // sync w delays and prime_power_delays above
@@ -994,41 +995,40 @@ with {
 
   pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]
     [tooltip: This length (in meters) determines the shortest delay-line used in the FDN reverberator.
-    	      Think of it as the shortest wall-to-wall separation in the room.]", 
+    	      Think of it as the shortest wall-to-wall separation in the room.]",
 	    46, 0.1, 63, 0.1));
   pathmax = path_group(hslider("[2] max acoustic ray length [unit:m]
     [tooltip: This length (in meters) determines the longest delay-line used in the FDN reverberator.
-    	      Think of it as the largest wall-to-wall separation in the room.]", 
+    	      Think of it as the largest wall-to-wall separation in the room.]",
 	    63, 0.1, 63, 0.1));
 
-  defdur(i) = 1.9*(0.7^float(-i));
   durvals(i) = t60_group(vslider("[%i] %i [unit:s]
     [tooltip: T60 is the 60dB decay-time in seconds. For concert halls, an overall reverberation time (T60) near 1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each frequency band.  In real rooms, higher frequency bands generally decay faster due to absorption and scattering.]",
     take(i+1,defdurs), 0.1, 10, 0.1));
   durs = par(i,NB,durvals(NB-1-i));
 
   freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz]
-    [tooltip: Each delay-line signal is split into frequency-bands for separate decay-time control in each band]", 
+    [tooltip: Each delay-line signal is split into frequency-bands for separate decay-time control in each band]",
     take(i+1,deffreqs), 100, 10000, 1));
   freqs = par(i,NB-1,freqvals(i));
 
   delays = prime_power_delays(N,pathmin,pathmax);
 
-  gain = hslider("[3] Output Level (dB) [unit:dB] 
-    [tooltip: Output scale factor]", -40, -70, 20, 0.1) : db2linear; 
+  gain = hslider("[3] Output Level (dB) [unit:dB]
+    [tooltip: Output scale factor]", -40, -70, 20, 0.1) : db2linear;
      // (can cause infinite loop:) with { db2linear(x) = pow(10, x/20.0); };
 };
 
 //------------------------------- zita_rev_fdn -------------------------------
 // Internal 8x8 late-reverberation FDN used in the FOSS Linux reverb zita-rev1
 // by Fons Adriaensen <fons@linuxaudio.org>.  This is an FDN reverb with
-// allpass comb filters in each feedback delay in addition to the 
+// allpass comb filters in each feedback delay in addition to the
 // damping filters.
 //
-// USAGE: 
+// USAGE:
 //   bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : bus(8)
 //
-// WHERE 
+// WHERE
 //   f1    = crossover frequency (Hz) separating dc and midrange frequencies
 //   f2    = frequency (Hz) above f1 where T60 = t60m/2 (see below)
 //   t60dc = desired decay time (t60) at frequency 0 (sec)
@@ -1039,7 +1039,7 @@ with {
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
 //   https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html
 //
-// DEPENDENCIES: 
+// DEPENDENCIES:
 //   filter.lib (allpass_comb, lowpass, smooth)
 //   math.lib (hadamard, take, etc.)
 
@@ -1050,9 +1050,9 @@ with {
   N = 8;
 
   // Delay-line lengths in seconds:
-  apdelays = (0.020346, 0.024421, 0.031604, 0.027333, 0.022904, 
+  apdelays = (0.020346, 0.024421, 0.031604, 0.027333, 0.022904,
               0.029291, 0.013458, 0.019123); // feedforward delays in seconds
-  tdelays = ( 0.153129, 0.210389, 0.127837, 0.256891, 0.174713, 
+  tdelays = ( 0.153129, 0.210389, 0.127837, 0.256891, 0.174713,
               0.192303, 0.125000, 0.219991); // total delays in seconds
   tdelay(i) = floor(0.5 + SR*take(i+1,tdelays)); // samples
   apdelay(i) = floor(0.5 + SR*take(i+1,apdelays));
@@ -1067,7 +1067,7 @@ with {
   maxfbdelay(i) = int(2.0^max(1.0,nextpow2(fbdelaymaxfs(i))));
 
   apcoeff(i) = select2(i&1,0.6,-0.6);  // allpass comb-filter coefficient
-  allpass_combs(N) = 
+  allpass_combs(N) =
     par(i,N,(allpass_comb(maxapdelay(i),apdelay(i),apcoeff(i)))); // filter.lib
   fbdelaylines(N) = par(i,N,(delay(maxfbdelay(i),(fbdelay(i)))));
   freqs = (f1,f2); durs = (t60dc,t60m);
@@ -1159,14 +1159,14 @@ with {
 //---------------------------------- zita_rev1 ------------------------------
 // Example GUI for zita_rev1_stereo (mostly following the Linux zita-rev1 GUI).
 //
-// Only the dry/wet and output level parameters are "dezippered" here.  If 
+// Only the dry/wet and output level parameters are "dezippered" here.  If
 // parameters are to be varied in real time, use "smooth(0.999)" or the like
 // in the same way.
 //
-// REFERENCE: 
+// REFERENCE:
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
 //
-// DEPENDENCIES: 
+// DEPENDENCIES:
 //   filter.lib (peak_eq_rm)
 
 zita_rev1(x,y) = zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
@@ -1180,22 +1180,22 @@ with {
 
   in_group(x) = fdn_group(hgroup("[1] Input", x));
 
-  rdel = in_group(vslider("[1] In Delay [unit:ms] [style:knob] 
+  rdel = in_group(vslider("[1] In Delay [unit:ms] [style:knob]
                   [tooltip: Delay in ms before reverberation begins]",
                   60,20,100,1));
 
   freq_group(x) = fdn_group(hgroup("[2] Decay Times in Bands (see tooltips)", x));
 
-  f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob] 
+  f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob]
        [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
        200, 50, 1000, 1));
 
-  t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob] 
-          [style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]", 
+  t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob]
+          [style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
 	  3, 1, 8, 0.1));
 
   t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob]
-          [tooltip: T60 = time (in seconds) to decay 60dB in middle band]", 
+          [tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
 	  2, 1, 8, 0.1));
 
   f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob]
@@ -1218,21 +1218,21 @@ with {
   eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob]
        [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 1]",
        315, 40, 2500, 1));
-  
+
   eq1l = eq1_group(vslider("[2] Eq1 Level [unit:dB] [style:knob]
        [tooltip: Peak level in dB of second-order Regalia-Mitra peaking equalizer section 1]",
        0, -15, 15, 0.1));
-  
+
   eq1q = eq1_group(vslider("[3] Eq1 Q [style:knob]
        [tooltip: Q = centerFrequency/bandwidth of second-order peaking equalizer section 1]",
        3, 0.1, 10, 0.1));
-  
+
   eq2_group(x) = fdn_group(hgroup("[4] RM Peaking Equalizer 2", x));
 
   eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob]
        [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 2]",
        315, 40, 2500, 1));
-  
+
   eq2l = eq2_group(vslider("[2] Eq2 Level [unit:dB] [style:knob]
        [tooltip: Peak level in dB of second-order Regalia-Mitra peaking equalizer section 2]",
        0, -15, 15, 0.1));
@@ -1240,12 +1240,12 @@ with {
   eq2q = eq2_group(vslider("[3] Eq2 Q [style:knob]
        [tooltip: Q = centerFrequency/bandwidth of second-order peaking equalizer section 2]",
        3, 0.1, 10, 0.1));
-  
+
   out_group(x)  = fdn_group(hgroup("[5] Output", x));
 
-  dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y with { 
+  dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y with {
     wet = 0.5*(drywet+1.0);
-    dry = 1.0-wet; 
+    dry = 1.0-wet;
   };
 
   drywet = out_group(vslider("[1] Dry/Wet Mix [style:knob]
@@ -1255,8 +1255,8 @@ with {
   out_level = *(gain),*(gain);
 
   gain = out_group(vslider("[2] Level [unit:dB] [style:knob]
-    [tooltip: Output scale factor]", -40, -70, 40, 0.1)) 
-    : smooth(0.999) : db2linear; 
+    [tooltip: Output scale factor]", -40, -70, 40, 0.1))
+    : smooth(0.999) : db2linear;
 
 };
 
