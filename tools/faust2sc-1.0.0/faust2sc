@@ -298,14 +298,21 @@ module Faust
       name
     end
     def make_class_name(unit_name, prefix)
+      # The SuperCollider UGen class name generated here must match 
+      # that generated in the Faust architecture file supercollider.cpp
       if prefix == ""
         prefix = "Faust"
       end
-      class_name = unit_name.encapitalize.gsub(/[-_\s]/,"")
-      class_name = class_name.sub(/^#{prefix}/i,"")
-      class_name = prefix + class_name.encapitalize.gsub(/[-_\s]/,"")
+      class_name = unit_name
+      class_name = class_name.sub(/^#{prefix}/i, '')
+      class_name = prefix + '_' + class_name
+      cna = class_name.split(/[^0-9a-z]/i)
+      cna.each_index { |i| cna[i] = cna[i].encapitalize } # SC name convention
+      class_name = cna.join
+      print_info(unit_name + " -> " + class_name + "\n")
       if class_name.length > 31 # maximum SC Node ID length is 31 (hashed)
-        class_name = class_name[0,30];
+        print_info("Class name `#{class_name}' truncated to 1st 31 chars\n")
+        class_name = class_name[0,30]
       end
       unless class_name =~ CLASS_REGEXP
         raise "invalid class name: \"#{class_name}\""
@@ -316,7 +323,16 @@ module Faust
 
     class Faust::Widget
       def sc3_identifier
-        Language.make_identifier(self.label)
+        l = self.label
+        l = l.gsub(/\([^\)]*\)/, '')
+        l = Language.make_identifier(l)
+        if l.length > 30 # maximum SC ParamSpec length is 31 (hashed)
+          lt = l[0,29]   # leave a final char for make_unique
+          print_info("Label `#{l}' for #{self.type} #{self.id} truncated to " +
+                     "`#{lt}' (30 chars)\n")
+          l = lt
+        end
+        l
       end
       def sc3_arg_string
         "#{self.sc3_identifier}(#{self.init})"
