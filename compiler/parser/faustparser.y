@@ -493,6 +493,10 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
                 | VECTORIZE                     { $$ = boxPrim2(sigVectorize); }
                 | SERIALIZE                     { $$ = boxPrim1(sigSerialize); }
                 | HASH                          { $$ = boxPrim2(sigConcat); }
+                
+                | UPSAMPLE                      { $$ = boxPrim2(sigUpSample); }
+                | DOWNSAMPLE                    { $$ = boxPrim2(sigDownSample); }
+                
                 | LCROC RCROC                   { $$ = boxPrim2(sigVectorAt); }
                 | LCROC infixexp RCROC          { $$ = boxSeq(boxPar(boxWire(),$2),boxPrim2(sigVectorAt)); }
 

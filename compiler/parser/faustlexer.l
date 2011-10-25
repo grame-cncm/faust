@@ -184,6 +184,9 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "#"         return HASH;
 "rate"      return RATE;
 
+"up"      	return UPSAMPLE;
+"down"      return DOWNSAMPLE;
+
 "case"		return CASE;
 "=>"		return ARROW;
 
