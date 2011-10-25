@@ -143,6 +143,12 @@ class ScalarCompiler : public Compiler
 	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
     virtual void        generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
 
+    // up et down sampling
+    virtual string 		generateUpSample	(Tree sig, Tree arg, Tree size);
+    virtual string 		generateDownSample	(Tree sig, Tree arg, Tree size);
+
+
+
 	void 		getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
 	void 		ensureIotaCode();
     int         pow2limit(int x);

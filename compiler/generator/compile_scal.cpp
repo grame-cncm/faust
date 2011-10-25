@@ -307,6 +307,10 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
 
+    else if ( isSigUpSample(sig, x, y) )            { return generateUpSample(sig, x, y); }
+    else if ( isSigDownSample(sig, x, y) )          { return generateDownSample(sig, x, y); }
+
+
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
 		print(sig);
@@ -1251,6 +1255,25 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
         fClass->addExecCode(subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp));
     }
 }
+
+/**
+ * Generate up sampling code
+ */
+
+string ScalarCompiler::generateUpSample(Tree sig, Tree w, Tree x)
+{
+    return CS(x);
+}
+
+/**
+ * Generate down sampling code
+ */
+
+string ScalarCompiler::generateDownSample(Tree sig, Tree w, Tree x)
+{
+    return CS(x);
+}
+
 
 /**
  * Generate code for a unique IOTA variable increased at each sample
