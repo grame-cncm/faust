@@ -431,6 +431,9 @@ static Type infereSigType(Tree sig, Tree env)
     else if ( isSigConcat(sig, x, y) )         return infereConcatType(T(x,env), T(y,env));
     else if ( isSigVectorAt(sig, x, y) )       return infereVectorAtType(T(x,env), T(y,env));
 
+    else if ( isSigUpSample(sig, x, y) )       { T(x,env); return T(y,env); }
+    else if ( isSigDownSample(sig, x, y) )     { T(x,env); return T(y,env); }
+
 	// unrecognized signal here
     fprintf(stderr, "ERROR in ***infereSigType()***, unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);

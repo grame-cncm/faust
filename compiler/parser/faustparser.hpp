@@ -141,26 +141,28 @@
      VECTORIZE = 357,
      SERIALIZE = 358,
      RATE = 359,
-     BDOC = 360,
-     EDOC = 361,
-     BEQN = 362,
-     EEQN = 363,
-     BDGM = 364,
-     EDGM = 365,
-     BLST = 366,
-     ELST = 367,
-     BMETADATA = 368,
-     EMETADATA = 369,
-     DOCCHAR = 370,
-     NOTICE = 371,
-     LISTING = 372,
-     LSTTRUE = 373,
-     LSTFALSE = 374,
-     LSTDEPENDENCIES = 375,
-     LSTMDOCTAGS = 376,
-     LSTDISTRIBUTED = 377,
-     LSTEQ = 378,
-     LSTQ = 379
+     UPSAMPLE = 360,
+     DOWNSAMPLE = 361,
+     BDOC = 362,
+     EDOC = 363,
+     BEQN = 364,
+     EEQN = 365,
+     BDGM = 366,
+     EDGM = 367,
+     BLST = 368,
+     ELST = 369,
+     BMETADATA = 370,
+     EMETADATA = 371,
+     DOCCHAR = 372,
+     NOTICE = 373,
+     LISTING = 374,
+     LSTTRUE = 375,
+     LSTFALSE = 376,
+     LSTDEPENDENCIES = 377,
+     LSTMDOCTAGS = 378,
+     LSTDISTRIBUTED = 379,
+     LSTEQ = 380,
+     LSTQ = 381
    };
 #endif
 
@@ -181,7 +183,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 185 "parser/faustparser.hpp"
+#line 187 "parser/faustparser.hpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

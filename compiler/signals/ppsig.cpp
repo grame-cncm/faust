@@ -234,6 +234,9 @@ ostream& ppsig::print (ostream& fout) const
     else if ( isSigVectorAt(sig,x,y))               { printfun(fout, "vectorAt", x, y); }
     else if ( isSigConcat(sig,x,y))                 { printfun(fout, "concat", x, y); }
 
+    else if ( isSigUpSample(sig,x,y))               { printfun(fout, "up", x, y); }
+    else if ( isSigDownSample(sig,x,y))             { printfun(fout, "down", x, y); }
+
 	else {
         cerr << "NOT A SIGNAL : " << *sig << endl;
         //exit(1);

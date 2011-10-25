@@ -527,90 +527,6 @@ static Tree flatRateEnvironmentList(Tree lre)
     return e;
 }
 
-#if 0
-
-#if 0
-property<int>   xxxgComputeRateProperty;
-
-static void xxxsetComputeRateProperty(Tree sig, Tree renv, int rate)
-{
-    xxxgComputeRateProperty.set(cons(sig,renv),rate);
-}
-
-static bool xxxgetComputeRateProperty(Tree sig, Tree renv, int& rate)
-{
-    return xxxgComputeRateProperty.get(cons(sig,renv),rate);
-}
-#endif
-
-/**
- * Compute the rate of a signal according to a rate environment indicating rates for input signals
- * @param sig the signal we want to compute the rate
- * @param renv the rate environment
- * @return the type of sig according to environment env
- */
-static int doComputeRate(Tree sig, Tree renv, property<int>& rateProperty);
-
-static int computeRate(Tree sig, Tree renv, property<int>& rateProperty)
-{
-    int r;
-    if (rateProperty.get(sig, r)) {
-        return r;
-    } else {
-        r = doComputeRate(sig, renv, rateProperty);
-        rateProperty.set(sig, r);
-        return r;
-    }
-}
-
-/**
-  * We assume types have been computed. We will use them to compute the rates.
-  */
-static int doComputeRate(Tree sig, Tree renv, property<int>& rateProperty)
-{
-    Tree    n, x;
-
-    if ( isSigVectorize(sig, n, x) )  {
-
-        VectorType* vt = isVectorType(getCertifiedSigType(sig));
-        assert(vt);
-        return computeRate(x, renv, rateProperty) / vt->size();
-
-    } else if ( isSigSerialize(sig, x)) {
-
-        VectorType* vt = isVectorType(getCertifiedSigType(x));
-        assert(vt);
-        return vt->size() * computeRate(x, renv, rateProperty);
-
-    } else {
-
-        vector<Tree> subsigs;
-        vector<int> subrates;
-        int n = getSubSignals(sig, subsigs, false);
-        if (n == 0) {
-            // we don't depend of any subsignals, then the rate is 1
-            return 1;
-        } else {
-            // we depend on subsignals, the rate is the highest one
-            // moreover the highest one is a multiple of all other
-            // rates
-            int maxrate = 1;
-            int lcmrate = 1;
-            for (unsigned int i=0; i<subsigs.size(); i++) {
-                int r = computeRate(subsigs[i], renv, rateProperty);
-                maxrate = max(r, maxrate);
-                lcmrate = lcm(r, lcmrate);
-                if (lcmrate != maxrate) {
-                    return 0; // rates of arguments are incompatible
-                }
-            }
-            return maxrate;
-        }
-    }
-}
-
-#endif
-
 /**
 
 ========================================== RATE INFERENCE =========================================
@@ -655,6 +571,26 @@ static void inferreRate(Tree sig, int* rate, Tree& E)
 
 
 /**
+  * Checks that w denotes a positive constant integer signal n
+  * returns n or exit
+  */
+static int checkSignalDenotesSize(Tree w, Tree sig)
+{
+    // checks that w denotes a positive constant integer signal n
+    SimpleType*  st = isSimpleType(getCertifiedSigType(w));
+
+    if (st && st->nature()==kInt) {
+        interval i = st->getInterval();
+        if (i.valid && i.lo >= 0 && i.lo == i.hi) {
+            return int(i.lo);
+        }
+    }
+    cerr << "ERROR in expression : " << ppsig(sig) << endl;
+    cerr << *w << " is not a positive constant integer" << endl;
+    exit(1);
+}
+
+/**
   * Inferre the rate (and the rate environment) of a signal.
   * A zero rate indicates an impossibility
   */
@@ -665,7 +601,7 @@ static void doInferreRate(Tree sig, int* rate, Tree& E)
 
     if ( isSigVectorize(sig, w, x) )  {
 
-        // -- rate(vectorize(n,x) = rate(x)/n
+        // -- rate(vectorize(n,x)) = rate(x)/n
 
         VectorType* vt  = isVectorType(getCertifiedSigType(sig)); assert(vt);
         int         n   = vt->size(); assert(n>0);
@@ -681,6 +617,33 @@ static void doInferreRate(Tree sig, int* rate, Tree& E)
             *rate = m/n;
             E = multRateEnv(m/r, E);
         }
+
+    } else if ( isSigDownSample(sig, w, x) )  {
+
+        // -- rate(down(n,x) = rate(x)/n
+
+        int n = checkSignalDenotesSize(w, sig);
+
+        int r; inferreRate(x, &r, E);
+
+        if ((r%n) == 0) {
+            // fine, the rate of x can be divided by n
+            // (note: this is compatible with r==0 indicating that x has no rate)
+            *rate = r/n;
+        } else {
+            // we need to scale the rates involved in x
+            int m = lcm(n,r);
+            *rate = m/n;
+            E = multRateEnv(m/r, E);
+        }
+
+    } else if ( isSigUpSample(sig, w, x) )  {
+
+        // -- rate(up(n,x) = rate(x)*n
+
+        int n = checkSignalDenotesSize(w, sig);
+        int r; inferreRate(x, &r, E);
+        *rate = r*n;
 
     } else if ( isSigSerialize(sig, x)) {
 
@@ -856,6 +819,18 @@ int RateInferrer::computeRate(Tree sig)
         VectorType* vt = isVectorType(getCertifiedSigType(x));
         assert(vt);
         return vt->size() * rate(x);
+
+    } else if ( isSigUpSample(sig, n, x) ) {
+
+        int i = checkSignalDenotesSize(n,sig);
+        return rate(x) * i;
+
+    } else if ( isSigDownSample(sig, n, x) ) {
+
+        int i = checkSignalDenotesSize(n,sig);
+        int r = rate(x);
+        assert(r%i == 0);
+        return r/i;
 
     } else {
 

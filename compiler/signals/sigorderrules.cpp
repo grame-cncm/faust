@@ -171,6 +171,9 @@ static int infereSigOrder(Tree sig)
     else if (isSigVectorAt(sig,s1,s2))          return 3;
     else if (isSigConcat(sig,s1,s2))            return 3;
 
+    else if (isSigUpSample(sig,s1,s2))          return 3;
+    else if (isSigDownSample(sig,s1,s2))        return 3;
+
 	else if (isList(sig)) 
 	{
 		int r = 0;

@@ -207,6 +207,8 @@ Tree unquote(char* str)
 %token SERIALIZE
 %token HASH
 %token RATE
+%token UPSAMPLE
+%token DOWNSAMPLE
 
  /* Begin and End tags for documentations, equations and diagrams */
 %token BDOC

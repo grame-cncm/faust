@@ -74,6 +74,9 @@ const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
     if (ptr == sigVectorAt) 	return "[]";
     if (ptr == sigConcat)       return "#";
 
+    if (ptr == sigUpSample)     return "up";
+    if (ptr == sigDownSample)   return "down";
+
 
 
 	return "prim2???";

@@ -283,6 +283,9 @@ static string sigLabel(Tree sig)
     else if ( isSigConcat(sig, x, y) )         { fout << "#";		}
     else if ( isSigVectorAt(sig, x, y) )       { fout << "[]";		}
 
+    else if ( isSigUpSample(sig, x, y) )       { fout << "up";		}
+    else if ( isSigDownSample(sig, x, y) )     { fout << "down";		}
+
     else {
         cerr << "ERROR in sigLabel(), unrecognized signal : " << *sig << endl;
         exit(1);

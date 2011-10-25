@@ -74,6 +74,9 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
     else if ( isSigConcat(sig, x, y) )              { vsigs.push_back(x); vsigs.push_back(y); return 2; }
     else if ( isSigVectorAt(sig, x, y) )            { vsigs.push_back(x); vsigs.push_back(y); return 2; }
 
+    else if ( isSigUpSample(sig, x, y) )            { vsigs.push_back(x); vsigs.push_back(y); return 2; }
+    else if ( isSigDownSample(sig, x, y) )          { vsigs.push_back(x); vsigs.push_back(y); return 2; }
+
 
 	else {
         cerr << "ERROR in getSubSignals(),   unrecognized signal : " << *sig << endl;

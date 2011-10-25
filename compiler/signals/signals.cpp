@@ -137,6 +137,14 @@ Sym SIGVECTORAT = symbol ("SigVectorAt");
 Tree sigVectorAt (Tree s1, Tree s2)                     { return tree(SIGVECTORAT, s1, s2); }
 bool isSigVectorAt(Tree a, Tree& s1, Tree& s2)          { return isTree(a, SIGVECTORAT, s1, s2); }
 
+Sym SIGUPSAMPLE = symbol ("SigUpsample");
+Tree sigUpSample (Tree n, Tree s)                       { return tree(SIGUPSAMPLE, n, s); }
+bool isSigUpSample (Tree a, Tree& n, Tree& s)           { return isTree(a, SIGUPSAMPLE, n, s); }
+
+Sym SIGDOWNSAMPLE = symbol ("SigDownsample");
+Tree sigDownSample (Tree n, Tree s)                       { return tree(SIGDOWNSAMPLE, n, s); }
+bool isSigDownSample (Tree a, Tree& n, Tree& s)           { return isTree(a, SIGDOWNSAMPLE, n, s); }
+
 
 // Arithmetical operations
 
