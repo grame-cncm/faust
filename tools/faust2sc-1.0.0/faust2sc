@@ -91,6 +91,11 @@ module Faust
         print_info("No label for widget ID #{id} - calling it widget#{id}\n")
         @label = "widget#{id}"
       end
+      if (@label =~ /^[0-9]/)
+        plabel = @label
+        @label = @type + "_" + @label
+        print_info("Widget label `#{plabel}' prefixed to become `#{@label}'\n")
+      end
       dict = node.elements
       @init = dict["init"].to_f
       @min  = dict["min"].to_f
@@ -186,6 +191,12 @@ module Faust
       name = name.sub(/(^_|_$)/, "")
       # move leading digits to the end
       name = name.sub(/^([0-9]+)_/, "") + ("_#{$1}" if $1).to_s
+      # if digit(s) only, prepend alpha prefix
+      if (name[0..0] =~ /^[0-9]/)
+        pname = name
+        name = "w" + name
+        print_info("Widget label `#{pname}' prefixed to become `#{name}'\n")
+      end
       unless name =~ IDENTIFIER_REGEXP
         raise "invalid identifier: \"#{name}\""
       end
