@@ -1142,6 +1142,89 @@ The following primitives allow to define fixed delays, read-only and read-write 
 \end{figure}
 
 
+
+%--------------------------------------------------------------------------------------------------------------
+\subsection{Multirate and multidimension primitives}
+%--------------------------------------------------------------------------------------------------------------
+
+The role of the following four primitives is to extend Faust capabilities to domains such as FFT-based spectral processing that involves multiple computation rates.
+The principle is to link rate changes to data structure manipulation operations : creating a vector-valued output signal divides the rate of input signals by the vector size, while serializing vectors multiplies rates accordingly.
+
+\subsubsection{Vectorize}
+Vectors are created using the \lstinline'vectorize' primitive that takes two input signals : the signal $x$ to vectorize and the size $n$ of the output vectors, and produces an output signal of vectors of size $n$. The output signal is obtained by collecting $n$ consecutive samples from $x$. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{images/mr_vectorize}
+\caption{\lstinline'+(1)~_' vectorized by 3}
+\label{fig:vectorize}
+\end{figure}
+
+Figure \ref{fig:vectorize} illustrates the signal \lstinline'+(1)~_' vectorized by 3. This expression can be notated:
+\begin{lstlisting}
++(1)~_, 3 : vectorize
+\end{lstlisting}
+or alternatively 
+\begin{lstlisting}
++(1)~_ : vectorize(3)
+\end{lstlisting}
+Here \lstinline'vectorize(3)' is a convenient notation for \lstinline'_, 3 : vectorize'.
+
+If the first input signal $x$ is of type $T$ and rate $f$, and the second input signal $n$ is a constant signal known at compile time, then the output signal is of type $\mathtt{vector}_{n}(T)$ and rate $f/n$. The rate inferrence system will make sure the $f$ is a multiple of $n$.
+
+\subsubsection{Serialize}
+
+The \lstinline'serialize' primitive is the dual of \lstinline'vectorize'. It maps a signal of type $\mathtt{vector}_{n}(T)$ and rate $f$ into a signal of type $T$ and rate $n.f$. 
+
+\lstinline'serialize' with an input signal of vectors of size 3 is illustrated Figure \ref{fig:serialize}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{images/mr_serialize}
+\caption{Serialize}
+\label{fig:serialize}
+\end{figure}
+
+\subsubsection{Concatenate}
+The infix operation \lstinline'#' is used to concatenate vectors as illustrated figure \ref{fig:concat}. 
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{images/mr_concat}
+\caption{concat vectors}
+\label{fig:concat}
+\end{figure}
+
+It takes two inputs signals of types $\mathtt{vector}_{n}(T)$ and $\mathtt{vector}_{m}(T)$ and produces an output signal of type $\mathtt{vector}_{n+m}(T)$.
+
+\subsubsection{Access}
+Vector elements can be accessed using \lstinline'[]'. This binary operation takes two input signals : a vector signal and an index signal, and delivers the corresponding elements of the vector signal as illustrated figure \ref{fig:access}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{images/mr_access}
+\caption{Access}
+\label{fig:access}
+\end{figure}
+
+
+\subsubsection{Polymorphic extension of other primitives}
+In order to deal with non scalar signals (signals of vectors, matrices, etc...), \faust primitives are extended 
+
+\bigskip
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Syntax} & \textbf{Type}  & \textbf{Description} \\
+\hline
+
+\texttt{vectorize} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 	& vectorize:  	$y(t+1)=x_{2}(t),y(0)=x_{1}(0)$  \\
+\texttt{serialize} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 		& serialize: 	$y(t+1)=x(t),y(0)=0$  \\
+\texttt{\#} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 			& concatenate vectors:  	$y(t+x_{2}(t))=x_{1}(t), y(t<x_{2}(t))=0$  \\
+
+\texttt{[]} & $\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}$ 	& vector access:	$y(t)=T[r(t)]$  \\
+
+\hline
+\end{tabular}
+
 %--------------------------------------------------------------------------------------------------------------
 \subsection{User Interface Elements}
 %--------------------------------------------------------------------------------------------------------------
