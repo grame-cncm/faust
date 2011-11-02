@@ -1137,7 +1137,7 @@ with {
 // ambisonics mode.
 //
 // USAGE:
-//   _,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_
+//   _,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_,_,_
 //
 // WHERE
 //   rgxyz = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9)
@@ -1255,7 +1255,7 @@ with {
   out_level = *(gain),*(gain);
 
   gain = out_group(vslider("[2] Level [unit:dB] [style:knob]
-    [tooltip: Output scale factor]", -40, -70, 40, 0.1))
+    [tooltip: Output scale factor]", -20, -70, 40, 0.1))
     : smooth(0.999) : db2linear;
 
 };
