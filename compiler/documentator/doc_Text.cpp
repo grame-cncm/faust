@@ -139,6 +139,7 @@ static bool AlmostEqual(double A, double B)
 string scientific2tenpow (double n)
 {
     // First try symbolic representation of n
+    if (AlmostEqual(n, int(n))) return docT(int(n));
     if (AlmostEqual(n, M_PI)) return "\\pi ";
     if (AlmostEqual(n, M_PI_2)) return "\\frac{\\pi}{2}";
     if (AlmostEqual(n, M_PI_4)) return "\\frac{\\pi}{4}";
