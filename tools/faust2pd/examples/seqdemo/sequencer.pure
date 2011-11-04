@@ -81,7 +81,7 @@ with
      and onset variations on the fly. Also note that here we return an entire
      "bundle" (i.e., list) of Pd messages for each pattern element. */
 
-  event n	= [// play a note on voice #2:
+  event n	= {// play a note on voice #2:
 		   t 2 note n 1 d,
 		   // vary the pan and wet controls of voice #2 in a periodic
 		   // fashion to simulate a sound source walking around in
@@ -91,7 +91,7 @@ with
 		   // play the same note, delayed by a small amount of time,
 		   // transposed down an octave and slightly detuned,
 		   // alternating between voice #1 and voice #3:
-		   (t+dt) (2*k+1) note (n-12+dn) v d]
+		   (t+dt) (2*k+1) note (n-12+dn) v d}
 		    when i = getctr ctr; k = i mod 2;
 		      x = i mod 100/100*2*pi; u = cos x; w = sin x;
 		      t = get time; d = get dur; dt = rand (0,10);
