@@ -284,6 +284,14 @@
 				RelativePath="..\compiler\draw\drawschema.hh"
 				>
 			</File>
+			<File
+				RelativePath="..\compiler\draw\sigToGraph.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\compiler\draw\sigToGraph.hh"
+				>
+			</File>
 			<Filter
 				Name="device"
 				>

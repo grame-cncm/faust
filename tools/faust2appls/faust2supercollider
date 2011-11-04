@@ -92,8 +92,10 @@ done
 
 if [ $F2SC_DEBUG = 1 ]; then
     OUTDEV=/dev/tty
+    DNDEBUG=""
 else       
     OUTDEV=/dev/null
+    DNDEBUG="-DNDEBUG"
 fi
 
 if [ "$FILES" = "" ]; then
@@ -107,10 +109,10 @@ fi
 #
 if [[ $(uname) == Darwin ]]; then
     EXT="scx"
-	SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN -DNDEBUG -bundle "
+	SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle "
 elif [[ $(uname) == Linux ]]; then
     EXT="so"
-	SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX -DNDEBUG -shared -fPIC"
+	SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX $DNDEBUG -shared -fPIC"
 else
 	echo "unsupported plateform"
 	exit 1
