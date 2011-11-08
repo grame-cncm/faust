@@ -393,7 +393,8 @@ module Faust
       end
       def decl_args3 # args in keyword:value form
         cnames = self.control_names
-        args = self.input_names + cnames.collect { |x| "#{x}" }
+        args = self.input_names.collect { |x| "In.ar(#{x})" } \
+                       + cnames.collect { |x| "#{x}" }
         args.empty? ? "" : args.join(", ")
       end
       def decl_metadata
@@ -437,6 +438,22 @@ module Faust
       ^this.multiNew(#{self.new_args(:control).join(", ")})
   } 
 EOF
+        if self.inputs > 0
+          body = body + <<EOF
+
+  checkInputs {
+    if (rate == 'audio', {
+      #{self.inputs}.do({|i|
+        if (inputs.at(i).rate != 'audio', {
+          ^(" input at index " + i + "(" + inputs.at(i) + 
+            ") is not audio rate");
+        });
+      });
+    });
+    ^this.checkValidInputs
+  }
+EOF
+        end
         io.print(body)
         generate_outputs(io)
         if @options["synthdef"]
@@ -446,12 +463,13 @@ EOF
         io.print("}\n")
       end
       def generate_outputs(io)
-        if self.outputs > 1
+        if self.outputs > 1  # add initOutputs to overridden init:
           io.print <<EOF
-    init { | ... theInputs |
-        inputs = theInputs
-        ^this.initOutputs(#{self.outputs}, rate)
-    }
+
+  init { | ... theInputs |
+      inputs = theInputs
+      ^this.initOutputs(#{self.outputs}, rate)
+  }
 EOF
         end
       end
