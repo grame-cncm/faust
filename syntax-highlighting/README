@@ -12,7 +12,7 @@ Install the file 'faust.lang' into gedit syntax folder ('/usr/share/gtksourcevie
 
 
 3) TextWrangler
-install the file Faust.plist 
+install the file Faust.plist into ~/Library/Application\ Support/TextWrangler/Language\ Modules/
 
 4) Highlight
 install dsp.lang into /usr/share/highlight/langDefs/
