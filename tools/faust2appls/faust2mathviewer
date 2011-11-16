@@ -56,6 +56,7 @@ convert_svgdirs2pdf()
 
 if [[ $(uname) == Darwin ]]; then
     OPEN=open
+	export PATH="/usr/texbin:$PATH"
 else
 	OPEN=xdg-open
 fi
