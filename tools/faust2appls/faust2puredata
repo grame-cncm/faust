@@ -55,17 +55,8 @@ if [[ $(uname) == Darwin ]]; then
     EXT="~.pd_darwin"
 else
     CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -ffast-math"
-    LIB="-I/usr/include/pd -I/usr/include/pdextended -fPIC -shared"
+    LIB="-I/usr/include/pd -fPIC -shared"
     EXT="~.pd_linux"
-fi
-
-
-#-------------------------------------------------------------------
-# Check for faust2pd
-#
-FAUST2PD=$(which faust2pd)
-if [ ! ${FAUST2PD:0:1} = "/" ]; then
-	FAUST2PD="notcommand"
 fi
 
 
@@ -101,7 +92,7 @@ for p in $FILES; do
 		else
 			${CXX=g++} $CXXFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
 		fi		
-        if [ -x $FAUST2PD ]; then
+        if [ $(which faust2pd) ]; then
         	faust2pd -s $f.xml
         fi
     ) > /dev/null
@@ -110,7 +101,7 @@ for p in $FILES; do
     cp "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     # collects all the files produced
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
-    if [ -x $FAUST2PD ]; then
+    if [ $(which faust2pd)  ]; then
     	cp "$TMP/${f%.dsp}.pd" "$SRCDIR/${f%.dsp}.pd"
     	BINARIES="$BINARIES$SRCDIR/${f%.dsp}.pd;"
     fi
