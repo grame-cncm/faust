@@ -72,16 +72,16 @@ typedef llvm::Value* LlvmValue;
 
 #ifdef LLVM_29
    #define VECTOR_OF_TYPES vector<const llvm::Type*>
-   #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>  
+   #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
    #define LLVM_TYPE const llvm::Type*
-   #define MAKE_VECTOR_OF_TYPES((vec)) vec
+   #define MAKE_VECTOR_OF_TYPES(vec) vec
    #define MAKE_IXD(beg, end) beg, end
    #define MAKE_ARGS(args) args
 #endif
 
 #ifdef LLVM_30
-   #define VECTOR_OF_TYPES vector<llvm::Type*> 
-   #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>  
+   #define VECTOR_OF_TYPES vector<llvm::Type*>
+   #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
    #define LLVM_TYPE llvm::Type*
    #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
    #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
@@ -93,7 +93,7 @@ typedef llvm::Value* LlvmValue;
 struct LLVMTypeHelper {
 
     MAP_OF_TYPES fTypeMap;
- 
+
     LLVMTypeHelper()
     {
         // LLVM type coding
@@ -238,7 +238,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 	    VECTOR_OF_TYPES free_args;
 	    free_args.push_back(free_ptr);
 	    FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(free_args), false);
- 
+
             Function* func_free = NULL;
             if (!fModule->getFunction("free")) {
                 func_free = Function::Create(free_type, GlobalValue::ExternalLinkage, "free", fModule);
@@ -251,7 +251,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             VECTOR_OF_TYPES llvm_free_dsp_args;
             llvm_free_dsp_args.push_back(dsp_type_ptr);
             FunctionType* llvm_free_dsp_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_free_dsp_args), false);
- 	
+
             Function* func_llvm_free_dsp = Function::Create(llvm_free_dsp_type, (internal)? Function::InternalLinkage : Function::ExternalLinkage, "delete" + fPrefix, fModule);
             func_llvm_free_dsp->setCallingConv(CallingConv::C);
 
@@ -278,7 +278,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 	    VECTOR_OF_TYPES malloc_args;
             malloc_args.push_back(IntegerType::get(getGlobalContext(), 64));
             FunctionType* malloc_type = FunctionType::get(malloc_ptr, MAKE_VECTOR_OF_TYPES(malloc_args), false);
-	
+
             Function* func_malloc = NULL;
             if (!fModule->getFunction("malloc")) {
                 func_malloc = Function::Create(malloc_type, GlobalValue::ExternalLinkage, "malloc", fModule);
@@ -431,9 +431,18 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             PointerType* PointerTy_17 = PointerType::get(FuncTy_18, 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_17);
+        #ifdef LLVM_29
             llvm::StructType* fStruct_UI = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(StructTy_struct_UIGlue_fields), /*isPacked=*/false);
             fStruct_UI_ptr = PointerType::get(fStruct_UI, 0);
             fModule->addTypeName("struct.UIGlue", fStruct_UI);
+        #endif
+        #ifdef LLVM_30
+        printf("fStruct_UI 0\n");
+            llvm::StructType* fStruct_UI = StructType::create(fModule->getContext(), "struct.UIGlue");
+        printf("fStruct_UI 1\n");
+            fStruct_UI->setBody(MAKE_VECTOR_OF_TYPES(StructTy_struct_UIGlue_fields));
+        printf("fStruct_UI 2\n");
+        #endif
         }
 
         void generateDataStruct(llvm::PointerType* dsp_type_ptr, bool generate_ui)
@@ -441,8 +450,17 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // Struct Meta
             VECTOR_OF_TYPES StructTy_struct_Meta_fields;
             StructTy_struct_Meta_fields.push_back(IntegerType::get(fModule->getContext(), 8));
+        #ifdef LLVM_29
             StructType* StructTy_struct_Meta = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(StructTy_struct_Meta_fields), /*isPacked=*/true);
             fModule->addTypeName("struct.Meta", StructTy_struct_Meta);
+        #endif
+        #ifdef LLVM_30
+        printf("generateDataStruct 0\n");
+            StructType* StructTy_struct_Meta = StructType::create(fModule->getContext(), "struct.Meta");
+        printf("generateDataStruct 1\n");
+            StructTy_struct_Meta->setBody(MAKE_VECTOR_OF_TYPES(StructTy_struct_Meta_fields));
+        printf("generateDataStruct 2\n");
+        #endif
 
             // Struct UI
             generateUIGlue();
@@ -569,10 +587,18 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             llvm::StructType* dsp_type;
             llvm::PointerType* dsp_type_ptr;
 
+        #ifdef LLVM_29
             dsp_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(fDSPFields), false);
-            dsp_type_ptr = PointerType::get(dsp_type, 0);
             fModule->addTypeName("struct.dsp" + fPrefix, dsp_type);
-            const llvm::Type* type = fModule->getTypeByName("struct.dsp" + fPrefix);
+        #endif
+        #ifdef LLVM_30
+            dsp_type = StructType::create(fModule->getContext(), "struct.dsp" + fPrefix);
+            dsp_type->setBody(MAKE_VECTOR_OF_TYPES(fDSPFields));
+        #endif
+
+            dsp_type_ptr = PointerType::get(dsp_type, 0);
+
+            LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + fPrefix);
             assert(type);
             // type->dump();
 
@@ -839,7 +865,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             idx2[2] = const_string1;
             idx2[3] = const_string2;
 
-            CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+4);
+            //CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+4);
+            CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+4));
             call_inst->setCallingConv(CallingConv::C);
         }
 
@@ -964,7 +991,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             idx2[5] = (itfloat() == Typed::kFloat) ? genFloat(max) : genDouble(max);
             idx2[6] = (itfloat() == Typed::kFloat) ? genFloat(step) : genDouble(step);
 
-            CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+7);
+            CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+7));
             call_inst->setCallingConv(CallingConv::C);
         }
 
@@ -1011,7 +1038,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             idx2[3] = (itfloat() == Typed::kFloat) ? genFloat(min) : genDouble(min);
             idx2[4] = (itfloat() == Typed::kFloat) ? genFloat(max) : genDouble(max);
 
-            CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+5);
+            CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+5));
             call_inst->setCallingConv(CallingConv::C);
         }
 
@@ -1158,7 +1185,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // Return type
                 assert(fTypeMap.find(inst->fType->fResult->getType()) != fTypeMap.end());
-                const llvm::Type* return_type = fTypeMap[inst->fType->fResult->getType()];
+                LLVM_TYPE return_type = fTypeMap[inst->fType->fResult->getType()];
 
                 // Prepare vector of LLVM types for args
                 VECTOR_OF_TYPES fun_args_type;
@@ -1902,7 +1929,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             //cerr << "Size " << fun_args.size() << endl;
             //function->dump();
 
+        #ifdef LLVM_29
             CallInst* call_inst = fBuilder->CreateCall(function, fun_args.begin(), fun_args.end());
+        #endif
+        #ifdef LLVM_30
+            CallInst* call_inst = fBuilder->CreateCall(function, MAKE_VECTOR_OF_TYPES(fun_args));
+        #endif
             call_inst->setCallingConv(CallingConv::C);
 
             //fModule->dump();
@@ -2064,7 +2096,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fBuilder->SetInsertPoint(exec_block);
 
             // Start the PHI node with an entry for start
+        #ifdef LLVM_29
             PHINode* phi_node = fBuilder->CreatePHI(fBuilder->getInt32Ty(), loop_counter_name);
+        #endif
+        #ifdef LLVM_30
+            PHINode* phi_node = fBuilder->CreatePHI(fBuilder->getInt32Ty(), 0, loop_counter_name);
+        #endif
             phi_node->addIncoming(loop_counter, init_block);
 
             // Generates loop internal code
