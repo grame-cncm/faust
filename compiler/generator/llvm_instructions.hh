@@ -47,7 +47,16 @@ using namespace std;
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Target/TargetData.h>
+#include <llvm/Support/Host.h>
+
+#ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
+#endif
+
+#ifdef LLVM_30
+#include <llvm/Support/TargetSelect.h>
+#endif
+
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm-c/BitWriter.h>
@@ -61,12 +70,30 @@ extern int gVecSize;
 
 typedef llvm::Value* LlvmValue;
 
+#ifdef LLVM_29
+   #define VECTOR_OF_TYPES vector<const llvm::Type*>
+   #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>  
+   #define LLVM_TYPE const llvm::Type*
+   #define MAKE_VECTOR_OF_TYPES((vec)) vec
+   #define MAKE_IXD(beg, end) beg, end
+   #define MAKE_ARGS(args) args
+#endif
+
+#ifdef LLVM_30
+   #define VECTOR_OF_TYPES vector<llvm::Type*> 
+   #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>  
+   #define LLVM_TYPE llvm::Type*
+   #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
+   #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
+   #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
+#endif
+
 // Helper class
 
 struct LLVMTypeHelper {
 
-    std::map<Typed::VarType, const llvm::Type*> fTypeMap;
-
+    MAP_OF_TYPES fTypeMap;
+ 
     LLVMTypeHelper()
     {
         // LLVM type coding
@@ -148,7 +175,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual const llvm::Type* getFloatTy(int size)
+    virtual LLVM_TYPE getFloatTy(int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), size);
@@ -157,7 +184,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual const llvm::Type* getInt32Ty(int size)
+    virtual LLVM_TYPE getInt32Ty(int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getInt32Ty(getGlobalContext()), size);
@@ -166,7 +193,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual const llvm::Type* getInt1Ty(int size)
+    virtual LLVM_TYPE getInt1Ty(int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getInt1Ty(getGlobalContext()), size);
@@ -175,7 +202,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual const llvm::Type* getDoubleTy(int size)
+    virtual LLVM_TYPE getDoubleTy(int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getDoubleTy(getGlobalContext()), size);
@@ -195,7 +222,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         // DSP structure creation
         std::map<string, int> fDSPFieldsNames;
-        vector<const llvm::Type*> fDSPFields;
+        VECTOR_OF_TYPES fDSPFields;
         int fDSPFieldsCounter;
         string fPrefix;
 
@@ -207,10 +234,11 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             // free
             PointerType* free_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-            vector<const llvm::Type*> free_args;
-            free_args.push_back(free_ptr);
-            FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), free_args, false);
 
+	    VECTOR_OF_TYPES free_args;
+	    free_args.push_back(free_ptr);
+	    FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(free_args), false);
+ 
             Function* func_free = NULL;
             if (!fModule->getFunction("free")) {
                 func_free = Function::Create(free_type, GlobalValue::ExternalLinkage, "free", fModule);
@@ -220,9 +248,10 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             }
 
             // Generates llvm_free_dsp
-            vector<const llvm::Type*> llvm_free_dsp_args;
+            VECTOR_OF_TYPES llvm_free_dsp_args;
             llvm_free_dsp_args.push_back(dsp_type_ptr);
-            FunctionType* llvm_free_dsp_type = FunctionType::get(fBuilder->getVoidTy(), llvm_free_dsp_args, false);
+            FunctionType* llvm_free_dsp_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_free_dsp_args), false);
+ 	
             Function* func_llvm_free_dsp = Function::Create(llvm_free_dsp_type, (internal)? Function::InternalLinkage : Function::ExternalLinkage, "delete" + fPrefix, fModule);
             func_llvm_free_dsp->setCallingConv(CallingConv::C);
 
@@ -246,10 +275,10 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             // malloc
             PointerType* malloc_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-            vector<const llvm::Type*> malloc_args;
+	    VECTOR_OF_TYPES malloc_args;
             malloc_args.push_back(IntegerType::get(getGlobalContext(), 64));
-            FunctionType* malloc_type = FunctionType::get(malloc_ptr, malloc_args, false);
-
+            FunctionType* malloc_type = FunctionType::get(malloc_ptr, MAKE_VECTOR_OF_TYPES(malloc_args), false);
+	
             Function* func_malloc = NULL;
             if (!fModule->getFunction("malloc")) {
                 func_malloc = Function::Create(malloc_type, GlobalValue::ExternalLinkage, "malloc", fModule);
@@ -259,8 +288,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             }
 
             // llvm_create_dsp
-            vector<const llvm::Type*> llvm_create_dsp_args;
-            FunctionType* llvm_create_dsp_type = FunctionType::get(dsp_type_ptr, llvm_create_dsp_args, false);
+
+            VECTOR_OF_TYPES llvm_create_dsp_args;
+            FunctionType* llvm_create_dsp_type = FunctionType::get(dsp_type_ptr, MAKE_VECTOR_OF_TYPES(llvm_create_dsp_args), false);
             Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type, (internal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
             func_llvm_create_dsp->setCallingConv(CallingConv::C);
 
@@ -281,16 +311,16 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         void generateUIGlue()
         {
             // Type Definitions
-            std::vector<const llvm::Type*>StructTy_struct_UIGlue_fields;
+            VECTOR_OF_TYPES StructTy_struct_UIGlue_fields;
             PointerType* PointerTy_0 = PointerType::get(IntegerType::get(fModule->getContext(), 8), 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_0);
-            std::vector<const llvm::Type*>FuncTy_2_args;
+            VECTOR_OF_TYPES FuncTy_2_args;
             FuncTy_2_args.push_back(PointerTy_0);
             FuncTy_2_args.push_back(PointerTy_0);
             FunctionType* FuncTy_2 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_2_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_2_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_1 = PointerType::get(FuncTy_2, 0);
@@ -299,25 +329,25 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
-            std::vector<const llvm::Type*>FuncTy_4_args;
+            VECTOR_OF_TYPES FuncTy_4_args;
             FuncTy_4_args.push_back(PointerTy_0);
             FunctionType* FuncTy_4 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_4_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_4_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_3 = PointerType::get(FuncTy_4, 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_3);
-            std::vector<const llvm::Type*>FuncTy_6_args;
+            VECTOR_OF_TYPES FuncTy_6_args;
             FuncTy_6_args.push_back(PointerTy_0);
             FuncTy_6_args.push_back(PointerTy_0);
-            const llvm::Type* PointerTy_7 = fTypeMap[Typed::kFloatMacro_ptr];  // For LLVM internal float is same as external
+            LLVM_TYPE PointerTy_7 = fTypeMap[Typed::kFloatMacro_ptr];  // For LLVM internal float is same as external
 
             FuncTy_6_args.push_back(PointerTy_7);
             FunctionType* FuncTy_6 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_6_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_6_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_5 = PointerType::get(FuncTy_6, 0);
@@ -325,7 +355,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
-            std::vector<const llvm::Type*>FuncTy_9_args;
+            VECTOR_OF_TYPES FuncTy_9_args;
             FuncTy_9_args.push_back(PointerTy_0);
             FuncTy_9_args.push_back(PointerTy_0);
             FuncTy_9_args.push_back(PointerTy_7);
@@ -335,7 +365,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_9_args.push_back(fTypeMap[Typed::kFloatMacro]);
             FunctionType* FuncTy_9 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_9_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_9_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_8 = PointerType::get(FuncTy_9, 0);
@@ -343,20 +373,20 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
-            std::vector<const llvm::Type*>FuncTy_11_args;
+            VECTOR_OF_TYPES FuncTy_11_args;
             FuncTy_11_args.push_back(PointerTy_0);
             FuncTy_11_args.push_back(PointerTy_0);
             FuncTy_11_args.push_back(PointerTy_7);
             FuncTy_11_args.push_back(IntegerType::get(fModule->getContext(), 32));
             FunctionType* FuncTy_11 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_11_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_11_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_10 = PointerType::get(FuncTy_11, 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_10);
-            std::vector<const llvm::Type*>FuncTy_13_args;
+            VECTOR_OF_TYPES FuncTy_13_args;
             FuncTy_13_args.push_back(PointerTy_0);
             FuncTy_13_args.push_back(PointerTy_0);
             FuncTy_13_args.push_back(PointerTy_7);
@@ -367,13 +397,13 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_13_args.push_back(fTypeMap[Typed::kFloatMacro]);
             FunctionType* FuncTy_13 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_13_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_13_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_12 = PointerType::get(FuncTy_13, 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_12);
-            std::vector<const llvm::Type*>FuncTy_16_args;
+            VECTOR_OF_TYPES FuncTy_16_args;
             FuncTy_16_args.push_back(PointerTy_0);
             FuncTy_16_args.push_back(PointerTy_0);
             FuncTy_16_args.push_back(PointerTy_7);
@@ -381,27 +411,27 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_16_args.push_back(fTypeMap[Typed::kFloatMacro]);
             FunctionType* FuncTy_16 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_16_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_16_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_15 = PointerType::get(FuncTy_16, 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_15);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_15);
-            std::vector<const llvm::Type*>FuncTy_18_args;
+            VECTOR_OF_TYPES FuncTy_18_args;
             FuncTy_18_args.push_back(PointerTy_0);
             FuncTy_18_args.push_back(PointerTy_7);
             FuncTy_18_args.push_back(PointerTy_0);
             FuncTy_18_args.push_back(PointerTy_0);
             FunctionType* FuncTy_18 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/FuncTy_18_args,
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_18_args),
             /*isVarArg=*/false);
 
             PointerType* PointerTy_17 = PointerType::get(FuncTy_18, 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_17);
-            llvm::StructType* fStruct_UI = StructType::get(fModule->getContext(), StructTy_struct_UIGlue_fields, /*isPacked=*/false);
+            llvm::StructType* fStruct_UI = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(StructTy_struct_UIGlue_fields), /*isPacked=*/false);
             fStruct_UI_ptr = PointerType::get(fStruct_UI, 0);
             fModule->addTypeName("struct.UIGlue", fStruct_UI);
         }
@@ -409,9 +439,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         void generateDataStruct(llvm::PointerType* dsp_type_ptr, bool generate_ui)
         {
             // Struct Meta
-            vector<const llvm::Type*>StructTy_struct_Meta_fields;
+            VECTOR_OF_TYPES StructTy_struct_Meta_fields;
             StructTy_struct_Meta_fields.push_back(IntegerType::get(fModule->getContext(), 8));
-            StructType* StructTy_struct_Meta = StructType::get(fModule->getContext(), StructTy_struct_Meta_fields, /*isPacked=*/true);
+            StructType* StructTy_struct_Meta = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(StructTy_struct_Meta_fields), /*isPacked=*/true);
             fModule->addTypeName("struct.Meta", StructTy_struct_Meta);
 
             // Struct UI
@@ -419,10 +449,10 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             if (generate_ui) {
                 // Creates llvm_buildUserInterface function
-                vector<const llvm::Type*> llvm_buildUserInterface_args;
+                VECTOR_OF_TYPES llvm_buildUserInterface_args;
                 llvm_buildUserInterface_args.push_back(dsp_type_ptr);
                 llvm_buildUserInterface_args.push_back(fStruct_UI_ptr);
-                FunctionType* llvm_buildUserInterface_type = FunctionType::get(fBuilder->getVoidTy(), llvm_buildUserInterface_args, false);
+                FunctionType* llvm_buildUserInterface_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_buildUserInterface_args), false);
 
                 Function* llvm_buildUserInterface = Function::Create(llvm_buildUserInterface_type, GlobalValue::ExternalLinkage, "buildUserInterface" + fPrefix, fModule);
                 llvm_buildUserInterface->setCallingConv(CallingConv::C);
@@ -443,7 +473,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
                 Value* idx[2];
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(0);
-                Value* ui_ptr = fBuilder->CreateGEP(interface, idx, idx+2);
+                Value* ui_ptr = fBuilder->CreateGEP(interface, MAKE_IXD(idx, idx+2));
                 fUIInterface_ptr = fBuilder->CreateLoad(ui_ptr);
 
                 //fStruct_UI_ptr->dump();
@@ -498,17 +528,17 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             if (!function) {  // Define it
 
                 // Return type
-                const llvm::Type* return_type = fTypeMap[inst->fType->fResult->getType()];
+                LLVM_TYPE return_type = fTypeMap[inst->fType->fResult->getType()];
 
                 // Prepare vector of LLVM types for args
-                vector<const llvm::Type*> fun_args_type;
+                VECTOR_OF_TYPES fun_args_type;
                 list<NamedTyped*>::const_iterator it;
                 for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
                     fun_args_type.push_back(fTypeMap[(*it)->getType()]);
                 }
 
                 // Creates function
-                FunctionType* fun_type = FunctionType::get(return_type, fun_args_type, false);
+                FunctionType* fun_type = FunctionType::get(return_type, MAKE_VECTOR_OF_TYPES(fun_args_type), false);
                 function = Function::Create(fun_type, GlobalValue::ExternalLinkage, inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
 
@@ -539,7 +569,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             llvm::StructType* dsp_type;
             llvm::PointerType* dsp_type_ptr;
 
-            dsp_type = StructType::get(fModule->getContext(), fDSPFields, false);
+            dsp_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(fDSPFields), false);
             dsp_type_ptr = PointerType::get(dsp_type, 0);
             fModule->addTypeName("struct.dsp" + fPrefix, dsp_type);
             const llvm::Type* type = fModule->getTypeByName("struct.dsp" + fPrefix);
@@ -585,9 +615,9 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
         {
             // free
             PointerType* free_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-            vector<const llvm::Type*> free_args;
+            VECTOR_OF_TYPES free_args;
             free_args.push_back(free_ptr);
-            FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), free_args, false);
+            FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(free_args), false);
 
             Function* func_free = NULL;
             if (!fModule->getFunction("free")) {
@@ -598,9 +628,9 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
                 func_free = fModule->getFunction("free");
             }
 
-            vector<const llvm::Type*> destroy_args;
+            VECTOR_OF_TYPES destroy_args;
             destroy_args.push_back(dsp_type_ptr);
-            FunctionType* destroy_type = FunctionType::get(fBuilder->getVoidTy(), destroy_args, false);
+            FunctionType* destroy_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(destroy_args), false);
 
             Function* func_destroy = NULL;
             if (!fModule->getFunction("destroy" + fPrefix)) {
@@ -615,9 +645,9 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
             }
 
             // Generates llvm_free_dsp
-            vector<const llvm::Type*> llvm_free_dsp_args;
+            VECTOR_OF_TYPES llvm_free_dsp_args;
             llvm_free_dsp_args.push_back(dsp_type_ptr);
-            FunctionType* llvm_free_dsp_type = FunctionType::get(fBuilder->getVoidTy(), llvm_free_dsp_args, false);
+            FunctionType* llvm_free_dsp_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_free_dsp_args), false);
             Function* func_llvm_free_dsp = Function::Create(llvm_free_dsp_type, (internal)? Function::InternalLinkage : Function::ExternalLinkage, "delete" + fPrefix, fModule);
             func_llvm_free_dsp->setCallingConv(CallingConv::C);
 
@@ -766,7 +796,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 Value* idx[2];
                 idx[0] = genInt64(0);
                 idx[1] = genInt64(0);
-                load_ptr = fBuilder->CreateGEP(variable, idx, idx+2);
+                load_ptr = fBuilder->CreateGEP(variable, MAKE_IXD(idx, idx+2));
             } else {
                 load_ptr = fBuilder->CreateLoad(variable, isvolatile);
             }
@@ -785,7 +815,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable["declare"];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, idx, idx+2);
+            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Get LLVM constant string
@@ -838,7 +868,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = mth_index;
-            Value* mth_ptr = fBuilder->CreateGEP(ui, idx, idx+2);
+            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             CallInst* call_inst = fBuilder->CreateCall2(mth, fUIInterface_ptr, const_string);
@@ -855,7 +885,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable["closeBox"];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, idx, idx+2);
+            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             CallInst* call_inst = fBuilder->CreateCall(mth, fUIInterface_ptr);
@@ -877,7 +907,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable[button_type];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, idx, idx+2);
+            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
@@ -918,7 +948,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable[slider_type];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, idx, idx+2);
+            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
@@ -967,7 +997,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable[bargraph_type];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, idx, idx+2);
+            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
@@ -1024,7 +1054,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     fCurValue = fBuilder->CreateAlloca(fTypeMap[basic_typed->fType]);
                 } else if (named_typed) {
                     // Used for internal structures (RWTable... etc...)
-                    const llvm::Type* type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
+                    LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
                     fCurValue = fBuilder->CreateAlloca(PointerType::get(type, 0));
                 } else if (array_typed) {
                     // Arrays of 0 size are actually pointers on the type
@@ -1131,7 +1161,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 const llvm::Type* return_type = fTypeMap[inst->fType->fResult->getType()];
 
                 // Prepare vector of LLVM types for args
-                vector<const llvm::Type*> fun_args_type;
+                VECTOR_OF_TYPES fun_args_type;
                 list<NamedTyped*>::const_iterator it;
                 for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
                     //cerr << "DeclareFunInst " << (*it)->getType() << endl;
@@ -1140,7 +1170,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
 
                 // Creates function
-                FunctionType* fun_type = FunctionType::get(return_type, fun_args_type, false);
+                FunctionType* fun_type = FunctionType::get(return_type, MAKE_VECTOR_OF_TYPES(fun_args_type), false);
                 function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
 
@@ -1319,7 +1349,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* load_ptr1 = fBuilder->CreateGEP(dsp, idx, idx+2);
+                Value* load_ptr1 = fBuilder->CreateGEP(dsp, MAKE_IXD(idx, idx+2));
                 Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
                 Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
 
@@ -1447,7 +1477,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* load_ptr1 = fBuilder->CreateGEP(dsp, idx, idx+2);
+                Value* load_ptr1 = fBuilder->CreateGEP(dsp, MAKE_IXD(idx, idx+2));
                 Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
                 Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
                 fCurValue = load_ptr3;
@@ -1621,7 +1651,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* store_ptr1 = fBuilder->CreateGEP(dsp, idx, idx+2);
+                Value* store_ptr1 = fBuilder->CreateGEP(dsp, MAKE_IXD(idx, idx+2));
                 Value* store_ptr2 = LoadArrayAsPointer(store_ptr1);
                 Value* store_ptr = fBuilder->CreateGEP(store_ptr2, fCurValue);
 

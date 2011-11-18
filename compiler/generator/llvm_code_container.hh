@@ -40,7 +40,9 @@
 #include <llvm/System/Host.h>
 #endif
 
+#ifdef LLVM_29
 #include <llvm/Support/Host.h>
+#endif
 
 using namespace std;
 using namespace llvm;
