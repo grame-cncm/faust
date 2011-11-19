@@ -8,6 +8,16 @@ OSCDEFS=""
 #                                                                   #
 #####################################################################
 
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    MARCH=""
+    SPEC="-fPIC -bundle"
+else
+    MARCH="-march=native"
+    SPEC="-fPIC -shared"
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -19,7 +29,7 @@ OSCDEFS=""
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
 
-CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' 
+CXXFLAGS='-O3 $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math' 
 
 for p in $@; do
 	if [ "$p" = -icc ]; then

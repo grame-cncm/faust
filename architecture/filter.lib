@@ -337,7 +337,6 @@ with {
   fsec(1) = crossnn(1) : _, (_<:mem,_) : +,_;
   fsec(n) = crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
   innertaps(n) = par(i,n,_);
-  sline = _;
   s = take(n,sv); // reflection coefficient s = sin(theta)
 };
 
@@ -358,9 +357,8 @@ allpassnklt(0,sv) = _;
 allpassnklt(n,sv) = _ <: *(s),(*(1+s) : (+
                    : allpassnklt(n-1,sv))~(*(-s))) : fsec(n)
 with {
-  fsec(1) = sline, (_<:mem*(1-s),_) : sumandtaps(n);
-  fsec(n) = sline, (_<:mem*(1-s),_), par(i,n-1,_) : sumandtaps(n);
-  sline = _;
+  fsec(1) = _, (_<:mem*(1-s),_) : sumandtaps(n);
+  fsec(n) = _, (_<:mem*(1-s),_), par(i,n-1,_) : sumandtaps(n);
   s = take(n,sv);
   sumandtaps(n) = +,par(i,n,_);
 };
@@ -387,7 +385,6 @@ with {
   fsec(1) = crossnn(1) : _, (_<:mem,_) : +,_;
   fsec(n) = crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
   innertaps(n) = par(i,n,_);
-  sline = _;
   s = take(n,sv); // reflection coefficient s = sin(theta)
 };
 
@@ -417,9 +414,8 @@ allpassnnlt(n,scl*(sv)) = allpassnnlt(n,par(i,count(sv),scl*(sv(i))));
 allpassnnlt(n,sv) = _ <: *(s),(*(c) : (+
                    : allpassnnlt(n-1,sv))~(*(-s))) : fsec(n)
 with {
-  fsec(1) = sline, (_<:mem*(c),_) : sumandtaps(n);
-  fsec(n) = sline, (_<:mem*(c),_), par(i,n-1,_) : sumandtaps(n);
-  sline = _;
+  fsec(1) = _, (_<:mem*(c),_) : sumandtaps(n);
+  fsec(n) = _, (_<:mem*(c),_), par(i,n-1,_) : sumandtaps(n);
   s = take(n,sv);
   c = sqrt(max(0,1-s*s));
   sumandtaps(n) = +,par(i,n,_);
