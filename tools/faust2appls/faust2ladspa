@@ -80,7 +80,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} $CXXFLAGS $SPEC -Dmydsp=$module "$f.cpp" -o $dst
+		${CXX=g++} $CXXFLAGS $SPEC -Dmydsp=$module -I/usr/local/lib/faust "$f.cpp" -o $dst
 	) #> /dev/null
 	#rm "$f.cpp"
 
