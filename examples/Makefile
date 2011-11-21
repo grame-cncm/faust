@@ -6,6 +6,16 @@ LIB := $(if $(wildcard $(ck1)),/opt/local/lib,"")
 LIB := $(if $(wildcard $(ck2)),/usr/local/lib,$(LIB))
 LIB := $(if $(wildcard $(ck3)),$(FAUST_LIB_PATH),$(LIB))
 
+LLVM_VERSION = $(shell llvm-config --version)
+
+ifeq ($(LLVM_VERSION), 2.9)
+LLVM_VERSION  = LLVM_29
+endif
+
+ifeq ($(LLVM_VERSION), 3.0)
+LLVM_VERSION  = LLVM_30
+endif
+
 ifeq ($(OSC),1)
  OSCCTRL := -DOSCCTRL -I$(LIB)/faust/osclib
  QTDEFS  := "DEFINES += OSCCTRL"
@@ -230,7 +240,7 @@ iphonenet :
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
 llvm-loader:
-	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --libs` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -o llvm-jack-gtk-loader
+	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION)../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --libs` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -o llvm-jack-gtk-loader
 
 #../architecture/scheduler.cpp 
 

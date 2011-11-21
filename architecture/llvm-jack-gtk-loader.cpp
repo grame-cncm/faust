@@ -54,7 +54,12 @@
 #include <llvm/Support/PluginLoader.h>
 #include <llvm/Support/system_error.h>
 #include <llvm/Linker.h>
+#ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
+#endif
+#ifdef LLVM_30
+#include <llvm/Support/TargetSelect.h>
+#endif
 #include <llvm/Support/Host.h>
 
 
