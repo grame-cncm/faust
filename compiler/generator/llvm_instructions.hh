@@ -433,7 +433,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructTy_struct_UIGlue_fields.push_back(PointerTy_17);
         #ifdef LLVM_29
             llvm::StructType* fStruct_UI = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(StructTy_struct_UIGlue_fields), /*isPacked=*/false);
-            fStruct_UI_ptr = PointerType::get(fStruct_UI, 0);
             fModule->addTypeName("struct.UIGlue", fStruct_UI);
         #endif
         #ifdef LLVM_30
