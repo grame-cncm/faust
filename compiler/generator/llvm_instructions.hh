@@ -437,12 +437,10 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             fModule->addTypeName("struct.UIGlue", fStruct_UI);
         #endif
         #ifdef LLVM_30
-        printf("fStruct_UI 0\n");
             llvm::StructType* fStruct_UI = StructType::create(fModule->getContext(), "struct.UIGlue");
-        printf("fStruct_UI 1\n");
             fStruct_UI->setBody(MAKE_VECTOR_OF_TYPES(StructTy_struct_UIGlue_fields));
-        printf("fStruct_UI 2\n");
         #endif
+            fStruct_UI_ptr = PointerType::get(fStruct_UI, 0);
         }
 
         void generateDataStruct(llvm::PointerType* dsp_type_ptr, bool generate_ui)
@@ -455,11 +453,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             fModule->addTypeName("struct.Meta", StructTy_struct_Meta);
         #endif
         #ifdef LLVM_30
-        printf("generateDataStruct 0\n");
             StructType* StructTy_struct_Meta = StructType::create(fModule->getContext(), "struct.Meta");
-        printf("generateDataStruct 1\n");
             StructTy_struct_Meta->setBody(MAKE_VECTOR_OF_TYPES(StructTy_struct_Meta_fields));
-        printf("generateDataStruct 2\n");
         #endif
 
             // Struct UI
