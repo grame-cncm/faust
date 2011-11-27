@@ -51,7 +51,7 @@
 #endif
 
 extern bool gInternDoubleSwitch;
-string scientific2tenpow (double n);
+const string scientific2tenpow (double n);
 
 
 
@@ -115,13 +115,41 @@ string docT (double n)
 }
 
 
+
+/**
+ * Compute the smallest float representable
+ * difference epsilon such that 1 != 1+epsilon
+ */
+float fltEpsilon()
+{
+   float machEps = 1.0f;
+   do {
+      machEps /= 2.0f;
+   } while ((float)(1.0 + (machEps/2.0)) != 1.0);
+   return machEps;
+}
+
+/**
+ * Compute the smallest double representable
+ * difference epsilon such that 1 != 1+epsilon
+ */
+double dblEpsilon()
+{
+   double machEps = 1.0f;
+   do {
+      machEps /= 2.0f;
+   } while ((1.0 + (machEps/2.0)) != 1.0);
+   return machEps;
+}
+
 /**
  * Check if two floating point numbers are (almost) equal
+ * Abs(x-y) < epsilon
  */
 static bool AlmostEqual(double A, double B)
 {
-    double maxRelativeError = 0.00001;
-    double maxAbsoluteError = 0.00001;
+    double maxRelativeError = 2*dblEpsilon();
+    double maxAbsoluteError = maxRelativeError;
 
 
     if (fabs(A - B) < maxAbsoluteError)
@@ -136,44 +164,211 @@ static bool AlmostEqual(double A, double B)
     return false;
 }
 
-string scientific2tenpow (double n)
+/**
+ * Return true if n>0 is equal to PI^k for some small integer k.
+ * k = log(n)/log(pi) is integer => n = exp(int(k)*log(pi))
+ * The latex representation \pi^{k} is returned in string s
+ */
+bool isPiPower (double n, string& s)
 {
-    // First try symbolic representation of n
-    if (AlmostEqual(n, int(n))) return docT(int(n));
-    if (AlmostEqual(n, M_PI)) return "\\pi ";
-    if (AlmostEqual(n, M_PI_2)) return "\\frac{\\pi}{2}";
-    if (AlmostEqual(n, M_PI_4)) return "\\frac{\\pi}{4}";
-    if (AlmostEqual(n, M_E)) return "e";
-    if ((n>0) && AlmostEqual(n, exp(floor(log(n))) )) {
-        char tmp[64];
-        snprintf(tmp, 63, "e^{%d}", int(log(n)));
-        return string(tmp);
+    assert(n>0);
+    stringstream ss (stringstream::out|stringstream::in);
+    int k = floor(log(n)/log(M_PI));
+    if ( AlmostEqual(n, exp(k * log(M_PI))) && (k!=0) && (abs(k)<5.0) ) {
+        ss << "\\pi";
+        if (k!=1)  ss << "^{"<< k <<"}";
+        s = ss.str();
+        return true;
+    } else {
+        return false;
     }
-    // <---- add more symbolic constants here
+}
+
+/**
+ * Return true if n>0 is equal to e^k for some small integer k.
+ * The latex representation e^{k} is returned in string s
+ */
+bool isExpPower (double n, string& s)
+{
+    assert(n>0);
+    stringstream ss (stringstream::out|stringstream::in);
+    int k = floor(log(n));
+    if ( AlmostEqual(n, exp(k)) && (k!=0) && (abs(k)<5.0) ) {
+        ss << "e";
+        if (k!=1)  ss << "^{"<< k <<"}";
+        s = ss.str();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Return true if n>0 is equal to 10^k for some integer k.
+ * The symbolic latex representation is returned in string s
+ */
+const char* tenpow[] = {"0.001", "0.01", "0.1", "1", "10", "100", "1000" };
+
+bool isTenPower (double n, string& s)
+{
+    assert(n>0);
+    int k = floor(log10(n));
+    if ( AlmostEqual(n, pow(10.0,k)) ) {
+        if (abs(k)<4) {
+            s = tenpow[3+k];
+        } else {
+            char tmp[64];
+            snprintf(tmp, 63, "10^{%d}", k);
+            s = tmp;
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Return true if n>0 is equal to e^k or PI^k for some integer k
+ * The symbolic latex representation is returned in string s
+ */
+bool isSymbolicPower (double n, string& s)
+{
+    assert(n>0);
+    /*if (isTenPower(n,s)) {
+        return true;
+    } else*/ if (isPiPower(n,s)) {
+        return true;
+    } else if (isExpPower(n,s)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 
+/**
+ * Return exp or num.exp, or exp/denom, or num/denom.exp
+ */
+const string addFraction (int num, int denom, const string& exp)
+{
+    stringstream ss (stringstream::out|stringstream::in);
+
+    if ((num==1) & (denom==1)) {
+        ss << exp;
+    } else if ((num==1) & (denom!=1)) {
+        ss << "\\frac{"<< exp <<  "}{" << denom << "}";
+    } else if ((num!=1) & (denom==1)) {
+        ss << num << "*" << exp;
+    } else {
+        ss << "\\frac{"<< num <<  "}{" << denom << "}*" << exp;
+    }
+    return ss.str();
+}
+
+
+/**
+ * Return symbolic or numerical representation of n
+ */
+const string positive_scientific2tenpow (double n)
+{
+    string s;
+    assert(n>0);
+
+    // Try to find a symbolic representation
+
+    for (int i=1;i<10;i++) {
+        for(int j=1;j<10;j++) {
+            if (isSymbolicPower(i*n/j,s)) {
+                return addFraction(j,i,s);
+            }
+        }
+    }
+
+    // No symbolic representation,
     // Then numerical representation
-    char tmp[64];
-	string entree = " * 10^{";
-	char sortie = '}';
-	string s;
-	string::size_type ps;
 
-	snprintf(tmp, 63, "%.15g", n); // Warning: over 15 decimals, results are wrong !!
+    char tmp[64];
+    string entree = " * 10^{";
+    char sortie = '}';
+    string::size_type ps;
+
+    snprintf(tmp, 63, "%.15g", n); // Warning: over 15 decimals, results are wrong !!
 //	snprintf(tmp, 63, "%f", n);
 
 //	cerr << "doc_Text.cpp : scientific2tenpow : " << n << " -> \"" << tmp << "\"" << endl;
-	s = tmp;
-	ps = s.find('e');
+    s = tmp;
+    ps = s.find('e');
 
-	if (ps != string::npos) {
-		s.replace(ps, 1, "");
-		s.insert(ps, entree);
-		s += sortie;
-	}
-	else {
-		//cerr << "doc_Text.cpp : scientific2tenpow : \'e\' non trouvé" << endl;
-	}
+    if (ps != string::npos) {
+        s.replace(ps, 1, "");
+        s.insert(ps, entree);
+        s += sortie;
+    }
+    else {
+        //cerr << "doc_Text.cpp : scientific2tenpow : \'e\' non trouvé" << endl;
+    }
 
-	return s;
+    return s;
+
+}
+
+string old_positive_scientific2tenpow (double n)
+{
+    if (! AlmostEqual(n,0.0)) {
+        // First try symbolic representation of n
+        if (AlmostEqual(n, int(n))) return docT(int(n));
+        if (AlmostEqual(n, M_PI)) return "\\pi ";
+        if (AlmostEqual(n, M_PI_2)) return "\\frac{\\pi}{2}";
+        if (AlmostEqual(n, M_PI_4)) return "\\frac{\\pi}{4}";
+        if (AlmostEqual(n, M_PI/3.0)) return "\\frac{\\pi}{3}";
+        if (AlmostEqual(n, 3*M_PI_4)) return "\\frac{3}{4}\\pi";
+        if (AlmostEqual(n, M_E)) return "e";
+        if ((n>0) && AlmostEqual(n, exp(floor(log(n))) )) {
+            char tmp[64];
+            snprintf(tmp, 63, "e^{%d}", int(log(n)));
+            return string(tmp);
+        }
+        if ((n>0) && AlmostEqual(n, exp(floor(log(n)/log(M_PI)) * log(M_PI)) )) {
+            char tmp[64];
+            snprintf(tmp, 63, "\\pi^{%d}", int(log(n)/log(M_PI)));
+            return string(tmp);
+        }
+        // <---- add more symbolic constants here
+    }
+
+    // Then numerical representation
+    char tmp[64];
+    string entree = " * 10^{";
+    char sortie = '}';
+    string s;
+    string::size_type ps;
+
+    snprintf(tmp, 63, "%.15g", n); // Warning: over 15 decimals, results are wrong !!
+//	snprintf(tmp, 63, "%f", n);
+
+//	cerr << "doc_Text.cpp : scientific2tenpow : " << n << " -> \"" << tmp << "\"" << endl;
+    s = tmp;
+    ps = s.find('e');
+
+    if (ps != string::npos) {
+        s.replace(ps, 1, "");
+        s.insert(ps, entree);
+        s += sortie;
+    }
+    else {
+        //cerr << "doc_Text.cpp : scientific2tenpow : \'e\' non trouvé" << endl;
+    }
+
+    return s;
+}
+
+const string scientific2tenpow (double n)
+{
+    if (n>0.0) {
+        return positive_scientific2tenpow(n);
+    } else if (n<0.0) {
+        return string("-") + positive_scientific2tenpow(-n);
+    } else {
+        return "0";
+    }
 }
