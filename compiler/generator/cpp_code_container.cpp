@@ -271,6 +271,8 @@ void CPPCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
+    tab(n, *fOut); *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
+
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
         tab(n+1, *fOut);

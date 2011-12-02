@@ -165,6 +165,8 @@ void CCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
+    tab(n, *fOut); *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
+
     tab(n, *fOut); *fOut << "struct " << fKlassName << " {";
 
         tab(n+1, *fOut);
