@@ -87,7 +87,7 @@ void CCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "typedef struct " << fKlassName << " {";
+    tab(n, *fOut); *fOut << "typedef struct " << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -96,7 +96,7 @@ void CCodeContainer::produceInternal()
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "};";
+    tab(n, *fOut); *fOut << "} "<<  fKlassName << ";";
 
     // Memory methods
     tab(n, *fOut);
@@ -167,7 +167,7 @@ void CCodeContainer::produceClass()
 
     tab(n, *fOut); *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
 
-    tab(n, *fOut); *fOut << "typedef struct " << fKlassName << " {";
+    tab(n, *fOut); *fOut << "typedef struct " << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -176,7 +176,7 @@ void CCodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "};";
+    tab(n, *fOut); *fOut << "} "<<  fKlassName << ";";
 
     // Memory methods
     tab(n, *fOut);
@@ -201,7 +201,7 @@ void CCodeContainer::produceClass()
 
     // Print metadata declaration
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void " << "metadata" << fKlassName << "(Meta* m) { ";
+    tab(n, *fOut); *fOut << "void " << "metadata" << fKlassName << "(MetaGlue* m) { ";
 
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
