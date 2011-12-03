@@ -87,7 +87,7 @@ void CCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "struct " << fKlassName << " {";
+    tab(n, *fOut); *fOut << "typedef struct " << fKlassName << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -167,7 +167,7 @@ void CCodeContainer::produceClass()
 
     tab(n, *fOut); *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
 
-    tab(n, *fOut); *fOut << "struct " << fKlassName << " {";
+    tab(n, *fOut); *fOut << "typedef struct " << fKlassName << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -240,7 +240,7 @@ void CCodeContainer::produceClass()
             for (int i = 0; i != fNumInputs; ++i) {
                 tab(n+2, *fOut); *fOut << "case " << i << ": return " << fInputRates[i] << ";";
             }
-            tab(n+2, *fOut); *fOut << "default: -1;" << endl;
+            tab(n+2, *fOut); *fOut << "default: return -1;" << endl;
         tab(n+1, *fOut); *fOut << "}";
    tab(n, *fOut); *fOut << "}";
 
@@ -250,7 +250,7 @@ void CCodeContainer::produceClass()
             for (int i = 0; i != fNumOutputs; ++i) {
                 tab(n+2, *fOut); *fOut << "case " << i << ": return " << fOutputRates[i] << ";";
             }
-            tab(n+2, *fOut); *fOut << "default: -1;" << endl;
+            tab(n+2, *fOut); *fOut << "default: return -1;" << endl;
         tab(n+1, *fOut); *fOut << "}";
     tab(n, *fOut); *fOut << "}";
 

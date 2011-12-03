@@ -651,7 +651,9 @@ static Tree prepareSignals(Tree lsignals)
 static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs)
 {
     // By default use "cpp" output
-    if (gOutputLang == "") gOutputLang = "cpp";
+    if (gOutputLang == "") {
+        gOutputLang = "cpp";
+    }
 
     InstructionsCompiler* comp;
     CodeContainer* container = NULL;
@@ -746,8 +748,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     }
                 }
 
-                if (gOutputLang != "java")
-                   printfloatdef(*dst);
+                if (gOutputLang != "java") {
+                    printfloatdef(*dst);
+                }
+
+                if (gOutputLang == "c") {
+                    *dst << "#include <stdlib.h>"<< std::endl;
+                }
+
                 container->produceClass();
                 streamCopyUntilEnd(*enrobage, *dst);
                 if (gSchedulerSwitch) {
@@ -766,8 +774,12 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 exit(1);
             }
         } else {
-            if (gOutputLang != "java")
-               printfloatdef(*dst);
+            if (gOutputLang != "java") {
+                printfloatdef(*dst);
+            }
+            if (gOutputLang == "c") {
+                *dst << "#include <stdlib.h>"<< std::endl;
+            }
             container->produceClass();
         }
     }

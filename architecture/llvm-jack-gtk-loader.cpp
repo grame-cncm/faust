@@ -157,7 +157,7 @@ typedef void (* addVerticalBargraphFun) (void* interface, const char* label, FAU
 
 typedef void (* declareFun) (void* interface, FAUSTFLOAT* zone, const char* key, const char* value);
 
-struct UIGlue {
+typedef struct UIGlue {
 
     void* uiInterface;
 
