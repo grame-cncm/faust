@@ -123,9 +123,9 @@ jackgtkcudavec :
 
 jackgtkc :
 	install -d jackgtkdirc
-	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -sch -vs 64' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS)  -f Makefile.compile
-	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS)  -f Makefile.compile
-	$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -vec -lv 1 -vs 64 -fun ' ARCH='c-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0`  $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -sch -vs 64' ARCH='c-jack-gtk.c' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS)  -f Makefile.compile
+	#$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c' ARCH='c-jack-gtk.c' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS)  -f Makefile.compile
+	$(MAKE) DEST='jackgtkdirc/' VEC=' -lang c -vec -lv 1 -vs 64 -fun ' ARCH='c-jack-gtk.c' LIB='`pkg-config --cflags --libs jack gtk+-2.0`  -I$(LIB)/faust/  $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir
