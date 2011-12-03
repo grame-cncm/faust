@@ -25,7 +25,6 @@
    http://pure-lang.googlecode.com for a Pure module which can load these
    extensions. */
 
-
 #include <stdlib.h>
 #include <math.h>
 
@@ -356,16 +355,98 @@ class dsp {
 
 <<includeclass>>
 
-/* The class factory, used to create and destroy mydsp objects in the
-   client. Implemented using C linkage to facilitate dlopen access. */
+// Define this to get some debugging output.
+//#define DEBUG
+#ifdef DEBUG
+#include <assert.h>
+#include <stdio.h>
+#define FAUST_CN "mydsp"
+#endif
 
-extern "C" dsp *newdsp()
+/* Dynamic voice allocation. We go to some lengths here to make this as
+   realtime-friendly as possible. The idea is that we keep a pool of allocated
+   mydsp instances. When a dsp is freed with deldsp(), it's in fact never
+   deleted, but put at the end of a freelist from where it may eventually be
+   reused by a subsequent call to newdsp(). By these means, the number of
+   actual calls to malloc() / new can be kept to a minimum. In addition, a
+   small number of voices are preallocated in static memory (8 in the present
+   implementation, but this can be changed by redefining the NVOICES constant
+   at compile time), so chances are that your application may never need to
+   allocate dsp instances on the heap at all. Also, instances will always be
+   allocated in chunks of NVOICES dsps, to reduce the calls to malloc() / new
+   when instances need to be allocated dynamically. */
+
+#ifndef NVOICES
+#define NVOICES 8
+#endif
+
+#include <list>
+
+using namespace std;
+
+// free list, and the list of dynamically allocated memory blocks
+static list<mydsp*> freelist, dspmem;
+// statically allocated dsp instances
+static mydsp dspmem_block0[NVOICES], *dspmem_block1 = 0;
+
+/* This is supposed to be executed when the module gets unloaded. You'll need
+   a recent gcc version (or compatible) to make this work. XXXFIXME: At
+   present this is disabled by default, as we found that calling delete on
+   mydsp instances causes segfaults later in some environments (specifically,
+   Pd) when a dsp module gets reloaded at runtime. We don't know right now
+   whether that's a bug in pd, pd-pure, pure-faust or maybe just some bad
+   interaction with the system loader. So for the time being we deliberately
+   leak some memory here if dsp instances are allocated in dynamic memory at
+   the time the plugin gets reloaded. YMMV, though, so you may want to
+   reenable this code if it works for you. */
+
+#ifdef NOBUG
+void __attribute__ ((destructor)) mydsp_fini(void)
 {
-  mydsp *d = new mydsp();
+  for (list<mydsp*>::iterator it = dspmem.begin(); it != dspmem.end(); ++it)
+    delete[] *it;
+}
+#endif
+
+/* The class factory, used to create and destroy mydsp objects in the client.
+   This is implemented using C linkage to facilitate dlopen access. */
+
+extern "C" mydsp *newdsp()
+{
+  if (!dspmem_block1) {
+    // initialize the freelist
+    dspmem_block1 = dspmem_block0;
+    for (int i = 0; i < NVOICES; i++)
+      freelist.push_back(dspmem_block1+i);
+#ifdef DEBUG
+    fprintf(stderr, ">>> %s: preallocated %d voices\n", FAUST_CN, NVOICES);
+#endif
+  }
+  if (freelist.empty()) {
+    // allocate a new chunk of voices and add them to the freelist
+    mydsp *block = new mydsp[NVOICES];
+    dspmem.push_back(block);
+    for (int i = 0; i < NVOICES; i++)
+      freelist.push_back(block+i);
+#ifdef DEBUG
+    fprintf(stderr, ">>> %s: allocated %d voices\n", FAUST_CN, NVOICES);
+#endif
+  }
+#ifdef DEBUG
+  assert(!freelist.empty());
+#endif
+  mydsp *d = freelist.front();
+  freelist.pop_front();
+#ifdef DEBUG
+  fprintf(stderr, ">>> %s: allocating instance %p\n", FAUST_CN, d);
+#endif
   return d;
 }
 
-extern "C" void deldsp(dsp* d)
+extern "C" void deldsp(mydsp* d)
 {
-  delete d;
+#ifdef DEBUG
+  fprintf(stderr, ">>> %s: freeing instance %p\n", FAUST_CN, d);
+#endif
+  freelist.push_back(d);
 }
