@@ -30,15 +30,15 @@
 
 struct Meta
 {
-    void declare (const char* key, const char* value) { }
+  void declare (const char* key, const char* value) { }
 };
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
 //-------------------------------------------------------------------
 
-inline int 		max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
-inline int 		max (int a, int b) 			{ return (a>b) ? a : b; }
+inline int 	max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
+inline int 	max (int a, int b)		{ return (a>b) ? a : b; }
 
 inline long 	max (long a, long b) 		{ return (a>b) ? a : b; }
 inline long 	max (int a, long b) 		{ return (a>b) ? a : b; }
@@ -59,7 +59,7 @@ inline double 	max (float a, double b) 	{ return (a>b) ? a : b; }
 inline double 	max (double a, float b) 	{ return (a>b) ? a : b; }
 
 
-inline int 		min (int a, int b) 			{ return (a<b) ? a : b; }
+inline int	min (int a, int b)		{ return (a<b) ? a : b; }
 
 inline long 	min (long a, long b) 		{ return (a<b) ? a : b; }
 inline long 	min (int a, long b) 		{ return (a<b) ? a : b; }
@@ -80,10 +80,9 @@ inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
 
 // abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
+//template<typename T> T abs (T a)		{ return (a<T(0)) ? -a : a; }
 
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
+inline int	lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
 
 /******************************************************************************
 *******************************************************************************
@@ -134,8 +133,8 @@ public:
 
   virtual void run() = 0;
 
-  void stop()	{ fStopped = true; }
-  bool stopped() 	{ return fStopped; }
+  void stop() { fStopped = true; }
+  bool stopped() { return fStopped; }
 
   virtual void declare(double* zone, const char* key, const char* value) {}
 };
