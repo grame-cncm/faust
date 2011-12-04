@@ -1,12 +1,12 @@
 /************************************************************************
  ************************************************************************
     FAUST Architecture File
-	Copyright (C) 2009-2011 Albert Graef <Dr.Graef@t-online.de>
+    Copyright (C) 2009-2011 Albert Graef <Dr.Graef@t-online.de>
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as 
-	published by the Free Software Foundation; either version 2.1 of the 
-	License, or (at your option) any later version.
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation; either version 2.1 of the
+    License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,9 +14,9 @@
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
- 	License along with the GNU C Library; if not, write to the Free
-  	Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  	02111-1307 USA. 
+    License along with the GNU C Library; if not, write to the Free
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.
  ************************************************************************
  ************************************************************************/
 
@@ -110,10 +110,10 @@ class UI
 {
   bool	fStopped;
 public:
-		
+
   UI() : fStopped(false) {}
   virtual ~UI() {}
-	
+
   virtual void addButton(const char* label, double* zone) = 0;
   virtual void addToggleButton(const char* label, double* zone) = 0;
   virtual void addCheckButton(const char* label, double* zone) = 0;
@@ -125,15 +125,15 @@ public:
   virtual void addTextDisplay(const char* label, double* zone, char* names[], float min, float max) = 0;
   virtual void addHorizontalBargraph(const char* label, double* zone, float min, float max) = 0;
   virtual void addVerticalBargraph(const char* label, double* zone, float min, float max) = 0;
-	
+
   virtual void openFrameBox(const char* label) = 0;
   virtual void openTabBox(const char* label) = 0;
   virtual void openHorizontalBox(const char* label) = 0;
   virtual void openVerticalBox(const char* label) = 0;
   virtual void closeBox() = 0;
-	
+
   virtual void run() = 0;
-	
+
   void stop()	{ fStopped = true; }
   bool stopped() 	{ return fStopped; }
 
@@ -164,7 +164,7 @@ class PureUI : public UI
 public:
   int nelems;
   ui_elem_t *elems;
-		
+
   PureUI();
   virtual ~PureUI();
 
@@ -188,13 +188,13 @@ public:
   virtual void addTextDisplay(const char* label, double* zone, char* names[], float min, float max);
   virtual void addHorizontalBargraph(const char* label, double* zone, float min, float max);
   virtual void addVerticalBargraph(const char* label, double* zone, float min, float max);
-  
+
   virtual void openFrameBox(const char* label);
   virtual void openTabBox(const char* label);
   virtual void openHorizontalBox(const char* label);
   virtual void openVerticalBox(const char* label);
   virtual void closeBox();
-	
+
   virtual void run();
 };
 
@@ -324,23 +324,23 @@ void PureUI::run() {}
 *******************************************************************************
 *******************************************************************************/
 
-
-
 //----------------------------------------------------------------
 //  abstract definition of a signal processor
 //----------------------------------------------------------------
-			
+
 class dsp {
  protected:
-	int fSamplingFreq;
+  int fSamplingFreq;
  public:
-	dsp() {}
-	virtual ~dsp() {}
-	virtual int getNumInputs() = 0;
-	virtual int getNumOutputs() = 0;
-	virtual void buildUserInterface(UI* interface) = 0;
-	virtual void init(int samplingRate) = 0;
- 	virtual void compute(int len, double** inputs, double** outputs) = 0;
+  // internal freelist for custom voice allocation
+  dsp *prev, *next;
+  dsp() {}
+  virtual ~dsp() {}
+  virtual int getNumInputs() = 0;
+  virtual int getNumOutputs() = 0;
+  virtual void buildUserInterface(UI* interface) = 0;
+  virtual void init(int samplingRate) = 0;
+  virtual void compute(int len, double** inputs, double** outputs) = 0;
 };
 
 //----------------------------------------------------------------------------
@@ -355,10 +355,11 @@ class dsp {
 
 <<includeclass>>
 
+#include <assert.h>
+
 // Define this to get some debugging output.
 //#define DEBUG
 #ifdef DEBUG
-#include <assert.h>
 #include <stdio.h>
 #define FAUST_CN "mydsp"
 #endif
@@ -368,75 +369,96 @@ class dsp {
    mydsp instances. When a dsp is freed with deldsp(), it's in fact never
    deleted, but put at the end of a freelist from where it may eventually be
    reused by a subsequent call to newdsp(). By these means, the number of
-   actual calls to malloc() / new can be kept to a minimum. In addition, a
-   small number of voices are preallocated in static memory (8 in the present
+   actual calls to malloc() can be kept to a minimum. In addition, a small
+   number of voices are preallocated in static memory (8 in the present
    implementation, but this can be changed by redefining the NVOICES constant
    at compile time), so chances are that your application may never need to
    allocate dsp instances on the heap at all. Also, instances will always be
-   allocated in chunks of NVOICES dsps, to reduce the calls to malloc() / new
-   when instances need to be allocated dynamically. */
+   allocated in chunks of NVOICES dsps, to reduce the calls to malloc() when
+   instances need to be allocated dynamically. */
 
 #ifndef NVOICES
 #define NVOICES 8
 #endif
 
-#include <list>
+struct dspmem_t {
+  char x[sizeof(mydsp)];
+};
 
-using namespace std;
+struct mem_t {
+  dspmem_t mem[NVOICES];
+  mem_t *next;
+};
 
-// free list, and the list of dynamically allocated memory blocks
-static list<mydsp*> freelist, dspmem;
-// statically allocated dsp instances
-static mydsp dspmem_block0[NVOICES], *dspmem_block1 = 0;
+// statically and dynamically allocated dsp instances
+static mem_t mem0, *mem;
+// beginning and end of the freelist
+static mydsp *first, *last;
 
 /* This is supposed to be executed when the module gets unloaded. You'll need
-   a recent gcc version (or compatible) to make this work. XXXFIXME: At
-   present this is disabled by default, as we found that calling delete on
-   mydsp instances causes segfaults later in some environments (specifically,
-   Pd) when a dsp module gets reloaded at runtime. We don't know right now
-   whether that's a bug in pd, pd-pure, pure-faust or maybe just some bad
-   interaction with the system loader. So for the time being we deliberately
-   leak some memory here if dsp instances are allocated in dynamic memory at
-   the time the plugin gets reloaded. YMMV, though, so you may want to
-   reenable this code if it works for you. */
+   a recent gcc version (or compatible) to make this work. */
 
-#ifdef NOBUG
 void __attribute__ ((destructor)) mydsp_fini(void)
 {
-  for (list<mydsp*>::iterator it = dspmem.begin(); it != dspmem.end(); ++it)
-    delete[] *it;
+  if (!mem) return;
+  mem = mem->next;
+  while (mem) {
+    mem_t *mem1 = mem->next;
+    free(mem); mem = mem1;
+  }
 }
-#endif
 
 /* The class factory, used to create and destroy mydsp objects in the client.
    This is implemented using C linkage to facilitate dlopen access. */
 
+#include <new>
+
 extern "C" mydsp *newdsp()
 {
-  if (!dspmem_block1) {
+  if (!mem) {
+    mem = &mem0; mem->next = 0;
     // initialize the freelist
-    dspmem_block1 = dspmem_block0;
-    for (int i = 0; i < NVOICES; i++)
-      freelist.push_back(dspmem_block1+i);
+    mydsp *prev = 0, *next = (mydsp*)&mem->mem[0];
+    first = next;
+    for (int i = 0; i < NVOICES; i++) {
+      void *p = &mem->mem[i];
+      mydsp *d = new(p) mydsp;
+      d->prev = prev; prev = d;
+      d->next = ++next;
+    }
+    last = prev; last->next = 0;
 #ifdef DEBUG
     fprintf(stderr, ">>> %s: preallocated %d voices\n", FAUST_CN, NVOICES);
 #endif
   }
-  if (freelist.empty()) {
+  assert(mem);
+  if (!first) {
     // allocate a new chunk of voices and add them to the freelist
-    mydsp *block = new mydsp[NVOICES];
-    dspmem.push_back(block);
-    for (int i = 0; i < NVOICES; i++)
-      freelist.push_back(block+i);
+    mem_t *block = (mem_t*)calloc(1, sizeof(mem_t));
+    block->next = mem->next; mem->next = block;
+    mydsp *prev = 0, *next = (mydsp*)&block->mem[0];
+    first = next;
+    for (int i = 0; i < NVOICES; i++) {
+      void *p = &block->mem[i];;
+      mydsp *d = new(p) mydsp;
+      d->prev = prev; prev = d;
+      d->next = ++next;
+    }
+    last = prev; last->next = 0;
 #ifdef DEBUG
     fprintf(stderr, ">>> %s: allocated %d voices\n", FAUST_CN, NVOICES);
 #endif
   }
-#ifdef DEBUG
-  assert(!freelist.empty());
-#endif
-  mydsp *d = freelist.front();
-  freelist.pop_front();
+  assert(first && last);
+  mydsp *d = first;
+  if (first == last) {
+    // freelist is now empty
+    first = last = 0;
+  } else {
+    // remove d from the freelist
+    first = (mydsp*)first->next;
+  }
+  d->prev = d->next = 0;
 #ifdef DEBUG
   fprintf(stderr, ">>> %s: allocating instance %p\n", FAUST_CN, d);
 #endif
@@ -448,5 +470,10 @@ extern "C" void deldsp(mydsp* d)
 #ifdef DEBUG
   fprintf(stderr, ">>> %s: freeing instance %p\n", FAUST_CN, d);
 #endif
-  freelist.push_back(d);
+  // add d to the freelist
+  assert(!d->prev && !d->next);
+  if (last) {
+    last->next = d; d->prev = last; last = d;
+  } else
+    first = last = d;
 }
