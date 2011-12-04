@@ -30,15 +30,15 @@
 
 struct Meta
 {
-    void declare (const char* key, const char* value) { }
+  void declare (const char* key, const char* value) { }
 };
 
 //-------------------------------------------------------------------
 // Generic min and max using c++ inline
 //-------------------------------------------------------------------
 
-inline int 		max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
-inline int 		max (int a, int b) 			{ return (a>b) ? a : b; }
+inline int 	max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
+inline int 	max (int a, int b)		{ return (a>b) ? a : b; }
 
 inline long 	max (long a, long b) 		{ return (a>b) ? a : b; }
 inline long 	max (int a, long b) 		{ return (a>b) ? a : b; }
@@ -59,7 +59,7 @@ inline double 	max (float a, double b) 	{ return (a>b) ? a : b; }
 inline double 	max (double a, float b) 	{ return (a>b) ? a : b; }
 
 
-inline int 		min (int a, int b) 			{ return (a<b) ? a : b; }
+inline int	min (int a, int b)		{ return (a<b) ? a : b; }
 
 inline long 	min (long a, long b) 		{ return (a<b) ? a : b; }
 inline long 	min (int a, long b) 		{ return (a<b) ? a : b; }
@@ -80,10 +80,9 @@ inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
 inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
 
 // abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
+//template<typename T> T abs (T a)		{ return (a<T(0)) ? -a : a; }
 
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
+inline int	lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
 
 /******************************************************************************
 *******************************************************************************
@@ -134,8 +133,8 @@ public:
 
   virtual void run() = 0;
 
-  void stop()	{ fStopped = true; }
-  bool stopped() 	{ return fStopped; }
+  void stop() { fStopped = true; }
+  bool stopped() { return fStopped; }
 
   virtual void declare(double* zone, const char* key, const char* value) {}
 };
@@ -370,15 +369,23 @@ class dsp {
    deleted, but put at the end of a freelist from where it may eventually be
    reused by a subsequent call to newdsp(). By these means, the number of
    actual calls to malloc() can be kept to a minimum. In addition, a small
-   number of voices are preallocated in static memory (8 in the present
-   implementation, but this can be changed by redefining the NVOICES constant
-   at compile time), so chances are that your application may never need to
-   allocate dsp instances on the heap at all. Also, instances will always be
-   allocated in chunks of NVOICES dsps, to reduce the calls to malloc() when
-   instances need to be allocated dynamically. */
+   number of voices are preallocated in static memory (1 by default in the
+   present implementation, but you can set this at compile time by redefining
+   the NVOICES constant accordingly). If you choose a suitable NVOICES value,
+   chances are that your application may never need to allocate dsp instances
+   on the heap at all. Also, even if dsp instances have to be created
+   dynamically, they are allocated in chunks of NVOICES units, in order to
+   reduce the calls to malloc(). Thus we generally recommend to set NVOICES to
+   a value >1 which best suits your application. */
 
 #ifndef NVOICES
-#define NVOICES 8
+#define NVOICES 1
+#endif
+
+// Make sure that NVOICES is at least 1.
+#if NVOICES<1
+#undefine NVOICES
+#define NVOICES 1
 #endif
 
 struct dspmem_t {
@@ -417,7 +424,7 @@ extern "C" mydsp *newdsp()
 {
   if (!mem) {
     mem = &mem0; mem->next = 0;
-    // initialize the freelist
+    // initialize the freelist with the statically allocated voices
     mydsp *prev = 0, *next = (mydsp*)&mem->mem[0];
     first = next;
     for (int i = 0; i < NVOICES; i++) {
