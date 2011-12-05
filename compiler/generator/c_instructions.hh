@@ -291,7 +291,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 indexed->fIndex->accept(this);
                 *fOut << "] = ";
             }
-            assert( inst->fValue);
+            assert(inst->fValue);
             inst->fValue->accept(this);
             EndLine();
         }
@@ -386,20 +386,26 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(ForLoopInst* inst)
         {
-            // To generate C99 compatible loops...
-            DeclareVarInst* declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-            StoreVarInst* init_inst = InstBuilder::genStoreStackVar(declare_inst->getName(), declare_inst->fValue);
+            DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
+            StoreVarInst* c99_init_inst = NULL;
 
-            // No more explicit declaration...
-            declare_inst->fValue = NULL;
-
-            // Declare loop variable outside the loop.
-            inst->fInit->accept(this);
+            if (c99_declare_inst) {
+                // To generate C99 compatible loops...
+                c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
+                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt));
+                // C99 loop variable declared outside the loop
+                c99_declare_inst->accept(this);
+            }
 
             *fOut << "for (";
                 fFinishLine = false;
-                // And init it here
-                init_inst->accept(this);
+                if (c99_declare_inst) {
+                    // C99 loop initialized here
+                    c99_init_inst->accept(this);
+                } else {
+                    // Index already defined
+                    inst->fInit->accept(this);
+                }
                 *fOut << "; ";
                 inst->fEnd->accept(this);
                 *fOut << "; ";
