@@ -1,12 +1,11 @@
 #ifndef FAUST_CUI_H
 #define FAUST_CUI_H
 
-
 /*******************************************************************************
  * CUI : Faust User Interface for C generated code.
  ******************************************************************************/
 
-// -- layout groups
+/* -- layout groups */
 
 typedef void (* openFrameBoxFun) (void* interface, const char* label);
 typedef void (* openTabBoxFun) (void* interface, const char* label);
@@ -14,7 +13,7 @@ typedef void (* openHorizontalBoxFun) (void* interface, const char* label);
 typedef void (* openVerticalBoxFun) (void* interface, const char* label);
 typedef void (*closeBoxFun) (void* interface);
 
-// -- active widgets
+/* -- active widgets */
 
 typedef void (* addButtonFun) (void* interface, const char* label, float* zone);
 typedef void (* addToggleButtonFun) (void* interface, const char* label, float* zone);
@@ -23,7 +22,7 @@ typedef void (* addVerticalSliderFun) (void* interface, const char* label, float
 typedef void (* addHorizontalSliderFun) (void* interface, const char* label, float* zone, float init, float min, float max, float step);
 typedef void (* addNumEntryFun) (void* interface, const char* label, float* zone, float init, float min, float max, float step);
 
-// -- passive display widgets
+/* -- passive display widgets */
 
 typedef void (* addNumDisplayFun) (void* interface, const char* label, float* zone, int precision);
 typedef void (* addTextDisplayFun) (void* interface, const char* label, float* zone, const char* names[], float min, float max);

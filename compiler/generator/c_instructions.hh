@@ -386,9 +386,20 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(ForLoopInst* inst)
         {
+            // To generate C99 compatible loops...
+            DeclareVarInst* declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
+            StoreVarInst* init_inst = InstBuilder::genStoreStackVar(declare_inst->getName(), declare_inst->fValue);
+
+            // No more explicit declaration...
+            declare_inst->fValue = NULL;
+
+            // Declare loop variable outside the loop.
+            inst->fInit->accept(this);
+
             *fOut << "for (";
                 fFinishLine = false;
-                inst->fInit->accept(this);
+                // And init it here
+                init_inst->accept(this);
                 *fOut << "; ";
                 inst->fEnd->accept(this);
                 *fOut << "; ";
