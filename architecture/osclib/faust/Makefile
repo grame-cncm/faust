@@ -4,7 +4,8 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-system	:= $(shell uname -s)
+system	?= $(shell uname -s)
+
 ifeq ($(system), Darwin)
 ARCHFLAGS :=  -arch i386 -arch x86_64
 else
