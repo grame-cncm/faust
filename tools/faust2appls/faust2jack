@@ -8,11 +8,19 @@ OSCDEFS=""
 #                                                                   #
 #####################################################################
 
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    MARCH=""
+else 
+    MARCH="-march=native"
+fi
 
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
-MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+MYGCCFLAGS="-O3 $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 

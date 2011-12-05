@@ -391,11 +391,23 @@ module Faust
         args = self.input_names + cnames.zip(cdefaults).collect { |ary| ary[0] + ary[1] }
         args.empty? ? "" : args.join(", ") + ";"
       end
-      def decl_args3 # args in keyword:value form
+      def decl_args3 # args for SynthDef
         cnames = self.control_names
-        args = self.input_names.collect { |x| "In.ar(#{x})" } \
-                       + cnames.collect { |x| "#{x}" }
+        cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default }
+        args = self.input_names.collect { |x| "\\#{x}.ar(0)" } \
+        + cnames.zip(cdefaults).collect { |x| "\\#{x[0]}.kr#{x[1]}" }
         args.empty? ? "" : args.join(", ")
+      end
+      def decl_buses # declare input buses for Synth
+        args = self.input_names.collect { |x| \
+          "  #{x}Bus = Bus.audio(s,1);\n"};
+      end
+      def decl_args4 # args for Synth
+        cnames = self.control_names
+        cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default }
+        args = self.input_names.collect { |x| "#{x}:#{x}Bus.asMap"} \
+        + cnames.collect { |x| "#{x}:#{x}Var" }
+        args.empty? ? "" : "\n\t[\t" + args.join(",\n\t\t") + "\n\t]"
       end
       def decl_metadata
         cnames = self.control_names
@@ -477,7 +489,20 @@ EOF
         s = @class_name
         sdname = s[0,1].downcase + s[1 .. s.length]
         print_info("SynthDef: \\#{sdname}\n")
+# if \arg.ar(0) form not used, add after out=0: ,#{self.decl_args2}
         io.print <<EOF
+  
+/*
+  SynthDef - Typical usage in SuperCollider:
+
+EOF
+        print_info("SynthDef: have #{self.input_names.size} inputs\n")
+        if self.input_names.size>0
+          io.print "#{decl_buses}\n";
+        end
+        io.print <<EOF
+  ~synth = Synth(\\#{sdname}, #{self.decl_args4});
+ */
 
   *initClass {
     StartUp.add {
@@ -485,7 +510,7 @@ EOF
 // When SynthDef.writeOnce writes metadata:
 //    SynthDef.writeOnce(\\#{sdname},
       SynthDef(\\#{sdname},
-        {arg out=0, #{self.decl_args2}
+        { |out=0|
           Out.ar(out, 
             #{@class_name}.ar(
               #{self.decl_args3}
