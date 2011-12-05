@@ -390,6 +390,10 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             StoreVarInst* c99_init_inst = NULL;
 
             if (c99_declare_inst) {
+                *fOut << "{";
+                fTab++;
+                tab(fTab, *fOut);
+
                 // To generate C99 compatible loops...
                 c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
                 c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt));
@@ -419,6 +423,12 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 tab(fTab, *fOut);
              *fOut << "}";
              tab(fTab, *fOut);
+             if (c99_declare_inst) {
+                fTab--;
+                tab(fTab, *fOut);
+                *fOut << "}";
+                tab(fTab, *fOut);
+             }
         }
 
         virtual void visit(WhileLoopInst* inst)
