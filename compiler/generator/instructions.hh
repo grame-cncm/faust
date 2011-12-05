@@ -805,6 +805,9 @@ struct LoadVarInst : public ValueInst
         :ValueInst(size), fAddress(address), fAligned(aligned)
     {}
 
+    void setName(const string& name) { fAddress->setName(name); }
+    string getName() {return fAddress->getName(); }
+
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -818,6 +821,9 @@ struct LoadVarAddressInst : public ValueInst
     LoadVarAddressInst(Address* address, int size = 1, bool aligned = false)
         :ValueInst(size), fAddress(address), fAligned(aligned)
     {}
+
+    void setName(const string& name) { fAddress->setName(name); }
+    string getName() {return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -833,6 +839,9 @@ struct StoreVarInst : public StatementInst
     StoreVarInst(Address* address, ValueInst* value, bool aligned = false)
         :fAddress(address), fValue(value), fAligned(aligned)
     {}
+
+    void setName(const string& name) { fAddress->setName(name); }
+    string getName() {return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 

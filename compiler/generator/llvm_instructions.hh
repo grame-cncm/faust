@@ -2066,9 +2066,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string loop_counter_name;
 
             if (declare_inst) {
-                loop_counter_name = declare_inst->fAddress->getName();
+                loop_counter_name = declare_inst->getName();
             } else if (store_inst) {
-                loop_counter_name = store_inst->fAddress->getName();
+                loop_counter_name = store_inst->getName();
             } else {
                 cerr << "Error in ForLoopInst "<< endl;
                 assert(false);
