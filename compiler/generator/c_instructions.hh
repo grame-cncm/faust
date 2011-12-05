@@ -390,6 +390,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             StoreVarInst* c99_init_inst = NULL;
 
             if (c99_declare_inst) {
+                InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
                 *fOut << "{";
                 fTab++;
                 tab(fTab, *fOut);
@@ -423,6 +424,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
                 tab(fTab, *fOut);
              *fOut << "}";
              tab(fTab, *fOut);
+
              if (c99_declare_inst) {
                 fTab--;
                 tab(fTab, *fOut);

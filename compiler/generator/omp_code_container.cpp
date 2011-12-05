@@ -117,7 +117,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
                         omp_sections_block->pushBackInst(InstBuilder::genLabelInst("#pragma omp single"));
                         is_single = true;
                     } else {
-                        omp_sections_block->pushBackInst(InstBuilder::genLabelInst("// Still in a single section"));
+                        omp_sections_block->pushBackInst(InstBuilder::genLabelInst("/* Still in a single section */"));
                     }
                     generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++);
                 }

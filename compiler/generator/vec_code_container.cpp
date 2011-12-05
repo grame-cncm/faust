@@ -41,7 +41,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     // Declare the "index" variable outside the loop
     DeclareVarInst* index_dec = InstBuilder::genDecStackVar(index, InstBuilder::genBasicTyped(Typed::kInt));
     block_res->pushBackInst(index_dec);
-    block_res->pushBackInst(InstBuilder::genLabelInst("// Main loop"));
+    block_res->pushBackInst(InstBuilder::genLabelInst("/* Main loop */"));
 
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
@@ -70,7 +70,7 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counte
     block_res->pushBackInst(loop);
 
     // Remaining frames
-    block_res->pushBackInst(InstBuilder::genLabelInst("// Remaining frames"));
+    block_res->pushBackInst(InstBuilder::genLabelInst("/* Remaining frames */"));
 
     ValueInst* if_cond = InstBuilder::genLessThan(InstBuilder::genLoadStackVar(index), InstBuilder::genLoadFunArgsVar(counter));
 

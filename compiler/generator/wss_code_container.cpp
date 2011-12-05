@@ -336,14 +336,14 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code
         fun_args.push_back(InstBuilder::genLoadStructVar("fTaskGraph"));
         fun_args.push_back(InstBuilder::genIntNumInst(LAST_TASK_INDEX));
         fun_args.push_back(InstBuilder::genIntNumInst(dag[0].size()));
-        gen_code->pushBackInst(InstBuilder::genLabelInst("// Initialize end task, if more than one input"));
+        gen_code->pushBackInst(InstBuilder::genLabelInst("/* Initialize end task, if more than one input */"));
         gen_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("initTask", fun_args)));
     } else {
-        gen_code->pushBackInst(InstBuilder::genLabelInst("// End task has only one input, so will be directly activated"));
+        gen_code->pushBackInst(InstBuilder::genLabelInst("/* End task has only one input, so will be directly activated */"));
     }
 
     // Compute init section
-    gen_code->pushBackInst(InstBuilder::genLabelInst("// Only initialize tasks with more than one input"));
+    gen_code->pushBackInst(InstBuilder::genLabelInst("/* Only initialize tasks with more than one input */"));
     for (int l = dag.size() - 1; l >= 0; l--) {
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
             if ((*p)->getBackwardLoopDependencies().size() > 1)  { // Only initialize taks with more than 1 input, since taks with one input are "directly" activated.
@@ -367,7 +367,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code
     gen_code->pushBackInst(InstBuilder::genStoreStackVar("tasknum", InstBuilder::genIntNumInst(task_num[task_num.size() - 1])));
 
     if (master_thread) {
-        loop_code->pushBackInst(InstBuilder::genLabelInst("// Master thread init processing"));
+        loop_code->pushBackInst(InstBuilder::genLabelInst("/* Master thread init processing */"));
         ValueInst* if_cond = InstBuilder::genBinopInst(kEQ, InstBuilder::genLoadFunArgsVar("num_thread"), InstBuilder::genIntNumInst(0));
         loop_code->pushBackInst(InstBuilder::genIfInst(if_cond, then_block));
     }
@@ -540,7 +540,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
     // Work stealing task
     BlockInst* ws_block = InstBuilder::genBlockInst();
-    ws_block->pushBackInst(InstBuilder::genLabelInst("// Work Stealing task"));
+    ws_block->pushBackInst(InstBuilder::genLabelInst("/* Work Stealing task */"));
     list<ValueInst*> fun_args2;
     fun_args2.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
     fun_args2.push_back(InstBuilder::genLoadStructVar("fDynamicNumThreads"));
@@ -549,7 +549,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
     // Last task
     BlockInst* last_block = InstBuilder::genBlockInst();
-    last_block->pushBackInst(InstBuilder::genLabelInst("// Last task"));
+    last_block->pushBackInst(InstBuilder::genLabelInst("/* Last task */"));
     last_block->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile),
                                 InstBuilder::genAdd(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
                                                     gVecSize)));
