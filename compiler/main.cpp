@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.44"
+#define FAUSTVERSION "0.9.45"
 
 #include <stdio.h>
 #include <string.h>
@@ -147,7 +147,7 @@ bool			gGroupTaskSwitch= false;
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
 
-int             gTimeout        = 0;            // time out to abort compiler
+int             gTimeout        = 600;            // time out to abort compiler (in seconds)
 
 int             gFloatSize = 1;
 
