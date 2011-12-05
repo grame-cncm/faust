@@ -4,7 +4,14 @@ objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)
 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized 
+system	:= $(shell uname -s)
+ifeq ($(system), Darwin)
+ARCHFLAGS :=  -arch i386 -arch x86_64
+else
+ARCHFLAGS := 
+endif
+
+CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 all : libOSCFaust.a

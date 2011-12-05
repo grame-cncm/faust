@@ -4,21 +4,24 @@ system	?= $(shell uname -s)
 ifeq ($(system), Darwin)
 subprojects := ip ip/posix osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
+ARCHFLAGS 	:=  -arch i386 -arch x86_64
 
 else 
 ifeq ($(system), Linux)
 subprojects := ip ip/posix osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
+ARCHFLAGS 	:= 
 
 else
 subprojects := ip ip/win32 osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/win32/*.cpp)  $(wildcard osc/*.cpp)
+ARCHFLAGS 	:= 
 endif
 endif
 
 VPATH = $(subprojects)
 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized 
+CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses -I. $(addprefix -I, $(subprojects))
 
 objects := $(sources:.cpp=.o)
