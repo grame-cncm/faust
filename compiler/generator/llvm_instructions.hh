@@ -235,9 +235,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // free
             PointerType* free_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
 
-	    VECTOR_OF_TYPES free_args;
-	    free_args.push_back(free_ptr);
-	    FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(free_args), false);
+            VECTOR_OF_TYPES free_args;
+            free_args.push_back(free_ptr);
+            FunctionType* free_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(free_args), false);
 
             Function* func_free = NULL;
             if (!fModule->getFunction("free")) {
@@ -275,7 +275,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             // malloc
             PointerType* malloc_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-	    VECTOR_OF_TYPES malloc_args;
+            VECTOR_OF_TYPES malloc_args;
             malloc_args.push_back(IntegerType::get(getGlobalContext(), 64));
             FunctionType* malloc_type = FunctionType::get(malloc_ptr, MAKE_VECTOR_OF_TYPES(malloc_args), false);
 
@@ -306,6 +306,19 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             ReturnInst::Create(getGlobalContext(), call_inst2, entry_func_llvm_create_dsp);
             verifyFunction(*func_llvm_create_dsp);
             fBuilder->ClearInsertionPoint();
+        }
+
+        llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
+        {
+        #ifdef LLVM_29
+            StructType* struct_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(types), /*isPacked=*/true);
+            fModule->addTypeName(name, struct_type);
+        #endif
+        #ifdef LLVM_30
+            StructType* struct_type = StructType::create(fModule->getContext(), name);
+            struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
+        #endif
+            return struct_type;
         }
 
         void generateUIGlue()
@@ -429,32 +442,18 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             /*isVarArg=*/false);
 
             PointerType* PointerTy_17 = PointerType::get(FuncTy_18, 0);
-
             StructTy_struct_UIGlue_fields.push_back(PointerTy_17);
-        #ifdef LLVM_29
-            llvm::StructType* fStruct_UI = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(StructTy_struct_UIGlue_fields), /*isPacked=*/false);
-            fModule->addTypeName("struct.UIGlue", fStruct_UI);
-        #endif
-        #ifdef LLVM_30
-            llvm::StructType* fStruct_UI = StructType::create(fModule->getContext(), "struct.UIGlue");
-            fStruct_UI->setBody(MAKE_VECTOR_OF_TYPES(StructTy_struct_UIGlue_fields));
-        #endif
+
+            llvm::StructType* fStruct_UI = createType("struct.UIGlue", StructTy_struct_UIGlue_fields);
             fStruct_UI_ptr = PointerType::get(fStruct_UI, 0);
         }
 
         void generateDataStruct(llvm::PointerType* dsp_type_ptr, bool generate_ui)
         {
             // Struct Meta
-            VECTOR_OF_TYPES StructTy_struct_Meta_fields;
-            StructTy_struct_Meta_fields.push_back(IntegerType::get(fModule->getContext(), 8));
-        #ifdef LLVM_29
-            StructType* StructTy_struct_Meta = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(StructTy_struct_Meta_fields), /*isPacked=*/true);
-            fModule->addTypeName("struct.Meta", StructTy_struct_Meta);
-        #endif
-        #ifdef LLVM_30
-            StructType* StructTy_struct_Meta = StructType::create(fModule->getContext(), "struct.Meta");
-            StructTy_struct_Meta->setBody(MAKE_VECTOR_OF_TYPES(StructTy_struct_Meta_fields));
-        #endif
+            VECTOR_OF_TYPES fStructTy_struct_Meta_fields;
+            fStructTy_struct_Meta_fields.push_back(IntegerType::get(fModule->getContext(), 8));
+            StructType* fStructTy_struct_Meta = createType("struct.Meta", fStructTy_struct_Meta_fields);
 
             // Struct UI
             generateUIGlue();
@@ -578,22 +577,11 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         llvm::PointerType* getDSPType(bool internal, bool generate_ui = true)
         {
-            llvm::StructType* dsp_type;
-            llvm::PointerType* dsp_type_ptr;
+            llvm::StructType* dsp_type = createType("struct.dsp", fDSPFields);
+            llvm::PointerType* dsp_type_ptr = PointerType::get(dsp_type, 0);
 
-        #ifdef LLVM_29
-            dsp_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(fDSPFields), false);
-            fModule->addTypeName("struct.dsp" + fPrefix, dsp_type);
-        #endif
-        #ifdef LLVM_30
-            dsp_type = StructType::create(fModule->getContext(), "struct.dsp" + fPrefix);
-            dsp_type->setBody(MAKE_VECTOR_OF_TYPES(fDSPFields));
-        #endif
-
-            dsp_type_ptr = PointerType::get(dsp_type, 0);
-
-            LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + fPrefix);
-            assert(type);
+            //LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + fPrefix);
+            //assert(type);
             // type->dump();
 
             // Create llvm_free_dsp function

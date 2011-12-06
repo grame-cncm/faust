@@ -562,6 +562,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateDestroy(fCodeProducer);
     generateDestroyEnd();
 
+    generateMetadata();
+
     generateBuildUserInterfaceBegin();
     generateUserInterface(fCodeProducer);
     generateBuildUserInterfaceEnd();
