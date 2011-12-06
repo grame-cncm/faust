@@ -32,29 +32,6 @@
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Analysis/Passes.h>
 
-#ifdef LLVM_29
-#include <llvm/Support/StandardPasses.h>
-   #define VECTOR_OF_TYPES vector<const llvm::Type*>
-   #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
-   #define LLVM_TYPE const llvm::Type*
-   #define MAKE_VECTOR_OF_TYPES(vec) vec
-   #define MAKE_IXD(beg, end) beg, end
-   #define MAKE_ARGS(args) args
-   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end());
-   #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block);
-#endif
-
-#ifdef LLVM_30
-   #define VECTOR_OF_TYPES vector<llvm::Type*>
-   #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
-   #define LLVM_TYPE llvm::Type*
-   #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
-   #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
-   #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
-   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args));
-   #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block);
-#endif
-
 using namespace std;
 
 extern bool gVectorSwitch;
@@ -68,6 +45,29 @@ extern bool gSchedulerSwitch;
 extern bool gVectorSwitch;
 extern int gFloatSize;
 extern map<Tree, set<Tree> > gMetaDataSet;
+
+#ifdef LLVM_29
+#include <llvm/Support/StandardPasses.h>
+   #define VECTOR_OF_TYPES vector<const llvm::Type*>
+   #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
+   #define LLVM_TYPE const llvm::Type*
+   #define MAKE_VECTOR_OF_TYPES(vec) vec
+   #define MAKE_IXD(beg, end) beg, end
+   #define MAKE_ARGS(args) args
+   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end())
+   #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block)
+#endif
+
+#ifdef LLVM_30
+   #define VECTOR_OF_TYPES vector<llvm::Type*>
+   #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
+   #define LLVM_TYPE llvm::Type*
+   #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
+   #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
+   #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
+   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
+   #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block)
+#endif
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

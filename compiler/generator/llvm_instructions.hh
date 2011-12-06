@@ -48,15 +48,6 @@ using namespace std;
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Support/Host.h>
-
-#ifdef LLVM_29
-#include <llvm/Target/TargetSelect.h>
-#endif
-
-#ifdef LLVM_30
-#include <llvm/Support/TargetSelect.h>
-#endif
-
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/IRBuilder.h>
 #include <llvm-c/BitWriter.h>
@@ -71,21 +62,27 @@ extern int gVecSize;
 typedef llvm::Value* LlvmValue;
 
 #ifdef LLVM_29
+#include <llvm/Target/TargetSelect.h>
    #define VECTOR_OF_TYPES vector<const llvm::Type*>
    #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
    #define LLVM_TYPE const llvm::Type*
    #define MAKE_VECTOR_OF_TYPES(vec) vec
    #define MAKE_IXD(beg, end) beg, end
    #define MAKE_ARGS(args) args
+   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end())
+   #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, name);
 #endif
 
 #ifdef LLVM_30
+#include <llvm/Support/TargetSelect.h>
    #define VECTOR_OF_TYPES vector<llvm::Type*>
    #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
    #define LLVM_TYPE llvm::Type*
    #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
    #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
    #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
+   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
+   #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
 #endif
 
 // Helper class
@@ -634,8 +631,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             return fDSPFieldsNames;
         }
-
-
 };
 
 // Special version for DSP code (add call to "destroy" function)
@@ -799,7 +794,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         void printVarTable()
         {
             std::map<string, LlvmValue>::const_iterator it;
-
             for (it = fDSPStackVars.begin(); it != fDSPStackVars.end(); it++) {
                 printf("stack var = %s \n", (*it).first.c_str());
             }
@@ -807,6 +801,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         GlobalVariable* addStringConstant(const string& arg)
         {
+            // Remove enclosing \" if needed...
             string str = (arg[0] == '"') ? arg.substr(1, arg.size() - 2) : arg;
 
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
@@ -1935,12 +1930,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             //cerr << "Size " << fun_args.size() << endl;
             //function->dump();
 
-        #ifdef LLVM_29
-            CallInst* call_inst = fBuilder->CreateCall(function, fun_args.begin(), fun_args.end());
-        #endif
-        #ifdef LLVM_30
-            CallInst* call_inst = fBuilder->CreateCall(function, MAKE_VECTOR_OF_TYPES(fun_args));
-        #endif
+            CallInst* call_inst = CREATE_CALL(function, fun_args);
             call_inst->setCallingConv(CallingConv::C);
 
             //fModule->dump();
@@ -2102,12 +2092,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fBuilder->SetInsertPoint(exec_block);
 
             // Start the PHI node with an entry for start
-        #ifdef LLVM_29
-            PHINode* phi_node = fBuilder->CreatePHI(fBuilder->getInt32Ty(), loop_counter_name);
-        #endif
-        #ifdef LLVM_30
-            PHINode* phi_node = fBuilder->CreatePHI(fBuilder->getInt32Ty(), 0, loop_counter_name);
-        #endif
+            PHINode* phi_node = CREATE_PHI(fBuilder->getInt32Ty(), loop_counter_name);
             phi_node->addIncoming(loop_counter, init_block);
 
             // Generates loop internal code
