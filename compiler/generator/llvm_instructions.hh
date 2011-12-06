@@ -226,9 +226,25 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         int fDSPFieldsCounter;
         string fPrefix;
 
+        // Meta structure creation
+        llvm::PointerType* fStruct_Meta_ptr;
+
         // UI structure creation
         llvm::PointerType* fStruct_UI_ptr;
         LlvmValue fUIInterface_ptr;
+
+        llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
+        {
+        #ifdef LLVM_29
+            StructType* struct_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(types), /*isPacked=*/true);
+            fModule->addTypeName(name, struct_type);
+        #endif
+        #ifdef LLVM_30
+            StructType* struct_type = StructType::create(fModule->getContext(), name);
+            struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
+        #endif
+            return struct_type;
+        }
 
         virtual void generateFreeDsp(llvm::PointerType* dsp_type_ptr, bool internal)
         {
@@ -308,17 +324,26 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             fBuilder->ClearInsertionPoint();
         }
 
-        llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
+        void generateMetaGlue()
         {
-        #ifdef LLVM_29
-            StructType* struct_type = StructType::get(fModule->getContext(), MAKE_VECTOR_OF_TYPES(types), /*isPacked=*/true);
-            fModule->addTypeName(name, struct_type);
-        #endif
-        #ifdef LLVM_30
-            StructType* struct_type = StructType::create(fModule->getContext(), name);
-            struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
-        #endif
-            return struct_type;
+            // Struct Meta
+            VECTOR_OF_TYPES fStructTy_struct_Meta_fields;
+            PointerType* PointerTy_0 = PointerType::get(IntegerType::get(fModule->getContext(), 8), 0);
+            // Declare fun
+            VECTOR_OF_TYPES FuncTy_2_args;
+            FuncTy_2_args.push_back(PointerTy_0);
+            FuncTy_2_args.push_back(PointerTy_0);
+            FunctionType* FuncTy_2 = FunctionType::get(
+            /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_2_args),
+            /*isVarArg=*/false);
+
+            PointerType* PointerTy_1 = PointerType::get(FuncTy_2, 0);
+
+            fStructTy_struct_Meta_fields.push_back(PointerTy_1);
+
+            StructType* fStructTy_struct_Meta = createType("struct.Meta", fStructTy_struct_Meta_fields);
+            fStruct_Meta_ptr = PointerType::get(fStructTy_struct_Meta, 0);
         }
 
         void generateUIGlue()
@@ -448,49 +473,40 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             fStruct_UI_ptr = PointerType::get(fStruct_UI, 0);
         }
 
-        void generateDataStruct(llvm::PointerType* dsp_type_ptr, bool generate_ui)
+        void generateBuildUserInterface(llvm::PointerType* dsp_type_ptr)
         {
-            // Struct Meta
-            VECTOR_OF_TYPES fStructTy_struct_Meta_fields;
-            fStructTy_struct_Meta_fields.push_back(IntegerType::get(fModule->getContext(), 8));
-            StructType* fStructTy_struct_Meta = createType("struct.Meta", fStructTy_struct_Meta_fields);
+              // Creates llvm_buildUserInterface function
+            VECTOR_OF_TYPES llvm_buildUserInterface_args;
+            llvm_buildUserInterface_args.push_back(dsp_type_ptr);
+            llvm_buildUserInterface_args.push_back(fStruct_UI_ptr);
+            FunctionType* llvm_buildUserInterface_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_buildUserInterface_args), false);
 
-            // Struct UI
-            generateUIGlue();
+            Function* llvm_buildUserInterface = Function::Create(llvm_buildUserInterface_type, GlobalValue::ExternalLinkage, "buildUserInterface" + fPrefix, fModule);
+            llvm_buildUserInterface->setCallingConv(CallingConv::C);
+            llvm_buildUserInterface->setAlignment(2);
 
-            if (generate_ui) {
-                // Creates llvm_buildUserInterface function
-                VECTOR_OF_TYPES llvm_buildUserInterface_args;
-                llvm_buildUserInterface_args.push_back(dsp_type_ptr);
-                llvm_buildUserInterface_args.push_back(fStruct_UI_ptr);
-                FunctionType* llvm_buildUserInterface_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_buildUserInterface_args), false);
+            // Name arguments
+            Function::arg_iterator func_llvm_buildUserInterface_args_it = llvm_buildUserInterface->arg_begin();
+            Value* dsp = func_llvm_buildUserInterface_args_it++;
+            dsp->setName("dsp");
+            Value* interface = func_llvm_buildUserInterface_args_it++;
+            interface->setName("interface");
 
-                Function* llvm_buildUserInterface = Function::Create(llvm_buildUserInterface_type, GlobalValue::ExternalLinkage, "buildUserInterface" + fPrefix, fModule);
-                llvm_buildUserInterface->setCallingConv(CallingConv::C);
-                llvm_buildUserInterface->setAlignment(2);
+            // Create init block
+            BasicBlock* init_block = BasicBlock::Create(getGlobalContext(), "init", llvm_buildUserInterface);
+            fBuilder->SetInsertPoint(init_block);
 
-                // Name arguments
-                Function::arg_iterator func_llvm_buildUserInterface_args_it = llvm_buildUserInterface->arg_begin();
-                Value* dsp = func_llvm_buildUserInterface_args_it++;
-                dsp->setName("dsp");
-                Value* interface = func_llvm_buildUserInterface_args_it++;
-                interface->setName("interface");
+            // Genererates access to "interface" pointer just once
+            Value* idx[2];
+            idx[0] = genInt64(0);
+            idx[1] = genInt32(0);
+            Value* ui_ptr = fBuilder->CreateGEP(interface, MAKE_IXD(idx, idx+2));
+            fUIInterface_ptr = fBuilder->CreateLoad(ui_ptr);
 
-                // Create init block
-                BasicBlock* init_block = BasicBlock::Create(getGlobalContext(), "init", llvm_buildUserInterface);
-                fBuilder->SetInsertPoint(init_block);
-
-                // Genererates access to "interface" pointer just once
-                Value* idx[2];
-                idx[0] = genInt64(0);
-                idx[1] = genInt32(0);
-                Value* ui_ptr = fBuilder->CreateGEP(interface, MAKE_IXD(idx, idx+2));
-                fUIInterface_ptr = fBuilder->CreateLoad(ui_ptr);
-
-                //fStruct_UI_ptr->dump();
-                //llvm_buildUserInterface->dump();
-            }
+            //fStruct_UI_ptr->dump();
+            //llvm_buildUserInterface->dump();
         }
+
 
     public:
 
@@ -580,18 +596,22 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             llvm::StructType* dsp_type = createType("struct.dsp", fDSPFields);
             llvm::PointerType* dsp_type_ptr = PointerType::get(dsp_type, 0);
 
-            //LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + fPrefix);
-            //assert(type);
-            // type->dump();
-
             // Create llvm_free_dsp function
             generateFreeDsp(dsp_type_ptr, internal);
 
             // Creates DSP free/delete functions
             generateMemory(dsp_type_ptr, internal);
 
-            // Creates struct.Meta and struct.UI and prepare llvm_buildUserInterface
-            generateDataStruct(dsp_type_ptr, generate_ui);
+            // Struct Meta
+            generateMetaGlue();
+
+            // Struct UI
+            generateUIGlue();
+
+            // prepare llvm_buildUserInterface
+            if (generate_ui) {
+                generateBuildUserInterface(dsp_type_ptr);
+            }
 
             return dsp_type_ptr;
         }
@@ -697,10 +717,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         map<string, LlvmValue> fUICallTable;
 
         // UI structure creation
-        llvm::PointerType* fStruct_UI_ptr;
         LlvmValue fUIInterface_ptr;                 // Pointer on the UI
 
-        llvm::PointerType* fDSP_ptr;
+        llvm::PointerType* fStruct_DSP_ptr;
 
         std::map<string, int> fDSPFieldsNames;      // Computed by LLVMTypeInstVisitor, used to access struct fields
         std::map<string, LlvmValue> fDSPStackVars;  // Variables on the stack
@@ -714,15 +733,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         LLVMInstVisitor(Module* module, IRBuilder<>* builder,
                         const std::map<string, int>& field_names,
-                        llvm::PointerType* ui_type,
                         LlvmValue ui_ptr,
                         llvm::PointerType* dsp_ptr,
                         const string& prefix = "")
                         :fModule(module),
                         fBuilder(builder),
-                        fStruct_UI_ptr(ui_type),
                         fUIInterface_ptr(ui_ptr),
-                        fDSP_ptr(dsp_ptr),
+                        fStruct_DSP_ptr(dsp_ptr),
                         fDSPFieldsNames(field_names),
                         fCurValue(NULL),
                         fPrefix(prefix)
@@ -748,7 +765,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             fUICallTable["declare"] = genInt32(16);
 
-            fTypeMap[Typed::kObj_ptr] = fDSP_ptr;
+            fTypeMap[Typed::kObj_ptr] = fStruct_DSP_ptr;
         }
 
         LLVMInstVisitor(const string& prefix = "")
