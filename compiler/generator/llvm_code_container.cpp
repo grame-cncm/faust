@@ -67,6 +67,7 @@ extern bool gOpenMPSwitch;
 extern bool gSchedulerSwitch;
 extern bool gVectorSwitch;
 extern int gFloatSize;
+extern map<Tree, set<Tree> > gMetaDataSet;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -433,6 +434,49 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     Function::arg_iterator llvm_metaData_args_it = llvm_metaData->arg_begin();
     Value* meta = llvm_metaData_args_it++;
     meta->setName("m");
+
+    BasicBlock* init_block = BasicBlock::Create(getGlobalContext(), "init", llvm_metaData);
+    fBuilder->SetInsertPoint(init_block);
+
+    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        GlobalVariable* llvm_label1;
+        GlobalVariable* llvm_label2;
+        if (i->first != tree("author")) {
+            llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first));
+            llvm_label2 = fCodeProducer->addStringConstant(tree2str(*(i->second.begin())));
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first));
+                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j));
+                } else {
+                    llvm_label1 = fCodeProducer->addStringConstant("contributor");
+                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j));
+                }
+            }
+        }
+
+        Value* idx[2];
+        idx[0] = genInt64(0);
+        idx[1] = genInt32(0);
+        Value* mth_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx, idx+2));
+        LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
+
+        Value* idx2[2];
+        idx2[0] = fBuilder->CreateConstGEP2_32(llvm_label1, 0, 0);
+        idx2[1] = fBuilder->CreateConstGEP2_32(llvm_label2, 0, 0);
+        CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+2));
+        call_inst->setCallingConv(CallingConv::C);
+    }
+
+    // Create return block
+    BasicBlock* return_block = BasicBlock::Create(getGlobalContext(), "return", llvm_metaData);
+    ReturnInst::Create(getGlobalContext(), return_block);
+
+    // Insert return block
+    fBuilder->CreateBr(return_block);
+    verifyFunction(*llvm_metaData);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateBuildUserInterfaceBegin()

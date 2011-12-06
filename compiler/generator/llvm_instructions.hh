@@ -342,7 +342,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             fStructTy_struct_Meta_fields.push_back(PointerTy_1);
 
-            StructType* fStructTy_struct_Meta = createType("struct.Meta", fStructTy_struct_Meta_fields);
+            StructType* fStructTy_struct_Meta = createType("struct.MetaGlue", fStructTy_struct_Meta_fields);
             fStruct_Meta_ptr = PointerType::get(fStructTy_struct_Meta, 0);
         }
 
@@ -800,13 +800,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             std::map<string, LlvmValue>::const_iterator it;
 
-             for (it = fDSPStackVars.begin(); it != fDSPStackVars.end(); it++) {
+            for (it = fDSPStackVars.begin(); it != fDSPStackVars.end(); it++) {
                 printf("stack var = %s \n", (*it).first.c_str());
-             }
+            }
         }
 
-        GlobalVariable* addStringConstant(const string& str)
+        GlobalVariable* addStringConstant(const string& arg)
         {
+            string str = (arg[0] == '"') ? arg.substr(1, arg.size() - 2) : arg;
+
             if (fGlobalStringTable.find(str) == fGlobalStringTable.end()) {
                 ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
                 GlobalVariable* gvar_array_string0 = new GlobalVariable(*fModule, array_type, true, GlobalValue::PrivateLinkage, 0, str);

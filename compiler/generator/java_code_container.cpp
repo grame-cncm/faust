@@ -43,7 +43,6 @@ extern bool gOpenMPSwitch;
 extern bool gSchedulerSwitch;
 extern bool gVectorSwitch;
 extern bool gFunTaskSwitch;
-
 extern map<Tree, set<Tree> > gMetaDataSet;
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
