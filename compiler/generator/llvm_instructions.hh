@@ -589,7 +589,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         llvm::PointerType* getDSPType(bool internal, bool generate_ui = true)
         {
-            llvm::StructType* dsp_type = createType("struct.dsp", fDSPFields);
+            llvm::StructType* dsp_type = createType("struct.dsp" + fPrefix, fDSPFields);
             llvm::PointerType* dsp_type_ptr = PointerType::get(dsp_type, 0);
 
             // Create llvm_free_dsp function
@@ -1083,6 +1083,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 } else if (named_typed) {
                     // Used for internal structures (RWTable... etc...)
                     LLVM_TYPE type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
+                    assert(type);
                     fCurValue = fBuilder->CreateAlloca(PointerType::get(type, 0));
                 } else if (array_typed) {
                     // Arrays of 0 size are actually pointers on the type
