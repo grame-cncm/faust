@@ -507,7 +507,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             //llvm_buildUserInterface->dump();
         }
 
-
     public:
 
         LLVMTypeInstVisitor(Module* module, const string& prefix = "")
@@ -616,20 +615,26 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             return dsp_type_ptr;
         }
 
-        std::map<string, int> getFieldNames()
-        {
-            return fDSPFieldsNames;
-        }
-
         llvm::PointerType* getUIType()
         {
             return fStruct_UI_ptr;
+        }
+
+        llvm::PointerType* getMetaType()
+        {
+            return fStruct_Meta_ptr;
         }
 
         LlvmValue getUIPtr()
         {
             return fUIInterface_ptr;
         }
+
+        std::map<string, int> getFieldNames()
+        {
+            return fDSPFieldsNames;
+        }
+
 
 };
 

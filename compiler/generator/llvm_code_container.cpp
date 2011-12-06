@@ -31,17 +31,17 @@
 
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Analysis/Passes.h>
-#ifdef LLVM_29
-#include <llvm/Support/StandardPasses.h>
-#endif
 
 #ifdef LLVM_29
+#include <llvm/Support/StandardPasses.h>
    #define VECTOR_OF_TYPES vector<const llvm::Type*>
    #define MAP_OF_TYPES std::map<Typed::VarType, const llvm::Type*>
    #define LLVM_TYPE const llvm::Type*
    #define MAKE_VECTOR_OF_TYPES(vec) vec
    #define MAKE_IXD(beg, end) beg, end
    #define MAKE_ARGS(args) args
+   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, args.begin(), args.end());
+   #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block);
 #endif
 
 #ifdef LLVM_30
@@ -51,6 +51,8 @@
    #define MAKE_VECTOR_OF_TYPES(vec) makeArrayRef(vec)
    #define MAKE_IXD(beg, end) llvm::ArrayRef<llvm::Value*>(beg, end)
    #define MAKE_ARGS(args) llvm::ArrayRef<llvm::Value*>(args)
+   #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args));
+   #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block);
 #endif
 
 using namespace std;
@@ -157,8 +159,9 @@ void LLVMCodeContainer::generateFillEnd()
     ReturnInst::Create(getGlobalContext(), return_block);
 
     // If previous block branch from previous to current
-    if (fBuilder->GetInsertBlock())
+    if (fBuilder->GetInsertBlock()) {
         fBuilder->CreateBr(return_block);
+    }
 
     //llvm_fill->dump();
     verifyFunction(*llvm_fill);
@@ -217,8 +220,9 @@ void LLVMCodeContainer::generateComputeEnd()
     ReturnInst::Create(getGlobalContext(), return_block);
 
     // If previous block branch from previous to current
-    if (fBuilder->GetInsertBlock())
+    if (fBuilder->GetInsertBlock()) {
         fBuilder->CreateBr(return_block);
+    }
 
     //llvm_compute->dump();
     verifyFunction(*llvm_compute);
@@ -304,8 +308,9 @@ void LLVMCodeContainer::generateClassInitEnd()
     ReturnInst::Create(getGlobalContext(), return_block);
 
     // If previous block branch from previous to current
-    if (fBuilder->GetInsertBlock())
+    if (fBuilder->GetInsertBlock()) {
         fBuilder->CreateBr(return_block);
+    }
 
     //llvm_classInit->dump();
     verifyFunction(*llvm_classInit);
@@ -340,8 +345,9 @@ void LLVMCodeContainer::generateInstanceInitEnd()
     ReturnInst::Create(getGlobalContext(), return_block);
 
     // If previous block branch from previous to current
-    if (fBuilder->GetInsertBlock())
+    if (fBuilder->GetInsertBlock()) {
         fBuilder->CreateBr(return_block);
+    }
 
     //llvm_instanceInit->dump();
     verifyFunction(*llvm_instanceInit);
@@ -365,8 +371,9 @@ void LLVMCodeContainer::generateDestroyEnd()
     ReturnInst::Create(getGlobalContext(), return_block);
 
     // If previous block branch from previous to current
-    if (fBuilder->GetInsertBlock())
+    if (fBuilder->GetInsertBlock()) {
         fBuilder->CreateBr(return_block);
+    }
 
     //llvm_destroy->dump();
     verifyFunction(*llvm_destroy);
@@ -396,12 +403,7 @@ void LLVMCodeContainer::generateInitFun()
 
     Function* llvm_classInit = fModule->getFunction("classInit" + fKlassName);
     assert(llvm_classInit);
-#ifdef LLVM_29
-    CallInst* call_inst1 = CallInst::Create(llvm_classInit, params1.begin(), params1.end(), "", return_block2);
-#endif
-#ifdef LLVM_30
-    CallInst* call_inst1 = CallInst::Create(llvm_classInit, MAKE_VECTOR_OF_TYPES(params1), "", return_block2);
-#endif
+    CallInst* call_inst1 = CREATE_CALL1(llvm_classInit, params1, "", return_block2);
     call_inst1->setCallingConv(CallingConv::C);
 
     vector<Value*> params2;
@@ -410,12 +412,7 @@ void LLVMCodeContainer::generateInitFun()
 
     Function* llvm_instanceInit = fModule->getFunction("instanceInit" + fKlassName);
     assert(llvm_instanceInit);
-#ifdef LLVM_29
-    CallInst* call_inst2 = CallInst::Create(llvm_instanceInit, params2.begin(), params2.end(), "", return_block2);
-#endif
-#ifdef LLVM_30
-    CallInst* call_inst2 = CallInst::Create(llvm_instanceInit, MAKE_VECTOR_OF_TYPES(params2), "", return_block2);
-#endif
+    CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
     call_inst2->setCallingConv(CallingConv::C);
 
     ReturnInst::Create(getGlobalContext(), return_block2);
@@ -423,21 +420,19 @@ void LLVMCodeContainer::generateInitFun()
     fBuilder->ClearInsertionPoint();
 }
 
-void LLVMCodeContainer::generateMetadata()
+void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
 {
-    /*
-    vector<const llvm::Type*> llvm_metaData_args;
-    llvm_metaData_args.push_back(fStruct_Meta_ptr);
-    FunctionType* llvm_metaData_type = FunctionType::get(fBuilder->getVoidTy(), llvm_metaData_args, false);
+    VECTOR_OF_TYPES llvm_metaData_args;
+    llvm_metaData_args.push_back(meta_type_ptr);
+    FunctionType* llvm_metaData_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_metaData_args), false);
 
-    Function* llvm_metaData = Function::Create(llvm_metaData_type, GlobalValue::ExternalLinkage, fKlassName + "llvm_metadata", fModule);
+    Function* llvm_metaData = Function::Create(llvm_metaData_type, GlobalValue::ExternalLinkage, "metadata" + fKlassName, fModule);
     llvm_metaData->setCallingConv(CallingConv::C);
 
     // Name arguments
     Function::arg_iterator llvm_metaData_args_it = llvm_metaData->arg_begin();
     Value* meta = llvm_metaData_args_it++;
     meta->setName("m");
-    */
 }
 
 void LLVMCodeContainer::generateBuildUserInterfaceBegin()
@@ -557,8 +552,7 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateDestroy(fCodeProducer);
     generateDestroyEnd();
 
-
-    generateMetadata();
+    generateMetadata(fTypeBuilder.getMetaType());
 
     generateBuildUserInterfaceBegin();
     generateUserInterface(fCodeProducer);
@@ -674,12 +668,7 @@ void LLVMOpenMPCodeContainer::generateDSPOMPCompute()
 {
     vector<LlvmValue> fun_args;
     Function* dsp_omp_compute = fModule->getFunction("dsp_omp_compute");
-#ifdef LLVM_29
-    CallInst* call_inst = fBuilder->CreateCall(dsp_omp_compute, fun_args.begin(), fun_args.end());
-#endif
-#ifdef LLVM_30
-    CallInst* call_inst = fBuilder->CreateCall(dsp_omp_compute, MAKE_VECTOR_OF_TYPES(fun_args));
-#endif
+    CallInst* call_inst = CREATE_CALL(dsp_omp_compute, fun_args);
     call_inst->setCallingConv(CallingConv::C);
 }
 
@@ -687,12 +676,7 @@ void LLVMOpenMPCodeContainer::generateGOMP_parallel_start()
 {
     vector<LlvmValue> fun_args;
     Function* GOMP_parallel_start = fModule->getFunction("GOMP_parallel_start");
-#ifdef LLVM_29
-    CallInst* call_inst = fBuilder->CreateCall(GOMP_parallel_start, fun_args.begin(), fun_args.end());
-#endif
-#ifdef LLVM_30
-    CallInst* call_inst = fBuilder->CreateCall(GOMP_parallel_start, MAKE_VECTOR_OF_TYPES(fun_args));
-#endif
+    CallInst* call_inst = CREATE_CALL(GOMP_parallel_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);
 }
 
@@ -723,12 +707,7 @@ void LLVMOpenMPCodeContainer::generateGOMP_sections_start(LlvmValue number)
     vector<LlvmValue> fun_args;
     fun_args[0] = number;
     Function* GOMP_sections_start = fModule->getFunction("GOMP_sections_start");
-#ifdef LLVM_29
-    CallInst* call_inst = fBuilder->CreateCall(GOMP_sections_start, fun_args.begin(), fun_args.end());
-#endif
-#ifdef LLVM_30
-    CallInst* call_inst = fBuilder->CreateCall(GOMP_sections_start, MAKE_VECTOR_OF_TYPES(fun_args));
-#endif
+    CallInst* call_inst = CREATE_CALL(GOMP_sections_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);
 }
 
@@ -882,8 +861,9 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
     ReturnInst::Create(getGlobalContext(), return_block);
 
     // If previous block branch from previous to current
-    if (fBuilder->GetInsertBlock())
+    if (fBuilder->GetInsertBlock()) {
         fBuilder->CreateBr(return_block);
+    }
 
     //llvm_computethread->dump();
     verifyFunction(*llvm_computethread);

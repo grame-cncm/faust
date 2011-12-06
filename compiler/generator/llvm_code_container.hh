@@ -53,7 +53,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         // UI structure creation
         llvm::PointerType* fStruct_DSP_ptr;
-        //llvm::PointerType* fStruct_UI_ptr;
 
         Module* fModule;
         IRBuilder<>* fBuilder;
@@ -85,7 +84,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateDestroyBegin();
         void generateDestroyEnd();
 
-        void generateMetadata();
+        void generateMetadata(llvm::PointerType* meta_type_ptr);
 
         void generateBuildUserInterfaceBegin();
         void generateBuildUserInterfaceEnd();
