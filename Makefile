@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 version := 2.0.a3
-=======
-version := 0.9.45
->>>>>>> master
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
