@@ -77,10 +77,10 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         }
 
         string createVarAccess(string varname){
-          return "new FaustVarAccess(){\n" 
-            "\t\t\t\tpublic String getId()       {return \"" + varname + "\";}\n" 
-            "\t\t\t\tpublic void   set(float val){" + varname + "=val;}\n" 
-            "\t\t\t\tpublic float  get()         {return (float)" + varname + ";}\n" 
+          return "new FaustVarAccess(){\n"
+            "\t\t\t\tpublic String getId()       {return \"" + varname + "\";}\n"
+            "\t\t\t\tpublic void   set(float val){" + varname + "=val;}\n"
+            "\t\t\t\tpublic float  get()         {return (float)" + varname + ";}\n"
             "\t\t\t}\n"
             "\t\t\t";
         }
@@ -160,7 +160,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-              
+
                 *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = ";
                 inst->fValue->accept(this);
                 EndLine();
@@ -279,7 +279,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << inst->fNum;
+            *fOut << T(inst->fNum);
         }
 
         bool isBoolOpcode(int o){

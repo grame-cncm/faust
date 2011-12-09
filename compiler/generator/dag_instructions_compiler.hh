@@ -33,29 +33,36 @@
 
 class DAGInstructionsCompiler : public InstructionsCompiler {
 
-public:
-    DAGInstructionsCompiler(CodeContainer* container);
+    public:
 
-private:
-    // private helper functions
-    bool needSeparateLoop(Tree sig);
-    void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
-    void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
+        DAGInstructionsCompiler(CodeContainer* container);
 
-    // reimplemented code generation methods
-    virtual ValueInst* CS(Tree sig);
-    virtual void compileMultiSignal(Tree sig);
+        virtual void compileMultiSignal(Tree sig);
 
-    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateInput(Tree sig, int idx);
-    virtual ValueInst* generateCode(Tree sig);
-    virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
+    private:
 
-    StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
+        // reimplemented code generation methods
+        virtual ValueInst* CS(Tree sig);
+        virtual ValueInst* generateCode(Tree sig);
+        virtual void        generateCodeRecursions(Tree sig);
+        virtual ValueInst*  generateCodeNonRec(Tree sig);
+        virtual ValueInst*  generateLoopCode(Tree sig);
 
+        void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
+        void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
+
+        virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
+        virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
+        virtual ValueInst* generateInput(Tree sig, int idx);
+
+        virtual ValueInst* generateFixDelay(Tree sig, Tree arg, Tree size);
+        virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
+        virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd, Address::AccessType& var_access);
+
+        StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
+
+        // private helper functions
+        bool needSeparateLoop(Tree sig);
 };
 
 

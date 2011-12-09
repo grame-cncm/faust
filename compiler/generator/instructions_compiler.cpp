@@ -237,6 +237,12 @@ bool InstructionsCompiler::getCompiledExpression(Tree sig, InstType& cexp)
  */
 InstType InstructionsCompiler::setCompiledExpression(Tree sig, const InstType& cexp)
 {
+     InstType old;
+     if (fCompileProperty.get(sig, old) && (old != cexp)) {
+        cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
+        //exit(1);
+    }
+
     fCompileProperty.set(sig, cexp);
 	return cexp;
 }

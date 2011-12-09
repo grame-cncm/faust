@@ -39,6 +39,7 @@
 
 #include "tree.hh"
 #include "function_builder.hh"
+#include "list.hh"
 
 extern bool gVectorSwitch;
 extern int gVecSize;
@@ -76,7 +77,7 @@ class CodeLoop {
     private:
 
         bool fIsRecursive;                  ///< recursive loops can't be SIMDed
-        const Tree fRecSymbol;              ///< recursive loops define a recursive symbol
+        Tree fRecSymbolSet;                 ///< recursive loops define a set of recursive symbol
         CodeLoop* const fEnclosingLoop;     ///< Loop from which this one originated
         int fSize;                          ///< number of iterations of the loop
         int fOrder;                         ///< used during topological sort
@@ -100,8 +101,7 @@ class CodeLoop {
             }
         }
 
-        bool isEmpty();                 ///< true when the loop doesn't contain any line of code
-        bool hasRecDependencies();      ///< returns true is this loop has recursive dependencies
+        bool isEmpty();                     ///< true when the loop doesn't contain any line of code
 
         void absorb(CodeLoop* l);       ///< absorb a loop inside this one
         void concat(CodeLoop* l);
@@ -115,13 +115,13 @@ class CodeLoop {
 
         ///< create a recursive loop
         CodeLoop(Tree recsymbol, CodeLoop* encl, string index_name, int size = 0)
-            :fIsRecursive(true), fRecSymbol(recsymbol), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
+            :fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
             fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}
 
         ///< create a non recursive loop
         CodeLoop(CodeLoop* encl, string index_name, int size = 0)
-            :fIsRecursive(false), fRecSymbol(), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
+            :fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
             fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
         {}
 
@@ -153,8 +153,11 @@ class CodeLoop {
             fPostInst->accept(visitor);
         }
 
-        void addRecDependency(Tree t);  ///< Check for a recursive dependecy and add it if needed
-        bool findRecDefinition(Tree t); ///< indicates a dependency with an enclosing loop
+        //void addRecDependency(Tree t);  ///< Check for a recursive dependecy and add it if needed
+        //bool findRecDefinition(Tree t); ///< indicates a dependency with an enclosing loop
+
+        bool hasRecDependencyIn(Tree S);    ///< returns true is this loop has recursive dependencies
+
         void addBackwardDependency(CodeLoop* ls)  { fBackwardLoopDependencies.insert(ls); }
 
         static void sortGraph(CodeLoop* root, lclgraph& V);

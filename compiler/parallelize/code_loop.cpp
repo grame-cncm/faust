@@ -36,6 +36,7 @@
 #include "code_loop.hh"
 #include "floats.hh"
 
+
 using namespace std;
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
@@ -247,10 +248,12 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp
  * returns true is this loop has recursive dependencies
  * and must be included in an enclosing loop
  */
+ /*
 bool CodeLoop::hasRecDependencies()
 {
     return !fRecDependencies.empty();
 }
+*/
 
 /**
  * Test if a loop is empty that is if it contains no lines of code.
@@ -264,23 +267,41 @@ bool CodeLoop::isEmpty()
 /**
  * Add a recursive dependency, unless it is itself
  */
+/*
 void CodeLoop::addRecDependency(Tree t)
 {
     if (t != fRecSymbol) {
         fRecDependencies.insert(t);
     }
 }
+*/
 
 /**
  * Search if t is defined in this loop
  * or the enclosing ones
  */
+ /*
 bool CodeLoop::findRecDefinition(Tree t)
 {
     CodeLoop* l = this;
     while (l && l->fRecSymbol != t) l=l->fEnclosingLoop;
     return l != 0;
 }
+*/
+/**
+ * A loop with recursive dependencies can't be run alone.
+ * It must be included into another loop.
+ * returns true is this loop has recursive dependencies
+ * and must be included in an enclosing loop
+ */
+
+bool CodeLoop::hasRecDependencyIn(Tree S)
+{
+    CodeLoop* l = this;
+    while (l && isNil(setIntersection(l->fRecSymbolSet,S))) l=l->fEnclosingLoop;
+    return l != 0;
+}
+
 
 /**
  * Absorb a loop by copying its recursive dependencies, its loop dependencies
@@ -291,10 +312,7 @@ void CodeLoop::absorb(CodeLoop* l)
 {
     // the loops must have the same number of iterations
     assert(fSize == l->fSize);
-
-    // update recursive dependencies by adding those from the absorbed loop
-    fRecDependencies.insert(l->fRecDependencies.begin(), l->fRecDependencies.end());
-    if (fIsRecursive) fRecDependencies.erase(fRecSymbol);
+    fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
     // update loop dependencies by adding those from the absorbed loop
     fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(), l->fBackwardLoopDependencies.end());

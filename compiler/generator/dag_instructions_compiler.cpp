@@ -104,7 +104,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name,
                                 InstBuilder::genAdd(InstBuilder::genLoadLoopVar("index"), fContainer->getCurLoop()->getLoopIndex()), res));
 
-            fContainer->closeLoop();
+            fContainer->closeLoop(sig);
         }
 
     } else {
@@ -125,7 +125,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
             pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
 
-            fContainer->closeLoop();
+            fContainer->closeLoop(sig);
         }
     }
 
@@ -138,6 +138,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 	fContainer->processFIR();
 }
 
+/*
 ValueInst* DAGInstructionsCompiler::CS(Tree sig)
 {
     int i;
@@ -164,6 +165,138 @@ ValueInst* DAGInstructionsCompiler::CS(Tree sig)
         }
     }
 	return code;
+}
+*/
+
+ValueInst* DAGInstructionsCompiler::CS(Tree sig)
+{
+    ValueInst* code;
+
+    //cerr << "ENTER VectorCompiler::CS : "<< ppsig(sig) << endl;
+    if (!getCompiledExpression(sig, code)) {
+        code = generateCode(sig);
+        //cerr << "CS : " << code << " for " << ppsig(sig) << endl;
+        setCompiledExpression(sig, code);
+    } else {
+
+        // we require an already compiled expression
+        // therefore we must update the dependencies of
+        // the current loop
+        int i;
+        Tree x, d, r;
+        CodeLoop* ls;
+        CodeLoop* tl = fContainer->getCurLoop();
+
+        if (fContainer->getLoopProperty(sig, ls)) {
+            // sig has a loop property
+            //cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
+            tl->addBackwardDependency(ls);
+
+        } else if (isSigFixDelay(sig, x, d) && fContainer->getLoopProperty(x,ls)) {
+            //cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+             tl->addBackwardDependency(ls);
+
+        } else if (isSigFixDelay(sig, x, d) && isProj(x, &i, r) && fContainer->getLoopProperty(r,ls)) {
+            //cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            tl->addBackwardDependency(ls);
+
+        } if (isProj(sig, &i, r) && fContainer->getLoopProperty(r,ls)) {
+            //cerr << "CASE R* : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
+            tl->addBackwardDependency(ls);
+
+		} else {
+            if (isProj(sig, &i, r)) {
+                //cerr << "SYMBOL RECURSIF EN COURS ??? " << *r << endl;
+            } else if (getCertifiedSigType(sig)->variability() < kSamp) {
+                //cerr << "SLOW EXPRESSION " << endl;
+            } else {
+                //cerr << "Expression absorbée" << *sig << endl;
+            }
+
+        }
+    }
+	return code;
+}
+
+ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
+{
+    generateCodeRecursions(sig);
+    return generateCodeNonRec(sig);
+}
+
+void DAGInstructionsCompiler::generateCodeRecursions(Tree sig)
+{
+    Tree id, body;
+    ValueInst*  code;
+    //cerr << "DAGInstructionsCompiler::generateCodeRecursions( " << ppsig(sig) << " )" << endl;
+    if (getCompiledExpression(sig, code)) {
+        //cerr << "** ALREADY VISITED : " << code << " ===> " << ppsig(sig) << endl;
+        return;
+    } else if (isRec(sig, id, body)) {
+        //cerr << "we have a recursive expression non compiled yet : " << ppsig(sig) << endl;
+        setCompiledExpression(sig, InstBuilder::genNullInst());
+        fContainer->openLoop(sig, "i");
+        generateRec(sig, id, body);
+        fContainer->closeLoop(sig);
+    } else {
+        // we go down the expression
+        vector<Tree>  subsigs;
+        int n = getSubSignals(sig, subsigs, false);
+        for (int i = 0; i < n; i++) { generateCodeRecursions(subsigs[i]); }
+    }
+}
+
+ValueInst* DAGInstructionsCompiler::generateCodeNonRec (Tree sig)
+{
+    ValueInst*  code;
+    if (getCompiledExpression(sig, code)) {
+        // already visited
+        return code;
+    } else {
+        //cerr << "DAGInstructionsCompiler::generateCodeNonRec( " << ppsig(sig) << " )" << endl;
+        code = generateLoopCode(sig);
+        setCompiledExpression(sig, code);
+        return code;
+    }
+}
+
+/**
+ * Compile a signal
+ * @param sig the signal expression to compile.
+ * @return the C code translation of sig as a string
+ */
+ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
+{
+    int     i;
+    Tree    x;
+    CodeLoop*   l;
+
+    l = fContainer->getCurLoop();
+    assert(l);
+    //cerr << "VectorCompiler::OLDgenerateCode " << ppsig(sig) << endl;
+    if (needSeparateLoop(sig)) {
+        // we need a separate loop unless it's an old recursion
+        if (isProj(sig, &i, x)) {
+            // projection of a recursive group x
+            if (l->hasRecDependencyIn(singleton(x))) {
+                // x is already in the loop stack
+                return InstructionsCompiler::generateCode(sig);
+            } else {
+                // x must be defined
+                fContainer->openLoop(sig, "i");
+                ValueInst* c = InstructionsCompiler::generateCode(sig);
+                fContainer->closeLoop(sig);
+                return c;
+            }
+        } else {
+            fContainer->openLoop(sig, "i");
+            ValueInst* c = InstructionsCompiler::generateCode(sig);
+            fContainer->closeLoop(sig);
+            return c;
+        }
+    } else {
+        return InstructionsCompiler::generateCode(sig);
+    }
 }
 
 ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
@@ -250,8 +383,18 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             if (verySimple(sig)) {
                 return exp;
             } else {
-                // return subst("$0[i]", vname);
-                return InstBuilder::genLoadArrayVar(vname, var_access, fContainer->getCurLoop()->getLoopIndex());
+                if (d < gMaxCopyDelay) {
+                    //return subst("$0[i]", vname);
+                    return InstBuilder::genLoadArrayVar(vname, var_access, fContainer->getCurLoop()->getLoopIndex());
+                } else {
+                    // we use a ring buffer
+                    string vname_idx = vname + "_idx";
+                    int mask = pow2limit(d + gVecSize) - 1;
+                    //return subst("$0[($0_idx+i) & $1]", vname, mask);
+                    ValueInst* index1 = InstBuilder::genAdd(fContainer->getCurLoop()->getLoopIndex(), InstBuilder::genLoadStructVar(vname_idx));
+                    ValueInst* index2 = InstBuilder::genAnd(index1, InstBuilder::genIntNumInst(mask));
+                    return InstBuilder::genLoadArrayStructVar(vname, index2);
+                }
             }
         } else {
             // not delayed
@@ -274,6 +417,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
 // Code generation
 
+/*
 ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
 {
     int         i;
@@ -310,6 +454,7 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
         return InstructionsCompiler::generateCode(sig);
     }
 }
+*/
 
 /**
  * Test if a signal need to be compiled in a separate loop.
@@ -328,7 +473,7 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 
     if (o->getMaxDelay() > 0) {
         b = true;
-    } else if (verySimple(sig) || t->variability()<kSamp) {
+    } else if (verySimple(sig) || t->variability() < kSamp) {
         b = false;      // non sample computation never require a loop
     } else if (isSigFixDelay(sig, x, y)) {
         b = false;

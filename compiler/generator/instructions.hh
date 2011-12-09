@@ -1601,7 +1601,7 @@ struct InstBuilder
         } else if (ctype == Typed::kDouble) {
             return new DoubleNumInst(num);
         } else if (ctype == Typed::kQuad) {
-            return new DoubleNumInst(num);  // Use DoubleNumInst
+            return new DoubleNumInst(num);
         } else {
             assert(false);
         }

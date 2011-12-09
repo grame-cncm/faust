@@ -25,7 +25,7 @@ ARCHFLAGS 	:=
 endif
 
 ##CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized  -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+CXXFLAGS ?= -g -Wall -Wuninitialized  -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 
 

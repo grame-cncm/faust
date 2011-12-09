@@ -313,7 +313,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << inst->fNum;
+            *fOut << T(inst->fNum);
         }
 
         virtual void visit(BinopInst* inst)

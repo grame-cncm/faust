@@ -34,6 +34,7 @@
 #include <vector>
 
 #include "code_container.hh"
+#include "recursivness.hh"
 #include "floats.hh"
 
 using namespace std;
@@ -106,6 +107,7 @@ void CodeContainer::setLoopProperty(Tree sig, CodeLoop* l)
  */
 bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
 {
+    assert(sig);
     return fLoopProperty.get(sig, l);
 }
 
@@ -139,17 +141,21 @@ void CodeContainer::closeLoop(Tree sig)
     fCurLoop = l->fEnclosingLoop;
     assert(fCurLoop);
 
-    if (l->isEmpty() || l->hasRecDependencies()) {
+    Tree S = symlist(sig);
+    if (l->isEmpty() || fCurLoop->hasRecDependencyIn(S)) {
         fCurLoop->absorb(l);
-        delete l;
+        //delete l; HACK !!!
     } else {
+        // cout << " will NOT absorb" << endl;
         // we have an independent loop
-		if (sig) {
-			setLoopProperty(sig, l);     // associate the signal
-		} else {
-			//cerr << "***ERROR**** no signal for loop "<< l << endl;
-		}
+        setLoopProperty(sig, l);     // associate the signal
         fCurLoop->fBackwardLoopDependencies.insert(l);
+        // we need to indicate that all recursive symbols defined
+        // in this loop are defined in this loop
+        for (Tree lsym = l->fRecSymbolSet; !isNil(lsym); lsym = tl(lsym)) {
+            this->setLoopProperty(hd(lsym), l);
+            //cerr << "loop " << l << " defines " << *hd(lsym) << endl;
+        }
     }
 }
 
