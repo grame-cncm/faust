@@ -2346,8 +2346,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             assert(fBuilder);
 
             // Arguments are casted if needed in InstructionsCompiler::generateBinOp
-            arg1->getType()->dump();
-            arg2->getType()->dump();
+            //arg1->getType()->dump();
+            //arg2->getType()->dump();
             assert(arg1->getType() == arg2->getType());
 
             if (arg1->getType() == getFloatTy(size)) {
