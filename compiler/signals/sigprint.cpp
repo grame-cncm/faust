@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
-
-
+ 
+ 
+ 
 #include <stdio.h>
 
 #include "signals.hh"
@@ -33,9 +33,9 @@ void printSigType (Tree tp)
 {
 	Tree t0;
 	int 	n, v, c;
-
+	
 	if (isTableType(tp, t0)) {
-		printf("table-of ");
+		printf("table-of "); 
 		printSigType(t0);
 	} else if (isSigType(tp, &n, &v, &c)) {
 		putchar("NR"[n]);
@@ -59,7 +59,7 @@ void printSigTypeList (Tree l)
 
 	putchar(')');
 }
-#endif
+#endif 
 
 void printSigType (int n, int v, int c)
 {
@@ -69,10 +69,10 @@ void printSigType (int n, int v, int c)
 }
 
 const char* binopname[]= {
-		"+", "-", "*", "/", "%",
+		"+", "-", "*", "/", "%", 
 		"<<", ">>",
 		">", "<", ">=", "<=", "==", "!=",
-		"&", "|", "^"
+		"&", "|", "^" 
 };
 
 int binopprec[]= {
@@ -80,30 +80,31 @@ int binopprec[]= {
 		1, 1,
 		1, 1, 1, 1, 1, 1,
 		1, 1, 1
-};
+};		
 
 void printSignal(Tree sig, FILE* out, int prec)
 {
 	int 	i;
 	double	r;
     Tree 	 x, y, z, u, le, id;
-
+	    
 		 if ( isSigInt(sig, &i) ) 			{ fprintf(out, "%d", i); 	}
 	else if ( isSigReal(sig, &r) ) 			{ fprintf(out, "%f", r); 	}
 	else if ( isSigInput(sig, &i) ) 		{ fprintf(out, "IN%d", i);	}
-
-	else if ( isSigBinOp(sig, &i, x, y) )	{
-		if (prec > binopprec[i]) fputs("(", out);
-		printSignal(x,out,binopprec[i]); fputs(binopname[i], out); printSignal(y, out, binopprec[i]);
-		if (prec > binopprec[i]) fputs(")", out);
+	else if ( isSigOutput(sig, &i, x) ) 	{ fprintf(out, "OUT%d := ", i); printSignal(x, out, 0); }
+	
+	else if ( isSigBinOp(sig, &i, x, y) )	{ 
+		if (prec > binopprec[i]) fputs("(", out); 
+		printSignal(x,out,binopprec[i]); fputs(binopname[i], out); printSignal(y, out, binopprec[i]); 
+		if (prec > binopprec[i]) fputs(")", out); 	
 	}
 	else if ( isSigDelay1(sig, x) ) 		{ fputs("mem(", out); printSignal(x,out,0); fputs(")", out);		}
 	else if ( isSigPrefix(sig, x, y) ) 		{ fputs("prefix(", out); printSignal(x,out,0); fputs(",", out);	 printSignal(y,out,0); fputs(")", out);		}
 	else if ( isSigAttach(sig, x, y) ) 		{ fputs("attach(", out); printSignal(x,out,0); fputs(",", out);	 printSignal(y,out,0); fputs(")", out);		}
-	else if ( isSigFixDelay(sig, x, y) ) 	{
-		if (prec > 4) fputs("(", out);
-		printSignal(x,out,4); fputs("@", out); printSignal(y, out, 4);
-		if (prec > 4) fputs(")", out);
+	else if ( isSigFixDelay(sig, x, y) ) 	{ 
+		if (prec > 4) fputs("(", out); 
+		printSignal(x,out,4); fputs("@", out); printSignal(y, out, 4); 
+		if (prec > 4) fputs(")", out); 	
 	}
 
 	else if ( isProj(sig, &i, x) ) 			{ printSignal(x,out,prec); fprintf(out, "#%d", i); 		}
@@ -111,7 +112,7 @@ void printSignal(Tree sig, FILE* out, int prec)
 	else if ( isRef(sig, x) ) 				{ print(x, out); 			}
 	else if ( isRec(sig, le))				{ fputs("\\_.", out); printSignal(le, out, prec);	}
 	else if ( isRec(sig, x, le))			{ fputs("\\", out); print(x,out); fputs(".", out); printSignal(le, out, prec);	}
-
+	
 	else if ( isSigTable(sig, id, x, y) ) 	{ fputs("table(", out); printSignal(x,out,0); fputc(',', out); printSignal(y,out,0); fputc(')', out);   }
 	else if ( isSigWRTbl(sig, id, x, y, z) ){ printSignal(x,out,0); fputc('[',out); printSignal(y,out,0); fputs("] := (", out); printSignal(z,out,0); fputc(')', out);   }
 	else if ( isSigRDTbl(sig, x, y) ) 		{ printSignal(x,out,0); fputc('[', out); printSignal(y,out,0); fputc(']', out);   }
@@ -129,13 +130,13 @@ void printSignal(Tree sig, FILE* out, int prec)
 
 
 	else if ( isSigGen(sig, x) ) 			{ printSignal(x,out,prec); 				}
-
+ 
 	else if ( isSigIntCast(sig, x) ) 		{ fputs("int(", out); printSignal(x,out,0); fputs(")", out);		}
 	else if ( isSigFloatCast(sig, x) ) 		{ fputs("float(", out); printSignal(x,out,0); fputs(")", out);		}
 
 	else if (isList(sig)) {
 		char sep = '{';
-		do {
+		do { 
 			fputc(sep, out);
 			printSignal(hd(sig), out, 0);
 			sep=',';

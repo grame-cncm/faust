@@ -32,7 +32,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 <comment>\x0a					/* no need to increment yylineno here 	*/
 <comment>\x0d					/* no need to increment yylineno here 	*/
 <comment>"*"+"/"				BEGIN(INITIAL);
-
+ 
 "<mdoc>"						{ BEGIN(doc); return BDOC; }
 <doc>.							return DOCCHAR; /* char by char, may be slow ?? */
 <doc>\n							return DOCCHAR; /* keep newline chars */
@@ -124,9 +124,9 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "select2"	return SELECT2;
 "select3"	return SELECT3;
 
-"ffunction"	return FFUNCTION;
-"fconstant" return FCONSTANT;
-"fvariable" return FVARIABLE;
+"ffunction"	return FFUNCTION; 
+"fconstant" return FCONSTANT; 
+"fvariable" return FVARIABLE; 
 
 "button"	return BUTTON;
 "checkbox"	return CHECKBOX;
@@ -178,11 +178,6 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "environment"   return ENVIRONMENT;
 
 "declare"	return DECLARE;
-
-"serialize" return SERIALIZE;
-"vectorize" return VECTORIZE;
-"#"         return HASH;
-"rate"      return RATE;
 
 "case"		return CASE;
 "=>"		return ARROW;

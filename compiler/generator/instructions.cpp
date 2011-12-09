@@ -104,6 +104,8 @@ DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res
 // Coding Types as trees
 //--------------------------
 
+// // 09/12/11 : HACK
+/*
 Sym TYPEINT = symbol ("TypeInt");
 Tree  typeInt()                    { return tree(TYPEINT);         }
 bool  isTypeInt(Tree t)            { return isTree(t, TYPEINT);    }
@@ -168,10 +170,12 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
     return dec_type;
 }
 
+*/
+
 void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
 {
     printf("Dispatch2Visitor %d\n", inst->fSize);
-     fScalarVisitor->visit(inst);
+    fScalarVisitor->visit(inst);
 
     /*
     if (inst->fSize == 1) {

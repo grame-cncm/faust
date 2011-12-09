@@ -32,6 +32,7 @@
 #include "interval.hh"
 #include "instructions.hh"
 
+
 /*********************************************************************
 *
 *						Type System for FAUST
@@ -120,31 +121,13 @@ class AudioType
 	virtual AudioType* promoteBoolean(int n)   	= 0;			///< promote the booleanity of a type
 	//virtual AudioType* promoteInterval(const interval& i) = 0;		///< promote the interval of a type
 
-    virtual AudioType* castNature(int n) = 0;
-	virtual AudioType* castInterval(const interval & i) = 0;
 
     virtual ostream& print(ostream& dst) const		= 0;		///< print nicely a type
     virtual bool    isMaximal() const               = 0;        ///< true when type is maximal (and therefore can't change depending of hypothesis)
 
-    /** promote with the features of rhs */
-    inline AudioType * promote(AudioType * rhs)
-    {
-        return promoteNature(rhs->nature())
-            ->promoteVariability(rhs->variability())
-            ->promoteComputability(rhs->computability())
-            ->promoteVectorability(rhs->vectorability())
-            ->promoteBoolean(rhs->boolean());
-            //->promoteInterval(rhs->getInterval()); 19/07/2011 Steph
-    }
-
-
   protected:
 	void		setInterval(const interval& r)	{ fInterval = r;}
 
-    virtual int dimension() const
-    {
-        return 0;
-    }
 };
 
 //printing
@@ -262,28 +245,27 @@ class SimpleType : public AudioType
 
 	virtual ostream& print(ostream& dst) const;						///< print a SimpleType
 
+
+
     virtual AudioType* promoteNature(int n)				{ return makeSimpleType(n|fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval); }		///< promote the nature of a type
     virtual AudioType* promoteVariability(int v)			{ return makeSimpleType(fNature, v|fVariability, fComputability, fVectorability, fBoolean, fInterval); }		///< promote the variability of a type
     virtual AudioType* promoteComputability(int c)			{ return makeSimpleType(fNature, fVariability, c|fComputability, fVectorability, fBoolean, fInterval); }		///< promote the computability of a type
     virtual AudioType* promoteVectorability(int vec)		{ return makeSimpleType(fNature, fVariability, fComputability, vec|fVectorability, fBoolean, fInterval); }	///< promote the vectorability of a type
     virtual AudioType* promoteBoolean(int b)        		{ return makeSimpleType(fNature, fVariability, fComputability, fVectorability, b|fBoolean, fInterval); }		///< promote the booleanity of a type
-	//virtual AudioType* promoteInterval(const interval& i)	{ return new SimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean, reunion(fInterval, i)); }
-
-    virtual AudioType* castNature(int n)                    { return makeSimpleType(n, fVariability, fComputability, fVectorability, fBoolean, fInterval); }
-    virtual AudioType* castInterval(const interval& i)      { return makeSimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean, i); }
+// 	virtual AudioType* promoteInterval(const interval& i)	{
+// 		cerr << "promote to Interval " << i  << endl;
+// 		cerr << "for type : " << *this << endl;
+// 		Type t = makeSimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean, i); 				///< promote the interval of a type
+// 		cerr << "gives type " << *t << endl;
+// 		return t;
+// 	}
 
 
     virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
 
 
-};
 
-/*
-inline Type intCast (Type t)	                        { return t->castNature(kInt); }
-inline Type floatCast (Type t)	                        { return t->castNature(kReal); }
-inline Type sampCast (Type t)	                        { return t->promoteVariability(kSamp); }
-inline Type castInterval (Type t, const interval& i)    { return t->castInterval(i); }
-*/
+};
 
 inline Type intCast (Type t)	{ return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
 inline Type floatCast (Type t)	{ return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
@@ -298,7 +280,6 @@ inline Type castInterval (Type t, const interval& i)
 {
     return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), t->boolean(), i);
 }
-
 
 /**
  * The type of a table of audio data.
@@ -337,21 +318,17 @@ class TableType : public AudioType
           fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability and vectorability
 
 
-	Type content() const				{ return fContent; 	}		///< return the type of data store in the table
+  	Type content() const				{ return fContent; 	}		///< return the type of data store in the table
 	virtual ostream& print(ostream& dst) const;						///< print a TableType
 
-	virtual AudioType* promoteNature(int n)				{ return new TableType(fContent, n|fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval); }	///< promote the nature of a type
-	virtual AudioType* promoteVariability(int v)			{ return new TableType(fContent, fNature, v|fVariability, fComputability, fVectorability, fBoolean, fInterval); }	///< promote the variability of a type
-	virtual AudioType* promoteComputability(int c)			{ return new TableType(fContent, fNature, fVariability, c|fComputability, fVectorability, fBoolean, fInterval); }	///< promote the computability of a type
-	virtual AudioType* promoteVectorability(int vec)		{ return new TableType(fContent, fNature, fVariability, fComputability, vec|fVectorability, fBoolean, fInterval);}///< promote the vectorability of a type
-	virtual AudioType* promoteBoolean(int b)        		{ return new TableType(fContent, fNature, fVariability, fComputability, fVectorability, b|fBoolean, fInterval); }	///< promote the booleanity of a type
-	//virtual AudioType* promoteInterval(const interval& i)	{ return new TableType(fContent, fNature, fVariability, fComputability, fVectorability, fBoolean, reunion(i, fInterval)); }			///< promote the interval of a type
-
-    virtual AudioType* castNature(int n)                    { return new TableType(fContent, n, fVariability, fComputability, fVectorability, fBoolean, fInterval); }
-    virtual AudioType* castInterval(const interval& i)      { return new TableType(fContent, fNature, fVariability, fComputability, fVectorability, fBoolean, i); }
+    virtual AudioType* promoteNature(int n)				{ return makeTableType(fContent, n|fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval); }	///< promote the nature of a type
+    virtual AudioType* promoteVariability(int v)			{ return makeTableType(fContent, fNature, v|fVariability, fComputability, fVectorability, fBoolean, fInterval); }	///< promote the variability of a type
+    virtual AudioType* promoteComputability(int c)			{ return makeTableType(fContent, fNature, fVariability, c|fComputability, fVectorability, fBoolean, fInterval); }	///< promote the computability of a type
+    virtual AudioType* promoteVectorability(int vec)		{ return makeTableType(fContent, fNature, fVariability, fComputability, vec|fVectorability, fBoolean, fInterval);}///< promote the vectorability of a type
+    virtual AudioType* promoteBoolean(int b)        		{ return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability, b|fBoolean, fInterval); }	///< promote the booleanity of a type
+    //virtual AudioType* promoteInterval(const interval& i)	{ return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability, fBoolean, i); }			///< promote the interval of a type
 
     virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
-
 };
 
 
@@ -375,14 +352,6 @@ class TupletType : public AudioType
           AudioType(mergenature(vt),mergevariability(vt),mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), mergeinterval(vt)),
           fComponents(vt) {}
 
-	TupletType(const vector<Type>& vt, int n, int v, int c) :
-		  AudioType(n|mergenature(vt), v|mergevariability(vt), c|mergecomputability(vt),mergevectorability(vt),mergeboolean(vt), interval()),
-		  fComponents(vt) {}
-
-  	TupletType(const vector<Type>& vt, int n, int v, int c, int vec) :
-		  AudioType(n|mergenature(vt), v|mergevariability(vt), c|mergecomputability(vt), vec|mergevectorability(vt), mergeboolean(vt), interval()),
-		  fComponents(vt) {}
-
 	TupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i) :
 		  AudioType(n|mergenature(vt), v|mergevariability(vt), c|mergecomputability(vt), vec|mergevectorability(vt), b|mergeboolean(vt), i),
 		  fComponents(vt) {}
@@ -400,75 +369,10 @@ class TupletType : public AudioType
 
     virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
 
-    virtual AudioType* castNature(int n)                    { return new TupletType(fComponents, n, fVariability, fComputability, fVectorability, fBoolean, fInterval); }
-    virtual AudioType* castInterval(const interval& i)      { return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, fBoolean, i);  }
 };
 
 
-/**
- * The type of a vector of types.
- */
-class FaustVectorType : public AudioType
-{
-  protected:
-    const int fSize;
-    AudioType * fType;
 
-private:
-    FaustVectorType(int size, AudioType * type, int n, int v, int c, int vec, int b, const interval& i) :
-          AudioType(n, v, c, vec, b, i), fSize(size), fType(type)
-    {}
-
-public:
-    FaustVectorType(int size, AudioType * type) :
-          AudioType(*type), fSize(size), fType(type)
-    {}
-
-    virtual ostream& print(ostream& dst) const;
-
-    virtual AudioType* promoteNature(int n)             { return new FaustVectorType(fSize, fType, nature() | n, variability(), computability(), vectorability(), boolean(), getInterval()); }
-    virtual AudioType* promoteVariability(int v)        { return new FaustVectorType(fSize, fType, nature(), variability() | v, computability(), vectorability(), boolean(), getInterval()); }
-    virtual AudioType* promoteComputability(int c)      { return new FaustVectorType(fSize, fType, nature(), variability(), computability() | c, vectorability(), boolean(), getInterval()); }
-    virtual AudioType* promoteVectorability(int vec)    { return new FaustVectorType(fSize, fType, nature(), variability(), computability(), vectorability() | vec, boolean(), getInterval()); }
-    virtual AudioType* promoteBoolean(int b)            { return new FaustVectorType(fSize, fType, nature(), variability(), computability(), vectorability(), boolean() | b, getInterval()); }
-    virtual AudioType* promoteInterval(interval const & i)  { return new FaustVectorType(fSize, fType, nature(), variability(), computability(), vectorability(), boolean(), reunion(i, getInterval())); }
-
-    virtual AudioType* castNature(int n)                { return new FaustVectorType(fSize, fType, n, variability(), computability(), vectorability(), boolean(), getInterval()); }
-    virtual AudioType* castInterval(interval const & i) { return new FaustVectorType(fSize, fType, nature(), variability(), computability(), vectorability(), boolean(), i); }
-
-    AudioType * dereferenceType(void)   { return fType; }
-    int size(void) const                { return fSize; }
-
-    int dimension() const
-    {
-        return dimensions().size();
-    }
-
-    std::vector<int> dimensions() const
-    {
-        std::vector<int> ret;
-        ret.push_back(fSize);
-        FaustVectorType * vt = dynamic_cast<FaustVectorType*>(fType);
-        if (vt) {
-            std::vector<int> base = vt->dimensions();
-            ret.insert(ret.end(), base.begin(), base.end());
-        }
-        return ret;
-    }
-
-    bool isParentOf(AudioType * type) {
-        if (type == fType)
-            return true;
-        FaustVectorType * vt = dynamic_cast<FaustVectorType*>(fType);
-        if (vt)
-            return vt->isParentOf(type);
-        else
-            return false;
-    }
-
-    virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
-
-};
 
 //-------------------------------------------------
 //-------------------------------------------------
@@ -522,10 +426,9 @@ inline bool operator>=(const Type& t1, const Type& t2) { return t2<=t1; }
 //--------------------------------------------------
 // predicats-conversion de types
 
-SimpleType* 	    isSimpleType (AudioType* t);
-TableType* 		    isTableType  (AudioType* t);
-TupletType* 	    isTupletType (AudioType* t);
-FaustVectorType *   isVectorType (AudioType* t);
+SimpleType* 	isSimpleType (AudioType* t);
+TableType* 		isTableType  (AudioType* t);
+TupletType* 	isTupletType (AudioType* t);
 
 
 //--------------------------------------------------
@@ -557,5 +460,6 @@ int checkDelayInterval(Type t);		///< Check if the interval of t is appropriate 
 Typed::VarType ctType (Type t);
 
 Tree codeAudioType(AudioType* t);   ///< Code an audio type as a tree (memoization)
+
 
 #endif

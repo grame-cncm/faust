@@ -43,11 +43,7 @@
 // prototypes
 
 static void setSigType(Tree sig, Type t);
-//static Type getSigType(Tree sig);
-
-static void setInferredTypeProperty(Tree term, Tree env, Type ty);
-static Type getInferredTypeProperty(Tree term, Tree env);
-
+static Type getSigType(Tree sig);
 static Type initialRecType(Tree t);
 
 static Type T(Tree term, Tree env);
@@ -61,14 +57,9 @@ static Type infereReadTableType(Type tbl, Type ri);
 static Type infereWriteTableType(Type tbl, Type wi, Type wd);
 static Type infereProjType(Type t, int i, int vec);
 static Type infereXType(Tree sig, Tree env);
-static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2);
 static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
-static Type infereVectorizeType(Tree sig, Tree env, Tree s1, Tree s2);
-static Type infereSerializeType(Tree sig, Tree env, Tree s);
-static Type infereConcatType(Tree sig, Tree env, Tree s1, Tree s2);
-static Type infereVectorAtType(Tree sig, Tree env, Tree s1, Tree s2);
 static interval arithmetic (int opcode, const interval& x, const interval& y);
 
 
@@ -168,6 +159,7 @@ Type getCertifiedSigType(Tree sig)
 }
 
 
+
 /***********************************************
  * Set and get the type property of a signal
  * (we suppose the signal have been previously
@@ -190,7 +182,7 @@ static void setSigType(Tree sig, Type t)
  * Retrieve the type annotation of sig
  * @param sig the signal we want to know the type
  */
-Type getSigType(Tree sig)
+static Type getSigType(Tree sig)
 {
     AudioType* ty = (AudioType*) sig->getType();
     if (ty == 0)
@@ -268,7 +260,7 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigInput(sig, &i))			{   /*sig->setType(TINPUT);*/ return TINPUT; }
 
-    //else if (isSigOutput(sig, &i, s1))      return sampCast(T(s1,env));
+    else if (isSigOutput(sig, &i, s1))      return sampCast(T(s1,env));
 
 	else if (isSigDelay1(sig, s1)) 			{
 		Type t = T(s1,env);
@@ -382,14 +374,6 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isList(sig))                       { return T( hd(sig),env ) * T( tl(sig),env ); }
 
-    else if (isSigVectorize(sig, s1, s2))       { return infereVectorizeType(sig, env, s1, s2); }
-
-    else if (isSigSerialize(sig, s1))           { return infereSerializeType(sig, env, s1); }
-
-    else if (isSigConcat(sig, s1, s2))          { return infereConcatType(sig, env, s1, s2); }
-
-    else if (isSigVectorAt(sig, s1, s2))        { return infereVectorAtType(sig, env, s1, s2);  }
-
 	// unrecognized signal here
 	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);
@@ -412,7 +396,7 @@ static Type infereProjType(Type t, int i, int vec)
 	//		->promoteComputability(t->computability());
 	Type temp = (*tt)[i]	->promoteVariability(t->variability())
 	  ->promoteComputability(t->computability())
-	  ->promoteVectorability(kScal);
+	  ->promoteVectorability(vec/*t->vectorability()*/);
 	//->promoteBooleanity(t->boolean());
 
     if(vec==kVect) temp = vecCast(temp);
@@ -601,96 +585,9 @@ static Type infereXType(Tree sig, Tree env)
 	return p->infereSigType(vt);
 }
 
-/* Obsolete ?
-static Type infereBinopType(Tree sig, Tree env, int i, Tree s1, Tree s2)
-{
-    Type t1 = T(s1,env);
-    Type t2 = T(s2,env);
 
-    Type ret = t1 | t2;
 
-    interval newInterval = arithmetic(i, t1->getInterval(), t2->getInterval());
-    Type t3 = ret->castInterval(newInterval);
 
-    return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
-}
-*/
-
-static Type infereVectorizeType(Tree sig, Tree env, Tree s1, Tree s2)
-{
-    Type t1 = T(s1,env);
-    Type t2 = T(s2,env);
-    checkIntParam(t2);
-    int n = tree2int(s2);
-
-    return new FaustVectorType(n, t1);
-}
-
-static Type infereSerializeType(Tree sig, Tree env, Tree s)
-{
-    Type t1 = T(s,env);
-    FaustVectorType * fvt = isVectorType(t1);
-
-    if (!fvt) {
-        printf("Type error: cannot serialize scalar audio data\n");
-        exit(1);
-    }
-
-    return fvt->dereferenceType();
-}
-
-static Type infereConcatType(Tree sig, Tree env, Tree s1, Tree s2)
-{
-    Type t1 = T(s1,env);
-    Type t2 = T(s2,env);
-
-    FaustVectorType * vt1 = isVectorType(t1);
-    FaustVectorType * vt2 = isVectorType(t2);
-
-    if (!vt1 || !vt2) {
-        printf("Type error: cannot concatenate scalar audio data\n");
-        exit(1);
-    }
-
-    Type dt1 = vt1->dereferenceType();
-    Type dt2 = vt2->dereferenceType();
-
-    // TODO: we need to implement a compatibility check for concatenation
-    if (dt1 != dt2) {
-        printf("Type error: dimension mismatch for concatenation\n");
-        exit(1);
-    }
-
-    int t1_size = vt1->size();
-    int t2_size = vt2->size();
-
-    return new FaustVectorType(t1_size + t2_size, dt1 | dt2);
-}
-
-static Type infereVectorAtType(Tree sig, Tree env, Tree s1, Tree s2)
-{
-    Type t1 = T(s1,env);
-
-    FaustVectorType * vt1 = isVectorType(t1);
-    if (!vt1) {
-        printf("Type error: [] primitive expects vector type\n");
-        exit(1);
-    }
-
-    Type dt1 = vt1->dereferenceType();
-    int sz1 = vt1->size();
-
-    Type t2 = T(s2,env);
-    checkIntParam(t2);
-    int n = tree2int(s2); // TODO: how to support run-time element access?
-
-    if (n >= sz1) {
-        printf("Type error: out of bound error for vector element access\n");
-        exit(1);
-    }
-
-    return dt1;
-}
 
 /**
  * Compute the resulting interval of an arithmetic operation

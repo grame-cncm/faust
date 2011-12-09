@@ -31,27 +31,6 @@
 extern bool gVectorSwitch;
 
 
-//--------------------------------------------------------------------------
-// addEnv : add a new binding to a type environment
-
-Tree addEnv(Tree var, ::Type tp, Tree env);
-
-
-//--------------------------------------------------------------------------
-// searchEnv : search var binding in env
-
-::Type searchEnv(Tree env, Tree var);
-
-
-//--------------------------------------------------------------------------
-//	getSigType : return or infere the type of a term
-
-::Type getSigType(Tree term);
-
-
-//--------------------------------------------------------------------------
-//	typeAnnotation : annotate a term with type information
-
 /** \file sigtyperules.hh
  * API to the typing system of signals
  *
@@ -65,6 +44,9 @@ Tree addEnv(Tree var, ::Type tp, Tree env);
  * previously annotated.
  *
  **/
+
+
+
 
 /**
  *	Annotates a signal term and its subterms with type information

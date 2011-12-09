@@ -20,7 +20,7 @@
 #define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 #define YYMAXDEPTH	100000
-
+	
 using namespace std;
 
 extern char* 		yytext;
@@ -32,7 +32,7 @@ extern bool         gStripDocSwitch;
 extern bool         gLstDependenciesSwitch;
 extern bool         gLstDistributedSwitch;
 extern bool        	gLstMdocTagsSwitch;
-
+	
 extern map<Tree, set<Tree> > gMetaDataSet;
 extern vector<Tree> gDocVector;
 
@@ -40,8 +40,8 @@ extern vector<Tree> gDocVector;
 int yylex();
 
 //----------------------------------------------------------
-// unquote() : remove enclosing quotes and carriage return
-// characters from string. Returns a Tree
+// unquote() : remove enclosing quotes and carriage return 
+// characters from string. Returns a Tree 
 //----------------------------------------------------------
 char replaceCR(char c)
 {
@@ -105,7 +105,6 @@ Tree unquote(char* str)
 %left DELAY1
 %left APPL DOT
 
-%left HASH
 
 %token MEM
 %token PREFIX
@@ -174,12 +173,12 @@ Tree unquote(char* str)
 %token CUT
 %token ENDDEF
 %token VIRG
-%right LPAR
-%left RPAR
-%right LBRAQ
-%left RBRAQ
-%right LCROC
-%left RCROC
+%token LPAR
+%token RPAR
+%token LBRAQ
+%token RBRAQ
+%token LCROC
+%token RCROC
 %token WITH
 %token DEF
 
@@ -203,10 +202,6 @@ Tree unquote(char* str)
 %token CASE
 %token ARROW
 
-%token VECTORIZE
-%token SERIALIZE
-%token HASH
-%token RATE
 
  /* Begin and End tags for documentations, equations and diagrams */
 %token BDOC
@@ -408,11 +403,9 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 				| infixexp EQ infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigEQ)); }
 				| infixexp NE infixexp		{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigNE)); }
 
-                | infixexp HASH infixexp    { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigConcat)); }
-
 				| infixexp LPAR arglist RPAR 	%prec APPL	{ $$ = buildBoxAppl($1,$3); }
 				| infixexp LCROC deflist RCROC	%prec APPL	{ $$ = boxModifLocalDef($1,formatDefinitions($3)); }
-
+				
 				| primitive						{ $$ = $1; }
 				;
 
@@ -490,12 +483,6 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| SELECT2 						{ $$ = boxPrim3(sigSelect2); }
 				| SELECT3						{ $$ = boxPrim4(sigSelect3); }
 
-                | VECTORIZE                     { $$ = boxPrim2(sigVectorize); }
-                | SERIALIZE                     { $$ = boxPrim1(sigSerialize); }
-                | HASH                          { $$ = boxPrim2(sigConcat); }
-                | LCROC RCROC                   { $$ = boxPrim2(sigVectorAt); }
-                | LCROC infixexp RCROC          { $$ = boxSeq(boxPar(boxWire(),$2),boxPrim2(sigVectorAt)); }
-
 				| ident 						{ $$ = $1; }
                 | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
 
@@ -504,7 +491,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 												{ $$ = buildBoxAbstr($3,$7); }
 
 				| CASE LBRAQ rulelist RBRAQ		{ $$ = boxCase(checkRulelist($3)); }
-
+				
 				| ffunction						{ $$ = boxFFun($1); }
                 | fconst                        { $$ = $1; }
                 | fvariable                     { $$ = $1; }

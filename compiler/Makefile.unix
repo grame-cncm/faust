@@ -59,7 +59,7 @@ doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
 main.o: tlib/compatibility.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 main.o: generator/instructions.hh tlib/property.hh generator/Text.hh signals/sigtyperules.hh
-main.o: signals/sigrateinference.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
+main.o:  signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
 main.o: signals/recursivness.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh
 main.o: parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh generator/description.hh
 main.o: generator/uitree.hh generator/floats.hh documentator/doc.hh generator/instructions_compiler.hh
@@ -363,7 +363,7 @@ generator/dag_instructions_compiler.o: generator/function_builder.hh parallelize
 generator/dag_instructions_compiler.o: generator/occurences.hh signals/ppsig.hh signals/sigtyperules.hh
 generator/dag_instructions_compiler.o: errors/timing.hh signals/recursivness.hh normalize/privatise.hh
 generator/dag_instructions_compiler.o: normalize/simplify.hh extended/xtended.hh signals/sigvisitor.hh
-generator/dag_instructions_compiler.o: documentator/lateq.hh signals/prim2.hh signals/sigrateinference.hh
+generator/dag_instructions_compiler.o: documentator/lateq.hh signals/prim2.hh 
 generator/contextor.o: generator/contextor.hh
 generator/floats.o: generator/floats.hh generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/floats.o: tlib/property.hh tlib/tree.hh generator/Text.hh
@@ -392,7 +392,7 @@ generator/instructions_compiler.o: generator/function_builder.hh parallelize/cod
 generator/instructions_compiler.o: generator/occurences.hh signals/sigprint.hh signals/ppsig.hh signals/sigtyperules.hh
 generator/instructions_compiler.o: errors/timing.hh signals/recursivness.hh normalize/privatise.hh
 generator/instructions_compiler.o: normalize/simplify.hh extended/xtended.hh signals/sigvisitor.hh
-generator/instructions_compiler.o: documentator/lateq.hh signals/prim2.hh utils/ensure.hh signals/sigrateinference.hh
+generator/instructions_compiler.o: documentator/lateq.hh signals/prim2.hh utils/ensure.hh 
 generator/c_code_container.o: generator/c_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/c_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh tlib/property.hh tlib/tree.hh
 generator/c_code_container.o: generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
@@ -449,10 +449,6 @@ propagate/propagate.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.
 propagate/propagate.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 propagate/propagate.o: tlib/property.hh generator/Text.hh boxes/ppbox.hh extended/xtended.hh signals/sigvisitor.hh
 propagate/propagate.o: documentator/lateq.hh propagate/labels.hh signals/ppsig.hh utils/names.hh
-normalize/simplifying_terms.o: normalize/simplifying_terms.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
-normalize/simplifying_terms.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
-normalize/simplifying_terms.o: signals/sigtyperules.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-normalize/simplifying_terms.o: generator/instructions.hh tlib/property.hh generator/Text.hh
 normalize/simplify.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh signals/signals.hh tlib/tlib.hh tlib/num.hh
 normalize/simplify.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 normalize/simplify.o: generator/instructions.hh tlib/property.hh generator/Text.hh signals/recursivness.hh
@@ -467,7 +463,7 @@ normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh t
 normalize/aterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
 normalize/aterm.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh signals/ppsig.hh
 normalize/aterm.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
-normalize/aterm.o: tlib/property.hh generator/Text.hh signals/sigtyperules.hh normalize/simplifying_terms.hh
+normalize/aterm.o: tlib/property.hh generator/Text.hh signals/sigtyperules.hh 
 normalize/constant_folding.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh
 normalize/constant_folding.o: tlib/num.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 normalize/constant_folding.o: generator/instructions.hh signals/binop.hh tlib/property.hh generator/Text.hh
@@ -478,16 +474,15 @@ normalize/mterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/s
 normalize/mterm.o: normalize/normalize.hh signals/sigorderrules.hh signals/ppsig.hh extended/xtended.hh
 normalize/mterm.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 normalize/mterm.o: tlib/property.hh generator/Text.hh signals/sigvisitor.hh documentator/lateq.hh
-normalize/mterm.o: signals/sigtyperules.hh normalize/simplifying_terms.hh
+normalize/mterm.o: signals/sigtyperules.hh 
 normalize/normalize.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 normalize/normalize.o: signals/signals.hh signals/binop.hh signals/sigprint.hh signals/ppsig.hh normalize/simplify.hh
 normalize/normalize.o: normalize/normalize.hh signals/sigorderrules.hh signals/sigtyperules.hh signals/sigtype.hh
 normalize/normalize.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh tlib/property.hh
-normalize/normalize.o: generator/Text.hh normalize/simplifying_terms.hh normalize/mterm.hh normalize/aterm.hh
+normalize/normalize.o: generator/Text.hh  normalize/mterm.hh normalize/aterm.hh
 signals/signals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 signals/signals.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/signals.o: generator/instructions.hh tlib/property.hh generator/Text.hh
-signals/ratemap.o: signals/ratemap.hpp tlib/tree.hh tlib/symbol.hh tlib/node.hh
 signals/sigorderrules.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 signals/sigorderrules.o: signals/binop.hh tlib/node.hh tlib/symbol.hh tlib/property.hh tlib/tree.hh generator/Text.hh
 signals/sigorderrules.o: signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
@@ -504,8 +499,8 @@ signals/subsignals.o: tlib/shlysis.hh signals/binop.hh
 signals/sigrateinference.o: signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 signals/sigrateinference.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh
 signals/sigrateinference.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh tlib/property.hh
-signals/sigrateinference.o: generator/Text.hh signals/sigrateinference.hh extended/xtended.hh signals/sigvisitor.hh
-signals/sigrateinference.o: documentator/lateq.hh signals/prim2.hh signals/ratemap.hpp
+signals/sigrateinference.o: generator/Text.hh  extended/xtended.hh signals/sigvisitor.hh
+signals/sigrateinference.o: documentator/lateq.hh signals/prim2.hh 
 signals/ppsig.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 signals/ppsig.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigtype.hh tlib/smartpointer.hh
 signals/ppsig.o: signals/interval.hh generator/instructions.hh tlib/property.hh generator/Text.hh extended/xtended.hh

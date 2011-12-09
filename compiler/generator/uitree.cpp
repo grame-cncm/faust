@@ -18,9 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
-
-
+ 
+ 
+ 
 #include "uitree.hh"
 
 
@@ -48,7 +48,7 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 				return false;
 	if (left(hd(pl)) == key) 	{ val= right(hd(pl)); return true; }
-	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val);
+	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val); 
 }
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
@@ -69,13 +69,13 @@ static Tree removeKey (Tree pl, Tree key)
 
 // verion experimentale qui range en ordre alphabetique
 
-static bool isBefore(Tree k1, Tree k2)
-{
+static bool isBefore(Tree k1, Tree k2) 
+{ 
 	// before comparing replace (type . label) by label
 	if (isList(k1)) { k1 = tl(k1); }
 	if (isList(k2)) { k2 = tl(k2); }
-
-	//fprintf(stderr, "isBefore("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n");
+	
+	//fprintf(stderr, "isBefore("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr); fprintf(stderr,")\n"); 
 	Sym s1, s2;
 	if (!isSym(k1->node(), &s1)) {
 		ERROR("the node of the tree is not a symbol", k1);
@@ -83,7 +83,7 @@ static bool isBefore(Tree k1, Tree k2)
 	if (!isSym(k2->node(), &s2)) {
 		ERROR("the node of the tree is not a symbol", k2);
 	}
-
+	
 	//fprintf (stderr, "strcmp(\"%s\", \"%s\") = %d\n", name(s1), name(s2), strcmp(name(s1), name(s2)));
 	return strcmp(name(s1), name(s2)) < 0;
 }
@@ -93,7 +93,7 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 					return false;
 	if (left(hd(pl)) == key) 		{ val = right(hd(pl)); return true; }
-	if (isBefore(left(hd(pl)),key))	return findKey (tl(pl), key, val);
+	if (isBefore(left(hd(pl)),key))	return findKey (tl(pl), key, val); 
 	return false;
 }
 
@@ -146,7 +146,7 @@ bool 	isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig)		{ return isTree
 Tree putFolder(Tree folder, Tree item)
 {
     Tree    label, content;
-
+    
     if ( ! isUiFolder(folder, label, content)) { fprintf(stderr, "ERROR in addFolder : not a folder\n"); }
     return uiFolder(label, updateKey(content, uiLabel(item), item));
 }
@@ -155,7 +155,7 @@ Tree putFolder(Tree folder, Tree item)
 Tree addToFolder(Tree folder, Tree item)
 {
     Tree    label, content;
-
+    
     if ( ! isUiFolder(folder, label, content)) { fprintf(stderr, "ERROR in addFolder : not a folder\n"); }
     return uiFolder(label, addKey(content, uiLabel(item), item));
 }
@@ -171,7 +171,7 @@ Tree getFolder (Tree folder, Tree ilabel)
 		return nil;
 	}
 }
-
+	
 // crée une chaine de dossiers correspondant à path et contenant in fine elem
 Tree makeSubFolderChain(Tree path, Tree elem)
 {
@@ -180,10 +180,10 @@ Tree makeSubFolderChain(Tree path, Tree elem)
 	} else {
 		return putFolder(uiFolder(hd(path)), makeSubFolderChain(tl(path),elem));
 	}
-}
+} 
 
-
-Tree putSubFolder(Tree folder, Tree path, Tree item)
+	
+Tree putSubFolder(Tree folder, Tree path, Tree item) 
 {
 	if (isNil(path)) {
         //return putFolder(folder, item);
@@ -198,11 +198,11 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
 	}
 }
 
-
+	
 /*
-Fonctionnement des dossiers.
+Fonctionnement des dossiers. 
 Dossier à 1 niveau : Un dossier contient une liste de choses reperées par un nom  :
-	Dossier[(l1,d1)...(ln,dn)]
+	Dossier[(l1,d1)...(ln,dn)] 
 ou (lx,dx) est une chose dx repérée par un nom lx. On suppose les lx tous différents
 
 On peut ajouter une chose à un dossier : Ajouter(Dossier, Chose) -> Dossier

@@ -108,13 +108,11 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
 			tables dans lesquelles on ecrit. Pour cela
 			on leur donne un label unique
 		*/
-        Tree box = exp->getProperty(box_symbol);
-
 		return sigWRTbl(
 					id,
 					labelize( makePrivatisationLabel(exp), privatisation(k, tbl) ),
 					privatisation(k, idx),
-					privatisation(k, wrt), box );
+					privatisation(k, wrt) );
 
 	} else if ( isSigTable(exp, id, size, content) ) {
 		/*	Rien à privatiser dans une table (car size est
@@ -180,15 +178,13 @@ static Tree labelize(const Tree& newid, const Tree& exp)
 			tables dans lesquelles on ecrit. Pour cela
 			on leur donne un label unique
 		*/
-        Tree box = exp->getProperty(box_symbol);
-		return sigWRTbl(newid, tbl, idx, wrt, box);
+		return sigWRTbl(newid, tbl, idx, wrt);
 
 	} else  if ( isSigTable(exp, oldid, size, content) ) {
 		/*	Rien à privatiser dans une table (car size est
 			censée etre une expression entiere)
 		*/
-        Tree box = exp->getProperty(box_symbol);
-		return sigTable(newid, size, content, box);
+		return sigTable(newid, size, content);
 
 	} else {
 

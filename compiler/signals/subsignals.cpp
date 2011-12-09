@@ -1,7 +1,5 @@
-
-#include "signals.hh"
-#include "property.hh"
-
+#include <signals.hh>
+#include <property.hh>
 
 /**
  * Extract the sub signals of a signal expression, that is not
@@ -24,6 +22,7 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigInt(sig, &i) ) 					{ return 0; }
 	else if ( isSigReal(sig, &r) ) 					{ return 0; }
 	else if ( isSigInput(sig, &i) ) 				{ return 0; 			}
+	else if ( isSigOutput(sig, &i, x) ) 			{ vsigs.push_back(x); return 1;	}
 
 	else if ( isSigDelay1(sig, x) ) 				{ vsigs.push_back(x); return 1;	}
 
@@ -67,11 +66,6 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if ( isSigAttach(sig, x, y) )				{ vsigs.push_back(x); vsigs.push_back(y); return 2;	}
     else if ( isList(sig) )                         { vsigs.push_back(hd(sig)); vsigs.push_back(tl(sig));  return 2; }
     else if ( isNil(sig) )                          { return 0; }
-
-    else if ( isSigVectorize(sig, x, y) )           { vsigs.push_back(x); vsigs.push_back(y); return 2; }
-    else if ( isSigSerialize(sig, x) )              { vsigs.push_back(x); return 1; }
-    else if ( isSigConcat(sig, x, y) )              { vsigs.push_back(x); vsigs.push_back(y); return 2; }
-    else if ( isSigVectorAt(sig, x, y) )            { vsigs.push_back(x); vsigs.push_back(y); return 2; }
 
 	else {
 		cerr << "ERROR, unrecognized signal : " << *sig << endl;

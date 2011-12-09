@@ -33,7 +33,6 @@
 #include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
-#include "sigrateinference.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "privatise.hh"
@@ -634,14 +633,14 @@ static Tree prepareSignals(Tree lsignals)
 
     Tree simplified = simplify(privatized);   // simplify by executing every computable operation
 
-    assert(sigIsTyped(simplified));
+    //assert(sigIsTyped(simplified));
 
     recursivnessAnnotation(simplified);      // re-annotate simplified signal tree with recursivness information
 
-    assert(sigIsAnnotated(simplified, RECURSIVNESS));
+   // assert(sigIsAnnotated(simplified, RECURSIVNESS));
 
     startTiming("inferRate");
-    inferRate(simplified);
+    //inferRate(simplified);
     endTiming("inferRate");
 
     endTiming("preparation");

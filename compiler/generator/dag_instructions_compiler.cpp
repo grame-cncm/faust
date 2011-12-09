@@ -39,7 +39,6 @@
 #include "simplify.hh"
 #include "xtended.hh"
 #include "prim2.hh"
-#include "sigrateinference.hh"
 
 extern int gMaxCopyDelay;
 extern bool gOpenCLSwitch;
@@ -92,7 +91,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree sig = hd(L);
             string name = subst("output$0", T(index));
 
-            int rate = getSigRate(sig);
+            // 09/12/11 : HACK
+            //int rate = getSigRate(sig);
+            int rate = 1;
             fContainer->setOutputRate(index, rate);
 
             //fContainer->openLoop(getFreshID("i"));
@@ -112,7 +113,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree sig = hd(L);
             string name = subst("fOutput$0", T(index));
 
-            int rate = getSigRate(sig);
+            // 09/12/11 : HACK
+            //int rate = getSigRate(sig);
+            int rate = 1;
             fContainer->setOutputRate(index, rate);
 
             //fContainer->openLoop(getFreshID("i"));
@@ -165,9 +168,9 @@ ValueInst* DAGInstructionsCompiler::CS(Tree sig)
 
 ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
-    ::Type t = getSigType(sig);
+    ::Type t = getCertifiedSigType(sig);
 
-    if (getSigType(sig)->variability() == kSamp) {
+    if (getCertifiedSigType(sig)->variability() == kSamp) {
         string vname;
         Typed::VarType ctype;
         getTypedNames(t, "Vector", ctype, vname);
@@ -205,7 +208,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     string      vname;
     Typed::VarType    ctype;
     int         sharing = getSharingCount(sig);
-    Type        t = getSigType(sig);
+    Type        t = getCertifiedSigType(sig);
     Occurences* o = fOccMarkup.retrieve(sig);
     int         d = o->getMaxDelay();
 
@@ -217,7 +220,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         } else {
             // it is a non-sample expressions but used delayed
             // we need a delay line
-			getTypedNames(getSigType(sig), "Vec", ctype, vname);
+			getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
             Address::AccessType var_access;
 
             if ((sharing > 1) && !verySimple(sig)) {
@@ -239,7 +242,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         // sample-rate signal
         if (d > 0) {
             // used delayed : we need a delay line
-            getTypedNames(getSigType(sig), "Yec", ctype, vname);
+            getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
             Address::AccessType var_access;
             generateDelayLine(exp, ctype, vname, d, var_access);
             setVectorNameProperty(sig, vname);
@@ -255,7 +258,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             if (sharing > 1 && !verySimple(sig)) {
                 // shared and not simple : we need a vector
                 // cerr << "ZEC : " << ppsig(sig) << endl;
-                getTypedNames(getSigType(sig), "Zec", ctype, vname);
+                getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
                 Address::AccessType var_access;
                 generateDelayLine(exp, ctype, vname, d, var_access);
                 setVectorNameProperty(sig, vname);
@@ -316,7 +319,7 @@ ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
 bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 {
     Occurences* o = fOccMarkup.retrieve(sig);
-    Type        t = getSigType(sig);
+    Type        t = getCertifiedSigType(sig);
     int         c = getSharingCount(sig);
     bool        b;
 

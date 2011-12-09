@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
+ 
 
 #ifndef     __COMPATIBILITY__
 #define     __COMPATIBILITY__
@@ -40,6 +40,11 @@ int		isatty(int file);
 void	getFaustPathname(char* str, unsigned int size);
 void	getFaustPathname(char* str, unsigned int size);
 
+#include <assert.h>
+#ifdef  NDEBUG
+#undef assert
+#define assert(_Expression) do { bool bTest = (_Expression) != 0; } while (0)
+#endif
 
 #define snprintf _snprintf
 //#define rintf(x) floor((x)+(((x) < 0 ) ? -0.5f :0.5f))

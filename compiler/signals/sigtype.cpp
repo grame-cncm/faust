@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+
+
 #include "tree.hh"
 #include "sigtype.hh"
 #include "property.hh"
@@ -115,23 +117,6 @@ ostream& TupletType::print(ostream& dst) const
 	return  dst;
 }
 
-ostream& FaustVectorType::print(ostream& dst) const
-{
-    return  dst << "V" << fSize
-            << "NR"[nature()]
-            << "KB?S"[variability()]
-            << "CI?E"[computability()]
-            << "VS?TS"[vectorability()]
-            << "N?B"[boolean()]
-            << " " << fInterval;
-}
-
-// 19/07/2011 Steph
-bool    FaustVectorType::isMaximal() const
-{
-    return fType->isMaximal();
-}
-
 
 /**
  *  true when type is maximal (and therefore can't change depending of hypothesis)
@@ -183,7 +168,6 @@ Type operator| ( const Type& t1, const Type& t2)
 	SimpleType 	*st1, *st2;
 	TableType	*tt1, *tt2;
 	TupletType	*nt1, *nt2;
-    FaustVectorType *vt1, *vt2;
 
 	if ( (st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2)) ) {
 
@@ -206,31 +190,7 @@ Type operator| ( const Type& t1, const Type& t2)
 		for (int i=0; i<n; i++) { v.push_back( (*nt1)[i] | (*nt2)[i]); }
 		return new TupletType( v );
 
-    } else if ( (vt1 = isVectorType(t1)) && (vt2 = isVectorType(t2)) ) {
-        vector<int> dimensions1, dimensions2;
-        typedef vector<int>::const_reverse_iterator rit;
-        dimensions1 = vt1->dimensions();
-        dimensions2 = vt2->dimensions();
-
-        rit i1 = dimensions1.rbegin(); rit i2 = dimensions2.rbegin();
-        for( ; i1 != dimensions1.rend() || i2 != dimensions2.rend(); ++i1, ++i2)
-            if (*i1 != *i2) {
-                cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
-                exit(1);
-            }
-
-        if (dimensions1.size() > dimensions2.size())
-            return vt1->promote(vt2);
-        else
-            return vt2->promote(vt1);
-
-    } else if ( (vt1 = isVectorType(t1)) && (st2 = isSimpleType(t2)) ) {
-        return vt1->promote(st2);
-
-    } else if ( (st1 = isSimpleType(t1)) && (vt2 = isVectorType(t2)) ) {
-        return vt2->promote(st1);
-
-    } else {
+	} else {
 
 		cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
 		exit(1);
@@ -243,7 +203,6 @@ bool operator== ( const Type& t1, const Type& t2)
 	SimpleType 	*st1, *st2;
 	TableType	*tt1, *tt2;
 	TupletType	*nt1, *nt2;
-    FaustVectorType *vt1, *vt2;
 
 	if (t1->variability() != t2->variability()) 	return false;
 	if (t1->computability() != t2->computability()) return false;
@@ -259,7 +218,6 @@ bool operator== ( const Type& t1, const Type& t2)
                 && (st1->getInterval().valid == st2->getInterval().valid);
     if ( (tt1 = isTableType(t1)) && (tt2 = isTableType(t2)) )
         return tt1->content()== tt2->content();
-
 	if ( (nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2)) ) {
 		int a1 = nt1->arity();
 		int a2 = nt2->arity();
@@ -270,11 +228,6 @@ bool operator== ( const Type& t1, const Type& t2)
 			return false;
 		}
 	}
-    if ( (vt1 = isVectorType(t1)) && (vt2 = isVectorType(t2)) ) {
-        if (vt1->size() == vt2->size() &&
-            vt1->dereferenceType() == vt2->dereferenceType() )
-            return true;
-    }
 	return false;
 }
 
@@ -311,10 +264,9 @@ Type operator* 	(const Type& t1, const Type& t2)
 }
 
 
-SimpleType*	        isSimpleType(AudioType* t)	    { return dynamic_cast<SimpleType*>(t); }
-TableType* 	        isTableType(AudioType* t)	    { return dynamic_cast<TableType*>(t);  }
-TupletType*	        isTupletType(AudioType* t)	    { return dynamic_cast<TupletType*>(t); }
-FaustVectorType*    isVectorType(AudioType* t)      { return dynamic_cast<FaustVectorType*>(t); }
+SimpleType*	isSimpleType(AudioType* t)	{ return dynamic_cast<SimpleType*>(t); }
+TableType* 	isTableType(AudioType* t)	{ return dynamic_cast<TableType*>(t);  }
+TupletType*	isTupletType(AudioType* t)	{ return dynamic_cast<TupletType*>(t); }
 
 
 
@@ -389,6 +341,7 @@ Typed::VarType ctType (Type t)
 {
 	return (t->nature() == kInt) ? Typed::kInt : Typed::kFloat;
 }
+
 
 /*****************************************************************************
  *

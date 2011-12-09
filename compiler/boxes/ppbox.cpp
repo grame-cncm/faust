@@ -29,21 +29,20 @@
 #include "xtended.hh"
 
 
-const char * prim0name(prim0 ptr)
+const char * prim0name(CTree *(*ptr) ())
 {
 	return "prim0???";
 }
 
-const char * prim1name(prim1 ptr)
+const char * prim1name(CTree *(*ptr) (CTree *))
 {
 	if (ptr == sigDelay1) return "mem";
 	if (ptr == sigIntCast) return "int";
 	if (ptr == sigFloatCast) return "float";
-    if (ptr == sigSerialize)   return "serialize";
 	return "prim1???";
 }
 
-const char * prim2name(prim2 ptr)
+const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 {
 	if (ptr == sigAdd) return "+";
 	if (ptr == sigSub) return "-";
@@ -69,27 +68,23 @@ const char * prim2name(prim2 ptr)
 	if (ptr == sigPrefix) 	return "prefix";
 	if (ptr == sigAttach) 	return "attach";
 
-    if (ptr == sigVectorize) return "vectorize";
-    if (ptr == sigConcat)   return "#";
-    if (ptr == sigVectorAt)   return "[]";
-
 	return "prim2???";
 }
 
-const char * prim3name(prim3 ptr)
+const char * prim3name(CTree *(*ptr) (CTree *, CTree *, CTree *))
 {
 	if (ptr == sigReadOnlyTable) 	return "rdtable";
 	if (ptr == sigSelect2) 			return "select2";
 	return "prim3???";
 }
 
-const char * prim4name(prim4 ptr)
+const char * prim4name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *))
 {
 	if (ptr == sigSelect3) 			return "select3";
 	return "prim4???";
 }
 
-const char * prim5name(prim5 ptr)
+const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree *))
 {
 	if (ptr == sigWriteReadTable) 	return "wrtable";
 	return "prim5???";
@@ -265,34 +260,34 @@ ostream& boxpp::print (ostream& fout) const
 	else if (isBoxSymbolic(box, slot, body)) {
 		fout << "[" << boxpp(slot) << ">" << boxpp(body) << "]";
 	}
-
+	
 	// Pattern Matching Extensions
 	else if (isBoxCase(box, rules)) {
 		fout << "case {";
 		while (!isNil(rules)) { printRule(fout, hd(rules)); rules = tl(rules); }
-		fout << "}";
+		fout << "}";	 
 	}
 #if 1
 	// more useful for debugging output
 	else if (isBoxPatternVar(box, ident)) {
-		fout << "<" << boxpp(ident) << ">";
+		fout << "<" << boxpp(ident) << ">";	
 	}
 #else
 	// beautify messages involving lhs patterns
 	else if (isBoxPatternVar(box, ident)) {
-		fout << boxpp(ident);
+		fout << boxpp(ident);	
 	}
 #endif
 
 	else if (isBoxPatternMatcher(box)) {
-		fout << "PM[" << box << "]";
+		fout << "PM[" << box << "]";	
 	}
 
 	else if (isBoxError(box)) {
-		fout << "ERROR";
+		fout << "ERROR";	
 	}
 
-
+	
 	// None of the previous tests succeded, then it is not a valid box
 	else {
         cerr << "Error in box::print() : " << *box << " is not a valid box" << endl;

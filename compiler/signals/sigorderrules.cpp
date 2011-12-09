@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
+ 
 /************************************************************************
  ************************************************************************
     Signals Order Rules
@@ -30,13 +30,13 @@
 		2 = User Interface
 		3 = Audio
 	This order will be used to put expressions in normal form.
-
+	
 	Contrary to the full type system, it doesn't require environments
 	or special treatments for recursions
  ************************************************************************
  ************************************************************************/
-
-
+ 
+ 
 #include <stdio.h>
 #include "sigtype.hh"
 #include "sigprint.hh"
@@ -62,14 +62,14 @@ static int infereSigOrder(Tree sig);
 int getSigOrder(Tree sig)
 {
 	Tree tt;
-	if (getProperty(sig, ORDERPROP, tt)) {
-		return tree2int(tt);
+	if (getProperty(sig, ORDERPROP, tt)) { 
+		return tree2int(tt); 
 	} else {
 		int order = infereSigOrder(sig);
 		setProperty(sig, ORDERPROP, tree(order));
 		return order;
 	}
-}
+}	
 
 // shortcut for order inference algorithm
 #define O getSigOrder
@@ -79,7 +79,7 @@ int getSigOrder(Tree sig)
 /**
  * Infere the order of a term according to its components
  * @param sig the signal to analyze
- * @return the order of sig
+ * @return the order of sig 
  */
 static int infereSigOrder(Tree sig)
 {
@@ -89,7 +89,7 @@ static int infereSigOrder(Tree sig)
 
 	xtended* xt = (xtended*) getUserData(sig);
 	// primitive elements
-	if (xt)
+	if (xt) 								
 	{
 		//return 3;
 		vector<int> args;
@@ -97,23 +97,25 @@ static int infereSigOrder(Tree sig)
 		return xt->infereSigOrder(args);
 	}
 
-
+	
 	else if (isSigInt(sig, &i))					return 0;
-
+		
 	else if (isSigReal(sig, &r)) 				return 0;
-
+		
 	else if (isSigInput(sig, &i))				return 3;
-
+		
+	else if (isSigOutput(sig, &i, s1)) 			return 3;
+		
 	else if (isSigDelay1(sig, s1)) 				return 3;
-
+	
 	else if (isSigPrefix(sig, s1, s2)) 			return 3;
-
+	
 	else if (isSigFixDelay(sig, s1, s2)) 		return 3;
-
+	
 	else if (isSigBinOp(sig, &i, s1, s2)) 		return max(O(s1),O(s2));
-
+	
 	else if (isSigIntCast(sig, s1))				return O(s1);
-
+        
     else if (isSigFloatCast(sig, s1))           return O(s1);
 
     else if (isSigFFun(sig,ff,ls) && isNil(ls)) return 1;
@@ -123,33 +125,33 @@ static int infereSigOrder(Tree sig)
     else if (isSigFConst(sig,type,name,file))   return 1;
 
     else if (isSigFVar(sig,type,name,file))     return 2;
-
+		
 	else if (isSigButton(sig)) 					return 2;
-
+	
 	else if (isSigCheckbox(sig))				return 2;
-
+	
 	else if (isSigVSlider(sig))					return 2;
-
+	 
 	else if (isSigHSlider(sig))					return 2;
-
+	
 	else if (isSigNumEntry(sig))				return 2;
-
+		
 	else if (isSigHBargraph(sig, l, x, y, s1)) 	return O(s1);
-
+		
 	else if (isSigVBargraph(sig, l, x, y, s1)) 	return O(s1);
-
+		
 	else if (isSigAttach(sig, s1, s2)) 			return O(s1);
-
+				
 	else if (isRec(sig, var, body))				exit(1); //return 3;  // not supposed to happen.
-
-	else if (isRef(sig, var))					exit(1); //return 3;  // not supposed to happen.
+				
+	else if (isRef(sig, var))					exit(1); //return 3;  // not supposed to happen. 
 
 	else if (isProj(sig, &i, s1))				return 3;
-
+	                                                	
 	else if (isSigTable(sig, id, s1, s2)) 		return 3;
-
-	else if (isSigWRTbl(sig, id, s1, s2, s3)) 	return 3;
-
+		
+	else if (isSigWRTbl(sig, id, s1, s2, s3)) 	return 3; 
+			
     else if (isSigRDTbl(sig, s1, s2)) 			return 3;
 
     else if (isSigDocConstantTbl(sig, s1, s2)) 	return 3;
@@ -159,23 +161,18 @@ static int infereSigOrder(Tree sig)
     else if (isSigDocAccessTbl(sig,s1,s2))      return 3;
 
     else if (isSigGen(sig, s1)) 				return 3;
-
+		
 	else if (isSigSelect2(sig,sel,s1,s2)) 		return 3;
-
-	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	return 3;
-
-    else if (isSigVectorize(sig, s1, s2))       return 3;
-    else if (isSigSerialize(sig, s1))           return 3;
-    else if (isSigVectorAt(sig, s1, s2))        return 3;
-    else if (isSigConcat(sig, s1, s2))          return 3;
-
-	else if (isList(sig))
+		
+	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	return 3;	
+	
+	else if (isList(sig)) 
 	{
 		int r = 0;
 		while (isList(sig)) { int x = O(hd(sig)); if (x > r) r = x; sig = tl(sig); }
 		return r;
 	}
-
+	
 	// unrecognized signal here
 	fprintf(stderr, "ERROR infering signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);

@@ -18,29 +18,29 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
-
-
+ 
+ 
+ 
 /*****************************************************************************
 ******************************************************************************
-								LIST
+								LIST 
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
-This file contains several extensions to the tree library :
-	- lists : based on a operations like cons, hd , tl, ...
+This file contains several extensions to the tree library : 
+	- lists : based on a operations like cons, hd , tl, ... 
 	- environments : list of associations (key value)
 	- property list : used to annotate trees
 
 
  API:
- ----
+ ---- 
 
 	List :
 	-----
-
+	
 	nil					= predefined empty list
 	cons (x,l)			= create a nex list of head x and tail l
-	hd(cons(x,l)) 		= x,
+	hd(cons(x,l)) 		= x, 
 	tl (cons(x,l)) 		= l
 	nth(l,i)			= ith element of l (or nil)
 	replace(l,i,e)		= a copy of l where the ith element is e
@@ -48,57 +48,57 @@ This file contains several extensions to the tree library :
 	isNil(nil) 			= true 		(false otherwise)
 	isList(cons(x,l)) 	= true 		(false otherwise)
 	list(a,b,..)		= cons(a, list(b,...))
-
+	
 	lmap(f, cons(x,l))	= cons(f(x), lmap(f,l))
 	reverse([a,b,..,z])	= [z,..,b,a]
 	reverseall([a,b,..,z])	= [ra(z),..,ra(b),ra(a)] where ra is reverseall
-
+	
 	Set :
 	-----
 	(Sets are implemented as ordered lists of elements without duplication)
-
+	
 	isElement(e,s)			= true if e is an element of set s, false otherwise
 	addElement(e,s)			= s U {e}
 	remElement(e,s)			= s - {e}
 	singleton(e)			= {e}
-	list2set(l)				= convert a list into a set
+	list2set(l)				= convert a list into a set 
 	setUnion(s1,s2)			= s1 U s2
 	setIntersection(s1,s2)	= s1 intersection s2
 	setDifference(s1,s2)	= s1 - s2
-
-	Environment :
+	
+	Environment : 
 	-------------
-
+	
 	An 'environment' is a stack of pairs (key x value) used to keep track of lexical bindings
-
+	
 	pushEnv (key, val, env) -> env' create a new environment
 	searchEnv (key,&v,env) -> bool  search for key in env and set v accordingly
-
+	
 	search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1==k2
 									= search(k1,&v,env) if k1 != k2
 	Property list :
 	---------------
-
-	Every tree can be annotated with an 'attribut' field. This attribute field
+	
+	Every tree can be annotated with an 'attribut' field. This attribute field 
 	can be used to manage a property list (pl). A property list is a list of pairs
 	key x value, with three basic operations :
-
+	
 	setProperty (t, key, val) -> t		add the association (key x val) to the pl of t
 	getProperty (t, key, &val) -> bool	search the pp of t for the value associated to key
 	remProperty (t, key) -> t			remove any association (key x ?) from the pl of t
-
+	
  Warning :
  ---------
- Since reference counters are used for garbage collecting, one must be careful not to
+ Since reference counters are used for garbage collecting, one must be careful not to 
  create cycles in trees. The only possible source of cycles is by setting the attribut
- of a tree t to a tree t' that contains t as a subtree.
-
+ of a tree t to a tree t' that contains t as a subtree.  
+	
  History :
  ---------
  	2002-02-08 : First version
  	2002-02-20 : New description of the API, non recursive lmap and reverse
  	2002-03-29 : Added function remElement(e,set), corrected comment error
-
+	
 ******************************************************************************
 *****************************************************************************/
 
@@ -182,10 +182,6 @@ void 	remProperty (Tree t, Tree key);
 
 // Mapping sur les arbres
 Tree tmap (Tree k, tfun f, Tree t);
-Tree tmapRec (Tree k, tfun f, Tree t);
-Tree tmap (Tree k, tfun f, Tree t, vector<Tree> const & persistentProperties);
-Tree tmapRec (Tree k, tfun f, Tree t, vector<Tree> const & persistentProperties);
-
 
 // remplacement
 Tree substitute (Tree t, Tree id, Tree val);

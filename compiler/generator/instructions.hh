@@ -1978,9 +1978,11 @@ struct InstBuilder
                     const string& arg4, Typed::VarType arg4_ty);
 
     // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation unicity.
-    static DeclareTypeInst* genType(AudioType* type);
+    // HACK : 09/12/11
+    //static DeclareTypeInst* genType(AudioType* type);
 
-    static Typed* mapFIRType(AudioType* type);
+    // HACK : 09/12/11
+    //static Typed* mapFIRType(AudioType* type);
 };
 
 

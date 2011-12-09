@@ -3,9 +3,6 @@
 #include "ppsig.hh"
 #include "xtended.hh"
 #include <assert.h>
-#include "sigtyperules.hh"
-#include "simplifying_terms.hh"
-
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
 #undef TRACE
@@ -14,19 +11,18 @@ using namespace std;
 
 typedef map<Tree,int> MP;
 
-mterm::mterm ()            		: fCoef(sigInt(0, NULL)) {}
-mterm::mterm (int k)            : fCoef(sigInt(k, NULL)) {}
-mterm::mterm (double k)         : fCoef(sigReal(k, NULL)) {}	// cerr << "DOUBLE " << endl; }
+mterm::mterm ()            		: fCoef(sigInt(0)) {}
+mterm::mterm (int k)            : fCoef(sigInt(k)) {}
+mterm::mterm (double k)         : fCoef(sigReal(k)) {}	// cerr << "DOUBLE " << endl; }
 mterm::mterm (const mterm& m)   : fCoef(m.fCoef), fFactors(m.fFactors) {}
-
 
 /**
  * create a mterm from a tree sexpression
  */
-mterm::mterm (Tree t) : fCoef(sigInt(1, NULL))
+mterm::mterm (Tree t) : fCoef(sigInt(1))
 {
     //cerr << "mterm::mterm (Tree t) : " << ppsig(t) << endl;
-	*this *= t;
+	*this *= t; 
 	//cerr << "MTERM(" << ppsig(t) << ") -> " << *this << endl;
 }
 
@@ -92,34 +88,16 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
 	return false;
 }
 
-static Type mergePowTypes(Type t1, int q)
-{
-    if (!t1)
-        return NULL;
-
-    interval iv = t1->getInterval();
-    interval accum = iv;
-    for (int i = 1; i != q; ++i)
-        accum = accum * iv;
-
-    Type ret = t1->castInterval(accum);
-    return ret;
-}
-
 /**
  * produce x^p with p:int
  */
 static Tree sigPow(Tree x, int p)
 {
-    Tree tp = sigInt(p, NULL);
-    typeAnnotation(tp);
-    Tree ret = tree(gPowPrim->symbol(), x, tp);
-    ret->setType(mergePowTypes(x->getType(), p));
-    return ret;
+	return tree(gPowPrim->symbol(), x, sigInt(p));
 }
 
 /**
- * Multiple a mterm by an expression tree t. Go down recursively looking
+ * Multiple a mterm by an expression tree t. Go down recursively looking 
  * for multiplications and divisions
  */
 const mterm& mterm::operator *= (Tree t)
@@ -131,6 +109,7 @@ const mterm& mterm::operator *= (Tree t)
 
 	if (isNum(t)) {
 		fCoef = mulNums(fCoef,t);
+
 	} else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
 		*this *= x;
 		*this *= y;
@@ -150,7 +129,7 @@ const mterm& mterm::operator *= (Tree t)
 }
 
 /**
- * Divide a mterm by an expression tree t. Go down recursively looking
+ * Divide a mterm by an expression tree t. Go down recursively looking 
  * for multiplications and divisions
  */
 const mterm& mterm::operator /= (Tree t)
@@ -193,7 +172,7 @@ const mterm& mterm::operator = (const mterm& m)
 }
 
 /**
- * Clean a mterm by removing x**0 factors
+ * Clean a mterm by removing x**0 factors 
  */
 void mterm::cleanup()
 {
@@ -359,13 +338,13 @@ bool mterm::hasDivisor (const mterm& n) const
 {
 	for (MP::const_iterator p1 = n.fFactors.begin(); p1 != n.fFactors.end(); p1++) {
 		// for each factor f**q of m
-        Tree 	f = p1->first;
+        Tree 	f = p1->first; 	
 		int 	v = p1->second;
-
+		
 		// check that f is also a factor of *this
 		MP::const_iterator p2 = fFactors.find(f);
 		if (p2 == fFactors.end()) return false;
-
+		
 		// analyze quantities
 		int u = p2->second;
 		if (! contains(u,v) ) return false;
@@ -376,7 +355,7 @@ bool mterm::hasDivisor (const mterm& n) const
 /**
  * produce the canonical tree correspoding to a mterm
  */
-
+ 
 /**
  * Build a power term of type f**q -> (((f.f).f)..f) with q>0
  */
@@ -385,7 +364,7 @@ static Tree buildPowTerm(Tree f, int q)
 	assert(f);
 	assert(q>0);
 	if (q>1) {
-        return sigPow(f, q);
+		return sigPow(f, q);
 	} else {
 		return f;
 	}
@@ -396,13 +375,9 @@ static Tree buildPowTerm(Tree f, int q)
  */
 static void combineMulLeft(Tree& R, Tree A)
 {
-    if (!A)
-        return;
-
-    if (R)
-        R = simplifyingMul(R, A);
-    else
-        R = A;
+	if (R && A) 	R = sigMul(R,A);
+	else if (A)		R = A;
+    else exit(1);
 }
 
 /**
@@ -410,19 +385,12 @@ static void combineMulLeft(Tree& R, Tree A)
  */
 static void combineDivLeft(Tree& R, Tree A)
 {
-    if (!A)
-        return;
-
-    if (R) {
-        R = simplifyingDiv(R, A);
-    } else {
-        Tree one = tree(1.0f);
-        typeAnnotation(one);
-        R = simplifyingDiv(one, A);
-    }
+	if (R && A) 	R = sigDiv(R,A);
+	else if (A)		R = sigDiv(tree(1.0f),A);
+    else exit(1);
 }
 
-/**
+/**	
  * Do M = M * f**q or D = D * f**-q
  */
 static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
@@ -438,9 +406,9 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 			combineMulLeft(D, buildPowTerm(f,-q));
 		}
 	}
-}
-
-
+}	
+	
+			
 /**
  * returns a normalized (canonical) tree expression of structure :
  * 		((v1/v2)*(c1/c2))*(s1/s2)
@@ -449,7 +417,7 @@ Tree mterm::signatureTree() const
 {
 	return normalizedTree(true);
 }
-
+	
 /**
  * returns a normalized (canonical) tree expression of structure :
  * 		((k*(v1/v2))*(c1/c2))*(s1/s2)
@@ -460,17 +428,13 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 {
 	if (fFactors.empty() || isZero(fCoef)) {
 		// it's a pure number
-
-		Tree ret;
-		if (signatureMode) 	ret = tree(1);
-		if (negativeMode)	ret = minusNum(fCoef);
-		else				ret = fCoef;
-        typeAnnotation(ret);
-        return ret;
+		if (signatureMode) 	return tree(1);
+		if (negativeMode)	return minusNum(fCoef);
+		else				return fCoef;
 	} else {
 		// it's not a pure number, it has factors
 		Tree A[4], B[4];
-
+		
 		// group by order
 		for (int order = 0; order < 4; order++) {
 			A[order] = 0; B[order] = 0;
@@ -478,22 +442,22 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 				Tree 	f = p->first;		// f = factor
 				int		q = p->second;		// q = power of f
 				if (f && q && getSigOrder(f)==order) {
-
+					
 					combineMulDiv (A[order], B[order], f, q);
 				}
 			}
 		}
-		if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl;
-		if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl;
+		if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl; 
+		if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl; 
 		// en principe ici l'order zero est vide car il correspond au coef numerique
 		assert(A[0] == 0);
 		assert(B[0] == 0);
-
+		
 		// we only use a coeficient if it differes from 1 and if we are not in signature mode
 		if (! (signatureMode | isOne(fCoef))) {
 			A[0] = (negativeMode) ? minusNum(fCoef) : fCoef;
 		}
-
+		
 		if (signatureMode) {
 			A[0] = 0;
 		} else if (negativeMode) {
@@ -503,25 +467,16 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 		} else {
 			A[0] = fCoef;
 		}
-
-        if (A[0])
-            typeAnnotation(A[0]);
-
+					
 		// combine each order separately : R[i] = A[i]/B[i]
 		Tree RR = 0;
 		for (int order = 0; order < 4; order++) {
-			if (A[order] && B[order]) {
-                Tree divTerm = simplifyingDiv(A[order],B[order]);
-                combineMulLeft(RR, divTerm);
-            }
+			if (A[order] && B[order]) 	combineMulLeft(RR,sigDiv(A[order],B[order]));
 			else if (A[order])			combineMulLeft(RR,A[order]);
 			else if (B[order])			combineDivLeft(RR,B[order]);
 		}
-		if (RR == 0) {
-            RR = tree(1); // a verifier *******************
-            typeAnnotation(RR);
-        }
-
+		if (RR == 0) RR = tree(1); // a verifier *******************
+			
 		assert(RR);
         //cerr << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
 		return RR;

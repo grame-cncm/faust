@@ -49,7 +49,6 @@
 #include "prim2.hh"
 
 #include "ensure.hh"
-#include "sigrateinference.hh"
 #include "sigToGraph.hh"
 
 using namespace std;
@@ -134,7 +133,7 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 
 	} else {
 		// it is our first visit,
-		int v = getSigType(sig)->variability();
+		int v = getCertifiedSigType(sig)->variability();
 
 		// check "time sharing" cases
 		if (v < vctxt) {
@@ -285,7 +284,7 @@ bool InstructionsCompiler::getTableNameProperty(Tree sig, string& name)
 
 CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree sig)
 {
-	Type t = getSigType(sig);
+	Type t = getCertifiedSigType(sig);
 
 	CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
     InstructionsCompiler C(container);
@@ -336,7 +335,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
 
-        int rate = getSigRate(sig);
+        // 09/12/11 : HACK
+        //int rate = getSigRate(sig);
+        int rate = 1;
         fContainer->setOutputRate(index, rate);
     }
 
@@ -424,6 +425,8 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph(sig, label, x, y, CS(z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph(sig, label, x, y, CS(z)); }
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
+    /*
+    HACK : 09/12/11
     else if (isSigVectorize(sig, x, y)) {
         printf("vectorize not implemented\n");
         exit (0);
@@ -440,6 +443,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         printf("vector at not implemented\n");
         exit (0);
     }
+    */
 	else {
 		printf("Error in compiling signal, unrecognized signal : ");
 		print(sig);
@@ -466,7 +470,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     // Check for expression occuring in delays
 	if (o->getMaxDelay() > 0) {
 
-        getTypedNames(getSigType(sig), "Vec", ctype, vname);
+        getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing > 1) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
         } else {
@@ -503,7 +507,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
     string vname;
     Typed::VarType ctype;
-    ::Type t = getSigType(sig);
+    ::Type t = getCertifiedSigType(sig);
 
     Typed* type;
 
@@ -559,11 +563,11 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
     xtended* p = (xtended*)getUserData(sig);
 	list<ValueInst*> args;
     vector< ::Type> arg_types;
-    ::Type result_type = getSigType(sig);
+    ::Type result_type = getCertifiedSigType(sig);
 
 	for (int i = 0; i < sig->arity(); i++) {
 		args.push_back(CS(sig->branch(i)));
-		arg_types.push_back(getSigType(sig->branch(i)));
+		arg_types.push_back(getCertifiedSigType(sig->branch(i)));
 	}
 
 	if (p->needCache()) {
@@ -602,7 +606,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 
 ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
-    ::Type te = getSigType(sig);
+    ::Type te = getCertifiedSigType(sig);
 
 	string vperm = getFreshID("M");
 	string vtemp = getFreshID("T");
@@ -626,9 +630,9 @@ ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg) { return InstB
 
 ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
-    int t1 = getSigType(arg1)->nature();
-    int t2 = getSigType(arg2)->nature();
-    int t3 = getSigType(sig)->nature();
+    int t1 = getCertifiedSigType(arg1)->nature();
+    int t2 = getCertifiedSigType(arg2)->nature();
+    int t3 = getCertifiedSigType(sig)->nature();
 
     ValueInst* res = NULL;
     ValueInst* val1 = CS(arg1);
@@ -699,7 +703,9 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 
 ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 {
-    int rate = getSigRate(sig);
+    // 09/12/11 : HACK
+    //int rate = getSigRate(sig);
+    int rate = 1;
     fContainer->setInputRate(idx, rate);
 
     string name = subst("input$0", T(idx));
@@ -744,7 +750,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
-	Type t = getSigType(content);//, tEnv);
+	Type t = getCertifiedSigType(content);//, tEnv);
 	if (t->nature() == kInt) {
 		vname = getFreshID("itbl");
 		ctype = Typed::kInt;
@@ -816,7 +822,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
-	Type t = getSigType(content);//, tEnv);
+	Type t = getCertifiedSigType(content);//, tEnv);
 	if (t->nature() == kInt) {
 		vname = getFreshID("itbl");
 		ctype = Typed::kInt;
@@ -938,8 +944,8 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 {
-    int t1 = getSigType(s1)->nature();
-    int t2 = getSigType(s2)->nature();
+    int t1 = getCertifiedSigType(s1)->nature();
+    int t2 = getCertifiedSigType(s2)->nature();
 
     ValueInst* cond = CS(sel);
     ValueInst* val1 = CS(s1);
@@ -992,11 +998,11 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
 
     // Prepare each element of a recursive definition
     for (int i = 0; i < N; i++) {
-        Tree e = sigProj(i, sig, unknown_box);     // recreate each recursive definition
+        Tree e = sigProj(i, sig);     // recreate each recursive definition
         if (fOccMarkup.retrieve(e)) {
             // This projection is used
             used[i] = true;
-            getTypedNames(getSigType(e), "Rec", ctype[i], vname[i]);
+            getTypedNames(getCertifiedSigType(e), "Rec", ctype[i], vname[i]);
             setVectorNameProperty(e, vname[i]);
             delay[i] = fOccMarkup.retrieve(e)->getMaxDelay();
         } else {
@@ -1101,7 +1107,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kFloatMacro)));
  	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-	::Type t = getSigType(sig);
+	::Type t = getCertifiedSigType(sig);
 	switch (t->variability()) {
 
 		case kKonst :
@@ -1138,7 +1144,7 @@ ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
 
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
-		getTypedNames(getSigType(sig), "Vec", ctype, vname);
+		getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig, InstBuilder::genIntNumInst(num), ctype, vname, o->getMaxDelay());
 	}
 
@@ -1154,7 +1160,7 @@ ValueInst* InstructionsCompiler::generateRealNumber(Tree sig, double num)
 
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
-		getTypedNames(getSigType(sig), "Vec", ctype, vname);
+		getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig, InstBuilder::genRealNumInst(ctype, num), ctype, vname, o->getMaxDelay());
 	}
 
@@ -1176,13 +1182,13 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
 
 	// Check for number occuring in delays
 	if (o->getMaxDelay() > 0) {
-		getTypedNames(getSigType(sig), "Vec", ctype, vname);
+		getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
 		generateDelayVec(sig,
             (name == "fSamplingFreq") ? InstBuilder::genLoadStructVar(name) : InstBuilder::genLoadGlobalVar(name),
             ctype, vname, o->getMaxDelay());
 	}
 
-    int sig_type = getSigType(sig)->nature();
+    int sig_type = getCertifiedSigType(sig)->nature();
     if (name == "fSamplingFreq") {
         pushDeclare(InstBuilder::genDecStructVar(name,
             InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
@@ -1198,7 +1204,7 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
 {
     fContainer->addIncludeFile(file);
 
-    int sig_type = getSigType(sig)->nature();
+    int sig_type = getCertifiedSigType(sig)->nature();
     pushExtGlobalDeclare(InstBuilder::genDecGlobalVar(name,
         InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt : itfloat())));
     return generateCacheCode(sig, InstBuilder::genLoadGlobalVar(name));

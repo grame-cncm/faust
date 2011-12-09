@@ -17,7 +17,7 @@ class Occurences
  	Occurences(int v, int r);
 
 	Occurences* incOccurences(int v, int r, int d);	///< inc occurences in context v,r,d
-
+	
 	bool 		hasMultiOccurences() const;			///< true if multiple occurences or occ. in higher ctxt
 	bool 		hasOutDelayOccurences() const;		///< true if has occurences outside a a delay
     int			getMaxDelay() const;				///< return the maximal delay collected

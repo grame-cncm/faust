@@ -38,7 +38,6 @@
 #include "compatibility.hh"
 
 #include "normalize.hh"
-#include "ensure.hh"
 
 #undef TRACE
 
@@ -46,6 +45,7 @@
 Tree SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
 //static Tree binequiv (Tree sig, int opnum, Tree a, Tree b);
 static Tree simplification (Tree sig);
+static Tree sigMap (Tree key, tfun f, Tree t);
 
 static Tree traced_simplification(Tree sig)
 {
@@ -75,7 +75,7 @@ static Tree traced_simplification(Tree sig)
 
 Tree simplify (Tree sig)
 {
-	return tmapRec(SIMPLIFIED, traced_simplification, sig);
+	return sigMap(SIMPLIFIED, traced_simplification, sig);
 }
 
 
@@ -103,32 +103,19 @@ static Tree simplification (Tree sig)
         }
 
 	} else if (isSigBinOp(sig, &opnum, t1, t2)) {
-        if (isVectorType(t1->getType()) ||
-            isVectorType(t2->getType()))
-            /* simplifying vector types may result in scalar/vector operations that we don't support for now */
-            return sig;
 
 		BinOp* op = gBinOpTable[opnum];
 
 		Node n1 = t1->node();
 		Node n2 = t2->node();
 
-		if (isNum(n1) && isNum(n2))
-            return tree(op->compute(n1,n2));
+		if (isNum(n1) && isNum(n2)) 		return tree(op->compute(n1,n2));
 
-        if (op->isLeftAbsorbing(n1))
-            return t1;
+		else if (op->isLeftNeutral(n1)) 	return t2;
 
-        if (op->isRightAbsorbing(n2))
-            return t2;
+		else if (op->isRightNeutral(n2)) 	return t1;
 
-		if (op->isLeftNeutral(n1))
-            return t2;
-
-		if (op->isRightNeutral(n2))
-            return t1;
-
-		return normalizeAddTerm(sig);
+		else 								return normalizeAddTerm(sig);
 
 	} else if (isSigDelay1(sig, t1)) {
 
@@ -183,9 +170,7 @@ static Tree simplification (Tree sig)
         if (isOne(n1))  return t3;
         if (isNum(n1))  return t4;
 
-        // TODO
-        //if (t3==t4) return simplification(sigSelect2(t1,t2,t3));
-        if (t3==t4 && t2==t3) return t2;
+        if (t3==t4) return simplification(sigSelect2(t1,t2,t3));
 
         return sig;
 
@@ -357,7 +342,7 @@ Tree DOCTABLES = tree(symbol("DocTablesProp"));
 
 static Tree docTableConverter (Tree sig);
 
-Tree NULLENV = tree(symbol("NullRenameEnv"));
+static Tree NULLENV = tree(symbol("NullRenameEnv"));
 
 Tree docTableConvertion (Tree sig)
 {
@@ -373,19 +358,18 @@ static Tree docTableConverter (Tree sig)
     Tree tbl, tbl2, id, id2, size, igen, isig, ridx, widx, wsig;
 
     if (isSigRDTbl(sig, tbl, ridx)) {
-        Tree box = sig->getProperty(box_symbol);
         // we are in a table to convert
         if (isSigTable(tbl, id, size, igen)) {
             // it's a read only table
-            ensure(isSigGen(igen, isig));
-            return sigDocAccessTbl(sigDocConstantTbl(size,isig, box),ridx, box);
+            assert(isSigGen(igen, isig));
+            return sigDocAccessTbl(sigDocConstantTbl(size,isig),ridx);
         } else {
             // it's a read write table
-            ensure(isSigWRTbl(tbl,id,tbl2,widx,wsig));
-            ensure(isSigTable(tbl2, id2, size, igen));
-            ensure(isSigGen(igen, isig));
+            assert(isSigWRTbl(tbl,id,tbl2,widx,wsig));
+            assert(isSigTable(tbl2, id2, size, igen));
+            assert(isSigGen(igen, isig));
 
-            return sigDocAccessTbl(sigDocWriteTbl(size,isig,widx,wsig, box),ridx, box);
+            return sigDocAccessTbl(sigDocWriteTbl(size,isig,widx,wsig),ridx);
         }
 
     } else {

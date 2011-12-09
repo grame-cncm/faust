@@ -7,8 +7,6 @@
 #include "simplify.hh"
 #include "normalize.hh"
 #include "sigorderrules.hh"
-#include "sigtyperules.hh"
-#include "simplifying_terms.hh"
 #include <map>
 #include <list>
 
@@ -36,7 +34,7 @@ Tree normalizeAddTerm(Tree t)
 #ifdef TRACE
 	cerr << "START normalizeAddTerm : " << ppsig(t) << endl;
 #endif
-
+	
 	aterm A(t);
 	//cerr << "ATERM IS : " << A << endl;
 	mterm D = A.greatestDivisor();
@@ -60,11 +58,9 @@ Tree normalizeAddTerm(Tree t)
  */
 Tree normalizeDelay1Term(Tree s)
 {
-    Tree one = tree(1);
-    typeAnnotation(one);
-    assert(sigValidInterval(one));
-    return normalizeFixedDelayTerm(s, one);
+	return normalizeFixedDelayTerm(s, tree(1));
 }
+
 
 /**
  * Compute the normal form of a fixed delay term (s@d).
@@ -87,46 +83,40 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 	Tree x, y, r;
 	int i;
 
-	if (isZero(d) && ! isProj(s, &i, r))
+	if (isZero(d) && ! isProj(s, &i, r)) {
+
         return s;
 
-	if (isZero(s))
+	} else if (isZero(s)) {
+
         return s;
 
-	if (isSigMul(s, x, y)) {
+	} else if (isSigMul(s, x, y)) {
+
 		if (getSigOrder(x) < 2) {
-            Tree normDel = normalizeFixedDelayTerm(y,d);
-            return simplifyingMul(x, normDel);
+            return /*simplify*/(sigMul(x,normalizeFixedDelayTerm(y,d)));
 		} else if (getSigOrder(y) < 2) {
-            Tree normDel = normalizeFixedDelayTerm(x,d);
-            return simplifyingMul(y, normDel);
+            return /*simplify*/(sigMul(y,normalizeFixedDelayTerm(x,d)));
+		} else {
+			return sigFixDelay(s,d);
 		}
 
 	} else if (isSigDiv(s, x, y)) {
 
 		if (getSigOrder(y) < 2) {
-            Tree normDel = normalizeFixedDelayTerm(x,d);
-            return simplifyingDiv(normDel, y);
+            return /*simplify*/(sigDiv(normalizeFixedDelayTerm(x,d),y));
+		} else {
+			return sigFixDelay(s,d);
 		}
 
 	} else if (isSigFixDelay(s, x, y)) {
 		// (x@n)@m = x@(n+m)
-        Tree addTerm = simplifyingAdd(d, y);
-        assert(addTerm->getType() ? sigValidInterval(addTerm) : true);
-		return normalizeFixedDelayTerm(x, addTerm);
+//		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
+		return normalizeFixedDelayTerm(x,simplify(sigAdd(d,y))); 
+
+	} else {
+
+		return sigFixDelay(s,d);
 	}
-
-    Tree ret = sigFixDelay(s, d);
-    ret->setType(sampCast(s->getType()));
-
-    /* sigFixDelay introduces a cast node. we need to ensure the type */
-    Tree sNormalized = NULL, dNormalized = NULL;
-    isSigFixDelay(ret, sNormalized, dNormalized);
-    if (dNormalized->getType() == NULL) {
-        Type dNormalizedType = intCast(d->getType());
-        dNormalized->setType(dNormalizedType);
-    }
-
-    return ret;
 }
 

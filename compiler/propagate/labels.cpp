@@ -1,6 +1,5 @@
 #include "labels.hh"
 #include "compatibility.hh"
-#include "ensure.hh"
 
 //=========================== PATHNAME ===============================
 
@@ -8,7 +7,7 @@
  * Grammar for labels with pathnames
  *-----------------------------------
  * <label> = <name> | <path> <name>
- * <name> = [^/]+
+ * <name> = [^/]+             
  * <path> = <apath> | <rpath>
  * <apath> = '/' | '/' <rpath>
  * <rpath> = (<gname> '/')+
@@ -89,10 +88,10 @@ static Tree label2path(const char* label)
 
 /**
  * Concatenate the relative path to the absolute path
- * Note that the relpath is top-down while the abspath
+ * Note that the relpath is top-down while the abspath 
  * is bottom-up
  */
-
+ 
 static Tree concatPath(Tree relpath, Tree abspath)
 {
 	if (isList(relpath)) {
@@ -100,8 +99,8 @@ static Tree concatPath(Tree relpath, Tree abspath)
 		if (isPathRoot(head)) {
 			return concatPath(tl(relpath), nil);
 		} else if (isPathParent(head)) {
-			if (!isList(abspath)) {
-				//cerr << "abspath : " << *abspath << endl;
+			if (!isList(abspath)) { 
+				//cerr << "abspath : " << *abspath << endl; 
 				return concatPath(tl(relpath), hd(relpath));
 			} else {
 				return concatPath(tl(relpath), tl(abspath));
@@ -120,13 +119,13 @@ static Tree concatPath(Tree relpath, Tree abspath)
 
 static Tree normalizeLabel(Tree label, Tree path)
 {
-	// we suppose label = "../label" ou "name/label" ou "name"
+	// we suppose label = "../label" ou "name/label" ou "name"	
 	//cout << "Normalize Label " << *label << " with path " << *path << endl;
 	if (isList(label)) {
 		return cons(label, path);
 	} else {
 		Sym s;
-		ensure (isSym(label->node(),&s));
+		assert (isSym(label->node(),&s));
 		return concatPath(label2path(name(s)),path);
 	}
 }
