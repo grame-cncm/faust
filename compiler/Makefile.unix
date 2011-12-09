@@ -70,7 +70,7 @@ main.o: generator/omp_code_container.hh generator/wss_code_container.hh generato
 main.o: generator/cpp_instructions.hh generator/opencl_instructions.hh generator/cpp_gpu_code_container.hh
 main.o: generator/java_code_container.hh generator/java_instructions.hh generator/llvm_code_container.hh
 main.o: generator/llvm_instructions.hh generator/fir_code_container.hh generator/fir_instructions.hh
-main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh normalize/constant_folding.hh
+main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh 
 main.o: signals/ppsig.hh
 documentator/doc_sharing.o: documentator/doc_compile.hh signals/sigtyperules.hh signals/signals.hh tlib/tlib.hh
 documentator/doc_sharing.o: tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
@@ -464,11 +464,6 @@ normalize/aterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/s
 normalize/aterm.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh signals/ppsig.hh
 normalize/aterm.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 normalize/aterm.o: tlib/property.hh generator/Text.hh signals/sigtyperules.hh 
-normalize/constant_folding.o: tlib/list.hh tlib/symbol.hh tlib/tree.hh tlib/node.hh extended/xtended.hh tlib/tlib.hh
-normalize/constant_folding.o: tlib/num.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-normalize/constant_folding.o: generator/instructions.hh signals/binop.hh tlib/property.hh generator/Text.hh
-normalize/constant_folding.o: signals/sigvisitor.hh signals/signals.hh documentator/lateq.hh
-normalize/constant_folding.o: normalize/constant_folding.hh
 normalize/mterm.o: normalize/mterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 normalize/mterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
 normalize/mterm.o: normalize/normalize.hh signals/sigorderrules.hh signals/ppsig.hh extended/xtended.hh
@@ -666,7 +661,7 @@ extended/cosprim.o: generator/description.hh generator/uitree.hh generator/funct
 extended/cosprim.o: generator/fir_to_fir.hh
 evaluate/eval.o: evaluate/eval.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 evaluate/eval.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh parser/sourcereader.hh
-evaluate/eval.o: evaluate/environment.hh errors/errormsg.hh boxes/ppbox.hh normalize/constant_folding.hh
+evaluate/eval.o: evaluate/environment.hh errors/errormsg.hh boxes/ppbox.hh 
 evaluate/eval.o: propagate/propagate.hh patternmatcher/patternmatcher.hh extended/xtended.hh signals/sigtype.hh
 evaluate/eval.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh tlib/property.hh generator/Text.hh
 evaluate/eval.o: signals/sigvisitor.hh documentator/lateq.hh evaluate/loopDetector.hh utils/names.hh

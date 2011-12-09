@@ -74,7 +74,6 @@
 #include "schema.h"
 #include "drawschema.hh"
 #include "timing.hh"
-#include "constant_folding.hh"
 #include "ppsig.hh"
 
 using namespace std ;
@@ -96,6 +95,7 @@ SourceReader	gReader;
 map<Tree, set<Tree> > gMetaDataSet;
 extern vector<Tree> gDocVector;
 extern string gDocLang;
+extern bool gDumpNorm;
 
 string gOutputLang = "";
 
@@ -613,40 +613,6 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int & numInputs, int & nu
     return process;
 }
 
-static Tree prepareSignals(Tree lsignals)
-{
-    startTiming("preparation");
-
-    lsignals = foldConstants(lsignals);
-
-    startTiming("deBruijn2Sym");
-    Tree lsym = deBruijn2Sym(lsignals);         // convert debruijn recursion into symbolic recursion
-    endTiming("deBruijn2Sym");
-
-    Tree privatized = privatise(lsym);        // Un-share tables with multiple writers
-
-    recursivnessAnnotation(privatized);      // Annotate signal tree with recursivness information
-
-    startTiming("typeAnnotation");
-    typeAnnotation(privatized);              // Annotate signal tree with type information
-    endTiming("typeAnnotation");
-
-    Tree simplified = simplify(privatized);   // simplify by executing every computable operation
-
-    //assert(sigIsTyped(simplified));
-
-    recursivnessAnnotation(simplified);      // re-annotate simplified signal tree with recursivness information
-
-   // assert(sigIsAnnotated(simplified, RECURSIVNESS));
-
-    startTiming("inferRate");
-    //inferRate(simplified);
-    endTiming("inferRate");
-
-    endTiming("preparation");
-    return simplified;
-}
-
 static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs)
 {
     // By default use "cpp" output
@@ -681,6 +647,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
 
+        // Prepare signals
+        comp->prepare(signals);
+
         comp->compileMultiSignal(signals);
         dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
 
@@ -707,6 +676,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 comp = new InstructionsCompiler(container);
             }
 
+            // Prepare signals
+            comp->prepare(signals);
+
             comp->compileMultiSignal(signals);
             container->dump(dst);
             exit(0);
@@ -723,6 +695,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (gPrintXMLSwitch) comp->setDescription(new Description());
         if (gPrintDocSwitch) comp->setDescription(new Description());
+
+        // Prepare signals
+        comp->prepare(signals);
 
         comp->compileMultiSignal(signals);
 
@@ -876,23 +851,13 @@ int main (int argc, char* argv[])
 
 	endTiming("propagation");
 
-    /****************************************************************
-     5 - preparation of the signal tree
-    *****************************************************************/
-    Tree signals = prepareSignals(lsignals);
-
-    if (gDumpNorm) {
-        cout << ppsig(signals) << endl;
-        exit(0);
-    }
-
 	/****************************************************************
-	 6 - translate output signals into C, C++, JAVA or LLVM code
+	5 - preparation of the signal tree and translate output signals into C, C++, JAVA or LLVM code
 	*****************************************************************/
-    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(signals, numInputs, numOutputs);
+    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
 
     /****************************************************************
-     7 - generate xml description, documentation or dot files
+     6 - generate xml description, documentation or dot files
     *****************************************************************/
     generateOutputFiles(comp_container.first, comp_container.second);
 

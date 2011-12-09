@@ -121,8 +121,6 @@ class InstructionsCompiler {
         void setSharingCount(Tree sig, int count);
         void sharingAnalysis(Tree t);
         void sharingAnnotation(int vctxt, Tree sig);
-        Tree prepare(Tree LS);
-        Tree prepare2(Tree L0);
 
     public:
 
@@ -201,6 +199,9 @@ class InstructionsCompiler {
 
         void setDescription(Description* descr)	{ fDescription= descr; }
         Description* getDescription() { return fDescription; }
+
+        Tree prepare(Tree LS);
+        Tree prepare2(Tree L0);
 
 };
 
