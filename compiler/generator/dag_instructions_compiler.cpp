@@ -138,36 +138,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 	fContainer->processFIR();
 }
 
-/*
-ValueInst* DAGInstructionsCompiler::CS(Tree sig)
-{
-    int i;
-    Tree x;
-    ValueInst* code;
-    if (!getCompiledExpression(sig, code)) {
-        code = generateCode(sig);
-        setCompiledExpression(sig, code);
-    } else {
-        // check for recursive dependencies
-        CodeLoop* ls;
-        CodeLoop* tl = fContainer->getCurLoop();
-        if (isProj(sig, &i, x) && tl->findRecDefinition(x)) {
-            tl->addRecDependency(x);
-		} else if (fContainer->getLoopProperty(sig, ls)) {
-			tl->addBackwardDependency(ls);
-		} else {
-			Tree x, d;
-			if (isSigFixDelay(sig, x, d)) {
-				if (fContainer->getLoopProperty(x, ls)) {
-					tl->addBackwardDependency(ls);
-				}
-			}
-        }
-    }
-	return code;
-}
-*/
-
 ValueInst* DAGInstructionsCompiler::CS(Tree sig)
 {
     ValueInst* code;
@@ -416,45 +386,6 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 }
 
 // Code generation
-
-/*
-ValueInst* DAGInstructionsCompiler::generateCode(Tree sig)
-{
-    int         i;
-    Tree        x;
-    CodeLoop*   l;
-
-    l = fContainer->getCurLoop();
-    assert(l);
-
-    if (needSeparateLoop(sig)) {
-        // we need a separate loop unless it's an old recursion
-        if (isProj(sig, &i, x)) {
-            // projection of a recursive group x
-            if (l->findRecDefinition(x)) {
-                // x is already in the loop stack
-                l->addRecDependency(x);
-                return InstructionsCompiler::generateCode(sig);
-            } else {
-                // x must be defined
-                //fContainer->openLoop(x, getFreshID("i"));
-                fContainer->openLoop(x, "i");
-                ValueInst* code = InstructionsCompiler::generateCode(sig);
-                fContainer->closeLoop(sig);
-                return code;
-            }
-        } else {
-            //fContainer->openLoop(getFreshID("i"));
-            fContainer->openLoop("i");
-            ValueInst* code = InstructionsCompiler::generateCode(sig);
-            fContainer->closeLoop(sig);
-            return code;
-        }
-    } else {
-        return InstructionsCompiler::generateCode(sig);
-    }
-}
-*/
 
 /**
  * Test if a signal need to be compiled in a separate loop.

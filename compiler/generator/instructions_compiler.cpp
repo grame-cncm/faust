@@ -239,7 +239,7 @@ InstType InstructionsCompiler::setCompiledExpression(Tree sig, const InstType& c
 {
      InstType old;
      if (fCompileProperty.get(sig, old) && (old != cexp)) {
-        cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
+        //cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
         //exit(1);
     }
 
