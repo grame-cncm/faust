@@ -165,10 +165,12 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 
 Tree InstructionsCompiler::prepare(Tree LS)
 {
-startTiming("ScalarCompiler::prepare");
- startTiming("deBruijn2Sym");
+    startTiming("InstructionsCompiler::prepare");
+
+    startTiming("deBruijn2Sym");
 	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
- endTiming("deBruijn2Sym");
+    endTiming("deBruijn2Sym");
+
 	Tree L2 = simplify(L1);			// simplify by executing every computable operation
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 
@@ -181,13 +183,13 @@ startTiming("ScalarCompiler::prepare");
 	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
 
     startTiming("typeAnnotation");
-        typeAnnotation(L3);				// Annotate L3 with type information
+    typeAnnotation(L3);				// Annotate L3 with type information
     endTiming("typeAnnotation");
 
     sharingAnalysis(L3);			// annotate L3 with sharing count
   	fOccMarkup.mark(L3);			// annotate L3 with occurences analysis
     //annotationStatistics();
-endTiming("ScalarCompiler::prepare");
+    endTiming("ScalarCompiler::prepare");
 
     if (gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
@@ -198,12 +200,14 @@ endTiming("ScalarCompiler::prepare");
 
 Tree InstructionsCompiler::prepare2(Tree L0)
 {
- startTiming("CodeLlvmScalarCompiler::prepare2");
+    startTiming("InstructionsCompiler::prepare2");
+
 	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
 	typeAnnotation(L0);				// Annotate L0 with type information
 	sharingAnalysis(L0);			// annotate L0 with sharing count
  	fOccMarkup.mark(L0);			// annotate L0 with occurences analysis
- endTiming("CodeLlvmScalarCompiler::prepare2");
+
+    endTiming("InstructionsCompiler::prepare2");
   	return L0;
 }
 
