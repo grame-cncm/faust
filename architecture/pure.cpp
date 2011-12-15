@@ -171,7 +171,7 @@ class PureUI : public UI
 public:
   int nelems;
   ui_elem_t *elems;
-  map< double*, list<strpair> > metadata;
+  map< int, list<strpair> > metadata;
 
   PureUI();
   virtual ~PureUI();
@@ -221,11 +221,11 @@ PureUI::~PureUI()
 
 void PureUI::declare(double* zone, const char* key, const char* value)
 {
-  map< double*, list<strpair> >::iterator it = metadata.find(zone);
+  map< int, list<strpair> >::iterator it = metadata.find(nelems);
   if (it != metadata.end())
     it->second.push_back(strpair(key, value));
   else
-    metadata[zone] = list<strpair>(1, strpair(key, value));
+    metadata[nelems] = list<strpair>(1, strpair(key, value));
 }
 
 inline void PureUI::add_elem(ui_elem_type_t type, const char *label)
