@@ -17,8 +17,9 @@
 # Usage.
 print_usage() 
 {
-    echo "usage: faust2mathdoc [-l LANG] faust_file.dsp ..."
+    echo "usage: faust2mathdoc [-l LANG] [-utf8] faust_file.dsp ..."
     echo " LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
+    echo " -utf8 force faust_file.dsp to be recoded in UTF-8 before being processed"
 }
 
 
@@ -72,22 +73,35 @@ convert_svgdirs2pdf()
     done
 }
 
-if [ $# -eq 0 ]
-then 
-    print_usage
-    exit 1
-fi
+
+# In-place recoding of a text file from its current encoding to UTF-8.
+# This is useful for .dsp files with accents in comments that are coded
+# with a different character set.
+recode2utf8()
+{
+	charset=`file -0 --mime-encoding $1 | cut  -d' ' -f2`
+	recode $charset..utf-8 $1
+}
+
 
 MDLANGOPT=""
 if [ $1 = "-mdlang" ] || [ $1 = "--mathdoc-lang" ] || [ $1 = "-l" ]
 then
-    if [ $# -eq 2 ]
-    then 
-	print_usage
-	exit 1
-    fi
     MDLANGOPT="-mdlang $2"
     shift 2
+fi
+
+CONVERT=""
+if [ $1 = "-utf8" ] || [ $1 = "--utf8" ]
+then
+    CONVERT="utf8"
+    shift 1
+fi
+
+if [ $# -eq 0 ]
+then 
+    print_usage
+    exit 1
 fi
 
 #    Main loop of this script :
@@ -101,6 +115,10 @@ for FILEPATH in $@ ; do
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
+	    if [ $CONVERT = "utf8" ] 
+	    then
+	    	recode2utf8 $FILENAME
+	    fi
 		faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
 		cd ${FILEPATH%.dsp}-mdoc/ && 
 		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
