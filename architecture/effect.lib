@@ -778,7 +778,7 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 // John Chowning thinks this might be the one that became the
 // well known and often copied JCREV:
 
-jcrev = *(0.06) : allpass_chain <: comb_bank :> _ <: mix_mtx with {
+jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
 
   rev1N = component("filter.lib").rev1;
 
