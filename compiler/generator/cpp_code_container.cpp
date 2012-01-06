@@ -404,7 +404,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
-    // Generate it
+    // Generates it
     fDAGBlock->accept(&fCodeProducer);
 
     /*
@@ -425,8 +425,7 @@ CPPOpenMPCodeContainer::~CPPOpenMPCodeContainer()
 
 void CPPOpenMPCodeContainer::generateCompute(int n)
 {
-    // Compute declaration
-
+    // Generates declaration
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
@@ -464,11 +463,7 @@ void CPPWorkStealingCodeContainer::produceClass()
 
 void CPPWorkStealingCodeContainer::generateCompute(int n)
 {
-    lclgraph dag;
-    CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
-
-    // Compute "compute" declaration
+    // Generates "compute" declaration
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);

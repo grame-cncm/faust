@@ -171,7 +171,7 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' VEC='-vec -lv 1 -vs 256' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 ladspasch :
 	install -d ladspaschdir
