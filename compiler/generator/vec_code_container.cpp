@@ -129,6 +129,9 @@ extern int gVectorLoopVariant;
 
 void VectorCodeContainer::processFIR(void)
 {
+    // Default processing
+    CodeContainer::processFIR();
+
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 

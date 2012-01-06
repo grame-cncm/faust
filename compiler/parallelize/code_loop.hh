@@ -89,6 +89,9 @@ class CodeLoop {
 
         string fLoopIndex;
 
+        int	fUseCount;                  ///< how many loops depend on this one
+        list<CodeLoop*>	fExtraLoops;	///< extra loops that where in sequences
+
         set<Tree>      fRecDependencies;            ///< Loops having recursive dependencies must be merged
         set<CodeLoop*> fBackwardLoopDependencies;   ///< Loops that must be computed before this one
         set<CodeLoop*> fForwardLoopDependencies;    ///< Loops that will be computed after this one
@@ -116,13 +119,13 @@ class CodeLoop {
         ///< create a recursive loop
         CodeLoop(Tree recsymbol, CodeLoop* encl, string index_name, int size = 0)
             :fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
-            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
+            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name), fUseCount(0)
         {}
 
         ///< create a non recursive loop
         CodeLoop(CodeLoop* encl, string index_name, int size = 0)
             :fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
-            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name)
+            fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name), fUseCount(0)
         {}
 
         StatementInst* pushComputePreDSPMethod(StatementInst* inst) { fPreInst->pushBackInst(inst); return inst; }
@@ -148,19 +151,21 @@ class CodeLoop {
 
         void transform(DispatchVisitor* visitor)
         {
+            // Transform extra loops
+            for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
+                (*s)->transform(visitor);
+            }
             fPreInst->accept(visitor);
             fComputeInst->accept(visitor);
             fPostInst->accept(visitor);
         }
 
-        //void addRecDependency(Tree t);  ///< Check for a recursive dependecy and add it if needed
-        //bool findRecDefinition(Tree t); ///< indicates a dependency with an enclosing loop
-
         bool hasRecDependencyIn(Tree S);    ///< returns true is this loop has recursive dependencies
-
         void addBackwardDependency(CodeLoop* ls)  { fBackwardLoopDependencies.insert(ls); }
 
         static void sortGraph(CodeLoop* root, lclgraph& V);
+        static void computeUseCount(CodeLoop* l);
+        static void groupSeqLoops(CodeLoop* l);
 
 };
 

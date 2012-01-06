@@ -696,7 +696,10 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
 void WSSCodeContainer::processFIR(void)
 {
-     // Transform some stack variables in struct variables
+    // Default processing
+    CodeContainer::processFIR();
+
+    // Transform some stack variables in struct variables
     MoveStack2Struct();
 
     generateDAGLoopWSSAux3();

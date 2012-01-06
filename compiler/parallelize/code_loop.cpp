@@ -161,6 +161,11 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
     // 2) Vectorize access to all constant numbers (Load)
     // 3) Vectorize all array access (Load/Store)
 
+    // Generate code for extra loops
+    for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
+        (*s)->generateDAGVecLoop(block, count, omp, size);
+    }
+
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
         block->pushBackInst(InstBuilder::genLabelInst("/* Pre code $/"));
@@ -204,6 +209,11 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
 
 void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
+    // Generate code for extra loops
+    for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
+        (*s)->generateDAGLoop(block, count, omp);
+    }
+
     // Generate code before the loop
     if (fPreInst->fCode.size() > 0) {
         block->pushBackInst(InstBuilder::genLabelInst("/* Pre code */"));
@@ -243,51 +253,14 @@ void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp
 }
 
 /**
- * A loop with recursive dependencies can't be run alone.
- * It must be included into another loop.
- * returns true is this loop has recursive dependencies
- * and must be included in an enclosing loop
- */
- /*
-bool CodeLoop::hasRecDependencies()
-{
-    return !fRecDependencies.empty();
-}
-*/
-
-/**
  * Test if a loop is empty that is if it contains no lines of code.
  * @return true if the loop is empty
  */
 bool CodeLoop::isEmpty()
 {
-    return fPreInst->fCode.empty() && fComputeInst->fCode.empty() && fPostInst->fCode.empty();
+    return fPreInst->fCode.empty() && fComputeInst->fCode.empty() && fPostInst->fCode.empty() && (fExtraLoops.begin() == fExtraLoops.end());
 }
 
-/**
- * Add a recursive dependency, unless it is itself
- */
-/*
-void CodeLoop::addRecDependency(Tree t)
-{
-    if (t != fRecSymbol) {
-        fRecDependencies.insert(t);
-    }
-}
-*/
-
-/**
- * Search if t is defined in this loop
- * or the enclosing ones
- */
- /*
-bool CodeLoop::findRecDefinition(Tree t)
-{
-    CodeLoop* l = this;
-    while (l && l->fRecSymbol != t) l=l->fEnclosingLoop;
-    return l != 0;
-}
-*/
 /**
  * A loop with recursive dependencies can't be run alone.
  * It must be included into another loop.
@@ -301,7 +274,6 @@ bool CodeLoop::hasRecDependencyIn(Tree S)
     while (l && isNil(setIntersection(l->fRecSymbolSet,S))) l=l->fEnclosingLoop;
     return l != 0;
 }
-
 
 /**
  * Absorb a loop by copying its recursive dependencies, its loop dependencies
@@ -332,7 +304,7 @@ void CodeLoop::concat(CodeLoop* l)
 	assert(fBackwardLoopDependencies.size() == 1);
 	assert((*fBackwardLoopDependencies.begin()) == l);
 
-	//fExtraLoops.push_front(l);
+	fExtraLoops.push_front(l);
 	fBackwardLoopDependencies = l->fBackwardLoopDependencies;
 }
 
@@ -384,4 +356,41 @@ void CodeLoop::sortGraph(CodeLoop* root, lclgraph& V)
             p++;
         }
     }
+}
+
+/**
+ * Compute how many time each loop is used in a DAG
+ */
+void CodeLoop::computeUseCount(CodeLoop* l)
+{
+	l->fUseCount++;
+	if (l->fUseCount == 1) {
+		for (lclset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
+		    computeUseCount(*p);
+		}
+	}
+}
+
+/**
+ * Group together sequences of loops
+ */
+void CodeLoop::groupSeqLoops(CodeLoop* l)
+{
+	int n = l->fBackwardLoopDependencies.size();
+	if (n == 0) {
+		return;
+	} else if (n == 1) {
+		CodeLoop* f = *(l->fBackwardLoopDependencies.begin());
+		if (f->fUseCount == 1) {
+			l->concat(f);
+			groupSeqLoops(l);
+		} else {
+			groupSeqLoops(f);
+		}
+		return;
+	} else if (n > 1) {
+		for (lclset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
+			groupSeqLoops(*p);
+		}
+	}
 }

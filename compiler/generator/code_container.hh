@@ -188,7 +188,7 @@ class CodeContainer {
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
 
         /* can be overridden by subclasses to reorder the FIR before the actual code generation */
-        virtual void processFIR(void) {}
+        virtual void processFIR(void);
 
         // Fill code for each method
         StatementInst* pushDeclare(StatementInst* inst)

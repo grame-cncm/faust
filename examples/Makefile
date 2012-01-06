@@ -25,9 +25,9 @@ endif
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
 
 ifeq ($(system), Darwin)
-MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+MYGCCFLAGS := '-O3 -arch i386 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
 else
-MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+MYGCCFLAGS := '-O3 -arch i386 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
 endif
 
 VSIZE := 256
@@ -171,7 +171,7 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' VEC='-vec -lv 1 -vs 256' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 ladspasch :
 	install -d ladspaschdir

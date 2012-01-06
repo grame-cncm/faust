@@ -44,6 +44,7 @@ extern bool gDeepFirstSwitch;
 extern bool gFunTaskSwitch;
 extern bool gDSPStruct;
 extern int gVecLoopSize;
+extern bool gGroupTaskSwitch;
 
 // Basic type creation
 map<Typed::VarType, BasicTyped*> BasicTyped::gTypeTable;
@@ -222,7 +223,7 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
 /**
  *  Add forward dependencies in the DAG
  */
- void CodeContainer::computeForwardDAG(lclgraph dag)
+void CodeContainer::computeForwardDAG(lclgraph dag)
 {
     #define START_TASK_MAX 2
 
@@ -474,3 +475,10 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
     }
 }
 
+void CodeContainer::processFIR(void)
+{
+    if (gGroupTaskSwitch) {
+        CodeLoop::computeUseCount(fCurLoop);
+        CodeLoop::groupSeqLoops(fCurLoop);
+    }
+}
