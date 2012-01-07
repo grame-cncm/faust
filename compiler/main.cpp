@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.45"
+#define FAUSTVERSION "0.9.46"
 
 #include <stdio.h>
 #include <string.h>
@@ -360,7 +360,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2011, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2012, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 

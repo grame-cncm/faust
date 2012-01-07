@@ -1,18 +1,11 @@
 
 							================
-							| FAUST 0.9.43 |
+							| FAUST 0.9.46 |
 							================
 
 GRAME - Centre National de Creation Musicale - is happy to announce the release
-of FAUST 0.9.43. 
-
-This version provides a major reorganization of the architecture system for
-better modularity and Open Sound Control (OSC) support. The code generation has
-been improved and the compiler offers new output possibilities for example the
-complete graph of the internal signal expressions as a .dot (graphviz) file. The
-libraries and the examples have been extended: Julius Smith's libraries provides
-several new filters and effects (including various reverbs) and Romain Michon
-has ported the Synthesis Tool Kit (STK) to FAUST.
+of FAUST 0.9.46. This new release provides several fixes, additions and
+improvements in particular in the examples, libraries and architecture files.
 
 -------------
 About FAUST :
@@ -44,104 +37,55 @@ http://faust.grame.fr
 
 ======================== WHAT'S NEW ==============================
 
-----------
-Compiler :
-----------
-- Improved loop separation algorithm
-- Improved SVG block-diagrams (useless cables removed, inverters, etc.)
-- Better handling of search path and default directories
-- Range of input audio signals widened to (-inf,+inf).
-- New -cn <name> (or --class-name <name>). It allows to specify the name of the
-  dsp class to be used instead of mydsp
-- New -sg (--signal-graph) option to draw a graph of all internal signal
-  expressions as a .dot (graphviz) file.
-- Several bug correction in type system and faster type system inference 
-  algorithm
+
+---------------
+Architectures :
+---------------
+- supercollider : 
+	- revised search-order for SuperCollider headers in Linux, 
+	- enhancements to SuperCollider class and control name generation in faust2sc and supercollider.cpp, 
+	- Faust prefix added to SuperCollider module name to conform with faust2supercollider script, 
+	- default SynthDef with metadata support added to faust2supercollider and faust2sc
+	- -DNO_LIBSNDFILE and -DNDEBUG added to Makefile.sccompile for conformity with faust2supercollider (Darwin)
+- matlabplot : new -s <nnnnn> (skip) option allowing to skip <nnnnn> samples before printing
+- netjack : IP and port paramaters added in netjack-dsp architecture, NetJack client now restart.
+- iPhone : architecture files updated
+- pure : bug fixes, realtime-friendly voice allocation fixes, support for metadata.
+- puredata : on Darwin both 32 and 64-bits intel code are now generated
 
 
 -----------
 Libraries :
 -----------
-- effects.lib : 
-	- new moog VCF implementation
-	- auto-wah effect
-	- passive non-linear allpass filters
-	- several new reverbs implementations based on feedback delay networks 
-	  including Zita Rev1
-	- square Rectangular Digital Waveguide Mesh
-	
-- filter.lib :
-	- new ladder/lattice allpass filters
-	- Regalia-Mitra second order peaking equalizer section
+- effect.lib : moog_vcf_2bn added, minor zita_rev1 additions
+- filter.lib : tf2np, tf2snp, and general ladder/lattice filters added
+- osc : build for both i386 and x86_64 architectures on Mac OSX, corrects frames value in OSC IO architecture
 
 
 ----------
 Examples :
 ----------
-- several new reverb examples
-
-- Synthesis Tool Kit (STK) with many examples ported to Faust:
-
-  WIND INSTRUMENTS
-
-	- A simple clarinet (clarinet.dsp),
-	- A clarinet with a tone hole model (blowHole.dsp),
-	- A flute (flutestk.dsp),
-	- A pan-flute (flute.dsp),
-	- A brass instrument that can be used as a trumpet, a trombon, a french 
-	  horn, etc. (brass.dsp),
-	- A simple saxophone (saxophony.dsp),
-	- A bottle where it is possible to blow threw the neck to make sound (blowBotle.dsp).
-
-  STRING INSTRUMENTS
-
-	- An acoustic finger bass (bass.dsp),
-	- A bowed string instrument that can be used as a cello, a violin, etc. (bowed.dsp),
-	- A simple sitar (sitar.dsp),
-	- A nonlinear extended Karplus-Strong (NLFeks.dsp).
-
-  KEYBOARDS INSTRUMENTS
-
-	- A piano that uses commuted waveguide synthesis (piano.dsp),
-	- An harpsichord (harpsi.dsp).
-
-  PERCUSSION INSTRUMENTS
-
-	- A tibetan bowl (tibetanBowl.dsp),
-	- A wooden bare (uniBar.dsp),
-	- An iron bare (tunedBar.dsp),
-	- A glass bare (glassHarmonica.dsp),
-	- A set of percussion instruments that use modal synthesis (modalBar.dsp).
-
-  OTHER
-
-	- A voice synthesizer (voiceForm.dsp),
-	- A FM synthesizer that uses an nonlinear allpass filter (NLFfm.dsp).
+- improvements and bug corrections in faust-stk
+- new examples for Faust-STK in /examples/faust-stk/pd-patches/fancy
+- new description metadata tag in faust-stk examples
 
 
 ----------
-Tools :
+Compiler :
 ----------
-- faust2ladspa 
-- faust2dssi 
-- faust2supercollider
-- faust2sig
-- faust2sigviewer
+- Support for listings with accents and symbolic representation for numbers of type i/j.pi**k or i/j.e**k in automatic documentation system
+- improved and simplified infinite loop detection during compilation, default compiler timeout set to 10 mn
+- bug fix when counting recursive signals to draw
+- compiling error with VC++ 2008 fix 
 
 
---------------------
-Architecture files :
---------------------
-- Redesign of architecture files for better modularity. 
-- Open Sound Control (OSC) support added to several architecture files.
-- Knobs added to GTK architectures
-- Architecture's licenses updated
-- Improved file format to save and restore applications settings
-- Revised Core Audio architecture
-- DSSI architecture added
-- netjack architecture allowing remote audio processing over LAN
-- AVOIDDENORMALS support added for puredata, ladspa and other plugins
-- support for group tooltip via new declare(0, ...) mecchanism
+---------
+Scripts :
+---------
+- option -utf8 added to faust2mathdoc allowing to recode the .dsp file to UTF-8 before being processed
+- added -I/usr/local/lib/faust to faust2ladspa because faust2jack uses this solution for typical personal Linux
+- faust2sc: added checkInputs method to generated UGen; SynthDef input signals wrapped in In.ar()
+- faust2pd : updated to faust2pd-2.5
 
 
 ----------------
