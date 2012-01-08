@@ -169,7 +169,7 @@ static void ensureFloat(char* c)
 {
     bool isInt = true;
     while (*c != 0) {
-        if ((*c == '.') | (*c == 'e')) isInt = false;
+        if ((*c == '.') | (*c == 'e'))  isInt = false;
         c++;
     }
 
@@ -219,7 +219,6 @@ string quote(const string& s)
 	return q;
 }
 
-
 /**
  * Print n tabs (for indentation purpose)
  * @param n number of tabs to print
@@ -253,6 +252,7 @@ void printlines(int n, list<string>& lines, ostream& fout, string sep)
  * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
  * (but not those in the middle of the string)
  */
+
 string rmWhiteSpaces(const string& s)
 {
     size_t i = s.find_first_not_of(" \t");
