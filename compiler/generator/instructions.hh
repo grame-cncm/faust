@@ -1984,6 +1984,111 @@ struct InstBuilder
 };
 
 
+/* syntactic sugar for index computations
+ *
+ * wrapper for ValueInst* with support for basic arithmetics
+ *
+ */
+struct FIRIndex
+{
+    /* explicit constructors in order to avoid the generation implicit conversions */
+    explicit FIRIndex(ValueInst * inst):
+        fValue(inst)
+    {}
+
+    explicit FIRIndex(int i):
+        fValue(InstBuilder::genIntNumInst(i))
+    {}
+
+    FIRIndex(FIRIndex const & rhs):
+        fValue(rhs.fValue)
+    {}
+
+    /* implicitly convert to ValueInst* in order to simplify the usage */
+    operator ValueInst* (void) const
+    {
+        return fValue;
+    }
+
+    friend FIRIndex operator+ (FIRIndex const & lhs, ValueInst * rhs)
+    {
+        return FIRIndex(InstBuilder::genAdd(lhs.fValue, rhs));
+    }
+
+    friend FIRIndex operator+ (FIRIndex const & lhs, FIRIndex const & rhs)
+    {
+        return operator+(lhs, rhs.fValue);
+    }
+
+    friend FIRIndex operator+ (FIRIndex const & lhs, int rhs)
+    {
+        return operator+(lhs, InstBuilder::genIntNumInst(rhs));
+    }
+
+    friend FIRIndex operator- (FIRIndex const & lhs, ValueInst * rhs)
+    {
+        return FIRIndex(InstBuilder::genSub(lhs.fValue, rhs));
+    }
+
+    friend FIRIndex operator- (FIRIndex const & lhs, FIRIndex const & rhs)
+    {
+        return operator-(lhs, rhs.fValue);
+    }
+
+    friend FIRIndex operator- (FIRIndex const & lhs, int rhs)
+    {
+        return operator-(lhs, InstBuilder::genIntNumInst(rhs));
+    }
+
+    friend FIRIndex operator* (FIRIndex const & lhs, ValueInst * rhs)
+    {
+        return FIRIndex(InstBuilder::genMul(lhs.fValue, rhs));
+    }
+
+    friend FIRIndex operator* (FIRIndex const & lhs, FIRIndex const & rhs)
+    {
+        return operator*(lhs, rhs.fValue);
+    }
+
+    friend FIRIndex operator* (FIRIndex const & lhs, int rhs)
+    {
+        return operator*(lhs, InstBuilder::genIntNumInst(rhs));
+    }
+
+    friend FIRIndex operator/ (FIRIndex const & lhs, ValueInst * rhs)
+    {
+        return FIRIndex(InstBuilder::genDiv(lhs.fValue, rhs));
+    }
+
+    friend FIRIndex operator/ (FIRIndex const & lhs, FIRIndex const & rhs)
+    {
+        return operator/(lhs, rhs.fValue);
+    }
+
+    friend FIRIndex operator/ (FIRIndex const & lhs, int rhs)
+    {
+        return operator/(lhs, InstBuilder::genIntNumInst(rhs));
+    }
+
+     friend FIRIndex operator& (FIRIndex const & lhs, ValueInst * rhs)
+    {
+        return FIRIndex(InstBuilder::genAnd(lhs.fValue, rhs));
+    }
+
+    friend FIRIndex operator& (FIRIndex const & lhs, FIRIndex const & rhs)
+    {
+        return operator&(lhs, rhs.fValue);
+    }
+
+    friend FIRIndex operator& (FIRIndex const & lhs, int rhs)
+    {
+        return operator&(lhs, InstBuilder::genIntNumInst(rhs));
+    }
+
+private:
+    ValueInst * fValue;
+};
+
 #endif
 
 /*

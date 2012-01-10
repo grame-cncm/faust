@@ -122,6 +122,11 @@ class InstructionsCompiler {
         void sharingAnalysis(Tree t);
         void sharingAnnotation(int vctxt, Tree sig);
 
+        FIRIndex getCurrentLoopIndex(void)
+        {
+            return FIRIndex(fContainer->getCurLoop()->getLoopIndex());
+        }
+
     public:
 
         InstructionsCompiler(CodeContainer* container)

@@ -343,7 +343,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
         // Cast to external float
         ValueInst* res = InstBuilder::genCastNumInst(CS(sig), InstBuilder::genBasicTyped(Typed::kFloatMacro));
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex(), res));
+        pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
 
         // 09/12/11 : HACK
         //int rate = getSigRate(sig);
@@ -369,7 +369,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
   	sig = prepare2(sig);		// Optimize and annotate expression
     string name = "output";
 
-    pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, fContainer->getCurLoop()->getLoopIndex(), CS(sig)));
+    pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, getCurrentLoopIndex(), CS(sig)));
 
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -608,8 +608,8 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 		// Long delay : we use a ring buffer of size 2^x
 		int N = pow2limit(mxd + 1);
 
-        ValueInst* value2 = InstBuilder::genSub(InstBuilder::genLoadStructVar("IOTA"), CS(delay));
-        ValueInst* value3 = InstBuilder::genAnd(value2, InstBuilder::genIntNumInst(N - 1));
+        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay);
+        ValueInst* value3 = value2 & InstBuilder::genIntNumInst(N - 1);
         return InstBuilder::genLoadArrayStructVar(vname, value3);
     }
 }
@@ -719,7 +719,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     fContainer->setInputRate(idx, rate);
 
     string name = subst("input$0", T(idx));
-    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, fContainer->getCurLoop()->getLoopIndex());
+    ValueInst* res = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
 
     ValueInst* castedToFloat = InstBuilder::genCastNumInst(res, InstBuilder::genBasicTyped(itfloat()));
     return generateCacheCode(sig, castedToFloat);
@@ -1330,8 +1330,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         pushInitMethod(generateInitArray(vname, ctype, N));
 
         // Generate table use
-        ValueInst* value1 = InstBuilder::genLoadStructVar("IOTA");
-        ValueInst* value2 = InstBuilder::genAnd(value1, InstBuilder::genIntNumInst(N - 1));
+        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genIntNumInst(N - 1);
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
     }
 
@@ -1346,7 +1345,7 @@ void InstructionsCompiler::ensureIotaCode()
         pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genBasicTyped(Typed::kInt)));
         pushInitMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genIntNumInst(0)));
 
-        ValueInst* value = InstBuilder::genAdd(InstBuilder::genLoadStructVar("IOTA"), 1);
+        FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) + 1;
         pushComputePostDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));
     }
 }
