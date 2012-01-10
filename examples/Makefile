@@ -25,9 +25,9 @@ endif
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2 $(OSCCTRL)' 
 
 ifeq ($(system), Darwin)
-MYGCCFLAGS := '-O3 -arch i386 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+MYGCCFLAGS := '-O3  -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
 else
-MYGCCFLAGS := '-O3 -arch i386 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
+MYGCCFLAGS := '-O3  -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL)'
 endif
 
 VSIZE := 256
