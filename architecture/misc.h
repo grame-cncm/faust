@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string.h>
+#include <stdlib.h>
 
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals

@@ -160,7 +160,7 @@ bool			gFunTaskSwitch = false;
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
 
-int             gTimeout        = 600;            // time out to abort compiler (in seconds)
+int             gTimeout        = 120;            // time out to abort compiler (in seconds)
 
 int             gFloatSize = 1;
 
@@ -439,9 +439,10 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-	cout << "-a <file> \t architecture file\n";
-    cout << "-o <file> \t output file\n";
-    cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
+	cout << "-a <file> \tC++ architecture file\n";
+	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
+	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
+    cout << "-o <file> \tC++ output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vls <n>  \t--vec-loop-size  size of the vector DSP loop \n";
