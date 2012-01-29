@@ -35,6 +35,7 @@ else
 	echo "Can't find SuperCollider headers"
 	exit 1
 fi 
+echo Using SC Headers in $SC
 
 INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/"
 

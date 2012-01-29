@@ -195,7 +195,7 @@ rev2(maxlen,len,g) = allpass_comb(maxlen,len,-g);
 // Such filter structures are termed "direct form".
 //
 // USAGE:
-//   _ : iir(order,bcoeffs,acoeffs) : _
+//   _ : iir(bcoeffs,acoeffs) : _
 // where
 //   order = filter order (int) = max(#poles,#zeros)
 //   bcoeffs = (b0,b1,...,b_order) = TF numerator coefficients
@@ -1253,8 +1253,7 @@ with {
 //       as Lagrange interpolation under time-varying conditions.
 //       (You may hear clicks when changing the delay rapidly.)
 //
-// first-order allpass interpolation, allpass delay in [0.5,1.5]
-// delay d should be at least 0.5
+// first-order allpass interpolation, delay d in [0.5,1.5]
 fdelay1a(n,d,x)  = delay(n,id,x) : tf1(eta,1,eta)
 with {
   o = 0.49999; // offset to make life easy for allpass
@@ -1265,7 +1264,6 @@ with {
 };
 
 // second-order allpass delay in [1.5,2.5]
-// delay d should be at least 1.5
 fdelay2a(n,d,x) = delay(n,id,x) : tf2(a2,a1,1,a1,a2)
 with {
   o = 1.49999;
@@ -1340,8 +1338,9 @@ with {
 // "power complementary", i.e., the power spectra of the individual bands
 // sum to the original power spectrum (to within some negligible tolerance).
 //
-// The filter-banks below are implemented as Butterworth spectrum-analyzers 
-// followed by delay equalizers that make them allpass-complementary.
+// The filter-banks below are implemented as Butterworth or Elliptic
+// spectrum-analyzers followed by delay equalizers that make them 
+// allpass-complementary.
 //
 // INCREASING CHANNEL ISOLATION
 //   Go to higher filter orders - see Regalia et al. or Vaidyanathan (cited 
