@@ -683,6 +683,7 @@ signals/sigprint.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh 
 signals/sigprint.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 signals/sigprint.o: signals/sigtyperules.hh
 signals/sigtype.o: tlib/tree.hh tlib/symbol.hh tlib/node.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+signals/sigtype.o: tlib/property.hh
 signals/sigtyperules.o: signals/sigtype.hh tlib/tree.hh tlib/symbol.hh tlib/node.hh tlib/smartpointer.hh
 signals/sigtyperules.o: signals/interval.hh signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/num.hh
 signals/sigtyperules.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/ppsig.hh signals/prim2.hh
