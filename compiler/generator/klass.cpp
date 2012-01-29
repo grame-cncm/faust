@@ -1140,6 +1140,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";
 			tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
+            printlines(n+2, fInitCode, fout);
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << "void fill (int count, int output[]) {";
