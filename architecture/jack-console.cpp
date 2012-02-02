@@ -46,6 +46,11 @@
 #include "gui/OSCUI.h"
 #endif
 
+#ifdef HTTPCTRL
+#include "gui/httpdUI.h"
+#endif
+
+
 using namespace std;
 
 
@@ -92,11 +97,19 @@ int main(int argc, char *argv[] )
 	DSP.buildUserInterface(oscinterface);
 #endif
 
+#ifdef HTTPCTRL
+	httpdUI*	httpdinterface = new httpdUI(jackname, argc, argv);
+	DSP.buildUserInterface(httpdinterface);
+#endif
+
 	jackaudio audio;
 	audio.init(jackname, &DSP);
 	interface->process_command();
 	audio.start();
-		
+
+#ifdef HTTPCTRL
+	httpdinterface->run();
+#endif		
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
