@@ -53,8 +53,6 @@ class RootNode : public MessageDriven
 		static SRootNode create (const char* name) { return new RootNode(name); }
 
 		virtual bool	accept( const Message* msg );
-				
-				bool	acceptSignal( const Message* msg );				///< handler for signal data
 };
 
 } // end namespoace

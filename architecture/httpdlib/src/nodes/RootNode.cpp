@@ -38,14 +38,15 @@ static const char * kJSONMsg = "JSON";
 bool RootNode::accept( const Message* msg )
 {
 	string val;
-	// checks for the 'hello' message first
-	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kJSONMsg) ) {
-
+	// checks for the 'JSON' message first
+	if (msg->size() == 0) {
+		// send a web page
+	}
+	else if ((msg->size() == 1) && (msg->param(0, val)) && (val == kJSONMsg) ) {
+		// send the json description
 		return true;
 	}
-	else if (MessageDriven::accept (msg))	// next checks for standard handlers ('get' for example)
-		return true;
-	return false;
+	return MessageDriven::accept (msg);
 }
 
 } // end namespoace
