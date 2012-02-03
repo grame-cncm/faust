@@ -1,6 +1,6 @@
 /*
 
-  Copyright (C) 2012 Grame
+  Copyright (C) 2011 Grame
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,45 +22,38 @@
 */
 
 
-#ifndef __HTTPDServer__
-#define __HTTPDServer__
+#ifndef __jsonroot__
+#define __jsonroot__
 
-#include <string>
 #include <ostream>
+#include <string>
 #include <vector>
-#include <microhttpd.h>
 
-#include "TThreads.h"
+#include "smartpointer.h"
+#include "jsonnode.h"
+
 
 namespace httpdfaust
 {
 
-class Message;
-class MessageProcessor;
-
 //--------------------------------------------------------------------------
 /*!
-	\brief a specific thread to listen incoming osc packets
+	\brief a faust root is a terminal node and represents a faust parameter controler
 */
-class HTTPDServer : public TThreads
+class jsonroot : public smartable
 {
-	MessageProcessor*	fProcessor;
-	int					fPort;
-	struct MHD_Daemon *	fServer;
+	std::string fName;
+	std::string fAddress;
+	int			fPort;
+	std::vector<Sjsonnode> fUi;
 	
-	int send (struct MHD_Connection *connection, std::vector<Message*> msgs);
-
 	public:
-				 HTTPDServer(MessageProcessor* mp, int port);
-		virtual ~HTTPDServer();
-
-		/// \brief starts the httpd server
-		void run ();
-		void stop ()			{ if (fServer) MHD_stop_daemon (fServer); fServer=0; quit(); }
-		int answer (struct MHD_Connection *connection, const char *url, const char *method, const char *version, 
-					const char *upload_data, size_t *upload_data_size, void **con_cls);
-
-		static int send (struct MHD_Connection *connection, const char *page, int status=MHD_HTTP_OK);
+				 jsonroot(const char *name, const char* address, int port) 
+					: fName(name), fAddress(address), fPort(port) {}
+		virtual ~jsonroot() {}
+		
+		void	print(std::ostream& out) const;
+		void	add (const Sjsonnode& node)		{ fUi.push_back(node); }
 };
 
 } // end namespoace

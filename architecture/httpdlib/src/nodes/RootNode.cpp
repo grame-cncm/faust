@@ -1,6 +1,6 @@
 /*
 
-  Copyright (C) 2011 Grame
+  Copyright (C) 2012 Grame
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -34,19 +34,31 @@ namespace httpdfaust
 static const char * kJSONMsg = "JSON";
 
 
+
 //--------------------------------------------------------------------------
-bool RootNode::accept( const Message* msg )
+bool RootNode::processMessage( const Message* msg, vector<Message*>& outMsg )
 {
+	const string& addr = msg->address();
+	if (addr.empty() || (addr == "/"))
+		return accept (msg, outMsg);
+	return MessageDriven::processMessage( msg, outMsg );
+}
+
+//--------------------------------------------------------------------------
+bool RootNode::accept( const Message* msg, vector<Message*>& outMsg )
+{
+cout << "RootNode::accept" << endl;
 	string val;
 	// checks for the 'JSON' message first
 	if (msg->size() == 0) {
 		// send a web page
 	}
-	else if ((msg->size() == 1) && (msg->param(0, val)) && (val == kJSONMsg) ) {
+	else if ((msg->size() == 2) && (msg->param(0, val)) && (val == kJSONMsg) ) {
+cout << "send json" << endl;
 		// send the json description
 		return true;
 	}
-	return MessageDriven::accept (msg);
+	return MessageDriven::accept (msg, outMsg);
 }
 
 } // end namespoace

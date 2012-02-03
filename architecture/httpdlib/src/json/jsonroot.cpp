@@ -21,51 +21,41 @@
 
 */
 
-#include <sstream>
-
-#include "FaustNode.h"
-#include "Message.h"
-#include "HTTPDServer.h"
+#include "jsonroot.h"
 
 using namespace std;
 
 namespace httpdfaust
 {
 
-//--------------------------------------------------------------------------
-bool FaustNode::store( float val )
+//______________________________________________________________________________
+ostream& operator<< (ostream& os, const jsonendl& endl)
 {
-	*fZone = fMapping.scale(val);
-	return true;
+    endl.print(os);
+    return os;
+}
+
+//______________________________________________________________________________
+void jsonendl::print(std::ostream& os) const { 
+	int i = fIndent;
+    os << std::endl;
+    while (i-- > 0)  os << "	";
 }
 
 //--------------------------------------------------------------------------
-bool FaustNode::accept( const Message* msg, vector<Message*>& outMsg )
+void jsonroot::print(std::ostream& out) const
 {
-	if (msg->size() == 2) {			// checks for the message parameters count
-									// messages with a param count other than 2 are rejected
-		string key;
-		if (msg->param(0, key) &&  (key == "value")) {
-			float val=0;
-			if (msg->param(1, val)) {
-				store (val);			// accepts float values
-			}
-			get (outMsg);
-			return true;
-		}
+	jsonendl jsendl;
+	out << "{" << jsendl++;
+	out << "\"name\": \"" << fName << "\"," << jsendl;
+	out << "\"address\": \"" << fAddress << "\"," << jsendl;
+	out << "\"port\": \"" << fPort << "\"," << jsendl;
+	out << "\"ui\": \"[";
+	for (unsigned int i=0; i< fUi.size(); i++) {
+		fUi[i]->print(out, jsendl);
 	}
-	return MessageDriven::accept(msg, outMsg);
-}
-
-
-//--------------------------------------------------------------------------
-void FaustNode::get (vector<Message*>& outMsg ) const
-{
-	Message * msg = new Message (getAddress());
-	msg->add (*fZone);
-	msg->add (fMapping.fMinOut);
-	msg->add (fMapping.fMaxOut);
-	outMsg.push_back(msg);
+	out << --jsendl << "]";
+	out << --jsendl << "}" << jsendl;
 }
 
 } // end namespoace

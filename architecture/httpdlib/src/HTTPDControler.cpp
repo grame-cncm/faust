@@ -115,10 +115,9 @@ void HTTPDControler::run ()
 		// informs the root node of the udp ports numbers (required to handle the 'hello' message
 //		if (rootnode) rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		// starts the network services
-		fHttpd->start (root, fTCPPort);
-
-		// and outputs a message
-		cout << "Faust httpd server version " << versionstr() <<  " is running on UDP ports " << fTCPPort << endl;
+		if (fHttpd->start (root, fTCPPort))
+			// and outputs a message
+			cout << "Faust httpd server version " << versionstr() <<  " is running on UDP ports " << fTCPPort << endl;
 	}
 }
 

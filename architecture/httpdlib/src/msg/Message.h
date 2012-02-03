@@ -30,8 +30,6 @@
 #include <iostream>
 #include "smartpointer.h"
 
-struct MHD_Connection;
-
 namespace httpdfaust
 {
 
@@ -114,7 +112,6 @@ class Message
 		typedef std::vector<argPtr>		argslist;	///< args list type
 
 	private:
-		struct MHD_Connection*	fConnection;		///< the message associated connection
 		std::string	fAddress;			///< the message destination address
 		argslist	fArguments;			///< the message arguments
 	
@@ -122,19 +119,18 @@ class Message
 			/*!
 				\brief an empty message constructor
 			*/
-			 Message(struct MHD_Connection* cnx) : fConnection(cnx) {}
+			 Message() {}
 			/*!
 				\brief a message constructor
 				\param address the message destination address
 			*/
-			 Message(const std::string& address, struct MHD_Connection* cnx) : fConnection(cnx), fAddress(address) {}
+			 Message(const std::string& address) : fAddress(address) {}
 			/*!
 				\brief a message constructor
 				\param address the message destination address
 				\param args the message parameters
 			*/
-			 Message(const std::string& address, const argslist& args, struct MHD_Connection* cnx) 
-				: fConnection(cnx), fAddress(address), fArguments(args) {}
+			 Message(const std::string& address, const argslist& args) : fAddress(address), fArguments(args) {}
 
 	virtual ~Message() {}
 
@@ -161,8 +157,6 @@ class Message
 	*/
 	void				print(std::ostream& out) const;
 
-	/// \brief gives the message associated connection
-	struct MHD_Connection*	connection() const	{ return fConnection; }
 	/// \brief gives the message address
 	const std::string&	address() const		{ return fAddress; }
 	/// \brief gives the message parameters list

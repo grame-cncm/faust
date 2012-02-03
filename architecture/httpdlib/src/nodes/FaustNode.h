@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "MessageDriven.h"
-struct MHD_Connection;
 
 namespace httpdfaust
 {
@@ -83,8 +82,8 @@ class FaustNode : public MessageDriven
 							{ return new FaustNode(name, zone, imin, imax, init, min, max, prefix); }
 
 
-		virtual bool	accept( const Message* msg );				///< handler for the 'accept' message
-		virtual int		get (struct MHD_Connection* cnx) const;		///< handler for the 'get' message
+		virtual bool	accept( const Message* msg, std::vector<Message*>& outMsg );	///< handler for the 'accept' message
+		virtual void	get (std::vector<Message*>& outMsg) const;						///< handler for the 'get' message
 };
 
 } // end namespoace

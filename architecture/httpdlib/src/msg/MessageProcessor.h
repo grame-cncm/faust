@@ -24,6 +24,8 @@
 #ifndef __MessageProcessor__
 #define __MessageProcessor__
 
+#include <vector>
+
 namespace httpdfaust
 {
 
@@ -36,7 +38,7 @@ class MessageProcessor
 {
 	public:
 		virtual		~MessageProcessor() {}
-		virtual bool processMessage( const Message* msg ) = 0;
+		virtual bool processMessage( const Message* msg, std::vector<Message*>& outMsg ) = 0;
 };
 
 } // end namespoace

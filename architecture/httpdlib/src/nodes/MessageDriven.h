@@ -70,7 +70,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			\param msg the osc message to be processed
 			The method should be called on the top level node.
 		*/
-		virtual bool	processMessage( const Message* msg );
+		virtual bool	processMessage( const Message* msg, std::vector<Message*>& outMsg );
 
 		/*!
 			\brief propose an OSc message at a given hierarchy level.
@@ -84,7 +84,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			- or it \c propose the message to its subnodes when \c addrTail is not empty. 
 			  In this case a new \c regexp is computed with the head of \c addrTail and a new \c addrTail as well.
 		*/
-		virtual bool	propose( const Message* msg, const char* address, const std::string addrTail);
+		virtual bool	propose( const Message* msg, const char* address, const std::string addrTail, std::vector<Message*>& outMsg);
 
 		/*!
 			\brief accept a message. 
@@ -94,7 +94,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			The method is called only for the destination nodes. The real message acceptance is the node 
 			responsability and may depend on the message content.
 		*/
-		virtual bool	accept( const Message* msg );
+		virtual bool	accept( const Message* msg, std::vector<Message*>& outMsg );
 
 		/*!
 			\brief handler for the \c 'get' message
@@ -105,7 +105,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			- a terminal node send its state on \c 'get' request to the IP address given as parameter.
 			The \c get method is basically called by the accept method.
 		*/
-		virtual int		get (struct MHD_Connection* cnx) const;		///< handler for the 'get' message
+		virtual void	get (std::vector<Message*>& outMsg) const;		///< handler for the 'get' message
 
 		void			add ( SMessageDriven node )	{ fSubNodes.push_back (node); }
 		const char*		getName() const				{ return fName.c_str(); }

@@ -27,20 +27,21 @@
 #include "Address.h"
 #include "Message.h"
 #include "MessageDriven.h"
+#include "HTTPDServer.h"
 
 using namespace std;
 namespace httpdfaust
 {
 
 //--------------------------------------------------------------------------
-bool MessageDriven::processMessage( const Message* msg )
+bool MessageDriven::processMessage( const Message* msg, vector<Message*>& outMsg )
 {
 	const string addr = msg->address();
 
 	// get the message address head
 	string head = Address::addressFirst(addr).c_str();
 	// and call propose with this regexp and with the dest osc address tail
-	return propose (msg, head.c_str(), Address::addressTail (addr));
+	return propose (msg, head.c_str(), Address::addressTail (addr), outMsg);
 	
 //	if (addr != "/*") {
 //		// search for alias root (fixme : could be stored in a field)
@@ -87,37 +88,36 @@ string MessageDriven::getAddress() const
 
 //--------------------------------------------------------------------------
 // terminal nodes should override the get method
-int MessageDriven::get (struct MHD_Connection* cnx) const
+void MessageDriven::get (vector<Message*>& outMsg) const
 {
 	// basic get handler propagates the get call to subnodes
 	for (vector<SMessageDriven>::const_iterator i = fSubNodes.begin(); i != fSubNodes.end(); i++)
-		(*i)->get (cnx);
-	return true;
+		(*i)->get (outMsg);
 }
 
 //--------------------------------------------------------------------------
-bool MessageDriven::accept( const Message* msg )
+bool MessageDriven::accept( const Message* msg, vector<Message*>& outMsg )
 {
 	// the basic accept method only checks for the 'get' message
 	if (msg->size() == 0) {
-		get (msg->connection());
+		get (outMsg);
 		return true;
 	}
 	return false;
 }
 
 //--------------------------------------------------------------------------
-bool MessageDriven::propose( const Message* msg, const char* address, const std::string addrTail)
+bool MessageDriven::propose( const Message* msg, const char* address, const std::string addrTail, std::vector<Message*>& outMsg)
 {
 	if (name() == address) {			// try to match address with the object name. 
-		if (addrTail.empty()) {			// it matches and the tail is empty
-			accept(msg);				// then call accept()
+		if (addrTail.empty() || (addrTail == "/")) {	// it matches and the tail is empty
+			return accept(msg, outMsg);	// then call accept()
 		}
 		else {							// it matches but the tail is not empty
 			string head = Address::addressFirst(addrTail).c_str();
 			for (vector<SMessageDriven>::iterator i = fSubNodes.begin(); i != fSubNodes.end(); i++) {
 				// then propagate propose() to subnodes with a new regexp and a new tail
-				if ((*i)->propose (msg, head.c_str(), Address::addressTail(addrTail)))
+				if ((*i)->propose (msg, head.c_str(), Address::addressTail(addrTail), outMsg) )
 					return true;
 			}
 		}

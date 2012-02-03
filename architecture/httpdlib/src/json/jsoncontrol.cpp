@@ -21,11 +21,7 @@
 
 */
 
-#include <sstream>
-
-#include "FaustNode.h"
-#include "Message.h"
-#include "HTTPDServer.h"
+#include "jsoncontrol.h"
 
 using namespace std;
 
@@ -33,39 +29,18 @@ namespace httpdfaust
 {
 
 //--------------------------------------------------------------------------
-bool FaustNode::store( float val )
+void jsoncontrol::print(std::ostream& out, jsonendl& eol) const
 {
-	*fZone = fMapping.scale(val);
-	return true;
-}
-
-//--------------------------------------------------------------------------
-bool FaustNode::accept( const Message* msg, vector<Message*>& outMsg )
-{
-	if (msg->size() == 2) {			// checks for the message parameters count
-									// messages with a param count other than 2 are rejected
-		string key;
-		if (msg->param(0, key) &&  (key == "value")) {
-			float val=0;
-			if (msg->param(1, val)) {
-				store (val);			// accepts float values
-			}
-			get (outMsg);
-			return true;
-		}
+	out << eol++ << "{";
+	out << eol << "\"type\": \"" << fType << "\",";
+	out << eol << "\"label\": \"" << fName << "\"";
+	if (!fButton) {
+		out << "," << eol << "\"init\": \"" << fInit << "\",";
+		out << eol << "\"min\": \"" << fMin << "\",";
+		out << eol << "\"max\": \"" << fMax << "\",";
+		out << eol << "\"step\": \"" << fStep << "\"";
 	}
-	return MessageDriven::accept(msg, outMsg);
-}
-
-
-//--------------------------------------------------------------------------
-void FaustNode::get (vector<Message*>& outMsg ) const
-{
-	Message * msg = new Message (getAddress());
-	msg->add (*fZone);
-	msg->add (fMapping.fMinOut);
-	msg->add (fMapping.fMaxOut);
-	outMsg.push_back(msg);
+	out << --eol << "}" << eol;
 }
 
 } // end namespoace

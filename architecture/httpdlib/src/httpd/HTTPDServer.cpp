@@ -22,6 +22,7 @@
 */
 
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 #include "HTTPDServer.h"
@@ -40,7 +41,7 @@ namespace httpdfaust
 // static functions
 // provided as callbacks to mhttpd
 //--------------------------------------------------------------------------
-static int answer_to_connection (void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, 
+static int _answer_to_connection (void *cls, struct MHD_Connection *connection, const char *url, const char *method, const char *version, 
                           const char *upload_data, size_t *upload_data_size, void **con_cls)
 {
 	HTTPDServer* server = (HTTPDServer*)cls;
@@ -51,12 +52,12 @@ static int answer_to_connection (void *cls, struct MHD_Connection *connection, c
 static int _get_params (void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
 	Message* msg = (Message*)cls;
-	msg->add (key);
+	msg->add (string(key));
 	if (value) {
 		char* endptr;
 		float fval = strtof(value, &endptr);
 		if ((fval == 0) && (endptr == value))		// not a float value
-			msg->add (value);
+			msg->add (string(value));
 		else 
 			msg->add (fval);
 	}
@@ -64,23 +65,46 @@ static int _get_params (void *cls, enum MHD_ValueKind kind, const char *key, con
 }
 
 //--------------------------------------------------------------------------
+HTTPDServer::HTTPDServer(MessageProcessor* mp, int port)  
+	: fProcessor(mp), fPort(port), fServer(0) 
+{
+	cout << "HTTPDServer::HTTPDServe called with " << (void*)mp << endl;
+}
+
+HTTPDServer::~HTTPDServer() { stop(); }
+
+//--------------------------------------------------------------------------
 void HTTPDServer::run()
 {
-	fServer = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, fPort, NULL, NULL, &answer_to_connection, NULL, MHD_OPTION_END);
+	fServer = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, fPort, NULL, NULL, _answer_to_connection, this, MHD_OPTION_END);
 	if (!fServer) throw std::runtime_error("Starting MHD daemon error");
 }
 
 //--------------------------------------------------------------------------
 int HTTPDServer::send (struct MHD_Connection *connection, const char *page, int status)
 {
+cout << "send response " << page << " status: " << status << endl;
 	struct MHD_Response *response = MHD_create_response_from_buffer (strlen (page), (void *) page, MHD_RESPMEM_PERSISTENT);
 	if (!response) {
 		cerr << "send error: null response\n";
 		return MHD_NO;
 	}
+	MHD_add_response_header (response, "Content-Type", "text/plain");
 	int ret = MHD_queue_response (connection, status, response);
 	MHD_destroy_response (response);
 	return ret;
+}
+
+//--------------------------------------------------------------------------
+int HTTPDServer::send (struct MHD_Connection *connection, std::vector<Message*> msgs)
+{
+	stringstream page;
+	for (unsigned int i=0; i<msgs.size(); i++) {
+		msgs[i]->print( page);
+		page << endl;
+		delete msgs[i];
+	}
+	return send (connection, page.str().c_str());
 }
 
 //--------------------------------------------------------------------------
@@ -97,9 +121,18 @@ int HTTPDServer::answer (struct MHD_Connection *connection, const char *url, con
 		return send (connection, msg.c_str(), MHD_HTTP_BAD_REQUEST);
 	}
 
-	Message msg (url, connection);
+	Message msg (url);
 	MHD_get_connection_values (connection, t, _get_params, &msg);
-	return fProcessor->processMessage (&msg) ? MHD_YES : MHD_NO;
+	vector<Message*> outMsgs;
+	cout << "got message: ";
+	msg.print(cout);
+	cout << endl;
+	fProcessor->processMessage (&msg, outMsgs);
+	if (outMsgs.size())
+		send (connection, outMsgs);
+	else 
+		send (connection, "", MHD_HTTP_NOT_FOUND);
+	return MHD_YES;
 }
 
 

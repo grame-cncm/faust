@@ -25,9 +25,7 @@
 #ifndef __RootNode__
 #define __RootNode__
 
-#include <string>
 #include <vector>
-
 #include "MessageDriven.h"
 
 namespace httpdfaust
@@ -38,10 +36,7 @@ typedef class SMARTP<RootNode>	SRootNode;
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a faust root node
-
-	A Faust root node handles the \c 'hello' message and provides support
-	for incoming osc signal data. 
+	\brief a faust program root node
 */
 class RootNode : public MessageDriven
 {
@@ -52,7 +47,9 @@ class RootNode : public MessageDriven
 	public:
 		static SRootNode create (const char* name) { return new RootNode(name); }
 
-		virtual bool	accept( const Message* msg );
+		//--------------------------------------------------------------------------
+		bool			processMessage( const Message* msg, std::vector<Message*>& outMsg );
+		virtual bool	accept( const Message* msg, std::vector<Message*>& outMsg );
 };
 
 } // end namespoace

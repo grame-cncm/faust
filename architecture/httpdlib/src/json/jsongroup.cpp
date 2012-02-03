@@ -21,11 +21,7 @@
 
 */
 
-#include <sstream>
-
-#include "FaustNode.h"
-#include "Message.h"
-#include "HTTPDServer.h"
+#include "jsongroup.h"
 
 using namespace std;
 
@@ -33,39 +29,19 @@ namespace httpdfaust
 {
 
 //--------------------------------------------------------------------------
-bool FaustNode::store( float val )
+void jsongroup::print(std::ostream& out, jsonendl& eol) const
 {
-	*fZone = fMapping.scale(val);
-	return true;
-}
-
-//--------------------------------------------------------------------------
-bool FaustNode::accept( const Message* msg, vector<Message*>& outMsg )
-{
-	if (msg->size() == 2) {			// checks for the message parameters count
-									// messages with a param count other than 2 are rejected
-		string key;
-		if (msg->param(0, key) &&  (key == "value")) {
-			float val=0;
-			if (msg->param(1, val)) {
-				store (val);			// accepts float values
-			}
-			get (outMsg);
-			return true;
-		}
+	out << eol++ << "{";
+	out << eol << "\"group\": \"" << fType << "\",";
+	out << eol << "\"label\": \"" << fName << "\",";
+	const char* sep = "";
+	for (unsigned int i=0; i< fContent.size(); i++) {
+		out << sep;
+		sep = ",";
+		fContent[i]->print(out, eol);
 	}
-	return MessageDriven::accept(msg, outMsg);
-}
-
-
-//--------------------------------------------------------------------------
-void FaustNode::get (vector<Message*>& outMsg ) const
-{
-	Message * msg = new Message (getAddress());
-	msg->add (*fZone);
-	msg->add (fMapping.fMinOut);
-	msg->add (fMapping.fMaxOut);
-	outMsg.push_back(msg);
+	out << --eol << "]";
+	out << --eol << "}" << eol;
 }
 
 } // end namespoace

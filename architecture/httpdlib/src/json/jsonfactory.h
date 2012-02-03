@@ -22,45 +22,42 @@
 */
 
 
-#ifndef __HTTPDServer__
-#define __HTTPDServer__
+#ifndef __jsonfactory__
+#define __jsonfactory__
 
+#include <stack>
 #include <string>
-#include <ostream>
-#include <vector>
-#include <microhttpd.h>
 
-#include "TThreads.h"
+#include "jsonroot.h"
 
 namespace httpdfaust
 {
 
-class Message;
-class MessageProcessor;
+class jsonnode;
+typedef SMARTP<jsonnode>	Sjsonnode;
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a specific thread to listen incoming osc packets
-*/
-class HTTPDServer : public TThreads
-{
-	MessageProcessor*	fProcessor;
-	int					fPort;
-	struct MHD_Daemon *	fServer;
+	\brief a factory to build a OSC UI hierarchy
 	
-	int send (struct MHD_Connection *connection, std::vector<Message*> msgs);
+	Actually, makes use of a stack to build the UI hierarchy.
+	It includes a pointer to a OSCIO controler, but just to give it to the root node.
+*/
+class jsonfactory
+{
+	std::stack<Sjsonnode>	fNodes;		///< maintains the current hierarchy level
+	jsonroot				fRoot;		///< keep track of the root node
 
 	public:
-				 HTTPDServer(MessageProcessor* mp, int port);
-		virtual ~HTTPDServer();
+				 jsonfactory(const char *name, const char* address, int port) : fRoot(name, address, port) {}
+		virtual ~jsonfactory() {}
 
-		/// \brief starts the httpd server
-		void run ();
-		void stop ()			{ if (fServer) MHD_stop_daemon (fServer); fServer=0; quit(); }
-		int answer (struct MHD_Connection *connection, const char *url, const char *method, const char *version, 
-					const char *upload_data, size_t *upload_data_size, void **con_cls);
+		void addnode (const char* type, const char* label);
+		void addnode (const char* type, const char* label, float init, float min, float max, float step);
+		void opengroup (const char* type, const char* label);
+		void closegroup ();
 
-		static int send (struct MHD_Connection *connection, const char *page, int status=MHD_HTTP_OK);
+		const jsonroot&	root() const	{ return fRoot; }
 };
 
 } // end namespoace
