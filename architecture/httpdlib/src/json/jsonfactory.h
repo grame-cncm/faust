@@ -59,7 +59,7 @@ class jsonfactory
 		void opengroup (const char* type, const char* label);
 		void closegroup ();
 
-		const jsonroot&	root() const	{ return fRoot; }
+		jsonroot&	root()			{ return fRoot; }
 };
 
 } // end namespoace

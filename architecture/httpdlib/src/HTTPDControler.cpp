@@ -120,16 +120,18 @@ void HTTPDControler::closegroup ()
 void HTTPDControler::run ()
 {
 	SMessageDriven root = fFactory->root();		// first get the root node
-	stringstream strjson;
-	fJson->root().print(strjson);
 	if (root) {
 		// and cast it to a RootNode
 		RootNode * rootnode = dynamic_cast<RootNode*> ((MessageDriven*)root);
-		if (rootnode) rootnode->setJSON (strjson.str());
 		// starts the network services
-		if (fHttpd->start (root, fTCPPort))
+		if (fHttpd->start (root, fTCPPort)) {
+			stringstream strjson;
+			fJson->root().setPort (fTCPPort);
+			fJson->root().print(strjson);
+			if (rootnode) rootnode->setJSON (strjson.str());
 			// and outputs a message
 			cout << "Faust httpd server version " << versionstr() <<  " is running on UDP ports " << fTCPPort << endl;
+		}
 	}
 }
 

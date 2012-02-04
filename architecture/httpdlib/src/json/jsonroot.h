@@ -54,6 +54,7 @@ class jsonroot : public smartable
 		
 		void	print(std::ostream& out) const;
 		void	add (const Sjsonnode& node)		{ fUi.push_back(node); }
+		void	setPort (int port)				{ fPort = port; }
 };
 
 } // end namespoace

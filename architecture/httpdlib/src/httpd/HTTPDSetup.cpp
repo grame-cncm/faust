@@ -37,20 +37,18 @@ namespace httpdfaust
 
 //--------------------------------------------------------------------------
 HTTPDSetup::~HTTPDSetup()			{ stop(); }
-bool HTTPDSetup::running() const	{ return fServer ? fServer->isRunning() : false; }
+bool HTTPDSetup::running() const	{ return fServer ? true : false; }
+//bool HTTPDSetup::running() const	{ return fServer ? fServer->isRunning() : false; }
 
 //--------------------------------------------------------------------------
 bool HTTPDSetup::start(MessageProcessor* mp, int& tcpport )
 {
 	int port = tcpport;
 	bool done = false;
+	fServer = new HTTPDServer (mp, port);
 	do {
-		try {
-			fServer = new HTTPDServer (mp, port);
-			fServer->start();
-			done = true;
-		}
-		catch (std::runtime_error e) {
+		done = fServer->start(port);
+		if (!done) {
 			if ( port - tcpport > kPortsScanRange) return false;
 			port++;
 		}

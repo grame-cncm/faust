@@ -30,7 +30,7 @@
 #include <vector>
 #include <microhttpd.h>
 
-#include "TThreads.h"
+//#include "TThreads.h"
 
 namespace httpdfaust
 {
@@ -42,7 +42,7 @@ class MessageProcessor;
 /*!
 	\brief a specific thread to listen incoming osc packets
 */
-class HTTPDServer : public TThreads
+class HTTPDServer
 {
 	MessageProcessor*	fProcessor;
 	int					fPort;
@@ -55,8 +55,8 @@ class HTTPDServer : public TThreads
 		virtual ~HTTPDServer();
 
 		/// \brief starts the httpd server
-		void run ();
-		void stop ()			{ if (fServer) MHD_stop_daemon (fServer); fServer=0; quit(); }
+		bool start (int port);
+		void stop ()			{ if (fServer) MHD_stop_daemon (fServer); fServer=0; /*quit();*/ }
 		int answer (struct MHD_Connection *connection, const char *url, const char *method, const char *version, 
 					const char *upload_data, size_t *upload_data_size, void **con_cls);
 

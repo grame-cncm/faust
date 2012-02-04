@@ -74,10 +74,11 @@ HTTPDServer::HTTPDServer(MessageProcessor* mp, int port)
 HTTPDServer::~HTTPDServer() { stop(); }
 
 //--------------------------------------------------------------------------
-void HTTPDServer::run()
+bool HTTPDServer::start(int port)
 {
-	fServer = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, fPort, NULL, NULL, _answer_to_connection, this, MHD_OPTION_END);
-	if (!fServer) throw std::runtime_error("Starting MHD daemon error");
+	fServer = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, port, NULL, NULL, _answer_to_connection, this, MHD_OPTION_END);
+	return fServer != 0;
+//	if (!fServer) throw std::runtime_error("Starting MHD daemon error");
 }
 
 //--------------------------------------------------------------------------
