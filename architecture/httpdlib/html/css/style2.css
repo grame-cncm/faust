@@ -1,36 +1,52 @@
 
 body { 
-	background-color: black;
+	background-color: rgb(20,20,20);
 	font-family :  Helvetica; 
 	font-size : 10pt; 
-	color: Orange;
+	color: lightgrey;
+}
+.ui {
+	background-color: rgb(40,40,40);
+	padding: 1cm 1cm 1cm 1cm;
+}
+.host { 
+	font-family :  Arial; 
+	font-size : 11pt; 
+	color: rgb(200,200,200);
 }
 .name { 
-	font-family :  Helvetica; 
-	font-size : 12pt; 
+	font-family :  Arial; 
+	font-size : 14pt; 
 	font-weight: bold;
-}
-.control { 
-	background-color: White;
-}
-.label { 
-	font-family :  Helvetica; 
-	font-size : 10pt; 
-	font-weight: bold;
+	color: Blue;
 }
 .url {  
 	font-family :  Courier; 
 	text-align :  center; 
 	font-size : 9pt; 
-	color: AliceBlue;
+	color: rgb(10,10,220);
 }
 .port  {
 	font-family :  Courier; 
 	font-size : 9pt; 
-	color: AliceBlue;
+	color: rgb(10,10,220);
+}
+.label { 
+	font-family :  Arial; 
+	font-size : 11pt; 
+	font-weight: bold;
+	color: Orange;
+}
+.control { 
+	background-color: rgb(30,30,30);
+	width: 60%;
+}
+.value { 
+	background-color: rgb(30,30,30);
+	width: 200px;
 }
 .group  {
-	font-family :  Helvetica; 
-	font-size : 10pt; 
+	font-family :  Arial; 
+	font-size : 11pt; 
 	color: AliceBlue;
 }

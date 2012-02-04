@@ -68,8 +68,10 @@ function makesethandler() {
 
 function makeCol (elt, classname) {
 	var col = document.createElement('td');
-	if (typeof elt == 'object')
+	if (typeof elt == 'object') {
 		col.appendChild (elt);
+		elt.className = classname;
+	}
 	else col.innerHTML = elt;
 	if (typeof classname != 'undefined') 
 		col.className = classname;
@@ -109,7 +111,7 @@ function makeControl (elt, i, address, dest) {
 						  makesethandler(), address + elt.address);
 		row.appendChild (makeCol (elt.label, "label") );
 		row.appendChild (makeCol (slider), "control" );
-		row.appendChild (makeCol (slider.fTextValue) );
+		row.appendChild (makeCol (slider.fTextValue), "value" );
 		dest.appendChild (row);
  	}
  	else {
@@ -137,6 +139,7 @@ function buildui (data) {
 	var address = "http://"+desc.address+":"+desc.port;
 	var table = document.createElement('table');
 	var row 	= document.createElement('tr');
+	table.className = "ui";
 	row.appendChild (makeCol (desc.name, "name") );
 	row.appendChild (makeCol (desc.address, "url") );
 	row.appendChild (makeCol (desc.port, "port") );

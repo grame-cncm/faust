@@ -16,10 +16,10 @@
 		$("#css").attr("href","css/style"+num+".css");
 	}
 	function getjson() {
+		var url = "http://" + $("#host").val() + ":" + $("#port").val();
 		var nav = navigator.appVersion.search("Chrome");
 		if (nav < 0) {  // not using chrome
-			var jqxhr = $.get( "http://localhost:5510/?JSON=", function(data) { $("#ui").html (buildui( data)); } );
-//			$.get( "http://localhost", function(data) { alert("got answer " + data); } );
+			$.get( url+"/?JSON=", function(data) { $("#ui").html (buildui( data )); } );
 		}
 		else
 			$("#ui").html (buildui (getDesc()));
@@ -29,16 +29,17 @@
 <center>
 <div id="trace"></div>
 <div id="style">
-Style: <input type="radio" id="style1" name="style" value=1 checked onclick= setStyle(this.value) >
+Style: 
+<input type="radio" id="style1" name="style" value=1 checked onclick= setStyle(this.value) >
 <input type="radio" id="style2" name="style" value=2 onclick= setStyle(this.value) >
 </div>
 
 <br/>
 <form>
 <table>
-<tr><td class=label>Host:</td><td> <input type="text" id="host" size=40 value="localhost" /></td></tr>
-<tr><td class=label>Port:</td><td> <input type="text" id="port" size=5 value="5510" /></td></tr>
-<tr><td></td><td><button type="button" onclick="getjson()">Query</button></td></tr>
+<tr><td class="host">Host:</td><td> <input type="text" id="host" size=40 value="localhost" /></td></tr>
+<tr><td class="host">Port:</td><td> <input type="text" id="port" size=5 value="5510" /></td></tr>
+<tr><td></td><td><button type="button" onclick="getjson()">Get UI</button></td></tr>
 </table>
 </form>
 </center>

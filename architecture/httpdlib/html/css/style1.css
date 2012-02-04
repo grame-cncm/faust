@@ -9,6 +9,10 @@ body {
 	font-size : 12pt; 
 	font-weight: bold;
 }
+.host { 
+	font-family :  Helvetica; 
+	font-size : 10pt; 
+}
 .label { 
 	font-family :  Helvetica; 
 	font-size : 10pt; 
