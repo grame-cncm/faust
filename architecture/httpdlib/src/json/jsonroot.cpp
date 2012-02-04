@@ -45,17 +45,20 @@ void jsonendl::print(std::ostream& os) const {
 //--------------------------------------------------------------------------
 void jsonroot::print(std::ostream& out) const
 {
-	jsonendl jsendl;
-	out << "{" << jsendl++;
-	out << "\"name\": \"" << fName << "\"," << jsendl;
-	out << "\"address\": \"" << fAddress << "\"," << jsendl;
-	out << "\"port\": \"" << fPort << "\"," << jsendl;
-	out << "\"ui\": \"[";
+	jsonendl eol;
+	out << "{" << eol++;
+	out << "\"name\": \"" << fName << "\"," << eol;
+	out << "\"address\": \"" << fAddress << "\"," << eol;
+	out << "\"port\": \"" << fPort << "\"," << eol;
+	out << "\"ui\": ["; eol++;
+	const char* sep = "";
 	for (unsigned int i=0; i< fUi.size(); i++) {
-		fUi[i]->print(out, jsendl);
+		out << sep;
+		sep = ",";
+		fUi[i]->print(out, eol);
 	}
-	out << --jsendl << "]";
-	out << --jsendl << "}" << jsendl;
+	out << --eol << "]";
+	out << --eol << "}" << eol;
 }
 
 } // end namespoace

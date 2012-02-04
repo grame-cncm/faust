@@ -25,7 +25,7 @@
 #ifndef __RootNode__
 #define __RootNode__
 
-#include <vector>
+#include <string>
 #include "MessageDriven.h"
 
 namespace httpdfaust
@@ -40,6 +40,8 @@ typedef class SMARTP<RootNode>	SRootNode;
 */
 class RootNode : public MessageDriven
 {
+	std::string fJson;
+	
 	protected:
 				 RootNode(const char *name) : MessageDriven (name, "") {}
 		virtual ~RootNode() {}
@@ -47,6 +49,7 @@ class RootNode : public MessageDriven
 	public:
 		static SRootNode create (const char* name) { return new RootNode(name); }
 
+		void			setJSON( const std::string& uidesc )		{ fJson = uidesc; }
 		//--------------------------------------------------------------------------
 		bool			processMessage( const Message* msg, std::vector<Message*>& outMsg );
 		virtual bool	accept( const Message* msg, std::vector<Message*>& outMsg );

@@ -34,6 +34,7 @@ namespace httpdfaust
 class HTTPDSetup;
 class JSONDesc;
 class FaustFactory;
+class jsonfactory;
 
 //--------------------------------------------------------------------------
 /*!
@@ -45,9 +46,9 @@ class FaustFactory;
 class HTTPDControler
 {
 	int fTCPPort;				// the tcp port number
-	FaustFactory *	fFactory;	// a factory to build the memory represetnatin
+	FaustFactory *	fFactory;	// a factory to build the memory representation
+	jsonfactory*	fJson;
 	HTTPDSetup*		fHttpd;		// the network manager
-	JSONDesc*		fJSON;		// the UI JSON description
 	std::string		fHTML;		// the corresponding HTML page
 
 	public:
@@ -58,15 +59,16 @@ class HTTPDControler
 		*/
 		enum { kTCPBasePort = 5510};
 
-				 HTTPDControler (int argc, char *argv[]);
+				 HTTPDControler (int argc, char *argv[], const char* applicationname);
 		virtual ~HTTPDControler ();
 	
 		//--------------------------------------------------------------------------
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
-		void addnode (const char* label, float* zone, float init, float min, float max);
-		void addfullpathnode (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max);
-		void opengroup (const char* label);
+		void addnode (const char* type, const char* label, float* zone);
+		void addnode (const char* type, const char* label, float* zone, float init, float min, float max, float step);
+//		void addfullpathnode (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max);
+		void opengroup (const char* type, const char* label);
 		void closegroup ();
 
 		//--------------------------------------------------------------------------

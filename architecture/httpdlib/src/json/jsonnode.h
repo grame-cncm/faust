@@ -66,11 +66,14 @@ std::ostream& operator<< (std::ostream& os, const jsonendl& eol);
 */
 class jsonnode : public smartable
 {
+	std::string fAddress;
 	public:
 		virtual ~jsonnode() {}
 
 		virtual void	add (const Sjsonnode& node)		{}
 		virtual void	print(std::ostream& out, jsonendl& eol) const = 0;
+		virtual const std::string&	getAddress() const							{ return fAddress; }
+		virtual void				setAddress( const std::string& address) 	{ fAddress = address; }
 };
 
 } // end namespoace

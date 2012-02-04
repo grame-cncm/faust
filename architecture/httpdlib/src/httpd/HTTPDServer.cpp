@@ -83,7 +83,6 @@ void HTTPDServer::run()
 //--------------------------------------------------------------------------
 int HTTPDServer::send (struct MHD_Connection *connection, const char *page, int status)
 {
-cout << "send response " << page << " status: " << status << endl;
 	struct MHD_Response *response = MHD_create_response_from_buffer (strlen (page), (void *) page, MHD_RESPMEM_PERSISTENT);
 	if (!response) {
 		cerr << "send error: null response\n";
@@ -92,6 +91,7 @@ cout << "send response " << page << " status: " << status << endl;
 	MHD_add_response_header (response, "Content-Type", "text/plain");
 	int ret = MHD_queue_response (connection, status, response);
 	MHD_destroy_response (response);
+//cout << "send response " << page << " status: " << status << " ret=" << ret << endl;
 	return ret;
 }
 
@@ -124,9 +124,9 @@ int HTTPDServer::answer (struct MHD_Connection *connection, const char *url, con
 	Message msg (url);
 	MHD_get_connection_values (connection, t, _get_params, &msg);
 	vector<Message*> outMsgs;
-	cout << "got message: ";
-	msg.print(cout);
-	cout << endl;
+//	cout << "got message: ";
+//	msg.print(cout);
+//	cout << endl;
 	fProcessor->processMessage (&msg, outMsgs);
 	if (outMsgs.size())
 		send (connection, outMsgs);

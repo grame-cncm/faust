@@ -54,6 +54,7 @@ cout << "RootNode::accept" << endl;
 		// send a web page
 	}
 	else if ((msg->size() == 2) && (msg->param(0, val)) && (val == kJSONMsg) ) {
+		outMsg.push_back (new Message (fJson));
 cout << "send json" << endl;
 		// send the json description
 		return true;

@@ -25,11 +25,12 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 
 #include "HTTPDControler.h"
 #include "FaustFactory.h"
 #include "HTTPDSetup.h"
-//#include "OSCFError.h"
+#include "jsonfactory.h"
 #include "RootNode.h"
 
 using namespace std;
@@ -57,12 +58,13 @@ static int getPortOption (int argc, char *argv[], const std::string& option, int
 }
 
 //--------------------------------------------------------------------------
-HTTPDControler::HTTPDControler (int argc, char *argv[])
-	: fTCPPort(kTCPBasePort), fJSON(0)
+HTTPDControler::HTTPDControler (int argc, char *argv[], const char* applicationname)
+	: fTCPPort(kTCPBasePort), fJson(0)
 {
 	fTCPPort = getPortOption (argc, argv, kPortOpt, fTCPPort);
 	fFactory = new FaustFactory();
 	fHttpd = new HTTPDSetup();
+	fJson = new jsonfactory(applicationname, "localhost", fTCPPort);
 }
 
 HTTPDControler::~HTTPDControler ()
@@ -70,6 +72,7 @@ HTTPDControler::~HTTPDControler ()
 	quit(); 
 	delete fFactory;
 	delete fHttpd;
+	delete fJson;
 }
 
 //--------------------------------------------------------------------------
@@ -78,30 +81,38 @@ const char* HTTPDControler::versionstr()	{ return kVersionStr; }
 
 //--------------------------------------------------------------------------
 // Add a node in the current group (top of the group stack)
-void HTTPDControler::addnode (const char* label, float* zone, float init, float min, float max)
+void HTTPDControler::addnode (const char* type, const char* label, float* zone, float init, float min, float max, float step)
 {
 	fFactory->addnode (label, zone, init, min, max);
+	fJson->addnode (type, label, init, min, max, step);
+}
+void HTTPDControler::addnode (const char* type, const char* label, float* zone)
+{
+	fFactory->addnode (label, zone, 0, 0, 1);
+	fJson->addnode (type, label);
 }
 
 //--------------------------------------------------------------------------
 // Add a node using its fullpath from the root instead of the current group
 // This method is used for alias messages. The arguments imin and imax allow
 // to map incomming values from the alias input range to the actual range 
-void HTTPDControler::addfullpathnode (const string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
-{
+//void HTTPDControler::addfullpathnode (const string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
+//{
 //	fFactory->addfullpathnode (fullpath, zone, imin, imax, init, min, max);
-}
+//}
 
 //--------------------------------------------------------------------------
-void HTTPDControler::opengroup (const char* label)
+void HTTPDControler::opengroup (const char* type, const char* label)
 {
 	fFactory->opengroup (label);
+	fJson->opengroup (type, label);
 }
 
 //--------------------------------------------------------------------------
 void HTTPDControler::closegroup ()
 {
 	fFactory->closegroup ();
+	fJson->closegroup ();
 }
 
 //--------------------------------------------------------------------------
@@ -109,11 +120,12 @@ void HTTPDControler::closegroup ()
 void HTTPDControler::run ()
 {
 	SMessageDriven root = fFactory->root();		// first get the root node
+	stringstream strjson;
+	fJson->root().print(strjson);
 	if (root) {
 		// and cast it to a RootNode
 		RootNode * rootnode = dynamic_cast<RootNode*> ((MessageDriven*)root);
-		// informs the root node of the udp ports numbers (required to handle the 'hello' message
-//		if (rootnode) rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
+		if (rootnode) rootnode->setJSON (strjson.str());
 		// starts the network services
 		if (fHttpd->start (root, fTCPPort))
 			// and outputs a message

@@ -37,18 +37,27 @@ namespace httpdfaust
 /**
  * Add a node to the OSC UI tree in the current group at the top of the stack 
  */
+void jsonfactory::addnode (Sjsonnode node, const char* label)
+{
+	string address;
+	if (fNodes.size()) {
+		address = fNodes.top()->getAddress();
+		fNodes.top()->add(node);
+	}
+	else fRoot.add(node);
+	address += "/";
+	address += label;
+	node->setAddress (address);
+}
+
 void jsonfactory::addnode (const char* type, const char* label)
 {
-	Sjsonnode node = jsoncontrol::create (type, label);
-	if (fNodes.size()) fNodes.top()->add(node);
-	else fRoot.add(node);
+	addnode (jsoncontrol::create (label, type), label);
 }
 
 void jsonfactory::addnode (const char* type, const char* label, float init, float min, float max, float step)
 {
-	Sjsonnode node = jsoncontrol::create (type, label, init, min, max, step);
-	if (fNodes.size()) fNodes.top()->add(node);
-	else fRoot.add(node);
+	addnode (jsoncontrol::create (label, type, init, min, max, step), label);
 }
 
 /**
@@ -58,8 +67,7 @@ void jsonfactory::addnode (const char* type, const char* label, float init, floa
 void jsonfactory::opengroup (const char* type, const char* label)
 {
 	Sjsonnode node = jsongroup::create (label, type);
-	if (fNodes.size()) fNodes.top()->add(node);
-	else fRoot.add(node);
+	addnode (node, label);
 	fNodes.push (node);
 }
 

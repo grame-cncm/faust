@@ -48,6 +48,8 @@ class jsonfactory
 	std::stack<Sjsonnode>	fNodes;		///< maintains the current hierarchy level
 	jsonroot				fRoot;		///< keep track of the root node
 
+	void addnode (Sjsonnode node, const char * label);
+
 	public:
 				 jsonfactory(const char *name, const char* address, int port) : fRoot(name, address, port) {}
 		virtual ~jsonfactory() {}

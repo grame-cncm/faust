@@ -1,0 +1,52 @@
+<html>
+<head>
+	<link id="css" rel="stylesheet" type="text/css" href="css/style1.css" />
+	<script src="js/jdesc.js" language="javascript"></script>
+	<script src="js/faustui.js" language="javascript"></script>
+	<script src="js/jquery-1.7.1.min.js" language="javascript"></script>
+	<title id=titre>Faust</title>
+</head>
+
+<body>
+
+<br/>
+
+<script>
+	function setStyle(num) {
+		$("#css").attr("href","css/style"+num+".css");
+	}
+	function getjson() {
+		var nav = navigator.appVersion.search("Chrome");
+		if (nav < 0) {  // not using chrome
+			var jqxhr = $.get( "http://localhost:5510/?JSON=", function(data) { $("#ui").html (buildui( data)); } );
+//			$.get( "http://localhost", function(data) { alert("got answer " + data); } );
+		}
+		else
+			$("#ui").html (buildui (getDesc()));
+	}
+</script>
+
+<center>
+<div id="trace"></div>
+<div id="style">
+Style: <input type="radio" id="style1" name="style" value=1 checked onclick= setStyle(this.value) >
+<input type="radio" id="style2" name="style" value=2 onclick= setStyle(this.value) >
+</div>
+
+<br/>
+<form>
+<table>
+<tr><td class=label>Host:</td><td> <input type="text" id="host" size=40 value="localhost" /></td></tr>
+<tr><td class=label>Port:</td><td> <input type="text" id="port" size=5 value="5510" /></td></tr>
+<tr><td></td><td><button type="button" onclick="getjson()">Query</button></td></tr>
+</table>
+</form>
+</center>
+
+<br/>
+<center>
+<div id="ui"></div>
+</center>
+
+</body>
+</html>
