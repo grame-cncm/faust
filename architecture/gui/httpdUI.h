@@ -58,20 +58,20 @@ class httpdUI : public GUI
 	
  public:
 		
-	httpdUI(char* /*applicationname*/, int argc, char *argv[]) : GUI() 
+	httpdUI(const char* applicationname, int argc, char *argv[]) : GUI() 
     { 
-		fCtrl = new httpdfaust::HTTPDControler(argc, argv); 
+		fCtrl = new httpdfaust::HTTPDControler(argc, argv, applicationname); 
 	}
 	
 	virtual ~httpdUI() { delete fCtrl; }
 	
 	// -- active widgets
-	virtual void addButton(const char* label, float* zone)																{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addToggleButton(const char* label, float* zone)														{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addCheckButton(const char* label, float* zone)															{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float /*step*/) 			{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addButton(const char* label, float* zone)															{ addalias(zone, 0, 0, 1); fCtrl->addnode( "button", tr(label), zone); }
+	virtual void addToggleButton(const char* label, float* zone)													{ addalias(zone, 0, 0, 1); fCtrl->addnode( "togglebutton", tr(label), zone); }
+	virtual void addCheckButton(const char* label, float* zone)														{ addalias(zone, 0, 0, 1); fCtrl->addnode( "checkbutton", tr(label), zone); }
+	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ addalias(zone, init, min, max); fCtrl->addnode( "verticalslider", tr(label), zone, init, min, max, step); }
+	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ addalias(zone, init, min, max); fCtrl->addnode( "horizontalslider", tr(label), zone, init, min, max, step); }
+	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) 			{ addalias(zone, init, min, max); fCtrl->addnode( "numentry", tr(label), zone, init, min, max, step); }
 	
 	// -- passive widgets	
 	virtual void addNumDisplay(const char* /*label*/, float* /*zone*/, int /*precision*/) {}
@@ -79,10 +79,10 @@ class httpdUI : public GUI
 	virtual void addHorizontalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {}
 	virtual void addVerticalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {}
 		
-	virtual void openFrameBox(const char* label)		{ fCtrl->opengroup( tr(label)); }
-	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( tr(label)); }
-	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
-	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
+	virtual void openFrameBox(const char* label)		{ fCtrl->opengroup( "framebox", tr(label)); }
+	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( "tabbox", tr(label)); }
+	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( "horizontalbox", tr(label)); }
+	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( "verticalbox", tr(label)); }
 	virtual void closeBox() 							{ fCtrl->closegroup(); }
 	
 	virtual void declare(float* , const char* key , const char* alias) 
