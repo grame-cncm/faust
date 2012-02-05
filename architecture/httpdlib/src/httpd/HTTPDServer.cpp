@@ -124,9 +124,9 @@ int HTTPDServer::answer (struct MHD_Connection *connection, const char *url, con
 	Message msg (url);
 	MHD_get_connection_values (connection, t, _get_params, &msg);
 	vector<Message*> outMsgs;
-//	cout << "got message: ";
-//	msg.print(cout);
-//	cout << endl;
+	cout << method << ": ";
+	msg.print(cout);
+	cout << endl;
 	fProcessor->processMessage (&msg, outMsgs);
 	if (outMsgs.size())
 		send (connection, outMsgs);
