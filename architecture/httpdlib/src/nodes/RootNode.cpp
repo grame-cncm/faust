@@ -47,7 +47,6 @@ bool RootNode::processMessage( const Message* msg, vector<Message*>& outMsg )
 //--------------------------------------------------------------------------
 bool RootNode::accept( const Message* msg, vector<Message*>& outMsg )
 {
-cout << "RootNode::accept" << endl;
 	string val;
 	// checks for the 'JSON' message first
 	if (msg->size() == 0) {
@@ -55,7 +54,6 @@ cout << "RootNode::accept" << endl;
 	}
 	else if ((msg->size() == 2) && (msg->param(0, val)) && (val == kJSONMsg) ) {
 		outMsg.push_back (new Message (fJson));
-cout << "send json" << endl;
 		// send the json description
 		return true;
 	}
