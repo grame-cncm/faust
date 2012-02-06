@@ -113,24 +113,19 @@ class Message
 
 	private:
 		std::string	fAddress;			///< the message destination address
+		std::string	fMIME;				///< the message MIME type
 		argslist	fArguments;			///< the message arguments
 	
 	public:
 			/*!
 				\brief an empty message constructor
 			*/
-			 Message() {}
+			 Message() : fMIME("text/plain") {}
 			/*!
 				\brief a message constructor
 				\param address the message destination address
 			*/
-			 Message(const std::string& address) : fAddress(address) {}
-			/*!
-				\brief a message constructor
-				\param address the message destination address
-				\param args the message parameters
-			*/
-			 Message(const std::string& address, const argslist& args) : fAddress(address), fArguments(args) {}
+			 Message(const std::string& address) : fAddress(address), fMIME("text/plain") {}
 
 	virtual ~Message() {}
 
@@ -151,6 +146,12 @@ class Message
 		\param addr the address
 	*/
 	void				setAddress(const std::string& addr)		{ fAddress = addr; }
+
+	/*!
+		\brief sets the message MIME type
+		\param mime the MIME type
+	*/
+	void				setMIMEType(const std::string& mime)	{ fMIME = mime; }
 	/*!
 		\brief print the message
 		\param out the output stream
@@ -159,6 +160,8 @@ class Message
 
 	/// \brief gives the message address
 	const std::string&	address() const		{ return fAddress; }
+	/// \brief gives the message address
+	const std::string&	mimetype() const	{ return fMIME; }
 	/// \brief gives the message parameters list
 	const argslist&		params() const		{ return fArguments; }
 	/// \brief gives the message parameters list
