@@ -7,13 +7,11 @@
 //-----------------------------------------------------------------------------
 function htmlslider(id, orientation, min, max, value, step, dest) {
 	var valId="v"+id;
-	var amax = 'a'+max;
-	var size = amax.length - 1
 	var html = "<input type='range' id='" + id
 		 	 + "' min=" + min + " max=" + max + " step=" + step + " value=" + value
 			 + " onchange='sliderhandler(\"" + dest + "\", this.value, \"#" + valId + "\")'>";
 	var text = "<input type='text' id='" + valId
-			 + "' value=" + value + " size=" + size
+			 + "' value=" + value + " size=6"
 			 + " onchange='sliderhandler(\"" + dest + "\", this.value, \"#" + id + "\")'>";
 	var out = new Array (html, text);
 	return out;

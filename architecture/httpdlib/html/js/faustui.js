@@ -15,12 +15,11 @@ function makeslider(id, orientation, min, max, value, step, sethandler, dest) {
 	slider.step 	= step;
 
 	var valId="v"+id;
-	var amax = 'a'+max;
 	var textval = document.createElement('input');
 	textval.id		= valId;
 	textval.type	= "text";
 	textval.value 	= value;
-	textval.size	= amax.length - 1;
+	textval.size	= 6;
 
 	textval.onchange = function(){ $( "#"+id ).val( this.value ); sethandler(dest, this.value); };
 	slider.onchange  = function(){ $( "#"+valId ).val( this.value ); sethandler(dest, this.value); };
