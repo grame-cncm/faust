@@ -41,6 +41,7 @@ typedef class SMARTP<RootNode>	SRootNode;
 class RootNode : public MessageDriven
 {
 	std::string fJson;
+	std::string fHtml;
 	
 	protected:
 				 RootNode(const char *name) : MessageDriven (name, "") {}
@@ -49,7 +50,8 @@ class RootNode : public MessageDriven
 	public:
 		static SRootNode create (const char* name) { return new RootNode(name); }
 
-		void			setJSON( const std::string& uidesc )		{ fJson = uidesc; }
+		void			setJSON( const std::string& uidesc )	{ fJson = uidesc; }
+		void			setHtml( const std::string& html )		{ fHtml = html; }
 		//--------------------------------------------------------------------------
 		bool			processMessage( const Message* msg, std::vector<Message*>& outMsg );
 		virtual bool	accept( const Message* msg, std::vector<Message*>& outMsg );
