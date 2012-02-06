@@ -4,8 +4,7 @@ body {
 	font-family :  Helvetica; 
 	font-size : 10pt; 
 	color: lightgrey;
-	margin-left: 2cm;
-	margin-right: 2cm;
+	margin: 1cm 1cm 1cm 1cm;
 }
 hr {
 	background-color: rgb(40,40,100);
