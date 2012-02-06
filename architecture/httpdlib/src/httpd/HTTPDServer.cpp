@@ -68,7 +68,6 @@ static int _get_params (void *cls, enum MHD_ValueKind kind, const char *key, con
 HTTPDServer::HTTPDServer(MessageProcessor* mp, int port)  
 	: fProcessor(mp), fPort(port), fServer(0) 
 {
-	cout << "HTTPDServer::HTTPDServe called with " << (void*)mp << endl;
 }
 
 HTTPDServer::~HTTPDServer() { stop(); }
@@ -133,7 +132,6 @@ int HTTPDServer::page (struct MHD_Connection *connection, const char * page)
 		delete[] buffer;
 	}
 	else {
-cout << "Warning - Page not found: " << page << endl;
 		ret = send (connection, "", 0, MHD_HTTP_NOT_FOUND);
 	}
 	return ret;
