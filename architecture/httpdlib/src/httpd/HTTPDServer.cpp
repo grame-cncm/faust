@@ -25,6 +25,8 @@
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
+#include <stdlib.h>
+#include <string.h>
 
 #include "HTTPDServer.h"
 #include "Message.h"
