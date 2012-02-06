@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <stdexcept>
 
 #include "HTTPDServer.h"
@@ -81,14 +82,14 @@ bool HTTPDServer::start(int port)
 }
 
 //--------------------------------------------------------------------------
-int HTTPDServer::send (struct MHD_Connection *connection, const char *page, int status)
+int HTTPDServer::send (struct MHD_Connection *connection, const char *page, const char* type, int status)
 {
 	struct MHD_Response *response = MHD_create_response_from_buffer (strlen (page), (void *) page, MHD_RESPMEM_PERSISTENT);
 	if (!response) {
 		cerr << "send error: null response\n";
 		return MHD_NO;
 	}
-	MHD_add_response_header (response, "Content-Type", "text/plain");
+	MHD_add_response_header (response, "Content-Type", type ? type : "text/plain");
 	int ret = MHD_queue_response (connection, status, response);
 	MHD_destroy_response (response);
 //cout << "send response " << page << " status: " << status << " ret=" << ret << endl;
@@ -96,15 +97,65 @@ int HTTPDServer::send (struct MHD_Connection *connection, const char *page, int 
 }
 
 //--------------------------------------------------------------------------
+const char* HTTPDServer::getMIMEType (const string& page)
+{
+	size_t n = page.find_last_of ('.');
+	if (n != string::npos) {
+		string ext = page.substr (n+1);
+		if (ext == "css")	return "text/css";
+		if (ext == "js")	return "application/javascript";
+	}
+	return "text/plain";		// default MIME type
+}
+
+//--------------------------------------------------------------------------
+int HTTPDServer::page (struct MHD_Connection *connection, const char * page)
+{
+	int ret = 0;
+	char * root =  getenv("FAUSTDocumentRoot");
+	string file = root ? root : ".";
+	file += page;
+	const char* type = getMIMEType (file);
+	fstream is (file.c_str(), ios_base::in);
+	if (is.is_open()) {
+		is.seekg (0, ios::end);
+		int length = is.tellg();
+		is.seekg (0, ios::beg);
+
+		// allocate memory:
+		char* buffer = new char [length+1];
+		// read data as a block:
+		is.read (buffer,length);
+		is.close();
+		buffer[length] = 0;
+//cout << "sending page " << page << " type: " << type << " length: " << length << endl;
+		ret = send (connection, buffer, type);
+		delete[] buffer;
+	}
+	else {
+cout << "Warning - Page not found: " << page << endl;
+		ret = send (connection, "", 0, MHD_HTTP_NOT_FOUND);
+	}
+	return ret;
+}
+
+//--------------------------------------------------------------------------
 int HTTPDServer::send (struct MHD_Connection *connection, std::vector<Message*> msgs)
 {
 	stringstream page;
+	string mime;
 	for (unsigned int i=0; i<msgs.size(); i++) {
+		string currentmime = msgs[i]->mimetype();
+		if (mime.size() && (currentmime != mime)) {					// check for mime type change
+			send (connection, page.str().c_str(), mime.c_str());	// send the current mime data
+			page.str("");											// and clear the stream
+		}
+		mime = currentmime;
 		msgs[i]->print( page);
 		page << endl;
 		delete msgs[i];
 	}
-	return send (connection, page.str().c_str());
+	return send (connection, page.str().c_str(), mime.c_str());
 }
 
 //--------------------------------------------------------------------------
@@ -118,7 +169,7 @@ int HTTPDServer::answer (struct MHD_Connection *connection, const char *url, con
 		string msg = "Method ";
 		msg += method;
 		msg += " is not supported";
-		return send (connection, msg.c_str(), MHD_HTTP_BAD_REQUEST);
+		return send (connection, msg.c_str(), 0, MHD_HTTP_BAD_REQUEST);
 	}
 
 	Message msg (url);
@@ -131,7 +182,7 @@ int HTTPDServer::answer (struct MHD_Connection *connection, const char *url, con
 	if (outMsgs.size())
 		send (connection, outMsgs);
 	else 
-		send (connection, "", MHD_HTTP_NOT_FOUND);
+		page (connection, url);
 	return MHD_YES;
 }
 
