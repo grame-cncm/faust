@@ -35,7 +35,7 @@ endif(APPLE AND (${CMAKE_GENERATOR} STREQUAL Xcode) )
 # set directories, src and headers.
 set (ROOT 			${CMAKE_CURRENT_SOURCE_DIR}/../src)
 set (LIBDIR 		${CMAKE_CURRENT_SOURCE_DIR}/../..)
-set (SRCFOLDERS 	lib include msg httpd nodes json)
+set (SRCFOLDERS 	lib include msg httpd nodes json html)
 
 set(SRC ${SRC} "${ROOT}/*.cpp")						# add source files
 foreach(folder ${SRCFOLDERS})
