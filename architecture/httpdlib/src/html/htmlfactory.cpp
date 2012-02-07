@@ -41,7 +41,7 @@ htmlfactory::htmlfactory(const char *name, const char* address, int port)
 void htmlfactory::addnode (const char* type, const char* label)
 {
 	string stype (type);
-	string url = fPage.getUrl() + fGroups.top() + "/";
+	string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
 	url += label;
 	stringstream id; id << "button" << fSerial++;	// computes slider id
 	if (stype == "button") {
@@ -61,7 +61,7 @@ void htmlfactory::addnode (const char* type, const char* label)
 
 void htmlfactory::addnode (const char* type, const char* label, float init, float min, float max, float step)
 {
-	string url = fPage.getUrl() + fGroups.top() + "/";
+	string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
 	url += label;
 	stringstream id; id << "slider" << fSerial++;	// computes slider id
 	string vid = "v"; vid += id.str();				// computes text value id
