@@ -12,6 +12,9 @@ FAUST=faust
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
+HTTPDINC=""
+QTDEFS=""
+HTTPDLIB=""
 
 
 #-------------------------------------------------------------------
@@ -44,6 +47,10 @@ for p in $@; do
 		OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
 		QTDEFS="DEFINES += OSCCTRL"
 		OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+	elif [ "$p" = "-httpd" ]; then
+		HTTPDINC="INCLUDEPATH+=/usr/local/lib/faust/httpdlib"
+		QTDEFS="DEFINES += HTTPCTRL"
+		HTTPDLIB="-lmicrohttpd -L/usr/local/lib/faust/httpdlib -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -83,7 +90,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-		qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
+		qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "$HTTPDINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices $OSCLIB $HTTPDLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
 		qmake $SPEC
         make
     ) > /dev/null #2>/dev/null
