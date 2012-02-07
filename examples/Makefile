@@ -199,6 +199,10 @@ iphonenet :
 	install -d iphonenetdir
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
+ios :
+	install -d iosdir
+	$(MAKE) DEST='iosdir/' ARCH='ios-coreaudio.cpp' LIB='' -f Makefile.ioscompile
+
 bench :
 	install -d benchdir
 	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' LIB='-I$(LIB)/faust/' -f Makefile.compile

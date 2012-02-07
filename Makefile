@@ -60,6 +60,10 @@ install :
 	cp -r architecture/VST $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/iPhone
 	cp -r architecture/iPhone $(prefix)/lib/faust/
+	rm -rf $(prefix)/lib/faust/iPhone/DerivedData/
+	rm -rf $(prefix)/lib/faust/iOS
+	cp -r architecture/iOS $(prefix)/lib/faust/
+	rm -rf $(prefix)/lib/faust/iOS/DerivedData/
 	cp -r architecture/audio $(prefix)/lib/faust/
 	cp -r architecture/gui $(prefix)/lib/faust/
 	cp architecture/osclib/lib*.a $(prefix)/lib/faust/osclib
