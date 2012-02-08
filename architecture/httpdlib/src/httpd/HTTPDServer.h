@@ -45,6 +45,7 @@ class HTTPDServer
 	MessageProcessor*	fProcessor;
 	int					fPort;
 	struct MHD_Daemon *	fServer;
+	bool				fDebug;
 	
 	int send (struct MHD_Connection *connection, std::vector<Message*> msgs);
 	int page (struct MHD_Connection *connection, const char *page);

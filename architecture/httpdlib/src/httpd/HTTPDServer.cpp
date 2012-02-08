@@ -68,8 +68,10 @@ static int _get_params (void *cls, enum MHD_ValueKind kind, const char *key, con
 }
 
 //--------------------------------------------------------------------------
+// the http server
+//--------------------------------------------------------------------------
 HTTPDServer::HTTPDServer(MessageProcessor* mp, int port)  
-	: fProcessor(mp), fPort(port), fServer(0) 
+	: fProcessor(mp), fPort(port), fServer(0), fDebug(false)
 {
 }
 
@@ -173,9 +175,11 @@ int HTTPDServer::answer (struct MHD_Connection *connection, const char *url, con
 	Message msg (url);
 	MHD_get_connection_values (connection, t, _get_params, &msg);
 	vector<Message*> outMsgs;
-	cout << method << ": ";
-	msg.print(cout);
-	cout << endl;
+	if (fDebug) {
+		cout << method << ": ";
+		msg.print(cout);
+		cout << endl;
+	}
 	fProcessor->processMessage (&msg, outMsgs);
 	if (outMsgs.size())
 		send (connection, outMsgs);
