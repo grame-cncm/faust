@@ -27,6 +27,7 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "HTTPDServer.h"
 #include "Message.h"
@@ -87,7 +88,7 @@ int HTTPDServer::send (struct MHD_Connection *connection, const char *page, cons
 {
 	struct MHD_Response *response = MHD_create_response_from_buffer (strlen (page), (void *) page, MHD_RESPMEM_PERSISTENT);
 	if (!response) {
-		cerr << "send error: null response\n";
+		cerr << "MHD_create_response_from_buffer error: null response\n";
 		return MHD_NO;
 	}
 	MHD_add_response_header (response, "Content-Type", type ? type : "text/plain");
@@ -117,21 +118,20 @@ int HTTPDServer::page (struct MHD_Connection *connection, const char * page)
 	string file = root ? root : ".";
 	file += page;
 	const char* type = getMIMEType (file);
-	fstream is (file.c_str(), ios_base::in);
-	if (is.is_open()) {
-		is.seekg (0, ios::end);
-		int length = is.tellg();
-		is.seekg (0, ios::beg);
 
-		// allocate memory:
-		char* buffer = new char [length+1];
-		// read data as a block:
-		is.read (buffer,length);
-		is.close();
-		buffer[length] = 0;
-//cout << "sending page " << page << " type: " << type << " length: " << length << endl;
-		ret = send (connection, buffer, type);
-		delete[] buffer;
+	int fd = open (file.c_str(), O_RDONLY);
+	if (fd != -1) {
+		int length = lseek(fd, 0, SEEK_END);
+		lseek(fd, 0, SEEK_SET);
+		
+		struct MHD_Response *response = MHD_create_response_from_fd (length, fd);
+		if (!response ) {
+			cerr << "MHD_create_response_from_fd error: null response\n";
+			return MHD_NO;
+		}
+		MHD_add_response_header (response, "Content-Type", type ? type : "text/plain");
+		ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
+		MHD_destroy_response (response);
 	}
 	else {
 		ret = send (connection, "", 0, MHD_HTTP_NOT_FOUND);
