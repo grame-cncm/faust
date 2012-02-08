@@ -50,7 +50,7 @@ bool RootNode::accept( const Message* msg, vector<Message*>& outMsg )
 {
 	string val;
 	// checks for the 'JSON' message first
-	if (msg->size() == 0) {
+	if ((msg->size() == 0) && (msg->address() == "/")) {
 		Message* msg = new Message (fHtml);
 		msg->setMIMEType ("text/html");
 		outMsg.push_back(msg);
