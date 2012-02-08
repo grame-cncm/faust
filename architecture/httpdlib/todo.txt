@@ -9,8 +9,9 @@
 ----------------------------------------------------------------------
 
 - correct host name management across platforms and systems
-- groups management
-- sound output streaming
+- UI groups management
 - define a strategy for FAUSTDocumentRoot
 - embed html folder in mac bundles
 
++
+- sound output streaming
