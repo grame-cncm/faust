@@ -43,8 +43,8 @@ namespace httpdfaust
 class htmlfactory
 {
 	std::stack<std::string>	fGroups;	///< maintains the current hierarchy level
-	htmlpage	fPage;			///< the resulting html page
-	int			fSerial;		///< for html unique ids
+	htmlpage	fPage;					///< the resulting html page
+	int			fSerial;				///< for html UI objects unique ids
 
 	public:
 				 htmlfactory(const char *name, const char* address, int port);

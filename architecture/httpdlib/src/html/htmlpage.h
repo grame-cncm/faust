@@ -38,9 +38,9 @@ namespace httpdfaust
 */
 class htmlpage : public std::stringstream
 {
-	std::string fName;
-	std::string fAddress;
-	int			fPort;
+	std::string fName;		// the faust program name
+	std::string fAddress;	// its address (DN or IP address)
+	int			fPort;		// the listening TCP port
 	
 	public:
 				 htmlpage(const char *name, const char* address, int port);
