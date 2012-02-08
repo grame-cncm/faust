@@ -63,8 +63,6 @@ void FaustNode::get (vector<Message*>& outMsg ) const
 {
 	Message * msg = new Message (getAddress());
 	msg->add (*fZone);
-	msg->add (fMapping.fMinOut);
-	msg->add (fMapping.fMaxOut);
 	outMsg.push_back(msg);
 }
 
