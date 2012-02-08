@@ -61,7 +61,7 @@ void htmlpage::print(std::ostream& out) const
 	out << "<table class='ui'>\n";
 	out << "<tr><td class='name'>karplus</td>\n";
 	out << "<td class='url'>" << fAddress << "</td>\n";
-	out << "<td class='port'>" << fPort << "</td>\n";
+	out << "<td class='port'>: " << fPort << "</td>\n";
 	out << "</tr>\n";
 	out << "<tr><td colspan=3 class='sep'><hr/></td></tr>\n";
 
