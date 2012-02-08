@@ -91,6 +91,7 @@ HTTPDControler::HTTPDControler (int argc, char *argv[], const char* applicationn
 	
 	string host, ip;
 	getNetInfos (host, ip);
+	if (host.find('.') == string::npos) host.clear();	// ignore non qualifed domain names and uses IP number
 	const char* hostname = host.size() ? host.c_str() : (ip.size() ? ip.c_str() : "localhost");
 	fJson = new jsonfactory(applicationname, hostname, fTCPPort);
 	fHtml = new htmlfactory(applicationname, hostname, fTCPPort);
