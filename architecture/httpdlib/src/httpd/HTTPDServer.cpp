@@ -80,13 +80,12 @@ bool HTTPDServer::start(int port)
 {
 	fServer = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, port, NULL, NULL, _answer_to_connection, this, MHD_OPTION_END);
 	return fServer != 0;
-//	if (!fServer) throw std::runtime_error("Starting MHD daemon error");
 }
 
 //--------------------------------------------------------------------------
 int HTTPDServer::send (struct MHD_Connection *connection, const char *page, const char* type, int status)
 {
-	struct MHD_Response *response = MHD_create_response_from_buffer (strlen (page), (void *) page, MHD_RESPMEM_PERSISTENT);
+	struct MHD_Response *response = MHD_create_response_from_buffer (strlen (page), (void *) page, MHD_RESPMEM_MUST_COPY);
 	if (!response) {
 		cerr << "MHD_create_response_from_buffer error: null response\n";
 		return MHD_NO;
@@ -94,7 +93,6 @@ int HTTPDServer::send (struct MHD_Connection *connection, const char *page, cons
 	MHD_add_response_header (response, "Content-Type", type ? type : "text/plain");
 	int ret = MHD_queue_response (connection, status, response);
 	MHD_destroy_response (response);
-//cout << "send response " << page << " status: " << status << " ret=" << ret << endl;
 	return ret;
 }
 
