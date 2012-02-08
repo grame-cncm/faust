@@ -46,14 +46,14 @@ void htmlfactory::addnode (const char* type, const char* label)
 	stringstream id; id << "button" << fSerial++;	// computes slider id
 	if (stype == "button") {
 		fPage << "<tr><td class='label'></td>\n";
-		fPage << "<td class='control'><button id='"<< id.str() 
+		fPage << "<td class='control'><button id='"<< id.str() << "' name='" << url
 			  << "' onmousedown='fausthandler(\"" << url << "\", 1)'"
 			  << " onmouseup='fausthandler(\"" << url << "\", 0)'>play</button></td>\n";
 		fPage << "<td class='value'></td>\n";
 	}
 	else if ((stype == "togglebutton") ||  (stype == "checkbutton")) {
 		fPage << "<tr><td class='label'></td>\n";
-		fPage << "<td class='control'><input type='checkbox' id='"<< id.str() 
+		fPage << "<td class='control'><input type='checkbox' id='"<< id.str() << "' name='" << url
 			  << "'  value=0 onchange='fausthandler(\"" << url << "\", this.value)'\n";
 		fPage << "<td class='value'></td>\n";
 	}
@@ -66,10 +66,10 @@ void htmlfactory::addnode (const char* type, const char* label, float init, floa
 	stringstream id; id << "slider" << fSerial++;	// computes slider id
 	string vid = "v"; vid += id.str();				// computes text value id
 	fPage << "<tr><td class='label'>" << label << "</td>\n";
-	fPage << "<td class='control'><input type='range' id='" << id.str() 
+	fPage << "<td class='control'><input type='range' id='" << id.str() << "' name='" << url
 		  << "' min=" << min << " max=" << max << " step=" << step << " value=" << init 
 		  << " onchange='sliderhandler(\"" << url << "\", this.value, \"#" << vid << "\")'></td>\n";
-	fPage << "<td class='value'><input type='text' id='" << vid << "' value=" << init << " size=6 "
+	fPage << "<td class='value'><input type='text' id='" << vid << "' name='" << url << "' value=" << init << " size=6 "
 		  << "onchange='sliderhandler(\"" << url << "\", this.value, \"#" << id.str() << "\")'></td>\n"
 		  << "</tr>\n";
 }
@@ -83,6 +83,8 @@ void htmlfactory::opengroup (const char* type, const char* label)
 	string path = fGroups.top() + "/";
 	path += label;
 	fGroups.push (path);
+	if (fGroups.size() == 2)		// first group: actually the address space root
+		fPage.setRoot (fGroups.top());
 }
 
 //--------------------------------------------------------------------------
