@@ -52,7 +52,7 @@ void htmlpage::print(std::ostream& out) const
 	out << "<html>\n<head>\n";
 	out << "	<link id='css' rel='stylesheet' type='text/css' href='css/style1.css' />\n";
 	out << "	<script src='js/jquery-1.7.1.min.js' language='javascript'></script>\n";
-	out << "	<script src='js/faustuihtml.js' language='javascript'></script>\n";
+	out << "	<script src='js/faust.js' language='javascript'></script>\n";
 	out << "	<title id=titre>" << fName << "</title>";
 	out << "</head>\n<body>\n";
 	out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','css/style'+num+'.css');}";
