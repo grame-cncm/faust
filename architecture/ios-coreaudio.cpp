@@ -249,20 +249,17 @@ OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
     TiPhoneCoreAudioRendererPtr renderer = (TiPhoneCoreAudioRendererPtr)inRefCon;
     AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fCAInputData);
 
-    float coef = float(LONG_MAX);
-    float inv_coef = 1.f/float(LONG_MAX);
-
     if (renderer->fHWNumInChans == 1) {
         // Mono ==> stereo
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
             for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = float(((int*)renderer->fCAInputData->mBuffers[0].mData)[frame]) * inv_coef;
+                renderer->fInChannel[chan][frame] = ((float*)renderer->fCAInputData->mBuffers[0].mData)[frame];
             }
         }
     } else {
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
             for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = float(((int*)renderer->fCAInputData->mBuffers[chan].mData)[frame]) * inv_coef;
+                renderer->fInChannel[chan][frame] = ((float*)renderer->fCAInputData->mBuffers[chan].mData)[frame];
             }
         }
     }
@@ -271,7 +268,7 @@ OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
 
     for (int chan = 0; chan < renderer->fDevNumOutChans; chan++) {
         for (int frame = 0; frame < inNumberFrames; frame++) {
-           ((long*)ioData->mBuffers[chan].mData)[frame] = long(renderer->fOutChannel[chan][frame] * coef);
+            ((float*)ioData->mBuffers[chan].mData)[frame] = float(renderer->fOutChannel[chan][frame]);
         }
     }
 
@@ -459,7 +456,7 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
         PrintStreamDesc(&srcFormat);
 
         srcFormat.mFormatID = kAudioFormatLinearPCM;
-        srcFormat.mFormatFlags = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;
+        srcFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
         srcFormat.mBytesPerPacket = sizeof(AudioUnitSampleType);
         srcFormat.mFramesPerPacket = 1;
         srcFormat.mBytesPerFrame = sizeof(AudioUnitSampleType);
@@ -485,7 +482,7 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
         PrintStreamDesc(&dstFormat);
 
         dstFormat.mFormatID = kAudioFormatLinearPCM;
-        dstFormat.mFormatFlags = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;
+        dstFormat.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
         dstFormat.mBytesPerPacket = sizeof(AudioUnitSampleType);
         dstFormat.mFramesPerPacket = 1;
         dstFormat.mBytesPerFrame = sizeof(AudioUnitSampleType);
@@ -528,8 +525,8 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     fCAInputData->mNumberBuffers = fDevNumInChans;
     for (int i = 0; i < fDevNumInChans; i++) {
         fCAInputData->mBuffers[i].mNumberChannels = 1;
-        fCAInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(int);
-        fCAInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(int));
+        fCAInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(float);
+        fCAInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(float));
     }
 
     return NO_ERR;
