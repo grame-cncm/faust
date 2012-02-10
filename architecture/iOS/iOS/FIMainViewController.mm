@@ -25,7 +25,8 @@
 @synthesize dspView = _dspView;
 
 TiPhoneCoreAudioRenderer* audio_device = NULL;
-UI* interface = NULL;
+CocoaUI* interface = NULL;
+FUI* finterface = NULL;
 MY_Meta metadata;
 char rcfilename[256];
 
@@ -49,6 +50,7 @@ char rcfilename[256];
     DSP.metadata(&metadata);
     
     interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
+    finterface = new FUI();
     audio_device = new TiPhoneCoreAudioRenderer(DSP.getNumInputs(), DSP.getNumOutputs());
     
     long srate = 44100;
@@ -62,7 +64,7 @@ char rcfilename[256];
     if (home == 0)
         home = ".";
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, name);
-    interface->recallState(rcfilename);
+    finterface->recallState(rcfilename);
     
     if (audio_device->Open(fpb, srate) < 0) {
         printf("Cannot open CoreAudio device\n");
@@ -78,6 +80,7 @@ char rcfilename[256];
     
 error:
     delete interface;
+    delete finterface;
     delete audio_device;
 }
 
@@ -120,13 +123,79 @@ error:
 
 - (void)dealloc
 {
-    interface->saveState(rcfilename);
+    finterface->saveState(rcfilename);
     
     audio_device->Stop();
     audio_device->Close();
     delete audio_device;
     delete interface;
     [super dealloc];
+}
+
+
+#pragma mark - DSP view
+
+
+// Sends corresponding uiItem subtype object to the UIReponder subtype object passed in argument
+// Sends NULL if nothing has been found
+
+template <typename T>
+T findCorrespondingUiItem(UIResponder* sender)
+{
+    list<uiItem*>::iterator i;
+    
+    // Loop on uiItem elements
+    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    {
+        // Does current uiItem match T ?
+        if (dynamic_cast<T>(*i) != nil)
+        {
+            // Test sender type
+            if (typeid(T) == typeid(uiSlider*))
+            {
+                if (sender == dynamic_cast<uiSlider*>(*i)->fSlider) return dynamic_cast<T>(*i);
+            }
+            else if (typeid(T) == typeid(uiButton*))
+            {
+                if (sender == dynamic_cast<uiButton*>(*i)->fButton) return dynamic_cast<T>(*i);
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+
+// User actions notifications
+// changed : from slider
+// pressed / released : from button
+
+- (void)changed:(id)sender
+{
+    uiSlider* slider = findCorrespondingUiItem<uiSlider*>((UIResponder*)sender);
+    if (slider)
+    {
+        slider->modifyZone((float)((UISlider*)sender).value);
+        [slider->fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", ((float)((UISlider*)sender).value)]];
+    }
+}
+
+- (void)pressed:(id)sender
+{
+    uiButton* button = findCorrespondingUiItem<uiButton*>((UIResponder*)sender);
+    if (button)
+    {
+        button->modifyZone(1.0f);
+    }
+}
+
+- (void)released:(id)sender
+{
+    uiButton* button = findCorrespondingUiItem<uiButton*>((UIResponder*)sender);
+    if (button)
+    {
+        button->modifyZone(0.0f);
+    }
 }
 
 

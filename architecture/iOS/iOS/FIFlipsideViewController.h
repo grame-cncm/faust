@@ -18,11 +18,16 @@
 
 #import <UIKit/UIKit.h>
 
+
 @class FIFlipsideViewController;
 
+
 @protocol FIFlipsideViewControllerDelegate
+
 - (void)flipsideViewControllerDidFinish:(FIFlipsideViewController *)controller;
+
 @end
+
 
 @interface FIFlipsideViewController : UIViewController
 
