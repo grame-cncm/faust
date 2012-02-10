@@ -129,6 +129,7 @@ error:
     audio_device->Close();
     delete audio_device;
     delete interface;
+    delete finterface;
     [super dealloc];
 }
 
