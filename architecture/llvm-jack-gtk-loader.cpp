@@ -1,32 +1,6 @@
 /* link with  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <math.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <pwd.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <gtk/gtk.h>
-#include <pthread.h>
-#include <sys/wait.h>
-#include <list>
-#include <vector>
-
-#include <iostream>
-#include <fstream>
-
 #include <libgen.h>
 #include <jack/jack.h>
-
-#include <iostream>
-#include <fstream>
-#include <ostream>
 
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>

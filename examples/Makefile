@@ -102,7 +102,7 @@ jackgtk :
 
 jackgtkllvm :
 	install -d jackgtkdirllvm
-	$(MAKE) DEST='jackgtkdirllvm/' ARCH='llvm-jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` `llvm-config --libs`' -f Makefile.llvmcompile
+	$(MAKE) DEST='jackgtkdirllvm/' ARCH='llvm-jack-gtk.cpp' LIB='-I$(LIB)/faust/ `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB) `llvm-config --ldflags --libs all`' -f Makefile.llvmcompile
 
 jackgtkocl :
 	install -d jackgtkdirocl
@@ -240,7 +240,7 @@ iphonenet :
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
 llvm-loader:
-	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --libs` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -o llvm-jack-gtk-loader
+	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` -o llvm-jack-gtk-loader
 
 #../architecture/scheduler.cpp 
 
