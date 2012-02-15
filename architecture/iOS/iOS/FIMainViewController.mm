@@ -212,11 +212,15 @@ T findCorrespondingUiItem(UIResponder* sender)
 
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate
 {     
+    finterface->saveState(rcfilename);
+    
     if (audio_device->Stop() < 0)
     {
         printf("Cannot stop CoreAudio device\n");
         goto error;
     }
+    
+    DSP.init(long(sampleRate));
     
     if (audio_device->SetParameters(bufferSize, sampleRate) < 0)
     {
@@ -224,12 +228,13 @@ T findCorrespondingUiItem(UIResponder* sender)
         goto error;
     }
     
-    
     if (audio_device->Start() < 0)
     {
         printf("Cannot start CoreAudio device\n");
         goto error;
     }
+    
+    finterface->recallState(rcfilename);
     
     return;
     
