@@ -18,6 +18,7 @@
 
 #import "FIMainViewController.h"
 #import "ios-faust.h"
+#import "FIFlipsideViewController.h"
 
 @implementation FIMainViewController
 
@@ -53,10 +54,17 @@ char rcfilename[256];
     finterface = new FUI();
     audio_device = new TiPhoneCoreAudioRenderer(DSP.getNumInputs(), DSP.getNumOutputs());
     
-    long srate = 44100;
-    int	fpb = 256;
+    int sampleRate = 0;
+    int	bufferSize = 0;
     
-    DSP.init(long(srate));
+    // Read user preferences
+    sampleRate = [[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
+    if (sampleRate == 0) sampleRate = 44100;
+    
+    bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
+    if (bufferSize == 0) bufferSize = 256;
+    
+    DSP.init(long(sampleRate));
 	DSP.buildUserInterface(interface);
     
     const char* home = getenv ("HOME");
@@ -66,7 +74,7 @@ char rcfilename[256];
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, name);
     finterface->recallState(rcfilename);
     
-    if (audio_device->Open(fpb, srate) < 0) {
+    if (audio_device->Open(bufferSize, sampleRate) < 0) {
         printf("Cannot open CoreAudio device\n");
         goto error;
     }
@@ -201,6 +209,33 @@ T findCorrespondingUiItem(UIResponder* sender)
 
 
 #pragma mark - Flipside View Controller
+
+- (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate
+{     
+    if (audio_device->Stop() < 0)
+    {
+        printf("Cannot stop CoreAudio device\n");
+        goto error;
+    }
+    
+    if (audio_device->SetParameters(bufferSize, sampleRate) < 0)
+    {
+        printf("Cannot set parameters to CoreAudio device\n");
+        goto error;
+    }
+    
+    
+    if (audio_device->Start() < 0)
+    {
+        printf("Cannot start CoreAudio device\n");
+        goto error;
+    }
+    
+    return;
+    
+error:
+    delete audio_device;
+}
 
 - (void)flipsideViewControllerDidFinish:(FIFlipsideViewController *)controller
 {

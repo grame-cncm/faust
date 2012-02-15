@@ -65,15 +65,84 @@
                                     </navigationItem>
                                 </items>
                             </navigationBar>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.0" maxValue="6" id="Kds-Fy-egu">
+                                <rect key="frame" x="18" y="101" width="284" height="23"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <action selector="sampleRateSliderMoved:" destination="5" eventType="valueChanged" id="xa0-bW-uL8"/>
+                                </connections>
+                            </slider>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="Zoc-vZ-s98">
+                                <rect key="frame" x="169" y="71" width="131" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Sample rate" lineBreakMode="tailTruncation" minimumFontSize="10" id="xzD-Qg-dA6">
+                                <rect key="frame" x="20" y="71" width="98" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.0" maxValue="7" id="dan-b9-bmY">
+                                <rect key="frame" x="18" y="198" width="284" height="23"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <action selector="bufferSizeSliderMoved:" destination="5" eventType="valueChanged" id="Otb-fB-bes"/>
+                                </connections>
+                            </slider>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="m0z-XB-fbo">
+                                <rect key="frame" x="169" y="168" width="131" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Buffer size" lineBreakMode="tailTruncation" minimumFontSize="10" id="MLn-cX-JGW">
+                                <rect key="frame" x="20" y="168" width="98" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <splitViewMasterSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <connections>
+                        <outlet property="_bufferSizeLabel" destination="m0z-XB-fbo" id="Uqm-Jo-cfT"/>
+                        <outlet property="_bufferSizeSlider" destination="dan-b9-bmY" id="4FT-Yu-Xy6"/>
+                        <outlet property="_sampleRateLabel" destination="Zoc-vZ-s98" id="LTR-c4-d0c"/>
+                        <outlet property="_sampleRateSlider" destination="Kds-Fy-egu" id="PbM-MO-KiP"/>
+                    </connections>
                 </viewController>
             </objects>
             <point key="canvasLocation" x="836" y="101"/>
         </scene>
     </scenes>
+    <classes>
+        <class className="FIFlipsideViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIFlipsideViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="bufferSizeSliderMoved:"/>
+                <relationship kind="action" name="done:"/>
+                <relationship kind="action" name="sampleRateSliderMoved:"/>
+                <relationship kind="outlet" name="_bufferSizeLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_bufferSizeSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="_sampleRateLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_sampleRateSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="delegate"/>
+            </relationships>
+        </class>
+        <class className="FIMainViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIMainViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="_dspView" candidateClass="UIScrollView"/>
+            </relationships>
+        </class>
+    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
         <simulatedOrientationMetrics key="orientation"/>

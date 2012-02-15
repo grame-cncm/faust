@@ -30,9 +30,28 @@
 
 
 @interface FIFlipsideViewController : UIViewController
+{
+    IBOutlet UISlider*              _sampleRateSlider;
+    IBOutlet UILabel*               _sampleRateLabel;
+    IBOutlet UISlider*              _bufferSizeSlider;
+    IBOutlet UILabel*               _bufferSizeLabel;
+    
+    int                             _sampleRate;
+    int                             _bufferSize;
+}
 
 @property (assign, nonatomic) IBOutlet id <FIFlipsideViewControllerDelegate> delegate;
+@property (nonatomic, nonatomic) int sampleRate;
+@property (nonatomic, nonatomic) int bufferSize;
+
 
 - (IBAction)done:(id)sender;
+- (IBAction)sampleRateSliderMoved:(id)sender;
+- (IBAction)bufferSizeSliderMoved:(id)sender;
+
+- (int)sampleRateToSliderValue:(int)sampleRate;
+- (int)sliderValueToSampleRate:(int)sliderValue;
+- (int)bufferSizeToSliderValue:(int)bufferSize;
+- (int)sliderValueToBufferSize:(int)sliderValue;
 
 @end

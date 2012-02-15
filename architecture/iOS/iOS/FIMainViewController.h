@@ -27,4 +27,6 @@
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
 @property (assign, nonatomic) UIScrollView* dspView;
 
+- (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+
 @end
