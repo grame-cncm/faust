@@ -19,6 +19,7 @@
 #import "FIMainViewController.h"
 #import "ios-faust.h"
 #import "FIFlipsideViewController.h"
+#import "FIAppDelegate.h"
 
 @implementation FIMainViewController
 
@@ -48,6 +49,8 @@ char rcfilename[256];
 {
     [super viewDidLoad];
     
+    ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
+    
     DSP.metadata(&metadata);
     
     interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
@@ -66,6 +69,7 @@ char rcfilename[256];
     
     DSP.init(long(sampleRate));
 	DSP.buildUserInterface(interface);
+    DSP.buildUserInterface(finterface);
     
     const char* home = getenv ("HOME");
     const char* name = (*metadata.find("name")).second;
@@ -73,13 +77,16 @@ char rcfilename[256];
         home = ".";
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, name);
     finterface->recallState(rcfilename);
+    [self updateGui];
     
-    if (audio_device->Open(bufferSize, sampleRate) < 0) {
+    if (audio_device->Open(bufferSize, sampleRate) < 0)
+    {
         printf("Cannot open CoreAudio device\n");
         goto error;
     }
     
-    if (audio_device->Start() < 0) {
+    if (audio_device->Start() < 0)
+    {
         printf("Cannot start CoreAudio device\n");
         goto error;
     }
@@ -144,7 +151,6 @@ error:
 
 #pragma mark - DSP view
 
-
 // Sends corresponding uiItem subtype object to the UIReponder subtype object passed in argument
 // Sends NULL if nothing has been found
 
@@ -207,11 +213,26 @@ T findCorrespondingUiItem(UIResponder* sender)
     }
 }
 
+- (void)saveGui
+{
+    finterface->saveState(rcfilename);
+}
+
+- (void)updateGui
+{
+    list<uiItem*>::iterator i;
+    
+    // Loop on uiItem elements
+    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    {
+        (*i)->reflectZone();
+    }
+}
 
 #pragma mark - Flipside View Controller
 
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate
-{     
+{
     finterface->saveState(rcfilename);
     
     if (audio_device->Stop() < 0)

@@ -28,5 +28,7 @@
 @property (assign, nonatomic) UIScrollView* dspView;
 
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+- (void)saveGui;
+- (void)updateGui;
 
 @end

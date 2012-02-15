@@ -21,7 +21,11 @@
 @class FIMainViewController;
 
 @interface FIAppDelegate : UIResponder <UIApplicationDelegate>
+{
+    FIMainViewController*       _mainViewController;
+}
 
 @property (strong, nonatomic) UIWindow* window;
+@property (assign, nonatomic) FIMainViewController* mainViewController;
 
 @end
