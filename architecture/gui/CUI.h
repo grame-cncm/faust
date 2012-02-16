@@ -1,6 +1,10 @@
 #ifndef FAUST_CUI_H
 #define FAUST_CUI_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*******************************************************************************
  * CUI : Faust User Interface for C generated code.
  ******************************************************************************/
@@ -61,6 +65,10 @@ typedef struct {
     metaDeclareFun declare;
 
 } MetaGlue;
+
+#ifdef __cplusplus
+}
+#endif
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 #define min(x,y) (((x)<(y)) ? (x) : (y))
