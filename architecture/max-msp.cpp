@@ -61,7 +61,7 @@
 #include "audio/dsp.h"
 #include "misc.h"
 
-using namespace std ;
+using namespace std;
 
 // There is a bug with powf() when cross compiling with mingw
 // the following macro avoid the problem
@@ -204,11 +204,7 @@ class mspToggleButton : public mspUIObject {
 
 		void toString(char* buffer)
 		{
-		#ifdef WIN32
             sprintf(buffer, "ToggleButton(float): %s", fLabel.c_str());
-		#else
-			std::sprintf(buffer, "ToggleButton(float): %s", fLabel.c_str());
-		#endif
 		}
 };
 
@@ -222,11 +218,7 @@ class mspCheckButton : public mspUIObject {
 
 		void toString(char* buffer)
 		{
-		#ifdef WIN32
             sprintf(buffer, "CheckButton(float): %s", fLabel.c_str());
-		#else
-			std::sprintf(buffer, "CheckButton(float): %s", fLabel.c_str());
-		#endif
 		}
 };
 
@@ -240,11 +232,7 @@ class mspButton : public mspUIObject {
 
 		void toString(char* buffer)
 		{
-		#ifdef WIN32
             sprintf(buffer, "Button(float): %s", fLabel.c_str());
-		#else
-			std::sprintf(buffer, "Button(float): %s", fLabel.c_str());
-		#endif
 		}
 };
 
@@ -266,11 +254,7 @@ class mspSlider : public mspUIObject{
 
 		void toString(char* buffer)
 		{
-		#ifdef WIN32
             sprintf(buffer, "Slider(float): %s [%.1f:%.1f:%.1f]", fLabel.c_str(), fMin, fInit, fMax);
-		#else
-			std::sprintf(buffer, "Slider(float): %s [%.1f:%.1f:%.1f]", fLabel.c_str(), fMin, fInit, fMax);
-		#endif
 		}
 
 		void SetValue(double f) {*fZone = range(fMin,fMax,f);}
@@ -380,17 +364,9 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
     if (msg == ASSIST_INLET) {
         if (a == 0) {
             if (x->dsp->getNumInputs() == 0) {
-			#ifdef WIN32
                 sprintf(dst, "(signal) : Unused Input");
-			#else
-				std::sprintf(dst, "(signal) : Unused Input");
-			#endif
             } else {
-			#ifdef WIN32
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-			#else
-				std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-			#endif
 			}
 			post((char*)"------------------");
 			for (mspUI::iterator it = x->dspUI->begin(); it != x->dspUI->end(); ++it) {
@@ -399,18 +375,10 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 				post(param);
 			}
         } else if (a < x->dsp->getNumInputs()) {
-		#ifdef WIN32
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-		#else
-			std::sprintf(dst, "(signal) : Audio Input %ld", (a+1));
-		#endif
         }
     } else if (msg == ASSIST_OUTLET) {
-	#ifdef WIN32
         sprintf(dst, "(signal) : Audio Output %ld", (a+1));
-	#else
-		std::sprintf(dst, "(signal) : Audio Output %ld", (a+1));
-	#endif
     }
 }
 
