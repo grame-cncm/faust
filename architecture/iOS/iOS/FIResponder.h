@@ -16,31 +16,36 @@
  ************************************************************************
  ************************************************************************/
 
-#import "FIFlipsideViewController.h"
-#import "FIResponder.h"
+#import <UIKit/UIKit.h>
 
-@interface FIMainViewController : UIViewController <    FIFlipsideViewControllerDelegate,
-                                                        UIPopoverControllerDelegate,
-                                                        FIResponderDelegate>
-{
-    IBOutlet UIScrollView*          _dspView;
-    IBOutlet UILabel*               _titleLabel;            // iPhone
-    IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
-}
+@protocol FIResponderDelegate <NSObject>
 
-@property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
-@property (assign, nonatomic) UIScrollView* dspView;
+@required
 
-// DSP view
 - (void)responderValueDidChange:(float)value sender:(id)sender;
-- (void)saveGui;
-- (void)updateGui;
 
-// Misc GUI
-- (void)orientationChanged:(NSNotification *)notification;
-- (void)displayTitle;
+@end
 
-// Audio
-- (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+
+@interface FIResponder : UIView
+
+@property (nonatomic, assign) id delegate;
+@property (nonatomic, retain) UIColor *color;			// default: black
+@property CGFloat backgroundColorAlpha;					// default: 0.3
+
+@property (nonatomic, retain) UIFont *labelFont;		// default: bold, system, 12.5
+@property (nonatomic, retain) UIColor *labelColor;		// default: use self.color
+@property CGPoint labelOffset;							// default: CGPointZero
+
+@property CGFloat min;									// default: 0.0
+@property CGFloat max;									// default: 1.0
+@property (nonatomic) CGFloat value;					// default: 0.0
+
+@property BOOL displaysValue;							// default: YES
+@property BOOL allowsGestures;							// default: YES
+
+- (id)initWithDelegate:(id)aDelegate;
+
+- (void)context:(CGContextRef)context addRoundedRect:(CGRect)rect cornerRadius:(float)cornerRadius;
 
 @end

@@ -14,7 +14,7 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="fZt-lk-p4g">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="460"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="414"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             </scrollView>
                             <button opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="infoLight" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" id="10">
@@ -32,11 +32,19 @@
                                     <segue destination="6" kind="modal" identifier="showAlternate" modalTransitionStyle="flipHorizontal" id="11"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" lineBreakMode="tailTruncation" minimumFontSize="10" id="d0p-QQ-rUB">
+                                <rect key="frame" x="20" y="422" width="254" height="21"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
-                        <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" cocoaTouchSystemColor="darkTextColor"/>
                     </view>
                     <connections>
                         <outlet property="_dspView" destination="fZt-lk-p4g" id="Gh2-X8-aRv"/>
+                        <outlet property="_titleLabel" destination="d0p-QQ-rUB" id="MHx-ti-iZN"/>
                         <outlet property="view" destination="3" id="I0f-qd-cZb"/>
                     </connections>
                 </viewController>
@@ -121,6 +129,29 @@
             <point key="canvasLocation" x="368" y="182"/>
         </scene>
     </scenes>
+    <classes>
+        <class className="FIFlipsideViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIFlipsideViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="bufferSizeSliderMoved:"/>
+                <relationship kind="action" name="done:"/>
+                <relationship kind="action" name="sampleRateSliderMoved:"/>
+                <relationship kind="outlet" name="_bufferSizeLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_bufferSizeSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="_sampleRateLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_sampleRateSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="delegate"/>
+            </relationships>
+        </class>
+        <class className="FIMainViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIMainViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="_dspView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="_titleLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_titleNavigationItem" candidateClass="UINavigationItem"/>
+            </relationships>
+        </class>
+    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>

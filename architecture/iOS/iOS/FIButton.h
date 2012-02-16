@@ -16,31 +16,19 @@
  ************************************************************************
  ************************************************************************/
 
-#import "FIFlipsideViewController.h"
 #import "FIResponder.h"
 
-@interface FIMainViewController : UIViewController <    FIFlipsideViewControllerDelegate,
-                                                        UIPopoverControllerDelegate,
-                                                        FIResponderDelegate>
+@interface FIButton : FIResponder
 {
-    IBOutlet UIScrollView*          _dspView;
-    IBOutlet UILabel*               _titleLabel;            // iPhone
-    IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
+	CGFloat touchHandleOffset;
 }
 
-@property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
-@property (assign, nonatomic) UIScrollView* dspView;
+@property CGFloat cornerRadius;				// default: 3.0
+@property (assign, nonatomic) NSString* title;
 
-// DSP view
-- (void)responderValueDidChange:(float)value sender:(id)sender;
-- (void)saveGui;
-- (void)updateGui;
+- (id)initWithDelegate:(id)aDelegate;
 
-// Misc GUI
-- (void)orientationChanged:(NSNotification *)notification;
-- (void)displayTitle;
-
-// Audio
-- (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 
 @end

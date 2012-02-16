@@ -35,6 +35,7 @@
                     </view>
                     <connections>
                         <outlet property="_dspView" destination="DYz-Ul-ted" id="6UA-jj-ROu"/>
+                        <outlet property="_titleNavigationItem" destination="14" id="cHE-VL-RhB"/>
                         <outlet property="view" destination="8" id="oQM-4B-TUr"/>
                         <segue destination="5" kind="popover" identifier="showAlternate" popoverAnchorBarButtonItem="15" id="22">
                             <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
@@ -56,7 +57,7 @@
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <items>
-                                    <navigationItem title="Title" id="18">
+                                    <navigationItem title="Preferences" id="18">
                                         <barButtonItem key="leftBarButtonItem" systemItem="done" id="19">
                                             <connections>
                                                 <action selector="done:" destination="5" id="21"/>
@@ -122,27 +123,6 @@
             <point key="canvasLocation" x="836" y="101"/>
         </scene>
     </scenes>
-    <classes>
-        <class className="FIFlipsideViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIFlipsideViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="bufferSizeSliderMoved:"/>
-                <relationship kind="action" name="done:"/>
-                <relationship kind="action" name="sampleRateSliderMoved:"/>
-                <relationship kind="outlet" name="_bufferSizeLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_bufferSizeSlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="_sampleRateLabel" candidateClass="UILabel"/>
-                <relationship kind="outlet" name="_sampleRateSlider" candidateClass="UISlider"/>
-                <relationship kind="outlet" name="delegate"/>
-            </relationships>
-        </class>
-        <class className="FIMainViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIMainViewController.h"/>
-            <relationships>
-                <relationship kind="outlet" name="_dspView" candidateClass="UIScrollView"/>
-            </relationships>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
         <simulatedOrientationMetrics key="orientation"/>

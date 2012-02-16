@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		650C53BB14DC389100C1C7FF /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 650C53BA14DC389100C1C7FF /* icon.png */; };
+		6566748A14ED30F000172A10 /* FIButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748514ED30F000172A10 /* FIButton.mm */; };
+		6566748B14ED30F000172A10 /* FIResponder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748714ED30F000172A10 /* FIResponder.mm */; };
+		6566748C14ED30F000172A10 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
 		65E5ED9314DB037D00136CFC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9214DB037D00136CFC /* UIKit.framework */; };
 		65E5ED9514DB037D00136CFC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9414DB037D00136CFC /* Foundation.framework */; };
 		65E5ED9714DB037D00136CFC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9614DB037D00136CFC /* CoreGraphics.framework */; };
@@ -38,6 +41,12 @@
 
 /* Begin PBXFileReference section */
 		650C53BA14DC389100C1C7FF /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		6566748414ED30F000172A10 /* FIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIButton.h; sourceTree = "<group>"; };
+		6566748514ED30F000172A10 /* FIButton.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIButton.mm; sourceTree = "<group>"; };
+		6566748614ED30F000172A10 /* FIResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIResponder.h; sourceTree = "<group>"; };
+		6566748714ED30F000172A10 /* FIResponder.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIResponder.mm; sourceTree = "<group>"; };
+		6566748814ED30F000172A10 /* FISlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISlider.h; sourceTree = "<group>"; };
+		6566748914ED30F000172A10 /* FISlider.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISlider.mm; sourceTree = "<group>"; };
 		65E5ED8E14DB037D00136CFC /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E5ED9214DB037D00136CFC /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		65E5ED9414DB037D00136CFC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -132,6 +141,12 @@
 				65E5EDAD14DB037D00136CFC /* FIFlipsideViewController.h */,
 				65E5EDAE14DB037D00136CFC /* FIFlipsideViewController.mm */,
 				65F8C2DF14DBD59C0042E3FA /* FICocoaUI.h */,
+				6566748614ED30F000172A10 /* FIResponder.h */,
+				6566748714ED30F000172A10 /* FIResponder.mm */,
+				6566748414ED30F000172A10 /* FIButton.h */,
+				6566748514ED30F000172A10 /* FIButton.mm */,
+				6566748814ED30F000172A10 /* FISlider.h */,
+				6566748914ED30F000172A10 /* FISlider.mm */,
 				65F8C2E814DBEA410042E3FA /* ios-faust.h */,
 				65E5EDA414DB037D00136CFC /* MainStoryboard_iPhone.storyboard */,
 				65E5EDA714DB037D00136CFC /* MainStoryboard_iPad.storyboard */,
@@ -282,6 +297,9 @@
 				65E5EDA314DB037D00136CFC /* FIAppDelegate.mm in Sources */,
 				65E5EDAC14DB037D00136CFC /* FIMainViewController.mm in Sources */,
 				65E5EDAF14DB037D00136CFC /* FIFlipsideViewController.mm in Sources */,
+				6566748A14ED30F000172A10 /* FIButton.mm in Sources */,
+				6566748B14ED30F000172A10 /* FIResponder.mm in Sources */,
+				6566748C14ED30F000172A10 /* FISlider.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

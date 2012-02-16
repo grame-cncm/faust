@@ -57,6 +57,8 @@ char rcfilename[256];
     finterface = new FUI();
     audio_device = new TiPhoneCoreAudioRenderer(DSP.getNumInputs(), DSP.getNumOutputs());
     
+    [self displayTitle];
+    
     int sampleRate = 0;
     int	bufferSize = 0;
     
@@ -91,6 +93,10 @@ char rcfilename[256];
         goto error;
     }
     
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
+                                                 name:UIDeviceOrientationDidChangeNotification object:nil];
+
     return;
     
 error:
@@ -138,6 +144,9 @@ error:
 
 - (void)dealloc
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+
     finterface->saveState(rcfilename);
     
     audio_device->Stop();
@@ -155,7 +164,7 @@ error:
 // Sends NULL if nothing has been found
 
 template <typename T>
-T findCorrespondingUiItem(UIResponder* sender)
+T findCorrespondingUiItem(FIResponder* sender)
 {
     list<uiItem*>::iterator i;
     
@@ -182,35 +191,29 @@ T findCorrespondingUiItem(UIResponder* sender)
 
 
 // User actions notifications
-// changed : from slider
-// pressed / released : from button
 
-- (void)changed:(id)sender
-{
-    uiSlider* slider = findCorrespondingUiItem<uiSlider*>((UIResponder*)sender);
-    if (slider)
+- (void)responderValueDidChange:(float)value sender:(id)sender
+{    
+    if ([sender isKindOfClass:[FISlider class]])
     {
-        slider->modifyZone((float)((UISlider*)sender).value);
-        [slider->fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", ((float)((UISlider*)sender).value)]];
+        uiSlider* slider = findCorrespondingUiItem<uiSlider*>((FIResponder*)sender);
+        if (slider)
+        {
+            slider->modifyZone((float)((FISlider*)sender).value);
+            //[slider->fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", ((float)((UISlider*)sender).value)]];
+        }
     }
-}
-
-- (void)pressed:(id)sender
-{
-    uiButton* button = findCorrespondingUiItem<uiButton*>((UIResponder*)sender);
-    if (button)
+    else if ([sender isKindOfClass:[FIButton class]])
     {
-        button->modifyZone(1.0f);
+        uiButton* button = findCorrespondingUiItem<uiButton*>((FIResponder*)sender);
+        if (button)
+        {
+            button->modifyZone((float)((FISlider*)sender).value);
+            //[slider->fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", ((float)((UISlider*)sender).value)]];
+        }
     }
-}
-
-- (void)released:(id)sender
-{
-    uiButton* button = findCorrespondingUiItem<uiButton*>((UIResponder*)sender);
-    if (button)
-    {
-        button->modifyZone(0.0f);
-    }
+    else NSLog(@"UIItem not implemented yet :)");
+    
 }
 
 - (void)saveGui
@@ -229,7 +232,51 @@ T findCorrespondingUiItem(UIResponder* sender)
     }
 }
 
-#pragma mark - Flipside View Controller
+
+#pragma mark - Misc GUI
+
+- (void)orientationChanged:(NSNotification *)notification
+{
+    [self updateGui];
+}
+
+- (void)displayTitle
+{
+    NSString*       titleString = nil;
+    
+    if (*metadata.find("name") != *metadata.end())
+    {
+        const char* name = (*metadata.find("name")).second;
+        titleString = [[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding];
+    }
+    
+    if (*metadata.find("author") != *metadata.end())
+    {
+        const char* name = (*metadata.find("author")).second;
+        if (titleString)
+        {
+            titleString = [titleString stringByAppendingFormat:@" | %s", name];
+        }
+        else
+        {
+            titleString = [[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding];
+        }
+    }
+    
+    if (!titleString) titleString = [[NSString alloc] initWithString:@"Faust | Grame"];
+    
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+    {
+        _titleLabel.text = titleString;
+    }
+    else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+    {
+        _titleNavigationItem.title = titleString;
+    }
+}
+
+
+#pragma mark - Audio
 
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate
 {
@@ -262,6 +309,9 @@ T findCorrespondingUiItem(UIResponder* sender)
 error:
     delete audio_device;
 }
+
+
+#pragma mark - Flipside View Controller
 
 - (void)flipsideViewControllerDidFinish:(FIFlipsideViewController *)controller
 {

@@ -45,6 +45,9 @@
 #include <list>
 #include <map>
 
+#import "FISlider.h"
+#import "FIButton.h"
+
 using namespace std;
 
 /******************************************************************************
@@ -64,7 +67,7 @@ using namespace std;
 
 
 #define WIDGET_SLICE    50.f
-#define OFFSET_Y        80.f
+#define OFFSET_Y        20.f
 
 #define SCREEN_WIDTH    320
 #define SCREEN_HEIGHT   480
@@ -91,50 +94,49 @@ public:
 
 class uiSlider : public uiCocoaItem
 {
-    public :
+
+public :
     
-    UISlider* fSlider;
-    UITextField* fTextField;
+    FISlider* fSlider;
     
-    uiSlider(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step)
+    uiSlider(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller)
     {
-        CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 130.0, 30.0);
+        float viewWidth = controller.dspView.frame.size.width;
+        
+        CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, 30.0);
         UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
         [label setFont:[UIFont boldSystemFontOfSize:12]];
-        label.textAlignment = UITextAlignmentCenter;
+        label.textAlignment = UITextAlignmentRight;
         [label setText:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding]];
-        label.textColor = [UIColor blackColor ];
-        label.backgroundColor = [UIColor lightGrayColor];
+        label.textColor = [UIColor whiteColor];
+        label.backgroundColor = [UIColor blackColor];
         [controller.dspView addSubview:label];
         
-        CGRect frame = CGRectMake(130.0f, OFFSET_Y + WIDGET_SLICE * index, 110.0f, 7.0f);
-        fSlider = [[UISlider alloc] initWithFrame:frame];
-        [fSlider addTarget:mainViewController action:@selector(changed:)forControlEvents:UIControlEventValueChanged];
-        fSlider.minimumValue = min;
-        fSlider.maximumValue = max;
-        fSlider.continuous = YES;
+        fSlider = [[[FISlider alloc] initWithDelegate:controller] autorelease];
+        if ((fSlider.isHorizontalSlider = horizontal))
+        {
+            fSlider.frame = CGRectMake(85.0f, OFFSET_Y + WIDGET_SLICE * index, viewWidth - 85.0f - 5.f, 20.0f);
+        }
+        else
+        {
+            fSlider.frame = CGRectMake(85.0f, OFFSET_Y + WIDGET_SLICE * index, 20.0f, 170.0f);
+        }
+        fSlider.labelFont = [UIFont boldSystemFontOfSize:14.0];
+        fSlider.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
+        fSlider.color = [UIColor blueColor];
+        fSlider.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
+        fSlider.min = min;
+        fSlider.max = max;
         fSlider.value = init;
+        fSlider.backgroundColorAlpha = 0.4;
+        fSlider.handleSize = 50;
         [controller.dspView addSubview:fSlider];
-        
-        CGRect textFieldFrame = CGRectMake(250.0, OFFSET_Y + WIDGET_SLICE * index, 60.0, 20.0);
-        fTextField = [[UITextField alloc] initWithFrame:textFieldFrame];
-        [fTextField setBorderStyle:UITextBorderStyleLine];
-        fTextField.textAlignment = UITextAlignmentCenter;
-        [fTextField setEnabled:NO];
-        [fTextField setTextColor:[UIColor blackColor]];
-        [fTextField setFont:[UIFont systemFontOfSize:14]];
-        [fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", init]];
-        [fTextField setBackgroundColor:[UIColor whiteColor]];
-        [fTextField setAdjustsFontSizeToFitWidth:YES];
-        fTextField.keyboardType = UIKeyboardTypeNumbersAndPunctuation;
-        [controller.dspView addSubview:fTextField];
     }
     
     ~uiSlider()
     {
         [fSlider release];
-        [fTextField release];
     }
     
     void reflectZone()
@@ -142,7 +144,6 @@ class uiSlider : public uiCocoaItem
         float v = *fZone;
         fCache = v;
         fSlider.value = v;
-        [fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", v]];
     }
     
 };
@@ -157,17 +158,19 @@ class uiButton : public uiCocoaItem
 {
 public:
     
-    UIButton* fButton;
+    FIButton* fButton;
     
     uiButton(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone)
     : uiCocoaItem(ui, zone, controller)
     {
-        fButton = [[UIButton buttonWithType:UIButtonTypeRoundedRect] retain];
-		fButton.frame = CGRectMake(SCREEN_WIDTH/2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight);
-        [fButton setTitle:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding] forState:UIControlStateNormal];
-		fButton.backgroundColor = [UIColor clearColor];
-	    [fButton addTarget:controller action:@selector(pressed:) forControlEvents:UIControlEventTouchDown];
-        [fButton addTarget:controller action:@selector(released:) forControlEvents:UIControlEventTouchUpInside];
+        float viewWidth = controller.dspView.frame.size.width;
+        
+        fButton = [[[FIButton alloc] initWithDelegate:controller] autorelease];
+		fButton.frame = CGRectMake(viewWidth / 2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight);
+        fButton.title = [[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding];
+		fButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
+        fButton.labelColor = [UIColor whiteColor];
+        fButton.backgroundColorAlpha = 0.4;
         [controller.dspView addSubview:fButton];
     }
     
@@ -252,7 +255,10 @@ public:
         fWindow = window;
         fMetadata = metadata;
         
-        CGRect titleFrame = CGRectMake(0.0, 0.0f, 320.0, 75.0);
+        fViewController.dspView.backgroundColor = [UIColor blackColor];
+        fViewController.dspView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+        
+        /*CGRect titleFrame = CGRectMake(0.0, 0.0f, 320.0, 75.0);
         UIView *titleView = [[UIView alloc] initWithFrame:titleFrame];
         titleView.backgroundColor = [UIColor brownColor];
         [fViewController.dspView addSubview:titleView];
@@ -279,7 +285,7 @@ public:
             label.textColor = [UIColor blackColor ];
             label.backgroundColor = [UIColor brownColor];
             [fViewController.dspView addSubview:label];
-        }
+        }*/
         
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];
@@ -329,12 +335,12 @@ public:
     {}
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step);
+        uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
         insert(label, item);
     }
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step);
+        uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
         insert(label, item);
     }
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)

@@ -16,31 +16,23 @@
  ************************************************************************
  ************************************************************************/
 
-#import "FIFlipsideViewController.h"
 #import "FIResponder.h"
 
-@interface FIMainViewController : UIViewController <    FIFlipsideViewControllerDelegate,
-                                                        UIPopoverControllerDelegate,
-                                                        FIResponderDelegate>
+@interface FISlider : FIResponder
 {
-    IBOutlet UIScrollView*          _dspView;
-    IBOutlet UILabel*               _titleLabel;            // iPhone
-    IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
+	CGFloat touchHandleOffset;
 }
 
-@property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
-@property (assign, nonatomic) UIScrollView* dspView;
+@property CGFloat handleSize;				// default: longest side / 6 (minimum of 35.0)
+@property CGFloat cornerRadius;				// default: 3.0
+@property BOOL isHorizontalSlider;			// default: NO
+@property BOOL biDirectional;				// default: NO
 
-// DSP view
-- (void)responderValueDidChange:(float)value sender:(id)sender;
-- (void)saveGui;
-- (void)updateGui;
+- (id)initWithDelegate:(id)aDelegate;
 
-// Misc GUI
-- (void)orientationChanged:(NSNotification *)notification;
-- (void)displayTitle;
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
 
-// Audio
-- (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+- (CGRect)rectForHandle;
 
 @end
