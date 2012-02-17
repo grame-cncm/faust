@@ -57,7 +57,7 @@
 #include <unistd.h>
 #endif
 
-#include "gui/GUI.h"
+#include "gui/UI.h"
 #include "audio/dsp.h"
 #include "misc.h"
 
@@ -105,7 +105,6 @@ inline double 	max(long a, double b) 		{ return (a>b) ? a : b; }
 inline double 	max(double a, long b) 		{ return (a>b) ? a : b; }
 inline double 	max(float a, double b)      { return (a>b) ? a : b; }
 inline double 	max(double a, float b)      { return (a>b) ? a : b; }
-
 
 inline int 		min(int a, int b) 			{ return (a<b) ? a : b; }
 
@@ -165,7 +164,7 @@ class mspUI;
 typedef struct faust
 {
 	t_pxobject m_ob;
-	t_atom *m_seen,*m_want;
+	t_atom *m_seen, *m_want;
 	short m_where;
 	void** args;
 	mspUI* dspUI;
@@ -268,13 +267,15 @@ class mspUI : public UI
 		map<string,mspUIObject*> fUITable;
 
 	public:
+    
 		typedef map<string,mspUIObject*>::iterator iterator;
 
-		mspUI(){}
+		mspUI() {}
 		virtual ~mspUI()
 		{
-			for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++)
-				delete (iter->second);
+			for (iterator iter = fUITable.begin(); iter != fUITable.end(); iter++) {
+                delete (iter->second);
+            }
    		}
 
 		void addButton(const char* label, float* zone) {fUITable[string(label)] = new mspButton(label, zone);}
@@ -306,8 +307,9 @@ class mspUI : public UI
 
 		void SetValue(string name, double f)
 		{
-			if(fUITable.count(name))
+			if (fUITable.count(name)) {
 				fUITable[name]->SetValue(f);
+            }
 		}
 		iterator begin()	{return fUITable.begin();}
 		iterator end()		{return fUITable.end();}
@@ -322,16 +324,13 @@ class mspUI : public UI
 //--------------------------------------------------------------------------
 void faust_method(t_faust *obj, t_symbol *s, short ac, t_atom *at)
 {
-	if(ac < 0) return;
-    if(at[0].a_type != A_FLOAT) return;
+	if (ac < 0) return;
+    if (at[0].a_type != A_FLOAT) return;
 
-    string name = string( (s)->s_name );
+    string name = string((s)->s_name);
     float value = at[0].a_w.w_float;
 
-    // lookup du nom dans une std::map<string,mspUIObject *>
-    // ou une std::map<string,float *>
-    // et affectation de value;
-	obj->dspUI->SetValue(name,value); // doesn't have any effect if name is unknown
+  	obj->dspUI->SetValue(name, value); // doesn't have any effect if name is unknown
 }
 
 /*--------------------------------------------------------------------------*/
@@ -340,7 +339,7 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	t_faust *x = (t_faust *)newobject(faust_class);
 
 	x->dsp = new mydsp();
-	x->dspUI= new mspUI();
+	x->dspUI = new mspUI();
 
 	x->dsp->init(long(sys_getsr()));
 	x->dsp->buildUserInterface(x->dspUI);
@@ -351,8 +350,9 @@ void *faust_new(t_symbol *s, short ac, t_atom *av)
 	dsp_setup((t_pxobject *)x, x->dsp->getNumInputs());
 
 	/* Multi out */
-	for (int i = 0; i< x->dsp->getNumOutputs(); i++)
+	for (int i = 0; i< x->dsp->getNumOutputs(); i++) {
 		outlet_new((t_pxobject *)x, (char*)"signal");
+    }
 
 	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
 	return x;
@@ -388,7 +388,7 @@ void faust_free(t_faust *x)
 	dsp_free((t_pxobject *)x);
 	if (x->dsp) delete x->dsp;
 	if (x->dspUI) delete x->dspUI;
-	if (x->args)free(x->args);
+	if (x->args) free(x->args);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -407,8 +407,9 @@ void  faust_dsp(t_faust *x, t_signal **sp, short *count)
 {
 	x->args[0] = x;
 	x->args[1] = (void*)sp[0]->s_n;
-	for (int i = 0; i<(x->dsp->getNumInputs()+x->dsp->getNumOutputs()); i++)
+	for (int i = 0; i<(x->dsp->getNumInputs()+x->dsp->getNumOutputs()); i++) {
 		x->args[i+2] = sp[i]->s_vec;
+    }
 	dsp_addv(faust_perform, (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, x->args);
 }
 
@@ -419,7 +420,7 @@ int main()
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
 	dsp *thedsp = new mydsp();
-	mspUI *dspUI= new mspUI();
+	mspUI *dspUI = new mspUI();
 	thedsp->buildUserInterface(dspUI);
 
 	// Add the same method for every parameters and use the symbol as a selector
