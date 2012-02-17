@@ -52,7 +52,7 @@ class OSCUI : public GUI
 	const char* tr(const char* label) const;
 	
 	// add all accumulated alias
-	void addalias(float* zone, float init, float min, float max) 
+	void addalias(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max) 
 	{
 		for (unsigned int i=0; i<fAlias.size(); i++) {
 			fCtrl->addfullpathnode(fAlias[i], zone, 0, 1, init, min, max);
@@ -71,19 +71,19 @@ class OSCUI : public GUI
 	virtual ~OSCUI() { delete fCtrl; }
 	
 	// -- active widgets
-	virtual void addButton(const char* label, float* zone) 															{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addToggleButton(const char* label, float* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addCheckButton(const char* label, float* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float /*step*/) 			{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addButton(const char* label, FAUSTFLOAT* zone) 															{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 			{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
 	
 	// -- passive widgets
 	
-	virtual void addNumDisplay(const char* /*label*/, float* /*zone*/, int /*precision*/) {}
-	virtual void addTextDisplay(const char* /*label*/, float* /*zone*/, const char* /*names*/[], float /*min*/, float /*max*/) {}
-	virtual void addHorizontalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {}
-	virtual void addVerticalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {}
+	virtual void addNumDisplay(const char* /*label*/, FAUSTFLOAT* /*zone*/, int /*precision*/) {}
+	virtual void addTextDisplay(const char* /*label*/, FAUSTFLOAT* /*zone*/, const char* /*names*/[], FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
+	virtual void addHorizontalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
+	virtual void addVerticalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
 		
 	virtual void openFrameBox(const char* label)		{ fCtrl->opengroup( tr(label)); }
 	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( tr(label)); }
@@ -91,7 +91,7 @@ class OSCUI : public GUI
 	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
 	virtual void closeBox() 							{ fCtrl->closegroup(); }
 	
-	virtual void declare(float* , const char* key , const char* alias) 
+	virtual void declare(FAUSTFLOAT* , const char* key , const char* alias) 
 	{ 
 		if (strcasecmp(key,"OSC")==0) fAlias.push_back(alias);
 	}

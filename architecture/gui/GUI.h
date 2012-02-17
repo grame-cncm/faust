@@ -15,12 +15,12 @@ using namespace std;
  ******************************************************************************/
 
 struct uiItem;
-typedef void (*uiCallback)(float val, void* data);
+typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 
 class GUI : public UI
 {
 	typedef list<uiItem*> clist;
-	typedef map<float*, clist*> zmap;
+	typedef map<FAUSTFLOAT*, clist*> zmap;
 	
  private:
  	static list<GUI*>	fGuiList;
@@ -39,7 +39,7 @@ class GUI : public UI
 
 	// -- registerZone(z,c) : zone management
 	
-	void registerZone(float* z, uiItem* c)
+	void registerZone(FAUSTFLOAT* z, uiItem* c)
 	{
 		if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
 		fZoneMap[z]->push_back(c);
@@ -47,7 +47,7 @@ class GUI : public UI
 
 	void updateAllZones();
 	
-	void updateZone(float* z);
+	void updateZone(FAUSTFLOAT* z);
 	
 	static void updateAllGuis()
 	{
@@ -56,14 +56,14 @@ class GUI : public UI
 			(*g)->updateAllZones();
 		}
 	}
-    void addCallback(float* zone, uiCallback foo, void* data);
+    void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data);
     virtual void show() {};	
     virtual void run() {};
 	
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }
 
-    virtual void declare(float* , const char* , const char* ) {}
+    virtual void declare(FAUSTFLOAT* , const char* , const char* ) {}
 };
 
 
@@ -77,10 +77,10 @@ class uiItem
   protected :
 		  
 	GUI*		fGUI;
-	float*		fZone;
-	float		fCache;
+	FAUSTFLOAT*		fZone;
+	FAUSTFLOAT		fCache;
 	
-	uiItem (GUI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
+	uiItem (GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
 	{ 
 		ui->registerZone(zone, this); 
 	}
@@ -89,7 +89,7 @@ class uiItem
   public :
 	virtual ~uiItem() {}
 	
-	void modifyZone(float v) 	
+	void modifyZone(FAUSTFLOAT v) 	
 	{ 
 		fCache = v;
 		if (*fZone != v) {
@@ -98,7 +98,7 @@ class uiItem
 		}
 	}
 		  	
-	float			cache()			{ return fCache; }
+	FAUSTFLOAT			cache()			{ return fCache; }
 	virtual void 	reflectZone() 	= 0;	
 };
 
@@ -112,11 +112,11 @@ struct uiCallbackItem : public uiItem
 	uiCallback	fCallback;
 	void*		fData;
 	
-	uiCallbackItem(GUI* ui, float* zone, uiCallback foo, void* data) 
+	uiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data) 
 			: uiItem(ui, zone), fCallback(foo), fData(data) {}
 	
 	virtual void 	reflectZone() {		
-		float 	v = *fZone;
+		FAUSTFLOAT 	v = *fZone;
 		fCache = v; 
 		fCallback(v, fData);	
 	}
@@ -128,9 +128,9 @@ struct uiCallbackItem : public uiItem
  * Update all user items reflecting zone z
  */
 
-inline void GUI::updateZone(float* z)
+inline void GUI::updateZone(FAUSTFLOAT* z)
 {
-	float 	v = *z;
+	FAUSTFLOAT 	v = *z;
 	clist* 	l = fZoneMap[z];
 	for (clist::iterator c = l->begin(); c != l->end(); c++) {
 		if ((*c)->cache() != v) (*c)->reflectZone();
@@ -145,16 +145,16 @@ inline void GUI::updateZone(float* z)
 inline void GUI::updateAllZones()
 {
 	for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
-		float* 	z = m->first;
+		FAUSTFLOAT* 	z = m->first;
 		clist*	l = m->second;
-		float	v = *z;
+		FAUSTFLOAT	v = *z;
 		for (clist::iterator c = l->begin(); c != l->end(); c++) {
 			if ((*c)->cache() != v) (*c)->reflectZone();
 		}
 	}
 }
 
-inline void GUI::addCallback(float* zone, uiCallback foo, void* data) 
+inline void GUI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data) 
 { 
 	new uiCallbackItem(this, zone, foo, data); 
 };

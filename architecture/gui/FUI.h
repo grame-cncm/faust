@@ -23,11 +23,11 @@ using namespace std;
  * The file is human readble and editable
  ******************************************************************************/
 
-class FUI  : public UI
+class FUI : public UI
 {
 	stack<string>		fGroupStack;
 	vector<string>		fNameList;
-	map<string, float*>	fName2Zone;
+	map<string, FAUSTFLOAT*>	fName2Zone;
 
  protected:
 
@@ -47,7 +47,7 @@ class FUI  : public UI
 	}
 
 	// add an element by relating its full name and memory zone
-	virtual void addElement (const char* label, float* zone)
+	virtual void addElement (const char* label, FAUSTFLOAT* zone)
 	{
 		string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
 		fNameList.push_back(fullname);
@@ -83,7 +83,7 @@ class FUI  : public UI
 
 		for (unsigned int i=0; i<fNameList.size(); i++) {
 			string	n = fNameList[i];
-			float*	z = fName2Zone[n];
+			FAUSTFLOAT*	z = fName2Zone[n];
 			f << *z << ' ' << n << endl;
 		}
 
@@ -95,7 +95,7 @@ class FUI  : public UI
 	virtual void recallState(const char* filename)
 	{
 		ifstream f(filename);
-		float	v;
+		FAUSTFLOAT	v;
 		string	n;
 
 		while (f.good()) {
@@ -120,26 +120,26 @@ class FUI  : public UI
 
     // -- active widgets (just add an element)
 
-    virtual void addButton(const char* label, float* zone) 			{ addElement(label, zone); }
-    virtual void addToggleButton(const char* label, float* zone) 	{ addElement(label, zone); }
-    virtual void addCheckButton(const char* label, float* zone) 	{ addElement(label, zone); }
-    virtual void addVerticalSlider(const char* label, float* zone, float , float , float , float )
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) 			{ addElement(label, zone); }
+    virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) 	{ addElement(label, zone); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addElement(label, zone); }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
     																{ addElement(label, zone); }
-    virtual void addHorizontalSlider(const char* label, float* zone, float , float , float , float )
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
     																{ addElement(label, zone); }
-    virtual void addNumEntry(const char* label, float* zone, float , float , float , float )
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
     																{ addElement(label, zone); }
 
     // -- passive widgets (are ignored)
 
-    virtual void addNumDisplay(const char* , float* , int ) {};
-    virtual void addTextDisplay(const char* , float* , const char*[], float , float ) {};
-    virtual void addHorizontalBargraph(const char* , float* , float , float ) {};
-    virtual void addVerticalBargraph(const char* , float* , float , float ) {};
+    virtual void addNumDisplay(const char*, FAUSTFLOAT*, int) {};
+    virtual void addTextDisplay(const char*, FAUSTFLOAT*, const char*[], FAUSTFLOAT, FAUSTFLOAT) {};
+    virtual void addHorizontalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
+    virtual void addVerticalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
 
 	// -- metadata are not used
 
-    virtual void declare(float* , const char* , const char* ) {}
+    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
 };
 #endif
 

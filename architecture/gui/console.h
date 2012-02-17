@@ -57,8 +57,8 @@ using namespace std;
 *******************************************************************************/
 
 struct param {
-	float* fZone; float fMin; float fMax;
-	param(float* z, float a, float b) : fZone(z), fMin(a), fMax(b) {}
+	FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;
+	param(FAUSTFLOAT* z, FAUSTFLOAT a, FAUSTFLOAT b) : fZone(z), fMin(a), fMax(b) {}
 };
 
 class CMDUI : public GUI
@@ -68,7 +68,7 @@ class CMDUI : public GUI
 	stack<string>		fPrefix;
 	map<string, param>	fKeyParam;
 
-	void addOption(const char* label, float* zone, float min, float max)
+	void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 	{
 		string fullname = fPrefix.top() + label;
 		fKeyParam.insert(make_pair(fullname, param(zone, min, max)));
@@ -97,31 +97,31 @@ public:
 	virtual void openVerticalBox(const char* label)     { openAnyBox(label); }
 	virtual void closeBox()                             { fPrefix.pop(); }
 
-	virtual void addButton(const char* label, float* zone) 		{};
-	virtual void addToggleButton(const char* label, float* zone) 	{};
-	virtual void addCheckButton(const char* label, float* zone) 	{};
+	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{};
+	virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) 	{};
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{};
 
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		addOption(label,zone,min,max);
 	}
 
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		addOption(label,zone,min,max);
 	}
 
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		addOption(label,zone,min,max);
 	}
 
 	// -- passive widgets
 
-	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{}
-	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) 	{}
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
+	virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision) 						{}
+	virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max) 	{}
+	virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 			{}
+	virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 			{}
 
 	virtual void show() {}
 	virtual void run()
@@ -155,7 +155,7 @@ public:
 					exit(1);
 				}
 				char*	end;
-				*(p->second.fZone) = float(strtod(fArgv[i+1], &end));
+				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
 			}
 		}
@@ -172,7 +172,7 @@ public:
 					exit(1);
 				}
 				char*	end;
-				*(p->second.fZone) = float(strtod(fArgv[i+1], &end));
+				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
 				i++;
 			}
 		}
