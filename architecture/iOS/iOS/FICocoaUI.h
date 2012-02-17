@@ -47,6 +47,7 @@
 
 #import "FISlider.h"
 #import "FIButton.h"
+#import "FITextField.h"
 
 using namespace std;
 
@@ -193,19 +194,17 @@ class uiNumEntry : public uiCocoaItem
 {
 public:
     
-    UITextField* fTextField;
+    FITextField* fTextField;
     
     uiNumEntry(int index, GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller)
     {
-        CGRect textFieldFrame = CGRectMake(SCREEN_WIDTH/2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight);
-        fTextField = [[UITextField alloc] initWithFrame:textFieldFrame];
-        [fTextField setTextColor:[UIColor blackColor]];
-        [fTextField setFont:[UIFont systemFontOfSize:14]];
-        [fTextField setPlaceholder:@"<enter text>"];
-        [fTextField setBackgroundColor:[UIColor whiteColor]];
-        fTextField.keyboardType = UIKeyboardTypeDefault;
-        
+        float viewWidth = controller.dspView.frame.size.width;
+        fTextField = [[[FITextField alloc] initWithDelegate:controller] autorelease];
+        [fTextField setFrame:CGRectMake(viewWidth / 2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight)];
+		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
+        fTextField.labelColor = [UIColor whiteColor];
+        fTextField.backgroundColorAlpha = 0.4;
         [controller.dspView addSubview:fTextField];
     }
     
@@ -216,6 +215,9 @@ public:
     
     void reflectZone()
     {
+        float v = *fZone;
+        fCache = v;
+        fTextField.value = v;
     }
 };
 
@@ -257,36 +259,7 @@ public:
         
         fViewController.dspView.backgroundColor = [UIColor blackColor];
         fViewController.dspView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
-        
-        /*CGRect titleFrame = CGRectMake(0.0, 0.0f, 320.0, 75.0);
-        UIView *titleView = [[UIView alloc] initWithFrame:titleFrame];
-        titleView.backgroundColor = [UIColor brownColor];
-        [fViewController.dspView addSubview:titleView];
-        
-        if (fMetadata->find("name") != fMetadata->end()) {
-            const char* name = (*fMetadata->find("name")).second;
-            CGRect labelFrame = CGRectMake(0.0, 20.0f, 320.0, 30.0);
-            UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
-            [label setFont:[UIFont boldSystemFontOfSize:18]];
-            label.textAlignment = UITextAlignmentCenter;
-            [label setText:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding]];
-            label.textColor = [UIColor blackColor ];
-            label.backgroundColor = [UIColor brownColor];
-            [fViewController.dspView addSubview:label];
-        }
-        
-        if (fMetadata->find("author") != fMetadata->end()) {
-            const char* name = (*fMetadata->find("author")).second;
-            CGRect labelFrame = CGRectMake(0.0, 45.0f, 320.0, 30.0);
-            UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
-            [label setFont:[UIFont boldSystemFontOfSize:14]];
-            label.textAlignment = UITextAlignmentCenter;
-            [label setText:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding]];
-            label.textColor = [UIColor blackColor ];
-            label.backgroundColor = [UIColor brownColor];
-            [fViewController.dspView addSubview:label];
-        }*/
-        
+                
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];
     }

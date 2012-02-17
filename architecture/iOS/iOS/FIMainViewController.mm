@@ -183,6 +183,10 @@ T findCorrespondingUiItem(FIResponder* sender)
             {
                 if (sender == dynamic_cast<uiButton*>(*i)->fButton) return dynamic_cast<T>(*i);
             }
+            else if (typeid(T) == typeid(uiNumEntry*))
+            {
+                if (sender == dynamic_cast<uiNumEntry*>(*i)->fTextField) return dynamic_cast<T>(*i);
+            }
         }
     }
     
@@ -200,7 +204,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         if (slider)
         {
             slider->modifyZone((float)((FISlider*)sender).value);
-            //[slider->fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", ((float)((UISlider*)sender).value)]];
         }
     }
     else if ([sender isKindOfClass:[FIButton class]])
@@ -209,7 +212,14 @@ T findCorrespondingUiItem(FIResponder* sender)
         if (button)
         {
             button->modifyZone((float)((FISlider*)sender).value);
-            //[slider->fTextField setPlaceholder:[NSString stringWithFormat:@"%1.2f", ((float)((UISlider*)sender).value)]];
+        }
+    }
+    else if ([sender isKindOfClass:[FITextField class]])
+    {
+        uiNumEntry* numEntry = findCorrespondingUiItem<uiNumEntry*>((FIResponder*)sender);
+        if (numEntry)
+        {
+            numEntry->modifyZone((float)((FITextField*)sender).value);
         }
     }
     else NSLog(@"UIItem not implemented yet :)");
@@ -228,6 +238,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     // Loop on uiItem elements
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
+        // Refresh GUI
         (*i)->reflectZone();
     }
 }
