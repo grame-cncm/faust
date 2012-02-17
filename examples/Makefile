@@ -179,7 +179,11 @@ bundle :
 
 maxmsp msp :
 	install -d mspdir
-	$(MAKE) DEST='mspdir/' ARCH='max-msp.cpp' LIB='' -f Makefile.mspcompile
+	$(MAKE) DEST='mspdir/' VEC='-g -vs 2048' ARCH='max-msp.cpp' LIB='' -f Makefile.mspcompile
+
+maxmsp64 msp64 :
+	install -d msp64dir
+	$(MAKE) DEST='msp64dir/' VEC='-double -g -vs 2048' ARCH='max-msp64.cpp' LIB='' -f Makefile.mspcompile
 
 w32vstdir :
 	mkdir w32vstdir
