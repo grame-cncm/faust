@@ -265,8 +265,30 @@ virtual_analog_oscillator_demo = signal with {
 
 //----------------------- Filter-Based Oscillators ------------------------
 
+<<<<<<< HEAD
 // USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
 // REFERENCE: LAC-12 paper by jos (forthcoming)
+=======
+// Quick Guide (more complete documentation forthcoming):
+//
+//    USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
+//
+//  oscb: one-multiply, two-adds, amplitude varies with frequency, avoid dc
+//  oscr: four-multipies, two-adds, amplitude unchanging with frequency, 
+//        dc ok, amp slowly drifts,
+//        sine and cosine outputs available (exact phase quadrature)
+// oscrs: sine output of oscr
+// oscrc: cosine output of oscr
+//  oscs: two-multiplies, two-adds, amplitude varies slightly with frequency, 
+//        dc ok, no amp drift, likely optimizable to be the fastest no-drift case
+//  oscw: one/two-multiply, three-adds, amplitude steady with frequency, no amp drift,
+//        sine and cosine outputs available (exact phase quadrature),
+//        numerical difficulty below 10 Hz,
+//        likely optimizable to be best (above 10 Hz) for custom silicon
+//        (one multiply when frequency is constant, two otherwise).
+
+impulse = 1-1'; // used to start filter-based oscillators
+>>>>>>> 6247a9b99dcb44410cac971fac2149503a921ed8
 
 //-------------------------- oscb --------------------------------
 // Sinusoidal oscillator based on the biquad

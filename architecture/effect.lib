@@ -628,7 +628,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
 //  _,_ : compressor_stereo(ratio,thresh,att,rel) : _,_
 //
 // where
-//  ratio  = compression ratio (1 = no compression, >1 means compression")
+//  ratio  = compression ratio (1 = no compression, >1 means compression)
 //  thresh = dB level threshold above which compression kicks in
 //  att    = attack time = time constant (sec) when level & compression going up
 //  rel    = release time = time constant (sec) coming out of compression
