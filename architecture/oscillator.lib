@@ -1,59 +1,123 @@
 declare name "Faust Oscillator Library";
 declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
-declare version "1.10";
+declare version "1.11";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
 import("music.lib");  // SR, ...
 import("filter.lib"); // wgr, nlf2, tf2
 
+ml = environment {}; // may change import above to library
+fl = environment {}; // some day, so write compatibly below
+
 //===================== Virtual Analog Oscillators ========================
 
-//------------------------ Impulse Train: imptrain ------------------------
-imptrain(freq) = sawpos(freq)<:-(mem)<0;
+// Low-frequency oscillators have prefix "lf_"
+// (no aliasing suppression, signal means not zero)
 
-//--- Pulse-Train and Square-Wave Oscillators: pulsetrainpos, squarewave[pos]
-// In all cases, the first pulse jumps to 1 at time 0.
+//-------------------- LF Impulse and Pulse Trains ------------------------
+// lf_imptrain, lf_pulsetrainpos, lf_squarewavepos, lf_squarewave
 
-// Basic unit-amplitude nonnegative pulse train with duty cycle between 0 and 1:
-pulsetrainpos(freq,duty) = float(sawpos(freq) <= duty);
+// All impulse and pulse trains jump to 1 at time 0.
 
-// Positive square wave = pulse train with 50% duty cycle:
-squarewavepos(freq) = pulsetrainpos(freq,0.5);
+// Unit-amplitude low-frequency impulse train:
+lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 
-// Unit amplitude square wave = zero-mean pulse train with 50% duty cycle:
-squarewave(freq) = 2*squarewavepos(freq) - 1;
+// Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1:
+lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
+//pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
 
-//---------- Sawtooth: rawsaw, sawpos, saw1, saw2, sawtooth -------------
+// Positive LF square wave in [0,1]:
+lf_squarewavepos(freq) = lf_pulsetrainpos(freq,0.5);
+// squarewavepos = lf_squarewavepos; // for backward compatibility
+
+// Zero-mean unit-amplitude LF square wave:
+lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
+// squarewave = lf_squarewave; // for backward compatibility
+
+//---------- LF Sawtooths: lf_rawsaw, lf_sawpos, saw1 -------------------
 
 // Sawtooth waveform oscillators for virtual analog synthesis et al.
-// The 'simple' versions (rawsaw, sawpos, saw1), are mere samplings of
+// The 'simple' versions (lf_rawsaw, lf_sawpos, saw1), are mere samplings of
 // the ideal continuous-time ("analog") waveforms.  While simple, the
 // aliasing due to sampling is quite audible.  The differentiated
 // polynomial waveform family (saw2, 
 
-// --- rawsaw ---
+// --- lf_rawsaw ---
 // simple sawtooth waveform oscillator between 0 and period in samples:
-rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
+lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 
-// --- sawpos ---
+// --- lf_sawpos ---
 // simple sawtooth waveform oscillator between 0 and 1
-sawpos(freq) = rawsaw(periodsamps) / periodsamps
+lf_sawpos(freq) = lf_rawsaw(periodsamps) / periodsamps
 with {
-  periodsamps = float(SR)/freq; // period in samples (not nec. integer)
+  periodsamps = float(ml.SR)/freq; // period in samples (not nec. integer)
 };
 
 // --- saw1 ---
 // simple sawtooth waveform oscillator between -1 and 1
-saw1(freq) = 2.0 * sawpos(freq) - 1.0; // zero-mean in [-1,1)
+saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
+// no lf prefix because order 1 explicit called for here
 
-// --- saw2 ---
-// Differentiated Parabolic Wave sawtooth (less aliasing)
-// Reference: Valimaki, IEEE Signal Processing Letters, March 2005
-saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*SR/freq);
+//---------------- Bandlimited Sawtooth sawN, saw2, ... ------------------
+// METHOD: Differentiated Polynomial Waves (DPW) (for aliasing suppression)
+// REFERENCE: 
+// "Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms",
+// Vesa Valimaki, Juhan Nam, Julius Smith, and Jonathan Abel, 
+// IEEE Tr. Acoustics, Speech, and Language Processing (IEEE-ASLP),
+// Vol. 18, no. 5, May 2010.
+
+// --- sawNp for N = 1 to 6 ---
+sawN(N,freq) = saw1 : poly(N) : D(N-1) : gate(N-1)
+with {
+  p0n = float(ml.SR)/float(freq); // period in samples
+  lfsawpos = (_,1:fmod) ~ +(1.0/p0n); // sawtooth waveform in [0,1)
+  saw1 = 2*lfsawpos - 1; // zero-mean, amplitude +/- 1
+  poly(1,x) =  x;
+  poly(2,x) =  x*x;
+  poly(3,x) =  x*x*x - x;
+  poly(4,x) =  x*x*(x*x - 2.0);
+  poly(5,x) =  pow(x,5) - pow(x,3)*10.0/3.0 + x*7.0/3.0;
+  poly(6,x) =  pow(x,6) - 5.0*pow(x,4) + 7.0*poly(2,x);
+  diff1(x) =  (x - x')/(2.0/p0n);
+  diff(N) = seq(n,N,diff1); // N diff1s in series
+  D(0) = _;
+  D(1) = diff1/2.0;
+  D(2) = diff(2)/6.0;
+  D(3) = diff(3)/24.0;
+  D(4) = diff(4)/120.0;
+  D(5) = diff(5)/720.0;
+  gate(N) = *(1@(N)); // delayed step for blanking startup glitch
+};
+
+// --- sawNp for N = 1 to 6 ---
+// Phase offset = delay (max 8191 samples is more than one period of audio):
+sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ml.SR/freq))));
+
+// Special named cases:
+
+// --- sawN ---
+saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq);
+saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 // --- sawtooth ---
-sawtooth = saw2; // default choice
+sawtooth = saw2; // default choice for sawtooth signal - see also sawN 
+
+// --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
+// The correction filter compensates "droop" near half the sampling rate.
+// See reference for sawN.
+
+saw2f2 = saw2 : cf2 with {
+  cf2 = fl.tf2(1.155704605878911, 0.745184288225518,0.040305967265900,
+	0.823765146386639, 0.117420665547108);
+};
+
+saw2f4 = saw2 : cf4 with {
+  cf4 = iir((1.155727435125014, 2.285861038554662,
+	1.430915027294021, 0.290713280893317, 0.008306401748854),
+	(2.156834679164532, 1.559532244409321, 0.423036498118354,
+	0.032080681130972));
+};
 
 //-------------------------- sawtooth_demo ---------------------------
 // USAGE:  sawtooth_demo : _
@@ -94,76 +158,122 @@ sawtooth_demo = signal with {
       "[1] External Input Instead (overrides Sawtooth/Noise selection above)"));
 };
 
-// --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
-saw2f2 = saw2 : cf2 with {
-  cf2 = tf2(1.155704605878911, 0.745184288225518,0.040305967265900,
-	0.823765146386639, 0.117420665547108);
-};
+//---------- Bandlimited Pulse, Square, and Impulse Trains -------------
+// pulsetrain[N], square[N], imptrain[N], triangle[N]
+//
+// All are zero-mean and meant to oscillate in the audio frequency range.
+// Use simpler sample-rounded lf_* versions above for LFOs.
 
-saw2f4 = saw2 : cf4 with {
-  cf4 = iir((1.155727435125014, 2.285861038554662,
-	1.430915027294021, 0.290713280893317, 0.008306401748854),
-	(2.156834679164532, 1.559532244409321, 0.423036498118354,
-	0.032080681130972));
+pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with { 
+ diffdel(x,del) = x - x@del; // same as ffcombfilter in filter.lib
+ delmax = 2047.0; // arbitrary upper limit on diff delay (duty=0.5)
+ SRmax = 96000.0; // assumed upper limit on sampling rate
+ fmin = SRmax / float(2.0*delmax); // 23.4 Hz (audio freqs only)
+ freqC = max(freq,fmin); // clip frequency at lower limit
+ period = (float(ml.ml.SR) / freqC); // actual period
+ ddel = int(duty * period); // desired delay
+ del = max(0,min(delmax,ddel));
 };
+pulsetrain = pulsetrainN(2);
 
-// --- sawN, saw3,saw4,saw5,saw6 ---
-// Differentiated Polynomial Wave (DPW) sawtooth (progressively less aliasing)
-// Reference: 
-// "Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms",
-// Vesa Valimaki, Juhan Nam, Julius Smith, and Jonathan Abel, 
-// IEEE Tr. Acoustics, Speech, and Language Processing (IEEE-ASLP),
-// Vol. 18, no. 5, May 2010.
+squareN(N,freq) = pulsetrainN(N,freq,0.5);
+square = squareN(2);
 
-sawN(N,freq) = saw1 : poly(N) : D(N-1) : gate(N-1)
-with {
-  p0n = SR/freq;
-  sawpos = (_,1:fmod) ~ +(1/p0n); // sawtooth waveform in [0,1)
-  saw1 = 2*sawpos - 1; // zero average mean, unit max amp
-  poly(2,x) =  x*x;
-  poly(3,x) =  x*x*x - x;
-  poly(4,x) =  poly(2,x)*(poly(2,x) - 2);
-  poly(5,x) =  pow(x,5) - pow(x,3)*10/3 + x*7/3;
-  poly(6,x) =  pow(x,6) - 5*pow(x,4) + 7*poly(2,x);
-  diff1(x) =  (x - x')/(2/p0n);
-  diff(N) = seq(n,N,diff1); // N diffs in series
-  D(1) = diff1/2;
-  D(2) = diff(2)/6;
-  D(3) = diff(3)/24;
-  D(4) = diff(4)/120;
-  D(5) = diff(5)/720;
-  gatedelay(n,d,x)    = x@(int(d)&(n-1)); // from music.lib
-  gate(N) = * (1 : gatedelay(8,N)); // delayed step for blanking startup glitch
+diffn(x) = x' - x; // negated first-order difference
+
+impulse = 1-1';
+imptrainN(N,freq) = impulse + 0.5*diffn(sawN(N,freq));
+imptrain = imptrainN(2); // default based on saw2
+
+triangleN(N,freq) = squareN(N,freq) : fl.pole(p) : *(gain) with {
+  gain = sqrt(1.0-p);
+  p = 0.999;
 };
-saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
+triangle = triangleN(2); // default based on saw2
+
+//---------------------- virtual_analog_oscillator_demo ----------------------
+// USAGE:  virtual_analog_oscillator_demo : _
+
+virtual_analog_oscillator_demo = signal with { 
+  osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
+    [tooltip: See Faust's oscillator.lib for documentation and references]",x);
+
+  // Signals
+  saw = (amp/3) * 
+    (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
+  sq = (amp/3) * 
+    (square(sfreq) + square(sfreq*detune1) + square(sfreq*detune2));
+  tri = (amp/3) * 
+    (triangle(sfreq) + triangle(sfreq*detune1) + triangle(sfreq*detune2));
+  pt = (amp/3) * (pulsetrain(sfreq,ptd) 
+                + pulsetrain(sfreq*detune1,ptd) 
+                + pulsetrain(sfreq*detune2,ptd));
+  ptN = (amp/3) * (pulsetrainN(N,sfreq,ptd) 
+                + pulsetrainN(N,sfreq*detune1,ptd) 
+                + pulsetrainN(N,sfreq*detune2,ptd)) with {N=3;};
+  pn = amp * pink_noise;	
+
+  signal = ssaw*saw + ssq*sq + stri*tri 
+  	   + spt*((ssptN*ptN)+(1-ssptN)*pt) 
+	   + spn*pn + sei*_;
+
+  // Signal controls:
+  signal_group(x) = osc_group(hgroup("[0] Signal Levels",x));
+  ssaw = signal_group(vslider("[0] Sawtooth [style:vslider]",1,0,1,0.01));
+
+  pt_group(x) = signal_group(vgroup("[1] Pulse Train",x));
+  ssptN = pt_group(checkbox("[0] Order 3
+    [tooltip: When checked, use 3rd-order aliasing suppression (up from 2)
+     See if you can hear a difference with the freq high and swept]"));
+  spt = pt_group(vslider("[1] [style:vslider]",0,0,1,0.01));
+  ptd = pt_group(vslider("[2] Duty Cycle [style:knob]",0.5,0,1,0.01))
+        : smooth(0.99);
+
+  ssq = signal_group(vslider("[2] Square [style:vslider]",0,0,1,0.01));
+  stri = signal_group(vslider("[3] Triangle [style:vslider]",0,0,1,0.01));
+  spn = signal_group(vslider(
+      "[4] Pink Noise [style:vslider] 
+       [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise, meaning that it has the same total power in every octave (uses only amplitude controls)]",0,0,1,0.01));
+  sei = signal_group(vslider("[5] Ext Input [style:vslider]",0,0,1,0.01));
+
+  // Signal Parameters
+  knob_group(x) = osc_group(hgroup("[1] Signal Parameters", x));
+  af_group(x) = knob_group(vgroup("[0]", x));
+  ampdb  = af_group(hslider("[1] Mix Amplitude [unit:dB] [style:hslider]
+    [tooltip: Sawtooth waveform amplitude]",
+    -20,-120,10,0.1));
+  amp = ampdb : smooth(0.999) : db2linear;
+  freq = af_group(hslider("[2] Frequency [unit:PK] [style:hslider]
+    [tooltip: Sawtooth frequency as a Piano Key (PK) number (A440 = key 49)]",
+    49,1,88,0.01) : pianokey2hz);
+  pianokey2hz(x) = 440.0*pow(2.0, (x-49.0)/12); // piano key 49 = A440 (also defined in effect.lib)
+
+  detune1 = 1 - 0.01 * knob_group(
+    vslider("[3] Detuning 1 [unit:%%] [style:knob]
+      [tooltip: Percentange frequency-shift up or down for second oscillator]",
+      -0.1,-10,10,0.01));
+  detune2 = 1 + 0.01 * knob_group(
+    vslider("[4] Detuning 2 [unit:%%] [style:knob]
+      [tooltip: Percentange frequency-shift up or down for third detuned oscillator]",
+    +0.1,-10,10,0.01));
+  portamento = knob_group(
+    vslider("[5] Portamento [unit:sec] [style:knob]
+      [tooltip: Portamento (frequency-glide) time-constant in seconds]",
+      0.1,0.01,1,0.001));
+  sfreq = freq : smooth(tau2pole(portamento));
+};
 
 //----------------------- Filter-Based Oscillators ------------------------
 
-// Quick Guide (more complete documentation forthcoming):
-//
-//    USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
-//
-//  oscb: fastest, amplitude varies with frequency, avoid dc
-//  oscr: 2nd fastest, amplitude unchanging with frequency, dc ok, 
-//        amp slowly drifts,
-//        sine and cosine outputs available (exact phase quadrature)
-// oscrs: sine output of oscr
-// oscrc: cosine output of oscr
-//  oscs: 3rd fastest, amplitude varies slightly with frequency, dc ok, 
-//        no amp drift, likely optimizable to be the fastest no-drift case
-//  oscw: 4th fastest, amplitude steady with frequency, no amp drift,
-//        sine and cosine outputs available (exact phase quadrature),
-//        numerical difficulty below 10 Hz,
-//        likely optimizable to be best (above 10 Hz) for custom silicon.
-
-impulse = 1-1'; // used to start filter-based oscillators
+// USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
+// REFERENCE: LAC-12 paper by jos (forthcoming)
 
 //-------------------------- oscb --------------------------------
 // Sinusoidal oscillator based on the biquad
 //
-oscb(f) = impulse : tf2(1,0,0,a1,1)
+oscb(f) = impulse : fl.tf2(1,0,0,a1,1)
 with {
-  a1 = -2*cos(2*PI*f/SR);
+  a1 = -2*cos(2*PI*f/ml.SR);
 };
 
 //-------------------------- oscr --------------------------------
@@ -174,9 +284,9 @@ with {
 // Reference:
 // https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html
 //
-oscrq(f) =  impulse : nlf2(f,1); // sine and cosine outputs
-oscrs(f) =  impulse : nlf2(f,1) : _,!; // sine
-oscrc(f) =  impulse : nlf2(f,1) : !,_; // cosine
+oscrq(f) =  impulse : fl.nlf2(f,1); // sine and cosine outputs
+oscrs(f) =  impulse : fl.nlf2(f,1) : _,!; // sine
+oscrc(f) =  impulse : fl.nlf2(f,1) : !,_; // cosine
 oscr = oscrs; // default = sine case
 
 //-------------------------- oscs --------------------------------
@@ -185,8 +295,8 @@ oscr = oscrs; // default = sine case
 //
 oscs(f) =  (*(0-1) : sint(wn) : sintp(wn,impulse)) ~ _
 with {
-  wn = 2*PI*f/SR; // approximate
-  // wn = 2*sin(PI*f/SR); // exact
+  wn = 2*PI*f/ml.SR; // approximate
+  // wn = 2*sin(PI*f/ml.SR); // exact
   sub(x,y) = y-x;
   sint(x) = *(x) : + ~ _ ; // frequency-scaled integrator
   sintp(x,y) = *(x) : +(y): + ~ _ ; // same + state input
@@ -203,9 +313,9 @@ with {
 // Reference:
 // https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
 //
-oscwc(fr) = impulse : wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
-oscws(fr) = impulse : wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
-oscq(fr)  = impulse : wgr(fr,1);       // phase quadrature outputs
+oscwc(fr) = impulse : fl.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
+oscws(fr) = impulse : fl.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
+oscq(fr)  = impulse : fl.wgr(fr,1);       // phase quadrature outputs
 oscw = oscwc;
 
 //-------------------------- oscrs_demo ---------------------------

@@ -253,7 +253,7 @@ tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2)); // cf. TF2 in music.lib)
 //  J. D. Markel and A. H. Gray: Linear Prediction of Speech, New York: Springer Verlag, 1976.
 //  https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html
 
-//------------------------------ block, crossn,crossn1 ----------------------------------
+//------------------------- block, crossn,crossn1 -----------------------------
 // signal block/crossing utilities
 // (move to math.lib?)
 
