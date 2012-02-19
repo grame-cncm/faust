@@ -265,10 +265,8 @@ virtual_analog_oscillator_demo = signal with {
 
 //----------------------- Filter-Based Oscillators ------------------------
 
-<<<<<<< HEAD
 // USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
 // REFERENCE: LAC-12 paper by jos (forthcoming)
-=======
 // Quick Guide (more complete documentation forthcoming):
 //
 //    USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
@@ -286,9 +284,6 @@ virtual_analog_oscillator_demo = signal with {
 //        numerical difficulty below 10 Hz,
 //        likely optimizable to be best (above 10 Hz) for custom silicon
 //        (one multiply when frequency is constant, two otherwise).
-
-impulse = 1-1'; // used to start filter-based oscillators
->>>>>>> 6247a9b99dcb44410cac971fac2149503a921ed8
 
 //-------------------------- oscb --------------------------------
 // Sinusoidal oscillator based on the biquad
