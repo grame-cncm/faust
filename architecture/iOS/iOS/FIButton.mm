@@ -22,6 +22,7 @@
 
 @synthesize cornerRadius;
 @synthesize title;
+@synthesize toggle = _toggle;
 
 #pragma mark -
 #pragma mark Init
@@ -30,6 +31,7 @@
 {
 	if ((self = [super initWithDelegate:aDelegate]))
 	{
+        self.toggle = false;
 		self.cornerRadius = 3.0;
         self.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
 	}
@@ -48,12 +50,13 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self setValue:1.0];
+    if (!self.toggle) self.value = 1.f;
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self setValue:0.0];
+    if (self.toggle) self.value = 1.f - self.value;
+    else self.value = 0.f;
 }
 
 

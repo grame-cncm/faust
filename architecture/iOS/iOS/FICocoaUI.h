@@ -214,7 +214,7 @@ public:
     
     FIButton* fButton;
     
-    uiButton(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone)
+    uiButton(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, bool toggle)
     : uiCocoaItem(ui, zone, controller)
     {
         float viewWidth = controller.dspView.frame.size.width;
@@ -225,6 +225,7 @@ public:
 		fButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fButton.labelColor = [UIColor whiteColor];
         fButton.backgroundColorAlpha = 0.4;
+        fButton.toggle = toggle;
         [controller.dspView addSubview:fButton];
     }
     
@@ -237,6 +238,7 @@ public:
     {
         float v = *fZone;
         fCache = v;
+        if (fButton.toggle) fButton.value = v;
     }
 };
 
@@ -361,13 +363,19 @@ public:
     
     virtual void addButton(const char* label, float* zone)
     {
-        uiItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone);
+        uiItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, false);
         insert(label, item);
     }
     virtual void addToggleButton(const char* label, float* zone)
-    {}
+    {
+        uiItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, true);
+        insert(label, item);
+    }
     virtual void addCheckButton(const char* label, float* zone)
-    {}
+    {
+        uiItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, true);
+        insert(label, item);
+    }
     virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)
 	{
         uiItem* item = new uiKnob(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);

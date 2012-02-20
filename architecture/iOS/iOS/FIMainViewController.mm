@@ -215,7 +215,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         uiButton* button = findCorrespondingUiItem<uiButton*>((FIResponder*)sender);
         if (button)
         {
-            button->modifyZone((float)((FISlider*)sender).value);
+            button->modifyZone((float)((FIButton*)sender).value);
         }
     }
     else if ([sender isKindOfClass:[FITextField class]])

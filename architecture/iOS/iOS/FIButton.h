@@ -20,11 +20,13 @@
 
 @interface FIButton : FIResponder
 {
-	CGFloat touchHandleOffset;
+	CGFloat         touchHandleOffset;
+    BOOL            _toggle;
 }
 
 @property CGFloat cornerRadius;				// default: 3.0
 @property (assign, nonatomic) NSString* title;
+@property (assign, nonatomic) BOOL toggle;
 
 - (id)initWithDelegate:(id)aDelegate;
 
