@@ -45,6 +45,7 @@
 #include <list>
 #include <map>
 
+#import "FIKnob.h"
 #import "FISlider.h"
 #import "FIButton.h"
 #import "FITextField.h"
@@ -90,6 +91,58 @@ public:
     }
 };
 
+// -------------------------- Knob -----------------------------------
+
+#define kStdKnobWidth		100.0
+#define kStdKnobHeight      100.0
+
+class uiKnob : public uiCocoaItem
+{
+    
+    public :
+    
+    FIKnob* fKnob;
+    
+    uiKnob(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
+    : uiCocoaItem(ui, zone, controller)
+    {
+        float viewWidth = controller.dspView.frame.size.width;
+        
+        CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, kStdKnobHeight);
+        UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
+        [label setFont:[UIFont boldSystemFontOfSize:12]];
+        label.textAlignment = UITextAlignmentRight;
+        [label setText:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding]];
+        label.textColor = [UIColor whiteColor];
+        label.backgroundColor = [UIColor blackColor];
+        [controller.dspView addSubview:label];
+        
+        fKnob = [[[FIKnob alloc] initWithDelegate:controller] autorelease];
+        fKnob.frame = CGRectMake(viewWidth / 2 - kStdKnobWidth / 2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdKnobWidth, kStdKnobHeight);
+        fKnob.labelFont = [UIFont boldSystemFontOfSize:14.0];
+        fKnob.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
+        fKnob.color = [UIColor blueColor];
+        fKnob.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
+        fKnob.min = min;
+        fKnob.max = max;
+        fKnob.value = init;
+        fKnob.backgroundColorAlpha = 0.4;
+        [controller.dspView addSubview:fKnob];
+    }
+    
+    ~uiKnob()
+    {
+        [fKnob release];
+    }
+    
+    void reflectZone()
+    {
+        float v = *fZone;
+        fCache = v;
+        fKnob.value = v;
+    }
+    
+};
 
 // -------------------------- Slider -----------------------------------
 
@@ -230,13 +283,14 @@ public:
 class CocoaUI : public GUI
 {
 public:
-    list <uiItem*> fWidgetList;
+    list <uiItem*>                  fWidgetList;
     
 private:
     
-    UIWindow* fWindow;
-    FIMainViewController* fViewController;
-    MY_Meta* fMetadata;
+    UIWindow*                       fWindow;
+    FIMainViewController*           fViewController;
+    MY_Meta*                        fMetadata;
+    set<float*>                     fKnobSet;
     
     void insert(const char* label, uiItem* widget)
 	{
@@ -271,6 +325,11 @@ public:
     {
         [fViewController release];
         [fWindow release];
+    }
+    
+    bool isKnob(float* zone)
+    {
+        return fKnobSet.count(zone) > 0;
     }
     
     virtual void openFrameBox(const char* label)
@@ -309,6 +368,13 @@ public:
     {}
     virtual void addCheckButton(const char* label, float* zone)
     {}
+    virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)
+	{
+        uiItem* item = new uiKnob(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
+        insert(label, item);
+    }
+    virtual void addHorizontalKnob(const char* label , float* zone, float init, float min, float max, float step)
+	{}
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
         uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
@@ -321,8 +387,15 @@ public:
     }
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
     {
-        uiItem* item = new uiNumEntry(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step);
-        insert(label, item);
+        if (isKnob(zone))
+        {
+            addVerticalKnob(label, zone, init, min, max, step);
+        }
+        else
+        {
+            uiItem* item = new uiNumEntry(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step);
+            insert(label, item);
+        }
     }
     
     // -- passive display widgets
@@ -342,7 +415,44 @@ public:
     {}
     
     virtual void declare(float* zone, const char* key, const char* value)
-    {}
+    {
+		if (zone == 0)
+        {
+			// special zone 0 means group metadata
+			/*if (strcmp(key,"tooltip")==0)
+            {
+				// only group tooltip are currently implemented
+				gGroupTooltip = formatTooltip(30, value);
+			}*/
+		}
+        else
+        {
+			if (strcmp(key,"size") == 0)
+            {
+				//fGuiSize[zone]=atof(value);
+			}
+			else if (strcmp(key,"tooltip") == 0)
+            {
+				//fTooltip[zone] = formatTooltip(30, value) ;
+			}
+			else if (strcmp(key,"unit") == 0)
+            {
+				//fUnit[zone] = value ;
+			}
+			else if (strcmp(key,"style") == 0)
+            {
+                // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
+				if (strcmp(value,"knob") == 0)
+                {
+					fKnobSet.insert(zone);
+				}
+                else if (strcmp(value,"led") == 0)
+                {
+					//fLedSet.insert(zone);
+				}
+			}
+		}
+	}
     
 };
 

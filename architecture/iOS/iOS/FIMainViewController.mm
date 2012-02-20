@@ -187,6 +187,10 @@ T findCorrespondingUiItem(FIResponder* sender)
             {
                 if (sender == dynamic_cast<uiNumEntry*>(*i)->fTextField) return dynamic_cast<T>(*i);
             }
+            else if (typeid(T) == typeid(uiKnob*))
+            {
+                if (sender == dynamic_cast<uiKnob*>(*i)->fKnob) return dynamic_cast<T>(*i);
+            }
         }
     }
     
@@ -197,7 +201,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 // User actions notifications
 
 - (void)responderValueDidChange:(float)value sender:(id)sender
-{    
+{
     if ([sender isKindOfClass:[FISlider class]])
     {
         uiSlider* slider = findCorrespondingUiItem<uiSlider*>((FIResponder*)sender);
@@ -220,6 +224,14 @@ T findCorrespondingUiItem(FIResponder* sender)
         if (numEntry)
         {
             numEntry->modifyZone((float)((FITextField*)sender).value);
+        }
+    }
+    else if ([sender isKindOfClass:[FIKnob class]])
+    {
+        uiKnob* knob = findCorrespondingUiItem<uiKnob*>((FIResponder*)sender);
+        if (knob)
+        {
+            knob->modifyZone((float)((FIKnob*)sender).value);
         }
     }
     else NSLog(@"UIItem not implemented yet :)");

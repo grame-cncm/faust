@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		650C53BB14DC389100C1C7FF /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 650C53BA14DC389100C1C7FF /* icon.png */; };
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
+		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
 		6566748A14ED30F000172A10 /* FIButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748514ED30F000172A10 /* FIButton.mm */; };
 		6566748B14ED30F000172A10 /* FIResponder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748714ED30F000172A10 /* FIResponder.mm */; };
 		6566748C14ED30F000172A10 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
@@ -44,6 +45,8 @@
 		650C53BA14DC389100C1C7FF /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 		65510E9314EEC1190014A01F /* FITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITextField.h; sourceTree = "<group>"; };
 		65510E9414EEC1190014A01F /* FITextField.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITextField.mm; sourceTree = "<group>"; };
+		6559E84514F2685A00D3AB9A /* FIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIKnob.h; sourceTree = "<group>"; };
+		6559E84614F2685A00D3AB9A /* FIKnob.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIKnob.mm; sourceTree = "<group>"; };
 		6566748414ED30F000172A10 /* FIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIButton.h; sourceTree = "<group>"; };
 		6566748514ED30F000172A10 /* FIButton.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIButton.mm; sourceTree = "<group>"; };
 		6566748614ED30F000172A10 /* FIResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIResponder.h; sourceTree = "<group>"; };
@@ -152,6 +155,8 @@
 				6566748914ED30F000172A10 /* FISlider.mm */,
 				65510E9314EEC1190014A01F /* FITextField.h */,
 				65510E9414EEC1190014A01F /* FITextField.mm */,
+				6559E84514F2685A00D3AB9A /* FIKnob.h */,
+				6559E84614F2685A00D3AB9A /* FIKnob.mm */,
 				65F8C2E814DBEA410042E3FA /* ios-faust.h */,
 				65E5EDA414DB037D00136CFC /* MainStoryboard_iPhone.storyboard */,
 				65E5EDA714DB037D00136CFC /* MainStoryboard_iPad.storyboard */,
@@ -306,6 +311,7 @@
 				6566748B14ED30F000172A10 /* FIResponder.mm in Sources */,
 				6566748C14ED30F000172A10 /* FISlider.mm in Sources */,
 				65510E9514EEC1190014A01F /* FITextField.mm in Sources */,
+				6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

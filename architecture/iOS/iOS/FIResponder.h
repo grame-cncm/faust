@@ -18,6 +18,9 @@
 
 #import <UIKit/UIKit.h>
 
+#define FIDegreesToRadians(x) (M_PI * (x) / 180.0)
+#define FIRadiansToDegrees(x) ((x) * 180.0 / M_PI)
+
 @protocol FIResponderDelegate <NSObject>
 
 @required
