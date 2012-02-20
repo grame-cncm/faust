@@ -21,6 +21,7 @@
  ************************************************************************/
 
 /* matlabplot.cpp = simple variation of plot.cpp */
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -398,12 +399,35 @@ public:
 
     channels(int nframes, int nchannels)
     {
+		assert(nchannels < 256);
+		
         fNumFrames		= nframes;
         fNumChannels 	= nchannels;
 
         // allocate audio  channels
         for (int i = 0; i < fNumChannels; i++) {
             fBuffers[i] = (float*) calloc (fNumFrames, sizeof(float));
+        }
+    }
+
+    void zero()
+    {
+        // allocate audio  channels
+        for (int i = 0; i < fNumChannels; i++) {
+			for (int f = 0; f < fNumFrames; f++) {
+				fBuffers[i][f] = 0.0;
+			}
+        }
+    }
+
+    void impulse()
+    {
+        // allocate audio  channels
+        for (int i = 0; i < fNumChannels; i++) {
+			fBuffers[i][0] = 1.0;
+			for (int f = 1; f < fNumFrames; f++) {
+				fBuffers[i][f] = 0.0;
+			}
         }
     }
 
@@ -434,11 +458,11 @@ int main(int argc, char *argv[] )
     interface->addOption("-s", &fStartAtSample, 0, 0.0, 100000000.0);
 	interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
 
-    if (DSP.getNumInputs() > 0) {
-        fprintf(stderr,
-                "*** input signals not supported by architecture file matlab.cpp\n");
-        exit(1);
-    }
+//     if (DSP.getNumInputs() > 0) {
+//         fprintf(stderr,
+//                 "*** input signals not supported by architecture file matlab.cpp\n");
+//         exit(1);
+//     }
 
     // init signal processor and the user interface values:
     DSP.init(44100);
@@ -446,8 +470,14 @@ int main(int argc, char *argv[] )
     // modify the UI values according to the command-line options:
     interface->process_command();
 
+	// prepare input channels (if any) with an impulse
+    int nins = DSP.getNumInputs();
+    channels inchan (kFrames, nins);
+	inchan.impulse(); // after each compute we will zero them
+
+	// prepare output channels
     int nouts = DSP.getNumOutputs();
-    channels chan (kFrames, nouts);
+    channels outchan (kFrames, nouts);
 
     // print usage info:
     printf("%% Usage: octave --persist thisfile.m\n\n");
@@ -459,11 +489,12 @@ int main(int argc, char *argv[] )
 	// skip <start> samples
 	int start = int(fStartAtSample);
 	while (start > kFrames) {
-		DSP.compute(kFrames, 0, chan.buffers());
+		DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
+		inchan.zero();
 		start -= kFrames;
 	}
 	if (start > 0) {
-		DSP.compute(start, 0, chan.buffers());
+		DSP.compute(start, inchan.buffers(), outchan.buffers());
 	}
 	// end skip
 	
@@ -471,11 +502,11 @@ int main(int argc, char *argv[] )
 	int nbsamples = int(fnbsamples);
     while (nbsamples > kFrames) {
 
-        DSP.compute(kFrames, 0, chan.buffers());
-
+        DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
+		inchan.zero();
         for (int i = 0; i < kFrames; i++) {
             for (int c = 0; c < nouts; c++) {
-                printf(" %g", chan.buffers()[c][i]);
+                printf(" %g", outchan.buffers()[c][i]);
             }
             if (i < kFrames-1) {
                 printf("; ...\n");
@@ -488,11 +519,11 @@ int main(int argc, char *argv[] )
 
     if (nbsamples) { // Write out partial-chunk buffer:
 
-        DSP.compute(nbsamples, 0, chan.buffers());
-
+        DSP.compute(nbsamples, inchan.buffers(), outchan.buffers());
+		inchan.zero();
         for (int i = 0; i < nbsamples; i++) {
             for (int c = 0; c < nouts; c++) {
-                printf(" %g", chan.buffers()[c][i]);
+                printf(" %g", outchan.buffers()[c][i]);
             }
             printf("; ...\n");
         }

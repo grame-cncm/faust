@@ -40,11 +40,11 @@ extern bool gInternDoubleSwitch;
 static string substitution (const string& model, const vector<string>& args);
 
 /**
- * Text substitution. Creates a string by replacing all the $n 
- * occurences in the model string, with the corresponding arguments. 
+ * Text substitution. Creates a string by replacing all the $n
+ * occurences in the model string, with the corresponding arguments.
  * Example :
  * 		subst("float $0 = $1;", "var", T(10.2))
- */ 
+ */
 string subst (const string& model, const vector<string>& args)
 {
 	return substitution(model, args);
@@ -169,9 +169,9 @@ string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
 static void ensureFloat(char* c)
 {
     bool isInt = true;
-    while (*c != 0) { 
-        if ((*c == '.') | (*c == 'e'))  isInt = false; 
-        c++; 
+    while (*c != 0) {
+        if ((*c == '.') | (*c == 'e'))  isInt = false;
+        c++;
     }
 
     if (isInt) {
@@ -224,3 +224,14 @@ string quote(const string& s)
 	return q;
 }
 
+string rmWhiteSpaces(const string& s)
+{
+    size_t i = s.find_first_not_of(" \t");
+    size_t j = s.find_last_not_of(" \t");
+
+    if ( (i != string::npos) & (j != string::npos) ) {
+        return s.substr(i, 1+j-i);
+    } else {
+        return "";
+    }
+}

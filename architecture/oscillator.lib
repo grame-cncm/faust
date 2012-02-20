@@ -143,18 +143,19 @@ saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 //
 //    USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
 //
-//  oscb: fastest, amplitude varies with frequency, avoid dc
-//  oscr: 2nd fastest, amplitude unchanging with frequency, dc ok, 
-//        amp slowly drifts,
+//  oscb: one-multiply, two-adds, amplitude varies with frequency, avoid dc
+//  oscr: four-multipies, two-adds, amplitude unchanging with frequency, 
+//        dc ok, amp slowly drifts,
 //        sine and cosine outputs available (exact phase quadrature)
 // oscrs: sine output of oscr
 // oscrc: cosine output of oscr
-//  oscs: 3rd fastest, amplitude varies slightly with frequency, dc ok, 
-//        no amp drift, likely optimizable to be the fastest no-drift case
-//  oscw: 4th fastest, amplitude steady with frequency, no amp drift,
+//  oscs: two-multiplies, two-adds, amplitude varies slightly with frequency, 
+//        dc ok, no amp drift, likely optimizable to be the fastest no-drift case
+//  oscw: one/two-multiply, three-adds, amplitude steady with frequency, no amp drift,
 //        sine and cosine outputs available (exact phase quadrature),
 //        numerical difficulty below 10 Hz,
-//        likely optimizable to be best (above 10 Hz) for custom silicon.
+//        likely optimizable to be best (above 10 Hz) for custom silicon
+//        (one multiply when frequency is constant, two otherwise).
 
 impulse = 1-1'; // used to start filter-based oscillators
 

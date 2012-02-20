@@ -19,7 +19,7 @@
 // 02111-1307 USA
 //-------------------------------------------------------------------
 
-
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

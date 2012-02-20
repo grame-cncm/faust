@@ -1,7 +1,7 @@
 
 # Package name and version number:
 dist = faust2pd-$(version)
-version = 2.4
+version = 2.5
 
 # Default installation prefix:
 prefix = /usr/local
@@ -28,6 +28,7 @@ endif
 DESTDIR=
 
 DISTFILES = Makefile COPYING ChangeLog README config.guess *.pure *.pd examples/README examples/*/Makefile examples/*/*.dsp examples/*/*.syn examples/*/*.pd examples/*/*.pure examples/*/*.xml
+SEDFILES = README
 
 .PHONY: all examples clean distclean realclean install uninstall
 
@@ -80,11 +81,16 @@ uninstall:
 .PHONY: dist distcheck
 
 # roll distribution tarball
+
+date = $(shell date "+%B %-d, %Y")
+datesubst = sed -e "s?@version@?$(version)?g" -e "s?|today|?$(date)?g" < $(1) > $(2)
+
 dist:
 	rm -rf $(dist)
 	mkdir $(dist) && mkdir $(dist)/examples
 	for x in basic faust seqdemo synth; do mkdir $(dist)/examples/$$x; done
 	for x in $(DISTFILES); do ln -sf $$PWD/$$x $(dist)/$$x; done
+	for x in $(SEDFILES); do rm -f $(dist)/$$x; $(call datesubst,$$PWD/$$x,$(dist)/$$x); done
 	rm -f $(dist).tar.gz
 	tar cfzh $(dist).tar.gz $(dist)
 	rm -rf $(dist)

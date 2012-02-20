@@ -628,7 +628,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,re
 //  _,_ : compressor_stereo(ratio,thresh,att,rel) : _,_
 //
 // where
-//  ratio  = compression ratio (1 = no compression, >1 means compression")
+//  ratio  = compression ratio (1 = no compression, >1 means compression)
 //  thresh = dB level threshold above which compression kicks in
 //  att    = attack time = time constant (sec) when level & compression going up
 //  rel    = release time = time constant (sec) coming out of compression
@@ -1108,6 +1108,35 @@ zita_distrib2(N) = _,_ <: fanflip(N) with {
    fanflip(N) = fanflip(N/2),fanflip(N/2);
 };
 
+//--------------------------- zita_rev_fdn_demo ------------------------------
+// zita_rev_fdn_demo = zita_rev_fdn (above) + basic GUI
+//
+// USAGE:
+//   bus(8) : zita_rev_fdn_demo(f1,f2,t60dc,t60m,fsmax) : bus(8)
+//
+// WHERE
+//   (args and references as for zita_rev_fdn above)
+
+zita_rev_fdn_demo = zita_rev_fdn(f1,f2,t60dc,t60m,fsmax)
+with {
+  fsmax = 48000.0;
+  fdn_group(x) = hgroup(
+    "Zita_Rev Internal FDN Reverb [tooltip: ~ Zita_Rev's internal 8x8 Feedback Delay Network (FDN) & Schroeder allpass-comb reverberator.  See Faust's effect.lib for documentation and references]",x);
+  t60dc = fdn_group(vslider("[1] Low RT60 [unit:s] [style:knob]
+    [style:knob]
+    [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
+    3, 1, 8, 0.1));
+  f1 = fdn_group(vslider("[2] LF X [unit:Hz] [style:knob]
+    [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
+    200, 50, 1000, 1));
+  t60m = fdn_group(vslider("[3] Mid RT60 [unit:s] [style:knob]
+    [tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
+    2, 1, 8, 0.1));
+  f2 = fdn_group(vslider("[4] HF Damping [unit:Hz] [style:knob]
+    [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
+    6000, 1500, 0.49*fsmax, 1));
+};
+
 //---------------------------- zita_rev1_stereo ---------------------------
 // Extend zita_rev_fdn to include zita_rev1 input/output mapping in stereo mode.
 //
@@ -1129,19 +1158,18 @@ with {
  t1 = 0.37; // zita-rev1 linearly ramps from 0 to t1 over one buffer
  outmix(4) = !,butterfly(2),!; // probably the result of some experimenting!
  outmix(N) = outmix(N/2),par(i,N/2,!);
-
 };
 
 //----------------------------- zita_rev1_ambi ---------------------------
 // Extend zita_rev_fdn to include zita_rev1 input/output mapping in
-// ambisonics mode.
+// "ambisonics mode", as provided in the Linux C++ version.
 //
 // USAGE:
-//   _,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_
+//   _,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_,_,_
 //
 // WHERE
 //   rgxyz = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9)
-//   (remaining args and refs as for zita_rev1_stereo above)
+//   (remaining args and references as for zita_rev1_stereo above)
 
 zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) =
    zita_in_delay(rdel)
@@ -1255,7 +1283,7 @@ with {
   out_level = *(gain),*(gain);
 
   gain = out_group(vslider("[2] Level [unit:dB] [style:knob]
-    [tooltip: Output scale factor]", -40, -70, 40, 0.1))
+    [tooltip: Output scale factor]", -20, -70, 40, 0.1))
     : smooth(0.999) : db2linear;
 
 };

@@ -7,13 +7,20 @@
 #                                                                   #
 #####################################################################
 
-
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    MARCH=""
+else 
+    MARCH="-march=native"
+fi
+	
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
-MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+MYGCCFLAGS="-O3 $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
-
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -54,9 +61,6 @@ for p in $@; do
 	fi
 done
 
-
-
-	
 #-------------------------------------------------------------------
 # compile the *.dsp files 
 
@@ -75,4 +79,3 @@ for f in $FILES; do
 	BINARIES="$BINARIES${f%.dsp};"
 done
 echo $BINARIES
-

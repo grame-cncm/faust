@@ -91,6 +91,11 @@ module Faust
         print_info("No label for widget ID #{id} - calling it widget#{id}\n")
         @label = "widget#{id}"
       end
+      if (@label =~ /^[0-9]/)
+        plabel = @label
+        @label = @type + "_" + @label
+        print_info("Widget label `#{plabel}' prefixed to become `#{@label}'\n")
+      end
       dict = node.elements
       @init = dict["init"].to_f
       @min  = dict["min"].to_f
@@ -186,6 +191,12 @@ module Faust
       name = name.sub(/(^_|_$)/, "")
       # move leading digits to the end
       name = name.sub(/^([0-9]+)_/, "") + ("_#{$1}" if $1).to_s
+      # if digit(s) only, prepend alpha prefix
+      if (name[0..0] =~ /^[0-9]/)
+        pname = name
+        name = "w" + name
+        print_info("Widget label `#{pname}' prefixed to become `#{name}'\n")
+      end
       unless name =~ IDENTIFIER_REGEXP
         raise "invalid identifier: \"#{name}\""
       end
@@ -298,14 +309,21 @@ module Faust
       name
     end
     def make_class_name(unit_name, prefix)
+      # The SuperCollider UGen class name generated here must match 
+      # that generated in the Faust architecture file supercollider.cpp
       if prefix == ""
         prefix = "Faust"
       end
-      class_name = unit_name.encapitalize.gsub(/[-_\s]/,"")
-      class_name = class_name.sub(/^#{prefix}/i,"")
-      class_name = prefix + class_name.encapitalize.gsub(/[-_\s]/,"")
+      class_name = unit_name
+      class_name = class_name.sub(/^#{prefix}/i, '')
+      class_name = prefix + '_' + class_name
+      cna = class_name.split(/[^0-9a-z]/i)
+      cna.each_index { |i| cna[i] = cna[i].encapitalize } # SC name convention
+      class_name = cna.join
+      print_info(unit_name + " -> " + class_name + "\n")
       if class_name.length > 31 # maximum SC Node ID length is 31 (hashed)
-        class_name = class_name[0,30];
+        print_info("Class name `#{class_name}' truncated to 1st 31 chars\n")
+        class_name = class_name[0,30]
       end
       unless class_name =~ CLASS_REGEXP
         raise "invalid class name: \"#{class_name}\""
@@ -316,7 +334,16 @@ module Faust
 
     class Faust::Widget
       def sc3_identifier
-        Language.make_identifier(self.label)
+        l = self.label
+        l = l.gsub(/\([^\)]*\)/, '')
+        l = Language.make_identifier(l)
+        if l.length > 30 # maximum SC ParamSpec length is 31 (hashed)
+          lt = l[0,29]   # leave a final char for make_unique
+          print_info("Label `#{l}' for #{self.type} #{self.id} truncated to " +
+                     "`#{lt}' (30 chars)\n")
+          l = lt
+        end
+        l
       end
       def sc3_arg_string
         "#{self.sc3_identifier}(#{self.init})"
@@ -364,10 +391,23 @@ module Faust
         args = self.input_names + cnames.zip(cdefaults).collect { |ary| ary[0] + ary[1] }
         args.empty? ? "" : args.join(", ") + ";"
       end
-      def decl_args3 # args in keyword:value form
+      def decl_args3 # args for SynthDef
         cnames = self.control_names
-        args = self.input_names + cnames.collect { |x| "#{x}" }
+        cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default }
+        args = self.input_names.collect { |x| "\\#{x}.ar(0)" } \
+        + cnames.zip(cdefaults).collect { |x| "\\#{x[0]}.kr#{x[1]}" }
         args.empty? ? "" : args.join(", ")
+      end
+      def decl_buses # declare input buses for Synth
+        args = self.input_names.collect { |x| \
+          "  #{x}Bus = Bus.audio(s,1);\n"};
+      end
+      def decl_args4 # args for Synth
+        cnames = self.control_names
+        cdefaults = @plugin.ui.active_widgets.collect { |x| x.sc3_default }
+        args = self.input_names.collect { |x| "#{x}:#{x}Bus.asMap"} \
+        + cnames.collect { |x| "#{x}:#{x}Var" }
+        args.empty? ? "" : "\n\t[\t" + args.join(",\n\t\t") + "\n\t]"
       end
       def decl_metadata
         cnames = self.control_names
@@ -410,6 +450,22 @@ module Faust
       ^this.multiNew(#{self.new_args(:control).join(", ")})
   } 
 EOF
+        if self.inputs > 0
+          body = body + <<EOF
+
+  checkInputs {
+    if (rate == 'audio', {
+      #{self.inputs}.do({|i|
+        if (inputs.at(i).rate != 'audio', {
+          ^(" input at index " + i + "(" + inputs.at(i) + 
+            ") is not audio rate");
+        });
+      });
+    });
+    ^this.checkValidInputs
+  }
+EOF
+        end
         io.print(body)
         generate_outputs(io)
         if @options["synthdef"]
@@ -419,12 +475,13 @@ EOF
         io.print("}\n")
       end
       def generate_outputs(io)
-        if self.outputs > 1
+        if self.outputs > 1  # add initOutputs to overridden init:
           io.print <<EOF
-    init { | ... theInputs |
-        inputs = theInputs
-        ^this.initOutputs(#{self.outputs}, rate)
-    }
+
+  init { | ... theInputs |
+      inputs = theInputs
+      ^this.initOutputs(#{self.outputs}, rate)
+  }
 EOF
         end
       end
@@ -432,7 +489,20 @@ EOF
         s = @class_name
         sdname = s[0,1].downcase + s[1 .. s.length]
         print_info("SynthDef: \\#{sdname}\n")
+# if \arg.ar(0) form not used, add after out=0: ,#{self.decl_args2}
         io.print <<EOF
+  
+/*
+  SynthDef - Typical usage in SuperCollider:
+
+EOF
+        print_info("SynthDef: have #{self.input_names.size} inputs\n")
+        if self.input_names.size>0
+          io.print "#{decl_buses}\n";
+        end
+        io.print <<EOF
+  ~synth = Synth(\\#{sdname}, #{self.decl_args4});
+ */
 
   *initClass {
     StartUp.add {
@@ -440,7 +510,7 @@ EOF
 // When SynthDef.writeOnce writes metadata:
 //    SynthDef.writeOnce(\\#{sdname},
       SynthDef(\\#{sdname},
-        {arg out=0, #{self.decl_args2}
+        { |out=0|
           Out.ar(out, 
             #{@class_name}.ar(
               #{self.decl_args3}
