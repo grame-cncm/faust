@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.44x"
+#define FAUSTVERSION "0.9.47x"
 
 #include <stdio.h>
 #include <string.h>
@@ -148,7 +148,7 @@ bool			gGroupTaskSwitch= false;
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
 
-int             gTimeout        = 0;            // time out to abort compiler
+int             gTimeout        = 120;            // time out to abort compiler (in seconds)
 
 int             gFloatSize = 1;
 
@@ -365,7 +365,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2011, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2012, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 
@@ -401,7 +401,8 @@ void printhelp()
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
-	cout << "-o <file> \tC++ output file\n";
+	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
+    cout << "-o <file> \tC++ output file\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";

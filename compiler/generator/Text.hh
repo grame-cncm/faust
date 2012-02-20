@@ -55,6 +55,6 @@ string T (double n);
 // add and remove quotes of a string
 string unquote(const string& s);
 string quote(const string& s);
-
+string rmWhiteSpaces(const string& s);
 
 #endif

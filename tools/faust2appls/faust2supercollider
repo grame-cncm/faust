@@ -14,10 +14,10 @@
 # Possible path
 
 SC0=$SUPERCOLLIDER_HEADERS
-SC1="/usr/include/SuperCollider"
-SC2="/usr/include/supercollider"
-SC3="/usr/local/include/SuperCollider"
-SC4="/usr/local/include/supercollider"
+SC1="/usr/local/include/SuperCollider"
+SC2="/usr/local/include/supercollider"
+SC3="/usr/include/SuperCollider"
+SC4="/usr/include/supercollider"
 
 # check if directory exists
 
@@ -35,6 +35,7 @@ else
 	echo "Can't find SuperCollider headers"
 	exit 1
 fi 
+echo Using SC Headers in $SC
 
 INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/"
 

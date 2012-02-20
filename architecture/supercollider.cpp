@@ -432,6 +432,9 @@ static std::string normalizeClassName(const std::string& name)
 
 extern "C"
 {
+#ifdef SC_API_EXPORT
+    int api_version(void);
+#endif
     void load(InterfaceTable*);
     void Faust_next(Faust*, int);
     void Faust_next_copy(Faust*, int);
@@ -580,6 +583,10 @@ void Faust_Dtor(Faust* unit)  // module destructor
     }
 }
 
+#ifdef SC_API_EXPORT
+FAUST_EXPORT int api_version(void) { return sc_api_version; }
+#endif
+
 FAUST_EXPORT void load(InterfaceTable* inTable)
 {
 
@@ -595,6 +602,10 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     }
 
     name = normalizeClassName(name);
+
+#if !defined(NDEBUG) & defined(SC_API_EXPORT)
+    Print("*** Faust: supercollider.cpp: sc_api_version = %d\n",sc_api_version);
+#endif
 
     if (name.empty()) {
         // Catch empty name

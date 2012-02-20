@@ -53,7 +53,10 @@ Compilation options are listed in the following table :
 \texttt{-h} 				& \texttt{--help} 					& print the help message  \\
 \texttt{-v} 				& \texttt{--version} 				& print version information  \\
 \texttt{-d} 				& \texttt{--details} 				& print compilation details  \\
-\texttt{-ps} 				& \texttt{--postscript} 			& generate block-diagram postscript file  \\
+\texttt{-tg} 				& \texttt{--task-graph} 			& draw a graph of all internal computation loops as a .dot (graphviz) file. \\
+\texttt{-sg} 				& \texttt{--signal-graph} 			& draw a graph of all internal signal expressions as a .dot (graphviz) file.  \\
+
+\texttt{-ps} 				& \texttt{--postscript} 			& generate block-diagram postscript files  \\
 \texttt{-svg} 				& \texttt{--svg} 					& generate block-diagram svg files  \\
 \texttt{-blur} 				& \texttt{--shadow-blur} 			& add a blur to boxes shadows  \\
 \texttt{-sd} 				& \texttt{--simplify-diagrams} 		& simplify block-diagram before drawing them  \\
@@ -63,6 +66,7 @@ Compilation options are listed in the following table :
 \texttt{-xml} 				& \texttt{--xml} 					& generate an additional description file in xml format  \\
 \texttt{-uim} 				& \texttt{--user-interface-macros} 	& add user interface macro definitions to the C++ code  \\
 \texttt{-flist} 			& \texttt{--file-list} 				& list all the source files and libraries implied in a compilation  \\
+\texttt{-norm} 				& \texttt{--normalized-form} 		& prints the internal signals in normalized form and exits  \\
 \hline
 \texttt{-lb}	 			& \texttt{--left-balanced} 			& generate left-balanced expressions  \\
 \texttt{-mb} 				& \texttt{--mid-balanced} 			& generate mid-balanced expressions (default)  \\
@@ -87,6 +91,8 @@ Compilation options are listed in the following table :
 \texttt{-mdlang \farg{l}}			& \texttt{--mathdoc-lang \farg{l}} 		& choose the language of the mathematical description (\farg{l} = en, fr, ...) \\
 \texttt{-stripmdoc} 			& \texttt{--strip-mdoc-tags}		& remove documentation tags when printing \faust listings\\
 \hline
+\texttt{-cn \farg{name}} 	& \texttt{--class-name \farg{name}}	& name of the dsp class to be used instead of 'mydsp' \\
+\texttt{-t \farg{time}} 	& \texttt{--timeout \farg{time}}	& time out of time seconds (default 600) for the compiler to abort \\
 \texttt{-a \farg{file}} 	&  									& architecture file to use  \\
 \texttt{-o \farg{file}} 	&  									& C++ output file\\
 %%\end{tabularx} 

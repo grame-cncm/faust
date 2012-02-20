@@ -17,7 +17,7 @@
 // This is set at build time.
 let version = "@version@";
 
-using dict, faustxml, getopt, system;
+using dict, faustxml, getopt, regex, system;
 using namespace faustxml;
 
 /* Constructors to represent Pd messages and objects. */

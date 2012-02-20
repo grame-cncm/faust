@@ -733,6 +733,8 @@ void Klass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
 
+    tab(n,fout); fout << "#define FAUSTCLASS "<< fKlassName << endl;
+
     if (gSchedulerSwitch) {
         tab(n,fout); fout << "class " << fKlassName << " : public " << fSuperKlassName << ", public Runnable {";
     } else {
@@ -1143,6 +1145,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
 
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";
 			tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
+            printlines(n+2, fInitCode, fout);
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << "void fill (int count, int output[]) {";
