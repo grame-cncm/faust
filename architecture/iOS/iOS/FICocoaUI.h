@@ -204,7 +204,10 @@ public:
         [fTextField setFrame:CGRectMake(viewWidth / 2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight)];
 		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fTextField.labelColor = [UIColor whiteColor];
-        fTextField.backgroundColorAlpha = 0.4;
+        fTextField.backgroundColorAlpha = 0.4;        
+        fTextField.min = min;
+        fTextField.max = max;
+        fTextField.value = init;
         [controller.dspView addSubview:fTextField];
     }
     

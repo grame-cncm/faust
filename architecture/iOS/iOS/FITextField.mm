@@ -83,13 +83,24 @@
 
 -(void)textViewDidBeginEditing:(UITextView *)textView
 {
+    _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.2f - %2.2f", self.min, self.max];
     [_messageTextView setText:@""];
 }
 
 - (void)minus
 {
-    //if ([_messageTextView.text characterAtIndex:0] ==)
-    //[_messageTextView setText:[NSString stringWithFormat:@"%2.2f", value]];
+    if ([_messageTextView.text length] == 0)
+    {
+        _messageTextView.text = [NSString stringWithString:@"-"];
+    }
+    else if ([_messageTextView.text characterAtIndex:0] != 45) //45 for minus
+    {
+        _messageTextView.text = [NSString stringWithFormat:@"-%@", _messageTextView.text];
+    }
+    else
+    {
+        _messageTextView.text = [_messageTextView.text substringFromIndex:1];
+    }    
 }
 
 - (void)doneTyping
@@ -121,7 +132,6 @@
     _rangeLabel.backgroundColor = [UIColor blackColor];
     _rangeLabel.textColor = [UIColor whiteColor];
     _rangeLabel.textAlignment = UITextAlignmentLeft;
-    _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.2f - %2.2f", self.min, self.max];
     [_inputAccView addSubview:_rangeLabel];
     
     _minusButton =[UIButton buttonWithType:UIButtonTypeCustom];
@@ -130,7 +140,7 @@
     [_minusButton setTitle:@"-" forState:UIControlStateNormal];
     [_minusButton setBackgroundColor:[UIColor grayColor]];
     [_minusButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [_minusButton addTarget:self action:@selector(doneTyping) forControlEvents:UIControlEventTouchUpInside];
+    [_minusButton addTarget:self action:@selector(minus) forControlEvents:UIControlEventTouchUpInside];
     [_inputAccView addSubview:_minusButton];
     
     _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
