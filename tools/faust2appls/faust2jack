@@ -42,6 +42,19 @@ for p in $@; do
     fi
 done
 
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTINC=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTINC=/usr/local/lib/faust/
+else
+  error "$0: Cannot find Faust include dir (normally /usr/local/lib/faust)"
+fi
+	
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -56,7 +69,7 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+	 OSCDEFS="-I$FAUSTINC/osclib -DOSCCTRL -L$FAUSTINC/osclib -lOSCFaust -loscpack"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -67,8 +80,6 @@ for p in $@; do
 done
 
 
-
-	
 #-------------------------------------------------------------------
 # compile the *.dsp files using JACK-GTK on linux
 #
@@ -79,7 +90,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $OMP -I$FAUSTINC "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 
