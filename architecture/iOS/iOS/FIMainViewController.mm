@@ -96,6 +96,8 @@ char rcfilename[256];
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
                                                  name:UIDeviceOrientationDidChangeNotification object:nil];
+    
+    _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
 
     return;
     
@@ -154,6 +156,9 @@ error:
     delete audio_device;
     delete interface;
     delete finterface;
+    
+    [_refreshTimer invalidate];
+    
     [super dealloc];
 }
 
@@ -298,6 +303,22 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
+
+- (void)refreshObjects:(NSTimer*)timer
+{
+    list<uiItem*>::iterator i;
+
+    // Loop on uiItem elements
+    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    {
+        // Refresh only uiBargraph objects
+        if (dynamic_cast<uiBargraph*>(*i) != nil)
+        {
+            // Refresh GUI
+            (*i)->reflectZone();
+        }
+    }
+}
 
 #pragma mark - Audio
 

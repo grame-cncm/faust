@@ -26,6 +26,8 @@
     IBOutlet UIScrollView*          _dspView;
     IBOutlet UILabel*               _titleLabel;            // iPhone
     IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
+    
+    NSTimer*                        _refreshTimer;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -39,6 +41,7 @@
 // Misc GUI
 - (void)orientationChanged:(NSNotification *)notification;
 - (void)displayTitle;
+- (void)refreshObjects:(NSTimer*)timer;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;

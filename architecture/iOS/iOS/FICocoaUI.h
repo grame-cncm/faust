@@ -49,6 +49,7 @@
 #import "FISlider.h"
 #import "FIButton.h"
 #import "FITextField.h"
+#import "FIBargraph.h"
 
 using namespace std;
 
@@ -280,6 +281,50 @@ public:
 };
 
 
+// ------------------------------ Num Entry -----------------------------------
+
+class uiBargraph : public uiCocoaItem
+{
+public:
+    
+    FIBargraph* fBargraph;
+    
+    uiBargraph(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
+    : uiCocoaItem(ui, zone, controller)
+    {
+        float viewWidth = controller.dspView.frame.size.width;
+        fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(viewWidth / 2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight)] autorelease];
+        
+        if (horizontal)
+        {
+            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(85.0f, OFFSET_Y + WIDGET_SLICE * index, viewWidth - 85.0f - 5.f, 20.0f)] autorelease];
+        }
+        else
+        {
+            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(85.0f, OFFSET_Y + WIDGET_SLICE * index, 20.0f, 170.0f)] autorelease];
+        }
+        fBargraph.value = 0.f;
+        fBargraph.minLimit = min;
+        fBargraph.maxLimit = max;
+        fBargraph.numBars = 8;
+        fBargraph.holdPeak = false;
+        [controller.dspView addSubview:fBargraph];
+    }
+    
+    ~uiBargraph()
+    {
+        [fBargraph release];
+    }
+    
+    void reflectZone()
+    {
+        float v = *fZone;
+        fCache = v;
+        fBargraph.value = v;
+    }
+};
+
+
 // ------------------------------ CocoaUI -----------------------------------
 
 class CocoaUI : public GUI
@@ -382,7 +427,10 @@ public:
         insert(label, item);
     }
     virtual void addHorizontalKnob(const char* label , float* zone, float init, float min, float max, float step)
-	{}
+	{
+        uiItem* item = new uiKnob(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
+        insert(label, item);
+    }
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
         uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
@@ -413,9 +461,15 @@ public:
     virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max)
     {}
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
-    {}
+    {
+        uiItem* item = new uiBargraph(fWidgetList.size(), this, fViewController, label, zone, min, max, true);
+        insert(label, item);
+    }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
-    {}
+    {
+        uiItem* item = new uiBargraph(fWidgetList.size(), this, fViewController, label, zone, min, max, false);
+        insert(label, item);
+    }
     
     virtual void show()
     {}
