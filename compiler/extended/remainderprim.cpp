@@ -42,18 +42,13 @@ class RemainderPrim : public xtended
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
-        assert (args.size() == arity());
-		assert (types.size() == arity());
-
+        assert(args.size() == arity());
+		assert(types.size() == arity());
+        
         Typed::VarType result_type;
-        if (result->nature() == kInt) result_type = Typed::kInt; else result_type = itfloat();
         vector<Typed::VarType> arg_types;
-        vector< ::Type>::const_iterator it;
-        for (it = types.begin(); it != types.end(); it++) {
-            Typed::VarType t1;
-            if (((*it)->nature() == kInt)) t1 = Typed::kInt; else t1 = itfloat();
-            arg_types.push_back(t1);
-        }
+        list<ValueInst*> casted_args;
+        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
         return container->pushFunction(subst("remainder$0", isuffix()), result_type, arg_types, args);
     }

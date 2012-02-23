@@ -8,6 +8,7 @@
 #include <vector>
 #include "lateq.hh"
 
+
 #include <llvm/Value.h>
 #include <llvm/Support/IRBuilder.h>
 
@@ -51,6 +52,14 @@ class xtended
 	virtual bool	needCache () = 0;
 
     virtual bool    isSpecialInfix()    { return false; }   ///< generaly false, but true for binary op # such that #(x) == _#x
+    
+    void prepareTypeArgsResult(::Type result, 
+                                const list<ValueInst*>& args, 
+                                vector< ::Type> const& types,
+                                Typed::VarType& result_type, 
+                                vector<Typed::VarType>& arg_types, 
+                                list<ValueInst*>& casted_args);
+    
 };
 
 // -- Trigonometric Functions
