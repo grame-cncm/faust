@@ -72,6 +72,7 @@
 {
     self = [super initWithFrame:frame];
     if(self) {
+        self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
         // Assign default values
         [self setDefaults];
     }
@@ -385,7 +386,6 @@
         andColor:(UIColor *)a_clr
              lit:(BOOL) a_fLit
 {
-    NSLog(@"Draw");
     // Is the bar lit?
     if(a_fLit) {
         // Are we doing radial gradient fills?

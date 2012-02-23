@@ -111,9 +111,9 @@ class uiKnob : public uiCocoaItem
         
         CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, kStdKnobHeight);
         UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
-        [label setFont:[UIFont boldSystemFontOfSize:12]];
+        label.font = [UIFont boldSystemFontOfSize:12];
         label.textAlignment = UITextAlignmentRight;
-        [label setText:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding]];
+        label.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         label.textColor = [UIColor whiteColor];
         label.backgroundColor = [UIColor blackColor];
         [controller.dspView addSubview:label];
@@ -161,9 +161,9 @@ public :
         
         CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, 30.0);
         UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
-        [label setFont:[UIFont boldSystemFontOfSize:12]];
+        label.font = [UIFont boldSystemFontOfSize:12];
         label.textAlignment = UITextAlignmentRight;
-        [label setText:[[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding]];
+        label.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         label.textColor = [UIColor whiteColor];
         label.backgroundColor = [UIColor blackColor];
         [controller.dspView addSubview:label];
@@ -293,7 +293,15 @@ public:
     : uiCocoaItem(ui, zone, controller)
     {
         float viewWidth = controller.dspView.frame.size.width;
-        fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(viewWidth / 2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight)] autorelease];
+       
+        CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, 30.0);
+        UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
+        label.font = [UIFont boldSystemFontOfSize:12];
+        label.textAlignment = UITextAlignmentRight;
+        label.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
+        label.textColor = [UIColor whiteColor];
+        label.backgroundColor = [UIColor blackColor];
+        [controller.dspView addSubview:label];
         
         if (horizontal)
         {
