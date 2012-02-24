@@ -10,6 +10,10 @@
 #ifndef __dsp__
 #define __dsp__
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 class UI;
 
 //----------------------------------------------------------------
@@ -27,7 +31,7 @@ class dsp {
 	virtual int getNumOutputs() 									= 0;
 	virtual void buildUserInterface(UI* interface) 					= 0;
 	virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
+ 	virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
 };
 
 #endif
