@@ -7,7 +7,6 @@
 
 using namespace std;
 
-
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
  * Provides additional macchanismes to synchronize widgets and zones. Widgets
@@ -68,8 +67,6 @@ class GUI : public UI
     virtual void declare(FAUSTFLOAT* , const char* , const char* ) {}
 };
 
-
-
 /**
  * User Interface Item: abstract definition
  */
@@ -78,7 +75,7 @@ class uiItem
 {
   protected :
 		  
-	GUI*		fGUI;
+	GUI*            fGUI;
 	FAUSTFLOAT*		fZone;
 	FAUSTFLOAT		fCache;
 	
@@ -87,8 +84,8 @@ class uiItem
 		ui->registerZone(zone, this); 
 	}
 	
-	
   public :
+  
 	virtual ~uiItem() {}
 	
 	void modifyZone(FAUSTFLOAT v) 	
@@ -103,7 +100,6 @@ class uiItem
 	FAUSTFLOAT			cache()			{ return fCache; }
 	virtual void 	reflectZone() 	= 0;	
 };
-
 
 /**
  * Callback Item
@@ -138,7 +134,6 @@ inline void GUI::updateZone(FAUSTFLOAT* z)
 		if ((*c)->cache() != v) (*c)->reflectZone();
 	}
 }
-
 
 /**
  * Update all user items not up to date
