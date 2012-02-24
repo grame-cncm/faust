@@ -28,7 +28,7 @@ help :
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
-	@echo "make install : install the compiler and the architecture files in $(prefix)/bin $(prefix)/lib/faust"
+	@echo "make install : install the compiler and the architecture files in $(prefix)/bin $(prefix)/lib/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a tar.gz file ready for distribution"
 	@echo "make log : make a changelog file"
@@ -52,7 +52,10 @@ doc :
 
 
 install :
+	mkdir -p $(prefix)/lib/faust
 	mkdir -p $(prefix)/lib/faust/osclib
+	mkdir -p $(prefix)/include/faust
+	mkdir -p $(prefix)/include/faust/osclib
 	mkdir -p $(prefix)/bin/
 	install compiler/faust $(prefix)/bin/
 	install -m 0644 $(arch) $(prefix)/lib/faust/
@@ -60,10 +63,11 @@ install :
 	cp -r architecture/VST $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/iPhone
 	cp -r architecture/iPhone $(prefix)/lib/faust/
-	cp -r architecture/audio $(prefix)/lib/faust/
-	cp -r architecture/gui $(prefix)/lib/faust/
+	cp -r architecture/audio $(prefix)/include/faust/
+	cp -r architecture/gui $(prefix)/include/faust/
 	cp architecture/osclib/lib*.a $(prefix)/lib/faust/osclib
-	cp architecture/osclib/faust/include/*.h $(prefix)/lib/faust/osclib
+	cp architecture/*.h $(prefix)/include/faust
+	cp architecture/osclib/faust/include/*.h $(prefix)/include/faust/osclib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 	make -C tools/faust2appls install
