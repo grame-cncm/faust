@@ -58,12 +58,6 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-void openFrameBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openFrameBox(label);
-}
-
 void openTabBoxGlue(void* cpp_interface, const char* label)
 {
     UI* interface = static_cast<UI*>(cpp_interface);
@@ -94,12 +88,6 @@ void addButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
     interface->addButton(label, zone);
 }
 
-void addToggleButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addToggleButton(label, zone);
-}
-
 void addCheckButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
 {
     UI* interface = static_cast<UI*>(cpp_interface);
@@ -122,18 +110,6 @@ void addNumEntryGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, F
 {
     UI* interface = static_cast<UI*>(cpp_interface);
     interface->addNumEntry(label, zone, init, min, max, step);
-}
-
-void addNumDisplayGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, int precision)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addNumDisplay(label, zone, precision);
-}
-
-void addTextDisplayGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addTextDisplay(label, zone, names, min, max);
 }
 
 void addHorizontalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -193,19 +169,15 @@ class Cdsp : public dsp {
     {
         UIGlue glue;
         glue.uiInterface = interface;
-        glue.openFrameBox = openFrameBoxGlue;
         glue.openTabBox = openTabBoxGlue;
         glue.openHorizontalBox = openHorizontalBoxGlue;
         glue.openVerticalBox = openVerticalBoxGlue;
         glue.closeBox = closeBoxGlue;
         glue.addButton = addButtonGlue;
-        glue.addToggleButton = addToggleButtonGlue;
         glue.addCheckButton = addCheckButtonGlue;
         glue.addVerticalSlider = addVerticalSliderGlue;
         glue.addHorizontalSlider = addHorizontalSliderGlue;
         glue.addNumEntry = addNumEntryGlue;
-        glue.addNumDisplay = addNumDisplayGlue;
-        glue.addTextDisplay = addTextDisplayGlue;
         glue.addHorizontalBargraph = addHorizontalBargraphGlue;
         glue.addVerticalBargraph = addVerticalBargraphGlue;
         glue.declare = declareGlue;

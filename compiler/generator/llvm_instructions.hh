@@ -350,6 +350,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             PointerType* PointerTy_0 = PointerType::get(IntegerType::get(fModule->getContext(), 8), 0);
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_0);
+            
             VECTOR_OF_TYPES FuncTy_2_args;
             FuncTy_2_args.push_back(PointerTy_0);
             FuncTy_2_args.push_back(PointerTy_0);
@@ -360,7 +361,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             PointerType* PointerTy_1 = PointerType::get(FuncTy_2, 0);
 
-            StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
@@ -389,7 +389,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
-            StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
             VECTOR_OF_TYPES FuncTy_9_args;
             FuncTy_9_args.push_back(PointerTy_0);
             FuncTy_9_args.push_back(PointerTy_0);
@@ -408,36 +407,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
-            VECTOR_OF_TYPES FuncTy_11_args;
-            FuncTy_11_args.push_back(PointerTy_0);
-            FuncTy_11_args.push_back(PointerTy_0);
-            FuncTy_11_args.push_back(PointerTy_7);
-            FuncTy_11_args.push_back(IntegerType::get(fModule->getContext(), 32));
-            FunctionType* FuncTy_11 = FunctionType::get(
-            /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_11_args),
-            /*isVarArg=*/false);
-
-            PointerType* PointerTy_10 = PointerType::get(FuncTy_11, 0);
-
-            StructTy_struct_UIGlue_fields.push_back(PointerTy_10);
-            VECTOR_OF_TYPES FuncTy_13_args;
-            FuncTy_13_args.push_back(PointerTy_0);
-            FuncTy_13_args.push_back(PointerTy_0);
-            FuncTy_13_args.push_back(PointerTy_7);
-            PointerType* PointerTy_14 = PointerType::get(PointerTy_0, 0);
-
-            FuncTy_13_args.push_back(PointerTy_14);
-            FuncTy_13_args.push_back(fTypeMap[Typed::kFloatMacro]);  // For LLVM internal float is same as external
-            FuncTy_13_args.push_back(fTypeMap[Typed::kFloatMacro]);
-            FunctionType* FuncTy_13 = FunctionType::get(
-            /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
-            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_13_args),
-            /*isVarArg=*/false);
-
-            PointerType* PointerTy_12 = PointerType::get(FuncTy_13, 0);
-
-            StructTy_struct_UIGlue_fields.push_back(PointerTy_12);
+            
             VECTOR_OF_TYPES FuncTy_16_args;
             FuncTy_16_args.push_back(PointerTy_0);
             FuncTy_16_args.push_back(PointerTy_0);
@@ -745,25 +715,21 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         fPrefix(prefix)
         {
             // UI call table : indexes of method calls
-            fUICallTable["openFrameBox"] = genInt32(1);
-            fUICallTable["openTabBox"] = genInt32(2);
-            fUICallTable["openHorizontalBox"] = genInt32(3);
-            fUICallTable["openVerticalBox"] = genInt32(4);
-            fUICallTable["closeBox"] = genInt32(5);
+            fUICallTable["openTabBox"] = genInt32(1);
+            fUICallTable["openHorizontalBox"] = genInt32(2);
+            fUICallTable["openVerticalBox"] = genInt32(3);
+            fUICallTable["closeBox"] = genInt32(4);
 
-            fUICallTable["addButton"] = genInt32(6);
-            fUICallTable["addToggleButton"] = genInt32(7);
-            fUICallTable["addCheckButton"] = genInt32(8);
-            fUICallTable["addVerticalSlider"] = genInt32(9);
-            fUICallTable["addHorizontalSlider"] = genInt32(10);
-            fUICallTable["addNumEntry"] = genInt32(11);
+            fUICallTable["addButton"] = genInt32(5);
+            fUICallTable["addCheckButton"] = genInt32(6);
+            fUICallTable["addVerticalSlider"] = genInt32(7);
+            fUICallTable["addHorizontalSlider"] = genInt32(8);
+            fUICallTable["addNumEntry"] = genInt32(9);
 
-            fUICallTable["addNumDisplay"] = genInt32(12);
-            fUICallTable["addTextDisplay"] = genInt32(13);
-            fUICallTable["addHorizontalBargraph"] = genInt32(14);
-            fUICallTable["addVerticalBargraph"] = genInt32(15);
+            fUICallTable["addHorizontalBargraph"] = genInt32(10);
+            fUICallTable["addVerticalBargraph"] = genInt32(11);
 
-            fUICallTable["declare"] = genInt32(16);
+            fUICallTable["declare"] = genInt32(12);
 
             fTypeMap[Typed::kObj_ptr] = fStruct_DSP_ptr;
         }
