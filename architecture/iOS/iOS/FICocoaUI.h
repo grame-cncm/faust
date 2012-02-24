@@ -50,6 +50,7 @@
 #import "FIButton.h"
 #import "FITextField.h"
 #import "FIBargraph.h"
+#import "FIBox.h"
 
 using namespace std;
 
@@ -78,6 +79,7 @@ using namespace std;
 
 class uiCocoaItem : public uiItem
 {
+    
 public:
     
     FIMainViewController* mainViewController;
@@ -92,15 +94,56 @@ public:
     }
 };
 
+
+// --------------------------- Box ---------------------------
+
+class uiBox : public uiCocoaItem
+{
+    
+public:
+    
+    FIBox* fBox;
+    BOOL fClosed;
+    
+    uiBox(int index, GUI* ui, FIMainViewController* controller, const char* name)
+    : uiCocoaItem(ui, NULL, controller)
+    {        
+        fClosed = FALSE;
+        
+        fBox = [[[FIBox alloc] init] autorelease];
+        fBox.color = [UIColor blueColor];
+        fBox.frame = CGRectMake(0., OFFSET_Y + WIDGET_SLICE * index, 1.f, 1.f);
+        [controller.dspView addSubview:fBox];
+    }
+    
+    ~uiBox()
+    {
+        [fBox release];
+    }
+    
+    void close(int index)
+    {        
+        [fBox updateFrame:CGRectMake(fBox.frame.origin.x, fBox.frame.origin.y, mainViewController.dspView.frame.size.width, OFFSET_Y + WIDGET_SLICE * index - fBox.frame.origin.y)];
+        
+        fClosed = TRUE;
+    }
+    
+    void reflectZone()
+    {
+        [fBox setNeedsDisplay];
+    }
+};
+
+
 // -------------------------- Knob -----------------------------------
 
 #define kStdKnobWidth		100.0
 #define kStdKnobHeight      100.0
 
 class uiKnob : public uiCocoaItem
-{
+{   
     
-    public :
+public :
     
     FIKnob* fKnob;
     
@@ -211,6 +254,7 @@ public :
 
 class uiButton : public uiCocoaItem
 {
+    
 public:
     
     FIButton* fButton;
@@ -248,6 +292,7 @@ public:
 
 class uiNumEntry : public uiCocoaItem
 {
+    
 public:
     
     FITextField* fTextField;
@@ -285,6 +330,7 @@ public:
 
 class uiBargraph : public uiCocoaItem
 {
+    
 public:
     
     FIBargraph* fBargraph;
@@ -337,6 +383,7 @@ public:
 
 class CocoaUI : public GUI
 {
+    
 public:
     list <uiItem*>                  fWidgetList;
     
@@ -371,7 +418,7 @@ public:
         
         fViewController.dspView.backgroundColor = [UIColor blackColor];
         fViewController.dspView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
-                
+        
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];
     }
@@ -392,9 +439,15 @@ public:
     virtual void openTabBox(const char* label = "")
     {}
     virtual void openHorizontalBox(const char* label = "")
-    {}
+    {
+        uiItem* item = new uiBox(fWidgetList.size(), this, fViewController, label);
+        insert(label, item);
+    }
     virtual void openVerticalBox(const char* label = "")
-    {}
+    {
+        uiItem* item = new uiBox(fWidgetList.size(), this, fViewController, label);
+        insert(label, item);
+    }
     
     // -- extra widget's layouts
     
@@ -408,7 +461,23 @@ public:
     {}
     
     virtual void closeBox()
-    {}
+    {
+        list<uiItem*>::iterator i;
+                      
+        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        {
+            if (dynamic_cast<uiBox*>(*i))
+            {
+                if (!dynamic_cast<uiBox*>(*i)->fClosed)
+                {
+                    dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+                    return;
+                }
+            }
+        }
+
+        if (dynamic_cast<uiBox*>(*i)) dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+    }
     
     //virtual void adjustStack(int n);
     
@@ -441,13 +510,27 @@ public:
     }
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
-        insert(label, item);
+        if (isKnob(zone))
+        {
+            addVerticalKnob(label, zone, init, min, max, step);
+        }
+        else
+        {
+            uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
+            insert(label, item);
+        }
     }
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
-        insert(label, item);
+        if (isKnob(zone))
+        {
+            addHorizontalKnob(label, zone, init, min, max, step);
+        }
+        else
+        {
+            uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
+            insert(label, item);
+        }
     }
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
     {

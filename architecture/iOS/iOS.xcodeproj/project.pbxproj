@@ -10,6 +10,7 @@
 		650C53BB14DC389100C1C7FF /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 650C53BA14DC389100C1C7FF /* icon.png */; };
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
+		655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */ = {isa = PBXBuildFile; fileRef = 655DAAE814F69C9B0013FAF5 /* FIBox.mm */; };
 		6566748A14ED30F000172A10 /* FIButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748514ED30F000172A10 /* FIButton.mm */; };
 		6566748B14ED30F000172A10 /* FIResponder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748714ED30F000172A10 /* FIResponder.mm */; };
 		6566748C14ED30F000172A10 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
@@ -48,6 +49,8 @@
 		65510E9414EEC1190014A01F /* FITextField.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITextField.mm; sourceTree = "<group>"; };
 		6559E84514F2685A00D3AB9A /* FIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIKnob.h; sourceTree = "<group>"; };
 		6559E84614F2685A00D3AB9A /* FIKnob.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIKnob.mm; sourceTree = "<group>"; };
+		655DAAE714F69C9B0013FAF5 /* FIBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIBox.h; sourceTree = "<group>"; };
+		655DAAE814F69C9B0013FAF5 /* FIBox.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIBox.mm; sourceTree = "<group>"; };
 		6566748414ED30F000172A10 /* FIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIButton.h; sourceTree = "<group>"; };
 		6566748514ED30F000172A10 /* FIButton.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIButton.mm; sourceTree = "<group>"; };
 		6566748614ED30F000172A10 /* FIResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIResponder.h; sourceTree = "<group>"; };
@@ -108,6 +111,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		655DAAEB14F69CA80013FAF5 /* Faust Responders */ = {
+			isa = PBXGroup;
+			children = (
+				6566748614ED30F000172A10 /* FIResponder.h */,
+				6566748714ED30F000172A10 /* FIResponder.mm */,
+				655DAAE714F69C9B0013FAF5 /* FIBox.h */,
+				655DAAE814F69C9B0013FAF5 /* FIBox.mm */,
+				6566748414ED30F000172A10 /* FIButton.h */,
+				6566748514ED30F000172A10 /* FIButton.mm */,
+				6566748814ED30F000172A10 /* FISlider.h */,
+				6566748914ED30F000172A10 /* FISlider.mm */,
+				65510E9314EEC1190014A01F /* FITextField.h */,
+				65510E9414EEC1190014A01F /* FITextField.mm */,
+				6559E84514F2685A00D3AB9A /* FIKnob.h */,
+				6559E84614F2685A00D3AB9A /* FIKnob.mm */,
+				65C1C07214F543E9006464DF /* FIBargraph.h */,
+				65C1C07314F543E9006464DF /* FIBargraph.mm */,
+			);
+			name = "Faust Responders";
+			sourceTree = "<group>";
+		};
 		65E5ED8314DB037D00136CFC = {
 			isa = PBXGroup;
 			children = (
@@ -150,18 +174,7 @@
 				65E5EDAD14DB037D00136CFC /* FIFlipsideViewController.h */,
 				65E5EDAE14DB037D00136CFC /* FIFlipsideViewController.mm */,
 				65F8C2DF14DBD59C0042E3FA /* FICocoaUI.h */,
-				6566748614ED30F000172A10 /* FIResponder.h */,
-				6566748714ED30F000172A10 /* FIResponder.mm */,
-				6566748414ED30F000172A10 /* FIButton.h */,
-				6566748514ED30F000172A10 /* FIButton.mm */,
-				6566748814ED30F000172A10 /* FISlider.h */,
-				6566748914ED30F000172A10 /* FISlider.mm */,
-				65510E9314EEC1190014A01F /* FITextField.h */,
-				65510E9414EEC1190014A01F /* FITextField.mm */,
-				6559E84514F2685A00D3AB9A /* FIKnob.h */,
-				6559E84614F2685A00D3AB9A /* FIKnob.mm */,
-				65C1C07214F543E9006464DF /* FIBargraph.h */,
-				65C1C07314F543E9006464DF /* FIBargraph.mm */,
+				655DAAEB14F69CA80013FAF5 /* Faust Responders */,
 				65F8C2E814DBEA410042E3FA /* ios-faust.h */,
 				65E5EDA414DB037D00136CFC /* MainStoryboard_iPhone.storyboard */,
 				65E5EDA714DB037D00136CFC /* MainStoryboard_iPad.storyboard */,
@@ -318,6 +331,7 @@
 				65510E9514EEC1190014A01F /* FITextField.mm in Sources */,
 				6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */,
 				65C1C07414F543E9006464DF /* FIBargraph.mm in Sources */,
+				655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
