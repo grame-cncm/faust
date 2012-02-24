@@ -29,11 +29,13 @@ class GUI : public UI
 	
  public:
 		
-	GUI() : fStopped(false) {	
+    GUI() : fStopped(false) 
+    {	
 		fGuiList.push_back(this);
 	}
 	
-	virtual ~GUI() {
+    virtual ~GUI() 
+    {
 		// suppression de this dans fGuiList
 	}
 

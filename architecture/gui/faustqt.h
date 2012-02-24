@@ -296,7 +296,6 @@ class AbstractDisplay : public QWidget
         }
 };
 
-
 /**
  * Displays dB values using a scale of colors
  */
@@ -428,7 +427,6 @@ class dbAbstractDisplay : public AbstractDisplay
         }
 };
 
-
 /**
  * Small rectangular LED display which color changes with the level in dB
  */
@@ -473,6 +471,7 @@ class dbLED : public dbAbstractDisplay
             return QSize(16, 8);
         }
 };
+
 /**
  * Small rectangular LED display which intensity (alpha channel) changes according to the value
  */
@@ -508,8 +507,6 @@ class LED : public AbstractDisplay
             return QSize(16, 8);
         }
 };
-
-
 
 /**
  * A simple bargraph that detect automatically its direction
@@ -571,7 +568,6 @@ class linBargraph : public AbstractDisplay
         }
 };
 
-
 /**
  * A simple vertical bargraph
  */
@@ -590,8 +586,6 @@ class linVerticalBargraph : public linBargraph
         }
 };
 
-
-
 /**
  * A simple horizontal bargraph
  */
@@ -609,9 +603,6 @@ class linHorizontalBargraph : public linBargraph
             return QSize(128, 16);
         }
 };
-
-
-
 
 /**
  * A dB Bargraph with a scale of colors
@@ -640,7 +631,6 @@ class dbBargraph : public dbAbstractDisplay
             for (float v = -6; v < fMax; v += 3) paintMark(painter, v);
             painter->restore();
         }
-
 
         /**
          * Draw the content using colored segments
@@ -682,7 +672,6 @@ class dbBargraph : public dbAbstractDisplay
             fBackColor = QBrush(QColor(20,20,20));
         }
 };
-
 
 /**
  * Vertical dB Bargraph
@@ -923,6 +912,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
     }
     label = rmWhiteSpaces(label);
 }
+
 //
 //============================= END GROUP LABEL METADATA===========================
 
@@ -935,7 +925,6 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 
 *******************************************************************************
 *******************************************************************************/
-
 
 class uiButton : public QObject, public uiItem
 {
@@ -959,7 +948,6 @@ class uiButton : public QObject, public uiItem
 	void released()		{ modifyZone(0.0); }
 };
 
-
 class uiCheckButton : public QObject, public uiItem
 {
     Q_OBJECT
@@ -979,7 +967,6 @@ class uiCheckButton : public QObject, public uiItem
  public slots :
 	void setState(int v)		{ modifyZone(float(v>0)); }
 };
-
 
 class uiSlider : public QObject, public uiItem
 {
@@ -1022,7 +1009,6 @@ class uiSlider : public QObject, public uiItem
 	void setValue(int v)		{ modifyZone(qt2faust(v)); }
 };
 
-
 class uiKnob : public QObject, public uiItem
 {
     Q_OBJECT
@@ -1064,7 +1050,6 @@ class uiKnob : public QObject, public uiItem
 	void setValue(int v)		{ modifyZone(qt2faust(v)); }
 };
 
-
 class uiBargraph : public QObject, public uiItem
 {
     Q_OBJECT
@@ -1095,7 +1080,6 @@ class uiBargraph : public QObject, public uiItem
     }
 };
 
-
 class uiBargraph2 : public QObject, public uiItem
 {
     Q_OBJECT
@@ -1118,8 +1102,6 @@ class uiBargraph2 : public QObject, public uiItem
         fBar->setValue(v);
     }
 };
-
-
 
 class uiNumEntry : public QObject, public uiItem
 {
@@ -1160,9 +1142,6 @@ class uiNumEntry : public QObject, public uiItem
 	}
 };
 
-
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -1171,7 +1150,6 @@ class uiNumEntry : public QObject, public uiItem
 
 *******************************************************************************
 *******************************************************************************/
-
 
 class QTGUI : public QObject, public GUI
 {
@@ -1209,7 +1187,6 @@ class QTGUI : public QObject, public GUI
 		}
 		return ss;
 	}
-
 
     /**
     * Analyses the widget zone metadata declarations and takes
@@ -1350,8 +1327,8 @@ class QTGUI : public QObject, public GUI
 		fGroupStack.push(group);
 	}
 
-
   public slots :
+  
 	void update()		{
         //std::cout << '.' << std::endl;
 		updateAllZones();
@@ -1515,7 +1492,6 @@ class QTGUI : public QObject, public GUI
 
 	}
 
-
 	// ------------------------- Groups -----------------------------------
 
 	virtual void openHorizontalBox(const char* label) { 
@@ -1551,7 +1527,7 @@ class QTGUI : public QObject, public GUI
         checkForTooltip(zone, w);
 	}
 
-    virtual void addToggleButton(const char* , float* )
+    virtual void addToggleButton(const char* , float*)
     {}
 
 	virtual void addCheckButton(const char* label , float* zone)
@@ -1604,7 +1580,6 @@ class QTGUI : public QObject, public GUI
         if (label && label[0]) closeBox();
         checkForTooltip(zone, w);
     }
-
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

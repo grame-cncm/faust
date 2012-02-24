@@ -47,7 +47,7 @@ class FUI : public UI
 	}
 
 	// add an element by relating its full name and memory zone
-	virtual void addElement (const char* label, FAUSTFLOAT* zone)
+	virtual void addElement(const char* label, FAUSTFLOAT* zone)
 	{
 		string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
 		fNameList.push_back(fullname);
@@ -112,7 +112,6 @@ class FUI : public UI
 
     // -- widget's layouts (just keep track of group labels)
 
-    virtual void openFrameBox(const char* label) 		{ pushGroupLabel(label); }
     virtual void openTabBox(const char* label) 			{ pushGroupLabel(label); }
     virtual void openHorizontalBox(const char* label) 	{ pushGroupLabel(label); }
     virtual void openVerticalBox(const char* label)  	{ pushGroupLabel(label); }
@@ -120,8 +119,7 @@ class FUI : public UI
 
     // -- active widgets (just add an element)
 
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) 			{ addElement(label, zone); }
-    virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) 	{ addElement(label, zone); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ addElement(label, zone); }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addElement(label, zone); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
     																{ addElement(label, zone); }
@@ -132,8 +130,6 @@ class FUI : public UI
 
     // -- passive widgets (are ignored)
 
-    virtual void addNumDisplay(const char*, FAUSTFLOAT*, int) {};
-    virtual void addTextDisplay(const char*, FAUSTFLOAT*, const char*[], FAUSTFLOAT, FAUSTFLOAT) {};
     virtual void addHorizontalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
     virtual void addVerticalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
 

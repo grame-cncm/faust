@@ -69,33 +69,33 @@ class OSCUI : public GUI
 	}
 	
 	virtual ~OSCUI() { delete fCtrl; }
-	
-	// -- active widgets
-	virtual void addButton(const char* label, FAUSTFLOAT* zone) 															{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 													{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
-	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 			{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
-	
-	// -- passive widgets
-	
-	virtual void addNumDisplay(const char* /*label*/, FAUSTFLOAT* /*zone*/, int /*precision*/) {}
-	virtual void addTextDisplay(const char* /*label*/, FAUSTFLOAT* /*zone*/, const char* /*names*/[], FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
-	virtual void addHorizontalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
-	virtual void addVerticalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
-		
-	virtual void openFrameBox(const char* label)		{ fCtrl->opengroup( tr(label)); }
-	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( tr(label)); }
+    
+    // -- widget's layouts
+    
+  	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( tr(label)); }
 	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
 	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
 	virtual void closeBox() 							{ fCtrl->closegroup(); }
+
 	
+	// -- active widgets
+	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) { addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 		{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
+	
+	// -- passive widgets
+	
+	virtual void addHorizontalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
+	virtual void addVerticalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
+		
+	// -- metadata declarations
+    
 	virtual void declare(FAUSTFLOAT* , const char* key , const char* alias) 
 	{ 
 		if (strcasecmp(key,"OSC")==0) fAlias.push_back(alias);
 	}
-
 
 	virtual void show() {}
 
@@ -103,7 +103,6 @@ class OSCUI : public GUI
 	const char* getRootName()							{ return fCtrl->getRootName(); }
 };
 
-					
 const char* OSCUI::tr(const char* label) const
 {
 	static char buffer[1024];

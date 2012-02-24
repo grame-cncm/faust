@@ -68,9 +68,7 @@ public:
 
 GtkKnob::GtkKnob()
 // GtkKnob constructor
-{
-
-}
+{}
 
 GtkKnob::~GtkKnob()
 {
@@ -503,7 +501,6 @@ static string rmWhiteSpaces(const string& s)
     }
 }
 
-
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
@@ -601,7 +598,6 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
     label = rmWhiteSpaces(label);
 }
 
-
 class GTKUI : public GUI
 {
  private :
@@ -639,11 +635,28 @@ class GTKUI : public GUI
     
     // -- layout groups
     
-    virtual void openFrameBox(const char* label);   
     virtual void openTabBox(const char* label = "");
     virtual void openHorizontalBox(const char* label = "");
     virtual void openVerticalBox(const char* label = "");
+    virtual void closeBox();
 
+    // -- active widgets
+    
+    virtual void addButton(const char* label, float* zone);
+    virtual void addCheckButton(const char* label, float* zone);
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);   
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step); 
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
+
+    // -- passive display widgets
+    
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
+    
+    // -- layout groups - internal
+    
+    virtual void openFrameBox(const char* label);   
+   
     // -- extra widget's layouts
 
     virtual void openDialogBox(const char* label, float* zone);
@@ -651,26 +664,17 @@ class GTKUI : public GUI
     virtual void openHandleBox(const char* label = "");
     virtual void openExpanderBox(const char* label, float* zone);
     
-    virtual void closeBox();
     virtual void adjustStack(int n);
-
-    // -- active widgets
     
-    virtual void addButton(const char* label, float* zone);
+    // -- active widgets - internal
     virtual void addToggleButton(const char* label, float* zone);
-    virtual void addCheckButton(const char* label, float* zone);
-    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);   
-    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step); 
     virtual void addKnob(const char* label, float* zone, float init, float min, float max, float step);
-    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
     
-    // -- passive display widgets
+    // -- passive display widgets - internal
     
     virtual void addNumDisplay(const char* label, float* zone, int precision);
     virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max);
-    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
-    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
-    
+   
     virtual void show();
     virtual void run();
     
@@ -1090,8 +1094,6 @@ void GTKUI::addToggleButton(const char* label, float* zone)
     checkForTooltip(zone, button);
 }
 
-
-
 void show_dialog(GtkWidget *widget, gpointer data)
 {
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(widget)) == TRUE)
@@ -1414,7 +1416,6 @@ void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float 
     checkForTooltip(zone, pb);
 }
     
-
 void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, float hi)
 {
     GtkWidget* pb = gtk_progress_bar_new();
@@ -1455,7 +1456,6 @@ struct uiNumDisplay : public uiItem
         gtk_label_set_text(fLabel, s);
     }
 };
-    
 
 void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 {
@@ -1467,7 +1467,6 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 
     checkForTooltip(zone, lw);
 }
-
 
 // ------------------------------ Text Display -----------------------------------
 
