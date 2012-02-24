@@ -246,6 +246,7 @@ public:
 	}
 
 };
+
 //
 //===============================END QSYNTHKNOB======================================
 
@@ -262,20 +263,20 @@ public:
 class AbstractDisplay : public QWidget
 {
     protected :
-        float           fMin;
-        float           fMax;
-        float           fValue;
+    
+        FAUSTFLOAT fMin;
+        FAUSTFLOAT fMax;
+        FAUSTFLOAT fValue;
 
     public:
 
-        AbstractDisplay (float lo, float hi) : fMin(lo), fMax(hi), fValue(lo)
-        {
-        }
+        AbstractDisplay(FAUSTFLOAT lo, FAUSTFLOAT hi) : fMin(lo), fMax(hi), fValue(lo)
+        {}
 
         /**
          * set the range of displayed values
          */
-        virtual void setRange(float lo, float hi)
+        virtual void setRange(FAUSTFLOAT lo, FAUSTFLOAT hi)
         {
             fMin = lo;
             fMax = hi;
@@ -284,7 +285,7 @@ class AbstractDisplay : public QWidget
         /**
          * set the value to be displayed
          */
-        virtual void setValue(float v)
+        virtual void setValue(FAUSTFLOAT v)
         {
             if (v < fMin)       v = fMin;
             else if (v > fMax)  v = fMax;
@@ -296,7 +297,6 @@ class AbstractDisplay : public QWidget
         }
 };
 
-
 /**
  * Displays dB values using a scale of colors
  */
@@ -304,8 +304,8 @@ class dbAbstractDisplay : public AbstractDisplay
 {
     protected :
 
-        float           fScaleMin;
-        float           fScaleMax;
+        FAUSTFLOAT      fScaleMin;
+        FAUSTFLOAT      fScaleMax;
         vector<int>     fLevel;
         vector<QBrush>  fBrush;
 
@@ -313,28 +313,27 @@ class dbAbstractDisplay : public AbstractDisplay
         /**
         * Convert a dB value into a scale between 0 and 1 (following IEC standard ?)
         */
-        float dB2Scale ( float dB ) const
+        FAUSTFLOAT dB2Scale(FAUSTFLOAT dB) const
         {
-            float fScale = 1.0f;
+            FAUSTFLOAT fScale = 1.0;
 
             /*if (dB < -70.0f)
                 fScale = 0.0f;
-            else*/ if (dB < -60.0f)
-                fScale = (dB + 70.0f) * 0.0025f;
-            else if (dB < -50.0f)
-                fScale = (dB + 60.0f) * 0.005f + 0.025f;
+            else*/ if (dB < -60.0)
+                fScale = (dB + 70.0) * 0.0025;
+            else if (dB < -50.0)
+                fScale = (dB + 60.0) * 0.005 + 0.025;
             else if (dB < -40.0)
-                fScale = (dB + 50.0f) * 0.0075f + 0.075f;
-            else if (dB < -30.0f)
-                fScale = (dB + 40.0f) * 0.015f + 0.15f;
-            else if (dB < -20.0f)
-                fScale = (dB + 30.0f) * 0.02f + 0.3f;
-            else if (dB < -0.001f || dB > 0.001f)  /* if (dB < 0.0f) */
-                fScale = (dB + 20.0f) * 0.025f + 0.5f;
+                fScale = (dB + 50.0) * 0.0075 + 0.075;
+            else if (dB < -30.0)
+                fScale = (dB + 40.0) * 0.015 + 0.15;
+            else if (dB < -20.0)
+                fScale = (dB + 30.0) * 0.02 + 0.3;
+            else if (dB < -0.001 || dB > 0.001)  /* if (dB < 0.0) */
+                fScale = (dB + 20.0f) * 0.025 + 0.5;
 
             return fScale;
         }
-
 
         /**
          * Create the scale of colors used to paint the bargraph in relation to the levels
@@ -413,21 +412,19 @@ class dbAbstractDisplay : public AbstractDisplay
 
     public:
 
-        dbAbstractDisplay(float lo, float hi) : AbstractDisplay(lo,hi)
-        {
-        }
+        dbAbstractDisplay(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo, hi)
+        {}
 
         /**
          * set the range of displayed values
          */
-        virtual void setRange(float lo, float hi)
+        virtual void setRange(FAUSTFLOAT lo, FAUSTFLOAT hi)
         {
             AbstractDisplay::setRange(lo, hi);
             fScaleMin = dB2Scale(fMin);
             fScaleMax = dB2Scale(fMax);
         }
 };
-
 
 /**
  * Small rectangular LED display which color changes with the level in dB
@@ -448,7 +445,7 @@ class dbLED : public dbAbstractDisplay
 
                 // interpolate the first color on the alpha channel
                 QColor c(40, 160, 40) ;
-                float a = (fValue-fMin)/(fLevel[0]-fMin);
+                FAUSTFLOAT a = (fValue-fMin)/(fLevel[0]-fMin);
                 c.setAlphaF(a);
                 painter.fillRect(rect(), c);
 
@@ -462,7 +459,7 @@ class dbLED : public dbAbstractDisplay
 
     public:
 
-        dbLED(float lo, float hi) : dbAbstractDisplay(lo,hi)
+        dbLED(FAUSTFLOAT lo, FAUSTFLOAT hi) : dbAbstractDisplay(lo,hi)
         {
             setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
             initLevelsColors(1);
@@ -473,6 +470,7 @@ class dbLED : public dbAbstractDisplay
             return QSize(16, 8);
         }
 };
+
 /**
  * Small rectangular LED display which intensity (alpha channel) changes according to the value
  */
@@ -491,14 +489,14 @@ class LED : public AbstractDisplay
             painter.drawRect(rect());
             // interpolate the first color on the alpha channel
             QColor c = fColor ;
-            float a = (fValue-fMin)/(fMax-fMin);
+            FAUSTFLOAT a = (fValue-fMin)/(fMax-fMin);
             c.setAlphaF(a);
             painter.fillRect(rect(), c);
         }
 
     public:
 
-        LED(float lo, float hi) : AbstractDisplay(lo,hi), fColor("yellow")
+        LED(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo,hi), fColor("yellow")
         {
             setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
        }
@@ -508,8 +506,6 @@ class LED : public AbstractDisplay
             return QSize(16, 8);
         }
 };
-
-
 
 /**
  * A simple bargraph that detect automatically its direction
@@ -534,7 +530,7 @@ class linBargraph : public AbstractDisplay
         {
             int     w = width();
             int     h = height();
-            float   v = (fValue-fMin)/(fMax-fMin);
+            FAUSTFLOAT   v = (fValue-fMin)/(fMax-fMin);
 
             if (h>w) {
                 // draw vertical rectangle
@@ -555,7 +551,7 @@ class linBargraph : public AbstractDisplay
 
     public:
 
-        linBargraph(float lo, float hi) : AbstractDisplay(lo,hi)
+        linBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo,hi)
         {
             // compute the brush that will be used to
             // paint the value
@@ -571,7 +567,6 @@ class linBargraph : public AbstractDisplay
         }
 };
 
-
 /**
  * A simple vertical bargraph
  */
@@ -579,7 +574,7 @@ class linVerticalBargraph : public linBargraph
 {
     public:
 
-        linVerticalBargraph(float lo, float hi) : linBargraph(lo,hi)
+        linVerticalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo,hi)
         {
             setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
         }
@@ -590,8 +585,6 @@ class linVerticalBargraph : public linBargraph
         }
 };
 
-
-
 /**
  * A simple horizontal bargraph
  */
@@ -599,7 +592,7 @@ class linHorizontalBargraph : public linBargraph
 {
     public:
 
-        linHorizontalBargraph(float lo, float hi) : linBargraph(lo,hi)
+        linHorizontalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo,hi)
         {
             setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
         }
@@ -609,9 +602,6 @@ class linHorizontalBargraph : public linBargraph
             return QSize(128, 16);
         }
 };
-
-
-
 
 /**
  * A dB Bargraph with a scale of colors
@@ -625,8 +615,8 @@ class dbBargraph : public dbAbstractDisplay
         // These two abstract methods are implemented
         // according to the vertical or horizontal direction
         // in dbVerticalBargraph and dbHorizontalBargraph
-        virtual void paintMark(QPainter* painter, float v) const = 0;
-        virtual int paintSegment (QPainter* painter, int pos, float v, const QBrush& b) const = 0;
+        virtual void paintMark(QPainter* painter, FAUSTFLOAT v) const = 0;
+        virtual int paintSegment (QPainter* painter, int pos, FAUSTFLOAT v, const QBrush& b) const = 0;
 
         /**
          * Draw the logarithmic scale
@@ -636,11 +626,10 @@ class dbBargraph : public dbAbstractDisplay
             painter->fillRect(0,0,width(),height(), fBackColor);
             painter->save();
             painter->setPen(QColor(0x6699aa)); //0xffa500));
-            for (float v = -10; v > fMin; v -= 10) paintMark(painter, v);
-            for (float v = -6; v < fMax; v += 3) paintMark(painter, v);
+            for (FAUSTFLOAT v = -10; v > fMin; v -= 10) paintMark(painter, v);
+            for (FAUSTFLOAT v = -6; v < fMax; v += 3) paintMark(painter, v);
             painter->restore();
         }
-
 
         /**
          * Draw the content using colored segments
@@ -649,7 +638,7 @@ class dbBargraph : public dbAbstractDisplay
         {
             int   l = fLevel.size();
 
-            float   p = -1;   // fake value indicates to start from border
+            FAUSTFLOAT   p = -1;   // fake value indicates to start from border
             int     n = 0;
             // paint all the full segments < fValue
             for (n=0; (n < l) && (fValue > fLevel[n]); n++) {
@@ -672,7 +661,7 @@ class dbBargraph : public dbAbstractDisplay
 
     public:
 
-        dbBargraph(float lo, float hi) : dbAbstractDisplay(lo,hi)
+        dbBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : dbAbstractDisplay(lo,hi)
         {
 
             QFont f = this->font();
@@ -683,7 +672,6 @@ class dbBargraph : public dbAbstractDisplay
         }
 };
 
-
 /**
  * Vertical dB Bargraph
  */
@@ -693,11 +681,11 @@ class dbVerticalBargraph : public dbBargraph
         /**
          * Convert a dB value into a vertical position
          */
-        float dB2y (float dB) const
+        FAUSTFLOAT dB2y(FAUSTFLOAT dB) const
         {
-            float s0 = fScaleMin;
-            float s1 = fScaleMax;
-            float sx = dB2Scale(dB);
+            FAUSTFLOAT s0 = fScaleMin;
+            FAUSTFLOAT s1 = fScaleMax;
+            FAUSTFLOAT sx = dB2Scale(dB);
             int    h = height();
 
             return h - h*(s0-sx)/(s0-s1);
@@ -706,7 +694,7 @@ class dbVerticalBargraph : public dbBargraph
         /**
          * Paint a vertical graduation mark
          */
-        virtual void paintMark(QPainter* painter, float v) const
+        virtual void paintMark(QPainter* painter, FAUSTFLOAT v) const
         {
             int n = 10;
             int y = dB2y(v);
@@ -721,10 +709,10 @@ class dbVerticalBargraph : public dbBargraph
         /**
          * Paint a color segment
          */
-        virtual int paintSegment (QPainter* painter, int pos, float v, const QBrush& b) const
+        virtual int paintSegment(QPainter* painter, int pos, FAUSTFLOAT v, const QBrush& b) const
         {
             if (pos == -1) pos = height();
-            float y = dB2y(v);
+            FAUSTFLOAT y = dB2y(v);
             painter->fillRect(0, y, width(), pos-y+1, b);
             return y;
         }
@@ -732,7 +720,7 @@ class dbVerticalBargraph : public dbBargraph
 
     public:
 
-        dbVerticalBargraph(float lo, float hi) : dbBargraph(lo,hi)
+        dbVerticalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : dbBargraph(lo,hi)
         {
             setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
             initLevelsColors(1);
@@ -755,11 +743,11 @@ class dbHorizontalBargraph : public dbBargraph
         /**
          * Convert a dB value into an horizontal position
          */
-        float dB2x (float dB) const
+        FAUSTFLOAT dB2x(FAUSTFLOAT dB) const
         {
-            float s0 = fScaleMin;
-            float s1 = fScaleMax;
-            float sx = dB2Scale(dB);
+            FAUSTFLOAT s0 = fScaleMin;
+            FAUSTFLOAT s1 = fScaleMax;
+            FAUSTFLOAT sx = dB2Scale(dB);
             int    w = width();
 
             return w - w*(s1-sx)/(s1-s0);
@@ -768,7 +756,7 @@ class dbHorizontalBargraph : public dbBargraph
         /**
          * Paint an horizontal graduation mark
          */
-        void paintMark(QPainter* painter, float v) const
+        void paintMark(QPainter* painter, FAUSTFLOAT v) const
         {
             int n = 10;
             int x = dB2x(v);
@@ -779,10 +767,10 @@ class dbHorizontalBargraph : public dbBargraph
         /**
          * Paint a horizontal color segment
          */
-        int paintSegment (QPainter* painter, int pos, float v, const QBrush& b) const
+        int paintSegment (QPainter* painter, int pos, FAUSTFLOAT v, const QBrush& b) const
         {
             if (pos == -1) pos = 0;
-            float x = dB2x(v);
+            FAUSTFLOAT x = dB2x(v);
             painter->fillRect(pos, 0, x-pos, height(), b);
             return x;
         }
@@ -790,7 +778,7 @@ class dbHorizontalBargraph : public dbBargraph
 
     public:
 
-        dbHorizontalBargraph(float lo, float hi) : dbBargraph(lo,hi)
+        dbHorizontalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : dbBargraph(lo,hi)
         {
             setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
             initLevelsColors(0);
@@ -923,6 +911,7 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
     }
     label = rmWhiteSpaces(label);
 }
+
 //
 //============================= END GROUP LABEL METADATA===========================
 
@@ -936,7 +925,6 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
 *******************************************************************************
 *******************************************************************************/
 
-
 class uiButton : public QObject, public uiItem
 {
     Q_OBJECT
@@ -944,12 +932,12 @@ class uiButton : public QObject, public uiItem
  public :
 	QAbstractButton* 	fButton;
 
-	uiButton (GUI* ui, float* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
+	uiButton (GUI* ui, FAUSTFLOAT* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
 
 
 	virtual void reflectZone()
 	{
-		float v = *fZone;
+		FAUSTFLOAT v = *fZone;
 		fCache = v;
 		fButton->setDown( v > 0.0 );
 	}
@@ -959,7 +947,6 @@ class uiButton : public QObject, public uiItem
 	void released()		{ modifyZone(0.0); }
 };
 
-
 class uiCheckButton : public QObject, public uiItem
 {
     Q_OBJECT
@@ -967,41 +954,40 @@ class uiCheckButton : public QObject, public uiItem
  public :
 	QCheckBox* 	fCheckBox;
 
-	uiCheckButton (GUI* ui, float* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
+	uiCheckButton (GUI* ui, FAUSTFLOAT* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
 
 	virtual void reflectZone()
 	{
-		float v = *fZone;
+		FAUSTFLOAT v = *fZone;
 		fCache = v;
 		fCheckBox->setCheckState( (v < 0.5) ? Qt::Unchecked : Qt::Checked );
 	}
 
  public slots :
-	void setState(int v)		{ modifyZone(float(v>0)); }
+	void setState(int v)		{ modifyZone(FAUSTFLOAT(v>0)); }
 };
-
 
 class uiSlider : public QObject, public uiItem
 {
     Q_OBJECT
 
-	int		faust2qt(float x) 	{ return int(0.5 + (x-fMin)/fStep); }
-	float	qt2faust (int v)	{ return fMin + v*fStep; }
+	int		faust2qt(FAUSTFLOAT x) 	{ return int(0.5 + (x-fMin)/fStep); }
+	FAUSTFLOAT	qt2faust (int v)	{ return fMin + v*fStep; }
 	int		optimalTick()		{
-				float x=fStep;
-				while((fMax-fMin)/x > 50) x*=10;
-				while((fMax-fMin)/x < 10) x/=2;
+				FAUSTFLOAT x = fStep;
+				while ((fMax-fMin)/x > 50) x*=10;
+				while ((fMax-fMin)/x < 10) x/=2;
 				return faust2qt(fMin+x);
 			}
 
  public :
 	QSlider* 	fSlider;
-	float		fCur;
-	float		fMin;
-	float		fMax;
-	float		fStep;
+	FAUSTFLOAT	fCur;
+	FAUSTFLOAT	fMin;
+	FAUSTFLOAT	fMax;
+	FAUSTFLOAT	fStep;
 
-	uiSlider (GUI* ui, float* zone, QSlider* slider, float cur, float lo, float hi, float step)
+	uiSlider (GUI* ui, FAUSTFLOAT* zone, QSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
 		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
 	{
 		fSlider->setMinimum(0);
@@ -1013,7 +999,7 @@ class uiSlider : public QObject, public uiItem
 
 	virtual void reflectZone()
 	{
-		float 	v = *fZone;
+		FAUSTFLOAT v = *fZone;
 		fCache = v;
 		fSlider->setValue(faust2qt(v));
 	}
@@ -1022,28 +1008,27 @@ class uiSlider : public QObject, public uiItem
 	void setValue(int v)		{ modifyZone(qt2faust(v)); }
 };
 
-
 class uiKnob : public QObject, public uiItem
 {
     Q_OBJECT
 
-	int		faust2qt(float x) 	{ return int(0.5 + (x-fMin)/fStep); }
-	float	qt2faust (int v)	{ return fMin + v*fStep; }
+	int		faust2qt(FAUSTFLOAT x) 	{ return int(0.5 + (x-fMin)/fStep); }
+	FAUSTFLOAT	qt2faust (int v)	{ return fMin + v*fStep; }
 	int		optimalTick()		{
-				float x=fStep;
-				while((fMax-fMin)/x > 50) x*=10;
-				while((fMax-fMin)/x < 10) x/=2;
+				FAUSTFLOAT x = fStep;
+				while ((fMax-fMin)/x > 50) x*=10;
+				while ((fMax-fMin)/x < 10) x/=2;
 				return faust2qt(fMin+x);
 			}
 
  public :
 	QAbstractSlider* 	fSlider;
-	float				fCur;
-	float				fMin;
-	float				fMax;
-	float				fStep;
+	FAUSTFLOAT			fCur;
+	FAUSTFLOAT			fMin;
+	FAUSTFLOAT			fMax;
+	FAUSTFLOAT			fStep;
 
-	uiKnob (GUI* ui, float* zone, QAbstractSlider* slider, float cur, float lo, float hi, float step)
+	uiKnob (GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
 		: uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
 	{
 		fSlider->setMinimum(0);
@@ -1055,7 +1040,7 @@ class uiKnob : public QObject, public uiItem
 
 	virtual void reflectZone()
 	{
-		float 	v = *fZone;
+		FAUSTFLOAT v = *fZone;
 		fCache = v;
 		fSlider->setValue(faust2qt(v));
 	}
@@ -1064,20 +1049,19 @@ class uiKnob : public QObject, public uiItem
 	void setValue(int v)		{ modifyZone(qt2faust(v)); }
 };
 
-
 class uiBargraph : public QObject, public uiItem
 {
     Q_OBJECT
 
-    int     faust2qt(float x)   { return int(0.5 + (x-fMin)/(fMax-fMin)*fStep); }
+    int     faust2qt(FAUSTFLOAT x)   { return int(0.5 + (x-fMin)/(fMax-fMin)*fStep); }
 
  public :
     QProgressBar*   fBar;
-    float           fMin;
-    float           fMax;
+    FAUSTFLOAT      fMin;
+    FAUSTFLOAT      fMax;
     int             fStep;
 
-    uiBargraph (GUI* ui, float* zone, QProgressBar* bar, float lo, float hi)
+    uiBargraph (GUI* ui, FAUSTFLOAT* zone, QProgressBar* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
         : uiItem(ui, zone), fBar(bar), fMin(lo), fMax(hi), fStep(1024)
     {
         fBar->setRange(0, fStep);
@@ -1087,14 +1071,13 @@ class uiBargraph : public QObject, public uiItem
 
     virtual void reflectZone()
     {
-        float   v = *fZone;
+        FAUSTFLOAT v = *fZone;
         fCache = v;
         int x = faust2qt(v);
         //std::cout << "update *" << fBar << " = " << x << std::endl;
         fBar->setValue(x);
     }
 };
-
 
 class uiBargraph2 : public QObject, public uiItem
 {
@@ -1103,7 +1086,7 @@ class uiBargraph2 : public QObject, public uiItem
  public :
     AbstractDisplay*   fBar;
 
-    uiBargraph2 (GUI* ui, float* zone, AbstractDisplay* bar, float lo, float hi)
+    uiBargraph2 (GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
         : uiItem(ui, zone), fBar(bar)
     {
         fBar->setRange(lo, hi);
@@ -1113,13 +1096,11 @@ class uiBargraph2 : public QObject, public uiItem
 
     virtual void reflectZone()
     {
-        float   v = *fZone;
+        FAUSTFLOAT v = *fZone;
         fCache = v;
         fBar->setValue(v);
     }
 };
-
-
 
 class uiNumEntry : public QObject, public uiItem
 {
@@ -1127,13 +1108,13 @@ class uiNumEntry : public QObject, public uiItem
 
  public :
 	QDoubleSpinBox* 	fNumEntry;
-	float				fCur;
-	float				fMin;
-	float				fMax;
-	float				fStep;
+	FAUSTFLOAT			fCur;
+	FAUSTFLOAT			fMin;
+	FAUSTFLOAT			fMax;
+	FAUSTFLOAT			fStep;
 	int					fDecimals;
 
-	uiNumEntry (GUI* ui, float* zone, QDoubleSpinBox* numEntry, float cur, float lo, float hi, float step)
+	uiNumEntry (GUI* ui, FAUSTFLOAT* zone, QDoubleSpinBox* numEntry, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
 		: uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step)
 	{
 		fDecimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
@@ -1149,19 +1130,16 @@ class uiNumEntry : public QObject, public uiItem
 
 	virtual void reflectZone()
 	{
-		float 	v = *fZone;
+		FAUSTFLOAT v = *fZone;
 		fCache = v;
 		fNumEntry->setValue(v);
 	}
 
  public slots :
 	void setValue(double v)		{
-		modifyZone(float(v));
+		modifyZone(FAUSTFLOAT(v));
 	}
 };
-
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -1172,7 +1150,6 @@ class uiNumEntry : public QObject, public uiItem
 *******************************************************************************
 *******************************************************************************/
 
-
 class QTGUI : public QObject, public GUI
 {
     Q_OBJECT
@@ -1182,11 +1159,11 @@ class QTGUI : public QObject, public GUI
 	string				gGroupTooltip;
 	stack<QWidget* > 	fGroupStack;
 
-    map<float*, float>           fGuiSize;       // map widget zone with widget size coef
-    map<float*, string>          fTooltip;       // map widget zone with tooltip strings
-    map<float*, string>          fUnit;          // map widget zone to unit string (i.e. "dB")
-    set<float*>                  fKnobSet;       // set of widget zone to be knobs
-    set<float*>                  fLedSet;        // set of widget zone to be LEDs
+    map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;       // map widget zone with widget size coef
+    map<FAUSTFLOAT*, string>          fTooltip;       // map widget zone with tooltip strings
+    map<FAUSTFLOAT*, string>          fUnit;          // map widget zone to unit string (i.e. "dB")
+    set<FAUSTFLOAT*>                  fKnobSet;       // set of widget zone to be knobs
+    set<FAUSTFLOAT*>                  fLedSet;        // set of widget zone to be LEDs
 
 
     /**
@@ -1210,12 +1187,11 @@ class QTGUI : public QObject, public GUI
 		return ss;
 	}
 
-
     /**
     * Analyses the widget zone metadata declarations and takes
     * appropriate actions
     */
-    virtual void declare(float* zone, const char* key, const char* value)
+    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
     {
 		if (zone == 0) {
 			// special zone 0 means group metadata
@@ -1290,7 +1266,7 @@ class QTGUI : public QObject, public GUI
     /**
     * Check if a tooltip is associated to a zone and add it to the corresponding widget
     */
-    void checkForTooltip(float* zone, QWidget* widget)
+    void checkForTooltip(FAUSTFLOAT* zone, QWidget* widget)
     {
         if (fTooltip.count(zone)) {
             widget->setToolTip(fTooltip[zone].c_str());
@@ -1300,7 +1276,7 @@ class QTGUI : public QObject, public GUI
     /**
     * Check if a knob is required
     */
-    bool isKnob(float* zone)
+    bool isKnob(FAUSTFLOAT* zone)
     {
         return fKnobSet.count(zone) > 0;
     }
@@ -1350,8 +1326,8 @@ class QTGUI : public QObject, public GUI
 		fGroupStack.push(group);
 	}
 
-
   public slots :
+  
 	void update()		{
         //std::cout << '.' << std::endl;
 		updateAllZones();
@@ -1515,7 +1491,6 @@ class QTGUI : public QObject, public GUI
 
 	}
 
-
 	// ------------------------- Groups -----------------------------------
 
 	virtual void openHorizontalBox(const char* label) { 
@@ -1540,7 +1515,7 @@ class QTGUI : public QObject, public GUI
 
 	// ------------------------- active widgets -----------------------------------
 
-	virtual void addButton(const char* label , float* zone)
+	virtual void addButton(const char* label, FAUSTFLOAT* zone)
 	{
 		QAbstractButton* 	w = new QPushButton(label);
 		uiButton* 			c = new uiButton(this, zone, w);
@@ -1551,10 +1526,10 @@ class QTGUI : public QObject, public GUI
         checkForTooltip(zone, w);
 	}
 
-    virtual void addToggleButton(const char* , float* )
+    virtual void addToggleButton(const char*, FAUSTFLOAT*)
     {}
 
-	virtual void addCheckButton(const char* label , float* zone)
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
 	{
 		QCheckBox* 	w = new QCheckBox(label);
 		uiCheckButton* 	c = new uiCheckButton(this, zone, w);
@@ -1564,7 +1539,7 @@ class QTGUI : public QObject, public GUI
         checkForTooltip(zone, w);
 	}
 
-    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
@@ -1582,7 +1557,7 @@ class QTGUI : public QObject, public GUI
     }
 
     // special num entry without buttons
-    virtual void addNumDisplay(const char* label, float* zone, float init, float min, float max, float step)
+    virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         //insert(label, new QDoubleSpinBox());
         if (label && label[0]) openVerticalBox(label);
@@ -1605,14 +1580,13 @@ class QTGUI : public QObject, public GUI
         checkForTooltip(zone, w);
     }
 
-
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// KNOBS
 	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)
+	virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		openVerticalBox(label);
 		QAbstractSlider* 	w = new QDial(); //qsynthKnob();
@@ -1632,7 +1606,7 @@ class QTGUI : public QObject, public GUI
         checkForTooltip(zone, w);
 	}
 
-	virtual void addHorizontalKnob(const char* label , float* zone, float init, float min, float max, float step)
+	virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		openHorizontalBox(label);
 		QAbstractSlider* 	w = new QDial(); //new qsynthKnob();
@@ -1651,7 +1625,7 @@ class QTGUI : public QObject, public GUI
 	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	virtual void addVerticalSlider(const char* label , float* zone, float init, float min, float max, float step)
+	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		if (isKnob(zone)) {
 			addVerticalKnob(label, zone, init, min, max, step);
@@ -1670,7 +1644,7 @@ class QTGUI : public QObject, public GUI
         checkForTooltip(zone, w);
 	}
 
-	virtual void addHorizontalSlider(const char* label , float* zone, float init, float min, float max, float step)
+	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 		if (isKnob(zone)) {
 			addHorizontalKnob(label, zone, init, min, max, step);
@@ -1691,13 +1665,13 @@ class QTGUI : public QObject, public GUI
 
 	// ------------------------- passive widgets -----------------------------------
 
-    virtual void addNumDisplay(const char*, float*, int)
+    virtual void addNumDisplay(const char*, FAUSTFLOAT*, int)
     {}
 
-	virtual void addTextDisplay(const char*, float*, const char* [], float, float)
+	virtual void addTextDisplay(const char*, FAUSTFLOAT*, const char* [], FAUSTFLOAT, FAUSTFLOAT)
     {}
 
-    virtual void addHorizontalBargraph(const char* label , float* zone, float min, float max)
+    virtual void addHorizontalBargraph(const char* label , FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         AbstractDisplay*  bargraph;
         openVerticalBox(label);
@@ -1723,7 +1697,7 @@ class QTGUI : public QObject, public GUI
         checkForTooltip(zone, bargraph);
     }
 
-    virtual void addVerticalBargraph(const char* label , float* zone, float min, float max)
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         AbstractDisplay*  bargraph;
         openVerticalBox(label);
