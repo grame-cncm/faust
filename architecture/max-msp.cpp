@@ -424,7 +424,7 @@ int main()
 	thedsp->buildUserInterface(dspUI);
 
 	// Add the same method for every parameters and use the symbol as a selector
-	// inside thid method
+	// inside this method
 	for (mspUI::iterator it = dspUI->begin(); it != dspUI->end(); ++it) {
 		char *name = const_cast<char *>(it->second->GetName().c_str());
 		addmess((method)faust_method, name, A_GIMME, 0);

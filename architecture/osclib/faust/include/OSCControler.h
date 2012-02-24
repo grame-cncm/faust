@@ -66,6 +66,11 @@ class OSCControler
 		//--------------------------------------------------------------------------
 		void addnode (const char* label, float* zone, float init, float min, float max);
 		void addfullpathnode (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max);
+        
+        // TODO
+        void addnode (const char* label, double* zone, double init, double min, double max) {}
+        void addfullpathnode (const std::string& fullpath, double* zone, double imin, double imax, double init, double min, double max) {}
+	
 		void opengroup (const char* label);
 		void closegroup ();
 
