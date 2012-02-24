@@ -91,14 +91,12 @@ public:
 	CMDUI(int argc, char *argv[]) : GUI(), fArgc(argc), fArgv(argv) { fPrefix.push("--"); }
 	virtual ~CMDUI() {}
 
-	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
 	virtual void openTabBox(const char* label)          { openAnyBox(label); }
 	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
 	virtual void openVerticalBox(const char* label)     { openAnyBox(label); }
 	virtual void closeBox()                             { fPrefix.pop(); }
 
 	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{};
-	virtual void addToggleButton(const char* label, FAUSTFLOAT* zone) 	{};
 	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{};
 
 	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -118,8 +116,6 @@ public:
 
 	// -- passive widgets
 
-	virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision) 						{}
-	virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max) 	{}
 	virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 			{}
 	virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 			{}
 
