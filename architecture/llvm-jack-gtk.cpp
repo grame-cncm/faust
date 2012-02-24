@@ -28,6 +28,10 @@
 
 using namespace std;
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 #include "gui/FUI.h"
 #include "gui/CUI.h"
 #include "misc.h"
@@ -37,13 +41,6 @@ using namespace std;
 #ifdef OSCCTRL
 #include "gui/OSCUI.h"
 #endif
-
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-//#define IS_DOUBLE 1
-#endif
-
-//#define BENCHMARKMODE
 
 #ifdef __APPLE__
 #include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
@@ -196,7 +193,6 @@ void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const c
 #ifdef __cplusplus
 }
 #endif
-
 
 class llvmdsp : public dsp {
 

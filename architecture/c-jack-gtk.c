@@ -26,6 +26,10 @@
 #include <libgen.h>
 #include <jack/jack.h>
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 #include "gui/FUI.h"
 #include "misc.h"
 #include "gui/faustgtk.h"
@@ -35,12 +39,6 @@
 using namespace std;
 
 /*******************************************************************************/
-
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-//#define IS_DOUBLE 1
-#endif
-
 
 /******************************************************************************
 *******************************************************************************
@@ -129,7 +127,6 @@ void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const c
     UI* interface = static_cast<UI*>(cpp_interface);
     interface->declare(zone, key, value);
 }
-
 
 class Cdsp : public dsp {
 

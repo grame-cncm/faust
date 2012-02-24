@@ -1,6 +1,10 @@
 #ifndef FAUST_CUI_H
 #define FAUST_CUI_H
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT FAUSTFLOAT
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,18 +22,18 @@ typedef void (*closeBoxFun) (void* interface);
 
 /* -- active widgets */
 
-typedef void (* addButtonFun) (void* interface, const char* label, float* zone);
-typedef void (* addCheckButtonFun) (void* interface, const char* label, float* zone);
-typedef void (* addVerticalSliderFun) (void* interface, const char* label, float* zone, float init, float min, float max, float step);
-typedef void (* addHorizontalSliderFun) (void* interface, const char* label, float* zone, float init, float min, float max, float step);
-typedef void (* addNumEntryFun) (void* interface, const char* label, float* zone, float init, float min, float max, float step);
+typedef void (* addButtonFun) (void* interface, const char* label, FAUSTFLOAT* zone);
+typedef void (* addCheckButtonFun) (void* interface, const char* label, FAUSTFLOAT* zone);
+typedef void (* addVerticalSliderFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+typedef void (* addHorizontalSliderFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+typedef void (* addNumEntryFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 
 /* -- passive display widgets */
 
-typedef void (* addHorizontalBargraphFun) (void* interface, const char* label, float* zone, float min, float max);
-typedef void (* addVerticalBargraphFun) (void* interface, const char* label, float* zone, float min, float max);
+typedef void (* addHorizontalBargraphFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
+typedef void (* addVerticalBargraphFun) (void* interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
 
-typedef void (* declareFun) (void* interface, float* zone, const char* key, const char* value);
+typedef void (* declareFun) (void* interface, FAUSTFLOAT* zone, const char* key, const char* value);
 
 typedef struct {
 

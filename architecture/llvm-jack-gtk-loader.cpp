@@ -37,6 +37,10 @@
 
 using namespace std;
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 #include "gui/FUI.h"
 #include "gui/CUI.h"
 #include "misc.h"
@@ -45,11 +49,6 @@ using namespace std;
 
 #ifdef OSCCTRL
 #include "gui/OSCUI.h"
-#endif
-
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-//#define IS_DOUBLE 1
 #endif
 
 #ifdef __APPLE__
