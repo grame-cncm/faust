@@ -29,28 +29,27 @@
 #include <vector>
 
 #include "MessageDriven.h"
+#include "Message.h"
+#include "OSCStream.h"
 
 namespace oscfaust
 {
 
-class FaustNode;
-typedef class SMARTP<FaustNode>	SFaustNode;
-
 /**
  * map (rescale) input values to output values
  */
-struct mapping
+template <typename C> struct mapping
 {
-	const float fMinIn;	
-	const float fMaxIn;
-	const float fMinOut;
-	const float fMaxOut;
-	const float fScale;
+	const C fMinIn;	
+	const C fMaxIn;
+	const C fMinOut;
+	const C fMaxOut;
+	const C fScale;
 
-	mapping(float imin, float imax, float omin, float omax) : fMinIn(imin), fMaxIn(imax), 
+	mapping(C imin, C imax, C omin, C omax) : fMinIn(imin), fMaxIn(imax), 
 											fMinOut(omin), fMaxOut(omax), 
 											fScale( (fMaxOut-fMinOut)/(fMaxIn-fMinIn) ) {}
-	float scale (float x) { float z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x; return fMinOut + (z - fMinIn) * fScale; }
+	C scale (C x) { C z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x; return fMinOut + (z - fMinIn) * fScale; }
 };
 
 
@@ -58,33 +57,53 @@ struct mapping
 /*!
 	\brief a faust node is a terminal node and represents a faust parameter controler
 */
-class FaustNode : public MessageDriven
+template <typename C> class FaustNode : public MessageDriven
 {
-	float *	fZone;			// the parameter memory zone
-	mapping	fMapping;
+	C *	fZone;			// the parameter memory zone
+	mapping<C>	fMapping;
 	
-	bool store (float val);
+	bool store (C val)			{ *fZone = fMapping.scale(val); return true; }
 
 	protected:
-		FaustNode(const char *name, float* zone, float init, float min, float max, const char* prefix) 
+		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix) 
 			: MessageDriven (name, prefix), fZone(zone), fMapping(min, max, min, max) 
 			{ *zone = init; }
 			
-		FaustNode(const char *name, float* zone,  float imin, float imax, float init, float min, float max, const char* prefix) 
+		FaustNode(const char *name, C* zone,  C imin, C imax, C init, C min, C max, const char* prefix) 
 			: MessageDriven (name, prefix), fZone(zone), fMapping(imin, imax, min, max) 
 			{ *zone = init; }
 		virtual ~FaustNode() {}
 
 	public:
-		static SFaustNode create (const char* name, float* zone, float init, float min, float max, const char* prefix)	
+		typedef SMARTP<FaustNode<C> > SFaustNode;
+		static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix)	
 							{ return new FaustNode(name, zone, init, min, max, prefix); }
-		static SFaustNode create (const char* name, float* zone, float imin, float imax, float init, float min, float max, const char* prefix)	
+		static SFaustNode create (const char* name, C* zone, C imin, C imax, C init, C min, C max, const char* prefix)	
 							{ return new FaustNode(name, zone, imin, imax, init, min, max, prefix); }
 
 
-		virtual bool	accept( const Message* msg );			///< handler for the 'accept' message
-		virtual void	get (unsigned long ipdest) const;		///< handler for the 'get' message
+		virtual bool	accept( const Message* msg )			///< handler for the 'accept' message
+		{
+			if (msg->size() == 1) {			// checks for the message parameters count
+											// messages with a param count other than 1 are rejected
+				int ival; float fval;
+				if (msg->param(0, fval)) return store (C(fval));				// accepts float values
+				else if (msg->param(0, ival)) return store (C(ival));	// but accepts also int values
+			}
+			return MessageDriven::accept(msg);
+		}
+
+		virtual void	get (unsigned long ipdest) const		///< handler for the 'get' message
+		{
+			unsigned long savedip = oscout.getAddress();		// saves the current destination IP
+			oscout.setAddress(ipdest);							// sets the osc stream dest IP
+			// send a state message on 'get' request
+			oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << float(fMapping.fMinOut) << float(fMapping.fMaxOut) << OSCEnd();
+			oscout.setAddress(savedip);							// and restores the destination IP
+		}
 };
+
+
 
 } // end namespoace
 

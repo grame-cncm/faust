@@ -95,23 +95,6 @@ float OSCControler::version()				{ return kVersion; }
 const char* OSCControler::versionstr()		{ return kVersionStr; }
 
 //--------------------------------------------------------------------------
-// Add a node in the current group (top of the group stack)
-void OSCControler::addnode (const char* label, float* zone, float init, float min, float max)
-{
-	fFactory->addnode (label, zone, init, min, max);
-}
-
-//--------------------------------------------------------------------------
-// Add a node using its fullpath from the root instead of the current group
-// This method is used for alias messages. The arguments imin and imax allow
-// to map incomming values from the alias input range to the actual range 
-void OSCControler::addfullpathnode (const string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
-{
-	fFactory->addfullpathnode (fullpath, zone, imin, imax, init, min, max);
-}
-
-
-//--------------------------------------------------------------------------
 void OSCControler::opengroup (const char* label)
 {
 	fFactory->opengroup (label);
