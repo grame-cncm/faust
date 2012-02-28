@@ -27,7 +27,6 @@
 #define __OSCControler__
 
 #include <string>
-#include "FaustFactory.h"
 
 namespace oscfaust
 {
@@ -66,14 +65,13 @@ class OSCControler
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
 		// Add a node in the current group (top of the group stack)
-		template <typename C> void addnode (const char* label, C* zone, C init, C min, C max)
-										{ fFactory->addnode (label, zone, init, min, max); }
+		template <typename C> void addnode (const char* label, C* zone, C init, C min, C max);
+		
 		//--------------------------------------------------------------------------
 		// Add a node using its fullpath from the root instead of the current group
 		// This method is used for alias messages. The arguments imin and imax allow
 		// to map incomming values from the alias input range to the actual range 
-		template <typename C> void addfullpathnode (const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max)
-										{ fFactory->addfullpathnode (fullpath, zone, imin, imax, init, min, max); }
+		template <typename C> void addfullpathnode (const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max);
         	
 		void opengroup (const char* label);
 		void closegroup ();

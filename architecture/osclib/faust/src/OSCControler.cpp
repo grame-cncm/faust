@@ -95,6 +95,16 @@ float OSCControler::version()				{ return kVersion; }
 const char* OSCControler::versionstr()		{ return kVersionStr; }
 
 //--------------------------------------------------------------------------
+template <> void OSCControler::addnode<float> (const char* label, float* zone, float init, float min, float max)
+										{ fFactory->addnode (label, zone, init, min, max); }
+template <> void OSCControler::addnode<double> (const char* label, double* zone, double init, double min, double max)
+										{ fFactory->addnode (label, zone, init, min, max); }
+template <> void OSCControler::addfullpathnode<float> (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
+										{ fFactory->addfullpathnode (fullpath, zone, imin, imax, init, min, max); }
+template <> void OSCControler::addfullpathnode<double> (const std::string& fullpath, double* zone, double imin, double imax, double init, double min, double max)
+										{ fFactory->addfullpathnode (fullpath, zone, imin, imax, init, min, max); }
+
+//--------------------------------------------------------------------------
 void OSCControler::opengroup (const char* label)
 {
 	fFactory->opengroup (label);
