@@ -29,19 +29,19 @@ namespace httpdfaust
 {
 
 //--------------------------------------------------------------------------
-void jsoncontrol::print(std::ostream& out, jsonendl& eol) const
-{
-	out << eol << "{"; eol++;
-	out << eol << "\"type\": \"" << fType << "\",";
-	out << eol << "\"label\": \"" << fName << "\",";
-	out << eol << "\"address\": \"" << getAddress() << "\"";
-	if (!fButton) {
-		out << "," << eol << "\"init\": \"" << fInit << "\",";
-		out << eol << "\"min\": \"" << fMin << "\",";
-		out << eol << "\"max\": \"" << fMax << "\",";
-		out << eol << "\"step\": \"" << fStep << "\"";
-	}
-	out << --eol << "}";
-}
+//void jsoncontrol::print(std::ostream& out, jsonendl& eol) const
+//{
+//	out << eol << "{"; eol++;
+//	out << eol << "\"type\": \"" << fType << "\",";
+//	out << eol << "\"label\": \"" << fName << "\",";
+//	out << eol << "\"address\": \"" << getAddress() << "\"";
+//	if (!fButton) {
+//		out << "," << eol << "\"init\": \"" << fInit << "\",";
+//		out << eol << "\"min\": \"" << fMin << "\",";
+//		out << eol << "\"max\": \"" << fMax << "\",";
+//		out << eol << "\"step\": \"" << fStep << "\"";
+//	}
+//	out << --eol << "}";
+//}
 
 } // end namespoace

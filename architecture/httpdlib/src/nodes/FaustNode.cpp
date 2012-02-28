@@ -33,37 +33,37 @@ namespace httpdfaust
 {
 
 //--------------------------------------------------------------------------
-bool FaustNode::store( float val )
-{
-	*fZone = fMapping.scale(val);
-	return true;
-}
+//bool FaustNode::store( float val )
+//{
+//	*fZone = fMapping.scale(val);
+//	return true;
+//}
 
 //--------------------------------------------------------------------------
-bool FaustNode::accept( const Message* msg, vector<Message*>& outMsg )
-{
-	if (msg->size() == 2) {			// checks for the message parameters count
-									// messages with a param count other than 2 are rejected
-		string key;
-		if (msg->param(0, key) &&  (key == "value")) {
-			float val=0;
-			if (msg->param(1, val)) {
-				store (val);			// accepts float values
-			}
-			get (outMsg);
-			return true;
-		}
-	}
-	return MessageDriven::accept(msg, outMsg);
-}
+//bool FaustNode::accept( const Message* msg, vector<Message*>& outMsg )
+//{
+//	if (msg->size() == 2) {			// checks for the message parameters count
+//									// messages with a param count other than 2 are rejected
+//		string key;
+//		if (msg->param(0, key) &&  (key == "value")) {
+//			float val=0;
+//			if (msg->param(1, val)) {
+//				store (val);			// accepts float values
+//			}
+//			get (outMsg);
+//			return true;
+//		}
+//	}
+//	return MessageDriven::accept(msg, outMsg);
+//}
 
 
 //--------------------------------------------------------------------------
-void FaustNode::get (vector<Message*>& outMsg ) const
-{
-	Message * msg = new Message (getAddress());
-	msg->add (*fZone);
-	outMsg.push_back(msg);
-}
+//void FaustNode::get (vector<Message*>& outMsg ) const
+//{
+//	Message * msg = new Message (getAddress());
+//	msg->add (*fZone);
+//	outMsg.push_back(msg);
+//}
 
 } // end namespoace
