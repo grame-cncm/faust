@@ -77,18 +77,18 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         }
 
         string createVarAccess(string varname){
-          return "new FaustVarAccess(){\n"
-            "\t\t\t\tpublic String getId()       {return \"" + varname + "\";}\n"
-            "\t\t\t\tpublic void   set(float val){" + varname + "=val;}\n"
-            "\t\t\t\tpublic float  get()         {return (float)" + varname + ";}\n"
-            "\t\t\t}\n"
-            "\t\t\t";
+            return "new FaustVarAccess() {\n"
+                "\t\t\t\tpublic String getId()       { return \"" + varname + "\"; }\n"
+                "\t\t\t\tpublic void   set(float val){ " + varname + " = val; }\n"
+                "\t\t\t\tpublic float  get()         { return (float)" + varname + "; }\n"
+                "\t\t\t}\n"
+                "\t\t\t";
         }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {
-          *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" <<  inst->fValue << "\")";
-          EndLine();
+            *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" <<  inst->fValue << "\")";
+            EndLine();
         }
 
         virtual void visit(OpenboxInst* inst)
@@ -282,29 +282,30 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << T(inst->fNum);
         }
 
-        bool isBoolOpcode(int o){
-          return o==kGT || o==kLT || o==kLE || o==kEQ || o==kNE;
+        bool isBoolOpcode(int o)
+        {
+            return o == kGT || o == kLT || o == kLE || o == kEQ || o == kNE;
         }
 
         virtual void visit(BinopInst* inst)
         {
-          if(isBoolOpcode(inst->fOpcode)){
-            *fOut << "((";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")?1:0)";
-          }else{
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
-          }
+            if (isBoolOpcode(inst->fOpcode)) {
+                *fOut << "((";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ") ? 1 : 0) ";
+            } else {
+                *fOut << "(";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+            }
         }
 
         virtual void visit(CastNumInst* inst)
@@ -369,7 +370,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 inst->fInit->accept(this);
                 *fOut << "; (";
                 inst->fEnd->accept(this);
-                *fOut << ")==1; ";
+                *fOut << ") == 1; ";
                 inst->fIncrement->accept(this);
                 fFinishLine = true;
             *fOut << ") {";

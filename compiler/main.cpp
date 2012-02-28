@@ -66,6 +66,7 @@
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
 #include "java_code_container.hh"
+#include "js_code_container.hh"
 #include "llvm_code_container.hh"
 #include "fir_code_container.hh"
 
@@ -405,8 +406,8 @@ bool process_cmdline(int argc, char* argv[])
 
 void printversion()
 {
-	cout << "FAUST: DSP to C, C++, JAVA, LLVM compiler, Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2011, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "FAUST: DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
+	cout << "Copyright (C) 2002-2012, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 void printhelp()
@@ -456,7 +457,7 @@ void printhelp()
 	cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, llvm, fir (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, llvm, fir (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the C++ code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -666,8 +667,12 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         } else if (gOutputLang == "java") {
 
             container = JAVACodeContainer::createContainer(gClassName, "dsp", numInputs, numOutputs, dst);
+            
+        } else if (gOutputLang == "js") {
 
-       } else if (gOutputLang == "fir") {
+            container = JAVACodeContainer::createContainer(gClassName, "dsp", numInputs, numOutputs, dst);
+
+        } else if (gOutputLang == "fir") {
 
             container = FirCodeContainer::createContainer(numInputs, numOutputs);
 
@@ -749,7 +754,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 exit(1);
             }
         } else {
-            if (gOutputLang != "java") {
+            if (gOutputLang != "java" && gOutputLang != "js") {
                 printfloatdef(*dst);
             }
             if (gOutputLang == "c") {

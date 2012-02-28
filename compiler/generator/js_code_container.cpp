@@ -55,19 +55,19 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, cons
     CodeContainer* container;
 
     if (gOpenCLSwitch) {
-        cerr << "ERROR : OpenCL not supported for Java" << endl;
+        cerr << "ERROR : OpenCL not supported for JavaScript" << endl;
         exit(1);
     }
     if (gCUDASwitch) {
-        cerr << "ERROR : CUDA not supported for Java" << endl;
+        cerr << "ERROR : CUDA not supported for JavaScript" << endl;
         exit(1);
     }
 
     if (gOpenMPSwitch) {
-        cerr << "ERROR : OpenMP not supported for Java" << endl;
+        cerr << "ERROR : OpenMP not supported for JavaScript" << endl;
         exit(1);
     } else if (gSchedulerSwitch) {
-        cerr << "ERROR : Scheduler mode not supported for Java" << endl;
+        cerr << "ERROR : Scheduler mode not supported for JavaScript" << endl;
         exit(1);
     } else if (gVectorSwitch) {
         container = new JAVAScriptVectorCodeContainer(name, super, numInputs, numOutputs, dst);
