@@ -67,9 +67,9 @@ class HTTPDControler
 		//--------------------------------------------------------------------------
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
-		void addnode (const char* type, const char* label, float* zone);
-		void addnode (const char* type, const char* label, float* zone, float init, float min, float max, float step);
-//		void addfullpathnode (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max);
+		template <typename C> void addnode (const char* type, const char* label, C* zone);
+		template <typename C> void addnode (const char* type, const char* label, C* zone, C init, C min, C max, C step);
+
 		void opengroup (const char* type, const char* label);
 		void closegroup ();
 

@@ -29,6 +29,7 @@
 #include <string>
 
 #include "MessageDriven.h"
+#include "FaustNode.h"
 
 namespace httpdfaust
 {
@@ -48,16 +49,22 @@ class FaustFactory
 	std::stack<SMessageDriven>	fNodes;		///< maintains the current hierarchy level
 	SMessageDriven				fRoot;		///< keep track of the root node
 
-	private:
-//		SMessageDriven 	followPath	(SMessageDriven fRoot, const std::string& fullpath, std::string& pathtoleaf);
-//		void 			createNodeChain	(SMessageDriven node, const std::string& pathtoleaf, float* zone, float imin, float imax, float init, float min, float max);
-
 	public:
 				 FaustFactory() {}
 		virtual ~FaustFactory() {}
 
-		void addnode (const char* label, float* zone, float init, float min, float max);
-//		void addfullpathnode (const std::string& fullpath, float* zone, float imin, float imax, float init, float min, float max);
+		/**
+		 * Add a node to the OSC UI tree in the current group at the top of the stack 
+		 */
+		template <typename C> void addnode (const char* label, C* zone, C init, C min, C max)
+		{
+			SMessageDriven top = fNodes.size() ? fNodes.top() : fRoot;
+			if (top) {
+				std::string prefix = top->getAddress();
+				top->add( FaustNode<C>::create (label, zone, init, min, max, prefix.c_str()) );
+			}
+		}
+
 		void opengroup (const char* label);
 		void closegroup ();
 

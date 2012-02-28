@@ -36,27 +36,40 @@ namespace httpdfaust
 /*!
 	\brief a faust control is a terminal node and represents a faust parameter controler
 */
-class jsoncontrol : public jsonnode
+template <typename C> class jsoncontrol : public jsonnode
 {
 	std::string fName;
 	std::string fType;
-	float fInit, fMin, fMax, fStep;
+	C fInit, fMin, fMax, fStep;
 	bool  fButton;
 	
 	protected:
 				 jsoncontrol(const char *name, const char* type) 
 					: fName(name), fType(type), fInit(0), fMin(0), fMax(0), fStep(0), fButton(true) {}
-				 jsoncontrol(const char *name, const char* type, float init, float min, float max, float step) 
+				 jsoncontrol(const char *name, const char* type, C init, C min, C max, C step) 
 					: fName(name), fType(type), fInit(init), fMin(min), fMax(max), fStep(step), fButton(false) {}
 		virtual ~jsoncontrol() {}
 		
 	public:
-	static Sjsonnode create (const char *name, const char* type, float init, float min, float max, float step) 
+	static Sjsonnode create (const char *name, const char* type, C init, C min, C max, C step) 
 			{ return new jsoncontrol (name, type, init, min, max, step); }
 	static Sjsonnode create (const char *name, const char* type) 
 			{ return new jsoncontrol (name, type); }
 
-		virtual void	print(std::ostream& out, jsonendl& eol) const;
+		virtual void	print(std::ostream& out, jsonendl& eol) const
+		{
+			out << eol << "{"; eol++;
+			out << eol << "\"type\": \"" << fType << "\",";
+			out << eol << "\"label\": \"" << fName << "\",";
+			out << eol << "\"address\": \"" << getAddress() << "\"";
+			if (!fButton) {
+				out << "," << eol << "\"init\": \"" << fInit << "\",";
+				out << eol << "\"min\": \"" << fMin << "\",";
+				out << eol << "\"max\": \"" << fMax << "\",";
+				out << eol << "\"step\": \"" << fStep << "\"";
+			}
+			out << --eol << "}";
+		}
 };
 
 } // end namespoace

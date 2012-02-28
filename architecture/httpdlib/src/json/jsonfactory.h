@@ -29,6 +29,7 @@
 #include <string>
 
 #include "jsonroot.h"
+#include "jsoncontrol.h"
 
 namespace httpdfaust
 {
@@ -54,8 +55,14 @@ class jsonfactory
 				 jsonfactory(const char *name, const char* address, int port) : fRoot(name, address, port) {}
 		virtual ~jsonfactory() {}
 
-		void addnode (const char* type, const char* label);
-		void addnode (const char* type, const char* label, float init, float min, float max, float step);
+		template <typename C> void addnode (const char* type, const char* label, C init, C min, C max, C step) {
+				addnode (jsoncontrol<C>::create (label, type, init, min, max, step), label);
+			}
+
+		template <typename C> void addnode (const char* type, const char* label) {
+				addnode (jsoncontrol<C>::create (label, type), label);
+			}
+
 		void opengroup (const char* type, const char* label);
 		void closegroup ();
 

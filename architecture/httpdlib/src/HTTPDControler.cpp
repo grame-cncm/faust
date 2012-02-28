@@ -40,8 +40,8 @@ using namespace std;
 namespace httpdfaust
 {
 
-#define kVersion	 0.60f
-#define kVersionStr	"0.60"
+#define kVersion	 0.61f
+#define kVersionStr	"0.61"
 
 static const char* kPortOpt	= "-port";
 
@@ -111,27 +111,31 @@ const char* HTTPDControler::versionstr()	{ return kVersionStr; }
 
 //--------------------------------------------------------------------------
 // Add a node in the current group (top of the group stack)
-void HTTPDControler::addnode (const char* type, const char* label, float* zone, float init, float min, float max, float step)
+template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone, float init, float min, float max, float step)
 {
 	fFactory->addnode (label, zone, init, min, max);
-	fJson->addnode (type, label, init, min, max, step);
+	fJson->addnode<float> (type, label, init, min, max, step);
 	fHtml->addnode (type, label, init, min, max, step);
 }
-void HTTPDControler::addnode (const char* type, const char* label, float* zone)
+template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone)
 {
-	fFactory->addnode (label, zone, 0, 0, 1);
-	fJson->addnode (type, label);
+	fFactory->addnode (label, zone, 0.f, 0.f, 1.f);
+	fJson->addnode<float> (type, label);
 	fHtml->addnode (type, label);
 }
 
-//--------------------------------------------------------------------------
-// Add a node using its fullpath from the root instead of the current group
-// This method is used for alias messages. The arguments imin and imax allow
-// to map incomming values from the alias input range to the actual range 
-//void HTTPDControler::addfullpathnode (const string& fullpath, float* zone, float imin, float imax, float init, float min, float max)
-//{
-//	fFactory->addfullpathnode (fullpath, zone, imin, imax, init, min, max);
-//}
+template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone, double init, double min, double max, double step)
+{
+	fFactory->addnode (label, zone, init, min, max);
+	fJson->addnode<double> (type, label, init, min, max, step);
+	fHtml->addnode (type, label, init, min, max, step);
+}
+template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone)
+{
+	fFactory->addnode (label, zone, 0., 0., 1.);
+	fJson->addnode<double> (type, label);
+	fHtml->addnode (type, label);
+}
 
 //--------------------------------------------------------------------------
 void HTTPDControler::opengroup (const char* type, const char* label)

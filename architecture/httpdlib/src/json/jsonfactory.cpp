@@ -50,16 +50,6 @@ void jsonfactory::addnode (Sjsonnode node, const char* label)
 	node->setAddress (address);
 }
 
-void jsonfactory::addnode (const char* type, const char* label)
-{
-	addnode (jsoncontrol::create (label, type), label);
-}
-
-void jsonfactory::addnode (const char* type, const char* label, float init, float min, float max, float step)
-{
-	addnode (jsoncontrol::create (label, type, init, min, max, step), label);
-}
-
 /**
  * Open a group in the current group and place it on the top of the stack. 
  * Takes into account that due to alias, a group can been previously created.  

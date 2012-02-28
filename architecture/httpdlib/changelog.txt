@@ -8,5 +8,9 @@ research@grame.fr
 Copyright GRAME (c) 2011
 
 ----------------------------------------------------
+Version 0.61
+- FAUSTFLOAT support  
+
+----------------------------------------------------
 Version 0.50                           [Feb ?? 2012]
 - first release 
