@@ -67,6 +67,8 @@
     [_inputAccView release];
     [_doneButton release];
     [_rangeLabel release];
+    
+    [super dealloc];
 }
 
 #pragma mark -

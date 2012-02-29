@@ -165,18 +165,18 @@ error:
 
 #pragma mark - DSP view
 
-// Sends corresponding uiItem subtype object to the UIReponder subtype object passed in argument
+// Sends corresponding uiCocoaItem subtype object to the UIReponder subtype object passed in argument
 // Sends NULL if nothing has been found
 
 template <typename T>
 T findCorrespondingUiItem(FIResponder* sender)
 {
-    list<uiItem*>::iterator i;
+    list<uiCocoaItem*>::iterator i;
     
-    // Loop on uiItem elements
+    // Loop on uiCocoaItem elements
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
-        // Does current uiItem match T ?
+        // Does current uiCocoaItem match T ?
         if (dynamic_cast<T>(*i) != nil)
         {
             // Test sender type
@@ -195,6 +195,10 @@ T findCorrespondingUiItem(FIResponder* sender)
             else if (typeid(T) == typeid(uiKnob*))
             {
                 if (sender == dynamic_cast<uiKnob*>(*i)->fKnob) return dynamic_cast<T>(*i);
+            }
+            else if (typeid(T) == typeid(uiBox*))
+            {
+                if (sender == dynamic_cast<uiBox*>(*i)->fTabView) return dynamic_cast<T>(*i);
             }
         }
     }
@@ -239,6 +243,14 @@ T findCorrespondingUiItem(FIResponder* sender)
             knob->modifyZone((float)((FIKnob*)sender).value);
         }
     }
+    else if ([sender isKindOfClass:[FITabView class]])
+    {
+        uiBox* box = findCorrespondingUiItem<uiBox*>((FIResponder*)sender);
+        if (box)
+        {
+            box->reflectZone();
+        }
+    }
     else NSLog(@"UIItem not implemented yet :)");
     
 }
@@ -250,9 +262,9 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (void)updateGui
 {
-    list<uiItem*>::iterator i;
+    list<uiCocoaItem*>::iterator i;
     
-    // Loop on uiItem elements
+    // Loop on uiCocoaItem elements
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
         // Refresh GUI
@@ -306,9 +318,9 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (void)refreshObjects:(NSTimer*)timer
 {
-    list<uiItem*>::iterator i;
+    list<uiCocoaItem*>::iterator i;
 
-    // Loop on uiItem elements
+    // Loop on uiCocoaItem elements
     for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
     {
         // Refresh only uiBargraph objects

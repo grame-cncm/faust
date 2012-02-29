@@ -11,6 +11,7 @@
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
 		655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */ = {isa = PBXBuildFile; fileRef = 655DAAE814F69C9B0013FAF5 /* FIBox.mm */; };
+		6560454114FE924400AE84A9 /* FITabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6560454014FE924400AE84A9 /* FITabView.mm */; };
 		6566748A14ED30F000172A10 /* FIButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748514ED30F000172A10 /* FIButton.mm */; };
 		6566748B14ED30F000172A10 /* FIResponder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748714ED30F000172A10 /* FIResponder.mm */; };
 		6566748C14ED30F000172A10 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
@@ -51,6 +52,8 @@
 		6559E84614F2685A00D3AB9A /* FIKnob.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIKnob.mm; sourceTree = "<group>"; };
 		655DAAE714F69C9B0013FAF5 /* FIBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIBox.h; sourceTree = "<group>"; };
 		655DAAE814F69C9B0013FAF5 /* FIBox.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIBox.mm; sourceTree = "<group>"; };
+		6560453F14FE924400AE84A9 /* FITabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITabView.h; sourceTree = "<group>"; };
+		6560454014FE924400AE84A9 /* FITabView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITabView.mm; sourceTree = "<group>"; };
 		6566748414ED30F000172A10 /* FIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIButton.h; sourceTree = "<group>"; };
 		6566748514ED30F000172A10 /* FIButton.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIButton.mm; sourceTree = "<group>"; };
 		6566748614ED30F000172A10 /* FIResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIResponder.h; sourceTree = "<group>"; };
@@ -118,6 +121,8 @@
 				6566748714ED30F000172A10 /* FIResponder.mm */,
 				655DAAE714F69C9B0013FAF5 /* FIBox.h */,
 				655DAAE814F69C9B0013FAF5 /* FIBox.mm */,
+				6560453F14FE924400AE84A9 /* FITabView.h */,
+				6560454014FE924400AE84A9 /* FITabView.mm */,
 				6566748414ED30F000172A10 /* FIButton.h */,
 				6566748514ED30F000172A10 /* FIButton.mm */,
 				6566748814ED30F000172A10 /* FISlider.h */,
@@ -332,6 +337,7 @@
 				6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */,
 				65C1C07414F543E9006464DF /* FIBargraph.mm in Sources */,
 				655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */,
+				6560454114FE924400AE84A9 /* FITabView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

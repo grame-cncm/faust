@@ -51,6 +51,7 @@
 #import "FITextField.h"
 #import "FIBargraph.h"
 #import "FIBox.h"
+#import "FITabView.h"
 
 using namespace std;
 
@@ -76,9 +77,17 @@ using namespace std;
 #define SCREEN_WIDTH    320
 #define SCREEN_HEIGHT   480
 
+#define TYPE_HORIZONTAL 0
+#define TYPE_VERTICAL   1
+#define TYPE_TAB        2
+
+
 
 class uiCocoaItem : public uiItem
 {
+    
+protected:
+    BOOL fHidden;
     
 public:
     
@@ -87,11 +96,14 @@ public:
     uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller)
     : uiItem(ui, zone), mainViewController(controller)
     {
+        fHidden = false;
     }
     
     ~uiCocoaItem()
     {
     }
+    
+    virtual void setHidden(BOOL hidden) = 0;
 };
 
 
@@ -103,16 +115,39 @@ class uiBox : public uiCocoaItem
 public:
     
     FIBox* fBox;
+    FITabView* fTabView;
+    list <uiCocoaItem*> fWidgetList;
     BOOL fClosed;
+    int fBoxType;
     
-    uiBox(int index, GUI* ui, FIMainViewController* controller, const char* name)
+    uiBox(int index, GUI* ui, FIMainViewController* controller, const char* name, int boxType)
     : uiCocoaItem(ui, NULL, controller)
-    {        
-        fClosed = FALSE;
+    {
+        float tabOffset = 0;
+        fBoxType = boxType;
         
+        if (boxType == TYPE_TAB)
+        {
+            fTabView = [[[FITabView alloc] initWithDelegate:controller] autorelease];
+            float viewWidth = controller.dspView.frame.size.width;
+            fTabView.frame = CGRectMake(0.0f, OFFSET_Y + WIDGET_SLICE * index, viewWidth, 20.0f);
+            
+            fTabView.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
+            fTabView.labelColor = [UIColor redColor];
+            fTabView.backgroundColorAlpha = 0.4;
+            fTabView.value = 0.f;
+            [controller.dspView addSubview:fTabView];
+            
+            tabOffset = 20.f;
+        }
+        else
+        {
+            fTabView = nil;
+        }
+        fClosed = FALSE;
         fBox = [[[FIBox alloc] init] autorelease];
         fBox.color = [UIColor blueColor];
-        fBox.frame = CGRectMake(0., OFFSET_Y + WIDGET_SLICE * index, 1.f, 1.f);
+        fBox.frame = CGRectMake(0., OFFSET_Y + WIDGET_SLICE * index + tabOffset, 1.f, 1.f);
         [controller.dspView addSubview:fBox];
     }
     
@@ -121,16 +156,55 @@ public:
         [fBox release];
     }
     
+    void setHidden(BOOL hidden)
+    {
+        fHidden = hidden;
+        fBox.hidden = hidden;
+        
+        list<uiCocoaItem*>::iterator i;
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            (*i)->setHidden(hidden);
+        }
+        
+        [fBox setNeedsDisplay];
+        if (fTabView)
+        {
+            fTabView.hidden = hidden;
+            [fTabView setNeedsDisplay];
+        }
+    }
+    
     void close(int index)
     {        
         [fBox updateFrame:CGRectMake(fBox.frame.origin.x, fBox.frame.origin.y, mainViewController.dspView.frame.size.width, OFFSET_Y + WIDGET_SLICE * index - fBox.frame.origin.y)];
         
-        fClosed = TRUE;
+        fClosed = TRUE;        
     }
     
     void reflectZone()
     {
         [fBox setNeedsDisplay];
+                
+        if (fTabView)
+        {
+            list<uiCocoaItem*>::iterator i;
+            int index = 0;
+            
+            for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+            {
+                if (fTabView.value != index)
+                {
+                    (*i)->setHidden(true);
+                }
+                else
+                {
+                    (*i)->setHidden(false);
+                }
+                ++index;
+            }
+            [fTabView setNeedsDisplay];
+        }
     }
 };
 
@@ -146,6 +220,7 @@ class uiKnob : public uiCocoaItem
 public :
     
     FIKnob* fKnob;
+    UILabel* fLabel;
     
     uiKnob(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller)
@@ -153,13 +228,13 @@ public :
         float viewWidth = controller.dspView.frame.size.width;
         
         CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, kStdKnobHeight);
-        UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
-        label.font = [UIFont boldSystemFontOfSize:12];
-        label.textAlignment = UITextAlignmentRight;
-        label.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
-        label.textColor = [UIColor whiteColor];
-        label.backgroundColor = [UIColor blackColor];
-        [controller.dspView addSubview:label];
+        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+        fLabel.font = [UIFont boldSystemFontOfSize:12];
+        fLabel.textAlignment = UITextAlignmentRight;
+        fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
+        fLabel.textColor = [UIColor whiteColor];
+        fLabel.backgroundColor = [UIColor blackColor];
+        [controller.dspView addSubview:fLabel];
         
         fKnob = [[[FIKnob alloc] initWithDelegate:controller] autorelease];
         fKnob.frame = CGRectMake(viewWidth / 2 - kStdKnobWidth / 2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdKnobWidth, kStdKnobHeight);
@@ -176,7 +251,16 @@ public :
     
     ~uiKnob()
     {
+        [fLabel release];
         [fKnob release];
+    }
+    
+    void setHidden(BOOL hidden)
+    {
+        fHidden = hidden;
+        fLabel.hidden = hidden;
+        fKnob.hidden = hidden;
+        [fKnob setNeedsDisplay];
     }
     
     void reflectZone()
@@ -196,6 +280,7 @@ class uiSlider : public uiCocoaItem
 public :
     
     FISlider* fSlider;
+    UILabel* fLabel;
     
     uiSlider(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller)
@@ -203,13 +288,13 @@ public :
         float viewWidth = controller.dspView.frame.size.width;
         
         CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, 30.0);
-        UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
-        label.font = [UIFont boldSystemFontOfSize:12];
-        label.textAlignment = UITextAlignmentRight;
-        label.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
-        label.textColor = [UIColor whiteColor];
-        label.backgroundColor = [UIColor blackColor];
-        [controller.dspView addSubview:label];
+        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+        fLabel.font = [UIFont boldSystemFontOfSize:12];
+        fLabel.textAlignment = UITextAlignmentRight;
+        fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
+        fLabel.textColor = [UIColor whiteColor];
+        fLabel.backgroundColor = [UIColor blackColor];
+        [controller.dspView addSubview:fLabel];
         
         fSlider = [[[FISlider alloc] initWithDelegate:controller] autorelease];
         if ((fSlider.isHorizontalSlider = horizontal))
@@ -234,7 +319,16 @@ public :
     
     ~uiSlider()
     {
+        [fLabel release];
         [fSlider release];
+    }
+    
+    void setHidden(BOOL hidden)
+    {
+        fHidden = hidden;
+        fLabel.hidden = hidden;
+        fSlider.hidden = hidden;
+        [fSlider setNeedsDisplay];
     }
     
     void reflectZone()
@@ -243,7 +337,6 @@ public :
         fCache = v;
         fSlider.value = v;
     }
-    
 };
 
 
@@ -259,18 +352,19 @@ public:
     
     FIButton* fButton;
     
-    uiButton(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, bool toggle)
+    uiButton(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
     : uiCocoaItem(ui, zone, controller)
     {
         float viewWidth = controller.dspView.frame.size.width;
         
         fButton = [[[FIButton alloc] initWithDelegate:controller] autorelease];
 		fButton.frame = CGRectMake(viewWidth / 2 - kStdButtonWidth/2, OFFSET_Y + WIDGET_SLICE * index - 5.f, kStdButtonWidth, kStdButtonHeight);
+        fButton.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
         fButton.title = [[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding];
 		fButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fButton.labelColor = [UIColor whiteColor];
         fButton.backgroundColorAlpha = 0.4;
-        fButton.toggle = toggle;
+        fButton.type = type;
         [controller.dspView addSubview:fButton];
     }
     
@@ -278,12 +372,19 @@ public:
     {
         [fButton release];
     }
-    
+
+    void setHidden(BOOL hidden)
+    {
+        fHidden = hidden;
+        fButton.hidden = hidden;
+        [fButton setNeedsDisplay];
+    }
+
     void reflectZone()
     {
         float v = *fZone;
         fCache = v;
-        if (fButton.toggle) fButton.value = v;
+        if (fButton.type == TYPE_TOGGLE) fButton.value = v;
     }
 };
 
@@ -316,7 +417,14 @@ public:
     {
         [fTextField release];
     }
-    
+
+    void setHidden(BOOL hidden)
+    {
+        fHidden = hidden;
+        fTextField.hidden = hidden;
+        [fTextField setNeedsDisplay];
+    }
+
     void reflectZone()
     {
         float v = *fZone;
@@ -334,6 +442,7 @@ class uiBargraph : public uiCocoaItem
 public:
     
     FIBargraph* fBargraph;
+    UILabel* fLabel;
     
     uiBargraph(int index, GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller)
@@ -341,13 +450,13 @@ public:
         float viewWidth = controller.dspView.frame.size.width;
        
         CGRect labelFrame = CGRectMake(0.0, OFFSET_Y + WIDGET_SLICE * index - 5.f, 80.0, 30.0);
-        UILabel *label = [[UILabel alloc] initWithFrame:labelFrame];
-        label.font = [UIFont boldSystemFontOfSize:12];
-        label.textAlignment = UITextAlignmentRight;
-        label.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
-        label.textColor = [UIColor whiteColor];
-        label.backgroundColor = [UIColor blackColor];
-        [controller.dspView addSubview:label];
+        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+        fLabel.font = [UIFont boldSystemFontOfSize:12];
+        fLabel.textAlignment = UITextAlignmentRight;
+        fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
+        fLabel.textColor = [UIColor whiteColor];
+        fLabel.backgroundColor = [UIColor blackColor];
+        [controller.dspView addSubview:fLabel];
         
         if (horizontal)
         {
@@ -367,7 +476,16 @@ public:
     
     ~uiBargraph()
     {
+        [fLabel release];
         [fBargraph release];
+    }
+    
+    void setHidden(BOOL hidden)
+    {
+        fHidden = hidden;
+        fLabel.hidden = hidden;
+        fBargraph.hidden = hidden;
+        [fBargraph setNeedsDisplay];
     }
     
     void reflectZone()
@@ -385,7 +503,7 @@ class CocoaUI : public GUI
 {
     
 public:
-    list <uiItem*>                  fWidgetList;
+    list <uiCocoaItem*>             fWidgetList;
     
 private:
     
@@ -393,11 +511,68 @@ private:
     FIMainViewController*           fViewController;
     MY_Meta*                        fMetadata;
     set<float*>                     fKnobSet;
+    int                             fCurrentType;
     
-    void insert(const char* label, uiItem* widget)
+    void insert(const char* label, uiCocoaItem* widget)
 	{
+        list<uiCocoaItem*>::iterator i;
+        
         fWidgetList.push_back(widget);
         [fViewController.dspView setContentSize:CGSizeMake(320, WIDGET_SLICE * fWidgetList.size() + 100.f)];
+        
+        if (fCurrentType == TYPE_TAB)
+        {                        
+            for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+            {
+                if (dynamic_cast<uiBox*>(*i))
+                {
+                    if (dynamic_cast<uiBox*>(*i)->fBoxType == TYPE_TAB
+                        && dynamic_cast<uiBox*>(*i) != widget)
+                    {   
+                        // Add FIButton in the fTabView
+                        [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
+                        
+                        // Add uiCocoaItem in the uiBox (*i)
+                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+                        
+                        return;
+                    }
+                }
+            }   
+            i = fWidgetList.begin();
+            if (dynamic_cast<uiBox*>(*i)->fBoxType == TYPE_TAB
+                && dynamic_cast<uiBox*>(*i) != widget)
+            {
+                [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
+                
+                dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+            }
+        }
+        else
+        {            
+            for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+            {
+                if (dynamic_cast<uiBox*>(*i))
+                {
+                    if ((dynamic_cast<uiBox*>(*i)->fBoxType == TYPE_VERTICAL
+                        || dynamic_cast<uiBox*>(*i)->fBoxType == TYPE_VERTICAL)
+                        && dynamic_cast<uiBox*>(*i) != widget)
+                    {   
+                        // Add uiCocoaItem in the uiBox (*i)
+                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+                        
+                        return;
+                    }
+                }
+            }   
+            i = fWidgetList.begin();
+            if ((dynamic_cast<uiBox*>(*i)->fBoxType == TYPE_VERTICAL
+                 || dynamic_cast<uiBox*>(*i)->fBoxType == TYPE_VERTICAL)
+                && dynamic_cast<uiBox*>(*i) != widget)
+            {
+                dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+            }
+        }
     }
     
 public:
@@ -412,6 +587,7 @@ public:
     
     CocoaUI(UIWindow* window, FIMainViewController* viewController, MY_Meta* metadata)
     {
+        fCurrentType = TYPE_VERTICAL;
         fViewController = viewController;
         fWindow = window;
         fMetadata = metadata;
@@ -437,16 +613,22 @@ public:
     virtual void openFrameBox(const char* label)
     {}
     virtual void openTabBox(const char* label = "")
-    {}
+    {
+        uiCocoaItem* item = new uiBox(fWidgetList.size(), this, fViewController, label, TYPE_TAB);
+        insert(label, item);
+        fCurrentType = TYPE_TAB;
+    }
     virtual void openHorizontalBox(const char* label = "")
     {
-        uiItem* item = new uiBox(fWidgetList.size(), this, fViewController, label);
+        uiCocoaItem* item = new uiBox(fWidgetList.size(), this, fViewController, label, TYPE_HORIZONTAL);
         insert(label, item);
+        fCurrentType = TYPE_HORIZONTAL;
     }
     virtual void openVerticalBox(const char* label = "")
     {
-        uiItem* item = new uiBox(fWidgetList.size(), this, fViewController, label);
+        uiCocoaItem* item = new uiBox(fWidgetList.size(), this, fViewController, label, TYPE_VERTICAL);
         insert(label, item);
+        fCurrentType = TYPE_VERTICAL;
     }
     
     // -- extra widget's layouts
@@ -462,8 +644,9 @@ public:
     
     virtual void closeBox()
     {
-        list<uiItem*>::iterator i;
-                      
+        list<uiCocoaItem*>::iterator i;
+        BOOL found = false;
+        
         for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
         {
             if (dynamic_cast<uiBox*>(*i))
@@ -471,12 +654,39 @@ public:
                 if (!dynamic_cast<uiBox*>(*i)->fClosed)
                 {
                     dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
-                    return;
+                    found = true;
                 }
             }
         }
 
-        if (dynamic_cast<uiBox*>(*i)) dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+        if (!found && dynamic_cast<uiBox*>(*i))
+        {
+            dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+            found = true;
+        }
+        
+        // Find previous mode
+        found = false;
+        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        {
+            if (dynamic_cast<uiBox*>(*i))
+            {
+                if (!dynamic_cast<uiBox*>(*i)->fClosed)
+                {
+                    dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+                    found = true;
+                }
+            }
+        }
+        
+        if (!found && dynamic_cast<uiBox*>(*i)) 
+        {
+            dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+            found = true;
+        }
+        
+        if (found && dynamic_cast<uiBox*>(*i)) fCurrentType = dynamic_cast<uiBox*>(*i)->fBoxType;
+        else fCurrentType = TYPE_VERTICAL;
     }
     
     //virtual void adjustStack(int n);
@@ -485,27 +695,27 @@ public:
     
     virtual void addButton(const char* label, float* zone)
     {
-        uiItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, false);
+        uiCocoaItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, TYPE_PUSH);
         insert(label, item);
     }
     virtual void addToggleButton(const char* label, float* zone)
     {
-        uiItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, true);
+        uiCocoaItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, TYPE_TOGGLE);
         insert(label, item);
     }
     virtual void addCheckButton(const char* label, float* zone)
     {
-        uiItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, true);
+        uiCocoaItem* item = new uiButton(fWidgetList.size(), this, fViewController, label, zone, TYPE_TOGGLE);
         insert(label, item);
     }
     virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)
 	{
-        uiItem* item = new uiKnob(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
+        uiCocoaItem* item = new uiKnob(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
         insert(label, item);
     }
     virtual void addHorizontalKnob(const char* label , float* zone, float init, float min, float max, float step)
 	{
-        uiItem* item = new uiKnob(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
+        uiCocoaItem* item = new uiKnob(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
         insert(label, item);
     }
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
@@ -516,7 +726,7 @@ public:
         }
         else
         {
-            uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
+            uiCocoaItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, false);
             insert(label, item);
         }
     }
@@ -528,7 +738,7 @@ public:
         }
         else
         {
-            uiItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
+            uiCocoaItem* item = new uiSlider(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step, true);
             insert(label, item);
         }
     }
@@ -540,7 +750,7 @@ public:
         }
         else
         {
-            uiItem* item = new uiNumEntry(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step);
+            uiCocoaItem* item = new uiNumEntry(fWidgetList.size(), this, fViewController, label, zone, init, min, max, step);
             insert(label, item);
         }
     }
@@ -553,12 +763,12 @@ public:
     {}
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
-        uiItem* item = new uiBargraph(fWidgetList.size(), this, fViewController, label, zone, min, max, true);
+        uiCocoaItem* item = new uiBargraph(fWidgetList.size(), this, fViewController, label, zone, min, max, true);
         insert(label, item);
     }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
-        uiItem* item = new uiBargraph(fWidgetList.size(), this, fViewController, label, zone, min, max, false);
+        uiCocoaItem* item = new uiBargraph(fWidgetList.size(), this, fViewController, label, zone, min, max, false);
         insert(label, item);
     }
     

@@ -46,6 +46,11 @@
 	return self;
 }
 
+- (void)dealloc
+{
+    [super dealloc];
+}
+
 // overridden to make sure the frame is always square.
 - (void)setFrame:(CGRect)frame
 {

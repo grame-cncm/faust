@@ -17,24 +17,18 @@
  ************************************************************************/
 
 #import "FIResponder.h"
+#import "FIButton.h"
 
-#define TYPE_PUSH       0
-#define TYPE_TOGGLE     1
-#define TYPE_TABITEM    2
-
-@interface FIButton : FIResponder
+@interface FITabView : FIResponder <FIResponderDelegate>
 {
-	CGFloat         touchHandleOffset;
-    int             _type;
+    NSMutableArray*             _buttons;
 }
 
 @property CGFloat cornerRadius;				// default: 3.0
-@property (assign, nonatomic) NSString* title;
-@property (assign, nonatomic) int type;
 
 - (id)initWithDelegate:(id)aDelegate;
+- (void)addButtonWithLabel:(NSString *)label;
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)responderValueDidChange:(float)value sender:(id)sender;
 
 @end

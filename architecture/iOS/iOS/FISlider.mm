@@ -40,6 +40,11 @@
 	return self;
 }
 
+- (void)dealloc
+{
+    [super dealloc];
+}
+
 // to setup handle size
 - (void)setFrame:(CGRect)frame
 {

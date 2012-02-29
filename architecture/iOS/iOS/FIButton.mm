@@ -22,7 +22,7 @@
 
 @synthesize cornerRadius;
 @synthesize title;
-@synthesize toggle = _toggle;
+@synthesize type = _type;
 
 #pragma mark -
 #pragma mark Init
@@ -31,12 +31,16 @@
 {
 	if ((self = [super initWithDelegate:aDelegate]))
 	{
-        self.toggle = false;
+        self.type = TYPE_PUSH;
 		self.cornerRadius = 3.0;
-        self.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
 	}
 	
 	return self;
+}
+
+- (void)dealloc
+{
+    [super dealloc];
 }
 
 // to setup handle size
@@ -50,13 +54,13 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (!self.toggle) self.value = 1.f;
+    if (self.type == TYPE_PUSH || self.type == TYPE_TABITEM) self.value = 1.f;
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (self.toggle) self.value = 1.f - self.value;
-    else self.value = 0.f;
+    if (self.type == TYPE_TOGGLE) self.value = 1.f - self.value;
+    else if (self.type == TYPE_PUSH) self.value = 0.f;
 }
 
 
@@ -64,7 +68,7 @@
 #pragma mark Drawing
 
 - (void)drawRect:(CGRect)rect
-{
+{    
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	CGRect boundsRect = self.bounds;
 	const CGFloat* colorComponents = CGColorGetComponents(self.color.CGColor);

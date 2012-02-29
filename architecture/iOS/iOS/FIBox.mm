@@ -41,6 +41,11 @@
 }
 
 
+- (void)dealloc
+{
+    [super dealloc];
+}
+
 #pragma mark -
 #pragma mark Drawing
 
