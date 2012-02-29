@@ -29,7 +29,6 @@
  ***/
 
 
-
 <<includeIntrinsic>>
 
 class Meta {
@@ -49,35 +48,21 @@ class UI {
 
     // -- layout groups
 
-    public void openFrameBox(String label){}
     public void openTabBox(String label){}
     public void openHorizontalBox(String label){}
     public void openVerticalBox(String label){}
-
-    // -- extra widget's layouts
-
-    public void openDialogBox(String label, FaustVarAccess varAccess){}
-    public void openEventBox(String label){}
-    public void openHandleBox(String label){}
-    public void openExpanderBox(String label, FaustVarAccess varAccess){}
-
     public void closeBox(){}
-    public void adjustStack(int n){}
 
     // -- active widgets
 
     public void addButton(String label, FaustVarAccess varAccess){}
-    public void addToggleButton(String label, FaustVarAccess varAccess){}
     public void addCheckButton(String label, FaustVarAccess varAccess){}
     public void addVerticalSlider(String label, FaustVarAccess varAccess, float init, float min, float max, float step){}
     public void addHorizontalSlider(String label, FaustVarAccess varAccess, float init, float min, float max, float step){}
-    public void addKnob(String label, FaustVarAccess varAccess, float init, float min, float max, float step){}
     public void addNumEntry(String label, FaustVarAccess varAccess, float init, float min, float max, float step){}
 
     // -- passive display widgets
 
-    public void addNumDisplay(String label, FaustVarAccess varAccess, int precision){}
-    public void addTextDisplay(String label, FaustVarAccess varAccess, String names[], float min, float max){}
     public void addHorizontalBargraph(String label, FaustVarAccess varAccess, float min, float max){}
     public void addVerticalBargraph(String label, FaustVarAccess varAccess, float min, float max){}
 
