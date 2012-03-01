@@ -37,8 +37,8 @@
 #ifndef __netjack_dsp__
 #define __netjack_dsp__
 
-#include "audio.h"
-#include "dsp.h"
+#include "faust/audio/audio.h"
+#include "faust/audio/dsp.h"
 #include <string>
 #include <jack/net.h>
 

@@ -42,8 +42,8 @@
 #include <assert.h>
 #include <portaudio.h>
 
-#include "audio.h"
-#include "dsp.h"
+#include "faust/audio/audio.h"
+#include "faust/audio/dsp.h"
 
 #define max(x,y) (((x)>(y)) ? (x) : (y))
 
