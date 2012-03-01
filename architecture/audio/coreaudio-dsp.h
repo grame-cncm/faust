@@ -50,8 +50,8 @@
 #include <AudioUnit/AudioUnit.h>
 #include <CoreServices/CoreServices.h>
 
-#include "audio.h"
-#include "dsp.h"
+#include "faust/audio/audio.h"
+#include "faust/audio/dsp.h"
 
 using namespace std;
 

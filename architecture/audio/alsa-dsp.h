@@ -43,8 +43,8 @@
 #include <pwd.h>
 
 #include <alsa/asoundlib.h>
-#include "audio.h"
-#include "dsp.h"
+#include "faust/audio/audio.h"
+#include "faust/audio/dsp.h"
 
 /**
 DEFAULT ALSA PARAMETERS CONTROLLED BY ENVIRONMENT VARIABLES
