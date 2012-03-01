@@ -22,6 +22,7 @@
 
 @synthesize cornerRadius;
 
+
 #pragma mark -
 #pragma mark Init
 
@@ -31,7 +32,6 @@
 	{
         // UI parameters
 		self.cornerRadius = 3.0;
-        self.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
         
         // Message text view creation
         _messageTextView = [[UITextView alloc] initWithFrame:self.bounds];
@@ -70,6 +70,7 @@
     
     [super dealloc];
 }
+
 
 #pragma mark -
 #pragma mark Drawing

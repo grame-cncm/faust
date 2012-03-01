@@ -24,6 +24,7 @@
 @synthesize title;
 @synthesize type = _type;
 
+
 #pragma mark -
 #pragma mark Init
 
@@ -31,7 +32,7 @@
 {
 	if ((self = [super initWithDelegate:aDelegate]))
 	{
-        self.type = TYPE_PUSH;
+        self.type = kPushButtonType;
 		self.cornerRadius = 3.0;
 	}
 	
@@ -49,18 +50,19 @@
 	[super setFrame:frame];
 }
 
+
 #pragma mark -
 #pragma mark Touch Handling
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (self.type == TYPE_PUSH || self.type == TYPE_TABITEM) self.value = 1.f;
+    if (self.type == kPushButtonType || self.type == kTabItemButtonType) self.value = 1.f;
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (self.type == TYPE_TOGGLE) self.value = 1.f - self.value;
-    else if (self.type == TYPE_PUSH) self.value = 0.f;
+    if (self.type == kToggleButtonType) self.value = 1.f - self.value;
+    else if (self.type == kPushButtonType) self.value = 0.f;
 }
 
 

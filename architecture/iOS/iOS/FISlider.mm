@@ -16,10 +16,26 @@
  ************************************************************************
  ************************************************************************/
 
+/************************************************************************
+ ************************************************************************
+ Based on DCControls - https://github.com/domesticcatsoftware/DCControls
+ Copyright (C) 2011 by Patrick Richards - http://domesticcat.com.au/
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ ************************************************************************
+ ************************************************************************/
+
 #import "FISlider.h"
 
 @implementation FISlider
 @synthesize handleSize, cornerRadius, isHorizontalSlider, biDirectional;
+
 
 #pragma mark -
 #pragma mark Init
@@ -32,7 +48,6 @@
 		UITapGestureRecognizer *doubleTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)] autorelease];
 		doubleTapGesture.numberOfTapsRequired = 2;
 		[self addGestureRecognizer:doubleTapGesture];
-        self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
         
 		self.cornerRadius = 3.0;
 	}
@@ -53,6 +68,7 @@
 	if (self.handleSize < 35.0)
 		self.handleSize = 35.0;
 }
+
 
 #pragma mark -
 #pragma mark Touch Handling
@@ -116,6 +132,7 @@
 	
 	[self setValue:self.min + newValue * (self.max - self.min)];
 }
+
 
 #pragma mark -
 #pragma mark Drawing

@@ -34,10 +34,6 @@
 - (void)updateFrame:(CGRect)frame
 {
     self.frame = frame;
-    self.autoresizingMask =     UIViewAutoresizingFlexibleWidth |
-                                UIViewAutoresizingFlexibleRightMargin |
-                                UIViewAutoresizingFlexibleLeftMargin;
-
 }
 
 
@@ -45,6 +41,7 @@
 {
     [super dealloc];
 }
+
 
 #pragma mark -
 #pragma mark Drawing

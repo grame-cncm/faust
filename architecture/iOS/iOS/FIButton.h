@@ -18,9 +18,9 @@
 
 #import "FIResponder.h"
 
-#define TYPE_PUSH       0
-#define TYPE_TOGGLE     1
-#define TYPE_TABITEM    2
+#define kPushButtonType       0
+#define kToggleButtonType     1
+#define kTabItemButtonType    2
 
 @interface FIButton : FIResponder
 {
