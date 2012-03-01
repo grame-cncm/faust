@@ -59,9 +59,9 @@
 
 #define FAUSTFLOAT double
 
-#include "gui/UI.h"
-#include "audio/dsp.h"
-#include "misc.h"
+#include "faust/gui/UI.h"
+#include "faust/audio/dsp.h"
+#include "faust/misc.h"
 
 using namespace std;
 

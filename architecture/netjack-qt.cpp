@@ -38,13 +38,13 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "gui/FUI.h"
-#include "misc.h"
-#include "gui/faustqt.h"
-#include "audio/netjack-dsp.h"
+#include "faust/gui/FUI.h"
+#include "faust/misc.h"
+#include "faust/gui/faustqt.h"
+#include "faust/audio/netjack-dsp.h"
 
 #ifdef OSCCTRL
-#include "gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 
 #ifdef HTTPCTRL

@@ -38,13 +38,13 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "gui/FUI.h"
-#include "misc.h"
-#include "gui/faustgtk.h"
-#include "audio/alsa-dsp.h"
+#include "faust/gui/FUI.h"
+#include "faust/misc.h"
+#include "faust/gui/faustgtk.h"
+#include "faust/audio/alsa-dsp.h"
 
 #ifdef OSCCTRL
-#include "gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 
 /**************************BEGIN USER SECTION **************************/

@@ -37,11 +37,11 @@
 #include <libgen.h>
 #include <iostream>
 
-#include "gui/FUI.h"
-#include "gui/faustqt.h"
-#include "gui/OSCUI.h"
-#include "misc.h"
-#include "audio/oscdsp.h"
+#include "faust/gui/FUI.h"
+#include "faust/gui/faustqt.h"
+#include "faust/gui/OSCUI.h"
+#include "faust/misc.h"
+#include "faust/audio/oscdsp.h"
 
 
 /**************************BEGIN USER SECTION **************************/

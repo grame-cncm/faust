@@ -47,9 +47,9 @@
 
 using namespace std;
 
-#include "gui/GUI.h"
-#include "misc.h"
-#include "audio/dsp.h"
+#include "faust/gui/GUI.h"
+#include "faust/misc.h"
+#include "faust/audio/dsp.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
