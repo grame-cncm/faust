@@ -133,7 +133,7 @@ struct Meta : std::map<std::string, std::string>
 inline int	max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
 inline int	max (int a, int b)		{ return (a>b) ? a : b; }
 
-inline long	max (long a, long b)		{ return (a>b) ? a : b; }
+inline long	max (long a, long b)	{ return (a>b) ? a : b; }
 inline long	max (int a, long b)		{ return (a>b) ? a : b; }
 inline long	max (long a, int b)		{ return (a>b) ? a : b; }
 
@@ -153,7 +153,7 @@ inline double	max (double a, float b)		{ return (a>b) ? a : b; }
 
 inline int	min (int a, int b)		{ return (a<b) ? a : b; }
 
-inline long	min (long a, long b)		{ return (a<b) ? a : b; }
+inline long	min (long a, long b)	{ return (a<b) ? a : b; }
 inline long	min (int a, long b)		{ return (a<b) ? a : b; }
 inline long	min (long a, int b)		{ return (a<b) ? a : b; }
 
@@ -388,7 +388,7 @@ public:
 };
 
 /*--------------------------------------------------------------------------*/
-class vstSlider : public vstUIObject{
+class vstSlider : public vstUIObject {
 
 private:
 	

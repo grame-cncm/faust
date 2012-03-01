@@ -57,6 +57,8 @@
 #include <unistd.h>
 #endif
 
+#define FAUSTFLOAT double
+
 #include "gui/UI.h"
 #include "audio/dsp.h"
 #include "misc.h"
@@ -179,13 +181,13 @@ class mspUIObject {
 	protected:
 
 		string fLabel;
-		float* fZone;
+		double* fZone;
 
-		float range(float min, float max, float val) {return (val < min) ? min : (val > max) ? max : val;}
+		double range(double min, double max, double val) {return (val < min) ? min : (val > max) ? max : val;}
 
 	public:
 
-		mspUIObject(const char* label, float* zone):fLabel(label),fZone(zone) {}
+		mspUIObject(const char* label, double* zone):fLabel(label),fZone(zone) {}
 		virtual ~mspUIObject() {}
 
 		virtual void SetValue(double f) {*fZone = range(0.0,1.0,f);}
@@ -198,12 +200,12 @@ class mspToggleButton : public mspUIObject {
 
 	public:
 
-		mspToggleButton(const char* label, float* zone):mspUIObject(label,zone) {}
+		mspToggleButton(const char* label, double* zone):mspUIObject(label,zone) {}
 		virtual ~mspToggleButton() {}
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "ToggleButton(float): %s", fLabel.c_str());
+            sprintf(buffer, "ToggleButton(double): %s", fLabel.c_str());
 		}
 };
 
@@ -212,12 +214,12 @@ class mspCheckButton : public mspUIObject {
 
 	public:
 
-		mspCheckButton(const char* label, float* zone):mspUIObject(label,zone) {}
+		mspCheckButton(const char* label, double* zone):mspUIObject(label,zone) {}
 		virtual ~mspCheckButton() {}
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "CheckButton(float): %s", fLabel.c_str());
+            sprintf(buffer, "CheckButton(double): %s", fLabel.c_str());
 		}
 };
 
@@ -226,12 +228,12 @@ class mspButton : public mspUIObject {
 
 	public:
 
-		mspButton(const char* label, float* zone):mspUIObject(label,zone) {}
+		mspButton(const char* label, double* zone):mspUIObject(label,zone) {}
 		virtual ~mspButton() {}
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "Button(float): %s", fLabel.c_str());
+            sprintf(buffer, "Button(double): %s", fLabel.c_str());
 		}
 };
 
@@ -240,20 +242,20 @@ class mspSlider : public mspUIObject{
 
 	private:
 
-		float fInit;
-		float fMin;
-		float fMax;
-		float fStep;
+		double fInit;
+		double fMin;
+		double fMax;
+		double fStep;
 
 	public:
 
-		mspSlider(const char* label, float* zone, float init, float min, float max, float step)
+		mspSlider(const char* label, double* zone, double init, double min, double max, double step)
 			:mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
 		virtual ~mspSlider() {}
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "Slider(float): %s [%.1f:%.1f:%.1f]", fLabel.c_str(), fMin, fInit, fMax);
+            sprintf(buffer, "Slider(double): %s [%.1f:%.1f:%.1f]", fLabel.c_str(), fMin, fInit, fMax);
 		}
 
 		void SetValue(double f) {*fZone = range(fMin,fMax,f);}
@@ -278,23 +280,23 @@ class mspUI : public UI
             }
    		}
 
-		void addButton(const char* label, float* zone) {fUITable[string(label)] = new mspButton(label, zone);}
+		void addButton(const char* label, double* zone) {fUITable[string(label)] = new mspButton(label, zone);}
 
-		void addToggleButton(const char* label, float* zone) {fUITable[string(label)] = new mspToggleButton(label, zone);}
+		void addToggleButton(const char* label, double* zone) {fUITable[string(label)] = new mspToggleButton(label, zone);}
 
-		void addCheckButton(const char* label, float* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
+		void addCheckButton(const char* label, double* zone) {fUITable[string(label)] = new mspCheckButton(label, zone);}
 
-		void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+		void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step)
 		{
 			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
 
-		void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+		void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step)
 		{
 			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
 
-		void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+		void addNumEntry(const char* label, double* zone, double init, double min, double max, double step)
 		{
 			fUITable[string(label)] = new mspSlider(label, zone, init, min, max, step);
 		}
@@ -315,10 +317,10 @@ class mspUI : public UI
 		iterator end()		{return fUITable.end();}
 
 		// To be implemented
-		void addNumDisplay(const char* label, float* zone, int precision) {}
-		void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {}
-        void addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
-		void addVerticalBargraph(const char* label, float* zone, float min, float max) {}
+		void addNumDisplay(const char* label, double* zone, int precision) {}
+		void addTextDisplay(const char* label, double* zone, const char* names[], double min, double max) {}
+        void addHorizontalBargraph(const char* label, double* zone, double min, double max) {}
+		void addVerticalBargraph(const char* label, double* zone, double min, double max) {}
 };
 
 //--------------------------------------------------------------------------
@@ -330,7 +332,7 @@ void faust_method(t_faust *obj, t_symbol *s, short ac, t_atom *at)
     string name = string((s)->s_name);
     float value = at[0].a_w.w_float;
 
-  	obj->dspUI->SetValue(name, value); // doesn't have any effect if name is unknown
+  	obj->dspUI->SetValue(name, (double)value); // doesn't have any effect if name is unknown
 }
 
 /*--------------------------------------------------------------------------*/
@@ -392,25 +394,16 @@ void faust_free(t_faust *x)
 }
 
 /*--------------------------------------------------------------------------*/
-t_int *faust_perform(t_int *w)
+void faust_perform64(t_faust *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-	t_faust* x = (t_faust*) (w[1]);
-	long n = w[2];
-	int offset = 3;
-	AVOIDDENORMALS;
-	x->dsp->compute(n, ((float**)&w[offset]), ((float**)&w[offset+x->dsp->getNumInputs()]));
-	return (w + (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2+1);
+    AVOIDDENORMALS;
+    x->dsp->compute(sampleframes, ins, outs);
 }
 
 /*--------------------------------------------------------------------------*/
-void  faust_dsp(t_faust *x, t_signal **sp, short *count)
+void faust_dsp64(t_faust *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
-	x->args[0] = x;
-	x->args[1] = (void*)sp[0]->s_n;
-	for (int i = 0; i<(x->dsp->getNumInputs()+x->dsp->getNumOutputs()); i++) {
-		x->args[i+2] = sp[i]->s_vec;
-    }
-	dsp_addv(faust_perform, (x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, x->args);
+    object_method(dsp64, gensym("dsp_add64"), x, faust_perform64, 0, NULL);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -430,7 +423,7 @@ int main()
 		addmess((method)faust_method, name, A_GIMME, 0);
 	}
 
-	addmess((method)faust_dsp, (char*)"dsp", A_CANT, 0);
+    addmess((method)faust_dsp64, (char*)"dsp64", A_CANT, 0);
 	addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
 	dsp_initclass();
 
