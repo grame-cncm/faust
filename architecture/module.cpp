@@ -27,9 +27,9 @@
 #include <map>
 #include <list>
 
-#include "gui/GUI.h"
-#include "misc.h"
-#include "audio/dsp.h"
+#include "faust/gui/GUI.h"
+#include "faust/misc.h"
+#include "faust/audio/dsp.h"
 
 using namespace std;
 

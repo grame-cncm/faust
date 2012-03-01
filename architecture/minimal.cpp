@@ -18,9 +18,9 @@
 
 #include <cmath>
 
-#include "gui/GUI.h"
-#include "audio/dsp.h"
-#include "misc.h"
+#include "faust/gui/GUI.h"
+#include "faust/audio/dsp.h"
+#include "faust/misc.h"
 
 /******************************************************************************
 *******************************************************************************

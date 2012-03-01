@@ -38,12 +38,12 @@
 #include <math.h>
 #include <iostream>
 
-#include "gui/console.h"
-#include "misc.h"
-#include "audio/jack-dsp.h"
+#include "faust/gui/console.h"
+#include "faust/misc.h"
+#include "faust/audio/jack-dsp.h"
 
 #ifdef OSCCTRL
-#include "gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 
 using namespace std;
