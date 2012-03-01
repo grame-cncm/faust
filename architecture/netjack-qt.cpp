@@ -47,6 +47,10 @@
 #include "gui/OSCUI.h"
 #endif
 
+#ifdef HTTPCTRL
+#include "gui/httpdUI.h"
+#endif
+
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -75,7 +79,7 @@ list<GUI*> GUI::fGuiList;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-	char appname[256];
+	char name[256];
 	char rcfilename[256];
 	char* home = getenv("HOME");
 
@@ -83,8 +87,8 @@ int main(int argc, char *argv[])
     char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
 
-	snprintf(appname, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+	snprintf(name, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
 
 	GUI* interface = new QTGUI(argc, argv);
 	FUI* finterface	= new FUI();
@@ -92,18 +96,27 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
+	GUI* oscinterface = new OSCUI(name, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
+#ifdef HTTPCTRL
+	httpdUI*	httpdinterface = new httpdUI(name, argc, argv);
+	DSP.buildUserInterface(httpdinterface);
+#endif
+
 	netjackaudio audio(celt, master_ip, master_port);
-	if (!audio.init(appname, &DSP)) {
+	if (!audio.init(name, &DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);
 	if (!audio.start()) {
         return 0;
     }
+
+#ifdef HTTPCTRL
+	httpdinterface->run();
+#endif
 
 #ifdef OSCCTRL
 	oscinterface->run();

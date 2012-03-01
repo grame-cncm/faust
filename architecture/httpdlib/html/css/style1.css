@@ -1,0 +1,37 @@
+
+body { 
+	background-color:lightgray;
+	font-family :  Helvetica; 
+	font-size : 10pt; 
+	margin: 1cm 1cm 1cm 1cm;
+}
+.name { 
+	font-family :  Helvetica; 
+	font-size : 12pt; 
+	font-weight: bold;
+}
+.host { 
+	font-family :  Helvetica; 
+	font-size : 10pt; 
+}
+.label { 
+	font-family :  Helvetica; 
+	font-size : 10pt; 
+	font-weight: bold;
+}
+.url {  
+	font-family :  Courier; 
+	text-align :  center; 
+	font-size : 9pt; 
+	color: rgb(80,80,80);
+}
+.port  {
+	font-family :  Courier; 
+	font-size : 9pt; 
+	color: rgb(80,80,80);
+}
+.group  {
+	font-family :  Helvetica; 
+	font-size : 10pt; 
+	color: rgb(80,80,80);
+}

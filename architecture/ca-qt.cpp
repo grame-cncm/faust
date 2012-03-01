@@ -48,6 +48,10 @@
 #include "gui/OSCUI.h"
 #endif
 
+#ifdef HTTPCTRL
+#include "gui/httpdUI.h"
+#endif
+
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -95,6 +99,11 @@ int main(int argc, char *argv[])
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(finterface);
 
+#ifdef HTTPCTRL
+	httpdUI*	httpdinterface = new httpdUI(name, argc, argv);
+	DSP.buildUserInterface(httpdinterface);
+#endif
+
 #ifdef OSCCTRL
 	GUI*	oscinterface = new OSCUI(name, argc, argv);
 	DSP.buildUserInterface(oscinterface);
@@ -104,6 +113,10 @@ int main(int argc, char *argv[])
 	audio.init(name, &DSP);
 	finterface->recallState(rcfilename);
 	audio.start();
+
+#ifdef HTTPCTRL
+	httpdinterface->run();
+#endif
 
 #ifdef OSCCTRL
 	oscinterface->run();
