@@ -55,7 +55,7 @@
 #include <QWidget>
 #include <QtGui>
 
-#include "GUI.h"
+#include "faust/gui/GUI.h"
 
 //----------------------------------
 
