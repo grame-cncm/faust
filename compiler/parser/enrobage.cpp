@@ -189,7 +189,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
  */
 void streamCopy(istream& src, ostream& dst)
 { 
-    streamCopyUntil(src, dst, "<<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
+    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 /**
@@ -197,7 +197,7 @@ void streamCopy(istream& src, ostream& dst)
  */
 void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
-    streamCopyUntil(src, dst, "<<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
+    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 
@@ -229,16 +229,16 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
-	err = chdir(old);
-	if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-		//cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
+    err = chdir(old);
+    if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
         ifstream* f = new ifstream();
-		f->open(filename, ifstream::in);
-		if (f->good()) return f; else delete f;
-	}
-	err = chdir(old);
+        f->open(filename, ifstream::in);
+        if (f->good()) return f; else delete f;
+    }
+    err = chdir(old);
 	if ((chdir(gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-		//cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
+        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
         ifstream* f = new ifstream();
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
@@ -250,6 +250,12 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
+    err = chdir(old);
+    if (chdir(INSTALL_PREFIX "/include")==0) {
+        ifstream* f = new ifstream();
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
 #endif
 	err = chdir(old);
 	if (chdir("/usr/local/lib/faust")==0) {
@@ -257,13 +263,25 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
-	err = chdir(old);
-	if (chdir("/usr/lib/faust")==0) {
+    err = chdir(old);
+    if (chdir("/usr/lib/faust")==0) {
         ifstream* f = new ifstream();
-		f->open(filename); 
-		if (f->good()) return f; else delete f;
-	}
-	
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
+    err = chdir(old);
+    if (chdir("/usr/local/include")==0) {
+        ifstream* f = new ifstream();
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
+    err = chdir(old);
+    if (chdir("/usr/include")==0) {
+        ifstream* f = new ifstream();
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
+
 	return 0;
 }
 
