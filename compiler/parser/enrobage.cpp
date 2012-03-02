@@ -23,7 +23,9 @@
  
 #include "enrobage.hh"
 #include <vector>
+#include <set>
 #include <string>
+#include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
 #include "compatibility.hh"
@@ -113,6 +115,58 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
     }
 }
 
+// a very simple string parser
+class myparser
+{
+    string  str;
+    size_t  N;
+    size_t  p;
+public:
+    myparser(const string& s) : str(s), N(s.length()), p(0) {}
+    bool skip()                 { while ( p<N && isspace(str[p]) ) p++; return true; }
+    bool parse(const string& s)   { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
+    bool filename(string& fname) {
+        size_t saved = p;
+        if (p<N) {
+            char c = str[p++];
+            if (c== '<' | c=='"') {
+                fname = "";
+                while ( p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
+                p++;
+                return true;
+            }
+        }
+        p = saved;
+        return false;
+    }
+};
+
+// true if s == "#include <faust/..."
+bool isFaustInclude(const string& s, string& fname)
+{
+    myparser P(s);
+    if ( P.skip() && P.parse("#include") && P.skip() && P.filename(fname) ) {
+        myparser Q(fname);
+        return Q.parse("faust/");
+    } else {
+        return false;
+    }
+}
+
+set<string> alreadyIncluded;
+
+void inject(ostream& dst, const string fname)
+{
+    if (alreadyIncluded.find(fname) == alreadyIncluded.end()) {
+        alreadyIncluded.insert(fname);
+        istream* src = open_arch_stream( fname.c_str());
+        if (src) {
+            streamCopy(*src, dst);
+        } else {
+            cerr << "NOT FOUND " << fname << endl;
+        }
+    }
+}
 
 /**
  * Copy src to dst until specific line.
@@ -120,7 +174,14 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
 {
     string	s;
-    while ( getline(src,s) && (s != until) ) dst << replaceClassName(s) << endl;
+    string  fname;
+    while ( getline(src,s) && (s != until) ) {
+        if (isFaustInclude(s, fname)) {
+            inject(dst, fname);
+        } else {
+            dst << replaceClassName(s) << endl;
+        }
+    }
 }
 
 /**
