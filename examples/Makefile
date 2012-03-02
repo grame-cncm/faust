@@ -140,15 +140,15 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 ladspasch :
 	install -d ladspaschdir
-	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 dssi :
 	install -d dssidir
-	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
 
 csound :
 	install -d csounddir
@@ -214,15 +214,15 @@ iphonenet :
 
 bench :
 	install -d benchdir
-	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' LIB='-I$(LIB)/faust/' -f Makefile.compile
+	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' -f Makefile.compile
 
 ibench :
 	install -d ibenchdir
-	$(MAKE) DEST='ibenchdir/' ARCH='bench.cpp' LIB='-I$(LIB)/faust/' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+	$(MAKE) DEST='ibenchdir/' ARCH='bench.cpp' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 ivecbench :
 	install -d ivecbenchdir
-	$(MAKE) DEST='ivecbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE)' LIB='-I$(LIB)/faust/' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+	$(MAKE) DEST='ivecbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE)' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 ivecjack :
 	install -d ivecjackdir
@@ -230,11 +230,11 @@ ivecjack :
 
 iparbench :
 	install -d iparbenchdir
-	$(MAKE) DEST='iparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' LIB='-I$(LIB)/faust/' CXX='icc' CXXFLAGS='-O3 -openmp -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+	$(MAKE) DEST='iparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' CXX='icc' CXXFLAGS='-O3 -openmp -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 gparbench :
 	install -d gparbenchdir
-	$(MAKE) DEST='gparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' LIB='-I$(LIB)/faust/' CXX='g++' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
+	$(MAKE) DEST='gparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' CXX='g++' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
 
 sndfile :
 	install -d sndfiledir
@@ -242,15 +242,15 @@ sndfile :
 CXXFLAGS=$(OSCCTRL)
 plot :
 	install -d plotdir
-	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' LIB='-I$(LIB)/faust/' -f Makefile.compile
+	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' -f Makefile.compile
 
 matlabplot :
 	install -d matlabplotdir
-	$(MAKE) DEST='matlabplotdir/' ARCH='matlabplot.cpp' LIB='-I$(LIB)/faust/' -f Makefile.compile
+	$(MAKE) DEST='matlabplotdir/' ARCH='matlabplot.cpp' -f Makefile.compile
 
 q :
 	install -d qdir
-	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='-I$(LIB)/faust/' -f Makefile.qcompile
+	$(MAKE) DEST='qdir/' ARCH='q.cpp' -f Makefile.qcompile
 
 supercollider sc:
 	install -d supercolliderdir
