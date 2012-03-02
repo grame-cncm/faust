@@ -80,17 +80,17 @@ for p in $FILES; do
 	SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
-    TDR=$(mktemp -d faust.XXXXXX)
+    TDR=$(mktemp -d faust.XXX)
 	TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
-	$FAUST -a ca-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	$FAUST -a netjack-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
 	    cd "$TMP"
-		qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "$HTTPDINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices $OSCLIB $HTTPDLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
+		qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "$HTTPDINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices -ljacknet $OSCLIB $HTTPDLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
 		qmake $SPEC
         make
     ) > /dev/null #2>/dev/null

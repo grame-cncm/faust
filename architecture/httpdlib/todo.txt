@@ -1,0 +1,17 @@
+=================================================================
+                         FAUST HTTPD Library
+
+                     Copyright (c) 2012 Grame
+=================================================================
+
+----------------------------------------------------------------------
+ todo list
+----------------------------------------------------------------------
+
+- correct host name management across platforms and systems
+- UI groups management
+- define a strategy for FAUSTDocumentRoot
+- embed html folder in mac bundles
+
++
+- sound output streaming

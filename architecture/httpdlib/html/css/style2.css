@@ -1,0 +1,70 @@
+
+body { 
+	background-color: rgb(0,0,0);
+	font-family :  Helvetica; 
+	font-size : 10pt; 
+	color: lightgrey;
+	margin: 1cm 1cm 1cm 1cm;
+}
+hr {
+	background-color: rgb(40,40,100);
+	color: rgb(40,40,100);
+	height: 2px;
+	border: 0;
+}
+.sep hr {
+	background-color: rgb(100,100,100);
+	color: rgb(200,100,100);
+	height: 2px;
+	border: 0;
+}
+td {
+	border-width: 5px;
+}
+.ui {
+	background-color: rgb(40,40,40);
+	padding: 0.8cm 0.8cm 0.8cm 0.8cm;
+	border-spacing: 5px;
+}
+.host { 
+	font-family :  Arial; 
+	font-size : 11pt; 
+	color: rgb(200,200,200);
+}
+.name { 
+	font-family :  Arial; 
+	font-size : 14pt; 
+	font-weight: bold;
+	color: Blue;
+}
+.url {  
+	font-family :  Courier; 
+	text-align :  center; 
+	font-size : 9pt; 
+	text-align :  right; 
+	color: Aquamarine ;
+}
+.port  {
+	font-family :  Courier; 
+	font-size : 9pt; 
+	color: Aquamarine ;
+}
+.label { 
+	font-family :  Arial; 
+	font-size : 11pt; 
+	text-align: right;
+	color: Orange;
+}
+.control { 
+	background-color: rgb(50,50,50);
+	text-align: center;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+.value { 
+}
+.group  {
+	font-family :  Arial; 
+	font-size : 11pt; 
+	color: AliceBlue;
+}

@@ -1,0 +1,19 @@
+{
+	"name": "karplus32",
+	"address": "macdom.grame.fr",
+	"port": "8000",
+	"ui": [
+		{
+			"type" : "button | togglebutton | checkbutton | verticalslider | horizontalslider | numentry"
+			"label": "name"
+			"init": 
+			"min":
+			"max":
+			"step":
+		}
+		{
+			"group" : "framebox | tabbox | horizontalbox | verticalbox"
+			"label": "name"
+		}
+	]
+}

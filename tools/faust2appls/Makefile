@@ -40,4 +40,5 @@ install:
 	install faust2graphviewer $(dest)
 	install faust2sig $(dest)
 	install faust2sigviewer $(dest)
+	install faust2netjackqt $(dest)
 
