@@ -128,8 +128,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
  */
 void streamCopy(istream& src, ostream& dst)
 { 
-	string	s;
-    while ( getline(src,s)) dst << replaceClassName(s) << endl;
+    streamCopyUntil(src, dst, "<<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 /**
@@ -137,8 +136,7 @@ void streamCopy(istream& src, ostream& dst)
  */
 void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
-	string	s;
-    while ( getline(src,s) ) dst << replaceClassName(s) << endl;
+    streamCopyUntil(src, dst, "<<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 
