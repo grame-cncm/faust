@@ -156,15 +156,29 @@ function Meta()  {
 function process(event) 
 {
     var count;
+    
+    if (event.inputBuffer.numberOfChannels < dsp.getNumInputs()) {
+        console.log("Incorrect number of input %d instead of %d", event.inputBuffer.numberOfChannels, dsp.getNumInputs());
+        return;
+    }
+    
+    if (event.outputBuffer.numberOfChannels < dsp.getNumOutputs()) {
+        console.log("Incorrect number of output %d instead of %d", event.outputBuffer.numberOfChannels, dsp.getNumOutputs());
+        return;
+    }
      
     for (var i = 0; i < dsp.getNumInputs(); i++) {
         inputs[i] = event.inputBuffer.getChannelData(i);
-        count = inputs[i].length;
+        if (inputs[i] != null) {
+            count = inputs[i].length;
+        }
     }
     
     for (var i = 0; i < dsp.getNumOutputs(); i++) {
         outputs[i] = event.outputBuffer.getChannelData(i);
-        count = outputs[i].length;
+        if (outputs[i] != null) {
+            count = outputs[i].length;
+        }
     }
     
     dsp.compute(count, inputs, outputs);
