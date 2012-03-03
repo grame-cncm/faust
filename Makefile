@@ -1,4 +1,4 @@
-version := 0.9.47
+version := 0.9.48
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -57,6 +57,7 @@ doc :
 
 
 install :
+#<<<<<<< HEAD
 	mkdir -p $(prefix)/lib/faust
 	mkdir -p $(prefix)/lib/faust/osclib
 	mkdir -p $(prefix)/lib/faust/httpdlib
@@ -73,12 +74,23 @@ install :
 	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
+#=======
+#	mkdir -p $(prefix)/bin/
+#	install compiler/faust $(prefix)/bin/
+#	#
+#	mkdir -p $(prefix)/lib/faust
+#	cp architecture/*.cpp $(prefix)/lib/faust/
+#	cp architecture/*.lib $(prefix)/lib/faust/
+#	#
+#	cp -r architecture/faust $(prefix)/include/
+#>>>>>>> install in regular include directory
 	make -C tools/faust2appls install
 
 
 uninstall :
-	rm -rf $(prefix)/lib/faust/
 	rm -f $(prefix)/bin/faust
+	rm -rf $(prefix)/lib/faust/
+	rm -rf $(prefix)/include/faust
 
 dist :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean
