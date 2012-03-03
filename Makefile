@@ -15,6 +15,8 @@ zname := faust-$(version)
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
+
+httpd :
 	$(MAKE) -C architecture/httpdlib/src
 
 win32 :
@@ -67,8 +69,7 @@ install :
 	cp -r architecture/iPhone $(prefix)/lib/faust/
 	cp -r architecture/audio $(prefix)/include/faust/
 	cp -r architecture/gui $(prefix)/include/faust/
-	cp architecture/osclib/lib*.a $(prefix)/lib/faust/osclib
-	cp architecture/httpdlib/lib*.a $(prefix)/lib/faust/httpdlib
+	-[ -f libHTTPDFaust.a ] && cp architecture/osclib/libHTTPDFaust.a $(prefix)/lib/faust/osclib
 	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
