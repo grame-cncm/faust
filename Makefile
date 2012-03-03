@@ -15,6 +15,8 @@ zname := faust-$(version)
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
+
+httpd :
 	$(MAKE) -C architecture/httpdlib/src
 
 win32 :
@@ -57,7 +59,7 @@ doc :
 install :
 	mkdir -p $(prefix)/lib/faust
 	mkdir -p $(prefix)/lib/faust/osclib
-	mkdir -p $(prefix)/lib/faust/httpdlib
+#	mkdir -p $(prefix)/lib/faust/httpdlib
 	mkdir -p $(prefix)/bin/
 	install compiler/faust $(prefix)/bin/
 	install -m 0644 $(arch) $(prefix)/lib/faust/
@@ -68,8 +70,8 @@ install :
 	cp -r architecture/audio $(prefix)/include/faust/
 	cp -r architecture/gui $(prefix)/include/faust/
 	cp architecture/osclib/lib*.a $(prefix)/lib/faust/osclib
-	cp architecture/httpdlib/lib*.a $(prefix)/lib/faust/httpdlib
-	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
+#	cp architecture/httpdlib/lib*.a $(prefix)/lib/faust/httpdlib
+#	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 	make -C tools/faust2appls install
