@@ -670,7 +670,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
         } else if (gOutputLang == "js") {
 
-            container = JAVACodeContainer::createContainer(gClassName, "dsp", numInputs, numOutputs, dst);
+            container = JAVAScriptCodeContainer::createContainer(gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (gOutputLang == "fir") {
 
@@ -728,7 +728,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     }
                 }
 
-                if (gOutputLang != "java") {
+                if (gOutputLang != "java" && gOutputLang != "js") {
                     printfloatdef(*dst);
                 }
 

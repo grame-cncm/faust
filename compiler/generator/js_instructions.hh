@@ -112,15 +112,18 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         }
         virtual void visit(AddButtonInst* inst)
         {
+            /*
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; EndLine();
             } else {
                 *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; EndLine();
             }
+            */
         }
 
         virtual void visit(AddSliderInst* inst)
         {
+            /*
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
@@ -130,12 +133,14 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddSliderInst::kNumEntry:
                     name = "ui_interface.addNumEntry"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", " << checkFloat(inst->fInit) << ", " << checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ", " << checkFloat(inst->fStep) << ")";
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
             EndLine();
+            */
         }
 
         virtual void visit(AddBargraphInst* inst)
         {
+            /*
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
@@ -143,8 +148,9 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface.addVerticalBargraph"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", "<< checkFloat(inst->fMin) << ", " << checkFloat(inst->fMax) << ")";
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", "<< inst->fMin << ", " << inst->fMax << ")";
             EndLine();
+            */
         }
 
         virtual void visit(LabelInst* inst)
@@ -160,19 +166,19 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = ";
+                *fOut << "var " << inst->fAddress->getName() << " = ";
                 inst->fValue->accept(this);
                 EndLine();
             } else {
-              ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
-              if (array_typed && array_typed->fSize>1){
-                string type = fTypeDirectTable[array_typed->fType->getType()];
-                *fOut << "private " << type << " " << inst->fAddress->getName() << "[]";
-                *fOut << " = new " << type << "[" << array_typed->fSize << "]";
-              }else
-                *fOut << "private " << generateType(inst->fTyped, inst->fAddress->getName());
-              EndLine();
+                ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
+                if (array_typed && array_typed->fSize > 1) {
+                    string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
+                    *fOut << "this." << inst->fAddress->getName();
+                    *fOut << " = new " << type << "(" << array_typed->fSize << ")";
+                } else {
+                    *fOut << "this." << inst->fAddress->getName();
+                }
+                EndLine();
             }
         }
 
@@ -221,11 +227,15 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         {
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+            string access = "";
+            
+            if (inst->fAddress->getAccess() & Address::kStruct)
+                access = "this.";
 
             if (named) {
-                *fOut << named->getName();
+                *fOut << access << named->getName();
             } else {
-                *fOut << indexed->getName() << "[";
+                *fOut << access << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
                 *fOut << "]";
             }
@@ -250,67 +260,60 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         {
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast< IndexedAddress*>(inst->fAddress);
+            string access = "";
+
+            if (inst->fAddress->getAccess() & Address::kStruct)
+                access = "this.";
 
             if (named) {
-                *fOut << named->getName() << " = ";
+                *fOut << access << named->getName() << " = ";
             } else {
-                *fOut << indexed->getName() << "[";
+                *fOut << access << indexed->getName() << "[";
                 indexed->fIndex->accept(this);
                 *fOut << "] = ";
             }
+            assert(inst->fValue);
             inst->fValue->accept(this);
             EndLine();
         }
 
         virtual void visit(FloatNumInst* inst)
         {
-            *fOut << checkFloat(inst->fNum);
+            *fOut << inst->fNum;
         }
 
         virtual void visit(IntNumInst* inst)
         {
-          *fOut << inst->fNum;
+            *fOut << inst->fNum;
         }
 
         virtual void visit(BoolNumInst* inst)
         {
-          *fOut << inst->fNum;
+            *fOut << inst->fNum;
         }
 
         virtual void visit(DoubleNumInst* inst)
         {
-            *fOut << T(inst->fNum);
+            //*fOut << T(inst->fNum);
+            *fOut << inst->fNum;
         }
-
-        bool isBoolOpcode(int o)
-        {
-            return o == kGT || o == kLT || o == kLE || o == kEQ || o == kNE;
-        }
-
+        
         virtual void visit(BinopInst* inst)
         {
-            if (isBoolOpcode(inst->fOpcode)) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-                *fOut << ") ? 1 : 0) ";
-            } else {
-                *fOut << "(";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-                *fOut << ")";
-            }
+            *fOut << "(";
+            assert(inst->fInst1);
+            inst->fInst1->accept(this);
+            *fOut << " ";
+            *fOut << gBinOpTable[inst->fOpcode]->fName;
+            *fOut << " ";
+            assert(inst->fInst2);
+            inst->fInst2->accept(this);
+            *fOut << ")";
         }
 
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << "(" << generateType(inst->fTyped) << ")";
+            //*fOut << "(" << generateType(inst->fTyped) << ")";
             inst->fInst->accept(this);
         }
 
@@ -368,9 +371,9 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "for (";
                 fFinishLine = false;
                 inst->fInit->accept(this);
-                *fOut << "; (";
+                *fOut << "; ";
                 inst->fEnd->accept(this);
-                *fOut << ") == 1; ";
+                *fOut << "; ";
                 inst->fIncrement->accept(this);
                 fFinishLine = true;
             *fOut << ") {";

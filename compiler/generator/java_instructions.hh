@@ -160,19 +160,19 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-
                 *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = ";
                 inst->fValue->accept(this);
                 EndLine();
             } else {
-              ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
-              if (array_typed && array_typed->fSize>1){
-                string type = fTypeDirectTable[array_typed->fType->getType()];
-                *fOut << "private " << type << " " << inst->fAddress->getName() << "[]";
-                *fOut << " = new " << type << "[" << array_typed->fSize << "]";
-              }else
-                *fOut << "private " << generateType(inst->fTyped, inst->fAddress->getName());
-              EndLine();
+                ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
+                if (array_typed && array_typed->fSize > 1) {
+                    string type = fTypeDirectTable[array_typed->fType->getType()];
+                    *fOut << "private " << type << " " << inst->fAddress->getName() << "[]";
+                    *fOut << " = new " << type << "[" << array_typed->fSize << "]";
+                } else {
+                    *fOut << "private " << generateType(inst->fTyped, inst->fAddress->getName());
+                }
+                EndLine();
             }
         }
 
@@ -269,12 +269,12 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(IntNumInst* inst)
         {
-          *fOut << inst->fNum;
+            *fOut << inst->fNum;
         }
 
         virtual void visit(BoolNumInst* inst)
         {
-          *fOut << inst->fNum;
+            *fOut << inst->fNum;
         }
 
         virtual void visit(DoubleNumInst* inst)

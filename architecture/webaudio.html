@@ -1,0 +1,77 @@
+<html>
+<head>
+<title>
+Title
+</title>
+
+<!-- Our javascript code -->
+<script type="text/javascript">
+
+// init() once the page has finished loading.
+window.onload = init;
+
+var context;
+var processor;
+var dsp;
+
+var inputs;
+var outputs;
+
+<<includeIntrinsic>>
+
+
+<<includeclass>>
+
+<!-- WebAudio API -->
+
+function process(event) 
+{
+    var count;
+     
+    for (var i = 0; i < dsp.getNumInputs(); i++) {
+        inputs[i] = event.inputBuffer.getChannelData(i);
+        count = inputs[i].length;
+    }
+    
+    for (var i = 0; i < dsp.getNumOutputs(); i++) {
+        outputs[i] = event.outputBuffer.getChannelData(i);
+        count = outputs[i].length;
+    }
+    
+    dsp.compute(count, inputs, outputs);
+}
+
+function initAudio(buffer_size) 
+{
+    context = new webkitAudioContext();
+    
+    dsp = new mydsp();
+    dsp.init(context.sampleRate);
+    
+    console.log(context.sampleRate);
+    console.log(dsp);
+    console.log(dsp.getNumOutputs());
+    
+    inputs = new Array(dsp.getNumInputs());
+    outputs = new Array(dsp.getNumOutputs());
+    
+    processor = context.createJavaScriptNode(buffer_size, dsp.getNumInputs(), dsp.getNumOutputs());
+    processor.onaudioprocess = process;
+    processor.connect(context.destination);
+}
+
+function init() 
+{
+    initAudio(4096);
+}
+
+</script>
+</head>
+
+<body>
+
+<h1><center> Faust process <c/enter></h1>
+
+</body>
+</html>
+

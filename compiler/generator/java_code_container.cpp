@@ -196,10 +196,7 @@ void JAVACodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-        tab(n, *fOut); // *fOut << "  public:";
-
         // Print metadata declaration
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut   << "public void metadata(Meta m) { ";
 
         for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {

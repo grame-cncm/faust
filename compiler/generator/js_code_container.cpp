@@ -50,6 +50,7 @@ CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name
     return new JAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
+
 CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
@@ -110,7 +111,7 @@ void JAVAScriptCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     //generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
+    tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
 
         tab(n+1, *fOut);
 
@@ -133,18 +134,18 @@ void JAVAScriptCodeContainer::produceInternal()
 
         // Input method
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "public int getNumInputs() { "
+        tab(n+1, *fOut); *fOut << "this.getNumInputs = function() { "
                             << "return " << fNumInputs
                             << "; }";
 
         // Output method
-        tab(n+1, *fOut); *fOut << "public int getNumOutputs() { "
+        tab(n+1, *fOut); *fOut << "this.getNumOutputs = function() { "
                             << "return " << fNumOutputs
                             << "; }";
 
         // Inits
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "public void init(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "this.init = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
@@ -165,7 +166,7 @@ void JAVAScriptCodeContainer::produceInternal()
         loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
-    tab(n, *fOut); *fOut << "};\n" << endl;
+    tab(n, *fOut); *fOut << "}\n" << endl;
 }
 
 void JAVAScriptCodeContainer::produceClass()
@@ -173,6 +174,7 @@ void JAVAScriptCodeContainer::produceClass()
     int n = 0;
 
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
+    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
     pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
 
     // Libraries
@@ -184,7 +186,8 @@ void JAVAScriptCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     //generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
+    //tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
+    tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
 
         tab(n+1, *fOut);
 
@@ -196,11 +199,8 @@ void JAVAScriptCodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-        tab(n, *fOut); // *fOut << "  public:";
-
         // Print metadata declaration
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut   << "public void metadata(Meta m) { ";
+        tab(n+1, *fOut); *fOut   << "this.metadata = function(m) { ";
 
         for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
             if (i->first != tree("author")) {
@@ -219,18 +219,18 @@ void JAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}" << endl;
 
         // Input method
-        tab(n+1, *fOut); *fOut << "public int getNumInputs() { "
+        tab(n+1, *fOut); *fOut << "this.getNumInputs = function() { "
                             << "return " << fNumInputs
                             << "; }";
 
         // Output method
-        tab(n+1, *fOut); *fOut << "public int getNumOutputs() { "
+        tab(n+1, *fOut); *fOut << "this.getNumOutputs = function() { "
                             << "return " << fNumOutputs
                             << "; }";
 
         // Inits
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "static public void classInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "this.classInit = function(samplingFreq) {";
             if (fStaticInitInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);
@@ -239,21 +239,21 @@ void JAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "public void instanceInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "this.instanceInit = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "public void init(int samplingFreq) {";
-            tab(n+2, *fOut); *fOut << "classInit(samplingFreq);";
-            tab(n+2, *fOut); *fOut << "instanceInit(samplingFreq);";
+        tab(n+1, *fOut); *fOut << "this.init = function(samplingFreq) {";
+            tab(n+2, *fOut); *fOut << "this.classInit(samplingFreq);";
+            tab(n+2, *fOut); *fOut << "this.instanceInit(samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
 
         // User interface
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "public void buildUserInterface(UI ui_interface) {";
+        tab(n+1, *fOut); *fOut << "this.buildUserInterface = function(ui_interface) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateUserInterface(&fCodeProducer);
@@ -268,14 +268,14 @@ void JAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         generateComputeFunctions(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "};\n" << endl;
+    tab(n, *fOut); *fOut << "}\n" << endl;
 
 }
 
 void JAVAScriptScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("public void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount,  ifloat());
+    tab(n+1, *fOut); *fOut << subst("this.compute = function($0, inputs, outputs) {", fFullCount);
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
@@ -301,7 +301,7 @@ void JAVAScriptVectorCodeContainer::generateCompute(int n)
 {
     // Compute
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount, ifloat());
+    tab(n+1, *fOut); *fOut << subst("this.compute = function($0, inputs, outputs) {", fFullCount);
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
 
