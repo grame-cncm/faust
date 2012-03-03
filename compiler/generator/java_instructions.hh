@@ -167,8 +167,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
                 if (array_typed && array_typed->fSize > 1) {
                     string type = fTypeDirectTable[array_typed->fType->getType()];
-                    *fOut << "private " << type << " " << inst->fAddress->getName() << "[]";
-                    *fOut << " = new " << type << "[" << array_typed->fSize << "]";
+                    *fOut << "private " << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                 } else {
                     *fOut << "private " << generateType(inst->fTyped, inst->fAddress->getName());
                 }

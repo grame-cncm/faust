@@ -491,9 +491,11 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(FunCallInst* inst)
         {
-             if (inst->fSize > 1) {
-                *fOut << "FunCallInstVec<" << inst->fSize << ">(";
+            if (inst->fSize > 1) {
+                string fun_name = (inst->fMethod) ? "MethodFunCallInstVec<" : "FunCallInstVec<";
+                *fOut << fun_name << inst->fSize << ">(";
             } else {
+                string fun_name = (inst->fMethod) ? "MethodFunCallInst" : "FunCallInst";
                 *fOut << "FunCallInst(";
             }
 

@@ -232,11 +232,11 @@ void CPPCodeContainer::produceInternal()
         } else {
             tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1* output) {", counter, ifloat());
         }
-        tab(n+2, *fOut);
-        fCodeProducer.Tab(n+2);
-        generateComputeBlock(&fCodeProducer);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-        loop->accept(&fCodeProducer);
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateComputeBlock(&fCodeProducer);
+            ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+            loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
     tab(n, *fOut); *fOut << "};" << endl;

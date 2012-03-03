@@ -28,6 +28,7 @@
 
 ***********************************************************************/
 
+
 #include "js_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
@@ -104,36 +105,23 @@ void JAVAScriptCodeContainer::printIncludeFile(ostream& fout)
 
 void JAVAScriptCodeContainer::produceInternal()
 {
-    int n = 1;
+    int n = 0;
 
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
-    //generateGlobalDeclarations(&fCodeProducer);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
 
         tab(n+1, *fOut);
-
         tab(n+1, *fOut);
 
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-        tab(n, *fOut);
-
-         // Memory methods
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fKlassName << "[] " << "new" <<  fKlassName << "() { "
-                            << "return (" << fKlassName << "[]) new "<< fKlassName << "()"
-                            << "; }";
-
-        tab(n+1, *fOut); *fOut << "void " << "delete(" << fKlassName << "[] dsp) { "
-                              << "; }";
-
         // Input method
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "this.getNumInputs = function() { "
                             << "return " << fNumInputs
                             << "; }";
@@ -145,7 +133,7 @@ void JAVAScriptCodeContainer::produceInternal()
 
         // Inits
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "this.init = function(samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "this.instanceInit" << fKlassName << " = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
@@ -154,19 +142,22 @@ void JAVAScriptCodeContainer::produceInternal()
         // Fill
         string counter = "count";
         tab(n+1, *fOut);
-        if (fSubContainerType == kInt) {
-            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, int[] output) {", counter);
-        } else {
-            tab(n+1, *fOut); *fOut << "void fill" << fKlassName << subst("(int $0, $1[] output) {", counter, ifloat());
-        }
-        tab(n+2, *fOut);
-        fCodeProducer.Tab(n+2);
-        generateComputeBlock(&fCodeProducer);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-        loop->accept(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "this.fill" << fKlassName << " = function" << subst("($0, output) {", counter);
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateComputeBlock(&fCodeProducer);
+            ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+            loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
     tab(n, *fOut); *fOut << "}\n" << endl;
+    
+    // Memory methods (as globals)
+    tab(n, *fOut); *fOut << "new" << fKlassName << " = function() { "
+                        << "return new "<< fKlassName << "()"
+                        << "; }";
+
+    tab(n, *fOut);
 }
 
 void JAVAScriptCodeContainer::produceClass()
@@ -180,19 +171,19 @@ void JAVAScriptCodeContainer::produceClass()
     // Libraries
     printLibrary(*fOut);
     //printIncludeFile(*fOut);
+    
+    // Sub containers
+    generateSubContainers();
 
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
-    //generateGlobalDeclarations(&fCodeProducer);
+    generateGlobalDeclarations(&fCodeProducer);
 
     //tab(n, *fOut); *fOut << "public class " << fKlassName << " extends " << fSuperKlassName << " {";
     tab(n, *fOut); *fOut << "function " << fKlassName << "() {";
 
         tab(n+1, *fOut);
-
-        // Sub containers
-        generateSubContainers();
 
         // Fields
         tab(n+1, *fOut);

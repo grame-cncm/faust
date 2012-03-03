@@ -56,12 +56,31 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
+        map <string, string> fFunTable;
 
     public:
 
         JAVAScriptInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true)
-        {}
+        {
+            fFunTable["absf"] = "Math.abs";
+            fFunTable["acosf"] = "Math.acos";
+            fFunTable["asinf"] = "Math.asin";
+            fFunTable["atanf"] = "Math.atan";
+            fFunTable["atan2f"] = "Math.atan2";
+            fFunTable["sinf"] = "Math.sin";
+            fFunTable["cosf"] = "Math.cos";
+            fFunTable["tanf"] = "Math.tan";
+            fFunTable["expf"] = "Math.exp";
+            fFunTable["logf"] = "Math.log";
+            fFunTable["sqrtf"] = "Math.sqrt";
+            fFunTable["min"] = "Math.min";
+            fFunTable["max"] = "Math.max";
+            fFunTable["floorf"] = "Math.floor";
+            fFunTable["ceilf"] = "Math.ceil";
+            fFunTable["powf"] = "Math.pow";
+            fFunTable["fmodf"] = "Math.fmod";
+        }
 
         virtual ~JAVAScriptInstVisitor()
         {}
@@ -164,19 +183,20 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             if (inst->fAddress->getAccess() & Address::kVolatile) {
                  *fOut << "volatile ";
             }
+            
+            string prefix  = (inst->fAddress->getAccess() & Address::kStruct) ? "this." : "var ";
 
             if (inst->fValue) {
-                *fOut << "var " << inst->fAddress->getName() << " = ";
+                *fOut << prefix << inst->fAddress->getName() << " = ";
                 inst->fValue->accept(this);
                 EndLine();
             } else {
                 ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
                 if (array_typed && array_typed->fSize > 1) {
                     string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
-                    *fOut << "this." << inst->fAddress->getName();
-                    *fOut << " = new " << type << "(" << array_typed->fSize << ")";
+                    *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
                 } else {
-                    *fOut << "this." << inst->fAddress->getName();
+                    *fOut << prefix << inst->fAddress->getName();
                 }
                 EndLine();
             }
@@ -198,6 +218,11 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
+            // Do not delcare Math library functions
+            if (fFunTable.find(inst->fName) != fFunTable.end()) {
+                return;
+            }
+
             // Prototype
             *fOut << generateType(inst->fType->fResult, inst->fName);
             *fOut << "(";
@@ -316,20 +341,37 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             //*fOut << "(" << generateType(inst->fTyped) << ")";
             inst->fInst->accept(this);
         }
-
+      
         virtual void visit(FunCallInst* inst)
         {
-            *fOut << inst->fName << "(";
-            list<ValueInst*>::const_iterator it;
-
-            int size = inst->fArgs.size(), i = 0;
-            for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
-                // Compile argument
+            string js_name = (fFunTable.find(inst->fName) != fFunTable.end()) ? fFunTable[inst->fName] : inst->fName;
+            
+            if (inst->fMethod) {
+                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+                // Compile object arg
                 (*it)->accept(this);
-                if (i < size - 1) *fOut << ", ";
+                *fOut << "." << js_name << "(";
+                list<ValueInst*>::const_iterator it1;
+                int size = inst->fArgs.size() - 1, i = 0;
+                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                    // Compile argument
+                    (*it1)->accept(this);
+                    if (i < size - 1) *fOut << ", ";
+                }
+                *fOut << ")";
+          } else {
+                *fOut << js_name << "(";
+                list<ValueInst*>::const_iterator it;
+                int size = inst->fArgs.size(), i = 0;
+                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                    // Compile argument
+                    (*it)->accept(this);
+                    if (i < size - 1) *fOut << ", ";
+                }
+                *fOut << ")";
             }
-            *fOut << ")";
         }
+
 
         virtual void visit(Select2Inst* inst)
         {

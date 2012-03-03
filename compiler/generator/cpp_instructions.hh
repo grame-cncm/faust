@@ -351,7 +351,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(FunCallInst* inst)
         {
             if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it =  inst->fArgs.begin();
+                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
                 *fOut << "->" << inst->fName << "(";
