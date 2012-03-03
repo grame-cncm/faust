@@ -103,6 +103,7 @@ void JAVAScriptCodeContainer::printIncludeFile(ostream& fout)
 }
 */
 
+
 void JAVAScriptCodeContainer::produceInternal()
 {
     int n = 0;

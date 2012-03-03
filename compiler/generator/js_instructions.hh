@@ -56,30 +56,33 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-        map <string, string> fFunTable;
+        map <string, string> fMathLibTable;
 
     public:
 
         JAVAScriptInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true)
         {
-            fFunTable["absf"] = "Math.abs";
-            fFunTable["acosf"] = "Math.acos";
-            fFunTable["asinf"] = "Math.asin";
-            fFunTable["atanf"] = "Math.atan";
-            fFunTable["atan2f"] = "Math.atan2";
-            fFunTable["sinf"] = "Math.sin";
-            fFunTable["cosf"] = "Math.cos";
-            fFunTable["tanf"] = "Math.tan";
-            fFunTable["expf"] = "Math.exp";
-            fFunTable["logf"] = "Math.log";
-            fFunTable["sqrtf"] = "Math.sqrt";
-            fFunTable["min"] = "Math.min";
-            fFunTable["max"] = "Math.max";
-            fFunTable["floorf"] = "Math.floor";
-            fFunTable["ceilf"] = "Math.ceil";
-            fFunTable["powf"] = "Math.pow";
-            fFunTable["fmodf"] = "Math.fmod";
+            fMathLibTable["absf"] = "Math.abs";
+            fMathLibTable["fabsf"] = "Math.abs";
+            fMathLibTable["acosf"] = "Math.acos";
+            fMathLibTable["asinf"] = "Math.asin";
+            fMathLibTable["atanf"] = "Math.atan";
+            fMathLibTable["atan2f"] = "Math.atan2";
+            fMathLibTable["ceilf"] = "Math.ceil";
+            fMathLibTable["cosf"] = "Math.cos";
+            fMathLibTable["expf"] = "Math.exp";
+            fMathLibTable["floorf"] = "Math.floor";
+            fMathLibTable["fmodf"] = "Math.missing";
+            fMathLibTable["logf"] = "Math.log";
+            fMathLibTable["log10f"] = "Math.log";
+            fMathLibTable["max"] = "Math.max";
+            fMathLibTable["min"] = "Math.min";
+            fMathLibTable["powf"] = "Math.pow";
+            fMathLibTable["roundf"] = "Math.round";
+            fMathLibTable["sinf"] = "Math.sin";
+            fMathLibTable["sqrtf"] = "Math.sqrt";
+            fMathLibTable["tanf"] = "Math.tan";
         }
 
         virtual ~JAVAScriptInstVisitor()
@@ -174,8 +177,8 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(LabelInst* inst)
         {
-            *fOut << inst->fLabel;
-            tab(fTab, *fOut);
+            //*fOut << inst->fLabel;
+            //tab(fTab, *fOut);
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -218,18 +221,17 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DeclareFunInst* inst)
         {
-            // Do not delcare Math library functions
-            if (fFunTable.find(inst->fName) != fFunTable.end()) {
+            // Do not declare Math library functions
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 return;
             }
 
             // Prototype
-            *fOut << generateType(inst->fType->fResult, inst->fName);
-            *fOut << "(";
+            *fOut << "function " << inst->fName << "(";
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
+                *fOut << (*it)->fName;
                 if (i < size - 1) *fOut << ", ";
             }
 
@@ -344,7 +346,8 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
       
         virtual void visit(FunCallInst* inst)
         {
-            string js_name = (fFunTable.find(inst->fName) != fFunTable.end()) ? fFunTable[inst->fName] : inst->fName;
+            string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
+            assert(js_name != "Math.missing");
             
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
@@ -358,8 +361,7 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                     (*it1)->accept(this);
                     if (i < size - 1) *fOut << ", ";
                 }
-                *fOut << ")";
-          } else {
+            } else {
                 *fOut << js_name << "(";
                 list<ValueInst*>::const_iterator it;
                 int size = inst->fArgs.size(), i = 0;
@@ -368,10 +370,13 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                     (*it)->accept(this);
                     if (i < size - 1) *fOut << ", ";
                 }
-                *fOut << ")";
+                
+            }
+            *fOut << ")";
+            if (inst->fName == "log10f") {
+                *fOut << "/Math.log(10)";
             }
         }
-
 
         virtual void visit(Select2Inst* inst)
         {
