@@ -13,9 +13,138 @@ window.onload = init;
 var context;
 var processor;
 var dsp;
+var ui;
 
 var inputs;
 var outputs;
+
+//-----------------------------------------------------------------------------
+// a handler to send a faust 'set' message
+// actually using a 'GET' method
+//-----------------------------------------------------------------------------
+function makesethandler() 
+{
+	return function( dest, val) {
+		var msg = dest+"?value="+val;
+		if (0) $("#trace").html(msg);
+		else $.get( dest+"?value="+val );
+	};
+}
+
+//-----------------------------------------------------------------------------
+// a function to build a slider
+// a faust slider is a composite object that embeds a label, a 'range' input
+// and a 'text' input displaying the slider value
+// slider and text value are linked together to reflect the same value.
+//-----------------------------------------------------------------------------
+function makeslider(id, orientation, min, max, value, step, sethandler, dest) 
+{
+	var slider = document.createElement('input');
+	slider.id		= id;
+	slider.type		= "range";
+	slider.min		= min;
+	slider.max		= max;
+	slider.value 	= value;
+	slider.step 	= step;
+
+	var valId = "v"+id;
+	var textval = document.createElement('input');
+	textval.id		= valId;
+	textval.type	= "text";
+	textval.value 	= value;
+	textval.size	= 6;
+
+	textval.onchange = function(){ $( "#"+id ).val( this.value ); sethandler(dest, this.value); };
+	slider.onchange  = function(){ $( "#"+valId ).val( this.value ); sethandler(dest, this.value); };
+	slider.fTextValue = textval;
+	return slider;
+}
+
+//-----------------------------------------------------------------------------
+// a push button
+//-----------------------------------------------------------------------------
+function makebutton(label, id, sethandler, dest) 
+{
+	var button = document.createElement('button');
+	button.id		= id;
+	button.type		= "button";
+	button.innerHTML= label;
+	button.value	= 1;
+	button.onmousedown = function(){ sethandler(dest, 1); };
+	button.onmouseup = function(){ sethandler(dest, 0); };
+	return button;
+}
+
+//-----------------------------------------------------------------------------
+// a check box
+//-----------------------------------------------------------------------------
+function makecheckbox(id, sethandler, dest) 
+{
+	var cbox = document.createElement('input');
+	cbox.id		= id;
+	cbox.type	= "checkbox";
+	cbox.value	= 0;
+	cbox.onchange = function() {this.value = (this.value == 1) ? 0 : 1; sethandler(dest, this.value);};
+	return cbox;
+}
+
+function JUI()  {
+
+    this.openTabBox = function(label) 
+    {
+	}
+    
+    this.openHorizontalBox = function(label) 
+    {
+	}
+    
+    this.openVerticalBox = function(label) 
+    {
+	}
+    
+    this.closeBox = function() 
+    {
+	}
+    
+    this.addButton = function(label, sethandler) 
+    {
+	}
+    
+    this.addCheckButton = function(label, sethandler) 
+    {
+	}
+    
+    this.addVerticalSlider = function(label, sethandler, init, min, max, step) 
+    {
+	}
+    
+    this.addHorizontalSlider = function(label, sethandler, init, min, max, step) 
+    {
+	}
+    
+    this.addNumEntry = function(label, sethandler, init, min, max, step) 
+    {
+	}
+
+    this.addHorizontalBargraph = function(label, sethandler,  min, max) 
+    {
+	}
+    
+    this.addVerticalBargraph = function(label, sethandler,  min, max) 
+    {
+	}
+    
+    this.declare = function(sethandler, key, value) 
+    {
+	}
+}
+
+function Meta()  {
+
+    this.declare = function(key, value) 
+    {
+	}
+}
 
 <<includeIntrinsic>>
 
@@ -45,11 +174,14 @@ function initAudio(buffer_size)
 {
     context = new webkitAudioContext();
     
+    ui = new JUI();
     dsp = new mydsp();
+    
     dsp.init(context.sampleRate);
+    dsp.buildUserInterface(ui);
     
     console.log(context.sampleRate);
-    console.log(dsp);
+    console.log(dsp.getNumInputs());
     console.log(dsp.getNumOutputs());
     
     inputs = new Array(dsp.getNumInputs());
