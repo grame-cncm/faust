@@ -78,6 +78,10 @@ gjackomp :
 svg:
 	$(MAKE) -f Makefile.svgcompile
 
+webaudio :
+	install -d webaudio dir
+	$(MAKE) DEST='webaudio/' ARCH='webaudio.html' -f Makefile.wacompile
+
 puredata :
 	install -d puredatadir
 	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='-I$(LIB)/faust/' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile

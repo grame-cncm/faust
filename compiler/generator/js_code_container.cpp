@@ -28,7 +28,6 @@
 
 ***********************************************************************/
 
-
 #include "js_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"

@@ -187,7 +187,7 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                  *fOut << "volatile ";
             }
             
-            string prefix  = (inst->fAddress->getAccess() & Address::kStruct) ? "this." : "var ";
+            string prefix = (inst->fAddress->getAccess() & Address::kStruct) ? "this." : "var ";
 
             if (inst->fValue) {
                 *fOut << prefix << inst->fAddress->getName() << " = ";
@@ -347,7 +347,7 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         virtual void visit(FunCallInst* inst)
         {
             string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-            assert(js_name != "Math.missing");
+            //assert(js_name != "Math.missing");
             
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
