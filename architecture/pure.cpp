@@ -122,18 +122,14 @@ public:
   virtual ~UI() {}
 
   virtual void addButton(const char* label, double* zone) = 0;
-  virtual void addToggleButton(const char* label, double* zone) = 0;
   virtual void addCheckButton(const char* label, double* zone) = 0;
-  virtual void addVerticalSlider(const char* label, double* zone, float init, float min, float max, float step) = 0;
-  virtual void addHorizontalSlider(const char* label, double* zone, float init, float min, float max, float step) = 0;
-  virtual void addNumEntry(const char* label, double* zone, float init, float min, float max, float step) = 0;
+  virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step) = 0;
+  virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step) = 0;
+  virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step) = 0;
 
-  virtual void addNumDisplay(const char* label, double* zone, int precision) = 0;
-  virtual void addTextDisplay(const char* label, double* zone, char* names[], float min, float max) = 0;
-  virtual void addHorizontalBargraph(const char* label, double* zone, float min, float max) = 0;
-  virtual void addVerticalBargraph(const char* label, double* zone, float min, float max) = 0;
+  virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max) = 0;
+  virtual void addVerticalBargraph(const char* label, double* zone, double min, double max) = 0;
 
-  virtual void openFrameBox(const char* label) = 0;
   virtual void openTabBox(const char* label) = 0;
   virtual void openHorizontalBox(const char* label) = 0;
   virtual void openVerticalBox(const char* label) = 0;
@@ -152,7 +148,7 @@ public:
  ***************************************************************************/
 
 enum ui_elem_type_t {
-  UI_BUTTON, UI_TOGGLE_BUTTON, UI_CHECK_BUTTON,
+  UI_BUTTON, UI_CHECK_BUTTON,
   UI_V_SLIDER, UI_H_SLIDER, UI_NUM_ENTRY,
   UI_V_BARGRAPH, UI_H_BARGRAPH,
   UI_END_GROUP, UI_V_GROUP, UI_H_GROUP, UI_T_GROUP
@@ -163,7 +159,7 @@ struct ui_elem_t {
   const char *label;
   double *zone;
   void *ref;
-  float init, min, max, step;
+  double init, min, max, step;
 };
 
 class PureUI : public UI
@@ -180,24 +176,20 @@ protected:
   void add_elem(ui_elem_type_t type, const char *label = NULL);
   void add_elem(ui_elem_type_t type, const char *label, double *zone);
   void add_elem(ui_elem_type_t type, const char *label, double *zone,
-		float init, float min, float max, float step);
+		double init, double min, double max, double step);
   void add_elem(ui_elem_type_t type, const char *label, double *zone,
-		float min, float max);
+		double min, double max);
 
 public:
   virtual void addButton(const char* label, double* zone);
-  virtual void addToggleButton(const char* label, double* zone);
   virtual void addCheckButton(const char* label, double* zone);
-  virtual void addVerticalSlider(const char* label, double* zone, float init, float min, float max, float step);
-  virtual void addHorizontalSlider(const char* label, double* zone, float init, float min, float max, float step);
-  virtual void addNumEntry(const char* label, double* zone, float init, float min, float max, float step);
+  virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step);
+  virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step);
+  virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step);
 
-  virtual void addNumDisplay(const char* label, double* zone, int precision);
-  virtual void addTextDisplay(const char* label, double* zone, char* names[], float min, float max);
-  virtual void addHorizontalBargraph(const char* label, double* zone, float min, float max);
-  virtual void addVerticalBargraph(const char* label, double* zone, float min, float max);
+  virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max);
+  virtual void addVerticalBargraph(const char* label, double* zone, double min, double max);
 
-  virtual void openFrameBox(const char* label);
   virtual void openTabBox(const char* label);
   virtual void openHorizontalBox(const char* label);
   virtual void openVerticalBox(const char* label);
@@ -265,7 +257,7 @@ inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zon
 }
 
 inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zone,
-			     float init, float min, float max, float step)
+			     double init, double min, double max, double step)
 {
   ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
   if (elems1)
@@ -284,7 +276,7 @@ inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zon
 }
 
 inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zone,
-			     float min, float max)
+			     double min, double max)
 {
   ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
   if (elems1)
@@ -304,26 +296,20 @@ inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zon
 
 void PureUI::addButton(const char* label, double* zone)
 { add_elem(UI_BUTTON, label, zone); }
-void PureUI::addToggleButton(const char* label, double* zone)
-{ add_elem(UI_TOGGLE_BUTTON, label, zone); }
 void PureUI::addCheckButton(const char* label, double* zone)
 { add_elem(UI_CHECK_BUTTON, label, zone); }
-void PureUI::addVerticalSlider(const char* label, double* zone, float init, float min, float max, float step)
+void PureUI::addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step)
 { add_elem(UI_V_SLIDER, label, zone, init, min, max, step); }
-void PureUI::addHorizontalSlider(const char* label, double* zone, float init, float min, float max, float step)
+void PureUI::addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step)
 { add_elem(UI_H_SLIDER, label, zone, init, min, max, step); }
-void PureUI::addNumEntry(const char* label, double* zone, float init, float min, float max, float step)
+void PureUI::addNumEntry(const char* label, double* zone, double init, double min, double max, double step)
 { add_elem(UI_NUM_ENTRY, label, zone, init, min, max, step); }
 
-// FIXME: addNumDisplay and addTextDisplay not implemented in Faust yet?
-void PureUI::addNumDisplay(const char* label, double* zone, int precision) {}
-void PureUI::addTextDisplay(const char* label, double* zone, char* names[], float min, float max) {}
-void PureUI::addHorizontalBargraph(const char* label, double* zone, float min, float max)
+void PureUI::addHorizontalBargraph(const char* label, double* zone, double min, double max)
 { add_elem(UI_H_BARGRAPH, label, zone, min, max); }
-void PureUI::addVerticalBargraph(const char* label, double* zone, float min, float max)
+void PureUI::addVerticalBargraph(const char* label, double* zone, double min, double max)
 { add_elem(UI_V_BARGRAPH, label, zone, min, max); }
 
-void PureUI::openFrameBox(const char* label) {}
 void PureUI::openTabBox(const char* label)
 { add_elem(UI_T_GROUP, label); }
 void PureUI::openHorizontalBox(const char* label)
