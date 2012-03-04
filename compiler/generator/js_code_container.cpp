@@ -50,7 +50,6 @@ CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name
     return new JAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
-
 CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
@@ -101,7 +100,6 @@ void JAVAScriptCodeContainer::printIncludeFile(ostream& fout)
     }
 }
 */
-
 
 void JAVAScriptCodeContainer::produceInternal()
 {

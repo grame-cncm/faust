@@ -42,12 +42,9 @@ using namespace std;
 #include "binop.hh"
 #include "Text.hh"
 
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
-
 
 class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
@@ -98,7 +95,8 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        string createVarAccess(string varname){
+        string createVarAccess(string varname)
+        {
             return "new FaustVarAccess() {\n"
                 "\t\t\t\tpublic String getId()       { return \"" + varname + "\"; }\n"
                 "\t\t\t\tpublic void   set(float val){ " + varname + " = val; }\n"
@@ -141,7 +139,13 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; EndLine();
             }
             */
+            if (inst->fType == AddButtonInst::kDefaultButton) {
+                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << "this." << inst->fZone << ")"; EndLine();
+            } else {
+                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << "this." << inst->fZone << ")"; EndLine();
+            }
         }
+        
 
         virtual void visit(AddSliderInst* inst)
         {
@@ -158,6 +162,17 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
             EndLine();
             */
+            string name;
+            switch (inst->fType) {
+                case AddSliderInst::kHorizontal:
+                    name = "ui_interface.addHorizontalSlider"; break;
+                case AddSliderInst::kVertical:
+                    name = "ui_interface.addVerticalSlider"; break;
+                case AddSliderInst::kNumEntry:
+                    name = "ui_interface.addNumEntry"; break;
+            }
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "this." << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+            EndLine();
         }
 
         virtual void visit(AddBargraphInst* inst)
