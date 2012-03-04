@@ -60,6 +60,7 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         JAVAScriptInstVisitor(std::ostream* out, int tab = 0)
           :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true)
         {
+            fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
             fMathLibTable["fabsf"] = "Math.abs";
             fMathLibTable["acosf"] = "Math.acos";

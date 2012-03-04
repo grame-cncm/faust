@@ -31,7 +31,6 @@
 
 #include "code_container.hh"
 #include "js_instructions.hh"
-
 #include "vec_code_container.hh"
 
 using namespace std;
