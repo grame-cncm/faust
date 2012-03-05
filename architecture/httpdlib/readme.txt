@@ -71,7 +71,7 @@ When using 'GET', values are expected to be associated to the 'value' key
 (e.g. any/param/url?value=0.8)
 
 *** Faust server root url ***
-A Faust server delivers a web page contining all its user interface 
+A Faust server delivers a web page containing all its user interface 
 from its root url. It delivers the json description of its user
 interface as answer to a value='json' message.
 
