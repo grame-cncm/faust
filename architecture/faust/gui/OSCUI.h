@@ -55,7 +55,7 @@ class OSCUI : public GUI
 	void addalias(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max) 
 	{
 		for (unsigned int i=0; i<fAlias.size(); i++) {
-			fCtrl->addfullpathnode(fAlias[i], zone, 0, 1, init, min, max);
+			fCtrl->addfullpathnode(fAlias[i], zone, (FAUSTFLOAT)0, (FAUSTFLOAT)1, init, min, max);
 		}
 		fAlias.clear();
 	}
