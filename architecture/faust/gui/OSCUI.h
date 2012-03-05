@@ -5,7 +5,7 @@
    modification, are permitted.
 */
 
-#include "OSCControler.h"
+#include "faust/gui/OSCControler.h"
 #include "faust/gui/GUI.h"
 #include <vector>
 
