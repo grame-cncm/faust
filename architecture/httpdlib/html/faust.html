@@ -1,0 +1,65 @@
+<html>
+<head>
+	<link id="css" rel="stylesheet" type="text/css" href="css/style1.css" />
+	<script src="js/jdesc.js" language="javascript"></script>
+	<script src="js/faustui.js" language="javascript"></script>
+	<script src="js/faustuihtml.js" language="javascript"></script>
+	<script src="js/jquery-1.7.1.min.js" language="javascript"></script>
+	<title id=titre>Faust Program UI</title>
+</head>
+
+<body onload=checkmode()>
+
+<br/>
+
+<script>
+	var builder = buildui;		// function to build the user interface
+								// can be based on textual html (default)
+								// or on javascript objects (?mode=js)
+								// depending on an optional 'mode' argument of the url
+	function setStyle(num) {
+		$("#css").attr("href","css/style"+num+".css");
+	}
+	function getjson() {
+		var url = "http://" + $("#host").val() + ":" + $("#port").val();
+		var nav = navigator.appVersion.search("Chrome");
+		if (nav < 0) {  // not using chrome
+			$.get( url+"/?JSON=", function(data) { $("#ui").html (builder( data )); } );
+		}
+		else
+			$("#ui").html (builder (getDesc()));
+	}
+	function checkmode() {
+		var mode = document.URL.search("mode=js");
+		if (mode < 0)	// use html based page generation
+			builder = buildhtmlui;
+		else
+			builder = buildui;
+	}
+</script>
+
+<center>
+<div id="trace"></div>
+<div id="style">
+Style: 
+<input type="radio" id="style1" name="style" value=1 checked onclick= setStyle(this.value) >
+<input type="radio" id="style2" name="style" value=2 onclick= setStyle(this.value) >
+</div>
+
+<br/>
+<form>
+<table>
+<tr><td class="host">Host:</td><td> <input type="text" id="host" size=40 value="localhost" /></td></tr>
+<tr><td class="host">Port:</td><td> <input type="text" id="port" size=5 value="5510" /></td></tr>
+<tr><td></td><td><button type="button" onclick="getjson()">Get UI</button></td></tr>
+</table>
+</form>
+</center>
+
+<br/>
+<center>
+<div id="ui"></div>
+</center>
+
+</body>
+</html>

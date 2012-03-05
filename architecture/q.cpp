@@ -114,18 +114,14 @@ public:
   virtual ~UI() {}
 	
   virtual void addButton(char* label, float* zone) = 0;
-  virtual void addToggleButton(char* label, float* zone) = 0;
   virtual void addCheckButton(char* label, float* zone) = 0;
   virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
   virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step) = 0;
   virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step) = 0;
 
-  virtual void addNumDisplay(char* label, float* zone, int precision) = 0;
-  virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max) = 0;
   virtual void addHorizontalBargraph(char* label, float* zone, float min, float max) = 0;
   virtual void addVerticalBargraph(char* label, float* zone, float min, float max) = 0;
 	
-  virtual void openFrameBox(char* label) = 0;
   virtual void openTabBox(char* label) = 0;
   virtual void openHorizontalBox(char* label) = 0;
   virtual void openVerticalBox(char* label) = 0;
@@ -144,7 +140,7 @@ public:
  ***************************************************************************/
 
 enum ui_elem_type_t {
-  UI_BUTTON, UI_TOGGLE_BUTTON, UI_CHECK_BUTTON,
+  UI_BUTTON, UI_CHECK_BUTTON,
   UI_V_SLIDER, UI_H_SLIDER, UI_NUM_ENTRY,
   UI_V_BARGRAPH, UI_H_BARGRAPH,
   UI_END_GROUP, UI_V_GROUP, UI_H_GROUP, UI_T_GROUP
@@ -177,18 +173,14 @@ protected:
 
 public:
   virtual void addButton(char* label, float* zone);
-  virtual void addToggleButton(char* label, float* zone);
   virtual void addCheckButton(char* label, float* zone);
   virtual void addVerticalSlider(char* label, float* zone, float init, float min, float max, float step);
   virtual void addHorizontalSlider(char* label, float* zone, float init, float min, float max, float step);
   virtual void addNumEntry(char* label, float* zone, float init, float min, float max, float step);
 
-  virtual void addNumDisplay(char* label, float* zone, int precision);
-  virtual void addTextDisplay(char* label, float* zone, char* names[], float min, float max);
   virtual void addHorizontalBargraph(char* label, float* zone, float min, float max);
   virtual void addVerticalBargraph(char* label, float* zone, float min, float max);
   
-  virtual void openFrameBox(char* label);
   virtual void openTabBox(char* label);
   virtual void openHorizontalBox(char* label);
   virtual void openVerticalBox(char* label);
@@ -284,8 +276,6 @@ inline void QUI::add_elem(ui_elem_type_t type, char *label, float *zone,
 
 void QUI::addButton(char* label, float* zone)
 { add_elem(UI_BUTTON, label, zone); }
-void QUI::addToggleButton(char* label, float* zone)
-{ add_elem(UI_TOGGLE_BUTTON, label, zone); }
 void QUI::addCheckButton(char* label, float* zone)
 { add_elem(UI_CHECK_BUTTON, label, zone); }
 void QUI::addVerticalSlider(char* label, float* zone, float init, float min, float max, float step)
@@ -295,15 +285,11 @@ void QUI::addHorizontalSlider(char* label, float* zone, float init, float min, f
 void QUI::addNumEntry(char* label, float* zone, float init, float min, float max, float step)
 { add_elem(UI_NUM_ENTRY, label, zone, init, min, max, step); }
 
-// FIXME: addNumDisplay and addTextDisplay not implemented in Faust yet?
-void QUI::addNumDisplay(char* label, float* zone, int precision) {}
-void QUI::addTextDisplay(char* label, float* zone, char* names[], float min, float max) {}
 void QUI::addHorizontalBargraph(char* label, float* zone, float min, float max)
 { add_elem(UI_H_BARGRAPH, label, zone, min, max); }
 void QUI::addVerticalBargraph(char* label, float* zone, float min, float max)
 { add_elem(UI_V_BARGRAPH, label, zone, min, max); }
 
-void QUI::openFrameBox(char* label) {}
 void QUI::openTabBox(char* label)
 { add_elem(UI_T_GROUP, label); }
 void QUI::openHorizontalBox(char* label)
