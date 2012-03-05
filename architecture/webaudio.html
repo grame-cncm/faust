@@ -52,6 +52,19 @@ function makeslider(id, orientation, handler, min, max, value, step)
 	return slider;
 }
 
+function makenumentry(id, handler, min, max, value, step) 
+{
+    var valId = "n"+id;
+	var textval = document.createElement('input');
+	textval.id		= valId;
+	textval.type	= "text";
+	textval.value 	= value;
+	textval.size	= 6;
+  
+	textval.onchange = function() { $("#"+id).val(this.value); handler(this.value); };
+	return textval;
+}
+
 //-----------------------------------------------------------------------------
 // a push button
 //-----------------------------------------------------------------------------
@@ -84,7 +97,7 @@ function makeCol(elt, classname)
 {
 	var col = document.createElement('td');
 	if (typeof elt == 'object') {
-		col.appendChild (elt);
+		col.appendChild(elt);
 		elt.className = classname;
 	}else {
         col.innerHTML = elt;
@@ -175,7 +188,14 @@ function JUI()  {
 	}
     
     this.addNumEntry = function(label, handler, init, min, max, step) 
-    {}
+    {
+        var row = document.createElement('tr');
+        row.appendChild(makeCol(label, "label"));
+        row.appendChild(document.createElement('td'));
+        row.appendChild(makenumentry("numentry" + this.counter++, handler, min, max, init, step));
+        row.appendChild(document.createElement('td'));
+        this.table.appendChild(row);
+    }
 
     this.addHorizontalBargraph = function(label, handler,  min, max) 
     {}
