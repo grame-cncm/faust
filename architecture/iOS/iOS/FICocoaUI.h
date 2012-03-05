@@ -69,20 +69,29 @@ using namespace std;
 // COCOA part
 //=================
 
+// Current layout mode
+#define kHorizontalLayout               0
+#define kVerticalLayout                 1
+#define kTabLayout                      2
 
+// Global dimensions
+#define kWidgetSlice                    50.f
+#define kOffsetY                        20.f
+#define kLabelWidth                     80.f
+#define kSpaceSize                      5.f
 
-#define kWidgetSlice        50.f
-#define kOffsetY            20.f
-
-#define kHorizontalLayout   0
-#define kVerticalLayout     1
-#define kTabLayout          2
-
-#define kStdKnobWidth		100.0
-#define kStdKnobHeight      100.0
-#define kStdButtonWidth		100.0
-#define kStdButtonHeight	40.0
-
+// Responders dimensions
+#define kStdKnobWidth                   100.0
+#define kStdKnobHeight                  100.0
+#define kStdHorizontalSliderHeight      20.0
+#define kStdVerticalSliderWidth         40.0
+#define kStdVerticalSliderHeight        170.0
+#define kStdButtonWidth                 100.0
+#define kStdButtonHeight                40.0
+#define kStdNumEntryHeight              40.0
+#define kStdHorizontalBargraphHeight    20.0
+#define kStdVerticalBargraphWidth       20.0
+#define kStdVerticalBargraphHeight      170.0
 
 
 class uiCocoaItem : public uiItem
@@ -231,7 +240,7 @@ public :
     {
         float viewWidth = controller.dspView.frame.size.width;
         
-        CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - 5.f, 80.0, kStdKnobHeight);
+        CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - kSpaceSize, kLabelWidth, kStdKnobHeight);
         fLabel = [[UILabel alloc] initWithFrame:labelFrame];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         fLabel.textAlignment = UITextAlignmentRight;
@@ -241,7 +250,7 @@ public :
         [controller.dspView addSubview:fLabel];
         
         fKnob = [[[FIKnob alloc] initWithDelegate:controller] autorelease];
-        fKnob.frame = CGRectMake(viewWidth / 2 - kStdKnobWidth / 2, kOffsetY + kWidgetSlice * index - 5.f, kStdKnobWidth, kStdKnobHeight);
+        fKnob.frame = CGRectMake(kLabelWidth + kSpaceSize, kOffsetY + kWidgetSlice * index - kSpaceSize, kStdKnobWidth, kStdKnobHeight);
         fKnob.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
         fKnob.labelFont = [UIFont boldSystemFontOfSize:14.0];
         fKnob.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
@@ -265,7 +274,6 @@ public :
         fHidden = hidden;
         fLabel.hidden = hidden;
         fKnob.hidden = hidden;
-        [fKnob setNeedsDisplay];
     }
     
     void reflectZone()
@@ -292,7 +300,7 @@ public :
     {
         float viewWidth = controller.dspView.frame.size.width;
         
-        CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - 5.f, 80.0, 30.0);
+        CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - kSpaceSize, kLabelWidth, kStdHorizontalSliderHeight);
         fLabel = [[UILabel alloc] initWithFrame:labelFrame];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         fLabel.textAlignment = UITextAlignmentRight;
@@ -304,11 +312,11 @@ public :
         fSlider = [[[FISlider alloc] initWithDelegate:controller] autorelease];
         if ((fSlider.isHorizontalSlider = horizontal))
         {
-            fSlider.frame = CGRectMake(85.0f, kOffsetY + kWidgetSlice * index, viewWidth - 85.0f - 5.f, 20.0f);
+            fSlider.frame = CGRectMake(kLabelWidth + kSpaceSize, kOffsetY + kWidgetSlice * index, viewWidth - kLabelWidth - kSpaceSize - kSpaceSize, kStdHorizontalSliderHeight);
         }
         else
         {
-            fSlider.frame = CGRectMake(85.0f, kOffsetY + kWidgetSlice * index, 20.0f, 170.0f);
+            fSlider.frame = CGRectMake(kLabelWidth + kSpaceSize, kOffsetY + kWidgetSlice * index, kStdVerticalSliderWidth, kStdVerticalSliderHeight);
         }
         fSlider.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
         fSlider.labelFont = [UIFont boldSystemFontOfSize:14.0];
@@ -334,7 +342,6 @@ public :
         fHidden = hidden;
         fLabel.hidden = hidden;
         fSlider.hidden = hidden;
-        [fSlider setNeedsDisplay];
     }
     
     void reflectZone()
@@ -361,7 +368,7 @@ public:
         float viewWidth = controller.dspView.frame.size.width;
         
         fButton = [[[FIButton alloc] initWithDelegate:controller] autorelease];
-		fButton.frame = CGRectMake(viewWidth / 2 - kStdButtonWidth/2, kOffsetY + kWidgetSlice * index - 5.f, kStdButtonWidth, kStdButtonHeight);
+		fButton.frame = CGRectMake(viewWidth / 2 - kStdButtonWidth / 2, kOffsetY + kWidgetSlice * index - kSpaceSize, kStdButtonWidth, kStdButtonHeight);
         fButton.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
         fButton.title = [[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding];
 		fButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
@@ -380,7 +387,6 @@ public:
     {
         fHidden = hidden;
         fButton.hidden = hidden;
-        [fButton setNeedsDisplay];
     }
 
     void reflectZone()
@@ -399,15 +405,26 @@ class uiNumEntry : public uiCocoaItem
     
 public:
     
-    FITextField*            fTextField;
+    FITextField*        fTextField;
+    UILabel*            fLabel;
     
     uiNumEntry(int index, GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller)
     {
         float viewWidth = controller.dspView.frame.size.width;
+        
+        CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - kSpaceSize, kLabelWidth, kStdNumEntryHeight);
+        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+        fLabel.font = [UIFont boldSystemFontOfSize:12];
+        fLabel.textAlignment = UITextAlignmentRight;
+        fLabel.text = [NSString stringWithCString:label encoding:NSASCIIStringEncoding];
+        fLabel.textColor = [UIColor whiteColor];
+        fLabel.backgroundColor = [UIColor blackColor];
+        [controller.dspView addSubview:fLabel];
+
         fTextField = [[[FITextField alloc] initWithDelegate:controller] autorelease];
-        [fTextField setFrame:CGRectMake(viewWidth / 2 - kStdButtonWidth/2, kOffsetY + kWidgetSlice * index - 5.f, kStdButtonWidth, kStdButtonHeight)];
-        fTextField.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
+        [fTextField setFrame:CGRectMake(kLabelWidth + kSpaceSize, kOffsetY + kWidgetSlice * index - 5.f, viewWidth - kLabelWidth - kSpaceSize - kSpaceSize, kStdButtonHeight)];
+        fTextField.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
 		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fTextField.labelColor = [UIColor whiteColor];
         fTextField.backgroundColorAlpha = 0.4;        
@@ -425,8 +442,8 @@ public:
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
+        fLabel.hidden = hidden;
         fTextField.hidden = hidden;
-        [fTextField setNeedsDisplay];
     }
 
     void reflectZone()
@@ -438,7 +455,7 @@ public:
 };
 
 
-// ------------------------------ Num Entry -----------------------------------
+// ------------------------------ Bargraph -----------------------------------
 
 class uiBargraph : public uiCocoaItem
 {
@@ -453,7 +470,7 @@ public:
     {
         float viewWidth = controller.dspView.frame.size.width;
        
-        CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - 5.f, 80.0, 30.0);
+        CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - kSpaceSize, kLabelWidth, kStdVerticalBargraphWidth);
         fLabel = [[UILabel alloc] initWithFrame:labelFrame];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         fLabel.textAlignment = UITextAlignmentRight;
@@ -464,11 +481,11 @@ public:
         
         if (horizontal)
         {
-            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(85.0f, kOffsetY + kWidgetSlice * index, viewWidth - 85.0f - 5.f, 20.0f)] autorelease];
+            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(kLabelWidth + kSpaceSize, kOffsetY + kWidgetSlice * index, viewWidth - kLabelWidth - kSpaceSize - kSpaceSize, kStdHorizontalBargraphHeight)] autorelease];
         }
         else
         {
-            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(85.0f, kOffsetY + kWidgetSlice * index, 20.0f, 170.0f)] autorelease];
+            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(kLabelWidth + kSpaceSize, kOffsetY + kWidgetSlice * index, kStdVerticalBargraphWidth, kStdVerticalBargraphHeight)] autorelease];
         }
         fBargraph.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
         fBargraph.value = 0.f;
@@ -490,7 +507,6 @@ public:
         fHidden = hidden;
         fLabel.hidden = hidden;
         fBargraph.hidden = hidden;
-        [fBargraph setNeedsDisplay];
     }
     
     void reflectZone()

@@ -98,6 +98,8 @@ char rcfilename[256];
                                                  name:UIDeviceOrientationDidChangeNotification object:nil];
     
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
+    
+    _dspView.canCancelContentTouches = NO;
 
     return;
     

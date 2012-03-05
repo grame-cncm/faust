@@ -18,6 +18,8 @@
 
 #import "FITextField.h"
 
+#define kAccViewHeight          40.0
+
 @implementation FITextField
 
 @synthesize cornerRadius;
@@ -40,7 +42,15 @@
         [_messageTextView setTextColor:[UIColor lightGrayColor]];        
         _messageTextView.delegate = self;
         [self addSubview:_messageTextView];
-        _messageTextView.keyboardType = UIKeyboardTypeDecimalPad;
+        
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+        {
+            _messageTextView.keyboardType = UIKeyboardTypeDecimalPad;
+        }
+        else
+        {
+            _messageTextView.keyboardType = UIKeyboardTypeNumberPad;
+        }
         
         // Input accessory view
         [self createInputAccessoryView];
@@ -125,20 +135,20 @@
 {
     float viewWidth = _messageTextView.inputView.frame.size.width;
 
-    _inputAccView = [[UIView alloc] initWithFrame:CGRectMake(10.0, 0.0, viewWidth, 40.0)];
+    _inputAccView = [[UIView alloc] initWithFrame:CGRectMake(10.0, 0.0, viewWidth, kAccViewHeight)];
     _inputAccView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     
     viewWidth = _inputAccView.frame.size.width;
     _inputAccView.backgroundColor = [UIColor blackColor];
 
-    _rangeLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 200.0, 40.0)];
+    _rangeLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 200.0, kAccViewHeight)];
     _rangeLabel.backgroundColor = [UIColor blackColor];
     _rangeLabel.textColor = [UIColor whiteColor];
     _rangeLabel.textAlignment = UITextAlignmentLeft;
     [_inputAccView addSubview:_rangeLabel];
     
     _minusButton =[UIButton buttonWithType:UIButtonTypeCustom];
-    [_minusButton setFrame:CGRectMake(viewWidth - 120.f, 0.0f, 60.0f, 40.0f)];
+    [_minusButton setFrame:CGRectMake(viewWidth - 120.f, 0.0f, 60.0f, kAccViewHeight)];
     _minusButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
     [_minusButton setTitle:@"-" forState:UIControlStateNormal];
     [_minusButton setBackgroundColor:[UIColor grayColor]];
@@ -147,7 +157,7 @@
     [_inputAccView addSubview:_minusButton];
     
     _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_doneButton setFrame:CGRectMake(viewWidth - 60.f, 0.0f, 60.0f, 40.0f)];
+    [_doneButton setFrame:CGRectMake(viewWidth - 60.f, 0.0f, 60.0f, kAccViewHeight)];
     _doneButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
     [_doneButton setTitle:@"Done" forState:UIControlStateNormal];
     [_doneButton setBackgroundColor:[UIColor grayColor]];
