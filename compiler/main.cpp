@@ -705,11 +705,11 @@ int main (int argc, char* argv[])
 // 			}
             
             if (gSchedulerSwitch) {
-                istream* scheduler_include = open_arch_stream("scheduler.h");
+                istream* scheduler_include = open_arch_stream("scheduler.cpp");
                 if (scheduler_include) {
                     streamCopy(*scheduler_include, *dst);
                 } else {
-					cerr << "ERROR : can't include \"scheduler.h\", file not found" << endl;
+					cerr << "ERROR : can't include \"scheduler.cpp\", file not found" << endl;
 					exit(1);
 				}
             }
