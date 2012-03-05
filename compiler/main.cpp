@@ -152,7 +152,7 @@ int             gTimeout        = 120;            // time out to abort compiler 
 int             gFloatSize = 1;
 
 bool			gPrintFileListSwitch = false;
-bool			gInlineArchSwitch = false;
+bool			gInlineArchSwitch = true;
 
 string			gClassName		= "mydsp";
 
@@ -708,7 +708,10 @@ int main (int argc, char* argv[])
                 istream* scheduler_include = open_arch_stream("scheduler.h");
                 if (scheduler_include) {
                     streamCopy(*scheduler_include, *dst);
-                }
+                } else {
+					cerr << "ERROR : can't include \"scheduler.h\", file not found" << endl;
+					exit(1);
+				}
             }
             
 			streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
