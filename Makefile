@@ -68,8 +68,8 @@ install :
 	cp -r architecture/VST $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/iPhone
 	cp -r architecture/iPhone $(prefix)/lib/faust/
-	cp -r architecture/audio $(prefix)/include/faust/
-	cp -r architecture/gui $(prefix)/include/faust/
+	#cp -r architecture/audio $(prefix)/include/faust/
+	#cp -r architecture/gui $(prefix)/include/faust/
 	-[ -f libHTTPDFaust.a ] && cp architecture/osclib/libHTTPDFaust.a $(prefix)/lib/faust/osclib
 	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
@@ -82,7 +82,7 @@ install :
 #	cp architecture/*.cpp $(prefix)/lib/faust/
 #	cp architecture/*.lib $(prefix)/lib/faust/
 #	#
-#	cp -r architecture/faust $(prefix)/include/
+	cp -r architecture/faust $(prefix)/include/
 #>>>>>>> install in regular include directory
 	make -C tools/faust2appls install
 
