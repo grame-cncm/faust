@@ -36,6 +36,7 @@ extern string gFaustSuperDirectory;
 extern string gFaustDirectory;
 extern string gMasterDirectory;
 extern string gClassName;
+extern bool	  gInlineArchSwitch;
 
 //----------------------------------------------------------------
 
@@ -115,7 +116,12 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
     }
 }
 
-// a very simple string parser
+
+
+/**
+ * A minimalistic parser used to recognize '#include <faust/...>' patterns when copying
+ * architecture files 
+ */
 class myparser
 {
     string  str;
@@ -141,7 +147,10 @@ public:
     }
 };
 
-// true if s == "#include <faust/..."
+
+/**
+ * True if string s match '#include <faust/fname>'
+ */
 bool isFaustInclude(const string& s, string& fname)
 {
     myparser P(s);
@@ -153,6 +162,14 @@ bool isFaustInclude(const string& s, string& fname)
     }
 }
 
+
+
+
+/**
+ * Inject file fname into dst ostream if not already done
+ */
+
+// to keep track of already injected files
 set<string> alreadyIncluded;
 
 void inject(ostream& dst, const string fname)
@@ -176,7 +193,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
     string	s;
     string  fname;
     while ( getline(src,s) && (s != until) ) {
-        if (isFaustInclude(s, fname)) {
+        if (gInlineArchSwitch && isFaustInclude(s, fname)) {
             inject(dst, fname);
         } else {
             dst << replaceClassName(s) << endl;
