@@ -79,8 +79,8 @@ svg:
 	$(MAKE) -f Makefile.svgcompile
 
 webaudio :
-	install -d webaudio dir
-	$(MAKE) DEST='webaudio/' ARCH='webaudio.html' -f Makefile.wacompile
+	install -d webaudiodir
+	$(MAKE) DEST='webaudiodir/' ARCH='webaudio.html' -f Makefile.wacompile
 
 puredata :
 	install -d puredatadir

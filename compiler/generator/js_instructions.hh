@@ -141,10 +141,13 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             }
             */
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << "this." << inst->fZone << ")"; EndLine();
+                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", ";
             } else {
-                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << "this." << inst->fZone << ")"; EndLine();
+                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", ";
             }
+            
+            *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this))";
+            EndLine();
         }
         
 
@@ -172,7 +175,9 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddSliderInst::kNumEntry:
                     name = "ui_interface.addNumEntry"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << "this." << inst->fZone << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
+            *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
+            *fOut << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
             EndLine();
         }
 

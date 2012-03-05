@@ -1,5 +1,7 @@
 <html>
 <head>
+<!-- <script src="jquery-1.7.1.min.js" language="javascript"></script>  -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js" language="javascript"></script> 
 <title>
 Title
 </title>
@@ -22,28 +24,12 @@ var outputs;
 var source;
 
 //-----------------------------------------------------------------------------
-// a handler to send a faust 'set' message
-// actually using a 'GET' method
-//-----------------------------------------------------------------------------
-function makesethandler() 
-{
-	return function( dest, val) {
-		var msg = dest+"?value="+val;
-		if (0) $("#trace").html(msg);
-		else $.get( dest+"?value="+val );
-	};
-}
-
-//-----------------------------------------------------------------------------
 // a function to build a slider
 // a faust slider is a composite object that embeds a label, a 'range' input
 // and a 'text' input displaying the slider value
 // slider and text value are linked together to reflect the same value.
 //-----------------------------------------------------------------------------
-
-//function makeslider(id, orientation, min, max, value, step, sethandler, dest) 
-
-function makeslider(id, orientation, zone, min, max, value, step) 
+function makeslider(id, orientation, handler, min, max, value, step) 
 {
 	var slider = document.createElement('input');
 	slider.id		= id;
@@ -59,20 +45,9 @@ function makeslider(id, orientation, zone, min, max, value, step)
 	textval.type	= "text";
 	textval.value 	= value;
 	textval.size	= 6;
-
-	textval.onchange = function() { 
-                //$("#"+id).val(this.value); 
-                zone = this.value; 
-                //console.log(this.value); 
-                console.log(zone);
-            };
-	slider.onchange  = function() { 
-                //$("#"+id).val(this.value); 
-                zone = this.value; 
-                //console.log(this.value); 
-                console.log(zone); 
-            };
-
+  
+	textval.onchange = function() { $("#"+id).val(this.value); handler(this.value); };
+	slider.onchange  = function() { $("#"+valId).val(this.value); handler(this.value); };
 	slider.fTextValue = textval;
 	return slider;
 }
@@ -80,30 +55,28 @@ function makeslider(id, orientation, zone, min, max, value, step)
 //-----------------------------------------------------------------------------
 // a push button
 //-----------------------------------------------------------------------------
-//function makebutton(label, id, sethandler, dest) 
-function makebutton(label, id) 
+function makebutton(label, id, handler) 
 {
 	var button = document.createElement('button');
 	button.id = id;
 	button.type = "button";
 	button.innerHTML = label;
 	button.value = 1;
-	//button.onmousedown = function(){ sethandler(dest, 1); };
-	//button.onmouseup = function(){ sethandler(dest, 0); };
+	button.onmousedown = function() { handler(1); };
+	button.onmouseup = function() { handler(0); };
 	return button;
 }
 
 //-----------------------------------------------------------------------------
 // a check box
 //-----------------------------------------------------------------------------
-//function makecheckbox(id, sethandler, dest)
-function makecheckbox(id) 
+function makecheckbox(id, handler) 
 {
 	var cbox = document.createElement('input');
 	cbox.id		= id;
 	cbox.type	= "checkbox";
 	cbox.value	= 0;
-	//cbox.onchange = function() {this.value = (this.value == 1) ? 0 : 1; sethandler(dest, this.value);};
+	cbox.onchange = function() { this.value = (this.value == 1) ? 0 : 1; handler(this.value); };
 	return cbox;
 }
 
@@ -132,7 +105,6 @@ function JUI()  {
     {
         this.table.className = "ui";
         this.table.appendChild(this.row);
-        
         var faustui = document.getElementById("FaustUI");
         faustui.appendChild(this.table);
 	}
@@ -140,7 +112,7 @@ function JUI()  {
     this.openTabBox = function(label) 
     {
         var row = document.createElement('tr');
-        //row.appendChild(document.createElement('center'));
+        row.appendChild(document.createElement('td'));
         row.appendChild(document.createTextNode(label));
         this.table.appendChild(row);
 	}
@@ -148,7 +120,7 @@ function JUI()  {
     this.openHorizontalBox = function(label) 
     {
         var row = document.createElement('tr');
-        //row.appendChild(document.createElement('center'));
+        row.appendChild(document.createElement('td'));
         row.appendChild(document.createTextNode(label));
         this.table.appendChild(row);
 	}
@@ -156,7 +128,7 @@ function JUI()  {
     this.openVerticalBox = function(label) 
     {
         var row = document.createElement('tr');
-        //row.appendChild(document.createElement('center'));
+        row.appendChild(document.createElement('td'));
         row.appendChild(document.createTextNode(label));
         this.table.appendChild(row);
 	}
@@ -164,58 +136,54 @@ function JUI()  {
     this.closeBox = function() 
     {}
     
-    this.addButton = function(label, zone) 
+    this.addButton = function(label, handler) 
     {
         var row = document.createElement('tr');
-        var button = makebutton(label, "button" + this.counter++);
-        row.appendChild(button);
+        row.appendChild(document.createElement('td'));
+        row.appendChild(makebutton(label, "button" + this.counter++, handler));
+        row.appendChild(document.createElement('td'));
 		this.table.appendChild(row);
 	}
     
-    this.addCheckButton = function(label, zone) 
+    this.addCheckButton = function(label, handler) 
     {
         var row = document.createElement('tr');
-        var button = makebutton(label, "button" + this.counter++);
-        row.appendChild(button);
+        row.appendChild(document.createElement('td'));
+        row.appendChild(makebutton(label, "button" + this.counter++, handler));
+        row.appendChild(document.createElement('td'));
 		this.table.appendChild(row);
 	}
     
-    this.addVerticalSlider = function(label, zone, init, min, max, step) 
+    this.addVerticalSlider = function(label, handler, init, min, max, step) 
     {
         var row = document.createElement('tr');
-        var slider = makeslider("slider" + this.counter++, 'vertical', zone, min, max, init, step);
-                          
-		//row.appendChild(makeCol (elt.label, "label") );
-		//row.appendChild(makeCol (slider), "control" );
-		//row.appendChild(makeCol (slider.fTextValue), "value" );
-        
-        row.appendChild(slider);
-		this.table.appendChild(row);
+        var slider = makeslider("slider" + this.counter++, 'vertical', handler, min, max, init, step);
+		row.appendChild(makeCol(label, "label"));
+		row.appendChild(makeCol(slider), "control");
+		row.appendChild(makeCol(slider.fTextValue), "value");
+        this.table.appendChild(row);
 	}
     
-    this.addHorizontalSlider = function(label, zone, init, min, max, step) 
+    this.addHorizontalSlider = function(label, handler, init, min, max, step) 
     {
         var row = document.createElement('tr');
-        var slider = makeslider("slider" + this.counter++, 'vertical', zone, min, max, init, step);
-                          
-		//row.appendChild(makeCol (elt.label, "label") );
-		//row.appendChild(makeCol (slider), "control" );
-		//row.appendChild(makeCol (slider.fTextValue), "value" );
-        
-        row.appendChild(slider);
-		this.table.appendChild(row);
+        var slider = makeslider("slider" + this.counter++, 'vertical', handler, min, max, init, step);
+		row.appendChild(makeCol(label, "label"));
+		row.appendChild(makeCol(slider), "control");
+		row.appendChild(makeCol(slider.fTextValue), "value");
+        this.table.appendChild(row);
 	}
     
-    this.addNumEntry = function(label, zone, init, min, max, step) 
+    this.addNumEntry = function(label, handler, init, min, max, step) 
     {}
 
-    this.addHorizontalBargraph = function(label, zone,  min, max) 
+    this.addHorizontalBargraph = function(label, handler,  min, max) 
     {}
     
-    this.addVerticalBargraph = function(label, zone,  min, max) 
+    this.addVerticalBargraph = function(label, handler,  min, max) 
     {}
     
-    this.declare = function(zone, key, value) 
+    this.declare = function(handler, key, value) 
     {}
 }
 
@@ -228,7 +196,6 @@ function Meta()  {
     {
         this.table.className = "ui";
         this.table.appendChild(this.row);
-        
         var faustui = document.getElementById("FaustMeta");
         faustui.appendChild(this.table);
 	}
@@ -339,7 +306,7 @@ function initAudio(buffer_size)
         source = context.createBufferSource();
         source.connect(processor);
         processor.connect(context.destination);
-        loadSample("t1.wav");
+        //loadSample("t1.wav");
     }
 }
 
@@ -348,15 +315,30 @@ function init()
     initAudio(4096);
 }
 
+function playsound()
+{
+    var url = $("#sound").val();
+    loadSample(url);
+}
+
 </script>
 </head>
 <body>
 
 <h1><center> Faust process </center></h1>
+<center><div id="FaustMeta"></center> </div>
+<p>
+<center><div id="FaustUI"></center> </div>
 
-<center><div id="FaustUI"></center>
-<center><div id="FaustMeta"></center>
-</div>
+
+<p>
+<p>
+<center>
+<table>
+<tr><td class="sound">Soundfile:</td><td> <input type="text" id="sound" size=20 value="t1.wav"/></td></tr>
+<tr><td></td><td><button type="button" onclick="playsound()">Play</button></td></tr>
+</table>
+</center>
 
 </body>
 </html>

@@ -45,6 +45,7 @@ extern bool gVectorSwitch;
 extern bool gFunTaskSwitch;
 extern map<Tree, set<Tree> > gMetaDataSet;
 
+
 CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new JAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
@@ -70,7 +71,9 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, cons
         cerr << "ERROR : Scheduler mode not supported for JavaScript" << endl;
         exit(1);
     } else if (gVectorSwitch) {
-        container = new JAVAScriptVectorCodeContainer(name, super, numInputs, numOutputs, dst);
+        //container = new JAVAScriptVectorCodeContainer(name, super, numInputs, numOutputs, dst);
+        cerr << "ERROR : Vector mode not supported for JavaScript" << endl;
+        exit(1);
     } else {
         container = new JAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
