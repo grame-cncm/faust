@@ -15,6 +15,7 @@ zname := faust-$(version)
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
+	cp architecture/osclib/faust/include/OSCControler.h architecture/faust/gui/
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src
