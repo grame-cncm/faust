@@ -60,7 +60,6 @@ doc :
 install :
 #<<<<<<< HEAD
 	mkdir -p $(prefix)/lib/faust
-	mkdir -p $(prefix)/lib/faust/osclib
 	mkdir -p $(prefix)/lib/faust/httpdlib
 	mkdir -p $(prefix)/bin/
 	install compiler/faust $(prefix)/bin/
@@ -72,6 +71,8 @@ install :
 	#cp -r architecture/audio $(prefix)/include/faust/
 	#cp -r architecture/gui $(prefix)/include/faust/
 	-[ -f libHTTPDFaust.a ] && cp architecture/osclib/libHTTPDFaust.a $(prefix)/lib/faust/osclib
+	mkdir -p $(prefix)/lib/faust/osclib
+	cp architecture/osclib/*.a $(prefix)/lib/faust/osclib
 	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
