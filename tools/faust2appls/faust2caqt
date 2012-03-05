@@ -44,7 +44,7 @@ for p in $@; do
     elif [ "$p" = -icc ]; then
     	ignore=" "
 	elif [ "$p" = "-osc" ]; then
-		OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
+		#OSCINC="INCLUDEPATH+=/usr/local/include"
 		QTDEFS="DEFINES += OSCCTRL"
 		OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
 	elif [ "$p" = "-httpd" ]; then
@@ -85,12 +85,12 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	$FAUST -a ca-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	$FAUST -i -a ca-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
 	    cd "$TMP"
-		qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "$HTTPDINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices $OSCLIB $HTTPDLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
+		qmake -project "INCLUDEPATH+=/usr/local/include/" "$HTTPDINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices $OSCLIB $HTTPDLIB" "HEADERS+=/usr/local/include/faust/gui/faustqt.h" "$QTDEFS"
 		qmake $SPEC
         make
     ) > /dev/null #2>/dev/null
