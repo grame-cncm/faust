@@ -79,8 +79,8 @@ class OSCUI : public GUI
 
 	
 	// -- active widgets
-	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, (FAUSTFLOAT)0, (FAUSTFLOAT)0, (FAUSTFLOAT)1); }
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, (FAUSTFLOAT)0, (FAUSTFLOAT)0, (FAUSTFLOAT)1); }
 	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
 	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) { addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
 	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 		{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
