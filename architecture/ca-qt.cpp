@@ -49,7 +49,7 @@
 #endif
 
 #ifdef HTTPCTRL
-#include "gui/httpdUI.h"
+#include "faust/gui/httpdUI.h"
 #endif
 
 /**************************BEGIN USER SECTION **************************/
