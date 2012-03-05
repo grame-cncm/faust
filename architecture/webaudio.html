@@ -1,7 +1,7 @@
 <html>
 <head>
 <!-- <script src="jquery-1.7.1.min.js" language="javascript"></script>  -->
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js" language="javascript"></script> 
+<script src="http://code.jquery.com/jquery-1.7.1.min.js" language="javascript"></script> 
 <title>
 Title
 </title>
@@ -167,7 +167,7 @@ function JUI()  {
     this.addHorizontalSlider = function(label, handler, init, min, max, step) 
     {
         var row = document.createElement('tr');
-        var slider = makeslider("slider" + this.counter++, 'vertical', handler, min, max, init, step);
+        var slider = makeslider("slider" + this.counter++, 'horizontal', handler, min, max, init, step);
 		row.appendChild(makeCol(label, "label"));
 		row.appendChild(makeCol(slider), "control");
 		row.appendChild(makeCol(slider.fTextValue), "value");
