@@ -68,8 +68,11 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-I$FAUSTINC/osclib -DOSCCTRL -L$FAUSTINC/osclib -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$FAUSTINC/osclib -lOSCFaust -loscpack"
+    elif [ $p = "-httpd" ]; then
+	 HTTPDEFS="-DHTTPCTRL -L$FAUSTINC/osclib -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -86,11 +89,11 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $OMP -I$FAUSTINC "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $OMP -I$FAUSTINC "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 

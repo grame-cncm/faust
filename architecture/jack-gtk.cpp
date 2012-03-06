@@ -47,6 +47,10 @@
 #include "faust/gui/OSCUI.h"
 #endif
 
+#ifdef HTTPCTRL
+#include "faust/gui/httpdUI.h"
+#endif
+
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -92,6 +96,12 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
 
+#ifdef HTTPCTRL
+	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+	DSP->buildUserInterface(httpdinterface);
+	cout << "HTTPD is on" << endl;
+#endif
+
 #ifdef OSCCTRL
 	GUI*	oscinterface = new OSCUI(appname, argc, argv);
 	DSP->buildUserInterface(oscinterface);
@@ -102,6 +112,10 @@ int main(int argc, char *argv[])
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
+#ifdef HTTPCTRL
+	httpdinterface->run();
+#endif
+
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
