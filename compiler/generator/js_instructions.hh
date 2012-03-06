@@ -46,7 +46,7 @@ using namespace std;
 #include <sstream>
 #include <fstream>
 
-class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
+class JAVAScriptInstVisitor : public InstVisitor {
 
     private:
 
@@ -57,8 +57,7 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
     public:
 
-        JAVAScriptInstVisitor(std::ostream* out, int tab = 0)
-          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true)
+        JAVAScriptInstVisitor(std::ostream* out, int tab = 0):fTab(tab), fOut(out), fFinishLine(true)
         {
             fMathLibTable["abs"] = "Math.abs";
             fMathLibTable["absf"] = "Math.abs";
