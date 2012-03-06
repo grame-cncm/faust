@@ -83,7 +83,7 @@ function makebutton(label, id, handler)
 //-----------------------------------------------------------------------------
 // a check box
 //-----------------------------------------------------------------------------
-function makecheckbox(id, handler) 
+function makecheckbox(label, id, handler) 
 {
 	var cbox = document.createElement('input');
 	cbox.id		= id;
@@ -162,7 +162,8 @@ function JUI()  {
     {
         var row = document.createElement('tr');
         row.appendChild(document.createElement('td'));
-        row.appendChild(makebutton(label, "button" + this.counter++, handler));
+        row.appendChild(makeCol(label, "label"));
+        row.appendChild(makecheckbox(label, "button" + this.counter++, handler));
         row.appendChild(document.createElement('td'));
 		this.table.appendChild(row);
 	}

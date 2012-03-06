@@ -90,19 +90,6 @@ JAVAScriptScalarCodeContainer::JAVAScriptScalarCodeContainer(const string& name,
 JAVAScriptScalarCodeContainer::~JAVAScriptScalarCodeContainer()
 {}
 
-/*
-void JAVAScriptCodeContainer::printIncludeFile(ostream& fout)
-{
-    set<string> S;
-    set<string>::iterator f;
-
-    collectIncludeFile(S);
-    for (f = S.begin(); f != S.end(); f++) 	{
-        fout << "#import " << *f << "\n";
-    }
-}
-*/
-
 void JAVAScriptCodeContainer::produceInternal()
 {
     int n = 0;
@@ -170,7 +157,6 @@ void JAVAScriptCodeContainer::produceClass()
 
     // Libraries
     printLibrary(*fOut);
-    //printIncludeFile(*fOut);
     
     // Sub containers
     generateSubContainers();
@@ -260,7 +246,6 @@ void JAVAScriptCodeContainer::produceClass()
         generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}\n" << endl;
-
 }
 
 void JAVAScriptScalarCodeContainer::generateCompute(int n)
