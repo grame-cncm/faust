@@ -70,9 +70,9 @@ for p in $@; do
     	ignore=" "
 
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTINC/osclib -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$FAUSTINC -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lmicrohttpd -L$FAUSTINC/osclib -lHTTPDFaust"
+	 HTTPDEFS="-DHTTPCTRL -lmicrohttpd -L$FAUSTINC -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -89,7 +89,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
