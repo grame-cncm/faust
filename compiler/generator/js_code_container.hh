@@ -78,17 +78,4 @@ class JAVAScriptScalarCodeContainer : public JAVAScriptCodeContainer {
 
 };
 
-class JAVAScriptVectorCodeContainer : public VectorCodeContainer, public JAVAScriptCodeContainer {
-
-    protected:
-
-    public:
-
-        JAVAScriptVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~JAVAScriptVectorCodeContainer();
-
-        void generateCompute(int tab);
-
-};
-
 #endif

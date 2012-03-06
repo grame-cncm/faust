@@ -71,7 +71,6 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, cons
         cerr << "ERROR : Scheduler mode not supported for JavaScript" << endl;
         exit(1);
     } else if (gVectorSwitch) {
-        //container = new JAVAScriptVectorCodeContainer(name, super, numInputs, numOutputs, dst);
         cerr << "ERROR : Vector mode not supported for JavaScript" << endl;
         exit(1);
     } else {
@@ -277,31 +276,6 @@ void JAVAScriptScalarCodeContainer::generateCompute(int n)
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
-
-    tab(n+1, *fOut); *fOut << "}";
-}
-
-// Vector
-JAVAScriptVectorCodeContainer::JAVAScriptVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :VectorCodeContainer(numInputs, numOutputs), JAVAScriptCodeContainer(name, super, numInputs, numOutputs, out)
-{}
-
-JAVAScriptVectorCodeContainer::~JAVAScriptVectorCodeContainer()
-{}
-
-void JAVAScriptVectorCodeContainer::generateCompute(int n)
-{
-    // Compute
-    tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("this.compute = function($0, inputs, outputs) {", fFullCount);
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
-
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
-
-    // Generate it
-    fDAGBlock->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }

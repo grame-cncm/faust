@@ -360,6 +360,7 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 
             }
             *fOut << ")";
+            // Special case
             if (inst->fName == "log10f") {
                 *fOut << "/Math.log(10)";
             }

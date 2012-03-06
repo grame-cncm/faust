@@ -319,15 +319,13 @@ function initAudio(buffer_size)
     
     if (dsp.getNumInputs() == 0)  {
         console.log("Faust sound generator");
-        processor.connect(context.destination);
     } else {
         console.log("Faust sound processor");
-        // Since we don't have input, send a sound file into the processor
+        // Since we don't have input, prepare a sound source to be played in the processor
         source = context.createBufferSource();
         source.connect(processor);
-        processor.connect(context.destination);
-        //loadSample("t1.wav");
     }
+    processor.connect(context.destination);
 }
 
 function init() 
@@ -349,7 +347,6 @@ function playsound()
 <center><div id="FaustMeta"></center> </div>
 <p>
 <center><div id="FaustUI"></center> </div>
-
 
 <p>
 <p>
