@@ -70,7 +70,7 @@ class JAVAScriptInstVisitor : public InstVisitor {
             fMathLibTable["cosf"] = "Math.cos";
             fMathLibTable["expf"] = "Math.exp";
             fMathLibTable["floorf"] = "Math.floor";
-            fMathLibTable["fmodf"] = "Math.missing";
+            fMathLibTable["fmodf"] = "function fmod(a,b) {return a % b }";
             fMathLibTable["logf"] = "Math.log";
             fMathLibTable["log10f"] = "Math.log";
             fMathLibTable["max"] = "Math.max";
