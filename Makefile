@@ -15,7 +15,6 @@ zname := faust-$(version)
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
-	cp architecture/osclib/faust/include/OSCControler.h architecture/faust/gui/
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src
@@ -58,40 +57,28 @@ doc :
 
 
 install :
-#<<<<<<< HEAD
-	mkdir -p $(prefix)/lib/faust
-	mkdir -p $(prefix)/lib/faust/httpdlib
+	# install faust itself
 	mkdir -p $(prefix)/bin/
 	install compiler/faust $(prefix)/bin/
-	install -m 0644 $(arch) $(prefix)/lib/faust/
-	rm -rf $(prefix)/lib/faust/VST
-	cp -r architecture/VST $(prefix)/lib/faust/
-	rm -rf $(prefix)/lib/faust/iPhone
-	cp -r architecture/iPhone $(prefix)/lib/faust/
-	#cp -r architecture/audio $(prefix)/include/faust/
-	#cp -r architecture/gui $(prefix)/include/faust/
-	-[ -f libHTTPDFaust.a ] && cp architecture/osclib/libHTTPDFaust.a $(prefix)/lib/faust/osclib
-	mkdir -p $(prefix)/lib/faust/osclib
-	cp architecture/osclib/*.a $(prefix)/lib/faust/osclib
-	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
-	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
-	install -m 0644 $(mfiles) $(prefix)/lib/faust/
-#=======
-#	mkdir -p $(prefix)/bin/
-#	install compiler/faust $(prefix)/bin/
-#	#
-#	mkdir -p $(prefix)/lib/faust
-#	cp architecture/*.cpp $(prefix)/lib/faust/
-#	cp architecture/*.lib $(prefix)/lib/faust/
-#	#
+	# install architecture and faust library files
+	mkdir -p $(prefix)/lib/faust
+	cp architecture/*.cpp $(prefix)/lib/faust/
+	cp architecture/*.lib $(prefix)/lib/faust/
+	# install additional binary libraries (osc, http,...)
+	cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/
+	cp architecture/osclib/*.a $(prefix)/lib/faust/
+	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/
-#>>>>>>> install in regular include directory
+	# install additional includes files for binary libraries  (osc, http,...)
+	cp architecture/osclib/faust/include/OSCControler.h $(prefix)/include/faust/gui/
+	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
+	# install faust2xxx tools
 	make -C tools/faust2appls install
 
 
 uninstall :
 	rm -f $(prefix)/bin/faust
-	rm -rf $(prefix)/lib/faust/
+	rm -rf $(prefix)/lib/faust
 	rm -rf $(prefix)/include/faust
 
 dist :
