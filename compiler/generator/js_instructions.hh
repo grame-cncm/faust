@@ -96,16 +96,6 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        string createVarAccess(string varname)
-        {
-            return "new FaustVarAccess() {\n"
-                "\t\t\t\tpublic String getId()       { return \"" + varname + "\"; }\n"
-                "\t\t\t\tpublic void   set(float val){ " + varname + " = val; }\n"
-                "\t\t\t\tpublic float  get()         { return (float)" + varname + "; }\n"
-                "\t\t\t}\n"
-                "\t\t\t";
-        }
-
         virtual void visit(AddMetaDeclareInst* inst)
         {
             *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" <<  inst->fValue << "\")";
@@ -131,15 +121,9 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
         {
             *fOut << "ui_interface.closeBox();"; tab(fTab, *fOut);
         }
+        
         virtual void visit(AddButtonInst* inst)
         {
-            /*
-            if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; EndLine();
-            } else {
-                *fOut << "ui_interface.addCheckButton(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ")"; EndLine();
-            }
-            */
             if (inst->fType == AddButtonInst::kDefaultButton) {
                 *fOut << "ui_interface.addButton(" << "\"" << inst->fLabel << "\"" << ", ";
             } else {
@@ -150,22 +134,8 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             EndLine();
         }
         
-
         virtual void visit(AddSliderInst* inst)
         {
-            /*
-            string name;
-            switch (inst->fType) {
-                case AddSliderInst::kHorizontal:
-                    name = "ui_interface.addHorizontalSlider"; break;
-                case AddSliderInst::kVertical:
-                    name = "ui_interface.addVerticalSlider"; break;
-                case AddSliderInst::kNumEntry:
-                    name = "ui_interface.addNumEntry"; break;
-            }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", " << inst->fInit << ", " << inst->fMin << ", " << inst->fMax << ", " << inst->fStep << ")";
-            EndLine();
-            */
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
@@ -183,7 +153,6 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(AddBargraphInst* inst)
         {
-            /*
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
@@ -191,15 +160,15 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface.addVerticalBargraph"; break;
             }
-            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", " << createVarAccess(inst->fZone) << ", "<< inst->fMin << ", " << inst->fMax << ")";
+            *fOut << name << "(" << "\"" << inst->fLabel << "\"" << ", ";
+            *fOut << "function handler(obj) { function setval(val) { obj." << inst->fZone << " = val; } return setval; }(this)";
+            *fOut << ", " << inst->fMin << ", " << inst->fMax << ")";
             EndLine();
-            */
         }
 
         virtual void visit(LabelInst* inst)
         {
-            //*fOut << inst->fLabel;
-            //tab(fTab, *fOut);
+            // No generation
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -289,7 +258,7 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        // TODO. This does not work in java.
+        // TODO : this does not work in javascript.
         virtual void visit(LoadVarAddressInst* inst)
         {
             NamedAddress* named = dynamic_cast< NamedAddress*>(inst->fAddress);
@@ -342,7 +311,6 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(DoubleNumInst* inst)
         {
-            //*fOut << T(inst->fNum);
             *fOut << inst->fNum;
         }
         
@@ -361,14 +329,13 @@ class JAVAScriptInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(CastNumInst* inst)
         {
-            //*fOut << "(" << generateType(inst->fTyped) << ")";
+            // No explicit cast generation
             inst->fInst->accept(this);
         }
       
         virtual void visit(FunCallInst* inst)
         {
             string js_name = (fMathLibTable.find(inst->fName) != fMathLibTable.end()) ? fMathLibTable[inst->fName] : inst->fName;
-            //assert(js_name != "Math.missing");
             
             if (inst->fMethod) {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
