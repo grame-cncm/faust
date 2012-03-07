@@ -8,6 +8,22 @@ OSCDEFS=""
 #                                                                   #
 #####################################################################
 
+#-------------------------------------------------------------------
+# Search Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTINC=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTINC=/usr/local/lib/faust/
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTINC=/usr/lib/faust/
+else
+  error "$0: Cannot find Faust include dir (normally /usr/local/lib/faust)"
+fi
+
 
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
@@ -47,7 +63,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$FAUSTINC -lOSCFaust -loscpack"
+    elif [ $p = "-httpd" ]; then
+	 HTTPDEFS="-DHTTPCTRL -lmicrohttpd -L$FAUSTINC -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -66,15 +84,15 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $OMP -I/usr/local/lib/faust "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 
-	# collect binary file name for FaustGIDE
+	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
 
