@@ -77,7 +77,6 @@ static float mystrtof(const char* str, const char** endptr)
 		}
 	}
 	*endptr = p;
-	cout << "mystrtof (" << str << ") = " << sign*val << endl;
 	return sign*val;
 }
 
