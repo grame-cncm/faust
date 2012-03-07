@@ -13,15 +13,15 @@ OSCDEFS=""
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
-  FAUSTINC=$FAUST_LIB_PATH
+  FAUSTLIB=$FAUST_LIB_PATH
 elif [ -f /usr/local/lib/faust/music.lib ]
 then
-  FAUSTINC=/usr/local/lib/faust/
+  FAUSTLIB=/usr/local/lib/faust/
 elif [ -f /usr/lib/faust/music.lib ]
 then
-  FAUSTINC=/usr/lib/faust/
+  FAUSTLIB=/usr/lib/faust/
 else
-  error "$0: Cannot find Faust include dir (normally /usr/local/lib/faust)"
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
 fi
 
 
@@ -73,9 +73,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTINC -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lmicrohttpd -L$FAUSTINC -lHTTPDFaust"
+	 HTTPDEFS="-DHTTPCTRL -lmicrohttpd -L$FAUSTLIB -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
