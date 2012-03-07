@@ -46,11 +46,11 @@ for p in $@; do
 	elif [ "$p" = "-osc" ]; then
 		#OSCINC="INCLUDEPATH+=/usr/local/include"
 		QTDEFS="DEFINES += OSCCTRL"
-		OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+		OSCLIB="-L/usr/local/lib/faust/ -lOSCFaust -loscpack"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDINC="INCLUDEPATH+=/usr/local/lib/faust/httpdlib"
 		QTDEFS="DEFINES += HTTPCTRL"
-		HTTPDLIB="-lmicrohttpd -L/usr/local/lib/faust/httpdlib -lHTTPDFaust"
+		HTTPDLIB="-lmicrohttpd -L/usr/local/lib/faust/ -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
