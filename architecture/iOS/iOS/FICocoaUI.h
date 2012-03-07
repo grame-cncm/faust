@@ -543,7 +543,7 @@ private:
         
         // Manage boxes and current layout type
         if (fCurrentLayoutType == kTabLayout)
-        {                        
+        {
             for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
             {
                 if (dynamic_cast<uiBox*>(*i))
@@ -639,18 +639,21 @@ public:
         uiCocoaItem* item = new uiBox(fWidgetList.size(), this, fViewController, label, kTabLayout);
         insert(label, item);
         fCurrentLayoutType = kTabLayout;
+        NSLog(@"TAB LAYOUT {");
     }
     virtual void openHorizontalBox(const char* label = "")
     {
         uiCocoaItem* item = new uiBox(fWidgetList.size(), this, fViewController, label, kHorizontalLayout);
         insert(label, item);
         fCurrentLayoutType = kHorizontalLayout;
+        NSLog(@"HORIZONTAL LAYOUT {");
     }
     virtual void openVerticalBox(const char* label = "")
     {
         uiCocoaItem* item = new uiBox(fWidgetList.size(), this, fViewController, label, kVerticalLayout);
         insert(label, item);
         fCurrentLayoutType = kVerticalLayout;
+        NSLog(@"VERTICAL LAYOUT {");
     }
     
     // -- extra widget's layouts
@@ -669,46 +672,48 @@ public:
         list<uiCocoaItem*>::iterator i;
         BOOL found = false;
         
+        // Find the last box to close
         for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
         {
             if (dynamic_cast<uiBox*>(*i))
             {
-                if (!dynamic_cast<uiBox*>(*i)->fClosed)
+                if (!found)
                 {
-                    dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
-                    found = true;
+                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
+                    {
+                        dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+                        found = true;
+                    }
                 }
-            }
+            }            
         }
-
+        
         if (!found && dynamic_cast<uiBox*>(*i))
         {
             dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
-            found = true;
         }
         
-        // Find previous mode
+        // Find the last layout type
         found = false;
         for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
         {
             if (dynamic_cast<uiBox*>(*i))
             {
-                if (!dynamic_cast<uiBox*>(*i)->fClosed)
+                if (!found)
                 {
-                    dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
-                    found = true;
+                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
+                    {
+                        fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
+                        found = true;
+                    }
                 }
-            }
+            }            
         }
         
-        if (!found && dynamic_cast<uiBox*>(*i)) 
+        if (!found && dynamic_cast<uiBox*>(*i))
         {
-            dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
-            found = true;
+            fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
         }
-        
-        if (found && dynamic_cast<uiBox*>(*i)) fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
-        else fCurrentLayoutType = kVerticalLayout;
     }
     
     //virtual void adjustStack(int n);
