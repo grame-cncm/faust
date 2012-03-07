@@ -285,7 +285,7 @@ function loadSample(url)
 
     request.onload = function() { 
         source.buffer = context.createBuffer(request.response, false);
-        source.looping = true;
+        source.loop = true;
         source.noteOn(0);
     }
 
@@ -322,9 +322,6 @@ function initAudio(buffer_size)
         console.log("Faust sound generator");
     } else {
         console.log("Faust sound processor");
-        // Since we don't have input, prepare a sound source to be played in the processor
-        source = context.createBufferSource();
-        source.connect(processor);
     }
     processor.connect(context.destination);
 }
@@ -337,7 +334,20 @@ function init()
 function playsound()
 {
     var url = $("#sound").val();
+    if (source) {
+        source.noteOff(0);
+        source.disconnect(0);
+        source = null;
+    }
+    source = context.createBufferSource();
     loadSample(url);
+    source.connect(processor);
+}
+
+function stopsound()
+{
+    source.noteOff(0);
+    source.disconnect(0);
 }
 
 </script>
@@ -353,12 +363,15 @@ function playsound()
 <p>
 <center>
 <table>
-<tr><td class="sound">Sound file:</td><td> <input type="text" id="sound" size=20 value="t1.wav"/></td></tr>
-<tr><td></td><td><button type="button" onclick="playsound()">Play</button></td></tr>
+<tr><td class="sound">Sound file:</td> <td> <input type="text" id ="sound" size=20 value="t1.wav"/></td></tr>
+</table>
+<table>
+<tr>
+<td><center><button type="button" onclick="playsound()">Play</button></center></td>
+<td><center><button type="button" onclick="stopsound()">Stop</button></center></td>
+</tr>
 </table>
 </center>
 
 </body>
 </html>
-
-
