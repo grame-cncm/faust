@@ -47,7 +47,7 @@
 #endif
 
 #ifdef HTTPCTRL
-#include "gui/httpdUI.h"
+#include "faust/gui/httpdUI.h"
 #endif
 
 
@@ -109,7 +109,8 @@ int main(int argc, char *argv[] )
 
 #ifdef HTTPCTRL
 	httpdinterface->run();
-#endif		
+#endif	
+	
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
