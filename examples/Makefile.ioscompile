@@ -1,16 +1,22 @@
+
+compilefolder = __iosapp__
 dspsrc  := $(wildcard *.dsp)
-cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
-appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+cppsrc  := $(addprefix $(DEST)/, $(dspsrc:.dsp=.cpp))
+#appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
+#appl 	:= $(patsubst %.dsp, $(DEST)%.app/%, $(dspsrc))
+appl 	:= $(shell echo $(dspsrc) | sed 's/\([^. ]*\)\.dsp/$(DEST)\/\1.app\/\1/g')
 
 all :  $(appl)
 
-$(DEST)%$(EXT) : %.dsp
-	install -d $@
-	cp -r /usr/local/lib/faust/iOS/* $@
-	faust $(VEC) -a $(ARCH) $< -o $@/ios-faust.h
-	xcodebuild -project $@/iOS.xcodeproj PRODUCT_NAME=$(<:.dsp=)
-	cp -r $@/build/Release-iphoneos/$(<:.dsp=.app) $@/../
-	rm -r $@
+$(DEST)/*.app/% : %.dsp
+	$(eval dir := $(shell dirname $@))	
+	-[ -d $(compilefolder) ] && rm -rf $(compilefolder)
+	install -d $(compilefolder)
+	cp -r /usr/local/lib/faust/iOS/* $(compilefolder)
+	faust $(VEC) -a $(ARCH) $< -o $(compilefolder)/ios-faust.h
+	xcodebuild -project $(compilefolder)/iOS.xcodeproj PRODUCT_NAME=$(<:.dsp=)
+	cp -r $(compilefolder)/build/Release-iphoneos/$(<:.dsp=.app) $(dir)
+	rm -rf $(compilefolder)
 
 clean :
 	rm -f $(DEST)
