@@ -4,7 +4,7 @@ appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
 
 all :  $(appl)
 
-$(DEST)% : %.dsp
+$(DEST)%$(EXT) : %.dsp
 	install -d $@
 	cp -r /usr/local/lib/faust/iOS/* $@
 	faust $(VEC) -a $(ARCH) $< -o $@/ios-faust.h

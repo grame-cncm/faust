@@ -201,7 +201,7 @@ iphonenet :
 
 ios :
 	install -d iosdir
-	$(MAKE) DEST='iosdir/' ARCH='ios-coreaudio.cpp' LIB='' -f Makefile.ioscompile
+	$(MAKE) DEST='iosdir/' ARCH='ios-coreaudio.cpp'  EXT='.app' LIB='' -f Makefile.ioscompile
 
 bench :
 	install -d benchdir
