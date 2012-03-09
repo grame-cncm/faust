@@ -37,8 +37,9 @@ clean :
 # DO NOT DELETE
 
 HTTPDControler.o: include/HTTPDControler.h nodes/FaustFactory.h nodes/MessageDriven.h msg/MessageProcessor.h
-HTTPDControler.o: lib/smartpointer.h httpd/HTTPDSetup.h json/jsonfactory.h json/jsonroot.h json/jsonnode.h
-HTTPDControler.o: html/htmlfactory.h html/htmlpage.h nodes/RootNode.h
+HTTPDControler.o: lib/smartpointer.h nodes/FaustNode.h msg/Message.h httpd/HTTPDSetup.h json/jsonfactory.h
+HTTPDControler.o: json/jsonroot.h json/jsonnode.h json/jsoncontrol.h html/htmlfactory.h html/htmlpage.h
+HTTPDControler.o: nodes/RootNode.h
 html/htmlfactory.o: html/htmlfactory.h html/htmlpage.h
 html/htmlpage.o: lib/deelx.h html/htmlpage.h
 html/htmlrow.o: html/htmlpage.h
@@ -51,10 +52,10 @@ json/jsonfactory.o: json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/j
 json/jsonfactory.o: json/jsongroup.h
 json/jsongroup.o: json/jsongroup.h json/jsonnode.h lib/smartpointer.h
 json/jsonroot.o: json/jsonroot.h lib/smartpointer.h json/jsonnode.h
-json/jsonui.o: json/jsonui.h json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h
+json/jsonui.o: json/jsonui.h json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h
 msg/Message.o: msg/Message.h lib/smartpointer.h
 nodes/FaustFactory.o: nodes/FaustFactory.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h
-nodes/FaustFactory.o: nodes/FaustNode.h nodes/RootNode.h
+nodes/FaustFactory.o: nodes/FaustNode.h msg/Message.h nodes/RootNode.h
 nodes/FaustNode.o: nodes/FaustNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h
 nodes/FaustNode.o: httpd/HTTPDServer.h
 nodes/MessageDriven.o: httpd/Address.h msg/Message.h lib/smartpointer.h nodes/MessageDriven.h msg/MessageProcessor.h
