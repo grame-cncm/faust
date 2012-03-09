@@ -5,7 +5,6 @@
 <script src="file://localhost/usr/local/lib/faust/faustui.js"></script> 
 <script src="file://localhost/Documents/faust-sf/examples/jsaudiodir/freeverb.js" language="javascript"></script> 
 <script src="file://localhost/Documents/faust-sf/examples/jsaudiodir/karplus4.js" language="javascript"></script> 
-<script src="file://localhost/Documents/faust-sf/examples/jsaudiodir/zita_rev1.js" language="javascript"></script> 
 <title>
 Title
 </title>
@@ -16,76 +15,30 @@ Title
 // init() once the page has finished loading.
 window.onload = init;
 
-var context;
-var faust1;
-var faust2;
-var faust3;
-var ui;
-var meta;
-
-var source;
-
 <!-- WebAudio API -->
-
-function loadSample(url) 
-{
-    // Load asynchronously
-
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.responseType = "arraybuffer";
-
-    request.onload = function() { 
-        source.buffer = context.createBuffer(request.response, false);
-        source.loop = true;
-        source.noteOn(0);
-    }
-
-    request.send();
-}
 
 function initAudio(buffer_size) 
 {
-    context = new webkitAudioContext();
+    var context = new webkitAudioContext();
     
-    meta = new Meta(document.getElementById("FaustMeta"));
-    ui = new JUI(document.getElementById("FaustUI"));
+    var meta = new Meta(document.getElementById("FaustMeta"));
+    var ui = new JUI(document.getElementById("FaustUI"));
     
     // Combining Faust audio nodes
      
-    faust1 = new create_karplus4(context, ui, meta, buffer_size);
-    faust2 = new create_freeverb(context, ui, meta, buffer_size);
-    //faust3 = new create_zita_rev1(context, ui, meta, buffer_size);
+    var karplus = new create_karplus4(context, ui, meta, buffer_size);
+    var freeverb = new create_freeverb(context, ui, meta, buffer_size);
     
-    faust1.connect(faust2);
-    //faust1.connect(faust3);
-    
-    faust2.connect(context.destination);
-    //faust3.connect(context.destination);
+    console.log(karplus);
+    console.log(freeverb);
+     
+    karplus.connect(freeverb);
+    freeverb.connect(context.destination);
 }
 
 function init() 
 {
     initAudio(4096);
-}
-
-function playsound()
-{
-    var url = $("#sound").val();
-    if (source) {
-        source.noteOff(0);
-        source.disconnect(0);
-        source = null;
-    }
-    source = context.createBufferSource();
-    loadSample(url);
-    source.connect(faust1);
-}
-
-function stopsound()
-{
-    source.noteOff(0);
-    source.disconnect(0);
 }
 
 </script>
@@ -96,7 +49,6 @@ function stopsound()
 <center><div id="FaustMeta"></center> </div>
 <p>
 <center><div id="FaustUI"></center> </div>
-
 
 </body>
 </html>

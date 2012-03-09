@@ -7,7 +7,7 @@
 
 process_mydsp = function(obj) 
 {
-    function process(event) 
+    function process_aux_mydsp(event) 
     {
         var count;
         
@@ -40,21 +40,21 @@ process_mydsp = function(obj)
         obj.dsp.compute(count, obj.inputs, obj.outputs);
 
     }
-    return process;
+    return process_aux_mydsp;
 }
 
 function create_mydsp(audio_context, user_interface, meta_interface, buffer_size)
 {
     this.dsp = new mydsp();
     
-    this.dsp.init(context.sampleRate);
+    this.dsp.init(audio_context.sampleRate);
     this.dsp.buildUserInterface(user_interface);
     this.dsp.metadata(meta_interface);
     
     this.inputs = new Array(this.dsp.getNumInputs());
     this.outputs = new Array(this.dsp.getNumOutputs());
     
-    console.log(context.sampleRate);
+    console.log(audio_context.sampleRate);
     console.log(this.dsp.getNumInputs());
     console.log(this.dsp.getNumOutputs());
     
