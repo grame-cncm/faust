@@ -4,8 +4,11 @@ appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
 
 all :  $(appl)
 
-$(DEST)%$(EXT) : %.dsp 
-	faust -lang js -a $(ARCH) $< -o $@.html
+$(DEST)%.html : %.dsp 
+	faust -lang js -a $(ARCH) $< -o $@
+
+$(DEST)%.js : %.dsp 
+	faust -lang js -cn $(<:.dsp=) -a $(ARCH) $< -o $@
 
 clean :
 	rm -f $(DEST)
