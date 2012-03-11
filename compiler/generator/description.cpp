@@ -155,6 +155,7 @@ void Description::print(int n, ostream& fout)
 		tab(n+1,fout);	fout << "<copyright>" 	<< xmlize(fCopyright) 	<< "</copyright>";
 		tab(n+1,fout);	fout << "<license>" 	<< xmlize(fLicense) 	<< "</license>";
 		tab(n+1,fout);	fout << "<version>" 	<< xmlize(fVersion) 	<< "</version>";
+		tab(n+1,fout);	fout << "<classname>" 	<< xmlize(fClassName) 	<< "</classname>";
 		tab(n+1,fout);	fout << "<inputs>" 	    << fInputs 		        << "</inputs>";
 		tab(n+1,fout);	fout << "<outputs>" 	<< fOutputs 	        << "</outputs>";
 

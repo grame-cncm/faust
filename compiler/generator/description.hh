@@ -27,7 +27,8 @@ class Description
 	string 			fCopyright;
 	string 			fLicense;
 	string 			fVersion;
-	
+
+	string			fClassName;
 	int				fInputs;
 	int				fOutputs;
 	int				fWidgetID;
@@ -60,6 +61,7 @@ class Description
 	Description*	license(const string& s) 		{ fLicense = s; return this; }
 	Description*	version(const string& s) 		{ fVersion = s; return this; }
 	
+	Description*	className(const string& s)		{ fClassName = s; return this; }
 	Description*	inputs(int n) 					{ fInputs = n; 	return this; }
 	Description*	outputs(int n) 					{ fOutputs = n; return this; }
 	
