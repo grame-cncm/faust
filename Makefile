@@ -61,6 +61,8 @@ install :
 	mkdir -p $(prefix)/lib/faust/osclib
 	mkdir -p $(prefix)/lib/faust/httpdlib
 	mkdir -p $(prefix)/bin/
+	mkdir -p $(prefix)/include/
+	mkdir -p $(prefix)/include/faust/
 	install compiler/faust $(prefix)/bin/
 	install -m 0644 $(arch) $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/VST
