@@ -42,3 +42,34 @@ install:
 	install faust2sigviewer $(dest)
 	install faust2netjackqt $(dest)
 
+uninstall:
+	rm -f $(dest)/faust2alqt
+	rm -f $(dest)/faust2alsa 
+	rm -f $(dest)/faust2caqt
+	rm -f $(dest)/faust2csound
+	rm -f $(dest)/faust2ladspa
+	rm -f $(dest)/faust2dssi
+	rm -f $(dest)/faust2eps
+	rm -f $(dest)/faust2firefox
+	rm -f $(dest)/faust2jack
+	rm -f $(dest)/faust2jackinternal
+	rm -f $(dest)/faust2jackserver
+	rm -f $(dest)/faust2jaqt
+	rm -f $(dest)/faust2mathdoc
+	rm -f $(dest)/faust2mathviewer
+	rm -f $(dest)/faust2msp
+	rm -f $(dest)/faust2octave
+	rm -f $(dest)/faust2paqt
+	rm -f $(dest)/faust2pdf
+	rm -f $(dest)/faust2plot
+	rm -f $(dest)/faust2png
+	rm -f $(dest)/faust2puredata
+	rm -f $(dest)/faust2svg
+	rm -f $(dest)/faust2supercollider
+	rm -f $(dest)/faust2sc
+	rm -f $(dest)/faust2graph
+	rm -f $(dest)/faust2graphviewer
+	rm -f $(dest)/faust2sig
+	rm -f $(dest)/faust2sigviewer
+	rm -f $(dest)/faust2netjackqt
+

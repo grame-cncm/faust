@@ -82,6 +82,8 @@ install :
 uninstall :
 	rm -rf $(prefix)/lib/faust/
 	rm -f $(prefix)/bin/faust
+	make -C tools/faust2appls uninstall
+	
 
 dist :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean
