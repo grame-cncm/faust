@@ -56,11 +56,12 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
+        bool fInsideBinOp;
 
     public:
 
         JAVAInstVisitor(std::ostream* out, int tab = 0)
-          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true)
+          :StringTypeManager(ifloat(), "[]"), fTab(tab), fOut(out), fFinishLine(true), fInsideBinOp(false)
         {}
 
         virtual ~JAVAInstVisitor()
@@ -288,15 +289,17 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(BinopInst* inst)
         {
-            if (isBoolOpcode(inst->fOpcode)) {
+            // A bool binop operation result has to be typed as "int" when used *inside* another BinopInst
+            if (isBoolOpcode(inst->fOpcode) && fInsideBinOp) {
                 *fOut << "((";
                 inst->fInst1->accept(this);
                 *fOut << " ";
                 *fOut << gBinOpTable[inst->fOpcode]->fName;
                 *fOut << " ";
                 inst->fInst2->accept(this);
-                *fOut << ") ? 1 : 0) ";
+                *fOut << ") ? 1 : 0)";
             } else {
+                fInsideBinOp = true;
                 *fOut << "(";
                 inst->fInst1->accept(this);
                 *fOut << " ";
@@ -304,6 +307,7 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
                 *fOut << " ";
                 inst->fInst2->accept(this);
                 *fOut << ")";
+                fInsideBinOp = false;
             }
         }
 
@@ -367,9 +371,9 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "for (";
                 fFinishLine = false;
                 inst->fInit->accept(this);
-                *fOut << "; (";
+                *fOut << "; ";
                 inst->fEnd->accept(this);
-                *fOut << ") == 1; ";
+                *fOut << "; ";
                 inst->fIncrement->accept(this);
                 fFinishLine = true;
             *fOut << ") {";

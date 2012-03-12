@@ -844,7 +844,7 @@ int main (int argc, char* argv[])
 	*****************************************************************/
 	startTiming("propagation");
 
-	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs) );
+	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
 
 	if (gDetailsSwitch) {
 		cerr << "output signals are : " << endl;
@@ -858,7 +858,7 @@ int main (int argc, char* argv[])
 	endTiming("propagation");
 
 	/****************************************************************
-	5 - preparation of the signal tree and translate output signals into C, C++, JAVA or LLVM code
+	5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
 	*****************************************************************/
     pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
 
