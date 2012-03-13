@@ -72,7 +72,8 @@ install :
 	cp -r architecture/audio $(prefix)/include/faust/
 	cp -r architecture/gui $(prefix)/include/faust/
 	cp architecture/misc.h $(prefix)/include/faust/
-	-[ -f libHTTPDFaust.a ] && cp architecture/osclib/libHTTPDFaust.a $(prefix)/lib/faust/osclib
+	-cp architecture/httplib/libHTTPDFaust.a $(prefix)/lib/faust/httplib
+	cp architecture/osclib/*.a $(prefix)/lib/faust/osclib
 	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
@@ -81,6 +82,7 @@ install :
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/
+	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust
 	make -C tools/faust2appls uninstall
 	
