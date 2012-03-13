@@ -49,16 +49,28 @@ string htmlpage::getUrl() const
 //--------------------------------------------------------------------------
 void htmlpage::print(std::ostream& out) const
 {
-	out << "<html>\n<head>\n";
-	out << "	<link id='css' rel='stylesheet' type='text/css' href='css/style1.css' />\n";
-	out << "	<script src='js/jquery-1.7.1.min.js' language='javascript'></script>\n";
-	out << "	<script src='js/faust.js' language='javascript'></script>\n";
-	out << "	<title id=titre>" << fName << "</title>";
-	out << "</head>\n<body>\n";
-	out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','css/style'+num+'.css');}";
-	out << "\n</script>\n";
-	out << "<center>\n\n";
-
+	if (false) {
+		out << "<html>\n<head>\n";
+		out << "	<link id='css' rel='stylesheet' type='text/css' href='css/style1.css' />\n";
+		out << "	<script src='js/jquery-1.7.1.min.js' language='javascript'></script>\n";
+		out << "	<script src='js/faust.js' language='javascript'></script>\n";
+		out << "	<title id=titre>" << fName << "</title>";
+		out << "</head>\n<body>\n";
+		out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','css/style'+num+'.css');}";
+		out << "\n</script>\n";
+		out << "<center>\n\n";
+	} else {
+		out << "<html>\n<head>\n";
+		out << "	<link id='css' rel='stylesheet' type='text/css' href='http://faust.grame.fr/userinterface/css/style1.css' />\n";
+		out << "	<script src='http://faust.grame.fr/userinterface/js/jquery-1.7.1.min.js' language='javascript'></script>\n";
+		out << "	<script src='http://faust.grame.fr/userinterface/js/faust.js' language='javascript'></script>\n";
+		out << "	<title id=titre>" << fName << "</title>";
+		out << "</head>\n<body>\n";
+		out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','http://faust.grame.fr/userinterface/css/style'+num+'.css');}";
+		out << "\n</script>\n";
+		out << "<center>\n\n";
+	}
+	
 	out << "<input type='hidden' id='root' value='" << fRoot << "'>\n";
 	out << "<table class='ui'>\n";
 	out << "<tr><td class='name'>karplus</td>\n";
