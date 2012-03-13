@@ -72,9 +72,10 @@ install :
 	cp -r architecture/audio $(prefix)/include/faust/
 	cp -r architecture/gui $(prefix)/include/faust/
 	cp architecture/misc.h $(prefix)/include/faust/
+	cp architecture/osclib/faust/include/OSCControler.h $(prefix)/include/faust/gui/
+	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
 	-cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/httpdlib
 	cp architecture/osclib/*.a $(prefix)/lib/faust/osclib
-	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 	make -C tools/faust2appls install
