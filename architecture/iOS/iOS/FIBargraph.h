@@ -52,21 +52,21 @@
 {
 @private
     BOOL        m_fHoldPeak,            // YES = hold peak value enabled
-    m_fLitEffect,           // YES = draw segments with gradient "lit-up" effect
-    m_fReverseDirection;    // YES = top-to-bottom or right-to-left 
+                m_fLitEffect,           // YES = draw segments with gradient "lit-up" effect
+                m_fReverseDirection;    // YES = top-to-bottom or right-to-left 
     float       m_flValue,              // Current value being displayed
-    m_flPeakValue,          // Peak value seen since reset
-    m_flMaxLimit,           // Maximum displayable value
-    m_flMinLimit,           // Minimum displayable value    
-    m_flWarnThreshold,      // Warning threshold (segment color specified by m_clrWarning)
-    m_flDangerThreshold;    // Danger threshold (segment color specified by m_clrDanger)
+                m_flPeakValue,          // Peak value seen since reset
+                m_flMaxLimit,           // Maximum displayable value
+                m_flMinLimit,           // Minimum displayable value    
+                m_flWarnThreshold,      // Warning threshold (segment color specified by m_clrWarning)
+                m_flDangerThreshold;    // Danger threshold (segment color specified by m_clrDanger)
     int         m_iNumBars;             // Number of segments
     UIColor     *m_clrOuterBorder,      // Color of outer border
-    *m_clrInnerBorder,      // Color of inner border
-    *m_clrBackground,       // Background color of gauge
-    *m_clrNormal,           // Normal segment color
-    *m_clrWarning,          // Warning segment color
-    *m_clrDanger;           // Danger segment color
+                *m_clrInnerBorder,      // Color of inner border
+                *m_clrBackground,       // Background color of gauge
+                *m_clrNormal,           // Normal segment color
+                *m_clrWarning,          // Warning segment color
+                *m_clrDanger;           // Danger segment color
 }
 
 @property (readwrite, nonatomic)  float     value;

@@ -27,7 +27,7 @@
     IBOutlet UILabel*               _titleLabel;            // iPhone
     IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
     
-    NSTimer*                        _refreshTimer;
+    NSTimer*                        _refreshTimer;          // Used to refresh bargraphes
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;

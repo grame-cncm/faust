@@ -24,7 +24,6 @@
 
 @interface FIButton : FIResponder
 {
-	CGFloat         touchHandleOffset;
     int             _type;
 }
 

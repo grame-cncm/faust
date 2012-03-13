@@ -21,7 +21,6 @@
 
 @interface FITextField : FIResponder <UITextViewDelegate>
 {
-	CGFloat                 touchHandleOffset;    
     UITextView*             _messageTextView;
     UIView*                 _inputAccView;
     UIButton*               _doneButton;
