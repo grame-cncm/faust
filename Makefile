@@ -72,7 +72,7 @@ install :
 	cp -r architecture/audio $(prefix)/include/faust/
 	cp -r architecture/gui $(prefix)/include/faust/
 	cp architecture/misc.h $(prefix)/include/faust/
-	-cp architecture/httplib/libHTTPDFaust.a $(prefix)/lib/faust/httplib
+	-cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/httpdlib
 	cp architecture/osclib/*.a $(prefix)/lib/faust/osclib
 	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
