@@ -141,6 +141,12 @@ void OSCControler::run ()
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
 				<< quote(root->getName()).c_str() << "is running on UDP ports "
 				<<  fUDPPort << fUDPOut << fUPDErr;
+        
+        // and also on the standard output 
+        cout << "Faust OSC version " << versionstr() << " application "
+             << quote(root->getName()).c_str() << " is running on UDP ports "
+             <<  fUDPPort << ", " << fUDPOut << ", " << fUPDErr << endl;
+
 		if (fIO) oscout << " using OSC IO - in chans: " << fIO->numInputs() << " out chans: " << fIO->numOutputs();
 		oscout << OSCEnd();
 
