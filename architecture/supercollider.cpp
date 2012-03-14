@@ -27,7 +27,7 @@
 #include <SC_PlugIn.h>
 
 #include <faust/audio/dsp.h>
-#include <faust/GUI/UI.h>
+#include <faust/gui/UI.h>
 #include <faust/misc.h>
 
 #if defined(__GNUC__) && __GNUC__ >= 4
