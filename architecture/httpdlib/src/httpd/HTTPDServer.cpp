@@ -51,14 +51,44 @@ static int _answer_to_connection (void *cls, struct MHD_Connection *connection, 
 	return server->answer(connection, url, method, version, upload_data, upload_data_size, con_cls); 
 }
 
+// Convert string to float. Accepts both . and , as decimal point
+// Syntax is : [ ]*[+|-]n*(.|,)n*
+static float mystrtof(const char* str, const char** endptr)
+{
+	const char* p = str;
+	float		sign = 1.0;
+	float		val = 0;
+	
+	// skip leading white spaces
+	while (isspace(*p)) p++;
+	// analyze sign
+	if (*p == '-') { sign = -1.0; p++; }
+	else if (*p == '+') { sign = 1.0; p++; }
+	// fix part
+	while (isdigit(*p)) { val = val*10 + (*p++ - '0'); }
+	// decimal part
+	if (*p == '.' | *p == ',') {
+		p++;
+		// decimal part
+		int virgule = 10; 
+		while (isdigit(*p)) { 
+			val = val + double((*p++ - '0'))/virgule; 
+			virgule *= 10; 
+		}
+	}
+	*endptr = p;
+	return sign*val;
+}
+
 //--------------------------------------------------------------------------
+// fonct(ion appelée par libmicrohttpd pour tous les parametres de la requète (soit GET soit POST)
 static int _get_params (void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
 	Message* msg = (Message*)cls;
 	msg->add (string(key));
 	if (value) {
-		char* endptr;
-		float fval = strtof(value, &endptr);
+		const char* endptr;
+		float fval = mystrtof(value, &endptr);
 		if ((fval == 0) && (endptr == value))		// not a float value
 			msg->add (string(value));
 		else 
@@ -158,6 +188,8 @@ int HTTPDServer::send (struct MHD_Connection *connection, std::vector<Message*> 
 	return send (connection, page.str().c_str(), mime.c_str());
 }
 
+//--------------------------------------------------------------------------
+// Callback appelée par libmicrohttpd
 //--------------------------------------------------------------------------
 int HTTPDServer::answer (struct MHD_Connection *connection, const char *url, const char *method, const char *version, 
 					const char *upload_data, size_t *upload_data_size, void **con_cls)

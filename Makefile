@@ -61,6 +61,8 @@ install :
 	mkdir -p $(prefix)/lib/faust/osclib
 	mkdir -p $(prefix)/lib/faust/httpdlib
 	mkdir -p $(prefix)/bin/
+	mkdir -p $(prefix)/include/
+	mkdir -p $(prefix)/include/faust/
 	install compiler/faust $(prefix)/bin/
 	install -m 0644 $(arch) $(prefix)/lib/faust/
 	rm -rf $(prefix)/lib/faust/VST
@@ -69,8 +71,11 @@ install :
 	cp -r architecture/iPhone $(prefix)/lib/faust/
 	cp -r architecture/audio $(prefix)/include/faust/
 	cp -r architecture/gui $(prefix)/include/faust/
-	-[ -f libHTTPDFaust.a ] && cp architecture/osclib/libHTTPDFaust.a $(prefix)/lib/faust/osclib
-	cp architecture/httpdlib/src/include/*.h $(prefix)/lib/faust/httpdlib
+	cp architecture/misc.h $(prefix)/include/faust/
+	cp architecture/osclib/faust/include/OSCControler.h $(prefix)/include/faust/gui/
+	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
+	-cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/httpdlib
+	cp architecture/osclib/*.a $(prefix)/lib/faust/osclib
 	find $(prefix)/lib/faust/ -name CVS | xargs rm -rf
 	install -m 0644 $(mfiles) $(prefix)/lib/faust/
 	make -C tools/faust2appls install
@@ -78,7 +83,10 @@ install :
 
 uninstall :
 	rm -rf $(prefix)/lib/faust/
+	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust
+	make -C tools/faust2appls uninstall
+	
 
 dist :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean

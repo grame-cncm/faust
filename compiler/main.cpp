@@ -647,6 +647,7 @@ int main (int argc, char* argv[])
         if(gMetaDataSet.count(tree("license"))>0)       D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
         if(gMetaDataSet.count(tree("version"))>0)       D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
 
+		D->className(gClassName);
 		D->inputs(C->getClass()->inputs());
 		D->outputs(C->getClass()->outputs());
 
