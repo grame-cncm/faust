@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <jack/jack.h>
-#include "audio.h"
-#include "dsp.h"
+#include "faust/audio/audio.h"
+#include "faust/audio/dsp.h"
 
 static int		_srate(jack_nframes_t nframes, void *);
 static void		_jack_shutdown(void *);

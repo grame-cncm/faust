@@ -10,8 +10,8 @@
 
 //#include <vector>
 
-#include "HTTPDControler.h"
-#include "GUI.h"
+#include "faust/gui/HTTPDControler.h"
+#include "faust/gui/GUI.h"
 
 /******************************************************************************
 *******************************************************************************

@@ -38,67 +38,67 @@ test: ijackgtk ijackvec ijackomp gjackgtk gjackvec gjackomp
 
 ijackgtk :
 	install -d ijackgtkdir
-	$(MAKE) DEST='ijackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(FAUSTINC)  `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ijackgtkdir/' ARCH='jack-gtk.cpp' LIB=' `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 	###$(MAKE) DEST='ijackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(LIB)/faust/  `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 ijackvec :
 	install -d ijackvecdir
-	$(MAKE) DEST='ijackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ijackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='`pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 ijackomp :
 	install -d ijackompdir
-	$(MAKE) DEST='ijackompdir/' ARCH='jack-gtk.cpp' VEC='-vs $(VSIZE) -omp' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ijackompdir/' ARCH='jack-gtk.cpp' VEC='-vs $(VSIZE) -omp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
 
 ijacksch :
 	install -d ijackschdir
-	$(MAKE) DEST='ijackschdir/' ARCH='jack-gtk.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ijackschdir/' ARCH='jack-gtk.cpp' VEC='-sch -vs $(VSIZE)' LIB='`pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 gjackgtk :
 	install -d gjackgtkdir
-	$(MAKE) DEST='gjackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='gjackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 gjackvec :
 	install -d gjackvecdir
-	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='gjackvecdir/' ARCH='jack-gtk.cpp' VEC='-vec -lv 1 -vs $(VSIZE)' LIB='`pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 gjackomp :
 	install -d gjackompdir
-	$(MAKE) DEST='gjackompdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs $(VSIZE) -omp' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='gjackompdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs $(VSIZE) -omp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` -I/usr/local/include' CXX='g++' CXXFLAGS='-fopenmp '$(MYGCCFLAGS) -f Makefile.compile
 
 svg:
 	$(MAKE) -f Makefile.svgcompile
 
 puredata :
 	install -d puredatadir
-	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='-I$(LIB)/faust/' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
+	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
 
 alsagtk :
 	install -d alsagtkdir
-	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-I$(FAUSTINC) -lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0` $(OSCLIB)'  CXXFLAGS=$(OSCCTRL) -f Makefile.compile
+	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0` $(OSCLIB)'  CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 ialsagtk :
 	install -d ialsagtkdir
-	$(MAKE) DEST='ialsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-I$(FAUSTINC) -lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ialsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 ialsavec :
 	install -d ialsavecdir
-	$(MAKE) DEST='ialsavecdir/' ARCH='alsa-gtk.cpp' VEC='-vec -vs $(VSIZE)' LIB='-I$(FAUSTINC) -lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ialsavecdir/' ARCH='alsa-gtk.cpp' VEC='-vec -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 ialsaomp :
 	install -d ialsaompdir
-	$(MAKE) DEST='ialsaompdir/' ARCH='alsa-gtk.cpp' VEC='-omp -vs $(VSIZE)' LIB='-I$(FAUSTINC) -lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ialsaompdir/' ARCH='alsa-gtk.cpp' VEC='-omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
 
 ialsasch :
 	install -d ialsaschdir
-	$(MAKE) DEST='ialsaschdir/' ARCH='alsa-gtk.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(FAUSTINC) -lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='ialsaschdir/' ARCH='alsa-gtk.cpp' VEC='-sch -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS=$(MYICCFLAGS) -f Makefile.compile
 
 jackgtk :
 	install -d jackgtkdir
-	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 msjackgtk :
 	install -d msjackgtkdir
-	$(MAKE) DEST='msjackgtkdir/' ARCH='ms-jack-gtk.cpp' LIB='-I$(FAUSTINC) -lMidiShare `pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
+	$(MAKE) DEST='msjackgtkdir/' ARCH='ms-jack-gtk.cpp' LIB='-lMidiShare `pkg-config --cflags --libs jack gtk+-2.0`' -f Makefile.compile
 
 jackqt :
 	install -d jackqtdir
@@ -114,7 +114,7 @@ netjackqt :
 
 jackwt :
 	install -d jackwtdir
-	$(MAKE) DEST='jackwtdir/' ARCH='jack-wt.cpp' LIB='-I$(FAUSTINC) -ljack -lwt -lwthttp -lboost_signals-mt $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.compile
+	$(MAKE) DEST='jackwtdir/' ARCH='jack-wt.cpp' LIB='-ljack -lwt -lwthttp -lboost_signals-mt $(OSCLIB)' DEFS=$(QTDEFS) -f Makefile.compile
 
 paqt :
 	install -d paqtdir
@@ -132,7 +132,7 @@ oscioqt :
 osciogtk :  OSCLIB = -L$(LIB)/faust/osclib -lOSCFaust -loscpack
 osciogtk :
 	install -d osciogtkdir
-	$(MAKE) DEST='osciogtkdir/' ARCH='oscio-gtk.cpp' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=-I$(LIB)/faust/osclib -f Makefile.compile
+	$(MAKE) DEST='osciogtkdir/' ARCH='oscio-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB)' CXXFLAGS=-I$(LIB)/faust/osclib -f Makefile.compile
 
 alsaqt :
 	install -d alsaqtdir
@@ -140,15 +140,15 @@ alsaqt :
 
 ladspa :
 	install -d ladspadir
-	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspadir/' ARCH='ladspa.cpp' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 ladspasch :
 	install -d ladspaschdir
-	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
+	$(MAKE) DEST='ladspaschdir/' ARCH='ladspa.cpp' VEC='-sch -vs $(VSIZE)' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.ladspacompile
 
 dssi :
 	install -d dssidir
-	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' LIB='-I$(LIB)/faust/' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
+	$(MAKE) DEST='dssidir/' ARCH='dssi.cpp' EXT='.so' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.dssicompile
 
 csound :
 	install -d csounddir
@@ -172,7 +172,7 @@ osswx :
 
 pagtk :
 	install -d pagtkdir
-	$(MAKE) DEST='pagtkdir/' ARCH='pa-gtk.cpp' LIB='-I$(FAUSTINC) -lpthread  -lportaudio `pkg-config gtk+-2.0  --cflags --libs` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
+	$(MAKE) DEST='pagtkdir/' ARCH='pa-gtk.cpp' LIB='-lpthread  -lportaudio `pkg-config gtk+-2.0  --cflags --libs` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 pawx :
 	install -d pawxdir
@@ -180,11 +180,11 @@ pawx :
 
 module :
 	install -d moduledir
-	$(MAKE) DEST='moduledir/' ARCH='module.cpp' LIB='-I$(FAUSTINC) -fPIC -shared' EXT='.so' -f Makefile.compile
+	$(MAKE) DEST='moduledir/' ARCH='module.cpp' LIB='-fPIC -shared' EXT='.so' -f Makefile.compile
 
 bundle :
 	install -d bundledir
-	$(MAKE) DEST='bundledir/' ARCH='module.cpp' LIB='-I$(FAUSTINC) -fPIC -bundle' EXT='.so' -f Makefile.compile
+	$(MAKE) DEST='bundledir/' ARCH='module.cpp' LIB='-fPIC -bundle' EXT='.so' -f Makefile.compile
 
 maxmsp msp :
 	install -d mspdir
@@ -214,43 +214,43 @@ iphonenet :
 
 bench :
 	install -d benchdir
-	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' LIB='-I$(LIB)/faust/' -f Makefile.compile
+	$(MAKE) DEST='benchdir/' ARCH='bench.cpp' -f Makefile.compile
 
 ibench :
 	install -d ibenchdir
-	$(MAKE) DEST='ibenchdir/' ARCH='bench.cpp' LIB='-I$(LIB)/faust/' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+	$(MAKE) DEST='ibenchdir/' ARCH='bench.cpp' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 ivecbench :
 	install -d ivecbenchdir
-	$(MAKE) DEST='ivecbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE)' LIB='-I$(LIB)/faust/' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+	$(MAKE) DEST='ivecbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE)' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 ivecjack :
 	install -d ivecjackdir
-	$(MAKE) DEST='ivecjackdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs $(VSIZE)' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack gtk+-2.0`' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+	$(MAKE) DEST='ivecjackdir/' ARCH='jack-gtk.cpp' VEC='-vec -vs $(VSIZE)' LIB='`pkg-config --cflags --libs jack gtk+-2.0`' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 iparbench :
 	install -d iparbenchdir
-	$(MAKE) DEST='iparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' LIB='-I$(LIB)/faust/' CXX='icc' CXXFLAGS='-O3 -openmp -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
+	$(MAKE) DEST='iparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' CXX='icc' CXXFLAGS='-O3 -openmp -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 gparbench :
 	install -d gparbenchdir
-	$(MAKE) DEST='gparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' LIB='-I$(LIB)/faust/' CXX='g++' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
+	$(MAKE) DEST='gparbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE) -omp' CXX='g++' CXXFLAGS='-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math' -f Makefile.compile
 
 sndfile :
 	install -d sndfiledir
-	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-I$(FAUSTINC) -lsndfile'  -f Makefile.compile
+	$(MAKE) DEST='sndfiledir/' ARCH='sndfile.cpp' LIB='-lsndfile'  -f Makefile.compile
 CXXFLAGS=$(OSCCTRL)
 plot :
 	install -d plotdir
-	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' LIB='-I$(LIB)/faust/' -f Makefile.compile
+	$(MAKE) DEST='plotdir/' ARCH='plot.cpp' -f Makefile.compile
 
 matlabplot :
 	install -d matlabplotdir
-	$(MAKE) DEST='matlabplotdir/' ARCH='matlabplot.cpp' LIB='-I$(LIB)/faust/' -f Makefile.compile
+	$(MAKE) DEST='matlabplotdir/' ARCH='matlabplot.cpp' -f Makefile.compile
 
 q :
 	install -d qdir
-	$(MAKE) DEST='qdir/' ARCH='q.cpp' LIB='-I$(LIB)/faust/' -f Makefile.qcompile
+	$(MAKE) DEST='qdir/' ARCH='q.cpp' -f Makefile.qcompile
 
 supercollider sc:
 	install -d supercolliderdir
@@ -258,7 +258,7 @@ supercollider sc:
 
 jackconsole :
 	install -d jackconsoledir
-	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' VEC='-vec -vs $(VSIZE)' LIB='-I$(FAUSTINC) `pkg-config --cflags --libs jack ` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
+	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' VEC='-vec -vs $(VSIZE)' LIB='`pkg-config --cflags --libs jack ` $(OSCLIB)' CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 mathdoc :
 	$(MAKE) -f Makefile.mathdoc
