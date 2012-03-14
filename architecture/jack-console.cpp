@@ -37,6 +37,7 @@
 #include <libgen.h>
 #include <math.h>
 #include <iostream>
+#include <vector>
 
 #include "faust/gui/console.h"
 #include "faust/misc.h"

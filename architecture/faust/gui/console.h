@@ -36,7 +36,6 @@
 #ifndef __faustconsole__
 #define __faustconsole__
 
-#include "GUI.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,6 +44,8 @@
 #include <string>
 #include <map>
 #include <iostream>
+
+#include "faust/gui/GUI.h"
 
 using namespace std;
 
