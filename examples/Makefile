@@ -40,7 +40,7 @@ SC_SOURCE_DIR = ../../supercollider
 
 all : jackgtk
 
-test: ijackgtk ijackvec ijackomp gjackgtk gjackvec gjackomp
+test: alsagtk alsaqt jackgtk jackconsole jackqt netjackqt puredata ladspa dssi csound csounddouble w32vst
 
 
 alsagtk :
@@ -72,6 +72,12 @@ jackqt :
 	install -d jackqtdir
 	$(MAKE) DEST='jackqtdir/' ARCH='jack-qt.cpp' LIB='-ljack $(OSCLIB) $(HTTPDLIB)' DEFS="DEFINES +=$(QTDEFS) $(HTTPDDEFS)" CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
+
+netjackqt :
+	install -d netjackqtdir
+	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB) $(HTTPDLIB)' DEFS="DEFINES +=$(QTDEFS) $(HTTPDDEFS)" CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
+
+
 svg:
 	$(MAKE) -f Makefile.svgcompile
 
@@ -79,11 +85,6 @@ svg:
 puredata :
 	install -d puredatadir
 	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
-
-
-netjackqt :
-	install -d netjackqtdir
-	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB) $(HTTPDLIB)' DEFS="DEFINES +=$(QTDEFS) $(HTTPDDEFS)" CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
 
 
 ladspa :
