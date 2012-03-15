@@ -6,7 +6,8 @@
 system			:= $(shell uname -s)
 
 ifeq ($(system), Darwin)
-LIB := -I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -dynamiclib -arch i386
+LIB := -I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -dynamiclib -arch i386 -arch x86_64
+#LIB := -F/Library/Frameworks -framework CsoundLib -dynamiclib -arch i386
 else
 #LIB := -I/usr/local/include -lsndfile -lcsound -shared
 LIB := -I/usr/include/csound -shared -fPIC
@@ -31,7 +32,7 @@ all :  $(opcodes)
 
 $(DEST)%.dylib : %.dsp
 	faust $(VEC) -uim -a csound.cpp $< -o $@.cpp
-	$(CXX) -O3 $(CXXFLAGS) $(LIB) -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
+	$(CXX) $(CXXFLAGS) $(LIB) -DOPCODE_NAME=$(notdir $(@:.dylib=)) $@.cpp -o $@
 	
 
 clean :
