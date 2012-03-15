@@ -2,19 +2,32 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to jack-qt                  #
+#               Compiles Faust programs to netjack-qt               #
 #               (c) Grame, 2009                                     #
 #                                                                   #
 #####################################################################
-PATH=$PATH:/usr/local/bin
-FAUST=faust
 
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
-HTTPDINC=""
-QTDEFS=""
-HTTPDLIB=""
+
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust/
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust/
+else
+  error "$0: Cannot find Faust include dir (normally /usr/local/lib/faust)"
+fi
+
 
 
 #-------------------------------------------------------------------
@@ -41,16 +54,16 @@ for p in $@; do
         else
             OMP="-fopenmp"
         fi
-    elif [ "$p" = -icc ]; then
+    fi
+  
+    if [ "$p" = -icc ]; then
     	ignore=" "
-	elif [ "$p" = "-osc" ]; then
-		OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
-		QTDEFS="DEFINES += OSCCTRL"
-		OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+    elif [ $p = "-osc" ]; then
+		 OSCDEFS="DEFINES += OSCCTRL"
+		 OSCLIBS="-L$FAUSTLIB -lOSCFaust -loscpack"
 	elif [ "$p" = "-httpd" ]; then
-		HTTPDINC="INCLUDEPATH+=/usr/local/lib/faust/httpdlib"
-		QTDEFS="DEFINES += HTTPCTRL"
-		HTTPDLIB="-lmicrohttpd -L/usr/local/lib/faust/httpdlib -lHTTPDFaust"
+		HTTPDEFS="DEFINES += HTTPCTRL"
+		HTTPLIBS="-lmicrohttpd -L$FAUSTLIB -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -61,12 +74,11 @@ for p in $@; do
 done
 
 
-
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SPEC="-spec macx-g++ -Wnone"
+    SPEC="-spec macx-g++"
     EXT=".app"
 fi
 
@@ -85,15 +97,16 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	$FAUST -a netjack-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a netjack-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
 	    cd "$TMP"
-		qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "$HTTPDINC" "LIBS+=-framework CoreAudio -framework AudioUnit -framework CoreServices -ljacknet $OSCLIB $HTTPDLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
-		qmake $SPEC
+#        qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/include/faust/" "$OSCINC" "LIBS+=-ljacknet $OSCLIB" "HEADERS+=/usr/local/include/faust/gui/faustqt.h" "$QTDEFS"
+       	qmake -project "INCLUDEPATH+=/usr/local/include" "LIBS+=-ljacknet $OSCLIBS $HTTPLIBS" "HEADERS+=/usr/local/include/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
+	    qmake $SPEC
         make
-    ) > /dev/null #2>/dev/null
+    ) > /dev/null
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
