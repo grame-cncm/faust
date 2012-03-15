@@ -55,7 +55,7 @@ alsaqt :
 
 caqt :
 	install -d caqtdir
-	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB)' CXXFLAGS=$(MYGCCFLAGS)  DEFS="DEFINES +=$(QTDEFS) $(HTTPDDEFS)"  -f Makefile.qtcompile
+	$(MAKE) DEST='caqtdir/' ARCH='ca-qt.cpp' LIB='-framework CoreAudio -framework AudioUnit -framework CoreServices $(OSCLIB) $(HTTPDLIB)' CXXFLAGS=$(MYGCCFLAGS)  DEFS="DEFINES +=$(QTDEFS) $(HTTPDDEFS)"  -f Makefile.qtcompile
 
 
 jackgtk :
