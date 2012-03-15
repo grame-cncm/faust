@@ -1,0 +1,126 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to Max6 externals			#
+#				using double precision samples						#
+#               (c) Grame, 2012                                     #
+#                                                                   #
+#####################################################################
+
+# path to max SDK
+
+SDK=/usr/local/include/c74support/
+MAXINC=$SDK/max-includes
+MSPINC=$SDK/msp-includes
+
+createInfoPList() {
+	(
+	echo '<?xml version="1.0" encoding="UTF-8"?>'
+	echo '<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+	echo '<plist version="1.0">'
+	echo '<dict>'
+	echo '	<key>CFBundleExecutable</key>'
+	echo "	<string>$1</string>"
+	echo '	<key>CFBundleName</key>'
+	echo "	<string>$1</string>"
+	echo '	<key>CFBundlePackageType</key>'
+	echo '	<string>iLaX</string>'
+	echo '</dict>'
+	echo '</plist>'
+	) > "$2"
+}
+
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+
+
+#-------------------------------------------------------------------
+# Check darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    SPEC="-spec macx-g++"
+    EXT="~.mxo"
+fi
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+PATH=$PATH:/usr/local/bin
+
+for p in $FILES; do
+
+    CC=g++
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+	SRCDIR=$(dirname "$p")
+
+    # creates a temporary dir 
+    TDR=$(mktemp -d faust.XXX)
+	TMP="$TDR/${f%.dsp}"
+    mkdir "$TMP"
+
+    # compile faust to c++
+	faust -double -a max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+
+    # compile c++ to binary
+    (
+	cd "$TMP"
+	install -d "${f%.dsp}$EXT/Contents/MacOS"
+
+	$CC  -Wfatal-errors -framework Carbon -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+    ) 
+
+    #rm -rf "$SRCDIR/${f%.dsp}$EXT"
+
+    # Keep .dsp and .cpp files in the plug-in
+    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"   
+    cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
+
+    cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+    rm -rf "$TDR"
+
+    # collect binary file name for FaustGIDE
+    BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+done
+
+echo $BINARIES
+
+
