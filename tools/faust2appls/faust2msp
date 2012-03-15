@@ -2,10 +2,17 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to Max/MSP                  #
-#               (c) Grame, 2010                                     #
+#               Compiles Faust programs to Max externals			#
+#				using single precision samples						#
+#               (c) Grame, 2012                                     #
 #                                                                   #
 #####################################################################
+
+# path to max SDK
+
+SDK=/usr/local/include/c74support/
+MAXINC=$SDK/max-includes
+MSPINC=$SDK/msp-includes
 
 createInfoPList() {
 	(
@@ -68,7 +75,6 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SPEC="-spec macx-g++"
     EXT="~.mxo"
 fi
 
@@ -79,7 +85,6 @@ PATH=$PATH:/usr/local/bin
 
 for p in $FILES; do
 
-    #INC=-I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes
     CC=g++
 
     CUR=$(pwd)
@@ -98,15 +103,9 @@ for p in $FILES; do
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	$CC -arch i386 -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/lib/faust -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.i386.o"
-	$CC -framework MaxAPI -framework Carbon -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.i386.o" -o "${f%.dsp}.i386~"
-	#$CC -arch ppc -fpascal-strings -fasm-blocks -g -O3 -I/usr/local/lib/faust -I/usr/local/include/c74support/max-includes -I/usr/local/include/c74support/msp-includes -c "${f%.dsp}.cpp" -o "${f%.dsp}.ppc.o"
-	#$CC -framework Carbon -framework MaxAPI -framework MaxAudioAPI -arch ppc -Wl,-Y,1455 -bundle "${f%.dsp}.ppc.o"  -o "${f%.dsp}.ppc~"
-	createInfoPList "${f%.dsp}~" "${f%.dsp}$EXT/Contents/Info.plist"
-	#lipo -create "${f%.dsp}.i386~" "${f%.dsp}.ppc~"  -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-	lipo -create "${f%.dsp}.i386~" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
 
-    ) > /dev/null
+	$CC  -Wfatal-errors -framework Carbon -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+    ) 
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
@@ -117,7 +116,7 @@ for p in $FILES; do
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
 
-    # collect binary file name for FaustGIDE
+    # collect binary file name for FaustWorks
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
 done
 
