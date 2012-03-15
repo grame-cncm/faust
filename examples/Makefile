@@ -40,7 +40,9 @@ SC_SOURCE_DIR = ../../supercollider
 
 all : jackgtk
 
-test: alsagtk alsaqt jackgtk jackconsole jackqt netjackqt puredata ladspa dssi csound csounddouble w32vst
+testlin: alsagtk alsaqt jackgtk jackconsole jackqt netjackqt puredata ladspa dssi csound csounddouble w32vst
+
+testmac: caqt puredata maxmsp maxmsp64 csound csounddouble supercollider
 
 
 alsagtk :
@@ -118,11 +120,11 @@ bundle :
 
 maxmsp msp :
 	install -d mspdir
-	$(MAKE) DEST='mspdir/' VEC='-g -vs 2048' ARCH='max-msp.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.mspcompile
+	$(MAKE) DEST='mspdir/' VEC='-g -vs 256' ARCH='max-msp.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.mspcompile
 
 maxmsp64 msp64 :
 	install -d msp64dir
-	$(MAKE) DEST='msp64dir/' VEC='-double -g -vs 2048' ARCH='max-msp64.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.mspcompile
+	$(MAKE) DEST='msp64dir/' VEC='-double -g -vs 256' ARCH='max-msp64.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.mspcompile
 
 
 w32vstdir :
