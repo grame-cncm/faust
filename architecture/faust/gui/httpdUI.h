@@ -8,8 +8,6 @@
 #ifndef __httpdUI__
 #define __httpdUI__
 
-//#include <vector>
-
 #include "faust/gui/HTTPDControler.h"
 #include "faust/gui/GUI.h"
 
@@ -41,21 +39,9 @@ using namespace std;
 
 class httpdUI : public GUI 
 {
-	httpdfaust::HTTPDControler*	fCtrl;
-//	vector<const char*>		fAlias;
-	
+	httpdfaust::HTTPDControler*	fCtrl;	
 	const char* tr(const char* label) const;
-	
-	// add all accumulated alias
-	void addalias(float* zone, float init, float min, float max) {}
-//	void addalias(float* zone, float init, float min, float max) 
-//	{
-//		for (unsigned int i=0; i<fAlias.size(); i++) {
-//			fCtrl->addfullpathnode(fAlias[i], zone, 0, 1, init, min, max);
-//		}
-//		fAlias.clear();
-//	}
-	
+
  public:
 		
 	httpdUI(const char* applicationname, int argc, char *argv[]) : GUI() 
@@ -64,37 +50,28 @@ class httpdUI : public GUI
 	}
 	
 	virtual ~httpdUI() { delete fCtrl; }
-	
-	// -- active widgets
-	virtual void addButton(const char* label, float* zone)															{ addalias(zone, 0, 0, 1); fCtrl->addnode( "button", tr(label), zone); }
-	virtual void addToggleButton(const char* label, float* zone)													{ addalias(zone, 0, 0, 1); fCtrl->addnode( "togglebutton", tr(label), zone); }
-	virtual void addCheckButton(const char* label, float* zone)														{ addalias(zone, 0, 0, 1); fCtrl->addnode( "checkbutton", tr(label), zone); }
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ addalias(zone, init, min, max); fCtrl->addnode( "verticalslider", tr(label), zone, init, min, max, step); }
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ addalias(zone, init, min, max); fCtrl->addnode( "horizontalslider", tr(label), zone, init, min, max, step); }
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) 			{ addalias(zone, init, min, max); fCtrl->addnode( "numentry", tr(label), zone, init, min, max, step); }
-	
-	// -- passive widgets	
-	virtual void addNumDisplay(const char* /*label*/, float* /*zone*/, int /*precision*/) {}
-	virtual void addTextDisplay(const char* /*label*/, float* /*zone*/, const char* /*names*/[], float /*min*/, float /*max*/) {}
-	virtual void addHorizontalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {}
-	virtual void addVerticalBargraph(const char* /*label*/, float* /*zone*/, float /*min*/, float /*max*/) {}
 		
-	virtual void openFrameBox(const char* label)		{ fCtrl->opengroup( "framebox", tr(label)); }
+    // -- widget's layouts
 	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( "tabbox", tr(label)); }
 	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( "horizontalbox", tr(label)); }
 	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( "verticalbox", tr(label)); }
 	virtual void closeBox() 							{ fCtrl->closegroup(); }
 	
-	virtual void declare(float* , const char* key , const char* alias) 
-	{ 
-//		if (strcasecmp(key,"HTTP")==0) fAlias.push_back(alias);
-	}
-
-
-	virtual void show() {}
-
+	// -- active widgets
+	virtual void addButton(const char* label, FAUSTFLOAT* zone)			{ fCtrl->addnode( "button", tr(label), zone); }
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)	{ fCtrl->addnode( "checkbutton", tr(label), zone); }
+	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)		
+									{ fCtrl->addnode( "verticalslider", tr(label), zone, init, min, max, step); }
+	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 	
+									{ fCtrl->addnode( "horizontalslider", tr(label), zone, init, min, max, step); }
+	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 			
+									{ fCtrl->addnode( "numentry", tr(label), zone, init, min, max, step); }
+	
+	// -- passive widgets	
+	virtual void addHorizontalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
+	virtual void addVerticalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
+	
 	void run()											{ fCtrl->run(); }
-//	const char* getRootName()							{ return fCtrl->getRootName(); }
 };
 
 					
