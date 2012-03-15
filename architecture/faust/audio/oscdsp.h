@@ -3,8 +3,8 @@
 #define __osc_dsp__
 
 #include <stdio.h>
-#include "audio/audio.h"
-#include "audio/dsp.h"
+#include "faust/audio/audio.h"
+#include "faust/audio/dsp.h"
 #include "OSCIO.h"
 
 /******************************************************************************

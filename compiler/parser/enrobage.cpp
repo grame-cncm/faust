@@ -23,7 +23,9 @@
  
 #include "enrobage.hh"
 #include <vector>
+#include <set>
 #include <string>
+#include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
 #include "compatibility.hh"
@@ -34,6 +36,7 @@ extern string gFaustSuperDirectory;
 extern string gFaustDirectory;
 extern string gMasterDirectory;
 extern string gClassName;
+extern bool	  gInlineArchSwitch;
 
 //----------------------------------------------------------------
 
@@ -114,13 +117,88 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 }
 
 
+
+/**
+ * A minimalistic parser used to recognize '#include <faust/...>' patterns when copying
+ * architecture files 
+ */
+class myparser
+{
+    string  str;
+    size_t  N;
+    size_t  p;
+public:
+    myparser(const string& s) : str(s), N(s.length()), p(0) {}
+    bool skip()                 { while ( p<N && isspace(str[p]) ) p++; return true; }
+    bool parse(const string& s)   { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
+    bool filename(string& fname) {
+        size_t saved = p;
+        if (p<N) {
+            char c = str[p++];
+            if (c== '<' | c=='"') {
+                fname = "";
+                while ( p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
+                p++;
+                return true;
+            }
+        }
+        p = saved;
+        return false;
+    }
+};
+
+
+/**
+ * True if string s match '#include <faust/fname>'
+ */
+bool isFaustInclude(const string& s, string& fname)
+{
+    myparser P(s);
+    if ( P.skip() && P.parse("#include") && P.skip() && P.filename(fname) ) {
+        myparser Q(fname);
+        return Q.parse("faust/");
+    } else {
+        return false;
+    }
+}
+
+
+
+
+/**
+ * Inject file fname into dst ostream if not already done
+ */
+
+// to keep track of already injected files
+set<string> alreadyIncluded;
+
+void inject(ostream& dst, const string fname)
+{
+    if (alreadyIncluded.find(fname) == alreadyIncluded.end()) {
+        alreadyIncluded.insert(fname);
+        istream* src = open_arch_stream( fname.c_str());
+        if (src) {
+            streamCopy(*src, dst);
+        } else {
+            cerr << "NOT FOUND " << fname << endl;
+        }
+    }
+}
+
 /**
  * Copy src to dst until specific line.
  */
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
 {
     string	s;
-    while ( getline(src,s) && (s != until) ) dst << replaceClassName(s) << endl;
+    string  fname;
+    while ( getline(src,s) && (s != until) ) {
+        if (gInlineArchSwitch && isFaustInclude(s, fname)) {
+            inject(dst, fname);
+        } else {
+            dst << replaceClassName(s) << endl;
+        }
+    }
 }
 
 /**
@@ -128,8 +206,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
  */
 void streamCopy(istream& src, ostream& dst)
 { 
-	string	s;
-    while ( getline(src,s)) dst << replaceClassName(s) << endl;
+    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 /**
@@ -137,8 +214,7 @@ void streamCopy(istream& src, ostream& dst)
  */
 void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
-	string	s;
-    while ( getline(src,s) ) dst << replaceClassName(s) << endl;
+    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 
@@ -170,16 +246,16 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
-	err = chdir(old);
-	if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-		//cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
+    err = chdir(old);
+    if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
         ifstream* f = new ifstream();
-		f->open(filename, ifstream::in);
-		if (f->good()) return f; else delete f;
-	}
-	err = chdir(old);
+        f->open(filename, ifstream::in);
+        if (f->good()) return f; else delete f;
+    }
+    err = chdir(old);
 	if ((chdir(gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-		//cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
+        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
         ifstream* f = new ifstream();
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
@@ -191,6 +267,12 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
+    err = chdir(old);
+    if (chdir(INSTALL_PREFIX "/include")==0) {
+        ifstream* f = new ifstream();
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
 #endif
 	err = chdir(old);
 	if (chdir("/usr/local/lib/faust")==0) {
@@ -198,13 +280,25 @@ ifstream* open_arch_stream(const char* filename)
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
-	err = chdir(old);
-	if (chdir("/usr/lib/faust")==0) {
+    err = chdir(old);
+    if (chdir("/usr/lib/faust")==0) {
         ifstream* f = new ifstream();
-		f->open(filename); 
-		if (f->good()) return f; else delete f;
-	}
-	
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
+    err = chdir(old);
+    if (chdir("/usr/local/include")==0) {
+        ifstream* f = new ifstream();
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
+    err = chdir(old);
+    if (chdir("/usr/include")==0) {
+        ifstream* f = new ifstream();
+        f->open(filename);
+        if (f->good()) return f; else delete f;
+    }
+
 	return 0;
 }
 

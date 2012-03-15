@@ -9,6 +9,23 @@ OSCDEFS=""
 #####################################################################
 
 #-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust/
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust/
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
+
+
+#-------------------------------------------------------------------
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
@@ -41,19 +58,6 @@ for p in $@; do
 		CXXFLAGS=$MYICCFLAGS
     fi
 done
-
-#-------------------------------------------------------------------
-# Set Faust include path
-
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-  FAUSTINC=$FAUST_LIB_PATH
-elif [ -f /usr/local/lib/faust/music.lib ]
-then
-  FAUSTINC=/usr/local/lib/faust/
-else
-  error "$0: Cannot find Faust include dir (normally /usr/local/lib/faust)"
-fi
 	
 
 #PHASE 2 : dispatch command arguments
@@ -69,7 +73,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-I$FAUSTINC/osclib -DOSCCTRL -L$FAUSTINC/osclib -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
+    elif [ $p = "-httpd" ]; then
+	 HTTPDEFS="-DHTTPCTRL -lmicrohttpd -L$FAUSTLIB -lHTTPDFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -86,11 +92,11 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $OMP -I$FAUSTINC "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack gtk+-2.0` $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 

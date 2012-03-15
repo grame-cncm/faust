@@ -31,6 +31,7 @@
 #include <sstream>
 #include <assert.h>
 #include <cmath>
+#include <stdlib.h>
 
 #include "floats.hh"
 

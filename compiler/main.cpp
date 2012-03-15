@@ -166,6 +166,7 @@ int             gTimeout        = 120;            // time out to abort compiler 
 int             gFloatSize = 1;
 
 bool			gPrintFileListSwitch = false;
+bool			gInlineArchSwitch = true;
 
 bool			gDSPStruct = false;
 
@@ -376,7 +377,11 @@ bool process_cmdline(int argc, char* argv[])
 			gClassName = argv[i+1];
 			i += 2;
 
-        } else if (argv[i][0] != '-') {
+        } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
+            gInlineArchSwitch = true;
+            i += 1;
+			
+       } else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
 				gInputFiles.push_back(argv[i]);
 			}
@@ -441,6 +446,7 @@ void printhelp()
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
 	cout << "-a <file> \tC++ architecture file\n";
+	cout << "-i \t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
     cout << "-o <file> \tC++ output file\n";
@@ -739,7 +745,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 container->produceClass();
                 streamCopyUntilEnd(*enrobage, *dst);
                 if (gSchedulerSwitch) {
-                    istream* scheduler_include = open_arch_stream("scheduler.h");
+                    istream* scheduler_include = open_arch_stream("scheduler.cpp");
                     if (scheduler_include) {
                         streamCopy(*scheduler_include, *dst);
                     }
@@ -784,8 +790,9 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
         if (gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
         if (gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
 
-        D->inputs(container->inputs());
-        D->outputs(container->outputs());
+        D->className(gClassName);
+		D->inputs(container->inputs());
+		D->outputs(container->outputs());
 
         D->print(0, xout);
     }

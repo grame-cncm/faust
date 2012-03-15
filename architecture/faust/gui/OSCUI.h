@@ -5,8 +5,8 @@
    modification, are permitted.
 */
 
-#include "OSCControler.h"
-#include "GUI.h"
+#include "faust/gui/OSCControler.h"
+#include "faust/gui/GUI.h"
 #include <vector>
 
 /******************************************************************************
@@ -55,7 +55,7 @@ class OSCUI : public GUI
 	void addalias(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max) 
 	{
 		for (unsigned int i=0; i<fAlias.size(); i++) {
-			fCtrl->addfullpathnode(fAlias[i], zone, 0, 1, init, min, max);
+			fCtrl->addfullpathnode(fAlias[i], zone, (FAUSTFLOAT)0, (FAUSTFLOAT)1, init, min, max);
 		}
 		fAlias.clear();
 	}
@@ -79,8 +79,8 @@ class OSCUI : public GUI
 
 	
 	// -- active widgets
-	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
-	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, 0, 0, 1); }
+	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, (FAUSTFLOAT)0, (FAUSTFLOAT)0, (FAUSTFLOAT)1); }
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addalias(zone, 0, 0, 1); fCtrl->addnode( tr(label), zone, (FAUSTFLOAT)0, (FAUSTFLOAT)0, (FAUSTFLOAT)1); }
 	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 	{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
 	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) { addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }
 	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/) 		{ addalias(zone, init, min, max); fCtrl->addnode( tr(label), zone, init, min, max); }

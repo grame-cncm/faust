@@ -37,17 +37,18 @@
 #include <libgen.h>
 #include <math.h>
 #include <iostream>
+#include <vector>
 
-#include "gui/console.h"
-#include "misc.h"
-#include "audio/jack-dsp.h"
+#include "faust/gui/console.h"
+#include "faust/misc.h"
+#include "faust/audio/jack-dsp.h"
 
 #ifdef OSCCTRL
-#include "gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 
 #ifdef HTTPCTRL
-#include "gui/httpdUI.h"
+#include "faust/gui/httpdUI.h"
 #endif
 
 
@@ -109,7 +110,8 @@ int main(int argc, char *argv[] )
 
 #ifdef HTTPCTRL
 	httpdinterface->run();
-#endif		
+#endif	
+	
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif

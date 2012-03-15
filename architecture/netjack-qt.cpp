@@ -38,17 +38,17 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "gui/FUI.h"
-#include "misc.h"
-#include "gui/faustqt.h"
-#include "audio/netjack-dsp.h"
+#include "faust/gui/FUI.h"
+#include "faust/misc.h"
+#include "faust/gui/faustqt.h"
+#include "faust/audio/netjack-dsp.h"
 
 #ifdef OSCCTRL
-#include "gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 
 #ifdef HTTPCTRL
-#include "gui/httpdUI.h"
+#include "faust/gui/httpdUI.h"
 #endif
 
 /**************************BEGIN USER SECTION **************************/
@@ -70,7 +70,7 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+mydsp* DSP;
 
 list<GUI*> GUI::fGuiList;
 
@@ -79,7 +79,7 @@ list<GUI*> GUI::fGuiList;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-	char name[256];
+	char appname[256];
 	char rcfilename[256];
 	char* home = getenv("HOME");
 
@@ -87,26 +87,32 @@ int main(int argc, char *argv[])
     char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
 
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
+	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+    
+    DSP = new mydsp();
+	if (DSP==0) {
+		cerr << "Unable to allocate Faust DSP object" << endl;
+		exit(1);
+	}
 
 	GUI* interface = new QTGUI(argc, argv);
 	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(interface);
-	DSP.buildUserInterface(finterface);
-
-#ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(name, argc, argv);
-	DSP.buildUserInterface(oscinterface);
-#endif
+	DSP->buildUserInterface(interface);
+	DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(name, argc, argv);
-	DSP.buildUserInterface(httpdinterface);
+	httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+	DSP->buildUserInterface(httpdinterface);
+#endif
+
+#ifdef OSCCTRL
+	GUI* oscinterface = new OSCUI(appname, argc, argv);
+	DSP->buildUserInterface(oscinterface);
 #endif
 
 	netjackaudio audio(celt, master_ip, master_port);
-	if (!audio.init(name, &DSP)) {
+	if (!audio.init(appname, DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);

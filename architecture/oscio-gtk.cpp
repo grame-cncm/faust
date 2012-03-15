@@ -38,11 +38,11 @@
 #include <iostream>
 #include <list>
 
-#include "gui/FUI.h"
-#include "gui/faustgtk.h"
-#include "gui/OSCUI.h"
-#include "misc.h"
-#include "audio/oscdsp.h"
+#include "faust/gui/FUI.h"
+#include "faust/gui/faustgtk.h"
+#include "faust/gui/OSCUI.h"
+#include "faust/misc.h"
+#include "faust/audio/oscdsp.h"
 
 
 /**************************BEGIN USER SECTION **************************/

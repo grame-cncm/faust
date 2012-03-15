@@ -1,7 +1,7 @@
 #ifndef FAUST_GUI_H
 #define FAUST_GUI_H
 
-#include "UI.h"
+#include "faust/gui/UI.h"
 #include <list>
 #include <map>
 
