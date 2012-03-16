@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 		cerr << "Unable to allocate Faust DSP object" << endl;
 		exit(1);
 	}
-	GUI* interface 	= new GTKUI (appname, &argc, &argv);
+	GUI* interface 	= new GTKUI(appname, &argc, &argv);
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);

@@ -64,7 +64,11 @@ install :
 	install compiler/faust $(prefix)/bin/
 	# install architecture and faust library files
 	mkdir -p $(prefix)/lib/faust
+	cp architecture/*.c $(prefix)/lib/faust/
 	cp architecture/*.cpp $(prefix)/lib/faust/
+	cp architecture/*.java $(prefix)/lib/faust/
+	cp architecture/*.js $(prefix)/lib/faust/
+	cp architecture/*.html $(prefix)/lib/faust/
 	cp architecture/*.lib $(prefix)/lib/faust/
 	# install additional binary libraries (osc, http,...)
 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
