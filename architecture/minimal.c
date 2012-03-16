@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "gui/CUI.h"
+#include "faust/gui/CUI.h"
 
 <<includeIntrinsic>>
 

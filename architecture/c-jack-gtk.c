@@ -30,11 +30,11 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "gui/FUI.h"
-#include "misc.h"
-#include "gui/faustgtk.h"
-#include "audio/jack-dsp.h"
-#include "gui/CUI.h"
+#include "faust/gui/FUI.h"
+#include "faust/misc.h"
+#include "faust/gui/faustgtk.h"
+#include "faust/audio/jack-dsp.h"
+#include "faust/gui/CUI.h"
 
 using namespace std;
 

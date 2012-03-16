@@ -41,14 +41,14 @@ using namespace std;
 #define FAUSTFLOAT float
 #endif
 
-#include "gui/FUI.h"
-#include "gui/CUI.h"
-#include "misc.h"
-#include "gui/faustgtk.h"
-#include "audio/jack-dsp.h"
+#include "faust/gui/FUI.h"
+#include "faust/gui/CUI.h"
+#include "faust/misc.h"
+#include "faust/gui/faustgtk.h"
+#include "faust/audio/jack-dsp.h"
 
 #ifdef OSCCTRL
-#include "gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 
 #ifdef __APPLE__
