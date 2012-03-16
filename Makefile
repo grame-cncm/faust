@@ -67,7 +67,7 @@ install :
 	cp architecture/*.cpp $(prefix)/lib/faust/
 	cp architecture/*.lib $(prefix)/lib/faust/
 	# install additional binary libraries (osc, http,...)
-	cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/
+	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/faust/) || echo libHTTPDFaust not available	
 	cp architecture/osclib/*.a $(prefix)/lib/faust/
 	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/
