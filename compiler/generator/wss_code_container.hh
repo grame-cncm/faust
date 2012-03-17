@@ -34,6 +34,7 @@
 class WSSCodeContainer : public virtual CodeContainer {
 
 private:
+
     string fObjName;
     BlockInst* fComputeThreadBlockInstructions;
 

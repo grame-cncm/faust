@@ -45,7 +45,6 @@ using namespace std;
 #include <sstream>
 #include <fstream>
 
-
 class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 
     private:

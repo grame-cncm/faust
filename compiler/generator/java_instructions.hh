@@ -42,12 +42,9 @@ using namespace std;
 #include "binop.hh"
 #include "Text.hh"
 
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
-
 
 class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
 
