@@ -77,7 +77,7 @@
 #include "timing.hh"
 #include "ppsig.hh"
 
-using namespace std ;
+using namespace std;
 
 /****************************************************************
  						Parser variables
@@ -94,11 +94,9 @@ Tree 			gResult2;
 SourceReader	gReader;
 
 map<Tree, set<Tree> > gMetaDataSet;
-extern vector<Tree> gDocVector;
-extern string gDocLang;
-extern bool gDumpNorm;
+string gDocLang;
 
-string gOutputLang = "";
+static string gOutputLang = "";
 
 /****************************************************************
  				Command line tools and arguments
@@ -117,7 +115,6 @@ Tree			gExpandedDefList;
 //-- command line arguments
 
 bool			gLLVMSwitch 	= false;
-bool			gLLVM64         = true;
 bool			gHelpSwitch 	= false;
 bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
@@ -184,7 +181,7 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 	return 	(strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }
 
-bool process_cmdline(int argc, char* argv[])
+static bool process_cmdline(int argc, char* argv[])
 {
 	int	i=1; int err=0;
 
@@ -409,13 +406,13 @@ bool process_cmdline(int argc, char* argv[])
  					 Help and Version information
 *****************************************************************/
 
-void printversion()
+static void printversion()
 {
 	cout << "FAUST: DSP to C, C++, JAVA, JavaScript, LLVM compiler, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2012, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
-void printhelp()
+static void printhelp()
 {
 	printversion();
 	cout << "usage: faust [options] file1 [file2 ...]\n";
@@ -477,7 +474,7 @@ void printhelp()
 	cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp\n";
 }
 
-void printheader(ostream& dst)
+static void printheader(ostream& dst)
 {
     // defines the metadata we want to print as comments at the begin of in the C++ file
     set<Tree> selectedKeys;
@@ -718,7 +715,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
          ****************************************************************/
         if (gArchFile != "") {
             if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
-
+            
+                printheader(*dst);
+                
                 if (gOutputLang == "c" || gOutputLang == "cpp") {
                     tab(0, *dst); *dst << "#ifndef  __" << gClassName << "_H__";
                     tab(0, *dst); *dst << "#define  __" << gClassName << "_H__" << std::endl;
@@ -760,6 +759,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 exit(1);
             }
         } else {
+            printheader(*dst);
             if (gOutputLang != "java" && gOutputLang != "js") {
                 printfloatdef(*dst);
             }
@@ -820,7 +820,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	/****************************************************************
 	 1 - process command line

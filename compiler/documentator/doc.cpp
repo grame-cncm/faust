@@ -107,7 +107,7 @@ static const char* 				gDocDevSuffix;			///< ".tex" (or .??? - used to choose ou
 static string 					gCurrentDir;			///< Room to save current directory name.
 static const string				gLatexheaderfilename = "latexheader.tex";
 
-vector<Tree> 					gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
+vector<Tree>                    gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
 
 static struct tm				gCompilationDate;
 
@@ -116,7 +116,7 @@ bool							gLstMdocTagsSwitch		= true; ///< mdoc listing management.
 bool							gLstDistributedSwitch	= true; ///< mdoc listing management.
 
 enum { langEN, langFR, langIT };
-string				gDocLang;
+extern string                   gDocLang;
 
 /* Printing functions */
 static void		printlatexheader(istream& latexheader, const string& faustversion, ostream& docout);
