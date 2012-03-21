@@ -170,11 +170,13 @@ void CodeContainer::printLibrary(ostream& fout)
 
 	string sep;
 	collectLibrary(S);
-	fout << "/* link with ";
-	for (f = S.begin(), sep =": "; f != S.end(); f++, sep = ", ") 	{
-		fout << sep << *f;
-	}
-	fout << " */\n";
+    if (S.size() > 0) {
+        fout << "/* link with ";
+        for (f = S.begin(), sep =": "; f != S.end(); f++, sep = ", ") 	{
+            fout << sep << *f;
+        }
+        fout << " */\n";
+    }
 }
 
 /**

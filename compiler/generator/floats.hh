@@ -41,6 +41,6 @@ const char* icast();
 const char* xfloat();
 const char* xcast();
 
-void printfloatdef(std::ostream& fout);
+void printfloatdef(std::ostream& fout, bool quad);
 
 #endif

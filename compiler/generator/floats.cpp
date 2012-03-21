@@ -40,7 +40,7 @@
 //          2: double precision float
 //          3: long double precision float
 
-extern int  gFloatSize;
+extern int gFloatSize;
 
 const char* mathsuffix[] = {"", "f", "", "l"};                                  // suffix for math functions
 const char* numsuffix[]  = {"", "f", "", ""};                                   // suffix for numeric constants
@@ -75,11 +75,13 @@ const char* icast()  { return castname[gFloatSize]; }
 const char* xfloat() { return floatname[0]; }
 const char* xcast()  { return castname[0]; }
 
-void printfloatdef(std::ostream& fout)
+void printfloatdef(std::ostream& fout, bool quad)
 {
     fout << "#ifndef " << FLOATMACRO << std::endl;
     fout << "#define " << FLOATMACRO << " " << "float" << std::endl;
     fout << "#endif  " << std::endl;
     fout << std::endl;
-    fout << "typedef long double quad;" << std::endl;
+    if (quad) {
+        fout << "typedef long double quad;" << std::endl;
+    }
 }

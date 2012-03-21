@@ -716,7 +716,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gArchFile != "") {
             if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
             
-                printheader(*dst);
+                if (gOutputLang != "js") {
+                    printheader(*dst);
+                }
                 
                 if (gOutputLang == "c" || gOutputLang == "cpp") {
                     tab(0, *dst); *dst << "#ifndef  __" << gClassName << "_H__";
@@ -734,7 +736,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 }
 
                 if (gOutputLang != "java" && gOutputLang != "js") {
-                    printfloatdef(*dst);
+                    printfloatdef(*dst, (gFloatSize == 3));
                 }
 
                 if (gOutputLang == "c") {
@@ -759,9 +761,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 exit(1);
             }
         } else {
-            printheader(*dst);
+            if (gOutputLang != "js") {
+                printheader(*dst);
+            }
             if (gOutputLang != "java" && gOutputLang != "js") {
-                printfloatdef(*dst);
+                printfloatdef(*dst, (gFloatSize == 3));
             }
             if (gOutputLang == "c") {
                 *dst << "#include <stdlib.h>"<< std::endl;
