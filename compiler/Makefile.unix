@@ -74,7 +74,7 @@ main.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timi
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/instructions.hh signals/binop.hh tlib/property.hh generator/Text.hh
-boxes/boxcomplexity.o: signals/sigvisitor.hh signals/signals.hh documentator/lateq.hh boxes/boxcomplexity.h
+boxes/boxcomplexity.o: signals/sigvisitor.hh signals/signals.hh documentator/lateq.hh boxes/boxcomplexity.hh
 boxes/boxcomplexity.o: boxes/boxes.hh
 boxes/boxes.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 boxes/boxes.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh signals/sigtype.hh
@@ -132,7 +132,7 @@ draw/drawschema.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppb
 draw/drawschema.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
 draw/drawschema.o: tlib/property.hh generator/Text.hh draw/device/devLib.h draw/device/SVGDev.h draw/device/device.h
 draw/drawschema.o: draw/device/PSDev.h extended/xtended.hh signals/sigvisitor.hh documentator/lateq.hh
-draw/drawschema.o: tlib/occurrences.hh boxes/boxcomplexity.h draw/schema/schema.h draw/drawschema.hh
+draw/drawschema.o: tlib/occurrences.hh boxes/boxcomplexity.hh draw/schema/schema.h draw/drawschema.hh
 draw/drawschema.o: tlib/compatibility.hh utils/names.hh propagate/propagate.hh generator/description.hh
 draw/drawschema.o: generator/uitree.hh
 draw/sigToGraph.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh

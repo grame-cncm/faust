@@ -51,7 +51,7 @@
 #include "ppbox.hh"
 #include "xtended.hh"
 #include "occurrences.hh"
-#include "boxcomplexity.h"
+#include "boxcomplexity.hh"
 
 #include "schema.h"
 #include "drawschema.hh"

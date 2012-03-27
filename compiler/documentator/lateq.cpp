@@ -502,13 +502,15 @@ static int getLateqIndex(const string& s)
 	p1 = s.find("_{"); 
 	if (p1==string::npos) {
 		cerr << "Error : getLateqIndex found no \"{_\" substring.\n";
-		exit(1); }
+		exit(1); 
+    }
 	p1 += 2;
 	
 	p2 = s.find("}", p1); 
 	if (p2==string::npos) {
 		cerr << "Error : getLateqIndex found no \"}\" substring\n.";
-		exit(1); }
+		exit(1); 
+    }
 	p2 -= 3;
 	
 	sIndex = s.substr (p1, p2);
