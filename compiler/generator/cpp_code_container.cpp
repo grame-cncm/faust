@@ -32,7 +32,6 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "exception.hh"
-#include "loki/SafeFormat.h"
 
 using namespace std;
 

@@ -911,14 +911,16 @@ Module* libmain_llvm(int argc, char* argv[], char* input)
     return gModule;
 }
 
+#ifndef LIB_FAUST
+
 int main(int argc, char* argv[])
 {
 
     try {
         
-        /****************************************************************
-         1 - process command line
-        *****************************************************************/
+        //****************************************************************
+        // 1 - process command line
+        //*****************************************************************
         process_cmdline(argc, argv);
 
         if (gHelpSwitch) 		{ printhelp(); exit(0); }
@@ -929,20 +931,20 @@ int main(int argc, char* argv[])
         alarm(gTimeout);
     #endif
 
-        /****************************************************************
-         2 - parse source files
-        *****************************************************************/
+        //****************************************************************
+        // 2 - parse source files
+        //*****************************************************************
         parseSourceFiles();
 
-        /****************************************************************
-         3 - evaluate 'process' definition
-        *****************************************************************/
+        //****************************************************************
+        // 3 - evaluate 'process' definition
+        //*****************************************************************
         int numInputs, numOutputs;
         Tree process = evaluateBlockDiagram(gExpandedDefList, numInputs, numOutputs);
 
-        /****************************************************************
-         4 - compute output signals of 'process'
-        *****************************************************************/
+        //****************************************************************
+        // 4 - compute output signals of 'process'
+        //*****************************************************************
         startTiming("propagation");
 
         Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
@@ -958,14 +960,14 @@ int main(int argc, char* argv[])
 
         endTiming("propagation");
 
-        /****************************************************************
-        5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
-        *****************************************************************/
+        //****************************************************************
+        // 5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
+        //*****************************************************************
         pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
 
-        /****************************************************************
-         6 - generate xml description, documentation or dot files
-        *****************************************************************/
+        //****************************************************************
+        // 6 - generate xml description, documentation or dot files
+        //*****************************************************************
         generateOutputFiles(comp_container.first, comp_container.second);
     
     } catch (faustexception& e) {
@@ -974,3 +976,5 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+#endif
