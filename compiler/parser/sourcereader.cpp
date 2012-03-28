@@ -14,6 +14,7 @@
 #include "sourcereader.hh"
 #include "enrobage.hh"
 #include "ppbox.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -37,8 +38,6 @@ extern const char * yyfilename;
 
 extern Tree 	gResult;
 extern Tree 	gResult2;
-
- 
 
 
 /**
@@ -73,7 +72,9 @@ static void printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 Tree checkRulelist (Tree lr)
 {
 	Tree lrules = lr;
-	if (isNil(lrules)) { cerr << "ERROR : a case expression can't be empty" << endl; exit(1); }
+	if (isNil(lrules)) { 
+        throw faustexception("ERROR : a case expression can't be empty");
+    }
 	// first pattern used as a reference
 	Tree lhs1 = hd(hd(lrules));
 	Tree rhs1 = tl(hd(lrules));
@@ -84,7 +85,7 @@ Tree checkRulelist (Tree lr)
 		Tree rhs2 = tl(hd(lrules));
 		if (npat != len(lhs2)) {
 			printPatternError(lhs1,rhs1,lhs2,rhs2);
-			exit(1);
+            throw faustexception("printPatternError");
 		}
 		
 		lhs1 = lhs2;
@@ -124,7 +125,7 @@ static Tree makeDefinition(list<Tree>& variants)
 			Tree cur = *p;
 			if (npat != len(hd(cur))) {
 				printPatternError(hd(prev), tl(prev), hd(cur), tl(cur));
-				exit(1);
+                throw faustexception("printPatternError");
 			}
 			prev = cur;
 			l = cons(*p,l);
@@ -192,8 +193,9 @@ Tree SourceReader::parse(string fname)
 	yyfilename = fname.c_str();
 	yyin = fopensearch(yyfilename, fullpath);
 	if (yyin == NULL) {
-		fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
-		exit(1);
+        stringstream error;
+        error << "ERROR : Unable to open file" << yyfilename << endl;
+        throw faustexception(error.str());
 	}
 	
 	yylineno = 1;
@@ -237,7 +239,9 @@ Tree SourceReader::getlist(string fname)
 	if (!cached(fname)) {
 		fFileCache[fname] = parse(fname);
 	}
-    if (fFileCache[fname] == 0) exit(1);
+    if (fFileCache[fname] == 0) {
+        throw faustexception("getlist");
+    }
     return fFileCache[fname];
 }
 

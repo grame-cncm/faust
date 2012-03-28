@@ -31,6 +31,7 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "function_builder.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -57,12 +58,10 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     CodeContainer* container;
 
     if (gOpenCLSwitch) {
-        cerr << "ERROR : OpenCL not supported for C" << endl;
-        exit(1);
+        throw faustexception("ERROR : OpenCL not supported for C");
     }
     if (gCUDASwitch) {
-        cerr << "ERROR : CUDA not supported for C" << endl;
-        exit(1);
+        throw faustexception("ERROR : CUDA not supported for C");
     }
 
     if (gOpenMPSwitch) {

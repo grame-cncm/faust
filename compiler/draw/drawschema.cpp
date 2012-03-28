@@ -59,7 +59,7 @@
 #include "names.hh"
 #include "description.hh"
 #include "property.hh"
-
+#include "exception.hh"
 
 
 #if 0
@@ -277,9 +277,9 @@ static int mkchdir(const char* dirname)
 			}
 		}
 	}
-	perror("mkchdir");
-	exit(errno);
-	//return errno;
+	stringstream error;
+    error << "ERROR in mkchdir " << strerror(errno) << endl;
+    throw faustexception(error.str());
 }
 
 
@@ -291,8 +291,9 @@ static int cholddir ()
 	if (chdir(gCurrentDir) == 0) {
 		return 0;
 	} else {
-		perror("cholddir");
-		exit(errno);
+        stringstream error;
+        error << "ERROR in cholddir " << strerror(errno) << endl;
+        throw faustexception(error.str());
 	}
 }
 
@@ -503,8 +504,9 @@ static schema* generateInsideSchema(Tree t)
 
 	else {
 
-		fprintf(stderr, "Internal Error, box expression not recognized : "); print(t, stderr); fprintf(stderr, "\n");
-		exit(1);
+        stringstream error;
+        error << "Internal Error, box expression not recognized : " << t << endl;
+        throw faustexception(error.str());
 
 	}
 }
@@ -565,8 +567,7 @@ static void UserInterfaceDescription(Tree box, string& d)
              << boxpp(step)<< ')';
     }
     else {
-        cerr << "INTERNAL ERROR : unknow user interface element " << endl;
-        exit(0);
+        throw faustexception("INTERNAL ERROR : unknow user interface element");
     }
     d = fout.str();
 }

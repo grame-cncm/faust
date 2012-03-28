@@ -14,6 +14,7 @@ using namespace std;
 #include <list>
 #include <set>
 #include <utility>
+#include "exception.hh"
 
 /* Uncomment for debugging output. */
 //#define DEBUG
@@ -550,8 +551,9 @@ Automaton *make_pattern_matcher(Tree R)
 				<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
 				<< endl;
 		} else {
-			cerr << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;
-			exit(1);
+            stringstream error;
+            error << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;
+            throw faustexception(error.str());
 		}
 	  } else if (ru->r >= r)
 	    break;

@@ -28,6 +28,7 @@
 
 ***********************************************************************/
 #include "llvm_code_container.hh"
+#include "exception.hh"
 
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Analysis/Passes.h>
@@ -79,23 +80,19 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
     CodeContainer* container;
 
     if (gFloatSize == 3) {
-        cerr << "ERROR : quad format not supported in LLVM mode" << endl;
-        exit(1);
+        throw faustexception("ERROR : quad format not supported in LLVM");
     }
     gDSPStruct = true;
 
     if (gOpenCLSwitch) {
-        cerr << "ERROR : OpenCL not supported for LLVM" << endl;
-        exit(1);
+        throw faustexception("ERROR : OpenCL not supported for LLVM");
     }
     if (gCUDASwitch) {
-        cerr << "ERROR : CUDA not supported for LLVM" << endl;
-        exit(1);
+        throw faustexception("ERROR : CUDA not supported for LLVM");
     }
 
     if (gOpenMPSwitch) {
-        cerr << "ERROR : OpenMP not supported for LLVM" << endl;
-        exit(1);
+        throw faustexception("ERROR : OpenMP not supported for LLVM");
     } else if (gSchedulerSwitch) {
         container = new LLVMWorkStealingCodeContainer(name, numInputs, numOutputs);
     } else if (gVectorSwitch) {

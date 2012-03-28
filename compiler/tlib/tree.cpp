@@ -82,6 +82,7 @@ storage of trees.
 #include "tree.hh"
 #include <fstream>
 #include <cstdlib>
+#include "exception.hh"
 
 Tabber TABBER(1);	
 extern Tabber TABBER;
@@ -89,11 +90,10 @@ extern Tabber TABBER;
 
 static void error(const char * s, Tree t)
 {
-	//fprintf(stderr, "ERROR : %s (%p)\n", s, t);
 	cerr << "ERROR : " << s << " : " << *t << endl;
 }
 
-#define ERROR(s,t) { error(s,t); exit(1); }
+#define ERROR(s,t) { error(s,t); throw faustexception(s); }
 
 
 Tree CTree::gHashTable[kHashTableSize];

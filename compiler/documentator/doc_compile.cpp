@@ -51,7 +51,7 @@
 #include "doc.hh"
 #include "tlib.hh"
 #include "doc_notice.hh"
-
+#include "exception.hh"
 
 extern bool		gLessTempSwitch;
 extern int		gMaxCopyDelay;
@@ -237,8 +237,9 @@ string	DocCompiler::generateCode (Tree sig, int priority)
 	else if ( isSigAttach(sig, x, y) )				{ printGCCall(sig,"generateAttach");	return generateAttach	(sig, x, y, priority); }
 	
 	else {
-        cerr << "Error in d signal, unrecognized signal : " << *sig << endl;
-        exit(1);
+        stringstream error;
+        error << "Error in d signal, unrecognized signal : " << *sig << endl;
+        throw faustexception(error.str());
 	}
     assert(0);
 	return "error in generate code";
@@ -567,8 +568,9 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
         return generateVariableStore(sig, exp);
 	} 
 	else {
-        cerr << "Error in sharing count (" << sharing << ") for " << *sig << endl;
-		exit(1);
+        stringstream error;
+        error << "Error in sharing count (" << sharing << ") for " << *sig << endl;
+        throw faustexception(error.str());
 	}
 	
 	return "Error in generateCacheCode";
@@ -996,7 +998,9 @@ string DocCompiler::generatePrefix (Tree sig, Tree x, Tree e, int priority)
 string DocCompiler::generateIota (Tree sig, Tree n)
 {
 	int size;
-	if (!isSigInt(n, &size)) { fprintf(stderr, "error in generateIota\n"); exit(1); }
+	if (!isSigInt(n, &size)) { 
+        throw faustexception("Error in generateIota");
+    }
 	//cout << "iota !" << endl;
 	return subst(" t \\bmod{$0} ", docT(size));
 }

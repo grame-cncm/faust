@@ -28,7 +28,7 @@
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 #include "privatise.hh"
-
+#include "exception.hh"
 
 /*****************************************************************************
 						 privatise : compile a list of signals
@@ -123,8 +123,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
 	} else if ( isSigGen(exp, content) ) {
 		/*	On ne visite pas les contenus des tables
 		*/
-		printf("erreur 1 dans computePrivatisation\n");
-		exit(1);
+	    throw faustexception("ERROR 1 in computePrivatisation");
 
 	} else if ( isRec(exp, var, body) ) {
 		/*	On ne visite pas les contenus des tables
@@ -162,8 +161,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
 						privatisation(k, exp->branch(2)),
 						privatisation(k, exp->branch(3)) );
 		}
-		printf("erreur 2 dans computePrivatisation\n");
-		exit(1);
+	    throw faustexception("ERROR 2 in computePrivatisation");
 	}
 	printf("situation anormale dans computePrivatisation\n");
 	return exp;
@@ -187,9 +185,7 @@ static Tree labelize(const Tree& newid, const Tree& exp)
 		return sigTable(newid, size, content);
 
 	} else {
-
-		printf("erreur labelize\n");
-		exit(1);
+        throw faustexception("ERROR labelize");
 	}
 
 	return exp;

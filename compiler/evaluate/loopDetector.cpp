@@ -1,5 +1,6 @@
 #include "loopDetector.hh"
 #include "ppbox.hh"
+#include "exception.hh"
 
 bool loopDetector::detect(Tree t)
 {
@@ -14,13 +15,14 @@ bool loopDetector::detect(Tree t)
             assert(r<fBuffersize);
             assert(r != w);
             if (fBuffer[r] == t) {
-                cerr 	<< "ERROR : after "
-                        << fPhase
-                        << " evaluation steps, the compiler has detected an endless evaluation cycle of "
-                        << i
-                        << " steps"
-                        << endl;
-                exit(1);
+                stringstream error;
+                error << "ERROR : after "
+                    << fPhase
+                    << " evaluation steps, the compiler has detected an endless evaluation cycle of "
+                    << i
+                    << " steps"
+                    << endl;
+                throw faustexception(error.str());
             }
         }
     }

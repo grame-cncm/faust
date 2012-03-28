@@ -22,7 +22,7 @@
  
  
 #include "uitree.hh"
-
+#include "exception.hh"
 
 
 static Tree makeSubFolderChain(Tree path, Tree elem);
@@ -35,7 +35,7 @@ static void error(const char * s, Tree t)
 	fprintf(stderr, "ERROR : %s (%p)\n", s, t);
 }
 
-#define ERROR(s,t) error(s,t); exit(1)
+#define ERROR(s,t) { error(s,t); throw faustexception(s); }
 
 
 //------------------------------------------------------------------------------

@@ -31,13 +31,12 @@
 #include "sigtype.hh"
 #include "sigprint.hh"
 #include "ppsig.hh"
-//#include "prim.hh"
 #include "prim2.hh"
 #include "tlib.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
 #include "recursivness.hh"
-
+#include "exception.hh"
 
 //--------------------------------------------------------------------------
 // prototypes
@@ -283,15 +282,17 @@ static Type infereSigType(Tree sig, Tree env)
 //				<< t1 << ':' << ppsig(s1) << ", s2 = "
 //                << t2 << ':' << ppsig(s2) << endl;
 		if (!i.valid) {
-			cerr << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl;
-			cerr << "        used in delay expression : " << ppsig(sig) << endl;
-			cerr << "        (probably a recursive signal)" << endl;
-			exit(1);
+            stringstream error;
+            error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
+                    << "        used in delay expression : " << ppsig(sig) << endl
+                    << "        (probably a recursive signal)" << endl;
+            throw faustexception(error.str());
 		} else if (i.lo < 0) {
-			cerr << "ERROR : possible negative values of : " << ppsig(s2) << endl;
-			cerr << "        used in delay expression : " << ppsig(sig) << endl;
-			cerr << "        " << i << endl;
-			exit(1);
+            stringstream error;
+            error << "ERROR : possible negative values of : " << ppsig(s2) << endl
+                    << "        used in delay expression : " << ppsig(sig) << endl
+                    << "        " << i << endl;
+            throw faustexception(error.str());
 		}
 
 		return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0,0)));
@@ -375,8 +376,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isList(sig))                       { return T( hd(sig),env ) * T( tl(sig),env ); }
 
 	// unrecognized signal here
-	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
-	exit(1);
+    throw faustexception("ERROR infering signal type : unrecognized signal");
 	return 0;
 }
 
@@ -389,8 +389,9 @@ static Type infereProjType(Type t, int i, int vec)
 {
 	TupletType* tt = isTupletType(t);
 	if (tt == 0) {
-		cerr << "ERROR infering projection type, not a tuplet type : " << t << endl;
-		exit(1);
+	    stringstream error;
+        error << "ERROR infering projection type, not a tuplet type : " << t << endl;
+        throw faustexception(error.str());
 	}
 	//return (*tt)[i]	->promoteVariability(t->variability())
 	//		->promoteComputability(t->computability());
@@ -414,13 +415,15 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 {
 	TableType* tt = isTableType(tbl);
 	if (tt == 0) {
-		cerr << "ERROR infering write table type, wrong table type : " << tbl << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR infering write table type, wrong table type : " << tbl << endl;
+        throw faustexception(error.str());
 	}
 	SimpleType* st = isSimpleType(wi);
 	if (st == 0 || st->nature() > kInt) {
-		cerr << "ERROR infering write table type, wrong write index type : " << wi << endl;
-		exit(1);
+	    stringstream error;
+        error << "ERROR infering write table type, wrong write index type : " << wi << endl;
+        throw faustexception(error.str());
 	}
 
 	int n = tt->nature();
@@ -441,13 +444,15 @@ static Type infereReadTableType(Type tbl, Type ri)
 {
 	TableType*	tt = isTableType(tbl);
 	if (tt == 0) {
-		cerr << "ERROR infering read table type, wrong table type : " << tbl << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR infering read table type, wrong table type : " << tbl << endl;
+        throw faustexception(error.str());
 	}
 	SimpleType* st = isSimpleType(ri);
 	if (st == 0 || st->nature() > kInt) {
-		cerr << "ERROR infering read table type, wrong write index type : " << ri << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR infering read table type, wrong write index type : " << ri << endl;
+        throw faustexception(error.str());
 	}
 
 	Type temp =  tt->content()->promoteVariability(ri->variability()|tt->variability())
@@ -617,8 +622,9 @@ static interval arithmetic (int opcode, const interval& x, const interval& y)
         case kOR:  return x|y;
         case kXOR: return x^y;
         default:
-            cerr << "Unrecognized opcode : " << opcode << endl;
-            exit(1);
+            stringstream error;
+            error << "ERROR : unrecognized opcode : " << opcode << endl;
+            throw faustexception(error.str());
     }
 
     return interval();

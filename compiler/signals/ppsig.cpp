@@ -26,6 +26,7 @@
 #include "prim2.hh"
 #include "xtended.hh"
 #include "recursivness.hh"
+#include "exception.hh"
 
 ostream& ppsig::printinfix (ostream& fout, const string& opname, int priority, Tree x, Tree y) const
 {
@@ -230,8 +231,9 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
 	
 	else {
-        cerr << "NOT A SIGNAL : " << *sig << endl;
-        //exit(1);
+        stringstream error;
+        error << "NOT A SIGNAL : " << *sig << endl;
+        throw faustexception(error.str());
 	}
 	return fout;
 }

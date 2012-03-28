@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "tlib.hh"
+#include "exception.hh"
 
 // Declaration of implementation
 static Tree calcDeBruijn2Sym (Tree t);
@@ -232,7 +233,7 @@ Tree deBruijn2Sym (Tree t)
 	return t2;
 }
 
-static Tree calcDeBruijn2Sym (Tree t)
+static Tree calcDeBruijn2Sym(Tree t)
 {
 	Tree 	body, var;
 	int		i;
@@ -248,11 +249,8 @@ static Tree calcDeBruijn2Sym (Tree t)
 
 	} else if (isRef(t,i)) {
 
-		fprintf(stderr, "ERREUR, une reference de Bruijn touvee ! : ");
-		printSignal(t, stderr);
-		fprintf(stderr, ")\n");
-		exit(1);
-		return t;
+        throw faustexception("ERROR : one Bruijn reference found !");
+        return t;
 
 	} else {
 

@@ -38,6 +38,7 @@ using namespace std;
 
 #include "instructions.hh"
 #include "binop.hh"
+#include "exception.hh"
 
 #include <llvm/DerivedTypes.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -855,8 +856,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 case 1: mth_index = fUICallTable["openHorizontalBox"];  break;
                 case 2: mth_index = fUICallTable["openTabBox"]; break;
                 default:
-                    fprintf(stderr, "error in user interface generation %d\n", inst->fOrient);
-                    exit(1);
+                    stringstream error;
+                    error << "ERROR in user interface generation" << inst->fOrient;
+                    throw faustexception(error.str());
             }
 
             Value* idx[2];

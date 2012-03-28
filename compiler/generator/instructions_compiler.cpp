@@ -50,6 +50,7 @@
 
 #include "ensure.hh"
 #include "sigToGraph.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -62,7 +63,7 @@ extern bool gOpenCLSwitch;
 extern bool gCUDASwitch;
 extern bool gDumpNorm;
 extern bool gDrawSignals;
-extern string   gMasterDocument;
+extern string gMasterDocument;
 
 std::ostream* Printable::fOut = &cout;
 
@@ -455,10 +456,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     }
     */
 	else {
-		printf("Error in compiling signal, unrecognized signal : ");
-		print(sig);
-		printf("\n");
-		exit(1);
+        throw faustexception("Error in compiling signal, unrecognized signal");
 	}
 	return InstBuilder::genNullInst();
 }
@@ -496,8 +494,9 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         return generateVariableStore(sig, exp);
 
 	} else {
-        cerr << "Error in sharing count (" << sharing << ") for " << *sig << endl;
-		exit(1);
+        stringstream error;
+        error << "Error in sharing count (" << sharing << ") for " << *sig << endl;
+        throw faustexception(error.str());
 	}
 }
 
@@ -751,11 +750,12 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     }
 
 	if (!isSigInt(tsize, &size)) {
-		cerr << "error in ScalarCompiler::generateTable() : "
+	    stringstream error;
+        error << "error in ScalarCompiler::generateTable() : "
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;
-        exit(1);
+        throw faustexception(error.str());
 	}
 
 	// definition du nom et du type de la table
@@ -823,13 +823,13 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     }
 
     if (!isSigInt(tsize, &size)) {
-		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
-		cerr << "error in ScalarCompiler::generateTable() : "
+	    stringstream error;
+        error << "error in ScalarCompiler::generateTable() : "
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;
-        exit(1);
-	}
+        throw faustexception(error.str());
+  	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
 	Type t = getCertifiedSigType(content);//, tEnv);
@@ -1424,10 +1424,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t)
 		generateWidgetCode(label, varname, sig);
 
 	} else {
-
-		fprintf(stderr, "error in user interface generation 2\n");
-		exit(1);
-
+        throw faustexception("ERROR in user interface generation");
 	}
 }
 
@@ -1490,8 +1487,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
             InstBuilder::genAddHorizontalBargraphInst(label, tree2str(varname), tree2float(x), tree2float(y)));
 
 	} else {
-		fprintf(stderr, "Error in generating widget code\n");
-		exit(1);
+		throw faustexception("ERROR in generating widget code");
 	}
 }
 
@@ -1514,8 +1510,7 @@ void InstructionsCompiler::generateMacroInterfaceTree(const string& pathname, Tr
     } else if (isUiWidget(t, label, varname, sig)) {
 		generateWidgetMacro(pathname, label, varname, sig);
 	} else {
-		fprintf(stderr, "error in user interface macro generation 2\n");
-		exit(1);
+        throw faustexception("ERROR in user interface macro generation");
 	}
 }
 
@@ -1593,7 +1588,6 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
 				T(tree2float(y))));
 
 	} else {
-		fprintf(stderr, "Error in generating widget code\n");
-		exit(1);
+	     throw faustexception("ERROR in generating widget code");
 	}
 }

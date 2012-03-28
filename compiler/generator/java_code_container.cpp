@@ -29,6 +29,7 @@
 ***********************************************************************/
 
 #include "java_code_container.hh"
+#include "exception.hh"
 #include "Text.hh"
 #include "floats.hh"
 
@@ -55,20 +56,16 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
     CodeContainer* container;
 
     if (gOpenCLSwitch) {
-        cerr << "ERROR : OpenCL not supported for Java" << endl;
-        exit(1);
+        throw faustexception("ERROR : OpenCL not supported for Java");
     }
     if (gCUDASwitch) {
-        cerr << "ERROR : CUDA not supported for Java" << endl;
-        exit(1);
+        throw faustexception("ERROR : CUDA not supported for Java");
     }
 
     if (gOpenMPSwitch) {
-        cerr << "ERROR : OpenMP not supported for Java" << endl;
-        exit(1);
+        throw faustexception("ERROR : OpenMP not supported for Java");
     } else if (gSchedulerSwitch) {
-        cerr << "ERROR : Scheduler mode not supported for Java" << endl;
-        exit(1);
+        throw faustexception("ERROR : Scheduler not supported for Java");
     } else if (gVectorSwitch) {
         container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {

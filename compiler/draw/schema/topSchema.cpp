@@ -25,6 +25,8 @@
 #include <assert.h>
 #include <cstdlib>
 
+#include "exception.hh"
+
 using namespace std;
 
 /**
@@ -48,8 +50,7 @@ topSchema::topSchema( schema* s, double margin, const string& text, const string
 	 	fMargin(margin),
 	 	fText(text),
 	 	fLink(link)
-{
-}
+{}
 
 
 /**
@@ -72,7 +73,7 @@ point topSchema::inputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < inputs());
-	exit(1);
+    throw faustexception("topSchema::inputPoint");
 }
 
 /**
@@ -82,7 +83,7 @@ point topSchema::outputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < outputs());
-	exit(1);
+    throw faustexception("topSchema::outputPoint");
 }
 
 /**
@@ -128,6 +129,4 @@ void topSchema::collectTraits(collector& c)
         point p = fSchema->outputPoint(i);
         c.addInput(p);;
     }
-
-
 }

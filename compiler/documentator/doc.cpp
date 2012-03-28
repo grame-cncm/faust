@@ -77,7 +77,7 @@
 #include "doc_notice.hh"
 #include "doc_autodoc.hh"
 #include "compatibility.hh"
-
+#include "exception.hh"
 
 
 #define MAXIDCHARS 5				///< max numbers (characters) to represent ids (e.g. for directories).
@@ -378,8 +378,9 @@ static void printfaustlisting(string& faustfile, ostream& docout)
 			if (foundclosedoc != string::npos && gStripDocSwitch) isInsideDoc = false;
 		}
 	} else {
-		cerr << "ERROR : can't open faust source file " << faustfile << endl;
-		exit(1);
+       stringstream error;
+        error << "ERROR : can't open faust source file " << faustfile << endl;
+        throw faustexception(error.str());
 	}
 	
 	docout << "\\end{lstlisting}" << endl << endl;
@@ -808,8 +809,9 @@ static string calcDocEqnInitial(const string s)
 static void getBoxInputsAndOutputs(const Tree t, int& numInputs, int& numOutputs)
 {
 	if (!getBoxType(t, &numInputs, &numOutputs)) {
-		cerr << "ERROR during the evaluation of t : " << boxpp(t) << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR during the evaluation of t : " << boxpp(t) << endl;
+        throw faustexception(error.str());
 	}
 	//cerr << "Documentator : " << numInputs <<" inputs and " << numOutputs <<" outputs for box : " << boxpp(t) << endl;
 }
@@ -849,8 +851,9 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
 	/** 1. Evaluate expression. */
 	Tree docdgm = evaldocexpr(expr, gExpandedDefList);
 	if (gErrorCount > 0) {
-		cerr << "Total of " << gErrorCount << " errors during evaluation of : diagram docdgm = " << boxpp(docdgm) << ";\n";
-		exit(1);
+	    stringstream error;
+        error << "Total of " << gErrorCount << " errors during evaluation of : diagram docdgm = " << boxpp(docdgm) << ";\n";
+        throw faustexception(error.str());
 	}
 	
 	/**
@@ -923,8 +926,9 @@ vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlice
 			if (foundclosedoc != string::npos) isInsideDoc = false;
 		}
 	} else {
-		cerr << "ERROR : can't open faust source file " << faustfile << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR : can't open faust source file " << faustfile << endl;
+        throw faustexception(error.str());
 	}
 	return codeSlices;
 }
@@ -966,8 +970,9 @@ static bool doesFileBeginWithCode(const string& faustfile)
 			return true;
 		}
 	} else {
-		cerr << "ERROR : can't open faust source file " << faustfile << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR : can't open faust source file " << faustfile << endl;
+        throw faustexception(error.str());
 	}
 }	
 
@@ -990,8 +995,9 @@ static int makedir(const char* dirname)
 			return 0;
 		}
 	}
-	perror("makedir");
-	exit(errno);
+    stringstream error;
+    error << "ERROR in makedir " << strerror(errno) << endl;
+    throw faustexception(error.str());
 }
 
 
@@ -1015,8 +1021,9 @@ static int mkchdir(const char* dirname)
 			}
 		}
 	}
-	perror("mkchdir");
-	exit(errno);
+    stringstream error;
+    error << "ERROR in mkchdir " << strerror(errno) << endl;
+    throw faustexception(error.str());
 }
 
 
@@ -1028,8 +1035,9 @@ static int cholddir ()
 	if (chdir(gCurrentDir.c_str()) == 0) {
 		return 0;
 	} else {
-		perror("cholddir");
-		exit(errno);
+        stringstream error;
+        error << "ERROR in cholddir " << strerror(errno) << endl;
+        throw faustexception(error.str());
 	}
 }
 
@@ -1055,8 +1063,9 @@ static istream* openArchFile (const string& filename)
 	if ( (file = open_arch_stream(filename.c_str())) ) {
 		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
 	} else {
-		cerr << "ERROR : can't open architecture file " << filename << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR : can't open architecture file " << filename << endl;
+        throw faustexception(error.str());
 	}
 	cholddir();			// Return to current directory.
 	return file;

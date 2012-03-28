@@ -7,6 +7,7 @@
 
 #include "description.hh"
 #include "Text.hh"
+#include "exception.hh"
 
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
@@ -227,10 +228,7 @@ void Description::addGroup(int level, Tree t)
 		addLayoutLine(level, subst("<widgetref id=\"$0\" />", T(w)));
 
 	} else {
-
-		fprintf(stderr, "error in user interface generation 2\n");
-		exit(1);
-
+	     throw faustexception("ERROR in user interface generation");
 	}
 }
 
@@ -329,8 +327,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		addPassiveLine("</widget>");
 
 	} else {
-		fprintf(stderr, "Error describing widget : unrecognized expression\n");
-		exit(1);
+        throw faustexception("ERROR describing widget : unrecognized expression");
 	}
 
 	return fWidgetID;

@@ -44,6 +44,7 @@
 #include "tlib.hh"
 #include "sigorderrules.hh"
 #include "xtended.hh"
+#include "exception.hh"
 
 Tree ORDERPROP = tree(symbol("OrderProp"));
 
@@ -142,9 +143,9 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigAttach(sig, s1, s2)) 			return O(s1);
 				
-	else if (isRec(sig, var, body))				exit(1); //return 3;  // not supposed to happen.
+	else if (isRec(sig, var, body))				faustexception("ERROR infering signal order : isRec"); //return 3;  // not supposed to happen.
 				
-	else if (isRef(sig, var))					exit(1); //return 3;  // not supposed to happen. 
+	else if (isRef(sig, var))					faustexception("ERROR infering signal order : isRef"); //return 3;  // not supposed to happen. 
 
 	else if (isProj(sig, &i, s1))				return 3;
 	                                                	
@@ -174,8 +175,6 @@ static int infereSigOrder(Tree sig)
 	}
 	
 	// unrecognized signal here
-	fprintf(stderr, "ERROR infering signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
-	exit(1);
-	return 0;
+    throw faustexception("ERROR infering signal order : unrecognized signal");
 }
 

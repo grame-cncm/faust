@@ -42,7 +42,7 @@
 #include "property.hh"
 #include "names.hh"
 #include "compatibility.hh"
-
+#include "exception.hh"
 
 #include <assert.h>
 extern SourceReader	gReader;
@@ -186,7 +186,7 @@ static Tree real_a2sb(Tree exp)
 	
 		} else {
 			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure ", exp);
-			exit(1);
+            throw faustexception("a2sb : internal error : not an abstraction inside closure");
 		}
 		
 	} else if (isBoxPatternMatcher(exp)) {
@@ -360,7 +360,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             return eval(closure(var,notused,visited2,lenv2), visited, localValEnv);
         } else {
             evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
-            exit(1);
+            throw faustexception("No environment to access");
         }
 
 //////////////////////en chantier////////////////////////////
@@ -374,9 +374,9 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             return eval(closure(exp2,notused,visited2,lenv3), visited, localValEnv);
         } else {
 
-            evalerror(getDefFileProp(exp), getDefLineProp(exp), "not a closure ", val);
+            evalerror(getDefFileProp(exp), getDefLineProp(exp), "Not a closure ", val);
             evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
-            exit(1);
+            throw faustexception("No environment to access");
         }
 
 ///////////////////////////////////////////////////////////////////
@@ -997,9 +997,10 @@ static Tree applyList (Tree fun, Tree larg)
 						boxPatternMatcher(automat, state2, vec2list(envVect), originalRules, cons(hd(larg),revParamList)),
 						tl(larg) );
 		} else if (state2 < 0) {
-			cerr << "ERROR : pattern matching failed, no rule of " << boxpp(boxCase(originalRules)) 
+		    stringstream error;
+            error << "ERROR : pattern matching failed, no rule of " << boxpp(boxCase(originalRules)) 
 				 << " matches argument list " << boxpp(reverse(cons(hd(larg), revParamList))) << endl;
-			exit(1);
+            throw faustexception(error.str());
 		} else {
 			// Pattern Matching was succesful
 			// the result is a closure that we need to evaluate.
@@ -1058,12 +1059,12 @@ static Tree applyList (Tree fun, Tree larg)
 
     if (isBoxEnvironment(abstr)) {
         evalerrorbox(yyfilename, -1, "an environment can't be used as a function", fun);
-        exit(1);
+        throw faustexception("an environment can't be used as a function");
     }
 
     if (!isBoxAbstr(abstr, id, body)) {
         evalerror(yyfilename, -1, "(internal) not an abstraction inside closure", fun);
-        exit(1);
+        throw faustexception("(internal) not an abstraction inside closure");
     }
 
 	// try to synthetise a  name from the function name and the argument name
@@ -1120,7 +1121,7 @@ static Tree larg2par (Tree larg)
 {
 	if (isNil(larg)) {
 		evalerror(yyfilename, -1, "empty list of arguments", larg);
-		exit(1);
+        throw faustexception("empty list of arguments");
 	}
 	if (isNil(tl(larg))) {
 		return hd(larg);
@@ -1152,9 +1153,10 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
 	// check that the definition exists
 	if (isNil(lenv)) {
-        cerr << "undefined symbol " << *id << endl;
-		evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol ", id);
-		exit(1);
+    	evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol ", id);
+	    stringstream error;
+        error << "undefined symbol " << *id << endl;
+        throw faustexception(error.str());
 	}
 
     //cerr << "Id definition is " << *def << endl;
@@ -1333,8 +1335,9 @@ Tree numericBoxSimplification(Tree box)
     double  x;
 
     if ( ! getBoxType(box, &ins, &outs)) {
-        cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", Can't compute the box type of : " << *box << endl;
-        exit(1);
+        stringstream error;
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", Can't compute the box type of : " << *box << endl;
+        throw faustexception(error.str());
     }
 
     if (ins==0 && outs==1) {
@@ -1532,7 +1535,8 @@ Tree insideBoxSimplification (Tree box)
         return boxRec(s1,s2);
     }
 
-    cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << *box << endl;
-    exit(1);
+    stringstream error;
+    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << *box << endl;
+    throw faustexception(error.str());
     return 0;
 }

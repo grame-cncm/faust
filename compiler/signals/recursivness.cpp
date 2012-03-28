@@ -24,6 +24,7 @@
 #include <limits.h>
 #include "recursivness.hh"
 #include "property.hh"
+#include "exception.hh"
 
 #include "signals.hh"
 #include "ppsig.hh"
@@ -72,9 +73,10 @@ void recursivnessAnnotation(Tree sig)
 int getRecursivness(Tree sig)
 {
 	Tree tr;
-	if ( ! getProperty(sig, RECURSIVNESS, tr)) {
-		cerr << "Error in getRecursivness of " << *sig << endl;
-		exit(1);
+	if (!getProperty(sig, RECURSIVNESS, tr)) {
+        stringstream error;
+        error << "ERROR in getRecursivness of " << *sig << endl;
+        throw faustexception(error.str());
 	}
 	return tree2int(tr);
 }

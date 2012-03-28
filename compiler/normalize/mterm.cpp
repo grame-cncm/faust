@@ -2,7 +2,9 @@
 #include "signals.hh"
 #include "ppsig.hh"
 #include "xtended.hh"
+#include "exception.hh"
 #include <assert.h>
+
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
 #undef TRACE
@@ -377,7 +379,7 @@ static void combineMulLeft(Tree& R, Tree A)
 {
 	if (R && A) 	R = sigMul(R,A);
 	else if (A)		R = A;
-    else exit(1);
+    else throw faustexception("ERROR in combineMulLeft");
 }
 
 /**
@@ -387,7 +389,7 @@ static void combineDivLeft(Tree& R, Tree A)
 {
 	if (R && A) 	R = sigDiv(R,A);
 	else if (A)		R = sigDiv(tree(1.0f),A);
-    else exit(1);
+    else throw faustexception("ERROR in combineDivLeft");
 }
 
 /**	

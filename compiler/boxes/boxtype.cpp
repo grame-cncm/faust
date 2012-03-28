@@ -45,7 +45,7 @@
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "xtended.hh"
-
+#include "exception.hh"
 
 Tree BOXTYPEPROP = tree(symbol("boxTypeProp"));
 static bool infereBoxType (Tree box, int* inum, int* onum);
@@ -146,10 +146,11 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		if (!getBoxType(b, &x, &y)) return false;
 
 		if (v != x) {
-            cerr    << "Error in sequential composition (A:B)" << endl
+            stringstream error;
+            error   << "Error in sequential composition (A:B)" << endl
                     << "The number of outputs (" << v << ") of A = " << boxpp(a) << endl
                     << "must be equal to the number of inputs (" << x << ") of B : " << boxpp(b) << endl;
-            exit(1);
+            throw faustexception(error.str());
 		} else {
 			*inum = u; *onum = y;
 		}
@@ -169,23 +170,26 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		if (!getBoxType(b, &x, &y)) return false;
 
         if (v == 0) {
-            cerr    << "Connection error in : " << boxpp(t) << endl
+            stringstream error;
+            error   << "Connection error in : " << boxpp(t) << endl
                     << "The first expression : " << boxpp(a) << " has no outputs" << endl;
-            exit(1);
+            throw faustexception(error.str());
         }
         
         if (x == 0) {
-            cerr    << "Connection error in : " << boxpp(t) << endl
+            stringstream error;
+            error   << "Connection error in : " << boxpp(t) << endl
                     << "The second expression : " << boxpp(b) << " has no inputs" << endl;
-            exit(1);
+            throw faustexception(error.str());
         }
 		 
 		if (x % v != 0) {
-			cerr 	<< "Connection error in : " << boxpp(t) << endl
+            stringstream error;
+            error   << "Connection error in : " << boxpp(t) << endl
 					<< "The number of outputs " << v
 					<< " of the first expression should be a divisor of the number of inputs " << x
 					<< " of the second expression" << endl;
-			exit(1);
+			throw faustexception(error.str());
 		}
 		
 		*inum = u; *onum = y;
@@ -197,23 +201,26 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		if (!getBoxType(b, &x, &y)) return false;
 
         if (v == 0) {
-            cerr    << "Connection error in : " << boxpp(t) << endl
+            stringstream error;
+            error   << "Connection error in : " << boxpp(t) << endl
                     << "The first expression : " << boxpp(a) << " has no outputs" << endl;
-            exit(1);
+            throw faustexception(error.str());
         }
         
         if (x == 0) {
-            cerr    << "Connection error in : " << boxpp(t) << endl
+            stringstream error;
+            error   << "Connection error in : " << boxpp(t) << endl
                     << "The second expression : " << boxpp(b) << " has no inputs" << endl;
-            exit(1);
+            throw faustexception(error.str());
         }
         
 		if (v % x != 0) { 
-			cerr 	<< "Connection error in : " << boxpp(t) << endl
+			stringstream error;
+            error   << "Connection error in : " << boxpp(t) << endl
 					<< "The number of outputs " << v
 					<< " of the first expression should be a multiple of the number of inputs " << x
 					<< " of the second expression" << endl;
-			exit(1);
+            throw faustexception(error.str());
 		}
 
 		*inum = u; *onum = y;
@@ -224,23 +231,26 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
 		if ( (x > v) | (y > u) ) { 
-			cerr 	<< "Connection error in : " << boxpp(t) << endl;
-			if (x > v) cerr << "The number of outputs " << v 
-							<< " of the first expression should be greater or equal \n  to the number of inputs " << x 
+			stringstream error;
+            error	<< "Connection error in : " << boxpp(t) << endl;
+			if (x > v) error << "The number of outputs " << v 
+                            << " of the first expression should be greater or equal \n  to the number of inputs " << x 
 							<< " of the second expression" << endl;
-			if (y > u) cerr	<< "The number of inputs " << u
+			if (y > u) error	<< "The number of inputs " << u
 							<< " of the first expression should be greater or equal \n  to the number of outputs " << y
 							<< " of the second expression" << endl;
-			exit(1);
+			throw faustexception(error.str());
 		}
 		*inum = max(0,u-y); *onum = v;
 		
     } else if (isBoxEnvironment(t)) {
-        cerr << "Connection error : an environment is not a block-diagram : " << boxpp(t) << endl;
-        exit(1);
+        stringstream error;
+        error << "Connection error : an environment is not a block-diagram : " << boxpp(t) << endl;
+        throw faustexception(error.str());
     } else {
-        cerr << "boxType() internal error : unrecognized box expression " << boxpp(t) << endl;
-        exit(1);
+        stringstream error;
+        error << "boxType() internal error : unrecognized box expression " << boxpp(t) << endl;
+        throw faustexception(error.str());
 	}
 	return true;
 }	

@@ -39,6 +39,7 @@
 #include "simplify.hh"
 #include "xtended.hh"
 #include "prim2.hh"
+#include "exception.hh"
 
 extern int gMaxCopyDelay;
 extern bool gOpenCLSwitch;
@@ -427,8 +428,9 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
     mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
 
     if (!getVectorNameProperty(exp, vname)) {
-        cerr << "no vector name for " << ppsig(exp) << endl;
-        exit(1);
+        stringstream error;
+        error << "No vector name for " << ppsig(exp) << endl;
+        throw faustexception(error.str());
     }
 
     if (mxd == 0) {

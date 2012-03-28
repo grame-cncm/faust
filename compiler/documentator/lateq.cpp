@@ -46,7 +46,7 @@
 
 #include "lateq.hh"
 #include "Text.hh"
-
+#include "exception.hh"
 
 map<string, string>		gDocMathStringMap;
 set<string>				gDocMathKeySet;
@@ -500,16 +500,14 @@ static int getLateqIndex(const string& s)
 	string sIndex;
 		
 	p1 = s.find("_{"); 
-	if (p1==string::npos) {
-		cerr << "Error : getLateqIndex found no \"{_\" substring.\n";
-		exit(1); 
+	if (p1 == string::npos) {
+        throw faustexception("ERROR : getLateqIndex found no \"{_\" substring.");
     }
 	p1 += 2;
 	
 	p2 = s.find("}", p1); 
-	if (p2==string::npos) {
-		cerr << "Error : getLateqIndex found no \"}\" substring\n.";
-		exit(1); 
+	if (p2 == string::npos) {
+		throw faustexception("ERROR : getLateqIndex found no \"{_\" substring.");
     }
 	p2 -= 3;
 	

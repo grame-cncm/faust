@@ -47,6 +47,7 @@
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "xtended.hh"
+#include "exception.hh"
 
 
 /*****************************************************************************
@@ -195,9 +196,13 @@ Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 	}
 }
 #else
+
 Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 {
-	if (isNil (revarglist)) exit(1); // a revoir !!!!!!
+	if (isNil (revarglist)) {
+        // a revoir !!!!!!
+        throw faustexception("Error : buildBoxAppl called with null revarglist");
+    }
 	return  boxAppl(fun, revarglist);
 }
 #endif
@@ -560,8 +565,9 @@ static Tree preparePattern(Tree box)
 
         // None of the previous tests succeded, then it is not a valid box
         else {
-            cerr << "Error in preparePattern() : " << *box << " is not a valid box" << endl;
-            exit(1);
+            stringstream error;
+            error << "Error in preparePattern() : " << *box << " is not a valid box" << endl;
+            throw faustexception(error.str());
         }
 
 

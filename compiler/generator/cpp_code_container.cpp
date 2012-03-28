@@ -31,6 +31,7 @@
 #include "cpp_gpu_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
+#include "exception.hh"
 #include "loki/SafeFormat.h"
 
 using namespace std;
@@ -57,8 +58,7 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
 
     if (gOpenCLSwitch) {
         if (gFunTaskSwitch) {
-            cerr << "ERROR : -fun not yet supported in OpenCL mode" << endl;
-            exit(1);
+            throw faustexception("ERROR : -fun not yet supported in OpenCL mode");
         }
         if (gVectorSwitch) {
             container = new CPPOpenCLVectorCodeContainer(name, super, numInputs, numOutputs, dst);
@@ -67,8 +67,7 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
         }
     } else if (gCUDASwitch) {
         if (gFunTaskSwitch) {
-            cerr << "ERROR : -fun not yet supported in CUDA mode" << endl;
-            exit(1);
+            throw faustexception("ERROR : -fun not yet supported in CUDA mode");
         }
         if (gVectorSwitch) {
             container = new CPPCUDAVectorCodeContainer(name, super, numInputs, numOutputs, dst);

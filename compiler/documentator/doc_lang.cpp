@@ -35,7 +35,7 @@
 #include "lateq.hh"
 #include "enrobage.hh"
 #include "compatibility.hh"
-
+#include "exception.hh"
 
 
 extern map<string, string>	gDocNoticeStringMap;
@@ -213,8 +213,6 @@ static void printStringMapContent(map<string,string>& m, const string& name) {
 }
 
 
-
-
 //------------------------ file managment -------------------------
 
 
@@ -228,8 +226,9 @@ static istream* openArchFile (const string& filename)
 	if ( (file = open_arch_stream(filename.c_str())) ) {
 		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
 	} else {
-		cerr << "ERROR : can't open architecture file " << filename << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR : can't open architecture file " << filename << endl;
+        throw faustexception(error.str());
 	}
 	cholddir();			// Return to current directory.
 	return file;
@@ -244,8 +243,9 @@ static int cholddir ()
 	if (chdir(gCurrentDir.c_str()) == 0) {
 		return 0;
 	} else {
-		perror("cholddir");
-		exit(errno);
+        stringstream error;
+        error << "ERROR in cholddir " << strerror(errno) << endl;
+        throw faustexception(error.str());
 	}
 }
 

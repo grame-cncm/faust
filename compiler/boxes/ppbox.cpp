@@ -27,7 +27,7 @@
 #include "signals.hh"
 #include "prim2.hh"
 #include "xtended.hh"
-
+#include "exception.hh"
 
 const char * prim0name(CTree *(*ptr) ())
 {
@@ -290,8 +290,9 @@ ostream& boxpp::print (ostream& fout) const
 	
 	// None of the previous tests succeded, then it is not a valid box
 	else {
-        cerr << "Error in box::print() : " << *box << " is not a valid box" << endl;
-		exit(1);
+        stringstream error;
+        error << "Error in box::print() : " << *box << " is not a valid box" << endl;
+        throw faustexception(error.str());
 	}
 
 	return fout;

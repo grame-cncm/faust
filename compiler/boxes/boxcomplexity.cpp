@@ -31,7 +31,8 @@
 
 #include <ostream>
 #include "xtended.hh"
-#include "boxcomplexity.h"
+#include "boxcomplexity.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -149,8 +150,9 @@ int computeBoxComplexity (Tree box)
 	//a completer
 	else {
 		//fout << tree2str(box);
-		cerr << "ERROR in boxComplexity : not an evaluated box [[  " << *box << " ]]";
-		exit(-1);
+        stringstream error;
+        error << "ERROR in boxComplexity : not an evaluated box [[  " << *box << " ]]";
+        throw faustexception(error.str());
 	}
 
 	return -1;

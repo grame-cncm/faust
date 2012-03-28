@@ -24,6 +24,7 @@
 #include "tree.hh"
 #include "sigtype.hh"
 #include "property.hh"
+#include "exception.hh"
 
 int     AudioType::gAllocationCount = 0;
 
@@ -192,9 +193,10 @@ Type operator| ( const Type& t1, const Type& t2)
 
 	} else {
 
-		cerr << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
-		exit(1);
-		return 0;
+	    stringstream error;
+        error << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
+        throw faustexception(error.str());
+
 	}
 }
 
@@ -278,8 +280,9 @@ Type checkInt(Type t)
 	// verifie que t est entier
 	SimpleType* st = isSimpleType(t);
 	if (st == 0 || st->nature() > kInt) {
-		cerr << "Error : checkInt failed for type " << t << endl;
-		exit(1);
+        stringstream error;
+        error << "Error : checkInt failed for type " << t << endl;
+        throw faustexception(error.str());
 	}
 	return t;
 }
@@ -288,8 +291,9 @@ Type checkKonst(Type t)
 {
 	// verifie que t est constant
 	if (t->variability() > kKonst) {
-		cerr << "Error : checkKonst failed for type " << t << endl;
-		exit(1);
+        stringstream error;
+        error << "Error : checkKonst failed for type " << t << endl;
+        throw faustexception(error.str());
 	}
 	return t;
 }
@@ -298,8 +302,9 @@ Type checkInit(Type t)
 {
 	// verifie que t est connu a l'initialisation
 	if (t->computability() > kInit) {
-		cerr << "Error : checkInit failed for type " << t << endl;
-		exit(1);
+        stringstream error;
+        error << "Error : checkInit failed for type " << t << endl;
+        throw faustexception(error.str());
 	}
 	return t;
 }
@@ -313,8 +318,9 @@ Type checkWRTbl(Type tbl, Type wr)
 {
 	// verifie que wr est compatible avec le contenu de tbl
 	if (wr->nature() > tbl->nature()) {
-		cerr << "Error : checkWRTbl failed, the content of  " << tbl << " is incompatible with " << wr << endl;
-		exit(1);
+        stringstream error;
+        error << "Error : checkWRTbl failed, the content of  " << tbl << " is incompatible with " << wr << endl;
+        throw faustexception(error.str());
 	}
 	return tbl;
 }
@@ -387,8 +393,9 @@ Tree codeAudioType(AudioType* t)
     } else if ((nt = isTupletType(t))) {
         r = codeTupletType(nt);
     } else {
-        cerr << "ERROR in codeAudioType() : invalide pointer " << t << endl;
-        exit(1);
+        stringstream error;
+        error << "ERROR in codeAudioType() : invalide pointer " << t << endl;
+        throw faustexception(error.str());
     }
 
     r->setType(t);

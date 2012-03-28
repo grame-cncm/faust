@@ -1,5 +1,7 @@
 #include <signals.hh>
 #include <property.hh>
+#include <sstream>
+#include "exception.hh"
 
 /**
  * Extract the sub signals of a signal expression, that is not
@@ -68,8 +70,9 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen)
     else if ( isNil(sig) )                          { return 0; }
 
 	else {
-		cerr << "ERROR, unrecognized signal : " << *sig << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR, unrecognized signal : " << *sig << endl;
+        throw faustexception(error.str());
 	}
 	return 0;
 }

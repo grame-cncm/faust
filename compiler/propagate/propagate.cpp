@@ -30,6 +30,7 @@
 #include "Text.hh"
 #include "ppsig.hh"
 #include "names.hh"
+#include "exception.hh"
 
 //extern bool gPrintDocSwitch;
 //static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
@@ -260,7 +261,6 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		if (!searchEnv(box,sig,slotenv)) {
 			// test YO simplification des diagrames
 			//fprintf(stderr, "propagate : internal error (slot undefined)\n");
-			//exit(1);
 			sig = sigInput(++gDummyInput);
 		}
 		return makeList(sig);
@@ -436,8 +436,10 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
         return makeSigProjList(g, out1);
     }
 
-	cout << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
-	exit(1);
+    stringstream error;
+    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
+    throw faustexception(error.str());
+
 	return siglist();
 }
 
