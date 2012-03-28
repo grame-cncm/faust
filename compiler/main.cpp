@@ -83,11 +83,7 @@ using namespace std;
  						Parser variables
 *****************************************************************/
 
-int yyparse();
-
 int 			yyerr;
-extern int 	    yydebug;
-extern FILE*	yyin;
 Tree 			gResult;
 Tree 			gResult2;
 
@@ -554,7 +550,6 @@ static void parseSourceFiles()
 
     list<string>::iterator s;
     gResult2 = nil;
-    yyerr = 0;
 
     if (gInputFiles.begin() == gInputFiles.end()) {
         cerr << "ERROR: no files specified; for help type \"faust --help\"" << endl;
@@ -564,10 +559,7 @@ static void parseSourceFiles()
         if (s == gInputFiles.begin()) gMasterDocument = *s;
         gResult2 = cons(importFile(tree(s->c_str())), gResult2);
     }
-    if (yyerr > 0) {
-        //fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
-        exit(1);
-    }
+   
     gExpandedDefList = gReader.expandlist(gResult2);
 
     endTiming("parser");
@@ -826,57 +818,63 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
 int main(int argc, char* argv[])
 {
-	/****************************************************************
-	 1 - process command line
-	*****************************************************************/
-	process_cmdline(argc, argv);
+    try {
+        
+        /****************************************************************
+         1 - process command line
+        *****************************************************************/
+        process_cmdline(argc, argv);
 
-	if (gHelpSwitch) 		{ printhelp(); exit(0); }
-	if (gVersionSwitch) 	{ printversion(); exit(0); }
+        if (gHelpSwitch) 		{ printhelp(); exit(0); }
+        if (gVersionSwitch) 	{ printversion(); exit(0); }
 
-    initFaustDirectories();
-#ifndef WIN32
-    alarm(gTimeout);
-#endif
+        initFaustDirectories();
+    #ifndef WIN32
+        alarm(gTimeout);
+    #endif
 
-	/****************************************************************
-	 2 - parse source files
-	*****************************************************************/
-    parseSourceFiles();
+        /****************************************************************
+         2 - parse source files
+        *****************************************************************/
+        parseSourceFiles();
 
-	/****************************************************************
-	 3 - evaluate 'process' definition
-	*****************************************************************/
-    int numInputs, numOutputs;
-    Tree process = evaluateBlockDiagram(gExpandedDefList, numInputs, numOutputs);
+        /****************************************************************
+         3 - evaluate 'process' definition
+        *****************************************************************/
+        int numInputs, numOutputs;
+        Tree process = evaluateBlockDiagram(gExpandedDefList, numInputs, numOutputs);
 
-	/****************************************************************
-	 4 - compute output signals of 'process'
-	*****************************************************************/
-	startTiming("propagation");
+        /****************************************************************
+         4 - compute output signals of 'process'
+        *****************************************************************/
+        startTiming("propagation");
 
-	Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
+        Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
 
-	if (gDetailsSwitch) {
-		cerr << "output signals are : " << endl;
-		Tree ls =  lsignals;
-		while (! isNil(ls)) {
-			cerr << ppsig(hd(ls)) << endl;
-			ls = tl(ls);
-		}
-	}
+        if (gDetailsSwitch) {
+            cerr << "output signals are : " << endl;
+            Tree ls =  lsignals;
+            while (! isNil(ls)) {
+                cerr << ppsig(hd(ls)) << endl;
+                ls = tl(ls);
+            }
+        }
 
-	endTiming("propagation");
+        endTiming("propagation");
 
-	/****************************************************************
-	5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
-	*****************************************************************/
-    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
+        /****************************************************************
+        5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
+        *****************************************************************/
+        pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
 
-    /****************************************************************
-     6 - generate xml description, documentation or dot files
-    *****************************************************************/
-    generateOutputFiles(comp_container.first, comp_container.second);
+        /****************************************************************
+         6 - generate xml description, documentation or dot files
+        *****************************************************************/
+        generateOutputFiles(comp_container.first, comp_container.second);
+    
+    } catch (faustexception& e) {
+        e.PrintMessage();
+    }
 
 	return 0;
 }

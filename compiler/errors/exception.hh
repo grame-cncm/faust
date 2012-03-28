@@ -44,7 +44,7 @@ class faustexception : public std::runtime_error {
 
         void PrintMessage()
         {
-            cerr << what() << endl;
+            cerr << what();
         }
 };
 
