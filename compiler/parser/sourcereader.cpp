@@ -15,6 +15,7 @@
 #include "enrobage.hh"
 #include "ppbox.hh"
 #include "exception.hh"
+#include "faustlexer.cxx"
 
 using namespace std;
 
@@ -204,12 +205,51 @@ Tree SourceReader::parse(string fname)
 		fprintf(stderr, "Parse error : code = %d \n", r); 
 	}
 	if (yyerr > 0) {
-		//fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr); 
-		exit(1);
+        stringstream error;
+        error << "ERROR : parse, code = " << yyerr << endl;
+        throw faustexception(error.str());
 	}
+    
+    /*
+    Dom code...
+    yyrestart(yyin);
+	BEGIN(INITIAL);
+    */
 
 	// we have parsed a valid file
 	fFilePathnames.push_back(fullpath);
+	return gResult;
+}
+
+Tree SourceReader::readstring(const char * buffer) 
+{
+	if (!*buffer) return false;		// error for empty buffers
+
+	YY_BUFFER_STATE b;
+    /*Copy string into new buffer and Switch buffers*/
+    b = yy_scan_string (buffer);
+
+    /*Parse the string*/
+    int r = yyparse();
+ 	if (r) { 
+		fprintf(stderr, "Parse error : code = %d \n", r); 
+	}
+	if (yyerr > 0) {
+        stringstream error;
+        error << "ERROR : parse, code = " << yyerr << endl;
+        throw faustexception(error.str());
+	}
+
+    /*Delete the new buffer*/
+    yy_delete_buffer(b);
+
+    /*
+    Dom code...
+	BEGIN(INITIAL);
+    */
+    
+	// we have parsed a valid file
+	fFilePathnames.push_back(buffer);
 	return gResult;
 }
 
