@@ -224,6 +224,8 @@ Tree SourceReader::parse(string fname)
 Tree SourceReader::readstring(const char * buffer) 
 {
 	if (!*buffer) return false;		// error for empty buffers
+    
+    printf("readstring %s\n", buffer);
 
 	YY_BUFFER_STATE b;
     /*Copy string into new buffer and Switch buffers*/
@@ -247,6 +249,8 @@ Tree SourceReader::readstring(const char * buffer)
     Dom code...
 	BEGIN(INITIAL);
     */
+    
+    printf("readstring OK %s %x\n", buffer, gResult);
     
 	// we have parsed a valid file
 	fFilePathnames.push_back(buffer);

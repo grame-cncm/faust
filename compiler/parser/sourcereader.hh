@@ -18,7 +18,7 @@ class SourceReader
 	map<string, Tree>	fFileCache;
 	vector<string>		fFilePathnames;
 	Tree parse(string fname);
-    Tree readstring(const char * buffer);
+    
 	Tree expandrec(Tree ldef, set<string>& visited, Tree lresult);
 	
 public:
@@ -26,6 +26,8 @@ public:
 	Tree getlist(string fname);
 	Tree expandlist(Tree ldef);
 	vector<string>	listSrcFiles();
+    
+    Tree readstring(const char * buffer);
 };
 
 

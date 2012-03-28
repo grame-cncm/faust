@@ -24,8 +24,8 @@ else
 ARCHFLAGS 	:= 
 endif
 
-##CXXFLAGS ?= -O1 -g -Wall -Wuninitialized 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized  
+CXXFLAGS ?= -g -Wall -Wuninitialized 
+##CXXFLAGS ?= -O3 -Wall -Wuninitialized  
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 
@@ -33,6 +33,9 @@ all : faust
 
 faust : $(objects)
 	$(CXX) $(CXXFLAGS) $(objects) `llvm-config --ldflags --libs all` -ldl -o faust
+
+libfaust : $(objects)
+	$(CXX) -g $(CXXFLAGS) $(objects) `llvm-config --ldflags --libs all` -ldl -shared -o libfaust.dylib
 
 
 .PHONY: clean depend ctags parser

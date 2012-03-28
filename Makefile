@@ -16,6 +16,9 @@ all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
 
+lib :
+	$(MAKE) -C compiler -f $(MAKEFILE) -f libfaust prefix=$(prefix)
+
 httpd :
 	$(MAKE) -C architecture/httpdlib/src
 

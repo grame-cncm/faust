@@ -165,6 +165,8 @@ bool			gDSPStruct = false;
 
 string			gClassName = "mydsp";
 
+Module*         gModule = 0;
+
 //-- command line tools
 
 static bool isCmd(const char* cmd, const char* kw1)
@@ -292,8 +294,9 @@ static bool process_cmdline(int argc, char* argv[])
             gVectorLoopVariant = atoi(argv[i+1]);
             if (gVectorLoopVariant < 0 ||
                 gVectorLoopVariant > 1) {
-                cerr << "faust: invalid loop variant: \"" << gVectorLoopVariant <<"\"" << endl;
-                exit(1);
+                stringstream error;
+                error << "faust: invalid loop variant: \"" << gVectorLoopVariant <<"\"" << endl;
+                throw faustexception(error.str());
             }
             i += 2;
 
@@ -391,8 +394,9 @@ static bool process_cmdline(int argc, char* argv[])
     if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
 
     if (gVecLoopSize > gVecSize) {
-        cerr << "[-vls = "<< gVecLoopSize << "] has to be <= [-vs = " << gVecSize << "]" << endl;
-        exit(1);
+        stringstream error;
+        error << "[-vls = "<< gVecLoopSize << "] has to be <= [-vs = " << gVecSize << "]" << endl;
+        throw faustexception(error.str());
     }
 
 	return err == 0;
@@ -552,8 +556,9 @@ static void parseSourceFiles()
     gResult2 = nil;
 
     if (gInputFiles.begin() == gInputFiles.end()) {
-        cerr << "ERROR: no files specified; for help type \"faust --help\"" << endl;
-        exit(1);
+        stringstream error;
+        error << "ERROR: no files specified; for help type \"faust --help\"" << endl;
+        throw faustexception(error.str());
     }
     for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
         if (s == gInputFiles.begin()) gMasterDocument = *s;
@@ -565,15 +570,28 @@ static void parseSourceFiles()
     endTiming("parser");
 }
 
-static Tree evaluateBlockDiagram(Tree expandedDefList, int & numInputs, int & numOutputs)
+static void parseSourceFile(char* input)
+{
+    startTiming("parser");
+
+    list<string>::iterator s;
+    gResult2 = nil;
+
+    gReader.readstring(input);
+    gExpandedDefList = gResult;
+  
+    endTiming("parser");
+}
+
+static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
 
     Tree process = evalprocess(expandedDefList);
     if (gErrorCount > 0) {
-       // cerr << "Total of " << gErrorCount << " errors during evaluation of : process = " << boxpp(process) << ";\n";
-        cerr << "Total of " << gErrorCount << " errors during the compilation of  " << gMasterDocument << ";\n";
-        exit(1);
+        stringstream error;
+        error << "Total of " << gErrorCount << " errors during the compilation of  " << gMasterDocument << ";\n";
+        throw faustexception(error.str());
     }
 
     if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
@@ -583,14 +601,14 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int & numInputs, int & nu
         if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
             projname = gMasterDocument.substr(0, gMasterDocument.length()-4);
         }
-        if (gDrawPSSwitch)  { drawSchema( process, subst("$0-ps",  projname).c_str(), "ps" ); }
-        if (gDrawSVGSwitch) { drawSchema( process, subst("$0-svg", projname).c_str(), "svg" ); }
+        if (gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
+        if (gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
     }
 
     if (!getBoxType(process, &numInputs, &numOutputs)) {
-        cerr << "ERROR during the evaluation of  process : "
-             << boxpp(process) << endl;
-        exit(1);
+        stringstream error;
+        error << "ERROR during the evaluation of  process : " << boxpp(process) << endl;
+        throw faustexception(error.str());
     }
 
     if (gDetailsSwitch) {
@@ -646,10 +664,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         // Prepare signals
         comp->prepare(signals);
-
+     
         comp->compileMultiSignal(signals);
-        dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
-
+        gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
+  
     } else {
         if (gOutputLang == "c") {
 
@@ -685,8 +703,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             exit(0);
         }
         if (!container) {
-             cerr << "ERROR : cannot find compiler for " << "\"" << gOutputLang  << "\"" << endl;
-             exit(1);
+            stringstream error;
+            error << "ERROR : cannot find compiler for " << "\"" << gOutputLang  << "\"" << endl;
+            throw faustexception(error.str());
         }
         if (gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
@@ -749,8 +768,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 }
 
             } else {
-                cerr << "ERROR : can't open architecture file " << gArchFile << endl;
-                exit(1);
+                stringstream error;
+                error << "ERROR : can't open architecture file " << gArchFile << endl;
+                throw faustexception(error.str());
             }
         } else {
             if (gOutputLang != "js") {
@@ -816,8 +836,84 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
+#ifdef __cplusplus
+extern "C" int libmain(int argc, char* argv[], char* input);
+extern "C" Module* libmain_llvm(int argc, char* argv[], char* input);
+
+#endif
+
+int libmain(int argc, char* argv[], char* input)
+{
+    try {
+        
+        /****************************************************************
+         1 - process command line
+        *****************************************************************/
+        process_cmdline(argc, argv);
+
+        if (gHelpSwitch) 		{ printhelp(); exit(0); }
+        if (gVersionSwitch) 	{ printversion(); exit(0); }
+
+        initFaustDirectories();
+    #ifndef WIN32
+        alarm(gTimeout);
+    #endif
+
+        /****************************************************************
+         2 - parse source files
+        *****************************************************************/
+        parseSourceFile(input);
+
+        /****************************************************************
+         3 - evaluate 'process' definition
+        *****************************************************************/
+        int numInputs, numOutputs;
+        Tree process = evaluateBlockDiagram(gExpandedDefList, numInputs, numOutputs);
+
+        /****************************************************************
+         4 - compute output signals of 'process'
+        *****************************************************************/
+        startTiming("propagation");
+
+        Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
+
+        if (gDetailsSwitch) {
+            cerr << "output signals are : " << endl;
+            Tree ls =  lsignals;
+            while (! isNil(ls)) {
+                cerr << ppsig(hd(ls)) << endl;
+                ls = tl(ls);
+            }
+        }
+
+        endTiming("propagation");
+
+        /****************************************************************
+        5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
+        *****************************************************************/
+        pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
+
+        /****************************************************************
+         6 - generate xml description, documentation or dot files
+        *****************************************************************/
+        generateOutputFiles(comp_container.first, comp_container.second);
+    
+    } catch (faustexception& e) {
+        e.PrintMessage();
+    }
+
+	return 0;
+}
+
+Module* libmain_llvm(int argc, char* argv[], char* input)
+{
+    libmain(argc, argv, input);
+    return gModule;
+}
+
 int main(int argc, char* argv[])
 {
+
     try {
         
         /****************************************************************
