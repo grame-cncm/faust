@@ -166,6 +166,7 @@ bool			gDSPStruct = false;
 string			gClassName = "mydsp";
 
 Module*         gModule = 0;
+char*           gInputString = 0;
 
 //-- command line tools
 
@@ -570,18 +571,6 @@ static void parseSourceFiles()
     endTiming("parser");
 }
 
-static void parseSourceFile(char* input)
-{
-    startTiming("parser");
-
-    list<string>::iterator s;
-    gResult2 = nil;
-
-    gReader.readstring(input);
-    gExpandedDefList = gResult;
-  
-    endTiming("parser");
-}
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
@@ -862,7 +851,9 @@ int libmain(int argc, char* argv[], char* input)
         /****************************************************************
          2 - parse source files
         *****************************************************************/
-        parseSourceFile(input);
+        gInputString = input;
+        gInputFiles.push_back("input_string");
+        parseSourceFiles();
 
         /****************************************************************
          3 - evaluate 'process' definition

@@ -23,6 +23,7 @@ extern map<Tree, set<Tree> > gMetaDataSet;
 extern string gMasterDocument;
 extern vector<Tree> gDocVector;
 extern bool gLatexDocSwitch;
+extern char* gInputString;
 
 /****************************************************************
  						Parser variables
@@ -173,7 +174,6 @@ Tree formatDefinitions(Tree rldef)
 	
 	//cout << "list of definitions : " << *ldef2 << endl;
 	return ldef2;
-		
 }
 
 
@@ -185,11 +185,10 @@ Tree formatDefinitions(Tree rldef)
  * @return the list of definitions it contains
  */
 
-Tree SourceReader::parse(string fname)
+Tree SourceReader::parsefile(string fname)
 {
-	string	fullpath;
-	
-	yyerr = 0;
+	string fullpath;
+  	yyerr = 0;
 	
 	yyfilename = fname.c_str();
 	yyin = fopensearch(yyfilename, fullpath);
@@ -210,29 +209,25 @@ Tree SourceReader::parse(string fname)
         throw faustexception(error.str());
 	}
     
-    /*
-    Dom code...
-    yyrestart(yyin);
-	BEGIN(INITIAL);
-    */
+    yylex_destroy();
+    
+    //Dom code...
+    //yyrestart(yyin);
+	//BEGIN(INITIAL);
 
 	// we have parsed a valid file
 	fFilePathnames.push_back(fullpath);
 	return gResult;
 }
 
-Tree SourceReader::readstring(const char * buffer) 
+Tree SourceReader::parsestring(string fname) 
 {
-	if (!*buffer) return false;		// error for empty buffers
-    
-    printf("readstring %s\n", buffer);
-
-	YY_BUFFER_STATE b;
     /*Copy string into new buffer and Switch buffers*/
-    b = yy_scan_string (buffer);
-
+    YY_BUFFER_STATE b = yy_scan_string(gInputString);
+ 
     /*Parse the string*/
     int r = yyparse();
+    
  	if (r) { 
 		fprintf(stderr, "Parse error : code = %d \n", r); 
 	}
@@ -242,18 +237,13 @@ Tree SourceReader::readstring(const char * buffer)
         throw faustexception(error.str());
 	}
 
-    /*Delete the new buffer*/
-    yy_delete_buffer(b);
-
-    /*
-    Dom code...
-	BEGIN(INITIAL);
-    */
-    
-    printf("readstring OK %s %x\n", buffer, gResult);
+    yylex_destroy();
+  
+    //Dom code...
+	//BEGIN(INITIAL);
     
 	// we have parsed a valid file
-	fFilePathnames.push_back(buffer);
+	fFilePathnames.push_back(fname);
 	return gResult;
 }
 
@@ -281,7 +271,11 @@ bool SourceReader::cached(string fname)
 Tree SourceReader::getlist(string fname)
 {
 	if (!cached(fname)) {
-		fFileCache[fname] = parse(fname);
+        if (fname == "input_string") {
+            fFileCache[fname] = parsestring(fname);
+        } else {
+            fFileCache[fname] = parsefile(fname);
+        }
 	}
     if (fFileCache[fname] == 0) {
         throw faustexception("getlist");
