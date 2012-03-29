@@ -210,11 +210,7 @@ Tree SourceReader::parsefile(string fname)
 	}
     
     yylex_destroy();
-    
-    //Dom code...
-    //yyrestart(yyin);
-	//BEGIN(INITIAL);
-
+ 
 	// we have parsed a valid file
 	fFilePathnames.push_back(fullpath);
 	return gResult;
@@ -223,7 +219,7 @@ Tree SourceReader::parsefile(string fname)
 Tree SourceReader::parsestring(string fname) 
 {
     /*Copy string into new buffer and Switch buffers*/
-    YY_BUFFER_STATE b = yy_scan_string(gInputString);
+    yy_scan_string(gInputString);
  
     /*Parse the string*/
     int r = yyparse();
@@ -238,10 +234,7 @@ Tree SourceReader::parsestring(string fname)
 	}
 
     yylex_destroy();
-  
-    //Dom code...
-	//BEGIN(INITIAL);
-    
+   
 	// we have parsed a valid file
 	fFilePathnames.push_back(fname);
 	return gResult;
