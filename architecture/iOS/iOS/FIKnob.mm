@@ -47,7 +47,6 @@
 	{
 		self.arcStartAngle = 90.0;
 		self.cutoutSize = 60.0;
-		self.valueArcWidth = 15.0;
         
 		// add the gesture recognizers for double & triple taps
 		UITapGestureRecognizer *doubleTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)] autorelease];

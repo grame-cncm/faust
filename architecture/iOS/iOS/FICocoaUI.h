@@ -55,6 +55,8 @@
 
 using namespace std;
 class CocoaUI;
+class uiCocoaItem;
+class uiBox;
 
 /******************************************************************************
  *******************************************************************************
@@ -78,21 +80,53 @@ class CocoaUI;
 // Global dimensions
 #define kWidgetSlice                    50.f
 #define kOffsetY                        20.f
-#define kLabelWidth                     80.f
 #define kSpaceSize                      5.f
 
 // Responders dimensions
-#define kStdKnobWidth                   100.0
-#define kStdKnobHeight                  100.0
-#define kStdHorizontalSliderHeight      20.0
-#define kStdVerticalSliderWidth         40.0
-#define kStdVerticalSliderHeight        170.0
+// Boxes
+#define kStdTabHeight                   25.f
+#define kMinBoxWidth                    100.f
+#define kMinBoxHeight                   100.f
+#define kStdBoxLabelWidth               100.0
+#define kStdBoxLabelHeight              20.0
+
+// Buttons
 #define kStdButtonWidth                 100.0
 #define kStdButtonHeight                40.0
+
+// Num entry
+#define kStdNumEntryWidth               100.0
 #define kStdNumEntryHeight              40.0
-#define kStdHorizontalBargraphHeight    20.0
-#define kStdVerticalBargraphWidth       20.0
-#define kStdVerticalBargraphHeight      170.0
+#define kStdNumEntryLabelWidth          100.0
+#define kStdNumEntryLabelHeight         20.0
+
+// Knob
+#define kStdKnobWidth                   100.0
+#define kStdKnobHeight                  100.0
+#define kStdKnobArcWidth                20.0
+#define kStdKnobLabelWidth              100.0
+#define kStdKnobLabelHeight             20.0
+
+// Slider
+#define kMinHorizontalSliderWidth       170.0
+#define kStdHorizontalSliderHeight      30.0
+#define kStdVerticalSliderWidth         30.0
+#define kMinVerticalSliderHeight        170.0
+#define kStdSliderLabelWidth            60.0
+#define kStdSliderLabelHeight           20.0
+
+// Bargraph
+#define kMinHorizontalBargraphWidth     170.0
+#define kStdHorizontalBargraphHeight    30.0
+#define kStdVerticalBargraphWidth       30.0
+#define kMinVerticalBargraphHeight      170.0
+#define kStdBargraphLabelWidth          60.0
+#define kStdBargraphLabelHeight         20.0
+
+// Routines
+CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box);
+CGPoint absolutePosition(uiCocoaItem* widget);
+
 
 
 class uiCocoaItem : public uiItem
@@ -102,6 +136,10 @@ protected:
     
     BOOL                fHidden;
     uiCocoaItem*        fParent;
+    float               fx;
+    float               fy;
+    float               fw;
+    float               fh;
     
 public:
     
@@ -112,6 +150,10 @@ public:
     {
         fHidden = false;
         fParent = NULL;
+        fx = 0.f;
+        fy = 0.f;
+        fw = 0.f;
+        fh = 0.f;
     }
     
     ~uiCocoaItem()
@@ -120,15 +162,16 @@ public:
     
     virtual void setHidden(BOOL hidden) = 0;
     
-    void setParent(uiCocoaItem* parent)
-    {
-        fParent = parent;
-    }
+    float getX()                                                    {return fx;}
+    float getY()                                                    {return fy;}
+    float getW()                                                    {return fw;}
+    float getH()                                                    {return fh;}
     
-    uiCocoaItem* getParent()
-    {
-        return fParent;
-    }
+    virtual void setFrame(float x, float y, float w, float h)       {fx = x; fy = y; fw = w; fh = h;}
+    
+    void setParent(uiCocoaItem* parent)                             {fParent = parent;}
+    
+    uiCocoaItem* getParent()                                        {return fParent;}
 };
 
 
@@ -139,13 +182,14 @@ class uiBox : public uiCocoaItem
     
 public:
     
-    FIBox*              fBox;
-    FITabView*          fTabView;
-    list <uiCocoaItem*> fWidgetList;        // if kTabLayout : boxes containing each tab elements ; else : elements within box
-    BOOL                fClosed;
-    int                 fBoxType;
-    float               fLastX;             // Current la; not used fo kTabLayout
-    float               fLastY;             // Not used fo kTabLayout
+    FIBox*                  fBox;
+    FITabView*              fTabView;
+    list <uiCocoaItem*>     fWidgetList;        // if kTabLayout : boxes containing each tab elements ; else : elements within box
+    BOOL                    fClosed;
+    int                     fBoxType;
+    float                   fLastX;
+    float                   fLastY;
+    UILabel*                fLabel;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
     : uiCocoaItem(ui, NULL, controller)
@@ -154,45 +198,156 @@ public:
         fBoxType = boxType;
         fLastX = 0.f;
         fLastY = 0.f;
+        fTabView = nil;
+        fLabel = nil;
         
         if (boxType == kTabLayout)
         {
             fTabView = [[[FITabView alloc] initWithDelegate:controller] autorelease];
-            float viewWidth = controller.dspView.frame.size.width;
-            fTabView.frame = CGRectMake(0.f, 0.f, viewWidth, 20.f);
-            
             fTabView.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
             fTabView.labelColor = [UIColor redColor];
             fTabView.backgroundColorAlpha = 0.4;
             fTabView.value = 0.f;
+            fTabView.autoresizingMask = UIViewAutoresizingNone;
             [controller.dspView addSubview:fTabView];
-            
-            tabOffset = 20.f;
+            tabOffset = kStdTabHeight;
         }
-        else
+        /*else
         {
-            fTabView = nil;
-        }
+            fLabel = [[[UILabel alloc] init] autorelease];
+            fLabel.font = [UIFont boldSystemFontOfSize:12];
+            fLabel.textAlignment = UITextAlignmentLeft;
+            fLabel.autoresizingMask = UIViewAutoresizingNone;
+            fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
+            fLabel.textColor = [UIColor blueColor];
+            fLabel.backgroundColor = [UIColor redColor];
+            [controller.dspView addSubview:fLabel];
+        }*/
+
         fClosed = FALSE;
         fBox = [[[FIBox alloc] init] autorelease];
         fBox.color = [UIColor blueColor];
-        fBox.frame = CGRectMake(0.f, 0.f, 1.f, 1.f);
-        fBox.autoresizingMask =     UIViewAutoresizingFlexibleWidth |
-                                    UIViewAutoresizingFlexibleRightMargin |
-                                    UIViewAutoresizingFlexibleLeftMargin;
-
-        [controller.dspView addSubview:fBox];
+        fBox.autoresizingMask = UIViewAutoresizingNone;
+        
+        [controller.dspView addSubview:fBox];        
     }
     
     ~uiBox()
     {
+        //if (fLabel) [fLabel release];
         [fBox release];
+    }
+    
+    int getNumberOfDirectChildren()
+    {
+        list<uiCocoaItem*>::iterator    i;
+        int                             cpt = 0;
+        
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            if ((*i)->getParent() == this)
+            {
+                cpt++;
+            }
+        }
+        
+        return cpt;
+    }
+    
+    void setFrame(float x, float y, float w, float h)
+    {
+        CGPoint                         pt = inBoxPosition2absolutePosition(x, y, fParent);
+        list<uiCocoaItem*>::iterator    i;
+
+        uiCocoaItem::setFrame(x, y, w, h);
+        
+        // For tab views : simply resize the tab corresponding box
+        if (fTabView)
+        {
+            fTabView.frame = CGRectMake(pt.x, pt.y, w, kStdTabHeight);
+            fBox.frame = CGRectMake(pt.x, pt.y + kStdTabHeight, w, h - kStdTabHeight);
+            
+            for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+            {
+                if ((*i)->getW() != w || (*i)->getW() != h - kStdTabHeight)
+                {
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), w, h - kStdTabHeight);
+                }
+            }
+        }
+        
+        // For vertical and horizontal boxes
+        else
+        {
+            fBox.frame = CGRectMake(pt.x, pt.y, w, h);
+            //fLabel.frame = CGRectMake(pt.x, pt.y, kStdBoxLabelWidth, kStdBoxLabelHeight);
+            
+            // 1st pass : easy
+            for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+            {
+                if (fBoxType == kVerticalLayout
+                    && (*i)->getW() < w - 2 * kSpaceSize
+                    && (*i)->getParent() == this)
+                {
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), w - 2 * kSpaceSize, (*i)->getH());
+                }
+                else if (fBoxType == kHorizontalLayout
+                         && (*i)->getH() < h - 2 * kSpaceSize
+                         && (*i)->getParent() == this)
+                {
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), h - 2 * kSpaceSize);
+                }
+            }
+            
+            // 2nd pass : more subtle
+            /*CGSize                          contentSize;
+            int                             numberOfDirectChildren = getNumberOfDirectChildren();
+
+            contentSize = getContentSize();
+            if (fBoxType == kVerticalLayout
+                && contentSize.height < getH() - kSpaceSize)
+            {
+                for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+                {
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), (getH() - 2 * kSpaceSize) / numberOfDirectChildren);
+                }
+            }
+            
+            if (fBoxType == kHorizontalLayout
+                && contentSize.width < getW() - kSpaceSize)
+            {
+                for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+                {
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), getW() - 2 * kSpaceSize / numberOfDirectChildren, (*i)->getH());
+                    
+                }
+            }*/
+        }
+    }
+    
+    CGSize getContentSize()
+    {
+        list<uiCocoaItem*>::iterator    i;
+        float                           maxW = 0.f;
+        float                           maxH = 0.f;
+                
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            if ((*i)->getParent() == this)
+            {
+                maxW = max((*i)->getX() + (*i)->getW(), maxW);
+                maxH = max((*i)->getY() + (*i)->getH(), maxH);
+            }
+        }
+
+        return CGSizeMake(maxW, maxH);
     }
     
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
         fBox.hidden = hidden;
+        if (fLabel) fLabel.hidden = hidden;
         
         list<uiCocoaItem*>::iterator i;
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
@@ -210,8 +365,6 @@ public:
     
     void close(int index)
     {        
-        [fBox updateFrame:CGRectMake(fBox.frame.origin.x, fBox.frame.origin.y, mainViewController.dspView.frame.size.width, kOffsetY + kWidgetSlice * index - fBox.frame.origin.y)];
-        
         fClosed = TRUE;
     }
     
@@ -255,18 +408,16 @@ public :
     uiKnob(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller)
     {        
-        /*CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - kSpaceSize, kLabelWidth, kStdKnobHeight);
-        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+        fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        fLabel.textAlignment = UITextAlignmentRight;
+        fLabel.textAlignment = UITextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
-        fLabel.backgroundColor = [UIColor blackColor];
-        [controller.dspView addSubview:fLabel];*/
+        fLabel.backgroundColor = [UIColor clearColor];
+        [controller.dspView addSubview:fLabel];
         
         fKnob = [[[FIKnob alloc] initWithDelegate:controller] autorelease];
-        fKnob.frame = CGRectMake(0.f, 0.f, kStdKnobWidth, kStdKnobHeight);
-        //fKnob.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
+        fKnob.autoresizingMask = UIViewAutoresizingNone;
         fKnob.labelFont = [UIFont boldSystemFontOfSize:14.0];
         fKnob.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
         fKnob.color = [UIColor blueColor];
@@ -274,20 +425,38 @@ public :
         fKnob.min = min;
         fKnob.max = max;
         fKnob.value = init;
+        fKnob.valueArcWidth = kStdKnobArcWidth;
         fKnob.backgroundColorAlpha = 0.4;
         [controller.dspView addSubview:fKnob];
     }
     
     ~uiKnob()
     {
-        //[fLabel release];
+        [fLabel release];
         [fKnob release];
+    }
+    
+    void setFrame(float x, float y, float w, float h)
+    {
+        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
+        
+        uiCocoaItem::setFrame(x, y, w, h);
+        
+        fKnob.frame = CGRectMake(   pt.x + (w - kStdKnobWidth) / 2.f,
+                                    pt.y + (h - kStdKnobHeight) / 2.f,
+                                    kStdKnobWidth,
+                                    kStdKnobHeight);
+        
+        fLabel.frame = CGRectMake(  pt.x + (w - kStdKnobLabelWidth) / 2.f,
+                                    pt.y + (h + kStdKnobHeight) / 2.f + kSpaceSize,
+                                    kStdKnobLabelWidth,
+                                    kStdKnobLabelHeight);
     }
     
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        //fLabel.hidden = hidden;
+        fLabel.hidden = hidden;
         fKnob.hidden = hidden;
     }
     
@@ -307,33 +476,26 @@ class uiSlider : public uiCocoaItem
 
 public :
     
-    FISlider*           fSlider;
-    UILabel*            fLabel;
+    FISlider*               fSlider;
+    UILabel*                fLabel;
+    BOOL                    fHorizontal;
     
     uiSlider(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller)
-    {
-        float viewWidth = controller.dspView.frame.size.width;
-        
-        /*CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - kSpaceSize, kLabelWidth, kStdHorizontalSliderHeight);
-        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+    {        
+        fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        fLabel.textAlignment = UITextAlignmentRight;
+        if (horizontal) fLabel.textAlignment = UITextAlignmentRight;
+        else fLabel.textAlignment = UITextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
-        fLabel.backgroundColor = [UIColor blackColor];
-        [controller.dspView addSubview:fLabel];*/
+        fLabel.backgroundColor = [UIColor clearColor];
+        [controller.dspView addSubview:fLabel];
         
         fSlider = [[[FISlider alloc] initWithDelegate:controller] autorelease];
-        if ((fSlider.isHorizontalSlider = horizontal))
-        {
-            fSlider.frame = CGRectMake(0.f, 0.f, viewWidth - kLabelWidth - kSpaceSize - kSpaceSize, kStdHorizontalSliderHeight);
-        }
-        else
-        {
-            fSlider.frame = CGRectMake(0.f, 0.f, kStdVerticalSliderWidth, kStdVerticalSliderHeight);
-        }
-        fSlider.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
+        fSlider.isHorizontalSlider = horizontal;
+        fHorizontal = horizontal;
+        fSlider.autoresizingMask = UIViewAutoresizingNone;
         fSlider.labelFont = [UIFont boldSystemFontOfSize:14.0];
         fSlider.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
         fSlider.color = [UIColor blueColor];
@@ -352,10 +514,42 @@ public :
         [fSlider release];
     }
     
+    void setFrame(float x, float y, float w, float h)
+    {
+        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
+        
+        uiCocoaItem::setFrame(x, y, w, h);
+
+        if (fHorizontal)
+        {
+            fLabel.frame = CGRectMake(  pt.x,
+                                        pt.y + (h - kStdSliderLabelHeight) / 2.f,
+                                        kStdSliderLabelWidth,
+                                        kStdSliderLabelHeight);
+            
+            fSlider.frame = CGRectMake( pt.x + kStdSliderLabelWidth + kSpaceSize,
+                                        pt.y + (h - kStdHorizontalSliderHeight) / 2.f,
+                                        w - kStdSliderLabelWidth - kSpaceSize,
+                                        kStdHorizontalSliderHeight);
+        }
+        else
+        {
+            fSlider.frame = CGRectMake( pt.x + (w - kStdVerticalSliderWidth) / 2.f,
+                                        pt.y,
+                                        kStdVerticalSliderWidth,
+                                        h - kSpaceSize - kStdSliderLabelHeight);
+            
+            fLabel.frame = CGRectMake(  pt.x + (w - kStdSliderLabelWidth) / 2.f,
+                                        pt.y + h - kSpaceSize - kStdSliderLabelHeight,
+                                        kStdSliderLabelWidth,
+                                        kStdSliderLabelHeight);
+        }
+    }
+    
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        //fLabel.hidden = hidden;
+        fLabel.hidden = hidden;
         fSlider.hidden = hidden;
     }
     
@@ -380,19 +574,14 @@ public:
     uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
     : uiCocoaItem(ui, zone, controller)
     {
-        // Create button
         fButton = [[[FIButton alloc] initWithDelegate:controller] autorelease];
-		fButton.frame = CGRectMake(0.f, 0.f, kStdButtonWidth, kStdButtonHeight);
-        //fButton.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
-        
-        // Button parameters
+        fButton.autoresizingMask =  UIViewAutoresizingNone;
         fButton.title = [[NSString alloc] initWithCString:name encoding:NSASCIIStringEncoding];
 		fButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fButton.labelColor = [UIColor whiteColor];
         fButton.backgroundColorAlpha = 0.4;
         fButton.type = type;
         
-        //
         [controller.dspView addSubview:fButton];
     }
     
@@ -401,6 +590,18 @@ public:
         [fButton release];
     }
 
+    void setFrame(float x, float y, float w, float h)
+    {
+        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
+        
+        uiCocoaItem::setFrame(x, y, w, h);
+        
+        fButton.frame = CGRectMake( pt.x + (w - kStdButtonWidth) / 2.f,
+                                    pt.y + (h - kStdButtonHeight) / 2.f,
+                                    kStdButtonWidth,
+                                    kStdButtonHeight);
+    }
+    
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
@@ -429,18 +630,16 @@ public:
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller)
     {        
-        /*CGRect labelFrame = CGRectMake(0.0, kOffsetY + kWidgetSlice * index - kSpaceSize, kLabelWidth, kStdNumEntryHeight);
-        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+        fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        fLabel.textAlignment = UITextAlignmentRight;
+        fLabel.textAlignment = UITextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:label encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
-        fLabel.backgroundColor = [UIColor blackColor];
-        [controller.dspView addSubview:fLabel];*/
+        fLabel.backgroundColor = [UIColor clearColor];
+        [controller.dspView addSubview:fLabel];
 
         fTextField = [[[FITextField alloc] initWithDelegate:controller] autorelease];
-        [fTextField setFrame:CGRectMake(0.f, 0.f, kStdButtonWidth, kStdButtonHeight)];
-        fTextField.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
+        fTextField.autoresizingMask = UIViewAutoresizingNone;
 		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fTextField.labelColor = [UIColor whiteColor];
         fTextField.backgroundColorAlpha = 0.4;        
@@ -454,11 +653,28 @@ public:
     {
         [fTextField release];
     }
-
+    
+    void setFrame(float x, float y, float w, float h)
+    {
+        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);;
+        
+        uiCocoaItem::setFrame(x, y, w, h);
+                
+        fTextField.frame = CGRectMake(  pt.x + (w - kStdNumEntryWidth) / 2.f,
+                                        pt.y + (h - kStdNumEntryHeight) / 2.f,
+                                        kStdNumEntryWidth,
+                                        kStdNumEntryHeight);
+        
+        fLabel.frame = CGRectMake(      pt.x + (w - kStdNumEntryLabelWidth) / 2.f,
+                                        pt.y + (h + kStdNumEntryHeight) / 2.f + kSpaceSize,
+                                        kStdNumEntryLabelWidth,
+                                        kStdNumEntryLabelHeight);
+    }
+    
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        //fLabel.hidden = hidden;
+        fLabel.hidden = hidden;
         fTextField.hidden = hidden;
     }
 
@@ -480,30 +696,23 @@ public:
     
     FIBargraph*             fBargraph;
     UILabel*                fLabel;
+    BOOL                    fHorizontal;
     
     uiBargraph(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
     : uiCocoaItem(ui, zone, controller)
-    {
-        float viewWidth = controller.dspView.frame.size.width;
-       
-        /*CGRect labelFrame = CGRectMake(0.0, kLabelWidth, kStdVerticalBargraphWidth);
-        fLabel = [[UILabel alloc] initWithFrame:labelFrame];
+    {        
+        fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
-        fLabel.textAlignment = UITextAlignmentRight;
+        if (horizontal) fLabel.textAlignment = UITextAlignmentRight;
+        else fLabel.textAlignment = UITextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
-        fLabel.backgroundColor = [UIColor blackColor];
-        [controller.dspView addSubview:fLabel];*/
+        fLabel.backgroundColor = [UIColor clearColor];
+        [controller.dspView addSubview:fLabel];
         
-        if (horizontal)
-        {
-            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(0.f, 0.f, viewWidth - kLabelWidth - kSpaceSize - kSpaceSize, kStdHorizontalBargraphHeight)] autorelease];
-        }
-        else
-        {
-            fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(0.f, 0.f, kStdVerticalBargraphWidth, kStdVerticalBargraphHeight)] autorelease];
-        }
-        //fBargraph.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
+        fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(0.f, 0.f, 0.f, 0.f)] autorelease];
+        fBargraph.autoresizingMask = UIViewAutoresizingNone;
+        fHorizontal = horizontal;
         fBargraph.value = 0.f;
         fBargraph.minLimit = min;
         fBargraph.maxLimit = max;
@@ -514,14 +723,46 @@ public:
     
     ~uiBargraph()
     {
-        //[fLabel release];
+        [fLabel release];
         [fBargraph release];
+    }
+    
+    void setFrame(float x, float y, float w, float h)
+    {
+        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
+        
+        uiCocoaItem::setFrame(x, y, w, h);
+        
+        if (fHorizontal)
+        {
+            fLabel.frame = CGRectMake(      pt.x,
+                                            pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                            kStdBargraphLabelWidth,
+                                            kStdBargraphLabelHeight);
+            
+            fBargraph.frame = CGRectMake(   pt.x + kStdBargraphLabelWidth + kSpaceSize,
+                                            pt.y + (h - kStdHorizontalBargraphHeight) / 2.f,
+                                            w - kStdBargraphLabelWidth - kSpaceSize,
+                                            kStdHorizontalBargraphHeight);
+        }
+        else
+        {
+            fBargraph.frame = CGRectMake(   pt.x + (w - kStdVerticalBargraphWidth) / 2.f,
+                                            pt.y,
+                                            kStdVerticalBargraphWidth,
+                                            h - kSpaceSize - kStdBargraphLabelHeight);
+            
+            fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                            pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
+                                            kStdBargraphLabelWidth,
+                                            kStdBargraphLabelHeight);
+        }
     }
     
     void setHidden(BOOL hidden)
     {
         fHidden = hidden;
-        //fLabel.hidden = hidden;
+        fLabel.hidden = hidden;
         fBargraph.hidden = hidden;
     }
     
@@ -550,7 +791,6 @@ private:
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     
-    
     // Layout management
     
     uiBox* getActiveBox()
@@ -573,169 +813,168 @@ private:
         return dynamic_cast<uiBox*>(*i);
     }
     
-
-    CGPoint getAbsolutePosition(float x, float y, uiCocoaItem* widget)
-    {
-        CGPoint     parentBoxOrigin = CGPointMake(0.f, 0.f);
-        CGPoint     absolutePosition = CGPointMake(0.f, 0.f);
-        uiBox*      parent = dynamic_cast<uiBox*>(widget->getParent());
-        
-        if (parent)
-        {
-            parentBoxOrigin = getAbsolutePosition(  dynamic_cast<uiBox*>(widget->getParent())->fBox.frame.origin.x,
-                                                    dynamic_cast<uiBox*>(widget->getParent())->fBox.frame.origin.y,
-                                                    dynamic_cast<uiBox*>(widget->getParent()));
-        }
-
-        absolutePosition = CGPointMake(x + parentBoxOrigin.x, y + parentBoxOrigin.y);
-        
-        return absolutePosition;
-    }
-    
-    void setWidgetPosition(uiCocoaItem* widget)
+    // General rules to place objet
+    void computeWidgetFrame(uiCocoaItem* widget)
     {
         uiBox*      parent = dynamic_cast<uiBox*>(widget->getParent());
         float       x = 0.f;
         float       y = 0.f;
         float       w = 0.f;
         float       h = 0.f;
-        CGPoint     pt;
-        
-        // Rules for computing (x, y) of the widget within its parent box, regarding of the layout mode
-        switch (fCurrentLayoutType)
+                
+        // If no parent : the widget is the main container and is placed at the origin of the view
+        if (!parent)
         {
-            case kVerticalLayout:
-                x = 5.f;
-                if (parent) y = parent->fLastY + 5.f;
-                break;
-                
-            case kHorizontalLayout:
-                if (parent) x = parent->fLastX + 5.f;
-                y = 5.f;
-                break;
-                
-            case kTabLayout:
-                x = 5.f;
-                if (parent) y = parent->fLastY + 5.f;
-                break;
-                
-            default:
-                x = 5.f;
-                if (parent) y = parent->fLastY + 5.f;
-                break;
+            x = 0.f;
+            y = 0.f;
         }
         
-        // Place widget in the box
+        // Otherwise, computing (x, y) of the widget within its parent box
+        else
+        {
+            // Check the current layout mode (eg : the layout mode of widget's parent)
+            switch (fCurrentLayoutType)
+            {
+                // Tab layout mode : widget is the box containg the content of a tab
+                case kTabLayout:
+                    x = 0.f;
+                    y = kStdTabHeight;
+                    break;
+                    
+                // Vertical layout mode
+                case kVerticalLayout:
+                    x = kSpaceSize;
+                    y = parent->fLastY + kSpaceSize;
+                    break;
+                   
+                // Horizontal layout mode
+                case kHorizontalLayout:
+                    x = parent->fLastX + kSpaceSize;
+                    y = kSpaceSize;
+                    break;
+                    
+                // Shouldn't happen, but if there is a bug, behaves like in vertical default mode
+                default:
+                    x = kSpaceSize;
+                    y = parent->fLastY + kSpaceSize;
+                    break;
+            }
+        }
+        
+        // Set minimum size to widget, regarding its type
         if (dynamic_cast<uiBox*>(widget))
         {
-            if (dynamic_cast<uiBox*>(widget)->fBoxType == kTabLayout)
-            {
-                // Tab view
-                pt = getAbsolutePosition(x, y, widget);
-                w = dynamic_cast<uiBox*>(widget)->fTabView.frame.size.width;
-                h = dynamic_cast<uiBox*>(widget)->fTabView.frame.size.height;
-                dynamic_cast<uiBox*>(widget)->fTabView.frame = CGRectMake(pt.x, pt.y, w, h);
-         
-                // Box
-                pt = getAbsolutePosition(x, y + dynamic_cast<uiBox*>(widget)->fTabView.frame.size.height, widget);
-                w = dynamic_cast<uiBox*>(widget)->fBox.frame.size.width;
-                h = dynamic_cast<uiBox*>(widget)->fBox.frame.size.height;
-                dynamic_cast<uiBox*>(widget)->fBox.frame = CGRectMake(pt.x, pt.y, w, h);
-                
-                w = w + kStdButtonHeight;
-            }
-            else
-            {
-                pt = getAbsolutePosition(x, y, widget);
-                w = dynamic_cast<uiBox*>(widget)->fBox.frame.size.width;
-                h = dynamic_cast<uiBox*>(widget)->fBox.frame.size.height;
-                dynamic_cast<uiBox*>(widget)->fBox.frame = CGRectMake(pt.x, pt.y, w, h);
-            }
+            w = kMinBoxWidth;
+            h = kMinBoxHeight;
         }
         else if (dynamic_cast<uiButton*>(widget))
         {
-            pt = getAbsolutePosition(x, y, widget);
-            w = dynamic_cast<uiButton*>(widget)->fButton.frame.size.width;
-            h = dynamic_cast<uiButton*>(widget)->fButton.frame.size.height;
-            dynamic_cast<uiButton*>(widget)->fButton.frame = CGRectMake(pt.x, pt.y, w, h);
-        }
-        else if (dynamic_cast<uiBargraph*>(widget))
-        {
-            pt = getAbsolutePosition(x, y, widget);
-            w = dynamic_cast<uiBargraph*>(widget)->fBargraph.frame.size.width;
-            h = dynamic_cast<uiBargraph*>(widget)->fBargraph.frame.size.height;
-            dynamic_cast<uiBargraph*>(widget)->fBargraph.frame = CGRectMake(pt.x, pt.y, w, h);
-        }
-        else if (dynamic_cast<uiKnob*>(widget))
-        {
-            pt = getAbsolutePosition(x, y, widget);
-            w = dynamic_cast<uiKnob*>(widget)->fKnob.frame.size.width;
-            h = dynamic_cast<uiKnob*>(widget)->fKnob.frame.size.height;
-            dynamic_cast<uiKnob*>(widget)->fKnob.frame = CGRectMake(pt.x, pt.y, w, h);
-        }
-        else if (dynamic_cast<uiSlider*>(widget))
-        {
-            pt = getAbsolutePosition(x, y, widget);
-            w = dynamic_cast<uiSlider*>(widget)->fSlider.frame.size.width;
-            h = dynamic_cast<uiSlider*>(widget)->fSlider.frame.size.height;
-            dynamic_cast<uiSlider*>(widget)->fSlider.frame = CGRectMake(pt.x, pt.y, w, h);
+            w = kStdButtonWidth;
+            h = kStdButtonHeight;
         }
         else if (dynamic_cast<uiNumEntry*>(widget))
         {
-            pt = getAbsolutePosition(x, y, widget);
-            w = dynamic_cast<uiNumEntry*>(widget)->fTextField.frame.size.width;
-            h = dynamic_cast<uiNumEntry*>(widget)->fTextField.frame.size.height;
-            dynamic_cast<uiNumEntry*>(widget)->fTextField.frame = CGRectMake(pt.x, pt.y, w, h);
+            w = max(kStdNumEntryWidth, kStdNumEntryLabelWidth);
+            h = kStdNumEntryHeight + kSpaceSize + kStdNumEntryLabelHeight;
         }
+        else if (dynamic_cast<uiKnob*>(widget))
+        {
+            w = max(kStdKnobWidth, kStdKnobLabelWidth);
+            h = kStdKnobHeight + kSpaceSize + kStdKnobLabelHeight;
+        }
+        else if (dynamic_cast<uiSlider*>(widget))
+        {
+            if (dynamic_cast<uiSlider*>(widget)->fHorizontal)
+            {
+                w = kMinHorizontalSliderWidth + kSpaceSize + kStdSliderLabelWidth;
+                h = max(kStdHorizontalSliderHeight, kStdSliderLabelHeight);
+            }
+            else
+            {
+                w = max(kStdVerticalSliderWidth, kStdSliderLabelWidth);
+                h = kMinVerticalSliderHeight + kSpaceSize + kStdSliderLabelHeight;
+            }
+        }
+        else if (dynamic_cast<uiBargraph*>(widget))
+        {
+            if (dynamic_cast<uiBargraph*>(widget)->fHorizontal)
+            {
+                w = kMinHorizontalBargraphWidth + kSpaceSize + kStdBargraphLabelWidth;
+                h = max(kStdHorizontalBargraphHeight, kStdBargraphLabelHeight);
+            }
+            else
+            {
+                w = max(kStdVerticalBargraphWidth, kStdBargraphLabelWidth);
+                h = kMinVerticalBargraphHeight + kSpaceSize + kStdBargraphLabelHeight;
+            }
+        }
+        
+        // Place widget in the box
+        widget->setFrame(x, y, w, h);
         
         // Refresh last x and last y of the parent box
         if (parent)
         {
             parent->fLastX = x + w;
-            parent->fLastY = y + h;
+            parent->fLastY = y + h;            
         }
-        
-        // Refresh content view size
-        // TODO : loop to find highest x and highest y
-        [fViewController.dspView setContentSize:CGSizeMake(320, kWidgetSlice * fWidgetList.size() + 100.f)];
     }
     
-    void insert(const char* label, uiCocoaItem* widget)
-	{
+    void refreshLayout(uiCocoaItem* widget)
+    {
+        uiBox*      parent = dynamic_cast<uiBox*>(widget->getParent());
+        CGSize      contentSize;
+
+        if (parent)
+        {
+            contentSize = parent->getContentSize();
+            
+            if (parent->fBoxType == kTabLayout)
+            {
+                parent->setFrame(   parent->getX(),
+                                    parent->getY(),
+                                    contentSize.width,
+                                    contentSize.height);
+            }
+            else
+            {
+                parent->setFrame(   parent->getX(),
+                                    parent->getY(),
+                                    contentSize.width + kSpaceSize,
+                                    contentSize.height + kSpaceSize);
+            }
+            
+            parent->fLastX = widget->getX() + widget->getW();
+            parent->fLastY = widget->getY() + widget->getH();
+            
+            refreshLayout(parent);
+        }
+    }
+    
+    void updateBoxChildren(const char* label, uiCocoaItem* widget)
+    {
         list<uiCocoaItem*>::iterator i;
         
-        // Link widget to its parent
-        widget->setParent(getActiveBox());
-        
-        // Set position of the widget
-        setWidgetPosition(widget);
-        
-        // Add widget in the widgts list
-        fWidgetList.push_back(widget);
-        
-        // Manage boxes and current layout type
         if (fCurrentLayoutType == kTabLayout)
         {
             for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
             {
                 if (dynamic_cast<uiBox*>(*i))
                 {
-                    if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                        && dynamic_cast<uiBox*>(*i) != widget)
+                    if (    dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
+                            && dynamic_cast<uiBox*>(*i) != widget)
                     {   
                         // Add FIButton in the fTabView
                         [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                         
                         // Add uiCocoaItem in the uiBox (*i)
-                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
-                        
-                        return;
+                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);                        
                     }
                 }
             }   
             i = fWidgetList.begin();
-            if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                && dynamic_cast<uiBox*>(*i) != widget)
+            if (    dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
+                    && dynamic_cast<uiBox*>(*i) != widget)
             {
                 [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                 
@@ -743,30 +982,106 @@ private:
             }
         }
         else
-        {            
+        {
             for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
             {
                 if (dynamic_cast<uiBox*>(*i))
                 {
-                    if ((dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
-                        || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
-                        && dynamic_cast<uiBox*>(*i) != widget)
+                    if (    (dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
+                                || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
+                            && dynamic_cast<uiBox*>(*i) != widget)
                     {   
                         // Add uiCocoaItem in the uiBox (*i)
                         dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
-                        
-                        return;
                     }
                 }
             }   
             i = fWidgetList.begin();
-            if ((dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
-                 || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
-                && dynamic_cast<uiBox*>(*i) != widget)
+            if (    (dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
+                        || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
+                    && dynamic_cast<uiBox*>(*i) != widget)
             {
                 dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
             }
         }
+    }
+    
+    void insert(const char* label, uiCocoaItem* widget)
+	{
+        // Link widget to its parent
+        widget->setParent(getActiveBox());
+        
+        // Add widget in the widgts list
+        fWidgetList.push_back(widget);
+        
+        // Set position of the widget
+        computeWidgetFrame(widget);
+        
+        // Manage boxes and current layout type
+        updateBoxChildren(label, widget);        
+        
+        // Refresh whole layout
+        refreshLayout(widget);
+        
+        /////
+        /*list<uiCocoaItem*>::iterator i;
+        list<uiCocoaItem*>::iterator j;
+        NSLog(@"   ");
+        NSLog(@"==========OBJECTS");
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            if (dynamic_cast<uiBox*>(*i))
+            {
+                NSLog(@"* object %i | parent %i | type %i",
+                      ((int)*i),
+                      ((int)(*i)->getParent()),
+                      dynamic_cast<uiBox*>(*i)->fBoxType);
+            }
+            else
+            {
+                NSLog(@"* object %i | parent %i | widget",
+                      ((int)*i),
+                      ((int)(*i)->getParent()));
+            }
+            
+            NSLog(@"  size x = %f y = %f w = %f h = %f",
+                  (*i)->getX(),
+                  (*i)->getY(),
+                  (*i)->getW(),
+                  (*i)->getH());
+            
+            if (dynamic_cast<uiBox*>(*i))
+            {
+                NSLog(@"  content size w = %f h = %f",
+                      dynamic_cast<uiBox*>(*i)->getContentSize().width,
+                      dynamic_cast<uiBox*>(*i)->getContentSize().height);
+            }
+            
+            if (dynamic_cast<uiBox*>(*i))
+            {
+                for (j = dynamic_cast<uiBox*>(*i)->fWidgetList.begin(); j != dynamic_cast<uiBox*>(*i)->fWidgetList.end(); j++)
+                {
+                    if (dynamic_cast<uiBox*>(*j))
+                    {
+                        NSLog(@"    object %i | parent %i | type %i",
+                              ((int)*j),
+                              ((int)(*j)->getParent()),
+                              dynamic_cast<uiBox*>(*j)->fBoxType);
+                    }
+                    else
+                    {
+                        NSLog(@"    object %i | parent %i | widget",
+                              ((int)*j),
+                              ((int)(*j)->getParent()));
+                    }
+                }
+            }
+        }*/
+        /////
+        
+        // Refresh content view size
+        [fViewController.dspView setContentSize:CGSizeMake( (*fWidgetList.begin())->getW(),
+                                                            (*fWidgetList.begin())->getH())];
     }
     
     
@@ -839,9 +1154,11 @@ public:
     
     virtual void closeBox()
     {
-        list<uiCocoaItem*>::iterator i;
-        BOOL found = false;
-        
+        list<uiCocoaItem*>::iterator        i;
+        uiBox*                              box = NULL;
+        BOOL                                found = false;
+        uiBox*                              parent = NULL;
+                        
         // Find the last box to close
         for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
         {
@@ -851,7 +1168,8 @@ public:
                 {
                     if (!dynamic_cast<uiBox*>(*i)->fClosed)
                     {
-                        dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+                        box = dynamic_cast<uiBox*>(*i);
+                        box->close(fWidgetList.size());
                         found = true;
                     }
                 }
@@ -860,7 +1178,8 @@ public:
         
         if (!found && dynamic_cast<uiBox*>(*i))
         {
-            dynamic_cast<uiBox*>(*i)->close(fWidgetList.size());
+            box = dynamic_cast<uiBox*>(*i);
+            box->close(fWidgetList.size());
         }
         
         // Find the last layout type
@@ -884,6 +1203,8 @@ public:
         {
             fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
         }
+                
+        if (box) parent = dynamic_cast<uiBox*>(box->getParent());    
     }
     
     //virtual void adjustStack(int n);
@@ -1021,8 +1342,28 @@ public:
 
 list<GUI*>                   GUI::fGuiList;
 
-/*
- bool                        GTKUI::fInitialized = false;
- map<float*, float>          GTKUI::fGuiSize;
- map<float*, string>         GTKUI::fTooltip;
- */
+CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
+{
+    CGPoint     parentBoxOrigin = CGPointMake(0.f, 0.f);
+    CGPoint     absolutePosition = CGPointMake(0.f, 0.f);
+    uiBox*      parent = NULL;
+        
+    if (box)
+    {
+        parent = dynamic_cast<uiBox*>(box->getParent());
+        
+        if (parent)
+        {
+            parentBoxOrigin = inBoxPosition2absolutePosition(box->getX(), box->getY(), parent);
+        }
+    }
+    
+    absolutePosition = CGPointMake(x + parentBoxOrigin.x, y + parentBoxOrigin.y);
+    
+    return absolutePosition;
+}
+                      
+CGPoint absolutePosition(uiCocoaItem* widget)
+{
+    return inBoxPosition2absolutePosition(widget->getX(), widget->getY(), widget->getParent());
+}
