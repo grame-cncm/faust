@@ -826,12 +826,11 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 }
 
 #ifdef __cplusplus
-extern "C" int libmain(int argc, char* argv[], char* input);
-extern "C" Module* libmain_llvm(int argc, char* argv[], char* input);
-
+extern "C" int compile_faust(int argc, char* argv[], char* input);
+extern "C" Module* compile_faust_llvm(int argc, char* argv[], char* input);
 #endif
 
-int libmain(int argc, char* argv[], char* input = NULL)
+int compile_faust(int argc, char* argv[], char* input = NULL)
 {
     try {
         
@@ -898,9 +897,9 @@ int libmain(int argc, char* argv[], char* input = NULL)
 	return 0;
 }
 
-Module* libmain_llvm(int argc, char* argv[], char* input)
+Module* compile_faust_llvm(int argc, char* argv[], char* input)
 {
-    libmain(argc, argv, input);
+    compile_faust(argc, argv, input);
     return gModule;
 }
 
@@ -908,7 +907,7 @@ Module* libmain_llvm(int argc, char* argv[], char* input)
 
 int main(int argc, char* argv[])
 {
-    return libmain(argc, argv);
+    return compile_faust(argc, argv);
 }
 
 #endif
