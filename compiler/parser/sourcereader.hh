@@ -19,6 +19,7 @@ class SourceReader
 	vector<string>		fFilePathnames;
 	Tree parsefile(string fname);
     Tree parsestring(string fname);
+    Tree parse(string fname);
 	Tree expandrec(Tree ldef, set<string>& visited, Tree lresult);
 	
 public:

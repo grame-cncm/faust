@@ -189,6 +189,7 @@ Tree SourceReader::parsefile(string fname)
 {
 	string fullpath;
   	yyerr = 0;
+    yylineno = 1;
 	
 	yyfilename = fname.c_str();
 	yyin = fopensearch(yyfilename, fullpath);
@@ -197,31 +198,19 @@ Tree SourceReader::parsefile(string fname)
         error << "ERROR : Unable to open file" << yyfilename << endl;
         throw faustexception(error.str());
 	}
-	
-	yylineno = 1;
-	int r = yyparse();
-	if (r) { 
-		fprintf(stderr, "Parse error : code = %d \n", r); 
-	}
-	if (yyerr > 0) {
-        stringstream error;
-        error << "ERROR : parse, code = " << yyerr << endl;
-        throw faustexception(error.str());
-	}
     
-    yylex_destroy();
- 
-	// we have parsed a valid file
-	fFilePathnames.push_back(fullpath);
-	return gResult;
+    return parse(fullpath);
 }
 
 Tree SourceReader::parsestring(string fname) 
 {
-    /*Copy string into new buffer and Switch buffers*/
+    yyerr = 0;
     yy_scan_string(gInputString);
- 
-    /*Parse the string*/
+    return parse(fname);
+}
+
+Tree SourceReader::parse(string fname) 
+{
     int r = yyparse();
     
  	if (r) { 
