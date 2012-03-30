@@ -892,6 +892,7 @@ int compile_faust(int argc, char* argv[], char* input = NULL)
     
     } catch (faustexception& e) {
         e.PrintMessage();
+        return -1;
     }
 
 	return 0;
