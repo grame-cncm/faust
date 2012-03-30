@@ -138,6 +138,7 @@ public:
 		for (i = fKeyParam.begin(); i != fKeyParam.end(); i++) {
 			cout << "[ " << i->first << " " << i->second.fMin << ".." << i->second.fMax <<" ] ";
 		}
+        cout << endl;
 	}
 
 	void process_command()
