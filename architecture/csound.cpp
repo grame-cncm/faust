@@ -72,8 +72,8 @@
 #define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
-#define max(x,y) (((x)>(y)) ? (x) : (y))
-#define min(x,y) (((x)<(y)) ? (x) : (y))
+#define FAUSTMAX(x,y) (((x)>(y)) ? (x) : (y))
+#define FAUSTMIN(x,y) (((x)<(y)) ? (x) : (y))
 
 using namespace std;
 

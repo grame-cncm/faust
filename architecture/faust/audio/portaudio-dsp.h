@@ -45,7 +45,7 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
-#define max(x,y) (((x)>(y)) ? (x) : (y))
+#define FAUSTMAX(x,y) (((x)>(y)) ? (x) : (y))
 
 static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * drv);
 //----------------------------------------------------------------------------

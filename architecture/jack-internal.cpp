@@ -74,8 +74,8 @@ struct Meta : map<const char*, const char*>
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
 
-#define max(x,y) (((x)>(y)) ? (x) : (y))
-#define min(x,y) (((x)<(y)) ? (x) : (y))
+#define FAUSTMAX(x,y) (((x)>(y)) ? (x) : (y))
+#define FAUSTMIN(x,y) (((x)<(y)) ? (x) : (y))
 
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }

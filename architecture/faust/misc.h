@@ -34,8 +34,8 @@ struct MY_Meta : Meta, std::map<const char*, const char*>
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
 
-#define max(x,y) (((x)>(y)) ? (x) : (y))
-#define min(x,y) (((x)<(y)) ? (x) : (y))
+#define FAUSTMAX(x,y) (((x)>(y)) ? (x) : (y))
+#define FAUSTMIN(x,y) (((x)<(y)) ? (x) : (y))
 
 inline int		lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
 inline int 		int2pow2 (int x)		{ int r=0; while ((1<<r)<x) r++; return r; }

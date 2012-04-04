@@ -85,8 +85,8 @@ using namespace std;
 #define check_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); exit(1); }
 #define display_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); }
 
-#define max(x,y) (((x)>(y)) ? (x) : (y))
-#define min(x,y) (((x)<(y)) ? (x) : (y))
+#define FAUSTMAX(x,y) (((x)>(y)) ? (x) : (y))
+#define FAUSTMIN(x,y) (((x)<(y)) ? (x) : (y))
 
 /**
  * Used to set the priority and scheduling of the audi#include <sys/types.h>
