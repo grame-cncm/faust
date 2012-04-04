@@ -419,7 +419,7 @@ class AudioInterface : public AudioParam
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
+						buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0f),-1.0f) * float(SHRT_MAX) ) ;
 					}
 				}
 
@@ -429,7 +429,7 @@ class AudioInterface : public AudioParam
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer32b[c + f*fCardOutputs] = int( max(min(x,1.0),-1.0) * float(INT_MAX) ) ;
+						buffer32b[c + f*fCardOutputs] = int( max(min(x,1.0f),-1.0f) * float(INT_MAX) ) ;
 					}
 				}
 			} else {
@@ -455,7 +455,7 @@ class AudioInterface : public AudioParam
 					short* chan16b = (short*) fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan16b[f] = short( max(min(x,1.0),-1.0) * float(SHRT_MAX) ) ;
+						chan16b[f] = short( max(min(x,1.0f),-1.0f) * float(SHRT_MAX) ) ;
 					}
 				}
 
@@ -465,7 +465,7 @@ class AudioInterface : public AudioParam
 					int32* chan32b = (int32*) fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan32b[f] = int( max(min(x,1.0),-1.0) * float(INT_MAX) ) ;
+						chan32b[f] = int( max(min(x,1.0f),-1.0f) * float(INT_MAX) ) ;
 					}
 				}
 
