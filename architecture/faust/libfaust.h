@@ -9,8 +9,8 @@ extern "C"
 {
 #endif
 
-int compile_faust(int argc, char* argv[], char* input);
-Module* compile_faust_llvm(int argc, char* argv[], char* input);
+int compile_faust(int argc, char* argv[], const char* input);
+llvm::Module* compile_faust_llvm(int argc, char* argv[], const char* input);
 
 #ifdef __cplusplus
 }

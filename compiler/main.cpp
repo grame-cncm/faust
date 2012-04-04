@@ -166,7 +166,7 @@ bool			gDSPStruct = false;
 string			gClassName = "mydsp";
 
 Module*         gModule = 0;
-char*           gInputString = 0;
+const char*     gInputString = 0;
 
 //-- command line tools
 
@@ -826,11 +826,11 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 }
 
 #ifdef __cplusplus
-extern "C" int compile_faust(int argc, char* argv[], char* input);
-extern "C" Module* compile_faust_llvm(int argc, char* argv[], char* input);
+extern "C" int compile_faust(int argc, char* argv[], const char* input);
+extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* input);
 #endif
 
-int compile_faust(int argc, char* argv[], char* input = NULL)
+int compile_faust(int argc, char* argv[], const char* input = NULL)
 {
     try {
         
@@ -898,7 +898,7 @@ int compile_faust(int argc, char* argv[], char* input = NULL)
 	return 0;
 }
 
-Module* compile_faust_llvm(int argc, char* argv[], char* input)
+Module* compile_faust_llvm(int argc, char* argv[], const char* input)
 {
     compile_faust(argc, argv, input);
     return gModule;
