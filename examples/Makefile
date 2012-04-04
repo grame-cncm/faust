@@ -330,7 +330,7 @@ iphonenet :
 	install -d iphonenetdir
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
-llvm-loader:
+llvm-jack-loader:
 	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a  -o llvm-jack-gtk-loader
 
 llvm-netjack-loader:
