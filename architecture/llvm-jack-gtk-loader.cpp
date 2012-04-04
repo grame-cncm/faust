@@ -23,6 +23,7 @@ list<GUI*> GUI::fGuiList;
 int main(int argc, char *argv[])
 {
 	char	appname[256];
+    char	filename[256];
 	char  	rcfilename[256];
 	char* 	home = getenv("HOME");
 
@@ -39,21 +40,22 @@ int main(int argc, char *argv[])
 	}
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
+    snprintf(filename, 255, "%s", basename(argv[1]));
 	snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
 
-	GUI* interface 	= new GTKUI(appname, &argc, &argv);
+	GUI* interface 	= new GTKUI(filename, &argc, &argv);
 	FUI* finterface	= new FUI();
 
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
+	GUI* oscinterface = new OSCUI(filename, argc, argv);
 	DSP->buildUserInterface(oscinterface);
 #endif
 
 	jackaudio audio;
-    if (!audio.init(appname, DSP)) {
+    if (!audio.init(filename, DSP)) {
         return 0;
     }
 	finterface->recallState(rcfilename);
