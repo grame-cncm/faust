@@ -17,7 +17,7 @@ all :
 	$(MAKE) -C architecture/osclib
 
 lib :
-	$(MAKE) -C compiler -f $(MAKEFILE) -f libfaust prefix=$(prefix)
+	$(MAKE) -C compiler -f $(MAKEFILE) libfaust prefix=$(prefix)
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src
@@ -65,6 +65,7 @@ install :
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
 	install compiler/faust $(prefix)/bin/
+	install compiler/libfaust.a $(prefix)/lib/faust
 	# install architecture and faust library files
 	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.c $(prefix)/lib/faust/

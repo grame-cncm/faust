@@ -1,6 +1,6 @@
 subprojects := boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher documentator utils ../libraries
 
-sources = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
+sources =  $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
 
 objects = $(sources:.cpp=.o)
 os 	:= $(shell uname)
@@ -29,13 +29,15 @@ CXXFLAGS ?= -g -Wall -Wuninitialized
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 
-all : faust
+all : faust libfaust
 
-faust : $(objects)
-	$(CXX) $(CXXFLAGS) $(objects) `llvm-config --ldflags --libs all` -ldl -o faust
+faust : $(objects) 
+	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
+	$(CXX) $(CXXFLAGS) $(objects) main.o `llvm-config --ldflags --libs all` -ldl -o faust
 
-libfaust : $(objects)
-	$(CXX) -g $(CXXFLAGS) $(objects) `llvm-config --ldflags --libs all` -ldl -shared -o libfaust.dylib
+libfaust : $(objects) 
+	$(CXX) $(CXXFLAGS) -DLIB_FAUST main.cpp -c -o libmain.o
+	libtool $(objects) libmain.o -static -o libfaust.a
 
 
 .PHONY: clean depend ctags parser
@@ -45,7 +47,7 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) faust *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -f $(objects) main.o libmain.o faust libfaust.a *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :
