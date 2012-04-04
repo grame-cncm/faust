@@ -655,7 +655,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         comp->prepare(signals);
      
         comp->compileMultiSignal(signals);
+    #ifdef LIB_FAUST
+        gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str(), true);
+    #else
         gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
+    #endif
   
     } else {
         if (gOutputLang == "c") {

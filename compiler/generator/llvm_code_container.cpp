@@ -542,7 +542,7 @@ void LLVMCodeContainer::produceInternal()
     generateFillEnd();
 }
 
-Module* LLVMCodeContainer::produceModule(const string& filename)
+Module* LLVMCodeContainer::produceModule(const string& filename, bool library)
 {
     // Initialize "fSamplingFreq" with the "samplingFreq" parameter of the init function
     if (!fGeneratedSR)
@@ -604,10 +604,12 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
 
     // Has to be done *after* generateInstanceInitBegin/generateInstanceInitEnd
     generateInitFun();
-
+    
     if (filename == "") {
         //fModule->dump();
-        outs() << *fModule;
+        if (!library) {
+            outs() << *fModule;
+        }
     } else {
         std::string ErrorInfo;
         raw_fd_ostream Out(filename.c_str(), ErrorInfo, raw_fd_ostream::F_Binary);
