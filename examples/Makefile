@@ -333,6 +333,9 @@ iphonenet :
 llvm-loader:
 	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/llvm-jack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a  -o llvm-jack-gtk-loader
 
+llvm-netjack-loader:
+	llvm-g++ -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/llvm-netjack-gtk-loader.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a  -ljacknet  -o llvm-jack-gtk-loader
+
 #../architecture/scheduler.cpp 
 
 #-Wl,-flat_namespace,-undefined,dynamic_lookup 
