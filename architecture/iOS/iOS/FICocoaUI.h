@@ -87,8 +87,8 @@ class uiBox;
 #define kStdTabHeight                   25.f
 #define kMinBoxWidth                    100.f
 #define kMinBoxHeight                   100.f
-#define kStdBoxLabelWidth               100.0
 #define kStdBoxLabelHeight              20.0
+#define kStdBoxLabelXOffset             5.0
 
 // Buttons
 #define kStdButtonWidth                 100.0
@@ -212,29 +212,32 @@ public:
             [controller.dspView addSubview:fTabView];
             tabOffset = kStdTabHeight;
         }
-        /*else
-        {
-            fLabel = [[[UILabel alloc] init] autorelease];
-            fLabel.font = [UIFont boldSystemFontOfSize:12];
-            fLabel.textAlignment = UITextAlignmentLeft;
-            fLabel.autoresizingMask = UIViewAutoresizingNone;
-            fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
-            fLabel.textColor = [UIColor blueColor];
-            fLabel.backgroundColor = [UIColor redColor];
-            [controller.dspView addSubview:fLabel];
-        }*/
 
         fClosed = FALSE;
         fBox = [[[FIBox alloc] init] autorelease];
         fBox.color = [UIColor blueColor];
         fBox.autoresizingMask = UIViewAutoresizingNone;
         
-        [controller.dspView addSubview:fBox];        
+        [controller.dspView addSubview:fBox];
+        
+        if (boxType != kTabLayout)
+        {
+            fLabel = [[[UILabel alloc] init] autorelease];
+            fLabel.font = [UIFont boldSystemFontOfSize:18];
+            fLabel.textAlignment = UITextAlignmentLeft;
+            fLabel.autoresizingMask = UIViewAutoresizingNone;
+            fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
+            fLabel.textColor = [UIColor colorWithWhite:1. alpha:1.];
+            fLabel.backgroundColor = [UIColor clearColor];
+            [controller.dspView addSubview:fLabel];
+            
+            fLastY = kStdBoxLabelHeight;
+        }
     }
     
     ~uiBox()
     {
-        //if (fLabel) [fLabel release];
+        if (fLabel) [fLabel release];
         [fBox release];
     }
     
@@ -258,6 +261,7 @@ public:
     {
         CGPoint                         pt = inBoxPosition2absolutePosition(x, y, fParent);
         list<uiCocoaItem*>::iterator    i;
+        float                           labelYOffset = 0.f;
 
         uiCocoaItem::setFrame(x, y, w, h);
         
@@ -280,8 +284,12 @@ public:
         else
         {
             fBox.frame = CGRectMake(pt.x, pt.y, w, h);
-            //fLabel.frame = CGRectMake(pt.x, pt.y, kStdBoxLabelWidth, kStdBoxLabelHeight);
-            
+            if (fLabel)
+            {
+                labelYOffset = kStdBoxLabelHeight;
+                fLabel.frame = CGRectMake(pt.x + kStdBoxLabelXOffset, pt.y, w - kStdBoxLabelXOffset, labelYOffset);
+            }
+
             // 1st pass : easy
             for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
             {
@@ -292,10 +300,10 @@ public:
                     (*i)->setFrame((*i)->getX(), (*i)->getY(), w - 2 * kSpaceSize, (*i)->getH());
                 }
                 else if (fBoxType == kHorizontalLayout
-                         && (*i)->getH() < h - 2 * kSpaceSize
+                         && (*i)->getH() < h - 2 * kSpaceSize - labelYOffset
                          && (*i)->getParent() == this)
                 {
-                    (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), h - 2 * kSpaceSize);
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), h - 2 * kSpaceSize - labelYOffset);
                 }
             }
             
@@ -330,7 +338,7 @@ public:
         list<uiCocoaItem*>::iterator    i;
         float                           maxW = 0.f;
         float                           maxH = 0.f;
-                
+        
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
             if ((*i)->getParent() == this)
@@ -441,14 +449,14 @@ public :
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
         
         uiCocoaItem::setFrame(x, y, w, h);
-        
+
         fKnob.frame = CGRectMake(   pt.x + (w - kStdKnobWidth) / 2.f,
-                                    pt.y + (h - kStdKnobHeight) / 2.f,
+                                    pt.y + (h - kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f,
                                     kStdKnobWidth,
                                     kStdKnobHeight);
         
         fLabel.frame = CGRectMake(  pt.x + (w - kStdKnobLabelWidth) / 2.f,
-                                    pt.y + (h + kStdKnobHeight) / 2.f + kSpaceSize,
+                                    pt.y + (h + kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f + kSpaceSize,
                                     kStdKnobLabelWidth,
                                     kStdKnobLabelHeight);
     }
@@ -629,7 +637,7 @@ public:
     
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller)
-    {        
+    {
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         fLabel.textAlignment = UITextAlignmentCenter;
@@ -656,17 +664,17 @@ public:
     
     void setFrame(float x, float y, float w, float h)
     {
-        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);;
+        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
         
         uiCocoaItem::setFrame(x, y, w, h);
                 
         fTextField.frame = CGRectMake(  pt.x + (w - kStdNumEntryWidth) / 2.f,
-                                        pt.y + (h - kStdNumEntryHeight) / 2.f,
+                                        pt.y + (h - kStdNumEntryHeight - kSpaceSize - kStdNumEntryLabelHeight) / 2.f,
                                         kStdNumEntryWidth,
                                         kStdNumEntryHeight);
         
         fLabel.frame = CGRectMake(      pt.x + (w - kStdNumEntryLabelWidth) / 2.f,
-                                        pt.y + (h + kStdNumEntryHeight) / 2.f + kSpaceSize,
+                                        pt.y + (h + kStdNumEntryHeight - kSpaceSize - kStdNumEntryLabelHeight) / 2.f + kSpaceSize,
                                         kStdNumEntryLabelWidth,
                                         kStdNumEntryLabelHeight);
     }
@@ -827,11 +835,33 @@ private:
         {
             x = 0.f;
             y = 0.f;
+            
+            // If main box : no label
+            if (dynamic_cast<uiBox*>(widget))
+            {
+                if (dynamic_cast<uiBox*>(widget)->fLabel)
+                {
+                    [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
+                    dynamic_cast<uiBox*>(widget)->fLabel = nil;
+                    dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
+                }
+            }
         }
         
         // Otherwise, computing (x, y) of the widget within its parent box
         else
         {
+            // If the box is a tab content box : no label
+            if (parent->fBoxType == kTabLayout)
+            {
+                if (dynamic_cast<uiBox*>(widget)->fLabel)
+                {
+                    [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
+                    dynamic_cast<uiBox*>(widget)->fLabel = nil;
+                    dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
+                }
+            }
+            
             // Check the current layout mode (eg : the layout mode of widget's parent)
             switch (fCurrentLayoutType)
             {
@@ -850,7 +880,8 @@ private:
                 // Horizontal layout mode
                 case kHorizontalLayout:
                     x = parent->fLastX + kSpaceSize;
-                    y = kSpaceSize;
+                    if (parent->fLabel) y = kSpaceSize + kStdBoxLabelHeight;
+                    else y = kSpaceSize;
                     break;
                     
                 // Shouldn't happen, but if there is a bug, behaves like in vertical default mode
@@ -864,8 +895,20 @@ private:
         // Set minimum size to widget, regarding its type
         if (dynamic_cast<uiBox*>(widget))
         {
-            w = kMinBoxWidth;
-            h = kMinBoxHeight;
+            if (dynamic_cast<uiBox*>(widget)->fBoxType == kTabLayout)
+            {
+                w = kMinBoxWidth;
+                h = kMinBoxHeight + kStdTabHeight;
+            }
+            else
+            {
+                w = kMinBoxWidth;
+                if (parent && parent->fLabel)
+                {
+                    h = kMinBoxHeight + kStdBoxLabelHeight;
+                }
+                else h = kMinBoxHeight;
+            }
         }
         else if (dynamic_cast<uiButton*>(widget))
         {
@@ -946,7 +989,7 @@ private:
             
             parent->fLastX = widget->getX() + widget->getW();
             parent->fLastY = widget->getY() + widget->getH();
-            
+                        
             refreshLayout(parent);
         }
     }
@@ -1023,8 +1066,13 @@ private:
         // Refresh whole layout
         refreshLayout(widget);
         
-        /////
-        /*list<uiCocoaItem*>::iterator i;
+        // Refresh content view size
+        [fViewController.dspView setContentSize:CGSizeMake( (*fWidgetList.begin())->getW(),
+                                                            (*fWidgetList.begin())->getH())];
+        
+        
+        /*
+        list<uiCocoaItem*>::iterator i;
         list<uiCocoaItem*>::iterator j;
         NSLog(@"   ");
         NSLog(@"==========OBJECTS");
@@ -1076,12 +1124,8 @@ private:
                     }
                 }
             }
-        }*/
-        /////
-        
-        // Refresh content view size
-        [fViewController.dspView setContentSize:CGSizeMake( (*fWidgetList.begin())->getW(),
-                                                            (*fWidgetList.begin())->getH())];
+        }
+        */
     }
     
     

@@ -80,7 +80,8 @@
     
     button.title = [[NSString alloc] initWithString:label];
     button.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
-    button.labelColor = [UIColor whiteColor];
+    button.labelFont = [UIFont boldSystemFontOfSize:18];
+    button.labelColor = [UIColor colorWithWhite:1. alpha:1.];
     button.backgroundColorAlpha = 0.4;
     button.type = kTabItemButtonType;
     self.max = nbButtons - 1;
