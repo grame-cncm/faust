@@ -74,6 +74,8 @@
 #include <vector>
 #include <list>
 
+using namespace std;
+
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
 #ifdef __SSE__
