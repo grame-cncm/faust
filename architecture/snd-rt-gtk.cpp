@@ -72,8 +72,6 @@ inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)
  
 	
 
-#define FAUSTMAX(x,y) (((x)>(y)) ? (x) : (y))
-#define FAUSTMIN(x,y) (((x)<(y)) ? (x) : (y))
 
 
 // abs is now predefined

@@ -147,8 +147,6 @@ struct Meta
 // Generic min and max using gcc extensions
 //-------------------------------------------------------------------
 
-#define FAUSTMAX(x,y) ((x)>?(y))
-#define FAUSTMIN(x,y) ((x)<?(y))
 
 //abs(x) should be already predefined
 

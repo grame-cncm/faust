@@ -70,8 +70,6 @@ using namespace std;
  
 	
 
-#define FAUSTMAX(x,y) (((x)>(y)) ? (x) : (y))
-#define FAUSTMIN(x,y) (((x)<(y)) ? (x) : (y))
 
 
 // abs is now predefined
