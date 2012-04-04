@@ -191,7 +191,11 @@ class llvmdsp : public dsp {
             argv[2] = "llvm";
             
             fModule = compile_faust_llvm(argc, (char**)argv, pgm.c_str());
-            Init();
+            if (fModule) {
+                Init();
+            } else {
+                throw new std::bad_alloc;
+            }
         }
   
         llvmdsp(int argc, char *argv[])
@@ -212,7 +216,11 @@ class llvmdsp : public dsp {
                 fModule = compile_faust_llvm(argc1, (char**)argv1, NULL);
             }
             
-            Init();
+            if (fModule) {
+                Init();
+            } else {
+                throw new std::bad_alloc;
+            }
         }
 
         void Init()
@@ -220,57 +228,53 @@ class llvmdsp : public dsp {
             InitializeNativeTarget();
             fModule->setTargetTriple(llvm::sys::getHostTriple());
 
-            if (fModule) {
-                std::string ErrorMessage;
+            std::string ErrorMessage;
 
-                EngineBuilder builder(fModule);
-                /*
-                builder.setMArch(MArch);
-                builder.setMCPU(MCPU);
-                builder.setMAttrs(MAttrs);
-                builder.setErrorStr(&ErrorMsg);
-                builder.setEngineKind(ForceInterpreter
-                                        ? EngineKind::Interpreter
-                                        : EngineKind::JIT);
-                */
-                builder.setOptLevel(CodeGenOpt::Aggressive);
-                fJIT = builder.create();
+            EngineBuilder builder(fModule);
+            /*
+            builder.setMArch(MArch);
+            builder.setMCPU(MCPU);
+            builder.setMAttrs(MAttrs);
+            builder.setErrorStr(&ErrorMsg);
+            builder.setEngineKind(ForceInterpreter
+                                    ? EngineKind::Interpreter
+                                    : EngineKind::JIT);
+            */
+            builder.setOptLevel(CodeGenOpt::Aggressive);
+            fJIT = builder.create();
 
-                //fJIT = EngineBuilder(fModule).create();
-                assert(fJIT);
-                fJIT->DisableLazyCompilation(true);
-                fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
-                //module->dump();
+            //fJIT = EngineBuilder(fModule).create();
+            assert(fJIT);
+            fJIT->DisableLazyCompilation(true);
+            fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
+            //module->dump();
 
-                FunctionPassManager OurFPM(fModule);
-                // Set up the optimizer pipeline.  Start with registering info about how the
-                // target lays out data structures.
-                OurFPM.add(new TargetData(*fJIT->getTargetData()));
-                // Do simple "peephole" optimizations and bit-twiddling optzns.
-                OurFPM.add(createInstructionCombiningPass());
-                // Reassociate expressions.
-                OurFPM.add(createReassociatePass());
-                // Eliminate Common SubExpressions.
-                OurFPM.add(createGVNPass());
-                // Simplify the control flow graph (deleting unreachable blocks, etc).
-                OurFPM.add(createCFGSimplificationPass());
+            FunctionPassManager OurFPM(fModule);
+            // Set up the optimizer pipeline.  Start with registering info about how the
+            // target lays out data structures.
+            OurFPM.add(new TargetData(*fJIT->getTargetData()));
+            // Do simple "peephole" optimizations and bit-twiddling optzns.
+            OurFPM.add(createInstructionCombiningPass());
+            // Reassociate expressions.
+            OurFPM.add(createReassociatePass());
+            // Eliminate Common SubExpressions.
+            OurFPM.add(createGVNPass());
+            // Simplify the control flow graph (deleting unreachable blocks, etc).
+            OurFPM.add(createCFGSimplificationPass());
 
-                OurFPM.doInitialization();
-                fManager = &OurFPM;
+            OurFPM.doInitialization();
+            fManager = &OurFPM;
 
-                fNew = (newDspFun)LoadOptimize("new_mydsp");
-                fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
-                fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
-                fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
-                fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
-                fInit = (initFun)LoadOptimize("init_mydsp");
-                fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
-                fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
-                fCompute = (computeFun)LoadOptimize("compute_mydsp");
-                fDsp = fNew();
-            } else {
-                throw new std::bad_alloc;
-            }
+            fNew = (newDspFun)LoadOptimize("new_mydsp");
+            fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
+            fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
+            fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
+            fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
+            fInit = (initFun)LoadOptimize("init_mydsp");
+            fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
+            fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
+            fCompute = (computeFun)LoadOptimize("compute_mydsp");
+            fDsp = fNew();
         }
 
         virtual ~llvmdsp()
