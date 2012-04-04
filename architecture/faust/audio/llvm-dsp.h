@@ -54,18 +54,6 @@ extern "C"
 
 typedef struct llvm_dsp {};
 
-llvm_dsp* new_mydsp();
-void delete_mydsp(llvm_dsp*);
-
-int getNumInputs_mydsp(llvm_dsp*);
-int getNumOutputs_mydsp(llvm_dsp*);
-
-void init_mydsp(llvm_dsp*, int);
-void classInit_mydsp(int);
-void instanceInit_mydsp(llvm_dsp*, int);
-void buildUserInterface_mydsp(llvm_dsp*, UIGlue*);
-void compute_mydsp(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
-
 typedef llvm_dsp* (* newDspFun) ();
 typedef void (* deleteDspFun) (llvm_dsp* self);
 typedef int (* getNumInputsFun) (llvm_dsp* self);

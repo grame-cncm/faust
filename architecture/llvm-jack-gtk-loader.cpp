@@ -28,13 +28,13 @@ int main(int argc, char *argv[])
 
     try {
 		if (argc < 2) {
-			printf("Usage: llvm-jack-gtk-loader [file.dsp]\n");
+			printf("Usage: llvm-jack-gtk-loader [file.dsp | file.bc]\n");
 			exit(1);
 		} else {
 			DSP = new llvmdsp(argc, argv);
         }
 	} catch (...) {
-		printf("Cannot load dsp file\n");
+		printf("Cannot load .dsp or .bc file\n");
 		exit(1);
 	}
 
