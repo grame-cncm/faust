@@ -331,12 +331,11 @@ iphonenet :
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
 faust-tools: 
-	llvm-g++ -Wl,-flat_namespace,-undefined,dynamic_lookup  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp ../architecture/scheduler.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a  -o faust-jack-gtk
+	llvm-g++  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp ../architecture/scheduler.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a  -o faust-jack-gtk
 
-	llvm-g++ -Wl,-flat_namespace,-undefined,dynamic_lookup  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp ../architecture/scheduler.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/faust/libfaust.a  -ljacknet  -o faust-netjack-gtk
+	llvm-g++  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp ../architecture/scheduler.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/faust/libfaust.a  -ljacknet  -o faust-netjack-gtk
 
 #../architecture/scheduler.cpp 
-
 #-Wl,-flat_namespace,-undefined,dynamic_lookup 
 
 bench :
