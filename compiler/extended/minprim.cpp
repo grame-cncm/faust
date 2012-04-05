@@ -69,13 +69,26 @@ class MinPrim : public xtended
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());
-		
-		Type t = infereSigType(types);
-		if (t->nature() == kReal) {
-			return subst("min($0, $1)", args[0], args[1]);
+//		
+//		Type t = infereSigType(types);
+//		if (t->nature() == kReal) {
+//			return subst("min($0, $1)", args[0], args[1]);
+//		} else {
+//			return subst("min($0, $1)", args[0], args[1]);
+//		} 
+
+		// generates code compatible with overloaded min
+		int n0 = types[0]->nature();
+		int n1 = types[1]->nature();
+		if (n0==n1) {
+			return subst("min($0, $1)", args[0], args[1]);		
 		} else {
-			return subst("min($0, $1)", args[0], args[1]);
-		} 			
+			if (n0==kInt) {
+				return subst("min($2$0, $1)", args[0], args[1], icast());
+			} else {
+				return subst("min($0, $2$1)", args[0], args[1], icast());
+			}
+		}			
 	}
 	
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)

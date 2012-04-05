@@ -14,7 +14,7 @@ VST=/usr/local/lib/vstsdk2.4
 #CROSS=i386-mingw32-
 CROSS=i586-mingw32msvc-
 CXX=$(CROSS)g++
-CXXFLAGS=-I$(VST) -I$(VST)/public.sdk/source/vst2.x -DBUILDING_DLL -mno-cygwin
+CXXFLAGS=-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -I$(VST) -I$(VST)/public.sdk/source/vst2.x -DBUILDING_DLL -mno-cygwin
 LDFLAGS=
 DLLWRAP=$(CROSS)dllwrap --target=i386-mingw32 -mno-cygwin
 STRIP=$(CROSS)strip

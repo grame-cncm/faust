@@ -2,14 +2,28 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to jack-qt                  #
+#               Compiles Faust programs to alsa-qt                  #
 #               (c) Grame, 2009                                     #
 #                                                                   #
 #####################################################################
 
-OSCINC=""
-QTDEFS=""
-OSCLIB=""
+ARCHFILE="alsa-qt.cpp"
+ARCHLIB="-lasound"
+
+#-------------------------------------------------------------------------------
+# Search where Faust is installed. Store '.../lib/faust/' in $FLIB
+# and '.../include/(faust)' in $FINC 
+
+FLIB=""; FINC=""; 
+FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
+for f in $FPATH; do
+	if [ -e $f/lib/faust ]; 	then FLIB=$f/lib/faust;	fi
+	if [ -e $f/include/faust ];	then FINC=$f/include/; fi
+done
+if [ -z "$FLIB" -o -z "$FINC" ]; then 
+	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)"; 
+	exit 1;
+fi
 
 
 #-------------------------------------------------------------------
@@ -19,16 +33,25 @@ OSCLIB=""
 # existing *.dsp files          -> FILES
 #
 
+CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2'
+		# we ignore -icc when compiling for QT
+		TOTO=""
+		#CXX=icpc
+		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
     fi
 done
 
 #PHASE 2 : dispatch command arguments
+
+OSCINC=""
+QTDEFS=""
+OSCLIB=""
+
 for p in $@; do
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
@@ -41,9 +64,11 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-		 OSCINC="INCLUDEPATH+=/usr/local/lib/faust/osclib"
-		 QTDEFS="DEFINES += OSCCTRL"
-		 OSCLIB="-L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
+		 OSCDEFS="DEFINES += OSCCTRL"
+		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+	elif [ "$p" = "-httpd" ]; then
+		HTTPDEFS="DEFINES += HTTPCTRL"
+		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -78,15 +103,15 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -a alsa-qt.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
 	    cd "$TMP"
-        qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=/usr/local/lib/faust/" "$OSCINC" "LIBS+=-lasound $OSCLIB" "HEADERS+=/usr/local/lib/faust/gui/faustqt.h" "$QTDEFS"
+       	qmake -project "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
 	    qmake $SPEC
         make
-    ) > /dev/null
+    ) ##> /dev/null
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"

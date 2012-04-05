@@ -23,7 +23,7 @@ endif
 ifeq ($(HTTPD),1)
  HTTPDCTRL := -DHTTPCTRL -I$(FAUSTINC)/gui
  HTTPDDEFS := HTTPCTRL
- HTTPDLIB  := -lmicrohttpd -L$(LIB)/faust/ -lHTTPDFaust
+ HTTPDLIB  := -L$(LIB)/faust/ -lHTTPDFaust -lmicrohttpd
 endif
 
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2 $(OSCCTRL) $(HTTPDCTRL)' 
@@ -31,7 +31,7 @@ MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2 $(OSCCTRL) $(HTTPDCTR
 ifeq ($(system), Darwin)
 MYGCCFLAGS := '-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL) $(HTTPDCTRL)'
 else
-MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL) $(HTTPDCTRL)'
+MYGCCFLAGS := '-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math $(OSCCTRL) $(HTTPDCTRL)'
 endif
 
 VSIZE := 256
@@ -131,7 +131,7 @@ w32vstdir :
 	mkdir w32vstdir
 
 w32vst : w32vstdir
-	$(MAKE) DEST='w32vstdir/' ARCH='vst2p4.cpp' LIB=''  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.w32vstcompile
+	$(MAKE) DEST='w32vstdir/' ARCH='vst2p4.cpp' LIB=''  -f Makefile.w32vstcompile
 
 vst :
 	install -d vstdir

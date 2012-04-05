@@ -74,6 +74,8 @@
 #include <vector>
 #include <list>
 
+using namespace std;
+
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
 #ifdef __SSE__
@@ -93,8 +95,6 @@ struct Meta : std::map<const char*, const char*>
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
 
-#define max(x,y) (((x)>(y)) ? (x) : (y))
-#define min(x,y) (((x)<(y)) ? (x) : (y))
 
 #define sym(name) xsym(name)
 #define xsym(name) #name
