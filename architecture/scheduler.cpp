@@ -590,7 +590,6 @@ static UInt64 period = 0;
 static UInt64 computation = 0;
 static UInt64 constraint = 0;
 
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -629,7 +628,6 @@ static void Yield()
 
 static int faust_sched_policy = -1;
 static struct sched_param faust_rt_param; 
-
 
 #ifdef __cplusplus
 extern "C"
@@ -680,12 +678,12 @@ static INLINE int Range(int min, int max, int val)
     }
 }
 
-// Foe LLVM mode
-typedef void (* computeThreadExternalFun) (void* dsp, int cur_thread);
-extern computeThreadExternalFun gComputeThreadExternal;
-
-// For C/C++
-void computeThreadExternal(void* dsp, int num_thread);
+#ifdef LLVM_30 || LLVM_29
+    typedef void (* computeThreadExternalFun) (void* dsp, int cur_thread);
+    extern computeThreadExternalFun gComputeThreadExternal;
+#else
+    void computeThreadExternal(void* dsp, int num_thread);
+#endif
 
 struct Runnable {
     
@@ -814,11 +812,11 @@ struct DSPThread {
     void Run()
     {
         while (sem_wait(fSemaphore) != 0) {}
-        if (gComputeThreadExternal) {
-            gComputeThreadExternal(fDSP, fNum + 1);
-        } else {
-            computeThreadExternal(fDSP, fNum + 1);
-        }
+    #ifdef LLVM_30 || LLVM_29
+        gComputeThreadExternal(fDSP, fNum + 1);
+    #else
+        computeThreadExternal(fDSP, fNum + 1);
+    #endif
     }
     
     static void* ThreadHandler(void* arg)
