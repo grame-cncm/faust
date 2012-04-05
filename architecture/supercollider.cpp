@@ -30,6 +30,8 @@
 #include <faust/gui/UI.h>
 #include <faust/misc.h>
 
+using namespace std;
+
 #if defined(__GNUC__) && __GNUC__ >= 4
 # define FAUST_EXPORT __attribute__((visibility("default")))
 #else

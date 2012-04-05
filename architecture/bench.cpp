@@ -1,8 +1,8 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
+	IMPORTANT NOTE : this file contains two clearly delimited sections : 
+	the ARCHITECTURE section (in two parts) and the USER section. Each section 
+	is governed by its own copyright and license. Please check individually 
 	each section for license and copyright information.
 *************************************************************************/
 
@@ -12,9 +12,9 @@
     FAUST Architecture File
 	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
+    This Architecture section is free software; you can redistribute it 
+    and/or modify it under the terms of the GNU General Public License 
+	as published by the Free Software Foundation; either version 3 of 
 	the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -22,13 +22,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU General Public License 
 	along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work
-	that contains this FAUST architecture section and distribute
-	that work under terms of your choice, so long as this FAUST
-	architecture section is not modified.
+	EXCEPTION : As a special exception, you may create a larger work 
+	that contains this FAUST architecture section and distribute  
+	that work under terms of your choice, so long as this FAUST 
+	architecture section is not modified. 
 
 
  ************************************************************************
@@ -74,7 +74,7 @@ using namespace std;
         #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
     #endif
 #else
-    #define AVOIDDENORMALS
+    #define AVOIDDENORMALS 
 #endif
 
 struct Meta : map<const char*, const char*>
@@ -82,9 +82,9 @@ struct Meta : map<const char*, const char*>
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
 
-float*
 
-    gBuffer = 0;        // a buffer of NV*VSize samples
+
+float*          gBuffer = 0;        // a buffer of NV*VSize samples
 
 unsigned int    COUNT   = 2000;     // number of measures
 unsigned int    NV      = 4096;     // number of vectors in BIG buffer (should exceed cache)
@@ -92,66 +92,19 @@ unsigned int    ITER    = 10;       // number of iterations per measure
 unsigned int    VSIZE   = 4096;     // size of a vector in samples
 unsigned int    IDX     = 0;        // current vector number (0 <= VIdx < NV)
 
-//inline voi
-d *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
+
+//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
-// g++ -Wall
 
- -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
 
-//----------
----------------------------------------------------------
-// Generic min and max using c++ inline
-//-------------------------------------------------------------------
+// g++ -Wall -O3 -lm -lpthread -lasound `gtk-config --cflags --libs` test.cpp -o test
 
-inline int 		max (unsigned int a, unsigned int b) { return (a>b) ? a : b; }
-inline int 		max (int a, int b) 			{ return (a>b) ? a : b; }
 
-inline long 	max (long a, long b) 		{ return (a>b) ? a : b; }
-inline long 	max (int a, long b) 		{ return (a>b) ? a : b; }
-inline long 	max (long a, int b) 		{ return (a>b) ? a : b; }
+inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
-inline float 	max (float a, float b) 		{ return (a>b) ? a : b; }
-inline float 	max (int a, float b) 		{ return (a>b) ? a : b; }
-inline float 	max (float a, int b) 		{ return (a>b) ? a : b; }
-inline float 	max (long a, float b) 		{ return (a>b) ? a : b; }
-inline float 	max (float a, long b) 		{ return (a>b) ? a : b; }
 
-inline double 	max (double a, double b) 	{ return (a>b) ? a : b; }
-inline double 	max (int a, double b) 		{ return (a>b) ? a : b; }
-inline double 	max (double a, int b) 		{ return (a>b) ? a : b; }
-inline double 	max (long a, double b) 		{ return (a>b) ? a : b; }
-inline double 	max (double a, long b) 		{ return (a>b) ? a : b; }
-inline double 	max (float a, double b) 	{ return (a>b) ? a : b; }
-inline double 	max (double a, float b) 	{ return (a>b) ? a : b; }
-
-inline int
-		min (int a, int b) 			{ return (a<b) ? a : b; }
-
-inline long 	min (long a, long b) 		{ return (a<b) ? a : b; }
-inline long 	min (int a, long b) 		{ return (a<b) ? a : b; }
-inline long 	min (long a, int b) 		{ return (a<b) ? a : b; }
-
-inline float 	min (float a, float b) 		{ return (a<b) ? a : b; }
-inline float 	min (int a, float b) 		{ return (a<b) ? a : b; }
-inline float 	min (float a, int b) 		{ return (a<b) ? a : b; }
-inline float 	min (long a, float b) 		{ return (a<b) ? a : b; }
-inline float 	min (float a, long b) 		{ return (a<b) ? a : b; }
-
-inline double 	min (double a, double b) 	{ return (a<b) ? a : b; }
-inline double 	min (int a, double b) 		{ return (a<b) ? a : b; }
-inline double 	min (double a, int b) 		{ return (a<b) ? a : b; }
-inline double 	min (long a, double b) 		{ return (a<b) ? a : b; }
-inline double 	min (double a, long b) 		{ return (a<b) ? a : b; }
-inline double 	min (float a, double b) 	{ return (a<b) ? a : b; }
-inline double 	min (double a, float b) 	{ return (a<b) ? a : b; }
-
-inline int
-lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
-
-bool setRea
-ltimePriority ()
+bool setRealtimePriority ()
 {
     struct passwd *         pw;
     int                     err;
@@ -272,17 +225,17 @@ class dsp {
 	virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
-
+		
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
-
+		
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
+					
 mydsp	DSP;
 
 
@@ -325,14 +278,14 @@ void statistic(const char* name, double* timing)
          << '\t' << hi*4*DSP.getNumOutputs() << '\t' << "MB/s outputs"
          << '\t' << tot/(COUNT-11)
          << '\t' << lo
-         << endl;
-}
+         << endl; 
+} 
 
 void allocBuffer()
 {
     unsigned int BSIZE = NV * VSIZE;
     gBuffer = (float*) calloc (BSIZE, sizeof(float));
-
+    
     int R0_0 = 0;
     for (int j = 0; j < BSIZE; j++) {
         int R0temp0 = (12345 + (1103515245 * R0_0));

@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+#define FAUSTVERSION "2.0.a3"
+
 #ifdef __cplusplus
 extern "C" int compile_faust(int argc, char* argv[], const char* input);
 #endif

@@ -1616,7 +1616,7 @@ struct InstBuilder
         IntNumInst* int_num = dynamic_cast<IntNumInst*>(inst);
         FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
         DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
-
+      
         BasicTyped* typed = dynamic_cast<BasicTyped*>(typed_ext);
 
         if (!typed) {
