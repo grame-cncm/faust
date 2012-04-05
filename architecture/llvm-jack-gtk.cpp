@@ -93,11 +93,6 @@ int atomic_xadd(volatile int* atomic, int val)
     return result;
 }
 
-#ifdef __cplusplus
-}
-#endif
-
-
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
