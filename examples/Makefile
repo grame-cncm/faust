@@ -23,7 +23,7 @@ endif
 ifeq ($(HTTPD),1)
  HTTPDCTRL := -DHTTPCTRL -I$(FAUSTINC)/gui
  HTTPDDEFS := HTTPCTRL
- HTTPDLIB  := -lmicrohttpd -L$(LIB)/faust/ -lHTTPDFaust
+ HTTPDLIB  := -L$(LIB)/faust/ -lHTTPDFaust -lmicrohttpd
 endif
 
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2 $(OSCCTRL) $(HTTPDCTRL)' 
