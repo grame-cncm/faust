@@ -68,7 +68,7 @@ for p in $@; do
 		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lmicrohttpd -L$FLIB -lHTTPDFaust"
+		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
