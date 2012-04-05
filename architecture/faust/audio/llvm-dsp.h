@@ -205,12 +205,14 @@ class llvmdsp : public dsp {
                 fModule = LoadModule(argv[1]);
             } else {
                 printf("Compile module...\n");
-                int argc1 = 4;
-                const char* argv1[4];
+                int argc1 = (argc-1) + 3;
+                const char* argv1[argc1];
                 argv1[0] = "faust";
                 argv1[1] = "-lang";
                 argv1[2] = "llvm";
-                argv1[3] = argv[1];
+                for (int i = 0; i < argc-1; i++) {
+                     argv1[i+3] = argv[i+1];
+                }
                 fModule = compile_faust_llvm(argc1, (char**)argv1, NULL);
             }
             
