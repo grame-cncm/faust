@@ -25,6 +25,7 @@
 
 @synthesize flipsidePopoverController = _flipsidePopoverController;
 @synthesize dspView = _dspView;
+@synthesize dspScrollView = _dspScrollView;
 
 TiPhoneCoreAudioRenderer* audio_device = NULL;
 CocoaUI* interface = NULL;
@@ -47,6 +48,8 @@ char rcfilename[256];
 
 - (void)viewDidLoad
 {
+    UIView *contentView;
+    
     [super viewDidLoad];
     
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
@@ -99,14 +102,45 @@ char rcfilename[256];
     
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
     
-    _dspView.canCancelContentTouches = NO;
-
+    contentView = [[[UIView alloc] initWithFrame:CGRectMake(0., 0., 10., 10.)] autorelease];
+    [_dspView addSubview:contentView];
+    
+    _dspScrollView.delegate = self;
+    _dspScrollView.canCancelContentTouches = NO;
+    _dspScrollView.minimumZoomScale = min(  _dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW(),
+                                            _dspScrollView.frame.size.height / (*interface->fWidgetList.begin())->getH());
+    _dspScrollView.maximumZoomScale = 2.5;
+    [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:NO];
+    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
+    
+    _tapGesture =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(userDidDoubleTap)];
+    _tapGesture.numberOfTapsRequired = 2;
+    [_dspView addGestureRecognizer:_tapGesture];
+    
     return;
     
 error:
     delete interface;
     delete finterface;
     delete audio_device;
+}
+
+-(void)userDidDoubleTap
+{
+    CGRect rect = interface->getBoxAbsoluteFrameForPoint([_tapGesture locationInView:_dspView]);
+
+    if (_lockedRect.origin.x != 0.f
+        && _lockedRect.origin.y != 0.f
+        && _lockedRect.size.width != 0.f
+        && _lockedRect.size.height != 0.f)
+    {
+        [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:YES];
+    }
+    else
+    {
+        [_dspScrollView zoomToRect:rect animated:YES];
+        _lockedRect = rect;
+    }
 }
 
 - (void)viewDidUnload
@@ -150,7 +184,8 @@ error:
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
-
+    
+    [_tapGesture release];
     finterface->saveState(rcfilename);
     
     audio_device->Stop();
@@ -280,6 +315,8 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (void)orientationChanged:(NSNotification *)notification
 {
     [self updateGui];
+    
+    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
 }
 
 - (void)displayTitle
@@ -332,6 +369,30 @@ T findCorrespondingUiItem(FIResponder* sender)
             (*i)->reflectZone();
         }
     }
+}
+
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView
+{
+    [_dspView setFrame:CGRectMake(  _dspView.frame.origin.x,
+                                    _dspView.frame.origin.y,
+                                    (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                    (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    
+    [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                                (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    
+    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
+
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
+}
+
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{    
+    return _dspView;
 }
 
 #pragma mark - Audio

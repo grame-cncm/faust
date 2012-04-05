@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="1.0" toolsVersion="1938" systemVersion="11D50b" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="2">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="1.1" toolsVersion="2182" systemVersion="11D50b" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="2">
     <dependencies>
+        <deployment defaultVersion="1296" identifier="iOS"/>
         <development defaultVersion="4200" identifier="xcode"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="933"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="1179"/>
     </dependencies>
     <scenes>
+        <!--Main View Controller-->
         <scene sceneID="4">
             <objects>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3" sceneMemberID="firstResponder"/>
@@ -16,6 +18,13 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="DYz-Ul-ted">
                                 <rect key="frame" x="0.0" y="44" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" id="doz-xe-PRv">
+                                        <rect key="frame" x="-1" y="0.0" width="768" height="960"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                    </view>
+                                </subviews>
                             </scrollView>
                             <navigationBar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="blackOpaque" id="13">
                                 <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
@@ -34,7 +43,8 @@
                         <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
-                        <outlet property="_dspView" destination="DYz-Ul-ted" id="6UA-jj-ROu"/>
+                        <outlet property="_dspScrollView" destination="DYz-Ul-ted" id="PsL-1u-45q"/>
+                        <outlet property="_dspView" destination="doz-xe-PRv" id="hey-J9-4L0"/>
                         <outlet property="_titleNavigationItem" destination="14" id="cHE-VL-RhB"/>
                         <outlet property="view" destination="8" id="oQM-4B-TUr"/>
                         <segue destination="5" kind="popover" identifier="showAlternate" popoverAnchorBarButtonItem="15" id="22">
@@ -45,6 +55,7 @@
             </objects>
             <point key="canvasLocation" x="-286" y="15"/>
         </scene>
+        <!--Flipside View Controller-->
         <scene sceneID="7">
             <objects>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6" sceneMemberID="firstResponder"/>
@@ -123,6 +134,30 @@
             <point key="canvasLocation" x="836" y="101"/>
         </scene>
     </scenes>
+    <classes>
+        <class className="FIFlipsideViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIFlipsideViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="bufferSizeSliderMoved:"/>
+                <relationship kind="action" name="done:"/>
+                <relationship kind="action" name="sampleRateSliderMoved:"/>
+                <relationship kind="outlet" name="_bufferSizeLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_bufferSizeSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="_sampleRateLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_sampleRateSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="delegate"/>
+            </relationships>
+        </class>
+        <class className="FIMainViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIMainViewController.h"/>
+            <relationships>
+                <relationship kind="outlet" name="_dspScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="_dspView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="_titleLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_titleNavigationItem" candidateClass="UINavigationItem"/>
+            </relationships>
+        </class>
+    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
         <simulatedOrientationMetrics key="orientation"/>

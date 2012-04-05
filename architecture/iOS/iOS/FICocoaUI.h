@@ -161,6 +161,7 @@ public:
     }
     
     virtual void setHidden(BOOL hidden) = 0;
+    BOOL isHidden()                                                 {return fHidden;}
     
     float getX()                                                    {return fx;}
     float getY()                                                    {return fy;}
@@ -310,6 +311,8 @@ public:
             // 2nd pass : more subtle
             /*CGSize                          contentSize;
             int                             numberOfDirectChildren = getNumberOfDirectChildren();
+            float                           prop = 0.f;
+            float                           finalWidth = 0.f;
 
             contentSize = getContentSize();
             if (fBoxType == kVerticalLayout
@@ -317,17 +320,38 @@ public:
             {
                 for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
                 {
-                    (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), (getH() - 2 * kSpaceSize) / numberOfDirectChildren);
+                    if ((*i)->getParent() == this)
+                    {
+                        (*i)->setFrame( (*i)->getX(),
+                                        (*i)->getY(),
+                                        (*i)->getW(),
+                                        (getH() - 2 * kSpaceSize) / numberOfDirectChildren);
+                    }
                 }
             }
             
+            else 
             if (fBoxType == kHorizontalLayout
-                && contentSize.width < getW() - kSpaceSize)
+                     && contentSize.width < getW() - kSpaceSize)
             {
+                fLastX = 0.f;
                 for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
                 {
-                    (*i)->setFrame((*i)->getX(), (*i)->getY(), getW() - 2 * kSpaceSize / numberOfDirectChildren, (*i)->getH());
-                    
+                    if ((*i)->getParent() == this && !dynamic_cast<uiBox*>(*i))
+                    {
+                        //(*i)->setFrame( (*i)->getX(),
+                        //                (*i)->getY(),
+                        //                getW() - 2 * kSpaceSize / numberOfDirectChildren,
+                        //                (*i)->getH());
+                        //prop = (*i)->getW() / contentSize.width;
+                        //finalWidth = prop * getW() - (1 + numberOfDirectChildren) * kSpaceSize;
+                        //(*i)->setFrame( fLastX,
+                        //                (*i)->getY(),
+                        //                finalWidth,
+                        //                (*i)->getH());
+                        //fLastX = fLastX + finalWidth;
+                        
+                    }
                 }
             }*/
         }
@@ -1067,9 +1091,13 @@ private:
         refreshLayout(widget);
         
         // Refresh content view size
-        [fViewController.dspView setContentSize:CGSizeMake( (*fWidgetList.begin())->getW(),
-                                                            (*fWidgetList.begin())->getH())];
+        [fViewController.dspView setFrame:CGRectMake(fViewController.dspView.frame.origin.x,
+                                                     fViewController.dspView.frame.origin.y,
+                                                     (*fWidgetList.begin())->getW(),
+                                                     (*fWidgetList.begin())->getH())];
         
+        [fViewController.dspScrollView setContentSize:CGSizeMake((*fWidgetList.begin())->getW(),
+                                                                 (*fWidgetList.begin())->getH())];
         
         /*
         list<uiCocoaItem*>::iterator i;
@@ -1147,7 +1175,7 @@ public:
         fMetadata = metadata;
         
         fViewController.dspView.backgroundColor = [UIColor blackColor];
-        fViewController.dspView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+        fViewController.dspScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
         
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];
@@ -1157,6 +1185,38 @@ public:
     {
         [fViewController release];
         [fWindow release];
+    }
+    
+    CGRect getBoxAbsoluteFrameForPoint(CGPoint pt)
+    {
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
+        CGRect result = CGRectMake( (*i)->getX(),
+                                    (*i)->getY(),
+                                    (*i)->getW(),
+                                    (*i)->getH());
+        
+        // Loop on each widgets, from the last
+        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        {
+            if (dynamic_cast<uiBox*>(*i))
+            {
+                if (!(*i)->isHidden()
+                    && pt.x >= absolutePosition(*i).x
+                    && pt.x <= absolutePosition(*i).x + (*i)->getW()
+                    && pt.y >= absolutePosition(*i).y
+                    && pt.y <= absolutePosition(*i).y + (*i)->getH())
+                {
+                    result = CGRectMake(absolutePosition(*i).x,
+                                        absolutePosition(*i).y,
+                                        (*i)->getW(),
+                                        (*i)->getH());
+                    
+                    return result;
+                }
+            }
+        }
+        
+        return result;
     }
     
     bool isKnob(float* zone)

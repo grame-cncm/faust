@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="1.0" toolsVersion="1938" systemVersion="11D50b" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="2">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="1.1" toolsVersion="2182" systemVersion="11D50b" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="2">
     <dependencies>
+        <deployment defaultVersion="1296" identifier="iOS"/>
         <development defaultVersion="4200" identifier="xcode"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="933"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="1179"/>
     </dependencies>
     <scenes>
+        <!--Main View Controller-->
         <scene sceneID="5">
             <objects>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4" sceneMemberID="firstResponder"/>
@@ -16,6 +18,13 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="fZt-lk-p4g">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="414"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" id="aVQ-bg-Kex">
+                                        <rect key="frame" x="0.0" y="0.0" width="320" height="414"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                    </view>
+                                </subviews>
                             </scrollView>
                             <button opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="infoLight" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" id="10">
                                 <rect key="frame" x="282" y="421" width="18" height="19"/>
@@ -43,7 +52,8 @@
                         <color key="backgroundColor" cocoaTouchSystemColor="darkTextColor"/>
                     </view>
                     <connections>
-                        <outlet property="_dspView" destination="fZt-lk-p4g" id="Gh2-X8-aRv"/>
+                        <outlet property="_dspScrollView" destination="fZt-lk-p4g" id="4pS-iH-fVQ"/>
+                        <outlet property="_dspView" destination="aVQ-bg-Kex" id="cJ8-2W-mdT"/>
                         <outlet property="_titleLabel" destination="d0p-QQ-rUB" id="MHx-ti-iZN"/>
                         <outlet property="view" destination="3" id="I0f-qd-cZb"/>
                     </connections>
@@ -51,6 +61,7 @@
             </objects>
             <point key="canvasLocation" x="-51" y="182"/>
         </scene>
+        <!--Flipside View Controller-->
         <scene sceneID="9">
             <objects>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8" sceneMemberID="firstResponder"/>
@@ -146,7 +157,8 @@
         <class className="FIMainViewController" superclassName="UIViewController">
             <source key="sourceIdentifier" type="project" relativePath="./Classes/FIMainViewController.h"/>
             <relationships>
-                <relationship kind="outlet" name="_dspView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="_dspScrollView" candidateClass="UIScrollView"/>
+                <relationship kind="outlet" name="_dspView" candidateClass="UIView"/>
                 <relationship kind="outlet" name="_titleLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="_titleNavigationItem" candidateClass="UINavigationItem"/>
             </relationships>

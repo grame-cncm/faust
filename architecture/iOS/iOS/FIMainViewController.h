@@ -21,17 +21,23 @@
 
 @interface FIMainViewController : UIViewController <    FIFlipsideViewControllerDelegate,
                                                         UIPopoverControllerDelegate,
-                                                        FIResponderDelegate>
+                                                        FIResponderDelegate,
+                                                        UIScrollViewDelegate>
 {
-    IBOutlet UIScrollView*          _dspView;
+    IBOutlet UIView*                _dspView;
+    IBOutlet UIScrollView*          _dspScrollView;
     IBOutlet UILabel*               _titleLabel;            // iPhone
     IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
     
     NSTimer*                        _refreshTimer;          // Used to refresh bargraphes
+    
+    UITapGestureRecognizer*         _tapGesture;
+    CGRect                          _lockedRect;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
-@property (assign, nonatomic) UIScrollView* dspView;
+@property (assign, nonatomic) UIView* dspView;
+@property (assign, nonatomic) UIScrollView* dspScrollView;
 
 // DSP view
 - (void)responderValueDidChange:(float)value sender:(id)sender;
