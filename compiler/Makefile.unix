@@ -31,12 +31,13 @@ CXXFLAGS += -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS
 
 all : faust libfaust
 
-faust : $(objects) 
+faust : $(objects) main.o libmain.o
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
-	$(CXX) $(CXXFLAGS) $(objects) main.o `llvm-config --ldflags --libs all` -ldl -o faust
+	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
+	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o `llvm-config --ldflags --libs all` -ldl -o faust
 
-libfaust : $(objects) 
-	$(CXX) $(CXXFLAGS) -DLIB_FAUST main.cpp -c -o libmain.o
+libfaust : $(objects) libmain.o
+	$(CXX) $(CXXFLAGS) -DLIB_FAUST libmain.cpp -c -o libmain.o
 	libtool $(objects) libmain.o -static -o libfaust.a
 
 
@@ -61,22 +62,6 @@ doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
 
 # DO NOT DELETE
 
-main.o: tlib/compatibility.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-main.o: generator/instructions.hh tlib/property.hh generator/Text.hh signals/sigtyperules.hh signals/sigprint.hh
-main.o: normalize/simplify.hh normalize/privatise.hh signals/recursivness.hh propagate/propagate.hh boxes/boxes.hh
-main.o: errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh
-main.o: evaluate/environment.hh generator/description.hh generator/uitree.hh generator/floats.hh documentator/doc.hh
-main.o: generator/instructions_compiler.hh generator/code_container.hh generator/function_builder.hh
-main.o: parallelize/code_loop.hh generator/fir_to_fir.hh generator/occurences.hh generator/dag_instructions_compiler.hh
-main.o: generator/c_code_container.hh generator/c_instructions.hh generator/type_manager.hh
-main.o: generator/vec_code_container.hh generator/omp_code_container.hh generator/wss_code_container.hh
-main.o: generator/cpp_code_container.hh generator/cpp_instructions.hh generator/opencl_instructions.hh
-main.o: generator/cpp_gpu_code_container.hh generator/java_code_container.hh generator/java_instructions.hh
-main.o: generator/js_code_container.hh generator/js_instructions.hh generator/llvm_code_container.hh
-main.o: generator/llvm_instructions.hh errors/exception.hh generator/fir_code_container.hh
-main.o: generator/fir_instructions.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh
-main.o: signals/ppsig.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/instructions.hh signals/binop.hh tlib/property.hh generator/Text.hh
@@ -312,8 +297,7 @@ generator/cpp_code_container.o: generator/function_builder.hh parallelize/code_l
 generator/cpp_code_container.o: generator/cpp_instructions.hh generator/type_manager.hh
 generator/cpp_code_container.o: generator/opencl_instructions.hh generator/omp_code_container.hh
 generator/cpp_code_container.o: generator/vec_code_container.hh generator/wss_code_container.hh
-generator/cpp_code_container.o: generator/cpp_gpu_code_container.hh errors/exception.hh ../libraries/loki/SafeFormat.h
-generator/cpp_code_container.o: ../libraries/loki/LokiExport.h
+generator/cpp_code_container.o: generator/cpp_gpu_code_container.hh errors/exception.hh
 generator/cpp_gpu_code_container.o: generator/cpp_gpu_code_container.hh generator/cpp_code_container.hh
 generator/cpp_gpu_code_container.o: generator/code_container.hh generator/instructions.hh signals/binop.hh tlib/node.hh
 generator/cpp_gpu_code_container.o: tlib/symbol.hh tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh
