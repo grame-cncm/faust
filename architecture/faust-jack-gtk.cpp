@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
     try {
 		if (argc < 2) {
-			printf("Usage: llvm-jack-gtk-loader [file.dsp | file.bc]\n");
+			printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
 			exit(1);
 		} else {
 			DSP = new llvmdsp(argc, argv);
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	}
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
-    snprintf(filename, 255, "%s", basename(argv[1]));
+    snprintf(filename, 255, "%s", basename(argv[argc-1]));
 	snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
 
 	GUI* interface 	= new GTKUI(filename, &argc, &argv);

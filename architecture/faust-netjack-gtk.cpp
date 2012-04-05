@@ -26,10 +26,14 @@ int main(int argc, char *argv[])
     char	filename[256];
 	char  	rcfilename[256];
 	char* 	home = getenv("HOME");
+    
+    int	celt = lopt(argv, "--celt", -1);
+    const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
+    int master_port = lopt(argv, "--p", DEFAULT_PORT);
 
     try {
 		if (argc < 2) {
-			printf("Usage: llvm-netjack-gtk-loader [file.dsp | file.bc]\n");
+			printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
 			exit(1);
 		} else {
 			DSP = new llvmdsp(argc, argv);
@@ -40,7 +44,7 @@ int main(int argc, char *argv[])
 	}
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
-    snprintf(filename, 255, "%s", basename(argv[1]));
+    snprintf(filename, 255, "%s", basename(argv[argc-1]));
 	snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
 
 	GUI* interface 	= new GTKUI(filename, &argc, &argv);
@@ -54,7 +58,7 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(oscinterface);
 #endif
 
-	netjackaudio audio(-1, DEFAULT_MULTICAST_IP, DEFAULT_PORT);
+	netjackaudio audio(celt, master_ip, master_port);
 	if (!audio.init(filename, DSP)) {
         return 0;
     }
