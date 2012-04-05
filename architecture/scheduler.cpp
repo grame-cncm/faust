@@ -14,10 +14,9 @@
 #include <math.h>
 
 using namespace std;
-
 // Globals
 
-#define THREAD_SIZE 64
+#define THREAD_SIZE 32
 #define QUEUE_SIZE 4096
 
 #define WORK_STEALING_INDEX 0
@@ -69,7 +68,7 @@ extern DSPThreadPool* gThreadPool;
 extern int gClientCount;
 extern UInt64 gMaxStealing;
     
-void Yield();
+static void Yield();
 
 /**
  * Returns the number of clock cycles elapsed since the last reset
@@ -120,7 +119,6 @@ static INLINE int atomic_xadd(volatile int* atomic, int val)
 } 
 
 #endif
-
 
 /*
 static INLINE int INC_ATOMIC(volatile int* val)
@@ -231,6 +229,15 @@ class TaskQueue
             fStealingStart = 0;
         }
          
+        INLINE void InitOne()
+        {
+            for (int i = 0; i < QUEUE_SIZE; i++) {
+                fTaskList[i] = -1;
+            }
+            fCounter.info.fValue = 0;
+            fStealingStart = 0;
+        }
+        
         INLINE void PushHead(int item)
         {
             fTaskList[Head(fCounter)] = item;
@@ -264,7 +271,7 @@ class TaskQueue
                 old_val = fCounter;
                 new_val = old_val;
                 if (Head(old_val) == Tail(old_val)) {
-                   return WORK_STEALING_INDEX;
+                    return WORK_STEALING_INDEX;
                 } else {
                     IncTail(new_val);
                 }
@@ -301,7 +308,7 @@ class TaskQueue
                 }
             }
             NOP();
-          #ifdef __linux__
+        #ifdef __linux__
 			//if (thread != MASTER_THREAD)
 				gTaskQueueList[thread]->MeasureStealingDur();
         #endif
@@ -345,6 +352,13 @@ class TaskQueue
                 gTaskQueueList[i] = 0;
             }
         }
+        
+        static INLINE void InitAll(int num_threads)
+        {
+            for (int i = 0; i < num_threads; i++) {
+                gTaskQueueList[i]->InitOne();
+            }
+        }
      
 };
 
@@ -381,11 +395,29 @@ struct TaskGraph
             }
         }    
     }
-      
+    
+    INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
+    {
+        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+            if (*tasknum == WORK_STEALING_INDEX) {
+                *tasknum = task;
+            } else {
+                queue->PushHead(task);
+            }
+        }    
+    }
+     
     INLINE void ActivateOutputTask(TaskQueue& queue, int task)
     {
         if (DEC_ATOMIC(&gTaskList[task]) == 1) {
             queue.PushHead(task);
+        }
+    }
+    
+    INLINE void ActivateOutputTask(TaskQueue* queue, int task)
+    {
+        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+            queue->PushHead(task);
         }
     }
     
@@ -398,10 +430,26 @@ struct TaskGraph
         }
     }
     
+    INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
+    {
+        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+            *tasknum = task;
+        } else {
+            *tasknum = queue->PopHead(); 
+        }
+    }
+    
     INLINE void GetReadyTask(TaskQueue& queue, int& tasknum)
     {
         if (tasknum == WORK_STEALING_INDEX) {
             tasknum = queue.PopHead();
+        }
+    }
+    
+    INLINE void GetReadyTask(TaskQueue* queue, int* tasknum)
+    {
+        if (*tasknum == WORK_STEALING_INDEX) {
+            *tasknum = queue->PopHead();
         }
     }
  
@@ -414,7 +462,6 @@ struct TaskGraph
 /* use 512KB stack per thread - the default is way too high to be feasible
  * with mlockall() on many systems */
 #define THREAD_STACK 524288
-
 
 #ifdef __APPLE__
 
@@ -543,25 +590,35 @@ static UInt64 period = 0;
 static UInt64 computation = 0;
 static UInt64 constraint = 0;
 
-INLINE void GetRealTime()
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+void getRealTime()
 {
     if (period == 0) {
         GetParams(pthread_self(), &period, &computation, &constraint);
     }
 }
 
-INLINE void SetRealTime()
+#ifdef __cplusplus
+}
+#endif
+
+static void SetRealTime()
 {
     SetThreadToPriority(pthread_self(), 96, true, period, computation, constraint);
 }
 
-void CancelThread(pthread_t fThread)
+static void CancelThread(pthread_t fThread)
 {
     mach_port_t machThread = pthread_mach_thread_np(fThread);
     thread_terminate(machThread);
 }
 
-INLINE void Yield()
+static void Yield()
 {
     //sched_yield();
 }
@@ -573,7 +630,13 @@ INLINE void Yield()
 static int faust_sched_policy = -1;
 static struct sched_param faust_rt_param; 
 
-INLINE void GetRealTime()
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+void getRealTime()
 {
     if (faust_sched_policy == -1) {
         memset(&faust_rt_param, 0, sizeof(faust_rt_param));
@@ -581,23 +644,26 @@ INLINE void GetRealTime()
     }
 }
 
-INLINE void SetRealTime()
+#ifdef __cplusplus
+}
+#endif
+
+static void SetRealTime()
 {
 	faust_rt_param.sched_priority--;
     pthread_setschedparam(pthread_self(), faust_sched_policy, &faust_rt_param);
 }
 
-void CancelThread(pthread_t fThread)
+static void CancelThread(pthread_t fThread)
 {
     pthread_cancel(fThread);
     pthread_join(fThread, NULL);
 }
 
-INLINE void Yield()
+static void Yield()
 {
     pthread_yield();
 }
-
 
 #endif
 
@@ -613,6 +679,13 @@ static INLINE int Range(int min, int max, int val)
         return val;
     }
 }
+
+// Foe LLVM mode
+typedef void (* computeThreadExternalFun) (void* dsp, int cur_thread);
+extern computeThreadExternalFun gComputeThreadExternal;
+
+// For C/C++
+void computeThreadExternal(void* dsp, int num_thread);
 
 struct Runnable {
     
@@ -694,17 +767,14 @@ struct DSPThreadPool {
     
     DSPThread* fThreadPool[THREAD_POOL_SIZE];
     int fThreadCount; 
-    volatile int fCurThreadCount;
       
     DSPThreadPool();
     ~DSPThreadPool();
     
     void StartAll(int num, bool realtime);
     void StopAll();
-    void SignalAll(int num, Runnable* runnable);
-    
-    void SignalOne();
-    bool IsFinished();
+    void SignalAll(int num, void* runnable);
+    void SignalAll(int num);
     
     static DSPThreadPool* Init();
     static void Destroy();
@@ -715,7 +785,7 @@ struct DSPThread {
 
     pthread_t fThread;
     DSPThreadPool* fThreadPool;
-    Runnable* fRunnable;
+    void* fDSP;
     sem_t* fSemaphore;
     char fName[128];
     bool fRealTime;
@@ -725,7 +795,7 @@ struct DSPThread {
     {
         fNum = num;
         fThreadPool = pool;
-        fRunnable = NULL;
+        fDSP = NULL;
         fRealTime = false;
         
         sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
@@ -744,8 +814,11 @@ struct DSPThread {
     void Run()
     {
         while (sem_wait(fSemaphore) != 0) {}
-        fRunnable->computeThread(fNum + 1);
-        fThreadPool->SignalOne();
+        if (gComputeThreadExternal) {
+            gComputeThreadExternal(fDSP, fNum + 1);
+        } else {
+            computeThreadExternal(fDSP, fNum + 1);
+        }
     }
     
     static void* ThreadHandler(void* arg)
@@ -834,9 +907,14 @@ struct DSPThread {
         return 0;
     }
     
-    void Signal(bool stop, Runnable* runnable)
+    void Signal(bool stop, void* runnable)
     {
-        fRunnable = runnable;
+        fDSP = runnable;
+        sem_post(fSemaphore);
+    }
+    
+    void Signal(bool stop)
+    {
         sem_post(fSemaphore);
     }
     
@@ -853,7 +931,6 @@ DSPThreadPool::DSPThreadPool()
         fThreadPool[i] = NULL;
     }
     fThreadCount = 0;
-    fCurThreadCount = 0;
 }
 
 DSPThreadPool::~DSPThreadPool()
@@ -886,23 +963,18 @@ void DSPThreadPool::StopAll()
     }
 }
 
-void DSPThreadPool::SignalAll(int num, Runnable* runnable)
+void DSPThreadPool::SignalAll(int num, void* runnable)
 {
-    fCurThreadCount = num;
-        
     for (int i = 0; i < num; i++) {  // Important : use local num here...
         fThreadPool[i]->Signal(false, runnable);
     }
 }
 
-void DSPThreadPool::SignalOne()
+void DSPThreadPool::SignalAll(int num)
 {
-    DEC_ATOMIC(&fCurThreadCount);
-}
-
-bool DSPThreadPool::IsFinished()
-{
-    return (fCurThreadCount == 0);
+    for (int i = 0; i < num; i++) {  // Important : use local num here...
+        fThreadPool[i]->Signal(false);
+    }
 }
 
 DSPThreadPool* DSPThreadPool::Init()
@@ -939,3 +1011,130 @@ UInt64  gMaxStealing = getenv("OMP_STEALING_DUR")
 
 #endif
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+// Thread pool 
+
+void* createThreadPool()
+{
+    return (void*)new DSPThreadPool();
+}
+void deleteThreadPool(void* pool)
+{
+    delete (DSPThreadPool*)pool;
+}
+
+void startAll(void* pool, int num_threads)
+{
+    ((DSPThreadPool*)pool)->StartAll(num_threads, true);
+}
+
+void stopAll(void* pool)
+{
+    ((DSPThreadPool*)pool)->StopAll();
+}
+
+void signalAll(void* pool, int num_threads, void* dsp)
+{
+    ((DSPThreadPool*)pool)->SignalAll(num_threads, dsp);
+}
+
+// Task queue 
+
+void initTaskQueue()
+{
+    TaskQueue::Init();
+}
+
+void initAllTaskQueue(int num_threads)
+{
+    TaskQueue::InitAll(num_threads);
+}
+
+void* createTaskQueue(int cur_thread)
+{
+    return (void*)new TaskQueue(cur_thread);
+}
+
+void deleteTaskQueue(void* queue)
+{
+    delete (TaskQueue*)queue;
+}
+
+void initOneTaskQueue(void* queue)
+{
+    ((TaskQueue*)queue)->InitOne();
+}
+
+void pushHead(void* queue, int task)
+{
+    ((TaskQueue*)queue)->PushHead(task);
+}
+
+int popHead(void* queue)
+{
+    return ((TaskQueue*)queue)->PopHead();
+}
+
+int popTail(void* queue)
+{
+    return ((TaskQueue*)queue)->PopTail();
+}
+
+int getNextTask(int cur_thread, int dynamic_threads)
+{
+    return TaskQueue::GetNextTask(cur_thread, dynamic_threads);
+}
+
+// Task graph 
+
+void* createTaskGraph()
+{
+    return (void*)new TaskGraph();
+}
+
+void deleteTaskGraph(void* graph)
+{
+    delete (TaskGraph*)graph;
+}
+
+void initTask(void* graph, int task, int count)
+{
+    ((TaskGraph*)graph)->InitTask(task, count);
+}
+
+void activateOutputTask1(void* graph, void* queue, int task, int* tasknum)
+{
+    ((TaskGraph*)graph)->ActivateOutputTask((TaskQueue*)queue, task, tasknum);
+}
+
+void activateOutputTask2(void* graph, void* queue, int task)
+{
+    ((TaskGraph*)graph)->ActivateOutputTask((TaskQueue*)queue, task);
+}
+
+void activateOneOutputTask(void* graph, void* queue, int task, int* tasknum)
+{
+    ((TaskGraph*)graph)->ActivateOneOutputTask((TaskQueue*)queue, task, tasknum);
+}
+
+void getReadyTask(void* graph, void* queue, int* tasknum)
+{
+    ((TaskGraph*)graph)->GetReadyTask((TaskQueue*)queue, tasknum);
+}
+
+int getStaticThreadsNum()
+{
+    return get_max_cpu();
+}
+int getDynamicThreadsNum()
+{
+    return getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : get_max_cpu();
+}
+
+#ifdef __cplusplus
+}
+#endif

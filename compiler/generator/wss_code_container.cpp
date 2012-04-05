@@ -381,7 +381,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter)
     loop_code->pushBackInst(InstBuilder::genStoreStructVar("fIndex", InstBuilder::genIntNumInst(0)));
 
     list<ValueInst*> fun_args0;
-    loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("GetRealTime", fun_args0)));
+    loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("getRealTime", fun_args0)));
 
     list<ValueInst*> fun_args3;
     fun_args3.push_back(InstBuilder::genLoadStructVar("fDynamicNumThreads"));
@@ -422,7 +422,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
     pushGlobalDeclare(InstBuilder::genLabelInst("{"));
     pushGlobalDeclare(InstBuilder::genLabelInst("#endif"));
 
-    pushGlobalDeclare(InstBuilder::genVoidFunction("GetRealTime"));
+    pushGlobalDeclare(InstBuilder::genVoidFunction("getRealTime"));
 
     pushGlobalDeclare(InstBuilder::genFunction0("createThreadPool", Typed::kVoid_ptr));
     pushGlobalDeclare(InstBuilder::genFunction1("deleteThreadPool", Typed::kVoid, "pool", Typed::kVoid_ptr));

@@ -652,7 +652,7 @@ void CPPOpenCLCodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
 
     tab(n+2, *fOut); *fOut << "fCount = count;";
-    tab(n+2, *fOut); *fOut << "GetRealTime();";
+    tab(n+2, *fOut); *fOut << "getRealTime();";
 
     // Copy audio input buffer to temp buffers
     if (fNumInputs > 0) {
@@ -1363,7 +1363,7 @@ void CPPCUDACodeContainer::generateCompute(int n)
     fCodeProducer.Tab(n+2);
 
     tab(n+2, *fOut); *fOut << "fCount = count;";
-    tab(n+2, *fOut); *fOut << "GetRealTime();";
+    tab(n+2, *fOut); *fOut << "getRealTime();";
 
     // Copy audio input buffer to temp buffers
     if (fNumInputs > 0) {

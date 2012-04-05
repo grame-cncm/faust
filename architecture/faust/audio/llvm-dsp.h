@@ -64,9 +64,15 @@ typedef void (* classInitFun) (int freq);
 typedef void (* instanceInitFun) (llvm_dsp* self, int freq);
 typedef void (* computeFun) (llvm_dsp* self, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
+// For scheduler mode
+typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
+
 #ifdef __cplusplus
 }
 #endif
+
+// For scheduler mode
+computeThreadExternalFun gComputeThreadExternal = 0;
 
 void openTabBoxGlue(void* cpp_interface, const char* label)
 {
@@ -162,8 +168,12 @@ class llvmdsp : public dsp {
         void* LoadOptimize(const std::string& function)
         {
             Function* fun_ptr = fModule->getFunction(function);
-            fManager->run(*fun_ptr);
-            return fJIT->getPointerToFunction(fun_ptr);
+            if (fun_ptr) {
+                fManager->run(*fun_ptr);
+                return fJIT->getPointerToFunction(fun_ptr);
+            } else {
+                return 0;
+            }
         }
         
         Module* LoadModule(const std::string filename)
@@ -274,6 +284,7 @@ class llvmdsp : public dsp {
             fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
             fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
             fCompute = (computeFun)LoadOptimize("compute_mydsp");
+            gComputeThreadExternal = (computeThreadExternalFun)LoadOptimize("computeThreadExternal");
             fDsp = fNew();
         }
 
