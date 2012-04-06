@@ -33,6 +33,7 @@
     
     UITapGestureRecognizer*         _tapGesture;
     CGRect                          _lockedRect;
+    BOOL                            _viewLoaded;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;

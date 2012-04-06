@@ -84,7 +84,7 @@ class uiBox;
 
 // Responders dimensions
 // Boxes
-#define kStdTabHeight                   25.f
+#define kStdTabHeight                   40.f
 #define kMinBoxWidth                    100.f
 #define kMinBoxHeight                   100.f
 #define kStdBoxLabelHeight              20.0
@@ -109,8 +109,8 @@ class uiBox;
 
 // Slider
 #define kMinHorizontalSliderWidth       170.0
-#define kStdHorizontalSliderHeight      30.0
-#define kStdVerticalSliderWidth         30.0
+#define kStdHorizontalSliderHeight      40.0
+#define kStdVerticalSliderWidth         40.0
 #define kMinVerticalSliderHeight        170.0
 #define kStdSliderLabelWidth            60.0
 #define kStdSliderLabelHeight           20.0
@@ -191,6 +191,7 @@ public:
     float                   fLastX;
     float                   fLastY;
     UILabel*                fLabel;
+    float                   fMinWidth;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
     : uiCocoaItem(ui, NULL, controller)
@@ -201,12 +202,13 @@ public:
         fLastY = 0.f;
         fTabView = nil;
         fLabel = nil;
+        fMinWidth = 0.f;
         
         if (boxType == kTabLayout)
         {
             fTabView = [[[FITabView alloc] initWithDelegate:controller] autorelease];
             fTabView.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
-            fTabView.labelColor = [UIColor redColor];
+            fTabView.labelColor = [UIColor blueColor];
             fTabView.backgroundColorAlpha = 0.4;
             fTabView.value = 0.f;
             fTabView.autoresizingMask = UIViewAutoresizingNone;
@@ -396,7 +398,7 @@ public:
     }
     
     void close(int index)
-    {        
+    {
         fClosed = TRUE;
     }
     
@@ -1099,61 +1101,8 @@ private:
         [fViewController.dspScrollView setContentSize:CGSizeMake((*fWidgetList.begin())->getW(),
                                                                  (*fWidgetList.begin())->getH())];
         
-        /*
-        list<uiCocoaItem*>::iterator i;
-        list<uiCocoaItem*>::iterator j;
-        NSLog(@"   ");
-        NSLog(@"==========OBJECTS");
-        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
-        {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                NSLog(@"* object %i | parent %i | type %i",
-                      ((int)*i),
-                      ((int)(*i)->getParent()),
-                      dynamic_cast<uiBox*>(*i)->fBoxType);
-            }
-            else
-            {
-                NSLog(@"* object %i | parent %i | widget",
-                      ((int)*i),
-                      ((int)(*i)->getParent()));
-            }
-            
-            NSLog(@"  size x = %f y = %f w = %f h = %f",
-                  (*i)->getX(),
-                  (*i)->getY(),
-                  (*i)->getW(),
-                  (*i)->getH());
-            
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                NSLog(@"  content size w = %f h = %f",
-                      dynamic_cast<uiBox*>(*i)->getContentSize().width,
-                      dynamic_cast<uiBox*>(*i)->getContentSize().height);
-            }
-            
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                for (j = dynamic_cast<uiBox*>(*i)->fWidgetList.begin(); j != dynamic_cast<uiBox*>(*i)->fWidgetList.end(); j++)
-                {
-                    if (dynamic_cast<uiBox*>(*j))
-                    {
-                        NSLog(@"    object %i | parent %i | type %i",
-                              ((int)*j),
-                              ((int)(*j)->getParent()),
-                              dynamic_cast<uiBox*>(*j)->fBoxType);
-                    }
-                    else
-                    {
-                        NSLog(@"    object %i | parent %i | widget",
-                              ((int)*j),
-                              ((int)(*j)->getParent()));
-                    }
-                }
-            }
-        }
-        */
+        // Refresh minimal width of the main container
+        dynamic_cast<uiBox*>(*fWidgetList.begin())->fMinWidth = (*fWidgetList.begin())->getW();
     }
     
     
@@ -1185,6 +1134,29 @@ public:
     {
         [fViewController release];
         [fWindow release];
+    }
+    
+    void adaptLayoutToDevice()
+    {
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
+        
+        if (dynamic_cast<uiBox*>(*i))
+        {
+            // Make main box transparent if it is not a tab box
+            if (dynamic_cast<uiBox*>(*i)->fBoxType != kTabLayout)
+            {
+                dynamic_cast<uiBox*>(*i)->fBox.color = [UIColor clearColor];
+            }
+        
+            // Adapt size
+            /*if (dynamic_cast<uiBox*>(*i)->fMinWidth < fViewController.dspScrollView.frame.size.width)
+            {
+                (*i)->setFrame( (*i)->getX(),
+                                (*i)->getY(),
+                                max(dynamic_cast<uiBox*>(*i)->fMinWidth, fViewController.dspScrollView.frame.size.width),
+                                (*i)->getH());
+            }*/
+        }
     }
     
     CGRect getBoxAbsoluteFrameForPoint(CGPoint pt)

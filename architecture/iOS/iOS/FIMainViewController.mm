@@ -48,6 +48,7 @@ char rcfilename[256];
 
 - (void)viewDidLoad
 {
+    _viewLoaded = NO;
     UIView *contentView;
     
     [super viewDidLoad];
@@ -99,7 +100,7 @@ char rcfilename[256];
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
                                                  name:UIDeviceOrientationDidChangeNotification object:nil];
-    
+    interface->adaptLayoutToDevice();
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
     
     contentView = [[[UIView alloc] initWithFrame:CGRectMake(0., 0., 10., 10.)] autorelease];
@@ -109,7 +110,14 @@ char rcfilename[256];
     _dspScrollView.canCancelContentTouches = NO;
     _dspScrollView.minimumZoomScale = min(  _dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW(),
                                             _dspScrollView.frame.size.height / (*interface->fWidgetList.begin())->getH());
-    _dspScrollView.maximumZoomScale = 2.5;
+    /*if (dynamic_cast<uiBox*>(*interface->fWidgetList.begin())->fMinWidth < _dspScrollView.frame.size.width)
+    {
+        _dspScrollView.maximumZoomScale = 1.;
+    }
+    else*/
+    {
+        _dspScrollView.maximumZoomScale = 1.5;
+    }
     [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:NO];
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
     
@@ -128,7 +136,7 @@ error:
 -(void)userDidDoubleTap
 {
     CGRect rect = interface->getBoxAbsoluteFrameForPoint([_tapGesture locationInView:_dspView]);
-
+    
     if (_lockedRect.origin.x != 0.f
         && _lockedRect.origin.y != 0.f
         && _lockedRect.size.width != 0.f
@@ -155,6 +163,7 @@ error:
 
 - (void)viewDidAppear:(BOOL)animated
 {
+    _viewLoaded = YES;
     [super viewDidAppear:animated];
 }
 
@@ -317,6 +326,15 @@ T findCorrespondingUiItem(FIResponder* sender)
     [self updateGui];
     
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
+    
+    [_dspView setFrame:CGRectMake(  _dspView.frame.origin.x,
+                                    _dspView.frame.origin.y,
+                                    5. * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                    5. * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+
+    [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                                (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+
 }
 
 - (void)displayTitle
@@ -382,7 +400,6 @@ T findCorrespondingUiItem(FIResponder* sender)
                                                 (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
-
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView

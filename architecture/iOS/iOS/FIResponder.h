@@ -46,7 +46,7 @@
 @end
 
 
-@interface FIResponder : UIView
+@interface FIResponder : UIControl
 
 @property (nonatomic, assign) id delegate;
 @property (nonatomic, retain) UIColor *color;			// default: black
