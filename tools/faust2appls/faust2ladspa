@@ -88,8 +88,8 @@ for f in $FILES; do
 	# compile c++ to binary
 	(
 		${CXX=g++} $CXXFLAGS $SPEC -Dmydsp=$module -I/usr/local/lib/faust "$f.cpp" -o $dst
-	) #> /dev/null
-	#rm "$f.cpp"
+	) > /dev/null
+	rm "$f.cpp"
 
 	# collect binary file name for FaustGIDE
 	BINARIES="$BINARIES$dst;"
