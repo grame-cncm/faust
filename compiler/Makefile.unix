@@ -7,6 +7,8 @@ os 	:= $(shell uname)
 
 VPATH = $(subprojects)
 
+system	?= $(shell uname -s)
+
 LLVM_VERSION = $(shell llvm-config --version)
 
 ifeq ($(LLVM_VERSION), 2.9)
@@ -28,6 +30,7 @@ CXXFLAGS ?= -g -Wall -Wuninitialized
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized  
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+CXXFLAGS += $(ARCHFLAGS)
 
 all : faust libfaust
 
