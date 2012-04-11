@@ -39,7 +39,7 @@ class MaxPrim : public xtended
 
 		assert (args.size() == arity());
 
-		if (isDouble(args[0]->node(),&f)) {
+		if (isDouble(args[0]->node(), &f)) {
 
 			if (isDouble(args[1]->node(), &g)) {
 				return tree(max(f, g));
@@ -75,7 +75,7 @@ class MaxPrim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
          
-        // generates code compatible with overloaded min
+        // generates code compatible with overloaded max
 		int n0 = types[0]->nature();
 		int n1 = types[1]->nature();
 		if (n0 == n1) {
