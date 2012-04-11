@@ -10,9 +10,11 @@ LIB := $(if $(wildcard $(ck3)),$(FAUST_LIB_PATH),$(LIB))
 ck11 := /opt/local/include/faust/misc.h
 ck12 := /usr/local/include/faust/misc.h
 ck13 := /usr/include/faust/misc.h
+ck14 := $(FAUST_LIB_PATH)/faust/misc.h
 FAUSTINC := $(if $(wildcard $(ck11)),/opt/local/include/faust,"")
 FAUSTINC := $(if $(wildcard $(ck12)),/usr/local/include/faust,$(FAUSTINC))
 FAUSTINC := $(if $(wildcard $(ck13)),/usr/include/faust,$(FAUSTINC))
+FAUSTINC := $(if $(wildcard $(ck14)),$(FAUST_LIB_PATH),$(FAUSTINC))
 
 LLVM_VERSION = $(shell llvm-config --version)
 

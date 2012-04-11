@@ -611,10 +611,10 @@ gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
 };
 
 gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,rel) with {
-  extendedrawgate = max(rawgatesig,holdsig);
+  extendedrawgate = max(float(rawgatesig),float(holdsig));
   rawgatesig = inlevel(x) > db2linear(thresh);
   inlevel(x) = amp_follower_ud(att/2,rel/2,x);
-  holdsig = ((max(holdreset & holdsamps,_) ~-(1)) > 0);
+  holdsig = ((max(float(holdreset & holdsamps),float(_)) ~-(1)) > 0);
   holdreset = rawgatesig > rawgatesig'; // reset hold when raw gate falls
   holdsamps = int(hold*SR);
 };
@@ -654,7 +654,7 @@ with {
   // A general 'knee' parameter could be used instead of tying it to att/2:
   kneesmooth(att)  = smooth(tau2pole(att/2.0));
   // compression gain in dB:
-   outminusindb(ratio,thresh,level) = max(level-thresh,0) * (1/float(ratio)-1);
+   outminusindb(ratio,thresh,level) = max(float(level-thresh),0.0) * (1.0/float(ratio)-1.0);
   // Note: "float(ratio)" REQUIRED when ratio is an integer > 1!
 };
 
@@ -680,13 +680,13 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
      -30, -120, 0, 0.1));
 
    gateatt = knob_group(hslider("[2] Attack [unit:us] [style:knob]  [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
-     10, 10, 10000, 1)) : *(0.000001) : max(1/SR);
+     10, 10, 10000, 1)) : *(0.000001) : max(1.0/float(SR));
 
    gatehold = knob_group(hslider("[3] Hold [unit:ms] [style:knob]  [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
-     200, 0, 1000, 1)) : *(0.001) : max(1/SR);
+     200, 0, 1000, 1)) : *(0.001) : max(1.0/float(SR));
 
    gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]",
-     100, 0, 1000, 1)) : *(0.001) : max(1/SR);
+     100, 0, 1000, 1)) : *(0.001) : max(1.0/float(SR));
 };
 
 //---------------------------- compressor_demo -------------------------

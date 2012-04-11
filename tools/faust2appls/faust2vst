@@ -117,7 +117,7 @@ for p in $FILES; do
 	g++ $CXXFLAGS -arch i386 $INCLUDES -bundle -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}" "${f%.dsp}.cpp" $SOURCES
 	createInfoPList "${f%.dsp}" "${f%.dsp}$EXT/Contents/Info.plist"
 	echo "BNDL????" > "${f%.dsp}$EXT/Contents/PkgInfo"
-    ) ##> /dev/null
+    ) > /dev/null
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
