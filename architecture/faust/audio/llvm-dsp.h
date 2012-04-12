@@ -231,9 +231,8 @@ class llvmdsp : public dsp {
             }
         }
 
-        void Init()
+        void Init(int opt_level = 3)
         {
-            int opt_level = 1;
             InitializeNativeTarget();
             fModule->setTargetTriple(llvm::sys::getHostTriple());
 

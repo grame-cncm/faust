@@ -52,6 +52,11 @@ int main(int argc, char *argv[])
 
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
+    
+#ifdef HTTPCTRL
+	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+	DSP->buildUserInterface(httpdinterface);
+#endif
 
 #ifdef OSCCTRL
 	GUI* oscinterface = new OSCUI(filename, argc, argv);
@@ -64,6 +69,10 @@ int main(int argc, char *argv[])
     }
 	finterface->recallState(rcfilename);
 	audio.start();
+
+#ifdef HTTPCTRL
+	httpdinterface->run();
+#endif
 
 #ifdef OSCCTRL
 	oscinterface->run();
