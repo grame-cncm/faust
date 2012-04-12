@@ -152,8 +152,7 @@ class llvmdsp : public dsp {
 
         ExecutionEngine* fJIT;
         Module* fModule;
-        FunctionPassManager* fManager;
-
+    
         llvm_dsp* fDsp;
         newDspFun fNew;
         deleteDspFun fDelete;
@@ -169,7 +168,6 @@ class llvmdsp : public dsp {
         {
             Function* fun_ptr = fModule->getFunction(function);
             if (fun_ptr) {
-                fManager->run(*fun_ptr);
                 return fJIT->getPointerToFunction(fun_ptr);
             } else {
                 return 0;
@@ -235,6 +233,7 @@ class llvmdsp : public dsp {
 
         void Init()
         {
+            int opt_level = 1;
             InitializeNativeTarget();
             fModule->setTargetTriple(llvm::sys::getHostTriple());
 
@@ -252,28 +251,88 @@ class llvmdsp : public dsp {
             */
             builder.setOptLevel(CodeGenOpt::Aggressive);
             fJIT = builder.create();
-
-            //fJIT = EngineBuilder(fModule).create();
             assert(fJIT);
             fJIT->DisableLazyCompilation(true);
             fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
-            //module->dump();
-
-            FunctionPassManager OurFPM(fModule);
+            //fModule->dump();
+       
             // Set up the optimizer pipeline.  Start with registering info about how the
             // target lays out data structures.
-            OurFPM.add(new TargetData(*fJIT->getTargetData()));
-            // Do simple "peephole" optimizations and bit-twiddling optzns.
-            OurFPM.add(createInstructionCombiningPass());
-            // Reassociate expressions.
-            OurFPM.add(createReassociatePass());
-            // Eliminate Common SubExpressions.
-            OurFPM.add(createGVNPass());
-            // Simplify the control flow graph (deleting unreachable blocks, etc).
-            OurFPM.add(createCFGSimplificationPass());
-
-            OurFPM.doInitialization();
-            fManager = &OurFPM;
+            PassManager pm;
+            pm.add(new TargetData(*fJIT->getTargetData()));
+            
+            // Taken from LuaAV
+            switch (opt_level) {
+            
+                case 1:
+                    pm.add(llvm::createPromoteMemoryToRegisterPass());
+                    pm.add(llvm::createInstructionCombiningPass());
+                    pm.add(llvm::createCFGSimplificationPass());
+                    pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
+                    break;
+                    
+                case 2:
+                    pm.add(llvm::createCFGSimplificationPass());
+                    pm.add(llvm::createJumpThreadingPass());
+                    pm.add(llvm::createPromoteMemoryToRegisterPass());
+                    pm.add(llvm::createInstructionCombiningPass());
+                    pm.add(llvm::createCFGSimplificationPass());
+                    pm.add(llvm::createScalarReplAggregatesPass());
+                    pm.add(llvm::createLICMPass());
+                    pm.add(llvm::createGVNPass());
+                    pm.add(llvm::createSCCPPass());
+                    pm.add(llvm::createAggressiveDCEPass());
+                    pm.add(llvm::createCFGSimplificationPass());
+                    pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
+                    break;
+                    
+                case 3:
+                    pm.add(llvm::createScalarReplAggregatesPass());
+                    pm.add(llvm::createInstructionCombiningPass());
+                    pm.add(llvm::createCFGSimplificationPass());        // Clean up disgusting code
+                    pm.add(llvm::createPromoteMemoryToRegisterPass());  // Kill useless allocas
+                    pm.add(llvm::createGlobalOptimizerPass());          // OptLevel out global vars
+                    pm.add(llvm::createGlobalDCEPass());                // Remove unused fns and globs
+                    pm.add(llvm::createIPConstantPropagationPass());    // IP Constant Propagation
+                    pm.add(llvm::createDeadArgEliminationPass());       // Dead argument elimination
+                    pm.add(llvm::createInstructionCombiningPass());     // Clean up after IPCP & DAE
+                    pm.add(llvm::createCFGSimplificationPass());        // Clean up after IPCP & DAE
+                    pm.add(llvm::createPruneEHPass());                  // Remove dead EH info
+                    pm.add(llvm::createFunctionAttrsPass());            // Deduce function attrs
+                    pm.add(llvm::createFunctionInliningPass());         // Inline small functions
+                    pm.add(llvm::createArgumentPromotionPass());        // Scalarize uninlined fn args
+                    pm.add(llvm::createSimplifyLibCallsPass());         // Library Call Optimizations
+                    pm.add(llvm::createInstructionCombiningPass());     // Cleanup for scalarrepl.
+                    pm.add(llvm::createJumpThreadingPass());            // Thread jumps.
+                    pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
+                    pm.add(llvm::createScalarReplAggregatesPass());     // Break up aggregate allocas
+                    pm.add(llvm::createInstructionCombiningPass());     // Combine silly seq's
+                    pm.add(llvm::createTailCallEliminationPass());      // Eliminate tail calls
+                    pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
+                    pm.add(llvm::createReassociatePass());              // Reassociate expressions
+                    pm.add(llvm::createLoopRotatePass());               // Rotate Loop
+                    pm.add(llvm::createLICMPass());                     // Hoist loop invariants
+                    pm.add(llvm::createLoopUnswitchPass());
+                    pm.add(llvm::createInstructionCombiningPass());
+                    pm.add(llvm::createIndVarSimplifyPass());           // Canonicalize indvars
+                    pm.add(llvm::createLoopDeletionPass());             // Delete dead loops
+                    pm.add(llvm::createLoopUnrollPass());               // Unroll small loops
+                    pm.add(llvm::createInstructionCombiningPass());     // Clean up after the unroller
+                    pm.add(llvm::createGVNPass());                      // Remove redundancies
+                    pm.add(llvm::createMemCpyOptPass());                // Remove memcpy / form memset
+                    pm.add(llvm::createSCCPPass());                     // Constant prop with SCCP
+                    pm.add(llvm::createInstructionCombiningPass());
+                    pm.add(llvm::createDeadStoreEliminationPass());     // Delete dead stores
+                    pm.add(llvm::createAggressiveDCEPass());            // Delete dead instructions
+                    pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
+                    pm.add(llvm::createStripDeadPrototypesPass());      // Get rid of dead prototypes
+                    pm.add(llvm::createConstantMergePass());            // Merge dup global constants
+                    pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
+                    break;
+            }
+      
+            pm.run(*fModule);
+            //fModule->dump();
 
             fNew = (newDspFun)LoadOptimize("new_mydsp");
             fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
@@ -338,7 +397,7 @@ class llvmdsp : public dsp {
             fBuildUserInterface(fDsp, &glue);
         }
 
-        virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
             AVOIDDENORMALS;
             fCompute(fDsp, count, input, output);
