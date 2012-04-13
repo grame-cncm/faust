@@ -100,6 +100,7 @@ char rcfilename[256];
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
                                                  name:UIDeviceOrientationDidChangeNotification object:nil];
+    interface->saveAbstractLayout();
     interface->adaptLayoutToDevice();
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
     
@@ -114,10 +115,10 @@ char rcfilename[256];
     {
         _dspScrollView.maximumZoomScale = 1.;
     }
-    else*/
+    else
     {
         _dspScrollView.maximumZoomScale = 1.5;
-    }
+    }*/
     [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:NO];
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
     
@@ -327,10 +328,12 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
     
+    interface->adaptLayoutToDevice();
+    
     [_dspView setFrame:CGRectMake(  _dspView.frame.origin.x,
                                     _dspView.frame.origin.y,
-                                    5. * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                    5. * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+                                    2. * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                    2. * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
 
     [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                                 (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];

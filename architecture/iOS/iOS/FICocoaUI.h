@@ -140,6 +140,10 @@ protected:
     float               fy;
     float               fw;
     float               fh;
+    float               fAbstractX;
+    float               fAbstractY;
+    float               fAbstractW;
+    float               fAbstractH;
     
 public:
     
@@ -154,6 +158,10 @@ public:
         fy = 0.f;
         fw = 0.f;
         fh = 0.f;
+        fAbstractX = 0.f;
+        fAbstractY = 0.f;
+        fAbstractW = 0.f;
+        fAbstractH = 0.f;
     }
     
     ~uiCocoaItem()
@@ -167,8 +175,13 @@ public:
     float getY()                                                    {return fy;}
     float getW()                                                    {return fw;}
     float getH()                                                    {return fh;}
-    
     virtual void setFrame(float x, float y, float w, float h)       {fx = x; fy = y; fw = w; fh = h;}
+    
+    float getAbstractX()                                            {return fAbstractX;}
+    float getAbstractY()                                            {return fAbstractY;}
+    float getAbstractW()                                            {return fAbstractW;}
+    float getAbstractH()                                            {return fAbstractH;}
+    void setAbstractFrame(float x, float y, float w, float h)       {fAbstractX = x; fAbstractY = y; fAbstractW = w; fAbstractH = h;}
     
     void setParent(uiCocoaItem* parent)                             {fParent = parent;}
     
@@ -191,7 +204,6 @@ public:
     float                   fLastX;
     float                   fLastY;
     UILabel*                fLabel;
-    float                   fMinWidth;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
     : uiCocoaItem(ui, NULL, controller)
@@ -202,7 +214,6 @@ public:
         fLastY = 0.f;
         fTabView = nil;
         fLabel = nil;
-        fMinWidth = 0.f;
         
         if (boxType == kTabLayout)
         {
@@ -267,7 +278,7 @@ public:
         float                           labelYOffset = 0.f;
 
         uiCocoaItem::setFrame(x, y, w, h);
-        
+
         // For tab views : simply resize the tab corresponding box
         if (fTabView)
         {
@@ -1099,10 +1110,7 @@ private:
                                                      (*fWidgetList.begin())->getH())];
         
         [fViewController.dspScrollView setContentSize:CGSizeMake((*fWidgetList.begin())->getW(),
-                                                                 (*fWidgetList.begin())->getH())];
-        
-        // Refresh minimal width of the main container
-        dynamic_cast<uiBox*>(*fWidgetList.begin())->fMinWidth = (*fWidgetList.begin())->getW();
+                                                                 (*fWidgetList.begin())->getH())];        
     }
     
     
@@ -1136,9 +1144,31 @@ public:
         [fWindow release];
     }
     
+    void saveAbstractLayout()
+    {
+        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            (*i)->setAbstractFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), (*i)->getH());
+        }
+    }
+    
+    void loadAbstractLayout()
+    {
+        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            (*i)->setFrame((*i)->getAbstractX(), (*i)->getAbstractY(), (*i)->getAbstractW(), (*i)->getAbstractH());
+        }
+    }
+    
     void adaptLayoutToDevice()
     {
-        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        float                           width = 0.f;
+        UIDeviceOrientation             deviceOrientation = [UIDevice currentDevice].orientation;
         
         if (dynamic_cast<uiBox*>(*i))
         {
@@ -1147,15 +1177,29 @@ public:
             {
                 dynamic_cast<uiBox*>(*i)->fBox.color = [UIColor clearColor];
             }
-        
-            // Adapt size
-            /*if (dynamic_cast<uiBox*>(*i)->fMinWidth < fViewController.dspScrollView.frame.size.width)
+                    
+            if (deviceOrientation == UIDeviceOrientationPortrait
+                || deviceOrientation == UIDeviceOrientationPortraitUpsideDown)
             {
-                (*i)->setFrame( (*i)->getX(),
-                                (*i)->getY(),
-                                max(dynamic_cast<uiBox*>(*i)->fMinWidth, fViewController.dspScrollView.frame.size.width),
-                                (*i)->getH());
-            }*/
+                width = min(fViewController.dspScrollView.window.frame.size.width,
+                            fViewController.dspScrollView.window.frame.size.height);
+            }
+            else if (deviceOrientation == UIDeviceOrientationLandscapeLeft
+                     || deviceOrientation == UIDeviceOrientationLandscapeRight)
+            {
+                width = max(fViewController.dspScrollView.window.frame.size.width,
+                            fViewController.dspScrollView.window.frame.size.height);
+            }
+            else
+            {
+                return;
+            }
+
+            loadAbstractLayout();
+            (*i)->setFrame( (*i)->getX(),
+                            (*i)->getY(),
+                            max((*i)->getAbstractW(), width),
+                            (*i)->getH());
         }
     }
     
