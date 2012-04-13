@@ -22,6 +22,7 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
 #include <llvm/Support/PluginLoader.h>
+#include <llvm/Support/IRReader.h>
 #include <llvm/Support/system_error.h>
 #include <llvm/Linker.h>
 #ifdef LLVM_29
@@ -167,25 +168,14 @@ class llvmdsp : public dsp {
         void* LoadOptimize(const std::string& function)
         {
             Function* fun_ptr = fModule->getFunction(function);
-            if (fun_ptr) {
-                return fJIT->getPointerToFunction(fun_ptr);
-            } else {
-                return 0;
-            }
+            return (fun_ptr) ? fJIT->getPointerToFunction(fun_ptr) : 0;
         }
         
         Module* LoadModule(const std::string filename)
         {
-            LLVMContext &Context = getGlobalContext();
-            std::string ErrorMessage;
-            OwningPtr<MemoryBuffer> Buffer;
-            if (error_code ec = MemoryBuffer::getFileOrSTDIN(filename, Buffer)) {
-                ErrorMessage = ec.message();
-            }
-            Module *Result = 0;
-            if (Buffer.get()) {
-                return ParseBitcodeFile(Buffer.get(), Context, &ErrorMessage);
-            }
+            LLVMContext &context = getGlobalContext();
+            SMDiagnostic err;
+            return ParseIRFile(filename, err, context);
         }
 
   public:
@@ -199,11 +189,7 @@ class llvmdsp : public dsp {
             argv[2] = "llvm";
             
             fModule = compile_faust_llvm(argc, (char**)argv, pgm.c_str());
-            if (fModule) {
-                Init();
-            } else {
-                throw new std::bad_alloc;
-            }
+            Init();
         }
   
         llvmdsp(int argc, char *argv[])
@@ -224,21 +210,19 @@ class llvmdsp : public dsp {
                 fModule = compile_faust_llvm(argc1, (char**)argv1, NULL);
             }
             
-            if (fModule) {
-                Init();
-            } else {
-                throw new std::bad_alloc;
-            }
+            Init();
         }
 
         void Init(int opt_level = 3)
         {
+            if (!fModule) throw new std::bad_alloc;
+            
             InitializeNativeTarget();
             fModule->setTargetTriple(llvm::sys::getHostTriple());
 
             std::string ErrorMessage;
-
             EngineBuilder builder(fModule);
+            
             /*
             builder.setMArch(MArch);
             builder.setMCPU(MCPU);
@@ -249,16 +233,24 @@ class llvmdsp : public dsp {
                                     : EngineKind::JIT);
             */
             builder.setOptLevel(CodeGenOpt::Aggressive);
+            builder.setEngineKind(EngineKind::JIT);
+            builder.setUseMCJIT(true);
             fJIT = builder.create();
             assert(fJIT);
             fJIT->DisableLazyCompilation(true);
             fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
             //fModule->dump();
        
-            // Set up the optimizer pipeline.  Start with registering info about how the
+            // Set up the optimizer pipeline. Start with registering info about how the
             // target lays out data structures.
             PassManager pm;
             pm.add(new TargetData(*fJIT->getTargetData()));
+            
+            // Link with "scheduler" code
+            Module* scheduler = LoadModule("scheduler.ll");
+            if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &ErrorMessage)) {
+                printf("Cannot link scheduler module...\n");
+            }
             
             // Taken from LuaAV
             switch (opt_level) {

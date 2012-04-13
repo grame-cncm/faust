@@ -58,6 +58,13 @@ using namespace std;
 
 #ifdef __APPLE__
 #include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+#include <libkern/OSAtomic.h>
+#endif
+
+#ifdef __APPLE__
+#define NO_TASK 0  // Because OSAtomicAdd32 returns the new value
+#else
+#define NO_TASK 1
 #endif
 
 class TaskQueue;
@@ -91,31 +98,39 @@ static INLINE UInt64 DSP_rdtsc(void)
 
 static INLINE void NOP(void)
 {
-	__asm__ __volatile__("nop \n\t");
+//#ifndef __APPLE__
+//	__asm__ __volatile__("nop \n\t");
+//#endif
 }
 
 static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 {
+#ifdef __APPLE__
+    return OSAtomicCompareAndSwap32(value, newvalue, (volatile int32_t*)addr);
+#else
     register char ret;
-    __asm__ __volatile__ (
-						  "# CAS \n\t"
+    __asm__ __volatile__ ("# CAS \n\t"
 						  LOCK "cmpxchg %2, (%1) \n\t"
 						  "sete %0               \n\t"
 						  : "=a" (ret)
 						  : "c" (addr), "d" (newvalue), "a" (value)
-                          : "memory"
-						  );
+                          : "memory");
     return ret;
+#endif
 }
 
 static INLINE int atomic_xadd(volatile int* atomic, int val) 
 { 
-    register int result;
+#ifdef __APPLE__
+    return OSAtomicAdd32(val, atomic);
+#else
+    register int ret;
     __asm__ __volatile__ ("# atomic_xadd \n\t"
                           LOCK "xaddl %0,%1 \n\t"
-                          : "=r" (result), "=m" (*atomic) 
+                          : "=r" (ret), "=m" (*atomic) 
                           : "0" (val), "m" (*atomic));
-    return result;
+    return ret;
+#endif
 } 
 
 #endif
@@ -387,7 +402,7 @@ struct TaskGraph
       
     INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
             if (tasknum == WORK_STEALING_INDEX) {
                 tasknum = task;
             } else {
@@ -398,7 +413,7 @@ struct TaskGraph
     
     INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
             if (*tasknum == WORK_STEALING_INDEX) {
                 *tasknum = task;
             } else {
@@ -409,21 +424,21 @@ struct TaskGraph
      
     INLINE void ActivateOutputTask(TaskQueue& queue, int task)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
             queue.PushHead(task);
         }
     }
     
     INLINE void ActivateOutputTask(TaskQueue* queue, int task)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
             queue->PushHead(task);
         }
     }
     
     INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
             tasknum = task;
         } else {
             tasknum = queue.PopHead(); 
@@ -432,7 +447,7 @@ struct TaskGraph
     
     INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 1) {
+        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
             *tasknum = task;
         } else {
             *tasknum = queue->PopHead(); 
