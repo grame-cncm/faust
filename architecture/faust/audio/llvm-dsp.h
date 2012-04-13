@@ -180,15 +180,19 @@ class llvmdsp : public dsp {
 
   public:
   
-        llvmdsp(const std::string& pgm)
+        llvmdsp(int argc, char *argv[], const std::string& pgm)
         {
-            int argc = 3;
-            const char* argv[3];
-            argv[0] = "faust";
-            argv[1] = "-lang";
-            argv[2] = "llvm";
+            printf("Compile module...\n");
+            int argc1 = argc + 3;
+            const char* argv1[argc1];
+            argv1[0] = "faust";
+            argv1[1] = "-lang";
+            argv1[2] = "llvm";
+            for (int i = 0; i < argc; i++) {
+                argv1[i+3] = argv[i];
+            }
+            fModule = compile_faust_llvm(argc1, (char**)argv1, pgm.c_str());
             
-            fModule = compile_faust_llvm(argc, (char**)argv, pgm.c_str());
             Init();
         }
   
@@ -205,7 +209,7 @@ class llvmdsp : public dsp {
                 argv1[1] = "-lang";
                 argv1[2] = "llvm";
                 for (int i = 0; i < argc-1; i++) {
-                     argv1[i+3] = argv[i+1];
+                    argv1[i+3] = argv[i+1];
                 }
                 fModule = compile_faust_llvm(argc1, (char**)argv1, NULL);
             }
