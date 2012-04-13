@@ -180,7 +180,7 @@ class llvmdsp : public dsp {
 
   public:
   
-        llvmdsp(int argc, char *argv[], const std::string& pgm)
+        llvmdsp(int argc, char *argv[], const std::string& pgm, int opt_level = 3)
         {
             printf("Compile module...\n");
             int argc1 = argc + 3;
@@ -193,10 +193,10 @@ class llvmdsp : public dsp {
             }
             fModule = compile_faust_llvm(argc1, (char**)argv1, pgm.c_str());
             
-            Init();
+            Init(opt_level);
         }
   
-        llvmdsp(int argc, char *argv[])
+        llvmdsp(int argc, char *argv[], int opt_level = 3)
         {
             if (strstr(argv[1], ".bc")) {
                 printf("Load module...\n");
@@ -214,10 +214,10 @@ class llvmdsp : public dsp {
                 fModule = compile_faust_llvm(argc1, (char**)argv1, NULL);
             }
             
-            Init();
+            Init(opt_level);
         }
 
-        void Init(int opt_level = 3)
+        void Init(int opt_level)
         {
             if (!fModule) throw new std::bad_alloc;
             
