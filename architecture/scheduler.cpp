@@ -13,7 +13,6 @@
 #include <unistd.h>
 #include <math.h>
 
-using namespace std;
 // Globals
 
 #define THREAD_SIZE 32
@@ -693,7 +692,7 @@ static INLINE int Range(int min, int max, int val)
     }
 }
 
-#ifdef LLVM_30 || LLVM_29
+#if defined(LLVM_30) || defined(LLVM_29)
     typedef void (* computeThreadExternalFun) (void* dsp, int cur_thread);
     extern computeThreadExternalFun gComputeThreadExternal;
 #else
@@ -730,16 +729,16 @@ struct Runnable {
     
     INLINE void StartMeasure()
     {
-        if (!fDynAdapt)
-            return;
-        
-        fStart = DSP_rdtsc();
+        if (fDynAdapt) {
+            fStart = DSP_rdtsc();
+        }
     }
      
     INLINE void StopMeasure(int staticthreadnum, int& dynthreadnum)
     {
-        if (!fDynAdapt)
+        if (!fDynAdapt) {
             return;
+        }
         
         fStop = DSP_rdtsc();
         fCounter = (fCounter + 1) % KDSPMESURE;
@@ -827,7 +826,7 @@ struct DSPThread {
     void Run()
     {
         while (sem_wait(fSemaphore) != 0) {}
-    #ifdef LLVM_30 || LLVM_29
+    #if defined(LLVM_30) || defined(LLVM_29)
         gComputeThreadExternal(fDSP, fNum + 1);
     #else
         computeThreadExternal(fDSP, fNum + 1);
