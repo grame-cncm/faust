@@ -25,7 +25,7 @@ ARCHFLAGS 	:=  -arch i386 -arch x86_64
 LIBFLAGS	:=
 else 
 ARCHFLAGS 	:= 
-LIBFLAGS	:= --mode=link --tags=CXX
+LIBFLAGS	:= --mode=link --tag=CXX
 endif
 
 CXXFLAGS ?= -g -Wall -Wuninitialized 
