@@ -22,8 +22,10 @@ endif
 ## On darwin build both 32 and 64-bits intel versions
 ifeq ($(system), Darwin)
 ARCHFLAGS 	:=  -arch i386 -arch x86_64
+LIBFLAGS	:=
 else 
 ARCHFLAGS 	:= 
+LIBFLAGS	:= --mode=link --tags=CXX
 endif
 
 CXXFLAGS ?= -g -Wall -Wuninitialized 
@@ -41,7 +43,7 @@ faust : $(objects) main.o libmain.o
 
 libfaust : $(objects) libmain.o
 	$(CXX) $(CXXFLAGS) -DLIB_FAUST libmain.cpp -c -o libmain.o
-	libtool $(objects) libmain.o -static -o libfaust.a
+	libtool $(LIBFLAGS) $(objects) libmain.o -static -o libfaust.a
 
 
 .PHONY: clean depend ctags parser
