@@ -42,7 +42,7 @@ faust : $(objects) main.o libmain.o
 	$(CXX) $(CXXFLAGS) $(objects) main.o libmain.o `llvm-config --ldflags --libs all` -ldl -o faust
 
 libfaust : $(objects) libmain.o
-	$(CXX) $(CXXFLAGS) -DLIB_FAUST libmain.cpp -c -o libmain.o
+	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
 	libtool $(LIBFLAGS) $(objects) libmain.o -static -o libfaust.a
 
 

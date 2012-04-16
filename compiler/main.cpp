@@ -19,11 +19,24 @@
  ************************************************************************
  ************************************************************************/
 
+#include <string>
+#include <llvm/Module.h>
+
 #ifdef __cplusplus
 extern "C" int compile_faust(int argc, char* argv[], const char* input);
 #endif
 
+extern llvm::Module* gModule;
+extern std::string gOutputFile;
+
 int main(int argc, char* argv[])
 {
-    return compile_faust(argc, argv, 0);
+    int res = compile_faust(argc, argv, 0);
+    
+    // Special case for LLVM
+    if (res == 0 && gModule && gOutputFile == "") {
+        gModule->dump();
+    }
+    
+    return res;
 }

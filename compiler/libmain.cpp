@@ -655,11 +655,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         comp->prepare(signals);
      
         comp->compileMultiSignal(signals);
-    #ifdef LIB_FAUST
-        gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str(), true);
-    #else
         gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
-    #endif
   
     } else {
         if (gOutputLang == "c") {
@@ -898,7 +894,7 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
         e.PrintMessage();
         return -1;
     }
-
+    
 	return 0;
 }
 

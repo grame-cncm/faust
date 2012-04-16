@@ -166,7 +166,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
             }
         }
 
-        virtual Module* produceModule(const string& filename, bool library = false);
+        virtual Module* produceModule(const string& filename);
         virtual void generateCompute() = 0;
         void produceInternal();
 
