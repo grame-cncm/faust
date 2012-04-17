@@ -34,7 +34,8 @@ set_property(TARGET libfaust-static
 )
 
 # SHARED LIBFAUST
-add_library(libfaust libmain.cpp ${SUB_SOURCES}  ${SUB_SUB_SOURCES} ${LOKI_SOURCES})
+add_library(libfaust SHARED libmain.cpp ${SUB_SOURCES}
+${SUB_SUB_SOURCES} ${LOKI_SOURCES})
 set_target_properties(libfaust PROPERTIES OUTPUT_NAME faust)
 set_target_properties(libfaust PROPERTIES PREFIX "lib")
 set_property(TARGET libfaust
@@ -63,10 +64,11 @@ target_link_libraries(faust libfaust-static)
 target_link_libraries(faust pthread dl)
 target_link_libraries(faust ${LLVM_LIBS})
 
-if (CTAGS)
-	add_custom_command (TARGET faust POST_BUILD COMMAND ctags -R .
-					WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMENT "Creating tags" VERBATIM)
+if (CTAGS AND NOT CMAKE_GENERATOR STREQUAL Xcode)
+       add_custom_command (TARGET faust POST_BUILD COMMAND ctags ARGS -R .
+                                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMENT "Creating tags" VERBATIM)
 endif()
+
 
 install(TARGETS faust
         DESTINATION "bin"

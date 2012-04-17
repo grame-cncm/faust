@@ -31,3 +31,8 @@ install(DIRECTORY architecture
 install(DIRECTORY examples
   DESTINATION share/doc/faust/examples
 )
+
+if(APPLE)
+ set(CMAKE_OSX_ARCHITECTURES i386;x86_64 CACHE STRING "Build
+architectures for OSX" FORCE)
+endif()
