@@ -31,6 +31,7 @@
 #include "js_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -55,23 +56,18 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, cons
     CodeContainer* container;
 
     if (gOpenCLSwitch) {
-        cerr << "ERROR : OpenCL not supported for JavaScript" << endl;
-        exit(1);
+        throw faustexception("ERROR : OpenCL not supported for JavaScript\n");
     }
     if (gCUDASwitch) {
-        cerr << "ERROR : CUDA not supported for JavaScript" << endl;
-        exit(1);
+        throw faustexception("ERROR : CUDA not supported for JavaScript\n");
     }
 
     if (gOpenMPSwitch) {
-        cerr << "ERROR : OpenMP not supported for JavaScript" << endl;
-        exit(1);
+        throw faustexception("OpenMP : CUDA not supported for JavaScript\n");
     } else if (gSchedulerSwitch) {
-        cerr << "ERROR : Scheduler mode not supported for JavaScript" << endl;
-        exit(1);
+        throw faustexception("Scheduler mode not supported for JavaScript\n");
     } else if (gVectorSwitch) {
-        cerr << "ERROR : Vector mode not supported for JavaScript" << endl;
-        exit(1);
+        throw faustexception("Vector mode not supported for JavaScript\n");
     } else {
         container = new JAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }

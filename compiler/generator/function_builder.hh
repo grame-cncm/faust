@@ -689,9 +689,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
  - vérifier que les variables de boucles (kLoop) sont bien à l'intérieur d'une boucle de même variable
 
- - vérifier que les variable kStack sont bien utilisées dans un scope où elles sont définies
+ - vérifier que les variables kStack sont bien utilisées dans un scope où elles sont définies
 
- - vérifier que les variables kFunArgs sont bien utilisées dans un scope où elles sont définies (à l'intéreur d'une fonction avec les bons arguments)
+ - vérifier que les variables kFunArgs sont bien utilisées dans un scope où elles sont définies (à l'intérieur d'une fonction avec les bons arguments)
 
 */
 

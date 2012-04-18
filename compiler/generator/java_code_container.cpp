@@ -85,19 +85,6 @@ JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const strin
 JAVAScalarCodeContainer::~JAVAScalarCodeContainer()
 {}
 
-/*
-void JAVACodeContainer::printIncludeFile(ostream& fout)
-{
-    set<string> S;
-    set<string>::iterator f;
-
-    collectIncludeFile(S);
-    for (f = S.begin(); f != S.end(); f++) 	{
-        fout << "#import " << *f << "\n";
-    }
-}
-*/
-
 void JAVACodeContainer::produceInternal()
 {
     int n = 1;
@@ -174,8 +161,7 @@ void JAVACodeContainer::produceClass()
 
     // Libraries
     printLibrary(*fOut);
-    //printIncludeFile(*fOut);
-
+ 
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
