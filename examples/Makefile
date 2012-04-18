@@ -26,6 +26,10 @@ ifeq ($(LLVM_VERSION), 3.0)
 LLVM_VERSION  = LLVM_30
 endif
 
+ifeq ($(LLVM_VERSION), 3.1svn)
+LLVM_VERSION  = LLVM_31
+endif
+
 ifeq ($(OSC),1)
  OSCCTRL := -DOSCCTRL -I$(FAUSTINC)/gui/
  QTDEFS  := OSCCTRL

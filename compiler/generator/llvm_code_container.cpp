@@ -59,7 +59,7 @@ extern map<Tree, set<Tree> > gMetaDataSet;
    #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, args.begin(), args.end(), str, block)
 #endif
 
-#ifdef LLVM_30
+#if defined(LLVM_30) || defined(LLVM_31)
    #define VECTOR_OF_TYPES vector<llvm::Type*>
    #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
    #define LLVM_TYPE llvm::Type*
@@ -190,9 +190,9 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
 
     SmallVector<AttributeWithIndex, 4> attributes;
     AttributeWithIndex PAWI;
-    PAWI.Index = 3U; PAWI.Attrs = 0 | Attribute::NoAlias;
+    PAWI.Index = 3U; PAWI.Attrs = Attribute::NoAlias;
     attributes.push_back(PAWI);
-    PAWI.Index = 4U; PAWI.Attrs = 0 | Attribute::NoAlias;
+    PAWI.Index = 4U; PAWI.Attrs = Attribute::NoAlias;
     attributes.push_back(PAWI);
     llvm_compute->setAttributes( AttrListPtr::get(attributes.begin(), attributes.end()));
 

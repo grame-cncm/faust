@@ -28,7 +28,7 @@
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
 #endif
-#ifdef LLVM_30
+#if defined(LLVM_30) || defined(LLVM_31)
 #include <llvm/Support/TargetSelect.h>
 #endif
 #include <llvm/Support/Host.h>
@@ -222,7 +222,11 @@ class llvmdsp : public dsp {
             if (!fModule) throw new std::bad_alloc;
             
             InitializeNativeTarget();
+        #if defined(LLVM_31)
+            fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+        #else
             fModule->setTargetTriple(llvm::sys::getHostTriple());
+        #endif
 
             std::string ErrorMessage;
             EngineBuilder builder(fModule);
