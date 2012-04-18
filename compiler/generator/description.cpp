@@ -228,7 +228,7 @@ void Description::addGroup(int level, Tree t)
 		addLayoutLine(level, subst("<widgetref id=\"$0\" />", T(w)));
 
 	} else {
-	     throw faustexception("ERROR in user interface generation");
+	     throw faustexception("ERROR in user interface generation\n");
 	}
 }
 
@@ -327,7 +327,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 		addPassiveLine("</widget>");
 
 	} else {
-        throw faustexception("ERROR describing widget : unrecognized expression");
+        throw faustexception("ERROR describing widget : unrecognized expression\n");
 	}
 
 	return fWidgetID;

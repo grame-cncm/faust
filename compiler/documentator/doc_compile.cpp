@@ -999,7 +999,7 @@ string DocCompiler::generateIota (Tree sig, Tree n)
 {
 	int size;
 	if (!isSigInt(n, &size)) { 
-        throw faustexception("Error in generateIota");
+        throw faustexception("Error in generateIota\n");
     }
 	//cout << "iota !" << endl;
 	return subst(" t \\bmod{$0} ", docT(size));

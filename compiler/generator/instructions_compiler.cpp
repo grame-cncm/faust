@@ -456,7 +456,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     }
     */
 	else {
-        throw faustexception("Error in compiling signal, unrecognized signal");
+        throw faustexception("Error in compiling signal, unrecognized signal \n");
 	}
 	return InstBuilder::genNullInst();
 }
@@ -1424,7 +1424,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t)
 		generateWidgetCode(label, varname, sig);
 
 	} else {
-        throw faustexception("ERROR in user interface generation");
+        throw faustexception("ERROR in user interface generation\n");
 	}
 }
 
@@ -1487,7 +1487,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
             InstBuilder::genAddHorizontalBargraphInst(label, tree2str(varname), tree2float(x), tree2float(y)));
 
 	} else {
-		throw faustexception("ERROR in generating widget code");
+		throw faustexception("ERROR in generating widget code\n");
 	}
 }
 
@@ -1510,7 +1510,7 @@ void InstructionsCompiler::generateMacroInterfaceTree(const string& pathname, Tr
     } else if (isUiWidget(t, label, varname, sig)) {
 		generateWidgetMacro(pathname, label, varname, sig);
 	} else {
-        throw faustexception("ERROR in user interface macro generation");
+        throw faustexception("ERROR in user interface macro generation\n");
 	}
 }
 
@@ -1588,6 +1588,6 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
 				T(tree2float(y))));
 
 	} else {
-	     throw faustexception("ERROR in generating widget code");
+	     throw faustexception("ERROR in generating widget code\n");
 	}
 }

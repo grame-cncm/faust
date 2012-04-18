@@ -376,7 +376,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isList(sig))                       { return T( hd(sig),env ) * T( tl(sig),env ); }
 
 	// unrecognized signal here
-    throw faustexception("ERROR infering signal type : unrecognized signal");
+    throw faustexception("ERROR infering signal type : unrecognized signal\n");
 	return 0;
 }
 

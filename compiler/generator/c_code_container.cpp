@@ -58,10 +58,10 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     CodeContainer* container;
 
     if (gOpenCLSwitch) {
-        throw faustexception("ERROR : OpenCL not supported for C");
+        throw faustexception("ERROR : OpenCL not supported for C\n");
     }
     if (gCUDASwitch) {
-        throw faustexception("ERROR : CUDA not supported for C");
+        throw faustexception("ERROR : CUDA not supported for C\n");
     }
 
     if (gOpenMPSwitch) {

@@ -432,9 +432,9 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool is
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp)
 {
     if (gVecLoopSize > 0 && !loop->fIsRecursive) {
-        loop->generateDAGVecLoop(block, count, omp, gVecLoopSize);
+        loop->generateDAGVectorLoop(block, count, omp, gVecLoopSize);
     } else {
-        loop->generateDAGLoop(block, count, omp);
+        loop->generateDAGScalarLoop(block, count, omp);
     }
 }
 

@@ -73,7 +73,7 @@ point topSchema::inputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < inputs());
-    throw faustexception("topSchema::inputPoint");
+    throw faustexception("topSchema::inputPoint\n");
 }
 
 /**
@@ -83,7 +83,7 @@ point topSchema::outputPoint(unsigned int i) const
 {
 	assert (placed());
 	assert (i < outputs());
-    throw faustexception("topSchema::outputPoint");
+    throw faustexception("topSchema::outputPoint\n");
 }
 
 /**

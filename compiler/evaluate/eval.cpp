@@ -185,8 +185,8 @@ static Tree real_a2sb(Tree exp)
             return abstr;
 	
 		} else {
-			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure ", exp);
-            throw faustexception("a2sb : internal error : not an abstraction inside closure");
+			evalerror(yyfilename, -1, " a2sb : internal error : not an abstraction inside closure", exp);
+            throw faustexception("a2sb : internal error : not an abstraction inside closure\n");
 		}
 		
 	} else if (isBoxPatternMatcher(exp)) {
@@ -360,7 +360,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             return eval(closure(var,notused,visited2,lenv2), visited, localValEnv);
         } else {
             evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
-            throw faustexception("No environment to access");
+            throw faustexception("No environment to access\n");
         }
 
 //////////////////////en chantier////////////////////////////
@@ -376,7 +376,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
             evalerror(getDefFileProp(exp), getDefLineProp(exp), "Not a closure ", val);
             evalerror(getDefFileProp(exp), getDefLineProp(exp), "No environment to access ", exp);
-            throw faustexception("No environment to access");
+            throw faustexception("No environment to access\n");
         }
 
 ///////////////////////////////////////////////////////////////////
@@ -1059,12 +1059,12 @@ static Tree applyList (Tree fun, Tree larg)
 
     if (isBoxEnvironment(abstr)) {
         evalerrorbox(yyfilename, -1, "an environment can't be used as a function", fun);
-        throw faustexception("an environment can't be used as a function");
+        throw faustexception("an environment can't be used as a function\n");
     }
 
     if (!isBoxAbstr(abstr, id, body)) {
         evalerror(yyfilename, -1, "(internal) not an abstraction inside closure", fun);
-        throw faustexception("(internal) not an abstraction inside closure");
+        throw faustexception("(internal) not an abstraction inside closure\n");
     }
 
 	// try to synthetise a  name from the function name and the argument name
@@ -1121,7 +1121,7 @@ static Tree larg2par (Tree larg)
 {
 	if (isNil(larg)) {
 		evalerror(yyfilename, -1, "empty list of arguments", larg);
-        throw faustexception("empty list of arguments");
+        throw faustexception("empty list of arguments\n");
 	}
 	if (isNil(tl(larg))) {
 		return hd(larg);

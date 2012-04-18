@@ -861,7 +861,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 case 2: mth_index = fUICallTable["openTabBox"]; break;
                 default:
                     stringstream error;
-                    error << "ERROR in user interface generation" << inst->fOrient;
+                    error << "LLVM : ERROR in user interface generation" << inst->fOrient << endl;
                     throw faustexception(error.str());
             }
 
@@ -1244,11 +1244,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 for (int i = 0; i < size; i++) {
                     args.push_back(static_cast<Constant*>(genInt32(0)));
                 }
-            #ifdef LLVM_28
-                Constant* mask = ConstantVector::get(&args[0], size);
-            #else
                 Constant* mask = ConstantVector::get(args);
-            #endif
                 return fBuilder->CreateShuffleVector(vector, vector, mask, "splat");
             } else {
                 return load;
@@ -1872,6 +1868,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         virtual void visit(FunCallInst* inst)
         {
+            // Don't know how to compile vectorized function call for now...
+            if (inst->fSize > 1) {
+                stringstream error;
+                error << "LLVM : ERROR FunCallInst with fSize = " << inst->fSize << endl;
+                throw faustexception(error.str());
+            }
             // Special case
             if (inst->fName == "min" || inst->fName == "max") {
                 generateFunMinMax(inst);

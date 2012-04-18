@@ -80,19 +80,19 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
     CodeContainer* container;
 
     if (gFloatSize == 3) {
-        throw faustexception("ERROR : quad format not supported in LLVM");
+        throw faustexception("ERROR : quad format not supported in LLVM\n");
     }
     gDSPStruct = true;
 
     if (gOpenCLSwitch) {
-        throw faustexception("ERROR : OpenCL not supported for LLVM");
+        throw faustexception("ERROR : OpenCL not supported for LLVM\n");
     }
     if (gCUDASwitch) {
-        throw faustexception("ERROR : CUDA not supported for LLVM");
+        throw faustexception("ERROR : CUDA not supported for LLVM\n");
     }
 
     if (gOpenMPSwitch) {
-        throw faustexception("ERROR : OpenMP not supported for LLVM");
+        throw faustexception("ERROR : OpenMP not supported for LLVM\n");
     } else if (gSchedulerSwitch) {
         container = new LLVMWorkStealingCodeContainer(name, numInputs, numOutputs);
     } else if (gVectorSwitch) {

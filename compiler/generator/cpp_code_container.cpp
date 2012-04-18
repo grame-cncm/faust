@@ -57,7 +57,7 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
 
     if (gOpenCLSwitch) {
         if (gFunTaskSwitch) {
-            throw faustexception("ERROR : -fun not yet supported in OpenCL mode");
+            throw faustexception("ERROR : -fun not yet supported in OpenCL mode\n");
         }
         if (gVectorSwitch) {
             container = new CPPOpenCLVectorCodeContainer(name, super, numInputs, numOutputs, dst);
@@ -66,7 +66,7 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
         }
     } else if (gCUDASwitch) {
         if (gFunTaskSwitch) {
-            throw faustexception("ERROR : -fun not yet supported in CUDA mode");
+            throw faustexception("ERROR : -fun not yet supported in CUDA mode\n");
         }
         if (gVectorSwitch) {
             container = new CPPCUDAVectorCodeContainer(name, super, numInputs, numOutputs, dst);

@@ -201,7 +201,7 @@ Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 {
 	if (isNil (revarglist)) {
         // a revoir !!!!!!
-        throw faustexception("Error : buildBoxAppl called with null revarglist");
+        throw faustexception("Error : buildBoxAppl called with null revarglist\n");
     }
 	return  boxAppl(fun, revarglist);
 }

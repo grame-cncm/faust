@@ -154,7 +154,7 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
 
 };
 
-void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool omp, int size)
+void CodeLoop::generateDAGVectorLoop(BlockInst* block, DeclareVarInst* count, bool omp, int size)
 {
     // TODO
     // 1) Vectorize access to all scalar that are not "kLoop" type: declare a Vector version of them, then transform Load/Store access.
@@ -163,7 +163,7 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
 
     // Generate code for extra loops
     for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
-        (*s)->generateDAGVecLoop(block, count, omp, size);
+        (*s)->generateDAGVectorLoop(block, count, omp, size);
     }
 
     // Generate code before the loop
@@ -207,11 +207,11 @@ void CodeLoop::generateDAGVecLoop(BlockInst* block, DeclareVarInst* count, bool 
     }
 }
 
-void CodeLoop::generateDAGLoop(BlockInst* block, DeclareVarInst* count, bool omp)
+void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
     // Generate code for extra loops
     for (list<CodeLoop*>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
-        (*s)->generateDAGLoop(block, count, omp);
+        (*s)->generateDAGScalarLoop(block, count, omp);
     }
 
     // Generate code before the loop

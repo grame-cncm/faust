@@ -75,7 +75,7 @@ Tree checkRulelist (Tree lr)
 {
 	Tree lrules = lr;
 	if (isNil(lrules)) { 
-        throw faustexception("ERROR : a case expression can't be empty");
+        throw faustexception("ERROR : a case expression can't be empty\n");
     }
 	// first pattern used as a reference
 	Tree lhs1 = hd(hd(lrules));
@@ -87,7 +87,7 @@ Tree checkRulelist (Tree lr)
 		Tree rhs2 = tl(hd(lrules));
 		if (npat != len(lhs2)) {
 			printPatternError(lhs1,rhs1,lhs2,rhs2);
-            throw faustexception("printPatternError");
+            throw faustexception("printPatternError\n");
 		}
 		
 		lhs1 = lhs2;
@@ -127,7 +127,7 @@ static Tree makeDefinition(list<Tree>& variants)
 			Tree cur = *p;
 			if (npat != len(hd(cur))) {
 				printPatternError(hd(prev), tl(prev), hd(cur), tl(cur));
-                throw faustexception("printPatternError");
+                throw faustexception("printPatternError\n");
 			}
 			prev = cur;
 			l = cons(*p,l);
@@ -260,7 +260,7 @@ Tree SourceReader::getlist(string fname)
         }
 	}
     if (fFileCache[fname] == 0) {
-        throw faustexception("getlist");
+        throw faustexception("getlist\n");
     }
     return fFileCache[fname];
 }

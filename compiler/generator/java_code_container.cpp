@@ -56,16 +56,16 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
     CodeContainer* container;
 
     if (gOpenCLSwitch) {
-        throw faustexception("ERROR : OpenCL not supported for Java");
+        throw faustexception("ERROR : OpenCL not supported for Java\n");
     }
     if (gCUDASwitch) {
-        throw faustexception("ERROR : CUDA not supported for Java");
+        throw faustexception("ERROR : CUDA not supported for Java\n");
     }
 
     if (gOpenMPSwitch) {
-        throw faustexception("ERROR : OpenMP not supported for Java");
+        throw faustexception("ERROR : OpenMP not supported for Java\n");
     } else if (gSchedulerSwitch) {
-        throw faustexception("ERROR : Scheduler not supported for Java");
+        throw faustexception("ERROR : Scheduler not supported for Java\n");
     } else if (gVectorSwitch) {
         container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {

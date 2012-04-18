@@ -231,15 +231,6 @@ class llvmdsp : public dsp {
             std::string ErrorMessage;
             EngineBuilder builder(fModule);
             
-            /*
-            builder.setMArch(MArch);
-            builder.setMCPU(MCPU);
-            builder.setMAttrs(MAttrs);
-            builder.setErrorStr(&ErrorMsg);
-            builder.setEngineKind(ForceInterpreter
-                                    ? EngineKind::Interpreter
-                                    : EngineKind::JIT);
-            */
             builder.setOptLevel(CodeGenOpt::Aggressive);
             builder.setEngineKind(EngineKind::JIT);
             builder.setUseMCJIT(true);

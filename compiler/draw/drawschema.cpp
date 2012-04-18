@@ -567,7 +567,7 @@ static void UserInterfaceDescription(Tree box, string& d)
              << boxpp(step)<< ')';
     }
     else {
-        throw faustexception("INTERNAL ERROR : unknow user interface element");
+        throw faustexception("INTERNAL ERROR : unknow user interface element\n");
     }
     d = fout.str();
 }
