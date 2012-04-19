@@ -302,7 +302,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             }
 
             // llvm_create_dsp
-
             VECTOR_OF_TYPES llvm_create_dsp_args;
             FunctionType* llvm_create_dsp_type = FunctionType::get(dsp_type_ptr, MAKE_VECTOR_OF_TYPES(llvm_create_dsp_args), false);
             Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type, (internal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
@@ -443,7 +442,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         void generateBuildUserInterface(llvm::PointerType* dsp_type_ptr)
         {
-              // Creates llvm_buildUserInterface function
+            // Creates llvm_buildUserInterface function
             VECTOR_OF_TYPES llvm_buildUserInterface_args;
             llvm_buildUserInterface_args.push_back(dsp_type_ptr);
             llvm_buildUserInterface_args.push_back(fStruct_UI_ptr);
@@ -468,7 +467,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = genInt32(0);
-            Value* ui_ptr = fBuilder->CreateGEP(interface, MAKE_IXD(idx, idx+2));
+            Value* ui_ptr = fBuilder->CreateInBoundsGEP(interface, MAKE_IXD(idx, idx+2));
             fUIInterface_ptr = fBuilder->CreateLoad(ui_ptr);
 
             //fStruct_UI_ptr->dump();
@@ -794,7 +793,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 Value* idx[2];
                 idx[0] = genInt64(0);
                 idx[1] = genInt64(0);
-                load_ptr = fBuilder->CreateGEP(variable, MAKE_IXD(idx, idx+2));
+                load_ptr = fBuilder->CreateInBoundsGEP(variable, MAKE_IXD(idx, idx+2));
             } else {
                 load_ptr = fBuilder->CreateLoad(variable, isvolatile);
             }
@@ -813,7 +812,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable["declare"];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
+            Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Get LLVM constant string
@@ -837,7 +836,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             idx2[2] = const_string1;
             idx2[3] = const_string2;
 
-            //CallInst* call_inst = fBuilder->CreateCall(mth, idx2, idx2+4);
             CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+4));
             call_inst->setCallingConv(CallingConv::C);
         }
@@ -868,7 +866,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = mth_index;
-            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
+            Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             CallInst* call_inst = fBuilder->CreateCall2(mth, fUIInterface_ptr, const_string);
@@ -885,7 +883,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable["closeBox"];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
+            Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             CallInst* call_inst = fBuilder->CreateCall(mth, fUIInterface_ptr);
@@ -907,7 +905,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable[button_type];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
+            Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
@@ -948,7 +946,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable[slider_type];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
+            Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
@@ -997,7 +995,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* idx[2];
             idx[0] = genInt64(0);
             idx[1] = fUICallTable[bargraph_type];
-            Value* mth_ptr = fBuilder->CreateGEP(ui, MAKE_IXD(idx, idx+2));
+            Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Generates access to zone
@@ -1264,7 +1262,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             if (named_address->fAccess & Address::kStruct) {
 
-               // cerr << named_address->fName << endl;
+                // cerr << named_address->fName << endl;
                 assert(fDSPFieldsNames.find(named_address->fName) != fDSPFieldsNames.end());
                 int field_index = fDSPFieldsNames[named_address->fName];
 
@@ -1347,9 +1345,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* load_ptr1 = fBuilder->CreateGEP(dsp, MAKE_IXD(idx, idx+2));
+                Value* load_ptr1 = fBuilder->CreateInBoundsGEP(dsp, MAKE_IXD(idx, idx+2));
                 Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
-                Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
+                Value* load_ptr3 = fBuilder->CreateInBoundsGEP(load_ptr2, fCurValue);
 
                 fCurValue = fBuilder->CreateLoad(load_ptr3);
                 fCurValue = genPointer2VectorLoad(load_ptr3, fCurValue, inst->fSize, false);
@@ -1373,7 +1371,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // Result is in fCurValue
                 indexed_address->fIndex->accept(this);
-                Value* load_ptr = fBuilder->CreateGEP(arg, fCurValue);
+                Value* load_ptr = fBuilder->CreateInBoundsGEP(arg, fCurValue);
 
                 fCurValue = fBuilder->CreateLoad(load_ptr);
                 fCurValue = genPointer2VectorLoad(load_ptr, fCurValue, inst->fSize, false);
@@ -1385,7 +1383,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 // We want to see array like [256 x float] as a float*
                 assert(fDSPStackVars[named_address->fName]);
                 Value* load_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
-                Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
+                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
 
                 fCurValue = fBuilder->CreateLoad(load_ptr2);
                 fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize, false);
@@ -1397,7 +1395,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // We want to see array like [256 x float] as a float*
                 Value* load_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
-                Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
+                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
 
                 fCurValue = fBuilder->CreateLoad(load_ptr2);
                 fCurValue = genPointer2VectorLoad(load_ptr2, fCurValue, inst->fSize, false);
@@ -1475,9 +1473,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* load_ptr1 = fBuilder->CreateGEP(dsp, MAKE_IXD(idx, idx+2));
+                Value* load_ptr1 = fBuilder->CreateInBoundsGEP(dsp, MAKE_IXD(idx, idx+2));
                 Value* load_ptr2 = LoadArrayAsPointer(load_ptr1);
-                Value* load_ptr3 = fBuilder->CreateGEP(load_ptr2, fCurValue);
+                Value* load_ptr3 = fBuilder->CreateInBoundsGEP(load_ptr2, fCurValue);
                 fCurValue = load_ptr3;
 
             } else if (named_address->fAccess & Address::kFunArgs) {
@@ -1499,7 +1497,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // Result is in fCurValue
                 indexed_address->fIndex->accept(this);
-                Value* load_ptr = fBuilder->CreateGEP(arg, fCurValue);
+                Value* load_ptr = fBuilder->CreateInBoundsGEP(arg, fCurValue);
                 fCurValue = load_ptr;
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                 // Compute index, result is in fCurValue
@@ -1510,7 +1508,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // We want to see array like [256 x float] as a float*
                 Value* load_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
-                Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
+                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
                 fCurValue = load_ptr2;
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
                // Compute index, result is in fCurValue
@@ -1519,7 +1517,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // We want to see array like [256 x float] as a float*
                 Value* load_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
-                Value* load_ptr2 = fBuilder->CreateGEP(load_ptr1, fCurValue);
+                Value* load_ptr2 = fBuilder->CreateInBoundsGEP(load_ptr1, fCurValue);
                 fCurValue = load_ptr2;
             } else {
                 // Default
@@ -1649,9 +1647,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 idx[0] = genInt64(0);
                 idx[1] = genInt32(field_index);
 
-                Value* store_ptr1 = fBuilder->CreateGEP(dsp, MAKE_IXD(idx, idx+2));
+                Value* store_ptr1 = fBuilder->CreateInBoundsGEP(dsp, MAKE_IXD(idx, idx+2));
                 Value* store_ptr2 = LoadArrayAsPointer(store_ptr1);
-                Value* store_ptr = fBuilder->CreateGEP(store_ptr2, fCurValue);
+                Value* store_ptr = fBuilder->CreateInBoundsGEP(store_ptr2, fCurValue);
 
                 // Compute value to be stored, result is in fCurValue
                 inst->fValue->accept(this);
@@ -1679,7 +1677,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // Compute index, result is in fCurValue
                 indexed_address->fIndex->accept(this);
-                Value* store_ptr = fBuilder->CreateGEP(arg, fCurValue);
+                Value* store_ptr = fBuilder->CreateInBoundsGEP(arg, fCurValue);
 
                 // Compute value to be stored, result is in fCurValue
                 inst->fValue->accept(this);
@@ -1696,7 +1694,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // We want to see array like [256 x float] as a float*
                 Value* store_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
-                Value* store_ptr2 = fBuilder->CreateGEP(store_ptr1, fCurValue);
+                Value* store_ptr2 = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
 
                 // Compute value to be stored, result is in fCurValue
                 inst->fValue->accept(this);
@@ -1711,7 +1709,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // We want to see array like [256 x float] as a float*
                 Value* store_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
-                Value* store_ptr2 = fBuilder->CreateGEP(store_ptr1, fCurValue);
+                Value* store_ptr2 = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
 
                 // Compute value to be stored, result is in fCurValue
                 inst->fValue->accept(this);
