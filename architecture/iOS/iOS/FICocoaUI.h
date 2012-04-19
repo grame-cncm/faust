@@ -323,49 +323,30 @@ public:
             
             // 2nd pass : more subtle
             /*CGSize                          contentSize;
-            int                             numberOfDirectChildren = getNumberOfDirectChildren();
-            float                           prop = 0.f;
-            float                           finalWidth = 0.f;
 
             contentSize = getContentSize();
             if (fBoxType == kVerticalLayout
                 && contentSize.height < getH() - kSpaceSize)
             {
+
+            }
+            
+            else if (fBoxType == kHorizontalLayout
+                     && contentSize.width + 1. * kSpaceSize < getW())
+            {
+                NSLog(@"=== %f %f", contentSize.width, getW());
                 for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
                 {
                     if ((*i)->getParent() == this)
                     {
-                        (*i)->setFrame( (*i)->getX(),
-                                        (*i)->getY(),
-                                        (*i)->getW(),
-                                        (getH() - 2 * kSpaceSize) / numberOfDirectChildren);
+                        NSLog(@"    .");
+                        (*i)->setFrame((*i)->getX() * (getW() / contentSize.width),
+                                       (*i)->getY(),
+                                       (*i)->getW(),
+                                       (*i)->getH());
                     }
                 }
-            }
-            
-            else 
-            if (fBoxType == kHorizontalLayout
-                     && contentSize.width < getW() - kSpaceSize)
-            {
-                fLastX = 0.f;
-                for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
-                {
-                    if ((*i)->getParent() == this && !dynamic_cast<uiBox*>(*i))
-                    {
-                        //(*i)->setFrame( (*i)->getX(),
-                        //                (*i)->getY(),
-                        //                getW() - 2 * kSpaceSize / numberOfDirectChildren,
-                        //                (*i)->getH());
-                        //prop = (*i)->getW() / contentSize.width;
-                        //finalWidth = prop * getW() - (1 + numberOfDirectChildren) * kSpaceSize;
-                        //(*i)->setFrame( fLastX,
-                        //                (*i)->getY(),
-                        //                finalWidth,
-                        //                (*i)->getH());
-                        //fLastX = fLastX + finalWidth;
-                        
-                    }
-                }
+                NSLog(@"    %f %f", contentSize.width, getW());
             }*/
         }
     }
@@ -1101,16 +1082,7 @@ private:
         updateBoxChildren(label, widget);        
         
         // Refresh whole layout
-        refreshLayout(widget);
-        
-        // Refresh content view size
-        [fViewController.dspView setFrame:CGRectMake(fViewController.dspView.frame.origin.x,
-                                                     fViewController.dspView.frame.origin.y,
-                                                     (*fWidgetList.begin())->getW(),
-                                                     (*fWidgetList.begin())->getH())];
-        
-        [fViewController.dspScrollView setContentSize:CGSizeMake((*fWidgetList.begin())->getW(),
-                                                                 (*fWidgetList.begin())->getH())];        
+        refreshLayout(widget);        
     }
     
     
@@ -1164,11 +1136,57 @@ public:
         }
     }
     
-    void adaptLayoutToDevice()
+    void expandBoxesContent()
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
-        float                           width = 0.f;
-        UIDeviceOrientation             deviceOrientation = [UIDevice currentDevice].orientation;
+        list<uiCocoaItem*>::iterator    j = fWidgetList.begin();
+        uiBox*                          box = NULL;
+        CGSize                          contentSize;
+        float                           labelHeight = 0.f;
+        
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            if ((box = dynamic_cast<uiBox*>(*i)))
+            {
+                contentSize = box->getContentSize();
+                if (box->fBoxType == kVerticalLayout
+                    && contentSize.height + kSpaceSize < box->getH())
+                {
+                    for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                    {
+                        if ((*j)->getParent() == box)
+                        {
+                            if (box->fLabel) labelHeight = kStdBoxLabelHeight;
+                            
+                            (*j)->setFrame((*j)->getX(),
+                                           ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
+                                           (*j)->getW(),
+                                           (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
+                        }
+                    }
+                }
+                
+                else if (box->fBoxType == kHorizontalLayout
+                         && contentSize.width + kSpaceSize < box->getW())
+                {
+                    for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                    {
+                        if ((*j)->getParent() == box)
+                        {
+                            (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
+                                           (*j)->getY(),
+                                           (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
+                                           (*j)->getH());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    void adaptLayoutToWindow(float width, float height)
+    {
+        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
         
         if (dynamic_cast<uiBox*>(*i))
         {
@@ -1177,30 +1195,18 @@ public:
             {
                 dynamic_cast<uiBox*>(*i)->fBox.color = [UIColor clearColor];
             }
-                    
-            if (deviceOrientation == UIDeviceOrientationPortrait
-                || deviceOrientation == UIDeviceOrientationPortraitUpsideDown)
-            {
-                width = min(fViewController.dspScrollView.window.frame.size.width,
-                            fViewController.dspScrollView.window.frame.size.height);
-            }
-            else if (deviceOrientation == UIDeviceOrientationLandscapeLeft
-                     || deviceOrientation == UIDeviceOrientationLandscapeRight)
-            {
-                width = max(fViewController.dspScrollView.window.frame.size.width,
-                            fViewController.dspScrollView.window.frame.size.height);
-            }
-            else
-            {
-                return;
-            }
-
+            
+            // Load abstract layout
             loadAbstractLayout();
+            
+            // Adapt abstract layout to device and orientation
             (*i)->setFrame( (*i)->getX(),
                             (*i)->getY(),
                             max((*i)->getAbstractW(), width),
-                            (*i)->getH());
+                            max((*i)->getAbstractH(), height));            
         }
+        
+        expandBoxesContent();
     }
     
     CGRect getBoxAbsoluteFrameForPoint(CGPoint pt)

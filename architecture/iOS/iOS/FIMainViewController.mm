@@ -21,6 +21,8 @@
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
 
+#define kMenuBarsHeight             66
+
 @implementation FIMainViewController
 
 @synthesize flipsidePopoverController = _flipsidePopoverController;
@@ -48,7 +50,7 @@ char rcfilename[256];
 
 - (void)viewDidLoad
 {
-    _viewLoaded = NO;
+    _currentOrientation = UIDeviceOrientationUnknown;
     UIView *contentView;
     
     [super viewDidLoad];
@@ -101,7 +103,6 @@ char rcfilename[256];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
                                                  name:UIDeviceOrientationDidChangeNotification object:nil];
     interface->saveAbstractLayout();
-    interface->adaptLayoutToDevice();
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
     
     contentView = [[[UIView alloc] initWithFrame:CGRectMake(0., 0., 10., 10.)] autorelease];
@@ -109,22 +110,12 @@ char rcfilename[256];
     
     _dspScrollView.delegate = self;
     _dspScrollView.canCancelContentTouches = NO;
-    _dspScrollView.minimumZoomScale = min(  _dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW(),
-                                            _dspScrollView.frame.size.height / (*interface->fWidgetList.begin())->getH());
-    /*if (dynamic_cast<uiBox*>(*interface->fWidgetList.begin())->fMinWidth < _dspScrollView.frame.size.width)
-    {
-        _dspScrollView.maximumZoomScale = 1.;
-    }
-    else
-    {
-        _dspScrollView.maximumZoomScale = 1.5;
-    }*/
-    [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:NO];
-    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
     
     _tapGesture =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(userDidDoubleTap)];
     _tapGesture.numberOfTapsRequired = 2;
     [_dspView addGestureRecognizer:_tapGesture];
+    
+    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
     
     return;
     
@@ -132,24 +123,6 @@ error:
     delete interface;
     delete finterface;
     delete audio_device;
-}
-
--(void)userDidDoubleTap
-{
-    CGRect rect = interface->getBoxAbsoluteFrameForPoint([_tapGesture locationInView:_dspView]);
-    
-    if (_lockedRect.origin.x != 0.f
-        && _lockedRect.origin.y != 0.f
-        && _lockedRect.size.width != 0.f
-        && _lockedRect.size.height != 0.f)
-    {
-        [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:YES];
-    }
-    else
-    {
-        [_dspScrollView zoomToRect:rect animated:YES];
-        _lockedRect = rect;
-    }
 }
 
 - (void)viewDidUnload
@@ -163,9 +136,9 @@ error:
 }
 
 - (void)viewDidAppear:(BOOL)animated
-{
-    _viewLoaded = YES;
+{    
     [super viewDidAppear:animated];
+    [self orientationChanged:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -324,20 +297,64 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (void)orientationChanged:(NSNotification *)notification
 {
+    float                           width = 0.f;
+    float                           height = 0.f;
+    UIDeviceOrientation             deviceOrientation = [UIDevice currentDevice].orientation;
+        
     [self updateGui];
     
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
     
-    interface->adaptLayoutToDevice();
+    // Compute layout
+    if (deviceOrientation == UIDeviceOrientationPortrait
+        || deviceOrientation == UIDeviceOrientationPortraitUpsideDown)
+    {
+        width = min(_dspScrollView.window.frame.size.width,
+                    _dspScrollView.window.frame.size.height);
+        height = max(_dspScrollView.window.frame.size.width - kMenuBarsHeight,
+                     _dspScrollView.window.frame.size.height - kMenuBarsHeight);
+    }
+    else if (deviceOrientation == UIDeviceOrientationLandscapeLeft
+             || deviceOrientation == UIDeviceOrientationLandscapeRight)
+    {
+        width = max(_dspScrollView.window.frame.size.width,
+                    _dspScrollView.window.frame.size.height);
+        height = min(_dspScrollView.window.frame.size.width - kMenuBarsHeight,
+                     _dspScrollView.window.frame.size.height - kMenuBarsHeight);
+    }
+    else
+    {
+        return;
+    }
     
-    [_dspView setFrame:CGRectMake(  _dspView.frame.origin.x,
-                                    _dspView.frame.origin.y,
-                                    2. * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                    2. * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    if (_currentOrientation == deviceOrientation) return;
+    _currentOrientation = deviceOrientation;
+        
+    interface->adaptLayoutToWindow(width, height);
+    
+    // Compute min zoom, max zoom and current zoom
+    _dspScrollView.minimumZoomScale = width / (*interface->fWidgetList.begin())->getW();
+    _dspScrollView.maximumZoomScale = 1.;
+    [_dspScrollView setZoomScale:width / (*interface->fWidgetList.begin())->getW() animated:NO];
+    
+    // Compute frame of the content size
+    [_dspView setFrame:CGRectMake(0.f,
+                                  0.f,
+                                  2.f * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                  2.f * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    
+    [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                              (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
 
-    [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                                (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-
+    NSLog(@"ORI - %f %f %f - %f %f - %f %f",    _dspScrollView.minimumZoomScale,
+                                                _dspScrollView.maximumZoomScale,
+                                                _dspScrollView.zoomScale,
+                                                _dspScrollView.contentSize.width,
+                                                _dspScrollView.contentSize.height,
+                                                _dspView.frame.size.width,
+                                                _dspView.frame.size.height);
+    // Scroll to top
+    //[_dspScrollView scrollRectToVisible:CGRectMake(0.f, 0.f, 1.f, 1.f) animated:YES];
 }
 
 - (void)displayTitle
@@ -403,6 +420,14 @@ T findCorrespondingUiItem(FIResponder* sender)
                                                 (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
+    
+    /*NSLog(@"ZOO - %f %f %f - %f %f - %f %f",    _dspScrollView.minimumZoomScale,
+                                                _dspScrollView.maximumZoomScale,
+                                                _dspScrollView.zoomScale,
+                                                _dspScrollView.contentSize.width,
+                                                _dspScrollView.contentSize.height,
+                                                _dspView.frame.size.width,
+                                                _dspView.frame.size.height);*/
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
@@ -413,6 +438,36 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {    
     return _dspView;
+}
+
+- (void)userDidDoubleTap
+{
+    CGRect rect = interface->getBoxAbsoluteFrameForPoint([_tapGesture locationInView:_dspView]);
+    
+    // To avoid a kind of bug
+    if ((_dspScrollView.zoomScale == _dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW()
+         && rect.origin.x == 0.f
+         && rect.origin.y == 0.f
+         && rect.size.width == (*interface->fWidgetList.begin())->getW()
+         && rect.size.height == (*interface->fWidgetList.begin())->getH())
+        || (_dspScrollView.minimumZoomScale == 1.f
+            && _dspScrollView.minimumZoomScale == 1.f))
+    {
+        return;
+    }
+    
+    if (_lockedRect.origin.x != 0.f
+        && _lockedRect.origin.y != 0.f
+        && _lockedRect.size.width != 0.f
+        && _lockedRect.size.height != 0.f)
+    {
+        [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:YES];
+    }
+    else
+    {
+        [_dspScrollView zoomToRect:rect animated:YES];
+        _lockedRect = rect;
+    }
 }
 
 #pragma mark - Audio
