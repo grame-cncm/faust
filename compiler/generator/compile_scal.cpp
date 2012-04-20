@@ -424,7 +424,12 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
 {
     if (t->nature() == kInt) {
-        ctype = "int"; vname = subst("i$0", getFreshID(prefix));
+        if (t->boolean() == kBool) {
+            ctype = "bool"; vname = subst("b$0", getFreshID(prefix));
+        } else {
+            ctype = "int"; vname = subst("i$0", getFreshID(prefix));
+        }
+
     } else {
         ctype = ifloat(); vname = subst("f$0", getFreshID(prefix));
     }
