@@ -69,27 +69,42 @@ class MaxPrim : public xtended
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());
-		
-//		Type t = infereSigType(types);
-//		if (t->nature() == kReal) {
-//			return subst("max($0, $1)", args[0], args[1]);
-//		} else {
-//			return subst("max($0, $1)", args[0], args[1]);
-//		} 
 			
-		// generates code compatible with overloaded min
+        // generates code compatible with overloaded max
 		int n0 = types[0]->nature();
 		int n1 = types[1]->nature();
-		if (n0==n1) {
-			return subst("max($0, $1)", args[0], args[1]);		
-		} else {
-			if (n0==kInt) {
-				return subst("max($2$0, $1)", args[0], args[1], icast());
-			} else {
-				return subst("max($0, $2$1)", args[0], args[1], icast());
-			}
-		}			
-	}
+        if (n0==kReal) {
+            if (n1==kReal) {
+                // both are floats, no need to cast
+                return subst("max($0, $1)", args[0], args[1]);
+            } else {
+                assert(n1==kInt); // second argument is not float, cast it to float
+                return subst("max($0, $2$1)", args[0], args[1], icast());
+            }
+        } else if (n1==kReal) {
+            assert(n0==kInt); // first not float but second is, cast first to float
+            return subst("max($2$0, $1)", args[0], args[1], icast());
+        } else {
+            assert(n0==kInt);  assert(n1==kInt);   // both are integers, check for booleans
+            int b0 = types[0]->boolean();
+            int b1 = types[1]->boolean();
+            if (b0==kNum) {
+                if (b1==kNum) {
+                    // both are integers, no need to cast
+                    return subst("max($0, $1)", args[0], args[1]);
+                } else {
+                    assert(b1==kBool);    // second is boolean, cast to int
+                    return subst("max($0, (int)$1)", args[0], args[1]);
+                }
+            } else if (b1==kNum) {
+                assert(b0==kBool);    // first is boolean, cast to int
+                return subst("max((int)$0, $1)", args[0], args[1], icast());
+            } else {
+                assert(b0==kBool); assert(b1==kBool);   // both are booleans, no need to cast
+                return subst("max($0, $1)", args[0], args[1]);
+            }
+        }
+    }
 	
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
