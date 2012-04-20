@@ -96,7 +96,7 @@ class uiBox;
 
 // Num entry
 #define kStdNumEntryWidth               100.0
-#define kStdNumEntryHeight              40.0
+#define kStdNumEntryHeight              65.0
 #define kStdNumEntryLabelWidth          100.0
 #define kStdNumEntryLabelHeight         20.0
 
@@ -666,12 +666,14 @@ public:
 
         fTextField = [[[FITextField alloc] initWithDelegate:controller] autorelease];
         fTextField.autoresizingMask = UIViewAutoresizingNone;
-		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
+		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:1.];
+        fTextField.textColor = [UIColor whiteColor];
         fTextField.labelColor = [UIColor whiteColor];
-        fTextField.backgroundColorAlpha = 0.4;        
+        fTextField.backgroundColorAlpha = 0.4;
         fTextField.min = min;
         fTextField.max = max;
         fTextField.value = init;
+        fTextField.step = step;
         [controller.dspView addSubview:fTextField];
     }
     
@@ -1207,6 +1209,12 @@ public:
         }
         
         expandBoxesContent();
+    }
+    
+    CGRect getBoxAbsoluteFrameForWidget(uiCocoaItem* widget)
+    {
+        CGPoint pt = absolutePosition(widget);
+        return CGRectMake(pt.x, pt.y, widget->getW(), widget->getH());
     }
     
     CGRect getBoxAbsoluteFrameForPoint(CGPoint pt)

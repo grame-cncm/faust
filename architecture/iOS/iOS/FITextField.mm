@@ -17,13 +17,17 @@
  ************************************************************************/
 
 #import "FITextField.h"
+#import "FIMainViewController.h"
 
 #define kAccViewHeight          40.0
+#define kIncDecButtonWidth      100.0
+#define kIncDecButtonHeight     15.0
 
 @implementation FITextField
 
 @synthesize cornerRadius;
-
+@synthesize backgroundColor = _backgroundColor;
+@synthesize textColor = _textColor;
 
 #pragma mark -
 #pragma mark Init
@@ -39,8 +43,13 @@
         _messageTextView = [[UITextView alloc] initWithFrame:self.bounds];
         [_messageTextView setAutocorrectionType:UITextAutocorrectionTypeNo];
         [_messageTextView setReturnKeyType:UIReturnKeyGo];
-        [_messageTextView setTextColor:[UIColor lightGrayColor]];        
+        _backgroundColor = [UIColor whiteColor];
+        _textColor = [UIColor blackColor];
+        _messageTextView.textColor = [UIColor whiteColor];
+        _messageTextView.backgroundColor = [UIColor colorWithRed:0.f green:0.f blue:1.f alpha:0.2];
         _messageTextView.delegate = self;
+        _messageTextView.font = [UIFont boldSystemFontOfSize:14];
+        _messageTextView.textAlignment = UITextAlignmentCenter;
         [self addSubview:_messageTextView];
         
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
@@ -51,6 +60,23 @@
         {
             _messageTextView.keyboardType = UIKeyboardTypeNumberPad;
         }
+        
+        // Inc dec buttons
+        _incButton = [[[FIButton alloc] initWithDelegate:self] autorelease];
+        _incButton.title = @"+";
+        _incButton.labelFont = [UIFont boldSystemFontOfSize:18];
+        _incButton.labelColor = [UIColor colorWithWhite:1. alpha:1.];
+        _incButton.backgroundColorAlpha = 0.4;
+        _incButton.type = kPushButtonType;
+        [self addSubview:_incButton];
+        
+        _decButton = [[[FIButton alloc] initWithDelegate:self] autorelease];
+        _decButton.title = @"-";
+        _decButton.labelFont = [UIFont boldSystemFontOfSize:18];
+        _decButton.labelColor = [UIColor colorWithWhite:1. alpha:1.];
+        _decButton.backgroundColorAlpha = 0.4;
+        _decButton.type = kPushButtonType;
+        [self addSubview:_decButton];
         
         // Input accessory view
         [self createInputAccessoryView];
@@ -87,8 +113,19 @@
 
 - (void)drawRect:(CGRect)rect
 {
-    _messageTextView.frame = rect;
-    [_messageTextView setText:[NSString stringWithFormat:@"%2.2f", self.value]];
+    _messageTextView.frame = CGRectMake(rect.origin.x,
+                                        rect.origin.y + kIncDecButtonHeight,
+                                        rect.size.width,
+                                        rect.size.height - 2 * kIncDecButtonHeight);
+    _messageTextView.text = [NSString stringWithFormat:@"%2.2f", self.value];
+    _incButton.frame = CGRectMake(rect.origin.x + rect.size.width / 2.f - kIncDecButtonWidth / 2.f,
+                                  rect.origin.y,
+                                  kIncDecButtonWidth,
+                                  kIncDecButtonHeight);
+    _decButton.frame = CGRectMake(rect.origin.x + rect.size.width / 2.f - kIncDecButtonWidth / 2.f,
+                                  rect.origin.y + rect.size.height - kIncDecButtonHeight,
+                                  kIncDecButtonWidth,
+                                  kIncDecButtonHeight);
 }
 
 
@@ -96,6 +133,7 @@
 
 -(void)textViewDidBeginEditing:(UITextView *)textView
 {
+    [((FIMainViewController*)self.delegate) zoomToWidget:self];
     _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.2f - %2.2f", self.min, self.max];
     [_messageTextView setText:@""];
 }
@@ -164,6 +202,25 @@
     [_doneButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [_doneButton addTarget:self action:@selector(doneTyping) forControlEvents:UIControlEventTouchUpInside];
     [_inputAccView addSubview:_doneButton];
+}
+
+
+#pragma mark -
+#pragma mark Touch Handling
+
+- (void)responderValueDidChange:(float)value sender:(id)sender
+{
+    if (value == 1)
+    {
+        if (sender == _incButton)
+        {
+            [self setValue:self.value + self.step];
+        }
+        else if (sender == _decButton)
+        {
+            [self setValue:self.value - self.step];
+        }
+    }
 }
 
 @end

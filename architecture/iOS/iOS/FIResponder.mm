@@ -38,7 +38,7 @@
 @synthesize delegate;
 @synthesize color, backgroundColorAlpha;
 @synthesize labelFont, labelColor, labelOffset;
-@synthesize min, max, value;
+@synthesize min, max, value, step;
 @synthesize displaysValue, allowsGestures;
 
 
@@ -69,7 +69,8 @@
 		self.displaysValue = YES;
 		self.allowsGestures = YES;
 		self.labelFont = [UIFont boldSystemFontOfSize:12.5];
-        
+        self.step = 0.1;
+        self.value = 0.0;
 		self.clipsToBounds = NO;
 		self.opaque = YES;
 	}

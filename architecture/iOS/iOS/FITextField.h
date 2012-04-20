@@ -17,9 +17,10 @@
  ************************************************************************/
 
 #import "FIResponder.h"
+#import "FIButton.h"
 
-
-@interface FITextField : FIResponder <UITextViewDelegate>
+@interface FITextField : FIResponder <  UITextViewDelegate,
+                                        FIResponderDelegate>
 {
     UITextView*             _messageTextView;
     UIView*                 _inputAccView;
@@ -27,9 +28,15 @@
     UIButton*               _minusButton;
     UILabel*                _rangeLabel;
     NSNumberFormatter*      _numberFormatter;
+    UIColor*                _backgroundColor;
+    UIColor*                _textColor;
+    FIButton*               _incButton;
+    FIButton*               _decButton;
 }
 
 @property CGFloat cornerRadius;				// default: 3.0
+@property (assign, nonatomic) UIColor* backgroundColor;
+@property (assign, nonatomic) UIColor* textColor;
 
 - (id)initWithDelegate:(id)aDelegate;
 

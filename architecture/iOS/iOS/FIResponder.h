@@ -59,6 +59,7 @@
 @property CGFloat min;									// default: 0.0
 @property CGFloat max;									// default: 1.0
 @property (nonatomic) CGFloat value;					// default: 0.0
+@property (nonatomic) CGFloat step;                     // default: 0.1
 
 @property BOOL displaysValue;							// default: YES
 @property BOOL allowsGestures;							// default: YES

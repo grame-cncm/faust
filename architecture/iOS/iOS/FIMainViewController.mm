@@ -345,16 +345,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                               (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-
-    NSLog(@"ORI - %f %f %f - %f %f - %f %f",    _dspScrollView.minimumZoomScale,
-                                                _dspScrollView.maximumZoomScale,
-                                                _dspScrollView.zoomScale,
-                                                _dspScrollView.contentSize.width,
-                                                _dspScrollView.contentSize.height,
-                                                _dspView.frame.size.width,
-                                                _dspView.frame.size.height);
-    // Scroll to top
-    //[_dspScrollView scrollRectToVisible:CGRectMake(0.f, 0.f, 1.f, 1.f) animated:YES];
 }
 
 - (void)displayTitle
@@ -420,14 +410,6 @@ T findCorrespondingUiItem(FIResponder* sender)
                                                 (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
-    
-    /*NSLog(@"ZOO - %f %f %f - %f %f - %f %f",    _dspScrollView.minimumZoomScale,
-                                                _dspScrollView.maximumZoomScale,
-                                                _dspScrollView.zoomScale,
-                                                _dspScrollView.contentSize.width,
-                                                _dspScrollView.contentSize.height,
-                                                _dspView.frame.size.width,
-                                                _dspView.frame.size.height);*/
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
@@ -469,6 +451,26 @@ T findCorrespondingUiItem(FIResponder* sender)
         _lockedRect = rect;
     }
 }
+
+- (void)zoomToWidget:(FIResponder*)widget
+{    
+    CGRect rect;
+    
+    if ([widget isKindOfClass:[FITextField class]])
+    {
+        uiNumEntry* numEntry = findCorrespondingUiItem<uiNumEntry*>((FIResponder*)widget);
+        if (numEntry)
+        {
+            rect = interface->getBoxAbsoluteFrameForWidget(numEntry);
+            [_dspScrollView zoomToRect:CGRectMake(rect.origin.x + rect.size.width / 2.f, 
+                                                  rect.origin.y + rect.size.height / 2.f + _dspScrollView.window.frame.size.height / 8.f,
+                                                  1.f,
+                                                  1.f) 
+                              animated:YES];
+        }
+    }
+}
+
 
 #pragma mark - Audio
 
