@@ -168,7 +168,14 @@ class llvmdsp : public dsp {
         void* LoadOptimize(const std::string& function)
         {
             Function* fun_ptr = fModule->getFunction(function);
-            return (fun_ptr) ? fJIT->getPointerToFunction(fun_ptr) : 0;
+            void* res;
+            if (fun_ptr) {
+                res = fJIT->getPointerToFunction(fun_ptr);
+                //fJIT->freeMachineCodeForFunction(fun_ptr);
+                return res;
+            } else {
+                return 0;
+            }
         }
         
         Module* LoadModule(const std::string filename)
@@ -228,7 +235,7 @@ class llvmdsp : public dsp {
             fModule->setTargetTriple(llvm::sys::getHostTriple());
         #endif
 
-            std::string ErrorMessage;
+            std::string err;
             EngineBuilder builder(fModule);
             
             builder.setOptLevel(CodeGenOpt::Aggressive);
@@ -247,8 +254,11 @@ class llvmdsp : public dsp {
             
             // Link with "scheduler" code
             Module* scheduler = LoadModule("scheduler.ll");
-            if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &ErrorMessage)) {
-                printf("Cannot link scheduler module...\n");
+            if (scheduler) {
+                if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &err)) {
+                    printf("Cannot link scheduler module...\n");
+                }
+                delete scheduler;
             }
             
             // Taken from LuaAV
