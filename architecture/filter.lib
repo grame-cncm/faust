@@ -1557,12 +1557,13 @@ analyzer(O,lfreqs) = _ <: bsplit(nb) with
 };
 
 //----------------------------- filterbank -------------------------------------
-filterbank(O,lfreqs) = analyzer(O,lfreqs) : delayeq with
+filterbank(O,lfreqs) = analyzer(O,lfreqs) : delayeq(nb) with
 {
    nb = count(lfreqs);
    fc(n) = take(n, lfreqs);
    ap(n) = highpass_plus_lowpass(O,fc(n));
-   delayeq = par(i,nb-1,apchain(nb-1-i)),_,_;
+   delayeq(1) = _,_; // par(i,0,...) does not fly
+   delayeq(nb) = par(i,nb-1,apchain(nb-1-i)),_,_;
    apchain(0) = _;
    apchain(i) =  ap(i) : apchain(i-1);
 };
