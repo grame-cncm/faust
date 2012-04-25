@@ -117,7 +117,7 @@
                                         rect.origin.y + kIncDecButtonHeight,
                                         rect.size.width,
                                         rect.size.height - 2 * kIncDecButtonHeight);
-    _messageTextView.text = [NSString stringWithFormat:@"%2.2f", self.value];
+    _messageTextView.text = [NSString stringWithFormat:@"%2.2f%@", self.value, self.suffixe];
     _incButton.frame = CGRectMake(rect.origin.x + rect.size.width / 2.f - kIncDecButtonWidth / 2.f,
                                   rect.origin.y,
                                   kIncDecButtonWidth,
@@ -166,7 +166,7 @@
     
     [self setValue:value];
     
-    [_messageTextView setText:[NSString stringWithFormat:@"%2.2f", value]];   
+    [_messageTextView setText:[NSString stringWithFormat:@"%2.2f%@", value, self.suffixe]];
 }
 
 - (void)createInputAccessoryView

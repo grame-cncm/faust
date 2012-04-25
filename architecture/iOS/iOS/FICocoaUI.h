@@ -450,6 +450,7 @@ public :
         fKnob.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fKnob.min = min;
         fKnob.max = max;
+        fKnob.step = step;
         fKnob.value = init;
         fKnob.valueArcWidth = kStdKnobArcWidth;
         fKnob.backgroundColorAlpha = 0.4;
@@ -531,6 +532,7 @@ public :
         fSlider.value = init;
         fSlider.backgroundColorAlpha = 0.4;
         fSlider.handleSize = 50;
+        fSlider.step = step;
         [controller.dspView addSubview:fSlider];
     }
     
@@ -674,7 +676,7 @@ public:
         fTextField.max = max;
         fTextField.value = init;
         fTextField.step = step;
-        [controller.dspView addSubview:fTextField];
+        [controller.dspView addSubview:fTextField];        
     }
     
     ~uiNumEntry()
@@ -816,6 +818,7 @@ private:
     UIWindow*                       fWindow;
     FIMainViewController*           fViewController;
     MY_Meta*                        fMetadata;
+    map<float*, string>             fUnit;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     
@@ -1363,11 +1366,15 @@ public:
     virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)
 	{
         uiCocoaItem* item = new uiKnob(this, fViewController, label, zone, init, min, max, step, false);
+        if (dynamic_cast<uiKnob*>(item)->fKnob.suffixe) [dynamic_cast<uiKnob*>(item)->fKnob.suffixe release];
+        dynamic_cast<uiKnob*>(item)->fKnob.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
         insert(label, item);
     }
     virtual void addHorizontalKnob(const char* label , float* zone, float init, float min, float max, float step)
 	{
         uiCocoaItem* item = new uiKnob(this, fViewController, label, zone, init, min, max, step, true);
+        if (dynamic_cast<uiKnob*>(item)->fKnob.suffixe) [dynamic_cast<uiKnob*>(item)->fKnob.suffixe release];
+        dynamic_cast<uiKnob*>(item)->fKnob.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
         insert(label, item);
     }
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
@@ -1379,6 +1386,8 @@ public:
         else
         {
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false);
+            if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
+            dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
             insert(label, item);
         }
     }
@@ -1391,6 +1400,8 @@ public:
         else
         {
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true);
+            if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
+            dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
             insert(label, item);
         }
     }
@@ -1403,6 +1414,8 @@ public:
         else
         {
             uiCocoaItem* item = new uiNumEntry(this, fViewController, label, zone, init, min, max, step);
+            if (dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe) [dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe release];
+            dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
             insert(label, item);
         }
     }
@@ -1452,7 +1465,7 @@ public:
 			}
 			else if (strcmp(key,"unit") == 0)
             {
-				//fUnit[zone] = value ;
+				fUnit[zone] = value ;
 			}
 			else if (strcmp(key,"style") == 0)
             {

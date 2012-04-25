@@ -33,10 +33,12 @@
 
 
 #import "FIResponder.h"
+#import "FIHint.h"
 
 @interface FISlider : FIResponder
 {
 	CGFloat touchHandleOffset;
+    FIHint* _hint;
 }
 
 @property CGFloat handleSize;				// default: longest side / 6 (minimum of 35.0)
@@ -50,5 +52,7 @@
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
 
 - (CGRect)rectForHandle;
+
+- (void)updateHint;
 
 @end

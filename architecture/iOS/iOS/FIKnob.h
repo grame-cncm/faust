@@ -33,6 +33,7 @@
 
 
 #import "FIResponder.h"
+#import "FIHint.h"
 
 #define kDCKnobRatio (M_PI * ((360.0 - self.cutoutSize) / 360.0))
 
@@ -49,6 +50,7 @@ static inline CGFloat angleBetweenPoints(CGPoint first, CGPoint second)
 	CGAffineTransform initialTransform;
 	CGPoint lastPoint;
 	CGFloat initialAngle;
+    FIHint* _hint;
 }
 
 @property BOOL biDirectional;					// default: NO
@@ -72,11 +74,13 @@ static inline CGFloat angleBetweenPoints(CGPoint first, CGPoint second)
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)updateHint;
 
 ////////////////////
 // Helper Methods //
 ////////////////////
 
+- (CGFloat)valueFromPoint:(CGPoint)point;
 - (CGAffineTransform)initialTransform;
 - (CGFloat)newValueFromTransform:(CGAffineTransform)transform;
 

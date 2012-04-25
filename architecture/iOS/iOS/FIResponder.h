@@ -60,6 +60,7 @@
 @property CGFloat max;									// default: 1.0
 @property (nonatomic) CGFloat value;					// default: 0.0
 @property (nonatomic) CGFloat step;                     // default: 0.1
+@property (assign, nonatomic) NSString* suffixe;        // default: @""
 
 @property BOOL displaysValue;							// default: YES
 @property BOOL allowsGestures;							// default: YES

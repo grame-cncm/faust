@@ -33,6 +33,8 @@
 
 #import "FISlider.h"
 
+#define kStdSliderHintSpace         10
+
 @implementation FISlider
 @synthesize handleSize, cornerRadius, isHorizontalSlider, biDirectional;
 
@@ -44,6 +46,7 @@
 {
 	if ((self = [super initWithDelegate:aDelegate]))
 	{
+        _hint = nil;
 		// add the double tap gesture for jumping the value straight to that point
 		UITapGestureRecognizer *doubleTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)] autorelease];
 		doubleTapGesture.numberOfTapsRequired = 2;
@@ -57,6 +60,7 @@
 
 - (void)dealloc
 {
+    if (_hint) [_hint dealloc];
     [super dealloc];
 }
 
@@ -72,6 +76,59 @@
 
 #pragma mark -
 #pragma mark Touch Handling
+
+- (void)updateHint
+{
+    if (_hint)
+    {
+        UIView*     scrollView = self.superview.superview.superview;
+        CGRect      handleRect = [self rectForHandle];
+        CGRect      absHandleRect = [self convertRect:handleRect
+                                               toView:scrollView];
+        
+        _hint.title = [NSString stringWithFormat:@"%2.1f%@", self.value, self.suffixe];
+        
+        // Top
+        if (absHandleRect.origin.y >= _hint.frame.size.height + kStdSliderHintSpace
+            && absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f + _hint.frame.size.width <= scrollView.frame.size.width
+            && absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f >= 0.f)
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f,
+                                       absHandleRect.origin.y - _hint.frame.size.height - kStdSliderHintSpace,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        // Left
+        else if (absHandleRect.origin.x >= _hint.frame.size.width + kStdSliderHintSpace)
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x - _hint.frame.size.width - kStdSliderHintSpace,
+                                       absHandleRect.origin.y,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        // Right
+        else if (scrollView.frame.size.width - absHandleRect.origin.x - absHandleRect.size.width >= _hint.frame.size.width + kStdSliderHintSpace)
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x + absHandleRect.size.width + kStdSliderHintSpace,
+                                       absHandleRect.origin.y,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        // Bottom
+        else
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f,
+                                       absHandleRect.origin.y + absHandleRect.size.height + kStdSliderHintSpace,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        [_hint setNeedsDisplay];
+    }
+}
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
@@ -96,13 +153,25 @@
 		// set the handle offset to -1 so touchesmoved events are ignored
 		touchHandleOffset = -1;
 	}
+    
+    if (!_hint)
+    {
+        _hint = [[FIHint alloc] init];
+        [self.superview.superview.superview addSubview:_hint];
+    }
+    
+    if (_hint)
+    {
+        _hint.title = [NSString stringWithFormat:@"%2.1f%@", self.value, self.suffixe];
+        [self updateHint];
+    }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
 	if (touchHandleOffset == -1)
 		return;
-    
+
 	UITouch *touch = [touches anyObject];
 	CGPoint touchPosition = [touch locationInView:self];
     
@@ -112,8 +181,31 @@
 		newValue = (touchPosition.x - touchHandleOffset) / (self.bounds.size.width - self.handleSize);
 	else
 		newValue = 1 - (touchPosition.y - touchHandleOffset) / (self.bounds.size.height - self.handleSize);
-    
+
 	[self setValue:self.min + newValue * (self.max - self.min)];
+
+    [self updateHint];
+}
+
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (_hint)
+    {
+        [_hint removeFromSuperview];
+        [_hint release];
+        _hint = nil;
+    }
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (_hint)
+    {
+        [_hint removeFromSuperview];
+        [_hint release];
+        _hint = nil;
+    }
 }
 
 - (void)doubleTap:(UIGestureRecognizer *)gesture
@@ -121,16 +213,31 @@
 	if (!self.allowsGestures)
 		return;
 	
-	CGPoint tapPoint = [gesture locationInView:self];
-	
-	// work out the touch position and therefore value
-	CGFloat newValue;
-	if (self.isHorizontalSlider)
-		newValue = (tapPoint.x - self.handleSize / 2) / (self.bounds.size.width - self.handleSize);
-	else
-		newValue = 1 - (tapPoint.y - self.handleSize / 2) / (self.bounds.size.height - self.handleSize);
-	
-	[self setValue:self.min + newValue * (self.max - self.min)];
+	CGPoint tapPoint = [gesture locationInView:self];	
+    CGRect handleRect = [self rectForHandle];
+    
+    if (self.isHorizontalSlider)
+    {
+        if (tapPoint.x > handleRect.origin.x + handleRect.size.width / 2.f)
+        {
+            self.value = self.value + self.step;
+        }
+        else if (tapPoint.x < handleRect.origin.x + handleRect.size.width / 2.f)
+        {
+            self.value = self.value - self.step;
+        }
+    }
+    else
+    {
+        if (tapPoint.y < handleRect.origin.y + handleRect.size.height / 2.f)
+        {
+            self.value = self.value + self.step;
+        }
+        else if (tapPoint.y > handleRect.origin.y + handleRect.size.height / 2.f)
+        {
+            self.value = self.value - self.step;
+        }
+    }
 }
 
 
@@ -217,17 +324,28 @@
 	{
 		[self.labelColor set];
 		NSString *valueString = nil;
+        float multiplier = 1.f;
 
-        valueString = [NSString stringWithFormat:@"%2.1f", self.value];
+        if ([self.suffixe compare:@""] == NSOrderedSame)
+        {
+            valueString = [NSString stringWithFormat:@"%2.1f", self.value];
+        }
+        else
+        {
+            valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
+            multiplier = 2.f;
+        }
 		
 		CGSize valueStringSize = [valueString sizeWithFont:self.labelFont];
 		CGRect handleRect = [self rectForHandle];
-		[valueString drawInRect:CGRectMake(handleRect.origin.x + (handleRect.size.width - valueStringSize.width) / 2,
-										   handleRect.origin.y + (handleRect.size.height - valueStringSize.height) / 2,
-										   valueRect.size.width,
-										   valueRect.size.height)
+
+        [valueString drawInRect:CGRectMake(handleRect.origin.x,
+										   handleRect.origin.y + (handleRect.size.height - multiplier * valueStringSize.height) / 2.f,
+										   handleRect.size.width,
+										   multiplier * valueRect.size.height)
 					   withFont:self.labelFont
-				  lineBreakMode:UILineBreakModeTailTruncation];
+				  lineBreakMode:UILineBreakModeMiddleTruncation
+                      alignment:UITextAlignmentCenter];        
 	}
 }
 
@@ -248,4 +366,6 @@
     
 	return valueRect;
 }
+
+
 @end

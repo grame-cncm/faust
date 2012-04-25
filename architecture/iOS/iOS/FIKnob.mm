@@ -33,6 +33,8 @@
 
 #import "FIKnob.h"
 
+#define kStdKnobHintSpace         10
+
 @implementation FIKnob
 @synthesize biDirectional, arcStartAngle, cutoutSize, valueArcWidth;
 @synthesize doubleTapValue, tripleTapValue;
@@ -45,6 +47,7 @@
 {
 	if ((self = [super initWithDelegate:aDelegate]))
 	{
+        _hint = nil;
 		self.arcStartAngle = 90.0;
 		self.cutoutSize = 60.0;
         
@@ -63,6 +66,7 @@
 
 - (void)dealloc
 {
+    if (_hint) [_hint dealloc];
     [super dealloc];
 }
 
@@ -88,18 +92,17 @@
 {
 	if (self.allowsGestures)
 	{
-		[self performSelector:@selector(setValueFromGesture:) withObject:[NSNumber numberWithFloat:self.doubleTapValue] afterDelay:0.17];
-	}
-}
-
-- (void)tripleTap:(UIGestureRecognizer *)gestureRecognizer
-{
-	if (self.allowsGestures)
-	{
-		// cancel the double tap
-		[NSThread cancelPreviousPerformRequestsWithTarget:self selector:@selector(setValueFromGesture:) object:[NSNumber numberWithFloat:self.doubleTapValue]];
-        
-		[self performSelector:@selector(setValueFromGesture:) withObject:[NSNumber numberWithFloat:self.tripleTapValue]];
+        CGPoint thisPoint = [gestureRecognizer locationInView:self];
+        CGFloat newValue = [self valueFromPoint:thisPoint];
+                
+        if (newValue > self.value)
+        {
+            self.value = self.value + self.step;
+        }
+        else if (newValue < self.value)
+        {
+            self.value = self.value - self.step;
+        }
 	}
 }
 
@@ -112,6 +115,58 @@
 #pragma mark -
 #pragma mark Touch Handling
 
+- (void)updateHint
+{
+    if (_hint)
+    {
+        UIView*     scrollView = self.superview.superview.superview;
+        CGRect      absHandleRect = [self convertRect:CGRectMake(0.f, 0.f, self.frame.size.width, self.frame.size.height)
+                                               toView:scrollView];
+
+        _hint.title = [NSString stringWithFormat:@"%2.1f%@", self.value, self.suffixe];
+        
+        // Top
+        if (absHandleRect.origin.y >= _hint.frame.size.height + kStdKnobHintSpace
+            && absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f + _hint.frame.size.width <= scrollView.frame.size.width
+            && absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f >= 0.f)
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f,
+                                       absHandleRect.origin.y - _hint.frame.size.height - kStdKnobHintSpace,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        // Left
+        else if (absHandleRect.origin.x >= _hint.frame.size.width + kStdKnobHintSpace)
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x - _hint.frame.size.width - kStdKnobHintSpace,
+                                       absHandleRect.origin.y,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        // Right
+        else if (scrollView.frame.size.width - absHandleRect.origin.x - absHandleRect.size.width >= _hint.frame.size.width + kStdKnobHintSpace)
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x + absHandleRect.size.width + kStdKnobHintSpace,
+                                       absHandleRect.origin.y,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        // Bottom
+        else
+        {
+            [_hint setFrame:CGRectMake(absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f,
+                                       absHandleRect.origin.y + absHandleRect.size.height + kStdKnobHintSpace,
+                                       _hint.frame.size.width,
+                                       _hint.frame.size.height)];
+        }
+        
+        [_hint setNeedsDisplay];
+    }
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
 	CGPoint thisPoint = [[touches anyObject] locationInView:self];
@@ -120,6 +175,18 @@
     
 	// create the initial angle and initial transform
 	initialTransform = [self initialTransform];
+    
+    if (!_hint)
+    {
+        _hint = [[FIHint alloc] init];
+        [self.superview.superview.superview addSubview:_hint];
+    }
+    
+    if (_hint)
+    {
+        _hint.title = [NSString stringWithFormat:@"%2.1f%@", self.value, self.suffixe];
+        [self updateHint];
+    }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -146,10 +213,52 @@
 		initialTransform = [self initialTransform];
 		initialAngle = angleBetweenPoints(thisPoint, centerPoint);
 	}
+    
+    [self updateHint];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (_hint)
+    {
+        [_hint removeFromSuperview];
+        [_hint release];
+        _hint = nil;
+    }
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (_hint)
+    {
+        [_hint removeFromSuperview];
+        [_hint release];
+        _hint = nil;
+    }
 }
 
 #pragma mark -
 #pragma mark Helper Methods
+
+- (CGFloat)valueFromPoint:(CGPoint)point
+{
+    CGPoint centerPoint = CGPointMake(self.frame.size.width / 2.0, self.frame.size.width / 2.0);
+    CGFloat currentAngle = 450.f + angleBetweenPoints(point, centerPoint) * 57.29577951308232;
+    int normAngle = 360 - ((int)floor(currentAngle) % 360);
+	CGFloat newValue;
+    float course = 360.f - self.cutoutSize;
+    float courseOffset = self.cutoutSize / 2.f;
+    
+    newValue = normAngle - courseOffset;
+    if (newValue < 0.f) newValue = 0.f;
+    else if (newValue > course) newValue = course;
+    
+    newValue = newValue / course;
+    newValue = self.min + newValue * (self.max - self.min);
+    
+	return newValue;
+}
+
 
 - (CGAffineTransform)initialTransform
 {
@@ -234,19 +343,30 @@
 		else
 			[self.color set];
 		NSString *valueString = nil;
-		if (self.biDirectional)
+        float multiplier = 1.f;
+		/*if (self.biDirectional)
 			valueString = [NSString stringWithFormat:@"%02.0f%%", ((self.value - self.min - (self.max - self.min) / 2) / (self.max - self.min)) * 100];
-		else
-			valueString = [NSString stringWithFormat:@"%03.0f%%", ((self.value - self.min) / (self.max - self.min)) * 100];
+		else*/
+        //valueString = [NSString stringWithFormat:@"%03.0f%%", ((self.value - self.min) / (self.max - self.min)) * 100];
+        if ([self.suffixe compare:@""] == NSOrderedSame)
+        {
+            valueString = [NSString stringWithFormat:@"%2.1f", self.value];
+        }
+        else
+        {
+            valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
+            multiplier = 2.f;
+        }   
 		CGSize valueStringSize = [valueString sizeWithFont:self.labelFont
 												  forWidth:boundsRect.size.width
 											 lineBreakMode:UILineBreakModeTailTruncation];
 		[valueString drawInRect:CGRectMake(floorf((boundsRect.size.width - valueStringSize.width) / 2.0 + self.labelOffset.x),
 										   floorf((boundsRect.size.height - valueStringSize.height) / 2.0 + self.labelOffset.y),
 										   valueStringSize.width,
-										   valueStringSize.height)
+										   multiplier * valueStringSize.height)
 					   withFont:self.labelFont
-				  lineBreakMode:UILineBreakModeTailTruncation];		
+				  lineBreakMode:UILineBreakModeTailTruncation
+                      alignment:UITextAlignmentCenter];		
 	}
     
 	CGContextRestoreGState(context);

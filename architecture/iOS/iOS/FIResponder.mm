@@ -40,7 +40,7 @@
 @synthesize labelFont, labelColor, labelOffset;
 @synthesize min, max, value, step;
 @synthesize displaysValue, allowsGestures;
-
+@synthesize suffixe;
 
 - (void)dealloc
 {
@@ -48,6 +48,7 @@
 	[color release];
 	[labelFont release];
 	[labelColor release];
+    [suffixe release];
     
 	[super dealloc];
 }
@@ -73,6 +74,7 @@
         self.value = 0.0;
 		self.clipsToBounds = NO;
 		self.opaque = YES;
+        self.suffixe = [[NSString alloc] initWithString:@""];
 	}
     
 	return self;
