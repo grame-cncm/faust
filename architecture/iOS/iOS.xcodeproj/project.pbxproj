@@ -33,6 +33,7 @@
 		65E5EDC114DB037D00136CFC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E5EDBF14DB037D00136CFC /* InfoPlist.strings */; };
 		65E5EDC414DB037D00136CFC /* iOSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDC314DB037D00136CFC /* iOSTests.m */; };
 		65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5EDCD14DB055500136CFC /* AudioToolbox.framework */; };
+		65FD744F1549993A00E7CB0B /* FIScrollView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65FD744E1549993A00E7CB0B /* FIScrollView.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +91,8 @@
 		65E5EDCD14DB055500136CFC /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		65F8C2DF14DBD59C0042E3FA /* FICocoaUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FICocoaUI.h; sourceTree = "<group>"; };
 		65F8C2E814DBEA410042E3FA /* ios-faust.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ios-faust.h"; sourceTree = SOURCE_ROOT; };
+		65FD744D1549993A00E7CB0B /* FIScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIScrollView.h; sourceTree = "<group>"; };
+		65FD744E1549993A00E7CB0B /* FIScrollView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIScrollView.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,6 +182,8 @@
 			children = (
 				65E5EDA114DB037D00136CFC /* FIAppDelegate.h */,
 				65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */,
+				65FD744D1549993A00E7CB0B /* FIScrollView.h */,
+				65FD744E1549993A00E7CB0B /* FIScrollView.mm */,
 				65E5EDAA14DB037D00136CFC /* FIMainViewController.h */,
 				65E5EDAB14DB037D00136CFC /* FIMainViewController.mm */,
 				65E5EDAD14DB037D00136CFC /* FIFlipsideViewController.h */,
@@ -344,6 +349,7 @@
 				655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */,
 				6560454114FE924400AE84A9 /* FITabView.mm in Sources */,
 				65961D501546DFD70004BC59 /* FIHint.mm in Sources */,
+				65FD744F1549993A00E7CB0B /* FIScrollView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

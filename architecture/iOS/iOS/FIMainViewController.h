@@ -17,6 +17,7 @@
  ************************************************************************/
 
 #import "FIFlipsideViewController.h"
+#import "FIScrollView.h"
 #import "FIResponder.h"
 
 @interface FIMainViewController : UIViewController <    FIFlipsideViewControllerDelegate,
@@ -25,7 +26,7 @@
                                                         UIScrollViewDelegate>
 {
     IBOutlet UIView*                _dspView;
-    IBOutlet UIScrollView*          _dspScrollView;
+    IBOutlet FIScrollView*          _dspScrollView;
     IBOutlet UILabel*               _titleLabel;            // iPhone
     IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
     

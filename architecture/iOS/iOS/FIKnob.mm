@@ -89,7 +89,7 @@
 #pragma mark Gestures
 
 - (void)doubleTap:(UIGestureRecognizer *)gestureRecognizer
-{
+{    
 	if (self.allowsGestures)
 	{
         CGPoint thisPoint = [gestureRecognizer locationInView:self];
@@ -168,7 +168,7 @@
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
+{    
 	CGPoint thisPoint = [[touches anyObject] locationInView:self];
 	CGPoint centerPoint = CGPointMake(self.frame.size.width / 2.0, self.frame.size.width / 2.0);
 	initialAngle = angleBetweenPoints(thisPoint, centerPoint);

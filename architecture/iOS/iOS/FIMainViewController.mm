@@ -109,11 +109,10 @@ char rcfilename[256];
     [_dspView addSubview:contentView];
     
     _dspScrollView.delegate = self;
-    _dspScrollView.canCancelContentTouches = NO;
     
     _tapGesture =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(userDidDoubleTap)];
     _tapGesture.numberOfTapsRequired = 2;
-    [_dspView addGestureRecognizer:_tapGesture];
+    [_dspScrollView addGestureRecognizer:_tapGesture];
     
     _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
     
@@ -425,7 +424,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (void)userDidDoubleTap
 {
     CGRect rect = interface->getBoxAbsoluteFrameForPoint([_tapGesture locationInView:_dspView]);
-    
+
     // To avoid a kind of bug
     if ((_dspScrollView.zoomScale == _dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW()
          && rect.origin.x == 0.f
