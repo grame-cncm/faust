@@ -182,7 +182,10 @@ class llvmdsp : public dsp {
         {
             LLVMContext &context = getGlobalContext();
             SMDiagnostic err;
-            return ParseIRFile(filename, err, context);
+            Module* res = ParseIRFile(filename, err, context);
+            if (!res) 
+                err.Print("LoadModule", errs());
+            return res;
         }
 
   public:
@@ -255,10 +258,13 @@ class llvmdsp : public dsp {
             // Link with "scheduler" code
             Module* scheduler = LoadModule("scheduler.ll");
             if (scheduler) {
+                //scheduler->dump();
                 if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &err)) {
                     printf("Cannot link scheduler module...\n");
                 }
                 delete scheduler;
+            } else {
+                printf("File scheduler.ll not found...\n");
             }
             
             // Taken from LuaAV
@@ -332,7 +338,7 @@ class llvmdsp : public dsp {
             }
       
             pm.run(*fModule);
-            //fModule->dump();
+            fModule->dump();
 
             fNew = (newDspFun)LoadOptimize("new_mydsp");
             fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");

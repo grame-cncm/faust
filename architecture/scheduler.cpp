@@ -60,11 +60,7 @@
 #include <libkern/OSAtomic.h>
 #endif
 
-#ifdef __APPLE__
-#define NO_TASK 0  // Because OSAtomicAdd32 returns the new value
-#else
 #define NO_TASK 1
-#endif
 
 class TaskQueue;
 struct DSPThreadPool;
@@ -105,7 +101,8 @@ static INLINE void NOP(void)
 static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 {
 #ifdef __APPLE__
-    return OSAtomicCompareAndSwap32(value, newvalue, (volatile int32_t*)addr);
+    //return OSAtomicCompareAndSwap32(value, newvalue, (volatile int32_t*)addr);
+    return __sync_bool_compare_and_swap((int*)addr, value, newvalue);
 #else
     register char ret;
     __asm__ __volatile__ ("# CAS \n\t"
@@ -121,7 +118,8 @@ static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 static INLINE int atomic_xadd(volatile int* atomic, int val) 
 { 
 #ifdef __APPLE__
-    return OSAtomicAdd32(val, atomic);
+    //return OSAtomicAdd32(val, atomic);
+    return __sync_add_and_fetch(atomic, val);
 #else
     register int ret;
     __asm__ __volatile__ ("# atomic_xadd \n\t"
@@ -692,7 +690,7 @@ static INLINE int Range(int min, int max, int val)
     }
 }
 
-#if defined(LLVM_30) || defined(LLVM_29)
+#if defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
     typedef void (* computeThreadExternalFun) (void* dsp, int cur_thread);
     extern computeThreadExternalFun gComputeThreadExternal;
 #else
@@ -826,7 +824,7 @@ struct DSPThread {
     void Run()
     {
         while (sem_wait(fSemaphore) != 0) {}
-    #if defined(LLVM_30) || defined(LLVM_29)
+    #if defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
         gComputeThreadExternal(fDSP, fNum + 1);
     #else
         computeThreadExternal(fDSP, fNum + 1);
