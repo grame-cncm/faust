@@ -19,17 +19,20 @@
 #import "FIHint.h"
 
 #define kStdHintWidth           120
-#define kStdHintHeight          25
+#define kStdHintHeight          50
 
 @implementation FIHint
 
 @synthesize title;
+@synthesize position;
 
 - (id)init
 {
     self = [super init];
     if (self)
     {
+        self.position = 0;
+        self.backgroundColor = [UIColor clearColor];
         self.title = [NSString stringWithString:@""];
         [self setFrame:CGRectMake(0.f, 0.f, kStdHintWidth, kStdHintHeight)];
     }
@@ -46,25 +49,174 @@
 - (void)drawRect:(CGRect)rect
 {
 	CGContextRef context = UIGraphicsGetCurrentContext();
-    UIFont *labelFont = [UIFont boldSystemFontOfSize:19.0];
-
-    CGContextSaveGState(context);
-    CGContextClearRect(context, rect);
+    UIFont* labelFont = [UIFont boldSystemFontOfSize:19.0];
+    UIColor* bgColor = [UIColor colorWithWhite:0.1 alpha:0.9];
+    UIColor* textColor = [UIColor whiteColor];
     
-    [[UIColor colorWithRed:0.f green:0.f blue:0.f alpha:0.6] set];
-    CGContextAddRect(context, rect);
-    CGContextFillPath(context);
+    self.backgroundColor = [UIColor clearColor];
     
-	CGContextRestoreGState(context);
+    // Top
+    if (self.position == 0)
+    {
+        CGContextSaveGState(context);
+        
+        // Main rect
+        [bgColor set];
+        CGContextAddRect(context, CGRectMake(rect.origin.x,
+                                             rect.origin.y, 
+                                             rect.size.width,
+                                             rect.size.height / 2.f));
+        CGContextFillPath(context);
+        
+        // Triangle
+        CGContextBeginPath(context);
+        CGContextMoveToPoint(context,
+                             rect.origin.x + rect.size.width / 3.f,
+                             rect.origin.y + rect.size.height / 2.f);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x + rect.size.width / 2.f,
+                                rect.origin.y + rect.size.height);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x + 2 * rect.size.width / 3.f,
+                                rect.origin.y + rect.size.height / 2.f);
+        CGContextClosePath(context);
+        
+        CGContextFillPath(context);
+        
+        CGContextRestoreGState(context);
+        
+        // Text
+        [textColor set];
+        [self.title drawInRect:CGRectMake(rect.origin.x,
+                                          rect.origin.y,
+                                          rect.size.width,
+                                          rect.size.height / 2.f)
+                      withFont:labelFont
+                 lineBreakMode:UILineBreakModeTailTruncation
+                     alignment:UITextAlignmentCenter];
+    }
     
-    [[UIColor whiteColor] set];
-    [self.title drawInRect:CGRectMake(rect.origin.x,
-                                      rect.origin.y,
-                                      rect.size.width,
-                                      rect.size.height)
-                  withFont:labelFont
-             lineBreakMode:UILineBreakModeTailTruncation
-                 alignment:UITextAlignmentCenter];
+    // Bottom
+    else if (self.position == 1)
+    {
+        CGContextSaveGState(context);
+        
+        // Main rect
+        [bgColor set];
+        CGContextAddRect(context, CGRectMake(rect.origin.x,
+                                             rect.origin.y + rect.size.height / 2.f, 
+                                             rect.size.width,
+                                             rect.size.height / 2.f));
+        CGContextFillPath(context);
+        
+        // Triangle
+        CGContextBeginPath(context);
+        CGContextMoveToPoint(context,
+                             rect.origin.x + rect.size.width / 3.f,
+                             rect.origin.y + rect.size.height / 2.f);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x + rect.size.width / 2.f,
+                                rect.origin.y - rect.size.height);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x + 2 * rect.size.width / 3.f,
+                                rect.origin.y + rect.size.height / 2.f);
+        CGContextClosePath(context);
+        
+        CGContextFillPath(context);
+        
+        CGContextRestoreGState(context);
+        
+        // Text
+        [textColor set];
+        [self.title drawInRect:CGRectMake(rect.origin.x,
+                                          rect.origin.y + rect.size.height / 2.f,
+                                          rect.size.width,
+                                          rect.size.height / 2.f)
+                      withFont:labelFont
+                 lineBreakMode:UILineBreakModeTailTruncation
+                     alignment:UITextAlignmentCenter];
+    }
+    
+    // Left
+    else if (self.position == 2)
+    {
+        CGContextSaveGState(context);
+        
+        // Main rect
+        [bgColor set];
+        CGContextAddRect(context, CGRectMake(rect.origin.x,
+                                             rect.origin.y + rect.size.height / 4.f, 
+                                             3.f * rect.size.width / 4.f,
+                                             rect.size.height / 2.f));
+        CGContextFillPath(context);
+        
+        // Triangle
+        CGContextBeginPath(context);
+        CGContextMoveToPoint(context,
+                             rect.origin.x + 3.f * rect.size.width / 4.f,
+                             rect.origin.y + rect.size.height / 4.f);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x + rect.size.width,
+                                rect.origin.y + rect.size.height / 2.f);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x + 3.f * rect.size.width / 4.f,
+                                rect.origin.y + 3.f * rect.size.height / 4.f);
+        CGContextClosePath(context);
+        
+        CGContextFillPath(context);
+        
+        CGContextRestoreGState(context);
+        
+        // Text
+        [textColor set];
+        [self.title drawInRect:CGRectMake(rect.origin.x,
+                                          rect.origin.y + rect.size.height / 4.f,
+                                          3.f * rect.size.width / 4.f,
+                                          rect.size.height / 2.f)
+                      withFont:labelFont
+                 lineBreakMode:UILineBreakModeTailTruncation
+                     alignment:UITextAlignmentLeft];
+    }
+    // Right
+    else if (self.position == 3)
+    {
+        CGContextSaveGState(context);
+        
+        // Main rect
+        [bgColor set];
+        CGContextAddRect(context, CGRectMake(rect.origin.x + rect.size.width / 4.f,
+                                             rect.origin.y + rect.size.height / 4.f, 
+                                             3.f * rect.size.width / 4.f,
+                                             rect.size.height / 2.f));
+        CGContextFillPath(context);
+        
+        // Triangle
+        CGContextBeginPath(context);
+        CGContextMoveToPoint(context,
+                             rect.origin.x + rect.size.width / 4.f,
+                             rect.origin.y + rect.size.height / 4.f);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x,
+                                rect.origin.y + rect.size.height / 2.f);
+        CGContextAddLineToPoint(context,
+                                rect.origin.x + rect.size.width / 4.f,
+                                rect.origin.y + 3.f * rect.size.height / 4.f);
+        CGContextClosePath(context);
+        
+        CGContextFillPath(context);
+        
+        CGContextRestoreGState(context);
+        
+        // Text
+        [textColor set];
+        [self.title drawInRect:CGRectMake(rect.origin.x + rect.size.width / 4.f,
+                                          rect.origin.y + rect.size.height / 4.f,
+                                          3.f * rect.size.width / 4.f,
+                                          rect.size.height / 2.f)
+                      withFont:labelFont
+                 lineBreakMode:UILineBreakModeTailTruncation
+                     alignment:UITextAlignmentRight];
+    }
 }
 
 @end

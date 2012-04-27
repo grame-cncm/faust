@@ -93,6 +93,7 @@
             && absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f + _hint.frame.size.width <= scrollView.frame.size.width
             && absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f >= 0.f)
         {
+            _hint.position = 0;
             [_hint setFrame:CGRectMake(absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f,
                                        absHandleRect.origin.y - _hint.frame.size.height - kStdSliderHintSpace,
                                        _hint.frame.size.width,
@@ -102,6 +103,7 @@
         // Left
         else if (absHandleRect.origin.x >= _hint.frame.size.width + kStdSliderHintSpace)
         {
+            _hint.position = 2;
             [_hint setFrame:CGRectMake(absHandleRect.origin.x - _hint.frame.size.width - kStdSliderHintSpace,
                                        absHandleRect.origin.y,
                                        _hint.frame.size.width,
@@ -111,6 +113,7 @@
         // Right
         else if (scrollView.frame.size.width - absHandleRect.origin.x - absHandleRect.size.width >= _hint.frame.size.width + kStdSliderHintSpace)
         {
+            _hint.position = 3;
             [_hint setFrame:CGRectMake(absHandleRect.origin.x + absHandleRect.size.width + kStdSliderHintSpace,
                                        absHandleRect.origin.y,
                                        _hint.frame.size.width,
@@ -120,6 +123,7 @@
         // Bottom
         else
         {
+            _hint.position = 1;
             [_hint setFrame:CGRectMake(absHandleRect.origin.x + (absHandleRect.size.width - _hint.frame.size.width) / 2.f,
                                        absHandleRect.origin.y + absHandleRect.size.height + kStdSliderHintSpace,
                                        _hint.frame.size.width,

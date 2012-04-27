@@ -21,5 +21,6 @@
 @interface FIHint : UIView
 
 @property (retain, nonatomic) NSString* title;
+@property (assign, nonatomic) int position;         // 0: top - 1: bottom, 2: left, 3:right
 
 @end
