@@ -106,6 +106,10 @@
 	}
 }
 
+- (void)tripleTap:(UIGestureRecognizer *)gestureRecognizer
+{    
+}
+
 - (void)setValueFromGesture:(NSNumber *)newValue
 {
 	self.value = [newValue floatValue];
