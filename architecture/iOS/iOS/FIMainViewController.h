@@ -20,6 +20,8 @@
 #import "FIScrollView.h"
 #import "FIResponder.h"
 
+class uiBox;
+
 @interface FIMainViewController : UIViewController <    FIFlipsideViewControllerDelegate,
                                                         UIPopoverControllerDelegate,
                                                         FIResponderDelegate,
@@ -33,8 +35,9 @@
     NSTimer*                        _refreshTimer;          // Used to refresh bargraphes
     
     UITapGestureRecognizer*         _tapGesture;
-    CGRect                          _lockedRect;
+    uiBox*                          _lockedBox;
     UIDeviceOrientation             _currentOrientation;
+    BOOL                            _viewLoaded;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -50,6 +53,8 @@
 - (void)orientationChanged:(NSNotification *)notification;
 - (void)displayTitle;
 - (void)refreshObjects:(NSTimer*)timer;
+- (void)zoomToLockedBox;
+- (void)doubleTap;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;

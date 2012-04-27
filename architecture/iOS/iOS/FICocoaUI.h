@@ -96,7 +96,7 @@ class uiBox;
 
 // Num entry
 #define kStdNumEntryWidth               100.0
-#define kStdNumEntryHeight              65.0
+#define kStdNumEntryHeight              105.0
 #define kStdNumEntryLabelWidth          100.0
 #define kStdNumEntryLabelHeight         20.0
 
@@ -1220,13 +1220,9 @@ public:
         return CGRectMake(pt.x, pt.y, widget->getW(), widget->getH());
     }
     
-    CGRect getBoxAbsoluteFrameForPoint(CGPoint pt)
+    uiBox* getBoxForPoint(CGPoint pt)
     {
         list<uiCocoaItem*>::iterator i = fWidgetList.begin();
-        CGRect result = CGRectMake( (*i)->getX(),
-                                    (*i)->getY(),
-                                    (*i)->getW(),
-                                    (*i)->getH());
         
         // Loop on each widgets, from the last
         for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
@@ -1239,17 +1235,27 @@ public:
                     && pt.y >= absolutePosition(*i).y
                     && pt.y <= absolutePosition(*i).y + (*i)->getH())
                 {
-                    result = CGRectMake(absolutePosition(*i).x,
-                                        absolutePosition(*i).y,
-                                        (*i)->getW(),
-                                        (*i)->getH());
+                    if (dynamic_cast<uiBox*>(*i)->getParent())
+                    {
+                        if (dynamic_cast<uiBox*>(dynamic_cast<uiBox*>(*i)->getParent())->fBoxType == kTabLayout)
+                        {
+                            return dynamic_cast<uiBox*>(dynamic_cast<uiBox*>(*i)->getParent());
+                        }
+                    }
                     
-                    return result;
+                    return dynamic_cast<uiBox*>(*i);
                 }
             }
         }
         
-        return result;
+        return dynamic_cast<uiBox*>(*i);
+    }
+    
+    uiBox* getMainBox()
+    {
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
+        
+        return dynamic_cast<uiBox*>(*i);
     }
     
     bool isKnob(float* zone)

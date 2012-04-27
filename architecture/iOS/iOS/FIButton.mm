@@ -34,6 +34,9 @@
 	{
         self.type = kPushButtonType;
 		self.cornerRadius = 3.0;
+        UITapGestureRecognizer *doubleTapGesture = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)] autorelease];
+		doubleTapGesture.numberOfTapsRequired = 2;
+		[self addGestureRecognizer:doubleTapGesture];
 	}
 	
 	return self;
@@ -57,14 +60,21 @@
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (self.type == kPushButtonType || self.type == kTabItemButtonType) self.value = 1.f;
+    [self setNeedsDisplay];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (self.type == kToggleButtonType) self.value = 1.f - self.value;
     else if (self.type == kPushButtonType) self.value = 0.f;
+    [self setNeedsDisplay];
 }
 
+// Function only here to refresh and intercept dble click to prevent zoom of the scroll view
+- (void)doubleTap:(UIGestureRecognizer *)gesture
+{
+    [self setNeedsDisplay];
+}
 
 #pragma mark -
 #pragma mark Drawing

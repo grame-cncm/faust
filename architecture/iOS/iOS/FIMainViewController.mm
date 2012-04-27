@@ -20,6 +20,7 @@
 #import "ios-faust.h"
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
+#import "FICocoaUI.h"
 
 #define kMenuBarsHeight             66
 
@@ -50,6 +51,7 @@ char rcfilename[256];
 
 - (void)viewDidLoad
 {
+    _viewLoaded = NO;
     _currentOrientation = UIDeviceOrientationUnknown;
     UIView *contentView;
     
@@ -110,12 +112,12 @@ char rcfilename[256];
     
     _dspScrollView.delegate = self;
     
-    _tapGesture =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(userDidDoubleTap)];
+    _tapGesture =[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap)];
     _tapGesture.numberOfTapsRequired = 2;
     [_dspScrollView addGestureRecognizer:_tapGesture];
     
-    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
-    
+    _lockedBox = interface->getMainBox();
+
     return;
     
 error:
@@ -152,14 +154,7 @@ error:
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
-    {
-        return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
-    }
-    else
-    {
-        return YES;
-    }
+    return YES;
 }
 
 - (void)dealloc
@@ -299,11 +294,9 @@ T findCorrespondingUiItem(FIResponder* sender)
     float                           width = 0.f;
     float                           height = 0.f;
     UIDeviceOrientation             deviceOrientation = [UIDevice currentDevice].orientation;
-        
+    
     [self updateGui];
-    
-    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
-    
+        
     // Compute layout
     if (deviceOrientation == UIDeviceOrientationPortrait
         || deviceOrientation == UIDeviceOrientationPortraitUpsideDown)
@@ -328,22 +321,62 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     if (_currentOrientation == deviceOrientation) return;
     _currentOrientation = deviceOrientation;
-        
+
     interface->adaptLayoutToWindow(width, height);
     
-    // Compute min zoom, max zoom and current zoom
+    // Compute min zoom, max zooam and current zoom
     _dspScrollView.minimumZoomScale = width / (*interface->fWidgetList.begin())->getW();
     _dspScrollView.maximumZoomScale = 1.;
-    [_dspScrollView setZoomScale:width / (*interface->fWidgetList.begin())->getW() animated:NO];
     
     // Compute frame of the content size
     [_dspView setFrame:CGRectMake(0.f,
                                   0.f,
-                                  2.f * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                  2.f * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+                                  2 * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                  2 * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     
     [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                               (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    
+    if (!_viewLoaded)
+    {
+        if (_dspScrollView.minimumZoomScale != 1.)
+        {
+            [_dspScrollView setZoomScale:width / (*interface->fWidgetList.begin())->getW() animated:NO];
+        }
+
+        _viewLoaded = YES;
+    }
+    else
+    {
+        if (_lockedBox)
+        {
+            [self performSelector:@selector(zoomToLockedBox) withObject:nil afterDelay:0.1];
+        }
+    }
+}
+
+- (void)zoomToLockedBox
+{
+    if (_lockedBox == interface->getMainBox())
+    {
+        [_dspScrollView setZoomScale:_dspScrollView.minimumZoomScale animated:YES];
+        [_dspScrollView setContentOffset:CGPointZero animated:YES];
+        [_dspView setFrame:CGRectMake(0.f,
+                                      0.f,
+                                      (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                      (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+        
+        [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                                  (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    }
+    else
+    {
+        [_dspScrollView zoomToRect:CGRectMake(absolutePosition(_lockedBox).x,
+                                              absolutePosition(_lockedBox).y,
+                                              _lockedBox->getW(),
+                                              _lockedBox->getH())
+                          animated:YES];
+    }
 }
 
 - (void)displayTitle
@@ -381,7 +414,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
-
 - (void)refreshObjects:(NSTimer*)timer
 {
     list<uiCocoaItem*>::iterator i;
@@ -408,12 +440,22 @@ T findCorrespondingUiItem(FIResponder* sender)
     [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                                 (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     
-    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
+    // No double click : lose locked box
+    if (_dspScrollView.pinchGestureRecognizer.scale != 1.
+        || _dspScrollView.pinchGestureRecognizer.velocity != 0.f)
+    {
+        _lockedBox = interface->getMainBox();
+    }
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    _lockedRect = CGRectMake(0.f, 0.f, 0.f, 0.f);
+    // No double click : lose locked box
+    if ([_dspScrollView.panGestureRecognizer translationInView:_dspView].x != 0.f
+        && [_dspScrollView.panGestureRecognizer translationInView:_dspView].y != 0.f)
+    {
+        _lockedBox = interface->getMainBox();
+    }
 }
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
@@ -421,34 +463,31 @@ T findCorrespondingUiItem(FIResponder* sender)
     return _dspView;
 }
 
-- (void)userDidDoubleTap
+- (void)doubleTap
 {
-    CGRect rect = interface->getBoxAbsoluteFrameForPoint([_tapGesture locationInView:_dspView]);
-
-    // To avoid a kind of bug
-    if ((_dspScrollView.zoomScale == _dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW()
-         && rect.origin.x == 0.f
-         && rect.origin.y == 0.f
-         && rect.size.width == (*interface->fWidgetList.begin())->getW()
-         && rect.size.height == (*interface->fWidgetList.begin())->getH())
-        || (_dspScrollView.minimumZoomScale == 1.f
-            && _dspScrollView.minimumZoomScale == 1.f))
+    uiBox* tapedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);
+    
+    // Avoid a strange bug
+    if (tapedBox == interface->getMainBox()
+        && _lockedBox == interface->getMainBox())
     {
         return;
     }
     
-    if (_lockedRect.origin.x != 0.f
-        && _lockedRect.origin.y != 0.f
-        && _lockedRect.size.width != 0.f
-        && _lockedRect.size.height != 0.f)
+    // Click on already locked box : zoom out
+    if (tapedBox == _lockedBox
+        && _lockedBox != interface->getMainBox())
     {
-        [_dspScrollView setZoomScale:_dspScrollView.frame.size.width / (*interface->fWidgetList.begin())->getW() animated:YES];
+        _lockedBox = interface->getMainBox();
     }
+    
+    // Else, zoom on clicked box
     else
     {
-        [_dspScrollView zoomToRect:rect animated:YES];
-        _lockedRect = rect;
+        _lockedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);   
     }
+    
+    [self zoomToLockedBox];
 }
 
 - (void)zoomToWidget:(FIResponder*)widget

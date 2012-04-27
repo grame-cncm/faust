@@ -21,7 +21,7 @@
 
 #define kAccViewHeight          40.0
 #define kIncDecButtonWidth      100.0
-#define kIncDecButtonHeight     15.0
+#define kIncDecButtonHeight     35.0
 
 @implementation FITextField
 
@@ -36,6 +36,8 @@
 {
 	if ((self = [super initWithDelegate:aDelegate]))
 	{
+        _valueBeforeCancel = 0.f;
+        
         // UI parameters
 		self.cornerRadius = 3.0;
         
@@ -133,6 +135,7 @@
 
 -(void)textViewDidBeginEditing:(UITextView *)textView
 {
+    _valueBeforeCancel = self.value;
     [((FIMainViewController*)self.delegate) zoomToWidget:self];
     _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.2f - %2.2f", self.min, self.max];
     [_messageTextView setText:@""];
@@ -169,6 +172,18 @@
     [_messageTextView setText:[NSString stringWithFormat:@"%2.2f%@", value, self.suffixe]];
 }
 
+- (void)cancel
+{
+    float value;
+    
+    // Hide the keyboard
+    [_messageTextView resignFirstResponder];
+    
+    [self setValue:_valueBeforeCancel];
+    
+    [_messageTextView setText:[NSString stringWithFormat:@"%2.2f%@", value, self.suffixe]];
+}
+
 - (void)createInputAccessoryView
 {
     float viewWidth = _messageTextView.inputView.frame.size.width;
@@ -186,20 +201,29 @@
     [_inputAccView addSubview:_rangeLabel];
     
     _minusButton =[UIButton buttonWithType:UIButtonTypeCustom];
-    [_minusButton setFrame:CGRectMake(viewWidth - 120.f, 0.0f, 60.0f, kAccViewHeight)];
+    [_minusButton setFrame:CGRectMake(viewWidth - 120.f, 0.0f, 40.0f, kAccViewHeight)];
     _minusButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
     [_minusButton setTitle:@"-" forState:UIControlStateNormal];
-    [_minusButton setBackgroundColor:[UIColor grayColor]];
-    [_minusButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [_minusButton setBackgroundColor:[UIColor blueColor]];
+    [_minusButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_minusButton addTarget:self action:@selector(minus) forControlEvents:UIControlEventTouchUpInside];
     [_inputAccView addSubview:_minusButton];
     
+    _cancelButton =[UIButton buttonWithType:UIButtonTypeCustom];
+    [_cancelButton setFrame:CGRectMake(viewWidth - 80.f, 0.0f, 40.0f, kAccViewHeight)];
+    _cancelButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    [_cancelButton setTitle:@"X" forState:UIControlStateNormal];
+    [_cancelButton setBackgroundColor:[UIColor blueColor]];
+    [_cancelButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_cancelButton addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
+    [_inputAccView addSubview:_cancelButton];
+    
     _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_doneButton setFrame:CGRectMake(viewWidth - 60.f, 0.0f, 60.0f, kAccViewHeight)];
+    [_doneButton setFrame:CGRectMake(viewWidth - 40.f, 0.0f, 40.0f, kAccViewHeight)];
     _doneButton.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
-    [_doneButton setTitle:@"Done" forState:UIControlStateNormal];
-    [_doneButton setBackgroundColor:[UIColor grayColor]];
-    [_doneButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [_doneButton setTitle:@"OK" forState:UIControlStateNormal];
+    [_doneButton setBackgroundColor:[UIColor blueColor]];
+    [_doneButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_doneButton addTarget:self action:@selector(doneTyping) forControlEvents:UIControlEventTouchUpInside];
     [_inputAccView addSubview:_doneButton];
 }

@@ -26,12 +26,14 @@
     UIView*                 _inputAccView;
     UIButton*               _doneButton;
     UIButton*               _minusButton;
+    UIButton*               _cancelButton;
     UILabel*                _rangeLabel;
     NSNumberFormatter*      _numberFormatter;
     UIColor*                _backgroundColor;
     UIColor*                _textColor;
     FIButton*               _incButton;
     FIButton*               _decButton;
+    float                   _valueBeforeCancel;
 }
 
 @property CGFloat cornerRadius;				// default: 3.0
@@ -42,6 +44,7 @@
 
 - (void)minus;
 - (void)doneTyping;
+- (void)cancel;
 - (void)createInputAccessoryView;
 
 @end
