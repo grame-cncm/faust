@@ -167,13 +167,18 @@ sawtooth_demo = signal with {
 // Use simpler sample-rounded lf_* versions above for LFOs.
 
 pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with { 
- diffdel(x,del) = x - x@del; // same as ffcombfilter in filter.lib
- delmax = 2047.0; // arbitrary upper limit on diff delay (duty=0.5)
+ // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
+ // linearly interpolated delay version (sounds good to me):
+    diffdel(x,del) = x-x@int(del)*(1-ml.frac(del))-x@(int(del)+1)*ml.frac(del);
+ // Third-order Lagrange interpolated-delay version (see filter.lib):
+ // diffdel(x,del) = x - fl.fdelay3(DELPWR2,max(1,min(DELPWR2-2,ddel)));
+ DELPWR2 = 2048; // Needs to be a power of 2 when fdelay*() used above.
+ delmax = DELPWR2-1; // arbitrary upper limit on diff delay (duty=0.5)
  SRmax = 96000.0; // assumed upper limit on sampling rate
  fmin = SRmax / float(2.0*delmax); // 23.4 Hz (audio freqs only)
  freqC = max(freq,fmin); // clip frequency at lower limit
- period = (float(ml.ml.SR) / freqC); // actual period
- ddel = int(duty * period); // desired delay
+ period = (float(ml.SR) / freqC); // actual period
+ ddel = duty * period; // desired delay
  del = max(0,min(delmax,ddel));
 };
 pulsetrain = pulsetrainN(2);
