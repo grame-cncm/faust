@@ -332,7 +332,7 @@ bool process_cmdline(int argc, char* argv[])
 			i += 2;
 
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
-            gInlineArchSwitch = true;
+            gInlineArchSwitch = false;
             i += 1;
 			
        } else if (argv[i][0] != '-') {
