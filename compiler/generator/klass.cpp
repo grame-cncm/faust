@@ -94,7 +94,7 @@ bool Klass::getLoopProperty(Tree sig, Loop*& l)
  */
 void Klass::openLoop(const string& size)
 {
-    fTopLoop = new Loop(fTopLoop, size);
+    fTopLoop = new Loop(fTopLoop, size, fOversampling);
     //cerr << "\nOPEN SHARED LOOP(" << size << ") ----> " << fTopLoop << endl;
 }
 
@@ -105,7 +105,7 @@ void Klass::openLoop(const string& size)
  */
 void Klass::openLoop(Tree recsymbol, const string& size)
 {
-    fTopLoop = new Loop(recsymbol, fTopLoop, size);
+    fTopLoop = new Loop(recsymbol, fTopLoop, size, fOversampling);
     //cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 
@@ -773,7 +773,12 @@ void Klass::println(int n, ostream& fout)
     tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "virtual void instanceInit(int samplingFreq) {";
-        tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
+        tab(n+2,fout);
+        if (fOversampling>1) {
+            fout << "fSamplingFreq = samplingFreq*" << fOversampling << ';';
+        } else {
+            fout << "fSamplingFreq = samplingFreq;";
+        }
         printlines (n+2, fInitCode, fout);
     tab(n+1,fout); fout << "}";
 

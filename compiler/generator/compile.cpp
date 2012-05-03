@@ -68,6 +68,7 @@ Compile a list of FAUST signals into a C++ class .
 *****************************************************************************/
 
 extern int 		gDetailsSwitch;
+extern int 		gOversampling;
 extern string 	gMasterName;
 
 
@@ -91,18 +92,20 @@ extern string 	gMasterName;
 							   constructor
 *****************************************************************************/
 
-Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec)
-		: fClass(new Klass(name, super, numInputs, numOutputs, vec)),
+Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec, int oversampling)
+        : fClass(new Klass(name, super, numInputs, numOutputs, oversampling, vec)),
 		  fNeedToDeleteClass(true), 
 		  fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", gMasterName))))),
-		  fDescription(0)
+          fDescription(0),
+          fOversampling(oversampling)
 {}
 
 Compiler::Compiler(Klass* k)
 		: fClass(k),
 		  fNeedToDeleteClass(false), 
 		  fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", gMasterName))))),
-		  fDescription(0)
+          fDescription(0),
+          fOversampling(1)
 {}
 
 

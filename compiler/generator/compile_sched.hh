@@ -39,8 +39,8 @@ class SchedulerCompiler : public VectorCompiler
 
 public:
 
-    SchedulerCompiler (const string& name, const string& super, int numInputs, int numOutputs)
-        : VectorCompiler(name,super,numInputs,numOutputs)
+    SchedulerCompiler (const string& name, const string& super, int numInputs, int numOutputs, int oversampling)
+        : VectorCompiler(name,super,numInputs,numOutputs,oversampling)
         {}
     
     SchedulerCompiler (Klass* k) : VectorCompiler(k)

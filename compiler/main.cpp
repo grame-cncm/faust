@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.50"
+#define FAUSTVERSION "0.9.50x"
 
 #include <stdio.h>
 #include <string.h>
@@ -138,6 +138,7 @@ bool            gVectorSwitch   = false;
 bool            gDeepFirstSwitch= false;
 int             gVecSize        = 32;
 int             gVectorLoopVariant = 0;
+int             gOversampling   = 1;
 
 bool            gOpenMPSwitch   = false;
 bool            gOpenMPLoop     = false;
@@ -264,6 +265,10 @@ bool process_cmdline(int argc, char* argv[])
 
         } else if (isCmd(argv[i], "-vs", "--vec-size")) {
             gVecSize = atoi(argv[i+1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-x", "--oversampling")) {
+            gOversampling = atoi(argv[i+1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-lv", "--loop-variant")) {
@@ -407,6 +412,8 @@ void printhelp()
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
+    cout << "-x <n> \t\t--oversampling [1: no oversampling (default), n:oversampling by n] \n";
+
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
     cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
@@ -627,9 +634,9 @@ int main (int argc, char* argv[])
 	startTiming("compilation");
 
 	Compiler* C;
-	if (gSchedulerSwitch)   C = new SchedulerCompiler(gClassName, "dsp", numInputs, numOutputs);
-	else if (gVectorSwitch) C = new VectorCompiler(gClassName, "dsp", numInputs, numOutputs);
-	else                    C = new ScalarCompiler(gClassName, "dsp", numInputs, numOutputs);
+    if (gSchedulerSwitch)   C = new SchedulerCompiler(gClassName, "dsp", numInputs, numOutputs, gOversampling);
+    else if (gVectorSwitch) C = new VectorCompiler(gClassName, "dsp", numInputs, numOutputs, gOversampling);
+    else                    C = new ScalarCompiler(gClassName, "dsp", numInputs, numOutputs, gOversampling);
 
 	if (gPrintXMLSwitch) C->setDescription(new Description());
 	if (gPrintDocSwitch) C->setDescription(new Description());

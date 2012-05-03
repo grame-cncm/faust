@@ -46,7 +46,12 @@ void VectorCompiler::compileMultiSignal (Tree L)
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
         fClass->openLoop("count");
-        fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        if (fOversampling>1) {
+            fClass->addExecCode(subst("output$0[i/$3] = $2$1; // 50", T(i), CS(sig), xcast(), T(fOversampling)));
+        } else {
+            fClass->addExecCode(subst("output$0[i] = $2$1; // 52", T(i), CS(sig), xcast()));
+        }
+
         fClass->closeLoop(sig);
     }
 
@@ -247,7 +252,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
                     return subst("$0[i]", vname);
                 } else {
                     // we use a ring buffer
-                    string mask = T(pow2limit(d + gVecSize)-1);
+                    string mask = T(pow2limit(d + gVecSize*fOversampling)-1);
                     return subst("$0[($0_idx+i) & $1]", vname, mask);
                 }
             }
@@ -373,7 +378,7 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
     } else {
 
         // long delay : we use a ring buffer of size 2^x
-        int     N   = pow2limit( mxd+gVecSize );
+        int     N   = pow2limit( mxd+gVecSize*fOversampling );
 
         if (isSigInt(delay, &d)) {
             if (d == 0) {
@@ -430,7 +435,7 @@ void  VectorCompiler::vectorLoop (const string& tname, const string& vecname, co
     fClass->addSharedDecl(vecname);
 
     // -- variables moved as class fields...
-    fClass->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
+    fClass->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize*fOversampling)));
 
     // -- compute the new samples
     fClass->addExecCode(subst("$0[i] = $1;", vecname, cexp));
@@ -472,7 +477,7 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
         fClass->addSharedDecl(buf);
 
         // -- variables moved as class fields...
-        fClass->addZone1(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize), dsize));
+        fClass->addZone1(subst("$0 \t$1[$2+$3];", tname, buf, T(gVecSize*fOversampling), dsize));
 
         fClass->addFirstPrivateDecl(dlname);
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
@@ -484,14 +489,19 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
         fClass->addExecCode(subst("$0[i] = $1;", dlname, cexp));
 
         // -- copy back to stored samples
-        fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        if (fOversampling>1) {
+            fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count*$3+i];", pmem, buf, dsize, T(fOversampling)));
+        } else {
+            fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        }
+
 
     } else {
 
         // Implementation of a ring-buffer delayline
 
         // the size should be large enough and aligned on a power of two
-        delay   = pow2limit(delay + gVecSize);
+        delay   = pow2limit(delay + gVecSize*fOversampling);
         string  dsize   = T(delay);
         string  mask    = T(delay-1);
 
@@ -516,7 +526,11 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
         fClass->addExecCode(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask));
 
         // -- save index
-        fClass->addPostCode(subst("$0 = count;", idx_save));
+        if (fOversampling>1) {
+            fClass->addPostCode(subst("$0 = count*$1;", idx_save, T(fOversampling)));
+        } else {
+            fClass->addPostCode(subst("$0 = count;", idx_save));
+        }
     }
 }
 

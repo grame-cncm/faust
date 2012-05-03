@@ -38,8 +38,8 @@ static void printlines (int n, list<string>& lines, ostream& fout)
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
-Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
-        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
+Loop::Loop(Tree recsymbol, Loop* encl, const string& size, int oversampling)
+        : fIsRecursive(true), fRecSymbolSet(singleton(recsymbol)), fEnclosingLoop(encl), fSize(size), fOversampling(oversampling), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
@@ -48,8 +48,8 @@ Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
-Loop::Loop(Loop* encl, const string& size) 
-        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
+Loop::Loop(Loop* encl, const string& size, int oversampling)
+        : fIsRecursive(false), fRecSymbolSet(nil), fEnclosingLoop(encl), fSize(size), fOversampling(oversampling), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {}
 
 
@@ -150,7 +150,12 @@ void Loop::println(int n, ostream& fout)
         }
 
         tab(n,fout); fout << "// exec code";
-        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        if (fOversampling>1) {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << '*' << fOversampling << "; i++) {";
+        } else {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        }
+
         printlines(n+1, fExecCode, fout);
         tab(n,fout); fout << "}";
 
@@ -218,8 +223,13 @@ void Loop::printoneln(int n, ostream& fout)
             tab(n,fout); 
             fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
         }*/
-            
-        tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+
+        if (fOversampling > 1) {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << '*' << fOversampling << "; i++) {";
+        } else {
+            tab(n,fout); fout << "for (int i=0; i<" << fSize << "; i++) {";
+        }
+
         if (fPreCode.size()>0) {
             tab(n+1,fout); fout << "// pre processing";
             printlines(n+1, fPreCode, fout);

@@ -1,4 +1,4 @@
-version := 0.9.50
+version := 0.9.50x
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -22,7 +22,6 @@ httpd :
 win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
-
 
 .PHONY: clean depend install ininstall dist parser help
 

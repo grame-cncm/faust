@@ -58,6 +58,7 @@ extern bool     gLessTempSwitch;
 extern int      gMaxCopyDelay;
 extern string   gClassName;
 extern string   gMasterDocument;
+extern int      gOversampling;
 
 static Klass* signal2klass (const string& name, Tree sig)
 {
@@ -164,7 +165,12 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 
 	for (int i = 0; isList(L); L = tl(L), i++) {
 		Tree sig = hd(L);
-		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+
+        if (gOversampling > 1) {
+            fClass->addExecCode(subst("output$0[i/$3] = $2$1;", T(i), CS(sig), xcast(), T(gOversampling)));
+        } else {
+            fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        }
 	}
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
@@ -373,14 +379,25 @@ string ScalarCompiler::generateFVar (Tree sig, const string& file, const string&
 
 string ScalarCompiler::generateInput (Tree sig, const string& idx)
 {
-	return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    if (fOversampling > 1) {
+        return generateCacheCode(sig, subst("$1input$0[i/$2]", idx, icast(), T(fOversampling)));
+    } else {
+        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+    }
+
 }
 
 
 string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string& arg)
 {
-	string dst = subst("output$0[i]", idx);
-	fClass->addExecCode(subst("$0 = $2$1;", dst, arg, xcast()));
+    string dst;
+    if (fOversampling>1) {
+        dst = subst("output$0[i*$1]", idx, T(fOversampling));
+    } else {
+        dst = subst("output$0[i]", idx);
+    }
+
+    fClass->addExecCode(subst("$0 = $2$1; // TOTO", dst, arg, xcast()));
 	return dst;
 }
 
