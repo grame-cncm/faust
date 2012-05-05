@@ -32,7 +32,7 @@ string(freq, att, level, trig) = noise*level
 		trigger(n) 	= upfront : + ~ decay(n) : >(0.0);
 		upfront(x) 	= (x-x') > 0.0;
 		decay(n,x)	= x - (x>0.0)/n;
-		freq2samples(f) = 44100.0/f;
+		freq2samples(f) = SR/f;
 	};
 
 
