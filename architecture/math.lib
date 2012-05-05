@@ -51,7 +51,7 @@ declare license "LGPL with exception";
 
 // -- Utilities and constants
 
-SR 			= min(384000, max(100, fconstant(int fSamplingFreq, <math.h>)));
+SR 			= min(384000, max(24000, fconstant(int fSamplingFreq, <math.h>)));
 BS          = fvariable(int count, <math.h>);
 
 PI          = 3.1415926535897932385;
@@ -163,7 +163,7 @@ countdown(count, trig)	= \(c).(if(trig>0, count, max(0, c-1))) ~_;
 
 //-----------------------------------------------------------------
 // countup(count,trig) 
-// start counting down from 0, 1, ... count-1, count when trig > 0
+// start counting up from 0, 1, ... count-1, count when trig > 0
 //-----------------------------------------------------------------
 countup(count, trig)	= \(c).(if(trig>0, 0, min(count, c+1))) ~_;
 
