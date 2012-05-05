@@ -67,6 +67,11 @@ jackgtk :
 	$(MAKE) DEST='jackgtkdir/' ARCH='jack-gtk.cpp' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB) $(HTTPDLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
 
+jackgtkx :
+	install -d jackgtkxdir
+	$(MAKE) DEST='jackgtkxdir/' ARCH='jack-gtk.cpp' VEC='-x 8' LIB='`pkg-config --cflags --libs jack gtk+-2.0` $(OSCLIB) $(HTTPDLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
+
 jackconsole :
 	install -d jackconsoledir
 	$(MAKE) DEST='jackconsoledir/' ARCH='jack-console.cpp' VEC='-vec -vs $(VSIZE)' LIB='-lpthread `pkg-config --cflags --libs jack ` $(OSCLIB) $(HTTPDLIB)' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
