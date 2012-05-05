@@ -7,6 +7,8 @@
 declare name  	"Harpe";
 declare author  "Grame";
 
+import("math.lib");
+
 process = harpe(11); 	// an 11 strings harpe
 
 
