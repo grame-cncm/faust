@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  
  This is sample code. This file is provided as an example of minimal
@@ -68,7 +68,7 @@
 - (void)setFrame:(CGRect)frame
 {
 	[super setFrame:frame];
-	//self.handleSize = floorf((self.isHorizontalSlider) ? self.bounds.size.width / 6 : self.bounds.size.height / 6);
+
 	if (self.handleSize < 35.0)
 		self.handleSize = 35.0;
 }

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  
  This is sample code. This file is provided as an example of minimal
@@ -352,10 +352,7 @@
 			[self.color set];
 		NSString *valueString = nil;
         float multiplier = 1.f;
-		/*if (self.biDirectional)
-			valueString = [NSString stringWithFormat:@"%02.0f%%", ((self.value - self.min - (self.max - self.min) / 2) / (self.max - self.min)) * 100];
-		else*/
-        //valueString = [NSString stringWithFormat:@"%03.0f%%", ((self.value - self.min) / (self.max - self.min)) * 100];
+
         if ([self.suffixe compare:@""] == NSOrderedSame)
         {
             valueString = [NSString stringWithFormat:@"%2.1f", self.value];

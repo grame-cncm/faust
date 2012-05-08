@@ -10,7 +10,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2004-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2004-2012 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
@@ -304,7 +304,6 @@ public:
                 fLabel.frame = CGRectMake(pt.x + kStdBoxLabelXOffset, pt.y, w - kStdBoxLabelXOffset, labelYOffset);
             }
 
-            // 1st pass : easy
             for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
             {
                 if (fBoxType == kVerticalLayout
@@ -320,34 +319,6 @@ public:
                     (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), h - 2 * kSpaceSize - labelYOffset);
                 }
             }
-            
-            // 2nd pass : more subtle
-            /*CGSize                          contentSize;
-
-            contentSize = getContentSize();
-            if (fBoxType == kVerticalLayout
-                && contentSize.height < getH() - kSpaceSize)
-            {
-
-            }
-            
-            else if (fBoxType == kHorizontalLayout
-                     && contentSize.width + 1. * kSpaceSize < getW())
-            {
-                NSLog(@"=== %f %f", contentSize.width, getW());
-                for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
-                {
-                    if ((*i)->getParent() == this)
-                    {
-                        NSLog(@"    .");
-                        (*i)->setFrame((*i)->getX() * (getW() / contentSize.width),
-                                       (*i)->getY(),
-                                       (*i)->getW(),
-                                       (*i)->getH());
-                    }
-                }
-                NSLog(@"    %f %f", contentSize.width, getW());
-            }*/
         }
     }
     

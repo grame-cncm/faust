@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  
  This is sample code. This file is provided as an example of minimal
