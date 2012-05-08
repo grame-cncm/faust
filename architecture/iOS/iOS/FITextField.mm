@@ -20,8 +20,6 @@
 #import "FIMainViewController.h"
 
 #define kAccViewHeight          40.0
-#define kIncDecButtonWidth      100.0
-#define kIncDecButtonHeight     35.0
 
 @implementation FITextField
 
@@ -62,24 +60,7 @@
         {
             _messageTextView.keyboardType = UIKeyboardTypeNumberPad;
         }
-        
-        // Inc dec buttons
-        _incButton = [[[FIButton alloc] initWithDelegate:self] autorelease];
-        _incButton.title = @"+";
-        _incButton.labelFont = [UIFont boldSystemFontOfSize:18];
-        _incButton.labelColor = [UIColor colorWithWhite:1. alpha:1.];
-        _incButton.backgroundColorAlpha = 0.4;
-        _incButton.type = kPushButtonType;
-        [self addSubview:_incButton];
-        
-        _decButton = [[[FIButton alloc] initWithDelegate:self] autorelease];
-        _decButton.title = @"-";
-        _decButton.labelFont = [UIFont boldSystemFontOfSize:18];
-        _decButton.labelColor = [UIColor colorWithWhite:1. alpha:1.];
-        _decButton.backgroundColorAlpha = 0.4;
-        _decButton.type = kPushButtonType;
-        [self addSubview:_decButton];
-        
+                
         // Input accessory view
         [self createInputAccessoryView];
         _messageTextView.inputAccessoryView = _inputAccView;
@@ -88,6 +69,10 @@
         _numberFormatter = [[NSNumberFormatter alloc] init];
         [_numberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
         [_numberFormatter setRoundingMode:NSNumberFormatterRoundDown];
+        
+        UIPanGestureRecognizer *panGesture = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(pan:)] autorelease];
+        panGesture.delegate = self;
+		[self addGestureRecognizer:panGesture];
 	}
 	
 	return self;
@@ -116,18 +101,10 @@
 - (void)drawRect:(CGRect)rect
 {
     _messageTextView.frame = CGRectMake(rect.origin.x,
-                                        rect.origin.y + kIncDecButtonHeight,
+                                        rect.origin.y,
                                         rect.size.width,
-                                        rect.size.height - 2 * kIncDecButtonHeight);
+                                        rect.size.height);
     _messageTextView.text = [NSString stringWithFormat:@"%2.2f%@", self.value, self.suffixe];
-    _incButton.frame = CGRectMake(rect.origin.x + rect.size.width / 2.f - kIncDecButtonWidth / 2.f,
-                                  rect.origin.y,
-                                  kIncDecButtonWidth,
-                                  kIncDecButtonHeight);
-    _decButton.frame = CGRectMake(rect.origin.x + rect.size.width / 2.f - kIncDecButtonWidth / 2.f,
-                                  rect.origin.y + rect.size.height - kIncDecButtonHeight,
-                                  kIncDecButtonWidth,
-                                  kIncDecButtonHeight);
 }
 
 
@@ -232,19 +209,31 @@
 #pragma mark -
 #pragma mark Touch Handling
 
-- (void)responderValueDidChange:(float)value sender:(id)sender
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
-    if (value == 1)
+    UIScrollView*     scrollView = self.superview.superview;
+    
+    scrollView.scrollEnabled = NO;
+    
+    return YES;
+}
+
+- (void)pan:(UIPanGestureRecognizer *)gesture
+{
+    UIScrollView*     scrollView = self.superview.superview;
+    float value = 0.f - [gesture velocityInView:scrollView].y;
+    value = value / 200.;
+        
+    if ([gesture velocityInView:scrollView].y < 0)
     {
-        if (sender == _incButton)
-        {
-            [self setValue:self.value + self.step];
-        }
-        else if (sender == _decButton)
-        {
-            [self setValue:self.value - self.step];
-        }
+        [self setValue:self.value + (floor(value) + 1.) * self.step];
     }
+    else
+    {
+        [self setValue:self.value + floor(value) * self.step];
+    }
+    
+    scrollView.scrollEnabled = YES;
 }
 
 @end

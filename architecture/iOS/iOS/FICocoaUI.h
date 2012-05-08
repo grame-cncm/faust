@@ -96,7 +96,7 @@ class uiBox;
 
 // Num entry
 #define kStdNumEntryWidth               100.0
-#define kStdNumEntryHeight              105.0
+#define kStdNumEntryHeight              40.0
 #define kStdNumEntryLabelWidth          100.0
 #define kStdNumEntryLabelHeight         20.0
 

@@ -17,10 +17,9 @@
  ************************************************************************/
 
 #import "FIResponder.h"
-#import "FIButton.h"
 
 @interface FITextField : FIResponder <  UITextViewDelegate,
-                                        FIResponderDelegate>
+                                        UIGestureRecognizerDelegate>
 {
     UITextView*             _messageTextView;
     UIView*                 _inputAccView;
@@ -31,8 +30,6 @@
     NSNumberFormatter*      _numberFormatter;
     UIColor*                _backgroundColor;
     UIColor*                _textColor;
-    FIButton*               _incButton;
-    FIButton*               _decButton;
     float                   _valueBeforeCancel;
 }
 
