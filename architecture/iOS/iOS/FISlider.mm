@@ -257,10 +257,7 @@
 											   green:colorComponents[1]
 												blue:colorComponents[2]
 											   alpha:self.backgroundColorAlpha];
-	UIColor *lighterBackgroundColor = [UIColor colorWithRed:colorComponents[0]
-                                                      green:colorComponents[1]
-                                                       blue:colorComponents[2]
-                                                      alpha:self.backgroundColorAlpha / 2.0];
+	UIColor *lighterBackgroundColor = [UIColor colorWithRed:0.08 green:0.08 blue:0.08 alpha:1.];
 
 	// draw background of slider
 	[lighterBackgroundColor set];

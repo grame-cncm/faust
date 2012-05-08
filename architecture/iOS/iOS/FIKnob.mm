@@ -301,11 +301,7 @@
 	if (self.backgroundColorAlpha > 0.02)
 	{
 		// outline semi circle
-		const CGFloat *colorComponents = CGColorGetComponents(self.color.CGColor);
-		UIColor *backgroundColor = [UIColor colorWithRed:colorComponents[0]
-												   green:colorComponents[1]
-													blue:colorComponents[2]
-												   alpha:self.backgroundColorAlpha];
+		UIColor *backgroundColor = [UIColor colorWithRed:0.08 green:0.08 blue:0.08 alpha:1.];
 		[backgroundColor set];
         
 		CGContextAddArc(context,

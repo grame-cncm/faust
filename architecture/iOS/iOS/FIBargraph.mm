@@ -377,6 +377,7 @@
     }
     
     // Draw border around the control
+    m_clrOuterBorder = [UIColor colorWithRed:0.08 green:0.08 blue:0.08 alpha:1.]; 
     CGContextSetStrokeColorWithColor(ctx, m_clrOuterBorder.CGColor);
     CGContextSetLineWidth(ctx, 2.0);
     CGContextAddRect(ctx, CGRectInset(rectBounds, 1, 1));
