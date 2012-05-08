@@ -733,7 +733,9 @@ void Klass::println(int n, ostream& fout)
 {
 	list<Klass* >::iterator k;
 
-    tab(n,fout); fout << "#define FAUSTCLASS "<< fKlassName << endl;
+    tab(n,fout); fout << "#ifndef FAUSTCLASS " << endl;
+    fout << "#define FAUSTCLASS "<< fKlassName << endl;
+    fout << "#endif" << endl;
 
     if (gSchedulerSwitch) {
         tab(n,fout); fout << "class " << fKlassName << " : public " << fSuperKlassName << ", public Runnable {";
