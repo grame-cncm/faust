@@ -370,6 +370,7 @@ bool searchEnv (Tree key, Tree& v, Tree env)
 // Property list
 //------------------------------------------------------------------------------
 
+#if 0
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 				return false;
@@ -390,7 +391,7 @@ static Tree removeKey (Tree pl, Tree key)
 	if (left(hd(pl)) == key) 	return tl(pl);
 	/*  left(hd(pl)) != key	*/	return cons (hd(pl), removeKey(tl(pl), key));
 }
-
+#endif
 
 #if 0
 void setProperty (Tree t, Tree key, Tree val)

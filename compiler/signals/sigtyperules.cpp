@@ -66,7 +66,7 @@ static interval arithmetic (int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
 //#define TRACE(x) x
-#define TRACE(x) 0;
+#define TRACE(x) ;
 
 
 /**

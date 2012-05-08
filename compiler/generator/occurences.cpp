@@ -156,18 +156,3 @@ void OccMarkup::setOcc(Tree t, Occurences* occ)
 {
 	t->setProperty(fPropKey, tree(occ));
 }
-
-
-
-/**
- * return the position of a signal in the current recursive environment
- * @param env the current recursive environment of the signal
- * @param t signal we want to know the position
- * @return the position in the recursive environment
- */
-static int position (Tree env, Tree t, int p)
-{
-	if (isNil(env)) return 0;	// was not in the environment
-	if (hd(env) == t) return p;
-	else return position (tl(env), t, p+1);
-}

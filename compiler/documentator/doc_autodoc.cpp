@@ -193,7 +193,7 @@ static void initDocAutodocKeySet() {
 	gDocAutodocKeySet.insert("autolsttext2");
 }
 
-
+#if 0
 /** 
  * Simple trace function.
  */
@@ -207,4 +207,4 @@ static void printDocAutodocStringMapContent() {
 			cout << i++ << ".\tgDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
 	}
 }
-
+#endif
