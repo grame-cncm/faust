@@ -64,10 +64,10 @@ install :
 	mkdir -p $(prefix)/bin/
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
+	mkdir -p $(prefix)/lib/faust
 	install compiler/faust $(prefix)/bin/
 	install compiler/libfaust.a $(prefix)/lib/faust
 	# install architecture and faust library files
-	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.c $(prefix)/lib/faust/
 	cp architecture/*.cpp $(prefix)/lib/faust/
 	cp architecture/*.java $(prefix)/lib/faust/

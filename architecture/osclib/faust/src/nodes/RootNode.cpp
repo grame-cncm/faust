@@ -23,6 +23,7 @@
 
 #include <string>
 #include <sstream>
+#include <unistd.h>
 
 #include "RootNode.h"
 #include "Message.h"
