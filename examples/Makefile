@@ -199,10 +199,9 @@ iphonenet :
 	install -d iphonenetdir
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
-# ios target: DEST has no trailing '/' due to RE used by Makefile.ioscompile to build dependencies
 ios :
 	install -d iosdir
-	$(MAKE) DEST='iosdir' ARCH='ios-coreaudio.cpp'  LIB='' -f Makefile.ioscompile
+	$(MAKE) DEST='iosdir/' ARCH='ios-coreaudio.cpp'  LIB='' -f Makefile.ioscompile
 
 bench :
 	install -d benchdir
