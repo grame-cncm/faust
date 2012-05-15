@@ -152,7 +152,7 @@ int             gTimeout        = 120;            // time out to abort compiler 
 int             gFloatSize = 1;
 
 bool			gPrintFileListSwitch = false;
-bool			gInlineArchSwitch = true;
+bool			gInlineArchSwitch = false;
 
 string			gClassName		= "mydsp";
 
@@ -332,7 +332,7 @@ bool process_cmdline(int argc, char* argv[])
 			i += 2;
 
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
-            gInlineArchSwitch = false;
+            gInlineArchSwitch = true;
             i += 1;
 			
        } else if (argv[i][0] != '-') {
