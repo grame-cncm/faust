@@ -101,7 +101,7 @@ class MaxPrim : public xtended
                 return subst("max((int)$0, $1)", args[0], args[1], icast());
             } else {
                 assert(b0==kBool); assert(b1==kBool);   // both are booleans, no need to cast
-                return subst("max($0, $1)", args[0], args[1]);
+                return subst("max((int)$0, (int)$1)", args[0], args[1]);
             }
         }
     }

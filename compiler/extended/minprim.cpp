@@ -127,7 +127,7 @@ class MinPrim : public xtended
                 return subst("min((int)$0, $1)", args[0], args[1], icast());
             } else {
                 assert(b0==kBool); assert(b1==kBool);   // both are booleans, no need to cast
-                return subst("min($0, $1)", args[0], args[1]);
+                return subst("min((int)$0, (int)$1)", args[0], args[1]);
             }
         }
     }

@@ -152,7 +152,7 @@ int             gTimeout        = 120;            // time out to abort compiler 
 int             gFloatSize = 1;
 
 bool			gPrintFileListSwitch = false;
-bool			gInlineArchSwitch = true;
+bool			gInlineArchSwitch = false;
 
 string			gClassName		= "mydsp";
 
