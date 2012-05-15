@@ -29,6 +29,8 @@
 #include "libgen.h"
 #endif
 
+#include "global.hh"
+
 #include "compatibility.hh"
 #include "signals.hh"
 #include "sigtype.hh"
@@ -83,8 +85,11 @@ using namespace std;
  						Parser variables
 *****************************************************************/
 
-int 			yyerr;
-Tree 			gResult;
+int             yyerr;
+
+global*         gGlobal;
+
+//Tree 			gResult;
 Tree 			gResult2;
 
 SourceReader	gReader;

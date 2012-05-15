@@ -1,7 +1,7 @@
 #include "xtended.hh"
 #include "Text.hh"
 #include <math.h>
-#include "sigtyperules.hh"
+#include "sigtyperules.hh"vector<::Type>
 
 #include "floats.hh"
 #include "code_container.hh"
@@ -17,7 +17,7 @@ class MaxPrim : public xtended
 
 	virtual bool needCache ()	{ return true; }
 
-	virtual Type infereSigType(const vector<Type>& types)
+	virtual ::Type infereSigType(const vector< ::Type>& types)
 	{
 		assert (types.size() == arity());
 		interval i = types[0]->getInterval();
@@ -86,12 +86,12 @@ class MaxPrim : public xtended
        
     }
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-		Type t = infereSigType(types);
+		::Type t = infereSigType(types);
 		return subst("\\max\\left( $0, $1 \\right)", args[0], args[1]);
 	}
 

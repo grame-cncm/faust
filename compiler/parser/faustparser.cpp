@@ -1,23 +1,24 @@
-
-/* A Bison parser, made by GNU Bison 2.4.1.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
-   
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
-   
-   This program is free software: you can redistribute it and/or modify
+
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -28,7 +29,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -46,7 +47,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.4.1"
+#define YYBISON_VERSION "2.3"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -54,113 +55,9 @@
 /* Pure parsers.  */
 #define YYPURE 0
 
-/* Push parsers.  */
-#define YYPUSH 0
-
-/* Pull parsers.  */
-#define YYPULL 1
-
 /* Using locations.  */
 #define YYLSP_NEEDED 0
 
-
-
-/* Copy the first part of user declarations.  */
-
-/* Line 189 of yacc.c  */
-#line 5 "parser/faustparser.y"
-
-
-#include "tree.hh"
-#include "xtended.hh"
-#include "boxes.hh"
-#include "prim2.hh"
-#include "signals.hh"
-#include "errormsg.hh"
-#include "sourcereader.hh"
-#include "doc.hh"
-#include "ppbox.hh"
-
-#include <string>
-#include <list>
-
-#define YYDEBUG 1
-#define YYERROR_VERBOSE 1
-#define YYMAXDEPTH	100000
-	
-using namespace std;
-
-extern char* 		yytext;
-extern const char* 	yyfilename;
-extern int 			yylineno;
-extern int 			yyerr;
-extern Tree 		gResult;
-extern bool         gStripDocSwitch;
-extern bool         gLstDependenciesSwitch;
-extern bool         gLstDistributedSwitch;
-extern bool        	gLstMdocTagsSwitch;
-	
-extern map<Tree, set<Tree> > gMetaDataSet;
-extern vector<Tree> gDocVector;
-
-
-int yylex();
-
-//----------------------------------------------------------
-// unquote() : remove enclosing quotes and carriage return 
-// characters from string. Returns a Tree 
-//----------------------------------------------------------
-char replaceCR(char c)
-{
-	return (c!='\n') ? c : ' ';
-}
-
-Tree unquote(char* str)
-{
-	//-----------copy unquoted filename-------------
-	char buf[512];
-	int j=0;
-
-	if (str[0] == '"') {
-		//it is a quoted string, we remove the quotes
-		for (int i=1; j<511 && str[i];) {
-			buf[j++] = replaceCR(str[i++]);
-		}
-		// remove last quote
-		if (j>0) buf[j-1] = 0;
-	} else {
-		for (int i=0; j<511 && str[i];) {
-			buf[j++] = replaceCR(str[i++]);
-		}
-	}
-	buf[j] = 0;
-
-	return tree(buf);
-	//----------------------------------------------
-}
-
-
-
-/* Line 189 of yacc.c  */
-#line 146 "parser/faustparser.cpp"
-
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE 0
-#endif
-
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE 0
-#endif
 
 
 /* Tokens.  */
@@ -289,37 +186,248 @@ Tree unquote(char* str)
      LSTQ = 375
    };
 #endif
+/* Tokens.  */
+#define WITH 258
+#define MIX 259
+#define SPLIT 260
+#define SEQ 261
+#define PAR 262
+#define REC 263
+#define NE 264
+#define GE 265
+#define GT 266
+#define EQ 267
+#define LE 268
+#define LT 269
+#define OR 270
+#define SUB 271
+#define ADD 272
+#define RSH 273
+#define LSH 274
+#define XOR 275
+#define AND 276
+#define MOD 277
+#define DIV 278
+#define MUL 279
+#define POWOP 280
+#define FDELAY 281
+#define DELAY1 282
+#define DOT 283
+#define APPL 284
+#define MEM 285
+#define PREFIX 286
+#define INTCAST 287
+#define FLOATCAST 288
+#define FFUNCTION 289
+#define FCONSTANT 290
+#define FVARIABLE 291
+#define BUTTON 292
+#define CHECKBOX 293
+#define VSLIDER 294
+#define HSLIDER 295
+#define NENTRY 296
+#define VGROUP 297
+#define HGROUP 298
+#define TGROUP 299
+#define HBARGRAPH 300
+#define VBARGRAPH 301
+#define ATTACH 302
+#define ACOS 303
+#define ASIN 304
+#define ATAN 305
+#define ATAN2 306
+#define COS 307
+#define SIN 308
+#define TAN 309
+#define EXP 310
+#define LOG 311
+#define LOG10 312
+#define POWFUN 313
+#define SQRT 314
+#define ABS 315
+#define MIN 316
+#define MAX 317
+#define FMOD 318
+#define REMAINDER 319
+#define FLOOR 320
+#define CEIL 321
+#define RINT 322
+#define RDTBL 323
+#define RWTBL 324
+#define SELECT2 325
+#define SELECT3 326
+#define INT 327
+#define FLOAT 328
+#define LAMBDA 329
+#define WIRE 330
+#define CUT 331
+#define ENDDEF 332
+#define VIRG 333
+#define LPAR 334
+#define RPAR 335
+#define LBRAQ 336
+#define RBRAQ 337
+#define LCROC 338
+#define RCROC 339
+#define DEF 340
+#define IMPORT 341
+#define COMPONENT 342
+#define LIBRARY 343
+#define ENVIRONMENT 344
+#define IPAR 345
+#define ISEQ 346
+#define ISUM 347
+#define IPROD 348
+#define STRING 349
+#define FSTRING 350
+#define IDENT 351
+#define EXTRA 352
+#define DECLARE 353
+#define CASE 354
+#define ARROW 355
+#define BDOC 356
+#define EDOC 357
+#define BEQN 358
+#define EEQN 359
+#define BDGM 360
+#define EDGM 361
+#define BLST 362
+#define ELST 363
+#define BMETADATA 364
+#define EMETADATA 365
+#define DOCCHAR 366
+#define NOTICE 367
+#define LISTING 368
+#define LSTTRUE 369
+#define LSTFALSE 370
+#define LSTDEPENDENCIES 371
+#define LSTMDOCTAGS 372
+#define LSTDISTRIBUTED 373
+#define LSTEQ 374
+#define LSTQ 375
 
 
+
+
+/* Copy the first part of user declarations.  */
+#line 5 "parser/faustparser.y"
+
+
+#include "global.hh"
+
+#include "tree.hh"
+#include "xtended.hh"
+#include "boxes.hh"
+#include "prim2.hh"
+#include "signals.hh"
+#include "errormsg.hh"
+#include "sourcereader.hh"
+#include "doc.hh"
+#include "ppbox.hh"
+
+
+#include <string>
+#include <list>
+
+#define YYDEBUG 1
+#define YYERROR_VERBOSE 1
+#define YYMAXDEPTH	100000
+	
+using namespace std;
+
+extern char* 		yytext;
+extern const char* 	yyfilename;
+extern int 			yylineno;
+extern int 			yyerr;
+//extern Tree 		gResult;
+//extern bool         gStripDocSwitch;
+//extern bool         gLstDependenciesSwitch;
+//extern bool         gLstDistributedSwitch;
+//extern bool        	gLstMdocTagsSwitch;
+	
+//extern map<Tree, set<Tree> > gMetaDataSet;
+//extern vector<Tree> gDocVector;
+
+
+int yylex();
+
+//----------------------------------------------------------
+// unquote() : remove enclosing quotes and carriage return 
+// characters from string. Returns a Tree 
+//----------------------------------------------------------
+char replaceCR(char c)
+{
+	return (c!='\n') ? c : ' ';
+}
+
+Tree unquote(char* str)
+{
+	//-----------copy unquoted filename-------------
+	char buf[512];
+	int j=0;
+
+	if (str[0] == '"') {
+		//it is a quoted string, we remove the quotes
+		for (int i=1; j<511 && str[i];) {
+			buf[j++] = replaceCR(str[i++]);
+		}
+		// remove last quote
+		if (j>0) buf[j-1] = 0;
+	} else {
+		for (int i=0; j<511 && str[i];) {
+			buf[j++] = replaceCR(str[i++]);
+		}
+	}
+	buf[j] = 0;
+
+	return tree(buf);
+	//----------------------------------------------
+}
+
+
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+
+/* Enabling verbose error messages.  */
+#ifdef YYERROR_VERBOSE
+# undef YYERROR_VERBOSE
+# define YYERROR_VERBOSE 1
+#else
+# define YYERROR_VERBOSE 0
+#endif
+
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
+#endif
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
+#line 81 "parser/faustparser.y"
 {
-
-/* Line 214 of yacc.c  */
-#line 78 "parser/faustparser.y"
-
 	CTree* 	exp;
 	char* str;
 	string* cppstr;
 	bool b;
-
-
-
-/* Line 214 of yacc.c  */
-#line 311 "parser/faustparser.cpp"
-} YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
+}
+/* Line 193 of yacc.c.  */
+#line 418 "parser/faustparser.cpp"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
+
 
 
 /* Copy the second part of user declarations.  */
 
 
-/* Line 264 of yacc.c  */
-#line 323 "parser/faustparser.cpp"
+/* Line 216 of yacc.c.  */
+#line 431 "parser/faustparser.cpp"
 
 #ifdef short
 # undef short
@@ -369,7 +477,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if YYENABLE_NLS
+# if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -394,14 +502,14 @@ typedef short int yytype_int16;
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static int
-YYID (int yyi)
+YYID (int i)
 #else
 static int
-YYID (yyi)
-    int yyi;
+YYID (i)
+    int i;
 #endif
 {
-  return yyi;
+  return i;
 }
 #endif
 
@@ -482,9 +590,9 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss_alloc;
-  YYSTYPE yyvs_alloc;
-};
+  yytype_int16 yyss;
+  YYSTYPE yyvs;
+  };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
 # define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
@@ -518,12 +626,12 @@ union yyalloc
    elements in the stack, and YYPTR gives the new location of the
    stack.  Advance YYPTR to a properly aligned location for the next
    stack.  */
-# define YYSTACK_RELOCATE(Stack_alloc, Stack)				\
+# define YYSTACK_RELOCATE(Stack)					\
     do									\
       {									\
 	YYSIZE_T yynewbytes;						\
-	YYCOPY (&yyptr->Stack_alloc, Stack, yysize);			\
-	Stack = &yyptr->Stack_alloc;					\
+	YYCOPY (&yyptr->Stack, Stack, yysize);				\
+	Stack = &yyptr->Stack;						\
 	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
 	yyptr += yynewbytes / sizeof (*yyptr);				\
       }									\
@@ -694,25 +802,25 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   301,   301,   304,   305,   307,   308,   311,   312,   313,
-     314,   317,   318,   321,   322,   323,   324,   325,   326,   329,
-     330,   333,   336,   339,   342,   345,   346,   349,   350,   351,
-     354,   355,   358,   361,   362,   363,   366,   369,   370,   373,
-     374,   375,   376,   377,   378,   379,   382,   383,   384,   385,
-     386,   387,   388,   389,   390,   392,   393,   394,   396,   397,
-     399,   400,   401,   402,   403,   404,   406,   407,   409,   412,
-     413,   415,   416,   418,   419,   421,   422,   424,   425,   427,
-     428,   430,   431,   432,   433,   434,   435,   437,   438,   439,
-     441,   442,   444,   445,   446,   447,   448,   449,   451,   453,
-     454,   455,   456,   457,   458,   459,   461,   462,   463,   464,
-     465,   466,   468,   469,   470,   472,   473,   475,   476,   477,
-     480,   481,   483,   484,   486,   487,   489,   490,   493,   495,
-     496,   497,   498,   499,   500,   502,   503,   504,   505,   506,
-     507,   508,   509,   510,   511,   513,   514,   515,   516,   520,
-     523,   528,   529,   532,   533,   534,   535,   536,   539,   542,
-     545,   546,   551,   555,   559,   563,   570,   574,   577,   582,
-     585,   588,   591,   594,   597,   600,   603,   607,   610,   616,
-     617,   620,   623,   624,   627,   628,   631,   635,   636
+       0,   304,   304,   307,   308,   310,   311,   314,   315,   316,
+     317,   320,   321,   324,   325,   326,   327,   328,   329,   332,
+     333,   336,   339,   342,   345,   348,   349,   352,   353,   354,
+     357,   358,   361,   364,   365,   366,   369,   372,   373,   376,
+     377,   378,   379,   380,   381,   382,   385,   386,   387,   388,
+     389,   390,   391,   392,   393,   395,   396,   397,   399,   400,
+     402,   403,   404,   405,   406,   407,   409,   410,   412,   415,
+     416,   418,   419,   421,   422,   424,   425,   427,   428,   430,
+     431,   433,   434,   435,   436,   437,   438,   440,   441,   442,
+     444,   445,   447,   448,   449,   450,   451,   452,   454,   456,
+     457,   458,   459,   460,   461,   462,   464,   465,   466,   467,
+     468,   469,   471,   472,   473,   475,   476,   478,   479,   480,
+     483,   484,   486,   487,   489,   490,   492,   493,   496,   498,
+     499,   500,   501,   502,   503,   505,   506,   507,   508,   509,
+     510,   511,   512,   513,   514,   516,   517,   518,   519,   523,
+     526,   531,   532,   535,   536,   537,   538,   539,   542,   545,
+     548,   549,   554,   558,   562,   566,   573,   577,   580,   585,
+     588,   591,   594,   597,   600,   603,   606,   610,   613,   619,
+     620,   623,   626,   627,   630,   631,   634,   638,   639
 };
 #endif
 
@@ -1189,7 +1297,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if YYLTYPE_IS_TRIVIAL
+# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -1300,20 +1408,17 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
+yy_stack_print (yytype_int16 *bottom, yytype_int16 *top)
 #else
 static void
-yy_stack_print (yybottom, yytop)
-    yytype_int16 *yybottom;
-    yytype_int16 *yytop;
+yy_stack_print (bottom, top)
+    yytype_int16 *bottom;
+    yytype_int16 *top;
 #endif
 {
   YYFPRINTF (stderr, "Stack now");
-  for (; yybottom <= yytop; yybottom++)
-    {
-      int yybot = *yybottom;
-      YYFPRINTF (stderr, " %d", yybot);
-    }
+  for (; bottom <= top; ++bottom)
+    YYFPRINTF (stderr, " %d", *bottom);
   YYFPRINTF (stderr, "\n");
 }
 
@@ -1347,11 +1452,11 @@ yy_reduce_print (yyvsp, yyrule)
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
-      YYFPRINTF (stderr, "   $%d = ", yyi + 1);
+      fprintf (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
 		       		       );
-      YYFPRINTF (stderr, "\n");
+      fprintf (stderr, "\n");
     }
 }
 
@@ -1631,8 +1736,10 @@ yydestruct (yymsg, yytype, yyvaluep)
 	break;
     }
 }
+
 
 /* Prevent warnings from -Wmissing-prototypes.  */
+
 #ifdef YYPARSE_PARAM
 #if defined __STDC__ || defined __cplusplus
 int yyparse (void *YYPARSE_PARAM);
@@ -1648,10 +1755,11 @@ int yyparse ();
 #endif /* ! YYPARSE_PARAM */
 
 
-/* The lookahead symbol.  */
+
+/* The look-ahead symbol.  */
 int yychar;
 
-/* The semantic value of the lookahead symbol.  */
+/* The semantic value of the look-ahead symbol.  */
 YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
@@ -1659,9 +1767,9 @@ int yynerrs;
 
 
 
-/*-------------------------.
-| yyparse or yypush_parse.  |
-`-------------------------*/
+/*----------.
+| yyparse.  |
+`----------*/
 
 #ifdef YYPARSE_PARAM
 #if (defined __STDC__ || defined __C99__FUNC__ \
@@ -1685,39 +1793,14 @@ yyparse ()
 #endif
 #endif
 {
-
-
-    int yystate;
-    /* Number of tokens to shift before error messages enabled.  */
-    int yyerrstatus;
-
-    /* The stacks and their tools:
-       `yyss': related to states.
-       `yyvs': related to semantic values.
-
-       Refer to the stacks thru separate pointers, to allow yyoverflow
-       to reallocate them elsewhere.  */
-
-    /* The state stack.  */
-    yytype_int16 yyssa[YYINITDEPTH];
-    yytype_int16 *yyss;
-    yytype_int16 *yyssp;
-
-    /* The semantic value stack.  */
-    YYSTYPE yyvsa[YYINITDEPTH];
-    YYSTYPE *yyvs;
-    YYSTYPE *yyvsp;
-
-    YYSIZE_T yystacksize;
-
+  
+  int yystate;
   int yyn;
   int yyresult;
-  /* Lookahead token as an internal (translated) token number.  */
-  int yytoken;
-  /* The variables used to return semantic value and location from the
-     action routines.  */
-  YYSTYPE yyval;
-
+  /* Number of tokens to shift before error messages enabled.  */
+  int yyerrstatus;
+  /* Look-ahead token as an internal (translated) token number.  */
+  int yytoken = 0;
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
@@ -1725,28 +1808,51 @@ yyparse ()
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
+  /* Three stacks and their tools:
+     `yyss': related to states,
+     `yyvs': related to semantic values,
+     `yyls': related to locations.
+
+     Refer to the stacks thru separate pointers, to allow yyoverflow
+     to reallocate them elsewhere.  */
+
+  /* The state stack.  */
+  yytype_int16 yyssa[YYINITDEPTH];
+  yytype_int16 *yyss = yyssa;
+  yytype_int16 *yyssp;
+
+  /* The semantic value stack.  */
+  YYSTYPE yyvsa[YYINITDEPTH];
+  YYSTYPE *yyvs = yyvsa;
+  YYSTYPE *yyvsp;
+
+
+
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
+
+  YYSIZE_T yystacksize = YYINITDEPTH;
+
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
-
-  yytoken = 0;
-  yyss = yyssa;
-  yyvs = yyvsa;
-  yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY; /* Cause a token to be read.  */
+  yychar = YYEMPTY;		/* Cause a token to be read.  */
 
   /* Initialize stack pointers.
      Waste one element of value and location stack
      so that they stay on the same level as the state stack.
      The wasted elements are never initialized.  */
+
   yyssp = yyss;
   yyvsp = yyvs;
 
@@ -1776,6 +1882,7 @@ yyparse ()
 	YYSTYPE *yyvs1 = yyvs;
 	yytype_int16 *yyss1 = yyss;
 
+
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
 	   conditional around just the two extra args, but that might
@@ -1783,6 +1890,7 @@ yyparse ()
 	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
+
 		    &yystacksize);
 
 	yyss = yyss1;
@@ -1805,8 +1913,9 @@ yyparse ()
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
 	  goto yyexhaustedlab;
-	YYSTACK_RELOCATE (yyss_alloc, yyss);
-	YYSTACK_RELOCATE (yyvs_alloc, yyvs);
+	YYSTACK_RELOCATE (yyss);
+	YYSTACK_RELOCATE (yyvs);
+
 #  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
@@ -1817,6 +1926,7 @@ yyparse ()
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
+
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
@@ -1826,9 +1936,6 @@ yyparse ()
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
-  if (yystate == YYFINAL)
-    YYACCEPT;
-
   goto yybackup;
 
 /*-----------.
@@ -1837,16 +1944,16 @@ yyparse ()
 yybackup:
 
   /* Do appropriate processing given the current state.  Read a
-     lookahead token if we need one and don't already have one.  */
+     look-ahead token if we need one and don't already have one.  */
 
-  /* First try to decide what to do without reference to lookahead token.  */
+  /* First try to decide what to do without reference to look-ahead token.  */
   yyn = yypact[yystate];
   if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a lookahead token if don't already have one.  */
+  /* Not known => get a look-ahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
@@ -1878,16 +1985,20 @@ yybackup:
       goto yyreduce;
     }
 
+  if (yyn == YYFINAL)
+    YYACCEPT;
+
   /* Count tokens shifted since error; after three, turn off error
      status.  */
   if (yyerrstatus)
     yyerrstatus--;
 
-  /* Shift the lookahead token.  */
+  /* Shift the look-ahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
-  /* Discard the shifted token.  */
-  yychar = YYEMPTY;
+  /* Discard the shifted token unless it is eof.  */
+  if (yychar != YYEOF)
+    yychar = YYEMPTY;
 
   yystate = yyn;
   *++yyvsp = yylval;
@@ -1927,1318 +2038,943 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-
-/* Line 1455 of yacc.c  */
-#line 301 "parser/faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); gResult = formatDefinitions((yyval.exp)); ;}
+#line 304 "parser/faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); gGlobal->gResult = formatDefinitions((yyval.exp)); ;}
     break;
 
   case 3:
-
-/* Line 1455 of yacc.c  */
-#line 304 "parser/faustparser.y"
-    { (yyval.exp) = nil; ;}
-    break;
-
-  case 4:
-
-/* Line 1455 of yacc.c  */
-#line 305 "parser/faustparser.y"
-    { (yyval.exp) = cons ((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
-    break;
-
-  case 5:
-
-/* Line 1455 of yacc.c  */
 #line 307 "parser/faustparser.y"
     { (yyval.exp) = nil; ;}
     break;
 
-  case 6:
-
-/* Line 1455 of yacc.c  */
+  case 4:
 #line 308 "parser/faustparser.y"
     { (yyval.exp) = cons ((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
     break;
 
-  case 7:
+  case 5:
+#line 310 "parser/faustparser.y"
+    { (yyval.exp) = nil; ;}
+    break;
 
-/* Line 1455 of yacc.c  */
+  case 6:
 #line 311 "parser/faustparser.y"
+    { (yyval.exp) = cons ((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
+    break;
+
+  case 7:
+#line 314 "parser/faustparser.y"
     { (yyval.exp) = importFile((yyvsp[(3) - (5)].exp)); ;}
     break;
 
   case 8:
-
-/* Line 1455 of yacc.c  */
-#line 312 "parser/faustparser.y"
+#line 315 "parser/faustparser.y"
     { declareMetadata((yyvsp[(2) - (4)].exp),(yyvsp[(3) - (4)].exp)); (yyval.exp) = nil; ;}
     break;
 
   case 9:
-
-/* Line 1455 of yacc.c  */
-#line 313 "parser/faustparser.y"
+#line 316 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 10:
-
-/* Line 1455 of yacc.c  */
-#line 314 "parser/faustparser.y"
+#line 317 "parser/faustparser.y"
     { declareDoc((yyvsp[(2) - (3)].exp)); (yyval.exp) = nil; /* cerr << "Yacc : doc : " << *$2 << endl; */ ;}
     break;
 
   case 11:
-
-/* Line 1455 of yacc.c  */
-#line 317 "parser/faustparser.y"
+#line 320 "parser/faustparser.y"
     { (yyval.exp) = nil; ;}
     break;
 
   case 12:
-
-/* Line 1455 of yacc.c  */
-#line 318 "parser/faustparser.y"
+#line 321 "parser/faustparser.y"
     { (yyval.exp) = cons ((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
     break;
 
   case 13:
-
-/* Line 1455 of yacc.c  */
-#line 321 "parser/faustparser.y"
+#line 324 "parser/faustparser.y"
     { (yyval.exp) = docTxt((yyvsp[(1) - (1)].cppstr)->c_str()); delete (yyvsp[(1) - (1)].cppstr); ;}
     break;
 
   case 14:
-
-/* Line 1455 of yacc.c  */
-#line 322 "parser/faustparser.y"
+#line 325 "parser/faustparser.y"
     { (yyval.exp) = docEqn((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 15:
-
-/* Line 1455 of yacc.c  */
-#line 323 "parser/faustparser.y"
+#line 326 "parser/faustparser.y"
     { (yyval.exp) = docDgm((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 16:
-
-/* Line 1455 of yacc.c  */
-#line 324 "parser/faustparser.y"
+#line 327 "parser/faustparser.y"
     { (yyval.exp) = docNtc(); ;}
     break;
 
   case 17:
-
-/* Line 1455 of yacc.c  */
-#line 325 "parser/faustparser.y"
+#line 328 "parser/faustparser.y"
     { (yyval.exp) = docLst(); ;}
     break;
 
   case 18:
-
-/* Line 1455 of yacc.c  */
-#line 326 "parser/faustparser.y"
+#line 329 "parser/faustparser.y"
     { (yyval.exp) = docMtd((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 19:
-
-/* Line 1455 of yacc.c  */
-#line 329 "parser/faustparser.y"
+#line 332 "parser/faustparser.y"
     { (yyval.cppstr) = new string(); ;}
     break;
 
   case 20:
-
-/* Line 1455 of yacc.c  */
-#line 330 "parser/faustparser.y"
+#line 333 "parser/faustparser.y"
     { (yyval.cppstr) = &((yyvsp[(1) - (2)].cppstr)->append(yytext)); ;}
     break;
 
   case 21:
-
-/* Line 1455 of yacc.c  */
-#line 333 "parser/faustparser.y"
-    { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
-    break;
-
-  case 22:
-
-/* Line 1455 of yacc.c  */
 #line 336 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
-  case 23:
-
-/* Line 1455 of yacc.c  */
+  case 22:
 #line 339 "parser/faustparser.y"
-    { ;}
+    { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
-  case 24:
-
-/* Line 1455 of yacc.c  */
+  case 23:
 #line 342 "parser/faustparser.y"
     { ;}
     break;
 
-  case 25:
-
-/* Line 1455 of yacc.c  */
+  case 24:
 #line 345 "parser/faustparser.y"
     { ;}
     break;
 
-  case 26:
+  case 25:
+#line 348 "parser/faustparser.y"
+    { ;}
+    break;
 
-/* Line 1455 of yacc.c  */
-#line 346 "parser/faustparser.y"
+  case 26:
+#line 349 "parser/faustparser.y"
     { ;}
     break;
 
   case 27:
-
-/* Line 1455 of yacc.c  */
-#line 349 "parser/faustparser.y"
-    { gLstDependenciesSwitch = (yyvsp[(4) - (5)].b); ;}
+#line 352 "parser/faustparser.y"
+    { gGlobal->gLstDependenciesSwitch = (yyvsp[(4) - (5)].b); ;}
     break;
 
   case 28:
-
-/* Line 1455 of yacc.c  */
-#line 350 "parser/faustparser.y"
-    { gStripDocSwitch = (yyvsp[(4) - (5)].b); gStripDocSwitch==true ? gStripDocSwitch=false : gStripDocSwitch=true; ;}
+#line 353 "parser/faustparser.y"
+    { gGlobal->gStripDocSwitch = (yyvsp[(4) - (5)].b); gGlobal->gStripDocSwitch==true ? gGlobal->gStripDocSwitch=false : gGlobal->gStripDocSwitch=true; ;}
     break;
 
   case 29:
-
-/* Line 1455 of yacc.c  */
-#line 351 "parser/faustparser.y"
-    { gLstDistributedSwitch = (yyvsp[(4) - (5)].b); ;}
+#line 354 "parser/faustparser.y"
+    { gGlobal->gLstDistributedSwitch = (yyvsp[(4) - (5)].b); ;}
     break;
 
   case 30:
-
-/* Line 1455 of yacc.c  */
-#line 354 "parser/faustparser.y"
+#line 357 "parser/faustparser.y"
     { (yyval.b) = true; ;}
     break;
 
   case 31:
-
-/* Line 1455 of yacc.c  */
-#line 355 "parser/faustparser.y"
+#line 358 "parser/faustparser.y"
     { (yyval.b) = false; ;}
     break;
 
   case 32:
-
-/* Line 1455 of yacc.c  */
-#line 358 "parser/faustparser.y"
+#line 361 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
   case 33:
-
-/* Line 1455 of yacc.c  */
-#line 361 "parser/faustparser.y"
+#line 364 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (7)].exp),cons((yyvsp[(3) - (7)].exp),(yyvsp[(6) - (7)].exp))); ;}
     break;
 
   case 34:
-
-/* Line 1455 of yacc.c  */
-#line 362 "parser/faustparser.y"
+#line 365 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (4)].exp),cons(nil,(yyvsp[(3) - (4)].exp))); ;}
     break;
 
   case 35:
-
-/* Line 1455 of yacc.c  */
-#line 363 "parser/faustparser.y"
+#line 366 "parser/faustparser.y"
     { (yyval.exp) = nil; yyerr++; ;}
     break;
 
   case 36:
-
-/* Line 1455 of yacc.c  */
-#line 366 "parser/faustparser.y"
+#line 369 "parser/faustparser.y"
     { (yyval.exp)=(yyvsp[(1) - (1)].exp); setDefProp((yyvsp[(1) - (1)].exp), yyfilename, yylineno); ;}
     break;
 
   case 37:
-
-/* Line 1455 of yacc.c  */
-#line 369 "parser/faustparser.y"
+#line 372 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),nil); ;}
     break;
 
   case 38:
-
-/* Line 1455 of yacc.c  */
-#line 370 "parser/faustparser.y"
+#line 373 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); ;}
     break;
 
   case 39:
-
-/* Line 1455 of yacc.c  */
-#line 373 "parser/faustparser.y"
+#line 376 "parser/faustparser.y"
     { (yyval.exp) = boxWithLocalDef((yyvsp[(1) - (5)].exp),formatDefinitions((yyvsp[(4) - (5)].exp))); ;}
     break;
 
   case 40:
-
-/* Line 1455 of yacc.c  */
-#line 374 "parser/faustparser.y"
+#line 377 "parser/faustparser.y"
     { (yyval.exp) = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 41:
-
-/* Line 1455 of yacc.c  */
-#line 375 "parser/faustparser.y"
+#line 378 "parser/faustparser.y"
     { (yyval.exp) = boxSeq((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 42:
-
-/* Line 1455 of yacc.c  */
-#line 376 "parser/faustparser.y"
+#line 379 "parser/faustparser.y"
     { (yyval.exp) = boxSplit((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 43:
-
-/* Line 1455 of yacc.c  */
-#line 377 "parser/faustparser.y"
+#line 380 "parser/faustparser.y"
     { (yyval.exp) = boxMerge((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 44:
-
-/* Line 1455 of yacc.c  */
-#line 378 "parser/faustparser.y"
+#line 381 "parser/faustparser.y"
     { (yyval.exp) = boxRec((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 45:
-
-/* Line 1455 of yacc.c  */
-#line 379 "parser/faustparser.y"
+#line 382 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 46:
-
-/* Line 1455 of yacc.c  */
-#line 382 "parser/faustparser.y"
+#line 385 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigAdd)); ;}
     break;
 
   case 47:
-
-/* Line 1455 of yacc.c  */
-#line 383 "parser/faustparser.y"
+#line 386 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigSub)); ;}
     break;
 
   case 48:
-
-/* Line 1455 of yacc.c  */
-#line 384 "parser/faustparser.y"
+#line 387 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigMul)); ;}
     break;
 
   case 49:
-
-/* Line 1455 of yacc.c  */
-#line 385 "parser/faustparser.y"
+#line 388 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigDiv)); ;}
     break;
 
   case 50:
-
-/* Line 1455 of yacc.c  */
-#line 386 "parser/faustparser.y"
+#line 389 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigRem)); ;}
     break;
 
   case 51:
-
-/* Line 1455 of yacc.c  */
-#line 387 "parser/faustparser.y"
+#line 390 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),gPowPrim->box()); ;}
     break;
 
   case 52:
-
-/* Line 1455 of yacc.c  */
-#line 388 "parser/faustparser.y"
+#line 391 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigFixDelay)); ;}
     break;
 
   case 53:
-
-/* Line 1455 of yacc.c  */
-#line 389 "parser/faustparser.y"
+#line 392 "parser/faustparser.y"
     { (yyval.exp) = boxSeq((yyvsp[(1) - (2)].exp),boxPrim1(sigDelay1)); ;}
     break;
 
   case 54:
-
-/* Line 1455 of yacc.c  */
-#line 390 "parser/faustparser.y"
+#line 393 "parser/faustparser.y"
     { (yyval.exp) = boxAccess((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 55:
-
-/* Line 1455 of yacc.c  */
-#line 392 "parser/faustparser.y"
+#line 395 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigAND)); ;}
     break;
 
   case 56:
-
-/* Line 1455 of yacc.c  */
-#line 393 "parser/faustparser.y"
+#line 396 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigOR)); ;}
     break;
 
   case 57:
-
-/* Line 1455 of yacc.c  */
-#line 394 "parser/faustparser.y"
+#line 397 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigXOR)); ;}
     break;
 
   case 58:
-
-/* Line 1455 of yacc.c  */
-#line 396 "parser/faustparser.y"
+#line 399 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigLeftShift)); ;}
     break;
 
   case 59:
-
-/* Line 1455 of yacc.c  */
-#line 397 "parser/faustparser.y"
+#line 400 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigRightShift)); ;}
     break;
 
   case 60:
-
-/* Line 1455 of yacc.c  */
-#line 399 "parser/faustparser.y"
+#line 402 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigLT)); ;}
     break;
 
   case 61:
-
-/* Line 1455 of yacc.c  */
-#line 400 "parser/faustparser.y"
+#line 403 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigLE)); ;}
     break;
 
   case 62:
-
-/* Line 1455 of yacc.c  */
-#line 401 "parser/faustparser.y"
+#line 404 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigGT)); ;}
     break;
 
   case 63:
-
-/* Line 1455 of yacc.c  */
-#line 402 "parser/faustparser.y"
+#line 405 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigGE)); ;}
     break;
 
   case 64:
-
-/* Line 1455 of yacc.c  */
-#line 403 "parser/faustparser.y"
+#line 406 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigEQ)); ;}
     break;
 
   case 65:
-
-/* Line 1455 of yacc.c  */
-#line 404 "parser/faustparser.y"
+#line 407 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigNE)); ;}
     break;
 
   case 66:
-
-/* Line 1455 of yacc.c  */
-#line 406 "parser/faustparser.y"
+#line 409 "parser/faustparser.y"
     { (yyval.exp) = buildBoxAppl((yyvsp[(1) - (4)].exp),(yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 67:
-
-/* Line 1455 of yacc.c  */
-#line 407 "parser/faustparser.y"
+#line 410 "parser/faustparser.y"
     { (yyval.exp) = boxModifLocalDef((yyvsp[(1) - (4)].exp),formatDefinitions((yyvsp[(3) - (4)].exp))); ;}
     break;
 
   case 68:
-
-/* Line 1455 of yacc.c  */
-#line 409 "parser/faustparser.y"
+#line 412 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 69:
-
-/* Line 1455 of yacc.c  */
-#line 412 "parser/faustparser.y"
+#line 415 "parser/faustparser.y"
     { (yyval.exp) = boxInt(atoi(yytext)); ;}
     break;
 
   case 70:
-
-/* Line 1455 of yacc.c  */
-#line 413 "parser/faustparser.y"
-    { (yyval.exp) = boxReal(atof(yytext)); ;}
-    break;
-
-  case 71:
-
-/* Line 1455 of yacc.c  */
-#line 415 "parser/faustparser.y"
-    { (yyval.exp) = boxInt (atoi(yytext)); ;}
-    break;
-
-  case 72:
-
-/* Line 1455 of yacc.c  */
 #line 416 "parser/faustparser.y"
     { (yyval.exp) = boxReal(atof(yytext)); ;}
     break;
 
-  case 73:
-
-/* Line 1455 of yacc.c  */
+  case 71:
 #line 418 "parser/faustparser.y"
+    { (yyval.exp) = boxInt (atoi(yytext)); ;}
+    break;
+
+  case 72:
+#line 419 "parser/faustparser.y"
+    { (yyval.exp) = boxReal(atof(yytext)); ;}
+    break;
+
+  case 73:
+#line 421 "parser/faustparser.y"
     { (yyval.exp) = boxInt ( -atoi(yytext) ); ;}
     break;
 
   case 74:
-
-/* Line 1455 of yacc.c  */
-#line 419 "parser/faustparser.y"
+#line 422 "parser/faustparser.y"
     { (yyval.exp) = boxReal( -atof(yytext) ); ;}
     break;
 
   case 75:
-
-/* Line 1455 of yacc.c  */
-#line 421 "parser/faustparser.y"
+#line 424 "parser/faustparser.y"
     { (yyval.exp) = boxWire(); ;}
     break;
 
   case 76:
-
-/* Line 1455 of yacc.c  */
-#line 422 "parser/faustparser.y"
+#line 425 "parser/faustparser.y"
     { (yyval.exp) = boxCut(); ;}
     break;
 
   case 77:
-
-/* Line 1455 of yacc.c  */
-#line 424 "parser/faustparser.y"
+#line 427 "parser/faustparser.y"
     { (yyval.exp) = boxPrim1(sigDelay1); ;}
     break;
 
   case 78:
-
-/* Line 1455 of yacc.c  */
-#line 425 "parser/faustparser.y"
+#line 428 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigPrefix); ;}
     break;
 
   case 79:
-
-/* Line 1455 of yacc.c  */
-#line 427 "parser/faustparser.y"
+#line 430 "parser/faustparser.y"
     { (yyval.exp) = boxPrim1(sigIntCast); ;}
     break;
 
   case 80:
-
-/* Line 1455 of yacc.c  */
-#line 428 "parser/faustparser.y"
+#line 431 "parser/faustparser.y"
     { (yyval.exp) = boxPrim1(sigFloatCast); ;}
     break;
 
   case 81:
-
-/* Line 1455 of yacc.c  */
-#line 430 "parser/faustparser.y"
+#line 433 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigAdd); ;}
     break;
 
   case 82:
-
-/* Line 1455 of yacc.c  */
-#line 431 "parser/faustparser.y"
+#line 434 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigSub); ;}
     break;
 
   case 83:
-
-/* Line 1455 of yacc.c  */
-#line 432 "parser/faustparser.y"
+#line 435 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigMul); ;}
     break;
 
   case 84:
-
-/* Line 1455 of yacc.c  */
-#line 433 "parser/faustparser.y"
+#line 436 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigDiv); ;}
     break;
 
   case 85:
-
-/* Line 1455 of yacc.c  */
-#line 434 "parser/faustparser.y"
+#line 437 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigRem); ;}
     break;
 
   case 86:
-
-/* Line 1455 of yacc.c  */
-#line 435 "parser/faustparser.y"
+#line 438 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigFixDelay); ;}
     break;
 
   case 87:
-
-/* Line 1455 of yacc.c  */
-#line 437 "parser/faustparser.y"
+#line 440 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigAND); ;}
     break;
 
   case 88:
-
-/* Line 1455 of yacc.c  */
-#line 438 "parser/faustparser.y"
+#line 441 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigOR); ;}
     break;
 
   case 89:
-
-/* Line 1455 of yacc.c  */
-#line 439 "parser/faustparser.y"
+#line 442 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigXOR); ;}
     break;
 
   case 90:
-
-/* Line 1455 of yacc.c  */
-#line 441 "parser/faustparser.y"
+#line 444 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigLeftShift); ;}
     break;
 
   case 91:
-
-/* Line 1455 of yacc.c  */
-#line 442 "parser/faustparser.y"
+#line 445 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigRightShift); ;}
     break;
 
   case 92:
-
-/* Line 1455 of yacc.c  */
-#line 444 "parser/faustparser.y"
+#line 447 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigLT); ;}
     break;
 
   case 93:
-
-/* Line 1455 of yacc.c  */
-#line 445 "parser/faustparser.y"
+#line 448 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigLE); ;}
     break;
 
   case 94:
-
-/* Line 1455 of yacc.c  */
-#line 446 "parser/faustparser.y"
+#line 449 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigGT); ;}
     break;
 
   case 95:
-
-/* Line 1455 of yacc.c  */
-#line 447 "parser/faustparser.y"
+#line 450 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigGE); ;}
     break;
 
   case 96:
-
-/* Line 1455 of yacc.c  */
-#line 448 "parser/faustparser.y"
+#line 451 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigEQ); ;}
     break;
 
   case 97:
-
-/* Line 1455 of yacc.c  */
-#line 449 "parser/faustparser.y"
+#line 452 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigNE); ;}
     break;
 
   case 98:
-
-/* Line 1455 of yacc.c  */
-#line 451 "parser/faustparser.y"
+#line 454 "parser/faustparser.y"
     { (yyval.exp) = boxPrim2(sigAttach); ;}
     break;
 
   case 99:
-
-/* Line 1455 of yacc.c  */
-#line 453 "parser/faustparser.y"
+#line 456 "parser/faustparser.y"
     { (yyval.exp) = gAcosPrim->box(); ;}
     break;
 
   case 100:
-
-/* Line 1455 of yacc.c  */
-#line 454 "parser/faustparser.y"
+#line 457 "parser/faustparser.y"
     { (yyval.exp) = gAsinPrim->box(); ;}
     break;
 
   case 101:
-
-/* Line 1455 of yacc.c  */
-#line 455 "parser/faustparser.y"
+#line 458 "parser/faustparser.y"
     { (yyval.exp) = gAtanPrim->box(); ;}
     break;
 
   case 102:
-
-/* Line 1455 of yacc.c  */
-#line 456 "parser/faustparser.y"
+#line 459 "parser/faustparser.y"
     { (yyval.exp) = gAtan2Prim->box(); ;}
     break;
 
   case 103:
-
-/* Line 1455 of yacc.c  */
-#line 457 "parser/faustparser.y"
+#line 460 "parser/faustparser.y"
     { (yyval.exp) = gCosPrim->box(); ;}
     break;
 
   case 104:
-
-/* Line 1455 of yacc.c  */
-#line 458 "parser/faustparser.y"
+#line 461 "parser/faustparser.y"
     { (yyval.exp) = gSinPrim->box(); ;}
     break;
 
   case 105:
-
-/* Line 1455 of yacc.c  */
-#line 459 "parser/faustparser.y"
+#line 462 "parser/faustparser.y"
     { (yyval.exp) = gTanPrim->box(); ;}
     break;
 
   case 106:
-
-/* Line 1455 of yacc.c  */
-#line 461 "parser/faustparser.y"
+#line 464 "parser/faustparser.y"
     { (yyval.exp) = gExpPrim->box(); ;}
     break;
 
   case 107:
-
-/* Line 1455 of yacc.c  */
-#line 462 "parser/faustparser.y"
+#line 465 "parser/faustparser.y"
     { (yyval.exp) = gLogPrim->box(); ;}
     break;
 
   case 108:
-
-/* Line 1455 of yacc.c  */
-#line 463 "parser/faustparser.y"
+#line 466 "parser/faustparser.y"
     { (yyval.exp) = gLog10Prim->box(); ;}
     break;
 
   case 109:
-
-/* Line 1455 of yacc.c  */
-#line 464 "parser/faustparser.y"
+#line 467 "parser/faustparser.y"
     { (yyval.exp) = gPowPrim->box(); ;}
     break;
 
   case 110:
-
-/* Line 1455 of yacc.c  */
-#line 465 "parser/faustparser.y"
+#line 468 "parser/faustparser.y"
     { (yyval.exp) = gPowPrim->box(); ;}
     break;
 
   case 111:
-
-/* Line 1455 of yacc.c  */
-#line 466 "parser/faustparser.y"
+#line 469 "parser/faustparser.y"
     { (yyval.exp) = gSqrtPrim->box(); ;}
     break;
 
   case 112:
-
-/* Line 1455 of yacc.c  */
-#line 468 "parser/faustparser.y"
+#line 471 "parser/faustparser.y"
     { (yyval.exp) = gAbsPrim->box(); ;}
     break;
 
   case 113:
-
-/* Line 1455 of yacc.c  */
-#line 469 "parser/faustparser.y"
+#line 472 "parser/faustparser.y"
     { (yyval.exp) = gMinPrim->box(); ;}
     break;
 
   case 114:
-
-/* Line 1455 of yacc.c  */
-#line 470 "parser/faustparser.y"
+#line 473 "parser/faustparser.y"
     { (yyval.exp) = gMaxPrim->box(); ;}
     break;
 
   case 115:
-
-/* Line 1455 of yacc.c  */
-#line 472 "parser/faustparser.y"
+#line 475 "parser/faustparser.y"
     { (yyval.exp) = gFmodPrim->box(); ;}
     break;
 
   case 116:
-
-/* Line 1455 of yacc.c  */
-#line 473 "parser/faustparser.y"
+#line 476 "parser/faustparser.y"
     { (yyval.exp) = gRemainderPrim->box(); ;}
     break;
 
   case 117:
-
-/* Line 1455 of yacc.c  */
-#line 475 "parser/faustparser.y"
+#line 478 "parser/faustparser.y"
     { (yyval.exp) = gFloorPrim->box(); ;}
     break;
 
   case 118:
-
-/* Line 1455 of yacc.c  */
-#line 476 "parser/faustparser.y"
+#line 479 "parser/faustparser.y"
     { (yyval.exp) = gCeilPrim->box(); ;}
     break;
 
   case 119:
-
-/* Line 1455 of yacc.c  */
-#line 477 "parser/faustparser.y"
+#line 480 "parser/faustparser.y"
     { (yyval.exp) = gRintPrim->box(); ;}
     break;
 
   case 120:
-
-/* Line 1455 of yacc.c  */
-#line 480 "parser/faustparser.y"
+#line 483 "parser/faustparser.y"
     { (yyval.exp) = boxPrim3(sigReadOnlyTable); ;}
     break;
 
   case 121:
-
-/* Line 1455 of yacc.c  */
-#line 481 "parser/faustparser.y"
+#line 484 "parser/faustparser.y"
     { (yyval.exp) = boxPrim5(sigWriteReadTable); ;}
     break;
 
   case 122:
-
-/* Line 1455 of yacc.c  */
-#line 483 "parser/faustparser.y"
+#line 486 "parser/faustparser.y"
     { (yyval.exp) = boxPrim3(sigSelect2); ;}
     break;
 
   case 123:
-
-/* Line 1455 of yacc.c  */
-#line 484 "parser/faustparser.y"
+#line 487 "parser/faustparser.y"
     { (yyval.exp) = boxPrim4(sigSelect3); ;}
     break;
 
   case 124:
-
-/* Line 1455 of yacc.c  */
-#line 486 "parser/faustparser.y"
+#line 489 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 125:
-
-/* Line 1455 of yacc.c  */
-#line 487 "parser/faustparser.y"
+#line 490 "parser/faustparser.y"
     { (yyval.exp) = boxSeq(boxPar(boxInt(0),(yyvsp[(2) - (2)].exp)),boxPrim2(sigSub)); ;}
     break;
 
   case 126:
-
-/* Line 1455 of yacc.c  */
-#line 489 "parser/faustparser.y"
+#line 492 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
   case 127:
-
-/* Line 1455 of yacc.c  */
-#line 491 "parser/faustparser.y"
+#line 494 "parser/faustparser.y"
     { (yyval.exp) = buildBoxAbstr((yyvsp[(3) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 128:
-
-/* Line 1455 of yacc.c  */
-#line 493 "parser/faustparser.y"
+#line 496 "parser/faustparser.y"
     { (yyval.exp) = boxCase(checkRulelist((yyvsp[(3) - (4)].exp))); ;}
     break;
 
   case 129:
-
-/* Line 1455 of yacc.c  */
-#line 495 "parser/faustparser.y"
+#line 498 "parser/faustparser.y"
     { (yyval.exp) = boxFFun((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 130:
-
-/* Line 1455 of yacc.c  */
-#line 496 "parser/faustparser.y"
+#line 499 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 131:
-
-/* Line 1455 of yacc.c  */
-#line 497 "parser/faustparser.y"
+#line 500 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 132:
-
-/* Line 1455 of yacc.c  */
-#line 498 "parser/faustparser.y"
+#line 501 "parser/faustparser.y"
     { (yyval.exp) = boxComponent((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 133:
-
-/* Line 1455 of yacc.c  */
-#line 499 "parser/faustparser.y"
+#line 502 "parser/faustparser.y"
     { (yyval.exp) = boxLibrary((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 134:
-
-/* Line 1455 of yacc.c  */
-#line 500 "parser/faustparser.y"
+#line 503 "parser/faustparser.y"
     { (yyval.exp) = boxWithLocalDef(boxEnvironment(),formatDefinitions((yyvsp[(3) - (4)].exp))); ;}
     break;
 
   case 135:
-
-/* Line 1455 of yacc.c  */
-#line 502 "parser/faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 136:
-
-/* Line 1455 of yacc.c  */
-#line 503 "parser/faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 137:
-
-/* Line 1455 of yacc.c  */
-#line 504 "parser/faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 138:
-
-/* Line 1455 of yacc.c  */
 #line 505 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 139:
-
-/* Line 1455 of yacc.c  */
+  case 136:
 #line 506 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 140:
-
-/* Line 1455 of yacc.c  */
+  case 137:
 #line 507 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 141:
-
-/* Line 1455 of yacc.c  */
+  case 138:
 #line 508 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 142:
-
-/* Line 1455 of yacc.c  */
+  case 139:
 #line 509 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 143:
-
-/* Line 1455 of yacc.c  */
+  case 140:
 #line 510 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 144:
-
-/* Line 1455 of yacc.c  */
+  case 141:
 #line 511 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 145:
+  case 142:
+#line 512 "parser/faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
 
-/* Line 1455 of yacc.c  */
+  case 143:
 #line 513 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 146:
-
-/* Line 1455 of yacc.c  */
+  case 144:
 #line 514 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 147:
-
-/* Line 1455 of yacc.c  */
-#line 515 "parser/faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 148:
-
-/* Line 1455 of yacc.c  */
+  case 145:
 #line 516 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 149:
+  case 146:
+#line 517 "parser/faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
 
-/* Line 1455 of yacc.c  */
-#line 520 "parser/faustparser.y"
+  case 147:
+#line 518 "parser/faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 148:
+#line 519 "parser/faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 149:
+#line 523 "parser/faustparser.y"
     { (yyval.exp) = boxIdent(yytext); ;}
     break;
 
   case 150:
-
-/* Line 1455 of yacc.c  */
-#line 523 "parser/faustparser.y"
+#line 526 "parser/faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 151:
-
-/* Line 1455 of yacc.c  */
-#line 528 "parser/faustparser.y"
+#line 531 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),nil); ;}
     break;
 
   case 152:
-
-/* Line 1455 of yacc.c  */
-#line 529 "parser/faustparser.y"
+#line 532 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); ;}
     break;
 
   case 153:
-
-/* Line 1455 of yacc.c  */
-#line 532 "parser/faustparser.y"
+#line 535 "parser/faustparser.y"
     { (yyval.exp) = boxSeq((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 154:
-
-/* Line 1455 of yacc.c  */
-#line 533 "parser/faustparser.y"
+#line 536 "parser/faustparser.y"
     { (yyval.exp) = boxSplit((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 155:
-
-/* Line 1455 of yacc.c  */
-#line 534 "parser/faustparser.y"
+#line 537 "parser/faustparser.y"
     { (yyval.exp) = boxMerge((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 156:
-
-/* Line 1455 of yacc.c  */
-#line 535 "parser/faustparser.y"
+#line 538 "parser/faustparser.y"
     { (yyval.exp) = boxRec((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 157:
-
-/* Line 1455 of yacc.c  */
-#line 536 "parser/faustparser.y"
+#line 539 "parser/faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 158:
-
-/* Line 1455 of yacc.c  */
-#line 539 "parser/faustparser.y"
+#line 542 "parser/faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 159:
-
-/* Line 1455 of yacc.c  */
-#line 542 "parser/faustparser.y"
+#line 545 "parser/faustparser.y"
     { (yyval.exp) = unquote(yytext); ;}
     break;
 
   case 160:
-
-/* Line 1455 of yacc.c  */
-#line 545 "parser/faustparser.y"
+#line 548 "parser/faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 161:
-
-/* Line 1455 of yacc.c  */
-#line 546 "parser/faustparser.y"
+#line 549 "parser/faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 162:
-
-/* Line 1455 of yacc.c  */
-#line 552 "parser/faustparser.y"
+#line 555 "parser/faustparser.y"
     { (yyval.exp) = boxIPar((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 163:
-
-/* Line 1455 of yacc.c  */
-#line 556 "parser/faustparser.y"
+#line 559 "parser/faustparser.y"
     { (yyval.exp) = boxISeq((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 164:
-
-/* Line 1455 of yacc.c  */
-#line 560 "parser/faustparser.y"
+#line 563 "parser/faustparser.y"
     { (yyval.exp) = boxISum((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 165:
-
-/* Line 1455 of yacc.c  */
-#line 564 "parser/faustparser.y"
+#line 567 "parser/faustparser.y"
     { (yyval.exp) = boxIProd((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 166:
-
-/* Line 1455 of yacc.c  */
-#line 571 "parser/faustparser.y"
+#line 574 "parser/faustparser.y"
     { (yyval.exp) = ffunction((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 167:
-
-/* Line 1455 of yacc.c  */
-#line 575 "parser/faustparser.y"
+#line 578 "parser/faustparser.y"
     { (yyval.exp) = boxFConst((yyvsp[(3) - (7)].exp),(yyvsp[(4) - (7)].exp),(yyvsp[(6) - (7)].exp)); ;}
     break;
 
   case 168:
-
-/* Line 1455 of yacc.c  */
-#line 578 "parser/faustparser.y"
+#line 581 "parser/faustparser.y"
     { (yyval.exp) = boxFVar((yyvsp[(3) - (7)].exp),(yyvsp[(4) - (7)].exp),(yyvsp[(6) - (7)].exp)); ;}
     break;
 
   case 169:
-
-/* Line 1455 of yacc.c  */
-#line 582 "parser/faustparser.y"
+#line 585 "parser/faustparser.y"
     { (yyval.exp) = boxButton((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 170:
-
-/* Line 1455 of yacc.c  */
-#line 585 "parser/faustparser.y"
+#line 588 "parser/faustparser.y"
     { (yyval.exp) = boxCheckbox((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 171:
-
-/* Line 1455 of yacc.c  */
-#line 589 "parser/faustparser.y"
+#line 592 "parser/faustparser.y"
     { (yyval.exp) = boxVSlider((yyvsp[(3) - (12)].exp),(yyvsp[(5) - (12)].exp),(yyvsp[(7) - (12)].exp),(yyvsp[(9) - (12)].exp),(yyvsp[(11) - (12)].exp)); ;}
     break;
 
   case 172:
-
-/* Line 1455 of yacc.c  */
-#line 592 "parser/faustparser.y"
+#line 595 "parser/faustparser.y"
     { (yyval.exp) = boxHSlider((yyvsp[(3) - (12)].exp),(yyvsp[(5) - (12)].exp),(yyvsp[(7) - (12)].exp),(yyvsp[(9) - (12)].exp),(yyvsp[(11) - (12)].exp)); ;}
     break;
 
   case 173:
-
-/* Line 1455 of yacc.c  */
-#line 595 "parser/faustparser.y"
+#line 598 "parser/faustparser.y"
     { (yyval.exp) = boxNumEntry((yyvsp[(3) - (12)].exp),(yyvsp[(5) - (12)].exp),(yyvsp[(7) - (12)].exp),(yyvsp[(9) - (12)].exp),(yyvsp[(11) - (12)].exp)); ;}
     break;
 
   case 174:
-
-/* Line 1455 of yacc.c  */
-#line 598 "parser/faustparser.y"
+#line 601 "parser/faustparser.y"
     { (yyval.exp) = boxVGroup((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 175:
-
-/* Line 1455 of yacc.c  */
-#line 601 "parser/faustparser.y"
+#line 604 "parser/faustparser.y"
     { (yyval.exp) = boxHGroup((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 176:
-
-/* Line 1455 of yacc.c  */
-#line 604 "parser/faustparser.y"
+#line 607 "parser/faustparser.y"
     { (yyval.exp) = boxTGroup((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 177:
-
-/* Line 1455 of yacc.c  */
-#line 608 "parser/faustparser.y"
+#line 611 "parser/faustparser.y"
     { (yyval.exp) = boxVBargraph((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 178:
-
-/* Line 1455 of yacc.c  */
-#line 611 "parser/faustparser.y"
+#line 614 "parser/faustparser.y"
     { (yyval.exp) = boxHBargraph((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 179:
-
-/* Line 1455 of yacc.c  */
-#line 616 "parser/faustparser.y"
+#line 619 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (5)].exp), cons((yyvsp[(2) - (5)].exp), (yyvsp[(4) - (5)].exp))); ;}
     break;
 
   case 180:
-
-/* Line 1455 of yacc.c  */
-#line 617 "parser/faustparser.y"
+#line 620 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (4)].exp), cons((yyvsp[(2) - (4)].exp), nil)); ;}
     break;
 
   case 181:
-
-/* Line 1455 of yacc.c  */
-#line 620 "parser/faustparser.y"
+#line 623 "parser/faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 182:
-
-/* Line 1455 of yacc.c  */
-#line 623 "parser/faustparser.y"
+#line 626 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),nil); ;}
     break;
 
   case 183:
-
-/* Line 1455 of yacc.c  */
-#line 624 "parser/faustparser.y"
+#line 627 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); ;}
     break;
 
   case 184:
-
-/* Line 1455 of yacc.c  */
-#line 627 "parser/faustparser.y"
+#line 630 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),nil); ;}
     break;
 
   case 185:
-
-/* Line 1455 of yacc.c  */
-#line 628 "parser/faustparser.y"
+#line 631 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
     break;
 
   case 186:
-
-/* Line 1455 of yacc.c  */
-#line 632 "parser/faustparser.y"
+#line 635 "parser/faustparser.y"
     { (yyval.exp) = cons((yyvsp[(2) - (6)].exp),(yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 187:
-
-/* Line 1455 of yacc.c  */
-#line 635 "parser/faustparser.y"
+#line 638 "parser/faustparser.y"
     { (yyval.exp) = tree(0); ;}
     break;
 
   case 188:
-
-/* Line 1455 of yacc.c  */
-#line 636 "parser/faustparser.y"
+#line 639 "parser/faustparser.y"
     { (yyval.exp) = tree(1); ;}
     break;
 
 
-
-/* Line 1455 of yacc.c  */
-#line 3242 "parser/faustparser.cpp"
+/* Line 1267 of yacc.c.  */
+#line 2978 "parser/faustparser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3248,6 +2984,7 @@ yyreduce:
   YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
+
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -3313,7 +3050,7 @@ yyerrlab:
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse lookahead token after an
+      /* If just tried and failed to reuse look-ahead token after an
 	 error, discard it.  */
 
       if (yychar <= YYEOF)
@@ -3330,7 +3067,7 @@ yyerrlab:
 	}
     }
 
-  /* Else will try to reuse lookahead token after shifting the error
+  /* Else will try to reuse look-ahead token after shifting the error
      token.  */
   goto yyerrlab1;
 
@@ -3387,6 +3124,9 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
+  if (yyn == YYFINAL)
+    YYACCEPT;
+
   *++yyvsp = yylval;
 
 
@@ -3411,7 +3151,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#if !defined(yyoverflow) || YYERROR_VERBOSE
+#ifndef yyoverflow
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -3422,7 +3162,7 @@ yyexhaustedlab:
 #endif
 
 yyreturn:
-  if (yychar != YYEMPTY)
+  if (yychar != YYEOF && yychar != YYEMPTY)
      yydestruct ("Cleanup: discarding lookahead",
 		 yytoken, &yylval);
   /* Do not reclaim the symbols of the rule which action triggered
@@ -3448,9 +3188,7 @@ yyreturn:
 }
 
 
-
-/* Line 1675 of yacc.c  */
-#line 639 "parser/faustparser.y"
+#line 642 "parser/faustparser.y"
 
 
 

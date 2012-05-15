@@ -16,7 +16,7 @@ class Atan2Prim : public xtended
 
 	virtual bool	needCache ()	{ return true; }
 
-	virtual Type 	infereSigType (const vector<Type>& args)
+	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
 		assert (args.size() == 2);
 		return floatCast(args[0]|args[1]);
@@ -52,7 +52,7 @@ class Atan2Prim : public xtended
         return container->pushFunction(subst("atan2$0", isuffix()), result_type, arg_types, args);
     }
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());

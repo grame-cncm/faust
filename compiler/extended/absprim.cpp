@@ -17,7 +17,7 @@ class AbsPrim : public xtended
 
 	virtual bool	needCache ()	{ return true; }
 
-	virtual Type 	infereSigType (const vector<Type>& types)
+	virtual ::Type 	infereSigType (const vector< ::Type>& types)
 	{
 		assert (types.size() == arity());
 		Type t = types[0];
@@ -60,7 +60,7 @@ class AbsPrim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
-        Type t = infereSigType(types);
+        ::Type t = infereSigType(types);
 		if (t->nature() == kReal) {
             return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
         } else {
@@ -68,12 +68,12 @@ class AbsPrim : public xtended
         }
     }
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-		Type t = infereSigType(types);
+		::Type t = infereSigType(types);
 		return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
 	}
 };

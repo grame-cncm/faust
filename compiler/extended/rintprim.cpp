@@ -27,7 +27,7 @@ class RintPrim : public xtended
 
 	virtual bool	needCache ()	{ return true; }
 
-	virtual Type 	infereSigType (const vector<Type>& args)
+	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
 		assert (args.size() == arity());
 		interval i = args[0]->getInterval();
@@ -68,7 +68,7 @@ class RintPrim : public xtended
         return container->pushFunction(subst("rint$0", isuffix()), result_type, arg_types, args);
     }
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());

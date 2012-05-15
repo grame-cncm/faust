@@ -78,6 +78,7 @@
 #include "doc_autodoc.hh"
 #include "compatibility.hh"
 #include "exception.hh"
+#include "global.hh"
 
 
 #define MAXIDCHARS 5				///< max numbers (characters) to represent ids (e.g. for directories).
@@ -111,9 +112,11 @@ vector<Tree>                    gDocVector;				///< Contains <mdoc> parsed trees
 
 static struct tm				gCompilationDate;
 
+/*
 bool							gLstDependenciesSwitch	= true; ///< mdoc listing management.
 bool							gLstMdocTagsSwitch		= true; ///< mdoc listing management.
 bool							gLstDistributedSwitch	= true; ///< mdoc listing management.
+*/
 
 enum { langEN, langFR, langIT };
 extern string                   gDocLang;
@@ -335,7 +338,7 @@ static void printDocMetadata(const Tree expr, ostream& docout)
  */
 static void printfaustlistings(ostream& docout)
 {	
-	if (gLstDependenciesSwitch) {
+	if (gGlobal->gLstDependenciesSwitch) {
 		vector<string> pathnames = gReader.listSrcFiles();
 		for (unsigned int i=0; i< pathnames.size(); i++) {
 			printfaustlisting(pathnames[i], docout);
@@ -457,7 +460,7 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 	vector<string>::const_iterator code;
 	code = docMasterCodeMap.begin();
 	
-	if(doesFileBeginWithCode(gMasterDocument) && (! docMasterCodeMap.empty()) && gLstDistributedSwitch ) {
+	if(doesFileBeginWithCode(gMasterDocument) && (! docMasterCodeMap.empty()) && gGlobal->gLstDistributedSwitch ) {
 		printdocCodeSlices(*code, docout);
 		code++;
 	}
@@ -496,7 +499,7 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 		}
 		//cerr << " ...end of <mdoc> parsing." << endl; 
 		
-		if ( code != docMasterCodeMap.end() && gLstDistributedSwitch ) {
+		if ( code != docMasterCodeMap.end() && gGlobal->gLstDistributedSwitch ) {
 			printdocCodeSlices(*code, docout);
 		}
 	}

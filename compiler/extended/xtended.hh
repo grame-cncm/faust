@@ -45,9 +45,9 @@ class xtended
 
     virtual ValueInst* 	generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type > const & types) = 0;
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types) = 0;
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
 	virtual int 	infereSigOrder (const vector<int>& args) = 0;
-	virtual Type 	infereSigType (const vector<Type>& args) = 0;
+	virtual ::Type 	infereSigType (const vector< ::Type>& args) = 0;
 	virtual Tree	computeSigOutput (const vector<Tree>& args) = 0;
 	virtual bool	needCache () = 0;
 

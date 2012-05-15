@@ -4,6 +4,8 @@
 
 %{
 
+#include "global.hh"
+
 #include "tree.hh"
 #include "xtended.hh"
 #include "boxes.hh"
@@ -13,6 +15,7 @@
 #include "sourcereader.hh"
 #include "doc.hh"
 #include "ppbox.hh"
+
 
 #include <string>
 #include <list>
@@ -27,14 +30,14 @@ extern char* 		yytext;
 extern const char* 	yyfilename;
 extern int 			yylineno;
 extern int 			yyerr;
-extern Tree 		gResult;
-extern bool         gStripDocSwitch;
-extern bool         gLstDependenciesSwitch;
-extern bool         gLstDistributedSwitch;
-extern bool        	gLstMdocTagsSwitch;
+//extern Tree 		gResult;
+//extern bool         gStripDocSwitch;
+//extern bool         gLstDependenciesSwitch;
+//extern bool         gLstDistributedSwitch;
+//extern bool        	gLstMdocTagsSwitch;
 	
-extern map<Tree, set<Tree> > gMetaDataSet;
-extern vector<Tree> gDocVector;
+//extern map<Tree, set<Tree> > gMetaDataSet;
+//extern vector<Tree> gDocVector;
 
 
 int yylex();
@@ -298,7 +301,7 @@ Tree unquote(char* str)
 
 %% /* grammar rules and actions follow */
 
-program         : stmtlist 						{ $$ = $1; gResult = formatDefinitions($$); }
+program         : stmtlist 						{ $$ = $1; gGlobal->gResult = formatDefinitions($$); }
 				;
 
 stmtlist        : /*empty*/                     { $$ = nil; }
@@ -346,9 +349,9 @@ lstattrlist		: /* empty */							{ }
 				| lstattrlist lstattrdef				{ }
 				;
 
-lstattrdef		: LSTDEPENDENCIES LSTEQ LSTQ lstattrval LSTQ	{ gLstDependenciesSwitch = $4; }
-				| LSTMDOCTAGS LSTEQ LSTQ lstattrval LSTQ		{ gStripDocSwitch = $4; gStripDocSwitch==true ? gStripDocSwitch=false : gStripDocSwitch=true; }
-				| LSTDISTRIBUTED LSTEQ LSTQ lstattrval LSTQ		{ gLstDistributedSwitch = $4; }
+lstattrdef		: LSTDEPENDENCIES LSTEQ LSTQ lstattrval LSTQ	{ gGlobal->gLstDependenciesSwitch = $4; }
+				| LSTMDOCTAGS LSTEQ LSTQ lstattrval LSTQ		{ gGlobal->gStripDocSwitch = $4; gGlobal->gStripDocSwitch==true ? gGlobal->gStripDocSwitch=false : gGlobal->gStripDocSwitch=true; }
+				| LSTDISTRIBUTED LSTEQ LSTQ lstattrval LSTQ		{ gGlobal->gLstDistributedSwitch = $4; }
 				;
 
 lstattrval		: LSTTRUE								{ $$ = true; }
