@@ -58,7 +58,7 @@ void typeAnnotation(Tree term);
 /**
  *	Return the type of a previously annotated signal term
  */
-Type getCertifiedSigType(Tree term);
+::Type getCertifiedSigType(Tree term);
 
 
 /**

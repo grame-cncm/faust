@@ -452,7 +452,7 @@ class JAVAScriptInstVisitor : public InstVisitor {
             }
         }
 
-        virtual void visit(SwitchInst* inst)
+        virtual void visit(::SwitchInst* inst)
         {
             *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
                 fTab++;

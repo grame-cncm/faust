@@ -150,7 +150,7 @@ void annotationStatistics()
  * @param sig the signal we want to know the type
  * @return the type of the signal
  */
-Type getCertifiedSigType(Tree sig)
+::Type getCertifiedSigType(Tree sig)
 {
     Type ty = getSigType(sig);
     assert(ty);

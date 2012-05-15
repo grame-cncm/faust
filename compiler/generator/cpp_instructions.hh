@@ -462,7 +462,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        virtual void visit(SwitchInst* inst)
+        virtual void visit(::SwitchInst* inst)
         {
             *fOut << "switch ("; inst->fCond->accept(this); *fOut << ") {";
                 fTab++;

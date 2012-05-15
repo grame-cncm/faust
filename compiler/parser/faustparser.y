@@ -427,7 +427,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| MEM   						{ $$ = boxPrim1(sigDelay1); }
 				| PREFIX   						{ $$ = boxPrim2(sigPrefix); }
 
-				| INTCAST   					{ $$ = boxPrim1(sigIntCast); }
+				| INTCAST                       { $$ = boxPrim1(sigIntCast); }
 				| FLOATCAST   					{ $$ = boxPrim1(sigFloatCast); }
 
 				| ADD							{ $$ = boxPrim2(sigAdd); }
@@ -635,7 +635,7 @@ rule			: LPAR arglist RPAR ARROW expression ENDDEF
 												{ $$ = cons($2,$5); }
 				;
 
-type			: INTCAST						{ $$ = tree(0); }
+type			: INTCAST                       { $$ = tree(0); }
 				| FLOATCAST						{ $$ = tree(1); }
 				;
 

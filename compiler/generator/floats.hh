@@ -29,7 +29,7 @@
 
 #define FLOATMACRO "FAUSTFLOAT"
 #define FLOATMACROPTR "FAUSTFLOAT*"
-#define FLOATCAST "(" FLOATMACRO ")"
+#define FLOATCASTER "(" FLOATMACRO ")"
 
 const char* isuffix();
 const char* inumix();

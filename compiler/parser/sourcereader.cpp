@@ -16,6 +16,7 @@
 #include "ppbox.hh"
 #include "exception.hh"
 #include "faustlexer.cxx"
+#include "global.hh"
 
 using namespace std;
 
@@ -38,7 +39,7 @@ extern FILE*	yyin;
 extern int		yylineno;
 extern const char * yyfilename;
 
-extern Tree 	gResult;
+//extern Tree 	gResult;
 extern Tree 	gResult2;
 
 
@@ -226,7 +227,7 @@ Tree SourceReader::parse(string fname)
    
 	// we have parsed a valid file
 	fFilePathnames.push_back(fname);
-	return gResult;
+	return gGlobal->gResult;
 }
 
 
