@@ -30,8 +30,6 @@
 #include <iostream>
 using namespace std;
 
-//extern bool gGlobal->gShadowBlur;
-
 static char* xmlcode(const char* name, char* name2)
 {
 	int	i,j;

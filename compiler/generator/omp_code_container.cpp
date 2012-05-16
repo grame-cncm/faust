@@ -32,8 +32,6 @@
 
 using namespace std;
 
-//extern bool gGlobal->gOpenMPLoop;
-
 // Analysis to discover which stack variables have to be used in the "firstprivate" list
 struct StackVarAnalyser : public DispatchVisitor {
 

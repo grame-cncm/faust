@@ -75,7 +75,7 @@ void sigToGraph (Tree L, ofstream& fout)
  */
 static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
 {
-    //cerr << ++TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
+    //cerr << ++gGlobal->TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
     vector<Tree>    subsig;
     int             n;
 
@@ -119,7 +119,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
             }
         }
     }
-    //cerr << --TABBER << "EXIT REC DRAW OF " << sig << endl;
+    //cerr << --gGlobal->TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
 
 

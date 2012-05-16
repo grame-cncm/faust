@@ -20,16 +20,9 @@
 
 using namespace std;
 
-//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
-//extern string gGlobal->gMasterDocument;
-//extern vector<Tree> gGlobal->gGlobal->gDocVector;
-extern bool gLatexDocSwitch;
-//extern char* gGlobal->gInputString;
-
 /****************************************************************
  						Parser variables
 *****************************************************************/
-
 
 int yyparse();
 
@@ -38,10 +31,6 @@ extern int 		yydebug;
 extern FILE*	yyin;
 extern int		yylineno;
 extern const char * yyfilename;
-
-//extern Tree 	gResult;
-//extern Tree 	gResult2;
-
 
 /**
  * Checks an argument list for containing only 
@@ -340,6 +329,6 @@ void declareMetadata(Tree key, Tree value)
 
 void declareDoc(Tree t)
 {
-	//gLatexDocSwitch = true;
+	//gGlobal->gLatexDocSwitch = true;
 	gGlobal->gDocVector.push_back(t);
 }

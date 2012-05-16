@@ -36,17 +36,6 @@
 
 using namespace std;
 
-//extern bool gGlobal->gVectorSwitch;
-//extern int gGlobal->gVectorLoopVariant;
-//extern int gGlobal->gVecSize;
-//extern bool gGlobal->gDSPStruct;
-//extern bool gGlobal->gOpenCLSwitch;
-//extern bool gGlobal->gCUDASwitch;
-//extern bool gGlobal->gOpenMPSwitch;
-//extern bool gGlobal->gSchedulerSwitch;
-//extern int gGlobal->gFloatSize;
-//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
-
 #ifdef LLVM_29
 #include <llvm/Support/StandardPasses.h>
    #define VECTOR_OF_TYPES vector<const llvm::Type*>

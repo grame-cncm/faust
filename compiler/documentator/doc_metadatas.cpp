@@ -30,11 +30,6 @@
 #include "doc.hh"
 #include "global.hh"
 
-//extern SourceReader		gReader;
-
-//map<string, string>		gGlobal->gDocMetadatasStringMap;
-//set<string>				gGlobal->gDocMetadatasKeySet;
-
 static void				initDocMetadatasKeySet();
 
 /*****************************************************************************

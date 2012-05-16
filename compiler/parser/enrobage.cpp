@@ -33,13 +33,6 @@
 
 #include <climits>
 
-//extern string gGlobal->gFaustSuperSuperDirectory;
-//extern string gGlobal->gFaustSuperDirectory;
-//extern string gGlobal->gFaustDirectory;
-//extern string gGlobal->gMasterDirectory;
-//extern string gGlobal->gClassName;
-//extern bool	  gGlobal->gInlineArchSwitch;
-
 //----------------------------------------------------------------
 
 

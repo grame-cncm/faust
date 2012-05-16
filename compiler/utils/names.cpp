@@ -19,13 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-
 /**
  * \file eval.cpp
  * Interface for names propagation.
  *
  **/
-
 
 #include "ppsig.hh"
 #include "names.hh"
@@ -37,12 +35,8 @@
 
 #include <assert.h>
 
-
 // History
 // 2009/09/08 : get/setDefNameProperty
-
-
-//extern int gGlobal->gMaxNameSize;
 
 
 /**

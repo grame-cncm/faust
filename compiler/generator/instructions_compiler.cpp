@@ -55,17 +55,6 @@
 
 using namespace std;
 
-// globals
-
-//extern int gGlobal->gMaxCopyDelay;
-//extern bool gVectorSwitch;
-///extern int gGlobal->gVecSize;
-//extern bool gGlobal->gOpenCLSwitch;
-//extern bool gGlobal->gCUDASwitch;
-//extern bool gGlobal->gDumpNorm;
-//extern bool gGlobal->gDrawSignals;
-//extern string gGlobal->gMasterDocument;
-
 std::ostream* Printable::fOut = &cout;
 
 /*****************************************************************************

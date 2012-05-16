@@ -29,8 +29,6 @@
 ***********************************************************************/
 #include "cpp_gpu_code_container.hh"
 
-//extern bool gGlobal->gUIMacroSwitch;
-
 static void tab1(int n, ostream& fout)
 {
     fout << "  \\n\"  \\\n";

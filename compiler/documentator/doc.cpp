@@ -88,36 +88,13 @@ using namespace std ;
 						Globals and prototyping
  *****************************************************************************/
 
-//extern Tree						gGlobal->gExpandedDefList;
-//extern map<Tree, set<Tree> > 	gGlobal->gMetaDataSet;
-//extern map<string, string>		gGlobal->gDocMetadatasStringMap;
-//extern map<string, string>		gGlobal->gDocMathStringMap;
-//extern bool            			gGlobal->gDetailsSwitch;
-//extern bool            			gGlobal->gStripDocSwitch;
-//extern string					gGlobal->gFaustDirectory;
-//extern string					gGlobal->gFaustSuperDirectory;
-//extern string					gGlobal->gFaustSuperSuperDirectory;
-//extern string					gGlobal->gMasterDocument;
-//extern string					gGlobal->gMasterName;
-//extern SourceReader				gReader;
-
-//extern string 					gGlobal->gDocName;				///< Contains the filename for out documentation.
 static const char* 				gDocDevSuffix;			///< ".tex" (or .??? - used to choose output device).
 static string 					gCurrentDir;			///< Room to save current directory name.
 static const string				gLatexheaderfilename = "latexheader.tex";
 
-//vector<Tree>                    gGlobal->gGlobal->gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
-
 static struct tm				gCompilationDate;
 
-/*
-bool							gLstDependenciesSwitch	= true; ///< mdoc listing management.
-bool							gLstMdocTagsSwitch		= true; ///< mdoc listing management.
-bool							gLstDistributedSwitch	= true; ///< mdoc listing management.
-*/
-
 enum { langEN, langFR, langIT };
-//extern string                   gGlobal->gDocLang;
 
 /* Printing functions */
 static void		printlatexheader(istream& latexheader, const string& faustversion, ostream& docout);

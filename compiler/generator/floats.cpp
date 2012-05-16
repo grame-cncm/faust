@@ -41,8 +41,6 @@
 //          2: double precision float
 //          3: long double precision float
 
-//extern int gGlobal->gFloatSize;
-
 const char* mathsuffix[] = {"", "f", "", "l"};                                  // suffix for math functions
 const char* numsuffix[]  = {"", "f", "", ""};                                   // suffix for numeric constants
 const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};      // float types

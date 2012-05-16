@@ -28,9 +28,6 @@
 extern "C" int compile_faust(int argc, char* argv[], const char* input);
 #endif
 
-//extern llvm::Module* gGlobal->gModule;
-//extern std::string gGlobal->gOutputFile;
-
 int main(int argc, char* argv[])
 {
     int res = compile_faust(argc, argv, 0);

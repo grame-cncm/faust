@@ -40,13 +40,6 @@
 
 using namespace std;
 
-//extern bool gGlobal->gOpenMPLoop;
-//extern bool gGlobal->gDeepFirstSwitch;
-//extern bool gGlobal->gFunTaskSwitch;
-//extern bool gGlobal->gDSPStruct;
-//extern int gGlobal->gVecLoopSize;
-//extern bool gGlobal->gGroupTaskSwitch;
-
 // Basic type creation
 map<Typed::VarType, BasicTyped*> BasicTyped::gTypeTable;
 

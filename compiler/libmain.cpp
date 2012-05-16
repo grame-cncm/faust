@@ -89,89 +89,31 @@ int             yyerr;
 
 global*         gGlobal;
 
-//Tree 			gResult;
-//Tree 			gResult2;
-
-//SourceReader	gReader;
-
-//map<Tree, set<Tree> > gGlobal->gMetaDataSet;
-//string gGlobal->gDocLang;
-
 static string gOutputLang = "";
 
 /****************************************************************
  				Command line tools and arguments
 *****************************************************************/
 
-//-- globals
-//string          gGlobal->gFaustSuperSuperDirectory;
-//string          gGlobal->gFaustSuperDirectory;
-//string          gGlobal->gFaustDirectory;
-//string          gGlobal->gMasterDocument;
-//string          gGlobal->gMasterDirectory;
-//string          gGlobal->gMasterName;
-//string          gGlobal->gDocName;
-//Tree			gGlobal->gExpandedDefList;
-
 //-- command line arguments
 
 static bool			gLLVMSwitch 	= false;
 static bool			gHelpSwitch 	= false;
 static bool			gVersionSwitch 	= false;
-//bool         gGlobal->gDetailsSwitch  = false;
-//bool            gGlobal->gDrawSignals    = false;
-//bool            gGlobal->gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
-static bool            gGraphSwitch 	= false;
-static bool            gDrawPSSwitch 	= false;
-static bool            gDrawSVGSwitch 	= false;
-static bool            gPrintXMLSwitch = false;
-static bool            gPrintDocSwitch = false;
-static bool            gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
-//bool			gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
-static int            	gBalancedSwitch = 0;
-//int            	gGlobal->gFoldThreshold 	= 25;
-//int            	gGlobal->gMaxNameSize 	= 40;
-//bool			gSimpleNames 	= false;
-//bool            gSimplifyDiagrams = false;
-///bool			gLessTempSwitch = false;
-//int				gGlobal->gMaxCopyDelay	= 16;
-static string			gArchFile;
-//string			gGlobal->gOutputFile;
+static bool         gGraphSwitch 	= false;
+static bool         gDrawPSSwitch 	= false;
+static bool         gDrawSVGSwitch 	= false;
+static bool         gPrintXMLSwitch = false;
+static bool         gPrintDocSwitch = false;
+static int          gBalancedSwitch = 0;
+static string       gArchFile;
 static list<string>	gInputFiles;
 
-static bool            gPatternEvalMode = false;
-
-//bool            gGlobal->gVectorSwitch   = false;
-//bool            gGlobal->gDeepFirstSwitch = false;
-//int             gGlobal->gVecSize        = 32;
-//int             gGlobal->gVectorLoopVariant = 0;
-//int             gGlobal->gVecLoopSize = 0;
-
-//bool            gGlobal->gOpenMPSwitch   = false;
-//bool            gGlobal->gOpenMPLoop     = false;
-//bool            gGlobal->gSchedulerSwitch  = false;
-//bool            gGlobal->gOpenCLSwitch  = false;
-//bool            gGlobal->gCUDASwitch = false;
-//bool			gGlobal->gGroupTaskSwitch = false;
-//bool			gGlobal->gFunTaskSwitch = false;
-
-
-//bool            gGlobal->gUIMacroSwitch  = false;
-//bool            gGlobal->gDumpNorm       = false;
+static bool     gPatternEvalMode = false;
 
 static int      gTimeout        = 120;            // time out to abort compiler (in seconds)
 
-//int             gGlobal->gFloatSize = 1;
-
 static bool		gPrintFileListSwitch = false;
-//bool			gInlineArchSwitch = true;
-
-//bool			gGlobal->gDSPStruct = false;
-
-//string			gGlobal->gClassName = "mydsp";
-
-//Module*         gGlobal->gModule = 0;
-//const char*     gGlobal->gInputString = 0;
 
 //-- command line tools
 
@@ -812,7 +754,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     *****************************************************************/
 
     if (gPrintDocSwitch) {
-        if (gLatexDocSwitch) {
+        if (gGlobal->gLatexDocSwitch) {
             string projname = gGlobal->gMasterDocument;
             if (gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp") {
                 projname = gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4); }

@@ -33,15 +33,6 @@
 #include "compatibility.hh"
 #include "global.hh"
 
-//map<string, bool>	gGlobal->gDocNoticeFlagMap;
-
-//map<string, string>	gGlobal->gDocNoticeStringMap;
-//set<string>			gGlobal->gDocNoticeKeySet;
-
-//extern map<string, string>		gGlobal->gDocAutodocStringMap;
-
-//extern string		gGlobal->gMasterName;
-
 static void			initDocNoticeKeySet();
 static void			initDocNoticeFlagMap();
 

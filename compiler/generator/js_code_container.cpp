@@ -36,16 +36,6 @@
 
 using namespace std;
 
-//extern bool gGlobal->gUIMacroSwitch;
-//extern int gGlobal->gVectorLoopVariant;
-//extern bool gVectorSwitch;
-//extern bool gGlobal->gOpenCLSwitch;
-//extern bool gGlobal->gCUDASwitch;
-//extern bool gGlobal->gOpenMPSwitch;
-//extern bool gGlobal->gSchedulerSwitch;
-//extern bool gGlobal->gFunTaskSwitch;
-//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
-
 CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new JAVAScriptScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);

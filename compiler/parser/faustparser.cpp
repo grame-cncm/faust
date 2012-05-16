@@ -95,15 +95,6 @@ extern char* 		yytext;
 extern const char* 	yyfilename;
 extern int 			yylineno;
 extern int 			yyerr;
-//extern Tree 		gResult;
-//extern bool         gStripDocSwitch;
-//extern bool         gLstDependenciesSwitch;
-//extern bool         gLstDistributedSwitch;
-//extern bool        	gLstMdocTagsSwitch;
-	
-////extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
-//extern vector<Tree> gGlobal->gGlobal->gDocVector;
-
 
 int yylex();
 

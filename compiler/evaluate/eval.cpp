@@ -47,14 +47,8 @@
 
 #include <assert.h>
 
-//extern SourceReader	gReader;
-//extern int  gGlobal->gMaxNameSize;
-//extern bool	gGlobal->gSimpleNames;
-//extern bool gGlobal->gSimplifyDiagrams;
-
 // History
 // 23/05/2005 : New environment management
-
 
 //-------------- prototypes ---------------------------------------------------------
 static Tree 	a2sb(Tree exp);

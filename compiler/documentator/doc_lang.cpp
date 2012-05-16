@@ -38,18 +38,6 @@
 #include "exception.hh"
 #include "global.hh"
 
-//extern map<string, string>	gGlobal->gDocNoticeStringMap;
-//extern set<string>			gGlobal->gDocNoticeKeySet;
-
-//extern map<string, string>	gGlobal->gDocAutodocStringMap;
-//extern set<string>			gGlobal->gDocAutodocKeySet;
-
-//extern map<string, string>	gGlobal->gDocMathStringMap;
-//extern set<string>			gGlobal->gDocMathKeySet;
-
-//extern map<string, string>	gGlobal->gDocMetadatasStringMap;
-//extern set<string>			gGlobal->gDocMetadatasKeySet;
-
 static const string			gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
 static void			importDocStrings(const string& filename);

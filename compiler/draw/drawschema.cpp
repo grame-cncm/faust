@@ -123,10 +123,6 @@
 
 using namespace std;
 
-// external parameters
-//extern int gGlobal->gFoldThreshold;				// max diagram complexity before folding
-
-
 // internal state during drawing
 static Occurrences* 	gOccurrences;
 static bool				sFoldingFlag;		// true with complex block-diagrams

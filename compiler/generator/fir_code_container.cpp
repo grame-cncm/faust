@@ -33,16 +33,7 @@
 
 using namespace std;
 
-//extern int gGlobal->gVectorLoopVariant;
 map <string, int> FIRInstVisitor::gGlobalTable;
-
-//extern int gGlobal->gVectorLoopVariant;
-//extern bool gGlobal->gOpenCLSwitch;
-//extern bool gGlobal->gCUDASwitch;
-//extern bool gGlobal->gOpenMPSwitch;
-//extern bool gGlobal->gSchedulerSwitch;
-//extern bool gGlobal->gVectorSwitch;
-//extern bool gGlobal->gFunTaskSwitch;
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

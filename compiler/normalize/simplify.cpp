@@ -51,7 +51,7 @@ static Tree traced_simplification(Tree sig)
 {
 	assert(sig);
 #ifdef TRACE
-    cerr << ++TABBER << "Start simplification of : " << ppsig(sig) << endl;
+    cerr << ++gGlobal->TABBER << "Start simplification of : " << ppsig(sig) << endl;
 	/*
 	fprintf(stderr, "\nStart simplification of : ");
 	printSignal(sig, stderr);
@@ -61,7 +61,7 @@ static Tree traced_simplification(Tree sig)
 	Tree r = simplification(sig);
 	assert(r!=0);
 #ifdef TRACE
-    cerr << --TABBER << "Simplification of : " << ppsig(sig) << " Returns : " << ppsig(r) << endl;
+    cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig) << " Returns : " << ppsig(r) << endl;
 	/*
 	fprintf(stderr, "Simplification of : ");
 	printSignal(sig, stderr);

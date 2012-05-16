@@ -27,7 +27,6 @@
 #include <fstream>
 #include <time.h>
 
-
 #include "sigtype.hh"
 #include "sigprint.hh"
 #include "ppsig.hh"
@@ -37,6 +36,7 @@
 #include "xtended.hh"
 #include "recursivness.hh"
 #include "exception.hh"
+#include "global.hh"
 
 //--------------------------------------------------------------------------
 // prototypes
@@ -139,9 +139,9 @@ void typeAnnotation(Tree sig)
 
 void annotationStatistics()
 {
-    cerr << TABBER << "COUNT INFERENCE  " << countInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
-    cerr << TABBER << "COUNT ALLOCATION " << AudioType::gAllocationCount << endl;
-    cerr << TABBER << "COUNT MAXIMAL " << countMaximal << endl;
+    cerr << gGlobal->TABBER << "COUNT INFERENCE  " << countInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
+    cerr << gGlobal->TABBER << "COUNT ALLOCATION " << AudioType::gAllocationCount << endl;
+    cerr << gGlobal->TABBER << "COUNT MAXIMAL " << countMaximal << endl;
 }
 
 /**
@@ -172,7 +172,7 @@ void annotationStatistics()
  */
 static void setSigType(Tree sig, Type t)
 {
-    TRACE(cerr << TABBER << "SET FIX TYPE OF " << *sig << " TO TYPE " << *t << endl;)
+    TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << *sig << " TO TYPE " << *t << endl;)
 	sig->setType(t);
 }
 
@@ -185,9 +185,9 @@ static Type getSigType(Tree sig)
 {
     AudioType* ty = (AudioType*) sig->getType();
     if (ty == 0)
-        TRACE(cerr << TABBER << "GET FIX TYPE OF " << *sig << " HAS NO TYPE YET" << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " HAS NO TYPE YET" << endl;)
     else
-        TRACE(cerr << TABBER << "GET FIX TYPE OF " << *sig << " IS TYPE " << *ty << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " IS TYPE " << *ty << endl;)
     return ty;
 }
 
@@ -216,18 +216,18 @@ static Type getSigType(Tree sig)
  */
 static Type T(Tree term, Tree ignoreenv)
 {
-    TRACE(cerr << ++TABBER << "ENTER T() " << *term << endl;)
+    TRACE(cerr << ++gGlobal->TABBER << "ENTER T() " << *term << endl;)
 
     if (term->isAlreadyVisited()) {
         Type    ty =  getSigType(term);
-        TRACE(cerr << --TABBER << "EXIT 1 T() " << *term << " AS TYPE " << *ty << endl);
+        TRACE(cerr << --gGlobal->TABBER << "EXIT 1 T() " << *term << " AS TYPE " << *ty << endl);
         return ty;
 
     } else {
         Type ty = infereSigType(term, ignoreenv);
         setSigType(term,ty);
         term->setVisited();
-        TRACE(cerr << --TABBER << "EXIT 2 T() " << *term << " AS TYPE " << *ty << endl);
+        TRACE(cerr << --gGlobal->TABBER << "EXIT 2 T() " << *term << " AS TYPE " << *ty << endl);
         return ty;
     }
 }

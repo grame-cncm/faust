@@ -126,8 +126,6 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
     return loop;
 }
 
-//extern int gGlobal->gVectorLoopVariant;
-
 void VectorCodeContainer::processFIR(void)
 {
     // Default processing

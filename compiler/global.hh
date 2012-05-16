@@ -47,6 +47,8 @@
 
 #include "sourcereader.hh"
 
+#include "tree.hh"
+
 /*
 #include "instructions_compiler.hh"
 #include "dag_instructions_compiler.hh"
@@ -168,9 +170,13 @@ struct global {
     set<string>			gDocNoticeKeySet;
     
     set<string>				gDocMathKeySet;
+    
+    bool         gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
 
+
+    Tabber TABBER;
   
-    global()
+    global():TABBER(1)
     {
 
         //gLLVMSwitch 	= false;
@@ -231,6 +237,8 @@ struct global {
         gLstDependenciesSwitch	= true; ///< mdoc listing management.
         gLstMdocTagsSwitch		= true; ///< mdoc listing management.
         gLstDistributedSwitch	= true; ///< mdoc listing management.
+        
+        gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
 
    }
 

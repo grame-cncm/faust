@@ -41,10 +41,6 @@
 #include "prim2.hh"
 #include "exception.hh"
 
-//extern int gGlobal->gMaxCopyDelay;
-//extern bool gGlobal->gOpenCLSwitch;
-//extern bool gGlobal->gCUDASwitch;
-
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container):
     InstructionsCompiler(container)
 {}

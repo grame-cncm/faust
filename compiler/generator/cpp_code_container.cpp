@@ -36,15 +36,6 @@
 
 using namespace std;
 
-//extern bool gGlobal->gUIMacroSwitch;
-//extern int gGlobal->gVectorLoopVariant;
-//extern bool gGlobal->gOpenCLSwitch;
-//extern bool gGlobal->gCUDASwitch;
-//extern bool gGlobal->gOpenMPSwitch;
-//extern bool gGlobal->gSchedulerSwitch;
-//extern bool gGlobal->gFunTaskSwitch;
-
-//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
 map <string, int> CPPInstVisitor::gGlobalTable;
 
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)

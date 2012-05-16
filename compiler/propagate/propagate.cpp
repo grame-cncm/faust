@@ -32,9 +32,7 @@
 #include "names.hh"
 #include "exception.hh"
 
-//extern bool gPrintDocSwitch;
 //static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
-
 
 ////////////////////////////////////////////////////////////////////////
 /**

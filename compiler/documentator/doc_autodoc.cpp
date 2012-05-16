@@ -32,14 +32,6 @@
 #include "doc.hh"
 #include "global.hh"
 
-//extern SourceReader				gReader;
-//extern string					gGlobal->gDocName;
-//extern map<Tree, set<Tree> > 	gGlobal->gMetaDataSet;
-//extern map<string, string>		gGlobal->gDocMetadatasStringMap;
-
-//map<string, string>		gGlobal->gDocAutodocStringMap;
-//set<string>				gGlobal->gDocAutodocKeySet;
-
 static void				initDocAutodocKeySet();
 
 /*****************************************************************************

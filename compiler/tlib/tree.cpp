@@ -84,10 +84,6 @@ storage of trees.
 #include <cstdlib>
 #include "exception.hh"
 
-Tabber TABBER(1);	
-extern Tabber TABBER;
-
-
 static void error(const char * s, Tree t)
 {
 	cerr << "ERROR : " << s << " : " << *t << endl;

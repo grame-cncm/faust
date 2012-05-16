@@ -51,10 +51,6 @@
 #include "exception.hh"
 #include "global.hh"
 
-//extern bool		gGlobal->gLessTempSwitch;
-//extern int		gGlobal->gMaxCopyDelay;
-//extern map<string, string>		gGlobal->gDocMathStringMap;
-
 extern bool		getSigListNickName(Tree t, Tree& id);
 
 static const unsigned int MAX_RIGHT_MEMBER	= 20;
