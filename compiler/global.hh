@@ -46,29 +46,7 @@
 #include <llvm/Module.h>
 
 #include "sourcereader.hh"
-
 #include "tree.hh"
-
-/*
-#include "instructions_compiler.hh"
-#include "dag_instructions_compiler.hh"
-#include "c_code_container.hh"
-#include "cpp_code_container.hh"
-#include "cpp_gpu_code_container.hh"
-#include "java_code_container.hh"
-#include "js_code_container.hh"
-#include "llvm_code_container.hh"
-#include "fir_code_container.hh"
-*/
-
-// Build graphical representations
-
-/*
-#include "schema.h"
-#include "drawschema.hh"
-#include "timing.hh"
-#include "ppsig.hh"
-*/
 
 struct global {
 
@@ -91,33 +69,18 @@ struct global {
     Tree			gExpandedDefList;
 
     //-- command line arguments
-
-    //bool			gLLVMSwitch;
-    //bool			gHelpSwitch;
-    //bool			gVersionSwitch;
     bool            gDetailsSwitch;
     bool            gDrawSignals;
-    bool            gShadowBlur;	// note: svg2pdf doesn't like the blur filter
-    //bool            gGraphSwitch;
-    //bool            gDrawPSSwitch;
-    //bool            gDrawSVGSwitch;
-    //bool            gPrintXMLSwitch;
-    //bool            gPrintDocSwitch;
-    //bool            gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
-    bool			gStripDocSwitch;	// Strip <mdoc> content from doc listings.
-    //int            	gBalancedSwitch;
+    bool            gShadowBlur;        // note: svg2pdf doesn't like the blur filter
+     bool			gStripDocSwitch;	// Strip <mdoc> content from doc listings.
     int            	gFoldThreshold;
     int            	gMaxNameSize;
     bool			gSimpleNames;
     bool            gSimplifyDiagrams;
     bool			gLessTempSwitch;
     int				gMaxCopyDelay;
-    //string			gArchFile;
     string			gOutputFile;
-    //list<string>	gInputFiles;
-
-    //bool            gPatternEvalMode;
-
+  
     bool            gVectorSwitch;
     bool            gDeepFirstSwitch;
     int             gVecSize;
@@ -131,7 +94,6 @@ struct global {
     bool            gCUDASwitch;
     bool			gGroupTaskSwitch;
     bool			gFunTaskSwitch;
-
 
     bool            gUIMacroSwitch;
     bool            gDumpNorm;
@@ -147,7 +109,7 @@ struct global {
 
     string			gClassName;
 
-    llvm::Module*         gModule;
+    llvm::Module*   gModule;
     const char*     gInputString;
     
     bool			gLstDependenciesSwitch;     ///< mdoc listing management.
@@ -166,42 +128,28 @@ struct global {
     
     vector<Tree>            gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
     
-    map<string, string>	gDocNoticeStringMap;
-    set<string>			gDocNoticeKeySet;
+    map<string, string>     gDocNoticeStringMap;
+    set<string>             gDocNoticeKeySet;
     
     set<string>				gDocMathKeySet;
     
-    bool         gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
-
+    bool                    gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
 
     Tabber TABBER;
   
     global():TABBER(1)
     {
-
-        //gLLVMSwitch 	= false;
-        //gHelpSwitch 	= false;
-        //gVersionSwitch 	= false;
         gDetailsSwitch  = false;
         gDrawSignals    = false;
         gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
-        //gGraphSwitch 	= false;
-        //gDrawPSSwitch 	= false;
-        //gDrawSVGSwitch 	= false;
-        //gPrintXMLSwitch = false;
-        //gPrintDocSwitch = false;
-        //gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
         gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
-        //gBalancedSwitch = 0;
         gFoldThreshold 	= 25;
         gMaxNameSize 	= 40;
         gSimpleNames 	= false;
         gSimplifyDiagrams = false;
         gLessTempSwitch = false;
         gMaxCopyDelay	= 16;
-       
-        //gPatternEvalMode = false;
-
+   
         gVectorSwitch   = false;
         gDeepFirstSwitch = false;
         gVecSize        = 32;
@@ -215,7 +163,6 @@ struct global {
         gCUDASwitch = false;
         gGroupTaskSwitch = false;
         gFunTaskSwitch = false;
-
 
         gUIMacroSwitch  = false;
         gDumpNorm       = false;
@@ -239,8 +186,7 @@ struct global {
         gLstDistributedSwitch	= true; ///< mdoc listing management.
         
         gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
-
-   }
+    }
 
 };
 
