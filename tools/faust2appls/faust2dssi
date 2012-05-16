@@ -39,6 +39,10 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64"
     elif [ $p = "-osc" ]; then
     	#option ignored for dssi plugins
 		 OSCDEFS="-I/usr/local/lib/faust/osclib -DOSCCTRL -L/usr/local/lib/faust/osclib -lOSCFaust -loscpack"
@@ -78,7 +82,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} -I. -Wall -O2 -fPIC -DPIC $SPEC $CXXFLAGS "$f.cpp" -o $dst
+		${CXX=g++} -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
 	) > /dev/null
 	rm "$f.cpp"
 
