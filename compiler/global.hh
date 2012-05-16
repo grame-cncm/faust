@@ -1,6 +1,26 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
 #ifndef __FAUST_GLOBAL__
 #define __FAUST_GLOBAL__
-
 
 #include <stdio.h>
 #include <string.h>
@@ -8,43 +28,11 @@
 #include <set>
 #include <map>
 
-/*
-#include "compatibility.hh"
-#include "signals.hh"
-#include "sigtype.hh"
-#include "sigtyperules.hh"
-#include "sigprint.hh"
-#include "simplify.hh"
-#include "privatise.hh"
-#include "recursivness.hh"
-
-#include "propagate.hh"
-#include "errormsg.hh"
-#include "ppbox.hh"
-#include "enrobage.hh"
-#include "eval.hh"
-#include "description.hh"
-#include "floats.hh"
-#include "doc.hh"
-*/
-
-/*
-#include <map>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-*/
-
 #ifndef WIN32
 #include <unistd.h>
 #endif
 
-//#include "llvm_code_container.hh"
-
 #include <llvm/Module.h>
-
 #include "sourcereader.hh"
 #include "tree.hh"
 
@@ -55,8 +43,8 @@ struct global {
 
     SourceReader	gReader;
 
-    map<Tree, set<Tree> > gMetaDataSet;
-    string gDocLang;
+    map<Tree, set<Tree> >   gMetaDataSet;
+    string                  gDocLang;
 
     //-- globals
     string          gFaustSuperSuperDirectory;
@@ -97,8 +85,6 @@ struct global {
 
     bool            gUIMacroSwitch;
     bool            gDumpNorm;
-
-    int             gTimeout;            // time out to abort compiler (in seconds)
 
     int             gFloatSize;
 
@@ -166,8 +152,6 @@ struct global {
 
         gUIMacroSwitch  = false;
         gDumpNorm       = false;
-
-        gTimeout        = 120;            // time out to abort compiler (in seconds)
 
         gFloatSize = 1;
 

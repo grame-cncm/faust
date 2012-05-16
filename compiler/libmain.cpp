@@ -109,10 +109,7 @@ static int          gBalancedSwitch = 0;
 static string       gArchFile;
 static list<string>	gInputFiles;
 
-static bool     gPatternEvalMode = false;
-
 static int      gTimeout        = 120;            // time out to abort compiler (in seconds)
-
 static bool		gPrintFileListSwitch = false;
 
 //-- command line tools
