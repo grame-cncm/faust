@@ -241,9 +241,6 @@ inline const Node subNode (const Node& x, const Node& y)
 inline const Node mulNode (const Node& x, const Node& y)
 	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)*double(y)) : Node(int(x)*int(y)); }
 
-inline const Node divNode (const Node& x, const Node& y)
-	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)/double(y)) : Node(int(x)/int(y)); }
-
 inline const Node divExtendedNode (const Node& x, const Node& y)
 	{ return  (isDouble(x)||isDouble(y)) ? Node(double(x)/double(y))
 			: (double(int(x)/int(y))==double(x)/double(y)) ? Node(int(x)/int(y))
@@ -258,7 +255,7 @@ inline const Node minusNode (const Node& x)
 	{ return subNode(0, x); }
 
 inline const Node inverseNode (const Node& x)
-	{ return divNode(1.0f, x); }
+    { return divExtendedNode(1.0f, x); }
 
 
 // bit shifting operations
