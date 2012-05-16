@@ -190,6 +190,7 @@ class llvmdsp : public dsp {
 
   public:
   
+        /*
         llvmdsp(int argc, char *argv[], const std::string& pgm, int opt_level = 3)
         {
             printf("Compile module...\n");
@@ -200,6 +201,23 @@ class llvmdsp : public dsp {
             argv1[2] = "llvm";
             for (int i = 0; i < argc; i++) {
                 argv1[i+3] = argv[i];
+            }
+            fModule = compile_faust_llvm(argc1, (char**)argv1, pgm.c_str());
+            
+            Init(opt_level);
+        }
+        */
+        
+        llvmdsp(int argc, char *argv[], const std::string& pgm, int opt_level = 3)
+        {
+            printf("Compile module...\n");
+            int argc1 = (argc-1) + 3;
+            const char* argv1[argc1];
+            argv1[0] = "faust";
+            argv1[1] = "-lang";
+            argv1[2] = "llvm";
+            for (int i = 0; i < argc-1; i++) {
+                argv1[i+3] = argv[i+1];
             }
             fModule = compile_faust_llvm(argc1, (char**)argv1, pgm.c_str());
             

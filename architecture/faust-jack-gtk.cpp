@@ -33,6 +33,11 @@ int main(int argc, char *argv[])
 			exit(1);
 		} else {
 			DSP = new llvmdsp(argc, argv);
+            /*
+            DSP = new llvmdsp(argc, argv, "process = +,+;");
+            DSP = new llvmdsp(argc, argv, "process = +;");
+            DSP = new llvmdsp(argc, argv, "process = +,+,+,+;");
+            */
         }
 	} catch (...) {
 		printf("Cannot load .dsp or .bc file\n");
