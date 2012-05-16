@@ -30,7 +30,7 @@ BinOp* gBinOpTable[] = {
 	new BinOp("+","add_vec","add_scal", &addNode, &isZero, &isZero, 6),
     new BinOp("-","sub_vec","sub_scal", &subNode, &noNtrl, &isZero, 7),
     new BinOp("*","mul_vec","mul_scal", &mulNode, &isOne, &isOne, 8),
-    new BinOp("/","div_vec","div_scal", &divNode, &noNtrl, &isOne, 10),
+    new BinOp("/","div_vec","div_scal", &divExtendedNode, &noNtrl, &isOne, 10),
     new BinOp("%","mod_vec","mod_scal", &remNode, &noNtrl, &noNtrl, 9),
 
     new BinOp("<<","shift_left_vec","shift_left_scal", &lshNode, &noNtrl, &isZero, 8),
@@ -54,7 +54,7 @@ BinOp* gBinOpLateqTable[] = {
 	new BinOp("+","add_vec","add_scal", &addNode, &isZero, &isZero, 6),
     new BinOp("-","sub_vec","sub_scal", &subNode, &noNtrl, &isZero, 7),
     new BinOp("*","mul_vec","mul_scal", &mulNode, &isOne, &isOne, 8), // \DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
-    new BinOp("/","div_vec","div_scal", &divNode, &noNtrl, &isOne, 10), // \frac{}{} used in generateBinOp
+    new BinOp("/","div_vec","div_scal", &divExtendedNode, &noNtrl, &isOne, 10), // \frac{}{} used in generateBinOp
     new BinOp("\\bmod","mod_vec","mod_scal", &remNode, &noNtrl, &noNtrl, 9),
 	
     new BinOp("\\hiderel{\\ll}","shift_left_vec","shift_left_scal", &lshNode, &noNtrl, &isZero, 8),
