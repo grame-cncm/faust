@@ -22,20 +22,22 @@
 #include <string>
 #include <llvm/Module.h>
 
+#include "global.hh"
+
 #ifdef __cplusplus
 extern "C" int compile_faust(int argc, char* argv[], const char* input);
 #endif
 
-extern llvm::Module* gModule;
-extern std::string gOutputFile;
+//extern llvm::Module* gGlobal->gModule;
+//extern std::string gGlobal->gOutputFile;
 
 int main(int argc, char* argv[])
 {
     int res = compile_faust(argc, argv, 0);
     
     // Special case for LLVM
-    if (res == 0 && gModule && gOutputFile == "") {
-        gModule->dump();
+    if (res == 0 && gGlobal->gModule && gGlobal->gOutputFile == "") {
+        gGlobal->gModule->dump();
     }
     
     return res;

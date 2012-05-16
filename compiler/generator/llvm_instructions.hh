@@ -40,6 +40,7 @@ using namespace std;
 #include "binop.hh"
 #include "exception.hh"
 
+
 #include <llvm/DerivedTypes.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/JIT.h>
@@ -55,10 +56,12 @@ using namespace std;
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/Support/raw_ostream.h>
 
+#include "global.hh"
+
 using namespace llvm;
 
-extern bool gVectorSwitch;
-extern int gVecSize;
+//extern bool gVectorSwitch;
+//extern int gGlobal->gVecSize;
 
 typedef llvm::Value* LlvmValue;
 
@@ -97,22 +100,22 @@ struct LLVMTypeHelper {
         // LLVM type coding
         fTypeMap[Typed::kFloat] = llvm::Type::getFloatTy(getGlobalContext());
         fTypeMap[Typed::kFloat_ptr] = PointerType::get(fTypeMap[Typed::kFloat], 0);
-        fTypeMap[Typed::kFloat_vec] = VectorType::get(fTypeMap[Typed::kFloat], gVecSize);
+        fTypeMap[Typed::kFloat_vec] = VectorType::get(fTypeMap[Typed::kFloat], gGlobal->gVecSize);
         fTypeMap[Typed::kFloat_vec_ptr] = PointerType::get(fTypeMap[Typed::kFloat_vec], 0);
 
         fTypeMap[Typed::kInt] = llvm::Type::getInt32Ty(getGlobalContext());
         fTypeMap[Typed::kInt_ptr] = PointerType::get(fTypeMap[Typed::kInt], 0);
-        fTypeMap[Typed::kInt_vec] = VectorType::get(fTypeMap[Typed::kInt], gVecSize);
+        fTypeMap[Typed::kInt_vec] = VectorType::get(fTypeMap[Typed::kInt], gGlobal->gVecSize);
         fTypeMap[Typed::kInt_vec_ptr] = PointerType::get(fTypeMap[Typed::kInt_vec], 0);
 
         fTypeMap[Typed::kDouble] = llvm::Type::getDoubleTy(getGlobalContext());
         fTypeMap[Typed::kDouble_ptr] = PointerType::get(fTypeMap[Typed::kDouble], 0);
-        fTypeMap[Typed::kDouble_vec] = VectorType::get(fTypeMap[Typed::kDouble], gVecSize);
+        fTypeMap[Typed::kDouble_vec] = VectorType::get(fTypeMap[Typed::kDouble], gGlobal->gVecSize);
         fTypeMap[Typed::kDouble_vec_ptr] = PointerType::get(fTypeMap[Typed::kDouble_vec], 0);
 
         fTypeMap[Typed::kBool] = llvm::Type::getInt1Ty(getGlobalContext());
         fTypeMap[Typed::kBool_ptr] = PointerType::get(fTypeMap[Typed::kBool], 0);
-        fTypeMap[Typed::kBool_vec] = VectorType::get(fTypeMap[Typed::kBool], gVecSize);
+        fTypeMap[Typed::kBool_vec] = VectorType::get(fTypeMap[Typed::kBool], gGlobal->gVecSize);
         fTypeMap[Typed::kBool_vec_ptr] = PointerType::get(fTypeMap[Typed::kBool_vec], 0);
 
         // Takes the type of internal real

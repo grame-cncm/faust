@@ -29,7 +29,7 @@
 ***********************************************************************/
 #include "cpp_gpu_code_container.hh"
 
-extern bool gUIMacroSwitch;
+//extern bool gGlobal->gUIMacroSwitch;
 
 static void tab1(int n, ostream& fout)
 {
@@ -61,7 +61,7 @@ void CPPOpenCLCodeContainer::produceInternal()
 
         tab(n+1, *fOut);
 
-        if (gUIMacroSwitch) {
+        if (gGlobal->gUIMacroSwitch) {
             tab(n, *fOut); *fOut << "  public:";
         } else {
             tab(n, *fOut); *fOut << "  private:";
@@ -182,7 +182,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
         tab(n+1, *fOut);
 
-        if (gUIMacroSwitch) {
+        if (gGlobal->gUIMacroSwitch) {
             tab(n, *fOut); *fOut << "  public:";
         } else {
             tab(n, *fOut); *fOut << "  private:";
@@ -269,7 +269,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
                 tab(n+3, *fOut); *fOut << "cl_event dsp_execution;";
 
-                if (gVectorSwitch) {
+                if (gGlobal->gVectorSwitch) {
                     //tab(n+3, *fOut); *fOut << "global = dsp->fCount;";
                     tab(n+3, *fOut); *fOut << "global = local = 32;";
                     tab(n+3, *fOut); *fOut << "err = clEnqueueNDRangeKernel(dsp->fCommands, dsp->fComputeKernel, 1, NULL, &global, &local, 0, NULL, &dsp_execution);";
@@ -632,7 +632,7 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "};" << endl;
 
     // Generate user interface macros if needed
-	if (gUIMacroSwitch) {
+	if (gGlobal->gUIMacroSwitch) {
 		tab(n, *fOut); *fOut << "#ifdef FAUST_UIMACROS";
             tab(n+1, *fOut); *fOut << "#define FAUST_INPUTS " << fNumInputs;
             tab(n+1, *fOut); *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
@@ -750,7 +750,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
-    min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
+    min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
@@ -765,7 +765,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     for (int l = dag.size() - 1; l >= 0; l--) {
 
         ValueInst* switch_cond = InstBuilder::genLoadStackVar("tasknum");
-        SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+        ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
         if (dag[l].size() > 1) {
             int loop_num = 0;
@@ -788,7 +788,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_init = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), gVecSize));
+    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -817,7 +817,7 @@ void CPPCUDACodeContainer::produceInternal()
 
         tab(n+1, *fOut);
 
-        if (gUIMacroSwitch) {
+        if (gGlobal->gUIMacroSwitch) {
             tab(n, *fOut); *fOut << "  public:";
         } else {
             tab(n, *fOut); *fOut << "  private:";
@@ -1021,7 +1021,7 @@ void CPPCUDACodeContainer::produceClass()
 
         tab(n+1, *fOut);
 
-        if (gUIMacroSwitch) {
+        if (gGlobal->gUIMacroSwitch) {
             tab(n, *fOut); *fOut << "  public:";
         } else {
             tab(n, *fOut); *fOut << "  private:";
@@ -1343,7 +1343,7 @@ void CPPCUDACodeContainer::produceClass()
     tab(n, *fOut); *fOut << "};" << endl;
 
     // Generate user interface macros if needed
-	if (gUIMacroSwitch) {
+	if (gGlobal->gUIMacroSwitch) {
 		tab(n, *fOut); *fOut << "#ifdef FAUST_UIMACROS";
             tab(n+1, *fOut); *fOut << "#define FAUST_INPUTS " << fNumInputs;
             tab(n+1, *fOut); *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
@@ -1460,7 +1460,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     ValueInst* init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
     ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
-    min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
+    min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDeclareVarInst(InstBuilder::genNamedAddress("count", Address::kStack), InstBuilder::genBasicTyped(Typed::kInt), init3);
@@ -1482,7 +1482,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     for (int l = dag.size() - 1; l >= 0; l--) {
 
         ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
-        SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+        ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
         if (dag[l].size() > 1) {
             int loop_num = 0;
@@ -1507,7 +1507,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(),
                                 InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gVecSize));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 

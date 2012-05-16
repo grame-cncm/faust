@@ -24,11 +24,13 @@
 // SVGDev.cpp
 
 #include "SVGDev.h"
+#include "global.hh"
+
 #include "stdio.h"
 #include <iostream>
 using namespace std;
 
-extern bool gShadowBlur;
+//extern bool gGlobal->gShadowBlur;
 
 static char* xmlcode(const char* name, char* name2)
 {
@@ -64,7 +66,7 @@ SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 	// viewBox:
 	fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 %f %f\" width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n", largeur, hauteur, largeur*gScale, hauteur*gScale);
 
-    if (gShadowBlur) {
+    if (gGlobal->gShadowBlur) {
 		 fprintf(fic_repr,
 		    "<defs>\n"
 		    "   <filter id=\"filter\" filterRes=\"18\" x=\"0\" y=\"0\">\n"
@@ -91,7 +93,7 @@ void SVGDev::rect(double x,double y,double l,double h, const char* color, const 
         fprintf(fic_repr,"<a xlink:href=\"%s\">\n", xmlcode(link, buf));
     }
     // draw the shadow
-    if (gShadowBlur) {
+    if (gGlobal->gShadowBlur) {
         fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0.1\" ry=\"0.1\" style=\"stroke:none;fill:#aaaaaa;;filter:url(#filter);\"/>\n",x+1,y+1,l,h);
     } else {
         fprintf(fic_repr,"<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:#cccccc;\"/>\n",x+1,y+1,l,h);

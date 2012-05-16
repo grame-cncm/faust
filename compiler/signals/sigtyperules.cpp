@@ -304,7 +304,7 @@ static Type infereSigType(Tree sig, Tree env)
 		Type t2 = T(s2,env);
 		Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
 		//cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
-	  	//return (!gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
+	  	//return (!gGlobal->gVectorSwitch && (i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
 	  	return ((i>=kGT) && (i<=kNE)) ?  intCast(t3) : t3; // for comparaison operation the result is int
 	}
 

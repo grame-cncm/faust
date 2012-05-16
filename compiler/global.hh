@@ -1,8 +1,12 @@
+#ifndef __FAUST_GLOBAL__
+#define __FAUST_GLOBAL__
 
 
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <set>
+#include <map>
 
 /*
 #include "compatibility.hh"
@@ -37,8 +41,9 @@
 #include <unistd.h>
 #endif
 
-#include "llvm_code_container.hh"
+//#include "llvm_code_container.hh"
 
+#include <llvm/Module.h>
 
 #include "sourcereader.hh"
 
@@ -85,31 +90,31 @@ struct global {
 
     //-- command line arguments
 
-    bool			gLLVMSwitch;
-    bool			gHelpSwitch;
-    bool			gVersionSwitch;
+    //bool			gLLVMSwitch;
+    //bool			gHelpSwitch;
+    //bool			gVersionSwitch;
     bool            gDetailsSwitch;
     bool            gDrawSignals;
     bool            gShadowBlur;	// note: svg2pdf doesn't like the blur filter
-    bool            gGraphSwitch;
-    bool            gDrawPSSwitch;
-    bool            gDrawSVGSwitch;
-    bool            gPrintXMLSwitch;
-    bool            gPrintDocSwitch;
-    bool            gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
+    //bool            gGraphSwitch;
+    //bool            gDrawPSSwitch;
+    //bool            gDrawSVGSwitch;
+    //bool            gPrintXMLSwitch;
+    //bool            gPrintDocSwitch;
+    //bool            gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
     bool			gStripDocSwitch;	// Strip <mdoc> content from doc listings.
-    int            	gBalancedSwitch;
+    //int            	gBalancedSwitch;
     int            	gFoldThreshold;
     int            	gMaxNameSize;
     bool			gSimpleNames;
     bool            gSimplifyDiagrams;
     bool			gLessTempSwitch;
     int				gMaxCopyDelay;
-    string			gArchFile;
+    //string			gArchFile;
     string			gOutputFile;
-    list<string>	gInputFiles;
+    //list<string>	gInputFiles;
 
-    bool            gPatternEvalMode;
+    //bool            gPatternEvalMode;
 
     bool            gVectorSwitch;
     bool            gDeepFirstSwitch;
@@ -140,30 +145,48 @@ struct global {
 
     string			gClassName;
 
-    Module*         gModule;
+    llvm::Module*         gModule;
     const char*     gInputString;
     
     bool			gLstDependenciesSwitch;     ///< mdoc listing management.
     bool			gLstMdocTagsSwitch;         ///< mdoc listing management.
     bool			gLstDistributedSwitch;      ///< mdoc listing management.
+    
+    map<string, string>		gDocMetadatasStringMap;
+    set<string>				gDocMetadatasKeySet;
+    
+    map<string, string>		gDocAutodocStringMap;
+    set<string>				gDocAutodocKeySet;
+    
+    map<string, bool>       gDocNoticeFlagMap;
+    
+    map<string, string>		gDocMathStringMap;
+    
+    vector<Tree>            gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
+    
+    map<string, string>	gDocNoticeStringMap;
+    set<string>			gDocNoticeKeySet;
+    
+    set<string>				gDocMathKeySet;
+
   
     global()
     {
 
-        gLLVMSwitch 	= false;
-        gHelpSwitch 	= false;
-        gVersionSwitch 	= false;
+        //gLLVMSwitch 	= false;
+        //gHelpSwitch 	= false;
+        //gVersionSwitch 	= false;
         gDetailsSwitch  = false;
         gDrawSignals    = false;
         gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
-        gGraphSwitch 	= false;
-        gDrawPSSwitch 	= false;
-        gDrawSVGSwitch 	= false;
-        gPrintXMLSwitch = false;
-        gPrintDocSwitch = false;
-        gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
+        //gGraphSwitch 	= false;
+        //gDrawPSSwitch 	= false;
+        //gDrawSVGSwitch 	= false;
+        //gPrintXMLSwitch = false;
+        //gPrintDocSwitch = false;
+        //gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
         gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
-        gBalancedSwitch = 0;
+        //gBalancedSwitch = 0;
         gFoldThreshold 	= 25;
         gMaxNameSize 	= 40;
         gSimpleNames 	= false;
@@ -171,7 +194,7 @@ struct global {
         gLessTempSwitch = false;
         gMaxCopyDelay	= 16;
        
-        gPatternEvalMode = false;
+        //gPatternEvalMode = false;
 
         gVectorSwitch   = false;
         gDeepFirstSwitch = false;
@@ -214,3 +237,5 @@ struct global {
 };
 
 extern global* gGlobal;
+
+#endif

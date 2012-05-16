@@ -28,10 +28,11 @@
 
 ***********************************************************************/
 #include "omp_code_container.hh"
+#include "global.hh"
 
 using namespace std;
 
-extern bool gOpenMPLoop;
+//extern bool gGlobal->gOpenMPLoop;
 
 // Analysis to discover which stack variables have to be used in the "firstprivate" list
 struct StackVarAnalyser : public DispatchVisitor {
@@ -88,7 +89,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
-    min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
+    min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);
@@ -109,7 +110,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
             if (dag[l].size() == 1) { // Only one loop
-                if (!(*p)->isRecursive() && gOpenMPLoop) {
+                if (!(*p)->isRecursive() && gGlobal->gOpenMPLoop) {
                     generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++, true);
                 } else {
                     omp_section_block->setIndent(true);
@@ -135,7 +136,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     // Generates the DAG enclosing loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gVecSize));
+    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 

@@ -31,21 +31,19 @@
 #include "doc_lang.hh"
 #include "enrobage.hh"
 #include "compatibility.hh"
+#include "global.hh"
 
+//map<string, bool>	gGlobal->gDocNoticeFlagMap;
 
-map<string, bool>	gDocNoticeFlagMap;
+//map<string, string>	gGlobal->gDocNoticeStringMap;
+//set<string>			gGlobal->gDocNoticeKeySet;
 
-map<string, string>	gDocNoticeStringMap;
-set<string>			gDocNoticeKeySet;
+//extern map<string, string>		gGlobal->gDocAutodocStringMap;
 
-extern map<string, string>		gDocAutodocStringMap;
-
-extern string		gMasterName;
+//extern string		gGlobal->gMasterName;
 
 static void			initDocNoticeKeySet();
 static void			initDocNoticeFlagMap();
-
-
 
 /*****************************************************************************
 							Public functions
@@ -65,57 +63,57 @@ static void			initDocNoticeFlagMap();
  */
 void printDocNotice(const string& faustversion, ostream& docout) {
 	
-	if (! gDocNoticeStringMap.empty() ) {
+	if (! gGlobal->gDocNoticeStringMap.empty() ) {
 		
 		//cerr << "Documentator : printDocNotice : printing..." << endl;
 		
 		docout << endl << "\\begin{itemize}" << endl;
 		
 		/* Presentations. */
-		docout << "\t\\item " << gDocAutodocStringMap["autontctext"]	<< endl;
-		if(gDocNoticeFlagMap["faustapply"])			docout << "\t\\item " << gDocNoticeStringMap["faustapply"]	<< endl;
-		if(gDocNoticeFlagMap["faustpresentation"])	docout << "\t\\item " << gDocNoticeStringMap["faustpresentation"]	<< endl;
-		if(gDocNoticeFlagMap["causality"])			docout << "\t\\item " << gDocNoticeStringMap["causality"]	<< endl;
-		if(gDocNoticeFlagMap["blockdiagrams"])		docout << "\t\\item " << gDocNoticeStringMap["blockdiagrams"]	<< endl;
+		docout << "\t\\item " << gGlobal->gDocAutodocStringMap["autontctext"]	<< endl;
+		if(gGlobal->gDocNoticeFlagMap["faustapply"])			docout << "\t\\item " << gGlobal->gDocNoticeStringMap["faustapply"]	<< endl;
+		if(gGlobal->gDocNoticeFlagMap["faustpresentation"])	docout << "\t\\item " << gGlobal->gDocNoticeStringMap["faustpresentation"]	<< endl;
+		if(gGlobal->gDocNoticeFlagMap["causality"])			docout << "\t\\item " << gGlobal->gDocNoticeStringMap["causality"]	<< endl;
+		if(gGlobal->gDocNoticeFlagMap["blockdiagrams"])		docout << "\t\\item " << gGlobal->gDocNoticeStringMap["blockdiagrams"]	<< endl;
 		
 		/* Naming conventions of variables and functions. */
-		if(gDocNoticeFlagMap["foreignfun"])		docout << "\t\\item " << gDocNoticeStringMap["foreignfun"]	<< endl;
-		if(gDocNoticeFlagMap["intcast"])		docout << "\t\\item " << gDocNoticeStringMap["intcast"]	<< endl;
+		if(gGlobal->gDocNoticeFlagMap["foreignfun"])		docout << "\t\\item " << gGlobal->gDocNoticeStringMap["foreignfun"]	<< endl;
+		if(gGlobal->gDocNoticeFlagMap["intcast"])		docout << "\t\\item " << gGlobal->gDocNoticeStringMap["intcast"]	<< endl;
 		
 		/* Integer arithmetic into a tabular environment. */
-		if(gDocNoticeFlagMap["intplus"] || 
-		   gDocNoticeFlagMap["intminus"] || 
-		   gDocNoticeFlagMap["intmult"] || 
-		   gDocNoticeFlagMap["intdiv"] || 
-		   gDocNoticeFlagMap["intand"] || 
-		   gDocNoticeFlagMap["intor"] || 
-		   gDocNoticeFlagMap["intxor"])
+		if(gGlobal->gDocNoticeFlagMap["intplus"] || 
+		   gGlobal->gDocNoticeFlagMap["intminus"] || 
+		   gGlobal->gDocNoticeFlagMap["intmult"] || 
+		   gGlobal->gDocNoticeFlagMap["intdiv"] || 
+		   gGlobal->gDocNoticeFlagMap["intand"] || 
+		   gGlobal->gDocNoticeFlagMap["intor"] || 
+		   gGlobal->gDocNoticeFlagMap["intxor"])
 		{
-			gDocNoticeFlagMap["operators"]		= true;
-			gDocNoticeFlagMap["optabtitle"]		= true;
-			gDocNoticeFlagMap["integerops"]		= true;
+			gGlobal->gDocNoticeFlagMap["operators"]		= true;
+			gGlobal->gDocNoticeFlagMap["optabtitle"]		= true;
+			gGlobal->gDocNoticeFlagMap["integerops"]		= true;
 			
 			docout << "\t\\item " << endl;
-			docout << "\t\t" << gDocNoticeStringMap["operators"] << endl;
+			docout << "\t\t" << gGlobal->gDocNoticeStringMap["operators"] << endl;
 			docout << "\t\\begin{center}" << endl;
 			docout << "\t\\begin{tabular}{|c|l|l|} " << endl;
 			docout << "\t\t\\hline " << endl;
-			docout << "\t\t" << gDocNoticeStringMap["optabtitle"]	<< endl;
+			docout << "\t\t" << gGlobal->gDocNoticeStringMap["optabtitle"]	<< endl;
 			docout << "\t\t\\hline " << endl;
-			if(gDocNoticeFlagMap["intplus"])	docout << "\t\t" << gDocNoticeStringMap["intplus"]	<< endl;
-			if(gDocNoticeFlagMap["intminus"])	docout << "\t\t" << gDocNoticeStringMap["intminus"]	<< endl;
-			if(gDocNoticeFlagMap["intmult"])	docout << "\t\t" << gDocNoticeStringMap["intmult"]	<< endl;
-			if(gDocNoticeFlagMap["intdiv"])		docout << "\t\t" << gDocNoticeStringMap["intdiv"]	<< endl;
-			if(gDocNoticeFlagMap["intand"])		docout << "\t\t" << gDocNoticeStringMap["intand"]	<< endl;
-			if(gDocNoticeFlagMap["intor"])		docout << "\t\t" << gDocNoticeStringMap["intor"]	<< endl;
-			if(gDocNoticeFlagMap["intxor"])		docout << "\t\t" << gDocNoticeStringMap["intxor"]	<< endl;
+			if(gGlobal->gDocNoticeFlagMap["intplus"])	docout << "\t\t" << gGlobal->gDocNoticeStringMap["intplus"]	<< endl;
+			if(gGlobal->gDocNoticeFlagMap["intminus"])	docout << "\t\t" << gGlobal->gDocNoticeStringMap["intminus"]	<< endl;
+			if(gGlobal->gDocNoticeFlagMap["intmult"])	docout << "\t\t" << gGlobal->gDocNoticeStringMap["intmult"]	<< endl;
+			if(gGlobal->gDocNoticeFlagMap["intdiv"])		docout << "\t\t" << gGlobal->gDocNoticeStringMap["intdiv"]	<< endl;
+			if(gGlobal->gDocNoticeFlagMap["intand"])		docout << "\t\t" << gGlobal->gDocNoticeStringMap["intand"]	<< endl;
+			if(gGlobal->gDocNoticeFlagMap["intor"])		docout << "\t\t" << gGlobal->gDocNoticeStringMap["intor"]	<< endl;
+			if(gGlobal->gDocNoticeFlagMap["intxor"])		docout << "\t\t" << gGlobal->gDocNoticeStringMap["intxor"]	<< endl;
 			docout << "\t\t\\hline " << endl;
 			docout << "\t\\end{tabular} " << endl;
 			docout << "\t\\end{center}" << endl;
-			docout << "\t\t" << gDocNoticeStringMap["integerops"]	<< endl;
+			docout << "\t\t" << gGlobal->gDocNoticeStringMap["integerops"]	<< endl;
 		}
 
-		if(gDocNoticeFlagMap["faustdocdir"])		docout << "\t\\item " << gDocNoticeStringMap["faustdocdir"]	<< endl;
+		if(gGlobal->gDocNoticeFlagMap["faustdocdir"])		docout << "\t\\item " << gGlobal->gDocNoticeStringMap["faustdocdir"]	<< endl;
 
 		docout << "\\end{itemize}" << endl << endl;
 	}
@@ -146,44 +144,44 @@ void initDocNotice()
 
 
 /** 
- * Initialize gDocNoticeKeySet, a set containing all the keywords.
+ * Initialize gGlobal->gDocNoticeKeySet, a set containing all the keywords.
  */
 static void initDocNoticeKeySet() {
 	
-	gDocNoticeKeySet.insert("faustpresentation");
-	gDocNoticeKeySet.insert("faustapply");
-	gDocNoticeKeySet.insert("faustdocdir");
-	gDocNoticeKeySet.insert("causality");
-	gDocNoticeKeySet.insert("blockdiagrams");
+	gGlobal->gDocNoticeKeySet.insert("faustpresentation");
+	gGlobal->gDocNoticeKeySet.insert("faustapply");
+	gGlobal->gDocNoticeKeySet.insert("faustdocdir");
+	gGlobal->gDocNoticeKeySet.insert("causality");
+	gGlobal->gDocNoticeKeySet.insert("blockdiagrams");
 	
-	gDocNoticeKeySet.insert("foreignfun");
-	gDocNoticeKeySet.insert("intcast");
+	gGlobal->gDocNoticeKeySet.insert("foreignfun");
+	gGlobal->gDocNoticeKeySet.insert("intcast");
 	
-	gDocNoticeKeySet.insert("operators");
-	gDocNoticeKeySet.insert("optabtitle");
-	gDocNoticeKeySet.insert("integerops");
-	gDocNoticeKeySet.insert("intplus");
-	gDocNoticeKeySet.insert("intminus");
-	gDocNoticeKeySet.insert("intmult");
-	gDocNoticeKeySet.insert("intdiv");
-	gDocNoticeKeySet.insert("intand");
-	gDocNoticeKeySet.insert("intor");
-	gDocNoticeKeySet.insert("intxor");
+	gGlobal->gDocNoticeKeySet.insert("operators");
+	gGlobal->gDocNoticeKeySet.insert("optabtitle");
+	gGlobal->gDocNoticeKeySet.insert("integerops");
+	gGlobal->gDocNoticeKeySet.insert("intplus");
+	gGlobal->gDocNoticeKeySet.insert("intminus");
+	gGlobal->gDocNoticeKeySet.insert("intmult");
+	gGlobal->gDocNoticeKeySet.insert("intdiv");
+	gGlobal->gDocNoticeKeySet.insert("intand");
+	gGlobal->gDocNoticeKeySet.insert("intor");
+	gGlobal->gDocNoticeKeySet.insert("intxor");
 }
 
 
 /** 
- * Initialize gDocNoticeFlagMap, a map containing all the flags.
+ * Initialize gGlobal->gDocNoticeFlagMap, a map containing all the flags.
  */
 static void initDocNoticeFlagMap() {
 	
-	for (set<string>::iterator it=gDocNoticeKeySet.begin(); it != gDocNoticeKeySet.end() ; ++it ) {
-		gDocNoticeFlagMap[*it] = false;
+	for (set<string>::iterator it=gGlobal->gDocNoticeKeySet.begin(); it != gGlobal->gDocNoticeKeySet.end() ; ++it ) {
+		gGlobal->gDocNoticeFlagMap[*it] = false;
 	}
-	gDocNoticeFlagMap["faustpresentation"]	= true;
-	gDocNoticeFlagMap["faustapply"]			= true;
-	gDocNoticeFlagMap["faustdocdir"]		= true;
-	gDocNoticeFlagMap["causality"]			= true;
-	gDocNoticeFlagMap["blockdiagrams"]		= true;
+	gGlobal->gDocNoticeFlagMap["faustpresentation"]	= true;
+	gGlobal->gDocNoticeFlagMap["faustapply"]			= true;
+	gGlobal->gDocNoticeFlagMap["faustdocdir"]		= true;
+	gGlobal->gDocNoticeFlagMap["causality"]			= true;
+	gGlobal->gDocNoticeFlagMap["blockdiagrams"]		= true;
 }
 

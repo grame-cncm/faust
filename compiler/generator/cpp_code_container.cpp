@@ -32,18 +32,19 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "exception.hh"
+#include "global.hh"
 
 using namespace std;
 
-extern bool gUIMacroSwitch;
-extern int gVectorLoopVariant;
-extern bool gOpenCLSwitch;
-extern bool gCUDASwitch;
-extern bool gOpenMPSwitch;
-extern bool gSchedulerSwitch;
-extern bool gFunTaskSwitch;
+//extern bool gGlobal->gUIMacroSwitch;
+//extern int gGlobal->gVectorLoopVariant;
+//extern bool gGlobal->gOpenCLSwitch;
+//extern bool gGlobal->gCUDASwitch;
+//extern bool gGlobal->gOpenMPSwitch;
+//extern bool gGlobal->gSchedulerSwitch;
+//extern bool gGlobal->gFunTaskSwitch;
 
-extern map<Tree, set<Tree> > gMetaDataSet;
+//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
 map <string, int> CPPInstVisitor::gGlobalTable;
 
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -55,29 +56,29 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
 {
     CodeContainer* container;
 
-    if (gOpenCLSwitch) {
-        if (gFunTaskSwitch) {
+    if (gGlobal->gOpenCLSwitch) {
+        if (gGlobal->gFunTaskSwitch) {
             throw faustexception("ERROR : -fun not yet supported in OpenCL mode\n");
         }
-        if (gVectorSwitch) {
+        if (gGlobal->gVectorSwitch) {
             container = new CPPOpenCLVectorCodeContainer(name, super, numInputs, numOutputs, dst);
         } else {
             container = new CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, dst);
         }
-    } else if (gCUDASwitch) {
-        if (gFunTaskSwitch) {
+    } else if (gGlobal->gCUDASwitch) {
+        if (gGlobal->gFunTaskSwitch) {
             throw faustexception("ERROR : -fun not yet supported in CUDA mode\n");
         }
-        if (gVectorSwitch) {
+        if (gGlobal->gVectorSwitch) {
             container = new CPPCUDAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
         } else {
             container = new CPPCUDACodeContainer(name, super, numInputs, numOutputs, dst);
         }
-    } else if (gOpenMPSwitch) {
+    } else if (gGlobal->gOpenMPSwitch) {
         container = new CPPOpenMPCodeContainer(name, super, numInputs, numOutputs, dst);
-    } else if (gSchedulerSwitch) {
+    } else if (gGlobal->gOpenCLSwitch) {
         container = new CPPWorkStealingCodeContainer(name, super, numInputs, numOutputs, dst);
-    } else if (gVectorSwitch) {
+    } else if (gGlobal->gVectorSwitch) {
         container = new CPPVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
         container = new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
@@ -159,7 +160,7 @@ void CPPCodeContainer::produceMetadata(int tabs)
 {
     tab(tabs, *fOut); *fOut   << "void static metadata(Meta* m) { ";
 
-    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             tab(tabs+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {
@@ -198,7 +199,7 @@ void CPPCodeContainer::produceInternal()
 
         tab(n+1, *fOut);
 
-        if (gUIMacroSwitch) {
+        if (gGlobal->gUIMacroSwitch) {
             tab(n, *fOut); *fOut << "  public:";
         } else {
             tab(n, *fOut); *fOut << "  private:";
@@ -277,7 +278,7 @@ void CPPCodeContainer::produceClass()
 
         tab(n+1, *fOut);
 
-        if (gUIMacroSwitch) {
+        if (gGlobal->gUIMacroSwitch) {
             tab(n, *fOut); *fOut << "  public:";
         } else {
             tab(n, *fOut); *fOut << "  private:";
@@ -345,7 +346,7 @@ void CPPCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "};\n" << endl;
 
     // Generate user interface macros if needed
-	if (gUIMacroSwitch) {
+	if (gGlobal->gUIMacroSwitch) {
 		tab(n, *fOut); *fOut << "#ifdef FAUST_UIMACROS";
             tab(n+1, *fOut); *fOut << "#define FAUST_INPUTS " << fNumInputs;
             tab(n+1, *fOut); *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;

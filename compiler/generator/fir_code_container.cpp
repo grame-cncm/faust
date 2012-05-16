@@ -29,19 +29,20 @@
 ***********************************************************************/
 
 #include "fir_code_container.hh"
+#include "global.hh"
+
 using namespace std;
 
-extern int gVectorLoopVariant;
+//extern int gGlobal->gVectorLoopVariant;
 map <string, int> FIRInstVisitor::gGlobalTable;
 
-extern int gVectorLoopVariant;
-extern bool gVectorSwitch;
-extern bool gOpenCLSwitch;
-extern bool gCUDASwitch;
-extern bool gOpenMPSwitch;
-extern bool gSchedulerSwitch;
-extern bool gVectorSwitch;
-extern bool gFunTaskSwitch;
+//extern int gGlobal->gVectorLoopVariant;
+//extern bool gGlobal->gOpenCLSwitch;
+//extern bool gGlobal->gCUDASwitch;
+//extern bool gGlobal->gOpenMPSwitch;
+//extern bool gGlobal->gSchedulerSwitch;
+//extern bool gGlobal->gVectorSwitch;
+//extern bool gGlobal->gFunTaskSwitch;
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -52,11 +53,11 @@ CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs)
 {
     CodeContainer* container;
 
-    if (gOpenMPSwitch) {
+    if (gGlobal->gOpenMPSwitch) {
         container = new FirOpenMPCodeContainer(numInputs, numOutputs);
-    } else if (gSchedulerSwitch) {
+    } else if (gGlobal->gOpenCLSwitch) {
         container = new FirWorkStealingCodeContainer(numInputs, numOutputs);
-    } else if (gVectorSwitch) {
+    } else if (gGlobal->gVectorSwitch) {
         container = new FirVectorCodeContainer(numInputs, numOutputs);
     } else {
         container = new FirScalarCodeContainer(numInputs, numOutputs, kInt);

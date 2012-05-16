@@ -36,15 +36,16 @@
 #include "code_container.hh"
 #include "recursivness.hh"
 #include "floats.hh"
+#include "global.hh"
 
 using namespace std;
 
-extern bool gOpenMPLoop;
-extern bool gDeepFirstSwitch;
-extern bool gFunTaskSwitch;
-extern bool gDSPStruct;
-extern int gVecLoopSize;
-extern bool gGroupTaskSwitch;
+//extern bool gGlobal->gOpenMPLoop;
+//extern bool gGlobal->gDeepFirstSwitch;
+//extern bool gGlobal->gFunTaskSwitch;
+//extern bool gGlobal->gDSPStruct;
+//extern int gGlobal->gVecLoopSize;
+//extern bool gGlobal->gGroupTaskSwitch;
 
 // Basic type creation
 map<Typed::VarType, BasicTyped*> BasicTyped::gTypeTable;
@@ -376,7 +377,7 @@ DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, bool isv
 
     BlockInst* code = InstBuilder::genBlockInst();
     ValueInst* switch_cond = InstBuilder::genLoadFunArgsVar("channel");
-    SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+    ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
     code->pushBackInst(switch_block);
 
     int i = 0;
@@ -406,7 +407,7 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool is
 
     BlockInst* code = InstBuilder::genBlockInst();
     ValueInst* switch_cond = InstBuilder::genLoadFunArgsVar("channel");
-    SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+    ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
     code->pushBackInst(switch_block);
 
     int i = 0;
@@ -431,8 +432,8 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool is
 
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp)
 {
-    if (gVecLoopSize > 0 && !loop->fIsRecursive) {
-        loop->generateDAGVectorLoop(block, count, omp, gVecLoopSize);
+    if (gGlobal->gVecLoopSize > 0 && !loop->fIsRecursive) {
+        loop->generateDAGVectorLoop(block, count, omp, gGlobal->gVecLoopSize);
     } else {
         loop->generateDAGScalarLoop(block, count, omp);
     }
@@ -440,11 +441,11 @@ void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, De
 
 void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst * count, int loop_num, bool omp)
 {
-    if (gFunTaskSwitch) {
+    if (gGlobal->gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();
         // Generates scalar or vectorized loop
         generateDAGLoopInternal(loop, block, count, omp);
-        Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gDSPStruct);
+        Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gGlobal->gDSPStruct);
         fComputeFunctions->pushBackInst(builder.fFunctionDef);
         loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("/* Recursive function $0 */", T(loop_num)) : subst("/* Vectorizable function $0 */", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);
@@ -459,7 +460,7 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
 {
     int loop_num = 0;
 
-    if (gDeepFirstSwitch) {
+    if (gGlobal->gDeepFirstSwitch) {
         set<CodeLoop*> visited;
         list<CodeLoop*> result;
         sortDeepFirstDAG(fCurLoop, visited, result);
@@ -479,7 +480,7 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
 
 void CodeContainer::processFIR(void)
 {
-    if (gGroupTaskSwitch) {
+    if (gGlobal->gGroupTaskSwitch) {
         CodeLoop::computeUseCount(fCurLoop);
         CodeLoop::groupSeqLoops(fCurLoop);
     }

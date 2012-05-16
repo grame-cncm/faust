@@ -90,12 +90,12 @@ int             yyerr;
 global*         gGlobal;
 
 //Tree 			gResult;
-Tree 			gResult2;
+//Tree 			gResult2;
 
-SourceReader	gReader;
+//SourceReader	gReader;
 
-map<Tree, set<Tree> > gMetaDataSet;
-string gDocLang;
+//map<Tree, set<Tree> > gGlobal->gMetaDataSet;
+//string gGlobal->gDocLang;
 
 static string gOutputLang = "";
 
@@ -104,74 +104,74 @@ static string gOutputLang = "";
 *****************************************************************/
 
 //-- globals
-string          gFaustSuperSuperDirectory;
-string          gFaustSuperDirectory;
-string          gFaustDirectory;
-string          gMasterDocument;
-string          gMasterDirectory;
-string          gMasterName;
-string          gDocName;
-Tree			gExpandedDefList;
+//string          gGlobal->gFaustSuperSuperDirectory;
+//string          gGlobal->gFaustSuperDirectory;
+//string          gGlobal->gFaustDirectory;
+//string          gGlobal->gMasterDocument;
+//string          gGlobal->gMasterDirectory;
+//string          gGlobal->gMasterName;
+//string          gGlobal->gDocName;
+//Tree			gGlobal->gExpandedDefList;
 
 //-- command line arguments
 
-bool			gLLVMSwitch 	= false;
-bool			gHelpSwitch 	= false;
-bool			gVersionSwitch 	= false;
-bool            gDetailsSwitch  = false;
-bool            gDrawSignals    = false;
-bool            gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
-bool            gGraphSwitch 	= false;
-bool            gDrawPSSwitch 	= false;
-bool            gDrawSVGSwitch 	= false;
-bool            gPrintXMLSwitch = false;
-bool            gPrintDocSwitch = false;
-bool            gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
-bool			gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
-int            	gBalancedSwitch = 0;
-int            	gFoldThreshold 	= 25;
-int            	gMaxNameSize 	= 40;
-bool			gSimpleNames 	= false;
-bool            gSimplifyDiagrams = false;
-bool			gLessTempSwitch = false;
-int				gMaxCopyDelay	= 16;
-string			gArchFile;
-string			gOutputFile;
-list<string>	gInputFiles;
+static bool			gLLVMSwitch 	= false;
+static bool			gHelpSwitch 	= false;
+static bool			gVersionSwitch 	= false;
+//bool         gGlobal->gDetailsSwitch  = false;
+//bool            gGlobal->gDrawSignals    = false;
+//bool            gGlobal->gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
+static bool            gGraphSwitch 	= false;
+static bool            gDrawPSSwitch 	= false;
+static bool            gDrawSVGSwitch 	= false;
+static bool            gPrintXMLSwitch = false;
+static bool            gPrintDocSwitch = false;
+static bool            gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
+//bool			gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
+static int            	gBalancedSwitch = 0;
+//int            	gGlobal->gFoldThreshold 	= 25;
+//int            	gGlobal->gMaxNameSize 	= 40;
+//bool			gSimpleNames 	= false;
+//bool            gSimplifyDiagrams = false;
+///bool			gLessTempSwitch = false;
+//int				gGlobal->gMaxCopyDelay	= 16;
+static string			gArchFile;
+//string			gGlobal->gOutputFile;
+static list<string>	gInputFiles;
 
-bool            gPatternEvalMode = false;
+static bool            gPatternEvalMode = false;
 
-bool            gVectorSwitch   = false;
-bool            gDeepFirstSwitch = false;
-int             gVecSize        = 32;
-int             gVectorLoopVariant = 0;
-int             gVecLoopSize = 0;
+//bool            gGlobal->gVectorSwitch   = false;
+//bool            gGlobal->gDeepFirstSwitch = false;
+//int             gGlobal->gVecSize        = 32;
+//int             gGlobal->gVectorLoopVariant = 0;
+//int             gGlobal->gVecLoopSize = 0;
 
-bool            gOpenMPSwitch   = false;
-bool            gOpenMPLoop     = false;
-bool            gSchedulerSwitch  = false;
-bool            gOpenCLSwitch  = false;
-bool            gCUDASwitch = false;
-bool			gGroupTaskSwitch = false;
-bool			gFunTaskSwitch = false;
+//bool            gGlobal->gOpenMPSwitch   = false;
+//bool            gGlobal->gOpenMPLoop     = false;
+//bool            gGlobal->gSchedulerSwitch  = false;
+//bool            gGlobal->gOpenCLSwitch  = false;
+//bool            gGlobal->gCUDASwitch = false;
+//bool			gGlobal->gGroupTaskSwitch = false;
+//bool			gGlobal->gFunTaskSwitch = false;
 
 
-bool            gUIMacroSwitch  = false;
-bool            gDumpNorm       = false;
+//bool            gGlobal->gUIMacroSwitch  = false;
+//bool            gGlobal->gDumpNorm       = false;
 
-int             gTimeout        = 120;            // time out to abort compiler (in seconds)
+static int      gTimeout        = 120;            // time out to abort compiler (in seconds)
 
-int             gFloatSize = 1;
+//int             gGlobal->gFloatSize = 1;
 
-bool			gPrintFileListSwitch = false;
-bool			gInlineArchSwitch = true;
+static bool		gPrintFileListSwitch = false;
+//bool			gInlineArchSwitch = true;
 
-bool			gDSPStruct = false;
+//bool			gGlobal->gDSPStruct = false;
 
-string			gClassName = "mydsp";
+//string			gGlobal->gClassName = "mydsp";
 
-Module*         gModule = 0;
-const char*     gInputString = 0;
+//Module*         gGlobal->gModule = 0;
+//const char*     gGlobal->gInputString = 0;
 
 //-- command line tools
 
@@ -205,7 +205,7 @@ static bool process_cmdline(int argc, char* argv[])
 			i += 1;
 
 		} else if (isCmd(argv[i], "-d", "--details")) {
-			gDetailsSwitch = true;
+			gGlobal->gDetailsSwitch = true;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-a", "--architecture")) {
@@ -213,7 +213,7 @@ static bool process_cmdline(int argc, char* argv[])
 			i += 2;
 
 		} else if (isCmd(argv[i], "-o")) {
-			gOutputFile = argv[i+1];
+			gGlobal->gOutputFile = argv[i+1];
 			i += 2;
 
 		} else if (isCmd(argv[i], "-ps", "--postscript")) {
@@ -229,11 +229,11 @@ static bool process_cmdline(int argc, char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
-            gDrawSignals = true;
+            gGlobal->gDrawSignals = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
-            gShadowBlur = true;
+            gGlobal->gShadowBlur = true;
             i += 1;
 
 		} else if (isCmd(argv[i], "-svg", "--svg")) {
@@ -241,15 +241,15 @@ static bool process_cmdline(int argc, char* argv[])
 			i += 1;
 
 		} else if (isCmd(argv[i], "-f", "--fold")) {
-			gFoldThreshold = atoi(argv[i+1]);
+			gGlobal->gFoldThreshold = atoi(argv[i+1]);
 			i += 2;
 
 		} else if (isCmd(argv[i], "-mns", "--max-name-size")) {
-			gMaxNameSize = atoi(argv[i+1]);
+			gGlobal->gMaxNameSize = atoi(argv[i+1]);
 			i += 2;
 
 		} else if (isCmd(argv[i], "-sn", "--simple-names")) {
-			gSimpleNames = true;
+			gGlobal->gSimpleNames = true;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-lb", "--left-balanced")) {
@@ -265,77 +265,77 @@ static bool process_cmdline(int argc, char* argv[])
 			i += 1;
 
 		} else if (isCmd(argv[i], "-lt", "--less-temporaries")) {
-			gLessTempSwitch = true;
+			gGlobal->gLessTempSwitch = true;
 			i += 1;
 
 		} else if (isCmd(argv[i], "-mcd", "--max-copy-delay")) {
-			gMaxCopyDelay = atoi(argv[i+1]);
+			gGlobal->gMaxCopyDelay = atoi(argv[i+1]);
 			i += 2;
 
 		} else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
-			gSimplifyDiagrams = true;
+			gGlobal->gSimplifyDiagrams = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-vec", "--vectorize")) {
-            gVectorSwitch = true;
+            gGlobal->gVectorSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-vls", "--vec-loop-size")) {
-            gVecLoopSize = atoi(argv[i+1]);
+            gGlobal->gVecLoopSize = atoi(argv[i+1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-scal", "--scalar")) {
-            gVectorSwitch = false;
+            gGlobal->gVectorSwitch = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-dfs", "--deepFirstScheduling")) {
-            gDeepFirstSwitch = true;
+            gGlobal->gDeepFirstSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-vs", "--vec-size")) {
-            gVecSize = atoi(argv[i+1]);
+            gGlobal->gVecSize = atoi(argv[i+1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-lv", "--loop-variant")) {
-            gVectorLoopVariant = atoi(argv[i+1]);
-            if (gVectorLoopVariant < 0 ||
-                gVectorLoopVariant > 1) {
+            gGlobal->gVectorLoopVariant = atoi(argv[i+1]);
+            if (gGlobal->gVectorLoopVariant < 0 ||
+                gGlobal->gVectorLoopVariant > 1) {
                 stringstream error;
-                error << "faust: invalid loop variant: \"" << gVectorLoopVariant <<"\"" << endl;
+                error << "faust: invalid loop variant: \"" << gGlobal->gVectorLoopVariant <<"\"" << endl;
                 throw faustexception(error.str());
             }
             i += 2;
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
-            gOpenMPSwitch = true;
+            gGlobal->gOpenMPSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-pl", "--par-loop")) {
-            gOpenMPLoop = true;
+            gGlobal->gOpenMPLoop = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-sch", "--scheduler")) {
-			gSchedulerSwitch = true;
+			gGlobal->gSchedulerSwitch = true;
 			i += 1;
 
          } else if (isCmd(argv[i], "-ocl", "--openCL")) {
-			gOpenCLSwitch = true;
+			gGlobal->gOpenCLSwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-cuda", "--CUDA")) {
-			gCUDASwitch = true;
+			gGlobal->gCUDASwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
-			gGroupTaskSwitch = true;
+			gGlobal->gGroupTaskSwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-fun", "--funTasks")) {
-			gFunTaskSwitch = true;
+			gGlobal->gFunTaskSwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-uim", "--user-interface-macros")) {
-			gUIMacroSwitch = true;
+			gGlobal->gUIMacroSwitch = true;
 			i += 1;
 
         } else if (isCmd(argv[i], "-t", "--timeout")) {
@@ -344,15 +344,15 @@ static bool process_cmdline(int argc, char* argv[])
 
         // double float options
         } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
-            gFloatSize = 1;
+            gGlobal->gFloatSize = 1;
             i += 1;
 
         } else if (isCmd(argv[i], "-double", "--double-precision-floats")) {
-            gFloatSize = 2;
+            gGlobal->gFloatSize = 2;
             i += 1;
 
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
-            gFloatSize = 3;
+            gGlobal->gFloatSize = 3;
             i += 1;
 
         } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
@@ -360,11 +360,11 @@ static bool process_cmdline(int argc, char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang")) {
-            gDocLang = argv[i+1];
+            gGlobal->gDocLang = argv[i+1];
             i += 2;
 
         } else if (isCmd(argv[i], "-stripmdoc", "--strip-mdoc-tags")) {
-            gStripDocSwitch = true;
+            gGlobal->gStripDocSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
@@ -372,15 +372,15 @@ static bool process_cmdline(int argc, char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
-            gDumpNorm = true;
+            gGlobal->gDumpNorm = true;
             i += 1;
 
 		} else if (isCmd(argv[i], "-cn", "--class-name")) {
-			gClassName = argv[i+1];
+			gGlobal->gClassName = argv[i+1];
 			i += 2;
 
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
-            gInlineArchSwitch = true;
+            gGlobal->gInlineArchSwitch = true;
             i += 1;
 			
        } else if (argv[i][0] != '-') {
@@ -397,11 +397,11 @@ static bool process_cmdline(int argc, char* argv[])
 	}
 
     // adjust related options
-    if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
+    if (gGlobal->gOpenMPSwitch || gGlobal->gSchedulerSwitch) gGlobal->gVectorSwitch = true;
 
-    if (gVecLoopSize > gVecSize) {
+    if (gGlobal->gVecLoopSize > gGlobal->gVecSize) {
         stringstream error;
-        error << "[-vls = "<< gVecLoopSize << "] has to be <= [-vs = " << gVecSize << "]" << endl;
+        error << "[-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
     }
 
@@ -491,7 +491,7 @@ static void printheader(ostream& dst)
     selectedKeys.insert(tree("version"));
 
     dst << "//-----------------------------------------------------" << endl;
-    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (selectedKeys.count(i->first)) {
             dst << "// " << *(i->first);
             const char* sep = ": ";
@@ -538,19 +538,19 @@ static void initFaustDirectories()
     char s[1024];
     getFaustPathname(s, 1024);
 
-    gFaustDirectory = filedirname(s);
-    gFaustSuperDirectory = filedirname(gFaustDirectory);
-    gFaustSuperSuperDirectory = filedirname(gFaustSuperDirectory);
+    gGlobal->gFaustDirectory = filedirname(s);
+    gGlobal->gFaustSuperDirectory = filedirname(gGlobal->gFaustDirectory);
+    gGlobal->gFaustSuperSuperDirectory = filedirname(gGlobal->gFaustSuperDirectory);
     if (gInputFiles.empty()) {
-        gMasterDocument = "Unknown";
-        gMasterDirectory = ".";
-		gMasterName = "faustfx";
-		gDocName = "faustdoc";
+        gGlobal->gMasterDocument = "Unknown";
+        gGlobal->gMasterDirectory = ".";
+		gGlobal->gMasterName = "faustfx";
+		gGlobal->gDocName = "faustdoc";
     } else {
-        gMasterDocument = *gInputFiles.begin();
-        gMasterDirectory = filedirname(gMasterDocument);
-		gMasterName = fxname(gMasterDocument);
-		gDocName = fxname(gMasterDocument);
+        gGlobal->gMasterDocument = *gInputFiles.begin();
+        gGlobal->gMasterDirectory = filedirname(gGlobal->gMasterDocument);
+		gGlobal->gMasterName = fxname(gGlobal->gMasterDocument);
+		gGlobal->gDocName = fxname(gGlobal->gMasterDocument);
     }
 }
 
@@ -559,7 +559,7 @@ static void parseSourceFiles()
     startTiming("parser");
 
     list<string>::iterator s;
-    gResult2 = nil;
+    gGlobal->gResult2 = nil;
 
     if (gInputFiles.begin() == gInputFiles.end()) {
         stringstream error;
@@ -567,11 +567,11 @@ static void parseSourceFiles()
         throw faustexception(error.str());
     }
     for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-        if (s == gInputFiles.begin()) gMasterDocument = *s;
-        gResult2 = cons(importFile(tree(s->c_str())), gResult2);
+        if (s == gInputFiles.begin()) gGlobal->gMasterDocument = *s;
+        gGlobal->gResult2 = cons(importFile(tree(s->c_str())), gGlobal->gResult2);
     }
    
-    gExpandedDefList = gReader.expandlist(gResult2);
+    gGlobal->gExpandedDefList = gGlobal->gReader.expandlist(gGlobal->gResult2);
 
     endTiming("parser");
 }
@@ -584,16 +584,16 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     Tree process = evalprocess(expandedDefList);
     if (gErrorCount > 0) {
         stringstream error;
-        error << "Total of " << gErrorCount << " errors during the compilation of  " << gMasterDocument << ";\n";
+        error << "Total of " << gErrorCount << " errors during the compilation of  " << gGlobal->gMasterDocument << ";\n";
         throw faustexception(error.str());
     }
 
-    if (gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
+    if (gGlobal->gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
     if (gDrawPSSwitch || gDrawSVGSwitch) {
-        string projname = gMasterDocument;
-        if( gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp" ) {
-            projname = gMasterDocument.substr(0, gMasterDocument.length()-4);
+        string projname = gGlobal->gMasterDocument;
+        if( gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp" ) {
+            projname = gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length()-4);
         }
         if (gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
         if (gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
@@ -605,7 +605,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
         throw faustexception(error.str());
     }
 
-    if (gDetailsSwitch) {
+    if (gGlobal->gDetailsSwitch) {
         cerr <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
     }
 
@@ -614,7 +614,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     if (gPrintFileListSwitch) {
         cout << "******* ";
         // print the pathnames of the files used to evaluate process
-        vector<string> pathnames = gReader.listSrcFiles();
+        vector<string> pathnames = gGlobal->gReader.listSrcFiles();
         for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << ' ';
         cout << endl;
     }
@@ -637,17 +637,17 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     istream* enrobage;
     ostream* dst;
 
-    if (gOutputFile != "") {
-        dst = new ofstream(gOutputFile.c_str());
+    if (gGlobal->gOutputFile != "") {
+        dst = new ofstream(gGlobal->gOutputFile.c_str());
     } else {
         dst = &cout;
     }
 
     if (gOutputLang == "llvm") {
 
-        container = LLVMCodeContainer::createContainer(gClassName, numInputs, numOutputs, dst);
+        container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
-        if (gVectorSwitch) {
+        if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
         } else {
             comp = new InstructionsCompiler(container);
@@ -660,30 +660,30 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         comp->prepare(signals);
      
         comp->compileMultiSignal(signals);
-        gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gOutputFile.c_str());
+        gGlobal->gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gGlobal->gOutputFile.c_str());
   
     } else {
         if (gOutputLang == "c") {
 
-            container = CCodeContainer::createContainer(gClassName, numInputs, numOutputs, dst);
+            container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (gOutputLang == "cpp") {
 
-            container = CPPCodeContainer::createContainer(gClassName, "dsp", numInputs, numOutputs, dst);
+            container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (gOutputLang == "java") {
 
-            container = JAVACodeContainer::createContainer(gClassName, "dsp", numInputs, numOutputs, dst);
+            container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
             
         } else if (gOutputLang == "js") {
 
-            container = JAVAScriptCodeContainer::createContainer(gClassName, "dsp", numInputs, numOutputs, dst);
+            container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (gOutputLang == "fir") {
 
             container = FirCodeContainer::createContainer(numInputs, numOutputs);
 
-            if (gVectorSwitch) {
+            if (gGlobal->gVectorSwitch) {
                 comp = new DAGInstructionsCompiler(container);
             } else {
                 comp = new InstructionsCompiler(container);
@@ -701,7 +701,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             error << "ERROR : cannot find compiler for " << "\"" << gOutputLang  << "\"" << endl;
             throw faustexception(error.str());
         }
-        if (gVectorSwitch) {
+        if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
         } else {
             comp = new InstructionsCompiler(container);
@@ -726,14 +726,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 }
                 
                 if (gOutputLang == "c" || gOutputLang == "cpp") {
-                    tab(0, *dst); *dst << "#ifndef  __" << gClassName << "_H__";
-                    tab(0, *dst); *dst << "#define  __" << gClassName << "_H__" << std::endl;
+                    tab(0, *dst); *dst << "#ifndef  __" << gGlobal->gClassName << "_H__";
+                    tab(0, *dst); *dst << "#define  __" << gGlobal->gClassName << "_H__" << std::endl;
                 }
 
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                 streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
 
-                if (gOpenCLSwitch || gCUDASwitch) {
+                if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
                     istream* thread_include = open_arch_stream("thread.h");
                     if (thread_include) {
                         streamCopy(*thread_include, *dst);
@@ -741,7 +741,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 }
 
                 if (gOutputLang != "java" && gOutputLang != "js") {
-                    printfloatdef(*dst, (gFloatSize == 3));
+                    printfloatdef(*dst, (gGlobal->gFloatSize == 3));
                 }
 
                 if (gOutputLang == "c") {
@@ -750,7 +750,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
                 container->produceClass();
                 streamCopyUntilEnd(*enrobage, *dst);
-                if (gSchedulerSwitch) {
+                if (gGlobal->gOpenCLSwitch) {
                     istream* scheduler_include = open_arch_stream("scheduler.cpp");
                     if (scheduler_include) {
                         streamCopy(*scheduler_include, *dst);
@@ -771,7 +771,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 printheader(*dst);
             }
             if (gOutputLang != "java" && gOutputLang != "js") {
-                printfloatdef(*dst, (gFloatSize == 3));
+                printfloatdef(*dst, (gGlobal->gFloatSize == 3));
             }
             if (gOutputLang == "c") {
                 *dst << "#include <stdlib.h>"<< std::endl;
@@ -792,15 +792,15 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
     if (gPrintXMLSwitch) {
         Description*    D = comp->getDescription(); assert(D);
-        ofstream        xout(subst("$0.xml", gMasterDocument).c_str());
+        ofstream        xout(subst("$0.xml", gGlobal->gMasterDocument).c_str());
 
-        if (gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gMetaDataSet[tree("name")].begin())));
-        if (gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gMetaDataSet[tree("author")].begin())));
-        if (gMetaDataSet.count(tree("copyright")) > 0)     D->copyright(tree2str(*(gMetaDataSet[tree("copyright")].begin())));
-        if (gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gMetaDataSet[tree("license")].begin())));
-        if (gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gMetaDataSet[tree("version")].begin())));
+        if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
+        if (gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
+        if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)     D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
+        if (gGlobal->gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
+        if (gGlobal->gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
 
-        D->className(gClassName);
+        D->className(gGlobal->gClassName);
 		D->inputs(container->inputs());
 		D->outputs(container->outputs());
 
@@ -813,9 +813,9 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
     if (gPrintDocSwitch) {
         if (gLatexDocSwitch) {
-            string projname = gMasterDocument;
-            if (gMasterDocument.substr(gMasterDocument.length()-4) == ".dsp") {
-                projname = gMasterDocument.substr(0, gMasterDocument.length() - 4); }
+            string projname = gGlobal->gMasterDocument;
+            if (gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp") {
+                projname = gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4); }
             printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
         }
     }
@@ -825,7 +825,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     *****************************************************************/
 
     if (gGraphSwitch) {
-        ofstream dotfile(subst("$0.dot", gMasterDocument).c_str());
+        ofstream dotfile(subst("$0.dot", gGlobal->gMasterDocument).c_str());
         container->printGraphDotFormat(dotfile);
     }
 }
@@ -838,6 +838,8 @@ extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* input)
 int compile_faust(int argc, char* argv[], const char* input = NULL)
 {
     try {
+    
+        gGlobal = new global();
         
         /****************************************************************
          1 - process command line
@@ -856,7 +858,7 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
          2 - parse source files
         *****************************************************************/
         if (input) {
-            gInputString = input;
+            gGlobal->gInputString = input;
             gInputFiles.push_back("input_string");
         }
         parseSourceFiles();
@@ -865,7 +867,7 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
          3 - evaluate 'process' definition
         *****************************************************************/
         int numInputs, numOutputs;
-        Tree process = evaluateBlockDiagram(gExpandedDefList, numInputs, numOutputs);
+        Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
 
         /****************************************************************
          4 - compute output signals of 'process'
@@ -874,7 +876,7 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
 
         Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
 
-        if (gDetailsSwitch) {
+        if (gGlobal->gDetailsSwitch) {
             cerr << "output signals are : " << endl;
             Tree ls =  lsignals;
             while (! isNil(ls)) {
@@ -894,6 +896,8 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
          6 - generate xml description, documentation or dot files
         *****************************************************************/
         generateOutputFiles(comp_container.first, comp_container.second);
+        
+        delete gGlobal;
     
     } catch (faustexception& e) {
         e.PrintMessage();
@@ -906,5 +910,5 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
 Module* compile_faust_llvm(int argc, char* argv[], const char* input)
 {
     compile_faust(argc, argv, input);
-    return gModule;
+    return gGlobal->gModule;
 }

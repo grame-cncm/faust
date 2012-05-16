@@ -43,12 +43,15 @@
 #include "names.hh"
 #include "compatibility.hh"
 #include "exception.hh"
+#include "global.hh"
 
 #include <assert.h>
-extern SourceReader	gReader;
-extern int  gMaxNameSize;
-extern bool	gSimpleNames;
-extern bool gSimplifyDiagrams;
+
+//extern SourceReader	gReader;
+//extern int  gGlobal->gMaxNameSize;
+//extern bool	gGlobal->gSimpleNames;
+//extern bool gGlobal->gSimplifyDiagrams;
+
 // History
 // 23/05/2005 : New environment management
 
@@ -102,7 +105,7 @@ Tree evalprocess (Tree eqlist)
 {
     Tree b = a2sb(eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlist, nil, nil)));
 
-    if (gSimplifyDiagrams) {
+    if (gGlobal->gSimplifyDiagrams) {
         b = boxSimplification(b);
     }
 
@@ -383,7 +386,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else if (isBoxComponent(exp, label)) {
         string  fname   = tree2str(label);
-        Tree    eqlst   = gReader.expandlist(gReader.getlist(fname));
+        Tree    eqlst   = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
         Tree    res     = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
@@ -391,7 +394,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else if (isBoxLibrary(exp, label)) {
         string  fname   = tree2str(label);
-        Tree    eqlst   = gReader.expandlist(gReader.getlist(fname));
+        Tree    eqlst   = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
         Tree    res     = closure(boxEnvironment(), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
@@ -1075,7 +1078,7 @@ static Tree applyList (Tree fun, Tree larg)
 
 		Tree	fname;
 		if (getDefNameProperty(fun, fname)) {
-			stringstream s; s << tree2str(fname); if (!gSimpleNames) s << "(" << boxpp(arg) << ")";
+			stringstream s; s << tree2str(fname); if (!gGlobal->gSimpleNames) s << "(" << boxpp(arg) << ")";
 			setDefNameProperty(f, s.str());
 		}
 		return applyList(f, tl(larg));

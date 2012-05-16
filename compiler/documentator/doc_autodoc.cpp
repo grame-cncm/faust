@@ -30,20 +30,17 @@
 #include "tlib.hh"
 #include "boxes.hh"
 #include "doc.hh"
+#include "global.hh"
 
+//extern SourceReader				gReader;
+//extern string					gGlobal->gDocName;
+//extern map<Tree, set<Tree> > 	gGlobal->gMetaDataSet;
+//extern map<string, string>		gGlobal->gDocMetadatasStringMap;
 
-extern SourceReader				gReader;
-extern string					gDocName;
-extern map<Tree, set<Tree> > 	gMetaDataSet;
-extern map<string, string>		gDocMetadatasStringMap;
-
-map<string, string>		gDocAutodocStringMap;
-set<string>				gDocAutodocKeySet;
+//map<string, string>		gGlobal->gDocAutodocStringMap;
+//set<string>				gGlobal->gDocAutodocKeySet;
 
 static void				initDocAutodocKeySet();
-
-
-
 
 /*****************************************************************************
 						Public functions
@@ -68,16 +65,16 @@ void declareAutoDoc()
 	/** The latex title macro is bound to the metadata "name" if it exists,
 	 (corresponding to "declare name") or else just to the file name. */
 	autodoc = cons(docTxt("\\title{"), autodoc);
-	if (gMetaDataSet.count(tree("name"))) {
+	if (gGlobal->gMetaDataSet.count(tree("name"))) {
 		autodoc = cons(docMtd(tree("name")), autodoc);
 	} else {
-		autodoc = cons(docTxt(gDocName.c_str()), autodoc);
+		autodoc = cons(docTxt(gGlobal->gDocName.c_str()), autodoc);
 	}
 	autodoc = cons(docTxt("}\n"), autodoc);
 	
 	/** The latex author macro is bound to the metadata "author" if it exists,
 	 (corresponding to "declare author") or else no author item is printed. */
-	if (gMetaDataSet.count(tree("author"))) {
+	if (gGlobal->gMetaDataSet.count(tree("author"))) {
 		autodoc = cons(docTxt("\\author{"), autodoc);
 		autodoc = cons(docMtd(tree("author")), autodoc);
 		autodoc = cons(docTxt("}\n"), autodoc);
@@ -86,7 +83,7 @@ void declareAutoDoc()
 	/** The latex date macro is bound to the metadata "date" if it exists,
 	 (corresponding to "declare date") or else to the today latex macro. */
 	autodoc = cons(docTxt("\\date{"), autodoc);
-	if (gMetaDataSet.count(tree("date"))) {
+	if (gGlobal->gMetaDataSet.count(tree("date"))) {
 		autodoc = cons(docMtd(tree("date")), autodoc);
 	} else {
 		autodoc = cons(docTxt("\\today"), autodoc);
@@ -98,12 +95,12 @@ void declareAutoDoc()
 
 	
 	/** Insert all declared metadatas in a latex tabular environment. */
-	if (! gMetaDataSet.empty()) {
+	if (! gGlobal->gMetaDataSet.empty()) {
 		autodoc = cons(docTxt("\\begin{tabular}{ll}\n"), autodoc);
 		autodoc = cons(docTxt("\t\\hline\n"), autodoc);
-		for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+		for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
 			string mtdkey = tree2str(i->first);
-			string mtdTranslatedKey = gDocMetadatasStringMap[mtdkey];
+			string mtdTranslatedKey = gGlobal->gDocMetadatasStringMap[mtdkey];
 			if (mtdTranslatedKey.empty()) {
 				mtdTranslatedKey = mtdkey;
 			}
@@ -121,32 +118,32 @@ void declareAutoDoc()
 
 	/** Autodoc's "body", with equation and diagram of process, and notice and listing. */
 	
-	string autoPresentationTxt = "\n\\bigskip\n" + gDocAutodocStringMap["thisdoc"] + "\n\n";
+	string autoPresentationTxt = "\n\\bigskip\n" + gGlobal->gDocAutodocStringMap["thisdoc"] + "\n\n";
 	autodoc = cons(docTxt(autoPresentationTxt.c_str()), autodoc);
 	
-	string autoEquationTxt = "\n" + gDocAutodocStringMap["autoeqntitle"] + "\n\n";
-	autoEquationTxt += gDocAutodocStringMap["autoeqntext"] + "\n";
+	string autoEquationTxt = "\n" + gGlobal->gDocAutodocStringMap["autoeqntitle"] + "\n\n";
+	autoEquationTxt += gGlobal->gDocAutodocStringMap["autoeqntext"] + "\n";
 	autodoc = cons(docTxt(autoEquationTxt.c_str()), autodoc);
 	autodoc = cons(docEqn(process), autodoc);
 	
-	string autoDiagramTxt = "\n" + gDocAutodocStringMap["autodgmtitle"] + "\n\n";
-	autoDiagramTxt += gDocAutodocStringMap["autodgmtext"] + "\n";
+	string autoDiagramTxt = "\n" + gGlobal->gDocAutodocStringMap["autodgmtitle"] + "\n\n";
+	autoDiagramTxt += gGlobal->gDocAutodocStringMap["autodgmtext"] + "\n";
 	autodoc = cons(docTxt(autoDiagramTxt.c_str()), autodoc);
 	autodoc = cons(docDgm(process), autodoc);	
 	
-	string autoNoticeTxt = "\n" + gDocAutodocStringMap["autontctitle"] + "\n\n";
-//	autoNoticeTxt += gDocAutodocStringMap["autontctext"] + "\n";
+	string autoNoticeTxt = "\n" + gGlobal->gDocAutodocStringMap["autontctitle"] + "\n\n";
+//	autoNoticeTxt += gGlobal->gDocAutodocStringMap["autontctext"] + "\n";
 	autodoc = cons(docTxt(autoNoticeTxt.c_str()), autodoc);
 	autodoc = cons(docNtc(), autodoc);
 	
 	string autoListingTxt;
-	vector<string> pathnames = gReader.listSrcFiles();
+	vector<string> pathnames = gGlobal->gReader.listSrcFiles();
 	if(pathnames.size() > 1) {
-		autoListingTxt = "\n" + gDocAutodocStringMap["autolsttitle2"] + "\n\n";
-		autoListingTxt += gDocAutodocStringMap["autolsttext2"] + "\n";
+		autoListingTxt = "\n" + gGlobal->gDocAutodocStringMap["autolsttitle2"] + "\n\n";
+		autoListingTxt += gGlobal->gDocAutodocStringMap["autolsttext2"] + "\n";
 	} else {
-		autoListingTxt = "\n" + gDocAutodocStringMap["autolsttitle1"] + "\n\n";
-		autoListingTxt += gDocAutodocStringMap["autolsttext1"] + "\n";
+		autoListingTxt = "\n" + gGlobal->gDocAutodocStringMap["autolsttitle1"] + "\n\n";
+		autoListingTxt += gGlobal->gDocAutodocStringMap["autolsttext1"] + "\n";
 	}
 	autodoc = cons(docTxt(autoListingTxt.c_str()), autodoc);
 	autodoc = cons(docLst(), autodoc);
@@ -171,26 +168,26 @@ void initDocAutodoc()
 
 
 /** 
- * Initialize gDocAutodocKeySet, a set containing all the keywords.
+ * Initialize gGlobal->gDocAutodocKeySet, a set containing all the keywords.
  */
 static void initDocAutodocKeySet() {
 	
-	gDocAutodocKeySet.insert("thisdoc");
+	gGlobal->gDocAutodocKeySet.insert("thisdoc");
 
-	gDocAutodocKeySet.insert("autoeqntitle");
-	gDocAutodocKeySet.insert("autoeqntext");
+	gGlobal->gDocAutodocKeySet.insert("autoeqntitle");
+	gGlobal->gDocAutodocKeySet.insert("autoeqntext");
 	
-	gDocAutodocKeySet.insert("autodgmtitle");
-	gDocAutodocKeySet.insert("autodgmtext");
+	gGlobal->gDocAutodocKeySet.insert("autodgmtitle");
+	gGlobal->gDocAutodocKeySet.insert("autodgmtext");
 	
-	gDocAutodocKeySet.insert("autontctitle");
-	gDocAutodocKeySet.insert("autontctext");
+	gGlobal->gDocAutodocKeySet.insert("autontctitle");
+	gGlobal->gDocAutodocKeySet.insert("autontctext");
 	
-	gDocAutodocKeySet.insert("autolsttitle1");	
-	gDocAutodocKeySet.insert("autolsttext1");
+	gGlobal->gDocAutodocKeySet.insert("autolsttitle1");	
+	gGlobal->gDocAutodocKeySet.insert("autolsttext1");
 	
-	gDocAutodocKeySet.insert("autolsttitle2");
-	gDocAutodocKeySet.insert("autolsttext2");
+	gGlobal->gDocAutodocKeySet.insert("autolsttitle2");
+	gGlobal->gDocAutodocKeySet.insert("autolsttext2");
 }
 
 
@@ -200,11 +197,11 @@ static void initDocAutodocKeySet() {
 static void printDocAutodocStringMapContent() {
 	bool trace = false;
 	if(trace) {
-		cout << "gDocAutodocStringMap.size() = " << gDocAutodocStringMap.size() << endl;
+		cout << "gGlobal->gDocAutodocStringMap.size() = " << gGlobal->gDocAutodocStringMap.size() << endl;
 		map<string,string>::iterator it;
 		int i = 1;
-		for(it = gDocAutodocStringMap.begin(); it!=gDocAutodocStringMap.end(); ++it)
-			cout << i++ << ".\tgDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
+		for(it = gGlobal->gDocAutodocStringMap.begin(); it!=gGlobal->gDocAutodocStringMap.end(); ++it)
+			cout << i++ << ".\tgGlobal->gDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
 	}
 }
 

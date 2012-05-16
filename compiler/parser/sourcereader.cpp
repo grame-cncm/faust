@@ -20,11 +20,11 @@
 
 using namespace std;
 
-extern map<Tree, set<Tree> > gMetaDataSet;
-extern string gMasterDocument;
-extern vector<Tree> gDocVector;
+//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
+//extern string gGlobal->gMasterDocument;
+//extern vector<Tree> gGlobal->gGlobal->gDocVector;
 extern bool gLatexDocSwitch;
-extern char* gInputString;
+//extern char* gGlobal->gInputString;
 
 /****************************************************************
  						Parser variables
@@ -40,7 +40,7 @@ extern int		yylineno;
 extern const char * yyfilename;
 
 //extern Tree 	gResult;
-extern Tree 	gResult2;
+//extern Tree 	gResult2;
 
 
 /**
@@ -206,7 +206,7 @@ Tree SourceReader::parsefile(string fname)
 Tree SourceReader::parsestring(string fname) 
 {
     yyerr = 0;
-    yy_scan_string(gInputString);
+    yy_scan_string(gGlobal->gInputString);
     return parse(fname);
 }
 
@@ -324,24 +324,22 @@ Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)
 	return lresult;
 }
 				
-
 void declareMetadata(Tree key, Tree value)
 {
-    if (gMasterDocument == yyfilename) {
+    if (gGlobal->gMasterDocument == yyfilename) {
         // inside master document, no prefix needed to declare metadata
-        gMetaDataSet[key].insert(value);
+        gGlobal->gMetaDataSet[key].insert(value);
     } else {
         string fkey(yyfilename);
         fkey += "/";
         fkey += tree2str(key);
-        gMetaDataSet[tree(fkey.c_str())].insert(value);
+        gGlobal->gMetaDataSet[tree(fkey.c_str())].insert(value);
     }
-    //cout << "Master " << gMasterDocument  << ", file " << yyfilename <<  " : declare " << *key << "," << *value << endl;
+    //cout << "Master " << gGlobal->gMasterDocument  << ", file " << yyfilename <<  " : declare " << *key << "," << *value << endl;
 }
-
 
 void declareDoc(Tree t)
 {
 	//gLatexDocSwitch = true;
-	gDocVector.push_back(t);
+	gGlobal->gDocVector.push_back(t);
 }

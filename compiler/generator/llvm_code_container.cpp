@@ -29,23 +29,23 @@
 ***********************************************************************/
 #include "llvm_code_container.hh"
 #include "exception.hh"
+#include "global.hh"
 
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Analysis/Passes.h>
 
 using namespace std;
 
-extern bool gVectorSwitch;
-extern int gVectorLoopVariant;
-extern int gVecSize;
-extern bool gDSPStruct;
-extern bool gOpenCLSwitch;
-extern bool gCUDASwitch;
-extern bool gOpenMPSwitch;
-extern bool gSchedulerSwitch;
-extern bool gVectorSwitch;
-extern int gFloatSize;
-extern map<Tree, set<Tree> > gMetaDataSet;
+//extern bool gGlobal->gVectorSwitch;
+//extern int gGlobal->gVectorLoopVariant;
+//extern int gGlobal->gVecSize;
+//extern bool gGlobal->gDSPStruct;
+//extern bool gGlobal->gOpenCLSwitch;
+//extern bool gGlobal->gCUDASwitch;
+//extern bool gGlobal->gOpenMPSwitch;
+//extern bool gGlobal->gSchedulerSwitch;
+//extern int gGlobal->gFloatSize;
+//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
 
 #ifdef LLVM_29
 #include <llvm/Support/StandardPasses.h>
@@ -79,23 +79,23 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
 {
     CodeContainer* container;
 
-    if (gFloatSize == 3) {
+    if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported in LLVM\n");
     }
-    gDSPStruct = true;
+    gGlobal->gDSPStruct = true;
 
-    if (gOpenCLSwitch) {
+    if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for LLVM\n");
     }
-    if (gCUDASwitch) {
+    if (gGlobal->gCUDASwitch) {
         throw faustexception("ERROR : CUDA not supported for LLVM\n");
     }
 
-    if (gOpenMPSwitch) {
+    if (gGlobal->gOpenMPSwitch) {
         throw faustexception("ERROR : OpenMP not supported for LLVM\n");
-    } else if (gSchedulerSwitch) {
+    } else if (gGlobal->gOpenCLSwitch) {
         container = new LLVMWorkStealingCodeContainer(name, numInputs, numOutputs);
-    } else if (gVectorSwitch) {
+    } else if (gGlobal->gVectorSwitch) {
         container = new LLVMVectorCodeContainer(name, numInputs, numOutputs);
     } else {
         container = new LLVMScalarCodeContainer(name, numInputs, numOutputs);
@@ -172,14 +172,14 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     llvm_compute_args.push_back(fStruct_DSP_ptr);
     llvm_compute_args.push_back(fBuilder->getInt32Ty());
 
-    //if (!gVectorSwitch) {
+    //if (!gGlobal->gVectorSwitch) {
         LLVM_TYPE buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
         llvm_compute_args.push_back(PointerType::get(PointerType::get(buffer_type, 0), 0));
         llvm_compute_args.push_back(PointerType::get(PointerType::get(buffer_type, 0), 0));
     /*
     } else {
-        llvm_compute_args.push_back(PointerType::get(PointerType::get(VectorType::get(fBuilder->getFloatTy(), gVecSize), 0), 0));
-        llvm_compute_args.push_back(PointerType::get(PointerType::get(VectorType::get(fBuilder->getFloatTy(), gVecSize), 0), 0));
+        llvm_compute_args.push_back(PointerType::get(PointerType::get(VectorType::get(fBuilder->getFloatTy(), gGlobal->gVecSize), 0), 0));
+        llvm_compute_args.push_back(PointerType::get(PointerType::get(VectorType::get(fBuilder->getFloatTy(), gGlobal->gVecSize), 0), 0));
     }
     */
 
@@ -435,7 +435,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     BasicBlock* init_block = BasicBlock::Create(getGlobalContext(), "init", llvm_metaData);
     fBuilder->SetInsertPoint(init_block);
 
-    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         GlobalVariable* llvm_label1;
         GlobalVariable* llvm_label2;
         if (i->first != tree("author")) {
@@ -515,8 +515,8 @@ void LLVMCodeContainer::produceInternal()
     // TODO : Input and output rates
 
     // Init code generator with fields_names
-    //if (gVectorSwitch) {
-        //fCodeProducer = new LLVMVectorInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, gVecSize);
+    //if (gGlobal->gVectorSwitch) {
+        //fCodeProducer = new LLVMVectorInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, gGlobal->gVecSize);
     //    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, fKlassName);
     //} else {
         fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
@@ -570,8 +570,8 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateGetNumOutputs();
 
     // Init code generator with fields_names
-    //if (gVectorSwitch) {
-        //fCodeProducer = new LLVMVectorInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, gVecSize);
+    //if (gGlobal->gVectorSwitch) {
+        //fCodeProducer = new LLVMVectorInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, gGlobal->gVecSize);
       //  fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fStruct_UI_ptr, fUIInterface_ptr, fKlassName);
     //} else {
         fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);

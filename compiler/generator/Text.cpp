@@ -34,7 +34,7 @@
 
 #include "floats.hh"
 
-extern bool gInternDoubleSwitch;
+//extern bool gInternDoubleSwitch;
 
 static string substitution (const string& model, const vector<string>& args);
 

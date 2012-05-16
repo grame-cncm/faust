@@ -101,8 +101,8 @@ extern int 			yyerr;
 //extern bool         gLstDistributedSwitch;
 //extern bool        	gLstMdocTagsSwitch;
 	
-//extern map<Tree, set<Tree> > gMetaDataSet;
-//extern vector<Tree> gDocVector;
+////extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
+//extern vector<Tree> gGlobal->gGlobal->gDocVector;
 
 
 int yylex();

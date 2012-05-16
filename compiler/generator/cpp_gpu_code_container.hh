@@ -30,6 +30,7 @@
 ***********************************************************************/
 
 #include "cpp_code_container.hh"
+#include "global.hh"
 
 class CPPGPUCodeContainer : public CPPCodeContainer {
 
@@ -483,7 +484,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
         CPPCUDACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
              :CPPGPUCodeContainer(name, super, numInputs, numOutputs, out)
         {
-            string filename = gOutputFile + ".cu";
+            string filename = gGlobal->gOutputFile + ".cu";
             fGPUOut = new std::ofstream(filename.c_str());
             fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
             fNumInputs = numInputs;

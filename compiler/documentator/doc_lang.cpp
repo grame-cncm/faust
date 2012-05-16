@@ -36,19 +36,19 @@
 #include "enrobage.hh"
 #include "compatibility.hh"
 #include "exception.hh"
+#include "global.hh"
 
+//extern map<string, string>	gGlobal->gDocNoticeStringMap;
+//extern set<string>			gGlobal->gDocNoticeKeySet;
 
-extern map<string, string>	gDocNoticeStringMap;
-extern set<string>			gDocNoticeKeySet;
+//extern map<string, string>	gGlobal->gDocAutodocStringMap;
+//extern set<string>			gGlobal->gDocAutodocKeySet;
 
-extern map<string, string>	gDocAutodocStringMap;
-extern set<string>			gDocAutodocKeySet;
+//extern map<string, string>	gGlobal->gDocMathStringMap;
+//extern set<string>			gGlobal->gDocMathKeySet;
 
-extern map<string, string>	gDocMathStringMap;
-extern set<string>			gDocMathKeySet;
-
-extern map<string, string>	gDocMetadatasStringMap;
-extern set<string>			gDocMetadatasKeySet;
+//extern map<string, string>	gGlobal->gDocMetadatasStringMap;
+//extern set<string>			gGlobal->gDocMetadatasKeySet;
 
 static const string			gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
@@ -65,13 +65,9 @@ static int			cholddir();
 
 static string 		gCurrentDir;	///< Room to save current directory name.
 
-
-
-
 /*****************************************************************************
 							Public functions
  *****************************************************************************/
-
 
 void loadTranslationFile(const string& lang)
 {
@@ -89,13 +85,9 @@ void loadTranslationFile(const string& lang)
 	}
 }
 
-
-
 /*****************************************************************************
 								Static functions
  *****************************************************************************/
-
-
 
 /**
  * @brief Feed the content of doc texts maps from a file.
@@ -135,10 +127,10 @@ static void importDocStrings(const string& filename)
 		getText(s, pt1, text);
 		storePair(key, text);
 	}
-	printStringMapContent(gDocNoticeStringMap, "gDocNoticeStringMap");
-	printStringMapContent(gDocAutodocStringMap, "gDocAutodocStringMap");
-	printStringMapContent(gDocMathStringMap, "gDocMathStringMap");
-	printStringMapContent(gDocMetadatasStringMap, "gDocMetadatasStringMap");
+	printStringMapContent(gGlobal->gDocNoticeStringMap, "gGlobal->gDocNoticeStringMap");
+	printStringMapContent(gGlobal->gDocAutodocStringMap, "gGlobal->gDocAutodocStringMap");
+	printStringMapContent(gGlobal->gDocMathStringMap, "gGlobal->gDocMathStringMap");
+	printStringMapContent(gGlobal->gDocMetadatasStringMap, "gGlobal->gDocMetadatasStringMap");
 }
 
 
@@ -160,7 +152,6 @@ static void getKey(string& s, string& key, size_t& pt1)
 	pt1 = s.find_first_of("\"", pk2);
 }
 
-
 static void getText(string& s, size_t& pt1, string& text)
 {
 	/* Capture the text on the current line. */
@@ -172,31 +163,29 @@ static void getText(string& s, size_t& pt1, string& text)
 	}
 }
 
-
 static void storePair(const string& key, const string& text)
 {
 	/* Store the current pair. */
 	if(!key.empty() && !text.empty()) {
 		
-		if (gDocNoticeKeySet.find(key) != gDocNoticeKeySet.end()) {
-			gDocNoticeStringMap[key] = text;
+		if (gGlobal->gDocNoticeKeySet.find(key) != gGlobal->gDocNoticeKeySet.end()) {
+			gGlobal->gDocNoticeStringMap[key] = text;
 		} 
-		else if (gDocAutodocKeySet.find(key) != gDocAutodocKeySet.end()) {
-			gDocAutodocStringMap[key] = text;
+		else if (gGlobal->gDocAutodocKeySet.find(key) != gGlobal->gDocAutodocKeySet.end()) {
+			gGlobal->gDocAutodocStringMap[key] = text;
 		}
-		else if (gDocMathKeySet.find(key) != gDocMathKeySet.end()) {
-			gDocMathStringMap[key] = text;
+		else if (gGlobal->gDocMathKeySet.find(key) != gGlobal->gDocMathKeySet.end()) {
+			gGlobal->gDocMathStringMap[key] = text;
 		}
-		else if (gDocMetadatasKeySet.find(key) != gDocMetadatasKeySet.end()) {
-			gDocMetadatasStringMap[key] = text;
+		else if (gGlobal->gDocMetadatasKeySet.find(key) != gGlobal->gDocMetadatasKeySet.end()) {
+			gGlobal->gDocMetadatasStringMap[key] = text;
 		}
 		else {
 			cerr << "Documentator : importDocStings : " << "warning : unknown key \"" << key << "\"" << endl;
 		}
-		//cerr << "gDocNoticeStringMap[\"" << key << "\"] = \"" << gDocNoticeStringMap[key] << "\"" << endl;
+		//cerr << "gGlobal->gDocNoticeStringMap[\"" << key << "\"] = \"" << gGlobal->gDocNoticeStringMap[key] << "\"" << endl;
 	}
 }
-
 
 /** 
  * Simple trace function.
@@ -212,9 +201,7 @@ static void printStringMapContent(map<string,string>& m, const string& name) {
 	}
 }
 
-
 //------------------------ file managment -------------------------
-
 
 /**
  * Open architecture file.
@@ -234,7 +221,6 @@ static istream* openArchFile (const string& filename)
 	return file;
 }
 
-
 /**
  * Switch back to the previously stored current directory
  */
@@ -248,7 +234,6 @@ static int cholddir ()
         throw faustexception(error.str());
 	}
 }
-
 
 /**
  * Get current directory and store it in gCurrentDir.

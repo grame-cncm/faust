@@ -32,19 +32,19 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "exception.hh"
+#include "global.hh"
 
 using namespace std;
 
-extern bool gUIMacroSwitch;
-extern int gVectorLoopVariant;
-extern bool gVectorSwitch;
-extern bool gOpenCLSwitch;
-extern bool gCUDASwitch;
-extern bool gOpenMPSwitch;
-extern bool gSchedulerSwitch;
-extern bool gVectorSwitch;
-extern bool gFunTaskSwitch;
-extern map<Tree, set<Tree> > gMetaDataSet;
+//extern bool gGlobal->gUIMacroSwitch;
+//extern int gGlobal->gVectorLoopVariant;
+//extern bool gVectorSwitch;
+//extern bool gGlobal->gOpenCLSwitch;
+//extern bool gGlobal->gCUDASwitch;
+//extern bool gGlobal->gOpenMPSwitch;
+//extern bool gGlobal->gSchedulerSwitch;
+//extern bool gGlobal->gFunTaskSwitch;
+//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
 
 CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -55,18 +55,18 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, cons
 {
     CodeContainer* container;
 
-    if (gOpenCLSwitch) {
+    if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for JavaScript\n");
     }
-    if (gCUDASwitch) {
+    if (gGlobal->gCUDASwitch) {
         throw faustexception("ERROR : CUDA not supported for JavaScript\n");
     }
 
-    if (gOpenMPSwitch) {
+    if (gGlobal->gOpenMPSwitch) {
         throw faustexception("OpenMP : CUDA not supported for JavaScript\n");
-    } else if (gSchedulerSwitch) {
+    } else if (gGlobal->gOpenCLSwitch) {
         throw faustexception("Scheduler mode not supported for JavaScript\n");
-    } else if (gVectorSwitch) {
+    } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for JavaScript\n");
     } else {
         container = new JAVAScriptScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
@@ -174,7 +174,7 @@ void JAVAScriptCodeContainer::produceClass()
         // Print metadata declaration
         tab(n+1, *fOut); *fOut   << "this.metadata = function(m) { ";
 
-        for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
             if (i->first != tree("author")) {
                 tab(n+2, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
             } else {

@@ -35,15 +35,17 @@
 #include <map>
 #include <vector>
 
+#include "global.hh"
 #include "instructions.hh"
 #include "code_container.hh"
 #include "occurences.hh"
 #include "property.hh"
 #include "Text.hh"
 
+
 using namespace std;
 
-extern string gMasterName;
+//extern string gMasterName;
 
 typedef ValueInst* InstType;
 
@@ -131,7 +133,7 @@ class InstructionsCompiler {
 
         InstructionsCompiler(CodeContainer* container)
             :fContainer(container), fUIRoot(uiFolder(cons(tree(0),
-            tree(subst("$0", gMasterName))))), fDescription(0),
+            tree(subst("$0", gGlobal->gMasterName))))), fDescription(0),
             fLoadedIota(false)
         {}
         virtual ~InstructionsCompiler()

@@ -33,6 +33,8 @@
 #include "ppsig.hh"
 #include "doc_Text.hh"
 #include "Text.hh"
+#include "global.hh"
+
 #include <assert.h>
 
 
@@ -40,7 +42,7 @@
 // 2009/09/08 : get/setDefNameProperty
 
 
-extern int gMaxNameSize;
+//extern int gGlobal->gMaxNameSize;
 
 
 /**
@@ -61,7 +63,7 @@ void setDefNameProperty(Tree t, const string& name)
 {
 	//cerr << "setDefNameProperty : " << name << " FOR " << t << "#" << boxpp(t) << endl;
 	int		n = name.size();
-	int 	m = (gMaxNameSize>1023) ? 1023 : gMaxNameSize;
+	int 	m = (gGlobal->gMaxNameSize>1023) ? 1023 : gGlobal->gMaxNameSize;
 	if (n > m) {
 		// the name is too long we reduce it to 2/3 of maxsize
 		char 	buf[1024];

@@ -28,6 +28,7 @@
 
 ***********************************************************************/
 #include "wss_code_container.hh"
+#include "global.hh"
 
 using namespace std;
 
@@ -524,7 +525,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(WORK_STEALING_INDEX)));
 
     ValueInst* switch_cond = InstBuilder::genLoadStackVar("tasknum");
-    SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
+    ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
     // Generate input/output access
     generateLocalInputs(loop_code);
@@ -552,7 +553,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     last_block->pushBackInst(InstBuilder::genLabelInst("/* Last task */"));
     last_block->pushBackInst(InstBuilder::genStoreVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile),
                                 InstBuilder::genAdd(InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)),
-                                                    gVecSize)));
+                                                    gGlobal->gVecSize)));
 
     // Generate input/output access
     generateLocalInputs(last_block);
@@ -573,7 +574,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     ValueInst* init1 = InstBuilder::genLoadStructVar("fFullcount");
     ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadStructVar("fIndex"));
     list<ValueInst*> min_fun_args;
-    min_fun_args.push_back(InstBuilder::genIntNumInst(gVecSize));
+    min_fun_args.push_back(InstBuilder::genIntNumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt), init3);

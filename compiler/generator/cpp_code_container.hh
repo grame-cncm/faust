@@ -38,7 +38,7 @@
 #include "wss_code_container.hh"
 
 extern string gMasterDocument;
-extern string gOutputFile;
+//extern string gOutputFile;
 
 using namespace std;
 

@@ -45,6 +45,7 @@
 #include "boxes.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
+#include "global.hh"
 
 #include <vector>
 #include "devLib.h"
@@ -123,7 +124,7 @@
 using namespace std;
 
 // external parameters
-extern int gFoldThreshold;				// max diagram complexity before folding
+//extern int gGlobal->gFoldThreshold;				// max diagram complexity before folding
 
 
 // internal state during drawing
@@ -162,7 +163,7 @@ static int 		mkchdir(const char* dirname);
 void drawSchema(Tree bd, const char* projname, const char* dev)
 {
 	gDevSuffix 		= dev;
-	sFoldingFlag 	= boxComplexity(bd) > gFoldThreshold;
+	sFoldingFlag 	= boxComplexity(bd) > gGlobal->gFoldThreshold;
 
 	mkchdir(projname); 			// create a directory to store files
 

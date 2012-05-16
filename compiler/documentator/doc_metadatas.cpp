@@ -28,23 +28,18 @@
 
 #include "doc_metadatas.hh"
 #include "doc.hh"
+#include "global.hh"
 
+//extern SourceReader		gReader;
 
-extern SourceReader		gReader;
-
-map<string, string>		gDocMetadatasStringMap;
-set<string>				gDocMetadatasKeySet;
+//map<string, string>		gGlobal->gDocMetadatasStringMap;
+//set<string>				gGlobal->gDocMetadatasKeySet;
 
 static void				initDocMetadatasKeySet();
-
-
-
 
 /*****************************************************************************
 						Public functions
  *****************************************************************************/
-
-
 /** 
  * Dispatch initialization of metadatas container.
  */
@@ -53,25 +48,22 @@ void initDocMetadatas()
 	initDocMetadatasKeySet();
 }
 
-
-
 /*****************************************************************************
 							Static functions
  *****************************************************************************/
 
 
 /** 
- * Initialize gDocMetadatasKeySet, a set containing all the keywords.
+ * Initialize gGlobal->gDocMetadatasKeySet, a set containing all the keywords.
  */
 static void initDocMetadatasKeySet() {
 	
-	gDocMetadatasKeySet.insert("name");
-	gDocMetadatasKeySet.insert("author");
-	gDocMetadatasKeySet.insert("copyright");
-	gDocMetadatasKeySet.insert("license");
-	gDocMetadatasKeySet.insert("version");
+	gGlobal->gDocMetadatasKeySet.insert("name");
+	gGlobal->gDocMetadatasKeySet.insert("author");
+	gGlobal->gDocMetadatasKeySet.insert("copyright");
+	gGlobal->gDocMetadatasKeySet.insert("license");
+	gGlobal->gDocMetadatasKeySet.insert("version");
 }
-
 
 ///** 
 // * Simple trace function.
@@ -79,11 +71,11 @@ static void initDocMetadatasKeySet() {
 //static void printDocMetadatasStringMapContent() {
 //	bool trace = false;
 //	if(trace) {
-//		cout << "gDocMetadatasStringMap.size() = " << gDocMetadatasStringMap.size() << endl;
+//		cout << "gGlobal->gDocMetadatasStringMap.size() = " << gGlobal->gDocMetadatasStringMap.size() << endl;
 //		map<string,string>::iterator it;
 //		int i = 1;
-//		for(it = gDocMetadatasStringMap.begin(); it!=gDocMetadatasStringMap.end(); ++it)
-//			cout << i++ << ".\tgDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
+//		for(it = gGlobal->gDocMetadatasStringMap.begin(); it!=gGlobal->gDocMetadatasStringMap.end(); ++it)
+//			cout << i++ << ".\tgGlobal->gDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
 //	}
 //}
 

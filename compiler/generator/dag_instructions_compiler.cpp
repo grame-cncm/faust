@@ -41,9 +41,9 @@
 #include "prim2.hh"
 #include "exception.hh"
 
-extern int gMaxCopyDelay;
-extern bool gOpenCLSwitch;
-extern bool gCUDASwitch;
+//extern int gGlobal->gMaxCopyDelay;
+//extern bool gGlobal->gOpenCLSwitch;
+//extern bool gGlobal->gCUDASwitch;
 
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container):
     InstructionsCompiler(container)
@@ -54,11 +54,11 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 	L = prepare(L);		// Optimize, share and annotate expression
 
     // "input" and "inputs" used as a name convention
-    if (!gOpenCLSwitch && !gCUDASwitch) { // HACK
+    if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) { // HACK
 
         Typed* type;
         /*
-        if (gVectorSwitch) {
+        if (gGlobal->gVectorSwitch) {
             type =  InstBuilder::genArrayTyped(InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro)), 0);
         } else {
             type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
@@ -86,7 +86,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
-    if (gOpenCLSwitch || gCUDASwitch) { // HACK
+    if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) { // HACK
 
         for (int index = 0; isList(L); L = tl(L), index++) {
             Tree sig = hd(L);
@@ -287,7 +287,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
 
 ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
 {
-    if (gOpenCLSwitch || gCUDASwitch) { // HACK
+    if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) { // HACK
         // "input" use as a name convention
         string name = subst("input$0", T(idx));
         ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
@@ -310,7 +310,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     string      vname;
     Typed::VarType    ctype;
     int         sharing = getSharingCount(sig);
-    Type        t = getCertifiedSigType(sig);
+    ::Type        t = getCertifiedSigType(sig);
     Occurences* o = fOccMarkup.retrieve(sig);
     int         d = o->getMaxDelay();
 
@@ -352,13 +352,13 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             if (verySimple(sig)) {
                 return exp;
             } else {
-                if (d < gMaxCopyDelay) {
+                if (d < gGlobal->gMaxCopyDelay) {
                     //return subst("$0[i]", vname);
                     return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
                 } else {
                     // we use a ring buffer
                     string vname_idx = vname + "_idx";
-                    int mask = pow2limit(d + gVecSize) - 1;
+                    int mask = pow2limit(d + gGlobal->gVecSize) - 1;
                     //return subst("$0[($0_idx+i) & $1]", vname, mask);
                     FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) & InstBuilder::genIntNumInst(mask);
                     return InstBuilder::genLoadArrayStructVar(vname, index1);
@@ -393,7 +393,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 {
     Occurences* o = fOccMarkup.retrieve(sig);
-    Type        t = getCertifiedSigType(sig);
+    ::Type      t = getCertifiedSigType(sig);
     int         c = getSharingCount(sig);
     bool        b;
 
@@ -438,7 +438,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
         //return subst("$0[i]", vname);
         return InstBuilder::genLoadArrayStackVar(vname, getCurrentLoopIndex());
 
-    } else if (mxd < gMaxCopyDelay) {
+    } else if (mxd < gGlobal->gMaxCopyDelay) {
         if (isSigInt(delay, &d)) {
             if (d == 0) {
                 // return subst("$0[i]", vname);
@@ -456,7 +456,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
     } else {
 
         // long delay : we use a ring buffer of size 2^x
-        int N = pow2limit(mxd + gVecSize);
+        int N = pow2limit(mxd + gGlobal->gVecSize);
         string vname_idx = vname + "_idx";
 
         if (isSigInt(delay, &d)) {
@@ -511,7 +511,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::Var
 void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access)
 {
     // "$0 $1[$2];"
-    DeclareVarInst* table_inst = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gVecSize));
+    DeclareVarInst* table_inst = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize));
     pushComputeBlockMethod(table_inst);
 
     // -- compute the new samples
@@ -526,7 +526,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
 {
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
 
-    if (delay < gMaxCopyDelay) {
+    if (delay < gGlobal->gMaxCopyDelay) {
 
         // Implementation of a copy based delayline
         // create names for temporary and permanent storage
@@ -542,7 +542,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         // compute method
 
         // -- declare a buffer and a "shifted" vector
-        DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gVecSize + delay));
+        DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gGlobal->gVecSize + delay));
         pushComputeBlockMethod(table_inst1);
 
         ValueInst* address_value = InstBuilder::genLoadArrayStackAddressVar(buf, InstBuilder::genIntNumInst(delay));
@@ -564,7 +564,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
     } else {
 
         // Implementation of a ring-buffer delayline, the size should be large enough and aligned on a power of two
-        delay = pow2limit(delay + gVecSize);
+        delay = pow2limit(delay + gGlobal->gVecSize);
 
         // create names for temporary and permanent storage
         string idx = subst("$0_idx", vname);

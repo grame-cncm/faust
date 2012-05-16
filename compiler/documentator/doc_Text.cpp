@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include <stdio.h>
 #include <string.h>
 #include "doc_Text.hh"
@@ -51,10 +49,8 @@
 #define M_E 2.71828182845904523536
 #endif
 
-extern bool gInternDoubleSwitch;
+//extern bool gInternDoubleSwitch;
 const string symbolicNumber (double n);
-
-
 
 #if 0
 /**

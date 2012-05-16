@@ -51,19 +51,20 @@
 #include "ensure.hh"
 #include "sigToGraph.hh"
 #include "exception.hh"
+#include "global.hh"
 
 using namespace std;
 
 // globals
 
-extern int gMaxCopyDelay;
-extern bool gVectorSwitch;
-extern int gVecSize;
-extern bool gOpenCLSwitch;
-extern bool gCUDASwitch;
-extern bool gDumpNorm;
-extern bool gDrawSignals;
-extern string gMasterDocument;
+//extern int gGlobal->gMaxCopyDelay;
+//extern bool gVectorSwitch;
+///extern int gGlobal->gVecSize;
+//extern bool gGlobal->gOpenCLSwitch;
+//extern bool gGlobal->gCUDASwitch;
+//extern bool gGlobal->gDumpNorm;
+//extern bool gGlobal->gDrawSignals;
+//extern string gGlobal->gMasterDocument;
 
 std::ostream* Printable::fOut = &cout;
 
@@ -176,7 +177,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 
 	// dump normal form
-	if (gDumpNorm) {
+	if (gGlobal->gDumpNorm) {
 		cout << ppsig(L3) << endl;
 		exit(0);
 	}
@@ -192,8 +193,8 @@ Tree InstructionsCompiler::prepare(Tree LS)
     //annotationStatistics();
     endTiming("ScalarCompiler::prepare");
 
-    if (gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gMasterDocument).c_str());
+    if (gGlobal->gDrawSignals) {
+        ofstream dotfile(subst("$0-sig.dot", gGlobal->gMasterDocument).c_str());
         sigToGraph(L3, dotfile);
     }
   	return L3;
@@ -295,7 +296,7 @@ bool InstructionsCompiler::getTableNameProperty(Tree sig, string& name)
 
 CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree sig)
 {
-	Type t = getCertifiedSigType(sig);
+	::Type t = getCertifiedSigType(sig);
 
 	CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
     InstructionsCompiler C(container);
@@ -313,15 +314,15 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     Typed* type;
     /*
-    if (gVectorSwitch) {
-        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), gVecSize);
+    if (gGlobal->gVectorSwitch) {
+        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), gGlobal->gVecSize);
     } else {
         type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
     }
     */
     type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
-    if (!gOpenCLSwitch && !gCUDASwitch) { // HACK
+    if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) { // HACK
 
         // "input" and "inputs" used as a name convention
         for (int index = 0; index < fContainer->inputs(); index++) {
@@ -525,8 +526,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
             /*
-            if (gVectorSwitch) {
-                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize);
+            if (gGlobal->gVectorSwitch) {
+                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize);
             } else {
                 type = InstBuilder::genBasicTyped(ctype);
             }
@@ -539,8 +540,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kBlock:
             getTypedNames(t, "Slow", ctype, vname);
              /*
-            if (gVectorSwitch) {
-                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize);
+            if (gGlobal->gVectorSwitch) {
+                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize);
             } else {
                 type = InstBuilder::genBasicTyped(ctype);
             }
@@ -552,8 +553,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
              /*
-            if (gVectorSwitch) {
-                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gVecSize);
+            if (gGlobal->gVectorSwitch) {
+                type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize);
             } else {
                 type = InstBuilder::genBasicTyped(ctype);
             }
@@ -601,7 +602,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 
     if (mxd == 0) {
         return InstBuilder::genLoadStackVar(vname);
-	} else if (mxd < gMaxCopyDelay) {
+	} else if (mxd < gGlobal->gMaxCopyDelay) {
 		return InstBuilder::genLoadArrayStructVar(vname, CS(delay));
 	} else {
 		// Long delay : we use a ring buffer of size 2^x
@@ -760,7 +761,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
-	Type t = getCertifiedSigType(content);//, tEnv);
+	::Type t = getCertifiedSigType(content);//, tEnv);
 	if (t->nature() == kInt) {
 		vname = getFreshID("itbl");
 		ctype = Typed::kInt;
@@ -832,7 +833,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
   	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
-	Type t = getCertifiedSigType(content);//, tEnv);
+	::Type t = getCertifiedSigType(content);//, tEnv);
 	if (t->nature() == kInt) {
 		vname = getFreshID("itbl");
 		ctype = Typed::kInt;
@@ -1052,8 +1053,8 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     string varname = getFreshID(name);
     Typed* type;
     /*
-    if (gVectorSwitch) {
-        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gVecSize);
+    if (gGlobal->gVectorSwitch) {
+        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gGlobal->gVecSize);
     } else {
         type = InstBuilder::genBasicTyped(yped::kFloatMacro);
     }
@@ -1082,8 +1083,8 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     string varname = getFreshID(name);
     Typed* type;
     /*
-    if (gVectorSwitch) {
-        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gVecSize);
+    if (gGlobal->gVectorSwitch) {
+        type = InstBuilder::genVectorTyped(InstBuilder::genBasicTyped(yped::kFloatMacro), gGlobal->gVecSize);
     } else {
         type = InstBuilder::genBasicTyped(yped::kFloatMacro);
     }
@@ -1303,7 +1304,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         // Generate scalar use
         pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
 
-   } else if (mxd < gMaxCopyDelay) {
+   } else if (mxd < gGlobal->gMaxCopyDelay) {
 
         // Generates table init
         pushInitMethod(generateInitArray(vname, ctype, mxd + 1));

@@ -32,19 +32,20 @@
 #include "floats.hh"
 #include "function_builder.hh"
 #include "exception.hh"
+#include "global.hh"
 
 using namespace std;
 
-extern int gVectorLoopVariant;
-extern bool gUIMacroSwitch;
-extern bool gDSPStruct;
-extern bool gOpenCLSwitch;
-extern bool gCUDASwitch;
-extern bool gOpenMPSwitch;
-extern bool gSchedulerSwitch;
-extern bool gVectorSwitch;
+//extern int gGlobal->gVectorLoopVariant;
+//extern bool gGlobal->gUIMacroSwitch;
+//extern bool gGlobal->gDSPStruct;
+//extern bool gGlobal->gOpenCLSwitch;
+//extern bool gGlobal->gCUDASwitch;
+//extern bool gGlobal->gOpenMPSwitch;
+//extern bool gGlobal->gSchedulerSwitch;
+//extern bool gGlobal->gVectorSwitch;
 
-extern map<Tree, set<Tree> > gMetaDataSet;
+//extern map<Tree, set<Tree> > gGlobal->gMetaDataSet;
 map <string, int> CInstVisitor::gGlobalTable;
 
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -54,21 +55,21 @@ CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub
 
 CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
-    gDSPStruct = true;
+    gGlobal->gDSPStruct = true;
     CodeContainer* container;
 
-    if (gOpenCLSwitch) {
+    if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for C\n");
     }
-    if (gCUDASwitch) {
+    if (gGlobal->gCUDASwitch) {
         throw faustexception("ERROR : CUDA not supported for C\n");
     }
 
-    if (gOpenMPSwitch) {
+    if (gGlobal->gOpenMPSwitch) {
         container = new COpenMPCodeContainer(name, numInputs, numOutputs, dst);
-    } else if (gSchedulerSwitch) {
+    } else if (gGlobal->gOpenCLSwitch) {
         container = new CWorkStealingCodeContainer(name, numInputs, numOutputs, dst);
-    } else if (gVectorSwitch) {
+    } else if (gGlobal->gVectorSwitch) {
         container = new CVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
         container = new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
@@ -204,7 +205,7 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "metadata" << fKlassName << "(MetaGlue* m) { ";
 
-    for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             tab(n+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {
@@ -291,7 +292,7 @@ void CCodeContainer::produceClass()
     generateCompute(n);
 
     // Generate user interface macros if needed
-	if (gUIMacroSwitch) {
+	if (gGlobal->gUIMacroSwitch) {
 		tab(n, *fOut); *fOut << "#ifdef FAUST_UIMACROS";
             tab(n+1, *fOut); *fOut << "#define FAUST_INPUTS " << fNumInputs;
             tab(n+1, *fOut); *fOut << "#define FAUST_OUTPUTS " << fNumOutputs;
