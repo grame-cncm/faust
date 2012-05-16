@@ -16,34 +16,41 @@
  ************************************************************************
  ************************************************************************/
 
-#import "FIResponder.h"
+/************************************************************************
+ ************************************************************************
+ Based on Apple AccelerometerGraph - http://developer.apple.com/library/ios/#samplecode/AccelerometerGraph
+ Copyright (C) 2010 Apple Inc. All Rights Reserved.
+ ************************************************************************
+ ************************************************************************/
 
-@interface FITextField : FIResponder <  UITextViewDelegate,
-                                        UIGestureRecognizerDelegate>
+
+#import "FISensorFilter.h"
+
+@implementation FISensorFilter
+
+@synthesize x = _x;
+@synthesize y = _y;
+@synthesize z = _z;
+
+-(id)initWithSampleRate:(double)rate cutoffFrequency:(double)freq
 {
-    UITextView*             _messageTextView;
-    UIView*                 _inputAccView;
-    UIButton*               _doneButton;
-    UIButton*               _minusButton;
-    UIButton*               _cancelButton;
-    UILabel*                _rangeLabel;
-    NSNumberFormatter*      _numberFormatter;
-    UIColor*                _backgroundColor;
-    UIColor*                _textColor;
-    float                   _valueBeforeCancel;
+	self = [super init];
+	if(self != nil)
+	{
+		double dt = 1.0 / rate;
+		double RC = 1.0 / freq;
+		_filterConstant = dt / (dt + RC);
+	}
+	return self;
 }
 
-@property CGFloat cornerRadius;				// default: 3.0
-@property (assign, nonatomic) UIColor* backgroundColor;
-@property (assign, nonatomic) UIColor* textColor;
-
-- (id)initWithDelegate:(id)aDelegate;
-
-- (void)minus;
-- (void)doneTyping;
-- (void)cancel;
-- (void)createInputAccessoryView;
-
-- (void)pan:(UIPanGestureRecognizer *)gesture;
+- (void)addAccelerationX:(float)x y:(float)y z:(float)z
+{
+	double alpha = _filterConstant;
+	
+	_x = x * alpha + _x * (1.0 - alpha);
+	_y = y * alpha + _y * (1.0 - alpha);
+	_z = z * alpha + _z * (1.0 - alpha);
+}
 
 @end

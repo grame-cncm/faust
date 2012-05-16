@@ -348,6 +348,15 @@
 				  lineBreakMode:UILineBreakModeMiddleTruncation
                       alignment:UITextAlignmentCenter];        
 	}
+    
+    // Draw selection
+    if (self.selected)
+    {
+        [[UIColor colorWithRed:0. green:0.1 blue:0.9 alpha:0.4] set];
+        CGContextSetBlendMode(context, kCGBlendModeColorDodge);
+        [self context:context addRoundedRect:boundsRect cornerRadius:0];
+        CGContextFillPath(context);
+    }
 }
 
 - (CGRect)rectForHandle

@@ -64,6 +64,7 @@
 
 @property BOOL displaysValue;							// default: YES
 @property BOOL allowsGestures;							// default: YES
+@property BOOL selected;                                // default: NO
 
 - (id)initWithDelegate:(id)aDelegate;
 

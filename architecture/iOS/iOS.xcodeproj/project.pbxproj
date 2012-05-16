@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		650C53BB14DC389100C1C7FF /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 650C53BA14DC389100C1C7FF /* icon.png */; };
+		6528EEF015641F0200A310B2 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6528EEEF15641F0200A310B2 /* CoreMotion.framework */; };
+		6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
 		655DAAE914F69C9B0013FAF5 /* FIBox.mm in Sources */ = {isa = PBXBuildFile; fileRef = 655DAAE814F69C9B0013FAF5 /* FIBox.mm */; };
@@ -48,6 +50,9 @@
 
 /* Begin PBXFileReference section */
 		650C53BA14DC389100C1C7FF /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		6528EEEF15641F0200A310B2 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		6528EF031564212100A310B2 /* FISensorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISensorFilter.h; sourceTree = "<group>"; };
+		6528EF041564212100A310B2 /* FISensorFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISensorFilter.mm; sourceTree = "<group>"; };
 		65510E9314EEC1190014A01F /* FITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITextField.h; sourceTree = "<group>"; };
 		65510E9414EEC1190014A01F /* FITextField.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FITextField.mm; sourceTree = "<group>"; };
 		6559E84514F2685A00D3AB9A /* FIKnob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIKnob.h; sourceTree = "<group>"; };
@@ -100,6 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6528EEF015641F0200A310B2 /* CoreMotion.framework in Frameworks */,
 				65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */,
 				65E5ED9314DB037D00136CFC /* UIKit.framework in Frameworks */,
 				65E5ED9514DB037D00136CFC /* Foundation.framework in Frameworks */,
@@ -168,6 +174,7 @@
 		65E5ED9114DB037D00136CFC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6528EEEF15641F0200A310B2 /* CoreMotion.framework */,
 				65E5EDCD14DB055500136CFC /* AudioToolbox.framework */,
 				65E5ED9214DB037D00136CFC /* UIKit.framework */,
 				65E5ED9414DB037D00136CFC /* Foundation.framework */,
@@ -186,6 +193,8 @@
 				65FD744E1549993A00E7CB0B /* FIScrollView.mm */,
 				65E5EDAA14DB037D00136CFC /* FIMainViewController.h */,
 				65E5EDAB14DB037D00136CFC /* FIMainViewController.mm */,
+				6528EF031564212100A310B2 /* FISensorFilter.h */,
+				6528EF041564212100A310B2 /* FISensorFilter.mm */,
 				65E5EDAD14DB037D00136CFC /* FIFlipsideViewController.h */,
 				65E5EDAE14DB037D00136CFC /* FIFlipsideViewController.mm */,
 				65F8C2DF14DBD59C0042E3FA /* FICocoaUI.h */,
@@ -350,6 +359,7 @@
 				6560454114FE924400AE84A9 /* FITabView.mm in Sources */,
 				65961D501546DFD70004BC59 /* FIHint.mm in Sources */,
 				65FD744F1549993A00E7CB0B /* FIScrollView.mm in Sources */,
+				6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
