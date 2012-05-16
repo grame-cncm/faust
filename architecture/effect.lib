@@ -611,10 +611,10 @@ gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
 };
 
 gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,rel) with {
-  extendedrawgate = max(float(rawgatesig),float(holdsig));
+  extendedrawgate = max(float(rawgatesig),holdsig);
   rawgatesig = inlevel(x) > db2linear(thresh);
   inlevel(x) = amp_follower_ud(att/2,rel/2,x);
-  holdsig = ((max(float(holdreset & holdsamps),float(_)) ~-(1)) > 0);
+  holdsig = ((max(holdreset & holdsamps,_) ~-(1)) > 0);
   holdreset = rawgatesig > rawgatesig'; // reset hold when raw gate falls
   holdsamps = int(hold*SR);
 };
@@ -654,7 +654,7 @@ with {
   // A general 'knee' parameter could be used instead of tying it to att/2:
   kneesmooth(att)  = smooth(tau2pole(att/2.0));
   // compression gain in dB:
-   outminusindb(ratio,thresh,level) = max(float(level-thresh),0.0) * (1.0/float(ratio)-1.0);
+   outminusindb(ratio,thresh,level) = max(level-thresh,0.0) * (1.0/float(ratio)-1.0);
   // Note: "float(ratio)" REQUIRED when ratio is an integer > 1!
 };
 
