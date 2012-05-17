@@ -36,6 +36,10 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -90,7 +94,7 @@ for p in $FILES; do
 			${CXX=g++}  -arch x86_64 $CXXFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.x86_64 ${f%.dsp}.cpp
 			lipo -create "${f%.dsp}.i386" "${f%.dsp}.x86_64"  -output "${f%.dsp}$EXT"
 		else
-			${CXX=g++} $CXXFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
+			${CXX=g++} $CXXFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT ${f%.dsp}.cpp
 		fi		
         if [ $(which faust2pd) ]; then
         	faust2pd -s $f.xml

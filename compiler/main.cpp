@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.50"
+#define FAUSTVERSION "0.9.52"
 
 #include <stdio.h>
 #include <string.h>
@@ -152,7 +152,7 @@ int             gTimeout        = 120;            // time out to abort compiler 
 int             gFloatSize = 1;
 
 bool			gPrintFileListSwitch = false;
-bool			gInlineArchSwitch = true;
+bool			gInlineArchSwitch = false;
 
 string			gClassName		= "mydsp";
 

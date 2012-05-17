@@ -308,12 +308,12 @@ Tree mulNums(Tree a, Tree b)
 	return r;
 }
 
-Tree divNums(Tree a, Tree b)
-{
-	Tree r = tree(divNode(a->node(),b->node()));
-	//cerr.flags(ios::showpoint); cerr << "divNums " << *a << "/" << *b << " -> " << *r << endl;
-	return r;
-}
+//Tree divNums(Tree a, Tree b)
+//{
+//	Tree r = tree(divNode(a->node(),b->node()));
+//	//cerr.flags(ios::showpoint); cerr << "divNums " << *a << "/" << *b << " -> " << *r << endl;
+//	return r;
+//}
 
 Tree divExtendedNums(Tree a, Tree b)
 {

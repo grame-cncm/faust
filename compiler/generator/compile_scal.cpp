@@ -391,7 +391,23 @@ string ScalarCompiler::generateOutput (Tree sig, const string& idx, const string
 
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
-	return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
+    if (opcode == kDiv) {
+        // special handling for division, we always want a float division
+        Type        t1 = getCertifiedSigType(arg1);
+        Type        t2 = getCertifiedSigType(arg2);
+
+        if (t1->nature()==kInt && t2->nature()==kInt ) {
+            return generateCacheCode(sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+        } else if (t1->nature()==kInt && t2->nature()==kReal ) {
+            return generateCacheCode(sig, subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+        } else if (t1->nature()==kReal && t2->nature()==kInt ) {
+            return generateCacheCode(sig, subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+        } else  {
+            return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+        }
+    } else {
+        return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
+    }
 }
 
 

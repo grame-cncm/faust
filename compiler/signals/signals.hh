@@ -175,7 +175,6 @@ bool isSigDiv	(Tree a, Tree&x, Tree&y);
 Tree addNums 	(Tree a, Tree b);
 Tree subNums 	(Tree a, Tree b);
 Tree mulNums 	(Tree a, Tree b);
-Tree divNums 	(Tree a, Tree b);
 Tree divExtendedNums 	(Tree a, Tree b);
 Tree minusNum	(Tree a);
 Tree inverseNum	(Tree a);

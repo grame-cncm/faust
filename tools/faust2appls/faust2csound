@@ -36,6 +36,10 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -52,7 +56,7 @@ done
 for SRC in $FILES; do
 	opname=`basename ${SRC%.dsp}`
     faust  -uim -double -a csound.cpp $OPTIONS "$SRC" -o "$SRC.cpp"
-    ${CXX=g++} ${CXXFLAGS=-O3} $OMP -I/usr/include/csound -shared -fPIC -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}.dylib"
+    ${CXX=g++} ${CXXFLAGS=-O3} $OMP $PROCARCH -I/usr/include/csound -shared -fPIC -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}.dylib"
     rm "$SRC.cpp"
     BINARIES="$BINARIES${SRC%.dsp}.dylib;"
 done
