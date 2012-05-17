@@ -72,6 +72,13 @@ class uiBox;
 // COCOA part
 //=================
 
+// Widget assignation type
+#define kAssignationNone                0
+#define kAssignationAccelX              1
+#define kAssignationAccelY              2
+#define kAssignationAccelZ              3
+#define kAssignationCompass             4
+
 // Current layout mode
 #define kHorizontalLayout               0
 #define kVerticalLayout                 1
@@ -134,20 +141,24 @@ class uiCocoaItem : public uiItem
     
 protected:
     
-    BOOL                fHidden;
-    uiCocoaItem*        fParent;
-    float               fx;
-    float               fy;
-    float               fw;
-    float               fh;
-    float               fAbstractX;
-    float               fAbstractY;
-    float               fAbstractW;
-    float               fAbstractH;
+    BOOL                    fHidden;
+    uiCocoaItem*            fParent;
+    float                   fx;
+    float                   fy;
+    float                   fw;
+    float                   fh;
+    float                   fAbstractX;
+    float                   fAbstractY;
+    float                   fAbstractW;
+    float                   fAbstractH;
+    BOOL                    fSelected;
     
 public:
     
-    FIMainViewController* mainViewController;
+    FIMainViewController*   mainViewController;
+    int                     assignationType;
+    BOOL                    assignationInverse;
+
     
     uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller)
     : uiItem(ui, zone), mainViewController(controller)
@@ -162,12 +173,15 @@ public:
         fAbstractY = 0.f;
         fAbstractW = 0.f;
         fAbstractH = 0.f;
+        assignationType = kAssignationNone;
+        assignationInverse = false;
+        fSelected = false;
     }
     
     ~uiCocoaItem()
     {
     }
-    
+        
     virtual void setHidden(BOOL hidden) = 0;
     BOOL isHidden()                                                 {return fHidden;}
     
@@ -186,6 +200,9 @@ public:
     void setParent(uiCocoaItem* parent)                             {fParent = parent;}
     
     uiCocoaItem* getParent()                                        {return fParent;}
+    
+    BOOL isSelected()                                               {return fSelected;}
+    virtual void setSelected(BOOL selected)                         {fSelected = selected;}
 };
 
 
@@ -426,6 +443,10 @@ public :
         fKnob.valueArcWidth = kStdKnobArcWidth;
         fKnob.backgroundColorAlpha = 0.4;
         [controller.dspView addSubview:fKnob];
+        
+        UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
+        longPressGesture.delegate = controller;
+		[fKnob addGestureRecognizer:longPressGesture];
     }
     
     ~uiKnob()
@@ -458,13 +479,19 @@ public :
         fKnob.hidden = hidden;
     }
     
+    void setSelected(BOOL selected)
+    {
+        uiCocoaItem::setSelected(selected);
+        fKnob.selected = selected;
+        [fKnob setNeedsDisplay];
+    }
+    
     void reflectZone()
     {
         float v = *fZone;
         fCache = v;
         fKnob.value = v;
     }
-    
 };
 
 // -------------------------- Slider -----------------------------------
@@ -505,6 +532,10 @@ public :
         fSlider.handleSize = 50;
         fSlider.step = step;
         [controller.dspView addSubview:fSlider];
+        
+        UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
+        longPressGesture.delegate = controller;
+		[fSlider addGestureRecognizer:longPressGesture];
     }
     
     ~uiSlider()
@@ -550,6 +581,13 @@ public :
         fHidden = hidden;
         fLabel.hidden = hidden;
         fSlider.hidden = hidden;
+    }
+    
+    void setSelected(BOOL selected)
+    {
+        uiCocoaItem::setSelected(selected);
+        fSlider.selected = selected;
+        [fSlider setNeedsDisplay];
     }
     
     void reflectZone()

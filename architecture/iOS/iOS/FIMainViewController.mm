@@ -23,6 +23,7 @@
 #import "FICocoaUI.h"
 
 #define kMenuBarsHeight             66
+#define kMotionUpdateRate           30
 
 @implementation FIMainViewController
 
@@ -51,6 +52,7 @@ char rcfilename[256];
 
 - (void)viewDidLoad
 {
+    _widgetPreferencesView.hidden = YES;
     _viewLoaded = NO;
     _currentOrientation = UIDeviceOrientationUnknown;
     UIView *contentView;
@@ -117,6 +119,12 @@ char rcfilename[256];
     [_dspScrollView addGestureRecognizer:_tapGesture];
     
     _lockedBox = interface->getMainBox();
+    
+    _motionManager = nil;
+    //_locationManager = nil;
+    _selectedWidget = nil;
+    [self loadMotionPreferences];
+    if (_assignatedWidgets.size() > 0) [self startMotion];
 
     return;
     
@@ -172,6 +180,7 @@ error:
     delete finterface;
     
     [_refreshTimer invalidate];
+    [self stopMotion];
     
     [super dealloc];
 }
@@ -592,5 +601,237 @@ error:
         [self performSegueWithIdentifier:@"showAlternate" sender:sender];
     }
 }
+
+
+#pragma mark - Sensors
+
+- (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture
+{
+    if ([gesture.view isKindOfClass:[FIKnob class]])
+    {
+        uiKnob* knob = findCorrespondingUiItem<uiKnob*>((FIResponder*)gesture.view);
+        if (knob)
+        {
+            _selectedWidget = knob;
+            knob->setSelected(YES);
+            _widgetPreferencesTitleLabel.text = dynamic_cast<uiKnob*>(_selectedWidget)->fLabel.text;
+            _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->assignationType;
+            _gyroInvertedSwitch.on = _selectedWidget->assignationInverse;
+            
+            _widgetPreferencesView.hidden = NO;
+        }
+    }
+    
+    else if ([gesture.view isKindOfClass:[FISlider class]])
+    {
+        uiSlider* slider = findCorrespondingUiItem<uiSlider*>((FIResponder*)gesture.view);
+        if (slider)
+        {
+            _selectedWidget = slider;
+            slider->setSelected(YES);
+            _widgetPreferencesTitleLabel.text = dynamic_cast<uiSlider*>(_selectedWidget)->fLabel.text;
+            _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->assignationType;
+            _gyroInvertedSwitch.on = _selectedWidget->assignationInverse;
+            
+            _widgetPreferencesView.hidden = NO;
+        }
+    }
+}
+
+- (IBAction)dismissWidgetPreferencesView:(id)sender;
+{    
+    _widgetPreferencesView.hidden = YES;
+    
+    // No selected widget
+    _selectedWidget->setSelected(NO);
+    _selectedWidget = NULL;
+    
+}
+
+- (IBAction)widgetPreferencesChanged:(id)sender
+{
+    list<uiCocoaItem*>::iterator    i;
+    NSString*                       key;
+    
+    _selectedWidget->assignationType = _gyroAxisSegmentedControl.selectedSegmentIndex;
+    _selectedWidget->assignationInverse = _gyroInvertedSwitch.on;
+    
+    // If assignated : add widget in list
+    if (_gyroAxisSegmentedControl.selectedSegmentIndex != 0)
+    {
+        _assignatedWidgets.push_back(_selectedWidget);
+    }
+    
+    // If not assignated : remove widget from list
+    else
+    {
+        for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
+        {
+            if (*i == _selectedWidget)
+            {
+                _assignatedWidgets.erase(i);
+            }
+        }
+    }
+    
+    key = [NSString stringWithFormat:@"%@-assignation-type", _widgetPreferencesTitleLabel.text];
+    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->assignationType forKey:key];
+    
+    key = [NSString stringWithFormat:@"%@-assignation-inverse", _widgetPreferencesTitleLabel.text];
+    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->assignationInverse forKey:key];
+    
+    if (_assignatedWidgets.size() > 0) [self startMotion];
+    else [self stopMotion];
+   
+}
+
+- (void)loadMotionPreferences
+{
+    list<uiCocoaItem*>::iterator    i;
+    NSString*                       key;
+    
+    for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
+    {
+        if (dynamic_cast<uiKnob*>(*i))
+        {
+            key = [NSString stringWithFormat:@"%@-assignation-type", dynamic_cast<uiKnob*>(*i)->fLabel.text];
+            (*i)->assignationType = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+            key = [NSString stringWithFormat:@"%@-assignation-inverse", dynamic_cast<uiKnob*>(*i)->fLabel.text];
+            (*i)->assignationInverse = [[NSUserDefaults standardUserDefaults] boolForKey:key];
+            if ((*i)->assignationType != 0)
+            {
+                _assignatedWidgets.push_back(*i);
+            }
+        }
+        else if (dynamic_cast<uiSlider*>(*i))
+        {
+            key = [NSString stringWithFormat:@"%@-assignation-type", dynamic_cast<uiSlider*>(*i)->fLabel.text];
+            (*i)->assignationType = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+            key = [NSString stringWithFormat:@"%@-assignation-inverse", dynamic_cast<uiSlider*>(*i)->fLabel.text];
+            (*i)->assignationInverse = [[NSUserDefaults standardUserDefaults] boolForKey:key];
+            if ((*i)->assignationType != 0)
+            {
+                _assignatedWidgets.push_back(*i);
+            }
+        }
+    }
+}
+
+- (void)startMotion
+{
+    if (_motionManager == nil)
+    {
+        // Motion
+        _motionManager = [[CMMotionManager alloc] init];
+        _accelerometerFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
+        [_motionManager startAccelerometerUpdates];
+        [_motionManager startMagnetometerUpdates];
+        _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
+                                                 target:self 
+                                               selector:@selector(updateMotion)
+                                               userInfo:nil 
+                                                repeats:YES];
+                
+        /*if ([CLLocationManager headingAvailable])
+        {
+            _locationManager = [[CLLocationManager alloc] init];
+            _locationManager.headingFilter = kCLHeadingFilterNone;            
+            _locationManager.delegate = self;            
+            [_locationManager startUpdatingHeading];
+        }*/
+    }
+}
+
+- (void)stopMotion
+{
+    // Motion
+    if (_motionManager != nil)
+    {
+        [_motionManager stopAccelerometerUpdates];
+        [_motionManager stopMagnetometerUpdates];
+        [_motionManager release];
+        _motionManager = nil;
+        [_motionTimer invalidate];
+    }
+    
+    // Location
+    /*if (_locationManager != nil)
+    {
+        [_locationManager release];
+        _locationManager = nil;
+    }*/
+}
+
+- (void)updateMotion
+{
+    list<uiCocoaItem*>::iterator    i;
+    float                           coef = 0.f;
+    float                           value = 0.f;
+
+    [_accelerometerFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
+                                         y:_motionManager.accelerometerData.acceleration.y
+                                         z:_motionManager.accelerometerData.acceleration.z];
+        
+    for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
+    {
+        if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i))
+        {
+            switch ((*i)->assignationType)
+            {
+                case kAssignationNone:
+                    coef = 0.f;
+                    break;
+                case kAssignationAccelX:
+                    coef = _accelerometerFilter.x;
+                    break;
+                case kAssignationAccelY:
+                    coef = -_accelerometerFilter.y;
+                    break;
+                case kAssignationAccelZ:
+                    coef = _accelerometerFilter.z;
+                    break;
+                case kAssignationCompass:
+                    /*coef = sqrt(_motionManager.magnetometerData.magneticField.x * _motionManager.magnetometerData.magneticField.x
+                                + _motionManager.magnetometerData.magneticField.y * _motionManager.magnetometerData.magneticField.y
+                                + _motionManager.magnetometerData.magneticField.z * _motionManager.magnetometerData.magneticField.z);*/
+                    break;
+                default:
+                    coef = 0.f;
+                    break;
+            }
+            
+            value = (coef + 1.f) / 2.;
+            if ((*i)->assignationInverse) value = 1.f - value;
+            
+            if (dynamic_cast<uiKnob*>(*i))
+            {
+                value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                value = value * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
+            }
+            
+            (*i)->modifyZone(value);
+            (*i)->reflectZone();
+        }
+    }
+}
+
+/*- (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)heading
+{
+
+}
+
+- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
+{
+    if ([error code] == kCLErrorDenied)
+    {
+        [manager stopUpdatingHeading];
+    }
+    else if ([error code] == kCLErrorHeadingFailure)
+    {
+    }
+}*/
 
 @end

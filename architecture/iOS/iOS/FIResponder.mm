@@ -41,6 +41,7 @@
 @synthesize min, max, value, step;
 @synthesize displaysValue, allowsGestures;
 @synthesize suffixe;
+@synthesize selected;
 
 - (void)dealloc
 {
@@ -75,6 +76,7 @@
 		self.clipsToBounds = NO;
 		self.opaque = YES;
         self.suffixe = [[NSString alloc] initWithString:@""];
+        self.selected = NO;
 	}
     
 	return self;
@@ -132,6 +134,5 @@
 	/* Done */
 	CGContextClosePath(c);	
 }
-
 
 @end

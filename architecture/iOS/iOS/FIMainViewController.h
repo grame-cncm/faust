@@ -16,28 +16,47 @@
  ************************************************************************
  ************************************************************************/
 
+#import <CoreMotion/CoreMotion.h>
+//#import <CoreLocation/CoreLocation.h>
+#import <list>
 #import "FIFlipsideViewController.h"
-#import "FIScrollView.h"
 #import "FIResponder.h"
+#import "FIScrollView.h"
+#import "FISensorFilter.h"
 
+using namespace std;
+class uiCocoaItem;
 class uiBox;
 
 @interface FIMainViewController : UIViewController <    FIFlipsideViewControllerDelegate,
                                                         UIPopoverControllerDelegate,
                                                         FIResponderDelegate,
-                                                        UIScrollViewDelegate>
+                                                        UIScrollViewDelegate,
+                                                        UIGestureRecognizerDelegate/*,
+                                                        CLLocationManagerDelegate*/>
 {
-    IBOutlet UIView*                _dspView;
-    IBOutlet FIScrollView*          _dspScrollView;
-    IBOutlet UILabel*               _titleLabel;            // iPhone
-    IBOutlet UINavigationItem*      _titleNavigationItem;   // iPad
+    IBOutlet UIView*                    _dspView;
+    IBOutlet FIScrollView*              _dspScrollView;
+    IBOutlet UILabel*                   _titleLabel;                    // iPhone
+    IBOutlet UINavigationItem*          _titleNavigationItem;           // iPad
     
-    NSTimer*                        _refreshTimer;          // Used to refresh bargraphes
+    NSTimer*                            _refreshTimer;                  // Used to refresh bargraphes
     
-    UITapGestureRecognizer*         _tapGesture;
-    uiBox*                          _lockedBox;
-    UIDeviceOrientation             _currentOrientation;
-    BOOL                            _viewLoaded;
+    UITapGestureRecognizer*             _tapGesture;
+    uiBox*                              _lockedBox;
+    UIDeviceOrientation                 _currentOrientation;
+    BOOL                                _viewLoaded;  
+    
+    IBOutlet UIView*                    _widgetPreferencesView;
+    IBOutlet UISegmentedControl*        _gyroAxisSegmentedControl;
+    IBOutlet UISwitch*                  _gyroInvertedSwitch;
+    IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
+    CMMotionManager*                    _motionManager;
+    NSTimer*                            _motionTimer;
+    uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
+    list <uiCocoaItem*>                 _assignatedWidgets;
+    FISensorFilter*                     _accelerometerFilter;
+    //CLLocationManager*                  _locationManager;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -58,5 +77,14 @@ class uiBox;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
+
+// Sensors
+- (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture;
+- (IBAction)dismissWidgetPreferencesView:(id)sender;
+- (IBAction)widgetPreferencesChanged:(id)sender;
+- (void)loadMotionPreferences;
+- (void)startMotion;
+- (void)stopMotion;
+- (void)updateMotion;
 
 @end

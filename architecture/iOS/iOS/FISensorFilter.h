@@ -16,34 +16,29 @@
  ************************************************************************
  ************************************************************************/
 
-#import "FIResponder.h"
+/************************************************************************
+ ************************************************************************
+ Based on Apple AccelerometerGraph - http://developer.apple.com/library/ios/#samplecode/AccelerometerGraph
+ Copyright (C) 2010 Apple Inc. All Rights Reserved.
+ ************************************************************************
+ ************************************************************************/
 
-@interface FITextField : FIResponder <  UITextViewDelegate,
-                                        UIGestureRecognizerDelegate>
+
+#import <Foundation/Foundation.h>
+
+@interface FISensorFilter : NSObject
 {
-    UITextView*             _messageTextView;
-    UIView*                 _inputAccView;
-    UIButton*               _doneButton;
-    UIButton*               _minusButton;
-    UIButton*               _cancelButton;
-    UILabel*                _rangeLabel;
-    NSNumberFormatter*      _numberFormatter;
-    UIColor*                _backgroundColor;
-    UIColor*                _textColor;
-    float                   _valueBeforeCancel;
+    float       _x;
+    float       _y;
+    float       _z;
+    double      _filterConstant;
 }
 
-@property CGFloat cornerRadius;				// default: 3.0
-@property (assign, nonatomic) UIColor* backgroundColor;
-@property (assign, nonatomic) UIColor* textColor;
+@property(nonatomic, readonly) float x;
+@property(nonatomic, readonly) float y;
+@property(nonatomic, readonly) float z;
 
-- (id)initWithDelegate:(id)aDelegate;
-
-- (void)minus;
-- (void)doneTyping;
-- (void)cancel;
-- (void)createInputAccessoryView;
-
-- (void)pan:(UIPanGestureRecognizer *)gesture;
+- (id)initWithSampleRate:(double)rate cutoffFrequency:(double)freq;
+- (void)addAccelerationX:(float)x y:(float)y z:(float)z;
 
 @end
