@@ -17,7 +17,7 @@
  ************************************************************************/
 
 #import <CoreMotion/CoreMotion.h>
-//#import <CoreLocation/CoreLocation.h>
+#import <CoreLocation/CoreLocation.h>
 #import <list>
 #import "FIFlipsideViewController.h"
 #import "FIResponder.h"
@@ -32,8 +32,9 @@ class uiBox;
                                                         UIPopoverControllerDelegate,
                                                         FIResponderDelegate,
                                                         UIScrollViewDelegate,
-                                                        UIGestureRecognizerDelegate/*,
-                                                        CLLocationManagerDelegate*/>
+                                                        UIGestureRecognizerDelegate,
+                                                        UIAccelerometerDelegate,
+                                                        CLLocationManagerDelegate>
 {
     IBOutlet UIView*                    _dspView;
     IBOutlet FIScrollView*              _dspScrollView;
@@ -51,12 +52,10 @@ class uiBox;
     IBOutlet UISegmentedControl*        _gyroAxisSegmentedControl;
     IBOutlet UISwitch*                  _gyroInvertedSwitch;
     IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
-    CMMotionManager*                    _motionManager;
-    NSTimer*                            _motionTimer;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
     FISensorFilter*                     _accelerometerFilter;
-    //CLLocationManager*                  _locationManager;
+    CLLocationManager*                  _locationManager;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -85,6 +84,5 @@ class uiBox;
 - (void)loadMotionPreferences;
 - (void)startMotion;
 - (void)stopMotion;
-- (void)updateMotion;
 
 @end

@@ -120,8 +120,8 @@ char rcfilename[256];
     
     _lockedBox = interface->getMainBox();
     
-    _motionManager = nil;
-    //_locationManager = nil;
+    _locationManager = nil;
+    [UIAccelerometer sharedAccelerometer].delegate = nil;
     _selectedWidget = nil;
     [self loadMotionPreferences];
     if (_assignatedWidgets.size() > 0) [self startMotion];
@@ -719,85 +719,68 @@ error:
 
 - (void)startMotion
 {
-    if (_motionManager == nil)
+    if ([UIAccelerometer sharedAccelerometer].delegate == nil)
     {
-        // Motion
-        _motionManager = [[CMMotionManager alloc] init];
-        _accelerometerFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
-        [_motionManager startAccelerometerUpdates];
-        [_motionManager startMagnetometerUpdates];
-        _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
-                                                 target:self 
-                                               selector:@selector(updateMotion)
-                                               userInfo:nil 
-                                                repeats:YES];
-                
-        /*if ([CLLocationManager headingAvailable])
-        {
-            _locationManager = [[CLLocationManager alloc] init];
-            _locationManager.headingFilter = kCLHeadingFilterNone;            
-            _locationManager.delegate = self;            
-            [_locationManager startUpdatingHeading];
-        }*/
+        [UIAccelerometer sharedAccelerometer].delegate = self;
+        _accelerometerFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate cutoffFrequency:100];
+    }
+    
+    if (_locationManager == nil)
+    {
+        _locationManager = [[CLLocationManager alloc] init];
+        _locationManager.delegate = self;
+        [_locationManager startUpdatingHeading];
     }
 }
 
 - (void)stopMotion
 {
-    // Motion
-    if (_motionManager != nil)
+    if ([UIAccelerometer sharedAccelerometer].delegate == self)
     {
-        [_motionManager stopAccelerometerUpdates];
-        [_motionManager stopMagnetometerUpdates];
-        [_motionManager release];
-        _motionManager = nil;
-        [_motionTimer invalidate];
+        [UIAccelerometer sharedAccelerometer].delegate = nil;
+        [_accelerometerFilter release];
+        _accelerometerFilter = nil;
     }
     
-    // Location
-    /*if (_locationManager != nil)
+    if (_locationManager)
     {
+        [_locationManager stopUpdatingHeading];
         [_locationManager release];
         _locationManager = nil;
-    }*/
+    }
 }
 
-- (void)updateMotion
+- (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
 {
     list<uiCocoaItem*>::iterator    i;
     float                           coef = 0.f;
     float                           value = 0.f;
+    
+    [_accelerometerFilter addAccelerationX:acceleration.x
+                                         y:acceleration.y
+                                         z:acceleration.z];
 
-    [_accelerometerFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
-                                         y:_motionManager.accelerometerData.acceleration.y
-                                         z:_motionManager.accelerometerData.acceleration.z];
-        
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
         if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i))
         {
-            switch ((*i)->assignationType)
+            coef = 0.f;
+            
+            if ((*i)->assignationType == kAssignationAccelX)
             {
-                case kAssignationNone:
-                    coef = 0.f;
-                    break;
-                case kAssignationAccelX:
-                    coef = _accelerometerFilter.x;
-                    break;
-                case kAssignationAccelY:
-                    coef = -_accelerometerFilter.y;
-                    break;
-                case kAssignationAccelZ:
-                    coef = _accelerometerFilter.z;
-                    break;
-                case kAssignationCompass:
-                    /*coef = sqrt(_motionManager.magnetometerData.magneticField.x * _motionManager.magnetometerData.magneticField.x
-                                + _motionManager.magnetometerData.magneticField.y * _motionManager.magnetometerData.magneticField.y
-                                + _motionManager.magnetometerData.magneticField.z * _motionManager.magnetometerData.magneticField.z);*/
-                    break;
-                default:
-                    coef = 0.f;
-                    break;
+                coef = _accelerometerFilter.x;
+            }
+            else if ((*i)->assignationType == kAssignationAccelY)
+            {
+                coef = -_accelerometerFilter.y;
+            }
+            else if ((*i)->assignationType == kAssignationAccelZ)
+            {
+                coef = _accelerometerFilter.z;
+            }
+            else
+            {
+                continue;
             }
             
             value = (coef + 1.f) / 2.;
@@ -818,9 +801,43 @@ error:
     }
 }
 
-/*- (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)heading
+- (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)heading
 {
-
+    list<uiCocoaItem*>::iterator    i;
+    float                           coef = 0.f;
+    float                           value = 0.f;
+    
+    for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
+    {
+        if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i))
+        {
+            coef = 0.f;
+            
+            if ((*i)->assignationType == kAssignationCompass)
+            {
+                coef = heading.trueHeading;
+            }
+            else
+            {
+                continue;
+            }
+            
+            value = coef / 360.f;
+            if ((*i)->assignationInverse) value = 1.f - value;
+            
+            if (dynamic_cast<uiKnob*>(*i))
+            {
+                value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
+            }
+            else if (dynamic_cast<uiSlider*>(*i))
+            {
+                value = value * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
+            }
+            
+            (*i)->modifyZone(value);
+            (*i)->reflectZone();
+        }
+    }
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
@@ -832,6 +849,6 @@ error:
     else if ([error code] == kCLErrorHeadingFailure)
     {
     }
-}*/
+}
 
 @end

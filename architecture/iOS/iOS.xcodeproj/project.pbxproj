@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		650C53BB14DC389100C1C7FF /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 650C53BA14DC389100C1C7FF /* icon.png */; };
-		6528EEF015641F0200A310B2 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6528EEEF15641F0200A310B2 /* CoreMotion.framework */; };
 		6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		65510E9514EEC1190014A01F /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
 		6559E84714F2685A00D3AB9A /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
@@ -19,6 +18,7 @@
 		6566748C14ED30F000172A10 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
 		65961D501546DFD70004BC59 /* FIHint.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65961D4F1546DFD70004BC59 /* FIHint.mm */; };
 		65C1C07414F543E9006464DF /* FIBargraph.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65C1C07314F543E9006464DF /* FIBargraph.mm */; };
+		65D1BD1415668A8A00ADCA32 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */; };
 		65E5ED9314DB037D00136CFC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9214DB037D00136CFC /* UIKit.framework */; };
 		65E5ED9514DB037D00136CFC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9414DB037D00136CFC /* Foundation.framework */; };
 		65E5ED9714DB037D00136CFC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9614DB037D00136CFC /* CoreGraphics.framework */; };
@@ -50,7 +50,6 @@
 
 /* Begin PBXFileReference section */
 		650C53BA14DC389100C1C7FF /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
-		6528EEEF15641F0200A310B2 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		6528EF031564212100A310B2 /* FISensorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISensorFilter.h; sourceTree = "<group>"; };
 		6528EF041564212100A310B2 /* FISensorFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISensorFilter.mm; sourceTree = "<group>"; };
 		65510E9314EEC1190014A01F /* FITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FITextField.h; sourceTree = "<group>"; };
@@ -71,6 +70,7 @@
 		65961D4F1546DFD70004BC59 /* FIHint.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIHint.mm; sourceTree = "<group>"; };
 		65C1C07214F543E9006464DF /* FIBargraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIBargraph.h; sourceTree = "<group>"; };
 		65C1C07314F543E9006464DF /* FIBargraph.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FIBargraph.mm; sourceTree = "<group>"; };
+		65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		65E5ED8E14DB037D00136CFC /* Template.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E5ED9214DB037D00136CFC /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		65E5ED9414DB037D00136CFC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -105,7 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6528EEF015641F0200A310B2 /* CoreMotion.framework in Frameworks */,
+				65D1BD1415668A8A00ADCA32 /* CoreLocation.framework in Frameworks */,
 				65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */,
 				65E5ED9314DB037D00136CFC /* UIKit.framework in Frameworks */,
 				65E5ED9514DB037D00136CFC /* Foundation.framework in Frameworks */,
@@ -174,7 +174,7 @@
 		65E5ED9114DB037D00136CFC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				6528EEEF15641F0200A310B2 /* CoreMotion.framework */,
+				65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */,
 				65E5EDCD14DB055500136CFC /* AudioToolbox.framework */,
 				65E5ED9214DB037D00136CFC /* UIKit.framework */,
 				65E5ED9414DB037D00136CFC /* Foundation.framework */,
