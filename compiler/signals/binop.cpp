@@ -29,7 +29,6 @@
 
 using namespace llvm;
 
-
 bool falsePredicate(Node const & a)
 {
     return false;
@@ -42,7 +41,7 @@ BinOp* gBinOpTable[] = {
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", Instruction::Add, Instruction::FAdd, &addNode, &isZero, &isZero, 6),
 	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", Instruction::Sub, Instruction::FSub, &subNode, &noNtrl, &isZero, 7),
 	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", Instruction::Mul, Instruction::FMul, &mulNode, &isOne, &isOne, 8, isZero, isZero),
-	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", Instruction::SDiv, Instruction::FDiv, &divNode, &noNtrl, &isOne, 10),
+	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", Instruction::SDiv, Instruction::FDiv, &divExtendedNode, &noNtrl, &isOne, 10),
 	new BinOp("%","mod_vec","mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, &remNode, &noNtrl, &noNtrl, 9),
 
 	new BinOp("<<","shift_left_vec","shift_left_scal", "","", Instruction::Shl, Instruction::Shl, &lshNode, &noNtrl, &isZero, 8),
@@ -100,7 +99,7 @@ BinOp* gBinOpLateqTable[] = {
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", 0, 0, &addNode, &isZero, &isZero, 6),
 	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", 0, 0, &subNode, &noNtrl, &isZero, 7),
 	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", 0, 0, &mulNode, &isOne, &isOne, 8, isZero, isZero), // \DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
-	new BinOp("/","div_vec","div_scal", "div", "fdiv", 0, 0, &divNode, &noNtrl, &isOne, 10), // \frac{}{} used in generateBinOp
+	new BinOp("/","div_vec","div_scal", "div", "fdiv", 0, 0, &divExtendedNode, &noNtrl, &isOne, 10), // \frac{}{} used in generateBinOp
 	new BinOp("\\bmod","mod_vec","mod_scal", "srem", "frem", 0, 0, &remNode, &noNtrl, &noNtrl, 9),
 
 	new BinOp("\\hiderel{\\ll}","shift_left_vec","shift_left_scal","","", 0, 0, &lshNode, &noNtrl, &isZero, 8),

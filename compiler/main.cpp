@@ -18,10 +18,6 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
-#include <string>
-#include <llvm/Module.h>
-
 #include "global.hh"
 
 #ifdef __cplusplus

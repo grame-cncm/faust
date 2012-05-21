@@ -13,6 +13,8 @@
 
 # Possible path
 
+PATH=$PATH:/usr/local/bin
+
 SC0=$SUPERCOLLIDER_HEADERS
 SC1="/usr/local/include/SuperCollider"
 SC2="/usr/local/include/supercollider"

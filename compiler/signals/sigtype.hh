@@ -270,7 +270,7 @@ class SimpleType : public AudioType
 inline Type intCast (Type t)	{ return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
 inline Type floatCast (Type t)	{ return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
 inline Type sampCast (Type t)	{ return makeSimpleType(t->nature(), kSamp, t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
-inline Type boolCast (Type t)   { return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), kBool, t->getInterval()); }
+inline Type boolCast (Type t)   { return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), kBool, t->getInterval()); }
 inline Type numCast (Type t)    { return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(), kNum, t->getInterval()); }
 inline Type vecCast (Type t)    { return makeSimpleType(t->nature(), t->variability(), t->computability(), kVect, t->boolean(), t->getInterval()); }
 inline Type scalCast (Type t)   { return makeSimpleType(t->nature(), t->variability(), t->computability(), kScal, t->boolean(), t->getInterval()); }

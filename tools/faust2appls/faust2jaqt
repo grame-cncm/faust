@@ -9,6 +9,7 @@
 
 ARCHFILE="jack-qt.cpp"
 ARCHLIB="-ljack"
+PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
 # Search where Faust is installed. Store '.../lib/faust/' in $FLIB

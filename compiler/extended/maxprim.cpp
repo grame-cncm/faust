@@ -73,20 +73,101 @@ class MaxPrim : public xtended
         Typed::VarType result_type;
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-         
+        
+        if (result->nature() == kInt) {
+            result_type = Typed::kInt; 
+        } else {
+            result_type = itfloat();
+        }
+        
         // generates code compatible with overloaded max
 		int n0 = types[0]->nature();
 		int n1 = types[1]->nature();
-		if (n0 == n1) {
-	        return container->pushFunction("max", result_type, arg_types, args);	
-		} else {
-            return container->pushFunction("max", result_type, arg_types, casted_args);	
-		}	
-       
+        if (n0 == kReal) {
+            if (n1 == kReal) {
+                // both are floats, no need to cast
+                //return subst("max($0, $1)", args[0], args[1]);
+                arg_types.push_back(itfloat());
+                arg_types.push_back(itfloat());
+                return container->pushFunction("max", result_type, arg_types, args);
+            } else {
+                assert(n1 == kInt); // second argument is not float, cast it to float
+                // prepare args types
+                arg_types.push_back(itfloat());
+                arg_types.push_back(itfloat()); 
+                // prepare args values
+                list<ValueInst*>::const_iterator it2 = args.begin();
+                casted_args.push_back((*it2));
+                it2++;
+                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(itfloat())));
+                //return subst("max($0, $2$1)", args[0], args[1], icast());
+                return container->pushFunction("max", result_type, arg_types, casted_args);
+            }
+        } else if (n1 == kReal) {
+            assert(n0 == kInt); // first not float but second is, cast first to float
+            // prepare args types
+            arg_types.push_back(itfloat());
+            arg_types.push_back(itfloat()); 
+            // prepare args values
+            list<ValueInst*>::const_iterator it2 = args.begin();
+            casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(itfloat())));
+            it2++;
+            casted_args.push_back((*it2));
+            //return subst("max($2$0, $1)", args[0], args[1], icast());
+            return container->pushFunction("max", result_type, arg_types, casted_args);
+        } else {
+            assert(n0 == kInt);  assert(n1 == kInt);   // both are integers, check for booleans
+            int b0 = types[0]->boolean();
+            int b1 = types[1]->boolean();
+            if (b0 == kNum) {
+                if (b1 == kNum) {
+                    // both are integers, no need to cast
+                    // prepare args types
+                    arg_types.push_back(Typed::kInt);
+                    arg_types.push_back(Typed::kInt); 
+                    //return subst("max($0, $1)", args[0], args[1]);
+                    return container->pushFunction("max", result_type, arg_types, args);
+                } else {
+                    assert(b1 == kBool);    // second is boolean, cast to int
+                    // prepare args types
+                    arg_types.push_back(Typed::kInt);
+                    arg_types.push_back(Typed::kInt);
+                    // prepare args values
+                    list<ValueInst*>::const_iterator it2 = args.begin();
+                    casted_args.push_back((*it2));
+                    it2++;
+                    casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                    //return subst("max($0, (int)$1)", args[0], args[1]);
+                    return container->pushFunction("max", result_type, arg_types, casted_args);
+                }
+            } else if (b1 == kNum) {
+                assert(b0 == kBool);    // first is boolean, cast to int
+                // prepare args types
+                arg_types.push_back(Typed::kInt);
+                arg_types.push_back(Typed::kInt);
+                // prepare args values
+                list<ValueInst*>::const_iterator it2 = args.begin();
+                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                it2++;
+                casted_args.push_back((*it2));
+                //return subst("max((int)$0, $1)", args[0], args[1], icast());
+                return container->pushFunction("max", result_type, arg_types, casted_args);
+            } else {
+                assert(b0 == kBool); assert(b1 == kBool);   // both are booleans, cast both
+                // prepare args types
+                arg_types.push_back(Typed::kInt);
+                arg_types.push_back(Typed::kInt);
+                list<ValueInst*>::const_iterator it2 = args.begin();
+                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                it2++;
+                casted_args.push_back(InstBuilder::genCastNumInst((*it2), InstBuilder::genBasicTyped(Typed::kInt)));
+                //return subst("max((int)$0, (int)$1)", args[0], args[1]);
+                return container->pushFunction("max", result_type, arg_types, casted_args);
+            }
+        }
     }
-
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+  	
+	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
 		assert (args.size() == arity());
 		assert (types.size() == arity());

@@ -9,6 +9,7 @@
 
 ARCHFILE="ca-qt.cpp"
 ARCHLIB="-framework CoreAudio -framework AudioUnit -framework CoreServices"
+PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
 # Search where Faust is installed. Store '.../lib/faust/' in $FLIB
