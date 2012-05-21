@@ -180,35 +180,17 @@ class llvmdsp : public dsp {
         
         Module* LoadModule(const std::string filename)
         {
+            printf("Load module : %s \n", filename.c_str());
             LLVMContext &context = getGlobalContext();
             SMDiagnostic err;
             Module* res = ParseIRFile(filename, err, context);
-            if (!res) 
+            if (!res) {
                 err.Print("LoadModule", errs());
+            }
             return res;
         }
-
-  public:
-  
-        /*
-        llvmdsp(int argc, char *argv[], const std::string& pgm, int opt_level = 3)
-        {
-            printf("Compile module...\n");
-            int argc1 = argc + 3;
-            const char* argv1[argc1];
-            argv1[0] = "faust";
-            argv1[1] = "-lang";
-            argv1[2] = "llvm";
-            for (int i = 0; i < argc; i++) {
-                argv1[i+3] = argv[i];
-            }
-            fModule = compile_faust_llvm(argc1, (char**)argv1, pgm.c_str());
-            
-            Init(opt_level);
-        }
-        */
         
-        llvmdsp(int argc, char *argv[], const std::string& pgm, int opt_level = 3)
+        Module* CompileModule(int argc, char *argv[], const char* pgm)
         {
             printf("Compile module...\n");
             int argc1 = (argc-1) + 3;
@@ -219,27 +201,23 @@ class llvmdsp : public dsp {
             for (int i = 0; i < argc-1; i++) {
                 argv1[i+3] = argv[i+1];
             }
-            fModule = compile_faust_llvm(argc1, (char**)argv1, pgm.c_str());
-            
+            return compile_faust_llvm(argc1, (char**)argv1, pgm);
+        }
+
+  public:
+  
+        llvmdsp(int argc, char *argv[], const std::string& pgm, int opt_level = 3)
+        {
+            fModule = CompileModule(argc, argv, pgm.c_str());
             Init(opt_level);
         }
   
         llvmdsp(int argc, char *argv[], int opt_level = 3)
         {
             if (strstr(argv[1], ".bc")) {
-                printf("Load module...\n");
                 fModule = LoadModule(argv[1]);
             } else {
-                printf("Compile module...\n");
-                int argc1 = (argc-1) + 3;
-                const char* argv1[argc1];
-                argv1[0] = "faust";
-                argv1[1] = "-lang";
-                argv1[2] = "llvm";
-                for (int i = 0; i < argc-1; i++) {
-                    argv1[i+3] = argv[i+1];
-                }
-                fModule = compile_faust_llvm(argc1, (char**)argv1, NULL);
+                fModule = CompileModule(argc, argv, NULL);
             }
             
             Init(opt_level);
@@ -356,7 +334,7 @@ class llvmdsp : public dsp {
             }
       
             pm.run(*fModule);
-            fModule->dump();
+            //fModule->dump();
 
             fNew = (newDspFun)LoadOptimize("new_mydsp");
             fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
