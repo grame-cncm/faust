@@ -17,6 +17,15 @@
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
+
+if [[ $(uname) == Darwin ]]; then
+    LIB="-I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -dynamiclib"
+else
+    LIB="-I/usr/include/csound -shared -fPIC"
+    PATH=$PATH:/usr/local/bin
+fi
+
+
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -56,7 +65,7 @@ done
 for SRC in $FILES; do
 	opname=`basename ${SRC%.dsp}`
     faust  -uim -double -a csound.cpp $OPTIONS "$SRC" -o "$SRC.cpp"
-    ${CXX=g++} ${CXXFLAGS=-O3} $OMP $PROCARCH -I/usr/include/csound -shared -fPIC -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}.dylib"
+    ${CXX=g++} ${CXXFLAGS=-O3} $OMP $LIB -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}.dylib"
     rm "$SRC.cpp"
     BINARIES="$BINARIES${SRC%.dsp}.dylib;"
 done
