@@ -1,4 +1,4 @@
-subprojects := boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher documentator utils ../libraries
+subprojects := . boxes errors evaluate generator normalize parser propagate parallelize signals tlib draw draw/device draw/schema extended patternmatcher documentator utils ../libraries
 
 #CXX=clang++
 
