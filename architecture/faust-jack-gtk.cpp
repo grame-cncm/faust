@@ -34,10 +34,15 @@ int main(int argc, char *argv[])
 		} else {
 			DSP = new llvmdsp(argc, argv);
             /*
-            DSP = new llvmdsp(argc, argv, "process = +,+;");
-            DSP = new llvmdsp(argc, argv, "process = +;");
-            DSP = new llvmdsp(argc, argv, "process = +,+,+,+;");
+            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+            DSP = new llvmdsp(1, NULL, "process = +,+;");
+            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+            DSP = new llvmdsp(1, NULL, "process = +;");
+            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+            DSP = new llvmdsp(1, NULL, "process = +,+,+,+;");
+            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
             */
+            
         }
 	} catch (...) {
 		printf("Cannot load .dsp or .bc file\n");

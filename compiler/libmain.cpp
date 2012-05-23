@@ -87,7 +87,7 @@ using namespace std;
 
 int             yyerr;
 
-global*         gGlobal;
+global*         gGlobal = NULL;
 
 static string gOutputLang = "";
 
@@ -778,6 +778,7 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
 {
     try {
     
+        //delete gGlobal;
         gGlobal = new global();
         
         /****************************************************************

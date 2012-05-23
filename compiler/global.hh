@@ -60,7 +60,7 @@ struct global {
     bool            gDetailsSwitch;
     bool            gDrawSignals;
     bool            gShadowBlur;        // note: svg2pdf doesn't like the blur filter
-     bool			gStripDocSwitch;	// Strip <mdoc> content from doc listings.
+    bool			gStripDocSwitch;	// Strip <mdoc> content from doc listings.
     int            	gFoldThreshold;
     int            	gMaxNameSize;
     bool			gSimpleNames;
@@ -170,6 +170,13 @@ struct global {
         gLstDistributedSwitch	= true; ///< mdoc listing management.
         
         gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
+    }
+    
+    ~global()
+    {
+        delete gResult;
+        delete gResult2;
+        // TODO
     }
 
 };
