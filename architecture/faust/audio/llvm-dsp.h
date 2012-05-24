@@ -242,6 +242,10 @@ class llvmdsp : public dsp {
             builder.setUseMCJIT(true);
             fJIT = builder.create();
             assert(fJIT);
+            
+            // Run static constructors.
+            fJIT->runStaticConstructorsDestructors(false);
+            
             fJIT->DisableLazyCompilation(true);
             fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
             //fModule->dump();
@@ -351,9 +355,10 @@ class llvmdsp : public dsp {
 
         virtual ~llvmdsp()
         {
+            fJIT->runStaticConstructorsDestructors(true);
             fDelete(fDsp);
+            // fModule is kept and deleted by fJIT
             delete fJIT;
-            delete fModule;
         }
 
         virtual int getNumInputs()

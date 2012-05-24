@@ -33,12 +33,15 @@ int main(int argc, char *argv[])
 			exit(1);
 		} else {
 			DSP = new llvmdsp(argc, argv);
+            
             /*
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
             DSP = new llvmdsp(1, NULL, "process = +,+;");
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+            delete DSP;
             DSP = new llvmdsp(1, NULL, "process = +;");
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+            delete DSP;
             DSP = new llvmdsp(1, NULL, "process = +,+,+,+;");
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
             */
