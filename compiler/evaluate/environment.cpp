@@ -3,7 +3,7 @@
 #include "boxes.hh"
 #include "ppbox.hh"
 #include "names.hh"
-
+#include "global.hh"
 
 //-----------------------new environment management----------------------------
 //
@@ -45,7 +45,6 @@ Tree pushEnvBarrier(Tree lenv)
     return tree(BARRIER, lenv);
 }
 
-
 /**
  * Test if the environment is a barrier (or nil) so
  * that searchIdDef will know where to stop when searching
@@ -77,7 +76,7 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
             fprintf(stderr, "%s:%d: ERROR: redefinition of symbols are not allowed : ", getDefFileProp(id), getDefLineProp(id));
             print(id,stderr);
             fprintf(stderr, " is already defined in file \"%s\" line %d \n", getDefFileProp(id), getDefLineProp(id));
-            gErrorCount++;
+            gGlobal->gErrorCount++;
         }
     }
     setProperty(lenv, id, def);

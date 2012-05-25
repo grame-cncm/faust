@@ -24,30 +24,31 @@
 #include "errormsg.hh"
 #include "boxes.hh"
 #include "ppbox.hh"
+#include "global.hh"
+
 #include <iostream>
 using namespace std;
 
 const char* yyfilename = "????";
-int 		gErrorCount = 0;
 Tree 		DEFLINEPROP = tree(symbol("DefLineProp"));
 
 void yyerror(const char* msg)
 {
 	fprintf(stderr, "%s:%d:%s\n", yyfilename, yylineno, msg);
-	gErrorCount++;
+	gGlobal->gErrorCount++;
 }
 
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
     fprintf(stderr, "%s:%d: ERROR: %s ", filename, linenum, msg);
     print(exp,stderr); fprintf(stderr, "\n");
-    gErrorCount++;
+    gGlobal->gErrorCount++;
 }
 
 void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 {
     cerr << filename << ':' << linenum << ": ERROR: " << msg << " : " << boxpp(exp) << endl;
-    gErrorCount++;
+    gGlobal->gErrorCount++;
 }
 
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
@@ -62,12 +63,10 @@ void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 	print(exp,stderr); fprintf(stderr, "\n");
 }
 
-
 void setDefProp(Tree sym, const char* filename, int lineno)
 {
 	setProperty(sym, DEFLINEPROP, cons(tree(filename), tree(lineno)));
 }
-
 
 const char* getDefFileProp(Tree sym)
 {

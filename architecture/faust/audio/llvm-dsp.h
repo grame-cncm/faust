@@ -185,7 +185,7 @@ class llvmdsp : public dsp {
             SMDiagnostic err;
             Module* res = ParseIRFile(filename, err, context);
             if (!res) {
-                err.Print("LoadModule", errs());
+                err.print("LoadModule", errs());
             }
             return res;
         }

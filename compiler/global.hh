@@ -120,6 +120,8 @@ struct global {
     set<string>				gDocMathKeySet;
     
     bool                    gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
+    
+    int                     gErrorCount;
 
     Tabber TABBER;
   
@@ -170,6 +172,8 @@ struct global {
         gLstDistributedSwitch	= true; ///< mdoc listing management.
         
         gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
+        
+        gErrorCount = 0;
     }
     
     ~global()

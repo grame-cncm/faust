@@ -807,7 +807,6 @@ static void printDocEqn(Lateq* ltq, ostream& docout)
 	//cerr << "Documentator : printDocEqn : "; ltq->println(cerr); cerr << endl;
 }
 
-
 /*****************************************************************************
 					Sub-function for <diagram> handling
  *****************************************************************************/
@@ -828,9 +827,9 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
 {
 	/** 1. Evaluate expression. */
 	Tree docdgm = evaldocexpr(expr, gGlobal->gExpandedDefList);
-	if (gErrorCount > 0) {
+	if (gGlobal->gErrorCount > 0) {
 	    stringstream error;
-        error << "Total of " << gErrorCount << " errors during evaluation of : diagram docdgm = " << boxpp(docdgm) << ";\n";
+        error << "Total of " << gGlobal->gErrorCount << " errors during evaluation of : diagram docdgm = " << boxpp(docdgm) << ";\n";
         throw faustexception(error.str());
 	}
 	

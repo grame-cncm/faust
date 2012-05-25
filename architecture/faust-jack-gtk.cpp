@@ -32,7 +32,20 @@ int main(int argc, char *argv[])
 			printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
 			exit(1);
 		} else {
-			DSP = new llvmdsp(argc, argv);
+        
+            /*
+            try {
+               DSP = new llvmdsp(1, NULL, "process = __+,+__");
+            }
+            catch (...) {
+                printf("Mauvais code source, code par defaut \n");
+                DSP = new llvmdsp(1, NULL, "process = +,+;");
+            }
+            */
+            
+            //DSP = new llvmdsp(1, NULL, "process = +,+;");
+            
+            DSP = new llvmdsp(argc, argv);
             
             /*
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());

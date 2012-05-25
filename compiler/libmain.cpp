@@ -48,6 +48,7 @@
 #include "description.hh"
 #include "floats.hh"
 #include "doc.hh"
+#include "global.hh"
 
 #include <map>
 #include <string>
@@ -521,9 +522,9 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     startTiming("evaluation");
 
     Tree process = evalprocess(expandedDefList);
-    if (gErrorCount > 0) {
+    if (gGlobal->gErrorCount > 0) {
         stringstream error;
-        error << "Total of " << gErrorCount << " errors during the compilation of  " << gGlobal->gMasterDocument << ";\n";
+        error << "Total of " << gGlobal->gErrorCount << " errors during the compilation of " << gGlobal->gMasterDocument << ";\n";
         throw faustexception(error.str());
     }
 
