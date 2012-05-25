@@ -42,6 +42,7 @@
 @synthesize displaysValue, allowsGestures;
 @synthesize suffixe;
 @synthesize selected;
+@synthesize motionBlocked;
 
 - (void)dealloc
 {
@@ -77,6 +78,7 @@
 		self.opaque = YES;
         self.suffixe = [[NSString alloc] initWithString:@""];
         self.selected = NO;
+        self.motionBlocked = NO;
 	}
     
 	return self;

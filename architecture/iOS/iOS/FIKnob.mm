@@ -177,6 +177,8 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {    
+    self.motionBlocked = YES;
+    
 	CGPoint thisPoint = [[touches anyObject] locationInView:self];
 	CGPoint centerPoint = CGPointMake(self.frame.size.width / 2.0, self.frame.size.width / 2.0);
 	initialAngle = angleBetweenPoints(thisPoint, centerPoint);
@@ -199,6 +201,8 @@
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    self.motionBlocked = YES;
+    
 	CGPoint thisPoint = [[touches anyObject] locationInView:self];
 	CGPoint centerPoint = CGPointMake(self.frame.size.width / 2.0, self.frame.size.width / 2.0);
     
@@ -227,6 +231,8 @@
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    self.motionBlocked = NO;
+    
     if (_hint)
     {
         [_hint removeFromSuperview];
@@ -237,6 +243,8 @@
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    self.motionBlocked = NO;
+    
     if (_hint)
     {
         [_hint removeFromSuperview];
@@ -301,7 +309,7 @@
 	if (self.backgroundColorAlpha > 0.02)
 	{
 		// outline semi circle
-		UIColor *backgroundColor = [UIColor colorWithRed:0.08 green:0.08 blue:0.08 alpha:1.];
+		UIColor *backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:1.];
 		[backgroundColor set];
         
 		CGContextAddArc(context,

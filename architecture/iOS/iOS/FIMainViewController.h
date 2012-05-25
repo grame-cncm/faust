@@ -33,7 +33,6 @@ class uiBox;
                                                         FIResponderDelegate,
                                                         UIScrollViewDelegate,
                                                         UIGestureRecognizerDelegate,
-                                                        UIAccelerometerDelegate,
                                                         CLLocationManagerDelegate>
 {
     IBOutlet UIView*                    _dspView;
@@ -51,11 +50,17 @@ class uiBox;
     IBOutlet UIView*                    _widgetPreferencesView;
     IBOutlet UISegmentedControl*        _gyroAxisSegmentedControl;
     IBOutlet UISwitch*                  _gyroInvertedSwitch;
+    IBOutlet UISlider*                  _gyroSensibilitySlider;
+    IBOutlet UILabel*                   _gyroSensibilityLabel;
     IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
+    IBOutlet UILabel*                   _gyroInvertedTitleLabel;
+    IBOutlet UILabel*                   _gyroSensibilityTitleLabel;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
     FISensorFilter*                     _accelerometerFilter;
     CLLocationManager*                  _locationManager;
+    CMMotionManager*                    _motionManager;
+    NSTimer*                            _motionTimer;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -79,10 +84,13 @@ class uiBox;
 
 // Sensors
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture;
+- (void)updateWidgetPreferencesView;
 - (IBAction)dismissWidgetPreferencesView:(id)sender;
 - (IBAction)widgetPreferencesChanged:(id)sender;
+- (IBAction)resetWidgetPreferences:(id)sender;
 - (void)loadMotionPreferences;
 - (void)startMotion;
 - (void)stopMotion;
+- (void)updateMotion;
 
 @end

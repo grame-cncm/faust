@@ -35,6 +35,7 @@
 		65E5EDC114DB037D00136CFC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E5EDBF14DB037D00136CFC /* InfoPlist.strings */; };
 		65E5EDC414DB037D00136CFC /* iOSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDC314DB037D00136CFC /* iOSTests.m */; };
 		65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5EDCD14DB055500136CFC /* AudioToolbox.framework */; };
+		65F87431156FFB0C008AE175 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F87430156FFB0C008AE175 /* CoreMotion.framework */; };
 		65FD744F1549993A00E7CB0B /* FIScrollView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65FD744E1549993A00E7CB0B /* FIScrollView.mm */; };
 /* End PBXBuildFile section */
 
@@ -94,6 +95,7 @@
 		65E5EDC214DB037D00136CFC /* iOSTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iOSTests.h; sourceTree = "<group>"; };
 		65E5EDC314DB037D00136CFC /* iOSTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = iOSTests.m; sourceTree = "<group>"; };
 		65E5EDCD14DB055500136CFC /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		65F87430156FFB0C008AE175 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		65F8C2DF14DBD59C0042E3FA /* FICocoaUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FICocoaUI.h; sourceTree = "<group>"; };
 		65F8C2E814DBEA410042E3FA /* ios-faust.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ios-faust.h"; sourceTree = SOURCE_ROOT; };
 		65FD744D1549993A00E7CB0B /* FIScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FIScrollView.h; sourceTree = "<group>"; };
@@ -105,6 +107,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65F87431156FFB0C008AE175 /* CoreMotion.framework in Frameworks */,
 				65D1BD1415668A8A00ADCA32 /* CoreLocation.framework in Frameworks */,
 				65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */,
 				65E5ED9314DB037D00136CFC /* UIKit.framework in Frameworks */,
@@ -154,6 +157,7 @@
 		65E5ED8314DB037D00136CFC = {
 			isa = PBXGroup;
 			children = (
+				65F87430156FFB0C008AE175 /* CoreMotion.framework */,
 				650C53BA14DC389100C1C7FF /* icon.png */,
 				65E5ED9814DB037D00136CFC /* iOS */,
 				65E5EDBC14DB037D00136CFC /* iOSTests */,
