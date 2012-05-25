@@ -57,7 +57,7 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
 
     if (gGlobal->gOpenMPSwitch) {
         container = new COpenMPCodeContainer(name, numInputs, numOutputs, dst);
-    } else if (gGlobal->gOpenCLSwitch) {
+    } else if (gGlobal->gSchedulerSwitch) {
         container = new CWorkStealingCodeContainer(name, numInputs, numOutputs, dst);
     } else if (gGlobal->gVectorSwitch) {
         container = new CVectorCodeContainer(name, numInputs, numOutputs, dst);

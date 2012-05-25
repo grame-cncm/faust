@@ -24,10 +24,12 @@ endif
 
 ifeq ($(LLVM_VERSION), 3.0)
 LLVM_VERSION  = LLVM_30
+CLANG = /opt/local/libexec/llvm-3.0/bin/clang++
 endif
 
 ifeq ($(LLVM_VERSION), 3.1)
 LLVM_VERSION  = LLVM_31
+CLANG = /opt/local/libexec/llvm-3.1/bin/clang++
 endif
 
 ifeq ($(OSC),1)
@@ -337,7 +339,7 @@ iphonenet :
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
 faust-tools: 
-	clang++ -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
+	$(CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 	llvm-g++  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp ../architecture/scheduler.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/faust/libfaust.a  -o faust-jack-gtk
 
 	llvm-g++  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp ../architecture/scheduler.cpp -I`llvm-config --includedir` `llvm-config --ldflags --libs all` -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/faust/libfaust.a  -ljacknet  -o faust-netjack-gtk

@@ -67,7 +67,7 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
         }
     } else if (gGlobal->gOpenMPSwitch) {
         container = new CPPOpenMPCodeContainer(name, super, numInputs, numOutputs, dst);
-    } else if (gGlobal->gOpenCLSwitch) {
+    } else if (gGlobal->gSchedulerSwitch) {
         container = new CPPWorkStealingCodeContainer(name, super, numInputs, numOutputs, dst);
     } else if (gGlobal->gVectorSwitch) {
         container = new CPPVectorCodeContainer(name, super, numInputs, numOutputs, dst);

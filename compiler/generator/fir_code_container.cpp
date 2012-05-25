@@ -46,7 +46,7 @@ CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs)
 
     if (gGlobal->gOpenMPSwitch) {
         container = new FirOpenMPCodeContainer(numInputs, numOutputs);
-    } else if (gGlobal->gOpenCLSwitch) {
+    } else if (gGlobal->gSchedulerSwitch) {
         container = new FirWorkStealingCodeContainer(numInputs, numOutputs);
     } else if (gGlobal->gVectorSwitch) {
         container = new FirVectorCodeContainer(numInputs, numOutputs);

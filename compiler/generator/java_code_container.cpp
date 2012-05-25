@@ -54,7 +54,7 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
 
     if (gGlobal->gOpenMPSwitch) {
         throw faustexception("ERROR : OpenMP not supported for Java\n");
-    } else if (gGlobal->gOpenCLSwitch) {
+    } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Java\n");
     } else if (gGlobal->gVectorSwitch) {
         container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);

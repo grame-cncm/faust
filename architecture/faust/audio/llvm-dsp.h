@@ -185,7 +185,12 @@ class llvmdsp : public dsp {
             SMDiagnostic err;
             Module* res = ParseIRFile(filename, err, context);
             if (!res) {
+            #if defined(LLVM_31) 
                 err.print("LoadModule", errs());
+            #endif
+            #if defined(LLVM_30) 
+                err.Print("LoadModule", errs());
+            #endif
             }
             return res;
         }

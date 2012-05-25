@@ -82,7 +82,7 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
 
     if (gGlobal->gOpenMPSwitch) {
         throw faustexception("ERROR : OpenMP not supported for LLVM\n");
-    } else if (gGlobal->gOpenCLSwitch) {
+    } else if (gGlobal->gSchedulerSwitch) {
         container = new LLVMWorkStealingCodeContainer(name, numInputs, numOutputs);
     } else if (gGlobal->gVectorSwitch) {
         container = new LLVMVectorCodeContainer(name, numInputs, numOutputs);

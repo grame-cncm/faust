@@ -54,7 +54,7 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, cons
 
     if (gGlobal->gOpenMPSwitch) {
         throw faustexception("OpenMP : CUDA not supported for JavaScript\n");
-    } else if (gGlobal->gOpenCLSwitch) {
+    } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("Scheduler mode not supported for JavaScript\n");
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for JavaScript\n");
