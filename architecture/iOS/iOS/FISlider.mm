@@ -141,6 +141,8 @@
 	CGFloat handleOrigin;
 	CGFloat valueInternal = (self.value - self.min) / (self.max - self.min);
     
+    self.motionBlocked = YES;
+    
 	if (self.isHorizontalSlider)
 		handleOrigin = (self.bounds.size.width - self.handleSize) * valueInternal;
 	else
@@ -176,6 +178,8 @@
 	if (touchHandleOffset == -1)
 		return;
 
+    self.motionBlocked = YES;
+    
 	UITouch *touch = [touches anyObject];
 	CGPoint touchPosition = [touch locationInView:self];
     
@@ -194,6 +198,8 @@
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    self.motionBlocked = NO;
+    
     if (_hint)
     {
         [_hint removeFromSuperview];
@@ -204,6 +210,8 @@
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    self.motionBlocked = NO;
+    
     if (_hint)
     {
         [_hint removeFromSuperview];
@@ -257,7 +265,7 @@
 											   green:colorComponents[1]
 												blue:colorComponents[2]
 											   alpha:self.backgroundColorAlpha];
-	UIColor *lighterBackgroundColor = [UIColor colorWithRed:0.08 green:0.08 blue:0.08 alpha:1.];
+	UIColor *lighterBackgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:1.];
 
 	// draw background of slider
 	[lighterBackgroundColor set];

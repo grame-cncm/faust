@@ -77,7 +77,8 @@ class uiBox;
 #define kAssignationAccelX              1
 #define kAssignationAccelY              2
 #define kAssignationAccelZ              3
-#define kAssignationCompass             4
+#define kAssignationShake               4
+#define kAssignationCompass             5
 
 // Current layout mode
 #define kHorizontalLayout               0
@@ -157,8 +158,19 @@ public:
     
     FIMainViewController*   mainViewController;
     int                     assignationType;
+    float                   assignationRefPointX;
+    float                   assignationRefPointY;
     BOOL                    assignationInverse;
+    float                   assignationSensibility;
 
+    void resetAssignations()
+    {
+        assignationType = kAssignationNone;
+        assignationRefPointX = 0.;
+        assignationRefPointY = 0.5;
+        assignationInverse = false;
+        assignationSensibility = 1.;
+    }
     
     uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller)
     : uiItem(ui, zone), mainViewController(controller)
@@ -173,8 +185,7 @@ public:
         fAbstractY = 0.f;
         fAbstractW = 0.f;
         fAbstractH = 0.f;
-        assignationType = kAssignationNone;
-        assignationInverse = false;
+        resetAssignations();
         fSelected = false;
     }
     
@@ -618,8 +629,11 @@ public:
         fButton.labelColor = [UIColor whiteColor];
         fButton.backgroundColorAlpha = 0.4;
         fButton.type = type;
-        
         [controller.dspView addSubview:fButton];
+        
+        UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
+        longPressGesture.delegate = controller;
+		[fButton addGestureRecognizer:longPressGesture];
     }
     
     ~uiButton()
@@ -645,6 +659,13 @@ public:
         fButton.hidden = hidden;
     }
 
+    void setSelected(BOOL selected)
+    {
+        uiCocoaItem::setSelected(selected);
+        fButton.selected = selected;
+        [fButton setNeedsDisplay];
+    }
+    
     void reflectZone()
     {
         float v = *fZone;

@@ -53,6 +53,7 @@ char rcfilename[256];
 - (void)viewDidLoad
 {
     _widgetPreferencesView.hidden = YES;
+    
     _viewLoaded = NO;
     _currentOrientation = UIDeviceOrientationUnknown;
     UIView *contentView;
@@ -121,7 +122,7 @@ char rcfilename[256];
     _lockedBox = interface->getMainBox();
     
     _locationManager = nil;
-    [UIAccelerometer sharedAccelerometer].delegate = nil;
+    _motionManager = nil;
     _selectedWidget = nil;
     [self loadMotionPreferences];
     if (_assignatedWidgets.size() > 0) [self startMotion];
@@ -239,7 +240,29 @@ T findCorrespondingUiItem(FIResponder* sender)
         uiSlider* slider = findCorrespondingUiItem<uiSlider*>((FIResponder*)sender);
         if (slider)
         {
-            slider->modifyZone((float)((FISlider*)sender).value);
+            if ((slider->assignationType == 1
+                || slider->assignationType == 2
+                || slider->assignationType == 3
+                || slider->assignationType == 5)
+                && (((FIResponder*)sender).motionBlocked))
+            {
+                if (slider->assignationType == 1) slider->assignationRefPointX = _motionManager.accelerometerData.acceleration.x;
+                else if (slider->assignationType == 2) slider->assignationRefPointX = _motionManager.accelerometerData.acceleration.y;
+                else if (slider->assignationType == 3) slider->assignationRefPointX = _motionManager.accelerometerData.acceleration.z;
+                else if (slider->assignationType == 5) slider->assignationRefPointX = _locationManager.heading.trueHeading / 360.f;
+                    
+                slider->assignationRefPointY = (((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min);
+                
+                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", slider->fLabel.text];
+                [[NSUserDefaults standardUserDefaults] setFloat:slider->assignationRefPointX forKey:key];
+                
+                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", slider->fLabel.text];
+                [[NSUserDefaults standardUserDefaults] setFloat:slider->assignationRefPointY forKey:key];
+            }
+            else
+            {
+                slider->modifyZone((float)((FISlider*)sender).value);
+            }
         }
     }
     else if ([sender isKindOfClass:[FIButton class]])
@@ -263,7 +286,29 @@ T findCorrespondingUiItem(FIResponder* sender)
         uiKnob* knob = findCorrespondingUiItem<uiKnob*>((FIResponder*)sender);
         if (knob)
         {
-            knob->modifyZone((float)((FIKnob*)sender).value);
+            if ((knob->assignationType == 1
+                || knob->assignationType == 2
+                 || knob->assignationType == 3
+                 || knob->assignationType == 5)
+                && (((FIResponder*)sender).motionBlocked))
+            {
+                if (knob->assignationType == 1) knob->assignationRefPointX = _motionManager.accelerometerData.acceleration.x;
+                else if (knob->assignationType == 2) knob->assignationRefPointX = _motionManager.accelerometerData.acceleration.y;
+                else if (knob->assignationType == 3) knob->assignationRefPointX = _motionManager.accelerometerData.acceleration.z;
+                else if (knob->assignationType == 5) knob->assignationRefPointX = _locationManager.heading.trueHeading / 360.f;
+                
+                knob->assignationRefPointY = (((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min);
+                
+                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", knob->fLabel.text];
+                [[NSUserDefaults standardUserDefaults] setFloat:knob->assignationRefPointX forKey:key];
+                
+                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", knob->fLabel.text];
+                [[NSUserDefaults standardUserDefaults] setFloat:knob->assignationRefPointY forKey:key];
+            }
+            else
+            {
+                knob->modifyZone((float)((FIKnob*)sender).value);
+            }
         }
     }
     else if ([sender isKindOfClass:[FITabView class]])
@@ -607,18 +652,30 @@ error:
 
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture
 {
+    [_gyroAxisSegmentedControl removeAllSegments];
+    
     if ([gesture.view isKindOfClass:[FIKnob class]])
     {
         uiKnob* knob = findCorrespondingUiItem<uiKnob*>((FIResponder*)gesture.view);
         if (knob)
         {
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"None" atIndex:0 animated:NO];
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"X" atIndex:1 animated:NO];
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Y" atIndex:2 animated:NO];
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Z" atIndex:3 animated:NO];
+            if ([CLLocationManager headingAvailable])
+            {
+                [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Cmp" atIndex:4 animated:NO];
+            }
+            _gyroInvertedSwitch.hidden = NO;
+            _gyroInvertedTitleLabel.hidden = NO;
+            _gyroSensibilityLabel.hidden = NO;
+            _gyroSensibilitySlider.hidden = NO;
+            _gyroSensibilityTitleLabel.hidden = NO;
+            
             _selectedWidget = knob;
             knob->setSelected(YES);
             _widgetPreferencesTitleLabel.text = dynamic_cast<uiKnob*>(_selectedWidget)->fLabel.text;
-            _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->assignationType;
-            _gyroInvertedSwitch.on = _selectedWidget->assignationInverse;
-            
-            _widgetPreferencesView.hidden = NO;
         }
     }
     
@@ -627,14 +684,80 @@ error:
         uiSlider* slider = findCorrespondingUiItem<uiSlider*>((FIResponder*)gesture.view);
         if (slider)
         {
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"None" atIndex:0 animated:NO];
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"X" atIndex:1 animated:NO];
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Y" atIndex:2 animated:NO];
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Z" atIndex:3 animated:NO];
+            if ([CLLocationManager headingAvailable])
+            {
+                [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Cmp" atIndex:4 animated:NO];
+            }
+            
+            _gyroInvertedSwitch.hidden = NO;
+            _gyroInvertedTitleLabel.hidden = NO;
+            _gyroSensibilityLabel.hidden = NO;
+            _gyroSensibilitySlider.hidden = NO;
+            _gyroSensibilityTitleLabel.hidden = NO;
+            
             _selectedWidget = slider;
             slider->setSelected(YES);
             _widgetPreferencesTitleLabel.text = dynamic_cast<uiSlider*>(_selectedWidget)->fLabel.text;
-            _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->assignationType;
-            _gyroInvertedSwitch.on = _selectedWidget->assignationInverse;
-            
-            _widgetPreferencesView.hidden = NO;
         }
+    }
+    
+    else if ([gesture.view isKindOfClass:[FIButton class]])
+    {
+        uiButton* button = findCorrespondingUiItem<uiButton*>((FIResponder*)gesture.view);
+        if (button)
+        {
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"None" atIndex:0 animated:NO];
+            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Shk" atIndex:1 animated:NO];
+            
+            _gyroInvertedSwitch.hidden = YES;
+            _gyroInvertedTitleLabel.hidden = YES;
+            _gyroSensibilityLabel.hidden = YES;
+            _gyroSensibilitySlider.hidden = YES;
+            _gyroSensibilityTitleLabel.hidden = YES;
+            
+            _selectedWidget = button;
+            button->setSelected(YES);
+            _widgetPreferencesTitleLabel.text = dynamic_cast<uiButton*>(_selectedWidget)->fButton.title;
+            
+            if (_selectedWidget->assignationType == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
+            else if (_selectedWidget->assignationType == kAssignationShake) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
+        }
+    }
+    
+    [self updateWidgetPreferencesView];
+    _widgetPreferencesView.hidden = NO;
+}
+
+- (void)updateWidgetPreferencesView
+{
+    if (dynamic_cast<uiKnob*>(_selectedWidget))
+    {
+        if (_selectedWidget->assignationType == kAssignationCompass) _gyroAxisSegmentedControl.selectedSegmentIndex = 4;
+        else _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->assignationType;
+        _gyroInvertedSwitch.on = _selectedWidget->assignationInverse;
+        _gyroSensibilitySlider.value = _selectedWidget->assignationSensibility;
+        _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->assignationSensibility];
+    }
+    else if (dynamic_cast<uiSlider*>(_selectedWidget))
+    {
+        if (_selectedWidget->assignationType == kAssignationCompass) _gyroAxisSegmentedControl.selectedSegmentIndex = 4;
+        else _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->assignationType;
+        _gyroInvertedSwitch.on = _selectedWidget->assignationInverse;
+        _gyroSensibilitySlider.value = _selectedWidget->assignationSensibility;
+        _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->assignationSensibility];
+    }
+    else if (dynamic_cast<uiButton*>(_selectedWidget))
+    {
+        if (_selectedWidget->assignationType == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
+        else if (_selectedWidget->assignationType == kAssignationShake) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
+        _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->assignationType;
+        _gyroInvertedSwitch.on = _selectedWidget->assignationInverse;
+        _gyroSensibilitySlider.value = _selectedWidget->assignationSensibility;
+        _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->assignationSensibility];
     }
 }
 
@@ -645,16 +768,27 @@ error:
     // No selected widget
     _selectedWidget->setSelected(NO);
     _selectedWidget = NULL;
-    
 }
 
 - (IBAction)widgetPreferencesChanged:(id)sender
 {
     list<uiCocoaItem*>::iterator    i;
     NSString*                       key;
+    NSString*                       str;
     
-    _selectedWidget->assignationType = _gyroAxisSegmentedControl.selectedSegmentIndex;
+    str = [NSString stringWithString:[_gyroAxisSegmentedControl titleForSegmentAtIndex:_gyroAxisSegmentedControl.selectedSegmentIndex]];
+    
+    if ([str compare:@"None"] == NSOrderedSame) _selectedWidget->assignationType = kAssignationNone;
+    else if ([str compare:@"X"] == NSOrderedSame) _selectedWidget->assignationType = kAssignationAccelX;
+    else if ([str compare:@"Y"] == NSOrderedSame) _selectedWidget->assignationType = kAssignationAccelY;
+    else if ([str compare:@"Z"] == NSOrderedSame) _selectedWidget->assignationType = kAssignationAccelZ;
+    else if ([str compare:@"Shk"] == NSOrderedSame) _selectedWidget->assignationType = kAssignationShake;
+    else if ([str compare:@"Cmp"] == NSOrderedSame) _selectedWidget->assignationType = kAssignationCompass;
+    else _selectedWidget->assignationType = kAssignationNone;
+        
     _selectedWidget->assignationInverse = _gyroInvertedSwitch.on;
+    _selectedWidget->assignationSensibility = _gyroSensibilitySlider.value;
+    _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _gyroSensibilitySlider.value];
     
     // If assignated : add widget in list
     if (_gyroAxisSegmentedControl.selectedSegmentIndex != 0)
@@ -680,9 +814,18 @@ error:
     key = [NSString stringWithFormat:@"%@-assignation-inverse", _widgetPreferencesTitleLabel.text];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->assignationInverse forKey:key];
     
+    key = [NSString stringWithFormat:@"%@-assignation-sensibility", _widgetPreferencesTitleLabel.text];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->assignationSensibility forKey:key];
+    
     if (_assignatedWidgets.size() > 0) [self startMotion];
     else [self stopMotion];
-   
+}
+
+- (IBAction)resetWidgetPreferences:(id)sender
+{
+    _selectedWidget->resetAssignations();
+    [self updateWidgetPreferencesView];
+    [self widgetPreferencesChanged:self];
 }
 
 - (void)loadMotionPreferences
@@ -698,10 +841,15 @@ error:
             (*i)->assignationType = [[NSUserDefaults standardUserDefaults] integerForKey:key];
             key = [NSString stringWithFormat:@"%@-assignation-inverse", dynamic_cast<uiKnob*>(*i)->fLabel.text];
             (*i)->assignationInverse = [[NSUserDefaults standardUserDefaults] boolForKey:key];
-            if ((*i)->assignationType != 0)
-            {
-                _assignatedWidgets.push_back(*i);
-            }
+            key = [NSString stringWithFormat:@"%@-assignation-sensibility", dynamic_cast<uiKnob*>(*i)->fLabel.text];
+            (*i)->assignationSensibility = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if ((*i)->assignationSensibility == 0.) (*i)->assignationSensibility = 1.;
+            key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", dynamic_cast<uiKnob*>(*i)->fLabel.text];
+            (*i)->assignationRefPointX = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", dynamic_cast<uiKnob*>(*i)->fLabel.text];
+            (*i)->assignationRefPointY = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            
+            if ((*i)->assignationType != 0) _assignatedWidgets.push_back(*i);
         }
         else if (dynamic_cast<uiSlider*>(*i))
         {
@@ -709,22 +857,47 @@ error:
             (*i)->assignationType = [[NSUserDefaults standardUserDefaults] integerForKey:key];
             key = [NSString stringWithFormat:@"%@-assignation-inverse", dynamic_cast<uiSlider*>(*i)->fLabel.text];
             (*i)->assignationInverse = [[NSUserDefaults standardUserDefaults] boolForKey:key];
-            if ((*i)->assignationType != 0)
-            {
-                _assignatedWidgets.push_back(*i);
-            }
+            key = [NSString stringWithFormat:@"%@-assignation-sensibility", dynamic_cast<uiSlider*>(*i)->fLabel.text];
+            (*i)->assignationSensibility = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if ((*i)->assignationSensibility == 0.) (*i)->assignationSensibility = 1.;
+            key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", dynamic_cast<uiSlider*>(*i)->fLabel.text];
+            (*i)->assignationRefPointX = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", dynamic_cast<uiSlider*>(*i)->fLabel.text];
+            (*i)->assignationRefPointY = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            
+            if ((*i)->assignationType != 0) _assignatedWidgets.push_back(*i);
+        }
+        else if (dynamic_cast<uiButton*>(*i))
+        {
+            key = [NSString stringWithFormat:@"%@-assignation-type", dynamic_cast<uiButton*>(*i)->fButton.title];
+            (*i)->assignationType = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+            key = [NSString stringWithFormat:@"%@-assignation-inverse", dynamic_cast<uiButton*>(*i)->fButton.title];
+            (*i)->assignationInverse = [[NSUserDefaults standardUserDefaults] boolForKey:key];
+            key = [NSString stringWithFormat:@"%@-assignation-sensibility", dynamic_cast<uiButton*>(*i)->fButton.title];
+            (*i)->assignationSensibility = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if ((*i)->assignationSensibility == 0.) (*i)->assignationSensibility = 1.;
+            
+            if ((*i)->assignationType != 0) _assignatedWidgets.push_back(*i);
         }
     }
 }
 
 - (void)startMotion
 {
-    if ([UIAccelerometer sharedAccelerometer].delegate == nil)
+    // Motion
+    if (_motionManager == nil)
     {
-        [UIAccelerometer sharedAccelerometer].delegate = self;
-        _accelerometerFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate cutoffFrequency:100];
+        _motionManager = [[CMMotionManager alloc] init];
+        _accelerometerFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
+        [_motionManager startAccelerometerUpdates];
+        _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
+                                                        target:self 
+                                                      selector:@selector(updateMotion)
+                                                      userInfo:nil 
+                                                       repeats:YES];
     }
     
+    // Location
     if (_locationManager == nil)
     {
         _locationManager = [[CLLocationManager alloc] init];
@@ -735,13 +908,16 @@ error:
 
 - (void)stopMotion
 {
-    if ([UIAccelerometer sharedAccelerometer].delegate == self)
+    // Motion
+    if (_motionManager != nil)
     {
-        [UIAccelerometer sharedAccelerometer].delegate = nil;
-        [_accelerometerFilter release];
-        _accelerometerFilter = nil;
+        [_motionManager stopAccelerometerUpdates];
+        [_motionManager release];
+        _motionManager = nil;
+        [_motionTimer invalidate];
     }
     
+    // Location
     if (_locationManager)
     {
         [_locationManager stopUpdatingHeading];
@@ -750,41 +926,96 @@ error:
     }
 }
 
-- (void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration
+- (void)updateMotion
 {
     list<uiCocoaItem*>::iterator    i;
     float                           coef = 0.f;
     float                           value = 0.f;
+    float                           a = 0.;
+    float                           b = 0.;
+    float                           x1 = 0.;
+    float                           y1 = 0.;
+    float                           x2 = 0.;
+    float                           y2 = 0.;
+    float                           sign = 1.;
     
-    [_accelerometerFilter addAccelerationX:acceleration.x
-                                         y:acceleration.y
-                                         z:acceleration.z];
+    [_accelerometerFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
+                                         y:_motionManager.accelerometerData.acceleration.y
+                                         z:_motionManager.accelerometerData.acceleration.z];
 
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
-        if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i))
+        if ((dynamic_cast<uiKnob*>(*i) && !dynamic_cast<uiKnob*>(*i)->fKnob.motionBlocked)
+            || (dynamic_cast<uiSlider*>(*i) && !dynamic_cast<uiSlider*>(*i)->fSlider.motionBlocked)
+            || dynamic_cast<uiButton*>(*i))
         {
             coef = 0.f;
             
             if ((*i)->assignationType == kAssignationAccelX)
             {
-                coef = _accelerometerFilter.x;
+                coef = _accelerometerFilter.x * (*i)->assignationSensibility;
             }
             else if ((*i)->assignationType == kAssignationAccelY)
             {
-                coef = -_accelerometerFilter.y;
+                coef = -_accelerometerFilter.y * (*i)->assignationSensibility;
             }
             else if ((*i)->assignationType == kAssignationAccelZ)
             {
-                coef = _accelerometerFilter.z;
+                coef = _accelerometerFilter.z * (*i)->assignationSensibility;
+            }
+            else if ((*i)->assignationType == kAssignationShake)
+            {
+                if (fabsf(_accelerometerFilter.x) > 1.5 || fabsf(_accelerometerFilter.y) > 1.5 || fabsf(_accelerometerFilter.z) > 1.5)
+                {
+                    coef = 1.f;
+                }
+                else
+                {
+                    coef = 0.f;
+                }
             }
             else
             {
                 continue;
             }
             
-            value = (coef + 1.f) / 2.;
-            if ((*i)->assignationInverse) value = 1.f - value;
+            if ((*i)->assignationInverse) sign = -1.;
+            else sign = 1.;
+             
+            if ((*i)->assignationSensibility >= 1.)
+            {    
+                if (coef < (*i)->assignationRefPointX)
+                {
+                    // Find 2 points
+                    x1 = max(- 1.f / (*i)->assignationSensibility, -1.f); // x1 = - 1 / s
+                    y1 = sign * ((*i)->assignationSensibility / 2.f) * x1 + 0.5; // y1 = ax1 + b with a = s / 2 and b = 0.5
+                    x2 = (*i)->assignationRefPointX;
+                    y2 = (*i)->assignationRefPointY;
+                    
+                    // Find a and b of the line
+                    a = (y2 - y1) / (x2 - x1);
+                    b = y1 - a * x1;
+                }
+                else if (coef >= (*i)->assignationRefPointX)
+                {
+                    // Find 2 points
+                    x1 = (*i)->assignationRefPointX;
+                    y1 = (*i)->assignationRefPointY;
+                    x2 = min(1.f / (*i)->assignationSensibility, 1.f); // x1 = 1 / s
+                    y2 = sign * ((*i)->assignationSensibility / 2.f) * x2 + 0.5; // y1 = ax1 + b with a = s / 2 and b = 0.5
+                    
+                    // Find a and b of the line
+                    a = (y2 - y1) / (x2 - x1);
+                    b = y1 - a * x1;
+                }
+            }
+            else
+            {
+                a = sign * (*i)->assignationSensibility / 2.; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
+                b = (*i)->assignationRefPointY;
+            }
+            
+            value = a * coef + b;
             
             if (dynamic_cast<uiKnob*>(*i))
             {
@@ -794,7 +1025,23 @@ error:
             {
                 value = value * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
             }
-            
+            else if (dynamic_cast<uiButton*>(*i))
+            {
+                if (coef == 0.f)
+                {
+                    return;
+                }
+                else if (coef == 1.f && dynamic_cast<uiButton*>(*i)->fButton.type == kPushButtonType)
+                {
+                    value = 1;
+                }
+                else if (coef == 1.f && dynamic_cast<uiButton*>(*i)->fButton.type == kToggleButtonType)
+                {
+                    if (dynamic_cast<uiButton*>(*i)->fButton.value == 1) value = 0;
+                    else if (dynamic_cast<uiButton*>(*i)->fButton.value == 0) value = 1;
+                }
+            }
+
             (*i)->modifyZone(value);
             (*i)->reflectZone();
         }
@@ -806,16 +1053,21 @@ error:
     list<uiCocoaItem*>::iterator    i;
     float                           coef = 0.f;
     float                           value = 0.f;
+    float                           offset = 0.;
     
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
-        if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i))
+        if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i) || dynamic_cast<uiButton*>(*i))
         {
             coef = 0.f;
             
             if ((*i)->assignationType == kAssignationCompass)
             {
-                coef = heading.trueHeading;
+                //NSLog(@"===");
+                //NSLog(@"ref point : %f %f", (*i)->assignationRefPointX, (*i)->assignationRefPointY);
+                offset = 0.;//((int)round((*i)->assignationRefPointY * 100 - 50) % 100) / 100.f - ((*i)->assignationRefPointX * 360.f);
+                //NSLog(@"offset : %f", offset);
+                coef = (int)round(heading.trueHeading * (*i)->assignationSensibility + offset) % 360;
             }
             else
             {
