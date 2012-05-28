@@ -276,6 +276,10 @@ iphonenet :
 	install -d iphonenetdir
 	$(MAKE) DEST='iphonenetdir/' ARCH='iphone-cocoa-net.cpp' LIB='' -f Makefile.iphonenetcompile
 
+ios :
+	install -d iosdir
+	$(MAKE) DEST='iosdir/' ARCH='ios-coreaudio.cpp'  LIB='' -f Makefile.ioscompile
+
 ivecbench :
 	install -d ivecbenchdir
 	$(MAKE) DEST='ivecbenchdir/' ARCH='bench.cpp' VEC='-vec -vs $(VSIZE)' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile

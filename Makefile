@@ -66,6 +66,10 @@ install :
 	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.cpp $(prefix)/lib/faust/
 	cp architecture/*.lib $(prefix)/lib/faust/
+	# install iOS
+	rm -rf $(prefix)/lib/faust/iOS
+	cp -r architecture/iOS $(prefix)/lib/faust/
+	rm -rf $(prefix)/lib/faust/iOS/DerivedData/
 	# install math documentation files
 	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
 	cp architecture/latexheader.tex $(prefix)/lib/faust/
