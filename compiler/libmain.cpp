@@ -845,6 +845,11 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
         return -1;
     }
     
+    // Special case for LLVM
+    if (gGlobal->gModule && gGlobal->gOutputFile == "") {
+        outs() << *gGlobal->gModule;
+    }
+    
 	return 0;
 }
 
