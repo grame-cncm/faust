@@ -779,9 +779,6 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
 {
     try {
     
-        //delete gGlobal;
-        gGlobal = new global();
-        
         /****************************************************************
          1 - process command line
         *****************************************************************/
@@ -838,23 +835,24 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
         *****************************************************************/
         generateOutputFiles(comp_container.first, comp_container.second);
         
-        delete gGlobal;
+        // Special case for LLVM
+        if (gGlobal->gModule && gGlobal->gOutputFile == "") {
+            outs() << *gGlobal->gModule;
+        }
+        
+        return 0;
     
     } catch (faustexception& e) {
         e.PrintMessage();
         return -1;
     }
-    
-    // Special case for LLVM
-    if (gGlobal->gModule && gGlobal->gOutputFile == "") {
-        outs() << *gGlobal->gModule;
-    }
-    
-	return 0;
 }
 
 Module* compile_faust_llvm(int argc, char* argv[], const char* input)
 {
+    gGlobal = new global();
     compile_faust(argc, argv, input);
-    return gGlobal->gModule;
+    Module* module = gGlobal->gModule;
+    delete gGlobal;
+    return module;
 }

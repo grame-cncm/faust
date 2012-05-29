@@ -26,5 +26,8 @@ extern "C" int compile_faust(int argc, char* argv[], const char* input);
 
 int main(int argc, char* argv[])
 {
-    return compile_faust(argc, argv, 0);
+    gGlobal = new global();
+    int res = compile_faust(argc, argv, 0);
+    delete gGlobal;
+    return res;
 }
