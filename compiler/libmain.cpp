@@ -771,11 +771,11 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 }
 
 #ifdef __cplusplus
-extern "C" int compile_faust(int argc, char* argv[], const char* input);
+extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* input);
 extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* input);
 #endif
 
-int compile_faust(int argc, char* argv[], const char* input = NULL)
+int compile_faust(int argc, char* argv[], bool time_out, const char* input = NULL)
 {
     try {
     
@@ -788,9 +788,11 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
         if (gVersionSwitch) 	{ printversion(); exit(0); }
 
         initFaustDirectories();
-    #ifndef WIN32
-        alarm(gTimeout);
-    #endif
+        if (time_out) {
+        #ifndef WIN32
+            alarm(gTimeout);
+        #endif
+        }
 
         /****************************************************************
          2 - parse source files
@@ -851,7 +853,7 @@ int compile_faust(int argc, char* argv[], const char* input = NULL)
 Module* compile_faust_llvm(int argc, char* argv[], const char* input)
 {
     gGlobal = new global();
-    compile_faust(argc, argv, input);
+    compile_faust(argc, argv, false, input);
     Module* module = gGlobal->gModule;
     delete gGlobal;
     return module;

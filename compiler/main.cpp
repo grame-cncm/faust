@@ -21,13 +21,13 @@
 #include "global.hh"
 
 #ifdef __cplusplus
-extern "C" int compile_faust(int argc, char* argv[], const char* input);
+extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* input);
 #endif
 
 int main(int argc, char* argv[])
 {
     gGlobal = new global();
-    int res = compile_faust(argc, argv, 0);
+    int res = compile_faust(argc, argv, true, 0);
     delete gGlobal;
     return res;
 }
