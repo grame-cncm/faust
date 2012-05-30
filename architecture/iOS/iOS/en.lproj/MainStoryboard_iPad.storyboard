@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="1.1" toolsVersion="2182" systemVersion="11D50b" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="2">
+    <dependencies>
+        <deployment defaultVersion="1296" identifier="iOS"/>
+        <development defaultVersion="4200" identifier="xcode"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="1181"/>
+    </dependencies>
+    <scenes>
+        <!--Main View Controller-->
+        <scene sceneID="4">
+            <objects>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="3" sceneMemberID="firstResponder"/>
+                <viewController id="2" customClass="FIMainViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8">
+                        <rect key="frame" x="0.0" y="20" width="768" height="1004"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="DYz-Ul-ted" customClass="FIScrollView">
+                                <rect key="frame" x="0.0" y="44" width="768" height="960"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" id="doz-xe-PRv">
+                                        <rect key="frame" x="-1" y="0.0" width="768" height="960"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                    </view>
+                                </subviews>
+                                <color key="backgroundColor" cocoaTouchSystemColor="darkTextColor"/>
+                            </scrollView>
+                            <navigationBar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="blackOpaque" id="13">
+                                <rect key="frame" x="0.0" y="1" width="768" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <items>
+                                    <navigationItem title="Title" id="14">
+                                        <barButtonItem key="rightBarButtonItem" title="Info" id="15">
+                                            <connections>
+                                                <action selector="togglePopover:" destination="2" id="23"/>
+                                            </connections>
+                                        </barButtonItem>
+                                    </navigationItem>
+                                </items>
+                            </navigationBar>
+                            <view contentMode="scaleToFill" id="Mgn-p8-mCp" userLabel="Widget Preferences View">
+                                <rect key="frame" x="0.0" y="45" width="768" height="1215"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="Pvr-Li-09S">
+                                        <rect key="frame" x="63" y="27" width="690" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="Run-yt-9bc">
+                                        <rect key="frame" x="20" y="94" width="733" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <segments>
+                                            <segment title="None"/>
+                                            <segment title="X"/>
+                                            <segment title="Y"/>
+                                            <segment title="Z"/>
+                                            <segment title="Shake"/>
+                                            <segment title="Compass"/>
+                                        </segments>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="ygl-R2-JBg"/>
+                                        </connections>
+                                    </segmentedControl>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Gyroscope" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="epA-8C-RMd">
+                                        <rect key="frame" x="20" y="65" width="728" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="WJX-8A-ivY">
+                                        <rect key="frame" x="674" y="145" width="79" height="27"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="ccK-Dh-aui"/>
+                                        </connections>
+                                    </switch>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Inverted" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="MNy-AK-j5v">
+                                        <rect key="frame" x="20" y="145" width="90" height="27"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="HeD-Hx-0Qp">
+                                        <rect key="frame" x="20" y="20" width="35" height="37"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                        <state key="normal" title="X">
+                                            <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <state key="highlighted">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="dismissWidgetPreferencesView:" destination="2" eventType="touchUpInside" id="bKU-sX-2T2"/>
+                                        </connections>
+                                    </button>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.20000000298023224" maxValue="3" id="3bk-nE-3by">
+                                        <rect key="frame" x="18" y="209" width="737" height="23"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="REC-GD-F7R"/>
+                                        </connections>
+                                    </slider>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Sensibility" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="YxN-9B-ZAG">
+                                        <rect key="frame" x="20" y="180" width="127" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="1." textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="10" id="euO-NB-r62">
+                                        <rect key="frame" x="708" y="180" width="40" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Gc8-ji-ACM">
+                                        <rect key="frame" x="20" y="239" width="733" height="37"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                        <state key="normal" title="Reset assignations">
+                                            <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <state key="highlighted">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="resetWidgetPreferences:" destination="2" eventType="touchUpInside" id="h5u-c1-nZ0"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.75" colorSpace="calibratedRGB"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <connections>
+                        <outlet property="_dspScrollView" destination="DYz-Ul-ted" id="PsL-1u-45q"/>
+                        <outlet property="_dspView" destination="doz-xe-PRv" id="hey-J9-4L0"/>
+                        <outlet property="_gyroAxisSegmentedControl" destination="Run-yt-9bc" id="VuE-Q7-yT1"/>
+                        <outlet property="_gyroInvertedSwitch" destination="WJX-8A-ivY" id="ahf-N3-EsY"/>
+                        <outlet property="_gyroInvertedTitleLabel" destination="MNy-AK-j5v" id="4cV-rD-hqg"/>
+                        <outlet property="_gyroSensibilityLabel" destination="euO-NB-r62" id="F5h-nM-CT6"/>
+                        <outlet property="_gyroSensibilitySlider" destination="3bk-nE-3by" id="eYZ-ZC-v7B"/>
+                        <outlet property="_gyroSensibilityTitleLabel" destination="YxN-9B-ZAG" id="hqN-uZ-dUy"/>
+                        <outlet property="_titleNavigationItem" destination="14" id="cHE-VL-RhB"/>
+                        <outlet property="_widgetPreferencesTitleLabel" destination="Pvr-Li-09S" id="px2-eg-iG9"/>
+                        <outlet property="_widgetPreferencesView" destination="Mgn-p8-mCp" id="4fj-Nt-mFP"/>
+                        <outlet property="view" destination="8" id="oQM-4B-TUr"/>
+                        <segue destination="5" kind="popover" identifier="showAlternate" popoverAnchorBarButtonItem="15" id="22">
+                            <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
+                        </segue>
+                    </connections>
+                </viewController>
+            </objects>
+            <point key="canvasLocation" x="-286" y="15"/>
+        </scene>
+        <!--Flipside View Controller-->
+        <scene sceneID="7">
+            <objects>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="6" sceneMemberID="firstResponder"/>
+                <viewController id="5" customClass="FIFlipsideViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="9">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <navigationBar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" barStyle="blackOpaque" id="17">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <items>
+                                    <navigationItem title="Preferences" id="18">
+                                        <barButtonItem key="leftBarButtonItem" systemItem="done" id="19">
+                                            <connections>
+                                                <action selector="done:" destination="5" id="21"/>
+                                            </connections>
+                                        </barButtonItem>
+                                    </navigationItem>
+                                </items>
+                            </navigationBar>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.0" maxValue="6" id="Kds-Fy-egu">
+                                <rect key="frame" x="18" y="101" width="284" height="23"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <action selector="sampleRateSliderMoved:" destination="5" eventType="valueChanged" id="xa0-bW-uL8"/>
+                                </connections>
+                            </slider>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="Zoc-vZ-s98">
+                                <rect key="frame" x="169" y="71" width="131" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Sample rate" lineBreakMode="tailTruncation" minimumFontSize="10" id="xzD-Qg-dA6">
+                                <rect key="frame" x="20" y="71" width="98" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.0" maxValue="7" id="dan-b9-bmY">
+                                <rect key="frame" x="18" y="198" width="284" height="23"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <action selector="bufferSizeSliderMoved:" destination="5" eventType="valueChanged" id="Otb-fB-bes"/>
+                                </connections>
+                            </slider>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="m0z-XB-fbo">
+                                <rect key="frame" x="169" y="168" width="131" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Buffer size" lineBreakMode="tailTruncation" minimumFontSize="10" id="MLn-cX-JGW">
+                                <rect key="frame" x="20" y="168" width="98" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <splitViewMasterSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <connections>
+                        <outlet property="_bufferSizeLabel" destination="m0z-XB-fbo" id="Uqm-Jo-cfT"/>
+                        <outlet property="_bufferSizeSlider" destination="dan-b9-bmY" id="4FT-Yu-Xy6"/>
+                        <outlet property="_sampleRateLabel" destination="Zoc-vZ-s98" id="LTR-c4-d0c"/>
+                        <outlet property="_sampleRateSlider" destination="Kds-Fy-egu" id="PbM-MO-KiP"/>
+                    </connections>
+                </viewController>
+            </objects>
+            <point key="canvasLocation" x="836" y="101"/>
+        </scene>
+    </scenes>
+    <classes>
+        <class className="FIFlipsideViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIFlipsideViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="bufferSizeSliderMoved:"/>
+                <relationship kind="action" name="done:"/>
+                <relationship kind="action" name="sampleRateSliderMoved:"/>
+                <relationship kind="outlet" name="_bufferSizeLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_bufferSizeSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="_sampleRateLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_sampleRateSlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="delegate"/>
+            </relationships>
+        </class>
+        <class className="FIMainViewController" superclassName="UIViewController">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIMainViewController.h"/>
+            <relationships>
+                <relationship kind="action" name="dismissWidgetPreferencesView:"/>
+                <relationship kind="action" name="resetWidgetPreferences:"/>
+                <relationship kind="action" name="widgetPreferencesChanged:"/>
+                <relationship kind="outlet" name="_dspScrollView" candidateClass="FIScrollView"/>
+                <relationship kind="outlet" name="_dspView" candidateClass="UIView"/>
+                <relationship kind="outlet" name="_gyroAxisSegmentedControl" candidateClass="UISegmentedControl"/>
+                <relationship kind="outlet" name="_gyroInvertedSwitch" candidateClass="UISwitch"/>
+                <relationship kind="outlet" name="_gyroInvertedTitleLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_gyroSensibilityLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_gyroSensibilitySlider" candidateClass="UISlider"/>
+                <relationship kind="outlet" name="_gyroSensibilityTitleLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_titleLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_titleNavigationItem" candidateClass="UINavigationItem"/>
+                <relationship kind="outlet" name="_widgetPreferencesTitleLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="_widgetPreferencesView" candidateClass="UIView"/>
+            </relationships>
+        </class>
+        <class className="FIScrollView" superclassName="UIScrollView">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/FIScrollView.h"/>
+        </class>
+    </classes>
+    <simulatedMetricsContainer key="defaultSimulatedMetrics">
+        <simulatedStatusBarMetrics key="statusBar" statusBarStyle="blackTranslucent"/>
+        <simulatedOrientationMetrics key="orientation"/>
+        <simulatedScreenMetrics key="destination"/>
+    </simulatedMetricsContainer>
+</document>
