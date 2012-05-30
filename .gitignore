@@ -2,4 +2,16 @@ dox/*
 build*
 *~
 compile.sh
+*.aux
+*.log
+*.out
+*.rai
+*.rao
+*.toc
+*.o
+*.mxo
+*.bak
+*.app
+.DS_Store
 *tmp*
+*dir*

@@ -17,7 +17,7 @@
 		4B4BE15D113724BF00866BE1 /* iPhone-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B4BE15C113724BF00866BE1 /* iPhone-Info.plist */; };
 		4BC3718C1137C53100BDEDEB /* iPhoneViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BC3718B1137C53100BDEDEB /* iPhoneViewController.m */; };
 		4BC3718E1137C53500BDEDEB /* iPhoneAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4BC3718D1137C53500BDEDEB /* iPhoneAppDelegate.mm */; };
-		4BCB3798112D633F008C7BC1 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BCB3797112D633F008C7BC1 /* AudioToolbox.framework */; };
+		6556A86614D970690068591C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6556A86514D970690068591C /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,8 +28,8 @@
 		28AD733E0D9D9553002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		4B425F671136BB83008FDC7D /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		4B425FE11136C16E008FDC7D /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = SOURCE_ROOT; };
-		4B4BE15A113724B700866BE1 /* iPhoneViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPhoneViewController.xib; path = ../../iPhoneViewController.xib; sourceTree = BUILT_PRODUCTS_DIR; };
-		4B4BE15C113724BF00866BE1 /* iPhone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "iPhone-Info.plist"; path = "../../iPhone-Info.plist"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B4BE15A113724B700866BE1 /* iPhoneViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = iPhoneViewController.xib; path = DerivedData/iPhone/Build/iPhoneViewController.xib; sourceTree = "<group>"; };
+		4B4BE15C113724BF00866BE1 /* iPhone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = "iPhone-Info.plist"; path = "DerivedData/iPhone/Build/iPhone-Info.plist"; sourceTree = "<group>"; };
 		4BC371841137C50200BDEDEB /* CocoaUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaUI.h; sourceTree = "<group>"; };
 		4BC371861137C50200BDEDEB /* iphone-faust.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "iphone-faust.h"; sourceTree = "<group>"; };
 		4BC371871137C50200BDEDEB /* iPhoneAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPhoneAppDelegate.h; sourceTree = "<group>"; };
@@ -37,7 +37,7 @@
 		4BC371891137C50200BDEDEB /* iPhone_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPhone_Prefix.pch; sourceTree = "<group>"; };
 		4BC3718B1137C53100BDEDEB /* iPhoneViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iPhoneViewController.m; sourceTree = SOURCE_ROOT; };
 		4BC3718D1137C53500BDEDEB /* iPhoneAppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = iPhoneAppDelegate.mm; sourceTree = SOURCE_ROOT; };
-		4BCB3797112D633F008C7BC1 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.3.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
+		6556A86514D970690068591C /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,10 +45,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6556A86614D970690068591C /* AudioToolbox.framework in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */,
-				4BCB3798112D633F008C7BC1 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,7 +95,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				4BCB3797112D633F008C7BC1 /* AudioToolbox.framework */,
+				6556A86514D970690068591C /* AudioToolbox.framework */,
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
 				288765A40DF7441C002DB57D /* CoreGraphics.framework */,
@@ -208,13 +208,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator3.1.3]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos5.0]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				"PROVISIONING_PROFILE[sdk=iphonesimulator3.1.3]" = "";
-				SDKROOT = iphonesimulator3.1.3;
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos5.0]" = "";
+				SDKROOT = iphoneos;
 				USER_HEADER_SEARCH_PATHS = "/usr/local/lib/faust/**";
 			};
 			name = Debug;
@@ -223,13 +225,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator3.1.3]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos5.0]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				"PROVISIONING_PROFILE[sdk=iphonesimulator3.1.3]" = "";
-				SDKROOT = iphonesimulator3.1.3;
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos5.0]" = "";
+				SDKROOT = iphoneos;
 				USER_HEADER_SEARCH_PATHS = "/usr/local/lib/faust/**";
 			};
 			name = Release;

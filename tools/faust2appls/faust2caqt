@@ -34,7 +34,8 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+#CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
+CXXFLAGS='-Wall -Wno-unused-parameter -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
@@ -109,7 +110,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-       	qmake -project "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
+       	qmake -project "CONFIG+=warn_off" "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
 	    qmake $SPEC
         make
     ) > /dev/null

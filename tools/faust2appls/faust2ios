@@ -1,0 +1,63 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to iOS applications         #
+#               (c) Grame, 2012                                     #
+#                                                                   #
+#####################################################################
+
+
+#PHASE 1 : collects files and options from the command line
+
+for p in $@; do
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+
+    if [ "$p" = -icc ]; then
+		ignore=" "
+    elif [ $p = "-osc" ]; then
+		 OSCDEFS="DEFINES += OSCCTRL"
+		 OSCLIBS="-L$FLIB -lOSCFaust -loscpack"
+	elif [ "$p" = "-httpd" ]; then
+		HTTPDEFS="DEFINES += HTTPCTRL"
+		HTTPLIBS="-L$FLIB -lHTTPDFaust -lmicrohttpd"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"
+	fi
+done
+
+
+#PHASE 2 : compile all files
+
+for p in $FILES; do
+	S=$(dirname "$p")
+	F=$(basename "$p")
+	P=${F%.dsp}
+
+	T=$(mktemp -d faust.XXX)
+	cp -r /usr/local/lib/faust/iOS/* $T
+	faust $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h"
+	(
+		xcodebuild -project "$T/iOS.xcodeproj" PRODUCT_NAME=$P
+	) > /dev/null
+
+	# move generated app to source directory
+	rm -rf "$S/$P.app"
+	mv "$T/build/Release-iphoneos/$P.app" "$S/"
+	rm -rf "$T"
+
+	# collect binary file name for FaustGIDE
+    BINARIES="$BINARIES$S/$P.app;"
+done
+
+echo $BINARIES
