@@ -445,7 +445,7 @@
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "/usr/local/lib/faust/**";
+				USER_HEADER_SEARCH_PATHS = "/usr/local/include/**";
 				VALIDATE_PRODUCT = NO;
 			};
 			name = Debug;
@@ -472,7 +472,7 @@
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "/usr/local/lib/faust/**";
+				USER_HEADER_SEARCH_PATHS = "/usr/local/include/**";
 				VALIDATE_PRODUCT = NO;
 			};
 			name = Release;
