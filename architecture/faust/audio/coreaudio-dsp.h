@@ -273,7 +273,7 @@ OSStatus TCoreAudioRenderer::GetDefaultDevice(int inChan, int outChan, int sampl
 			*id = inDefault;
 			return noErr;
 		} else {
-            printf("GetDefaultDevice : input = %ld and output = %ld are not the same, create aggregate device...\n", inDefault, outDefault);
+            printf("GetDefaultDevice : input = %uld and output = %uld are not the same, create aggregate device...\n", inDefault, outDefault);
             if (CreateAggregateDevice(inDefault, outDefault, samplerate, id) != noErr)
                 return kAudioHardwareBadDeviceError;
        	}
