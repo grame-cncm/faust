@@ -73,11 +73,13 @@ saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 // IEEE Tr. Acoustics, Speech, and Language Processing (IEEE-ASLP),
 // Vol. 18, no. 5, May 2010.
 
-// --- sawNp for N = 1 to 6 ---
+// --- sawN for N = 1 to 6 ---
 sawN(N,freq) = saw1 : poly(N) : D(N-1) : gate(N-1)
 with {
   p0n = float(ml.SR)/float(freq); // period in samples
   lfsawpos = (_,1:fmod) ~ +(1.0/p0n); // sawtooth waveform in [0,1)
+  // To introduce a phase offset here (phase in [0,1]):
+  // lfsawpos(phase) = (+(phase*(1-1')), 1 : fmod ) ~ +(1.0/p0n);
   saw1 = 2*lfsawpos - 1; // zero-mean, amplitude +/- 1
   poly(1,x) =  x;
   poly(2,x) =  x*x;
