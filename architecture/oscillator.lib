@@ -43,7 +43,11 @@ lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 // aliasing due to sampling is quite audible.  The differentiated
 // polynomial waveform family (saw2, sawN, and derived functions)
 // do some extra processing to suppress aliasing (not audible for
-// very low fundamental frequencies).
+// very low fundamental frequencies).  According to Lehtonen et al.
+// (JASA 2012), the aliasing of saw2 should be inaudible at fundamental
+// frequencies below 2 kHz or so, for a 44.1 kHz sampling rate and 60 dB SPL
+// presentation level;  fundamentals 415 and below required no aliasing
+// suppression (i.e., saw1 is ok).
 
 // --- lf_rawsaw ---
 // simple sawtooth waveform oscillator between 0 and period in samples:
