@@ -1308,12 +1308,6 @@ public:
                                            ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
                                            (*j)->getW(),
                                            (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
-                            
-                            // Place objects in the center of the box
-                            /*(*j)->setFrame((*j)->getX(),
-                                           (*j)->getY() + box->getH() / 2. - contentSize.height / 2.,
-                                           (*j)->getW(),
-                                           (*j)->getH());*/
                         }
                     }
                 }
@@ -1331,12 +1325,6 @@ public:
                                            (*j)->getY(),
                                            (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
                                            (*j)->getH());
-                            
-                            // Place objects in the center of the box
-                            /*(*j)->setFrame((*j)->getX() + box->getW() / 2. - contentSize.width / 2.,
-                                           (*j)->getY(),
-                                           (*j)->getW(),
-                                           (*j)->getH());*/
                         }
                     }
                 }
