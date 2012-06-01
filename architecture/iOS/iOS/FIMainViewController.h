@@ -61,6 +61,17 @@ class uiBox;
     CLLocationManager*                  _locationManager;
     CMMotionManager*                    _motionManager;
     NSTimer*                            _motionTimer;
+    
+    IBOutlet UILabel*                   _colorLabel;
+    IBOutlet UILabel*                   _rLabel;
+    IBOutlet UILabel*                   _gLabel;
+    IBOutlet UILabel*                   _bLabel;
+    IBOutlet UILabel*                   _colorRLabel;
+    IBOutlet UILabel*                   _colorGLabel;
+    IBOutlet UILabel*                   _colorBLabel;
+    IBOutlet UISlider*                  _colorRSlider;
+    IBOutlet UISlider*                  _colorGSlider;
+    IBOutlet UISlider*                  _colorBSlider;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -88,7 +99,7 @@ class uiBox;
 - (IBAction)dismissWidgetPreferencesView:(id)sender;
 - (IBAction)widgetPreferencesChanged:(id)sender;
 - (IBAction)resetWidgetPreferences:(id)sender;
-- (void)loadMotionPreferences;
+- (void)loadWidgetsPreferences;
 - (void)startMotion;
 - (void)stopMotion;
 - (void)updateMotion;

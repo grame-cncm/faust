@@ -359,11 +359,15 @@
 
         if ([self.suffixe compare:@""] == NSOrderedSame)
         {
-            valueString = [NSString stringWithFormat:@"%2.1f", self.value];
+            if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f", self.value];
+            else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f", self.value];
+            else valueString = [NSString stringWithFormat:@"%2.1f", self.value];
         }
         else
         {
-            valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
+            if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f\r%@", self.value, self.suffixe];
+            else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f\r%@", self.value, self.suffixe];
+            else valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
             multiplier = 2.f;
         }   
 		CGSize valueStringSize = [valueString sizeWithFont:self.labelFont
@@ -378,13 +382,22 @@
                       alignment:UITextAlignmentCenter];		
 	}
     
+    // Draw assignation
+    if (self.assignated)
+    {
+        CGContextSetLineWidth(context, 3.);
+        [self.color set];
+        [self context:context addRoundedRect:boundsRect cornerRadius:3.f];
+        CGContextStrokePath(context);
+    }
+    
     // Draw selection
     if (self.selected)
     {
-        [[UIColor colorWithRed:0. green:0.1 blue:0.9 alpha:0.4] set];
-        CGContextSetBlendMode(context, kCGBlendModeColorDodge);
-        [self context:context addRoundedRect:boundsRect cornerRadius:0];
-        CGContextFillPath(context);
+        CGContextSetLineWidth(context, 15.);
+        [self.color set];
+        [self context:context addRoundedRect:boundsRect cornerRadius:3.f];
+        CGContextStrokePath(context);
     }
     
 	CGContextRestoreGState(context);

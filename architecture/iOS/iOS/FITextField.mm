@@ -46,7 +46,7 @@
         _backgroundColor = [UIColor whiteColor];
         _textColor = [UIColor blackColor];
         _messageTextView.textColor = [UIColor whiteColor];
-        _messageTextView.backgroundColor = [UIColor colorWithRed:0.f green:0.f blue:1.f alpha:0.2];
+        _messageTextView.backgroundColor = [UIColor darkGrayColor];
         _messageTextView.delegate = self;
         _messageTextView.font = [UIFont boldSystemFontOfSize:14];
         _messageTextView.textAlignment = UITextAlignmentCenter;
@@ -104,7 +104,9 @@
                                         rect.origin.y,
                                         rect.size.width,
                                         rect.size.height);
-    _messageTextView.text = [NSString stringWithFormat:@"%2.2f%@", self.value, self.suffixe];
+    if (self.step < 0.01) _messageTextView.text = [NSString stringWithFormat:@"%2.3f%@", self.value, self.suffixe];
+    else if (self.step < 0.1) _messageTextView.text = [NSString stringWithFormat:@"%2.2f%@", self.value, self.suffixe];
+    else _messageTextView.text = [NSString stringWithFormat:@"%2.1f%@", self.value, self.suffixe];
 }
 
 
@@ -114,7 +116,9 @@
 {
     _valueBeforeCancel = self.value;
     [((FIMainViewController*)self.delegate) zoomToWidget:self];
-    _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.2f - %2.2f", self.min, self.max];
+    if (self.step < 0.01) _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.3f - %2.3f", self.min, self.max];
+    else if (self.step < 0.1) _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.2f - %2.2f", self.min, self.max];
+    else _rangeLabel.text = [NSString stringWithFormat:@"Range : %2.1f - %2.1f", self.min, self.max];
     [_messageTextView setText:@""];
 }
 
@@ -146,19 +150,17 @@
     
     [self setValue:value];
     
-    [_messageTextView setText:[NSString stringWithFormat:@"%2.2f%@", value, self.suffixe]];
+    [self setNeedsDisplay];
 }
 
 - (void)cancel
-{
-    float value;
-    
+{    
     // Hide the keyboard
     [_messageTextView resignFirstResponder];
     
     [self setValue:_valueBeforeCancel];
     
-    [_messageTextView setText:[NSString stringWithFormat:@"%2.2f%@", value, self.suffixe]];
+    [self setNeedsDisplay];
 }
 
 - (void)createInputAccessoryView

@@ -43,6 +43,7 @@
 @synthesize suffixe;
 @synthesize selected;
 @synthesize motionBlocked;
+@synthesize assignated;
 
 - (void)dealloc
 {
@@ -78,6 +79,7 @@
 		self.opaque = YES;
         self.suffixe = [[NSString alloc] initWithString:@""];
         self.selected = NO;
+        self.assignated = NO;
         self.motionBlocked = NO;
 	}
     

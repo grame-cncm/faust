@@ -86,19 +86,39 @@
 	const CGFloat* colorComponents = CGColorGetComponents(self.color.CGColor);
 	UIColor* backgroundColor;
     
-    if (self.value == 0.f)
+    // Tab buttons in gray
+    if (self.type == kTabItemButtonType)
     {
-        backgroundColor = [UIColor colorWithRed:colorComponents[0]
-                                         green:colorComponents[1]
-                                          blue:colorComponents[2]
-                                         alpha:self.backgroundColorAlpha];
+        if (self.value == 0.f)
+        {
+            backgroundColor = [UIColor colorWithRed:0.1f
+                                              green:0.1f
+                                               blue:0.1f
+                                              alpha:1.f];
+        }
+        else
+        {
+            backgroundColor = [UIColor darkGrayColor];
+        }
     }
+    
+    // Other buttons in color
     else
     {
-        backgroundColor = [UIColor colorWithRed:colorComponents[0]
-                                          green:colorComponents[1]
-                                           blue:colorComponents[2]
-                                          alpha:1.f];
+        if (self.value == 0.f)
+        {
+            backgroundColor = [UIColor colorWithRed:colorComponents[0]
+                                              green:colorComponents[1]
+                                               blue:colorComponents[2]
+                                              alpha:self.backgroundColorAlpha];
+        }
+        else
+        {
+            backgroundColor = [UIColor colorWithRed:colorComponents[0]
+                                              green:colorComponents[1]
+                                               blue:colorComponents[2]
+                                              alpha:1.f];
+        }
     }
     
 	[backgroundColor set];
@@ -114,13 +134,22 @@
                    withFont:self.labelFont
               lineBreakMode:UILineBreakModeTailTruncation];
     
+    // Draw assignation
+    if (self.assignated)
+    {
+        CGContextSetLineWidth(context, 3.);
+        [self.color set];
+        [self context:context addRoundedRect:boundsRect cornerRadius:self.cornerRadius];
+        CGContextStrokePath(context);
+    }
+    
     // Draw selection
     if (self.selected)
     {
-        [[UIColor colorWithRed:0. green:0.1 blue:0.9 alpha:0.4] set];
-        CGContextSetBlendMode(context, kCGBlendModeColorDodge);
-        [self context:context addRoundedRect:boundsRect cornerRadius:0];
-        CGContextFillPath(context);
+        CGContextSetLineWidth(context, 15.);
+        [self.color set];
+        [self context:context addRoundedRect:boundsRect cornerRadius:self.cornerRadius];
+        CGContextStrokePath(context);
     }
 }
 
