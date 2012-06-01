@@ -306,10 +306,11 @@
 	CGContextSaveGState(context);
 	CGContextSetLineWidth(context, self.valueArcWidth);
     
+    self.backgroundColor = [UIColor blackColor];
 	if (self.backgroundColorAlpha > 0.02)
 	{
 		// outline semi circle
-		UIColor *backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:1.];
+		UIColor *backgroundColor = [UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.];
 		[backgroundColor set];
         
 		CGContextAddArc(context,
@@ -321,6 +322,33 @@
 						0);
 		CGContextStrokePath(context);
 	}
+    
+    // Gradient
+    context = UIGraphicsGetCurrentContext();
+    
+    UIColor *lightGradientColor = [UIColor colorWithRed:0.7 green:0.7 blue:0.7 alpha:1.];
+    UIColor *darkGradientColor = [UIColor colorWithRed:0. green:0. blue:0. alpha:1.];
+    
+    CGFloat locations[2] = {0.0, 1.0};
+    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lightGradientColor.CGColor,
+                                      (id)darkGradientColor.CGColor, 
+                                      nil];
+    
+    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
+    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
+    
+    CGContextSetBlendMode(context, kCGBlendModeMultiply);
+    
+    CGContextDrawLinearGradient(context,
+                                gradient, 
+                                CGPointMake(0.0, 0.0), 
+                                CGPointMake(rect.size.width, rect.size.height), 
+                                kCGGradientDrawsAfterEndLocation); //Adjust second point according to your view height
+    
+    CGColorSpaceRelease(colorSpc);
+    CGGradientRelease(gradient);
+    CGContextSetBlendMode(context, kCGBlendModeNormal);
+    // End gradient
     
 	// draw the value semi circle
 	[self.color set];

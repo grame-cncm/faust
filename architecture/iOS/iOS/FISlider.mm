@@ -257,7 +257,7 @@
 #pragma mark Drawing
 
 - (void)drawRect:(CGRect)rect
-{
+{    
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	CGRect boundsRect = self.bounds;
 	const CGFloat *colorComponents = CGColorGetComponents(self.color.CGColor);
@@ -265,12 +265,42 @@
 											   green:colorComponents[1]
 												blue:colorComponents[2]
 											   alpha:self.backgroundColorAlpha];
-	UIColor *lighterBackgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:1.];
+	UIColor *lighterBackgroundColor = [UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.];
 
 	// draw background of slider
+    self.backgroundColor = [UIColor blackColor];
 	[lighterBackgroundColor set];
 	[self context:context addRoundedRect:boundsRect cornerRadius:self.cornerRadius];
 	CGContextFillPath(context);
+    
+    
+    // Gradient
+    context = UIGraphicsGetCurrentContext();
+    
+    UIColor *lightGradientColor = [UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:1.];
+    UIColor *darkGradientColor = [UIColor colorWithRed:0.2 green:0.2 blue:0.2 alpha:1.];
+    
+    CGFloat locations[2] = {0.0, 1.0};
+    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lightGradientColor.CGColor,
+                                      (id)darkGradientColor.CGColor, 
+                                      nil];
+    
+    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
+    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
+    
+    CGContextSetBlendMode(context, kCGBlendModeMultiply);
+    
+    CGContextDrawLinearGradient(context,
+                                gradient, 
+                                CGPointMake(0.0, 0.0), 
+                                CGPointMake(rect.size.width, rect.size.height), 
+                                kCGGradientDrawsAfterEndLocation); //Adjust second point according to your view height
+    
+    CGColorSpaceRelease(colorSpc);
+    CGGradientRelease(gradient);
+    CGContextSetBlendMode(context, kCGBlendModeNormal);
+    // End gradient
+    
     
 	// draw the 'filled' section to the left of the handle (or from the handle if in bidirectional mode)
 	CGRect valueRect;
