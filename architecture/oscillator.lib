@@ -137,7 +137,7 @@ sawtooth_demo = signal with {
   ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob]
     [tooltip: Sawtooth waveform amplitude]",
     -20,-120,10,0.1));
-  amp = ampdb : smooth(0.999) : db2linear;
+  amp = ampdb : db2linear : smooth(0.999);
   freq = knob_group(
   vslider("[2] Frequency [unit:PK] [style:knob]
     [tooltip: Sawtooth frequency as a Piano Key (PK) number (A440 = key 49)]",
@@ -255,7 +255,7 @@ virtual_analog_oscillator_demo = signal with {
   ampdb  = af_group(hslider("[1] Mix Amplitude [unit:dB] [style:hslider]
     [tooltip: Sawtooth waveform amplitude]",
     -20,-120,10,0.1));
-  amp = ampdb : smooth(0.999) : db2linear;
+  amp = ampdb : db2linear : smooth(0.999);
   freq = af_group(hslider("[2] Frequency [unit:PK] [style:hslider]
     [tooltip: Sawtooth frequency as a Piano Key (PK) number (A440 = key 49)]",
     49,1,88,0.01) : pianokey2hz);
@@ -343,7 +343,7 @@ oscrs_demo = signal with {
   ampdb  = knob_group(hslider("[1] Amplitude [unit:dB]
     [tooltip: Sawtooth waveform amplitude]",
     -20,-120,10,0.1));
-  amp = ampdb : smooth(0.999) : db2linear;
+  amp = ampdb : db2linear : smooth(0.999);
   freq = knob_group(
 //  vslider("[2] Frequency [unit:PK] [style:knob] 
   hslider("[2] Frequency [unit:PK]
