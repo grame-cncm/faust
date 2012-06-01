@@ -131,6 +131,7 @@ char rcfilename[256];
     _lockedBox = interface->getMainBox();
     
     // Widgets parameters
+    _blockShake = NO;
     _locationManager = nil;
     _motionManager = nil;
     _selectedWidget = nil;
@@ -287,6 +288,12 @@ T findCorrespondingUiItem(FIResponder* sender)
         if (button)
         {
             button->modifyZone((float)((FIButton*)sender).value);
+
+            // If push button, force to zero just after to avoid an "anti-rebond" bug
+            if ((float)((FIButton*)sender).type == kPushButtonType && (float)((FIButton*)sender).value == 1.)
+            {
+                [self performSelector:@selector(buttonSetToZero:) withObject:sender afterDelay:0.1];
+            }
         }
     }
     else if ([sender isKindOfClass:[FITextField class]])
@@ -346,11 +353,13 @@ T findCorrespondingUiItem(FIResponder* sender)
     
 }
 
+// Save widgets values
 - (void)saveGui
 {
     finterface->saveState(rcfilename);
 }
 
+// Reflect the whole patch
 - (void)updateGui
 {
     list<uiCocoaItem*>::iterator i;
@@ -360,6 +369,18 @@ T findCorrespondingUiItem(FIResponder* sender)
     {
         // Refresh GUI
         (*i)->reflectZone();
+    }
+}
+
+// Force push button to go back to 0
+- (void)buttonSetToZero:(id)sender
+{
+    uiButton* button = findCorrespondingUiItem<uiButton*>((FIResponder*)sender);
+    if (button)
+    {
+        button->modifyZone(0.f);
+        ((FIButton*)sender).value = 0.f;
+        [((FIButton*)sender) setNeedsDisplay];
     }
 }
 
@@ -900,6 +921,7 @@ error:
         }
         else if ([str compare:@"Shk"] == NSOrderedSame)
         {
+            NSLog(@"Shk");
             _selectedWidget->setAssignationType(kAssignationShake);
             _selectedWidget->setAssignationRefPointX(0.);
             _selectedWidget->setAssignationRefPointY(0.);
@@ -928,11 +950,8 @@ error:
     _colorGLabel.text = [NSString stringWithFormat:@"%1.1f", _colorGSlider.value];
     _colorBLabel.text = [NSString stringWithFormat:@"%1.1f", _colorBSlider.value];
     
-    // If not assignated : remove widget from list
-    if (_gyroAxisSegmentedControl.selectedSegmentIndex == 0
-        && _colorRSlider.value == 0.f
-        && _colorGSlider.value == 0.f
-        && _colorBSlider.value == 1.f)
+    // If default parameters : remove widget from list
+    if (_selectedWidget->getAssignationType() == kAssignationNone)
     {
         for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
         {
@@ -957,28 +976,28 @@ error:
     }
 
     // Save parameters in user defaults
-    key = [NSString stringWithFormat:@"%@-assignation-type", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-assignation-type", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationType() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-inverse", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-assignation-inverse", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationInverse() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-sensibility", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-assignation-sensibility", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationSensibility() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointX() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointY() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-r", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-r", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getR() + 1. forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-g", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-g", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getG() + 1. forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-b", _widgetPreferencesTitleLabel.text];
+    key = [NSString stringWithFormat:@"%@-b", _selectedWidget->getName()];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getB() + 1. forKey:key];
     
     // If assignation type is not kAssignationNone, we start motion
@@ -1038,14 +1057,7 @@ error:
             }
             
             // Add in assignation list if there is a sensor assignation and / or color is not default
-            if ((*i)->getAssignationType() == 0
-                && (*i)->getR() == 0.f
-                && (*i)->getG() == 0.f
-                && (*i)->getB() == 1.f)
-            {
-                // Do nothing
-            }
-            else
+            if ((*i)->getAssignationType() != 0)
             {
                 _assignatedWidgets.push_back(*i);
             }
@@ -1099,6 +1111,11 @@ error:
     }
 }
 
+- (void)endBlockShake
+{
+    _blockShake = NO;
+}
+
 // The function periodically called to refresh motion sensors
 - (void)updateMotion
 {
@@ -1135,9 +1152,15 @@ error:
             }
             else if ((*i)->getAssignationType() == kAssignationShake)
             {
-                if (fabsf(_accelerometerFilter.x) > 1.5 || fabsf(_accelerometerFilter.y) > 1.5 || fabsf(_accelerometerFilter.z) > 1.5)
+                // Shake detection
+                if (!_blockShake
+                    && (fabsf(_accelerometerFilter.x) > 1.4
+                        || fabsf(_accelerometerFilter.y) > 1.4
+                        || fabsf(_accelerometerFilter.z) > 1.4))
                 {
                     coef = 1.f;
+                    _blockShake = YES;
+                    [self performSelector:@selector(endBlockShake) withObject:nil afterDelay:0.3];
                 }
                 else
                 {
@@ -1208,11 +1231,11 @@ error:
             {
                 if (coef == 0.f)
                 {
-                    return;
+                    continue;
                 }
                 else if (coef == 1.f && dynamic_cast<uiButton*>(*i)->fButton.type == kPushButtonType)
                 {
-                    value = 1;
+                    value = 1.f;
                 }
                 else if (coef == 1.f && dynamic_cast<uiButton*>(*i)->fButton.type == kToggleButtonType)
                 {
@@ -1223,6 +1246,13 @@ error:
 
             (*i)->modifyZone(value);
             (*i)->reflectZone();
+            
+            // Force button refresh (otherwise nothing happens)
+            if (dynamic_cast<uiButton*>(*i) && dynamic_cast<uiButton*>(*i)->fButton.type == kPushButtonType)
+            {
+                dynamic_cast<uiButton*>(*i)->fButton.value = value;
+                [dynamic_cast<uiButton*>(*i)->fButton setNeedsDisplay];
+            }
         }
     }
 }

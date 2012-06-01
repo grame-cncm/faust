@@ -61,6 +61,7 @@ class uiBox;
     CLLocationManager*                  _locationManager;
     CMMotionManager*                    _motionManager;
     NSTimer*                            _motionTimer;
+    BOOL                                _blockShake;                    // To avoid several shakes in one movement
     
     IBOutlet UILabel*                   _colorLabel;
     IBOutlet UILabel*                   _rLabel;
@@ -89,6 +90,7 @@ class uiBox;
 - (void)refreshObjects:(NSTimer*)timer;
 - (void)zoomToLockedBox;
 - (void)doubleTap;
+- (void)buttonSetToZero:(id)sender;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
@@ -103,5 +105,6 @@ class uiBox;
 - (void)startMotion;
 - (void)stopMotion;
 - (void)updateMotion;
+- (void)endBlockShake;
 
 @end

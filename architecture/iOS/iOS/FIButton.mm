@@ -85,7 +85,7 @@
 	CGRect boundsRect = self.bounds;
 	const CGFloat* colorComponents = CGColorGetComponents(self.color.CGColor);
 	UIColor* backgroundColor;
-    
+
     // Tab buttons in gray
     if (self.type == kTabItemButtonType)
     {
@@ -128,9 +128,9 @@
     CGSize valueStringSize = [title sizeWithFont:self.labelFont];
     [self.labelColor set];
     [title drawInRect:CGRectMake(0 + (self.frame.size.width - valueStringSize.width) / 2,
-                                       0 + (self.frame.size.height - valueStringSize.height) / 2,
-                                       self.frame.size.width,
-                                       self.frame.size.height)
+                                 0 + (self.frame.size.height - valueStringSize.height) / 2,
+                                 self.frame.size.width,
+                                 self.frame.size.height)
                    withFont:self.labelFont
               lineBreakMode:UILineBreakModeTailTruncation];
     
