@@ -772,89 +772,90 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
 #ifdef __cplusplus
 extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* input);
-extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* input);
+extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* error_msg);
 #endif
 
 int compile_faust(int argc, char* argv[], bool time_out, const char* input = NULL)
 {
-    try {
-    
-        /****************************************************************
-         1 - process command line
-        *****************************************************************/
-        process_cmdline(argc, argv);
+    /****************************************************************
+     1 - process command line
+    *****************************************************************/
+    process_cmdline(argc, argv);
 
-        if (gHelpSwitch) 		{ printhelp(); exit(0); }
-        if (gVersionSwitch) 	{ printversion(); exit(0); }
+    if (gHelpSwitch) 		{ printhelp(); exit(0); }
+    if (gVersionSwitch) 	{ printversion(); exit(0); }
 
-        initFaustDirectories();
-        if (time_out) {
-        #ifndef WIN32
-            alarm(gTimeout);
-        #endif
-        }
-
-        /****************************************************************
-         2 - parse source files
-        *****************************************************************/
-        if (input) {
-            gGlobal->gInputString = input;
-            gInputFiles.push_back("input_string");
-        }
-        parseSourceFiles();
-
-        /****************************************************************
-         3 - evaluate 'process' definition
-        *****************************************************************/
-        int numInputs, numOutputs;
-        Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
-
-        /****************************************************************
-         4 - compute output signals of 'process'
-        *****************************************************************/
-        startTiming("propagation");
-
-        Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
-
-        if (gGlobal->gDetailsSwitch) {
-            cerr << "output signals are : " << endl;
-            Tree ls =  lsignals;
-            while (! isNil(ls)) {
-                cerr << ppsig(hd(ls)) << endl;
-                ls = tl(ls);
-            }
-        }
-
-        endTiming("propagation");
-
-        /****************************************************************
-        5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
-        *****************************************************************/
-        pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
-
-        /****************************************************************
-         6 - generate xml description, documentation or dot files
-        *****************************************************************/
-        generateOutputFiles(comp_container.first, comp_container.second);
-        
-        // Special case for LLVM
-        if (gGlobal->gModule && gGlobal->gOutputFile == "") {
-            outs() << *gGlobal->gModule;
-        }
-        
-        return 0;
-    
-    } catch (faustexception& e) {
-        e.PrintMessage();
-        return -1;
+    initFaustDirectories();
+    if (time_out) {
+    #ifndef WIN32
+        alarm(gTimeout);
+    #endif
     }
+
+    /****************************************************************
+     2 - parse source files
+    *****************************************************************/
+    if (input) {
+        gGlobal->gInputString = input;
+        gInputFiles.push_back("input_string");
+    }
+    parseSourceFiles();
+
+    /****************************************************************
+     3 - evaluate 'process' definition
+    *****************************************************************/
+    int numInputs, numOutputs;
+    Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+
+    /****************************************************************
+     4 - compute output signals of 'process'
+    *****************************************************************/
+    startTiming("propagation");
+
+    Tree lsignals = boxPropagateSig(nil, process , makeSigInputList(numInputs));
+
+    if (gGlobal->gDetailsSwitch) {
+        cerr << "output signals are : " << endl;
+        Tree ls =  lsignals;
+        while (! isNil(ls)) {
+            cerr << ppsig(hd(ls)) << endl;
+            ls = tl(ls);
+        }
+    }
+
+    endTiming("propagation");
+
+    /****************************************************************
+    5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript or LLVM code
+    *****************************************************************/
+    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs);
+
+    /****************************************************************
+     6 - generate xml description, documentation or dot files
+    *****************************************************************/
+    generateOutputFiles(comp_container.first, comp_container.second);
+    
+    // Special case for LLVM
+    if (gGlobal->gModule && gGlobal->gOutputFile == "") {
+        outs() << *gGlobal->gModule;
+    }
+    
+    return 0;
 }
 
-Module* compile_faust_llvm(int argc, char* argv[], const char* input)
+Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* error_msg)
 {
-    gGlobal = new global();
-    compile_faust(argc, argv, false, input);
-    Module* module = gGlobal->gModule;
+    Module* module = 0;
+    
+    try {
+        gGlobal = new global();
+        compile_faust(argc, argv, false, input);
+        module = gGlobal->gModule;
+    } catch (faustexception& e) {
+        strcpy(error_msg, gGlobal->gErrorMsg);
+    }
+    
     delete gGlobal;
     return module;
 }
+

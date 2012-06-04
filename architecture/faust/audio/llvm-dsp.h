@@ -195,7 +195,7 @@ class llvmdsp : public dsp {
             return res;
         }
         
-        Module* CompileModule(int argc, char *argv[], const char* pgm)
+        Module* CompileModule(int argc, char *argv[], const char* pgm, char* error_msg)
         {
             printf("Compile module...\n");
             int argc1 = (argc-1) + 3;
@@ -206,23 +206,23 @@ class llvmdsp : public dsp {
             for (int i = 0; i < argc-1; i++) {
                 argv1[i+3] = argv[i+1];
             }
-            return compile_faust_llvm(argc1, (char**)argv1, pgm);
+            return compile_faust_llvm(argc1, (char**)argv1, pgm, error_msg);
         }
 
   public:
   
-        llvmdsp(int argc, char *argv[], const std::string& pgm, int opt_level = 3)
+        llvmdsp(int argc, char *argv[], const std::string& pgm, char* error_msg, int opt_level = 3)
         {
-            fModule = CompileModule(argc, argv, pgm.c_str());
+            fModule = CompileModule(argc, argv, pgm.c_str(), error_msg);
             Init(opt_level);
         }
   
-        llvmdsp(int argc, char *argv[], int opt_level = 3)
+        llvmdsp(int argc, char *argv[], char* error_msg, int opt_level = 3)
         {
             if (strstr(argv[1], ".bc")) {
                 fModule = LoadModule(argv[1]);
             } else {
-                fModule = CompileModule(argc, argv, NULL);
+                fModule = CompileModule(argc, argv, NULL, error_msg);
             }
             
             Init(opt_level);
@@ -365,7 +365,7 @@ class llvmdsp : public dsp {
             // fModule is kept and deleted by fJIT
             delete fJIT;
         }
-
+     
         virtual int getNumInputs()
         {
             return fGetNumInputs(fDsp);

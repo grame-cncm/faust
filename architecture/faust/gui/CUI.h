@@ -2,7 +2,7 @@
 #define FAUST_CUI_H
 
 #ifndef FAUSTFLOAT
-#define FAUSTFLOAT FAUSTFLOAT
+#define FAUSTFLOAT float
 #endif
 
 #ifdef __cplusplus

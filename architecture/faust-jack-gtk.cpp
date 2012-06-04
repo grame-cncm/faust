@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 	char	appname[256];
     char	filename[256];
 	char  	rcfilename[256];
+    char    error_msg[256];
 	char* 	home = getenv("HOME");
 
     try {
@@ -45,7 +46,7 @@ int main(int argc, char *argv[])
             
             //DSP = new llvmdsp(1, NULL, "process = +,+;");
             
-            DSP = new llvmdsp(argc, argv);
+            DSP = new llvmdsp(argc, argv, error_msg);
             
             /*
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
@@ -61,7 +62,8 @@ int main(int argc, char *argv[])
             
         }
 	} catch (...) {
-		printf("Cannot load .dsp or .bc file\n");
+        cerr << error_msg;
+		cerr << "Cannot load .dsp or .bc file" << endl;
 		exit(1);
 	}
 

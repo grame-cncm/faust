@@ -34,33 +34,32 @@ Tree 		DEFLINEPROP = tree(symbol("DefLineProp"));
 
 void yyerror(const char* msg)
 {
-	fprintf(stderr, "%s:%d:%s\n", yyfilename, yylineno, msg);
+    snprintf(gGlobal->gErrorMsg, 256, "%s:%d:%s\n", yyfilename, yylineno, msg);
 	gGlobal->gErrorCount++;
 }
 
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
-    fprintf(stderr, "%s:%d: ERROR: %s ", filename, linenum, msg);
-    print(exp,stderr); fprintf(stderr, "\n");
+    snprintf(gGlobal->gErrorMsg, 256, "%s:%d: ERROR: %s ", filename, linenum, msg);
     gGlobal->gErrorCount++;
 }
 
 void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 {
-    cerr << filename << ':' << linenum << ": ERROR: " << msg << " : " << boxpp(exp) << endl;
+    stringstream error;
+    error << filename << ':' << linenum << ": ERROR: " << msg << " : " << boxpp(exp) << endl;
+    strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
     gGlobal->gErrorCount++;
 }
 
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
 {
-	fprintf(stderr, "%s:%d: WARNING: %s ", filename, linenum, msg);
-	print(exp,stderr); fprintf(stderr, "\n");
+    snprintf(gGlobal->gErrorMsg, 256, "%s:%d: WARNING: %s ", filename, linenum, msg);
 }
 
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 {
-	fprintf(stderr, "%s:%d: REMARK: %s ", filename, linenum, msg);
-	print(exp,stderr); fprintf(stderr, "\n");
+    snprintf(gGlobal->gErrorMsg, 256, "%s:%d: REMARK: %s ", filename, linenum, msg);
 }
 
 void setDefProp(Tree sym, const char* filename, int lineno)

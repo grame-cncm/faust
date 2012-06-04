@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 #include "global.hh"
+#include "exception.hh"
 
 #ifdef __cplusplus
 extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* input);
@@ -26,8 +27,15 @@ extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* 
 
 int main(int argc, char* argv[])
 {
-    gGlobal = new global();
-    int res = compile_faust(argc, argv, true, 0);
+    int res = 0;
+   
+    try {
+        gGlobal = new global();
+        res = compile_faust(argc, argv, true, 0);
+    } catch (faustexception& e) {
+        cerr << gGlobal->gErrorMsg;
+    }
+    
     delete gGlobal;
     return res;
 }
