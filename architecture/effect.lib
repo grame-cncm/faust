@@ -221,8 +221,7 @@ moog_vcf_demo = bypass1(bp,vcf) with {
 
    outgain  = meter_group(hslider("[1] VCF Output Level [unit:dB]
    [tooltip: output level in decibels]",
-   5, -60, 20, 0.1)) : smooth(0.999)
-   : component("music.lib").db2linear;
+   5, -60, 20, 0.1)) : component("music.lib").db2linear : smooth(0.999);
 
    vcfbq =  _ <: select2(bqsw, moog_vcf_2b(res,freq), moog_vcf_2bn(res,freq));
    vcfarch =  _ <: select2(archsw, moog_vcf(res^4,freq), vcfbq);
@@ -1284,7 +1283,7 @@ with {
 
   gain = out_group(vslider("[2] Level [unit:dB] [style:knob]
     [tooltip: Output scale factor]", -20, -70, 40, 0.1))
-    : smooth(0.999) : db2linear;
+    : db2linear : smooth(0.999);
 
 };
 
