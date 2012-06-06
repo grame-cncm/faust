@@ -82,15 +82,13 @@
 
 using namespace std;
 
-/****************************************************************
- 						Parser variables
-*****************************************************************/
-
-int             yyerr;
 
 global*         gGlobal = NULL;
 
-static string gOutputLang = "";
+/****************************************************************
+ 						Parser variables
+*****************************************************************/
+int             yyerr;
 
 /****************************************************************
  				Command line tools and arguments
@@ -98,7 +96,6 @@ static string gOutputLang = "";
 
 //-- command line arguments
 
-static bool			gLLVMSwitch 	= false;
 static bool			gHelpSwitch 	= false;
 static bool			gVersionSwitch 	= false;
 static bool         gGraphSwitch 	= false;
@@ -108,10 +105,10 @@ static bool         gPrintXMLSwitch = false;
 static bool         gPrintDocSwitch = false;
 static int          gBalancedSwitch = 0;
 static string       gArchFile;
-static list<string>	gInputFiles;
 
-static int      gTimeout        = 120;            // time out to abort compiler (in seconds)
-static bool		gPrintFileListSwitch = false;
+static int          gTimeout        = 120;            // time out to abort compiler (in seconds)
+static bool         gPrintFileListSwitch = false;
+static string       gOutputLang = "";
 
 //-- command line tools
 
@@ -133,9 +130,6 @@ static bool process_cmdline(int argc, char* argv[])
 
 		if (isCmd(argv[i], "-h", "--help")) {
 			gHelpSwitch = true;
-			i += 1;
-        } else if (isCmd(argv[i], "-llvm", "--LLVM")) {
-			gLLVMSwitch = true;
 			i += 1;
         } else if (isCmd(argv[i], "-lang", "--language")) {
 			gOutputLang = argv[i+1];
@@ -325,7 +319,7 @@ static bool process_cmdline(int argc, char* argv[])
 			
        } else if (argv[i][0] != '-') {
 			if (check_file(argv[i])) {
-				gInputFiles.push_back(argv[i]);
+				gGlobal->gInputFiles.push_back(argv[i]);
 			}
 			i++;
 
@@ -481,13 +475,13 @@ static void initFaustDirectories()
     gGlobal->gFaustDirectory = filedirname(s);
     gGlobal->gFaustSuperDirectory = filedirname(gGlobal->gFaustDirectory);
     gGlobal->gFaustSuperSuperDirectory = filedirname(gGlobal->gFaustSuperDirectory);
-    if (gInputFiles.empty()) {
+    if (gGlobal->gInputFiles.empty()) {
         gGlobal->gMasterDocument = "Unknown";
         gGlobal->gMasterDirectory = ".";
 		gGlobal->gMasterName = "faustfx";
 		gGlobal->gDocName = "faustdoc";
     } else {
-        gGlobal->gMasterDocument = *gInputFiles.begin();
+        gGlobal->gMasterDocument = *gGlobal->gInputFiles.begin();
         gGlobal->gMasterDirectory = filedirname(gGlobal->gMasterDocument);
 		gGlobal->gMasterName = fxname(gGlobal->gMasterDocument);
 		gGlobal->gDocName = fxname(gGlobal->gMasterDocument);
@@ -501,13 +495,13 @@ static void parseSourceFiles()
     list<string>::iterator s;
     gGlobal->gResult2 = nil;
 
-    if (gInputFiles.begin() == gInputFiles.end()) {
+    if (gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
         stringstream error;
         error << "ERROR: no files specified; for help type \"faust --help\"" << endl;
         throw faustexception(error.str());
     }
-    for (s = gInputFiles.begin(); s != gInputFiles.end(); s++) {
-        if (s == gInputFiles.begin()) gGlobal->gMasterDocument = *s;
+    for (s = gGlobal->gInputFiles.begin(); s != gGlobal->gInputFiles.end(); s++) {
+        if (s == gGlobal->gInputFiles.begin()) gGlobal->gMasterDocument = *s;
         gGlobal->gResult2 = cons(importFile(tree(s->c_str())), gGlobal->gResult2);
     }
    
@@ -797,7 +791,7 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* input = NUL
     *****************************************************************/
     if (input) {
         gGlobal->gInputString = input;
-        gInputFiles.push_back("input_string");
+        gGlobal->gInputFiles.push_back("input_string");
     }
     parseSourceFiles();
 

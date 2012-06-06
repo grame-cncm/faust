@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <set>
 #include <map>
+#include <list>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -125,7 +126,9 @@ struct global {
     
     char                    gErrorMsg[256];
 
-    Tabber TABBER;
+    Tabber                  TABBER;
+    
+    list<string>            gInputFiles;
   
     global():TABBER(1)
     {
