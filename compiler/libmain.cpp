@@ -109,6 +109,7 @@ static string       gArchFile;
 static int          gTimeout        = 120;            // time out to abort compiler (in seconds)
 static bool         gPrintFileListSwitch = false;
 static string       gOutputLang = "";
+static bool         gLLVMOut = true;
 
 //-- command line tools
 
@@ -589,7 +590,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         comp->compileMultiSignal(signals);
         gGlobal->gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gGlobal->gOutputFile.c_str());
         
-        if (gGlobal->gOutputFile == "") {
+        if (gLLVMOut && gGlobal->gOutputFile == "") {
             outs() << *gGlobal->gModule;
         }
  
@@ -841,10 +842,10 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* input = NUL
 Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* error_msg)
 {
     Module* module = 0;
+    gLLVMOut = false;
     
     try {
         gGlobal = new global();
-        gGlobal->gOutputFile = "dummy";
         compile_faust(argc, argv, false, input);
         module = gGlobal->gModule;
     } catch (faustexception& e) {

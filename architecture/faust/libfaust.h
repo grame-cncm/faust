@@ -34,12 +34,13 @@ extern "C"
  * 
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
+ * @param time_out - time out value after which the compilation is aborted
  * @param input - the Faust program as a C string
  *
  * @return 0 on success, otherwise a non-zero error code
  */
  
-int compile_faust(int argc, char* argv[], const char* input);
+int compile_faust(int argc, char* argv[], bool time_out, const char* input);
 
 /**
  * Compile a Faust program and produces an LLVM module.
