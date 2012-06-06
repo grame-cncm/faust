@@ -64,7 +64,7 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
     return new LLVMScalarCodeContainer(name, 0, 1, fModule, fBuilder, sub_container_type);
 }
 
-CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
 {
     CodeContainer* container;
 

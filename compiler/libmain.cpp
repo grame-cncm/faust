@@ -569,17 +569,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     startTiming("compilation");
 
     istream* enrobage;
-    ostream* dst;
-
-    if (gGlobal->gOutputFile != "") {
-        dst = new ofstream(gGlobal->gOutputFile.c_str());
-    } else {
-        dst = &cout;
-    }
 
     if (gOutputLang == "llvm") {
 
-        container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+        container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
@@ -595,8 +588,21 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
      
         comp->compileMultiSignal(signals);
         gGlobal->gModule = dynamic_cast<LLVMCodeContainer*>(container)->produceModule(gGlobal->gOutputFile.c_str());
-  
+        
+        if (gGlobal->gOutputFile == "") {
+            outs() << *gGlobal->gModule;
+        }
+ 
     } else {
+    
+        ostream* dst;
+
+        if (gGlobal->gOutputFile != "") {
+            dst = new ofstream(gGlobal->gOutputFile.c_str());
+        } else {
+            dst = &cout;
+        }
+        
         if (gOutputLang == "c") {
 
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
@@ -828,12 +834,7 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* input = NUL
      6 - generate xml description, documentation or dot files
     *****************************************************************/
     generateOutputFiles(comp_container.first, comp_container.second);
-    
-    // Special case for LLVM
-    if (gGlobal->gModule && gGlobal->gOutputFile == "") {
-        outs() << *gGlobal->gModule;
-    }
-    
+        
     return 0;
 }
 
@@ -843,6 +844,7 @@ Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* erro
     
     try {
         gGlobal = new global();
+        gGlobal->gOutputFile = "dummy";
         compile_faust(argc, argv, false, input);
         module = gGlobal->gModule;
     } catch (faustexception& e) {
