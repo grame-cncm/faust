@@ -136,12 +136,13 @@ CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box);
 CGPoint absolutePosition(uiCocoaItem* widget);
 
 
-
+// All Cocoa widget classes inheritate from uiCocoaItem, which inheritate from Faust uiItem
 class uiCocoaItem : public uiItem
 {
     
 protected:
     
+    NSString*               fName;
     BOOL                    fHidden;
     uiCocoaItem*            fParent;
     float                   fx;
@@ -153,28 +154,37 @@ protected:
     float                   fAbstractW;
     float                   fAbstractH;
     BOOL                    fSelected;
+    int                     fAssignationType;
+    float                   fAssignationRefPointX;
+    float                   fAssignationRefPointY;
+    BOOL                    fAssignationInverse;
+    float                   fAssignationSensibility;
+    float                   fR;
+    float                   fG;
+    float                   fB;
     
 public:
     
     FIMainViewController*   mainViewController;
-    int                     assignationType;
-    float                   assignationRefPointX;
-    float                   assignationRefPointY;
-    BOOL                    assignationInverse;
-    float                   assignationSensibility;
 
-    void resetAssignations()
+    // Default widget parameter
+    void resetParameters()
     {
-        assignationType = kAssignationNone;
-        assignationRefPointX = 0.;
-        assignationRefPointY = 0.5;
-        assignationInverse = false;
-        assignationSensibility = 1.;
+        fAssignationType = kAssignationNone;
+        fAssignationRefPointX = 0.;
+        fAssignationRefPointY = 0.;
+        fAssignationInverse = false;
+        fAssignationSensibility = 1.;
+        fR = 0.f;
+        fG = 0.f;
+        fB = 1.f;
     }
     
-    uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller)
+    // Constructor / Destuctor
+    uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller, const char* name)
     : uiItem(ui, zone), mainViewController(controller)
     {
+        fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
         fHidden = false;
         fParent = NULL;
         fx = 0.f;
@@ -185,14 +195,18 @@ public:
         fAbstractY = 0.f;
         fAbstractW = 0.f;
         fAbstractH = 0.f;
-        resetAssignations();
+        resetParameters();
         fSelected = false;
     }
     
     ~uiCocoaItem()
     {
+        [fName release];
     }
         
+    // Getters, setters
+    NSString* getName()                                             {return fName;}
+    
     virtual void setHidden(BOOL hidden) = 0;
     BOOL isHidden()                                                 {return fHidden;}
     
@@ -214,6 +228,27 @@ public:
     
     BOOL isSelected()                                               {return fSelected;}
     virtual void setSelected(BOOL selected)                         {fSelected = selected;}
+    
+    int getAssignationType()                                        {return fAssignationType;}
+    virtual void setAssignationType(int assignationType)            {fAssignationType = assignationType;}
+    
+    float getAssignationRefPointX()                                 {return fAssignationRefPointX;}
+    void setAssignationRefPointX(float assignationRefPointX)        {fAssignationRefPointX = assignationRefPointX;}
+    
+    float getAssignationRefPointY()                                 {return fAssignationRefPointY;}
+    void setAssignationRefPointY(float assignationRefPointY)        {fAssignationRefPointY = assignationRefPointY;}
+    
+    BOOL getAssignationInverse()                                    {return fAssignationInverse;}
+    void setAssignationInverse(BOOL assignationInverse)             {fAssignationInverse = assignationInverse;}
+    
+    float getAssignationSensibility()                               {return fAssignationSensibility;}
+    void setAssignationSensibility(float assignationSensibility)    {fAssignationSensibility = assignationSensibility;}
+
+    
+    float getR()                                                    {return fR;}
+    float getG()                                                    {return fG;}
+    float getB()                                                    {return fB;}
+    virtual void setColor(float r, float g, float b)                {fR = r; fG = g; fB = b;}
 };
 
 
@@ -221,7 +256,7 @@ public:
 
 class uiBox : public uiCocoaItem
 {
-    
+
 public:
     
     FIBox*                  fBox;
@@ -234,7 +269,7 @@ public:
     UILabel*                fLabel;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
-    : uiCocoaItem(ui, NULL, controller)
+    : uiCocoaItem(ui, NULL, controller, name)
     {
         float tabOffset = 0;
         fBoxType = boxType;
@@ -257,7 +292,7 @@ public:
 
         fClosed = FALSE;
         fBox = [[[FIBox alloc] init] autorelease];
-        fBox.color = [UIColor blueColor];
+        fBox.color = [UIColor darkGrayColor];//[UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         fBox.autoresizingMask = UIViewAutoresizingNone;
         
         [controller.dspView addSubview:fBox];
@@ -350,6 +385,7 @@ public:
         }
     }
     
+    // Returns minimum size used by widgets within the box
     CGSize getContentSize()
     {
         list<uiCocoaItem*>::iterator    i;
@@ -431,8 +467,8 @@ public :
     UILabel*            fLabel;
     
     uiKnob(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
-    : uiCocoaItem(ui, zone, controller)
-    {        
+    : uiCocoaItem(ui, zone, controller, name)
+    {
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         fLabel.textAlignment = UITextAlignmentCenter;
@@ -445,7 +481,7 @@ public :
         fKnob.autoresizingMask = UIViewAutoresizingNone;
         fKnob.labelFont = [UIFont boldSystemFontOfSize:14.0];
         fKnob.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
-        fKnob.color = [UIColor blueColor];
+        fKnob.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         fKnob.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fKnob.min = min;
         fKnob.max = max;
@@ -497,6 +533,28 @@ public :
         [fKnob setNeedsDisplay];
     }
     
+    void setColor(float r, float g, float b)
+    {
+        uiCocoaItem::setColor(r, g, b);
+        
+        fKnob.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
+        [fKnob setNeedsDisplay];
+    }
+    
+    void setAssignationType(int assignationType)
+    {
+        uiCocoaItem::setAssignationType(assignationType);
+        if (assignationType != kAssignationNone)
+        {
+            fKnob.assignated = true;
+        }
+        else
+        {
+            fKnob.assignated = false;
+        }
+        [fKnob setNeedsDisplay];
+    }
+    
     void reflectZone()
     {
         float v = *fZone;
@@ -517,7 +575,7 @@ public :
     BOOL                    fHorizontal;
     
     uiSlider(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, name)
     {        
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
@@ -534,7 +592,7 @@ public :
         fSlider.autoresizingMask = UIViewAutoresizingNone;
         fSlider.labelFont = [UIFont boldSystemFontOfSize:14.0];
         fSlider.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
-        fSlider.color = [UIColor blueColor];
+        fSlider.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         fSlider.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fSlider.min = min;
         fSlider.max = max;
@@ -594,6 +652,28 @@ public :
         fSlider.hidden = hidden;
     }
     
+    void setColor(float r, float g, float b)
+    {
+        uiCocoaItem::setColor(r, g, b);
+        
+        fSlider.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
+        [fSlider setNeedsDisplay];
+    }
+    
+    void setAssignationType(int assignationType)
+    {
+        uiCocoaItem::setAssignationType(assignationType);
+        if (assignationType != kAssignationNone)
+        {
+            fSlider.assignated = true;
+        }
+        else
+        {
+            fSlider.assignated = false;
+        }
+        [fSlider setNeedsDisplay];
+    }
+    
     void setSelected(BOOL selected)
     {
         uiCocoaItem::setSelected(selected);
@@ -620,7 +700,7 @@ public:
     FIButton*           fButton;
     
     uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, name)
     {
         fButton = [[[FIButton alloc] initWithDelegate:controller] autorelease];
         fButton.autoresizingMask =  UIViewAutoresizingNone;
@@ -629,6 +709,7 @@ public:
         fButton.labelColor = [UIColor whiteColor];
         fButton.backgroundColorAlpha = 0.4;
         fButton.type = type;
+        fButton.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         [controller.dspView addSubview:fButton];
         
         UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
@@ -666,6 +747,28 @@ public:
         [fButton setNeedsDisplay];
     }
     
+    void setColor(float r, float g, float b)
+    {
+        uiCocoaItem::setColor(r, g, b);
+        
+        fButton.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
+        [fButton setNeedsDisplay];
+    }
+    
+    void setAssignationType(int assignationType)
+    {
+        uiCocoaItem::setAssignationType(assignationType);
+        if (assignationType != kAssignationNone)
+        {
+            fButton.assignated = true;
+        }
+        else
+        {
+            fButton.assignated = false;
+        }
+        [fButton setNeedsDisplay];
+    }
+    
     void reflectZone()
     {
         float v = *fZone;
@@ -686,7 +789,7 @@ public:
     UILabel*            fLabel;
     
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, label)
     {
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
@@ -698,7 +801,7 @@ public:
 
         fTextField = [[[FITextField alloc] initWithDelegate:controller] autorelease];
         fTextField.autoresizingMask = UIViewAutoresizingNone;
-		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:1.];
+		fTextField.backgroundColor = [UIColor lightGrayColor];
         fTextField.textColor = [UIColor whiteColor];
         fTextField.labelColor = [UIColor whiteColor];
         fTextField.backgroundColorAlpha = 0.4;
@@ -706,7 +809,7 @@ public:
         fTextField.max = max;
         fTextField.value = init;
         fTextField.step = step;
-        [controller.dspView addSubview:fTextField];        
+        [controller.dspView addSubview:fTextField];
     }
     
     ~uiNumEntry()
@@ -759,7 +862,7 @@ public:
     BOOL                    fHorizontal;
     
     uiBargraph(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, name)
     {        
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
@@ -767,7 +870,7 @@ public:
         else fLabel.textAlignment = UITextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
-        fLabel.backgroundColor = [UIColor clearColor];
+        fLabel.backgroundColor = [UIColor blackColor];
         [controller.dspView addSubview:fLabel];
         
         fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(0.f, 0.f, 0.f, 0.f)] autorelease];
@@ -1151,6 +1254,7 @@ public:
         [fWindow release];
     }
     
+    // Abstract layout : layout computed regardless screen dimensions
     void saveAbstractLayout()
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
@@ -1171,6 +1275,7 @@ public:
         }
     }
     
+    // Function used to place widgets within a box when the horizontal box is too large or vertical box is too high
     void expandBoxesContent()
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
@@ -1178,12 +1283,16 @@ public:
         uiBox*                          box = NULL;
         CGSize                          contentSize;
         float                           labelHeight = 0.f;
-        
+
+        // Loop on every boxes of the layout
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
             if ((box = dynamic_cast<uiBox*>(*i)))
             {
+                // Compute content size, ie minimum size used by widgets within the box
                 contentSize = box->getContentSize();
+                
+                // Expand objects if content height is < than box height (vertical box)
                 if (box->fBoxType == kVerticalLayout
                     && contentSize.height + kSpaceSize < box->getH())
                 {
@@ -1192,7 +1301,9 @@ public:
                         if ((*j)->getParent() == box)
                         {
                             if (box->fLabel) labelHeight = kStdBoxLabelHeight;
+                            else labelHeight = 0.f;
                             
+                            // Place objects on all the height of the box
                             (*j)->setFrame((*j)->getX(),
                                            ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
                                            (*j)->getW(),
@@ -1201,6 +1312,7 @@ public:
                     }
                 }
                 
+                // Expand objects if content width is < than box width (horizontal box)
                 else if (box->fBoxType == kHorizontalLayout
                          && contentSize.width + kSpaceSize < box->getW())
                 {
@@ -1208,6 +1320,7 @@ public:
                     {
                         if ((*j)->getParent() == box)
                         {
+                            // Place objects on all the width of the box
                             (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
                                            (*j)->getY(),
                                            (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
@@ -1219,6 +1332,7 @@ public:
         }
     }
     
+    // This function takes abstract layout and adapt it to current screen dimensions
     void adaptLayoutToWindow(float width, float height)
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
@@ -1250,6 +1364,7 @@ public:
         return CGRectMake(pt.x, pt.y, widget->getW(), widget->getH());
     }
     
+    // Returns the box containing the point
     uiBox* getBoxForPoint(CGPoint pt)
     {
         list<uiCocoaItem*>::iterator i = fWidgetList.begin();

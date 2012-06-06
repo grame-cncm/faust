@@ -66,6 +66,7 @@
 @property BOOL allowsGestures;							// default: YES
 @property BOOL selected;                                // default: NO
 @property BOOL motionBlocked;                           // default: NO
+@property BOOL assignated;                              // default: NO
 
 - (id)initWithDelegate:(id)aDelegate;
 

@@ -35,6 +35,9 @@
 		65E5EDC114DB037D00136CFC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E5EDBF14DB037D00136CFC /* InfoPlist.strings */; };
 		65E5EDC414DB037D00136CFC /* iOSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDC314DB037D00136CFC /* iOSTests.m */; };
 		65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5EDCD14DB055500136CFC /* AudioToolbox.framework */; };
+		65E85C9B157806C2009F2D7A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E85C9A157806C2009F2D7A /* QuartzCore.framework */; };
+		65E85C9F157806E6009F2D7A /* close.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9D157806E6009F2D7A /* close.png */; };
+		65E85CA0157806E6009F2D7A /* close@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9E157806E6009F2D7A /* close@2x.png */; };
 		65F87431156FFB0C008AE175 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F87430156FFB0C008AE175 /* CoreMotion.framework */; };
 		65FD744F1549993A00E7CB0B /* FIScrollView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65FD744E1549993A00E7CB0B /* FIScrollView.mm */; };
 /* End PBXBuildFile section */
@@ -95,6 +98,9 @@
 		65E5EDC214DB037D00136CFC /* iOSTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iOSTests.h; sourceTree = "<group>"; };
 		65E5EDC314DB037D00136CFC /* iOSTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = iOSTests.m; sourceTree = "<group>"; };
 		65E5EDCD14DB055500136CFC /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		65E85C9A157806C2009F2D7A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		65E85C9D157806E6009F2D7A /* close.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = close.png; path = iOS/close.png; sourceTree = "<group>"; };
+		65E85C9E157806E6009F2D7A /* close@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "close@2x.png"; path = "iOS/close@2x.png"; sourceTree = "<group>"; };
 		65F87430156FFB0C008AE175 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		65F8C2DF14DBD59C0042E3FA /* FICocoaUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FICocoaUI.h; sourceTree = "<group>"; };
 		65F8C2E814DBEA410042E3FA /* ios-faust.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ios-faust.h"; sourceTree = SOURCE_ROOT; };
@@ -107,6 +113,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65E85C9B157806C2009F2D7A /* QuartzCore.framework in Frameworks */,
 				65F87431156FFB0C008AE175 /* CoreMotion.framework in Frameworks */,
 				65D1BD1415668A8A00ADCA32 /* CoreLocation.framework in Frameworks */,
 				65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */,
@@ -157,9 +164,8 @@
 		65E5ED8314DB037D00136CFC = {
 			isa = PBXGroup;
 			children = (
-				65F87430156FFB0C008AE175 /* CoreMotion.framework */,
-				650C53BA14DC389100C1C7FF /* icon.png */,
 				65E5ED9814DB037D00136CFC /* iOS */,
+				65E85CA1157806EE009F2D7A /* Ressources */,
 				65E5EDBC14DB037D00136CFC /* iOSTests */,
 				65E5ED9114DB037D00136CFC /* Frameworks */,
 				65E5ED8F14DB037D00136CFC /* Products */,
@@ -178,6 +184,8 @@
 		65E5ED9114DB037D00136CFC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				65E85C9A157806C2009F2D7A /* QuartzCore.framework */,
+				65F87430156FFB0C008AE175 /* CoreMotion.framework */,
 				65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */,
 				65E5EDCD14DB055500136CFC /* AudioToolbox.framework */,
 				65E5ED9214DB037D00136CFC /* UIKit.framework */,
@@ -239,6 +247,16 @@
 				65E5EDBF14DB037D00136CFC /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		65E85CA1157806EE009F2D7A /* Ressources */ = {
+			isa = PBXGroup;
+			children = (
+				650C53BA14DC389100C1C7FF /* icon.png */,
+				65E85C9D157806E6009F2D7A /* close.png */,
+				65E85C9E157806E6009F2D7A /* close@2x.png */,
+			);
+			name = Ressources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -315,6 +333,8 @@
 				65E5EDA614DB037D00136CFC /* MainStoryboard_iPhone.storyboard in Resources */,
 				65E5EDA914DB037D00136CFC /* MainStoryboard_iPad.storyboard in Resources */,
 				650C53BB14DC389100C1C7FF /* icon.png in Resources */,
+				65E85C9F157806E6009F2D7A /* close.png in Resources */,
+				65E85CA0157806E6009F2D7A /* close@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
