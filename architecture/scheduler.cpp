@@ -60,8 +60,6 @@
 #include <libkern/OSAtomic.h>
 #endif
 
-#define NO_TASK 1
-
 class TaskQueue;
 struct DSPThreadPool;
 
@@ -119,6 +117,7 @@ static INLINE int atomic_xadd(volatile int* atomic, int val)
 { 
 #ifdef __APPLE__
     //return OSAtomicAdd32(val, atomic);
+    // Returns new value
     return __sync_add_and_fetch(atomic, val);
 #else
     register int ret;
@@ -399,7 +398,7 @@ struct TaskGraph
       
     INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
+        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
             if (tasknum == WORK_STEALING_INDEX) {
                 tasknum = task;
             } else {
@@ -410,7 +409,7 @@ struct TaskGraph
     
     INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
+        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
             if (*tasknum == WORK_STEALING_INDEX) {
                 *tasknum = task;
             } else {
@@ -421,21 +420,21 @@ struct TaskGraph
      
     INLINE void ActivateOutputTask(TaskQueue& queue, int task)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
+        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
             queue.PushHead(task);
         }
     }
     
     INLINE void ActivateOutputTask(TaskQueue* queue, int task)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
+        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
             queue->PushHead(task);
         }
     }
     
     INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
+        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
             tasknum = task;
         } else {
             tasknum = queue.PopHead(); 
@@ -444,7 +443,7 @@ struct TaskGraph
     
     INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == NO_TASK) {
+        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
             *tasknum = task;
         } else {
             *tasknum = queue->PopHead(); 
