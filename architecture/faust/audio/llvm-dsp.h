@@ -197,16 +197,16 @@ class llvmdsp : public dsp {
         
         Module* CompileModule(int argc, char *argv[], const char* pgm, char* error_msg)
         {
-            printf("Compile module...\n");
-            int argc1 = (argc-1) + 3;
+            printf("Compile module... %d \n", argc);
+            int argc1 = argc + 3;
             const char* argv1[argc1];
             argv1[0] = "faust";
             argv1[1] = "-lang";
             argv1[2] = "llvm";
-            for (int i = 0; i < argc-1; i++) {
-                argv1[i+3] = argv[i+1];
+            for (int i = 0; i < argc; i++) {
+                argv1[i+3] = argv[i];
             }
-            return compile_faust_llvm(argc1, (char**)argv1, pgm, error_msg);
+            return compile_faust_llvm(argc1, (char**)argv1, false, pgm, error_msg);
         }
 
   public:
@@ -222,7 +222,7 @@ class llvmdsp : public dsp {
             if (strstr(argv[1], ".bc")) {
                 fModule = LoadModule(argv[1]);
             } else {
-                fModule = CompileModule(argc, argv, NULL, error_msg);
+                fModule = CompileModule(argc - 1, &argv[1], NULL, error_msg);
             }
             
             Init(opt_level);

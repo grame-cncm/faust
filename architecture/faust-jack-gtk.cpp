@@ -35,16 +35,26 @@ int main(int argc, char *argv[])
 		} else {
         
             /*
+            int argc1 = 2;
+            const char* argv1[argc1];
+            argv1[0] = "faust";
+            argv1[1] = "-svg";
+
+            compile_faust(argc1, (char**)argv1, false, "process = +,+;", error_msg);
+            compile_faust(argc1, (char**)argv1, false, "process = +,+;", error_msg);
+            */
+            
+            /*
             try {
-               DSP = new llvmdsp(1, NULL, "process = __+,+__");
+               DSP = new llvmdsp(0, NULL, "process = __+,+__", error_msg);
             }
             catch (...) {
-                printf("Mauvais code source, code par defaut \n");
-                DSP = new llvmdsp(1, NULL, "process = +,+;");
+                printf("Mauvais code source : %s", error_msg);
+                DSP = new llvmdsp(0, NULL, "process = +,+;", error_msg);
             }
             */
             
-            //DSP = new llvmdsp(1, NULL, "process = +,+;");
+            //DSP = new llvmdsp(0, NULL, "process = +,+;");
             
             DSP = new llvmdsp(argc, argv, error_msg);
             

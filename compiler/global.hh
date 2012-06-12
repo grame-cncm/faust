@@ -132,6 +132,10 @@ struct global {
   
     global():TABBER(1)
     {
+        gResult             = 0;
+        gResult2            = 0;
+        gExpandedDefList    = 0;
+        
         gDetailsSwitch  = false;
         gDrawSignals    = false;
         gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter

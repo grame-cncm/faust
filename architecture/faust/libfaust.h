@@ -34,26 +34,28 @@ extern "C"
  * 
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
- * @param time_out - time out value after which the compilation is aborted
+ * @param time_out - true if the compilation should be aborted after 120 sec
  * @param input - the Faust program as a C string
+ * @param error_msg - the error string to be filled, has to be 256 characters long
  *
  * @return 0 on success, otherwise a non-zero error code
  */
  
-int compile_faust(int argc, char* argv[], bool time_out, const char* input);
+int compile_faust(int argc, char* argv[], bool time_out, const char* input, char* error_msg);
 
 /**
  * Compile a Faust program and produces an LLVM module.
  * 
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
+ * @param time_out - true if the compilation should be aborted after 120 sec
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
- * @return a valid LLVM module on success, O otherwise.
+ * @return a valid LLVM module on success, 0 otherwise.
  */
 
-llvm::Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* error_msg);
+llvm::Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* input, char* error_msg);
 
 #ifdef __cplusplus
 }

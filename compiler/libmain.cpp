@@ -772,11 +772,13 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 }
 
 #ifdef __cplusplus
-extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* input);
-extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* error_msg);
+extern "C" int compile_faust_internal(int argc, char* argv[], bool time_out, const char* input);
+
+extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* input, char* error_msg);
+extern "C" Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* input, char* error_msg);
 #endif
 
-int compile_faust(int argc, char* argv[], bool time_out, const char* input = NULL)
+int compile_faust_internal(int argc, char* argv[], bool time_out, const char* input = NULL)
 {
     /****************************************************************
      1 - process command line
@@ -839,14 +841,15 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* input = NUL
     return 0;
 }
 
-Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* error_msg)
+Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* input, char* error_msg)
 {
     Module* module = 0;
     gLLVMOut = false;
+    gGlobal = NULL;
     
     try {
         gGlobal = new global();
-        compile_faust(argc, argv, false, input);
+        compile_faust_internal(argc, argv, time_out, input);
         module = gGlobal->gModule;
     } catch (faustexception& e) {
         strcpy(error_msg, gGlobal->gErrorMsg);
@@ -856,3 +859,19 @@ Module* compile_faust_llvm(int argc, char* argv[], const char* input, char* erro
     return module;
 }
 
+
+int compile_faust(int argc, char* argv[], bool time_out, const char* input, char* error_msg)
+{
+    int res = 0;
+    gGlobal = NULL;
+    
+    try {
+        gGlobal = new global();
+        res = compile_faust_internal(argc, argv, time_out, input);
+    } catch (faustexception& e) {
+        strcpy(error_msg, gGlobal->gErrorMsg);
+    }
+    
+    delete gGlobal;
+    return res;
+}

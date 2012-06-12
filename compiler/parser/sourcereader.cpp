@@ -202,12 +202,13 @@ Tree SourceReader::parsestring(string fname)
 Tree SourceReader::parse(string fname) 
 {
     int r = yyparse();
+    stringstream error;
     
  	if (r) { 
-		fprintf(stderr, "Parse error : code = %d \n", r); 
+        error << "Parse error : code = " << r << endl;
+        throw faustexception(error.str());
 	}
 	if (yyerr > 0) {
-        stringstream error;
         error << "ERROR : parse, code = " << yyerr << endl;
         throw faustexception(error.str());
 	}
