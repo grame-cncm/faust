@@ -1028,7 +1028,7 @@ with { // octave script output:
 // where
 //   N = filter order 1, 3, 5, ... (odd only).
 //  L0 = desired level (dB) between dc and fx (boost L0>0 or cut L0<0)
-//  fx = desired transition frequency (Hz) from boost to unity gain
+//  fx = desired transition frequency (Hz) from boost|cut to unity gain
 //
 // The gain at SR/2 is constrained to be 1.
 // The generalization to arbitrary odd orders is based on the well known
@@ -1049,11 +1049,11 @@ low_shelf5 = lowshelf(5); // backward compatibility for one release
 // USAGE: 
 //   _ : highshelf(N,Lpi,fx) : _
 // where
-//   N = filter order 1, 3, 5, ... (odd only).
+//    N = filter order 1, 3, 5, ... (odd only).
 //  Lpi = desired level (dB) between fx and SR/2 (boost Lpi>0 or cut Lpi<0)
-//  fx = desired transition frequency in Hz
+//   fx = desired transition frequency in Hz
 //
-// The gain at dc is constrained to be 1
+// The gain at dc is constrained to be 1.
 //
 highshelf(N,Lpi,fx) = filterbank(N,(fx)) : *(db2linear(Lpi)), _ :> _;
 // Special cases providing backward compatibility and optimization:

@@ -108,7 +108,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-       	qmake -project "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
+       	qmake -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
 	    qmake $SPEC
         make
     ) > /dev/null
