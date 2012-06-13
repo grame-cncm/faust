@@ -1375,8 +1375,8 @@ class QTGUI : public QObject, public GUI
                                                                     "stop: 0 #A0A0A0, stop: 1 #202020);"
                                     "border: 2px solid gray;"
                                     "border-radius: 5px;"
-                                    "margin-top: 1ex;"
-                                    "font-size:7pt;"
+                                    "margin-top: 3ex;"
+                                    "font-size:10pt;"
                                     "font-weight:bold;"
                                   //"color: dark grey;"
                                     "color: white;"
@@ -1568,6 +1568,7 @@ class QTGUI : public QObject, public GUI
                   "QDoubleSpinBox {"
                                     "border: 2px solid orange;"
                                     "border-radius: 5px;"
+                                    "font-size: 8pt;"
                                  "}"
         );
 #endif
