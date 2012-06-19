@@ -197,7 +197,7 @@ class llvmdsp : public dsp {
         
         Module* CompileModule(int argc, char *argv[], const char* pgm, char* error_msg)
         {
-            printf("Compile module... %d \n", argc);
+            printf("Compile module...\n");
             int argc1 = argc + 3;
             const char* argv1[argc1];
             argv1[0] = "faust";
