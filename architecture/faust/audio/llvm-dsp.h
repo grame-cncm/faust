@@ -195,7 +195,7 @@ class llvmdsp : public dsp {
             return res;
         }
         
-        Module* CompileModule(int argc, char *argv[], const char* pgm, char* error_msg)
+        Module* CompileModule(int argc, char *argv[], const char* input_name, const char* input, char* error_msg)
         {
             printf("Compile module...\n");
             int argc1 = argc + 3;
@@ -206,14 +206,14 @@ class llvmdsp : public dsp {
             for (int i = 0; i < argc; i++) {
                 argv1[i+3] = argv[i];
             }
-            return compile_faust_llvm(argc1, (char**)argv1, false, pgm, error_msg);
+            return compile_faust_llvm(argc1, (char**)argv1, false, input_name, input, error_msg);
         }
 
   public:
   
-        llvmdsp(int argc, char *argv[], const std::string& pgm, char* error_msg, int opt_level = 3)
+        llvmdsp(int argc, char *argv[], const std::string& input_name, const std::string& input, char* error_msg, int opt_level = 3)
         {
-            fModule = CompileModule(argc, argv, pgm.c_str(), error_msg);
+            fModule = CompileModule(argc, argv, input_name.c_str(), input.c_str(), error_msg);
             Init(opt_level);
         }
   
@@ -222,7 +222,7 @@ class llvmdsp : public dsp {
             if (strstr(argv[1], ".bc")) {
                 fModule = LoadModule(argv[1]);
             } else {
-                fModule = CompileModule(argc - 1, &argv[1], NULL, error_msg);
+                fModule = CompileModule(argc - 1, &argv[1], NULL, NULL, error_msg);
             }
             
             Init(opt_level);
