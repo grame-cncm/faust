@@ -209,6 +209,8 @@ public:
     
     virtual void setHidden(BOOL hidden) = 0;
     BOOL isHidden()                                                 {return fHidden;}
+    virtual BOOL isHExpandable() = 0;
+    virtual BOOL isVExpandable() = 0;
     
     float getX()                                                    {return fx;}
     float getY()                                                    {return fy;}
@@ -318,6 +320,64 @@ public:
         [fBox release];
     }
     
+    BOOL isHExpandable()
+    {
+        list<uiCocoaItem*>::iterator    i;
+        BOOL                            res = FALSE;
+        
+        if (fBoxType == kTabLayout)
+        {
+            for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+            {
+                if ((*i)->getParent() == this)
+                {
+                    res = res || (*i)->isHExpandable();
+                }
+            }            
+        }
+        else
+        {
+            for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+            {
+                if ((*i)->getParent() == this)
+                {
+                    res = res && (*i)->isHExpandable();
+                }
+            }            
+        }
+        
+        return res;
+    }
+    
+    BOOL isVExpandable()
+    {
+        list<uiCocoaItem*>::iterator    i;
+        BOOL                            res = FALSE;
+
+        if (fBoxType == kTabLayout)
+        {
+            for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+            {
+                if ((*i)->getParent() == this)
+                {
+                    res = res || (*i)->isVExpandable();
+                }
+            }            
+        }
+        else
+        {
+            for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+            {
+                if ((*i)->getParent() == this)
+                {
+                    res = res && (*i)->isVExpandable();
+                }
+            }            
+        }
+        
+        return res;
+    }
+    
     int getNumberOfDirectChildren()
     {
         list<uiCocoaItem*>::iterator    i;
@@ -370,16 +430,26 @@ public:
             for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
             {
                 if (fBoxType == kVerticalLayout
-                    && (*i)->getW() < w - 2 * kSpaceSize
                     && (*i)->getParent() == this)
                 {
-                    (*i)->setFrame((*i)->getX(), (*i)->getY(), w - 2 * kSpaceSize, (*i)->getH());
+                    //if ((*i)->isHExpandable())
+                    {
+                        (*i)->setFrame((*i)->getX(),
+                                       (*i)->getY(),
+                                       w - 2 * kSpaceSize,
+                                       (*i)->getH());
+                    }
                 }
                 else if (fBoxType == kHorizontalLayout
-                         && (*i)->getH() < h - 2 * kSpaceSize - labelYOffset
                          && (*i)->getParent() == this)
                 {
-                    (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), h - 2 * kSpaceSize - labelYOffset);
+                    //if ((*i)->isVExpandable())
+                    {
+                        (*i)->setFrame((*i)->getX(),
+                                       (*i)->getY(),
+                                       (*i)->getW(),
+                                       h - 2 * kSpaceSize - labelYOffset);
+                    }
                 }
             }
         }
@@ -502,6 +572,16 @@ public :
         [fKnob release];
     }
     
+    BOOL isHExpandable()
+    {
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        return FALSE;
+    }
+    
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -613,6 +693,24 @@ public :
         [fSlider release];
     }
     
+    BOOL isHExpandable()
+    {
+        if (fHorizontal)
+        {
+            return TRUE;
+        }
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        if (fHorizontal)
+        {
+            return FALSE;
+        }
+        return TRUE;
+    }
+    
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -722,6 +820,16 @@ public:
         [fButton release];
     }
 
+    BOOL isHExpandable()
+    {
+        return TRUE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        return FALSE;
+    }
+    
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -817,6 +925,16 @@ public:
         [fTextField release];
     }
     
+    BOOL isHExpandable()
+    {
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        return FALSE;
+    }
+    
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -888,6 +1006,24 @@ public:
     {
         [fLabel release];
         [fBargraph release];
+    }
+    
+    BOOL isHExpandable()
+    {
+        if (fHorizontal)
+        {
+            return TRUE;
+        }
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        if (fHorizontal)
+        {
+            return FALSE;
+        }
+        return TRUE;
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -1283,6 +1419,11 @@ public:
         uiBox*                          box = NULL;
         CGSize                          contentSize;
         float                           labelHeight = 0.f;
+        float                           extensibleElementsTotalSize = 0.f;
+        float                           fixedElementsTotalSize = 0.f;
+        float                           rx = 1.f;
+        float                           cpt = 0.f;
+        float                           newVal = 0.f;
 
         // Loop on every boxes of the layout
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
@@ -1296,18 +1437,73 @@ public:
                 if (box->fBoxType == kVerticalLayout
                     && contentSize.height + kSpaceSize < box->getH())
                 {
+                    // Init values
+                    if (box->fLabel) labelHeight = kStdBoxLabelHeight;
+                    else labelHeight = 0.f;
+                    extensibleElementsTotalSize = 0.f;
+                    fixedElementsTotalSize = 0.f;
+                    rx = 1.f;
+                    cpt = 0.f;
+                    
+                    // Compute extensible and fixed heights
                     for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                     {
                         if ((*j)->getParent() == box)
                         {
-                            if (box->fLabel) labelHeight = kStdBoxLabelHeight;
-                            else labelHeight = 0.f;
-                            
-                            // Place objects on all the height of the box
-                            (*j)->setFrame((*j)->getX(),
-                                           ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
-                                           (*j)->getW(),
-                                           (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
+                            if ((*j)->isVExpandable())
+                            {
+                                extensibleElementsTotalSize += (*j)->getH();
+                            }
+                            else
+                            {
+                                fixedElementsTotalSize += (*j)->getH();
+                            }
+                        }
+                    }
+                    
+                    // If there is at least 1 extensible element, elements will take the whole box height
+                    if (extensibleElementsTotalSize > 0.)
+                    {
+                        // Compute extension ratio
+                        rx = (box->getH() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize - labelHeight) / extensibleElementsTotalSize;
+                        
+                        // Replace elements
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {                                
+                                if ((*j)->isVExpandable())
+                                {
+                                    newVal = (*j)->getH() * rx;
+                                }
+                                else
+                                {
+                                    newVal = (*j)->getH();
+                                }
+
+                                (*j)->setFrame((*j)->getX(),
+                                               cpt + kSpaceSize + labelHeight,
+                                               (*j)->getW(),
+                                               newVal);
+                                                                
+                                cpt += newVal + kSpaceSize + labelHeight;
+                            }
+                        }
+                    }
+                    
+                    // If there is no extensible element, the elements height won't take the whole box height
+                    else
+                    {
+                        // Center elements
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {
+                                (*j)->setFrame((*j)->getX(),
+                                               (*j)->getY() + (box->getH() - contentSize.height) / 2.f,
+                                               (*j)->getW(),
+                                               (*j)->getH());                                
+                            }
                         }
                     }
                 }
@@ -1316,15 +1512,70 @@ public:
                 else if (box->fBoxType == kHorizontalLayout
                          && contentSize.width + kSpaceSize < box->getW())
                 {
+                    // Init values
+                    extensibleElementsTotalSize = 0.f;
+                    fixedElementsTotalSize = 0.f;
+                    rx = 1.f;
+                    cpt = 0.f;
+                    
+                    // Compute extensible and fixed widths
                     for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                     {
                         if ((*j)->getParent() == box)
                         {
-                            // Place objects on all the width of the box
-                            (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
-                                           (*j)->getY(),
-                                           (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
-                                           (*j)->getH());
+                            if ((*j)->isHExpandable())
+                            {
+                                extensibleElementsTotalSize += (*j)->getW();
+                            }
+                            else
+                            {
+                                fixedElementsTotalSize += (*j)->getW();
+                            }
+                        }
+                    }
+                    
+                    // If there is at least 1 extensible element, elements will take the whole box width
+                    if (extensibleElementsTotalSize > 0.)
+                    {
+                        // Compute extension ratio
+                        rx = (box->getW() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize) / extensibleElementsTotalSize;
+
+                        // Replace elements
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {                                
+                                if ((*j)->isHExpandable())
+                                {
+                                    newVal = (*j)->getW() * rx;
+                                }
+                                else
+                                {
+                                    newVal = (*j)->getW();
+                                }
+                                
+                                (*j)->setFrame(cpt + kSpaceSize,
+                                               (*j)->getY(),
+                                               newVal,
+                                               (*j)->getH());
+                                
+                                cpt += newVal + kSpaceSize;
+                            }
+                        }
+                    }
+                    
+                    // If there is no extensible element, the elements width won't take the whole box width
+                    else
+                    {
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {
+                                (*j)->setFrame((*j)->getX() + (box->getW() - contentSize.width) / 2.f,
+                                               (*j)->getY(),
+                                               (*j)->getW(),
+                                               (*j)->getH());                                
+                            }
                         }
                     }
                 }
