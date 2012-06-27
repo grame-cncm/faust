@@ -35,6 +35,7 @@ extern "C"
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
  * @param time_out - true if the compilation should be aborted after 120 sec
+ * @param input_name - the name of the Faust program
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
@@ -49,6 +50,7 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* input_name,
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
  * @param time_out - true if the compilation should be aborted after 120 sec
+ * @param input_name - the name of the Faust program
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
