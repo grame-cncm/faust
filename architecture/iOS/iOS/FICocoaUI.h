@@ -1432,7 +1432,7 @@ public:
                     {
                         if ((*j)->getParent() == box)
                         {
-                            if ((*j)->getW() + kSpaceSize < box->getW())
+                            if ((*j)->getW() < box->getW() - 2 * kSpaceSize)
                             {
                                 if (!(*j)->isHExpandable())
                                 {
@@ -1524,12 +1524,12 @@ public:
                     {
                         if ((*j)->getParent() == box)
                         {
-                            if ((*j)->getH() + kSpaceSize < box->getH())
+                            if ((*j)->getH() < box->getH() - labelHeight - 2 * kSpaceSize)
                             {
                                 if (!(*j)->isVExpandable())
                                 {
                                     (*j)->setFrame((*j)->getX(),
-                                                   (*j)->getY() + (box->getH() - (*j)->getH()) / 2.f,
+                                                   (*j)->getY() + (box->getH() - (*j)->getH()) / 2.f + labelHeight,
                                                    (*j)->getW(),
                                                    (*j)->getH());
                                 }
