@@ -1436,7 +1436,7 @@ public:
                             {
                                 if (!(*j)->isHExpandable())
                                 {
-                                    (*j)->setFrame((*j)->getX() + (box->getW() - (*j)->getW()) / 2.f,
+                                    (*j)->setFrame((*j)->getX() + (box->getW() - kSpaceSize - (*j)->getW()) / 2.f,
                                                    (*j)->getY(),
                                                    (*j)->getW(),
                                                    (*j)->getH());
@@ -1508,7 +1508,7 @@ public:
                                 if ((*j)->getParent() == box)
                                 {
                                     (*j)->setFrame((*j)->getX(),
-                                                   (*j)->getY() + (box->getH() - contentSize.height) / 2.f,
+                                                   (*j)->getY() + (box->getH() - kSpaceSize - contentSize.height) / 2.f,
                                                    (*j)->getW(),
                                                    (*j)->getH());                                
                                 }
@@ -1529,7 +1529,7 @@ public:
                                 if (!(*j)->isVExpandable())
                                 {
                                     (*j)->setFrame((*j)->getX(),
-                                                   (*j)->getY() + (box->getH() - (*j)->getH()) / 2.f + labelHeight,
+                                                   (*j)->getY() + (box->getH() - kSpaceSize - (*j)->getH()) / 2.f + labelHeight,
                                                    (*j)->getW(),
                                                    (*j)->getH());
                                 }
@@ -1598,7 +1598,7 @@ public:
                             {
                                 if ((*j)->getParent() == box)
                                 {
-                                    (*j)->setFrame((*j)->getX() + (box->getW() - contentSize.width) / 2.f,
+                                    (*j)->setFrame((*j)->getX() + (box->getW() - kSpaceSize - contentSize.width) / 2.f,
                                                    (*j)->getY(),
                                                    (*j)->getW(),
                                                    (*j)->getH());                                
