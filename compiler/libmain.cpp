@@ -852,7 +852,7 @@ Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* in
         compile_faust_internal(argc, argv, time_out, input_name, input);
         module = gGlobal->gModule;
     } catch (faustexception& e) {
-        strcpy(error_msg, gGlobal->gErrorMsg);
+        strcpy(error_msg, e.Message().c_str());
     }
     
     delete gGlobal;
@@ -868,7 +868,7 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* input_name,
         gGlobal = new global();
         res = compile_faust_internal(argc, argv, time_out, input_name, input);
     } catch (faustexception& e) {
-        strcpy(error_msg, gGlobal->gErrorMsg);
+        strcpy(error_msg, e.Message().c_str());
     }
     
     delete gGlobal;

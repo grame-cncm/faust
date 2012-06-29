@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
         gGlobal = new global();
         res = compile_faust_internal(argc, argv, true, 0, 0);
     } catch (faustexception& e) {
-        cerr << gGlobal->gErrorMsg;
+        e.PrintMessage();
     }
     
     delete gGlobal;

@@ -25,6 +25,7 @@
 #include "boxes.hh"
 #include "ppbox.hh"
 #include "global.hh"
+#include "exception.hh"
 
 #include <iostream>
 using namespace std;
@@ -34,32 +35,40 @@ Tree 		DEFLINEPROP = tree(symbol("DefLineProp"));
 
 void yyerror(const char* msg)
 {
-    snprintf(gGlobal->gErrorMsg, 256, "%s:%d:%s\n", yyfilename, yylineno, msg);
-	gGlobal->gErrorCount++;
+    stringstream error;
+    error << yyfilename << ":" << yylineno << ":" << msg << endl;
+    gGlobal->gErrorCount++;
+    throw faustexception(error.str());
 }
 
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
-    snprintf(gGlobal->gErrorMsg, 256, "%s:%d: ERROR: %s ", filename, linenum, msg);
+    stringstream error;
+    error << filename << ":" << linenum << ": ERROR: " << msg << endl;
     gGlobal->gErrorCount++;
+    throw faustexception(error.str());
 }
 
 void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
     error << filename << ':' << linenum << ": ERROR: " << msg << " : " << boxpp(exp) << endl;
-    strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
     gGlobal->gErrorCount++;
+    throw faustexception(error.str());
 }
 
 void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
 {
-    snprintf(gGlobal->gErrorMsg, 256, "%s:%d: WARNING: %s ", filename, linenum, msg);
+    stringstream error;
+    error << filename << ':' << linenum << ": WARNING: " << msg << endl;
+    throw faustexception(error.str());
 }
 
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 {
-    snprintf(gGlobal->gErrorMsg, 256, "%s:%d: REMARK: %s ", filename, linenum, msg);
+    stringstream error;
+    error << filename << ':' << linenum << ": REMARK: " << msg << endl;
+    throw faustexception(error.str());
 }
 
 void setDefProp(Tree sym, const char* filename, int lineno)

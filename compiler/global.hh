@@ -123,9 +123,7 @@ struct global {
     bool                    gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
     
     int                     gErrorCount;
-    
-    char                    gErrorMsg[256];
-
+  
     Tabber                  TABBER;
     
     list<string>            gInputFiles;
