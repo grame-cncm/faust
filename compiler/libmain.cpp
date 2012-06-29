@@ -852,13 +852,13 @@ Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* in
         compile_faust_internal(argc, argv, time_out, input_name, input);
         module = gGlobal->gModule;
     } catch (faustexception& e) {
+        printf("faustexception %s\n", gGlobal->gErrorMsg);
         strcpy(error_msg, gGlobal->gErrorMsg);
     }
     
     delete gGlobal;
     return module;
 }
-
 
 int compile_faust(int argc, char* argv[], bool time_out, const char* input_name, const char* input, char* error_msg)
 {

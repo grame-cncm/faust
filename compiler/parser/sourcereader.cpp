@@ -244,7 +244,7 @@ bool SourceReader::cached(string fname)
 Tree SourceReader::getlist(string fname)
 {
 	if (!cached(fname)) {
-        if (fname == "input_string") {
+        if (gGlobal->gInputString) {
             fFileCache[fname] = parsestring(fname);
         } else {
             fFileCache[fname] = parsefile(fname);
