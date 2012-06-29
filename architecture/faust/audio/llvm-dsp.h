@@ -165,6 +165,8 @@ class llvmdsp : public dsp {
         instanceInitFun fInstanceInit;
         computeFun fCompute;
         
+        static int fCount;
+        
         void* LoadOptimize(const std::string& function)
         {
             Function* fun_ptr = fModule->getFunction(function);
@@ -232,7 +234,9 @@ class llvmdsp : public dsp {
         {
             if (!fModule) throw new std::bad_alloc;
             
-            InitializeNativeTarget();
+            if (fCount++ == 0) {
+                InitializeNativeTarget();
+            }
         #if defined(LLVM_31)
             fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
         #else
@@ -416,3 +420,4 @@ class llvmdsp : public dsp {
         }
 };
 
+int llvmdsp::fCount = 0;
