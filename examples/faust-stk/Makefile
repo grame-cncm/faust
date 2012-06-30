@@ -22,14 +22,14 @@ endif
 
 VSIZE := 256
 
-SC_SOURCE_DIR = ../../supercollider
-
+# All Faust-STK modules are synths (as opposed to effects). Desired polyphony:
 ifdef POLY
   PDPOLY=$(POLY)
 else
   PDPOLY=2
 endif
 
+# faust2pd flag:
 ifdef RADIO
   PDRADIO=-r $(RADIO)
 endif
@@ -210,12 +210,16 @@ maxmsp msp :
 w32vstdir :
 	mkdir w32vstdir
 
+# Architecture file vsti-mono.cpp is used because all Faust-STK
+# modules are synths (as opposed to effects).  See VST targets
+# in ../Makefile for the effects case.
+
 w32vst : w32vstdir
-	$(MAKE) DEST='w32vstdir/' ARCH='vst2p4.cpp' LIB='' -f Makefile.w32vstcompile
+	$(MAKE) DEST='w32vstdir/' ARCH='vsti-mono.cpp' LIB='' -f Makefile.w32vstcompile
 
 vst :
 	install -d vstdir
-	$(MAKE) DEST='vstdir/' ARCH='vst.cpp' LIB='' -f Makefile.vstcompile
+	$(MAKE) DEST='vstdir/' ARCH='vsti-mono.cpp' LIB='' -f Makefile.vstcompile
 
 iphone :
 	install -d iphonedir

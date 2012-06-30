@@ -3,7 +3,7 @@ cppsrc  := $(addprefix $(DEST), $(dspsrc:.dsp=.cpp))
 appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
 
 # Setup this variable to access the VST SDK files
-vst_sdk := "/Volumes/Document1/Developpement/ProjectsCVS/JackCVS/JackOSX/jackosx/jackplugins/JACK-ASinsert/VST/VSTSDK"
+vst_sdk := "../vstsdk2.4"
 
 # Setup this variable with the location for the compiled VST plug-ins
 install_plug_ins := "/Library/Audio/Plug-Ins/VST"
