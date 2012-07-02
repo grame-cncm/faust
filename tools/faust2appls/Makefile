@@ -45,6 +45,8 @@ install:
 	install faust2netjackqt $(dest)
 	install faust2vst $(dest)
 	install faust2ios $(dest)
+	install faust2lv2 $(dest)
+	install faust2lv2synth $(dest)
 
 uninstall:
 	rm -f $(dest)/faust2alqt
@@ -80,4 +82,6 @@ uninstall:
 	rm -f $(dest)/faust2netjackqt
 	rm -f $(dest)/faust2vst
 	rm -f $(dest)/faust2ios
+	rm -f $(dest)/faust2lv2
+	rm -f $(dest)/faust2lv2synth
 
