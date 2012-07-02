@@ -527,7 +527,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
     if (gDrawPSSwitch || gDrawSVGSwitch) {
         string projname = gGlobal->gMasterDocument;
-        if( gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp" ) {
+        if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp") {
             projname = gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length()-4);
         }
         if (gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }

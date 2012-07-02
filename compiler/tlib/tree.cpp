@@ -219,7 +219,12 @@ void CTree::control ()
 		}
 	}
 	printf("\nEnd gHashTable\n");
+}
 
+void CTree::cleanup ()
+{
+    // TODO : cleanup table content
+    memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }
 
 // if t has a node of type int, return it otherwise error

@@ -187,7 +187,7 @@ struct global {
     {
         delete gResult;
         delete gResult2;
-        // TODO
+        CTree::cleanup();
     }
 
 };

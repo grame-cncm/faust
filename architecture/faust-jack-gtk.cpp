@@ -46,7 +46,14 @@ int main(int argc, char *argv[])
             
             /*
             try {
-                DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
+                
+                int argc1 = 1;
+                char* argv1[argc1];
+                argv1[0] = "-svg";
+                DSP = new llvmdsp(argc1, argv1, "in1", "process = +,+;", error_msg);
+                DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", error_msg);
+                
+                //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
             }
             catch (...) {
                 printf("Mauvais code source : %s", error_msg);

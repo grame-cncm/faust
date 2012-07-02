@@ -151,6 +151,8 @@ class CTree
 	// Print a tree and the hash table (for debugging purposes)
 	ostream& 	print (ostream& fout) const; 					///< print recursively the content of a tree on a stream
 	static void control ();										///< print the hash table content (for debug purpose)
+    
+    static void cleanup ();
 
 	// type information
 	void		setType(void* t) 	{ fType = t; }
