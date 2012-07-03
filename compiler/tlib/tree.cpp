@@ -223,7 +223,9 @@ void CTree::control ()
 
 void CTree::cleanup ()
 {
-    // TODO : cleanup table content
+    for (int i = 0; i < kHashTableSize; i++) {
+        delete(gHashTable[i]);
+    }
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }
 

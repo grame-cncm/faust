@@ -175,3 +175,11 @@ ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a strea
 {
 	return fout << fName;
 }
+
+void Symbol::cleanup ()
+{
+    for (int i = 0; i < kHashTableSize; i++) {
+        delete(gSymbolTable[i]);
+    }
+    memset(gSymbolTable, 0, sizeof(Symbol*) * kHashTableSize);
+}

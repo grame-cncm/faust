@@ -190,6 +190,7 @@ struct global {
         delete gResult;
         delete gResult2;
         CTree::cleanup();
+        Symbol::cleanup();
     }
 
 };

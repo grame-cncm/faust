@@ -186,7 +186,7 @@ Tree SourceReader::parsefile(string fname)
 	yyin = fopensearch(yyfilename, fullpath);
 	if (yyin == NULL) {
         stringstream error;
-        error << "ERROR : Unable to open file" << yyfilename << endl;
+        error << "ERROR : Unable to open file " << yyfilename << endl;
         throw faustexception(error.str());
 	}
     
