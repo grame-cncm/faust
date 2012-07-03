@@ -160,6 +160,7 @@ error:
 {    
     [super viewDidAppear:animated];
     [self orientationChanged:nil];
+    [self zoomToLockedBox];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -503,11 +504,23 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
     else
     {
-        [_dspScrollView zoomToRect:CGRectMake(absolutePosition(_lockedBox).x,
-                                              absolutePosition(_lockedBox).y,
-                                              _lockedBox->getW(),
-                                              _lockedBox->getH())
-                          animated:YES];
+        if (_dspView.frame.size.height < _dspScrollView.frame.size.height
+            && _dspScrollView.zoomScale == _dspScrollView.maximumZoomScale)
+        {
+            [_dspScrollView scrollRectToVisible:CGRectMake(absolutePosition(_lockedBox).x,
+                                                  absolutePosition(_lockedBox).y,
+                                                  _lockedBox->getW(),
+                                                  _lockedBox->getH())
+                                       animated:YES];
+        }
+        else
+        {
+            [_dspScrollView zoomToRect:CGRectMake(absolutePosition(_lockedBox).x,
+                                                  absolutePosition(_lockedBox).y,
+                                                  _lockedBox->getW(),
+                                                  _lockedBox->getH())
+                              animated:YES];
+        }
     }
 }
 
@@ -570,10 +583,9 @@ T findCorrespondingUiItem(FIResponder* sender)
                                     _dspView.frame.origin.y,
                                     (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                     (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-    
     [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                                 (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-    
+
     // No double click : lose locked box
     if (_dspScrollView.pinchGestureRecognizer.scale != 1.
         || _dspScrollView.pinchGestureRecognizer.velocity != 0.f)
@@ -582,7 +594,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
-// Function called just after scrool view scrolled
+// Function called just after scroll view scrolled
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     // No double click : lose locked box
@@ -602,7 +614,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (void)doubleTap
 {
     uiBox* tapedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);
-    
+
     // Avoid a strange bug
     if (tapedBox == interface->getMainBox()
         && _lockedBox == interface->getMainBox())

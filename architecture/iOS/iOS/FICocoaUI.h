@@ -322,34 +322,12 @@ public:
     
     BOOL isHExpandable()
     {
-        list<uiCocoaItem*>::iterator    i;
-        BOOL                            res = FALSE;
-        
-        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
-        {
-            if ((*i)->getParent() == this)
-            {
-                res = res || (*i)->isHExpandable();
-            }
-        }
-        
-        return res;
+        return TRUE;
     }
     
     BOOL isVExpandable()
     {
-        list<uiCocoaItem*>::iterator    i;
-        BOOL                            res = FALSE;
-
-        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
-        {
-            if ((*i)->getParent() == this)
-            {
-                res = res || (*i)->isVExpandable();
-            }
-        }
-        
-        return res;
+        return FALSE;
     }
     
     int getNumberOfDirectChildren()
@@ -404,40 +382,16 @@ public:
             for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
             {
                 if (fBoxType == kVerticalLayout
+                    && (*i)->getW() < w - 2 * kSpaceSize
                     && (*i)->getParent() == this)
                 {
-                    if ((*i)->isHExpandable())
-                    {
-                        (*i)->setFrame((*i)->getX(),
-                                       (*i)->getY(),
-                                       w - 2 * kSpaceSize,
-                                       (*i)->getH());
-                    }
-                    else
-                    {
-                        (*i)->setFrame((*i)->getX(),
-                                       (*i)->getY(),
-                                       (*i)->getW(),
-                                       (*i)->getH());
-                    }
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), w - 2 * kSpaceSize, (*i)->getH());
                 }
                 else if (fBoxType == kHorizontalLayout
+                         && (*i)->getH() < h - 2 * kSpaceSize - labelYOffset
                          && (*i)->getParent() == this)
                 {
-                    if ((*i)->isVExpandable())
-                    {
-                        (*i)->setFrame((*i)->getX(),
-                                       (*i)->getY(),
-                                       (*i)->getW(),
-                                       h - 2 * kSpaceSize - labelYOffset);
-                    }
-                    else
-                    {
-                        (*i)->setFrame((*i)->getX(),
-                                       (*i)->getY(),
-                                       (*i)->getW(),
-                                       (*i)->getH());
-                    }
+                    (*i)->setFrame((*i)->getX(), (*i)->getY(), (*i)->getW(), h - 2 * kSpaceSize - labelYOffset);
                 }
             }
         }
@@ -569,7 +523,7 @@ public :
     {
         return FALSE;
     }
-    
+
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -1418,191 +1372,155 @@ public:
         {
             if ((box = dynamic_cast<uiBox*>(*i)))
             {
-                // Label
-                if (box->fLabel) labelHeight = kStdBoxLabelHeight;
-                else labelHeight = 0.f;
-                
                 // Compute content size, ie minimum size used by widgets within the box
                 contentSize = box->getContentSize();
                 
                 // Expand objects if content height is < than box height (vertical box)
-                if (box->fBoxType == kVerticalLayout)
+                if (box->fBoxType == kVerticalLayout
+                    && contentSize.height + kSpaceSize < box->getH())
                 {
+                    // Init values
+                    extensibleElementsTotalSize = 0.f;
+                    fixedElementsTotalSize = 0.f;
+                    rx = 1.f;
+                    cpt = 0.f;
+                    newVal = 0.f;
+                    
+                    // Compute extensible and fixed heights
                     for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                     {
                         if ((*j)->getParent() == box)
                         {
-                            if ((*j)->getW() < box->getW() - 2 * kSpaceSize)
+                            if ((*j)->isVExpandable())
                             {
-                                if (!(*j)->isHExpandable())
-                                {
-                                    (*j)->setFrame((*j)->getX() + (box->getW() - kSpaceSize - (*j)->getW()) / 2.f,
-                                                   (*j)->getY(),
-                                                   (*j)->getW(),
-                                                   (*j)->getH());
-                                }
+                                extensibleElementsTotalSize += (*j)->getH();
+                            }
+                            else
+                            {
+                                fixedElementsTotalSize += (*j)->getH();
                             }
                         }
                     }
                     
-                    if (contentSize.height + kSpaceSize < box->getH())
+                    // If there is at least 1 extensible element, elements will take the whole box height
+                    if (extensibleElementsTotalSize > 0.)
                     {
-                        // Init values
-                        extensibleElementsTotalSize = 0.f;
-                        fixedElementsTotalSize = 0.f;
-                        rx = 1.f;
-                        cpt = 0.f;
+                        // Compute extension ratio
+                        rx = (box->getH() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize - labelHeight) / extensibleElementsTotalSize;
                         
-                        // Compute extensible and fixed heights
+                        // Replace elements
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {                                
+                                if ((*j)->isVExpandable())
+                                {
+                                    newVal = (*j)->getH() * rx;
+                                }
+                                else
+                                {
+                                    newVal = (*j)->getH();
+                                }
+                                
+                                (*j)->setFrame((*j)->getX(),
+                                               cpt + kSpaceSize + labelHeight,
+                                               (*j)->getW(),
+                                               newVal);
+                                
+                                cpt += newVal + kSpaceSize + labelHeight;
+                            }
+                        }
+                    }
+                    
+                    // There is no extensible element
+                    else
+                    {
                         for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                         {
                             if ((*j)->getParent() == box)
                             {
-                                if ((*j)->isVExpandable())
-                                {
-                                    extensibleElementsTotalSize += (*j)->getH();
-                                }
-                                else
-                                {
-                                    fixedElementsTotalSize += (*j)->getH();
-                                }
-                            }
-                        }
-                        
-                        // If there is at least 1 extensible element, elements will take the whole box height
-                        if (extensibleElementsTotalSize > 0.)
-                        {
-                            // Compute extension ratio
-                            rx = (box->getH() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize - labelHeight) / extensibleElementsTotalSize;
-                            
-                            // Replace elements
-                            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
-                            {
-                                if ((*j)->getParent() == box)
-                                {                                
-                                    if ((*j)->isVExpandable())
-                                    {
-                                        newVal = (*j)->getH() * rx;
-                                    }
-                                    else
-                                    {
-                                        newVal = (*j)->getH();
-                                    }
-
-                                    (*j)->setFrame((*j)->getX(),
-                                                   cpt + kSpaceSize + labelHeight,
-                                                   (*j)->getW(),
-                                                   newVal);
-                                                                    
-                                    cpt += newVal + kSpaceSize + labelHeight;
-                                }
-                            }
-                        }
-                        
-                        // If there is no extensible element, the elements height won't take the whole box height
-                        else
-                        {
-                            // Center elements
-                            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
-                            {
-                                if ((*j)->getParent() == box)
-                                {
-                                    (*j)->setFrame((*j)->getX(),
-                                                   (*j)->getY() + (box->getH() - kSpaceSize - contentSize.height) / 2.f,
-                                                   (*j)->getW(),
-                                                   (*j)->getH());                                
-                                }
+                                if (box->fLabel) labelHeight = kStdBoxLabelHeight;
+                                else labelHeight = 0.f;
+                                
+                                // Place objects on all the height of the box
+                                (*j)->setFrame((*j)->getX(),
+                                               ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
+                                               (*j)->getW(),
+                                               (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
                             }
                         }
                     }
                 }
                 
                 // Expand objects if content width is < than box width (horizontal box)
-                else if (box->fBoxType == kHorizontalLayout)
+                else if (box->fBoxType == kHorizontalLayout
+                         && contentSize.width + kSpaceSize < box->getW())
                 {
+                    // Init values
+                    extensibleElementsTotalSize = 0.f;
+                    fixedElementsTotalSize = 0.f;
+                    rx = 1.f;
+                    cpt = 0.f;
+                    newVal = 0.f;
+                    
+                    // Compute extensible and fixed widths
                     for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                     {
                         if ((*j)->getParent() == box)
                         {
-                            if ((*j)->getH() < box->getH() - labelHeight - 2 * kSpaceSize)
+                            if ((*j)->isHExpandable())
                             {
-                                if (!(*j)->isVExpandable())
-                                {
-                                    (*j)->setFrame((*j)->getX(),
-                                                   (*j)->getY() + (box->getH() - kSpaceSize - (*j)->getH()) / 2.f + labelHeight,
-                                                   (*j)->getW(),
-                                                   (*j)->getH());
-                                }
+                                extensibleElementsTotalSize += (*j)->getW();
+                            }
+                            else
+                            {
+                                fixedElementsTotalSize += (*j)->getW();
                             }
                         }
                     }
-
-                    if (contentSize.width + kSpaceSize < box->getW())
+                    
+                    // There is at least 1 extensible element, elements will take the whole box width
+                    if (extensibleElementsTotalSize > 0.)
                     {
-                        // Init values
-                        extensibleElementsTotalSize = 0.f;
-                        fixedElementsTotalSize = 0.f;
-                        rx = 1.f;
-                        cpt = 0.f;
+                        // Compute extension ratio
+                        rx = (box->getW() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize) / extensibleElementsTotalSize;
                         
-                        // Compute extensible and fixed widths
+                        // Replace elements
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {                                
+                                if ((*j)->isHExpandable())
+                                {
+                                    newVal = (*j)->getW() * rx;
+                                }
+                                else
+                                {
+                                    newVal = (*j)->getW();
+                                }
+                                
+                                (*j)->setFrame(cpt + kSpaceSize,
+                                               (*j)->getY(),
+                                               newVal,
+                                               (*j)->getH());
+                                
+                                cpt += newVal + kSpaceSize;
+                            }
+                        }
+                    }
+                    
+                    // There is no extensible element
+                    else
+                    {
                         for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                         {
                             if ((*j)->getParent() == box)
                             {
-                                if ((*j)->isHExpandable())
-                                {
-                                    extensibleElementsTotalSize += (*j)->getW();
-                                }
-                                else
-                                {
-                                    fixedElementsTotalSize += (*j)->getW();
-                                }
-                            }
-                        }
-                        
-                        // If there is at least 1 extensible element, elements will take the whole box width
-                        if (extensibleElementsTotalSize > 0.)
-                        {
-                            // Compute extension ratio
-                            rx = (box->getW() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize) / extensibleElementsTotalSize;
-
-                            // Replace elements
-                            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
-                            {
-                                if ((*j)->getParent() == box)
-                                {                                
-                                    if ((*j)->isHExpandable())
-                                    {
-                                        newVal = (*j)->getW() * rx;
-                                    }
-                                    else
-                                    {
-                                        newVal = (*j)->getW();
-                                    }
-                                    
-                                    (*j)->setFrame(cpt + kSpaceSize,
-                                                   (*j)->getY(),
-                                                   newVal,
-                                                   (*j)->getH());
-                                    
-                                    cpt += newVal + kSpaceSize;
-                                }
-                            }
-                        }
-                        
-                        // If there is no extensible element, the elements width won't take the whole box width
-                        else
-                        {
-                            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
-                            {
-                                if ((*j)->getParent() == box)
-                                {
-                                    (*j)->setFrame((*j)->getX() + (box->getW() - kSpaceSize - contentSize.width) / 2.f,
-                                                   (*j)->getY(),
-                                                   (*j)->getW(),
-                                                   (*j)->getH());                                
-                                }
+                                // Place objects on all the width of the box
+                                (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
+                                               (*j)->getY(),
+                                               (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
+                                               (*j)->getH());
                             }
                         }
                     }
@@ -1615,6 +1533,9 @@ public:
     void adaptLayoutToWindow(float width, float height)
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator    j = fWidgetList.begin();
+        BOOL                            hExpandable = NO;
+        BOOL                            vExpandable = NO;
         float                           newWidth = 0.f;
         float                           newHeight = 0.f;
         
@@ -1629,29 +1550,51 @@ public:
             // Load abstract layout
             loadAbstractLayout();
             
+            
+            // Algo : window is h exp if (a) there is at least 1 h exp element in the patch
+            // or (b) there is more than 1 column
+            // AND window is v exp if (a) there is at least 1 v exp element in the patch
+            // or (b) there is more than 1 line
+            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+            {
+                if (!dynamic_cast<uiBox*>(*j))
+                {
+                    if ((*j)->isHExpandable()) hExpandable = TRUE;
+                    if ((*j)->isVExpandable()) vExpandable = TRUE;
+                }
+            }
+            
+            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+            {
+                if (dynamic_cast<uiBox*>(*j))
+                {
+                    if (!hExpandable
+                        && dynamic_cast<uiBox*>(*j)->fBoxType == kHorizontalLayout
+                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                    {
+                        hExpandable = TRUE;
+                    }
+                    
+                    if (!vExpandable
+                        && dynamic_cast<uiBox*>(*j)->fBoxType == kVerticalLayout
+                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                    {
+                        vExpandable = TRUE;
+                    }
+                }
+            }
+            
+            if (hExpandable) newWidth = max((*i)->getAbstractW(), width);
+            else newWidth = (*i)->getAbstractW();
+            
+            if (vExpandable) newHeight = max((*i)->getAbstractH(), height);
+            else newHeight = (*i)->getAbstractH();
+            
             // Adapt abstract layout to device and orientation
-            if ((*i)->isHExpandable())
-            {
-                newWidth = max((*i)->getAbstractW(), width);
-            }
-            else
-            {
-                newWidth = (*i)->getAbstractW();
-            }
-            
-            if ((*i)->isVExpandable())
-            {
-                newHeight = max((*i)->getAbstractH(), height);
-            }
-            else
-            {
-                newHeight = (*i)->getAbstractH();
-            }
-            
             (*i)->setFrame( (*i)->getX(),
-                            (*i)->getY(),
-                            newWidth,
-                            newHeight);         
+                           (*i)->getY(),
+                           newWidth,
+                           newHeight);
         }
         
         expandBoxesContent();
