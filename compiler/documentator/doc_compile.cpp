@@ -768,10 +768,10 @@ string DocCompiler::generateDocConstantTbl (Tree /*tbl*/, Tree size, Tree isig)
     getTypedNames(getCertifiedSigType(isig), "v", ctype, vname);
 	
     // add a comment on tables in the notice
-		gGlobal->gDocNoticeFlagMap["tablesigs"] = true;
+    gGlobal->gDocNoticeFlagMap["tablesigs"] = true;
 	
     // add equation v[t] = isig(t)
-        fLateq->addRDTblSigFormula(subst("$0[t] = $1 \\condition{when $$t \\in [0,$2]$$} ", vname, init, T(n-1)));
+    fLateq->addRDTblSigFormula(subst("$0[t] = $1 \\condition{when $$t \\in [0,$2]$$} ", vname, init, T(n-1)));
 	
     // note that the name of the table can never be used outside an sigDocTableAccess
     return vname;

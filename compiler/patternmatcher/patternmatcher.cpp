@@ -15,6 +15,7 @@ using namespace std;
 #include <set>
 #include <utility>
 #include "exception.hh"
+#include "global.hh"
 
 /* Uncomment for debugging output. */
 //#define DEBUG
@@ -545,11 +546,13 @@ Automaton *make_pattern_matcher(Tree R)
 	       be shadowed. */
 	    Tree lhs1, rhs1, lhs2, rhs2;
 	    if (isCons(rules[ru->r], lhs1, rhs1) &&  isCons(rules[r], lhs2, rhs2)) {
-			cerr 	<< "WARNING : shadowed pattern-matching rule: "
-				<< boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
-				<< " previous rule was: " 
-				<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
-				<< endl;
+            stringstream error;
+        	error << "WARNING : shadowed pattern-matching rule: "
+                << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+                << " previous rule was: " 
+                << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+                << endl;
+            strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
 		} else {
             stringstream error;
             error << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;

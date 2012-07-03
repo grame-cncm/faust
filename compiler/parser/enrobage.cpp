@@ -32,6 +32,8 @@
 #include "global.hh"
 
 #include <climits>
+#include <iostream>
+#include <sstream>
 
 //----------------------------------------------------------------
 
@@ -175,7 +177,9 @@ void inject(ostream& dst, const string fname)
         if (src) {
             streamCopy(*src, dst);
         } else {
-            cerr << "NOT FOUND " << fname << endl;
+            stringstream error;
+            error << "NOT FOUND " << fname << endl;
+            strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
         }
     }
 }

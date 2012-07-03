@@ -61,14 +61,14 @@ void evalwarning(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
     error << filename << ':' << linenum << ": WARNING: " << msg << boxpp(exp) << endl;
-    snprintf(gGlobal->gErrorMsg, 256, error.str().c_str());
+    strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
 }
 
 void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
     error << filename << ':' << linenum << ": REMARK: " << msg << boxpp(exp) << endl;
-    snprintf(gGlobal->gErrorMsg, 256, error.str().c_str());
+    strncpy(gGlobal->gErrorMsg, error.str().c_str(), 256);
 }
 
 void setDefProp(Tree sym, const char* filename, int lineno)

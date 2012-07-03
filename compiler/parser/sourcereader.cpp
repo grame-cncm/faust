@@ -52,13 +52,16 @@ static bool standardArgList(Tree args)
 }
 
 
-static void printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
+static string printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 {
-	cerr 	<< "ERROR : inconsistent number of parameters in pattern-matching rule: "
+    stringstream error;
+	error 	<< "ERROR : inconsistent number of parameters in pattern-matching rule: "
 			<< boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
 			<< " previous rule was: " 
 			<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
 			<< endl;
+            
+    return error.str();
 }
 
 Tree checkRulelist (Tree lr)
@@ -76,8 +79,7 @@ Tree checkRulelist (Tree lr)
 		Tree lhs2 = hd(hd(lrules));
 		Tree rhs2 = tl(hd(lrules));
 		if (npat != len(lhs2)) {
-			printPatternError(lhs1,rhs1,lhs2,rhs2);
-            throw faustexception("printPatternError\n");
+	         throw faustexception(printPatternError(lhs1,rhs1,lhs2,rhs2));
 		}
 		
 		lhs1 = lhs2;
@@ -116,8 +118,7 @@ static Tree makeDefinition(list<Tree>& variants)
 		for (p=variants.begin(); p!=variants.end(); p++) {
 			Tree cur = *p;
 			if (npat != len(hd(cur))) {
-				printPatternError(hd(prev), tl(prev), hd(cur), tl(cur));
-                throw faustexception("printPatternError\n");
+                throw faustexception(printPatternError(hd(prev), tl(prev), hd(cur), tl(cur)));
 			}
 			prev = cur;
 			l = cons(*p,l);

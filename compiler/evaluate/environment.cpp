@@ -4,6 +4,7 @@
 #include "ppbox.hh"
 #include "names.hh"
 #include "global.hh"
+#include "exception.hh"
 
 //-----------------------new environment management----------------------------
 //
@@ -73,10 +74,10 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
         if (def == olddef) {
             evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
         } else {
-            fprintf(stderr, "%s:%d: ERROR: redefinition of symbols are not allowed : ", getDefFileProp(id), getDefLineProp(id));
-            print(id,stderr);
-            fprintf(stderr, " is already defined in file \"%s\" line %d \n", getDefFileProp(id), getDefLineProp(id));
+            stringstream error;
+            error << getDefFileProp(id) << ':' << getDefLineProp(id) << " ERROR: redefinition of symbols are not allowed : " << endl;
             gGlobal->gErrorCount++;
+            throw faustexception(error.str());
         }
     }
     setProperty(lenv, id, def);

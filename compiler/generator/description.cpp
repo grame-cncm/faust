@@ -8,6 +8,9 @@
 #include "description.hh"
 #include "Text.hh"
 #include "exception.hh"
+#include "global.hh"
+
+using namespace std;
 
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
@@ -100,7 +103,7 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
                 break;
 
             default :
-                cerr << "ERROR unrecognized state " << state << endl;
+                snprintf(gGlobal->gErrorMsg, 256, "ERROR unrecognized state %d", state);
         }
     }
     label = rmWhiteSpaces(label);
