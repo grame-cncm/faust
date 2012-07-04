@@ -1222,7 +1222,8 @@ class QTGUI : public QObject, public GUI
 
 	bool isTabContext()
 	{
-		return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
+		//return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
+		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
 	}
 
 	void insert(const char* label, QWidget* widget)
@@ -1289,6 +1290,7 @@ class QTGUI : public QObject, public GUI
   		layout->setMargin(5);
 		QWidget* box;
 
+        
         if (isTabContext()) {
 			box = new QWidget();
             // set background color
@@ -1510,7 +1512,7 @@ class QTGUI : public QObject, public GUI
 	{
 		QWidget* group = fGroupStack.top();
 		fGroupStack.pop();
-		if (fGroupStack.empty()) { group->show(); }
+		if (fGroupStack.empty()) { group->show(); group->adjustSize();}
 	}
 
 	// ------------------------- active widgets -----------------------------------
