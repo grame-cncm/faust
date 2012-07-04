@@ -1538,6 +1538,7 @@ public:
         BOOL                            vExpandable = NO;
         float                           newWidth = 0.f;
         float                           newHeight = 0.f;
+        int                             cpt = 0;
         
         if (dynamic_cast<uiBox*>(*i))
         {
@@ -1549,7 +1550,6 @@ public:
             
             // Load abstract layout
             loadAbstractLayout();
-            
             
             // Algo : window is h exp if (a) there is at least 1 h exp element in the patch
             // or (b) there is more than 1 column
@@ -1591,10 +1591,27 @@ public:
             else newHeight = (*i)->getAbstractH();
             
             // Adapt abstract layout to device and orientation
-            (*i)->setFrame( (*i)->getX(),
+            (*i)->setFrame((*i)->getX(),
                            (*i)->getY(),
                            newWidth,
                            newHeight);
+            
+            // Finally, if there's only 1 widget in the whole patch, center it
+            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+            {
+                if (!dynamic_cast<uiBox*>(*j))
+                {
+                    cpt++;
+                }
+            }
+            
+            if (cpt == 1)
+            {
+                (*i)->setFrame((*i)->getX(),
+                               (*i)->getY(),
+                               width,
+                               height);
+            }
         }
         
         expandBoxesContent();
