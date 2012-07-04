@@ -160,6 +160,7 @@ error:
 {    
     [super viewDidAppear:animated];
     [self orientationChanged:nil];
+    [self zoomToLockedBox];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -503,11 +504,23 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
     else
     {
-        [_dspScrollView zoomToRect:CGRectMake(absolutePosition(_lockedBox).x,
-                                              absolutePosition(_lockedBox).y,
-                                              _lockedBox->getW(),
-                                              _lockedBox->getH())
-                          animated:YES];
+        if (_dspView.frame.size.height < _dspScrollView.frame.size.height
+            && _dspScrollView.zoomScale == _dspScrollView.maximumZoomScale)
+        {
+            [_dspScrollView scrollRectToVisible:CGRectMake(absolutePosition(_lockedBox).x,
+                                                  absolutePosition(_lockedBox).y,
+                                                  _lockedBox->getW(),
+                                                  _lockedBox->getH())
+                                       animated:YES];
+        }
+        else
+        {
+            [_dspScrollView zoomToRect:CGRectMake(absolutePosition(_lockedBox).x,
+                                                  absolutePosition(_lockedBox).y,
+                                                  _lockedBox->getW(),
+                                                  _lockedBox->getH())
+                              animated:YES];
+        }
     }
 }
 
@@ -570,10 +583,9 @@ T findCorrespondingUiItem(FIResponder* sender)
                                     _dspView.frame.origin.y,
                                     (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                     (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-    
     [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
                                                 (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-    
+
     // No double click : lose locked box
     if (_dspScrollView.pinchGestureRecognizer.scale != 1.
         || _dspScrollView.pinchGestureRecognizer.velocity != 0.f)
@@ -582,7 +594,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
-// Function called just after scrool view scrolled
+// Function called just after scroll view scrolled
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     // No double click : lose locked box
@@ -602,7 +614,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (void)doubleTap
 {
     uiBox* tapedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);
-    
+
     // Avoid a strange bug
     if (tapedBox == interface->getMainBox()
         && _lockedBox == interface->getMainBox())
@@ -736,6 +748,19 @@ error:
 // Display widget preferences view
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture
 {
+    list<uiCocoaItem*>::iterator    i;
+    
+    // Deselect all widgets
+    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    {
+        if (dynamic_cast<uiKnob*>(*i)
+            || dynamic_cast<uiSlider*>(*i)
+            || dynamic_cast<uiButton*>(*i))
+        {
+            (*i)->setSelected(NO);
+        }
+    }
+    
     // Find corresponding uiCocoaItem
     if ([gesture.view isKindOfClass:[FIKnob class]])
     {
@@ -1010,7 +1035,7 @@ error:
 {
     _selectedWidget->resetParameters();
     [self updateWidgetPreferencesView];
-    [self widgetPreferencesChanged:self];
+    [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
 }
 
 // At application launch time, loading preferences for all widgets
@@ -1212,13 +1237,11 @@ error:
             else*/
             
             // Case 2 : the ref point only moves line offset
-            {
-                a = sign * (*i)->getAssignationSensibility() / 2.; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
-                b = (*i)->getAssignationRefPointY();
-            }
+            a = sign * (*i)->getAssignationSensibility() / 2.; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
+            b = (*i)->getAssignationRefPointY();
             
             value = a * coef + b;
-            
+
             if (dynamic_cast<uiKnob*>(*i))
             {
                 value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
@@ -1272,7 +1295,7 @@ error:
             
             if ((*i)->getAssignationType() == kAssignationCompass)
             {
-                coef = (int)round(heading.trueHeading * (*i)->getAssignationSensibility() + (*i)->getAssignationRefPointY()) % 360;
+                coef = (int)round(heading.magneticHeading * (*i)->getAssignationSensibility() + (*i)->getAssignationRefPointY()) % 360;
                 value = coef / 360.f;
                 if ((*i)->getAssignationInverse()) value = 1.f - value;
                 
