@@ -748,6 +748,19 @@ error:
 // Display widget preferences view
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture
 {
+    list<uiCocoaItem*>::iterator    i;
+    
+    // Deselect all widgets
+    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    {
+        if (dynamic_cast<uiKnob*>(*i)
+            || dynamic_cast<uiSlider*>(*i)
+            || dynamic_cast<uiButton*>(*i))
+        {
+            (*i)->setSelected(NO);
+        }
+    }
+    
     // Find corresponding uiCocoaItem
     if ([gesture.view isKindOfClass:[FIKnob class]])
     {
@@ -1022,7 +1035,7 @@ error:
 {
     _selectedWidget->resetParameters();
     [self updateWidgetPreferencesView];
-    [self widgetPreferencesChanged:self];
+    [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
 }
 
 // At application launch time, loading preferences for all widgets
@@ -1096,7 +1109,6 @@ error:
     // Location
     if (_locationManager == nil)
     {
-        NSLog(@"START LOC MANAGER");
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = self;
         [_locationManager startUpdatingHeading];
@@ -1118,7 +1130,6 @@ error:
     // Location
     if (_locationManager)
     {
-        NSLog(@"STOP LOC MANAGER");
         [_locationManager stopUpdatingHeading];
         [_locationManager release];
         _locationManager = nil;
@@ -1226,13 +1237,11 @@ error:
             else*/
             
             // Case 2 : the ref point only moves line offset
-            {
-                a = sign * (*i)->getAssignationSensibility() / 2.; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
-                b = (*i)->getAssignationRefPointY();
-            }
+            a = sign * (*i)->getAssignationSensibility() / 2.; // y = ax + b with a = s / 2 and b = (*i)->assignationRefPointY
+            b = (*i)->getAssignationRefPointY();
             
             value = a * coef + b;
-            
+
             if (dynamic_cast<uiKnob*>(*i))
             {
                 value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
