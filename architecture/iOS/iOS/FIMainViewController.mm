@@ -1096,6 +1096,7 @@ error:
     // Location
     if (_locationManager == nil)
     {
+        NSLog(@"START LOC MANAGER");
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = self;
         [_locationManager startUpdatingHeading];
@@ -1117,6 +1118,7 @@ error:
     // Location
     if (_locationManager)
     {
+        NSLog(@"STOP LOC MANAGER");
         [_locationManager stopUpdatingHeading];
         [_locationManager release];
         _locationManager = nil;
@@ -1284,7 +1286,7 @@ error:
             
             if ((*i)->getAssignationType() == kAssignationCompass)
             {
-                coef = (int)round(heading.trueHeading * (*i)->getAssignationSensibility() + (*i)->getAssignationRefPointY()) % 360;
+                coef = (int)round(heading.magneticHeading * (*i)->getAssignationSensibility() + (*i)->getAssignationRefPointY()) % 360;
                 value = coef / 360.f;
                 if ((*i)->getAssignationInverse()) value = 1.f - value;
                 
