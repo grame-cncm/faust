@@ -61,7 +61,7 @@
     float       viewWidth = self.frame.size.width;
     float       viewHeight = self.frame.size.height;
     int         i = 0;
-    
+
     [_buttons addObject:button];
     nbButtons = [_buttons count];
     if (nbButtons == 1) ((FIButton*)[_buttons objectAtIndex:i]).value = 1.f;
