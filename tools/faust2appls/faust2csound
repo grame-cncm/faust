@@ -18,11 +18,12 @@
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
 
+PATH=$PATH:/usr/local/bin
+
 if [[ $(uname) == Darwin ]]; then
     LIB="-I/Library/Frameworks/CsoundLib.framework/Headers -I/usr/local/include -framework CsoundLib -L/usr/local/lib -dynamiclib"
 else
     LIB="-I/usr/include/csound -shared -fPIC"
-    PATH=$PATH:/usr/local/bin
 fi
 
 
