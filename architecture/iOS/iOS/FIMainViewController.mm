@@ -269,10 +269,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                     slider->setAssignationRefPointY(slider->getAssignationRefPointY() * 360.f - _locationManager.heading.trueHeading);
                 }
                 
-                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", slider->getName()];
+                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointX() forKey:key];
                 
-                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", slider->getName()];
+                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
                 [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() forKey:key];
             }
             
@@ -328,10 +328,10 @@ T findCorrespondingUiItem(FIResponder* sender)
                     knob->setAssignationRefPointY(knob->getAssignationRefPointY() * 360.f - _locationManager.heading.trueHeading);
                 }
                 
-                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", knob->getName()];
+                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:knob]];
                 [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointX() forKey:key];
                 
-                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", knob->getName()];
+                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:knob]];
                 [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointY() forKey:key];
             }
             
@@ -850,7 +850,7 @@ error:
     [animation setSubtype:kCATransitionFromLeft];
     [animation setTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];	
     
-    [[_dspView.window layer] addAnimation:animation forKey:@"ShowWidgetPreferences"];
+    [[_dspView.window layer] addAnimation:animation forKey:@"ShowWidgetPreferences"];    
 }
 
 // Display right values for parameters
@@ -1001,28 +1001,28 @@ error:
     }
 
     // Save parameters in user defaults
-    key = [NSString stringWithFormat:@"%@-assignation-type", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationType() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-inverse", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationInverse() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-sensibility", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationSensibility() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointX() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointY() forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-r", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getR() + 1. forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-g", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-g", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getG() + 1. forKey:key];
     
-    key = [NSString stringWithFormat:@"%@-b", _selectedWidget->getName()];
+    key = [NSString stringWithFormat:@"%@-b", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getB() + 1. forKey:key];
     
     // If assignation type is not kAssignationNone, we start motion
@@ -1053,22 +1053,22 @@ error:
             || dynamic_cast<uiButton*>(*i))
         {
             // Sensor assignation
-            key = [NSString stringWithFormat:@"%@-assignation-type", (*i)->getName()];
+            key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
             (*i)->setAssignationType([[NSUserDefaults standardUserDefaults] integerForKey:key]);
-            key = [NSString stringWithFormat:@"%@-assignation-inverse", (*i)->getName()];
+            key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:(*i)]];
             (*i)->setAssignationInverse([[NSUserDefaults standardUserDefaults] boolForKey:key]);
-            key = [NSString stringWithFormat:@"%@-assignation-sensibility", (*i)->getName()];
+            key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:(*i)]];
             (*i)->setAssignationSensibility([[NSUserDefaults standardUserDefaults] floatForKey:key]);
             if ((*i)->getAssignationSensibility() == 0.) (*i)->setAssignationSensibility(1.);
-            key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", (*i)->getName()];
+            key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:(*i)]];
             (*i)->setAssignationRefPointX([[NSUserDefaults standardUserDefaults] floatForKey:key]);
-            key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", (*i)->getName()];
+            key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:(*i)]];
             (*i)->setAssignationRefPointY([[NSUserDefaults standardUserDefaults] floatForKey:key]);
             
             // Color
-            key = [NSString stringWithFormat:@"%@-r", (*i)->getName()];
-            key2 = [NSString stringWithFormat:@"%@-g", (*i)->getName()];
-            key3 = [NSString stringWithFormat:@"%@-b", (*i)->getName()];
+            key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
+            key2 = [NSString stringWithFormat:@"%@-g", [self urlForWidget:(*i)]];
+            key3 = [NSString stringWithFormat:@"%@-b", [self urlForWidget:(*i)]];
             (*i)->setColor([[NSUserDefaults standardUserDefaults] floatForKey:key] - 1.,
                            [[NSUserDefaults standardUserDefaults] floatForKey:key2] - 1.,
                            [[NSUserDefaults standardUserDefaults] floatForKey:key3] - 1.);
@@ -1097,7 +1097,7 @@ error:
     if (_motionManager == nil)
     {
         _motionManager = [[CMMotionManager alloc] init];
-        _accelerometerFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
+        _sensorFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
         [_motionManager startAccelerometerUpdates];
         _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
                                                         target:self 
@@ -1151,9 +1151,9 @@ error:
     float                           b = 0.;
     float                           sign = 1.;
     
-    [_accelerometerFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
-                                         y:_motionManager.accelerometerData.acceleration.y
-                                         z:_motionManager.accelerometerData.acceleration.z];
+    [_sensorFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
+                                  y:_motionManager.accelerometerData.acceleration.y
+                                  z:_motionManager.accelerometerData.acceleration.z];
 
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
@@ -1165,23 +1165,23 @@ error:
             
             if ((*i)->getAssignationType() == kAssignationAccelX)
             {
-                coef = _accelerometerFilter.x * (*i)->getAssignationSensibility();
+                coef = _sensorFilter.x * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelY)
             {
-                coef = -_accelerometerFilter.y * (*i)->getAssignationSensibility();
+                coef = -_sensorFilter.y * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationAccelZ)
             {
-                coef = _accelerometerFilter.z * (*i)->getAssignationSensibility();
+                coef = _sensorFilter.z * (*i)->getAssignationSensibility();
             }
             else if ((*i)->getAssignationType() == kAssignationShake)
             {
                 // Shake detection
                 if (!_blockShake
-                    && (fabsf(_accelerometerFilter.x) > 1.4
-                        || fabsf(_accelerometerFilter.y) > 1.4
-                        || fabsf(_accelerometerFilter.z) > 1.4))
+                    && (fabsf(_sensorFilter.x) > 1.4
+                        || fabsf(_sensorFilter.y) > 1.4
+                        || fabsf(_sensorFilter.z) > 1.4))
                 {
                     coef = 1.f;
                     _blockShake = YES;
@@ -1286,7 +1286,9 @@ error:
     list<uiCocoaItem*>::iterator    i;
     float                           coef = 0.f;
     float                           value = 0.f;
-        
+    
+    [_sensorFilter addHeading:heading.magneticHeading];
+
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
         if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i) || dynamic_cast<uiButton*>(*i))
@@ -1295,7 +1297,7 @@ error:
             
             if ((*i)->getAssignationType() == kAssignationCompass)
             {
-                coef = (int)round(heading.magneticHeading * (*i)->getAssignationSensibility() + (*i)->getAssignationRefPointY()) % 360;
+                coef = (int)round(_sensorFilter.h * (*i)->getAssignationSensibility() + (*i)->getAssignationRefPointY()) % 360;
                 value = coef / 360.f;
                 if ((*i)->getAssignationInverse()) value = 1.f - value;
                 
@@ -1327,5 +1329,26 @@ error:
     }
 }
 
+- (NSString*)urlForWidget:(uiCocoaItem*)widget
+{
+    list<uiCocoaItem*>::iterator    i = interface->fWidgetList.end();
+    uiCocoaItem*                    currentWidget = widget;
+    NSString*                       result = [NSString stringWithString:@""];
+    
+    while (currentWidget != *interface->fWidgetList.begin())
+    {
+        if (currentWidget->getParent() == (*i))
+        {
+            result = [NSString stringWithFormat:@"%@-%@", (*i)->getName(), result];
+            currentWidget = (*i);
+        }
+        
+        i--;
+    }
+    
+    result = [NSString stringWithFormat:@"%@-%@", result, widget->getName()];
+    
+    return result;
+}
 
 @end

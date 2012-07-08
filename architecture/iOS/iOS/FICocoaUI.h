@@ -294,7 +294,7 @@ public:
 
         fClosed = FALSE;
         fBox = [[[FIBox alloc] init] autorelease];
-        fBox.color = [UIColor darkGrayColor];//[UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
+        fBox.color = [UIColor darkGrayColor];
         fBox.autoresizingMask = UIViewAutoresizingNone;
         
         [controller.dspView addSubview:fBox];
@@ -1088,18 +1088,21 @@ private:
             // If the box is a tab content box : no label
             if (parent->fBoxType == kTabLayout)
             {
-                if (dynamic_cast<uiBox*>(widget)->fLabel)
+                if (dynamic_cast<uiBox*>(widget))
                 {
-                    [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
-                    dynamic_cast<uiBox*>(widget)->fLabel = nil;
-                    dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
+                    if (dynamic_cast<uiBox*>(widget)->fLabel)
+                    {
+                        [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
+                        dynamic_cast<uiBox*>(widget)->fLabel = nil;
+                        dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
+                    }
                 }
             }
             
             // Check the current layout mode (eg : the layout mode of widget's parent)
             switch (fCurrentLayoutType)
             {
-                // Tab layout mode : widget is the box containg the content of a tab
+                // Tab layout mode : widget is the box containing the content of a tab
                 case kTabLayout:
                     x = 0.f;
                     y = kStdTabHeight;
@@ -1205,21 +1208,11 @@ private:
         if (parent)
         {
             contentSize = parent->getContentSize();
-            
-            if (parent->fBoxType == kTabLayout)
-            {
-                parent->setFrame(   parent->getX(),
-                                    parent->getY(),
-                                    contentSize.width,
-                                    contentSize.height);
-            }
-            else
-            {
-                parent->setFrame(   parent->getX(),
-                                    parent->getY(),
-                                    contentSize.width + kSpaceSize,
-                                    contentSize.height + kSpaceSize);
-            }
+
+            parent->setFrame(parent->getX(),
+                             parent->getY(),
+                             contentSize.width + kSpaceSize,
+                             contentSize.height + kSpaceSize);
             
             parent->fLastX = widget->getX() + widget->getW();
             parent->fLastY = widget->getY() + widget->getH();
@@ -1238,8 +1231,9 @@ private:
             {
                 if (dynamic_cast<uiBox*>(*i))
                 {
-                    if (    dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                            && dynamic_cast<uiBox*>(*i) != widget)
+                    if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
+                        && dynamic_cast<uiBox*>(*i) != widget
+                        && !dynamic_cast<uiBox*>(*i)->fClosed)
                     {   
                         // Add FIButton in the fTabView
                         [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
@@ -1250,8 +1244,8 @@ private:
                 }
             }   
             i = fWidgetList.begin();
-            if (    dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                    && dynamic_cast<uiBox*>(*i) != widget)
+            if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
+                && dynamic_cast<uiBox*>(*i) != widget)
             {
                 [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                 
