@@ -31,7 +31,7 @@
 using namespace std;
 
 const char* yyfilename = "????";
-Tree 		DEFLINEPROP = tree(symbol("DefLineProp"));
+static Tree DEFLINEPROP = tree(symbol("DefLineProp"));
 
 void yyerror(const char* msg)
 {

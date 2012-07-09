@@ -42,7 +42,7 @@
 #undef TRACE
 
 // declarations
-Tree SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
+static Tree SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
 //static Tree binequiv (Tree sig, int opnum, Tree a, Tree b);
 static Tree simplification (Tree sig);
 static Tree sigMap (Tree key, tfun f, Tree t);
@@ -338,7 +338,7 @@ void eraseAllProperties(Tree t)
  * facilitate the mathematical documentation generation
  */
 
-Tree DOCTABLES = tree(symbol("DocTablesProp"));
+static Tree DOCTABLES = tree(symbol("DocTablesProp"));
 
 static Tree docTableConverter (Tree sig);
 

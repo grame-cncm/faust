@@ -73,11 +73,6 @@ static interval arithmetic (int opcode, const interval& x, const interval& y);
  */
 static Tree NULLTYPEENV = tree(symbol("NullTypeEnv"));
 
-static int countInferences;
-static int countMaximal;
-
-
-
 /**
  * Fully annotate every subtree of term with type information.
  * @param sig the signal term tree to annotate
@@ -139,9 +134,9 @@ void typeAnnotation(Tree sig)
 
 void annotationStatistics()
 {
-    cerr << gGlobal->TABBER << "COUNT INFERENCE  " << countInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
+    cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
     cerr << gGlobal->TABBER << "COUNT ALLOCATION " << AudioType::gAllocationCount << endl;
-    cerr << gGlobal->TABBER << "COUNT MAXIMAL " << countMaximal << endl;
+    cerr << gGlobal->TABBER << "COUNT MAXIMAL " << gGlobal->gCountMaximal << endl;
 }
 
 /**
@@ -247,7 +242,7 @@ static Type infereSigType(Tree sig, Tree env)
     Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file;
 	Tree		label, cur, min, max, step;
 
-    countInferences++;
+    gGlobal->gCountInferences++;
 
 		 if ( getUserData(sig) ) 			return infereXType(sig, env);
 

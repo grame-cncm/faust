@@ -83,7 +83,7 @@ bool isRef(Tree t, int& level)
 //-----------------------------------------------------------------------------------------
 // Recursive tree in symbolic notation (using a recursive definition property)
 //-----------------------------------------------------------------------------------------
-Tree RECDEF = tree(symbol("RECDEF"));
+static Tree RECDEF = tree(symbol("RECDEF"));
 
 // declaration of a recursive tree using a symbolic variable
 Tree rec(Tree var, Tree body)
@@ -219,7 +219,7 @@ static Tree calcliftn(Tree t, int threshold)
 //-----------------------------------------------------------
 // Transform a tree from deBruijn to symbolic representation
 //-----------------------------------------------------------
-Tree DEBRUIJN2SYM = tree(symbol("deBruijn2Sym"));
+static Tree DEBRUIJN2SYM = tree(symbol("deBruijn2Sym"));
 
 Tree deBruijn2Sym (Tree t)
 {

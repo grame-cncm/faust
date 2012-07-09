@@ -147,8 +147,6 @@ static Tree a2sb(Tree exp)
 	return result;
 }
 
-static int	gBoxSlotNumber = 0;		///< counter for unique slot number
-
 static Tree real_a2sb(Tree exp)
 {
 	Tree abstr, visited, unusedEnv, localValEnv, var, name, body;
@@ -167,7 +165,7 @@ static Tree real_a2sb(Tree exp)
 			// Here we have remaining abstraction that we will try to 
 			// transform in a symbolic box by applying it to a slot
 
-			Tree slot = boxSlot(++gBoxSlotNumber); 
+			Tree slot = boxSlot(++gGlobal->gBoxSlotNumber); 
 			stringstream s; s << boxpp(var);
 			setDefNameProperty(slot, s.str() ); // ajout YO
 			
@@ -190,8 +188,8 @@ static Tree real_a2sb(Tree exp)
 		// Here we have remaining PM rules that we will try to 
 		// transform in a symbolic box by applying it to a slot
 		
-		Tree slot = boxSlot(++gBoxSlotNumber); 			
-		stringstream s; s << "PM" << gBoxSlotNumber;
+		Tree slot = boxSlot(++gGlobal->gBoxSlotNumber); 			
+		stringstream s; s << "PM" << gGlobal->gBoxSlotNumber;
 		setDefNameProperty(slot, s.str() ); 
 		
 		// apply the PM rules to the slot and transfoms the result in a symbolic box
@@ -564,7 +562,7 @@ static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
 }
 
 
-Tree NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
+static Tree NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
 
 void setNumericProperty(Tree t, Tree num)
 {

@@ -48,7 +48,7 @@ using namespace std;
 static int annotate(Tree env, Tree sig);
 static int position (Tree env, Tree t, int p=1);
 
-Tree RECURSIVNESS = tree(symbol("RecursivnessProp"));
+static Tree RECURSIVNESS = tree(symbol("RecursivnessProp"));
 //--------------------------------------------------------------------------
 
 

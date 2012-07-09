@@ -47,7 +47,7 @@
 #include "xtended.hh"
 #include "exception.hh"
 
-Tree BOXTYPEPROP = tree(symbol("boxTypeProp"));
+static Tree BOXTYPEPROP = tree(symbol("boxTypeProp"));
 static bool infereBoxType (Tree box, int* inum, int* onum);
 
 

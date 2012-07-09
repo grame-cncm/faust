@@ -45,7 +45,7 @@
  * property of its definitionObviously there is no perfect solution since a same
  * definition quand be given to different names.
  */
-Tree DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
+static Tree DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
 
 void setDefNameProperty(Tree t, Tree id)
 {
@@ -95,7 +95,7 @@ string defName2NickName (const string& defname)
 	return defname;
 }
 
-Tree NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
+static Tree NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
 
 
 /**

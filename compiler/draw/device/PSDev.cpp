@@ -27,11 +27,10 @@
 #include "string.h"
 #include "math.h"
 #include "compatibility.hh"
+#include "global.hh"
 #include <iostream>
 
 using namespace std;
-
-static int gFileNum = 0;
 
 static char * addFileNum(const char* fname)
 {
@@ -46,7 +45,7 @@ static char * addFileNum(const char* fname)
 	f[i] = 0;
 
 	// add number and .ps suffix
-	snprintf(s, 255, "%s-%d.ps", f, ++gFileNum);
+	snprintf(s, 255, "%s-%d.ps", f, ++gGlobal->gFileNum);
 	//cerr << "file name " << s << endl;
 	return strdup(s);
 }

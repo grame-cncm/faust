@@ -46,7 +46,7 @@
 #include "xtended.hh"
 #include "exception.hh"
 
-Tree ORDERPROP = tree(symbol("OrderProp"));
+static Tree ORDERPROP = tree(symbol("OrderProp"));
 
 static int infereSigOrder(Tree sig);
 

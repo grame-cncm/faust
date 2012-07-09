@@ -31,6 +31,7 @@
 #include "ppsig.hh"
 #include "names.hh"
 #include "exception.hh"
+#include "global.hh"
 
 //static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
 
@@ -151,8 +152,6 @@ siglist listLift(const siglist& l)
 	return r;
 }
 
-static int	gDummyInput = 10000;
-
 /**
  * Propagate computes the outputs signals of a block-diagram according to a list of input signals.
  *
@@ -259,7 +258,7 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		if (!searchEnv(box,sig,slotenv)) {
 			// test YO simplification des diagrames
 			//fprintf(stderr, "propagate : internal error (slot undefined)\n");
-			sig = sigInput(++gDummyInput);
+			sig = sigInput(++gGlobal->gDummyInput);
 		}
 		return makeList(sig);
 	}

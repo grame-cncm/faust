@@ -111,8 +111,8 @@ This file contains several extensions to the tree library :
 
 // Basic List Operations implemented on trees
 
-extern Sym 			CONS;
-extern Sym 			NIL;
+extern Sym 		CONS;
+extern Sym 		NIL;
 extern Tree 	nil;
 
 typedef Tree (*tfun)(Tree);

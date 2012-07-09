@@ -129,6 +129,14 @@ struct global {
     Tabber                  TABBER;
     
     list<string>            gInputFiles;
+    
+    int                     gFileNum;
+    
+    int                     gCountInferences;
+    int                     gCountMaximal;
+    int                     gDummyInput;
+    
+    int                     gBoxSlotNumber;     ///< counter for unique slot number
   
     global():TABBER(1)
     {
@@ -183,6 +191,15 @@ struct global {
         gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
         
         gErrorCount = 0;
+        
+        gFileNum = 0;
+        
+        gCountInferences = 0;
+        gCountMaximal = 0;
+        
+        gDummyInput = 10000;
+        
+        gBoxSlotNumber = 0;
     }
     
     ~global()

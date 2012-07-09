@@ -115,7 +115,7 @@ void listMultiColoredExp(Tree exp, set<Tree>& lst)
 
 //------------------------------------------- IMPLEMENTATION  (level 2)-----------------------------------------------------
 
-Tree COLORPROPERTY = tree(symbol("ColorProperty"));
+static Tree COLORPROPERTY = tree(symbol("ColorProperty"));
 
 /**
  * set the color-set property of sig
