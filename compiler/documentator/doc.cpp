@@ -150,7 +150,7 @@ static bool		doesFileBeginWithCode(const string& faustfile);
 					Types of Documentation Elements
  *****************************************************************************/
 
-Sym DOCTXT = symbol ("DocTxt");
+static Sym DOCTXT = symbol ("DocTxt");
 Tree docTxt(const char* name)		{ return tree( DOCTXT, tree(symbol(name)) ); }
 bool isDocTxt(Tree t)				{ return t->node() == Node(DOCTXT); }
 bool isDocTxt(Tree t0, const char** str)
@@ -164,23 +164,23 @@ bool isDocTxt(Tree t0, const char** str)
 	}
 }
 
-Sym DOCEQN = symbol ("DocEqn");
+static Sym DOCEQN = symbol ("DocEqn");
 Tree docEqn(Tree x) 				{ return tree(DOCEQN, x); 		}
 bool isDocEqn(Tree t, Tree& x) 		{ return isTree(t, DOCEQN, x); 	}
 
-Sym DOCDGM = symbol ("DocDgm");
+static Sym DOCDGM = symbol ("DocDgm");
 Tree docDgm(Tree x) 				{ return tree(DOCDGM, x); 		}
 bool isDocDgm(Tree t, Tree& x) 		{ return isTree(t, DOCDGM, x); 	}
 
-Sym DOCNTC = symbol ("DocNtc");
+static Sym DOCNTC = symbol ("DocNtc");
 Tree docNtc()						{ return tree(DOCNTC);			}
 bool isDocNtc(Tree t)				{ return isTree(t, DOCNTC); 	}
 
-Sym DOCLST = symbol ("DocLst");
+static Sym DOCLST = symbol ("DocLst");
 Tree docLst()						{ return tree(DOCLST);			}
 bool isDocLst(Tree t)				{ return isTree(t, DOCLST); 	}
 
-Sym DOCMTD = symbol ("DocMtd");
+static Sym DOCMTD = symbol ("DocMtd");
 Tree docMtd(Tree x) 				{ return tree(DOCMTD, x); 		}
 bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, DOCMTD, x); 	}
 

@@ -109,8 +109,8 @@ This file contains several extensions to the tree library :
 #include <cstdlib>
 
 // predefined symbols CONS and NIL
-Sym CONS = symbol("cons");
-Sym NIL  = symbol("nil");
+Sym CONS = symbol ("cons");
+Sym NIL  = symbol ("nil");
 
 // predefined nil tree
 Tree nil = tree(NIL);

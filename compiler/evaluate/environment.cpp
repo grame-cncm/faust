@@ -39,7 +39,7 @@ static Tree pushNewLayer(Tree lenv)
  * @param lenv the old environment
  * @return the new environment
 */
-Sym BARRIER = symbol ("BARRIER");
+static Sym BARRIER = symbol ("BARRIER");
 
 Tree pushEnvBarrier(Tree lenv)
 {

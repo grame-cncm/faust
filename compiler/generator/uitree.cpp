@@ -131,12 +131,12 @@ static Tree removeKey (Tree pl, Tree key)
 // gestion de la construction de l'arbre d'interface utilisateur
 //------------------------------------------------------------------------------
 
-Sym 	UIFOLDER = symbol ("uiFolder");
+static Sym 	UIFOLDER = symbol ("uiFolder");
 Tree  	uiFolder(Tree label, Tree elements)				{ return tree(UIFOLDER, label, elements); 		}
 bool  	isUiFolder(Tree t)								{ return isTree(t, UIFOLDER); 					}
 bool  	isUiFolder(Tree t, Tree& label, Tree& elements)	{ return isTree(t, UIFOLDER, label, elements); 	}
 
-Sym 	UIWIDGET = symbol ("uiWidget");
+static Sym 	UIWIDGET = symbol ("uiWidget");
 Tree 	uiWidget(Tree label, Tree varname, Tree sig) 					{ return tree(UIWIDGET, label, varname, sig); }
 bool 	isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig)		{ return isTree(t, UIWIDGET, label, varname, sig); }
 

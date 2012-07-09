@@ -6,6 +6,7 @@
 
 #include "colorize.h"
 #include "signals.hh"
+#include "global.hh"
 
 using namespace std; 
 
@@ -115,8 +116,6 @@ void listMultiColoredExp(Tree exp, set<Tree>& lst)
 
 //------------------------------------------- IMPLEMENTATION  (level 2)-----------------------------------------------------
 
-static Tree COLORPROPERTY = tree(symbol("ColorProperty"));
-
 /**
  * set the color-set property of sig
  * @param sig the signal we want to type
@@ -124,7 +123,7 @@ static Tree COLORPROPERTY = tree(symbol("ColorProperty"));
  */
 void setColorProperty(Tree sig, set<int>* colorset)
 {
-	setProperty(sig, COLORPROPERTY, tree((void*)colorset));
+	setProperty(sig, gGlobal->COLORPROPERTY, tree((void*)colorset));
 }
 
 
@@ -135,7 +134,7 @@ void setColorProperty(Tree sig, set<int>* colorset)
 set<int>* getColorProperty(Tree sig)
 {
 	Tree tt;
-	if (!getProperty(sig, COLORPROPERTY, tt)) {
+	if (!getProperty(sig, gGlobal->COLORPROPERTY, tt)) {
 		return 0;
 	} else {
 		return (set<int>*)tree2ptr(tt);

@@ -22,24 +22,21 @@
  * @file boxcomplexity.cpp
  * Implement complexity computation for box diagrams.
  */
- 
- 
- 
 
+ 
 // construction des representations graphiques
-
 
 #include <ostream>
 #include "xtended.hh"
 #include "boxcomplexity.hh"
 #include "exception.hh"
+#include "global.hh"
 
 using namespace std;
 
 /**
  * property Key used to store box complexity
  */
-Tree 	BCOMPLEXITY 	= tree ("BCOMPLEXITY");
 
 static int computeBoxComplexity (Tree box);
 
@@ -56,14 +53,14 @@ static int computeBoxComplexity (Tree box);
  */
 int boxComplexity (Tree box)
 {
-	Tree prop = box->getProperty(BCOMPLEXITY);
+	Tree prop = box->getProperty(gGlobal->BCOMPLEXITY);
 	
 	if (prop) {
 		return tree2int(prop);
 		
 	} else {
 		int v = computeBoxComplexity(box);
-		box->setProperty(BCOMPLEXITY,tree(v));
+		box->setProperty(gGlobal->BCOMPLEXITY,tree(v));
 		return v;
 	}
 }

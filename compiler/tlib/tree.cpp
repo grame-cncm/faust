@@ -137,7 +137,7 @@ bool CTree::equiv (const Node& n, const tvec& br) const
 	return (fNode == n) && (fBranch == br);
 }
 
-static Sym PROCESS = symbol("process"); 
+static Sym PROCESS = symbol ("process"); 
 
 unsigned int CTree::calcTreeHash( const Node& n, const tvec& br )
 {
@@ -218,10 +218,15 @@ void CTree::control ()
 	printf("\nEnd gHashTable\n");
 }
 
+void CTree::init ()
+{
+    memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
+}
+
 void CTree::cleanup ()
 {
     for (int i = 0; i < kHashTableSize; i++) {
-        //delete(gHashTable[i]);
+        delete(gHashTable[i]);
     }
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }

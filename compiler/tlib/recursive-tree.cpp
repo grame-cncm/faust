@@ -27,6 +27,7 @@
 #include <limits.h>
 #include "tlib.hh"
 #include "exception.hh"
+#include "global.hh"
 
 // Declaration of implementation
 static Tree calcDeBruijn2Sym (Tree t);
@@ -37,13 +38,13 @@ static Tree calcliftn(Tree t, int threshold);
 
 // recursive trees
 
-Sym 	DEBRUIJN 	= symbol ("DEBRUIJN");
-Sym 	DEBRUIJNREF = symbol ("DEBRUIJNREF");
-Sym 	SUBSTITUTE  = symbol ("SUBSTITUTE");
+static Sym 	DEBRUIJN 	= symbol ("DEBRUIJN");
+static Sym 	DEBRUIJNREF = symbol ("DEBRUIJNREF");
+static Sym 	SUBSTITUTE  = symbol ("SUBSTITUTE");
 
-Sym 	SYMREC 		= symbol ("SYMREC");
-Sym 	SYMRECREF 	= symbol ("SYMRECREF");
-Sym 	SYMLIFTN 	= symbol ("LIFTN");
+static Sym 	SYMREC 		= symbol ("SYMREC");
+static Sym 	SYMRECREF 	= symbol ("SYMRECREF");
+static Sym 	SYMLIFTN 	= symbol ("LIFTN");
 
 //Tree	NOVAR		= tree("NOVAR");
 
@@ -83,20 +84,19 @@ bool isRef(Tree t, int& level)
 //-----------------------------------------------------------------------------------------
 // Recursive tree in symbolic notation (using a recursive definition property)
 //-----------------------------------------------------------------------------------------
-static Tree RECDEF = tree(symbol("RECDEF"));
 
 // declaration of a recursive tree using a symbolic variable
 Tree rec(Tree var, Tree body)
 {
     Tree t = tree(SYMREC, var);
-    t->setProperty(RECDEF, body);
+    t->setProperty(gGlobal->RECDEF, body);
     return t;
 }
 
 bool isRec(Tree t, Tree& var, Tree& body)
 {
     if (isTree(t, SYMREC, var)) {
-        body = t->getProperty(RECDEF);
+        body = t->getProperty(gGlobal->RECDEF);
         return true;
     } else {
         return false;
@@ -219,16 +219,15 @@ static Tree calcliftn(Tree t, int threshold)
 //-----------------------------------------------------------
 // Transform a tree from deBruijn to symbolic representation
 //-----------------------------------------------------------
-static Tree DEBRUIJN2SYM = tree(symbol("deBruijn2Sym"));
 
 Tree deBruijn2Sym (Tree t)
 {
 	assert(isClosed(t));
-	Tree t2 = t->getProperty(DEBRUIJN2SYM);
+	Tree t2 = t->getProperty(gGlobal->DEBRUIJN2SYM);
 
 	if (!t2) {
 		t2 = calcDeBruijn2Sym(t);
-		t->setProperty(DEBRUIJN2SYM, t2);
+		t->setProperty(gGlobal->DEBRUIJN2SYM, t2);
 	}
 	return t2;
 }

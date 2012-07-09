@@ -548,11 +548,11 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
 {
-    if (    isBoxPar(box, t1, t2) ||
-            isBoxSeq(box, t1, t2) ||
-            isBoxSplit(box, t1, t2) ||
-            isBoxMerge(box, t1, t2) ||
-            isBoxRec(box, t1, t2)    )
+    if (isBoxPar(box, t1, t2) ||
+        isBoxSeq(box, t1, t2) ||
+        isBoxSplit(box, t1, t2) ||
+        isBoxMerge(box, t1, t2) ||
+        isBoxRec(box, t1, t2))
     {
         n = box->node();
         return true;
@@ -561,17 +561,14 @@ static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
     }
 }
 
-
-static Tree NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
-
 void setNumericProperty(Tree t, Tree num)
 {
-	setProperty(t, NUMERICPROPERTY, num);
+	setProperty(t, gGlobal->NUMERICPROPERTY, num);
 }
 
 bool getNumericProperty(Tree t, Tree& num)
 {
-	return getProperty(t, NUMERICPROPERTY, num);
+	return getProperty(t, gGlobal->NUMERICPROPERTY, num);
 }
 
 /**

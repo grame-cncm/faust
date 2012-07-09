@@ -106,15 +106,15 @@ DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res
 
 // // 09/12/11 : HACK
 /*
-Sym TYPEINT = symbol ("TypeInt");
+static Sym TYPEINT = symbol ("TypeInt");
 Tree  typeInt()                    { return tree(TYPEINT);         }
 bool  isTypeInt(Tree t)            { return isTree(t, TYPEINT);    }
 
-Sym TYPEFLOAT = symbol ("TypeFloat");
+static Sym TYPEFLOAT = symbol ("TypeFloat");
 Tree  typeFloat()                { return tree(TYPEFLOAT);         }
 bool  isTypeFloat(Tree t)        { return isTree(t, TYPEFLOAT);    }
 
-Sym TYPEARRAY = symbol ("TypeArray");
+static Sym TYPEARRAY = symbol ("TypeArray");
 Tree  typeArray(int n, Tree t)                    { return tree(TYPEARRAY, tree(n), t);         }
 bool  isTypeArray(Tree t, int* n, Tree& u)        { Tree x; return isTree(t, TYPEARRAY, x, u) && isInt(x->node(), n);     }
 

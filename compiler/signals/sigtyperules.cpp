@@ -71,7 +71,6 @@ static interval arithmetic (int opcode, const interval& x, const interval& y);
 /**
  * The empty type environment (also property key for closed term type)
  */
-static Tree NULLTYPEENV = tree(symbol("NullTypeEnv"));
 
 /**
  * Fully annotate every subtree of term with type information.
@@ -116,7 +115,7 @@ void typeAnnotation(Tree sig)
 
         // compute recursive types
         for (int i=0; i<n; i++) {
-            vtype[i] = T(vdef[i], NULLTYPEENV);
+            vtype[i] = T(vdef[i], gGlobal->NULLTYPEENV);
         }
 
         // check finished
@@ -128,7 +127,7 @@ void typeAnnotation(Tree sig)
     }
 
     // type full term
-    T(sig, NULLTYPEENV);
+    T(sig, gGlobal->NULLTYPEENV);
 }
 
 
@@ -348,7 +347,7 @@ static Type infereSigType(Tree sig, Tree env)
 
 	else if (isSigRDTbl(sig, s1, s2)) 			return infereReadTableType(T(s1,env), T(s2,env));
 
-    else if (isSigGen(sig, s1)) 				return T(s1,NULLTYPEENV);
+    else if (isSigGen(sig, s1)) 				return T(s1,gGlobal->NULLTYPEENV);
 
     else if ( isSigDocConstantTbl(sig, x, y) )	return infereDocConstantTblType(T(x,env), T(y,env));
     else if ( isSigDocWriteTbl(sig,x,y,z,u) )	return infereDocWriteTblType(T(x,env), T(y,env), T(z,env), T(u,env));

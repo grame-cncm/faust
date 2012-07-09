@@ -152,6 +152,7 @@ class CTree
 	ostream& 	print (ostream& fout) const; 					///< print recursively the content of a tree on a stream
 	static void control ();										///< print the hash table content (for debug purpose)
     
+    static void init ();
     static void cleanup ();
 
 	// type information

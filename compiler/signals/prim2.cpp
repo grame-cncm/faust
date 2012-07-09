@@ -24,7 +24,7 @@
 #include "prim2.hh"
 #include "stdlib.h"
 
-Sym FFUN = symbol ("ForeignFunction");
+static Sym FFUN = symbol ("ForeignFunction");
 
 Tree ffunction (Tree signature, Tree incfile, Tree libfile)
 {

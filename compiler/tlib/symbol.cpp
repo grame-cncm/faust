@@ -66,7 +66,7 @@ Symbol* Symbol::get(const string& str)
 
 Symbol* Symbol::get(const char* str)
 {
-    unsigned int 			hsh  = calcHashKey(str);
+    unsigned int 	hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
 
@@ -84,7 +84,7 @@ Symbol* Symbol::get(const char* str)
 
 bool Symbol::isnew(const char* str)
 {
-    unsigned int 			hsh  = calcHashKey(str);
+    unsigned int 	hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
 	
@@ -176,10 +176,15 @@ ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a strea
 	return fout << fName;
 }
 
+void Symbol::init ()
+{
+    memset(gSymbolTable, 0, sizeof(Symbol*) * kHashTableSize);
+}
+
 void Symbol::cleanup ()
 {
     for (int i = 0; i < kHashTableSize; i++) {
-        //delete(gSymbolTable[i]);
+        delete(gSymbolTable[i]);
     }
     memset(gSymbolTable, 0, sizeof(Symbol*) * kHashTableSize);
 }

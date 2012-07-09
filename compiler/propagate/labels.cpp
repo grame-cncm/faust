@@ -16,15 +16,15 @@
  *
  */
 
-Sym PATHROOT = symbol ("/");
+static Sym PATHROOT = symbol ("/");
 Tree pathRoot()						{ return tree(PATHROOT); }
 bool isPathRoot(Tree t)				{ return isTree(t, PATHROOT); }
 
-Sym PATHPARENT = symbol ("..");
+static Sym PATHPARENT = symbol ("..");
 Tree pathParent()					{ return tree(PATHPARENT); }
 bool isPathParent(Tree t)			{ return isTree(t, PATHPARENT); }
 
-Sym PATHCURRENT = symbol (".");
+static Sym PATHCURRENT = symbol (".");
 Tree pathCurrent()					{ return tree(PATHCURRENT); }
 bool isPathCurrent(Tree t)			{ return isTree(t, PATHCURRENT); }
 

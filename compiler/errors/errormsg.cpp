@@ -31,7 +31,6 @@
 using namespace std;
 
 const char* yyfilename = "????";
-static Tree DEFLINEPROP = tree(symbol("DefLineProp"));
 
 void yyerror(const char* msg)
 {
@@ -73,13 +72,13 @@ void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 
 void setDefProp(Tree sym, const char* filename, int lineno)
 {
-	setProperty(sym, DEFLINEPROP, cons(tree(filename), tree(lineno)));
+	setProperty(sym, gGlobal->DEFLINEPROP, cons(tree(filename), tree(lineno)));
 }
 
 const char* getDefFileProp(Tree sym)
 {
 	Tree n;
-	if (getProperty(sym, DEFLINEPROP, n)) {
+	if (getProperty(sym, gGlobal->DEFLINEPROP, n)) {
 		return name(hd(n)->node().getSym());
 	} else {
 		return "????";
@@ -89,7 +88,7 @@ const char* getDefFileProp(Tree sym)
 int getDefLineProp(Tree sym)
 {
 	Tree n;
-	if (getProperty(sym, DEFLINEPROP, n)) {
+	if (getProperty(sym, gGlobal->DEFLINEPROP, n)) {
 		return tl(n)->node().getInt();
 	} else {
 		return -1;

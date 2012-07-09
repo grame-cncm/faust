@@ -137,9 +137,30 @@ struct global {
     int                     gDummyInput;
     
     int                     gBoxSlotNumber;     ///< counter for unique slot number
+    
+    Tree                    BOXTYPEPROP;
+    Tree                    NUMERICPROPERTY;
+    Tree                    DEFLINEPROP;
+    Tree                    SIMPLIFIED;
+    Tree                    DOCTABLES;
+    Tree                    NULLENV;
+    Tree                    COLORPROPERTY;
+    Tree                    ORDERPROP;
+    Tree                    RECURSIVNESS;
+    Tree                    NULLTYPEENV;
+    Tree                    RECDEF;
+    Tree                    DEBRUIJN2SYM;
+    Tree                    DEFNAMEPROPERTY;
+    Tree                    NICKNAMEPROPERTY;
+    Tree                    BCOMPLEXITY;
   
     global():TABBER(1)
     {
+        CTree::init();
+        
+        // Needed ?
+        //Symbol::init();
+        
         gResult             = 0;
         gResult2            = 0;
         gExpandedDefList    = 0;
@@ -200,14 +221,49 @@ struct global {
         gDummyInput = 10000;
         
         gBoxSlotNumber = 0;
+        
+        BOXTYPEPROP = tree(symbol("boxTypeProp"));
+        NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
+        DEFLINEPROP = tree(symbol("DefLineProp"));
+        SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
+        DOCTABLES = tree(symbol("DocTablesProp"));
+        NULLENV = tree(symbol("NullRenameEnv"));
+        COLORPROPERTY = tree(symbol("ColorProperty"));
+        ORDERPROP = tree(symbol("OrderProp"));
+        RECURSIVNESS = tree(symbol("RecursivnessProp"));
+        NULLTYPEENV = tree(symbol("NullTypeEnv"));
+        RECDEF = tree(symbol("RECDEF"));
+        DEBRUIJN2SYM = tree(symbol("deBruijn2Sym"));
+        DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
+        NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
+        BCOMPLEXITY = tree("BCOMPLEXITY");
     }
     
     ~global()
     {
         delete gResult;
         delete gResult2;
+        
+        delete BOXTYPEPROP;
+        delete NUMERICPROPERTY;
+        delete DEFLINEPROP;
+        delete SIMPLIFIED;
+        delete DOCTABLES;
+        delete NULLENV;
+        delete COLORPROPERTY;
+        delete ORDERPROP;
+        delete RECURSIVNESS;
+        delete NULLTYPEENV;
+        delete RECDEF;
+        delete DEBRUIJN2SYM;
+        delete DEFNAMEPROPERTY;
+        delete NICKNAMEPROPERTY;
+        delete BCOMPLEXITY;
+        
         CTree::cleanup();
-        Symbol::cleanup();
+        
+        // Needed ?
+        //Symbol::cleanup(); 
     }
 
 };

@@ -25,6 +25,7 @@
 #include "recursivness.hh"
 #include "property.hh"
 #include "exception.hh"
+#include "global.hh"
 
 #include "signals.hh"
 #include "ppsig.hh"
@@ -47,8 +48,6 @@ using namespace std;
 //--------------------------------------------------------------------------
 static int annotate(Tree env, Tree sig);
 static int position (Tree env, Tree t, int p=1);
-
-static Tree RECURSIVNESS = tree(symbol("RecursivnessProp"));
 //--------------------------------------------------------------------------
 
 
@@ -73,7 +72,7 @@ void recursivnessAnnotation(Tree sig)
 int getRecursivness(Tree sig)
 {
 	Tree tr;
-	if (!getProperty(sig, RECURSIVNESS, tr)) {
+	if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
         stringstream error;
         error << "ERROR in getRecursivness of " << *sig << endl;
         throw faustexception(error.str());
@@ -92,7 +91,7 @@ static int annotate(Tree env, Tree sig)
 {
 	Tree tr, var, body;
 
-	if (getProperty(sig, RECURSIVNESS, tr)) {
+	if (getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
 		return tree2int(tr);	// already annotated
 	} else if (isRec(sig, var, body)) {
 		int p = position(env, sig);
@@ -101,7 +100,7 @@ static int annotate(Tree env, Tree sig)
 		} else {
 			int r = annotate(cons(sig, env), body) - 1;
 			if (r<0) r=0;
-			setProperty(sig, RECURSIVNESS, tree(r));
+			setProperty(sig, gGlobal->RECURSIVNESS, tree(r));
 			return r;
 		}
 	} else {
@@ -111,7 +110,7 @@ static int annotate(Tree env, Tree sig)
 			int r = annotate(env, v[i]);
 			if (r>rmax) rmax=r;
 		}
-		setProperty(sig, RECURSIVNESS, tree(rmax));
+		setProperty(sig, gGlobal->RECURSIVNESS, tree(rmax));
 		return rmax;
 	}
 }

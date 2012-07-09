@@ -361,9 +361,9 @@ Typed::VarType ctType (Type t)
 property<AudioType*> MemoizedTypes;
 
 
-Sym SIMPLETYPE = symbol ("SimpleType");
-Sym TABLETYPE = symbol ("TableType");
-Sym TUPLETTYPE = symbol ("TupletType");
+static Sym SIMPLETYPE = symbol ("SimpleType");
+static Sym TABLETYPE = symbol ("TableType");
+static Sym TUPLETTYPE = symbol ("TupletType");
 
 static Tree  codeSimpleType(SimpleType* st);
 static Tree  codeTableType(TableType* st);

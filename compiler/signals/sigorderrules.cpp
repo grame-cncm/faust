@@ -45,8 +45,7 @@
 #include "sigorderrules.hh"
 #include "xtended.hh"
 #include "exception.hh"
-
-static Tree ORDERPROP = tree(symbol("OrderProp"));
+#include "global.hh"
 
 static int infereSigOrder(Tree sig);
 
@@ -63,11 +62,11 @@ static int infereSigOrder(Tree sig);
 int getSigOrder(Tree sig)
 {
 	Tree tt;
-	if (getProperty(sig, ORDERPROP, tt)) { 
+	if (getProperty(sig, gGlobal->ORDERPROP, tt)) { 
 		return tree2int(tt); 
 	} else {
 		int order = infereSigOrder(sig);
-		setProperty(sig, ORDERPROP, tree(order));
+		setProperty(sig, gGlobal->ORDERPROP, tree(order));
 		return order;
 	}
 }	

@@ -90,6 +90,7 @@ class Symbol
 	friend void* 			getUserData (Symbol* sym);
 	friend void 			setUserData (Symbol* sym, void* d);
     
+    static void init ();
     static void cleanup ();
 		
 };

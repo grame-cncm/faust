@@ -46,10 +46,9 @@
 #include "prim2.hh"
 #include "xtended.hh"
 #include "exception.hh"
+#include "global.hh"
 
-static Tree BOXTYPEPROP = tree(symbol("boxTypeProp"));
 static bool infereBoxType (Tree box, int* inum, int* onum);
-
 
 
 /**
@@ -63,7 +62,7 @@ static bool infereBoxType (Tree box, int* inum, int* onum);
 bool getBoxType (Tree box, int* inum, int* onum)
 {
 	Tree t;
-	if (getProperty(box, BOXTYPEPROP, t)) {
+	if (getProperty(box, gGlobal->BOXTYPEPROP, t)) {
 		
 		if (isNil(t)) {
 			return false;
@@ -76,10 +75,10 @@ bool getBoxType (Tree box, int* inum, int* onum)
 	} else {
 	
 		if (infereBoxType(box, inum, onum)) {
-			setProperty(box, BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
+			setProperty(box, gGlobal->BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
 			return true;
 		} else {
-			setProperty(box, BOXTYPEPROP, nil);
+			setProperty(box, gGlobal->BOXTYPEPROP, nil);
 			return false;
 		}
 	}
