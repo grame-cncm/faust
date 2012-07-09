@@ -1,11 +1,15 @@
 
 							================
-							| FAUST 0.9.46 |
+							| FAUST 0.9.54 |
 							================
 
-GRAME - Centre National de Creation Musicale - is happy to announce the release
-of FAUST 0.9.46. This new release provides several fixes, additions and
-improvements in particular in the examples, libraries and architecture files.
+GRAME - Centre National de Creation Musicale - is happy to announce
+the release of FAUST 0.9.54. This new release provides support to
+develop iPad/iPhone audio applications, LV2 effects and synth plugins,
+an improved organization and namy additions and enhancements to the
+libraries and examples. It also adds HTTP remote control possibilities
+to several existing architectures.
+
 
 -------------
 About FAUST :
@@ -31,61 +35,79 @@ https://lists.sourceforge.net/lists/listinfo/faudiostream-devel
 https://lists.sourceforge.net/lists/listinfo/faudiostream-users
 
 In order to test FAUST without installing it, please refer to the
-Online Faust Compiler (requires firefox): 
+Online Faust Compiler : 
 http://faust.grame.fr
 
 
 ======================== WHAT'S NEW ==============================
+------------
+LV2        :
+------------
+LV2 is a new open-source audio and MIDI plugin standard for Linux
+and other Unix-like systems, successor of the LADSPA standard. The aim
+of this architecture is to provide an LV2 implementation which
+supports both audio (pure signal processing) and instrument (MIDI ->
+audio) plugins. Two scripts are provided faust2lv2 and
+faust2lv2plugin. The full faust-lv2 package by Albert Gräf is
+available here : http://code.google.com/p/faust-lv2/
 
+------------
+HTTP       :
+------------
 
----------------
-Architectures :
----------------
-- supercollider : 
-	- revised search-order for SuperCollider headers in Linux, 
-	- enhancements to SuperCollider class and control name generation in faust2sc and supercollider.cpp, 
-	- Faust prefix added to SuperCollider module name to conform with faust2supercollider script, 
-	- default SynthDef with metadata support added to faust2supercollider and faust2sc
-	- -DNO_LIBSNDFILE and -DNDEBUG added to Makefile.sccompile for conformity with faust2supercollider (Darwin)
-- matlabplot : new -s <nnnnn> (skip) option allowing to skip <nnnnn> samples before printing
-- netjack : IP and port paramaters added in netjack-dsp architecture, NetJack client now restart.
-- iPhone : architecture files updated
-- pure : bug fixes, realtime-friendly voice allocation fixes, support for metadata.
-- puredata : on Darwin both 32 and 64-bits intel code are now generated
+<< ... >>
 
+------------
+iPad iPhone:
+------------
+This release introduces a new architecture 'ios-coreaudio.cpp' with
+the related scripts and makefiles to develop iOS5 iPad and iPhone
+audio applications. Use 'make ios' in the example folder to compile
+the examples, or use 'faust2ios harpe.dsp' to compile specific files.
+Note that you need Xcode with iOS development tools and a valid
+profile to successfully compile.
 
------------
-Libraries :
------------
-- effect.lib : moog_vcf_2bn added, minor zita_rev1 additions
-- filter.lib : tf2np, tf2snp, and general ladder/lattice filters added
-- osc : build for both i386 and x86_64 architectures on Mac OSX, corrects frames value in OSC IO architecture
+Once you have an application running on the device you can
+individually assign gyroscopes and compass to user interface widgets.
+If you keep your finger for 1 second on a slider, a popup window 
+appear allowing you to choose the sensor to use and control its
+sensibility.
 
+------------
+Libraries  :
+------------
+revised low/high shelf filters in filter.lib
+reduce start-up transients in examples by moving smooth to output of db2linear
+interpolate sawN delay in oscillator.lib / pulsetrainN
+extend filterbank (in filter.lib) down to two-band case; 
+revise proposal for FAUSTINC from environment variable; point to LAC-12 pap
+worked around compile failure in effect.lib for max when args not float; 
+added FAUST_LIB_PATH as last resort for FAUSTINC (such as w
+much revision for oscillator.lib, new virtual analog waveforms, new demonstration example
 
-----------
-Examples :
-----------
-- improvements and bug corrections in faust-stk
-- new examples for Faust-STK in /examples/faust-stk/pd-patches/fancy
-- new description metadata tag in faust-stk examples
+-----------------
+New organisation:
+-----------------
 
+The architecture files are now more modular and the installation tree
+has been improved. Assuming Faust is installed with the default prefix
+'/usr/local' we now have  :
 
-----------
-Compiler :
-----------
-- Support for listings with accents and symbolic representation for numbers of type i/j.pi**k or i/j.e**k in automatic documentation system
-- improved and simplified infinite loop detection during compilation, default compiler timeout set to 10 mn
-- bug fix when counting recursive signals to draw
-- compiling error with VC++ 2008 fix 
+'/usr/local/lib/faust/' that contains :
+- the architecture files (*.cpp),
+- faust's libraries (*.lib) and
+- specific binary libraries (*.a) for OSC, HTTP, etc.
 
+'/usr/local/include/faust/' that contains all the *.h required by the various architecture
+files, organized in two main subfolders :
+- 'gui/' contains all the user interface parts
+- 'audio/' contains all the audio driver parts
 
----------
-Scripts :
----------
-- option -utf8 added to faust2mathdoc allowing to recode the .dsp file to UTF-8 before being processed
-- added -I/usr/local/lib/faust to faust2ladspa because faust2jack uses this solution for typical personal Linux
-- faust2sc: added checkInputs method to generated UGen; SynthDef input signals wrapped in In.ar()
-- faust2pd : updated to faust2pd-2.5
+'/usr/local/bin/' that contains faust itself and the various faust2xxx scripts
+
+All the architecture files that include user interface parts and audio driver parts can
+use a partial pathname starting with faust. For example
+#include "faust/audio/jack-dsp.h"
 
 
 ----------------
@@ -96,14 +118,16 @@ Many persons have been contributing to the FAUST project by
 providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc. 
 
-I would like to thank them and especially: Fons Adriaensen, Tim Blechmann,
-Tiziano Bole, Baktery Chanka, Thomas Charbonnel, Damien Cramet, Etienne Gaudrin,
-Albert Graef, Stefan Kersten, Victor Lazzarini, Matthieu Leberre, Mathieu Leroi,
-Kjetil Matheussen, Hermann Meyer, Romain Michon, Remy Muller, Sampo Savolainen,
-Nicolas Scaringella, Stephen Sinclair, Travis Skare, Julius Smith, Michael
-Wilson, as well as my colleagues at GRAME, in particular : Dominique Fober,
-Stephane Letz and Karim Barkati, and from the ASTREE project : Jerome Barthelemy
-(IRCAM), Alain Bonardi (IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot
+I would like to thank them and especially: Fons Adriaensen, Tim
+Blechmann, Tiziano Bole, Baktery Chanka, Thomas Charbonnel, Damien
+Cramet, Etienne Gaudrin, Olivier Guillerminet, Albert Graef, Stefan
+Kersten, Victor Lazzarini, Matthieu Leberre, Mathieu Leroi, Kjetil
+Matheussen, Hermann Meyer, Romain Michon, Remy Muller, Sampo
+Savolainen, Nicolas Scaringella, Stephen Sinclair, Travis Skare,
+Julius Smith, Michael Wilson, as well as my colleagues at GRAME, in
+particular : Dominique Fober, Stephane Letz and Karim Barkati, and
+from the ASTREE project : Jerome Barthelemy (IRCAM), Alain Bonardi
+(IRCAM), Raffaele Ciavarella (IRCAM), Pierre Jouvelot
 (Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
 
 Yann Orlarey
