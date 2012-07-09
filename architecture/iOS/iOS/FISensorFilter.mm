@@ -31,6 +31,7 @@
 @synthesize x = _x;
 @synthesize y = _y;
 @synthesize z = _z;
+@synthesize h = _h;
 
 -(id)initWithSampleRate:(double)rate cutoffFrequency:(double)freq
 {
@@ -51,6 +52,13 @@
 	_x = x * alpha + _x * (1.0 - alpha);
 	_y = y * alpha + _y * (1.0 - alpha);
 	_z = z * alpha + _z * (1.0 - alpha);
+}
+
+- (void)addHeading:(float)h
+{
+	double alpha = _filterConstant;
+	
+	_h = h * alpha + _h * (1.0 - alpha);
 }
 
 @end

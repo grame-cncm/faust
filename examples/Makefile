@@ -173,6 +173,10 @@ bench :
 	install -d benchdir
 	$(MAKE) DEST='benchdir/' ARCH='bench.cpp'  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
+gvecbench :
+	install -d gvecbenchdir
+	$(MAKE) DEST='gvecbenchdir/' ARCH='bench.cpp'  VEC='-vec -vs 256' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
+
 ibench :
 	install -d ibenchdir
 	$(MAKE) DEST='ibenchdir/' ARCH='bench.cpp' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
