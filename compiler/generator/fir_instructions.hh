@@ -266,9 +266,9 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << ", "; inst->fValue->accept(this);
+                *fOut << generateType(inst->fType, inst->fAddress->getName()) << ", "; inst->fValue->accept(this);
             } else {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName());
+                *fOut << generateType(inst->fType, inst->fAddress->getName());
             }
             *fOut << ")";
             EndLine();
@@ -482,7 +482,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else {
                 *fOut << "CastNumInst(";
             }
-            *fOut << generateType(inst->fTyped);
+            *fOut << generateType(inst->fType);
             *fOut << ", ";
             inst->fInst->accept(this);
             *fOut << ")";

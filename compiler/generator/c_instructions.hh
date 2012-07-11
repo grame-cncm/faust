@@ -176,9 +176,9 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
             } else {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
             }
         }
 
@@ -331,7 +331,7 @@ class CInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << "(" << generateType(inst->fTyped) << ")";
+            *fOut << "(" << generateType(inst->fType) << ")";
             inst->fInst->accept(this);
         }
 

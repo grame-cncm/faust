@@ -115,7 +115,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (!isControl(inst->fAddress->getName())) {
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << ";";
+                    tab1(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
         };
@@ -130,7 +130,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (isControl(inst->fAddress->getName())) {
-                    tab1(fTab, *fOut); *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << ";";
+                    tab1(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
 
@@ -250,7 +250,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             // C like cast
             virtual void visit(CastNumInst* inst)
             {
-                *fOut << "(" << generateType(inst->fTyped) << ")";
+                *fOut << "(" << generateType(inst->fType) << ")";
                 inst->fInst->accept(this);
             }
 
@@ -386,9 +386,9 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
                 }
 
                 if (inst->fValue) {
-                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
+                    *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
                 } else {
-                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
+                    *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
                 }
             }
 
@@ -471,9 +471,9 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
                 }
 
                 if (inst->fValue) {
-                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
+                    *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
                 } else {
-                    *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
+                    *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
                 }
             }
 

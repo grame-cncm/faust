@@ -497,9 +497,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // Not supposed to declare var with value here
             assert(inst->fValue == NULL);
 
-            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
-            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
-            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fTyped);
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fType);
 
             if (basic_typed) {
                 fDSPFields.push_back(fTypeMap[basic_typed->fType]);
@@ -1030,10 +1030,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         virtual void visit(DeclareVarInst* inst)
         {
-            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
-            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(inst->fTyped);
-            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
-            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fTyped);
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
+            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(inst->fType);
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+            VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(inst->fType);
 
             if (inst->fAddress->getAccess() & Address::kStruct) {
                 // Not supposed to happen
@@ -1105,7 +1105,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     } else {
                         // Init with 0
                         if (basic_typed) {
-                            Value* value = (inst->fTyped->getType() == Typed::kFloat) ? genFloat(0.f) : genInt32(0);
+                            Value* value = (inst->fType->getType() == Typed::kFloat) ? genFloat(0.f) : genInt32(0);
                             global_var->setInitializer(static_cast<Constant*>(value));
                         } else if (array_typed) {
                              global_var->setInitializer(ConstantAggregateZero::get(ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())],
@@ -1780,7 +1780,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Compile exp to cast, result in fCurValue
             inst->fInst->accept(this);
 
-            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
 
             if (basic_typed) {
 

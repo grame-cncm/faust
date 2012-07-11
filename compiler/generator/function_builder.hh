@@ -115,11 +115,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                             // Be sure variable is defined
                             //cerr << "createParameter kStack " << address->getName() << endl;
-                            assert(gVarTable.find(address->getName()) != gVarTable.end());
+                            assert(DeclareVarInst::gVarTable.find(address->getName()) != DeclareVarInst::gVarTable.end());
 
                             // Local in the enclosing context, becomes a fun parameter
                             BasicCloneVisitor cloner;
-                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), gVarTable[address->getName()]->clone(&cloner)));
+                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), DeclareVarInst::gVarTable[address->getName()]->clone(&cloner)));
 
                             // It becomes a value in the fun-call argument list
                             fArgsValueList.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(address->getName(), Address::kStack)));
@@ -144,11 +144,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Be sure variable is defined
                         cerr << "createParameter kFunArgs " << address->getName() << endl;
-                        assert(gVarTable.find(address->getName()) != gVarTable.end());
+                        assert(DeclareVarInst::gVarTable.find(address->getName()) != DeclareVarInst::gVarTable.end());
 
                         // Parameter in the enclosing function, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), gVarTable[address->getName()]->clone(&cloner)));
+                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), DeclareVarInst::gVarTable[address->getName()]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list : keep it's kFunArgs status
                         fArgsValueList.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(address->getName(), Address::kFunArgs)));
@@ -589,9 +589,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
 
-        if (inst->fTyped->getType() == Typed::kFloat) {
+        if (inst->fType->getType() == Typed::kFloat) {
             return (float1) ? float1 : new FloatNumInst(float(int1->fNum));
-        } else if (inst->fTyped->getType() == Typed::kInt) {
+        } else if (inst->fType->getType() == Typed::kInt) {
             return (int1) ? int1 : new IntNumInst(int(float1->fNum));
         } else {
             assert(false);
@@ -641,7 +641,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return new DropInst();
         } else {
             BasicCloneVisitor cloner;
-            return new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fTyped->clone(&cloner), val1);
+            return new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), val1);
         }
     }
 
@@ -908,8 +908,8 @@ struct StructVarAnalyser : public DispatchVisitor {
         DispatchVisitor::visit(inst);
 
         // Keep "simple" struct variables
-        if (inst->fAddress->getAccess() == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fTyped) || dynamic_cast<NamedTyped*>(inst->fTyped))) {
-            Typed::VarType type = inst->fTyped->getType();
+        if (inst->fAddress->getAccess() == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fType) || dynamic_cast<NamedTyped*>(inst->fType))) {
+            Typed::VarType type = inst->fType->getType();
             ValueInst* init;
             if (type == Typed::kFloat)
                 init = InstBuilder::genFloatNumInst(0.5);

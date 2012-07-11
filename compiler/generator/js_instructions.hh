@@ -183,7 +183,7 @@ class JAVAScriptInstVisitor : public InstVisitor {
                 inst->fValue->accept(this);
                 EndLine();
             } else {
-                ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped);
+                ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_typed && array_typed->fSize > 1) {
                     string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
                     *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";

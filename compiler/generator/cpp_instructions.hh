@@ -180,9 +180,9 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
             }
 
             if (inst->fValue) {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()) << " = "; inst->fValue->accept(this); EndLine();
             } else {
-                *fOut << generateType(inst->fTyped, inst->fAddress->getName()); EndLine();
+                *fOut << generateType(inst->fType, inst->fAddress->getName()); EndLine();
             }
         }
 
@@ -344,7 +344,7 @@ class CPPInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << generateType(inst->fTyped);
+            *fOut << generateType(inst->fType);
             *fOut << "("; inst->fInst->accept(this);  *fOut << ")";
         }
 
@@ -571,8 +571,8 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             fCurValue = inst->fAddress->getName();
             //cerr << "inst->fAddress->getName " << inst->fAddress->getName() << std::endl;
             // Keep type
-            assert(gVarTable.find(inst->fAddress->getName()) != gVarTable.end());
-            fCurType = gVarTable[inst->fAddress->getName()]->getType();
+            assert(DeclareVarInst::gVarTable.find(inst->fAddress->getName()) != DeclareVarInst::gVarTable.end());
+            fCurType = DeclareVarInst::gVarTable[inst->fAddress->getName()]->getType();
         }
 
         virtual void visit(FloatNumInst* inst)
@@ -635,7 +635,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             // Compile value to cast, result in fCurValue
             inst->fInst->accept(this);
 
-            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fTyped);
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
 
             switch (basic_typed->fType) {
 
@@ -848,8 +848,8 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             // Struct type access
-            if (gVarTable.find(indexed->getName()) != gVarTable.end()) {
-                Typed* var_type = gVarTable[indexed->getName()];
+            if (DeclareVarInst::gVarTable.find(indexed->getName()) != DeclareVarInst::gVarTable.end()) {
+                Typed* var_type = DeclareVarInst::gVarTable[indexed->getName()];
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
                 assert(array_type);
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);

@@ -97,7 +97,7 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
 
         // Vector result when argument is vectorized
         if (cloned_inst->fSize > 1) {
-            return new CastNumInst(cloned_inst, inst->fTyped->clone(this), fSize);
+            return new CastNumInst(cloned_inst, inst->fType->clone(this), fSize);
         }  else {
             return BasicCloneVisitor::visit(inst);
         }

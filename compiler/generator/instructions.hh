@@ -101,9 +101,6 @@ struct VectorTyped;
 struct NamedAddress;
 struct IndexedAddress;
 
-// Globals
-extern map<string, Typed*> gVarTable;
-
 // =========
 // Visitors
 // =========
@@ -462,6 +459,11 @@ struct NamedTyped : public Typed {
     NamedTyped(const string& name, Typed* type)
         :fName(name), fType(type)
     {}
+    
+    virtual ~NamedTyped()
+    {
+        //delete fType;
+    }
 
     VarType getType() { return fType->getType(); }
 
@@ -499,6 +501,11 @@ struct ArrayTyped : public Typed {
     ArrayTyped(Typed* type, int size)
         :fType(type), fSize(size)
     {}
+    
+    virtual ~ArrayTyped()
+    {
+        //delete fType;
+    }
 
     VarType getType() { return getPtrFromType(fType->getType()); }
 
@@ -513,6 +520,11 @@ struct StructTyped : public Typed {
     StructTyped(const string& name, Typed* type)
         :fName(name), fType(type)
     {}
+    
+    virtual ~StructTyped()
+    {
+        //delete fType;
+    }
 
     //VarType getType() { return getPtrFromType(fType->getType()); }
 
@@ -530,6 +542,11 @@ struct VectorTyped : public Typed {
     VectorTyped(BasicTyped* type, int size)
         :fType(type), fSize(size)
     {}
+    
+    virtual ~VectorTyped()
+    {
+        //delete fType;
+    }
 
     VarType getType() { return getVecFromType(fType->getType()); }
 
@@ -617,6 +634,14 @@ struct IndexedAddress : public Address {
     IndexedAddress(Address* address, ValueInst* index)
         :fAddress(address), fIndex(index)
     {}
+    
+    virtual ~IndexedAddress()
+    {
+        /*
+        delete fAddress;
+        delete fIndex;
+        */
+    }
 
     void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
     Address::AccessType getAccess() { return fAddress->getAccess(); }
@@ -749,11 +774,13 @@ struct LabelInst : public StatementInst
 struct DeclareVarInst : public StatementInst
 {
     Address* fAddress;
-    Typed* fTyped;
+    Typed* fType;
     ValueInst* fValue;
+    
+    static map<string, Typed*> gVarTable;
 
     DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
-        :fAddress(address), fTyped(typed), fValue(value)
+        :fAddress(address), fType(typed), fValue(value)
     {
         if (gVarTable.find(fAddress->getName()) == gVarTable.end()) {
             gVarTable[fAddress->getName()] = typed;
@@ -763,7 +790,11 @@ struct DeclareVarInst : public StatementInst
     virtual ~DeclareVarInst()
     {
         gVarTable.erase(fAddress->getName());
+        /*
         delete fAddress;
+        delete fType;
+        delete fValue;
+        */
     }
 
     void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
@@ -791,6 +822,11 @@ struct DropInst : public StatementInst
     DropInst(ValueInst* result = NULL)
         :fResult(result)
     {}
+    
+    virtual ~DropInst()
+    {
+        //delete fResult;
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -804,6 +840,11 @@ struct LoadVarInst : public ValueInst
     LoadVarInst(Address* address, int size = 1)
         :ValueInst(size), fAddress(address)
     {}
+    
+    virtual ~LoadVarInst()
+    {
+        //delete fAddress;
+    }
 
     void setName(const string& name) { fAddress->setName(name); }
     string getName() {return fAddress->getName(); }
@@ -820,6 +861,11 @@ struct LoadVarAddressInst : public ValueInst
     LoadVarAddressInst(Address* address, int size = 1)
         :ValueInst(size), fAddress(address)
     {}
+    
+    virtual ~LoadVarAddressInst()
+    {
+        //delete fAddress;
+    }
 
     void setName(const string& name) { fAddress->setName(name); }
     string getName() {return fAddress->getName(); }
@@ -837,6 +883,14 @@ struct StoreVarInst : public StatementInst
     StoreVarInst(Address* address, ValueInst* value)
         :fAddress(address), fValue(value)
     {}
+    
+    virtual ~StoreVarInst()
+    {
+        /*
+        delete fAddress;
+        delete fValue;
+        */
+    }
 
     void setName(const string& name) { fAddress->setName(name); }
     string getName() {return fAddress->getName(); }
@@ -911,6 +965,14 @@ struct BinopInst : public ValueInst
     BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1)
         :ValueInst(size), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
     {}
+    
+    virtual ~BinopInst()
+    {
+        /*
+        delete fInst1;
+        delete fInst2;
+        */
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -919,12 +981,20 @@ struct BinopInst : public ValueInst
 
 struct CastNumInst : public ValueInst
 {
-    Typed* fTyped;
+    Typed* fType;
     ValueInst* fInst;
 
     CastNumInst(ValueInst* inst, Typed* typed, int size = 1)
-        :ValueInst(size), fTyped(typed), fInst(inst)
+        :ValueInst(size), fType(typed), fInst(inst)
     {}
+    
+    virtual ~CastNumInst()
+    {
+        /*
+        delete fType;
+        delete fInst;
+        */
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -947,6 +1017,16 @@ struct BlockInst : public StatementInst
     BlockInst()
         :fIndent(false)
     {}
+    
+    virtual ~BlockInst()
+    {
+        /*
+        list<StatementInst*>::const_iterator it;
+        for (it = fCode.begin(); it != fCode.end(); it++) {
+            delete(*it);
+        }
+        */
+    }
 
     void setIndent(bool indent) { fIndent = indent; }
     bool getIndent() { return fIndent; }
@@ -978,6 +1058,15 @@ struct Select2Inst : public ValueInst
     Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst, int size = 1)
         :ValueInst(size), fCond(cond_inst), fThen(then_inst), fElse(else_inst)
     {}
+    
+    virtual ~Select2Inst()
+    {
+        /*
+        delete fCond;
+        delete fThen;
+        delete fElse;
+        */
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -997,6 +1086,15 @@ struct IfInst : public StatementInst
     IfInst(ValueInst* cond_inst, BlockInst* then_inst)
         :fCond(cond_inst), fThen(then_inst), fElse(new BlockInst())
     {}
+    
+    virtual ~IfInst()
+    {
+        /*
+        delete fCond;
+        delete fThen;
+        delete fElse;
+        */
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1015,6 +1113,16 @@ struct SwitchInst : public StatementInst
     SwitchInst(ValueInst* cond)
         :fCond(cond)
     {}
+    
+    virtual ~SwitchInst()
+    {
+        /*
+        list<pair<int, BlockInst*> >::const_iterator it;
+        for (it = fCode.begin(); it != fCode.end(); it++) {
+            delete (*it).second;
+        }
+        */
+    }
 
     void addCase(int value, BlockInst* block) { fCode.push_back(make_pair(value, block)); }
 
@@ -1030,6 +1138,11 @@ struct RetInst : public StatementInst
     RetInst(ValueInst* result = NULL)
         :fResult(result)
     {}
+    
+    virtual ~RetInst()
+    {
+        //delete fResult;
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1045,6 +1158,16 @@ struct FunCallInst : public ValueInst
     FunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
         :ValueInst(size), fName(name), fArgs(args), fMethod(method)
     {}
+    
+    virtual ~FunCallInst()
+    {
+        /*
+        list<ValueInst*>::const_iterator it;
+        for (it = fArgs.begin(); it != fArgs.end(); it++) {
+            delete(*it);
+        }
+        */
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1063,6 +1186,14 @@ struct DeclareFunInst : public StatementInst
     DeclareFunInst(const string& name, FunTyped* type)
         :fName(name), fType(type), fCode(new BlockInst())
     {}
+    
+    virtual ~DeclareFunInst()
+    {
+        /*
+        delete fType;
+        delete fCode;
+        */
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1087,6 +1218,11 @@ struct DeclareTypeInst : public StatementInst
     DeclareTypeInst(Typed* type)
         :fType(type)
     {}
+    
+    virtual ~DeclareTypeInst()
+    {
+        //delete fType;
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1110,6 +1246,16 @@ struct ForLoopInst : public StatementInst
     ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment)
         :fInit(init), fIncrement(increment), fEnd(end), fCode(new BlockInst())
     {}
+    
+    virtual ~ForLoopInst()
+    {
+        /*
+        delete fInit;
+        delete fIncrement;
+        delete fEnd;
+        delete fCode;
+        */
+    }
 
     void pushFrontInst(StatementInst* inst)
     {
@@ -1134,6 +1280,14 @@ struct WhileLoopInst : public StatementInst
     WhileLoopInst(ValueInst* cond, BlockInst* code)
         :fCond(cond), fCode(code)
     {}
+    
+    virtual ~WhileLoopInst()
+    {
+        /*
+        delete fCond;
+        delete fCode;
+        */
+    }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1157,8 +1311,8 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(DeclareVarInst* inst)
         {
             return (inst->fValue)
-                ? new DeclareVarInst(inst->fAddress->clone(this), inst->fTyped->clone(this), inst->fValue->clone(this))
-                : new DeclareVarInst(inst->fAddress->clone(this), inst->fTyped->clone(this), NULL);
+                ? new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), inst->fValue->clone(this))
+                : new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), NULL);
         }
         virtual StatementInst* visit(DeclareFunInst* inst)
         {
@@ -1191,7 +1345,7 @@ class BasicCloneVisitor : public CloneVisitor {
             return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), inst->fSize);
         }
 
-        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this), inst->fTyped->clone(this), inst->fSize); }
+        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this), inst->fType->clone(this), inst->fSize); }
 
         // Function call
         virtual ValueInst* visit(FunCallInst* inst)
@@ -1506,8 +1660,10 @@ class CombinerVisitor : public DispatchVisitor
 
         virtual ~CombinerVisitor()
         {
+            /*
             delete fVisitor1;
             delete fVisitor2;
+            */
         }
 
 };

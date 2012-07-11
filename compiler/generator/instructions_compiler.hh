@@ -42,10 +42,7 @@
 #include "property.hh"
 #include "Text.hh"
 
-
 using namespace std;
-
-//extern string gMasterName;
 
 typedef ValueInst* InstType;
 
@@ -137,7 +134,15 @@ class InstructionsCompiler {
             fLoadedIota(false)
         {}
         virtual ~InstructionsCompiler()
-        {}
+        {
+            /*
+            TODO : InstructionsCompiler::signal2Container currently use a stack based InstructionsCompiler that finally destroys container,
+            but container is also kept in sub-container list... 
+            delete fUIRoot;
+            delete fDescription;
+            delete fContainer;
+            */
+        }
 
         virtual ValueInst* CS(Tree sig);
 

@@ -53,7 +53,7 @@ void WSSCodeContainer::MoveStackSlow2Struct()
             if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
                 inst->fAddress->setAccess(Address::kLink);
                 // Replace the Declare instruction by a version *without* the associated value
-                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
+                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fType->clone(&cloner), NULL));
             }
         }
 
@@ -103,7 +103,7 @@ void WSSCodeContainer::MoveStackSlow2Struct()
                 return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fValue->clone(&cloner1));
                 /*
                 return InstBuilder::genDeclareVarInst(inst->fName,
-                                                    inst->fTyped->clone(this),
+                                                    inst->fType->clone(this),
                                                     Address::kStack,
                                                     InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct)));
                 */
@@ -148,9 +148,9 @@ void WSSCodeContainer::MoveStackArray2Struct()
             DispatchVisitor::visit(inst);
             ArrayTyped* array_typed;
             BasicCloneVisitor cloner;
-            if (inst->fAddress->getAccess() == Address::kStack && (array_typed = dynamic_cast<ArrayTyped*>(inst->fTyped))) {
+            if (inst->fAddress->getAccess() == Address::kStack && (array_typed = dynamic_cast<ArrayTyped*>(inst->fType))) {
                 if (array_typed->fSize > 0) {
-                    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
+                    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fType->clone(&cloner), NULL));
                 } else {
                     // Define a special cloner that force access to kStruct
                     struct StructVarCloneVisitor : public BasicCloneVisitor {
@@ -205,7 +205,7 @@ void WSSCodeContainer::MoveStack2Struct()
             if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
 
                 // Variable moved to the Struct
-                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fTyped->clone(&cloner), NULL));
+                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fType->clone(&cloner), NULL));
 
                 // For local thread access (in computeThread), rewrite the Declare instruction by a Store
                 if (inst->fValue)

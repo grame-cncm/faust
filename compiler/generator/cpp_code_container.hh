@@ -37,9 +37,6 @@
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
-extern string gMasterDocument;
-//extern string gOutputFile;
-
 using namespace std;
 
 class CPPCodeContainer : public virtual CodeContainer {
