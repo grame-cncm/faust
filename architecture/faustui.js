@@ -278,3 +278,17 @@ function Meta(div)  {
         }
 	}
 }
+
+
+function FMI {
+
+    this.list = function()  // ===>  "/karplus/volume",   "/karplus/pitch"
+    {
+    
+    }
+    
+    this.set = function(param, value) {}
+    
+    this.get = function(param) {}
+    
+}

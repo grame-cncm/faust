@@ -84,7 +84,7 @@ class DocCompiler
 	Tree			annotate(Tree L0);	
 	
 	Lateq*			getLateq()							{ return (Lateq*)fLateq; }
-	void			setDescription(Description* descr)	{ fDescription= descr; }
+	void			setDescription(Description* descr)	{ fDescription = descr; }
 	Description*	getDescription()					{ return fDescription; }
 	
 	

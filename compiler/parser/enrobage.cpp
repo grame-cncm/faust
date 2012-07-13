@@ -173,7 +173,7 @@ void inject(ostream& dst, const string fname)
 {
     if (alreadyIncluded.find(fname) == alreadyIncluded.end()) {
         alreadyIncluded.insert(fname);
-        istream* src = open_arch_stream( fname.c_str());
+        istream* src = open_arch_stream(fname.c_str());
         if (src) {
             streamCopy(*src, dst);
         } else {
@@ -216,44 +216,44 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
     streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
-
 /**
  * Try to open an architecture file searching in various directories
  */
 ifstream* open_arch_stream(const char* filename)
 {
-	char	buffer[FAUST_PATH_MAX];
-    char*	old = getcwd (buffer, FAUST_PATH_MAX);
-	int		err;
+ 	int	err;
+    char *envpath;
+    
+    char buffer[FAUST_PATH_MAX];
+    char* old = getcwd(buffer, FAUST_PATH_MAX);
+  
+    ifstream* f = new ifstream();
+    f->open(filename, ifstream::in); if (f->is_open()) return f; else delete f;
 
-    {
-	    ifstream* f = new ifstream();
-	    f->open(filename, ifstream::in); if (f->is_open()) return f; else delete f;
-    }
-    char *envpath = getenv("FAUST_LIB_PATH");
-    if (envpath!=NULL) {
-		if (chdir(envpath)==0) {
+    envpath = getenv("FAUST_LIB_PATH");
+    if (envpath != NULL) {
+		if (chdir(envpath) == 0) {
 			ifstream* f = new ifstream();
 			f->open(filename, ifstream::in);
 			if (f->is_open()) return f; else delete f;
 		}
     }
 	err = chdir(old);
-	if ( (chdir(gGlobal->gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+	if ((chdir(gGlobal->gFaustDirectory.c_str()) == 0) && (chdir("architecture") == 0)) {
 		//cout << "enrobage.cpp : 'architecture' directory found in gGlobal->gFaustDirectory" << endl;
         ifstream* f = new ifstream();
 		f->open(filename, ifstream::in);
 		if (f->good()) return f; else delete f;
 	}
     err = chdir(old);
-    if ((chdir(gGlobal->gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+    if ((chdir(gGlobal->gFaustSuperDirectory.c_str()) == 0) && (chdir("architecture") == 0)) {
         //cout << "enrobage.cpp : 'architecture' directory found in gGlobal->gFaustSuperDirectory" << endl;
         ifstream* f = new ifstream();
         f->open(filename, ifstream::in);
         if (f->good()) return f; else delete f;
     }
     err = chdir(old);
-	if ((chdir(gGlobal->gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
+	if ((chdir(gGlobal->gFaustSuperSuperDirectory.c_str()) == 0) && (chdir("architecture") == 0)) {
         //cout << "enrobage.cpp : 'architecture' directory found in gGlobal->gFaustSuperSuperDirectory" << endl;
         ifstream* f = new ifstream();
 		f->open(filename, ifstream::in);
@@ -261,47 +261,44 @@ ifstream* open_arch_stream(const char* filename)
 	}
 #ifdef INSTALL_PREFIX
 	err = chdir(old);
-	if (chdir(INSTALL_PREFIX "/lib/faust")==0) {
+	if (chdir(INSTALL_PREFIX "/lib/faust") == 0) {
         ifstream* f = new ifstream();
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
     err = chdir(old);
-    if (chdir(INSTALL_PREFIX "/include")==0) {
+    if (chdir(INSTALL_PREFIX "/include") == 0) {
         ifstream* f = new ifstream();
         f->open(filename);
         if (f->good()) return f; else delete f;
     }
 #endif
 	err = chdir(old);
-	if (chdir("/usr/local/lib/faust")==0) {
+	if (chdir("/usr/local/lib/faust") == 0) {
         ifstream* f = new ifstream();
 		f->open(filename); 
 		if (f->good()) return f; else delete f;
 	}
     err = chdir(old);
-    if (chdir("/usr/lib/faust")==0) {
+    if (chdir("/usr/lib/faust") == 0) {
         ifstream* f = new ifstream();
         f->open(filename);
         if (f->good()) return f; else delete f;
     }
     err = chdir(old);
-    if (chdir("/usr/local/include")==0) {
+    if (chdir("/usr/local/include") == 0) {
         ifstream* f = new ifstream();
         f->open(filename);
         if (f->good()) return f; else delete f;
     }
     err = chdir(old);
-    if (chdir("/usr/include")==0) {
+    if (chdir("/usr/include") == 0) {
         ifstream* f = new ifstream();
         f->open(filename);
         if (f->good()) return f; else delete f;
     }
-
 	return 0;
 }
-
-
 
 /*---------------------------------------------*/
 
@@ -548,7 +545,7 @@ string filedirname(const string& name)
     const unsigned int  size = base-name.c_str();
     string              dirname;
 
-    if (size==0) {
+    if (size == 0) {
         dirname += '.';
 
     } else if (size==1) {

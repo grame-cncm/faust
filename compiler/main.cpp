@@ -28,6 +28,7 @@ extern "C" int compile_faust_internal(int argc, char* argv[], bool time_out, con
 int main(int argc, char* argv[])
 {
     int res = 0;
+    gGlobal = NULL;
    
     try {
         gGlobal = new global();

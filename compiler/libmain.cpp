@@ -564,12 +564,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         gOutputLang = "cpp";
     }
 
-    InstructionsCompiler* comp;
+    InstructionsCompiler* comp = NULL;
     CodeContainer* container = NULL;
 
     startTiming("compilation");
-
-    istream* enrobage;
 
     if (gOutputLang == "llvm") {
 
@@ -659,9 +657,16 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         /****************************************************************
          * generate output file
          ****************************************************************/
+        ifstream* enrobage;
+         
         if (gArchFile != "") {
-            if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
+        
+            // Keep current directory
+            char current_directory[FAUST_PATH_MAX];
+            getcwd(current_directory, FAUST_PATH_MAX);
             
+            if ((enrobage = open_arch_stream(gArchFile.c_str()))) {
+                
                 if (gOutputLang != "js") {
                     printheader(*dst);
                 }
@@ -701,12 +706,16 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 if (gOutputLang == "c" || gOutputLang == "cpp") {
                     tab(0, *dst); *dst << "#endif"<< std::endl;
                 }
-
+                
+                // Restore current_directory
+                chdir(current_directory);
+                 
             } else {
                 stringstream error;
                 error << "ERROR : can't open architecture file " << gArchFile << endl;
                 throw faustexception(error.str());
             }
+            
         } else {
             if (gOutputLang != "js") {
                 printheader(*dst);
@@ -719,7 +728,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             container->produceClass();
         }
+
     }
+    
     endTiming("compilation");
 
     return make_pair(comp, container);
@@ -730,11 +741,12 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     /****************************************************************
      1 - generate XML description (if required)
     *****************************************************************/
-
+  
     if (gPrintXMLSwitch) {
         Description*    D = comp->getDescription(); assert(D);
+        
         ofstream        xout(subst("$0.xml", gGlobal->gMasterDocument).c_str());
-
+      
         if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
         if (gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
         if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)     D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));

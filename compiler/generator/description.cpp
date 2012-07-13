@@ -151,7 +151,7 @@ void Description::print(int n, ostream& fout)
 {
 	list<string>::iterator 	s;
 	list<int>::iterator 	t;
-
+   
 	tab(n,fout); fout << "<faust>";
 
 		tab(n+1,fout);	fout << "<name>" 		<< xmlize(fName) 		<< "</name>";
@@ -198,14 +198,12 @@ void Description::print(int n, ostream& fout)
 
 
 	tab(n,fout); fout << "</faust>" << endl;
-
 }
 
 void Description::ui(Tree t)
 {
 	addGroup(0,t);
 }
-
 
 void Description::addGroup(int level, Tree t)
 {

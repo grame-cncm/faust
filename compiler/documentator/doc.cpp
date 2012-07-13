@@ -964,9 +964,9 @@ static bool doesFileBeginWithCode(const string& faustfile)
 static int makedir(const char* dirname)
 {
 	char	buffer[FAUST_PATH_MAX];
-	gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
+	gCurrentDir = getcwd(buffer, FAUST_PATH_MAX);
 	
-	if ( gCurrentDir.c_str() != 0) {
+	if (gCurrentDir.c_str() != 0) {
 		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			return 0;
@@ -987,10 +987,10 @@ static int makedir(const char* dirname)
  */
 static int mkchdir(const char* dirname)
 {
-	char	buffer[FAUST_PATH_MAX];
+	char buffer[FAUST_PATH_MAX];
 	gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
 
-	if ( gCurrentDir.c_str() != 0) {
+	if (gCurrentDir.c_str() != 0) {
 		int status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			if (chdir(dirname) == 0) {
@@ -1024,7 +1024,7 @@ static int cholddir ()
  */
 static void getCurrentDir ()
 {
-	char	buffer[FAUST_PATH_MAX];
+	char buffer[FAUST_PATH_MAX];
     gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
 }
 
@@ -1037,7 +1037,7 @@ static istream* openArchFile (const string& filename)
 	istream* file;
 	getCurrentDir();	// Save the current directory.
 	//cerr << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
-	if ( (file = open_arch_stream(filename.c_str())) ) {
+	if ((file = open_arch_stream(filename.c_str()))) {
 		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
 	} else {
         stringstream error;
