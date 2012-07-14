@@ -19,14 +19,15 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include "ppsig.hh"
 #include "binop.hh"
 #include "prim2.hh"
 #include "xtended.hh"
 #include "recursivness.hh"
 #include "exception.hh"
+#include "global.hh"
+
+ppsig::ppsig(Tree s) : sig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(false)  {}
 
 ostream& ppsig::printinfix (ostream& fout, const string& opname, int priority, Tree x, Tree y) const
 {

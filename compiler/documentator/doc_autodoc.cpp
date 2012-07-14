@@ -49,7 +49,7 @@ static void				initDocAutodocKeySet();
  */
 void declareAutoDoc() 
 {
-	Tree autodoc = nil;
+	Tree autodoc = gGlobal->nil;
 	Tree process = boxIdent("process");
 	
 	/** Autodoc's "head", with title, author, date, and metadatas. */

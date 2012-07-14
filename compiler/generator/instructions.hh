@@ -47,6 +47,7 @@ using namespace std;
 #include "binop.hh"
 #include "property.hh"
 #include "Text.hh"
+#include "garbageable.hh"
 
 // ============================
 // Generic instruction visitor
@@ -105,7 +106,7 @@ struct IndexedAddress;
 // Visitors
 // =========
 
-class InstVisitor {
+class InstVisitor : public virtual Garbageable {
 
     public:
 
@@ -170,7 +171,7 @@ class InstVisitor {
 
 };
 
-class CloneVisitor {
+class CloneVisitor : public virtual Garbageable {
 
     public:
 
@@ -244,7 +245,7 @@ class CloneVisitor {
 // Base class for instructions
 // ============================
 
-struct Printable
+struct Printable : public virtual Garbageable
 {
     static std::ostream* fOut;
 
@@ -257,7 +258,7 @@ struct Printable
 
 };
 
-struct Vectorizable
+struct Vectorizable : public virtual Garbageable
 {
     int fSize;
 

@@ -166,7 +166,3 @@ class MaxPrim : public xtended
 
 };
 
-
-xtended* gMaxPrim = new MaxPrim();
-
-

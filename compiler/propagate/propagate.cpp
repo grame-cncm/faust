@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #include "propagate.hh"
 #include "prim2.hh"
 #include <assert.h>
@@ -131,7 +129,7 @@ siglist listConcat(const siglist& a, const siglist& b)
 Tree listConvert(const siglist& a)
 {
 	int 	n = a.size();
-	Tree 	t=nil;
+	Tree 	t=gGlobal->nil;
 	while (n--) t = cons(a[n],t);
 	return t;
 }
@@ -443,6 +441,6 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 Tree boxPropagateSig (Tree path, Tree box, const siglist& lsig)
 {
-	return listConvert(propagate(nil, path, box, lsig));
+	return listConvert(propagate(gGlobal->nil, path, box, lsig));
 }
 

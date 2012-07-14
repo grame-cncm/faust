@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include "sigtype.hh"
 #include "compatibility.hh"
 #include <stdio.h>
@@ -29,6 +27,7 @@
 #include "sigtyperules.hh"
 #include "privatise.hh"
 #include "exception.hh"
+#include "global.hh"
 
 /*****************************************************************************
 						 privatise : compile a list of signals
@@ -41,13 +40,10 @@ static Tree privatisation (const Tree& k, const Tree& t);
 static Tree computePrivatisation (const Tree& k, const Tree& t);
 static Tree labelize(const Tree& label, const Tree& exp);
 
-
 Tree privatise(const Tree& t)
 {
-
 	return privatisation(makePrivatisationKey(t), t);
 }
-
 
 // -- implementation -----------------
 
@@ -93,7 +89,7 @@ static Tree privatisation (const Tree& k, const Tree& t)
 		if (v != t) {
 			setProperty(t, k, v );
 		} else {
-			setProperty(t, k, nil);
+			setProperty(t, k, gGlobal->nil);
 		}
 		return v;
 	}
@@ -128,7 +124,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
 	} else if ( isRec(exp, var, body) ) {
 		/*	On ne visite pas les contenus des tables
 		*/
-		setProperty(exp, k, nil);
+		setProperty(exp, k, gGlobal->nil);
 		return rec(var, privatisation(k,body));
 
 	} else {

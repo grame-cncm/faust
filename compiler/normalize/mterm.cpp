@@ -3,6 +3,8 @@
 #include "ppsig.hh"
 #include "xtended.hh"
 #include "exception.hh"
+#include "global.hh"
+
 #include <assert.h>
 
 //static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
@@ -80,7 +82,7 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
 {
 	//cerr << "isSigPow("<< *sig << ')' << endl;
 	xtended* p = (xtended*) getUserData(sig);
-	if (p == gPowPrim) {
+	if (p == gGlobal->gPowPrim) {
        if (isSigInt(sig->branch(1), &n)) {
 			x = sig->branch(0);
 			//cerr << "factor of isSigPow " << *x << endl;
@@ -95,7 +97,7 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
  */
 static Tree sigPow(Tree x, int p)
 {
-	return tree(gPowPrim->symbol(), x, sigInt(p));
+	return tree(gGlobal->gPowPrim->symbol(), x, sigInt(p));
 }
 
 /**

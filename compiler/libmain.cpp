@@ -79,11 +79,12 @@
 #include "drawschema.hh"
 #include "timing.hh"
 #include "ppsig.hh"
+#include "garbageable.hh"
 
 using namespace std;
 
-
 global*         gGlobal = NULL;
+list<Garbageable*> Garbageable::gTable;
 
 /****************************************************************
  						Parser variables
@@ -494,7 +495,7 @@ static void parseSourceFiles()
     startTiming("parser");
 
     list<string>::iterator s;
-    gGlobal->gResult2 = nil;
+    gGlobal->gResult2 = gGlobal->nil;
 
     if (gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
         stringstream error;
@@ -827,7 +828,7 @@ int compile_faust_internal(int argc, char* argv[], bool time_out, const char* in
     *****************************************************************/
     startTiming("propagation");
 
-    Tree lsignals = boxPropagateSig(nil, process, makeSigInputList(numInputs));
+    Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
 
     if (gGlobal->gDetailsSwitch) {
         cerr << "output signals are : " << endl;
@@ -867,7 +868,7 @@ Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* in
     gGlobal = NULL;
     
     try {
-        gGlobal = new global();
+        global::allocate();
         compile_faust_internal(argc, argv, time_out, input_name, input);
         module = gGlobal->gModule;
         strcpy(error_msg, gGlobal->gErrorMsg);
@@ -875,7 +876,7 @@ Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* in
         strcpy(error_msg, e.Message().c_str());
     }
     
-    delete gGlobal;
+    global::destroy();
     return module;
 }
 
@@ -885,13 +886,13 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* input_name,
     gGlobal = NULL;
     
     try {
-        gGlobal = new global();
+        global::allocate();        
         res = compile_faust_internal(argc, argv, time_out, input_name, input);
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strcpy(error_msg, e.Message().c_str());
     }
     
-    delete gGlobal;
+    global::destroy();
     return res;
 }

@@ -1,4 +1,24 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+ 
 /* compiler/patternmatcher/patternmatcher.cpp: implementation of the Faust
    rewriting engine */
 
@@ -531,7 +551,7 @@ Automaton *make_pattern_matcher(Tree R)
   for (r = 0; r < n; r++) {
     int s = 0, m = testpats[r].size();
     Tree C;
-    vector<Tree> E(n, nil);
+    vector<Tree> E(n, gGlobal->nil);
     /* try to match the lhs of rule #r */
     for (int i = 0; i < m; i++) {
       s = apply_pattern_matcher(A, s, testpats[r][i], C, E);
@@ -675,7 +695,7 @@ int apply_pattern_matcher(Automaton *A,		// automaton
   cerr << "automaton " << A << ", state " << s << ", start match on arg: " << *X << endl;
 #endif
   s = apply_pattern_matcher_internal(A, s, X, subst);
-  C = nil;
+  C = gGlobal->nil;
   if (s < 0)
     /* failed match */
     return s;
@@ -714,7 +734,7 @@ int apply_pattern_matcher(Automaton *A,		// automaton
     for (r = A->rules(s).begin(); r != A->rules(s).end(); r++) // all rules matched in state s
       if (!isBoxError(E[r->r])) { // and still viable
 	/* return the rhs of the matched rule */
-	C = closure(A->rhs[r->r], nil, nil, E[r->r]);
+	C = closure(A->rhs[r->r], gGlobal->nil, gGlobal->nil, E[r->r]);
 #ifdef DEBUG
     cerr << "state " << s << ", complete match yields rhs #" << r->r <<
 	  ": " << *A->rhs[r->r] << endl;

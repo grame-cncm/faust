@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include <stdio.h>
 #include <assert.h>
 #include "list.hh"
@@ -96,7 +94,7 @@ static Tree simplification (Tree sig)
 		for (int i=0; i<sig->arity(); i++) { args.push_back( sig->branch(i) ); }
 
         // to avoid negative power to further normalization
-        if (xt != gPowPrim) {
+        if (xt != gGlobal->gPowPrim) {
             return xt->computeSigOutput(args);
         } else {
             return normalizeAddTerm(xt->computeSigOutput(args));
@@ -195,12 +193,12 @@ static Tree sigMap (Tree key, tfun f, Tree t)
 
     } else if (isRec(t, id, body)) {
 
-        setProperty(t, key, nil);	// avoid infinite loop
+        setProperty(t, key, gGlobal->nil);	// avoid infinite loop
         return rec(id, sigMap(key, f, body));
 
     } else {
 
-        Tree r1=nil;
+        Tree r1=gGlobal->nil;
         switch (t->arity()) {
 
             case 0 :
@@ -223,7 +221,7 @@ static Tree sigMap (Tree key, tfun f, Tree t)
         }
         Tree r2 = f(r1);
         if (r2 == t) {
-            setProperty(t, key, nil);
+            setProperty(t, key, gGlobal->nil);
         } else {
             setProperty(t, key, r2);
         }
@@ -266,7 +264,7 @@ static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
 
     } else {
 
-        Tree r1=nil;
+        Tree r1=gGlobal->nil;
         switch (t->arity()) {
 
             case 0 :
@@ -293,7 +291,7 @@ static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
         }
         Tree r2 = f(r1);
         if (r2 == t) {
-            setProperty(t, key, nil);
+            setProperty(t, key, gGlobal->nil);
         } else {
             setProperty(t, key, r2);
         }
@@ -314,7 +312,7 @@ static void eraseProperties (Tree key, Tree t)
 		t->clearProperties();
         Tree r=rec(id, body);
         assert(r==t);
-		setProperty(t, key, nil);	// avoid infinite loop
+		setProperty(t, key, gGlobal->nil);	// avoid infinite loop
 		eraseProperties(key, body);
 
 	} else {

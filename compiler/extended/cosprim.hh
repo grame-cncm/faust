@@ -5,12 +5,12 @@
 #include "floats.hh"
 #include "code_container.hh"
 
-class CeilPrim : public xtended
+class CosPrim : public xtended
 {
 
  public:
 
- 	CeilPrim() : xtended("ceil") {}
+ 	CosPrim() : xtended("cos") {}
 
 	virtual unsigned int 	arity () { return 1; }
 
@@ -18,22 +18,20 @@ class CeilPrim : public xtended
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == arity());
-		return floatCast(args[0]);
+		assert (args.size() == 1);
+		return castInterval(floatCast(args[0]), interval(-1,1));
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
-		assert (args.size() == arity());
 		return args[0];
 	}
 
 	virtual Tree	computeSigOutput (const vector<Tree>& args) {
 		num n;
-		assert (args.size() == arity());
 		if (isNum(args[0],n)) {
-			return tree(ceil(double(n)));
+			return tree(cos(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -48,8 +46,8 @@ class CeilPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        return container->pushFunction(subst("ceil$0", isuffix()), result_type, arg_types, args);
+        
+        return container->pushFunction(subst("cos$0", isuffix()), result_type, arg_types, args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -57,12 +55,8 @@ class CeilPrim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-		return subst("\\left\\lceil $0 \\right\\rceil", args[0]);
+        return subst("\\cos\\left($0\\right)", args[0]);
 	}
 
 };
-
-
-xtended* gCeilPrim = new CeilPrim();
-
 

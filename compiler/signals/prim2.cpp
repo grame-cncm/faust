@@ -19,21 +19,19 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #include "prim2.hh"
-#include "stdlib.h"
+#include "global.hh"
 
-static Sym FFUN = symbol ("ForeignFunction");
+#include <stdlib.h>
 
 Tree ffunction (Tree signature, Tree incfile, Tree libfile)
 {
-	return tree(FFUN, signature, incfile, libfile);
+	return tree(gGlobal->FFUN, signature, incfile, libfile);
 }
 
 bool isffunction(Tree t)
 {
-	return t->node() == Node(FFUN); 
+	return t->node() == Node(gGlobal->FFUN); 
 }
 
 Tree ffsignature(Tree ff) 

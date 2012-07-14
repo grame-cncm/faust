@@ -52,7 +52,7 @@ class ppsig
 	int		fPriority;	///< priority context
 	bool	fHideRecursion; 	///<
 public:
-	ppsig(Tree s) : sig(s), fEnv(nil), fPriority(0), fHideRecursion(false)  {}
+	ppsig(Tree s);
 	ostream& print (ostream& fout) const;
 
 private:

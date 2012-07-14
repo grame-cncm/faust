@@ -35,7 +35,43 @@
 
 #include <llvm/Module.h>
 #include "sourcereader.hh"
-#include "tree.hh"
+#include "property.hh"
+#include "sigtype.hh"
+
+//#include "tree.hh"
+
+/*
+#include "absprim.hh"
+#include "acosprim.hh"
+#include "tanprim.hh"
+#include "sqrtprim.hh"
+#include "sinprim.hh"
+#include "rintprim.hh"
+#include "remainderprim.hh"
+#include "powprim.hh"
+#include "minprim.hh"
+#include "maxprim.hh" 
+#include "logprim.hh"
+#include "log10prim.hh"
+#include "fmodprim.hh" 
+#include "floorprim.hh"
+#include "expprim.hh"
+#include "cosprim.hh"
+#include "ceilprim.hh"
+#include "atanprim.hh"
+#include "atan2prim.hh"
+#include "asinprim.hh"
+*/
+
+class 	CTree;
+typedef CTree* Tree;
+
+class Symbol;
+typedef Symbol* Sym;
+
+class xtended;
+
+class AudioType;
 
 struct global {
 
@@ -153,119 +189,187 @@ struct global {
     Tree                    DEFNAMEPROPERTY;
     Tree                    NICKNAMEPROPERTY;
     Tree                    BCOMPLEXITY;
-  
-    global():TABBER(1)
-    {
-        CTree::init();
-        
-        // Needed ?
-        //Symbol::init();
-        
-        gResult             = 0;
-        gResult2            = 0;
-        gExpandedDefList    = 0;
-        
-        gDetailsSwitch  = false;
-        gDrawSignals    = false;
-        gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
-        gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
-        gFoldThreshold 	= 25;
-        gMaxNameSize 	= 40;
-        gSimpleNames 	= false;
-        gSimplifyDiagrams = false;
-        gLessTempSwitch = false;
-        gMaxCopyDelay	= 16;
-   
-        gVectorSwitch   = false;
-        gDeepFirstSwitch = false;
-        gVecSize        = 32;
-        gVectorLoopVariant = 0;
-        gVecLoopSize = 0;
-
-        gOpenMPSwitch   = false;
-        gOpenMPLoop     = false;
-        gSchedulerSwitch  = false;
-        gOpenCLSwitch  = false;
-        gCUDASwitch = false;
-        gGroupTaskSwitch = false;
-        gFunTaskSwitch = false;
-
-        gUIMacroSwitch  = false;
-        gDumpNorm       = false;
-
-        gFloatSize = 1;
-
-        gPrintFileListSwitch = false;
-        gInlineArchSwitch = true;
-
-        gDSPStruct = false;
-
-        gClassName = "mydsp";
-
-        gModule = 0;
-        gInputString = 0;
-        
-        gLstDependenciesSwitch	= true; ///< mdoc listing management.
-        gLstMdocTagsSwitch		= true; ///< mdoc listing management.
-        gLstDistributedSwitch	= true; ///< mdoc listing management.
-        
-        gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
-        
-        gErrorCount = 0;
-        
-        gFileNum = 0;
-        
-        gCountInferences = 0;
-        gCountMaximal = 0;
-        
-        gDummyInput = 10000;
-        
-        gBoxSlotNumber = 0;
-        
-        BOXTYPEPROP = tree(symbol("boxTypeProp"));
-        NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
-        DEFLINEPROP = tree(symbol("DefLineProp"));
-        SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
-        DOCTABLES = tree(symbol("DocTablesProp"));
-        NULLENV = tree(symbol("NullRenameEnv"));
-        COLORPROPERTY = tree(symbol("ColorProperty"));
-        ORDERPROP = tree(symbol("OrderProp"));
-        RECURSIVNESS = tree(symbol("RecursivnessProp"));
-        NULLTYPEENV = tree(symbol("NullTypeEnv"));
-        RECDEF = tree(symbol("RECDEF"));
-        DEBRUIJN2SYM = tree(symbol("deBruijn2Sym"));
-        DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
-        NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
-        BCOMPLEXITY = tree("BCOMPLEXITY");
-    }
     
-    ~global()
-    {
-        delete gResult;
-        delete gResult2;
-        
-        delete BOXTYPEPROP;
-        delete NUMERICPROPERTY;
-        delete DEFLINEPROP;
-        delete SIMPLIFIED;
-        delete DOCTABLES;
-        delete NULLENV;
-        delete COLORPROPERTY;
-        delete ORDERPROP;
-        delete RECURSIVNESS;
-        delete NULLTYPEENV;
-        delete RECDEF;
-        delete DEBRUIJN2SYM;
-        delete DEFNAMEPROPERTY;
-        delete NICKNAMEPROPERTY;
-        delete BCOMPLEXITY;
-        
-        CTree::cleanup();
-        
-        // Needed ?
-        //Symbol::cleanup(); 
-    }
+    xtended*                gAbsPrim;
+    xtended*                gAcosPrim;
+    xtended*                gTanPrim;
+    xtended*                gSqrtPrim;
+    xtended*                gSinPrim;
+    xtended*                gRintPrim;
+    xtended*                gRemainderPrim;
+    xtended*                gPowPrim;
+    xtended*                gMinPrim;
+    xtended*                gMaxPrim;
+    xtended*                gLogPrim;
+    xtended*                gLog10Prim;
+    xtended*                gFmodPrim;
+    xtended*                gFloorPrim;
+    xtended*                gExpPrim;
+    xtended*                gCosPrim;
+    xtended*                gCeilPrim;
+    xtended*                gAtanPrim;
+    xtended*                gAtan2Prim;
+    xtended*                gAsinPrim;
+    
+    Sym BOXIDENT;
+    Sym BOXCUT;
+    Sym BOXWIRE;
+    Sym BOXSLOT;
+    Sym BOXSYMBOLIC;
+    Sym BOXSEQ;
+    Sym BOXPAR;
+    Sym BOXREC;
+    Sym BOXSPLIT;
+    Sym BOXMERGE;
+    Sym BOXIPAR;
+    Sym BOXISEQ;
+    Sym BOXISUM;
+    Sym BOXIPROD;
+    Sym BOXABSTR;
+    Sym BOXAPPL;
+    Sym CLOSURE;
+    Sym BOXERROR;
+    Sym BOXACCESS;
+    Sym BOXWITHLOCALDEF;
+    Sym BOXMODIFLOCALDEF;
+    Sym BOXENVIRONMENT;
+    Sym BOXCOMPONENT;
+    Sym BOXLIBRARY;
+    Sym IMPORTFILE;
+    Sym BOXPRIM0;
+    Sym BOXPRIM1;
+    Sym BOXPRIM2;
+    Sym BOXPRIM3;
+    Sym BOXPRIM4;
+    Sym BOXPRIM5;
+    Sym BOXFFUN;
+    Sym BOXFCONST;
+    Sym BOXFVAR;
+    Sym BOXBUTTON;
+    Sym BOXCHECKBOX;
+    Sym BOXHSLIDER;
+    Sym BOXVSLIDER;
+    Sym BOXNUMENTRY;
+    Sym BOXHGROUP;
+    Sym BOXVGROUP;
+    Sym BOXTGROUP;
+    Sym BOXHBARGRAPH;
+    Sym BOXVBARGRAPH;
+    Sym BOXCASE;
+    Sym BOXPATMATCHER;
+    Sym BOXPATVAR;
+    Sym DOCEQN;
+    Sym DOCDGM;
+    Sym DOCNTC;
+    Sym DOCLST;
+    Sym DOCMTD;
+    Sym DOCTXT;
+    Sym BARRIER;
+    
+    property<bool>* gPureRoutingProperty;
+    property<Tree>* gSymbolicBoxProperty;
+    
+    Node EVALPROPERTY;
+    Node PMPROPERTYNODE;
+    
+    property<Tree>* gSimplifiedBoxProperty;
+    
+    Sym UIFOLDER;
+    Sym UIWIDGET;
+    
+    Sym PATHROOT;
+    Sym PATHPARENT;
+    Sym PATHCURRENT;
+    
+    Sym FFUN;
+    
+    // the property used to memoize the results
+    property<Tree>*  gSymListProp;
+    
+    Sym SIGINPUT;
+    Sym SIGOUTPUT;
+    Sym SIGDELAY1;
+    Sym SIGFIXDELAY;
+    Sym SIGPREFIX;
+    Sym SIGIOTA;
+    Sym SIGRDTBL;
+    Sym SIGWRTBL;
+    Sym SIGTABLE;
+    Sym SIGGEN;
+    Sym SIGDOCONSTANTTBL;
+    Sym SIGDOCWRITETBL;
+    Sym SIGDOCACCESSTBL;
+    Sym SIGSELECT2;
+    Sym SIGSELECT3;
+    Sym SIGBINOP;
+    Sym SIGFFUN;
+    Sym SIGFCONST;
+    Sym SIGFVAR;
+    Sym SIGPROJ;
+    Sym SIGINTCAST;
+    Sym SIGFLOATCAST;
+    Sym SIGBUTTON;
+    Sym SIGCHECKBOX;
+    Sym SIGHSLIDER;
+    Sym SIGVSLIDER;
+    Sym SIGNUMENTRY;
+    Sym SIGHBARGRAPH;
+    Sym SIGVBARGRAPH;
+    Sym SIGATTACH;
+    Sym SIGTUPLE;
+    Sym SIGTUPLEACCESS;
+    
+    Sym SIMPLETYPE;
+    Sym TABLETYPE;
+    Sym TUPLETTYPE;
+    // memoized type contruction
+    property<AudioType*>* gMemoizedTypes;
+    
+    // Essential predefined types
+    
+    Type TINT;
+    Type TREAL;
 
+    Type TKONST;
+    Type TBLOCK;
+    Type TSAMP;
+
+    Type TCOMP;
+    Type TINIT;
+    Type TEXEC;
+
+    // more predefined types
+
+    Type TINPUT;
+    Type TGUI;
+    Type TGUI01;
+    Type INT_TGUI;
+    
+    // trying to accelerate type convergence
+    Type TREC; // kVect ou kScal ?
+    
+    Sym CONS;
+    Sym NIL;
+    Tree nil;
+    
+    Sym PROCESS;
+    
+    Sym 	DEBRUIJN;
+    Sym 	DEBRUIJNREF;
+    Sym 	SUBSTITUTE;
+
+    Sym 	SYMREC;
+    Sym 	SYMRECREF;
+    Sym 	SYMLIFTN;
+
+  
+    global();
+    ~global();
+    
+    void init();
+    
+    static void allocate();
+    static void destroy();
 };
 
 extern global* gGlobal;

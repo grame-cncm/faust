@@ -150,13 +150,12 @@ static bool		doesFileBeginWithCode(const string& faustfile);
 					Types of Documentation Elements
  *****************************************************************************/
 
-static Sym DOCTXT = symbol ("DocTxt");
-Tree docTxt(const char* name)		{ return tree( DOCTXT, tree(symbol(name)) ); }
-bool isDocTxt(Tree t)				{ return t->node() == Node(DOCTXT); }
+Tree docTxt(const char* name)		{ return tree( gGlobal->DOCTXT, tree(symbol(name)) ); }
+bool isDocTxt(Tree t)				{ return t->node() == Node(gGlobal->DOCTXT); }
 bool isDocTxt(Tree t0, const char** str)
 {
 	Tree t1; Sym s;
-	if ( isTree(t0, DOCTXT, t1) && isSym(t1->node(), &s) ) {
+	if ( isTree(t0, gGlobal->DOCTXT, t1) && isSym(t1->node(), &s) ) {
 		*str = name(s);
 		return true;
 	} else {
@@ -164,25 +163,20 @@ bool isDocTxt(Tree t0, const char** str)
 	}
 }
 
-static Sym DOCEQN = symbol ("DocEqn");
-Tree docEqn(Tree x) 				{ return tree(DOCEQN, x); 		}
-bool isDocEqn(Tree t, Tree& x) 		{ return isTree(t, DOCEQN, x); 	}
+Tree docEqn(Tree x) 				{ return tree(gGlobal->DOCEQN, x); 		}
+bool isDocEqn(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCEQN, x); 	}
 
-static Sym DOCDGM = symbol ("DocDgm");
-Tree docDgm(Tree x) 				{ return tree(DOCDGM, x); 		}
-bool isDocDgm(Tree t, Tree& x) 		{ return isTree(t, DOCDGM, x); 	}
+Tree docDgm(Tree x) 				{ return tree(gGlobal->DOCDGM, x); 		}
+bool isDocDgm(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCDGM, x); 	}
 
-static Sym DOCNTC = symbol ("DocNtc");
-Tree docNtc()						{ return tree(DOCNTC);			}
-bool isDocNtc(Tree t)				{ return isTree(t, DOCNTC); 	}
+Tree docNtc()						{ return tree(gGlobal->DOCNTC);			}
+bool isDocNtc(Tree t)				{ return isTree(t, gGlobal->DOCNTC); 	}
 
-static Sym DOCLST = symbol ("DocLst");
-Tree docLst()						{ return tree(DOCLST);			}
-bool isDocLst(Tree t)				{ return isTree(t, DOCLST); 	}
+Tree docLst()						{ return tree(gGlobal->DOCLST);			}
+bool isDocLst(Tree t)				{ return isTree(t, gGlobal->DOCLST); 	}
 
-static Sym DOCMTD = symbol ("DocMtd");
-Tree docMtd(Tree x) 				{ return tree(DOCMTD, x); 		}
-bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, DOCMTD, x); 	}
+Tree docMtd(Tree x) 				{ return tree(gGlobal->DOCMTD, x); 		}
+bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCMTD, x); 	}
 
 //string getDocTxt(Tree t) 			{ return hd(t)->branch(0); }
 
@@ -406,10 +400,10 @@ static void printfaustdocstamp(const string& faustversion, ostream& docout)
  *
  * First loop on gGlobal->gGlobal->gDocVector, which contains the faust <mdoc> trees.
  * Second loop for each of these <mdoc> trees, which contain parsed input expressions of 3 types :
- * DOCEQN for <equation> tags, DOCDGM for <diagram> tags, and DOCTXT for direct LaTeX text (no tag).
- * - DOCTXT expressions printing is trivial.
- * - DOCDGM expressions printing calls 'printDocDgm' to generate SVG files and print LaTeX "figure" code.
- * - DOCEQN expressions printing calls 'printDocEqn' after an important preparing work 
+ * gGlobal->DOCEQN for <equation> tags, gGlobal->DOCDGM for <diagram> tags, and gGlobal->DOCTXT for direct LaTeX text (no tag).
+ * - gGlobal->DOCTXT expressions printing is trivial.
+ * - gGlobal->DOCDGM expressions printing calls 'printDocDgm' to generate SVG files and print LaTeX "figure" code.
+ * - gGlobal->DOCEQN expressions printing calls 'printDocEqn' after an important preparing work 
  *   has been done by 'prepareDocEqns'.
  *
  * @param[in]	projname		Basename of the new doc directory ("*-math").
@@ -651,7 +645,7 @@ static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInpu
 		eqInputs.push_back(numInputs);
 		eqOutputs.push_back(numOutputs);
 		
-		Tree lsig1 = boxPropagateSig( nil, *eq , makeSigInputList(numInputs) );
+		Tree lsig1 = boxPropagateSig( gGlobal->nil, *eq , makeSigInputList(numInputs) );
 		//cerr << "output signals are : " << endl;  printSignal(lsig1, stderr);
 		
 		Tree lsig2 = deBruijn2Sym(lsig1);   ///< Convert debruijn recursion into symbolic recursion
@@ -696,7 +690,7 @@ static void collectEqSigs(const vector<Tree>& eqSigs, Tree& superEqList)
 {
 	//cerr << "###\n# Documentator : collectEqSigs" << endl;
 	
-	superEqList = nil;
+	superEqList = gGlobal->nil;
 	
 	for( vector<Tree>::const_iterator it = eqSigs.begin(); it < eqSigs.end(); ++it ) {
 		superEqList = cons( *it, superEqList );

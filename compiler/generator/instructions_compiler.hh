@@ -128,11 +128,8 @@ class InstructionsCompiler {
 
     public:
 
-        InstructionsCompiler(CodeContainer* container)
-            :fContainer(container), fUIRoot(uiFolder(cons(tree(0),
-            tree(subst("$0", gGlobal->gMasterName))))), fDescription(0),
-            fLoadedIota(false)
-        {}
+        InstructionsCompiler(CodeContainer* container);
+      
         virtual ~InstructionsCompiler()
         {
             /*

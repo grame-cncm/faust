@@ -5,21 +5,27 @@
 #include "floats.hh"
 #include "code_container.hh"
 
-class AtanPrim : public xtended
+class SqrtPrim : public xtended
 {
 
  public:
 
- 	AtanPrim() : xtended("atan") {}
+ 	SqrtPrim() : xtended("sqrt") {}
 
-	virtual unsigned int 	arity () { return 1; }
+	virtual unsigned int arity () { return 1; }
 
 	virtual bool	needCache ()	{ return true; }
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
 		assert (args.size() == 1);
-		return floatCast(args[0]);
+		Type 		t = args[0];
+		interval 	i = t->getInterval();
+		if (i.valid && i.lo >=0) {
+			return castInterval(floatCast(t), interval(sqrt(i.lo), sqrt(i.hi)));
+		} else {
+			return castInterval(floatCast(t), interval());
+		}
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
@@ -29,9 +35,10 @@ class AtanPrim : public xtended
 	}
 
 	virtual Tree	computeSigOutput (const vector<Tree>& args) {
+		// verifier les simplifications
 		num n;
 		if (isNum(args[0],n)) {
-			return tree(atan(double(n)));
+			return tree(sqrt(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -46,8 +53,8 @@ class AtanPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        return container->pushFunction(subst("atan$0", isuffix()), result_type, arg_types, args);
+  
+        return container->pushFunction(subst("sqrt$0", isuffix()), result_type, arg_types, args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -55,12 +62,8 @@ class AtanPrim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-        return subst("\\arctan\\left($0\\right)", args[0]);
+        return subst("\\sqrt{$0}", args[0]);
 	}
 
 };
-
-
-xtended* gAtanPrim = new AtanPrim();
-
 

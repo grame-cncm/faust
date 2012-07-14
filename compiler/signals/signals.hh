@@ -19,18 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _SIGNALS_
 #define _SIGNALS_
 
 #include "tlib.hh"
 #include "binop.hh"
+
 #include <assert.h>
 #include <vector>
 
 using namespace std;
-
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -46,7 +44,6 @@ Tree sigReal(double n);
 
 bool  isSigInt(Tree t, int* i);
 bool  isSigReal(Tree t, double* r);
-
 
 // Inputs and outputs
 Tree sigInput(int i);
@@ -79,7 +76,6 @@ bool  isSigFloatCast(Tree t);
 bool  isSigIntCast(Tree t, Tree& x);
 bool  isSigFloatCast(Tree t, Tree& x);
 
-
 // tables
 Tree sigRDTbl (Tree t, Tree i);
 Tree sigWRTbl (Tree id, Tree t, Tree i, Tree s);
@@ -92,16 +88,20 @@ bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig);
 bool isSigGen   (Tree t, Tree& content);
 bool isSigGen   (Tree t);
 
+Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx);
+Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx);
+
+/*
 inline Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
-	return sigRDTbl(sigWRTbl(nil, sigTable(nil, n, sigGen(init)), widx, wsig), ridx);
+	return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, n, sigGen(init)), widx, wsig), ridx);
 }
 
 inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 {
-	return sigRDTbl(sigTable(nil, n, sigGen(init)), ridx);
+	return sigRDTbl(sigTable(gGlobal->nil, n, sigGen(init)), ridx);
 }
-
+*/
 
 // Tables for documentator
 // used to replace real tables for documentation purposes only
@@ -201,7 +201,6 @@ inline bool isNum(const Tree& t, num& n)
 	return false;
 }
 
-
 /*****************************************************************************
 							 User Interface Elements
 *****************************************************************************/
@@ -239,7 +238,6 @@ Tree sigAttach   (Tree x, Tree y);
 bool isSigAttach (Tree s);
 bool isSigAttach (Tree s, Tree& x, Tree& y);
 
-
 /*****************************************************************************
 							 matrix extension
 *****************************************************************************/
@@ -257,14 +255,11 @@ bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 // create a tuple of signals
 Tree sigCartesianProd (Tree s1, Tree s2);
 
-
-
 /*****************************************************************************
 							 access to sub signals of a signal
 *****************************************************************************/
 
 int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen=true);
-
 
 /**
  * Test if exp is very simple that is it
@@ -273,7 +268,5 @@ int	getSubSignals (Tree sig, vector<Tree>& vsigs, bool visitgen=true);
  * @return true if it a very simple signal
  */
 bool verySimple(Tree exp);
-
-
 
 #endif

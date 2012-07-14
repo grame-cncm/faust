@@ -33,7 +33,6 @@
 
 using namespace std;
 
-
 /**
  * @file recursivness.cpp
  * Annotate a signal expression with recursivness information. Recursiveness
@@ -50,7 +49,6 @@ static int annotate(Tree env, Tree sig);
 static int position (Tree env, Tree t, int p=1);
 //--------------------------------------------------------------------------
 
-
 /**
  * Annotate a signal with recursivness. Should be used before
  * calling getRecursivness
@@ -58,9 +56,8 @@ static int position (Tree env, Tree t, int p=1);
  */
 void recursivnessAnnotation(Tree sig)
 {
-	annotate(nil, sig);
+	annotate(gGlobal->nil, sig);
 }
-
 
 /**
  * Return the recursivness of a previously
@@ -130,10 +127,7 @@ static int position (Tree env, Tree t, int p)
 	else return position (tl(env), t, p+1);
 }
 
-
 //-----------------------------------list recursive symbols-----------------------
-
-
 
 /**
  * return the set of recursive symbols appearing in a signal.
@@ -141,16 +135,13 @@ static int position (Tree env, Tree t, int p)
  * @return the set of symbols
  */
 
-// the property used to memoize the results
-property<Tree>  SymListProp;
-
 Tree    symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
-    if (SymListProp.get(sig, S)) {
+    if (gGlobal->gSymListProp->get(sig, S)) {
         return S;
     } else if ( visited.count(sig) > 0 ){
-        return nil;
+        return gGlobal->nil;
     } else {
         visited.insert(sig);
         Tree id, body;
@@ -163,7 +154,7 @@ Tree    symlistVisit(Tree sig, set<Tree>& visited)
         } else {
             vector<Tree> subsigs;
             int n = getSubSignals(sig, subsigs, true); // il faut visiter aussi les tables
-            Tree U = nil;
+            Tree U = gGlobal->nil;
             for (int i=0; i<n; i++) {
                 U = setUnion(U, symlistVisit(subsigs[i], visited));
             }
@@ -175,10 +166,10 @@ Tree    symlistVisit(Tree sig, set<Tree>& visited)
 Tree    symlist(Tree sig)
 {
     Tree    S;
-    if (!SymListProp.get(sig, S)) {
+    if (!gGlobal->gSymListProp->get(sig, S)) {
         set<Tree> visited;
         S = symlistVisit(sig, visited);
-        SymListProp.set(sig, S);
+        gGlobal->gSymListProp->set(sig, S);
     }
     //cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
     return S;

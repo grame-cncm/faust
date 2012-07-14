@@ -31,12 +31,12 @@ int main(int argc, char* argv[])
     gGlobal = NULL;
    
     try {
-        gGlobal = new global();
+        global::allocate();
         res = compile_faust_internal(argc, argv, true, 0, 0);
     } catch (faustexception& e) {
         e.PrintMessage();
     }
     
-    delete gGlobal;
+   global::destroy();
     return res;
 }

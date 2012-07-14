@@ -35,9 +35,14 @@
 
 #include "code_loop.hh"
 #include "floats.hh"
-
+#include "global.hh"
 
 using namespace std;
+
+CodeLoop::CodeLoop(CodeLoop* encl, string index_name, int size)
+        :fIsRecursive(false), fRecSymbolSet(gGlobal->nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1),
+        fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name), fUseCount(0)
+    {}
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
 {

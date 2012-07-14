@@ -25,10 +25,20 @@
     22/01/05 : added int cast in select2 and select3 selection signal
 *****************************************************************************/
 
-
-
+#include "global.hh"
 #include "signals.hh"
 
+//inline Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+{
+	return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, n, sigGen(init)), widx, wsig), ridx);
+}
+
+//inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
+Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
+{
+	return sigRDTbl(sigTable(gGlobal->nil, n, sigGen(init)), ridx);
+}
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -43,118 +53,86 @@ bool  isSigInt(Tree t, int* i) 						{ return isInt(t->node(), i); 		}
 Tree  sigReal(double r) 							{ return tree(r); 					}
 bool  isSigReal(Tree t, double* r) 					{ return isDouble(t->node(), r); 	}
 
-static Sym SIGINPUT = symbol ("sigInput");
-Tree  sigInput(int i)								{ return tree(SIGINPUT, tree(i));	}
-bool  isSigInput(Tree t, int* i) 					{ Tree x; return isTree(t, SIGINPUT, x) && isInt(x->node(),i); 	}
+Tree  sigInput(int i)								{ return tree(gGlobal->SIGINPUT, tree(i));	}
+bool  isSigInput(Tree t, int* i) 					{ Tree x; return isTree(t, gGlobal->SIGINPUT, x) && isInt(x->node(),i); 	}
 
-static Sym SIGOUTPUT = symbol ("sigOutput");
-Tree  sigOutput(int i, Tree t0)						{ return tree(SIGOUTPUT, tree(i), t0); 	}
-bool  isSigOutput(Tree t, int* i, Tree& t0)			{ Tree x; return isTree(t, SIGOUTPUT, x, t0) && isInt(x->node(),i); 	}
+Tree  sigOutput(int i, Tree t0)						{ return tree(gGlobal->SIGOUTPUT, tree(i), t0); 	}
+bool  isSigOutput(Tree t, int* i, Tree& t0)			{ Tree x; return isTree(t, gGlobal->SIGOUTPUT, x, t0) && isInt(x->node(),i); 	}
 
-static Sym SIGDELAY1 = symbol ("sigDelay1");
 Tree  sigDelay0(Tree t0)							{ return sigFixDelay(t0, sigInt(0));}
 
-Tree  sigDelay1(Tree t0)							{ return tree(SIGDELAY1, t0); 		}
-bool  isSigDelay1(Tree t, Tree& t0)					{ return isTree(t, SIGDELAY1, t0); 	}
+Tree  sigDelay1(Tree t0)							{ return tree(gGlobal->SIGDELAY1, t0); 		}
+bool  isSigDelay1(Tree t, Tree& t0)					{ return isTree(t, gGlobal->SIGDELAY1, t0); 	}
 
-static Sym SIGFIXDELAY = symbol ("sigFixDelay");
-Tree  sigFixDelay(Tree t0, Tree t1)					{ return tree(SIGFIXDELAY, t0, sigIntCast(t1)); 		}
-bool  isSigFixDelay(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGFIXDELAY, t0, t1); 	}
+Tree  sigFixDelay(Tree t0, Tree t1)					{ return tree(gGlobal->SIGFIXDELAY, t0, sigIntCast(t1)); 		}
+bool  isSigFixDelay(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, gGlobal->SIGFIXDELAY, t0, t1); 	}
 
-static Sym SIGPREFIX = symbol ("sigPrefix");
-Tree  sigPrefix(Tree t0, Tree t1)					{ return tree(SIGPREFIX, t0, t1); 		}
-bool  isSigPrefix(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGPREFIX, t0, t1); 	}
+Tree  sigPrefix(Tree t0, Tree t1)					{ return tree(gGlobal->SIGPREFIX, t0, t1); 		}
+bool  isSigPrefix(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, gGlobal->SIGPREFIX, t0, t1); 	}
 
-static Sym SIGIOTA = symbol ("sigIota");
-Tree  sigIota(Tree t0)								{ return tree(SIGIOTA, t0); 		}
-bool  isSigIota(Tree t, Tree& t0)					{ return isTree(t, SIGIOTA, t0); 	}
-
+Tree  sigIota(Tree t0)								{ return tree(gGlobal->SIGIOTA, t0); 		}
+bool  isSigIota(Tree t, Tree& t0)					{ return isTree(t, gGlobal->SIGIOTA, t0); 	}
 
 // Read only and read write tables
 
-static Sym SIGRDTBL = symbol ("SigRDTbl");
-Tree sigRDTbl (Tree t, Tree i)						{ return tree(SIGRDTBL, t, i); 	}
-bool isSigRDTbl (Tree s, Tree& t, Tree& i)			{ return isTree(s, SIGRDTBL, t, i); 	}
+Tree sigRDTbl (Tree t, Tree i)						{ return tree(gGlobal->SIGRDTBL, t, i); 	}
+bool isSigRDTbl (Tree s, Tree& t, Tree& i)			{ return isTree(s, gGlobal->SIGRDTBL, t, i); 	}
 
-static Sym SIGWRTBL = symbol ("SigWRTbl");
-Tree sigWRTbl (Tree id, Tree t, Tree i, Tree s)					{ return tree(SIGWRTBL, id, t, i, s); 	}
-bool isSigWRTbl (Tree u, Tree& id, Tree& t, Tree& i, Tree& s)	{ return isTree(u, SIGWRTBL, id, t, i, s); 	}
+Tree sigWRTbl (Tree id, Tree t, Tree i, Tree s)					{ return tree(gGlobal->SIGWRTBL, id, t, i, s); 	}
+bool isSigWRTbl (Tree u, Tree& id, Tree& t, Tree& i, Tree& s)	{ return isTree(u, gGlobal->SIGWRTBL, id, t, i, s); 	}
 
-static Sym SIGTABLE = symbol ("SigTable");
-Tree sigTable (Tree id, Tree n, Tree sig)				{ return tree(SIGTABLE, id, n, sig); 		}
-bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig)	{ return isTree(t, SIGTABLE, id, n, sig); 	}
+Tree sigTable (Tree id, Tree n, Tree sig)				{ return tree(gGlobal->SIGTABLE, id, n, sig); 		}
+bool isSigTable (Tree t, Tree& id, Tree& n, Tree& sig)	{ return isTree(t, gGlobal->SIGTABLE, id, n, sig); 	}
 
 // Signal used to generate the initial content of a table
 
-static Sym SIGGEN = symbol ("SigGen");
-Tree sigGen (Tree s)							{ return tree(SIGGEN, s); 		}
-bool isSigGen (Tree t, Tree& x)					{ return isTree(t, SIGGEN, x); 	}
-bool isSigGen (Tree t)							{ return t->node()== Node(SIGGEN); 	}
-
+Tree sigGen (Tree s)							{ return tree(gGlobal->SIGGEN, s); 		}
+bool isSigGen (Tree t, Tree& x)					{ return isTree(t, gGlobal->SIGGEN, x); 	}
+bool isSigGen (Tree t)							{ return t->node() == Node(gGlobal->SIGGEN); 	}
 
 // Documentator Tables : special version of tables only for documentation purposes
 
-static Sym SIGDOCONSTANTTBL = symbol ("SigDocConstantTbl");
-Tree   sigDocConstantTbl    (Tree n, Tree sig)                  { return tree(SIGDOCONSTANTTBL, n, sig);        }
-bool isSigDocConstantTbl    (Tree t, Tree& n, Tree& sig)        { return isTree(t, SIGDOCONSTANTTBL, n, sig); 	}
+Tree   sigDocConstantTbl    (Tree n, Tree sig)                  { return tree(gGlobal->SIGDOCONSTANTTBL, n, sig);        }
+bool isSigDocConstantTbl    (Tree t, Tree& n, Tree& sig)        { return isTree(t, gGlobal->SIGDOCONSTANTTBL, n, sig); 	}
 
-static Sym SIGDOCWRITETBL = symbol ("SigDocWriteTbl");
-Tree   sigDocWriteTbl   (Tree n, Tree sig, Tree widx, Tree wsig)                { return tree(SIGDOCWRITETBL, n, sig, widx, wsig); 		}
-bool isSigDocWriteTbl   (Tree t, Tree& n, Tree& sig, Tree& widx, Tree& wsig)    { return isTree(t, SIGDOCWRITETBL, n, sig, widx, wsig); 	}
+Tree   sigDocWriteTbl   (Tree n, Tree sig, Tree widx, Tree wsig)                { return tree(gGlobal->SIGDOCWRITETBL, n, sig, widx, wsig); 		}
+bool isSigDocWriteTbl   (Tree t, Tree& n, Tree& sig, Tree& widx, Tree& wsig)    { return isTree(t, gGlobal->SIGDOCWRITETBL, n, sig, widx, wsig); 	}
 
-static Sym SIGDOCACCESSTBL = symbol ("SigDocAccessTbl");
-Tree   sigDocAccessTbl   (Tree tbl, Tree ridx)                  { return tree(SIGDOCACCESSTBL, tbl, ridx); 		}
-bool isSigDocAccessTbl   (Tree t, Tree& tbl, Tree& ridx)        { return isTree(t, SIGDOCACCESSTBL, tbl, ridx); 	}
-
+Tree   sigDocAccessTbl   (Tree tbl, Tree ridx)                  { return tree(gGlobal->SIGDOCACCESSTBL, tbl, ridx); 		}
+bool isSigDocAccessTbl   (Tree t, Tree& tbl, Tree& ridx)        { return isTree(t, gGlobal->SIGDOCACCESSTBL, tbl, ridx); 	}
 
 // Select on signal among severals
 
-static Sym SIGSELECT2 = symbol ("SigSelect2");
-static Sym SIGSELECT3 = symbol ("SigSelect3");
+Tree sigSelect2 (Tree selector, Tree s1, Tree s2)							{ return tree(gGlobal->SIGSELECT2, sigIntCast(selector), s1, s2); }
+bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)				{ return isTree(t, gGlobal->SIGSELECT2, selector, s1, s2); }
 
-Tree sigSelect2 (Tree selector, Tree s1, Tree s2)							{ return tree(SIGSELECT2, sigIntCast(selector), s1, s2); }
-bool isSigSelect2 (Tree t, Tree& selector, Tree& s1, Tree& s2)				{ return isTree(t, SIGSELECT2, selector, s1, s2); }
-
-Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(SIGSELECT3, sigIntCast(selector), s1, s2, s3); }
-bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, SIGSELECT3, selector, s1, s2, s3); }
-
+Tree sigSelect3 (Tree selector, Tree s1, Tree s2, Tree s3)					{ return tree(gGlobal->SIGSELECT3, sigIntCast(selector), s1, s2, s3); }
+bool isSigSelect3 (Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)	{ return isTree(t, gGlobal->SIGSELECT3, selector, s1, s2, s3); }
 
 // Arithmetical operations
 
-static Sym SIGBINOP = symbol ("SigBinOp");
-Tree sigBinOp(int op, Tree x, Tree y) 					{ return tree(SIGBINOP, tree(op), x, y); }
-bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y) 		{ Tree t; return isTree(s, SIGBINOP, t, x, y) && isInt(t->node(),op); }
-
+Tree sigBinOp(int op, Tree x, Tree y) 					{ return tree(gGlobal->SIGBINOP, tree(op), x, y); }
+bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y) 		{ Tree t; return isTree(s, gGlobal->SIGBINOP, t, x, y) && isInt(t->node(),op); }
 
 // Foreign Functions
 
-static Sym SIGFFUN = symbol ("SigFFun");
-Tree sigFFun (Tree ff, Tree largs)						{ return tree(SIGFFUN, ff, largs); 			}
-bool isSigFFun	(Tree s, Tree& ff, Tree& largs)			{ return isTree(s, SIGFFUN, ff, largs);		}
+Tree sigFFun (Tree ff, Tree largs)						{ return tree(gGlobal->SIGFFUN, ff, largs); 			}
+bool isSigFFun	(Tree s, Tree& ff, Tree& largs)			{ return isTree(s, gGlobal->SIGFFUN, ff, largs);		}
 
+Tree sigFConst      (Tree type, Tree name, Tree file)             { return tree(gGlobal->SIGFCONST, type, name, file);         }
+bool isSigFConst    (Tree s)                                      { Tree t,n,f; return isTree(s, gGlobal->SIGFCONST, t, n, f); }
+bool isSigFConst    (Tree s, Tree& type, Tree& name, Tree& file)  { return isTree(s, gGlobal->SIGFCONST,type, name, file);     }
 
-static Sym SIGFCONST = symbol ("SigFConst");
-Tree sigFConst      (Tree type, Tree name, Tree file)             { return tree(SIGFCONST, type, name, file);         }
-bool isSigFConst    (Tree s)                                      { Tree t,n,f; return isTree(s, SIGFCONST, t, n, f); }
-bool isSigFConst    (Tree s, Tree& type, Tree& name, Tree& file)  { return isTree(s, SIGFCONST,type, name, file);     }
-
-
-static Sym SIGFVAR = symbol ("SigFVar");
-Tree sigFVar      (Tree type, Tree name, Tree file)               { return tree(SIGFVAR, type, name, file);           }
-bool isSigFVar    (Tree s)                                        { Tree t,n,f; return isTree(s, SIGFVAR, t, n, f);   }
-bool isSigFVar    (Tree s, Tree& type, Tree& name, Tree& file)    { return isTree(s, SIGFVAR, type, name, file);      }
+Tree sigFVar      (Tree type, Tree name, Tree file)               { return tree(gGlobal->SIGFVAR, type, name, file);           }
+bool isSigFVar    (Tree s)                                        { Tree t,n,f; return isTree(s, gGlobal->SIGFVAR, t, n, f);   }
+bool isSigFVar    (Tree s, Tree& type, Tree& name, Tree& file)    { return isTree(s, gGlobal->SIGFVAR, type, name, file);      }
 
 // nouvelle version utilisant rec et ref
 
-static Sym SIGPROJ = symbol ("SigProj");
-Tree sigProj (int i, Tree rgroup)				{ return tree(SIGPROJ, tree(i), rgroup); 	}
-bool isProj (Tree t, int* i, Tree& rgroup)		{ Tree x; return isTree(t, SIGPROJ, x, rgroup) && isInt(x->node(), i); 	}
-
+Tree sigProj (int i, Tree rgroup)				{ return tree(gGlobal->SIGPROJ, tree(i), rgroup); 	}
+bool isProj (Tree t, int* i, Tree& rgroup)		{ Tree x; return isTree(t, gGlobal->SIGPROJ, x, rgroup) && isInt(x->node(), i); 	}
 
 // Int and Float casting
-
-static Sym SIGINTCAST = symbol ("sigIntCast");
-static Sym SIGFLOATCAST = symbol ("sigFloatCast");
 
 Tree  sigIntCast(Tree t)						
 { 
@@ -164,7 +142,7 @@ Tree  sigIntCast(Tree t)
 	double x;	if (isDouble(n, &x)) 		return tree(int(x));
 				if (isSigIntCast(t))		return t;
 	 
-	return tree(SIGINTCAST, t);   
+	return tree(gGlobal->SIGINTCAST, t);   
 }
 
 Tree  sigFloatCast(Tree t)						
@@ -176,45 +154,37 @@ Tree  sigFloatCast(Tree t)
 				if (isSigFloatCast(t))		return t;
                 if (isSigInput(t, &i))      return t;
 	 
-	return tree(SIGFLOATCAST, t);   
+	return tree(gGlobal->SIGFLOATCAST, t);   
 }
 
-//Tree  sigFloatCast(Tree t)						{ return isSigFloatCast(t)? t : tree(SIGFLOATCAST, t); }
+//Tree  sigFloatCast(Tree t)						{ return isSigFloatCast(t)? t : tree(gGlobal->SIGFLOATCAST, t); }
 
-bool  isSigIntCast(Tree t)						{ Tree x; return isTree(t, SIGINTCAST, x); 	}
-bool  isSigIntCast(Tree t, Tree& x)				{ return isTree(t, SIGINTCAST, x); 			}
+bool  isSigIntCast(Tree t)						{ Tree x; return isTree(t, gGlobal->SIGINTCAST, x); 	}
+bool  isSigIntCast(Tree t, Tree& x)				{ return isTree(t, gGlobal->SIGINTCAST, x); 			}
 
-bool  isSigFloatCast(Tree t)					{ Tree x; return isTree(t, SIGFLOATCAST, x);}
-bool  isSigFloatCast(Tree t, Tree& x)			{ return isTree(t, SIGFLOATCAST, x); 		}
-
-
-
+bool  isSigFloatCast(Tree t)					{ Tree x; return isTree(t, gGlobal->SIGFLOATCAST, x);}
+bool  isSigFloatCast(Tree t, Tree& x)			{ return isTree(t, gGlobal->SIGFLOATCAST, x); 		}
 
 /*****************************************************************************
 							 User Interface Elements
 *****************************************************************************/
 
-static Sym SIGBUTTON = symbol ("SigButton");
-Tree sigButton 	 (Tree lbl)					{ return tree(SIGBUTTON, lbl); 					}
-bool isSigButton (Tree s)					{ Tree lbl; return isTree(s, SIGBUTTON, lbl);	}
-bool isSigButton (Tree s, Tree& lbl)		{ return isTree(s, SIGBUTTON, lbl);				}
+Tree sigButton 	 (Tree lbl)					{ return tree(gGlobal->SIGBUTTON, lbl); 					}
+bool isSigButton (Tree s)					{ Tree lbl; return isTree(s, gGlobal->SIGBUTTON, lbl);	}
+bool isSigButton (Tree s, Tree& lbl)		{ return isTree(s, gGlobal->SIGBUTTON, lbl);				}
 
+Tree sigCheckbox   (Tree lbl)				{ return tree(gGlobal->SIGCHECKBOX, lbl); 					}
+bool isSigCheckbox (Tree s)					{ Tree lbl; return isTree(s, gGlobal->SIGCHECKBOX, lbl);	}
+bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, gGlobal->SIGCHECKBOX, lbl);				}
 
-static Sym SIGCHECKBOX = symbol ("SigCheckbox");
-Tree sigCheckbox   (Tree lbl)				{ return tree(SIGCHECKBOX, lbl); 					}
-bool isSigCheckbox (Tree s)					{ Tree lbl; return isTree(s, SIGCHECKBOX, lbl);	}
-bool isSigCheckbox (Tree s, Tree& lbl)		{ return isTree(s, SIGCHECKBOX, lbl);				}
-
-
-static Sym SIGHSLIDER = symbol ("SigHSlider");
 Tree sigHSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
-											{ return tree(SIGHSLIDER, lbl, list4(cur,min,max,step));		}
-bool isSigHSlider (Tree s)					{ Tree lbl, params; return isTree(s, SIGHSLIDER, lbl, params);	}
+											{ return tree(gGlobal->SIGHSLIDER, lbl, list4(cur,min,max,step));		}
+bool isSigHSlider (Tree s)					{ Tree lbl, params; return isTree(s, gGlobal->SIGHSLIDER, lbl, params);	}
 
 bool isSigHSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
 {
 	Tree params;
-	if (isTree(s, SIGHSLIDER, lbl, params)) {
+	if (isTree(s, gGlobal->SIGHSLIDER, lbl, params)) {
 		cur = nth(params, 0);
 		min = nth(params, 1);
 		max = nth(params, 2);
@@ -225,16 +195,14 @@ bool isSigHSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& ste
 	}
 }
 
-
-static Sym SIGVSLIDER = symbol ("SigVSlider");
 Tree sigVSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
-											{ return tree(SIGVSLIDER, lbl, list4(cur,min,max,step));		}
-bool isSigVSlider (Tree s)					{ Tree lbl, params; return isTree(s, SIGVSLIDER, lbl, params);	}
+											{ return tree(gGlobal->SIGVSLIDER, lbl, list4(cur,min,max,step));		}
+bool isSigVSlider (Tree s)					{ Tree lbl, params; return isTree(s, gGlobal->SIGVSLIDER, lbl, params);	}
 
 bool isSigVSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
 {
 	Tree params;
-	if (isTree(s, SIGVSLIDER, lbl, params)) {
+	if (isTree(s, gGlobal->SIGVSLIDER, lbl, params)) {
 		cur = nth(params, 0);
 		min = nth(params, 1);
 		max = nth(params, 2);
@@ -245,16 +213,14 @@ bool isSigVSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& ste
 	}
 }
 
-
-static Sym SIGNUMENTRY = symbol ("SigNumEntry");
 Tree sigNumEntry   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
-											{ return tree(SIGNUMENTRY, lbl, list4(cur,min,max,step));		}
-bool isSigNumEntry (Tree s)					{ Tree lbl, params; return isTree(s, SIGNUMENTRY, lbl, params);	}
+											{ return tree(gGlobal->SIGNUMENTRY, lbl, list4(cur,min,max,step));		}
+bool isSigNumEntry (Tree s)					{ Tree lbl, params; return isTree(s, gGlobal->SIGNUMENTRY, lbl, params);	}
 
 bool isSigNumEntry (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
 {
 	Tree params;
-	if (isTree(s, SIGNUMENTRY, lbl, params)) {
+	if (isTree(s, gGlobal->SIGNUMENTRY, lbl, params)) {
 		cur = nth(params, 0);
 		min = nth(params, 1);
 		max = nth(params, 2);
@@ -267,25 +233,16 @@ bool isSigNumEntry (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& st
 
 // output elements
 
+Tree sigHBargraph   (Tree lbl, Tree min, Tree max, Tree x)				{ return tree(gGlobal->SIGHBARGRAPH, lbl, min, max, x);		}
+bool isSigHBargraph (Tree s)											{ Tree lbl, min, max, x; return isTree(s, gGlobal->SIGHBARGRAPH, lbl, min, max, x);	}
+bool isSigHBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return isTree(s, gGlobal->SIGHBARGRAPH, lbl, min, max, x);	}
 
+Tree sigVBargraph   (Tree lbl, Tree min, Tree max, Tree x)				{ return tree(gGlobal->SIGVBARGRAPH, lbl, min, max, x);		}
+bool isSigVBargraph (Tree s)											{ Tree lbl, min, max, x; return isTree(s, gGlobal->SIGVBARGRAPH, lbl, min, max, x);	}
+bool isSigVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return isTree(s, gGlobal->SIGVBARGRAPH, lbl, min, max, x);	}
 
-static Sym SIGHBARGRAPH = symbol ("SigHBargraph");
-Tree sigHBargraph   (Tree lbl, Tree min, Tree max, Tree x)				{ return tree(SIGHBARGRAPH, lbl, min, max, x);		}
-bool isSigHBargraph (Tree s)											{ Tree lbl, min, max, x; return isTree(s, SIGHBARGRAPH, lbl, min, max, x);	}
-bool isSigHBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return isTree(s, SIGHBARGRAPH, lbl, min, max, x);	}
-
-
-static Sym SIGVBARGRAPH = symbol ("SigVBargraph");
-Tree sigVBargraph   (Tree lbl, Tree min, Tree max, Tree x)				{ return tree(SIGVBARGRAPH, lbl, min, max, x);		}
-bool isSigVBargraph (Tree s)											{ Tree lbl, min, max, x; return isTree(s, SIGVBARGRAPH, lbl, min, max, x);	}
-bool isSigVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return isTree(s, SIGVBARGRAPH, lbl, min, max, x);	}
-
-
-static Sym SIGATTACH = symbol ("sigAttach");
-Tree  sigAttach(Tree t0, Tree t1)					{ return tree(SIGATTACH, t0, t1); 		}
-bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGATTACH, t0, t1); 	}
-
-
+Tree  sigAttach(Tree t0, Tree t1)					{ return tree(gGlobal->SIGATTACH, t0, t1); 		}
+bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, gGlobal->SIGATTACH, t0, t1); 	}
 
 Tree addNums(Tree a, Tree b)
 {
@@ -360,24 +317,19 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
 	return isSigBinOp(a, &op, x, y) && (op == kDiv);
 }
 
-
-
-
 /*****************************************************************************
 							 matrix extension
 *****************************************************************************/
-static Sym SIGTUPLE 		= symbol ("SigTuple");
-static Sym SIGTUPLEACCESS 	= symbol ("SigTupleAccess");
 
 // a tuple of signals is basically a list of signals.
 // mode = 0 means normal, mode = 1 means blocked
-Tree sigTuple (int mode, Tree ls)					{ return tree(SIGTUPLE, tree(mode), ls); }
-bool isSigTuple (Tree s, int* mode, Tree& ls)		{ Tree m; return isTree(s, SIGTUPLE, m, ls) && isInt(m->node(), mode); }
+Tree sigTuple (int mode, Tree ls)					{ return tree(gGlobal->SIGTUPLE, tree(mode), ls); }
+bool isSigTuple (Tree s, int* mode, Tree& ls)		{ Tree m; return isTree(s, gGlobal->SIGTUPLE, m, ls) && isInt(m->node(), mode); }
 
 // Access the components of a tuple.
 // ts is tuple of signals, idx is a scalar signal between 0..n
-Tree sigTupleAccess(Tree ts, Tree idx)				{ return tree(SIGTUPLEACCESS, ts, idx); }
-bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx)	{ return isTree(s, SIGTUPLEACCESS, ts, idx); }
+Tree sigTupleAccess(Tree ts, Tree idx)				{ return tree(gGlobal->SIGTUPLEACCESS, ts, idx); }
+bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx)	{ return isTree(s, gGlobal->SIGTUPLEACCESS, ts, idx); }
 
 // create a tuple of signals
 Tree sigCartesianProd (Tree s1, Tree s2)
@@ -397,11 +349,8 @@ Tree sigCartesianProd (Tree s1, Tree s2)
 		l2 = list1(s2);
 	}
 
-
 	return sigTuple(0, concat(l1,l2));
 }
-
-
 
 /**
  * Test if exp is very simple that is it

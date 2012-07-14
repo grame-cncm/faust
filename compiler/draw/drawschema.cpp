@@ -355,7 +355,6 @@ static bool isInverter(Tree t)
  * only made of cut, wires and slots. No labels will be
  * dispayed for pure routing expressions.
  */
-property<bool> gPureRoutingProperty;
 
 static bool isPureRouting(Tree t)
 {
@@ -363,7 +362,7 @@ static bool isPureRouting(Tree t)
     int     ID;
     Tree    x,y;
 
-    if (gPureRoutingProperty.get(t,r)) {
+    if (gGlobal->gPureRoutingProperty->get(t,r)) {
         return r;
     } else if (    isBoxCut(t)
                 || isBoxWire(t)
@@ -374,10 +373,10 @@ static bool isPureRouting(Tree t)
                 || (isBoxSplit(t,x,y) && isPureRouting(x) && isPureRouting(y))
                 || (isBoxMerge(t,x,y) && isPureRouting(x) && isPureRouting(y))
               ) {
-        gPureRoutingProperty.set(t,true);
+        gGlobal->gPureRoutingProperty->set(t,true);
         return true;
     } else {
-        gPureRoutingProperty.set(t,false);
+        gGlobal->gPureRoutingProperty->set(t,false);
         return false;
     }
 }

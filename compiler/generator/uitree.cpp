@@ -19,16 +19,13 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #include "uitree.hh"
 #include "exception.hh"
-
+#include "global.hh"
 
 static Tree makeSubFolderChain(Tree path, Tree elem);
 static Tree putFolder(Tree folder, Tree item);
 static Tree getFolder (Tree folder, Tree ilabel);
-
 
 static void error(const char * s, Tree t)
 {
@@ -36,7 +33,6 @@ static void error(const char * s, Tree t)
 }
 
 #define ERROR(s,t) { error(s,t); throw faustexception(s); }
-
 
 //------------------------------------------------------------------------------
 // Property list
@@ -53,14 +49,14 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
 {
-	if (isNil(pl)) 				return cons ( cons(key,val), nil );
+	if (isNil(pl)) 				return cons ( cons(key,val), gGlobal->nil );
 	if (left(hd(pl)) == key) 	return cons ( cons(key,val), tl(pl) );
 	/*  left(hd(pl)) != key	*/	return cons ( hd(pl), updateKey( tl(pl), key, val ));
 }
 
 static Tree removeKey (Tree pl, Tree key)
 {
-	if (isNil(pl)) 				return nil;
+	if (isNil(pl)) 				return gGlobal->nil;
 	if (left(hd(pl)) == key) 	return tl(pl);
 	/*  left(hd(pl)) != key	*/	return cons (hd(pl), removeKey(tl(pl), key));
 }
@@ -88,7 +84,6 @@ static bool isBefore(Tree k1, Tree k2)
 	return strcmp(name(s1), name(s2)) < 0;
 }
 
-
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 					return false;
@@ -99,7 +94,7 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
 {
-    if (isNil(pl))                  return cons ( cons(key,val), nil );
+    if (isNil(pl))                  return cons ( cons(key,val), gGlobal->nil );
     if (left(hd(pl)) == key)        return cons ( cons(key,val), tl(pl) );
     if (isBefore(left(hd(pl)),key)) return cons ( hd(pl), updateKey( tl(pl), key, val ));
     return cons(cons(key,val), pl);
@@ -110,16 +105,15 @@ static Tree updateKey (Tree pl, Tree key, Tree val)
  */
 static Tree addKey (Tree pl, Tree key, Tree val)
 {
-    if (isNil(pl))                  return cons ( cons(key,val), nil );
+    if (isNil(pl))                  return cons ( cons(key,val), gGlobal->nil );
     if (isBefore(key, left(hd(pl)))) return cons(cons(key,val), pl);
     return cons ( hd(pl), addKey( tl(pl), key, val ));
 }
 
-
 #if 0
 static Tree removeKey (Tree pl, Tree key)
 {
-	if (isNil(pl)) 					return nil;
+	if (isNil(pl)) 					return gGlobal->nil;
 	if (left(hd(pl)) == key) 		return tl(pl);
 	if (isBefore(left(hd(pl)),key))	return cons (hd(pl), removeKey(tl(pl), key));
 	return pl;
@@ -131,16 +125,12 @@ static Tree removeKey (Tree pl, Tree key)
 // gestion de la construction de l'arbre d'interface utilisateur
 //------------------------------------------------------------------------------
 
-static Sym 	UIFOLDER = symbol ("uiFolder");
-Tree  	uiFolder(Tree label, Tree elements)				{ return tree(UIFOLDER, label, elements); 		}
-bool  	isUiFolder(Tree t)								{ return isTree(t, UIFOLDER); 					}
-bool  	isUiFolder(Tree t, Tree& label, Tree& elements)	{ return isTree(t, UIFOLDER, label, elements); 	}
+Tree  	uiFolder(Tree label, Tree elements)				{ return tree(gGlobal->UIFOLDER, label, elements); 		}
+bool  	isUiFolder(Tree t)								{ return isTree(t, gGlobal->UIFOLDER); 					}
+bool  	isUiFolder(Tree t, Tree& label, Tree& elements)	{ return isTree(t, gGlobal->UIFOLDER, label, elements); 	}
 
-static Sym 	UIWIDGET = symbol ("uiWidget");
-Tree 	uiWidget(Tree label, Tree varname, Tree sig) 					{ return tree(UIWIDGET, label, varname, sig); }
-bool 	isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig)		{ return isTree(t, UIWIDGET, label, varname, sig); }
-
-
+Tree 	uiWidget(Tree label, Tree varname, Tree sig) 					{ return tree(gGlobal->UIWIDGET, label, varname, sig); }
+bool 	isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig)		{ return isTree(t, gGlobal->UIWIDGET, label, varname, sig); }
 
 // place un item dans un folder. Remplace eventuellement l'élément de même nom.
 Tree putFolder(Tree folder, Tree item)
@@ -168,7 +158,7 @@ Tree getFolder (Tree folder, Tree ilabel)
 	if (findKey(content, ilabel, item)) {
 		return item;
 	} else {
-		return nil;
+		return gGlobal->nil;
 	}
 }
 	
@@ -178,10 +168,9 @@ Tree makeSubFolderChain(Tree path, Tree elem)
 	if (isNil(path)) {
 		return elem;
 	} else {
-		return putFolder(uiFolder(hd(path)), makeSubFolderChain(tl(path),elem));
+		return putFolder(uiFolder(hd(path), gGlobal->nil), makeSubFolderChain(tl(path),elem));
 	}
 } 
-
 	
 Tree putSubFolder(Tree folder, Tree path, Tree item) 
 {
@@ -197,7 +186,6 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
 		}
 	}
 }
-
 	
 /*
 Fonctionnement des dossiers. 

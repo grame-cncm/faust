@@ -1,3 +1,25 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+ 
+
 /*
 	sourcereader : Faust source file reader
 	
@@ -108,11 +130,11 @@ static Tree makeDefinition(list<Tree>& variants)
 		} else if (standardArgList(args)) {
 			return buildBoxAbstr(args, body);
 		} else {
-			return boxCase(cons(rhs,nil));
+			return boxCase(cons(rhs,gGlobal->nil));
 		}
 	} else {
 		list<Tree>::iterator p;
-		Tree	l = nil;
+		Tree	l = gGlobal->nil;
 		Tree	prev = *variants.begin();
 		int 	npat = len(hd(prev));
 		for (p=variants.begin(); p!=variants.end(); p++) {
@@ -141,7 +163,7 @@ Tree formatDefinitions(Tree rldef)
 {
 	map<Tree,list<Tree> > dic;
 	map<Tree,list<Tree> >::iterator p;
-	Tree ldef2 = nil;
+	Tree ldef2 = gGlobal->nil;
 	Tree file;
 	
 	//cout << "Format definitions " << *rldef << endl;
@@ -287,7 +309,7 @@ vector<string> SourceReader::listSrcFiles()
 Tree SourceReader::expandlist(Tree ldef)
 {
 	set<string> visited;
-	return expandrec(ldef, visited, nil);	
+	return expandrec(ldef, visited, gGlobal->nil);	
 }
 
 Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)

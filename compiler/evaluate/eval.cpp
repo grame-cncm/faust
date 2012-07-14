@@ -67,8 +67,6 @@ static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
 
 static Tree		evalIdDef(Tree id, Tree visited, Tree env);
 
-
-
 static Tree		evalCase(Tree rules, Tree env);
 static Tree		evalRuleList(Tree rules, Tree env);
 static Tree		evalRule(Tree rule, Tree env);
@@ -97,7 +95,7 @@ static Tree     boxSimplification(Tree box);
  */
 Tree evalprocess (Tree eqlist)
 {
-    Tree b = a2sb(eval(boxIdent("process"), nil, pushMultiClosureDefs(eqlist, nil, nil)));
+    Tree b = a2sb(eval(boxIdent("process"), gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 
     if (gGlobal->gSimplifyDiagrams) {
         b = boxSimplification(b);
@@ -111,7 +109,7 @@ Tree evalprocess (Tree eqlist)
 
 Tree evaldocexpr (Tree docexpr, Tree eqlist)
 {
-	return a2sb(eval(docexpr, nil, pushMultiClosureDefs(eqlist, nil, nil)));
+	return a2sb(eval(docexpr, gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 }
 
 
@@ -126,8 +124,6 @@ Tree evaldocexpr (Tree docexpr, Tree eqlist)
  * @return an expression where abstractions have been replaced by symbolic boxes
  */
 
-property<Tree> gSymbolicBoxProperty;
-
 static Tree real_a2sb(Tree exp);
 
 static Tree a2sb(Tree exp)
@@ -135,7 +131,7 @@ static Tree a2sb(Tree exp)
     Tree    result;
     Tree    id;
 
-    if (gSymbolicBoxProperty.get(exp, result)) {
+    if (gGlobal->gSymbolicBoxProperty->get(exp, result)) {
         return result;
     }
 
@@ -143,7 +139,7 @@ static Tree a2sb(Tree exp)
 	if (result != exp && getDefNameProperty(exp, id)) {
 		setDefNameProperty(result, id);		// propagate definition name property when needed
 	}
-    gSymbolicBoxProperty.set(exp, result);
+    gGlobal->gSymbolicBoxProperty->set(exp, result);
 	return result;
 }
 
@@ -193,7 +189,7 @@ static Tree real_a2sb(Tree exp)
 		setDefNameProperty(slot, s.str() ); 
 		
 		// apply the PM rules to the slot and transfoms the result in a symbolic box
-		Tree result = boxSymbolic(slot, a2sb(applyList(exp, cons(slot,nil))));
+		Tree result = boxSymbolic(slot, a2sb(applyList(exp, cons(slot,gGlobal->nil))));
 
 		// propagate definition name property when needed
 		if (getDefNameProperty(exp, name)) setDefNameProperty(result, name);
@@ -241,9 +237,6 @@ bool getArgName(Tree t, Tree& id)
  */
 static loopDetector LD(1024, 512);
 
-
-static Node EVALPROPERTY(symbol("EvalProperty"));
-
 /**
  * set the value of box in the environment env
  * @param box the block diagram we have evaluated
@@ -252,7 +245,7 @@ static Node EVALPROPERTY(symbol("EvalProperty"));
  */
 void setEvalProperty(Tree box, Tree env, Tree value)
 {
-    setProperty(box, tree(EVALPROPERTY,env), value);
+    setProperty(box, tree(gGlobal->EVALPROPERTY,env), value);
 }
 
 
@@ -265,7 +258,7 @@ void setEvalProperty(Tree box, Tree env, Tree value)
  */
 bool getEvalProperty(Tree box, Tree env, Tree& value)
 {
-	return getProperty(box, tree(EVALPROPERTY,env), value);
+	return getProperty(box, tree(gGlobal->EVALPROPERTY,env), value);
 }
 
 
@@ -379,7 +372,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxComponent(exp, label)) {
         string  fname   = tree2str(label);
         Tree    eqlst   = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
-        Tree    res     = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+        Tree    res     = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
         return res;
@@ -387,7 +380,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxLibrary(exp, label)) {
         string  fname   = tree2str(label);
         Tree    eqlst   = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
-        Tree    res     = closure(boxEnvironment(), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+        Tree    res     = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
         return res;
@@ -479,20 +472,20 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else if (isBoxAbstr(exp)) {
         // it is an abstraction : return a closure
-        return closure(exp, nil, visited, localValEnv);
+        return closure(exp, gGlobal->nil, visited, localValEnv);
 
     } else if (isBoxEnvironment(exp)) {
         // environment : return also a closure
-        return closure(exp, nil, visited, localValEnv);
+        return closure(exp, gGlobal->nil, visited, localValEnv);
 
 	} else if (isClosure(exp, exp2, notused, visited2, lenv2)) {
 
         if (isBoxAbstr(exp2)) {
             // a 'real' closure
-            return closure(exp2, nil, setUnion(visited,visited2), lenv2);
+            return closure(exp2, gGlobal->nil, setUnion(visited,visited2), lenv2);
         } else if (isBoxEnvironment(exp2)) {
             // a 'real' closure
-            return closure(exp2, nil, setUnion(visited,visited2), lenv2);
+            return closure(exp2, gGlobal->nil, setUnion(visited,visited2), lenv2);
         } else {
 			// it was a suspended evaluation
 			return eval(exp2, setUnion(visited,visited2), lenv2);
@@ -606,7 +599,7 @@ static bool isBoxNumeric (Tree in, Tree& out)
         v = a2sb(in);
         if ( getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1) ) {
             // potential numerical expression
-            Tree lsignals = boxPropagateSig(nil, v , makeSigInputList(numInputs) );
+            Tree lsignals = boxPropagateSig(gGlobal->nil, v , makeSigInputList(numInputs) );
             Tree res = simplify(hd(lsignals));
             if (isSigReal(res, &x)) 	{
             out = boxReal(x);
@@ -660,7 +653,7 @@ static double eval2double (Tree exp, Tree visited, Tree localValEnv)
 		evalerror (yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
 		return 1;
 	} else {
-		Tree lsignals = boxPropagateSig(nil, diagram , makeSigInputList(numInputs) );
+		Tree lsignals = boxPropagateSig(gGlobal->nil, diagram , makeSigInputList(numInputs) );
 		Tree val = simplify(hd(lsignals));
 		return tree2float(val);
 	}
@@ -689,7 +682,7 @@ static int eval2int (Tree exp, Tree visited, Tree localValEnv)
 		evalerror (yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
 		return 1;
 	} else {
-		Tree lsignals = boxPropagateSig(nil, diagram , makeSigInputList(numInputs) );
+		Tree lsignals = boxPropagateSig(gGlobal->nil, diagram , makeSigInputList(numInputs) );
 		Tree val = simplify(hd(lsignals));
 		return tree2int(val);
 	}
@@ -931,7 +924,7 @@ static bool boxlistOutputs(Tree boxlist, int* outputs)
  */
 static Tree nwires(int n)
 {
-	Tree l = nil;
+	Tree l = gGlobal->nil;
 	while (n--) { l = cons(boxWire(), l); }
 	return l;
 }
@@ -999,7 +992,7 @@ static Tree applyList (Tree fun, Tree larg)
 			if (isClosure(result, body, globalDefEnv, visited, localValEnv)) {
 				// why ??? return simplifyPattern(eval(body, nil, localValEnv));
 				//return eval(body, nil, localValEnv);
-				return applyList(eval(body, nil, localValEnv), tl(larg));
+				return applyList(eval(body, gGlobal->nil, localValEnv), tl(larg));
 			} else {
 				cerr << "wrong result from pattern matching (not a closure) : " << boxpp(result) << endl;
 				return boxError();
@@ -1089,7 +1082,7 @@ static Tree applyList (Tree fun, Tree larg)
  */
 static Tree revEvalList (Tree lexp, Tree visited, Tree localValEnv)
 {
-    Tree result = nil;
+    Tree result = gGlobal->nil;
     //Tree lexp_orig = lexp;
     //cerr << "ENTER revEvalList(" << *lexp_orig << ", env:" << *localValEnv << ")" << endl;
     while (!isNil(lexp)) {
@@ -1162,7 +1155,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 	}
 
 	// return the evaluated definition
-	return eval(def, addElement(p,visited), nil);
+	return eval(def, addElement(p,visited), gGlobal->nil);
 }
 
 
@@ -1175,7 +1168,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
 static Tree listn (int n, Tree e)
 {
-	return (n<= 0) ? nil : cons(e, listn(n-1,e));
+	return (n<= 0) ? gGlobal->nil : cons(e, listn(n-1,e));
 }
 
 /**
@@ -1183,16 +1176,14 @@ static Tree listn (int n, Tree e)
  * in a specific environement
  */
  
-static Node PMPROPERTYNODE(symbol("PMPROPERTY"));
-
 static void setPMProperty(Tree t, Tree env, Tree pm)
 {
-	setProperty(t, tree(PMPROPERTYNODE, env), pm);
+	setProperty(t, tree(gGlobal->PMPROPERTYNODE, env), pm);
 }
 
 static bool getPMProperty(Tree t, Tree env, Tree& pm)
 {
-	return getProperty(t, tree(PMPROPERTYNODE, env), pm);
+	return getProperty(t, tree(gGlobal->PMPROPERTYNODE, env), pm);
 }
 
 /**
@@ -1209,7 +1200,7 @@ static Tree	evalCase(Tree rules, Tree env)
 	Tree pm;
 	if (!getPMProperty(rules, env, pm)) {
 		Automaton*	a = make_pattern_matcher(evalRuleList(rules, env));
-        pm = boxPatternMatcher(a, 0, listn(len(rules), pushEnvBarrier(env)), rules, nil);
+        pm = boxPatternMatcher(a, 0, listn(len(rules), pushEnvBarrier(env)), rules, gGlobal->nil);
         setPMProperty(rules, env, pm);
 	}
 	return pm;
@@ -1222,7 +1213,7 @@ static Tree	evalCase(Tree rules, Tree env)
 static Tree	evalRuleList(Tree rules, Tree env)
 {
     //cerr << "evalRuleList "<< *rules << " in " << *env << endl;
-	if (isNil(rules)) return nil;
+	if (isNil(rules)) return gGlobal->nil;
 	else return cons(evalRule(hd(rules), env), evalRuleList(tl(rules), env));
 }
 
@@ -1243,7 +1234,7 @@ static Tree	evalRule(Tree rule, Tree env)
 static Tree	evalPatternList(Tree patterns, Tree env)
 {
 	if (isNil(patterns)) {
-		return nil;
+		return gGlobal->nil;
 	} else {
 		return cons(	evalPattern(hd(patterns), env), 
 						evalPatternList(tl(patterns), env)  );
@@ -1257,7 +1248,7 @@ static Tree	evalPatternList(Tree patterns, Tree env)
  */
 static Tree	evalPattern(Tree pattern, Tree env)
 {
-    Tree p = eval(pattern, nil, env);
+    Tree p = eval(pattern, gGlobal->nil, env);
     return patternSimplification(p);
 }
 
@@ -1273,7 +1264,7 @@ static void list2vec(Tree l, vector<Tree>& v)
 
 static Tree vec2list(const vector<Tree>& v)
 {
-	Tree l = nil;
+	Tree l = gGlobal->nil;
 	int	 n = v.size();
 	while (n--) { l = cons(v[n],l); }
 	return l;
@@ -1286,7 +1277,6 @@ static Tree vec2list(const vector<Tree>& v)
 // further simplification : replace bloc-diagrams that denote constant number by this number
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static property<Tree> SimplifiedBoxProperty;
 static Tree numericBoxSimplification(Tree box);
 static Tree insideBoxSimplification (Tree box);
 
@@ -1298,7 +1288,7 @@ Tree boxSimplification (Tree box)
 {
     Tree    simplified;
 
-    if (SimplifiedBoxProperty.get(box,simplified)) {
+    if (gGlobal->gSimplifiedBoxProperty->get(box,simplified)) {
 
         return simplified;
 
@@ -1310,7 +1300,7 @@ Tree boxSimplification (Tree box)
         Tree name; if (getDefNameProperty(box, name)) setDefNameProperty(simplified, name);
 
         // attach simplified expression as a property of original box
-        SimplifiedBoxProperty.set(box,simplified);
+        gGlobal->gSimplifiedBoxProperty->set(box,simplified);
 
         return simplified;
     }
@@ -1340,7 +1330,7 @@ Tree numericBoxSimplification(Tree box)
             // propagate signals to discover if it simplifies to a number
             int     i;
             double  x;
-            Tree    lsignals = boxPropagateSig(nil, box , makeSigInputList(0));
+            Tree    lsignals = boxPropagateSig(gGlobal->nil, box , makeSigInputList(0));
             Tree    s = simplify(hd(lsignals));
 
             if (isSigReal(s, &x)) 	{

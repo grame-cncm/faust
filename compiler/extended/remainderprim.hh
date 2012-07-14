@@ -63,7 +63,3 @@ class RemainderPrim : public xtended
 
 };
 
-
-xtended* gRemainderPrim = new RemainderPrim();
-
-

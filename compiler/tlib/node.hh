@@ -79,6 +79,7 @@ class Node
 
  public:
 	// constructeurs (assume size of field f is the biggest)
+    Node () {}
 	Node (int x) 				: fType(kIntNode) 		{ fData.f = 0; fData.i = x; }
 	Node (double x) 			: fType(kDoubleNode) 	{ fData.f = x; }
 	Node (const char* name)		: fType(kSymNode) 		{ fData.f = 0; fData.s = symbol(name); }

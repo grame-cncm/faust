@@ -1,3 +1,24 @@
+/************************************************************************
+ ************************************************************************
+ FAUST compiler
+ Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
 #include "environment.hh"
 #include "errormsg.hh"
 #include "boxes.hh"
@@ -39,11 +60,10 @@ static Tree pushNewLayer(Tree lenv)
  * @param lenv the old environment
  * @return the new environment
 */
-static Sym BARRIER = symbol ("BARRIER");
 
 Tree pushEnvBarrier(Tree lenv)
 {
-    return tree(BARRIER, lenv);
+    return tree(gGlobal->BARRIER, lenv);
 }
 
 /**
@@ -55,7 +75,7 @@ Tree pushEnvBarrier(Tree lenv)
 */
 bool isEnvBarrier(Tree lenv)
 {
-    return isNil(lenv) || (lenv->node() == Node(BARRIER));
+    return isNil(lenv) || (lenv->node() == Node(gGlobal->BARRIER));
 }
 
 
@@ -113,7 +133,7 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
         Tree def = hd(ldefs);
         Tree id = hd(def);
         Tree rhs= tl(def);
-        Tree cl = closure(tl(def),nil,visited,lenv2);
+        Tree cl = closure(tl(def),gGlobal->nil,visited,lenv2);
         stringstream s; s << boxpp(id);
         if (!isBoxCase(rhs)) setDefNameProperty(cl,s.str());
         addLayerDef( id, cl, lenv2 );
@@ -183,7 +203,7 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv)
         Tree def = hd(ldefs);
         Tree id = hd(def);
         Tree rhs= tl(def);
-        Tree cl = closure(rhs,nil,visited,curEnv);
+        Tree cl = closure(rhs,gGlobal->nil,visited,curEnv);
         stringstream s; s << boxpp(id);
         if (!isBoxCase(rhs)) setDefNameProperty(cl,s.str());
         setProperty(copyEnv, id, cl);

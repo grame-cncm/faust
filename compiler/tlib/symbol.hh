@@ -43,6 +43,8 @@
 #include <string>
 #include <map>
 
+#include "garbageable.hh"
+
 using namespace std;
 
 //--------------------------------SYMBOL-------------------------------------
@@ -50,8 +52,7 @@ using namespace std;
 /**
  * Symbols are unique objects with a name stored in a hash table.
  */
-class Symbol
-{
+class Symbol : public virtual Garbageable {
 	
  private:
 		 
@@ -61,7 +62,7 @@ class Symbol
 	
  // Fields
     char*			fName;										///< Name of the symbol
-    unsigned int			fHash;										///< Hash key computed from the name and used to determine the hash table entry
+    unsigned int	fHash;										///< Hash key computed from the name and used to determine the hash table entry
     Symbol*			fNext;										///< Next symbol in the hash table entry
 	void*			fData;										///< Field to user disposal to store additional data
 	
@@ -104,7 +105,6 @@ inline void* 			getUserData (Symbol* sym) 			{ return sym->fData; }		///< Return
 inline void 			setUserData (Symbol* sym, void* d) 	{ sym->fData=d; }			///< Set user data
 
 inline ostream& operator << (ostream& s, const Symbol& n) { return n.print(s); }
-
 
 typedef Symbol* Sym;
 

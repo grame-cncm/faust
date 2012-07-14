@@ -105,16 +105,15 @@ This file contains several extensions to the tree library :
 #include <stdlib.h>
 #include "list.hh"
 #include "compatibility.hh"
+#include "global.hh"
 #include <map>
 #include <cstdlib>
 
-// predefined symbols CONS and NIL
-Sym CONS = symbol ("cons");
-Sym NIL  = symbol ("nil");
+inline Tree 	cons (Tree a, Tree b)		{ return tree (gGlobal->CONS, a, b); }
+inline Tree 	list0 () 					{ return gGlobal->nil; }
 
-// predefined nil tree
-Tree nil = tree(NIL);
-
+inline bool 	isNil (Tree l)			{ return (l->node() == Node(gGlobal->NIL)) && (l->arity() == 0); }
+inline bool 	isList (Tree l)			{ return (l->node() == Node(gGlobal->CONS)) && (l->arity() == 2); }
 
 //------------------------------------------------------------------------------
 // Printing of trees with special case for lists
@@ -174,7 +173,6 @@ void print (Tree t, FILE* out)
 	} 
 }
 
-
 //------------------------------------------------------------------------------
 // Elements of list
 //------------------------------------------------------------------------------
@@ -186,7 +184,7 @@ Tree nth (Tree l, int i)
 		l = tl(l);
 		i--;
 	}
-	return nil;
+	return gGlobal->nil;
 }
 
 Tree replace(Tree l, int i, Tree e)
@@ -194,14 +192,12 @@ Tree replace(Tree l, int i, Tree e)
 	return (i==0) ? cons(e,tl(l)) : cons( hd(l), replace(tl(l),i-1,e) );
 }
 
-
 int len (Tree l)
 {
 	int 	n = 0;
 	while (isList(l)) { l = tl(l); n++; }
 	return n;
 }
-
 
 //------------------------------------------------------------------------------
 // Mapping and reversing
@@ -220,7 +216,7 @@ Tree concat (Tree l, Tree q)
 
 Tree lrange (Tree l, int i, int j)
 {
-	Tree 	r = nil;
+	Tree 	r = gGlobal->nil;
 	int 	c = j;
 	while (c>i) r = cons( nth(l,--c), r);
 	return r;
@@ -232,14 +228,14 @@ Tree lrange (Tree l, int i, int j)
 
 static Tree rmap (tfun f, Tree l)
 {
-	Tree r = nil;
+	Tree r = gGlobal->nil;
 	while (isList(l)) { r = cons(f(hd(l)),r); l = tl(l); }
 	return r;
 }
 
 Tree reverse (Tree l)
 {
-	Tree r = nil;
+	Tree r = gGlobal->nil;
 	while (isList(l)) { r = cons(hd(l),r); l = tl(l); }
 	return r;
 }
@@ -280,7 +276,7 @@ Tree addElement(Tree e, Tree l)
 			return cons(hd(l), addElement(e,tl(l)));
 		}
 	} else {
-		return cons(e,nil);
+		return cons(e,gGlobal->nil);
 	}
 }
 
@@ -295,7 +291,7 @@ Tree remElement(Tree e, Tree l)
 			return cons(hd(l), remElement(e,tl(l)));
 		}
 	} else {
-		return nil;
+		return gGlobal->nil;
 	}
 }
 
@@ -306,7 +302,7 @@ Tree singleton (Tree e)
 
 Tree list2set (Tree l)
 {
-	Tree s = nil;
+	Tree s = gGlobal->nil;
 	while (isList(l)) {
 		s = addElement(hd(l),s);
 		l = tl(l);
@@ -342,8 +338,6 @@ Tree setDifference (Tree A, Tree B)
 	/* (hd(A) > hd(B)*/	return setDifference(A,tl(B));
 }
 	
-		
-
 //------------------------------------------------------------------------------
 // Environments
 //------------------------------------------------------------------------------
@@ -365,7 +359,6 @@ bool searchEnv (Tree key, Tree& v, Tree env)
 	return false;
 }
 
-
 //------------------------------------------------------------------------------
 // Property list
 //------------------------------------------------------------------------------
@@ -379,25 +372,24 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
 {
-	if (isNil(pl)) 				return cons ( cons(key,val), nil );
+	if (isNil(pl)) 				return cons ( cons(key,val), gGlobal->nil );
 	if (left(hd(pl)) == key) 	return cons ( cons(key,val), tl(pl) );
 	/*  left(hd(pl)) != key	*/	return cons ( hd(pl), updateKey( tl(pl), key, val ));
 }
 
 static Tree removeKey (Tree pl, Tree key)
 {
-	if (isNil(pl)) 				return nil;
+	if (isNil(pl)) 				return gGlobal->nil;
 	if (left(hd(pl)) == key) 	return tl(pl);
 	/*  left(hd(pl)) != key	*/	return cons (hd(pl), removeKey(tl(pl), key));
 }
-
 
 #if 0
 void setProperty (Tree t, Tree key, Tree val)
 {
 	CTree* pl = t->attribut();
 	if (pl) t->attribut(updateKey(pl, key, val)); 
-	else 	t->attribut(updateKey(nil, key, val));
+	else 	t->attribut(updateKey(gGlobal->nil, key, val));
 }
 
 void remProperty (Tree t, Tree key)
@@ -453,7 +445,7 @@ Tree tmap (Tree key, tfun f, Tree t)
 		
 	} else {
 		
-		Tree r1=nil;
+		Tree r1=gGlobal->nil;
 		switch (t->arity()) {
 			
 			case 0 : 
@@ -476,7 +468,7 @@ Tree tmap (Tree key, tfun f, Tree t)
 		}
 		Tree r2 = f(r1);
 		if (r2 == t) {
-			setProperty(t, key, nil);
+			setProperty(t, key, gGlobal->nil);
 		} else {
 			setProperty(t, key, r2);
 		}
@@ -484,10 +476,6 @@ Tree tmap (Tree key, tfun f, Tree t)
 	}
 }
 		
-
-
-
-
 //------------------------------------------------------------------------------
 // substitute :remplace toutes les occurences de 'id' par 'val' dans 't'
 //------------------------------------------------------------------------------
@@ -515,7 +503,7 @@ static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 	} else if (getProperty(t, propkey, p)) {
 		return (isNil(p)) ?  t : p;
 	} else {
-		Tree r=nil;
+		Tree r=gGlobal->nil;
 		switch (t->arity()) {
 			
 			case 1 : 
@@ -546,7 +534,7 @@ static Tree subst (Tree t, Tree propkey, Tree id, Tree val)
 			
 		}
 		if (r == t) {
-			setProperty(t, propkey, nil);
+			setProperty(t, propkey, gGlobal->nil);
 		} else {
 			setProperty(t, propkey, r);
 		}

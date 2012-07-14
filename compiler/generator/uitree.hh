@@ -19,21 +19,20 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #ifndef _UITREE_
 #define _UITREE_
 
 #include "tlib.hh"
+//#include "tree.hh"
 
-Tree  	uiFolder(Tree label, Tree elements=nil);
+//Tree  	uiFolder(Tree label, Tree elements = gGlobal->nil);
+Tree    uiFolder(Tree label, Tree elements);
 Tree 	uiWidget(Tree label, Tree varname, Tree sig);
 
 bool  	isUiFolder(Tree t);
 bool  	isUiFolder(Tree t, Tree& label, Tree& elements);
 
 bool 	isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig);
-
 
 inline Tree uiLabel (Tree t)	{ return t->branch(0); }
 
@@ -43,9 +42,7 @@ inline Tree uiLabel (Tree t)	{ return t->branch(0); }
 	
 //Tree makeSubFolderChain(Tree path, Tree elem);
 
-	
 Tree putSubFolder(Tree folder, Tree path, Tree item);
-
 
 #endif
 

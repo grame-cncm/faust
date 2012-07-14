@@ -137,8 +137,6 @@ bool CTree::equiv (const Node& n, const tvec& br) const
 	return (fNode == n) && (fBranch == br);
 }
 
-static Sym PROCESS = symbol ("process"); 
-
 unsigned int CTree::calcTreeHash( const Node& n, const tvec& br )
 {
 	unsigned int 			hk = n.type() ^ n.getInt();

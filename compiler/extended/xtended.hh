@@ -7,7 +7,7 @@
 #include "sigvisitor.hh"
 #include <vector>
 #include "lateq.hh"
-
+#include "garbageable.hh"
 
 #include <llvm/Value.h>
 #include <llvm/Support/IRBuilder.h>
@@ -19,14 +19,15 @@ struct ValueInst;
 class CodeGen;
 class CodeContainer;
 
-class xtended
-{
+class xtended : public virtual Garbageable {
+
 	Symbol*		fSymbol;	///< the symbol the xtended is attached to
+    
  public:
 
-
  	xtended (const char* name) :
-		fSymbol(::symbol(name)) {
+		fSymbol(::symbol(name)) 
+    {
 		setUserData(fSymbol, (void*)this);
 	}
 	virtual ~xtended() { setUserData(fSymbol, 0); }
@@ -73,7 +74,6 @@ extern xtended* gSinPrim;
 extern xtended* gCosPrim;
 extern xtended* gTanPrim;
 
-
 // -- Exponential Functions
 
 extern xtended* gExpPrim;
@@ -91,7 +91,6 @@ extern xtended* gLogbPrim;
 extern xtended* gIlogbPrim;
 extern xtended* gExpm1Prim;
 
-
 // -- Hyperbolic Functions
 
 extern xtended* gAcoshPrim;
@@ -101,7 +100,6 @@ extern xtended* gAtanhPrim;
 extern xtended* gSinhPrim;
 extern xtended* gCoshPrim;
 extern xtended* gTanhPrim;
-
 
 // -- Remainder Functions
 
@@ -113,7 +111,6 @@ extern xtended* gRemainderPrim;
 extern xtended* gFloorPrim;
 extern xtended* gCeilPrim;
 extern xtended* gRintPrim;
-
 
 // -- Miscellaneous Functions
 

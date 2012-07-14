@@ -78,7 +78,7 @@ bool getBoxType (Tree box, int* inum, int* onum)
 			setProperty(box, gGlobal->BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
 			return true;
 		} else {
-			setProperty(box, gGlobal->BOXTYPEPROP, nil);
+			setProperty(box, gGlobal->BOXTYPEPROP, gGlobal->nil);
 			return false;
 		}
 	}

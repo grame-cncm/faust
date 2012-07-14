@@ -92,7 +92,3 @@ class PowPrim : public xtended
 
 };
 
-
-xtended* gPowPrim = new PowPrim();
-
-

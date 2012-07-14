@@ -5,40 +5,33 @@
 #include "floats.hh"
 #include "code_container.hh"
 
-class Log10Prim : public xtended
+class AtanPrim : public xtended
 {
 
  public:
 
- 	Log10Prim() : xtended("log10f") {}
+ 	AtanPrim() : xtended("atan") {}
 
-	virtual unsigned int arity () { return 1; }
+	virtual unsigned int 	arity () { return 1; }
 
 	virtual bool	needCache ()	{ return true; }
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == arity());
-		interval i = args[0]->getInterval();
-		if (i.valid && (i.lo > 0)) {
-			return castInterval(floatCast(args[0]), interval(log10(i.lo), log10(i.hi)));
-		} else {
-			return floatCast(args[0]);
-		}
+		assert (args.size() == 1);
+		return floatCast(args[0]);
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
-		assert (args.size() == arity());
 		return args[0];
 	}
 
 	virtual Tree	computeSigOutput (const vector<Tree>& args) {
 		num n;
-		assert (args.size() == arity());
 		if (isNum(args[0],n)) {
-			return tree(log10(double(n)));
+			return tree(atan(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -54,7 +47,7 @@ class Log10Prim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
-        return container->pushFunction(subst("log10$0", isuffix()), result_type, arg_types, args);
+        return container->pushFunction(subst("atan$0", isuffix()), result_type, arg_types, args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -62,12 +55,8 @@ class Log10Prim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-		return subst("\\log_{10}\\left( $0 \\right)", args[0]);
+        return subst("\\arctan\\left($0\\right)", args[0]);
 	}
 
 };
-
-
-xtended* gLog10Prim = new Log10Prim();
-
 

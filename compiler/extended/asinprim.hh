@@ -5,41 +5,39 @@
 #include "floats.hh"
 #include "code_container.hh"
 
-class FmodPrim : public xtended
+class AsinPrim : public xtended
 {
 
  public:
 
- 	FmodPrim() : xtended("fmodf") {}
+ 	AsinPrim() : xtended("asin") {}
 
-	virtual unsigned int 	arity () { return 2; }
+	virtual unsigned int 	arity () { return 1; }
 
 	virtual bool	needCache ()	{ return true; }
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == arity());
-		return floatCast(args[0]|args[1]);
+		assert (args.size() == 1);
+		return floatCast(args[0]);
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
-		assert (args.size() == arity());
-		return max(args[0], args[1]);
+		return args[0];
 	}
 
 	virtual Tree	computeSigOutput (const vector<Tree>& args) {
-		num n,m;
-		assert (args.size() == arity());
-		if (isNum(args[0],n) & isNum(args[1],m)) {
-			return tree(fmod(double(n), double(m)));
+		num n;
+		if (isNum(args[0],n)) {
+			return tree(asin(double(n)));
 		} else {
-			return tree(symbol(), args[0], args[1]);
+			return tree(symbol(), args[0]);
 		}
 	}
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const& types)
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
         assert(args.size() == arity());
 		assert(types.size() == arity());
@@ -48,8 +46,8 @@ class FmodPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-     
-        return container->pushFunction(subst("fmod$0", isuffix()), result_type, arg_types, casted_args);
+
+        return container->pushFunction(subst("asin$0", isuffix()), result_type, arg_types, args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -57,12 +55,8 @@ class FmodPrim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-		return subst("$0\\pmod{$1}", args[0], args[1]);
+        return subst("\\arcsin\\left($0\\right)", args[0]);
 	}
 
 };
-
-
-xtended* gFmodPrim = new FmodPrim();
-
 

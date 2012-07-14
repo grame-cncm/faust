@@ -5,37 +5,37 @@
 #include "floats.hh"
 #include "code_container.hh"
 
-class Atan2Prim : public xtended
+class ExpPrim : public xtended
 {
 
  public:
 
- 	Atan2Prim() : xtended("atan2") {}
+ 	ExpPrim() : xtended("exp") {}
 
-	virtual unsigned int 	arity () { return 2; }
+	virtual unsigned int 	arity () { return 1; }
 
 	virtual bool	needCache ()	{ return true; }
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == 2);
-		return floatCast(args[0]|args[1]);
+		assert (args.size() == arity());
+		return floatCast(args[0]);
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
-		return max(args[0], args[1]);
+		assert (args.size() == arity());
+		return args[0];
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args)
-	{
-		assert (args.size() == 2);
-		num n,m;
-		if (isNum(args[0],n) && isNum(args[1],m)) {
-			return tree(atan2(double(n), double(m)));
+	virtual Tree	computeSigOutput (const vector<Tree>& args) {
+		num n;
+		assert (args.size() == arity());
+		if (isNum(args[0],n)) {
+			return tree(exp(double(n)));
 		} else {
-			return tree(symbol(), args[0], args[1]);
+			return tree(symbol(), args[0]);
 		}
 	}
 
@@ -49,7 +49,7 @@ class Atan2Prim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
-        return container->pushFunction(subst("atan2$0", isuffix()), result_type, arg_types, args);
+        return container->pushFunction(subst("exp$0", isuffix()), result_type, arg_types, args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -57,12 +57,8 @@ class Atan2Prim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-        return subst("\\arctan\\frac{$0}{$1}", args[0], args[1]);
+		return subst("e^{$0}", args[0]);
 	}
 
 };
-
-
-xtended* gAtan2Prim = new Atan2Prim();
-
 

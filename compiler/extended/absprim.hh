@@ -1,39 +1,50 @@
 #include "xtended.hh"
 #include "Text.hh"
 #include <math.h>
+#include "sigtyperules.hh"
 
 #include "floats.hh"
 #include "code_container.hh"
 
-class ExpPrim : public xtended
+class AbsPrim : public xtended
 {
 
  public:
 
- 	ExpPrim() : xtended("exp") {}
+ 	AbsPrim() : xtended("abs") {}
 
 	virtual unsigned int 	arity () { return 1; }
 
 	virtual bool	needCache ()	{ return true; }
 
-	virtual ::Type 	infereSigType (const vector< ::Type>& args)
+	virtual ::Type 	infereSigType (const vector< ::Type>& types)
 	{
-		assert (args.size() == arity());
-		return floatCast(args[0]);
+		assert (types.size() == arity());
+		Type t = types[0];
+		return castInterval(t, abs(t->getInterval()));
+		return t;
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
 
-	virtual int infereSigOrder (const vector<int>& args) {
+	virtual int infereSigOrder (const vector<int>& args)
+	{
 		assert (args.size() == arity());
 		return args[0];
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args) {
-		num n;
+	virtual Tree	computeSigOutput (const vector<Tree>& args)
+	{
+		double f; int i;
+
 		assert (args.size() == arity());
-		if (isNum(args[0],n)) {
-			return tree(exp(double(n)));
+
+		if (isDouble(args[0]->node(),&f)) {
+			return tree(fabs(f));
+
+		} else if (isInt(args[0]->node(),&i)) {
+			return tree(abs(i));
+
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -49,7 +60,12 @@ class ExpPrim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
-        return container->pushFunction(subst("exp$0", isuffix()), result_type, arg_types, args);
+        ::Type t = infereSigType(types);
+		if (t->nature() == kReal) {
+            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, args);
+        } else {
+            return container->pushFunction("abs", result_type, arg_types, args);
+        }
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -57,12 +73,9 @@ class ExpPrim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-		return subst("e^{$0}", args[0]);
+		::Type t = infereSigType(types);
+		return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
 	}
-
 };
-
-
-xtended* gExpPrim = new ExpPrim();
 
 

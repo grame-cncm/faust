@@ -251,7 +251,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigReal(sig, &r)) 			{   Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
                                                 /*sig->setType(t);*/ return t; }
 
-    else if (isSigInput(sig, &i))			{   /*sig->setType(TINPUT);*/ return TINPUT; }
+    else if (isSigInput(sig, &i))			{   /*sig->setType(TINPUT);*/ return gGlobal->TINPUT; }
 
     else if (isSigOutput(sig, &i, s1))      return sampCast(T(s1,env));
 
@@ -318,18 +318,18 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigFVar(sig,type,name,file))     return infereFVarType(type);
 
-    else if (isSigButton(sig))                  { /*sig->setType(TGUI01);*/ return TGUI01; }
+    else if (isSigButton(sig))                  { /*sig->setType(TGUI01);*/ return gGlobal->TGUI01; }
 
-    else if (isSigCheckbox(sig))				{ /*sig->setType(TGUI01);*/ return TGUI01; }
+    else if (isSigCheckbox(sig))				{ /*sig->setType(TGUI01);*/ return gGlobal->TGUI01; }
 
 	else if (isSigVSlider(sig,label,cur,min,max,step))
-												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
+												return castInterval(gGlobal->TGUI,interval(tree2float(min),tree2float(max)));
 
 	else if (isSigHSlider(sig,label,cur,min,max,step))
-												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
+												return castInterval(gGlobal->TGUI,interval(tree2float(min),tree2float(max)));
 
 	else if (isSigNumEntry(sig,label,cur,min,max,step))
-												return castInterval(TGUI,interval(tree2float(min),tree2float(max)));
+												return castInterval(gGlobal->TGUI,interval(tree2float(min),tree2float(max)));
 
     else if (isSigHBargraph(sig, l, x, y, s1))  return T(s1,env);
 
@@ -507,7 +507,7 @@ static Type initialRecType(Tree t)
     assert (isList(t));
 
     vector<Type> v;
-    while (isList(t)) { v.push_back(TREC); t = tl(t); };
+    while (isList(t)) { v.push_back(gGlobal->TREC); t = tl(t); };
     return new TupletType(v);
 }
 

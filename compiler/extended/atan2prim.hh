@@ -5,35 +5,37 @@
 #include "floats.hh"
 #include "code_container.hh"
 
-class AsinPrim : public xtended
+class Atan2Prim : public xtended
 {
 
  public:
 
- 	AsinPrim() : xtended("asin") {}
+ 	Atan2Prim() : xtended("atan2") {}
 
-	virtual unsigned int 	arity () { return 1; }
+	virtual unsigned int 	arity () { return 2; }
 
 	virtual bool	needCache ()	{ return true; }
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == 1);
-		return floatCast(args[0]);
+		assert (args.size() == 2);
+		return floatCast(args[0]|args[1]);
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
-		return args[0];
+		return max(args[0], args[1]);
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args) {
-		num n;
-		if (isNum(args[0],n)) {
-			return tree(asin(double(n)));
+	virtual Tree	computeSigOutput (const vector<Tree>& args)
+	{
+		assert (args.size() == 2);
+		num n,m;
+		if (isNum(args[0],n) && isNum(args[1],m)) {
+			return tree(atan2(double(n), double(m)));
 		} else {
-			return tree(symbol(), args[0]);
+			return tree(symbol(), args[0], args[1]);
 		}
 	}
 
@@ -47,7 +49,7 @@ class AsinPrim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
-        return container->pushFunction(subst("asin$0", isuffix()), result_type, arg_types, args);
+        return container->pushFunction(subst("atan2$0", isuffix()), result_type, arg_types, args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -55,12 +57,8 @@ class AsinPrim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-        return subst("\\arcsin\\left($0\\right)", args[0]);
+        return subst("\\arctan\\frac{$0}{$1}", args[0], args[1]);
 	}
 
 };
-
-
-xtended* gAsinPrim = new AsinPrim();
-
 

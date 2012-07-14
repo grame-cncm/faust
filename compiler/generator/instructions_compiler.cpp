@@ -57,6 +57,12 @@ using namespace std;
 
 std::ostream* Printable::fOut = &cout;
 
+InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
+            :fContainer(container), fUIRoot(uiFolder(cons(tree(0),
+            tree(subst("$0", gGlobal->gMasterName))), gGlobal->nil)), fDescription(0),
+            fLoadedIota(false)
+{}
+
 /*****************************************************************************
 						getFreshID
 *****************************************************************************/

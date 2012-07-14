@@ -166,7 +166,3 @@ class MinPrim : public xtended
 
 };
 
-
-xtended* gMinPrim = new MinPrim();
-
-

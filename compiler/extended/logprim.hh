@@ -5,12 +5,12 @@
 #include "floats.hh"
 #include "code_container.hh"
 
-class SqrtPrim : public xtended
+class LogPrim : public xtended
 {
 
  public:
 
- 	SqrtPrim() : xtended("sqrt") {}
+ 	LogPrim() : xtended("log") {}
 
 	virtual unsigned int arity () { return 1; }
 
@@ -18,27 +18,27 @@ class SqrtPrim : public xtended
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == 1);
-		Type 		t = args[0];
-		interval 	i = t->getInterval();
-		if (i.valid && i.lo >=0) {
-			return castInterval(floatCast(t), interval(sqrt(i.lo), sqrt(i.hi)));
+		assert (args.size() == arity());
+		interval i = args[0]->getInterval();
+		if (i.valid & i.lo>0) {
+			return castInterval(floatCast(args[0]), interval(log(i.lo), log(i.hi)));
 		} else {
-			return castInterval(floatCast(t), interval());
+			return floatCast(args[0]);
 		}
 	}
 
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
+		assert (args.size() == arity());
 		return args[0];
 	}
 
 	virtual Tree	computeSigOutput (const vector<Tree>& args) {
-		// verifier les simplifications
 		num n;
+		assert (args.size() == arity());
 		if (isNum(args[0],n)) {
-			return tree(sqrt(double(n)));
+			return tree(log(double(n)));
 		} else {
 			return tree(symbol(), args[0]);
 		}
@@ -53,8 +53,8 @@ class SqrtPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-  
-        return container->pushFunction(subst("sqrt$0", isuffix()), result_type, arg_types, args);
+
+        return container->pushFunction(subst("log$0", isuffix()), result_type, arg_types, args);
     }
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
@@ -62,12 +62,8 @@ class SqrtPrim : public xtended
 		assert (args.size() == arity());
 		assert (types.size() == arity());
 
-        return subst("\\sqrt{$0}", args[0]);
+		return subst("\\ln\\left( $0 \\right)", args[0]);
 	}
 
 };
-
-
-xtended* gSqrtPrim = new SqrtPrim();
-
 
