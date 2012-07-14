@@ -19,14 +19,11 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #include <stdio.h>
 #include <string.h>
 #include <string>
 #include <fstream>
 #include <iostream>
-
 
 using namespace std;
 
@@ -34,8 +31,6 @@ void copyFirstHalf(FILE* file, FILE* dst);
 void copySecondHalf(FILE* file, FILE* dst);
 void copyZeroHalf(FILE* file, FILE* dst);
 void copyFile(FILE* file, FILE* dst);
-
-
 
 void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag);
 void streamCopyUntil(istream& src, ostream& dst, const string& until);
@@ -51,10 +46,3 @@ bool check_file(const char* filename);
 const char* filebasename(const char* name); // returns a pointer on the basename part of name
 
 string filedirname(const string& name);        // allocate a string containing the dirname of name
-
-//static string dirname(const string& path)
-//{
-//    char s[1024];
-//    strncpy(s, path.c_str(), 1024);
-//    return string(dirname(s));
-//}

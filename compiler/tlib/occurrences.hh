@@ -23,13 +23,15 @@
 #define __OCCURENCES__
 
 #include "tlib.hh"
+#include "garbageable.hh"
 
 /**
  * Count subtree occurences
  * Count the number of occurences of each subtree of a root tree.
  */
 
-class Occurrences
+//class Occurrences : public virtual Garbageable
+class Occurrences 
 {
 	Tree	fKey;					// specific property key
 

@@ -19,17 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _SIGTYPERULES_
 #define _SIGTYPERULES_
 
 #include "signals.hh"
 #include "sigtype.hh"
 
-
 extern bool gVectorSwitch;
-
 
 /** \file sigtyperules.hh
  * API to the typing system of signals
@@ -45,21 +41,15 @@ extern bool gVectorSwitch;
  *
  **/
 
-
-
-
 /**
  *	Annotates a signal term and its subterms with type information
  */
 void typeAnnotation(Tree term);
 
-
-
 /**
  *	Return the type of a previously annotated signal term
  */
 ::Type getCertifiedSigType(Tree term);
-
 
 /**
  *	print annotation statistics

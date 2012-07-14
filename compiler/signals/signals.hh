@@ -91,18 +91,6 @@ bool isSigGen   (Tree t);
 Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx);
 Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx);
 
-/*
-inline Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
-{
-	return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, n, sigGen(init)), widx, wsig), ridx);
-}
-
-inline Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
-{
-	return sigRDTbl(sigTable(gGlobal->nil, n, sigGen(init)), ridx);
-}
-*/
-
 // Tables for documentator
 // used to replace real tables for documentation purposes only
 

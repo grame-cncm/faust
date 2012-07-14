@@ -18,9 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
-
-
+ 
 #ifndef _LATEQ_H
 #define _LATEQ_H
 
@@ -47,12 +45,13 @@
 
 using namespace std;
 
+#include "garbageable.hh"
 #include <string>
 #include <list>
 #include <vector>
 #include <map>
 
-
+//class Lateq : public virtual Garbageable {
 class Lateq {
 	
 public:

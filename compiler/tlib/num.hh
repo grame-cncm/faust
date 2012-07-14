@@ -47,15 +47,16 @@ the num.h file, there is no num.cpp file.
 ******************************************************************************
 *****************************************************************************/
 
-
 #ifndef     __NUM__
 #define     __NUM__
 
+#include "garbageable.hh"
 
 //-------------------------------------------------------------------------
 // Class num = (int x (int + double))
 //-------------------------------------------------------------------------
-class num
+//class num : public virtual Garbageable
+class num 
 {
 	int		fType;
 	union { 
@@ -66,7 +67,6 @@ class num
  public:
 	// constructeurs
 	num (int x=0) 		: fType(0) 			{ fData.i = x; }
-	//num (double x) 		: fType(1)  		{ fData.f = (double)x; }
 	num (double x) 		: fType(1)  		{ fData.f = x; }
 	num (const num& n) 	: fType(n.fType) 	{ fData.i = n.fData.i; }
 

@@ -19,13 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _ERRORMSG_
 #define _ERRORMSG_
 
 #include "tlib.hh"
-
 
 extern int 			yylineno;
 extern const char * yyfilename;

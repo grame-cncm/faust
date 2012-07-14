@@ -18,18 +18,15 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
-// device.h
-
 
 #if !defined DEVICE_H
 #define DEVICE_H
 
-#include "stdio.h"
+#include "garbageable.hh"
+#include <stdio.h>
 
-class device  
+//class device  : public virtual Garbageable
+class device
 {
 	public:
         virtual ~device() {}

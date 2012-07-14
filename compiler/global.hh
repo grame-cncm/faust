@@ -38,31 +38,6 @@
 #include "property.hh"
 #include "sigtype.hh"
 
-//#include "tree.hh"
-
-/*
-#include "absprim.hh"
-#include "acosprim.hh"
-#include "tanprim.hh"
-#include "sqrtprim.hh"
-#include "sinprim.hh"
-#include "rintprim.hh"
-#include "remainderprim.hh"
-#include "powprim.hh"
-#include "minprim.hh"
-#include "maxprim.hh" 
-#include "logprim.hh"
-#include "log10prim.hh"
-#include "fmodprim.hh" 
-#include "floorprim.hh"
-#include "expprim.hh"
-#include "cosprim.hh"
-#include "ceilprim.hh"
-#include "atanprim.hh"
-#include "atan2prim.hh"
-#include "asinprim.hh"
-*/
-
 class 	CTree;
 typedef CTree* Tree;
 
@@ -361,8 +336,7 @@ struct global {
     Sym 	SYMREC;
     Sym 	SYMRECREF;
     Sym 	SYMLIFTN;
-
-  
+ 
     global();
     ~global();
     
@@ -370,6 +344,7 @@ struct global {
     
     static void allocate();
     static void destroy();
+    
 };
 
 extern global* gGlobal;

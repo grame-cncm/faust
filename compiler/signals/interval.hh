@@ -20,12 +20,12 @@
  ************************************************************************/
  
  
- 
 #ifndef __signals_intervals__
 #define __signals_intervals__
 
 #include <math.h>
 #include <iostream>
+#include "garbageable.hh"
 
 #ifdef WIN32
 inline double log2(double e) { return log(e)/log(double(2)); }
@@ -33,6 +33,7 @@ inline double log2(double e) { return log(e)/log(double(2)); }
 
 using namespace std;
 
+//struct interval : public virtual Garbageable
 struct interval 
 {
 	bool	valid;			///< true if it is a valid interval
@@ -69,7 +70,6 @@ inline interval reunion(const interval& x, const interval& y)
 		return interval();
 	}
 }
-
 
 inline interval operator+(const interval& x, const interval& y) 	
 { 

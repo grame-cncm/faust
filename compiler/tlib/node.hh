@@ -55,6 +55,7 @@
 
 #include <iostream>
 #include "symbol.hh"
+#include "garbageable.hh"
 
 using namespace std;
 
@@ -63,10 +64,12 @@ using namespace std;
  */
 enum { kIntNode, kDoubleNode, kSymNode, kPointerNode };
 
-
 /**
  * Class Node = (type x (int + double + Sym + void*))
  */
+ 
+// Used as a field in CTree so not Garbageable 
+
 class Node
 {
 	int		fType;

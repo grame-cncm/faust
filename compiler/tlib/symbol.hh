@@ -52,7 +52,8 @@ using namespace std;
 /**
  * Symbols are unique objects with a name stored in a hash table.
  */
-class Symbol : public virtual Garbageable {
+//class Symbol : public virtual Garbageable {
+class Symbol {
 	
  private:
 		 
@@ -68,7 +69,7 @@ class Symbol : public virtual Garbageable {
 	
  // Constructors & destructors
     Symbol (const char* str, unsigned int hsh, Symbol* nxt); 	///< Constructs a new symbol ready to be placed in the hash table
-   ~Symbol ();													///< The Destructor is never used
+   virtual ~Symbol ();											
 	
  // Others
 	bool			equiv (unsigned int hash, const char* str) const ;	///< Check if the name of the symbol is equal to string \p str

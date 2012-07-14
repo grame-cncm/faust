@@ -106,7 +106,9 @@ struct IndexedAddress;
 // Visitors
 // =========
 
-class InstVisitor : public virtual Garbageable {
+// Used as a field in Container so not Garbageable 
+
+class InstVisitor {
 
     public:
 

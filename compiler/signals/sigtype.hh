@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _SigType_
 #define _SigType_
 
@@ -31,7 +29,7 @@
 #include "smartpointer.hh"
 #include "interval.hh"
 #include "instructions.hh"
-
+#include "garbageable.hh"
 
 /*********************************************************************
 *
@@ -80,7 +78,8 @@ typedef P<AudioType> Type;
  * a "computability" (when the values are available). Simple types have
  * also a "nature" (integer or floating point).
  */
-class AudioType
+//class AudioType : public virtual Garbageable
+class AudioType 
 {
   public:
     static int  gAllocationCount;
@@ -133,7 +132,6 @@ class AudioType
 //printing
 inline ostream& operator << (ostream& s, const AudioType& n) { return n.print(s); }
 
-
 /**
  * Return the nature of a vector of types.
  */
@@ -143,8 +141,6 @@ inline int mergenature(const vector<Type>& v)
 	for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->nature();
 	return r;
 }
-
-
 
 /**
  * Return the variability of a vector of types.
@@ -156,8 +152,6 @@ inline int mergevariability(const vector<Type>& v)
 	return r;
 }
 
-
-
 /**
  * Return the computability of a vector of types.
  */
@@ -167,8 +161,6 @@ inline int mergecomputability(const vector<Type>& v)
 	for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->computability();
 	return r;
 }
-
-
 
 /**
  * Return the vectorability of a vector of types.
@@ -180,8 +172,6 @@ inline int mergevectorability(const vector<Type>& v)
 	return r;
 }
 
-
-
 /**
  * Return the booleanity of a vector of types.
  */
@@ -191,8 +181,6 @@ inline int mergeboolean(const vector<Type>& v)
 	for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->boolean();
 	return r;
 }
-
-
 
 /**
  * Return the interval of a vector of types.
@@ -218,13 +206,11 @@ inline interval mergeinterval(const vector<Type>& v)
 	}
 }
 
-
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i);
 
 AudioType* makeTableType(const Type& ct);
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec);
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, const interval& i);
-
 
 AudioType* makeTupletType(const vector<Type>& vt);
 AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i);
@@ -260,11 +246,7 @@ class SimpleType : public AudioType
 // 		return t;
 // 	}
 
-
     virtual bool    isMaximal() const;                              ///< true when type is maximal (and therefore can't change depending of hypothesis)
-
-
-
 };
 
 inline Type intCast (Type t)	{ return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), t->getInterval()); }
@@ -332,7 +314,6 @@ class TableType : public AudioType
 };
 
 
-
 /**
  * The type of a tuplet of data.
  * Beside a computability and a variability, TupletTypes have
@@ -372,14 +353,11 @@ class TupletType : public AudioType
 };
 
 
-
-
 //-------------------------------------------------
 //-------------------------------------------------
 // 				operations sur les types
 //-------------------------------------------------
 //-------------------------------------------------
-
 
 
 //--------------------------------------------------

@@ -850,14 +850,7 @@ int compile_faust_internal(int argc, char* argv[], bool time_out, const char* in
      6 - generate xml description, documentation or dot files
     *****************************************************************/
     generateOutputFiles(comp_container.first, comp_container.second);
-    
-    
-    /****************************************************************
-     7 - delete the compiler (that itself deletes the container)
-    *****************************************************************/
-    
-    //delete comp_container.first;
-        
+          
     return 0;
 }
 

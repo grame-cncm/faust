@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #ifndef _Prim2_
 #define _Prim2_
 
@@ -40,6 +38,5 @@ int 		ffrestype(Tree t);
 int 		ffargtype(Tree t, int i);
 const char* ffincfile(Tree t);
 const char* fflibfile(Tree t);
-
 
 #endif

@@ -19,18 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _BINOP_
 #define _BINOP_
 
 #include "node.hh"
 
-
 typedef const Node	(*comp) (const Node& a, const Node& b);
 typedef bool 		(*pred) (const Node& a);
 
 bool falsePredicate(Node const & a);
+
+// Used a static so not Garbageable 
 
 struct BinOp
 {

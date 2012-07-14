@@ -19,11 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _DOC_COMPILE_SCAL_
 #define _DOC_COMPILE_SCAL_
-
 
 #include <string>
 #include <list>
@@ -37,7 +34,7 @@
 #include "Text.hh"
 #include "doc_Text.hh"
 #include "description.hh"
-
+#include "garbageable.hh"
 
 ///////////////////////////////////////////////////////////////////////
 /**
@@ -45,7 +42,8 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
-class DocCompiler
+//class DocCompiler : public virtual Garbageable
+class DocCompiler 
 {
   protected:
 	
@@ -59,7 +57,6 @@ class DocCompiler
 	Tree                      	fSharingKey;
 	OccMarkup					fOccMarkup;
 	int							fPriority;	///< math priority context
-
 
   public:
 

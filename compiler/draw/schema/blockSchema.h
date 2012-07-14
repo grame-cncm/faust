@@ -22,7 +22,6 @@
 #ifndef __BLOCKSCHEMA__
 #define __BLOCKSCHEMA__
 
-
 #include "schema.h"
 #include <vector>
 #include <string>

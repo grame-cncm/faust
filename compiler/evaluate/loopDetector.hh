@@ -23,8 +23,6 @@
 #ifndef __LOOPDETECTOR__
 #define __LOOPDETECTOR__
  
- 
- 
 /** 						
  * \file loopDetector.hh 
  *
@@ -33,10 +31,11 @@
  *
  **/
  
- 
 
 #include "boxes.hh"
 #include "sourcereader.hh"
+
+// Used a static so not Garbageable 
 
 class loopDetector
 {

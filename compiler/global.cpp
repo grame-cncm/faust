@@ -44,6 +44,9 @@
 #include "atanprim.hh"
 #include "atan2prim.hh"
 #include "asinprim.hh"
+
+#include "binop.hh"
+#include "instructions.hh"
   
 global::global():TABBER(1)
 {
@@ -238,71 +241,14 @@ global::global():TABBER(1)
     DEBRUIJN 	= symbol ("DEBRUIJN");
     DEBRUIJNREF = symbol ("DEBRUIJNREF");
     SUBSTITUTE  = symbol ("SUBSTITUTE");
-    
-    printf("DEBRUIJNREF %x\n", DEBRUIJNREF);
-
+  
     SYMREC 		= symbol ("SYMREC");
     SYMRECREF 	= symbol ("SYMRECREF");
     SYMLIFTN 	= symbol ("LIFTN");
-  
-    /*
-    TINT 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TREAL 	= makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
-
-    TKONST = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TBLOCK = makeSimpleType(kInt, kBlock, kComp, kVect, kNum, interval());
-    TSAMP 	= makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
-
-    TCOMP 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TINIT 	= makeSimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
-    TEXEC 	= makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
-
-    // more predefined types
-
-    TINPUT	= makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
-    TGUI	= makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
-    TGUI01	= makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval(0,1));
-    INT_TGUI  = makeSimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
-
-    TREC   = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
-    
-    // predefined symbols CONS and NIL
-    CONS = symbol ("cons");
-    NIL  = symbol ("nil");
-    
-    // predefined nil tree
-    nil = tree(NIL);
-    
-    PROCESS = symbol ("process"); 
-
-    gPureRoutingProperty = new property<bool>();
-    gSymbolicBoxProperty = new property<Tree>();
-    gSimplifiedBoxProperty = new property<Tree>();
-    gSymListProp = new property<Tree>();
-    gMemoizedTypes = new property<AudioType*>();
-
-      
-    BOXTYPEPROP = tree(symbol("boxTypeProp"));
-    NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
-    DEFLINEPROP = tree(symbol("DefLineProp"));
-    SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
-    DOCTABLES = tree(symbol("DocTablesProp"));
-    NULLENV = tree(symbol("NullRenameEnv"));
-    COLORPROPERTY = tree(symbol("ColorProperty"));
-    ORDERPROP = tree(symbol("OrderProp"));
-    RECURSIVNESS = tree(symbol("RecursivnessProp"));
-    NULLTYPEENV = tree(symbol("NullTypeEnv"));
-    RECDEF = tree(symbol("RECDEF"));
-    DEBRUIJN2SYM = tree(symbol("deBruijn2Sym"));
-    DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
-    NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
-    BCOMPLEXITY = tree("BCOMPLEXITY");
-    */
 }
 
 void global::init()
 {
-    
     gPureRoutingProperty = new property<bool>();
     gSymbolicBoxProperty = new property<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
@@ -353,11 +299,12 @@ void global::init()
     DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY = tree("BCOMPLEXITY");
-
 }
     
 global::~global()
 {
+    Garbageable::cleanup();
+/*
     delete gResult;
     delete gResult2;
     
@@ -378,7 +325,7 @@ global::~global()
     delete BCOMPLEXITY;
     
     CTree::cleanup();
-    
+*/
     // Needed ?
     //Symbol::cleanup(); 
 }
@@ -388,7 +335,6 @@ void global::allocate()
     gGlobal = new global();
     gGlobal->init();
 }
-
 
 void global::destroy()
 {

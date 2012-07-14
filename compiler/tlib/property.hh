@@ -2,8 +2,10 @@
 #define __PROPERTY__
 
 #include "tree.hh"
+#include "garbageable.hh"
 
-template<class P> class property
+//template<class P> class property : public virtual Garbageable
+template<class P> class property 
 {
     Tree	fKey;
 

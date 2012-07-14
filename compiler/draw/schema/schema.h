@@ -22,8 +22,9 @@
 #ifndef __SCHEMA__
 #define __SCHEMA__
 
-
 #include "device.h"
+#include "garbageable.hh"
+
 #include <vector>
 #include <string>
 #include <set>
@@ -36,7 +37,7 @@ const double dLetter = 4.3;			///< width of a letter
 const double dHorz = 4;       		///< marge horizontale
 const double dVert = 4;				///< marge verticale
 
-
+//struct point : public virtual Garbageable
 struct point
 {
     double  x;
@@ -53,6 +54,7 @@ struct point
     }
 };
 
+//struct trait : public virtual Garbageable
 struct trait
 {
     point   start;
@@ -71,7 +73,8 @@ struct trait
     }
 };
 
-struct collector
+//struct collector : public virtual Garbageable
+struct collector 
 {
     set<point>  fOutputs;       // collect real outputs
     set<point>  fInputs;        // collect real inputs
@@ -89,12 +92,11 @@ struct collector
 
 enum { kLeftRight=1, kRightLeft=-1 };
 
-
-
 /**
  * An abstract block diagram schema
  */
-class schema
+//class schema : public virtual Garbageable
+class schema 
 {
   private:
 	const unsigned int	fInputs;
@@ -167,13 +169,6 @@ schema* makeSplitSchema 	(schema* s1, schema* s2);
 schema* makeRecSchema 		(schema* s1, schema* s2);
 schema* makeTopSchema 		(schema* s1, double margin, const string& text, const string& link);
 schema* makeDecorateSchema 	(schema* s1, double margin, const string& text);
-
-
-
-
-
-
-
 
 
 #endif

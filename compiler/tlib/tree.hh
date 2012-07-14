@@ -70,13 +70,13 @@
 /*****************************************************************************
 ******************************************************************************/
 
-
-
 #ifndef     __TREE__
 #define     __TREE__
 
 #include "symbol.hh"
 #include "node.hh"
+#include "garbageable.hh"
+
 #include <vector>
 #include <map>
 #include <assert.h>
@@ -106,7 +106,8 @@ typedef vector<Tree>	tvec;
  * WARNING : in the current implementation CTrees are allocated but never deleted
  **/
 
-class CTree
+class CTree : public virtual Garbageable
+//class CTree 
 {
  private:
 	static const int 	kHashTableSize = 2000000; //510511;	///< size of the hash table used for "hash consing"
@@ -134,7 +135,7 @@ class CTree
 	static int	calcTreeAperture 	(const Node& n, const tvec& br);		///< compute how open is a tree
 
  public:
-	~CTree ();
+	virtual ~CTree ();
 
 	static Tree make (const Node& n, int ar, Tree br[]);		///< return a new tree or an existing equivalent one
 	static Tree make(const Node& n, const tvec& br);			///< return a new tree or an existing equivalent one
@@ -265,6 +266,5 @@ class Tabber
 inline ostream& operator << (ostream& s, Tabber& t) { return t.print(s); }
 
 extern Tabber TABBER;
-
 
 #endif

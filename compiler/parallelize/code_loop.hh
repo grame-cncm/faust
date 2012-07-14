@@ -40,9 +40,7 @@
 #include "tree.hh"
 #include "function_builder.hh"
 #include "list.hh"
-
-extern bool gVectorSwitch;
-extern int gVecSize;
+#include "garbageable.hh"
 
 // Loop internal code
 
@@ -70,6 +68,7 @@ class CodeLoop;
 typedef set<CodeLoop*>  lclset;
 typedef vector<lclset>  lclgraph;
 
+//class CodeLoop : public virtual Garbageable {
 class CodeLoop {
 
     friend class CodeContainer;

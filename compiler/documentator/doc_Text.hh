@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _doc_stringFAUST_H
 #define _doc_stringFAUST_H
 
@@ -36,7 +34,6 @@
 #include <string>
 #include <vector>
 using namespace std;
-
 
 //string subst (const string& m, const string& a0);
 //string subst (const string& m, const vector<string>& vargs);

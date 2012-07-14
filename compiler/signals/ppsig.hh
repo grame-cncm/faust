@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _PPSIG_H
 #define _PPSIG_H
 
@@ -37,6 +35,7 @@
 #include <iostream>
 #include <sstream>
 #include "signals.hh"
+#include "garbageable.hh"
 
 using namespace std;
 
@@ -45,7 +44,8 @@ using namespace std;
 // box pretty printer.
 // usage : out << boxpp(aBoxExp);
 
-class ppsig
+//class ppsig  : public virtual Garbageable
+class ppsig  
 {
 	Tree 	sig;
 	Tree 	fEnv;		///< recursive environment stack

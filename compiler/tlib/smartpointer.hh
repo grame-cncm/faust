@@ -19,16 +19,11 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #ifndef _SMARTPOINTER_H
 #define _SMARTPOINTER_H
 
-//#include <iostream>
 #include <cstdlib>
 #include <cstdio>
-
-
 
 template<class T>
 class P {

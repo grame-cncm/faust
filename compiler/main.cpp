@@ -37,6 +37,6 @@ int main(int argc, char* argv[])
         e.PrintMessage();
     }
     
-   global::destroy();
+    global::destroy();
     return res;
 }

@@ -28,7 +28,6 @@
 
 using namespace std;
 
- 
 /** 						
  * \file names.hh 
  *
@@ -36,9 +35,6 @@ using namespace std;
  *
  **/
  
- 
-
-
 /**
  * Indicates the identifier (if any) the expression was a definition of.
  * @param t the expression 

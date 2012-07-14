@@ -19,15 +19,11 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #ifndef _SIGPRINT_
 #define _SIGPRINT_
 
 #include "signals.hh"
 
-//void printSigType (Tree tp);
-//void printSigTypeList (Tree l);
 void printSigType (int n, int v, int c);
 void printSignal(Tree sig, FILE* out=stdout, int prec=0 );
 
