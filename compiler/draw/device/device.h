@@ -25,7 +25,7 @@
 #include "garbageable.hh"
 #include <stdio.h>
 
-class device  : public virtual Garbageable
+class device : public virtual Garbageable
 {
 	public:
         virtual ~device() {}

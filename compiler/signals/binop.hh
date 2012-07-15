@@ -29,8 +29,7 @@ typedef bool 		(*pred) (const Node& a);
 
 bool falsePredicate(Node const & a);
 
-// Used a static so not Garbageable 
-
+// Use in in static table so not Garbageable
 struct BinOp
 {
 	const char*	fName;

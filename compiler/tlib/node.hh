@@ -68,9 +68,7 @@ enum { kIntNode, kDoubleNode, kSymNode, kPointerNode };
  * Class Node = (type x (int + double + Sym + void*))
  */
  
-// Used as a field in CTree so not Garbageable 
-
-class Node
+class Node : public virtual Garbageable
 {
 	int		fType;
 	union {
@@ -114,8 +112,6 @@ class Node
 //printing
 inline ostream& operator << (ostream& s, const Node& n) { return n.print(s); }
 
-
-
 //-------------------------------------------------------------------------
 // Perdicates and pattern matching
 //-------------------------------------------------------------------------
@@ -136,7 +132,6 @@ inline bool isInt (const Node& n, int* x)
 	}
 }
 
-
 // floats
 inline bool isDouble (const Node& n)
 {
@@ -152,8 +147,6 @@ inline bool isDouble (const Node& n, double* x)
 		return false;
 	}
 }
-
-
 
 inline bool isZero (const Node& n)
 {
@@ -185,13 +178,11 @@ inline bool isMinusOne (const Node& n)
 		|| (n.type() == kIntNode) && (n.getInt() == -1);
 }
 
-
 // numbers in general
 inline bool isNum (const Node& n)
 {
 	return isInt(n)||isDouble(n);
 }
-
 
 // symbols
 inline bool isSym (const Node& n)
@@ -209,7 +200,6 @@ inline bool isSym (const Node& n, Sym* x)
 	}
 }
 
-
 // void pointer
 inline bool isPointer (const Node& n)
 {
@@ -226,13 +216,9 @@ inline bool isPointer (const Node& n, void** x)
 	}
 }
 
-
-
-
 //-------------------------------------------------------------------------
 // Mathematical operations on nodes
 //-------------------------------------------------------------------------
-
 
 // arithmetic operations
 
@@ -261,7 +247,6 @@ inline const Node minusNode (const Node& x)
 inline const Node inverseNode (const Node& x)
     { return divExtendedNode(1.0f, x); }
 
-
 // bit shifting operations
 
 inline const Node lshNode (const Node& x, const Node& y)
@@ -269,7 +254,6 @@ inline const Node lshNode (const Node& x, const Node& y)
 
 inline const Node rshNode (const Node& x, const Node& y)
 	{ return Node(int(x)>>int(y)); }
-
 
 // boolean operations on bits
 
@@ -281,7 +265,6 @@ inline const Node orNode (const Node& x, const Node& y)
 
 inline const Node xorNode (const Node& x, const Node& y)
 	{ return Node(int(x)^int(y)); }
-
 
 // compare operations
 
@@ -303,7 +286,5 @@ inline const Node eqNode (const Node& x, const Node& y)
 inline const Node neNode (const Node& x, const Node& y)
 	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)!=double(y)) : Node(int(x)!=int(y)); }
 #endif
-
-
 
 #endif

@@ -32,9 +32,7 @@ inline double log2(double e) { return log(e)/log(double(2)); }
 
 using namespace std;
 
-// Used as a field so not Garbageable 
-
-struct interval 
+struct interval : public virtual Garbageable
 {
 	bool	valid;			///< true if it is a valid interval
 	double	lo;				///< minimal value

@@ -79,8 +79,7 @@ typedef P<AudioType> Type;
  * also a "nature" (integer or floating point).
  */
  
-//class AudioType : public virtual Garbageable
-class AudioType
+class AudioType : public virtual Garbageable
 {
   public:
     static int  gAllocationCount;
@@ -353,7 +352,6 @@ class TupletType : public AudioType
 
 };
 
-
 //-------------------------------------------------
 //-------------------------------------------------
 // 				operations sur les types
@@ -381,14 +379,12 @@ extern Type TGUI01;
 extern Type INT_TGUI;
 extern Type TREC;
 
-
 //--------------------------------------------------
 // creation de types
 
 Type table	(const Type& t);
 Type operator| 	(const Type& t1, const Type& t2);
 Type operator* 	(const Type& t1, const Type& t2);
-
 
 //--------------------------------------------------
 // comparaison de types
@@ -401,14 +397,12 @@ inline bool operator< (const Type& t1, const Type& t2) { return t1<=t2 && t1!=t2
 inline bool operator> (const Type& t1, const Type& t2) { return t2<t1; 	}
 inline bool operator>=(const Type& t1, const Type& t2) { return t2<=t1; }
 
-
 //--------------------------------------------------
 // predicats-conversion de types
 
 SimpleType* 	isSimpleType (AudioType* t);
 TableType* 		isTableType  (AudioType* t);
 TupletType* 	isTupletType (AudioType* t);
-
 
 //--------------------------------------------------
 // impressions de types
@@ -417,7 +411,6 @@ ostream& operator<<(ostream& dst, const SimpleType& t);
 ostream& operator<<(ostream& dst, const Type& t);
 ostream& operator<<(ostream& dst, const TableType& t);
 ostream& operator<<(ostream& dst, const TupletType& t);
-
 
 //--------------------------------------------------
 // verification de type
@@ -432,13 +425,11 @@ Type checkWRTbl(Type tbl, Type wr);	///< verifie que wr est compatible avec le c
 
 int checkDelayInterval(Type t);		///< Check if the interval of t is appropriate for a delay
 
-
 //--------------------------------------------------
 // conversion de type
 
 Typed::VarType ctType (Type t);
 
 Tree codeAudioType(AudioType* t);   ///< Code an audio type as a tree (memoization)
-
 
 #endif

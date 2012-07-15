@@ -49,9 +49,6 @@
 #include "exception.hh"
 #include "global.hh"
 
-//map<string, string>		gGlobal->gDocMathStringMap;
-//set<string>				gGlobal->gDocMathKeySet;
-
 static int	getLateqIndex(const string& s);
 static bool compLateqIndexes(const string& s1, const string& s2);
 static void initDocMathKeySet();

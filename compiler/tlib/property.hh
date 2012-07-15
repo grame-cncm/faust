@@ -2,10 +2,9 @@
 #define __PROPERTY__
 
 #include "tree.hh"
+#include "garbageable.hh"
 
-// Used as a field so not Garbageable 
-
-template<class P> class property 
+template<class P> class property : public virtual Garbageable
 {
     Tree	fKey;
 
@@ -50,9 +49,7 @@ public:
     }
 };
 
-// Used as a field so not Garbageable 
-
-template<> class property<Tree> 
+template<> class property<Tree> : public virtual Garbageable
 {
     Tree	fKey;
 
@@ -84,9 +81,7 @@ public:
     }
 };
 
-// Used as a field so not Garbageable 
-
-template<> class property<int> 
+template<> class property<int> : public virtual Garbageable
 {
     Tree	fKey;
 
@@ -118,9 +113,7 @@ public:
     }
 };
 
-// Used as a field so not Garbageable 
-
-template<> class property<double>
+template<> class property<double> : public virtual Garbageable
 {
     Tree	fKey;
 

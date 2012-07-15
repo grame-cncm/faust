@@ -91,7 +91,6 @@ class Symbol : public virtual Garbageable {
 	friend void 			setUserData (Symbol* sym, void* d);
     
     static void init ();
-    //static void cleanup ();
 		
 };
 

@@ -48,7 +48,7 @@
 #include "garbageable.hh"
 
 class CodeContainer : public virtual Garbageable {
-//class CodeContainer {
+
     protected:
 
         list <CodeContainer*> fSubContainers;

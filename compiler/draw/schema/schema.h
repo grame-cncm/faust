@@ -37,9 +37,7 @@ const double dLetter = 4.3;			///< width of a letter
 const double dHorz = 4;       		///< marge horizontale
 const double dVert = 4;				///< marge verticale
 
-// Used as a field so not Garbageable 
-
-struct point
+struct point  : public virtual Garbageable
 {
     double  x;
     double  y;
@@ -55,9 +53,7 @@ struct point
     }
 };
 
-// Used on the stack so not Garbageable
-
-struct trait
+struct trait : public virtual Garbageable
 {
     point   start;
     point   end;
@@ -75,9 +71,7 @@ struct trait
     }
 };
 
-// Used on the stack so not Garbageable
-
-struct collector 
+struct collector : public virtual Garbageable 
 {
     set<point>  fOutputs;       // collect real outputs
     set<point>  fInputs;        // collect real inputs

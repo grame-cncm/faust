@@ -180,13 +180,3 @@ void Symbol::init ()
 {
     memset(gSymbolTable, 0, sizeof(Symbol*) * kHashTableSize);
 }
-
-/*
-void Symbol::cleanup ()
-{
-    for (int i = 0; i < kHashTableSize; i++) {
-        delete(gSymbolTable[i]);
-    }
-    memset(gSymbolTable, 0, sizeof(Symbol*) * kHashTableSize);
-}
-*/

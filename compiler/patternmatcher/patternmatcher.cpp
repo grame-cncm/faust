@@ -36,6 +36,7 @@ using namespace std;
 #include <utility>
 #include "exception.hh"
 #include "global.hh"
+#include "garbageable.hh"
 
 /* Uncomment for debugging output. */
 //#define DEBUG
@@ -94,7 +95,8 @@ static Tree subtree(Tree X, int i, const Path& p)
 
 /* rule markers */
 
-struct Rule {
+struct Rule : public virtual Garbageable {
+//struct Rule {
   int r; // rule number
   Tree id; // matched variable (NULL if none)
   Path p; // subterm path indicating where variable value is found
@@ -120,7 +122,8 @@ struct State;
 
 /* transitions */
 
-struct Trans {
+struct Trans : public virtual Garbageable {
+//struct Trans {
   Tree x; // symbol or constant (NULL for variable)
   Node n; // operator symbol (if arity>0)
   int arity; // symbol arity
@@ -152,7 +155,8 @@ struct Trans {
 
 /* states */
 
-struct State {
+struct State : public virtual Garbageable {
+//struct State {
   int s; // state number
   bool match_num; // whether state has a transition on a numeric constant
   list<Rule> rules; // rule markers
@@ -194,7 +198,7 @@ Trans::Trans(const Trans& trans) :
 
 Trans::~Trans()
 {
-  delete state;
+  //delete state;
 }
 
 Trans& Trans::operator = (const Trans& trans)
@@ -206,7 +210,8 @@ Trans& Trans::operator = (const Trans& trans)
 
 /* the automaton */
 
-struct Automaton {
+struct Automaton : public virtual Garbageable {
+//struct Automaton {
   vector<State*> state;
   vector<Tree> rhs;
 
@@ -410,7 +415,7 @@ static void merge_trans_var(list<Trans>& trans, State *state)
       /* add the completion of the given state for an arity>0 op */
       State *state1 = make_var_state(t->arity, state);
       merge_state(t->state, state1);
-      delete state1;
+      //delete state1;
     }
   }
 }
@@ -464,7 +469,7 @@ static void merge_trans_op(list<Trans>& trans, const Node& op,
   if (t1 != t0) {
     State *state2 = make_var_state(arity, t0->state);
     merge_state(state1, state2);
-    delete state2;
+    //delete state2;
   }
 }
 
@@ -530,18 +535,18 @@ Automaton *make_pattern_matcher(Tree R)
       State *state0 = new State, *state = state0;
       A->rhs.push_back(rhs);
       while (isCons(lhs, pat, rest)) {
-	pats[--i] = pat;
-	lhs = rest;
+        pats[--i] = pat;
+        lhs = rest;
       }
       testpats[r] = pats;
       for (i = 0; i < m; i++) {
-	Path p;
-	state = make_state(state, r, pats[i], p);
+        Path p;
+        state = make_state(state, r, pats[i], p);
       }
       Rule rule(r, NULL);
       state->rules.push_back(rule);
       merge_state(start, state0);
-      delete state0;
+      //delete state0;
     }
   }
   A->build(start);
@@ -593,7 +598,8 @@ Automaton *make_pattern_matcher(Tree R)
    of the argument where the substitution of the matched variable is to be
    found. */
 
-struct Assoc {
+struct Assoc : public virtual Garbageable {
+//struct Assoc {
   Tree id;
   Path p;
   Assoc(Tree _id, const Path& _p) : id(_id), p(_p) {}

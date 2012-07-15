@@ -35,6 +35,7 @@
 #include <iostream>
 #include <sstream>
 #include "boxes.hh"
+#include "garbageable.hh"
 
 using namespace std;
 
@@ -51,9 +52,7 @@ const char * prim5name(CTree *(*ptr) (CTree *, CTree *, CTree *, CTree *, CTree 
 // box pretty printer.
 // usage : out << boxpp(aBoxExp);
 
-// Used on the stack so not Garbageable 
-
-class boxpp 
+class boxpp : public virtual Garbageable
 {
 	Tree 	box;
 	int		priority;
@@ -70,7 +69,7 @@ inline ostream& operator << (ostream& file, const boxpp& bpp) { return bpp.print
 
 // Used on the stack so not Garbageable 
 
-class envpp 
+class envpp : public virtual Garbageable
 {
 	Tree 	fEnv;
 public:

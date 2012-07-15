@@ -83,7 +83,7 @@
 
 using namespace std;
 
-global*         gGlobal = NULL;
+global* gGlobal = NULL;
 list<Garbageable*> Garbageable::gObjectTable;
 bool Garbageable::gDelete = false;
 

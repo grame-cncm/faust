@@ -310,12 +310,6 @@ global::~global()
     
     BasicTyped::gTypeTable.clear();
     DeclareVarInst::gVarTable.clear();
-    
-    delete gPureRoutingProperty;
-    delete gSymbolicBoxProperty;
-    delete gSimplifiedBoxProperty;
-    delete gSymListProp;
-    delete gMemoizedTypes;
 }
 
 void global::allocate()
@@ -331,22 +325,34 @@ void global::destroy()
 
 Garbageable::Garbageable()
 {
-    gObjectTable.push_front(this);
+    //printf("Garbageable allocator\n");
 }
 
 Garbageable::~Garbageable()
 {
-    if (!gDelete) {
-        gObjectTable.remove(this);
-    }
-}
+    //printf("Garbageable deallocator\n");
+ }
 
 void Garbageable::cleanup()
 {
+    //printf("Garbageable cleanup\n");
     std::list<Garbageable*>::iterator it;
-    gDelete = true;
     for (it = gObjectTable.begin(); it != gObjectTable.end(); it++) {
         delete(*it);
     }
     gObjectTable.clear();
+}
+
+void* Garbageable::operator new(size_t size)
+{
+    //printf("Garbageable new\n");
+    void* res = calloc(1, size);
+    gObjectTable.push_front(static_cast<Garbageable*>(res));
+    return res;
+}
+
+void Garbageable::operator delete(void* ptr, size_t size)
+{
+    //printf("Garbageable delete\n");
+    free(ptr);
 }

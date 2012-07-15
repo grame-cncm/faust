@@ -69,7 +69,6 @@ typedef set<CodeLoop*>  lclset;
 typedef vector<lclset>  lclgraph;
 
 class CodeLoop : public virtual Garbageable {
-//class CodeLoop {
 
     friend class CodeContainer;
 

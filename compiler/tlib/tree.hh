@@ -153,8 +153,7 @@ class CTree : public virtual Garbageable
 	static void control ();										///< print the hash table content (for debug purpose)
     
     static void init ();
-    //static void cleanup ();
-
+  
 	// type information
 	void		setType(void* t) 	{ fType = t; }
 	void*		getType() 			{ return fType; }

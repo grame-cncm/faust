@@ -74,7 +74,6 @@ void setDefNameProperty(Tree t, const string& name)
 	} else {
 		setProperty(t, gGlobal->DEFNAMEPROPERTY, tree(name.c_str()));
 	}
-
 }
 
 bool getDefNameProperty(Tree t, Tree& id)

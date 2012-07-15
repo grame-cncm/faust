@@ -44,9 +44,7 @@ using namespace std;
  * m1 + m2 + m3 + ...
  */
 
-// Used as a field so not Garbageable 
-
-class aterm 
+class aterm : public virtual Garbageable
 {
 
     map<Tree,mterm> fSig2MTerms;     			///< mapping between signatures and corresponding mterms

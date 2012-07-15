@@ -31,13 +31,10 @@
  *
  **/
  
-
 #include "boxes.hh"
 #include "sourcereader.hh"
 
-// Used a static so not Garbageable 
-
-class loopDetector
+class loopDetector : public virtual Garbageable
 {
 		const int		fBuffersize;
 		const int		fCheckperiod;
@@ -49,7 +46,6 @@ class loopDetector
 		bool 	detect 	(Tree t);
 		
 };
-
 
 #endif
 

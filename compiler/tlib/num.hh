@@ -50,13 +50,13 @@ the num.h file, there is no num.cpp file.
 #ifndef     __NUM__
 #define     __NUM__
 
+#include "garbageable.hh"
+
 //-------------------------------------------------------------------------
 // Class num = (int x (int + double))
 //-------------------------------------------------------------------------
 
-// Used as a field so not Garbageable 
-
-class num 
+class num : public virtual Garbageable
 {
 	int		fType;
 	union { 

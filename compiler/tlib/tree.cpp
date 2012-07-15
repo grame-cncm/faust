@@ -221,16 +221,6 @@ void CTree::init ()
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }
 
-/*
-void CTree::cleanup ()
-{
-    for (int i = 0; i < kHashTableSize; i++) {
-        delete(gHashTable[i]);
-    }
-    memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
-}
-*/
-
 // if t has a node of type int, return it otherwise error
 int tree2int (Tree t)
 {

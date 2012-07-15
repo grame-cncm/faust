@@ -30,6 +30,7 @@
 #include "simplify.hh"
 #include "normalize.hh"
 #include "sigorderrules.hh"
+#include "garbageable.hh"
 
 #include <map>
 #include <list>
@@ -41,8 +42,7 @@ using namespace std;
  * k*x^n*y^m*... and its arithmetic
  */
 
-// Used as a field so not Garbageable 
-class mterm 
+class mterm : public virtual Garbageable
 {
 
     Tree            fCoef;    					///< constant part of the term (usually 1 or -1)
