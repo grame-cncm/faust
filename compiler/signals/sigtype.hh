@@ -79,7 +79,8 @@ typedef P<AudioType> Type;
  * also a "nature" (integer or floating point).
  */
  
-class AudioType : public virtual Garbageable
+//class AudioType : public virtual Garbageable
+class AudioType
 {
   public:
     static int  gAllocationCount;

@@ -328,3 +328,25 @@ void global::destroy()
 {
     delete gGlobal;
 }
+
+Garbageable::Garbageable()
+{
+    gObjectTable.push_front(this);
+}
+
+Garbageable::~Garbageable()
+{
+    if (!gDelete) {
+        gObjectTable.remove(this);
+    }
+}
+
+void Garbageable::cleanup()
+{
+    std::list<Garbageable*>::iterator it;
+    gDelete = true;
+    for (it = gObjectTable.begin(); it != gObjectTable.end(); it++) {
+        delete(*it);
+    }
+    gObjectTable.clear();
+}

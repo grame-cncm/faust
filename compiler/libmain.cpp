@@ -84,7 +84,8 @@
 using namespace std;
 
 global*         gGlobal = NULL;
-list<Garbageable*> Garbageable::gTable;
+list<Garbageable*> Garbageable::gObjectTable;
+bool Garbageable::gDelete = false;
 
 /****************************************************************
  						Parser variables
