@@ -70,8 +70,8 @@
 /*****************************************************************************
 ******************************************************************************/
 
-#ifndef     __TREE__
-#define     __TREE__
+#ifndef __TREE__
+#define __TREE__
 
 #include "symbol.hh"
 #include "node.hh"
@@ -154,7 +154,7 @@ class CTree : public virtual Garbageable
 	static void control ();										///< print the hash table content (for debug purpose)
     
     static void init ();
-    static void cleanup ();
+    //static void cleanup ();
 
 	// type information
 	void		setType(void* t) 	{ fType = t; }
@@ -264,7 +264,5 @@ class Tabber
 
 //printing
 inline ostream& operator << (ostream& s, Tabber& t) { return t.print(s); }
-
-extern Tabber TABBER;
 
 #endif

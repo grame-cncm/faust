@@ -51,13 +51,11 @@
 global::global():TABBER(1)
 {
     CTree::init();
+    Symbol::init();
     
     EVALPROPERTY = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
-    
-    // Needed ?
-    //Symbol::init();
-    
+
     gResult             = 0;
     gResult2            = 0;
     gExpandedDefList    = 0;
@@ -304,30 +302,12 @@ void global::init()
 global::~global()
 {
     Garbageable::cleanup();
-/*
-    delete gResult;
-    delete gResult2;
     
-    delete BOXTYPEPROP;
-    delete NUMERICPROPERTY;
-    delete DEFLINEPROP;
-    delete SIMPLIFIED;
-    delete DOCTABLES;
-    delete NULLENV;
-    delete COLORPROPERTY;
-    delete ORDERPROP;
-    delete RECURSIVNESS;
-    delete NULLTYPEENV;
-    delete RECDEF;
-    delete DEBRUIJN2SYM;
-    delete DEFNAMEPROPERTY;
-    delete NICKNAMEPROPERTY;
-    delete BCOMPLEXITY;
+    CTree::init();
+    Symbol::init();
     
-    CTree::cleanup();
-*/
-    // Needed ?
-    //Symbol::cleanup(); 
+    BasicTyped::gTypeTable.clear();
+    DeclareVarInst::gVarTable.clear();
 }
 
 void global::allocate()

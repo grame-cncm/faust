@@ -464,9 +464,7 @@ struct NamedTyped : public Typed {
     {}
     
     virtual ~NamedTyped()
-    {
-        //delete fType;
-    }
+    {}
 
     VarType getType() { return fType->getType(); }
 
@@ -506,9 +504,7 @@ struct ArrayTyped : public Typed {
     {}
     
     virtual ~ArrayTyped()
-    {
-        //delete fType;
-    }
+    {}
 
     VarType getType() { return getPtrFromType(fType->getType()); }
 
@@ -525,9 +521,7 @@ struct StructTyped : public Typed {
     {}
     
     virtual ~StructTyped()
-    {
-        //delete fType;
-    }
+    {}
 
     //VarType getType() { return getPtrFromType(fType->getType()); }
 
@@ -547,9 +541,7 @@ struct VectorTyped : public Typed {
     {}
     
     virtual ~VectorTyped()
-    {
-        //delete fType;
-    }
+    {}
 
     VarType getType() { return getVecFromType(fType->getType()); }
 
@@ -639,12 +631,7 @@ struct IndexedAddress : public Address {
     {}
     
     virtual ~IndexedAddress()
-    {
-        /*
-        delete fAddress;
-        delete fIndex;
-        */
-    }
+    {}
 
     void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
     Address::AccessType getAccess() { return fAddress->getAccess(); }
@@ -793,11 +780,6 @@ struct DeclareVarInst : public StatementInst
     virtual ~DeclareVarInst()
     {
         gVarTable.erase(fAddress->getName());
-        /*
-        delete fAddress;
-        delete fType;
-        delete fValue;
-        */
     }
 
     void setAccess(Address::AccessType type) { fAddress->setAccess(type); }
@@ -827,9 +809,7 @@ struct DropInst : public StatementInst
     {}
     
     virtual ~DropInst()
-    {
-        //delete fResult;
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -845,9 +825,7 @@ struct LoadVarInst : public ValueInst
     {}
     
     virtual ~LoadVarInst()
-    {
-        //delete fAddress;
-    }
+    {}
 
     void setName(const string& name) { fAddress->setName(name); }
     string getName() {return fAddress->getName(); }
@@ -866,9 +844,7 @@ struct LoadVarAddressInst : public ValueInst
     {}
     
     virtual ~LoadVarAddressInst()
-    {
-        //delete fAddress;
-    }
+    {}
 
     void setName(const string& name) { fAddress->setName(name); }
     string getName() {return fAddress->getName(); }
@@ -888,12 +864,7 @@ struct StoreVarInst : public StatementInst
     {}
     
     virtual ~StoreVarInst()
-    {
-        /*
-        delete fAddress;
-        delete fValue;
-        */
-    }
+    {}
 
     void setName(const string& name) { fAddress->setName(name); }
     string getName() {return fAddress->getName(); }
@@ -970,12 +941,7 @@ struct BinopInst : public ValueInst
     {}
     
     virtual ~BinopInst()
-    {
-        /*
-        delete fInst1;
-        delete fInst2;
-        */
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -992,12 +958,7 @@ struct CastNumInst : public ValueInst
     {}
     
     virtual ~CastNumInst()
-    {
-        /*
-        delete fType;
-        delete fInst;
-        */
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1022,14 +983,7 @@ struct BlockInst : public StatementInst
     {}
     
     virtual ~BlockInst()
-    {
-        /*
-        list<StatementInst*>::const_iterator it;
-        for (it = fCode.begin(); it != fCode.end(); it++) {
-            delete(*it);
-        }
-        */
-    }
+    {}
 
     void setIndent(bool indent) { fIndent = indent; }
     bool getIndent() { return fIndent; }
@@ -1063,13 +1017,7 @@ struct Select2Inst : public ValueInst
     {}
     
     virtual ~Select2Inst()
-    {
-        /*
-        delete fCond;
-        delete fThen;
-        delete fElse;
-        */
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1091,13 +1039,7 @@ struct IfInst : public StatementInst
     {}
     
     virtual ~IfInst()
-    {
-        /*
-        delete fCond;
-        delete fThen;
-        delete fElse;
-        */
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1118,14 +1060,7 @@ struct SwitchInst : public StatementInst
     {}
     
     virtual ~SwitchInst()
-    {
-        /*
-        list<pair<int, BlockInst*> >::const_iterator it;
-        for (it = fCode.begin(); it != fCode.end(); it++) {
-            delete (*it).second;
-        }
-        */
-    }
+    {}
 
     void addCase(int value, BlockInst* block) { fCode.push_back(make_pair(value, block)); }
 
@@ -1143,9 +1078,7 @@ struct RetInst : public StatementInst
     {}
     
     virtual ~RetInst()
-    {
-        //delete fResult;
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1163,14 +1096,7 @@ struct FunCallInst : public ValueInst
     {}
     
     virtual ~FunCallInst()
-    {
-        /*
-        list<ValueInst*>::const_iterator it;
-        for (it = fArgs.begin(); it != fArgs.end(); it++) {
-            delete(*it);
-        }
-        */
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1191,12 +1117,7 @@ struct DeclareFunInst : public StatementInst
     {}
     
     virtual ~DeclareFunInst()
-    {
-        /*
-        delete fType;
-        delete fCode;
-        */
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1223,9 +1144,7 @@ struct DeclareTypeInst : public StatementInst
     {}
     
     virtual ~DeclareTypeInst()
-    {
-        //delete fType;
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1251,14 +1170,7 @@ struct ForLoopInst : public StatementInst
     {}
     
     virtual ~ForLoopInst()
-    {
-        /*
-        delete fInit;
-        delete fIncrement;
-        delete fEnd;
-        delete fCode;
-        */
-    }
+    {}
 
     void pushFrontInst(StatementInst* inst)
     {
@@ -1285,12 +1197,7 @@ struct WhileLoopInst : public StatementInst
     {}
     
     virtual ~WhileLoopInst()
-    {
-        /*
-        delete fCond;
-        delete fCode;
-        */
-    }
+    {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1662,12 +1569,7 @@ class CombinerVisitor : public DispatchVisitor
         }
 
         virtual ~CombinerVisitor()
-        {
-            /*
-            delete fVisitor1;
-            delete fVisitor2;
-            */
-        }
+        {}
 
 };
 

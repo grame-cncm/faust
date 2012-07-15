@@ -74,27 +74,7 @@ CodeContainer::CodeContainer()
 }
 
 CodeContainer::~CodeContainer()
-{
-    /*
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        delete (*it);
-    }
-    delete fExtGlobalDeclarationInstructions;
-    delete fGlobalDeclarationInstructions;
-    delete fDeclarationInstructions;
-    delete fInitInstructions;
-    delete fPostInitInstructions;
-    delete fDestroyInstructions;
-    delete fStaticInitInstructions;
-    delete fPostStaticInitInstructions;
-    delete fComputeBlockInstructions;
-    delete fComputeFunctions;
-    delete fUserInterfaceInstructions;
-    
-    delete fCurLoop;
-    */
-}
+{}
 
 void CodeContainer::transformDAG(DispatchVisitor* visitor)
 {

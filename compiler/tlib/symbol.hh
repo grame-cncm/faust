@@ -93,7 +93,7 @@ class Symbol {
 	friend void 			setUserData (Symbol* sym, void* d);
     
     static void init ();
-    static void cleanup ();
+    //static void cleanup ();
 		
 };
 

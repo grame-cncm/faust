@@ -45,9 +45,10 @@
 #include "function_builder.hh"
 #include "code_loop.hh"
 #include "fir_to_fir.hh"
+#include "garbageable.hh"
 
+//class CodeContainer : public virtual Garbageable {
 class CodeContainer {
-
     protected:
 
         list <CodeContainer*> fSubContainers;
