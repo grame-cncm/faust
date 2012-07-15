@@ -55,7 +55,7 @@ global::global():TABBER(1)
     
     EVALPROPERTY = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
-
+    
     gResult             = 0;
     gResult2            = 0;
     gExpandedDefList    = 0;
@@ -245,6 +245,8 @@ global::global():TABBER(1)
     SYMLIFTN 	= symbol ("LIFTN");
 }
 
+// Done after contructor since part of the following allocations need the "global" object to be fully built
+
 void global::init()
 {
     gPureRoutingProperty = new property<bool>();
@@ -308,6 +310,12 @@ global::~global()
     
     BasicTyped::gTypeTable.clear();
     DeclareVarInst::gVarTable.clear();
+    
+    delete gPureRoutingProperty;
+    delete gSymbolicBoxProperty;
+    delete gSimplifiedBoxProperty;
+    delete gSymListProp;
+    delete gMemoizedTypes;
 }
 
 void global::allocate()

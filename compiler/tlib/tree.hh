@@ -107,7 +107,6 @@ typedef vector<Tree>	tvec;
  **/
 
 class CTree : public virtual Garbageable
-//class CTree 
 {
  private:
 	static const int 	kHashTableSize = 2000000; //510511;	///< size of the hash table used for "hash consing"

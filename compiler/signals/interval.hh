@@ -25,7 +25,6 @@
 
 #include <math.h>
 #include <iostream>
-#include "garbageable.hh"
 
 #ifdef WIN32
 inline double log2(double e) { return log(e)/log(double(2)); }
@@ -33,7 +32,8 @@ inline double log2(double e) { return log(e)/log(double(2)); }
 
 using namespace std;
 
-//struct interval : public virtual Garbageable
+// Used as a field so not Garbageable 
+
 struct interval 
 {
 	bool	valid;			///< true if it is a valid interval

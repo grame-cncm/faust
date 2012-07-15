@@ -50,12 +50,12 @@ the num.h file, there is no num.cpp file.
 #ifndef     __NUM__
 #define     __NUM__
 
-#include "garbageable.hh"
-
 //-------------------------------------------------------------------------
 // Class num = (int x (int + double))
 //-------------------------------------------------------------------------
-//class num : public virtual Garbageable
+
+// Used as a field so not Garbageable 
+
 class num 
 {
 	int		fType;
@@ -84,7 +84,6 @@ class num
 	
 };
 
-
 inline int isfloat (const num& n) { return n.type(); }
 
 inline const num operator+ (const num& x, const num& y)	
@@ -102,14 +101,12 @@ inline const num operator/ (const num& x, const num& y)
 inline const num operator% (const num& x, const num& y)	
 	{ return num(int(x)%int(y)); }
 
-
 // operations sur les bits
 inline const num operator<< (const num& x, const num& y)	
 	{ return num(int(x)<<int(y)); }
 
 inline const num operator>> (const num& x, const num& y)	
 	{ return num(int(x)>>int(y)); }
-
 
 // operations booléennes sur les bits
 inline const num operator& (const num& x, const num& y)	
@@ -120,7 +117,6 @@ inline const num operator| (const num& x, const num& y)
 
 inline const num operator^ (const num& x, const num& y)	
 	{ return num(int(x)^int(y)); }
-
 
 // operations de comparaison
 inline const num operator> (const num& x, const num& y)	
@@ -140,6 +136,5 @@ inline const num operator== (const num& x, const num& y)
 
 inline const num operator!= (const num& x, const num& y)	
 	{ return (isfloat(x)|isfloat(y)) ? num(double(x)!=double(y)) : num(int(x)!=int(y)); }
-
 
 #endif    

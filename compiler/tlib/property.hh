@@ -2,9 +2,9 @@
 #define __PROPERTY__
 
 #include "tree.hh"
-#include "garbageable.hh"
 
-//template<class P> class property : public virtual Garbageable
+// Used as a field so not Garbageable 
+
 template<class P> class property 
 {
     Tree	fKey;
@@ -20,7 +20,7 @@ public:
     property () : fKey(tree(Node(unique("property_")))) {}
 
     property (const char* keyname) : fKey(tree(Node(keyname))) {}
-
+  
     void set(Tree t, const P& data)
     {
         P* p = access(t);
@@ -50,8 +50,9 @@ public:
     }
 };
 
+// Used as a field so not Garbageable 
 
-template<> class property<Tree>
+template<> class property<Tree> 
 {
     Tree	fKey;
 
@@ -83,8 +84,9 @@ public:
     }
 };
 
+// Used as a field so not Garbageable 
 
-template<> class property<int>
+template<> class property<int> 
 {
     Tree	fKey;
 
@@ -116,6 +118,7 @@ public:
     }
 };
 
+// Used as a field so not Garbageable 
 
 template<> class property<double>
 {
@@ -148,7 +151,5 @@ public:
         t->clearProperty(fKey);
     }
 };
-
-
 
 #endif

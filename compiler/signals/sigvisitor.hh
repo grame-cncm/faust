@@ -23,9 +23,7 @@
 #define __SIGVISITOR__
 
 #include "signals.hh"
-#include "garbageable.hh"
 
-//struct sigvisitor : public virtual Garbageable
 struct sigvisitor 
 {
 	// predefined visit scheme

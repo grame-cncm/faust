@@ -78,8 +78,8 @@ typedef P<AudioType> Type;
  * a "computability" (when the values are available). Simple types have
  * also a "nature" (integer or floating point).
  */
-//class AudioType : public virtual Garbageable
-class AudioType 
+ 
+class AudioType : public virtual Garbageable
 {
   public:
     static int  gAllocationCount;

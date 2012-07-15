@@ -42,8 +42,7 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
-//class DocCompiler : public virtual Garbageable
-class DocCompiler 
+class DocCompiler : public virtual Garbageable
 {
   protected:
 	
@@ -61,20 +60,16 @@ class DocCompiler
   public:
 
 	DocCompiler (int numInputs, int numOutputs) 
-	:
-	fLateq(new Lateq(numInputs, numOutputs)),
-	fDescription(0), 
-	fPriority(0)
+	:fLateq(new Lateq(numInputs, numOutputs)),
+        fDescription(0), 
+        fPriority(0)
 	{}
 	
 	DocCompiler ( Lateq* k, int priority) 
-	: 
-	fLateq(k),
-	fDescription(0), 
-	fPriority(priority)
+	:fLateq(k), fDescription(0), fPriority(priority)
 	{}
 	
-	~DocCompiler()
+	virtual ~DocCompiler()
 	{}
 	
 	Lateq*			compileLateq (Tree L, Lateq* compiledEqn);

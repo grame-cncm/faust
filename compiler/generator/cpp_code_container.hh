@@ -59,6 +59,9 @@ class CPPCodeContainer : public virtual CodeContainer {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
         }
+        
+        virtual ~CPPCodeContainer()
+        {}
 
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;

@@ -19,8 +19,8 @@ struct ValueInst;
 class CodeGen;
 class CodeContainer;
 
-//class xtended : public virtual Garbageable {
-class xtended  {
+class xtended : public virtual Garbageable {
+//class xtended {
 
 	Symbol*		fSymbol;	///< the symbol the xtended is attached to
     

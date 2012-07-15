@@ -489,6 +489,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         virtual ~LLVMTypeInstVisitor()
         {
+            // External object not covered by Garbageable, do delete it here
             delete fBuilder;
         }
 

@@ -61,7 +61,7 @@ using namespace std;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new LLVMScalarCodeContainer(name, 0, 1, fModule, fBuilder, sub_container_type);
+    return new LLVMScalarCodeContainer(name, 0, 1, fModule, sub_container_type);
 }
 
 CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
@@ -608,8 +608,8 @@ LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInpu
     :LLVMCodeContainer(name, numInputs, numOutputs)
 {}
 
-LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, int sub_container_type)
-    :LLVMCodeContainer(name, numInputs, numOutputs, module, builder)
+LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, int sub_container_type)
+    :LLVMCodeContainer(name, numInputs, numOutputs, module)
 {
     fSubContainerType = sub_container_type;
 }

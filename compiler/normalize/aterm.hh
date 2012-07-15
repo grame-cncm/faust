@@ -43,13 +43,16 @@ using namespace std;
  * Implements a additive term, a set of mterms added together
  * m1 + m2 + m3 + ...
  */
-//class aterm : public virtual Garbageable
+
+// Used as a field so not Garbageable 
+
 class aterm 
 {
 
     map<Tree,mterm> fSig2MTerms;     			///< mapping between signatures and corresponding mterms
 
  public:
+ 
     aterm ();									///< create an empty aterm (equivalent to 0)
     aterm (Tree t);								///< create a aterm from an additive exp
     //aterm (const aterm& a);						///< create a copy of an aterm
@@ -67,6 +70,5 @@ class aterm
 };
 
 inline ostream& operator << (ostream& s, const aterm& a) { return a.print(s); }
-
 
 #endif

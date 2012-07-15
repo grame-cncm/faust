@@ -734,10 +734,10 @@ static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& 
 {
 	//cerr << "###\n# Documentator : mapCompileDocEqnSigs" << endl;
 	
-	for( unsigned int i=0; i < eqSigs.size(); i++ ) {
+	for (unsigned int i=0; i < eqSigs.size(); i++) {
 		
 		//		docCompiledEqnsVector.push_back( DC->compileMultiSignal(*it, 0) );
-		docCompiledEqnsVector.push_back( DC->compileLateq(eqSigs[i], new Lateq(eqInputs[i], eqOutputs[i])) );
+		docCompiledEqnsVector.push_back(DC->compileLateq(eqSigs[i], new Lateq(eqInputs[i], eqOutputs[i])));
 	}
 	
 	//cerr << "Documentator : end of mapCompileDocEqnSigs\n---" << endl;

@@ -57,8 +57,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         Module* fModule;
         IRBuilder<>* fBuilder;
         LLVMInstVisitor* fCodeProducer;
-        bool fNeedDelete;
-
+      
         void generateComputeBegin(const string& counter);
         void generateComputeEnd();
         void generateComputeDouble();
@@ -138,8 +137,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
             InitializeNativeTarget();
             fModule = new Module("Faust LLVM backend", getGlobalContext());
             fBuilder = new IRBuilder<>(getGlobalContext());
-            fNeedDelete = true;
-
+    
             // TODO
             fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64");
         #if defined(LLVM_31)
@@ -152,22 +150,19 @@ class LLVMCodeContainer : public virtual CodeContainer {
             fInputRates.resize(numInputs);
             fOutputRates.resize(numOutputs);
         }
-
-         LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, IRBuilder<>* builder)
+    
+        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module)
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
             fModule = module;
-            fBuilder = builder;
-            fNeedDelete = false;
+            fBuilder = new IRBuilder<>(getGlobalContext());
         }
-
+      
         virtual ~LLVMCodeContainer()
         {
-            if (fNeedDelete) {
-                delete fModule;
-                delete fBuilder;
-            }
+            // External object not covered by Garbageable, do delete it here
+            delete fBuilder;
         }
 
         virtual Module* produceModule(const string& filename);
@@ -187,7 +182,7 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
     public:
 
         LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
-        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, IRBuilder<>* builder, int sub_container_type);
+        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, int sub_container_type);
         virtual ~LLVMScalarCodeContainer();
 
         void generateCompute();

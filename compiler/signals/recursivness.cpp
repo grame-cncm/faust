@@ -138,6 +138,7 @@ static int position (Tree env, Tree t, int p)
 Tree    symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
+    
     if (gGlobal->gSymListProp->get(sig, S)) {
         return S;
     } else if ( visited.count(sig) > 0 ){
@@ -166,6 +167,7 @@ Tree    symlistVisit(Tree sig, set<Tree>& visited)
 Tree    symlist(Tree sig)
 {
     Tree    S;
+    
     if (!gGlobal->gSymListProp->get(sig, S)) {
         set<Tree> visited;
         S = symlistVisit(sig, visited);

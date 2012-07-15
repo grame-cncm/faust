@@ -47,8 +47,8 @@
 #include "fir_to_fir.hh"
 #include "garbageable.hh"
 
-//class CodeContainer : public virtual Garbageable {
-class CodeContainer {
+class CodeContainer : public virtual Garbageable {
+//class CodeContainer {
     protected:
 
         list <CodeContainer*> fSubContainers;

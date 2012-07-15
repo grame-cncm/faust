@@ -297,6 +297,7 @@ struct global {
     Sym SIMPLETYPE;
     Sym TABLETYPE;
     Sym TUPLETTYPE;
+    
     // memoized type contruction
     property<AudioType*>* gMemoizedTypes;
     
@@ -344,7 +345,6 @@ struct global {
     
     static void allocate();
     static void destroy();
-    
 };
 
 extern global* gGlobal;

@@ -35,7 +35,6 @@
 #include <iostream>
 #include <sstream>
 #include "signals.hh"
-#include "garbageable.hh"
 
 using namespace std;
 
@@ -44,7 +43,8 @@ using namespace std;
 // box pretty printer.
 // usage : out << boxpp(aBoxExp);
 
-//class ppsig  : public virtual Garbageable
+// Used on the stack so not Garbageable 
+
 class ppsig  
 {
 	Tree 	sig;

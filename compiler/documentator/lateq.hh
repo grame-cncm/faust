@@ -51,8 +51,7 @@ using namespace std;
 #include <vector>
 #include <map>
 
-//class Lateq : public virtual Garbageable {
-class Lateq {
+class Lateq : public virtual Garbageable {
 	
 public:
 	

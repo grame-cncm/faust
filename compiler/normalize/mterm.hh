@@ -30,7 +30,6 @@
 #include "simplify.hh"
 #include "normalize.hh"
 #include "sigorderrules.hh"
-#include "garbageable.hh"
 
 #include <map>
 #include <list>
@@ -41,7 +40,8 @@ using namespace std;
  * Implements a multiplicative term, a term of type
  * k*x^n*y^m*... and its arithmetic
  */
-//class mterm : public virtual Garbageable
+
+// Used as a field so not Garbageable 
 class mterm 
 {
 
@@ -49,6 +49,7 @@ class mterm
     map<Tree,int>   fFactors;     				///< non constant terms and their power
 
  public:
+ 
     mterm ();									///< create a 0 mterm
     mterm (int k);								///< create a simple integer mterm
     mterm (double k);							///< create a simple float mterm
@@ -84,6 +85,5 @@ class mterm
 };
 
 inline ostream& operator << (ostream& s, const mterm& m) { return m.print(s); }
-
 
 #endif

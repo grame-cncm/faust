@@ -52,14 +52,12 @@ using namespace std;
 /**
  * Symbols are unique objects with a name stored in a hash table.
  */
-//class Symbol : public virtual Garbageable {
-class Symbol {
+class Symbol : public virtual Garbageable {
 	
  private:
 		 
 	static const int 	kHashTableSize = 511;					///< Size of the hash table (a prime number is recommended)
     static Symbol*		gSymbolTable[kHashTableSize];			///< Hash table used to store the symbols
-	
 	
  // Fields
     char*			fName;										///< Name of the symbol
