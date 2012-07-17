@@ -30,7 +30,7 @@ class Garbageable {
 
     protected:
        
-        void operator delete(void* ptr, size_t size);
+        //void operator delete(void* ptr, size_t size);
 
     public:
 
@@ -38,6 +38,7 @@ class Garbageable {
         virtual ~Garbageable();
         
         void* operator new(size_t size);
+        void operator delete(void* ptr, size_t size);
         
         static void cleanup();
         
