@@ -384,7 +384,6 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
     }
 }
 
-
 /**
  * Code a table type as a tree in order to benefit of memoization
  */

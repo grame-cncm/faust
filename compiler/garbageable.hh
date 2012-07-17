@@ -28,17 +28,15 @@
 
 class Garbageable {
 
-    protected:
-       
-        //void operator delete(void* ptr, size_t size);
-
     public:
 
         Garbageable();
         virtual ~Garbageable();
         
         void* operator new(size_t size);
-        void operator delete(void* ptr, size_t size);
+        void* operator new[](size_t size);
+        void operator delete(void* ptr);
+        void operator delete[](void* ptr);
         
         static void cleanup();
         

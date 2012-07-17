@@ -83,7 +83,7 @@
 
 //---------------------------------API---------------------------------------
 
-class 	CTree;
+class 	CTree ;
 typedef CTree* Tree;
 
 typedef map<Tree, Tree>	plist;

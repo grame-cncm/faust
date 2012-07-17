@@ -18,9 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
 #include "enrobage.hh"
 #include <vector>
 #include <set>
@@ -29,6 +27,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "compatibility.hh"
+#include "garbageable.hh"
 #include "global.hh"
 
 #include <climits>
@@ -37,11 +36,11 @@
 
 //----------------------------------------------------------------
 
-
 /**
  * Returns true is a line is blank (contains only white caracters)
  */
-static bool isBlank(const string& s) {
+static bool isBlank(const string& s) 
+{
     for (size_t i=0; i<s.size(); i++) {
         if (s[i] != ' ' && s[i] != '\t') return false;
     }
@@ -113,13 +112,11 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
     }
 }
 
-
-
 /**
  * A minimalistic parser used to recognize '#include <faust/...>' patterns when copying
  * architecture files 
  */
-class myparser
+class myparser : public virtual Garbageable
 {
     string  str;
     size_t  N;
@@ -158,9 +155,6 @@ bool isFaustInclude(const string& s, string& fname)
         return false;
     }
 }
-
-
-
 
 /**
  * Inject file fname into dst ostream if not already done
@@ -319,7 +313,6 @@ bool check_file(const char* filename)
 	return f != NULL;
 }
 		
-
 /**
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
  * of the file into <fullpath>
@@ -378,8 +371,6 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
     return 0;
 }
 
-
-
 /**
  * Test absolute pathname.
  */
@@ -393,7 +384,6 @@ static bool isAbsolutePathname(const string& filename)
 
 	return false;
 }
-
 
 /**
  * Build a full pathname of <filename>.
@@ -511,7 +501,6 @@ FILE* fopensearch(const char* filename, string& fullpath)
 (((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
 #endif /* DIR_SEPARATOR_2 */
 
-
 /**
  * returns a pointer on the basename part of name
  */
@@ -533,7 +522,6 @@ const char* filebasename(const char* name)
     }
 	return base;
 }
-
 
 /**
  * returns a string containing the dirname of name

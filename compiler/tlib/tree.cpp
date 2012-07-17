@@ -94,7 +94,7 @@ static void error(const char * s, Tree t)
 
 Tree CTree::gHashTable[kHashTableSize];
 bool CTree::gDetails = false;
-unsigned int  CTree::gVisitTime = 0;
+unsigned int CTree::gVisitTime = 0;
 
 // Constructor : add the tree to the hash table
 CTree::CTree (unsigned int hk, const Node& n, const tvec& br) 

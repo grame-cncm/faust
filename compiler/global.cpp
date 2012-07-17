@@ -334,11 +334,11 @@ Garbageable::Garbageable()
 Garbageable::~Garbageable()
 {
     //printf("Garbageable deallocator\n");
- }
+}
 
 void Garbageable::cleanup()
 {
-    //printf("Garbageable cleanup\n");
+    //printf("Garbageable cleanup = %d \n", gObjectTable.size());
     std::list<Garbageable*>::iterator it;
     gCleanup = true;
     for (it = gObjectTable.begin(); it != gObjectTable.end(); it++) {
@@ -355,11 +355,29 @@ void* Garbageable::operator new(size_t size)
     return res;
 }
 
-void Garbageable::operator delete(void* ptr, size_t size)
+void Garbageable::operator delete(void* ptr)
 {
-    //printf("Garbageable delete\n");
+    //printf("Garbageable delete %x\n", ptr);
     if (!gCleanup) {
         gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }
     free(ptr);
 }
+
+void* Garbageable::operator new[](size_t size)
+{
+    //printf("Garbageable new[]\n");
+    void* res = calloc(1, size);
+    gObjectTable.push_front(static_cast<Garbageable*>(res));
+    return res;
+}
+
+void Garbageable::operator delete[](void* ptr)
+{
+    //printf("Garbageable delete[] %x\n", ptr);
+    if (!gCleanup) {
+        gObjectTable.remove(static_cast<Garbageable*>(ptr));
+    }
+    free(ptr);
+}
+
