@@ -231,8 +231,6 @@ class SimpleType : public AudioType
 
 	virtual ostream& print(ostream& dst) const;						///< print a SimpleType
 
-
-
     virtual AudioType* promoteNature(int n)				{ return makeSimpleType(n|fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval); }		///< promote the nature of a type
     virtual AudioType* promoteVariability(int v)			{ return makeSimpleType(fNature, v|fVariability, fComputability, fVectorability, fBoolean, fInterval); }		///< promote the variability of a type
     virtual AudioType* promoteComputability(int c)			{ return makeSimpleType(fNature, fVariability, c|fComputability, fVectorability, fBoolean, fInterval); }		///< promote the computability of a type

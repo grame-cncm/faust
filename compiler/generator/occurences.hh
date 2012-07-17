@@ -2,9 +2,9 @@
 #define __OCCURENCES__
 
 #include "tlib.hh"
+#include "garbageable.hh"
 
-
-class Occurences
+class Occurences : public virtual Garbageable
 {
 	const int 	fXVariability;		///< Extended Variability of the expression
 	int			fOccurences[4];		///< Occurences count according to Contexts
@@ -24,12 +24,11 @@ class Occurences
     int			getMinDelay() const;				///< return the minimal delay collected
 };
 
-
 /**
  * Occurences Markup of a root tree. First create an OccMarkup om,
  * second om.mark(root) then om.retrieve(subtree)
  */
-class OccMarkup
+class OccMarkup : public virtual Garbageable
 {
 	Tree 		fRootTree;								///< occurences computed within this tree
 	Tree		fPropKey;								///< key used to store occurences property
@@ -42,7 +41,5 @@ class OccMarkup
  	void 		mark(Tree root);						///< start markup of root tree with new unique key
 	Occurences* retrieve(Tree t);						///< occurences of subtree t within root tree
 };
-
-
 
 #endif

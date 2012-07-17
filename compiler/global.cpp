@@ -47,6 +47,9 @@
 
 #include "binop.hh"
 #include "instructions.hh"
+
+list<Garbageable*> Garbageable::gObjectTable;
+bool Garbageable::gCleanup = false;
   
 global::global():TABBER(1)
 {
@@ -337,6 +340,7 @@ void Garbageable::cleanup()
 {
     //printf("Garbageable cleanup\n");
     std::list<Garbageable*>::iterator it;
+    gCleanup = true;
     for (it = gObjectTable.begin(); it != gObjectTable.end(); it++) {
         delete(*it);
     }
@@ -354,5 +358,8 @@ void* Garbageable::operator new(size_t size)
 void Garbageable::operator delete(void* ptr, size_t size)
 {
     //printf("Garbageable delete\n");
+    if (!gCleanup) {
+        gObjectTable.remove(static_cast<Garbageable*>(ptr));
+    }
     free(ptr);
 }

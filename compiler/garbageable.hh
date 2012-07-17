@@ -43,7 +43,7 @@ class Garbageable {
         static void cleanup();
         
         static std::list<Garbageable*> gObjectTable;
-        static bool gDelete;
+        static bool gCleanup;
  
 };
 

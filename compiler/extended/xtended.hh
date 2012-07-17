@@ -31,7 +31,7 @@ class xtended : public virtual Garbageable {
     {
 		setUserData(fSymbol, (void*)this);
 	}
-	virtual ~xtended() { setUserData(fSymbol, 0); }
+	virtual ~xtended() {}
 
 	Sym				symbol() 	{ return fSymbol; }
 	const char * 	name () 	{ return ::name(fSymbol); }
@@ -63,61 +63,6 @@ class xtended : public virtual Garbageable {
                                 list<ValueInst*>& casted_args);
     
 };
-
-// -- Trigonometric Functions
-
-extern xtended* gAcosPrim;
-extern xtended* gAsinPrim;
-extern xtended* gAtanPrim;
-extern xtended* gAtan2Prim;
-
-extern xtended* gSinPrim;
-extern xtended* gCosPrim;
-extern xtended* gTanPrim;
-
-// -- Exponential Functions
-
-extern xtended* gExpPrim;
-extern xtended* gLogPrim;
-extern xtended* gLog10Prim;
-extern xtended* gPowPrim;
-
-extern xtended* gSqrtPrim;
-extern xtended* gCbrtPrim;
-extern xtended* gHypotPrim;
-extern xtended* gLdexpPrim;
-extern xtended* gScalbPrim;
-extern xtended* gLog1pPrim;
-extern xtended* gLogbPrim;
-extern xtended* gIlogbPrim;
-extern xtended* gExpm1Prim;
-
-// -- Hyperbolic Functions
-
-extern xtended* gAcoshPrim;
-extern xtended* gAsinhPrim;
-extern xtended* gAtanhPrim;
-
-extern xtended* gSinhPrim;
-extern xtended* gCoshPrim;
-extern xtended* gTanhPrim;
-
-// -- Remainder Functions
-
-extern xtended* gFmodPrim;
-extern xtended* gRemainderPrim;
-
-// -- Nearest Integer Functions
-
-extern xtended* gFloorPrim;
-extern xtended* gCeilPrim;
-extern xtended* gRintPrim;
-
-// -- Miscellaneous Functions
-
-extern xtended* gAbsPrim;
-extern xtended* gMaxPrim;
-extern xtended* gMinPrim;
 
 #endif
 

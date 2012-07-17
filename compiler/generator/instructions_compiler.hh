@@ -41,12 +41,13 @@
 #include "occurences.hh"
 #include "property.hh"
 #include "Text.hh"
+#include "garbageable.hh"
 
 using namespace std;
 
 typedef ValueInst* InstType;
 
-class InstructionsCompiler {
+class InstructionsCompiler : public virtual Garbageable {
 
     protected:
 

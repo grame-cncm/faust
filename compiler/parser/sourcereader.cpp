@@ -212,7 +212,9 @@ Tree SourceReader::parsefile(string fname)
         throw faustexception(error.str());
 	}
     
-    return parse(fullpath);
+    Tree res = parse(fullpath);
+    fclose(yyin);
+    return res;
 }
 
 Tree SourceReader::parsestring(string fname) 
