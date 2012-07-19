@@ -464,7 +464,7 @@ public:
   }
 
   bool ckAnyMatch(char* label, char* indexName, int *index) {
-    if (_stricmp(label,indexName)==0) { 
+    if (strcmp(label,indexName)==0) { 
 #ifdef DEBUG
       fprintf(stderr,"=== Faust vsti: label '%s' matches '%s'\n",label,indexName);
 #endif

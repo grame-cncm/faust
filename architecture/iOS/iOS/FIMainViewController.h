@@ -57,7 +57,7 @@ class uiBox;
     IBOutlet UILabel*                   _gyroSensibilityTitleLabel;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
-    FISensorFilter*                     _accelerometerFilter;
+    FISensorFilter*                     _sensorFilter;
     CLLocationManager*                  _locationManager;
     CMMotionManager*                    _motionManager;
     NSTimer*                            _motionTimer;
@@ -106,5 +106,6 @@ class uiBox;
 - (void)stopMotion;
 - (void)updateMotion;
 - (void)endBlockShake;
+- (NSString*)urlForWidget:(uiCocoaItem*)widget;
 
 @end

@@ -31,14 +31,17 @@
     float       _x;
     float       _y;
     float       _z;
+    float       _h;
     double      _filterConstant;
 }
 
 @property(nonatomic, readonly) float x;
 @property(nonatomic, readonly) float y;
 @property(nonatomic, readonly) float z;
+@property(nonatomic, readonly) float h;
 
 - (id)initWithSampleRate:(double)rate cutoffFrequency:(double)freq;
 - (void)addAccelerationX:(float)x y:(float)y z:(float)z;
+- (void)addHeading:(float)h;
 
 @end
