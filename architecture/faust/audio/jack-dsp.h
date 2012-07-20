@@ -79,21 +79,25 @@ class jackaudio : public audio {
 		if (physicalOutPorts != NULL) {
 			for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++)
 				jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInput_ports[i]));
+            jack_free(physicalInPorts);
 		}
 		if (physicalInPorts != NULL) {
 			for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++)
 				jack_connect(fClient, jack_port_name(fOutput_ports[i]), physicalInPorts[i]);
+            jack_free(physicalOutPorts);
 		}
-		return true;
+        return true;
 	}
 
 	virtual void stop() {
 		if (fClient) {
 			jack_deactivate(fClient);
-			for (int i = 0; i < fNumInChans; i++)
+			for (int i = 0; i < fNumInChans; i++) {
 				jack_port_unregister(fClient, fInput_ports[i]);
-			for (int i = 0; i < fNumOutChans; i++)
+            }
+			for (int i = 0; i < fNumOutChans; i++) {
 				jack_port_unregister(fClient, fOutput_ports[i]);
+            }
 			jack_client_close(fClient);
 			fClient = 0;
 		}
@@ -102,10 +106,12 @@ class jackaudio : public audio {
 	// jack callbacks
 	int	process (jack_nframes_t nframes) {
 		AVOIDDENORMALS;
-		for (int i = 0; i < fNumInChans; i++)
+		for (int i = 0; i < fNumInChans; i++) {
 			fInChannel[i] = (float *)jack_port_get_buffer(fInput_ports[i], nframes);
-		for (int i = 0; i < fNumOutChans; i++)
+        }
+		for (int i = 0; i < fNumOutChans; i++) {
 			fOutChannel[i] = (float *)jack_port_get_buffer(fOutput_ports[i], nframes);
+        }
 		fDsp->compute(nframes, fInChannel, fOutChannel);
 		return 0;
 	}
