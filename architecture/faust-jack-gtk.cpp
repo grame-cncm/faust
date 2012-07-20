@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
                 char* argv1[argc1];
                 argv1[0] = "-svg";
                 DSP = new llvmdsp(argc1, argv1, "in1", "process = +,+;", error_msg);
+                delete(DSP);
                 DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", error_msg);
                 
                 //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
@@ -120,8 +121,11 @@ int main(int argc, char *argv[])
 #endif
 	interface->run();
 
-	audio.stop();
-	finterface->saveState(rcfilename);
+    audio.stop();
+    finterface->saveState(rcfilename);
+    delete(interface);
+    delete(finterface);
+    delete(DSP);
   	return 0;
 }
 
