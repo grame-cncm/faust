@@ -79,12 +79,12 @@ class jackaudio : public audio {
 		if (physicalOutPorts != NULL) {
 			for (int i = 0; i < fNumInChans && physicalOutPorts[i]; i++)
 				jack_connect(fClient, physicalOutPorts[i], jack_port_name(fInput_ports[i]));
-            jack_free(physicalInPorts);
+            jack_free(physicalOutPorts);
 		}
 		if (physicalInPorts != NULL) {
 			for (int i = 0; i < fNumOutChans && physicalInPorts[i]; i++)
 				jack_connect(fClient, jack_port_name(fOutput_ports[i]), physicalInPorts[i]);
-            jack_free(physicalOutPorts);
+            jack_free(physicalInPorts);
 		}
         return true;
 	}
