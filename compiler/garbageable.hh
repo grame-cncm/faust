@@ -45,4 +45,26 @@ class Garbageable {
  
 };
 
+template<class P> class GarbageablePtr : public virtual Garbageable
+{
+       
+    private:
+    
+         P* fPtr;
+        
+    public:
+    
+        GarbageablePtr(const P& data)
+        {
+            fPtr = new P(data);
+        }
+        
+        virtual ~GarbageablePtr()
+        {
+            delete(fPtr);
+        }
+        
+        P* getPointer() { return fPtr; }
+};
+
 #endif

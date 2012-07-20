@@ -26,7 +26,7 @@ public:
         if (p) {
             *p = data;
         } else {
-            t->setProperty(fKey, tree(Node(new P(data))));
+            t->setProperty(fKey, tree(Node((new GarbageablePtr<P>(data))->getPointer())));
         }
     }
 

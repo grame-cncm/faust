@@ -340,6 +340,10 @@ void Garbageable::cleanup()
 {
     //printf("Garbageable cleanup = %d \n", gObjectTable.size());
     std::list<Garbageable*>::iterator it;
+    /*
+    Here removing the deleted pointer from the list is pointless and takes time,
+    thus we don't do it.
+    */
     gCleanup = true;
     for (it = gObjectTable.begin(); it != gObjectTable.end(); it++) {
         delete(*it);
@@ -358,6 +362,10 @@ void* Garbageable::operator new(size_t size)
 void Garbageable::operator delete(void* ptr)
 {
     //printf("Garbageable delete %x\n", ptr);
+    /*
+    We may have cases when a pointer will be deleted during a compilation, 
+    thus the pointer has to be removed from the list.
+    */
     if (!gCleanup) {
         gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }

@@ -38,7 +38,7 @@
 #include "exception.hh"
 #include "global.hh"
 
-static const string			gDocTextsDefaultFile = "mathdoctexts-default.txt";
+static const string	gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
 static void			importDocStrings(const string& filename);
 static void			getKey(string& s, string& key, size_t& pt1);
@@ -119,8 +119,8 @@ static void importDocStrings(const string& filename)
 	printStringMapContent(gGlobal->gDocAutodocStringMap, "gGlobal->gDocAutodocStringMap");
 	printStringMapContent(gGlobal->gDocMathStringMap, "gGlobal->gDocMathStringMap");
 	printStringMapContent(gGlobal->gDocMetadatasStringMap, "gGlobal->gDocMetadatasStringMap");
+    delete(file);
 }
-
 
 static void getKey(string& s, string& key, size_t& pt1) 
 {
@@ -131,7 +131,7 @@ static void getKey(string& s, string& key, size_t& pt1)
 	size_t pk2 = s.find_first_of(separators);
 	
 	/* Immediate '\n' after keyword case. */
-	if (pk2==string::npos) pk2 = s.size();
+	if (pk2 == string::npos) pk2 = s.size();
 	
 	/* Capture and check the keyword. */
 	key = s.substr(pk1, pk2-1);
@@ -143,9 +143,8 @@ static void getKey(string& s, string& key, size_t& pt1)
 static void getText(string& s, size_t& pt1, string& text)
 {
 	/* Capture the text on the current line. */
-	size_t pt2;
-	pt2 = s.find_last_not_of("\"");
-	if (pt2!=string::npos) {
+	size_t pt2 = s.find_last_not_of("\"");
+	if (pt2 != string::npos) {
 		if (text.size() > 0) text += "\n"; // Handle line breaks.
 		text += s.substr(pt1+1, pt2-pt1);
 	}

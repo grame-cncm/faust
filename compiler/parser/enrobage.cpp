@@ -170,6 +170,7 @@ void inject(ostream& dst, const string fname)
         istream* src = open_arch_stream(fname.c_str());
         if (src) {
             streamCopy(*src, dst);
+            delete src;
         } else {
             stringstream error;
             error << "NOT FOUND " << fname << endl;

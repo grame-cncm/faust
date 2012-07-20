@@ -684,6 +684,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     if (thread_include) {
                         streamCopy(*thread_include, *dst);
                     }
+                    delete(thread_include);
                 }
 
                 if (gOutputLang != "java" && gOutputLang != "js") {
@@ -701,6 +702,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     if (scheduler_include) {
                         streamCopy(*scheduler_include, *dst);
                     }
+                     delete(scheduler_include);
                 }
 
                 if (gOutputLang == "c" || gOutputLang == "cpp") {
@@ -709,6 +711,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                 
                 // Restore current_directory
                 chdir(current_directory);
+                delete(enrobage);
                  
             } else {
                 stringstream error;

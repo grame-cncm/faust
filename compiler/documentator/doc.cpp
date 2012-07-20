@@ -239,9 +239,10 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	/** Printing stuff : in the '.tex' ouptut file, eventually including SVG files. */
 	printfaustdocstamp(faustversion, docout);						///< Faust version and compilation date (comment).
 	istream* latexheader = openArchFile(gLatexheaderfilename);
-	printlatexheader(*latexheader, faustversion, docout);						///< Static LaTeX header (packages and setup).
+	printlatexheader(*latexheader, faustversion, docout);                               ///< Static LaTeX header (packages and setup).
 	printdoccontent(svgTopDir.c_str(), gGlobal->gDocVector, faustversion, docout);		///< Generate math contents (main stuff!).
-	printlatexfooter(docout);										///< Static LaTeX footer.
+	printlatexfooter(docout);                                                           ///< Static LaTeX footer.
+    delete(latexheader);
 }
 
 

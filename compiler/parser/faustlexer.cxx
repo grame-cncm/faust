@@ -775,7 +775,7 @@ char *yytext;
 #include "tree.hh"
 #include "faustparser.hpp"
 #define YY_NO_UNISTD_H 1
-extern int isatty (int );
+extern "C" int isatty (int);
 
 
 
@@ -2301,7 +2301,7 @@ static void yy_load_buffer_state  (void)
 }
 
 #ifndef __cplusplus
-extern int isatty (int );
+extern int isatty (int);
 #endif /* __cplusplus */
     
 /* Initializes or reinitializes a buffer.
