@@ -772,7 +772,7 @@ static const char * evalLabel (const char* label, Tree visited, Tree localValEnv
 		dst = writeIdentValue(dst, format, ident, visited, localValEnv);
 	}
 	*dst = 0;
-	return (parametric) ? strdup(res) : label;
+	return (parametric) ? res : label;
 }
 
 
