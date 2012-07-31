@@ -40,12 +40,9 @@ int main(int argc, char *argv[])
             argv1[0] = "faust";
             argv1[1] = "-svg";
 
-            compile_faust(argc1, (char**)argv1, false, "in1", "process = +,+;", error_msg);
-            compile_faust(argc1, (char**)argv1, false, "in2", "process = _,_;", error_msg);
+            compile_faust(argc1, (char**)argv1, false, "", "in1", "process = +,+;", error_msg);
+            compile_faust(argc1, (char**)argv1, false, "", "in2", "process = _,_;", error_msg);
             */
-            
-            // To test arbitraty location of libraries
-            //putenv("FAUST_LIB_PATH=/Users/letz");
             
             try {
                 
@@ -55,7 +52,6 @@ int main(int argc, char *argv[])
                 DSP = new llvmdsp(argc1, argv1, "/Users/letz", "in1", "import(\"test.lib\"); process = TOTO;", error_msg);
                 //delete(DSP);
                 //DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", "/Users/letz", error_msg);
-                
                 //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
             }
             catch (...) {

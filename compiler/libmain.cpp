@@ -796,7 +796,7 @@ extern "C" Module* compile_faust_llvm(int argc, char* argv[], bool time_out, con
 int compile_faust_internal(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input = NULL)
 {
     /****************************************************************
-     0 - process command line
+     0 - set library_path
     *****************************************************************/
     if (strcmp(library_path, "") != 0) {
         char full_library_path[512];
