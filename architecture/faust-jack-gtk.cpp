@@ -45,22 +45,22 @@ int main(int argc, char *argv[])
             */
             
             // To test arbitraty location of libraries
-            putenv("FAUST_LIB_PATH=/Users/letz");
+            //putenv("FAUST_LIB_PATH=/Users/letz");
             
             try {
                 
                 int argc1 = 1;
                 char* argv1[argc1];
                 argv1[0] = "-svg";
-                DSP = new llvmdsp(argc1, argv1, "in1", "import(\"test.lib\"); process = TOTO;", error_msg);
-                delete(DSP);
-                DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", error_msg);
+                DSP = new llvmdsp(argc1, argv1, "/Users/letz", "in1", "import(\"test.lib\"); process = TOTO;", error_msg);
+                //delete(DSP);
+                //DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", "/Users/letz", error_msg);
                 
                 //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
             }
             catch (...) {
                 printf("Mauvais code source : %s", error_msg);
-                DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
+                DSP = new llvmdsp(0, NULL, "/Users/letz", "in1", "process = +,+;", error_msg);
             }
             
             //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;");

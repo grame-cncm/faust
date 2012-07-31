@@ -22,7 +22,7 @@
 #include "exception.hh"
 
 #ifdef __cplusplus
-extern "C" int compile_faust_internal(int argc, char* argv[], bool time_out, const char* input_name, const char* input);
+extern "C" int compile_faust_internal(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input);
 #endif
 
 int main(int argc, char* argv[])
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
    
     try {
         global::allocate();
-        res = compile_faust_internal(argc, argv, true, 0, 0);
+        res = compile_faust_internal(argc, argv, true, "", 0, 0);
     } catch (faustexception& e) {
         e.PrintMessage();
     }

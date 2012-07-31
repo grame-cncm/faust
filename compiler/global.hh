@@ -349,4 +349,6 @@ struct global {
 
 extern global* gGlobal;
 
+#define FAUST_LIB_PATH "FAUST_LIB_PATH"
+
 #endif

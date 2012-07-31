@@ -197,9 +197,10 @@ class llvmdsp : public dsp {
             return res;
         }
         
-        Module* CompileModule(int argc, char *argv[], const char* input_name, const char* input, char* error_msg)
+        Module* CompileModule(int argc, char *argv[], const char* library_path, const char* input_name, const char* input, char* error_msg)
         {
             printf("Compile module...\n");
+            
             int argc1 = argc + 3;
             const char* argv1[argc1];
             argv1[0] = "faust";
@@ -208,23 +209,24 @@ class llvmdsp : public dsp {
             for (int i = 0; i < argc; i++) {
                 argv1[i+3] = argv[i];
             }
-            return compile_faust_llvm(argc1, (char**)argv1, false, input_name, input, error_msg);
+            
+            return compile_faust_llvm(argc1, (char**)argv1, false, library_path, input_name, input, error_msg);
         }
 
   public:
   
-        llvmdsp(int argc, char *argv[], const std::string& input_name, const std::string& input, char* error_msg, int opt_level = 3)
+        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& input_name, const std::string& input, char* error_msg, int opt_level = 3)
         {
-            fModule = CompileModule(argc, argv, input_name.c_str(), input.c_str(), error_msg);
+            fModule = CompileModule(argc, argv, library_path.c_str(), input_name.c_str(), input.c_str(), error_msg);
             Init(opt_level);
         }
   
-        llvmdsp(int argc, char *argv[], char* error_msg, int opt_level = 3)
+        llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3)
         {
             if (strstr(argv[1], ".bc")) {
                 fModule = LoadModule(argv[1]);
             } else {
-                fModule = CompileModule(argc - 1, &argv[1], NULL, NULL, error_msg);
+                fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
             }
             
             Init(opt_level);

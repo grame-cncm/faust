@@ -225,7 +225,7 @@ ifstream* open_arch_stream(const char* filename)
     ifstream* f = new ifstream();
     f->open(filename, ifstream::in); if (f->is_open()) return f; else delete f;
 
-    envpath = getenv("FAUST_LIB_PATH");
+    envpath = getenv(FAUST_LIB_PATH);
     if (envpath != NULL) {
 		if (chdir(envpath) == 0) {
 			ifstream* f = new ifstream();
