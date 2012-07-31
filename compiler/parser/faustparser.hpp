@@ -165,7 +165,7 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 81 "parser/faustparser.y"
+#line 71 "parser/faustparser.y"
 
 	CTree* 	exp;
 	char* str;

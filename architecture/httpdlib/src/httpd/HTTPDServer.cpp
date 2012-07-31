@@ -123,6 +123,7 @@ int HTTPDServer::send (struct MHD_Connection *connection, const char *page, cons
 		return MHD_NO;
 	}
 	MHD_add_response_header (response, "Content-Type", type ? type : "text/plain");
+	MHD_add_response_header (response, "Access-Control-Allow-Origin", "*");
 	int ret = MHD_queue_response (connection, status, response);
 	MHD_destroy_response (response);
 	return ret;
@@ -160,6 +161,7 @@ int HTTPDServer::page (struct MHD_Connection *connection, const char * page)
 			return MHD_NO;
 		}
 		MHD_add_response_header (response, "Content-Type", type ? type : "text/plain");
+		MHD_add_response_header (response, "Access-Control-Allow-Origin", "*");
 		ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
 		MHD_destroy_response (response);
 	}

@@ -5,8 +5,6 @@
 %{
 #include "tree.hh"
 #include "faustparser.hpp"
-#define YY_NO_UNISTD_H 1
-extern "C" int isatty (int);
 %}
 
 DIGIT    [0-9]
