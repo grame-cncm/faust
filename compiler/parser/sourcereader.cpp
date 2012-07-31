@@ -203,7 +203,7 @@ Tree SourceReader::parsefile(string fname)
 	string fullpath;
   	yyerr = 0;
     yylineno = 1;
-	
+ 	
 	yyfilename = fname.c_str();
 	yyin = fopensearch(yyfilename, fullpath);
 	if (yyin == NULL) {
@@ -221,6 +221,8 @@ Tree SourceReader::parsestring(string fname)
 {
     yyerr = 0;
     yy_scan_string(gGlobal->gInputString);
+    // Clear global "inputstring" so that imported files will be correctly parsed with "parsefile"
+    gGlobal->gInputString = NULL;
     return parse(fname);
 }
 
