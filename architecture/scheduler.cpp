@@ -91,15 +91,16 @@ static INLINE UInt64 DSP_rdtsc(void)
 
 static INLINE void NOP(void)
 {
-//#ifndef __APPLE__
-//	__asm__ __volatile__("nop \n\t");
-//#endif
+    /*
+    #ifndef __APPLE__
+	__asm__ __volatile__("nop \n\t");
+    #endif
+    */
 }
 
 static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 {
 #ifdef __APPLE__
-    //return OSAtomicCompareAndSwap32(value, newvalue, (volatile int32_t*)addr);
     return __sync_bool_compare_and_swap((int*)addr, value, newvalue);
 #else
     register char ret;
@@ -116,7 +117,6 @@ static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 static INLINE int atomic_xadd(volatile int* atomic, int val) 
 { 
 #ifdef __APPLE__
-    //return OSAtomicAdd32(val, atomic);
     // Returns new value
     return __sync_add_and_fetch(atomic, val);
 #else

@@ -697,7 +697,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
                 container->produceClass();
                 streamCopyUntilEnd(*enrobage, *dst);
-                if (gGlobal->gOpenCLSwitch) {
+                if (gGlobal->gSchedulerSwitch) {
                     istream* scheduler_include = open_arch_stream("scheduler.cpp");
                     if (scheduler_include) {
                         streamCopy(*scheduler_include, *dst);
