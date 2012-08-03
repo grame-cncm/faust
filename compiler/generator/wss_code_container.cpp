@@ -395,8 +395,6 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter)
     list<ValueInst*> fun_args1;
     fun_args1.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
     fun_args1.push_back(InstBuilder::genSub(InstBuilder::genLoadStructVar("fDynamicNumThreads"), InstBuilder::genIntNumInst(1)));
-
-    fun_args1.push_back(InstBuilder::genLoadFunArgsVar(fObjName));
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("signalAll", fun_args1)));
 
     list<ValueInst*> fun_args2;
@@ -427,8 +425,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
 
     pushGlobalDeclare(InstBuilder::genFunction0("createThreadPool", Typed::kVoid_ptr));
     pushGlobalDeclare(InstBuilder::genFunction1("deleteThreadPool", Typed::kVoid, "pool", Typed::kVoid_ptr));
-    pushGlobalDeclare(InstBuilder::genFunction2("startAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt));
-    pushGlobalDeclare(InstBuilder::genFunction3("signalAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt, "dsp", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction3("startAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt, "dsp", Typed::kVoid_ptr));
+    pushGlobalDeclare(InstBuilder::genFunction2("signalAll", Typed::kVoid, "pool", Typed::kVoid_ptr, "num_threads", Typed::kInt));
 
     pushGlobalDeclare(InstBuilder::genVoidFunction("initTaskQueue"));
     pushGlobalDeclare(InstBuilder::genFunction1("initAllTaskQueue", Typed::kVoid, "num_threads", Typed::kInt));
@@ -476,6 +474,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
     list<ValueInst*> fun_args2;
     fun_args2.push_back(InstBuilder::genLoadStructVar("fThreadPool"));
     fun_args2.push_back(InstBuilder::genSub(InstBuilder::genLoadStructVar("fStaticNumThreads"), InstBuilder::genIntNumInst(1)));
+    fun_args2.push_back(InstBuilder::genLoadFunArgsVar(fObjName));
     pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("startAll", fun_args2)));
 
     // Specific destroy instructions

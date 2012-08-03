@@ -617,7 +617,7 @@ void getRealTime()
 }
 #endif
 
-static void SetRealTime()
+static void setRealTime()
 {
     SetThreadToPriority(pthread_self(), 96, true, period, computation, constraint);
 }
@@ -657,7 +657,7 @@ void getRealTime()
 }
 #endif
 
-static void SetRealTime()
+static void setRealTime()
 {
 	faust_rt_param.sched_priority--;
     pthread_setschedparam(pthread_self(), faust_sched_policy, &faust_rt_param);
@@ -770,41 +770,19 @@ struct Runnable {
     }
 };
 
-struct DSPThread;
-
-struct DSPThreadPool {
-    
-    DSPThread* fThreadPool[THREAD_POOL_SIZE];
-    int fThreadCount; 
-      
-    DSPThreadPool();
-    ~DSPThreadPool();
-    
-    void StartAll(int num, bool realtime);
-    void StopAll();
-    void SignalAll(int num, void* runnable);
-    void SignalAll(int num);
-    
-    static DSPThreadPool* Init();
-    static void Destroy();
-    
-};
-
 struct DSPThread {
 
     pthread_t fThread;
-    DSPThreadPool* fThreadPool;
     void* fDSP;
     sem_t* fSemaphore;
     char fName[128];
     bool fRealTime;
     int fNum;
     
-    DSPThread(int num, DSPThreadPool* pool)
+    DSPThread(int num, void* dsp)
     {
         fNum = num;
-        fThreadPool = pool;
-        fDSP = NULL;
+        fDSP = dsp;
         fRealTime = false;
         
         sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
@@ -839,7 +817,7 @@ struct DSPThread {
         // One "dummy" cycle to setup thread
         if (thread->fRealTime) {
             thread->Run();
-            SetRealTime();
+            setRealTime();
         }
                   
         while (true) {
@@ -916,13 +894,7 @@ struct DSPThread {
         return 0;
     }
     
-    void Signal(bool stop, void* runnable)
-    {
-        fDSP = runnable;
-        sem_post(fSemaphore);
-    }
-    
-    void Signal(bool stop)
+    void Signal()
     {
         sem_post(fSemaphore);
     }
@@ -932,6 +904,23 @@ struct DSPThread {
         CancelThread(fThread);
     }
 
+};
+
+struct DSPThreadPool {
+    
+    DSPThread* fThreadPool[THREAD_POOL_SIZE];
+    int fThreadCount; 
+      
+    DSPThreadPool();
+    ~DSPThreadPool();
+    
+    void StartAll(int num, bool realtime, void* dsp);
+    void StopAll();
+    void SignalAll(int num);
+    
+    static DSPThreadPool* Init();
+    static void Destroy();
+    
 };
 
 DSPThreadPool::DSPThreadPool()
@@ -954,11 +943,11 @@ DSPThreadPool::~DSPThreadPool()
     fThreadCount = 0;
  }
 
-void DSPThreadPool::StartAll(int num, bool realtime)
+void DSPThreadPool::StartAll(int num, bool realtime, void* dsp)
 {
     if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
         for (int i = 0; i < num; i++) {
-            fThreadPool[i] = new DSPThread(i, this);
+            fThreadPool[i] = new DSPThread(i, dsp);
             fThreadPool[i]->Start(realtime);
             fThreadCount++;
         }
@@ -972,17 +961,10 @@ void DSPThreadPool::StopAll()
     }
 }
 
-void DSPThreadPool::SignalAll(int num, void* runnable)
-{
-    for (int i = 0; i < num; i++) {  // Important : use local num here...
-        fThreadPool[i]->Signal(false, runnable);
-    }
-}
-
 void DSPThreadPool::SignalAll(int num)
 {
     for (int i = 0; i < num; i++) {  // Important : use local num here...
-        fThreadPool[i]->Signal(false);
+        fThreadPool[i]->Signal();
     }
 }
 
@@ -1006,7 +988,6 @@ void DSPThreadPool::Destroy()
 
 // Globals
 TaskQueue* gTaskQueueList[THREAD_SIZE] = {0};
-
 DSPThreadPool* gThreadPool = 0;
 int gClientCount = 0;
 
@@ -1036,9 +1017,9 @@ void deleteThreadPool(void* pool)
     delete (DSPThreadPool*)pool;
 }
 
-void startAll(void* pool, int num_threads)
+void startAll(void* pool, int num_threads, void* dsp)
 {
-    ((DSPThreadPool*)pool)->StartAll(num_threads, true);
+    ((DSPThreadPool*)pool)->StartAll(num_threads, true, dsp);
 }
 
 void stopAll(void* pool)
@@ -1046,9 +1027,9 @@ void stopAll(void* pool)
     ((DSPThreadPool*)pool)->StopAll();
 }
 
-void signalAll(void* pool, int num_threads, void* dsp)
+void signalAll(void* pool, int num_threads)
 {
-    ((DSPThreadPool*)pool)->SignalAll(num_threads, dsp);
+    ((DSPThreadPool*)pool)->SignalAll(num_threads);
 }
 
 // Task queue 

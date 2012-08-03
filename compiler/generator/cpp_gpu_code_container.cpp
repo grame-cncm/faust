@@ -246,7 +246,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
             tab(n+2, *fOut); *fOut << "if (dsp->fRunThread->fRealTime) {";
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
-                tab(n+3, *fOut); *fOut << "SetRealTime();";
+                tab(n+3, *fOut); *fOut << "setRealTime();";
             tab(n+2, *fOut); *fOut << "}";
 
             tab(n+2, *fOut); *fOut << "while (true) {";
@@ -1072,7 +1072,7 @@ void CPPCUDACodeContainer::produceClass()
 
             tab(n+2, *fOut); *fOut << "if (dsp->fRunThread->fRealTime) {";
                 tab(n+3, *fOut); *fOut << "dsp->fRunThread->Wait();";
-                tab(n+3, *fOut); *fOut << "SetRealTime();";
+                tab(n+3, *fOut); *fOut << "setRealTime();";
             tab(n+2, *fOut); *fOut << "}";
 
             tab(n+2, *fOut); *fOut << "while (dsp->fDeviceRunning) {";
