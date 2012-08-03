@@ -21,13 +21,11 @@
 #define WORK_STEALING_INDEX 0
 #define LAST_TASK_INDEX 1
 
-
 #ifdef __ICC
 #define INLINE __forceinline
 #else
 #define INLINE inline
 #endif
-
 
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
@@ -60,8 +58,7 @@
 #include <libkern/OSAtomic.h>
 #endif
 
-class TaskQueue;
-struct DSPThreadPool;
+class DSPThreadPool;
 
 extern DSPThreadPool* gThreadPool;
 extern int gClientCount;
@@ -219,248 +216,6 @@ static int GetPID()
 
 #define MAX_STEAL_DUR 50                    // in usec
 #define DEFAULT_CLOCKSPERSEC 2500000000     // in cycles (2,5 Ghz)
-
-class TaskQueue 
-{
-    private:
-    
-        int fTaskList[QUEUE_SIZE];
-        volatile AtomicCounter fCounter;
-        UInt64 fStealingStart;
-     
-    public:
-  
-        INLINE TaskQueue(int cur_thread)
-        {
-            for (int i = 0; i < QUEUE_SIZE; i++) {
-                fTaskList[i] = -1;
-            }
-            fStealingStart = 0;
-        }
-         
-        INLINE void InitOne()
-        {
-            for (int i = 0; i < QUEUE_SIZE; i++) {
-                fTaskList[i] = -1;
-            }
-            fCounter.info.fValue = 0;
-            fStealingStart = 0;
-        }
-        
-        INLINE void PushHead(int item)
-        {
-            fTaskList[Head(fCounter)] = item;
-            IncHead(fCounter);
-        }
-        
-        INLINE int PopHead()
-        {
-            AtomicCounter old_val;
-            AtomicCounter new_val;
-            
-            do {
-                old_val = fCounter;
-                new_val = old_val;
-                if (Head(old_val) == Tail(old_val)) {
-                    return WORK_STEALING_INDEX;
-                } else {
-                    DecHead(new_val);
-                }
-            } while (!CAS1(&fCounter, Value(old_val), Value(new_val)));
-            
-            return fTaskList[Head(old_val) - 1];
-        }
-        
-        INLINE int PopTail()
-        {
-            AtomicCounter old_val;
-            AtomicCounter new_val;
-            
-            do {
-                old_val = fCounter;
-                new_val = old_val;
-                if (Head(old_val) == Tail(old_val)) {
-                    return WORK_STEALING_INDEX;
-                } else {
-                    IncTail(new_val);
-                }
-            } while (!CAS1(&fCounter, Value(old_val), Value(new_val)));
-            
-            return fTaskList[Tail(old_val)];
-        }
-
-		INLINE void MeasureStealingDur()
-		{
-            // Takes first timetamp
-            if (fStealingStart == 0) {
-                fStealingStart = DSP_rdtsc();
-            } else if ((DSP_rdtsc() - fStealingStart) > gMaxStealing) {
-                Yield();
-            }
-		}
-
-		INLINE void ResetStealingDur()
-		{
-            fStealingStart = 0;
-		}
-        
-        static INLINE int GetNextTask(void* taskqueuelist, int thread, int num_threads)
-        {
-            int tasknum;
-            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
-            
-            for (int i = 0; i < num_threads; i++) {
-                if ((i != thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
-                #ifdef __linux__
-                    //if (thread != MASTER_THREAD)
-                        task_queue_list[thread]->ResetStealingDur();
-                #endif
-                    return tasknum;    // Task is found
-                }
-            }
-            NOP();
-        #ifdef __linux__
-			//if (thread != MASTER_THREAD)
-                task_queue_list[thread]->MeasureStealingDur();
-        #endif
-            return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
-        }
-        
-        INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread, int& tasknum)
-        {
-            int task_slice = task_list_size / thread_num;
-            int task_slice_rest = task_list_size % thread_num;
-
-            if (task_slice == 0) {
-                // Each thread directly executes one task
-                tasknum = task_list[cur_thread];
-                // Thread 0 takes remaining ready tasks 
-                if (cur_thread == 0) { 
-                    for (int index = 0; index < task_slice_rest - thread_num; index++) {
-                        PushHead(task_list[task_slice_rest + index]);
-                    }
-                }
-            } else {
-                // Each thread takes a part of ready tasks
-                int index;
-                for (index = 0; index < task_slice - 1; index++) {
-                    PushHead(task_list[cur_thread * task_slice + index]);
-                }
-                // Each thread directly executes one task 
-                tasknum = task_list[cur_thread * task_slice + index];
-                // Thread 0 takes remaining ready tasks 
-                if (cur_thread == 0) {
-                    for (index = 0; index < task_slice_rest; index++) {
-                        PushHead(task_list[thread_num * task_slice + index]);
-                    }
-                }
-            }
-        }
-        
-        static INLINE void InitAll(void* taskqueuelist, int num_threads)
-        {
-            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
-            for (int i = 0; i < num_threads; i++) {
-                task_queue_list[i]->InitOne();
-            }
-        }
-     
-};
-
-struct TaskGraph 
-{
-    volatile int fTaskList[QUEUE_SIZE];
-    
-    TaskGraph()
-    {
-        for (int i = 0; i < QUEUE_SIZE; i++) {
-            fTaskList[i] = 0;
-        } 
-    }
-
-    INLINE void InitTask(int task, int val)
-    {
-        fTaskList[task] = val;
-    }
-    
-    void Display()
-    {
-        for (int i = 0; i < QUEUE_SIZE; i++) {
-            printf("Task = %d activation = %d\n", i, fTaskList[i]);
-        } 
-    }
-      
-    INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
-    {
-        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-            if (tasknum == WORK_STEALING_INDEX) {
-                tasknum = task;
-            } else {
-                queue.PushHead(task);
-            }
-        }    
-    }
-    
-    INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
-    {
-        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-            if (*tasknum == WORK_STEALING_INDEX) {
-                *tasknum = task;
-            } else {
-                queue->PushHead(task);
-            }
-        }    
-    }
-     
-    INLINE void ActivateOutputTask(TaskQueue& queue, int task)
-    {
-        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-            queue.PushHead(task);
-        }
-    }
-    
-    INLINE void ActivateOutputTask(TaskQueue* queue, int task)
-    {
-        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-            queue->PushHead(task);
-        }
-    }
-    
-    INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
-    {
-        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-            tasknum = task;
-        } else {
-            tasknum = queue.PopHead(); 
-        }
-    }
-    
-    INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
-    {
-        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
-            *tasknum = task;
-        } else {
-            *tasknum = queue->PopHead(); 
-        }
-    }
-    
-    INLINE void GetReadyTask(TaskQueue& queue, int& tasknum)
-    {
-        if (tasknum == WORK_STEALING_INDEX) {
-            tasknum = queue.PopHead();
-        }
-    }
-    
-    INLINE void GetReadyTask(TaskQueue* queue, int* tasknum)
-    {
-        if (*tasknum == WORK_STEALING_INDEX) {
-            *tasknum = queue->PopHead();
-        }
-    }
- 
-};
-
-
 #define THREAD_POOL_SIZE 16
 #define JACK_SCHED_POLICY SCHED_FIFO
 
@@ -690,293 +445,539 @@ static INLINE int Range(int min, int max, int val)
     void computeThreadExternal(void* dsp, int num_thread);
 #endif
 
-struct Runnable {
+class Runnable {
     
-    UInt64 fTiming[KDSPMESURE];
-    UInt64 fStart;
-    UInt64 fStop;
-    int fCounter;
-    float fOldMean;
-    int fOldfDynamicNumThreads;
-    bool fDynAdapt;
+    private:
+        
+        UInt64 fTiming[KDSPMESURE];
+        UInt64 fStart;
+        UInt64 fStop;
+        int fCounter;
+        float fOldMean;
+        int fOldfDynamicNumThreads;
+        bool fDynAdapt;
+        
+        virtual void computeThread(int cur_thread) = 0;
     
-    virtual void computeThread(int cur_thread) = 0;
+    public :
     
-    Runnable():fCounter(0), fOldMean(1000000000.f), fOldfDynamicNumThreads(1)
-    {
-    	memset(fTiming, 0, sizeof(long long int ) * KDSPMESURE);
-        fDynAdapt = getenv("OMP_DYN_THREAD") ? strtol(getenv("OMP_DYN_THREAD"), NULL, 10) : false;
-    }
-    
-    INLINE float ComputeMean()
-    {
-        float mean = 0;
-        for (int i = 0; i < KDSPMESURE; i++) {
-            mean += float(fTiming[i]);
-        }
-        mean /= float(KDSPMESURE);
-        return mean;
-    }
-    
-    INLINE void StartMeasure()
-    {
-        if (fDynAdapt) {
-            fStart = DSP_rdtsc();
-        }
-    }
-     
-    INLINE void StopMeasure(int staticthreadnum, int& dynthreadnum)
-    {
-        if (!fDynAdapt) {
-            return;
+        Runnable():fCounter(0), fOldMean(1000000000.f), fOldfDynamicNumThreads(1)
+        {
+            memset(fTiming, 0, sizeof(long long int ) * KDSPMESURE);
+            fDynAdapt = getenv("OMP_DYN_THREAD") ? strtol(getenv("OMP_DYN_THREAD"), NULL, 10) : false;
         }
         
-        fStop = DSP_rdtsc();
-        fCounter = (fCounter + 1) % KDSPMESURE;
-        if (fCounter == 0) {
-            float mean = ComputeMean();
-            if (fabs(mean - fOldMean) > 5000) {
-                if (mean > fOldMean) { // Worse...
-                    //printf("Worse %f %f\n", mean, fOldMean);
-                    if (fOldfDynamicNumThreads > dynthreadnum) {
-                        fOldfDynamicNumThreads = dynthreadnum;
-                        dynthreadnum += 1;
-                    } else {
-                        fOldfDynamicNumThreads = dynthreadnum;
-                        dynthreadnum -= 1;
+        INLINE float ComputeMean()
+        {
+            float mean = 0;
+            for (int i = 0; i < KDSPMESURE; i++) {
+                mean += float(fTiming[i]);
+            }
+            mean /= float(KDSPMESURE);
+            return mean;
+        }
+        
+        INLINE void StartMeasure()
+        {
+            if (fDynAdapt) {
+                fStart = DSP_rdtsc();
+            }
+        }
+         
+        INLINE void StopMeasure(int staticthreadnum, int& dynthreadnum)
+        {
+            if (!fDynAdapt) {
+                return;
+            }
+            
+            fStop = DSP_rdtsc();
+            fCounter = (fCounter + 1) % KDSPMESURE;
+            if (fCounter == 0) {
+                float mean = ComputeMean();
+                if (fabs(mean - fOldMean) > 5000) {
+                    if (mean > fOldMean) { // Worse...
+                        //printf("Worse %f %f\n", mean, fOldMean);
+                        if (fOldfDynamicNumThreads > dynthreadnum) {
+                            fOldfDynamicNumThreads = dynthreadnum;
+                            dynthreadnum += 1;
+                        } else {
+                            fOldfDynamicNumThreads = dynthreadnum;
+                            dynthreadnum -= 1;
+                        }
+                     } else { // Better...
+                        //printf("Better %f %f\n", mean, fOldMean);
+                        if (fOldfDynamicNumThreads > dynthreadnum) {
+                            fOldfDynamicNumThreads = dynthreadnum;
+                            dynthreadnum -= 1;
+                        } else {
+                            fOldfDynamicNumThreads = dynthreadnum;
+                            dynthreadnum += 1;
+                        }
                     }
-                 } else { // Better...
-                    //printf("Better %f %f\n", mean, fOldMean);
-                    if (fOldfDynamicNumThreads > dynthreadnum) {
-                        fOldfDynamicNumThreads = dynthreadnum;
-                        dynthreadnum -= 1;
-                    } else {
-                        fOldfDynamicNumThreads = dynthreadnum;
-                        dynthreadnum += 1;
+                    fOldMean = mean;
+                    dynthreadnum = Range(1, staticthreadnum, dynthreadnum);
+                    //printf("dynthreadnum %d\n", dynthreadnum);
+                }
+            }
+            fTiming[fCounter] = fStop - fStart; 
+        }
+};
+
+class TaskQueue 
+{
+    private:
+    
+        int fTaskList[QUEUE_SIZE];
+        volatile AtomicCounter fCounter;
+        UInt64 fStealingStart;
+     
+    public:
+  
+        INLINE TaskQueue(int cur_thread)
+        {
+            for (int i = 0; i < QUEUE_SIZE; i++) {
+                fTaskList[i] = -1;
+            }
+            fStealingStart = 0;
+        }
+         
+        INLINE void InitOne()
+        {
+            for (int i = 0; i < QUEUE_SIZE; i++) {
+                fTaskList[i] = -1;
+            }
+            fCounter.info.fValue = 0;
+            fStealingStart = 0;
+        }
+        
+        INLINE void PushHead(int item)
+        {
+            fTaskList[Head(fCounter)] = item;
+            IncHead(fCounter);
+        }
+        
+        INLINE int PopHead()
+        {
+            AtomicCounter old_val;
+            AtomicCounter new_val;
+            
+            do {
+                old_val = fCounter;
+                new_val = old_val;
+                if (Head(old_val) == Tail(old_val)) {
+                    return WORK_STEALING_INDEX;
+                } else {
+                    DecHead(new_val);
+                }
+            } while (!CAS1(&fCounter, Value(old_val), Value(new_val)));
+            
+            return fTaskList[Head(old_val) - 1];
+        }
+        
+        INLINE int PopTail()
+        {
+            AtomicCounter old_val;
+            AtomicCounter new_val;
+            
+            do {
+                old_val = fCounter;
+                new_val = old_val;
+                if (Head(old_val) == Tail(old_val)) {
+                    return WORK_STEALING_INDEX;
+                } else {
+                    IncTail(new_val);
+                }
+            } while (!CAS1(&fCounter, Value(old_val), Value(new_val)));
+            
+            return fTaskList[Tail(old_val)];
+        }
+
+		INLINE void MeasureStealingDur()
+		{
+            // Takes first timetamp
+            if (fStealingStart == 0) {
+                fStealingStart = DSP_rdtsc();
+            } else if ((DSP_rdtsc() - fStealingStart) > gMaxStealing) {
+                Yield();
+            }
+		}
+
+		INLINE void ResetStealingDur()
+		{
+            fStealingStart = 0;
+		}
+        
+        static INLINE int GetNextTask(void* taskqueuelist, int thread, int num_threads)
+        {
+            int tasknum;
+            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
+            
+            for (int i = 0; i < num_threads; i++) {
+                if ((i != thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
+                #ifdef __linux__
+                    //if (thread != MASTER_THREAD)
+                        task_queue_list[thread]->ResetStealingDur();
+                #endif
+                    return tasknum;    // Task is found
+                }
+            }
+            NOP();
+        #ifdef __linux__
+			//if (thread != MASTER_THREAD)
+                task_queue_list[thread]->MeasureStealingDur();
+        #endif
+            return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
+        }
+        
+        INLINE void InitTaskList(int task_list_size, int* task_list, int thread_num, int cur_thread, int& tasknum)
+        {
+            int task_slice = task_list_size / thread_num;
+            int task_slice_rest = task_list_size % thread_num;
+
+            if (task_slice == 0) {
+                // Each thread directly executes one task
+                tasknum = task_list[cur_thread];
+                // Thread 0 takes remaining ready tasks 
+                if (cur_thread == 0) { 
+                    for (int index = 0; index < task_slice_rest - thread_num; index++) {
+                        PushHead(task_list[task_slice_rest + index]);
                     }
                 }
-                fOldMean = mean;
-                dynthreadnum = Range(1, staticthreadnum, dynthreadnum);
-                //printf("dynthreadnum %d\n", dynthreadnum);
+            } else {
+                // Each thread takes a part of ready tasks
+                int index;
+                for (index = 0; index < task_slice - 1; index++) {
+                    PushHead(task_list[cur_thread * task_slice + index]);
+                }
+                // Each thread directly executes one task 
+                tasknum = task_list[cur_thread * task_slice + index];
+                // Thread 0 takes remaining ready tasks 
+                if (cur_thread == 0) {
+                    for (index = 0; index < task_slice_rest; index++) {
+                        PushHead(task_list[thread_num * task_slice + index]);
+                    }
+                }
             }
         }
-        fTiming[fCounter] = fStop - fStart; 
-    }
-};
-
-struct DSPThread {
-
-    pthread_t fThread;
-    void* fDSP;
-    sem_t* fSemaphore;
-    char fName[128];
-    bool fRealTime;
-    int fNum;
-    
-    DSPThread(int num, void* dsp)
-    {
-        fNum = num;
-        fDSP = dsp;
-        fRealTime = false;
         
-        sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
-        
-        if ((fSemaphore = sem_open(fName, O_CREAT, 0777, 0)) == (sem_t*)SEM_FAILED) {
-            printf("Allocate: can't check in named semaphore name = %s err = %s", fName, strerror(errno));
-        }
-    }
-
-    virtual ~DSPThread()
-    {
-        sem_unlink(fName);
-        sem_close(fSemaphore);
-    }
-    
-    void Run()
-    {
-        while (sem_wait(fSemaphore) != 0) {}
-    #if defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
-        gComputeThreadExternal(fDSP, fNum + 1);
-    #else
-        computeThreadExternal(fDSP, fNum + 1);
-    #endif
-    }
-    
-    static void* ThreadHandler(void* arg)
-    {
-        DSPThread* thread = static_cast<DSPThread*>(arg);
-        
-        AVOIDDENORMALS;
-        
-        // One "dummy" cycle to setup thread
-        if (thread->fRealTime) {
-            thread->Run();
-            setRealTime();
-        }
-                  
-        while (true) {
-            thread->Run();
-        }
-        
-        return NULL;
-    }
-    
-    int Start(bool realtime)
-    {
-        pthread_attr_t attributes;
-        struct sched_param rt_param;
-        pthread_attr_init(&attributes);
-        
-        int priority = 60; // TODO
-        int res;
-        
-        if (realtime) {
-            fRealTime = true;
-        }else {
-            fRealTime = getenv("OMP_REALTIME") ? strtol(getenv("OMP_REALTIME"), NULL, 10) : true;
-        }
-                               
-        if ((res = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE))) {
-            printf("Cannot request joinable thread creation for real-time thread res = %d err = %s\n", res, strerror(errno));
-            return -1;
-        }
-
-        if ((res = pthread_attr_setscope(&attributes, PTHREAD_SCOPE_SYSTEM))) {
-            printf("Cannot set scheduling scope for real-time thread res = %d err = %s\n", res, strerror(errno));
-            return -1;
-        }
-
-        if (realtime) {
-            
-            if ((res = pthread_attr_setinheritsched(&attributes, PTHREAD_EXPLICIT_SCHED))) {
-                printf("Cannot request explicit scheduling for RT thread res = %d err = %s\n", res, strerror(errno));
-                return -1;
-            }
-        
-            if ((res = pthread_attr_setschedpolicy(&attributes, JACK_SCHED_POLICY))) {
-                printf("Cannot set RR scheduling class for RT thread res = %d err = %s\n", res, strerror(errno));
-                return -1;
-            }
-            
-            memset(&rt_param, 0, sizeof(rt_param));
-            rt_param.sched_priority = priority;
-
-            if ((res = pthread_attr_setschedparam(&attributes, &rt_param))) {
-                printf("Cannot set scheduling priority for RT thread res = %d err = %s\n", res, strerror(errno));
-                return -1;
-            }
-
-        } else {
-            
-            if ((res = pthread_attr_setinheritsched(&attributes, PTHREAD_INHERIT_SCHED))) {
-                printf("Cannot request explicit scheduling for RT thread res = %d err = %s\n", res, strerror(errno));
-                return -1;
+        static INLINE void InitAll(void* taskqueuelist, int num_threads)
+        {
+            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
+            for (int i = 0; i < num_threads; i++) {
+                task_queue_list[i]->InitOne();
             }
         }
      
-        if ((res = pthread_attr_setstacksize(&attributes, THREAD_STACK))) {
-            printf("Cannot set thread stack size res = %d err = %s\n", res, strerror(errno));
-            return -1;
+};
+
+class TaskGraph 
+{
+    private:
+    
+        volatile int fTaskList[QUEUE_SIZE];
+        
+    public:
+    
+        TaskGraph()
+        {
+            for (int i = 0; i < QUEUE_SIZE; i++) {
+                fTaskList[i] = 0;
+            } 
+        }
+
+        INLINE void InitTask(int task, int val)
+        {
+            fTaskList[task] = val;
         }
         
-        if ((res = pthread_create(&fThread, &attributes, ThreadHandler, this))) {
-            printf("Cannot create thread res = %d err = %s\n", res, strerror(errno));
-            return -1;
+        void Display()
+        {
+            for (int i = 0; i < QUEUE_SIZE; i++) {
+                printf("Task = %d activation = %d\n", i, fTaskList[i]);
+            } 
+        }
+          
+        INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
+        {
+            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
+                if (tasknum == WORK_STEALING_INDEX) {
+                    tasknum = task;
+                } else {
+                    queue.PushHead(task);
+                }
+            }    
+        }
+        
+        INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
+        {
+            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
+                if (*tasknum == WORK_STEALING_INDEX) {
+                    *tasknum = task;
+                } else {
+                    queue->PushHead(task);
+                }
+            }    
+        }
+         
+        INLINE void ActivateOutputTask(TaskQueue& queue, int task)
+        {
+            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
+                queue.PushHead(task);
+            }
+        }
+        
+        INLINE void ActivateOutputTask(TaskQueue* queue, int task)
+        {
+            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
+                queue->PushHead(task);
+            }
+        }
+        
+        INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
+        {
+            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
+                tasknum = task;
+            } else {
+                tasknum = queue.PopHead(); 
+            }
+        }
+        
+        INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
+        {
+            if (DEC_ATOMIC(&fTaskList[task]) == 0) {
+                *tasknum = task;
+            } else {
+                *tasknum = queue->PopHead(); 
+            }
+        }
+        
+        INLINE void GetReadyTask(TaskQueue& queue, int& tasknum)
+        {
+            if (tasknum == WORK_STEALING_INDEX) {
+                tasknum = queue.PopHead();
+            }
+        }
+        
+        INLINE void GetReadyTask(TaskQueue* queue, int* tasknum)
+        {
+            if (*tasknum == WORK_STEALING_INDEX) {
+                *tasknum = queue->PopHead();
+            }
+        }
+ 
+};
+
+class DSPThread {
+
+    private:
+    
+        pthread_t fThread;
+        void* fDSP;
+        sem_t* fSemaphore;
+        char fName[128];
+        bool fRealTime;
+        int fNumThread;
+        
+        static void* ThreadHandler(void* arg)
+        {
+            DSPThread* thread = static_cast<DSPThread*>(arg);
+            
+            AVOIDDENORMALS;
+            
+            // One "dummy" cycle to setup thread
+            if (thread->fRealTime) {
+                thread->Run();
+                setRealTime();
+            }
+                      
+            while (true) {
+                thread->Run();
+            }
+            
+            return NULL;
+        }
+    
+    public: 
+    
+        DSPThread(int num_thread, void* dsp)
+        {
+            fNumThread = num_thread;
+            fDSP = dsp;
+            fRealTime = false;
+            
+            sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
+            
+            if ((fSemaphore = sem_open(fName, O_CREAT, 0777, 0)) == (sem_t*)SEM_FAILED) {
+                printf("Allocate: can't check in named semaphore name = %s err = %s", fName, strerror(errno));
+            }
         }
 
-        pthread_attr_destroy(&attributes);
-        return 0;
-    }
-    
-    void Signal()
-    {
-        sem_post(fSemaphore);
-    }
-    
-    void Stop()
-    {
-        CancelThread(fThread);
-    }
+        virtual ~DSPThread()
+        {
+            sem_unlink(fName);
+            sem_close(fSemaphore);
+        }
+        
+        void Run()
+        {
+            while (sem_wait(fSemaphore) != 0) {}
+        #if defined(LLVM_31) || defined(LLVM_30) || defined(LLVM_29)
+            gComputeThreadExternal(fDSP, fNumThread + 1);
+        #else
+            computeThreadExternal(fDSP, fNumThread + 1);
+        #endif
+        }
+                
+        void Signal()
+        {
+            sem_post(fSemaphore);
+        }
+        
+        int Start(bool realtime)
+        {
+            pthread_attr_t attributes;
+            struct sched_param rt_param;
+            pthread_attr_init(&attributes);
+            
+            int priority = 60; // TODO
+            int res;
+            
+            if (realtime) {
+                fRealTime = true;
+            }else {
+                fRealTime = getenv("OMP_REALTIME") ? strtol(getenv("OMP_REALTIME"), NULL, 10) : true;
+            }
+                                   
+            if ((res = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE))) {
+                printf("Cannot request joinable thread creation for real-time thread res = %d err = %s\n", res, strerror(errno));
+                return -1;
+            }
+
+            if ((res = pthread_attr_setscope(&attributes, PTHREAD_SCOPE_SYSTEM))) {
+                printf("Cannot set scheduling scope for real-time thread res = %d err = %s\n", res, strerror(errno));
+                return -1;
+            }
+
+            if (realtime) {
+                
+                if ((res = pthread_attr_setinheritsched(&attributes, PTHREAD_EXPLICIT_SCHED))) {
+                    printf("Cannot request explicit scheduling for RT thread res = %d err = %s\n", res, strerror(errno));
+                    return -1;
+                }
+            
+                if ((res = pthread_attr_setschedpolicy(&attributes, JACK_SCHED_POLICY))) {
+                    printf("Cannot set RR scheduling class for RT thread res = %d err = %s\n", res, strerror(errno));
+                    return -1;
+                }
+                
+                memset(&rt_param, 0, sizeof(rt_param));
+                rt_param.sched_priority = priority;
+
+                if ((res = pthread_attr_setschedparam(&attributes, &rt_param))) {
+                    printf("Cannot set scheduling priority for RT thread res = %d err = %s\n", res, strerror(errno));
+                    return -1;
+                }
+
+            } else {
+                
+                if ((res = pthread_attr_setinheritsched(&attributes, PTHREAD_INHERIT_SCHED))) {
+                    printf("Cannot request explicit scheduling for RT thread res = %d err = %s\n", res, strerror(errno));
+                    return -1;
+                }
+            }
+         
+            if ((res = pthread_attr_setstacksize(&attributes, THREAD_STACK))) {
+                printf("Cannot set thread stack size res = %d err = %s\n", res, strerror(errno));
+                return -1;
+            }
+            
+            if ((res = pthread_create(&fThread, &attributes, ThreadHandler, this))) {
+                printf("Cannot create thread res = %d err = %s\n", res, strerror(errno));
+                return -1;
+            }
+
+            pthread_attr_destroy(&attributes);
+            return 0;
+        }
+        
+        void Stop()
+        {
+            CancelThread(fThread);
+        }
 
 };
 
-struct DSPThreadPool {
+class DSPThreadPool {
     
-    DSPThread* fThreadPool[THREAD_POOL_SIZE];
-    int fThreadCount; 
+    private:
+    
+        DSPThread* fThreadPool[THREAD_POOL_SIZE];
+        int fThreadCount; 
       
-    DSPThreadPool();
-    ~DSPThreadPool();
-    
-    void StartAll(int num, bool realtime, void* dsp);
-    void StopAll();
-    void SignalAll(int num);
-    
-    static DSPThreadPool* Init();
-    static void Destroy();
+    public:
+        
+        DSPThreadPool()
+        {
+            for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+                fThreadPool[i] = NULL;
+            }
+            fThreadCount = 0;
+        }
+
+        ~DSPThreadPool()
+        {
+            StopAll();
+            
+            for (int i = 0; i < fThreadCount; i++) {
+                delete(fThreadPool[i]);
+                fThreadPool[i] = NULL;
+            }
+            
+            fThreadCount = 0;
+         }
+
+        void StartAll(int num_thread, bool realtime, void* dsp)
+        {
+            if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
+                for (int i = 0; i < num_thread; i++) {
+                    fThreadPool[i] = new DSPThread(i, dsp);
+                    fThreadPool[i]->Start(realtime);
+                    fThreadCount++;
+                }
+            }
+        }
+
+        void StopAll()
+        {
+            for (int i = 0; i < fThreadCount; i++) {
+                fThreadPool[i]->Stop();
+            }
+        }
+
+        void SignalAll(int num_thread)
+        {
+            for (int i = 0; i < num_thread; i++) {  // Important : use local num here...
+                fThreadPool[i]->Signal();
+            }
+        }
+
+        static DSPThreadPool* Init()
+        {
+            if (gClientCount++ == 0 && !gThreadPool) {
+                gThreadPool = new DSPThreadPool();
+            }
+            return gThreadPool;
+        }
+
+        static void Destroy()
+        {
+            if (--gClientCount == 0 && gThreadPool) {
+                delete gThreadPool;
+                gThreadPool = NULL;
+            }
+        }
     
 };
-
-DSPThreadPool::DSPThreadPool()
-{
-    for (int i = 0; i < THREAD_POOL_SIZE; i++) {
-        fThreadPool[i] = NULL;
-    }
-    fThreadCount = 0;
-}
-
-DSPThreadPool::~DSPThreadPool()
-{
-    StopAll();
-    
-    for (int i = 0; i < fThreadCount; i++) {
-        delete(fThreadPool[i]);
-        fThreadPool[i] = NULL;
-    }
-    
-    fThreadCount = 0;
- }
-
-void DSPThreadPool::StartAll(int num, bool realtime, void* dsp)
-{
-    if (fThreadCount == 0) {  // Protection for multiple call...  (like LADSPA plug-ins in Ardour)
-        for (int i = 0; i < num; i++) {
-            fThreadPool[i] = new DSPThread(i, dsp);
-            fThreadPool[i]->Start(realtime);
-            fThreadCount++;
-        }
-    }
-}
-
-void DSPThreadPool::StopAll()
-{
-    for (int i = 0; i < fThreadCount; i++) {
-        fThreadPool[i]->Stop();
-    }
-}
-
-void DSPThreadPool::SignalAll(int num)
-{
-    for (int i = 0; i < num; i++) {  // Important : use local num here...
-        fThreadPool[i]->Signal();
-    }
-}
-
-DSPThreadPool* DSPThreadPool::Init()
-{
-    if (gClientCount++ == 0 && !gThreadPool) {
-        gThreadPool = new DSPThreadPool();
-    }
-    return gThreadPool;
-}
-
-void DSPThreadPool::Destroy()
-{
-    if (--gClientCount == 0 && gThreadPool) {
-        delete gThreadPool;
-        gThreadPool = NULL;
-    }
-}
 
 #ifndef PLUG_IN
 
