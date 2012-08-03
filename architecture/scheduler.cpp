@@ -375,30 +375,30 @@ class TaskQueue
 
 struct TaskGraph 
 {
-    volatile int gTaskList[QUEUE_SIZE];
+    volatile int fTaskList[QUEUE_SIZE];
     
     TaskGraph()
     {
         for (int i = 0; i < QUEUE_SIZE; i++) {
-            gTaskList[i] = 0;
+            fTaskList[i] = 0;
         } 
     }
 
     INLINE void InitTask(int task, int val)
     {
-        gTaskList[task] = val;
+        fTaskList[task] = val;
     }
     
     void Display()
     {
         for (int i = 0; i < QUEUE_SIZE; i++) {
-            printf("Task = %d activation = %d\n", i, gTaskList[i]);
+            printf("Task = %d activation = %d\n", i, fTaskList[i]);
         } 
     }
       
     INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
+        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
             if (tasknum == WORK_STEALING_INDEX) {
                 tasknum = task;
             } else {
@@ -409,7 +409,7 @@ struct TaskGraph
     
     INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
+        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
             if (*tasknum == WORK_STEALING_INDEX) {
                 *tasknum = task;
             } else {
@@ -420,21 +420,21 @@ struct TaskGraph
      
     INLINE void ActivateOutputTask(TaskQueue& queue, int task)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
+        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
             queue.PushHead(task);
         }
     }
     
     INLINE void ActivateOutputTask(TaskQueue* queue, int task)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
+        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
             queue->PushHead(task);
         }
     }
     
     INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
+        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
             tasknum = task;
         } else {
             tasknum = queue.PopHead(); 
@@ -443,7 +443,7 @@ struct TaskGraph
     
     INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
     {
-        if (DEC_ATOMIC(&gTaskList[task]) == 0) {
+        if (DEC_ATOMIC(&fTaskList[task]) == 0) {
             *tasknum = task;
         } else {
             *tasknum = queue->PopHead(); 
