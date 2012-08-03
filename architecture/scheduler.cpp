@@ -63,7 +63,6 @@
 class TaskQueue;
 struct DSPThreadPool;
 
-extern TaskQueue* gTaskQueueList[THREAD_SIZE];
 extern DSPThreadPool* gThreadPool;
 extern int gClientCount;
 extern UInt64 gMaxStealing;
@@ -236,7 +235,6 @@ class TaskQueue
             for (int i = 0; i < QUEUE_SIZE; i++) {
                 fTaskList[i] = -1;
             }
-            gTaskQueueList[cur_thread] = this;	
             fStealingStart = 0;
         }
          
@@ -306,14 +304,16 @@ class TaskQueue
             fStealingStart = 0;
 		}
         
-        static INLINE int GetNextTask(int thread, int num_threads)
+        static INLINE int GetNextTask(void* taskqueuelist, int thread, int num_threads)
         {
             int tasknum;
+            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
+            
             for (int i = 0; i < num_threads; i++) {
-                if ((i != thread) && gTaskQueueList[i] && (tasknum = gTaskQueueList[i]->PopTail()) != WORK_STEALING_INDEX) {
+                if ((i != thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
                 #ifdef __linux__
-					//if (thread != MASTER_THREAD)
-						gTaskQueueList[thread]->ResetStealingDur();
+                    //if (thread != MASTER_THREAD)
+                        task_queue_list[thread]->ResetStealingDur();
                 #endif
                     return tasknum;    // Task is found
                 }
@@ -321,7 +321,7 @@ class TaskQueue
             NOP();
         #ifdef __linux__
 			//if (thread != MASTER_THREAD)
-				gTaskQueueList[thread]->MeasureStealingDur();
+                task_queue_list[thread]->MeasureStealingDur();
         #endif
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
@@ -357,17 +357,11 @@ class TaskQueue
             }
         }
         
-        static INLINE void Init()
+        static INLINE void InitAll(void* taskqueuelist, int num_threads)
         {
-            for (int i = 0; i < THREAD_SIZE; i++) {
-                gTaskQueueList[i] = 0;
-            }
-        }
-        
-        static INLINE void InitAll(int num_threads)
-        {
+            TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
             for (int i = 0; i < num_threads; i++) {
-                gTaskQueueList[i]->InitOne();
+                task_queue_list[i]->InitOne();
             }
         }
      
@@ -987,7 +981,6 @@ void DSPThreadPool::Destroy()
 #ifndef PLUG_IN
 
 // Globals
-TaskQueue* gTaskQueueList[THREAD_SIZE] = {0};
 DSPThreadPool* gThreadPool = 0;
 int gClientCount = 0;
 
@@ -1034,14 +1027,9 @@ void signalAll(void* pool, int num_threads)
 
 // Task queue 
 
-void initTaskQueue()
+void initAllTaskQueue(void* task_queue_list, int num_threads)
 {
-    TaskQueue::Init();
-}
-
-void initAllTaskQueue(int num_threads)
-{
-    TaskQueue::InitAll(num_threads);
+    TaskQueue::InitAll(task_queue_list, num_threads);
 }
 
 void* createTaskQueue(int cur_thread)
@@ -1074,9 +1062,9 @@ int popTail(void* queue)
     return ((TaskQueue*)queue)->PopTail();
 }
 
-int getNextTask(int cur_thread, int dynamic_threads)
+int getNextTask(void* task_queue_list, int cur_thread, int dynamic_threads)
 {
-    return TaskQueue::GetNextTask(cur_thread, dynamic_threads);
+    return TaskQueue::GetNextTask(task_queue_list, cur_thread, dynamic_threads);
 }
 
 // Task graph 
