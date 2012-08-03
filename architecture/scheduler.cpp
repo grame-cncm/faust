@@ -1,3 +1,28 @@
+/************************************************************************
+    FAUST Architecture File
+	Copyright (C) 2010-2012 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 3 of
+	the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+	along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+	EXCEPTION : As a special exception, you may create a larger work
+	that contains this FAUST architecture section and distribute
+	that work under terms of your choice, so long as this FAUST
+	architecture section is not modified.
+
+
+ ************************************************************************
+ ************************************************************************/
 
 #include <stdlib.h>
 #include <assert.h>
@@ -15,11 +40,17 @@
 
 // Globals
 
-#define THREAD_SIZE 32
-#define QUEUE_SIZE 4096
-
 #define WORK_STEALING_INDEX 0
 #define LAST_TASK_INDEX 1
+
+#define MASTER_THREAD 0
+
+#define MAX_STEAL_DUR 50                    // in usec
+#define DEFAULT_CLOCKS_PER_SEC 2500000000     // in cycles (2,5 Ghz)
+#define THREAD_POOL_SIZE 16
+#define JACK_SCHED_POLICY SCHED_FIFO
+
+#define KDSPMESURE 50
 
 #ifdef __ICC
 #define INLINE __forceinline
@@ -58,12 +89,6 @@
 #include <libkern/OSAtomic.h>
 #endif
 
-class DSPThreadPool;
-
-extern DSPThreadPool* gThreadPool;
-extern int gClientCount;
-extern UInt64 gMaxStealing;
-    
 static void Yield();
 
 /**
@@ -202,23 +227,6 @@ static int GetPID()
 #endif
 }
 
-#define Value(e) (e).info.fValue
-
-#define Head(e) (e).info.scounter.fHead
-#define IncHead(e) (e).info.scounter.fHead++
-#define DecHead(e) (e).info.scounter.fHead--
-
-#define Tail(e) (e).info.scounter.fTail
-#define IncTail(e) (e).info.scounter.fTail++
-#define DecTail(e) (e).info.scounter.fTail--
-
-#define MASTER_THREAD 0
-
-#define MAX_STEAL_DUR 50                    // in usec
-#define DEFAULT_CLOCKSPERSEC 2500000000     // in cycles (2,5 Ghz)
-#define THREAD_POOL_SIZE 16
-#define JACK_SCHED_POLICY SCHED_FIFO
-
 /* use 512KB stack per thread - the default is way too high to be feasible
  * with mlockall() on many systems */
 #define THREAD_STACK 524288
@@ -350,21 +358,12 @@ static UInt64 period = 0;
 static UInt64 computation = 0;
 static UInt64 constraint = 0;
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-void getRealTime()
+void GetRealTime()
 {
     if (period == 0) {
         GetParams(pthread_self(), &period, &computation, &constraint);
     }
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 static void setRealTime()
 {
@@ -389,12 +388,7 @@ static void Yield()
 static int faust_sched_policy = -1;
 static struct sched_param faust_rt_param; 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-void getRealTime()
+void GetRealTime()
 {
     if (faust_sched_policy == -1) {
         memset(&faust_rt_param, 0, sizeof(faust_rt_param));
@@ -402,11 +396,7 @@ void getRealTime()
     }
 }
 
-#ifdef __cplusplus
-}
-#endif
-
-static void setRealTime()
+static void SetRealTime()
 {
 	faust_rt_param.sched_priority--;
     pthread_setschedparam(pthread_self(), faust_sched_policy, &faust_rt_param);
@@ -424,8 +414,6 @@ static void Yield()
 }
 
 #endif
-
-#define KDSPMESURE 50
 
 static INLINE int Range(int min, int max, int val)
 {
@@ -523,27 +511,46 @@ class Runnable {
         }
 };
 
+
+#define Value(e) (e).info.fValue
+
+#define Head(e) (e).info.scounter.fHead
+#define IncHead(e) (e).info.scounter.fHead++
+#define DecHead(e) (e).info.scounter.fHead--
+
+#define Tail(e) (e).info.scounter.fTail
+#define IncTail(e) (e).info.scounter.fTail++
+#define DecTail(e) (e).info.scounter.fTail--
+
 class TaskQueue 
 {
     private:
     
-        int fTaskList[QUEUE_SIZE];
+        int* fTaskList;
+        int fTaskQueueSize;
         volatile AtomicCounter fCounter;
         UInt64 fStealingStart;
      
     public:
   
-        INLINE TaskQueue(int cur_thread)
+        INLINE TaskQueue(int task_queue_size, int cur_thread)
         {
-            for (int i = 0; i < QUEUE_SIZE; i++) {
+            fTaskQueueSize = task_queue_size;
+            fTaskList = new int[fTaskQueueSize];
+            for (int i = 0; i < fTaskQueueSize; i++) {
                 fTaskList[i] = -1;
             }
             fStealingStart = 0;
         }
+        
+        INLINE ~TaskQueue()
+        {
+            delete [] fTaskList;
+        }
          
         INLINE void InitOne()
         {
-            for (int i = 0; i < QUEUE_SIZE; i++) {
+            for (int i = 0; i < fTaskQueueSize; i++) {
                 fTaskList[i] = -1;
             }
             fCounter.info.fValue = 0;
@@ -674,15 +681,24 @@ class TaskGraph
 {
     private:
     
-        volatile int fTaskList[QUEUE_SIZE];
+        volatile int* fTaskList;
+        int fTaskQueueSize;
         
     public:
     
-        TaskGraph()
+        TaskGraph(int task_queue_size)
         {
-            for (int i = 0; i < QUEUE_SIZE; i++) {
+            fTaskQueueSize = task_queue_size;
+            fTaskList = new int[fTaskQueueSize];
+            for (int i = 0; i < fTaskQueueSize; i++) {
                 fTaskList[i] = 0;
             } 
+        }
+        
+        
+        INLINE ~TaskGraph()
+        {
+            delete [] fTaskList;
         }
 
         INLINE void InitTask(int task, int val)
@@ -692,7 +708,7 @@ class TaskGraph
         
         void Display()
         {
-            for (int i = 0; i < QUEUE_SIZE; i++) {
+            for (int i = 0; i < fTaskQueueSize; i++) {
                 printf("Task = %d activation = %d\n", i, fTaskList[i]);
             } 
         }
@@ -772,11 +788,11 @@ class DSPThread {
     private:
     
         pthread_t fThread;
-        void* fDSP;
         sem_t* fSemaphore;
         char fName[128];
         bool fRealTime;
         int fNumThread;
+        void* fDSP;
         
         static void* ThreadHandler(void* arg)
         {
@@ -787,7 +803,7 @@ class DSPThread {
             // One "dummy" cycle to setup thread
             if (thread->fRealTime) {
                 thread->Run();
-                setRealTime();
+                SetRealTime();
             }
                       
             while (true) {
@@ -911,14 +927,15 @@ class DSPThreadPool {
     
     private:
     
-        DSPThread* fThreadPool[THREAD_POOL_SIZE];
+        DSPThread** fThreadPool;
         int fThreadCount; 
       
     public:
         
-        DSPThreadPool()
+        DSPThreadPool(int thread_pool_size)
         {
-            for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+            fThreadPool = new DSPThread*[thread_pool_size];
+            for (int i = 0; i < thread_pool_size; i++) {
                 fThreadPool[i] = NULL;
             }
             fThreadCount = 0;
@@ -934,6 +951,7 @@ class DSPThreadPool {
             }
             
             fThreadCount = 0;
+            delete [] fThreadPool;
          }
 
         void StartAll(int num_thread, bool realtime, void* dsp)
@@ -961,157 +979,208 @@ class DSPThreadPool {
             }
         }
 
-        static DSPThreadPool* Init()
-        {
-            if (gClientCount++ == 0 && !gThreadPool) {
-                gThreadPool = new DSPThreadPool();
-            }
-            return gThreadPool;
-        }
-
-        static void Destroy()
-        {
-            if (--gClientCount == 0 && gThreadPool) {
-                delete gThreadPool;
-                gThreadPool = NULL;
-            }
-        }
-    
 };
 
-#ifndef PLUG_IN
+/*
+    Public C++ interface
+*/
 
-// Globals
-DSPThreadPool* gThreadPool = 0;
-int gClientCount = 0;
+clss WorkStealingScheduler {
 
-int clock_per_microsec = (getenv("CLOCKSPERSEC") 
+    private:
+    
+        DSPThreadPool* fThreadPool;
+        TaskQueue** fTaskQueueList;
+        TaskGraph* fTaskGraph;
+        
+        int fStaticNumThreads;
+        int fDynamicNumThreads;
+        
+        UInt64 fMaxStealing;
+    
+    public:
+    
+        WorkStealingScheduler(int task_queue_size)
+        {
+            fStaticNumThreads = get_max_cpu();
+            fDynamicNumThreads = getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : get_max_cpu();
+            
+            fThreadPool = new DSPThreadPool(fDynamicNumThreads);
+            fTaskGraph = new TaskGraph(task_queue_size);
+            fTaskQueueList = new TaskQueue*[fDynamicNumThreads];
+            for (int i = 0; i < fDynamicNumThreads; i++) {
+                fTaskQueueList[i] = new TaskQueue(task_queue_size, i);
+            }
+            
+            int clock_per_microsec = (getenv("CLOCKSPERSEC") 
                 ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) 
-                : DEFAULT_CLOCKSPERSEC) / 1000000;
+                : DEFAULT_CLOCKS_PER_SEC) / 1000000;
                 
-UInt64  gMaxStealing = getenv("OMP_STEALING_DUR") 
+            fMaxStealing = getenv("OMP_STEALING_DUR") 
                 ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec 
                 : MAX_STEAL_DUR * clock_per_microsec;
+        }
+        
+        ~WorkStealingScheduler()
+        {
+            delete fThreadPool;
+            delete fTaskGraph;
+            for (int i = 0; i < fDynamicNumThreads; i++) {
+                delete(fTaskQueueList[i]);
+            }
+            delete [] fTaskQueueList;
+        }
+        
+        void StartAll(void* dsp)
+        {
+            fThreadPool->StartAll(fDynamicNumThreads, true, dsp);
+        }
+        
+        void StopAll()
+        {
+            fThreadPool->StopAll();
+        }
+        
+        void InitAll()
+        {
+            GetRealTime();
+            TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
+        }
+        
+        void SignalAll()
+        {
+            fThreadPool->signalAll(fDynamicNumThreads);
+        }
+        
+        void PushHead(int cur_thread, int task_num)
+        {
+            fTaskQueueList[cur_thread]->PushHead(task_num);
+        }
+        
+        int PopHead(int cur_thread)
+        {
+            return fTaskQueueList[cur_thread]->PopHead();
+        }
+        
+        int PopTail(int cur_thread)
+        {
+            return fTaskQueueList[cur_thread]->PopTail();
+        }
+        
+        int GetNextTask(int cur_thread)
+        {
+            return TaskQueue::GetNextTask(cur_thread, fDynamicNumThreads);
+        }
+        
+        void InitTask(int task_num, int count)
+        {
+            fTaskGraph->ActivateOutputTask(task_num, count);
+        }
+        
+        void ActivateOutputTask(int cur_thread, int task, int* task_num)
+        {
+            fTaskGraph->ActivateOutputTask(fTaskQueueList[cur_thread], task, task_num);
+        }
+        
+        void ActivateOutputTask(int cur_thread, int task)
+        {
+            fTaskGraph->ActivateOutputTask(fTaskQueueList[cur_thread], task);
+        }
+        
+        void ActivateOneOutputTask(int cur_thread, int task, int* task_num)
+        {
+            fTaskGraph->ActivateOneOutputTask(fTaskQueueList[cur_thread], task, task_num);
+        }
+                
+        void GetReadyTask(int cur_thread, int* task_num)
+        {
+            fTaskGraph->GetReadyTask(fTaskQueueList[cur_thread], task_num);
+        }
 
-#endif
+};
+
+/*
+C scheduler interface
+*/
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-// Thread pool 
-
-void* createThreadPool()
+void* createScheduler(int task_queue_size)
 {
-    return (void*)new DSPThreadPool();
-}
-void deleteThreadPool(void* pool)
-{
-    delete (DSPThreadPool*)pool;
+    return new WorkStealingScheduler(task_queue_size);
 }
 
-void startAll(void* pool, int num_threads, void* dsp)
-{
-    ((DSPThreadPool*)pool)->StartAll(num_threads, true, dsp);
+void destroyScheduler(void* scheduler)
+{   
+    delete(static<WorkStealingScheduler*>(scheduler)):
 }
 
-void stopAll(void* pool)
+void startAll(void* dsp)
 {
-    ((DSPThreadPool*)pool)->StopAll();
+    static<WorkStealingScheduler*>(scheduler)->StartAll(dsp);
 }
 
-void signalAll(void* pool, int num_threads)
+void stopAll()
 {
-    ((DSPThreadPool*)pool)->SignalAll(num_threads);
+    static<WorkStealingScheduler*>(scheduler)->StopAll(dsp);
 }
 
-// Task queue 
-
-void initAllTaskQueue(void* task_queue_list, int num_threads)
+void initAll()
 {
-    TaskQueue::InitAll(task_queue_list, num_threads);
+    static<WorkStealingScheduler*>(scheduler)->initAll();
 }
 
-void* createTaskQueue(int cur_thread)
+void signalAll()
 {
-    return (void*)new TaskQueue(cur_thread);
+    static<WorkStealingScheduler*>(scheduler)->signalAll();
 }
 
-void deleteTaskQueue(void* queue)
+void pushHead(int cur_thread, int task_num)
 {
-    delete (TaskQueue*)queue;
+    static<WorkStealingScheduler*>(scheduler)->pushHead(pushHead, task_num);
 }
 
-void initOneTaskQueue(void* queue)
+int popHead(int cur_thread)
 {
-    ((TaskQueue*)queue)->InitOne();
+    static<WorkStealingScheduler*>(scheduler)->popHead(cur_thread);
 }
 
-void pushHead(void* queue, int task)
+int popTail(int cur_thread)
 {
-    ((TaskQueue*)queue)->PushHead(task);
+    static<WorkStealingScheduler*>(scheduler)->popTail(cur_thread);
 }
 
-int popHead(void* queue)
+int getNextTask(int cur_thread)
 {
-    return ((TaskQueue*)queue)->PopHead();
+    static<WorkStealingScheduler*>(scheduler)->GetNextTask(cur_thread);
 }
 
-int popTail(void* queue)
+void initTask(int task_num, int count)
 {
-    return ((TaskQueue*)queue)->PopTail();
+     static<WorkStealingScheduler*>(scheduler)->InitTask(task_num, count);
 }
 
-int getNextTask(void* task_queue_list, int cur_thread, int dynamic_threads)
+void activateOutputTask1(int cur_thread, int task, int* task_num)
 {
-    return TaskQueue::GetNextTask(task_queue_list, cur_thread, dynamic_threads);
+    static<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(fTaskQueueList[cur_thread], task, task_num);
 }
 
-// Task graph 
-
-void* createTaskGraph()
+void activateOutputTask2(int cur_thread, int task)
 {
-    return (void*)new TaskGraph();
+    static<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(cur_thread task);
 }
 
-void deleteTaskGraph(void* graph)
+void activateOneOutputTask(int cur_thread, int task, int* task_num)
 {
-    delete (TaskGraph*)graph;
+    static<WorkStealingScheduler*>(scheduler)->ActivateOneOutputTask(cur_thread, task, task_num);
 }
-
-void initTask(void* graph, int task, int count)
+        
+void getReadyTask(int cur_thread, int* task_num)
 {
-    ((TaskGraph*)graph)->InitTask(task, count);
-}
-
-void activateOutputTask1(void* graph, void* queue, int task, int* tasknum)
-{
-    ((TaskGraph*)graph)->ActivateOutputTask((TaskQueue*)queue, task, tasknum);
-}
-
-void activateOutputTask2(void* graph, void* queue, int task)
-{
-    ((TaskGraph*)graph)->ActivateOutputTask((TaskQueue*)queue, task);
-}
-
-void activateOneOutputTask(void* graph, void* queue, int task, int* tasknum)
-{
-    ((TaskGraph*)graph)->ActivateOneOutputTask((TaskQueue*)queue, task, tasknum);
-}
-
-void getReadyTask(void* graph, void* queue, int* tasknum)
-{
-    ((TaskGraph*)graph)->GetReadyTask((TaskQueue*)queue, tasknum);
-}
-
-int getStaticThreadsNum()
-{
-    return get_max_cpu();
-}
-int getDynamicThreadsNum()
-{
-    return getenv("OMP_NUM_THREADS") ? atoi(getenv("OMP_NUM_THREADS")) : get_max_cpu();
+    static<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
 }
 
 #ifdef __cplusplus
