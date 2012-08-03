@@ -354,20 +354,20 @@ static int GetParams(pthread_t thread, UInt64* period, UInt64* computation, UInt
     }
 }
 
-static UInt64 period = 0;
-static UInt64 computation = 0;
-static UInt64 constraint = 0;
+static UInt64 gPeriod = 0;
+static UInt64 gComputation = 0;
+static UInt64 gConstraint = 0;
 
 void GetRealTime()
 {
-    if (period == 0) {
-        GetParams(pthread_self(), &period, &computation, &constraint);
+    if (gPeriod == 0) {
+        GetParams(pthread_self(), &gPeriod, &gComputation, &gConstraint);
     }
 }
 
-static void setRealTime()
+static void SetRealTime()
 {
-    SetThreadToPriority(pthread_self(), 96, true, period, computation, constraint);
+    SetThreadToPriority(pthread_self(), 96, true, gPeriod, gComputation, gConstraint);
 }
 
 static void CancelThread(pthread_t fThread)
@@ -529,7 +529,9 @@ class TaskQueue
         int* fTaskList;
         int fTaskQueueSize;
         volatile AtomicCounter fCounter;
+        
         UInt64 fStealingStart;
+        UInt64 fMaxStealing;
      
     public:
   
@@ -541,6 +543,14 @@ class TaskQueue
                 fTaskList[i] = -1;
             }
             fStealingStart = 0;
+             
+            int clock_per_microsec = (getenv("CLOCKSPERSEC") 
+                ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) 
+                : DEFAULT_CLOCKS_PER_SEC) / 1000000;
+                
+            fMaxStealing = getenv("OMP_STEALING_DUR") 
+                ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec 
+                : MAX_STEAL_DUR * clock_per_microsec;
         }
         
         INLINE ~TaskQueue()
@@ -604,7 +614,7 @@ class TaskQueue
             // Takes first timetamp
             if (fStealingStart == 0) {
                 fStealingStart = DSP_rdtsc();
-            } else if ((DSP_rdtsc() - fStealingStart) > gMaxStealing) {
+            } else if ((DSP_rdtsc() - fStealingStart) > fMaxStealing) {
                 Yield();
             }
 		}
@@ -614,24 +624,24 @@ class TaskQueue
             fStealingStart = 0;
 		}
         
-        static INLINE int GetNextTask(void* taskqueuelist, int thread, int num_threads)
+        static INLINE int GetNextTask(void* taskqueuelist, int cur_thread, int num_threads)
         {
             int tasknum;
             TaskQueue** task_queue_list = static_cast<TaskQueue**>(taskqueuelist);
             
             for (int i = 0; i < num_threads; i++) {
-                if ((i != thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
+                if ((i != cur_thread) && task_queue_list[i] && (tasknum = task_queue_list[i]->PopTail()) != WORK_STEALING_INDEX) {
                 #ifdef __linux__
-                    //if (thread != MASTER_THREAD)
-                        task_queue_list[thread]->ResetStealingDur();
+                    //if (cur_thread != MASTER_THREAD)
+                        task_queue_list[cur_thread]->ResetStealingDur();
                 #endif
                     return tasknum;    // Task is found
                 }
             }
             NOP();
         #ifdef __linux__
-			//if (thread != MASTER_THREAD)
-                task_queue_list[thread]->MeasureStealingDur();
+			//if (cur_thread != MASTER_THREAD)
+                task_queue_list[cur_thread]->MeasureStealingDur();
         #endif
             return WORK_STEALING_INDEX;    // Otherwise will try "workstealing" again next cycle...
         }
@@ -985,7 +995,7 @@ class DSPThreadPool {
     Public C++ interface
 */
 
-clss WorkStealingScheduler {
+class WorkStealingScheduler {
 
     private:
     
@@ -995,8 +1005,6 @@ clss WorkStealingScheduler {
         
         int fStaticNumThreads;
         int fDynamicNumThreads;
-        
-        UInt64 fMaxStealing;
     
     public:
     
@@ -1011,14 +1019,6 @@ clss WorkStealingScheduler {
             for (int i = 0; i < fDynamicNumThreads; i++) {
                 fTaskQueueList[i] = new TaskQueue(task_queue_size, i);
             }
-            
-            int clock_per_microsec = (getenv("CLOCKSPERSEC") 
-                ? strtoll(getenv("CLOCKSPERSEC"), NULL, 10) 
-                : DEFAULT_CLOCKS_PER_SEC) / 1000000;
-                
-            fMaxStealing = getenv("OMP_STEALING_DUR") 
-                ? strtoll(getenv("OMP_STEALING_DUR"), NULL, 10) * clock_per_microsec 
-                : MAX_STEAL_DUR * clock_per_microsec;
         }
         
         ~WorkStealingScheduler()
@@ -1033,48 +1033,34 @@ clss WorkStealingScheduler {
         
         void StartAll(void* dsp)
         {
-            fThreadPool->StartAll(fDynamicNumThreads, true, dsp);
+            fThreadPool->StartAll(fStaticNumThreads - 1, true, dsp);
         }
         
         void StopAll()
         {
             fThreadPool->StopAll();
         }
-        
-        void InitAll()
+          
+        void SignalAll()
         {
             GetRealTime();
             TaskQueue::InitAll(fTaskQueueList, fDynamicNumThreads);
-        }
-        
-        void SignalAll()
-        {
-            fThreadPool->signalAll(fDynamicNumThreads);
+            fThreadPool->SignalAll(fDynamicNumThreads - 1);
         }
         
         void PushHead(int cur_thread, int task_num)
         {
             fTaskQueueList[cur_thread]->PushHead(task_num);
         }
-        
-        int PopHead(int cur_thread)
-        {
-            return fTaskQueueList[cur_thread]->PopHead();
-        }
-        
-        int PopTail(int cur_thread)
-        {
-            return fTaskQueueList[cur_thread]->PopTail();
-        }
-        
+          
         int GetNextTask(int cur_thread)
         {
-            return TaskQueue::GetNextTask(cur_thread, fDynamicNumThreads);
+            return TaskQueue::GetNextTask(fTaskQueueList, cur_thread, fDynamicNumThreads);
         }
         
         void InitTask(int task_num, int count)
         {
-            fTaskGraph->ActivateOutputTask(task_num, count);
+            fTaskGraph->InitTask(task_num, count);
         }
         
         void ActivateOutputTask(int cur_thread, int task, int* task_num)
@@ -1113,74 +1099,59 @@ void* createScheduler(int task_queue_size)
     return new WorkStealingScheduler(task_queue_size);
 }
 
-void destroyScheduler(void* scheduler)
+void deleteScheduler(void* scheduler)
 {   
-    delete(static<WorkStealingScheduler*>(scheduler)):
+    delete(static_cast<WorkStealingScheduler*>(scheduler));
 }
 
-void startAll(void* dsp)
+void startAll(void* scheduler, void* dsp)
 {
-    static<WorkStealingScheduler*>(scheduler)->StartAll(dsp);
+    static_cast<WorkStealingScheduler*>(scheduler)->StartAll(dsp);
 }
 
-void stopAll()
+void stopAll(void* scheduler)
 {
-    static<WorkStealingScheduler*>(scheduler)->StopAll(dsp);
+    static_cast<WorkStealingScheduler*>(scheduler)->StopAll();
 }
 
-void initAll()
+void signalAll(void* scheduler)
 {
-    static<WorkStealingScheduler*>(scheduler)->initAll();
+    static_cast<WorkStealingScheduler*>(scheduler)->SignalAll();
 }
 
-void signalAll()
+void pushHead(void* scheduler, int cur_thread, int task_num)
 {
-    static<WorkStealingScheduler*>(scheduler)->signalAll();
+    static_cast<WorkStealingScheduler*>(scheduler)->PushHead(cur_thread, task_num);
 }
 
-void pushHead(int cur_thread, int task_num)
+int getNextTask(void* scheduler, int cur_thread)
 {
-    static<WorkStealingScheduler*>(scheduler)->pushHead(pushHead, task_num);
+    return static_cast<WorkStealingScheduler*>(scheduler)->GetNextTask(cur_thread);
 }
 
-int popHead(int cur_thread)
+void initTask(void* scheduler, int task_num, int count)
 {
-    static<WorkStealingScheduler*>(scheduler)->popHead(cur_thread);
+    static_cast<WorkStealingScheduler*>(scheduler)->InitTask(task_num, count);
 }
 
-int popTail(int cur_thread)
+void activateOutputTask1(void* scheduler, int cur_thread, int task, int* task_num)
 {
-    static<WorkStealingScheduler*>(scheduler)->popTail(cur_thread);
+    static_cast<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(cur_thread, task, task_num);
 }
 
-int getNextTask(int cur_thread)
+void activateOutputTask2(void* scheduler, int cur_thread, int task)
 {
-    static<WorkStealingScheduler*>(scheduler)->GetNextTask(cur_thread);
+    static_cast<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(cur_thread, task);
 }
 
-void initTask(int task_num, int count)
+void activateOneOutputTask(void* scheduler, int cur_thread, int task, int* task_num)
 {
-     static<WorkStealingScheduler*>(scheduler)->InitTask(task_num, count);
-}
-
-void activateOutputTask1(int cur_thread, int task, int* task_num)
-{
-    static<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(fTaskQueueList[cur_thread], task, task_num);
-}
-
-void activateOutputTask2(int cur_thread, int task)
-{
-    static<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(cur_thread task);
-}
-
-void activateOneOutputTask(int cur_thread, int task, int* task_num)
-{
-    static<WorkStealingScheduler*>(scheduler)->ActivateOneOutputTask(cur_thread, task, task_num);
+    static_cast<WorkStealingScheduler*>(scheduler)->ActivateOneOutputTask(cur_thread, task, task_num);
 }
         
-void getReadyTask(int cur_thread, int* task_num)
+void getReadyTask(void* scheduler, int cur_thread, int* task_num)
 {
-    static<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
+    static_cast<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
 }
 
 #ifdef __cplusplus
