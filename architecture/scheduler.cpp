@@ -38,37 +38,23 @@
 #include <unistd.h>
 #include <math.h>
 
+#include "faust/audio/dsp.h"
+
 // Globals
 
 #define WORK_STEALING_INDEX 0
 #define LAST_TASK_INDEX 1
 
 #define MASTER_THREAD 0
-
-#define MAX_STEAL_DUR 50                    // in usec
-#define DEFAULT_CLOCKS_PER_SEC 2500000000     // in cycles (2,5 Ghz)
-#define THREAD_POOL_SIZE 16
+#define MAX_STEAL_DUR 50                        // in usec
+#define DEFAULT_CLOCKS_PER_SEC 2500000000       // in cycles (2,5 Ghz)
 #define JACK_SCHED_POLICY SCHED_FIFO
-
 #define KDSPMESURE 50
 
 #ifdef __ICC
 #define INLINE __forceinline
 #else
 #define INLINE inline
-#endif
-
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-#include <xmmintrin.h>
-#ifdef __SSE2__
-#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-#else
-#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-#endif
-#else
-#define AVOIDDENORMALS 
 #endif
 
 #ifdef __linux__

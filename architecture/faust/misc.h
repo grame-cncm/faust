@@ -1,23 +1,30 @@
+/************************************************************************
+ ************************************************************************
+    FAUST Architecture File
+	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 3 of
+	the License, or (at your option) any later version.
 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+	along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+ ************************************************************************
+ ************************************************************************/
+ 
 #ifndef __misc__
 #define __misc__
 
 #include <map>
 #include <string.h>
 #include <stdlib.h>
-
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-    #define AVOIDDENORMALS
-#endif
 
 struct XXXX_Meta : std::map<const char*, const char*>
 {
@@ -26,17 +33,17 @@ struct XXXX_Meta : std::map<const char*, const char*>
 
 struct Meta
 {
-    virtual void declare (const char* key, const char* value) = 0;
+    virtual void declare(const char* key, const char* value) = 0;
 };
 
 struct MY_Meta : Meta, std::map<const char*, const char*>
 {
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
+    void declare(const char* key, const char* value) { (*this)[key]=value; }
 };
 
 
-inline int		lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
-inline int 		int2pow2 (int x)		{ int r=0; while ((1<<r)<x) r++; return r; }
+inline int	lsr(int x, int n)	{ return int(((unsigned int)x) >> n); }
+inline int 	int2pow2(int x)		{ int r=0; while ((1<<r)<x) r++; return r; }
 
 long lopt(char *argv[], const char *name, long def)
 {

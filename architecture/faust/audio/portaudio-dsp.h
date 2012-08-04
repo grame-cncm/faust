@@ -45,13 +45,12 @@
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
 
-
 static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * drv);
-//----------------------------------------------------------------------------
+
 static void pa_error(int err)
 {
 	if (err != paNoError) {
-		printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );
+		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
 	}
 }
 
@@ -62,6 +61,7 @@ static void pa_error(int err)
 
 *******************************************************************************
 *******************************************************************************/
+
 class portaudio : public audio {
 
         dsp*			fDsp;
@@ -82,10 +82,10 @@ class portaudio : public audio {
         //----------------------------------------------------------------------------
         // allocated the noninterleaved input and output channels for FAUST
         //----------------------------------------------------------------------------
-        void allocChannels (int size, int numInChan, int numOutChan)
+        void allocChannels(int size, int numInChan, int numOutChan)
         {
-            assert (numInChan < 256);
-            assert (numOutChan < 256);
+            assert(numInChan < 256);
+            assert(numOutChan < 256);
 
             for (int i = 0; i < numInChan; i++) {
                 fInChannel[i] = (float*) calloc (size, sizeof(float));
@@ -105,7 +105,8 @@ class portaudio : public audio {
 				fSampleRate(srate), fBufferSize(bsize), fDevNumInChans(0), fDevNumOutChans(0) {}
 	virtual ~portaudio() { stop(); }
 
-	virtual bool init(const char* name, dsp* DSP){
+	virtual bool init(const char* name, dsp* DSP)
+    {
 		fDsp = DSP;
 		pa_error(Pa_Initialize());
 
@@ -141,13 +142,15 @@ class portaudio : public audio {
 		return true;
 	}
 
-	virtual bool start() {
+	virtual bool start() 
+    {
 		pa_error(Pa_OpenDefaultStream(&fAudioStream, fDevNumInChans, fDevNumOutChans, paFloat32, fSampleRate, fBufferSize, audioCallback, this));
 		Pa_StartStream(fAudioStream);
 		return true;
 	}
 
-	virtual void stop() {
+	virtual void stop() 
+    {
 		if (fAudioStream) {
 			Pa_StopStream (fAudioStream);
 			Pa_CloseStream(fAudioStream);
@@ -155,7 +158,8 @@ class portaudio : public audio {
 		}
 	}
 
-	int processAudio(const float *ibuf, float *obuf, unsigned long frames) {
+	int processAudio(const float *ibuf, float *obuf, unsigned long frames) 
+    {
 		const float* fInputBuffer = ibuf;
 		float* fOutputBuffer = obuf;
 
@@ -185,7 +189,7 @@ class portaudio : public audio {
 static int audioCallback(const void *ibuf, void *obuf, unsigned long frames, const PaStreamCallbackTimeInfo*,  PaStreamCallbackFlags, void * drv)
 {
 	portaudio * pa = (portaudio*) drv;
-	return pa->processAudio ((const float*)ibuf, (float*)obuf, frames);
+	return pa->processAudio((const float*)ibuf, (float*)obuf, frames);
 }
 
 #endif

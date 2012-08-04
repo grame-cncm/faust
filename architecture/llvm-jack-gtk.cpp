@@ -1,4 +1,24 @@
-/* link with  */
+/************************************************************************
+ ************************************************************************
+    FAUST Architecture File
+	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 3 of
+	the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+	along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+ ************************************************************************
+ ************************************************************************/
+ 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,9 +42,7 @@
 
 #include <iostream>
 #include <fstream>
-
 #include <libgen.h>
-#include <jack/jack.h>
 
 using namespace std;
 
@@ -34,21 +52,12 @@ using namespace std;
 
 #include "faust/gui/FUI.h"
 #include "faust/gui/CUI.h"
-#include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
+#include "faust/misc.h"
 #include "faust/audio/jack-dsp.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
-#endif
-
-#ifdef __APPLE__
-#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
-#endif
-
-#ifndef UInt64
-typedef long long unsigned int UInt64;
-typedef unsigned int UInt32;
 #endif
 
 #ifdef __cplusplus
@@ -56,49 +65,11 @@ extern "C"
 {
 #endif
 
-UInt64 DSP_rdtsc(void)
-{
-	union {
-		UInt32 i32[2];
-		UInt64 i64;
-	} count;
-
-	__asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
-     return count.i64;
-}
-
-#define LOCK "lock ; "
-
-char CAS1(volatile void* addr, volatile int value, int newvalue)
-{
-    register char ret;
-    __asm__ __volatile__ (
-						  "# CAS \n\t"
-						  LOCK "cmpxchg %2, (%1) \n\t"
-						  "sete %0               \n\t"
-						  : "=a" (ret)
-						  : "c" (addr), "d" (newvalue), "a" (value)
-                          : "memory"
-						  );
-    return ret;
-}
-
-int atomic_xadd(volatile int* atomic, int val)
-{
-    register int result;
-    __asm__ __volatile__ ("# atomic_xadd \n\t"
-                          LOCK "xaddl %0,%1 \n\t"
-                          : "=r" (result), "=m" (*atomic)
-                          : "0" (val), "m" (*atomic));
-    return result;
-}
-
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
-
-typedef struct llvm_dsp {};
+struct llvm_dsp {};
 
 llvm_dsp* new_mydsp();
 void delete_mydsp(llvm_dsp*);
@@ -112,78 +83,6 @@ void instanceInit_mydsp(llvm_dsp*, int);
 void buildUserInterface_mydsp(llvm_dsp*, UIGlue*);
 
 void compute_mydsp(llvm_dsp*, int, FAUSTFLOAT**, FAUSTFLOAT**);
-
-void openTabBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openTabBox(label);
-}
-
-void openHorizontalBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openHorizontalBox(label);
-}
-
-void openVerticalBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openVerticalBox(label);
-}
-
-void closeBoxGlue(void* cpp_interface)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->closeBox();
-}
-
-void addButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addButton(label, zone);
-}
-
-void addCheckButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addCheckButton(label, zone);
-}
-
-void addVerticalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalSlider(label, zone, init, min, max, step);
-}
-
-void addHorizontalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalSlider(label, zone, init, min, max, step);
-}
-
-void addNumEntryGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addNumEntry(label, zone, init, min, max, step);
-}
-
-void addHorizontalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalBargraph(label, zone, min, max);
-}
-
-void addVerticalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalBargraph(label, zone, min, max);
-}
-
-void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const char* value)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->declare(zone, key, value);
-}
 
 #ifdef __cplusplus
 }
@@ -250,8 +149,6 @@ class llvmdsp : public dsp {
 	}
 };
 
-llvmdsp* DSP;
-
 list<GUI*> GUI::fGuiList;
 
 /******************************************************************************
@@ -274,8 +171,8 @@ int main(int argc, char *argv[])
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	DSP = new llvmdsp();
-	if (DSP==0) {
+	llvmdsp* DSP = new llvmdsp();
+	if (DSP == 0) {
 		cerr << "Unable to allocate Faust DSP object" << endl;
 		exit(1);
 	}
@@ -285,7 +182,7 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(appname, argc, argv);
+	GUI* oscinterface = new OSCUI(appname, argc, argv);
 	DSP->buildUserInterface(oscinterface);
 #endif
 

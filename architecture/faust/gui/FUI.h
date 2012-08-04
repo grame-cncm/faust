@@ -137,6 +137,7 @@ class FUI : public UI
 
     virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
 };
+
 #endif
 
 #endif

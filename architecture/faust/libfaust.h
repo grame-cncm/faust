@@ -36,14 +36,14 @@ extern "C"
  * @param argv - the array of parameters
  * @param time_out - true if the compilation should be aborted after 120 sec
  * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param input_name - the name of the Faust program
+ * @param name - the name of the Faust program
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
  */
  
-int compile_faust(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input, char* error_msg);
+int compile_faust(int argc, char* argv[], bool time_out, const char* library_path, const char* name, const char* input, char* error_msg);
 
 /**
  * Compile a Faust program and produces an LLVM module.
@@ -52,14 +52,14 @@ int compile_faust(int argc, char* argv[], bool time_out, const char* library_pat
  * @param argv - the array of parameters
  * @param time_out - true if the compilation should be aborted after 120 sec
  * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param input_name - the name of the Faust program
+ * @param name - the name of the Faust program
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
  * @return a valid LLVM module on success, 0 otherwise, with an error message in error_msg.
  */
 
-llvm::Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input, char* error_msg);
+llvm::Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* library_path, const char* name, const char* input, char* error_msg);
 
 #ifdef __cplusplus
 }

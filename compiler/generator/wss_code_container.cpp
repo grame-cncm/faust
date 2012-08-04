@@ -450,7 +450,7 @@ void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code)
         string name1 = subst("fInput$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 }
 
@@ -461,7 +461,7 @@ void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code)
         string name1 = subst("fOutput$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayStructAddressVar(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
+                InstBuilder::genLoadArrayStructVarAddress(name2, InstBuilder::genLoadVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile)))));
     }
 }
 
@@ -541,7 +541,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                     fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                     fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
                     fun_args.push_back(InstBuilder::genIntNumInst((*p1)->getIndex()));
-                    fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
+                    fun_args.push_back(InstBuilder::genLoadStackVarAddress("tasknum"));
                     case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("activateOneOutputTask", fun_args)));
                 }
 
@@ -575,7 +575,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                             fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
                             fun_args.push_back(InstBuilder::genIntNumInst((*p1)->getIndex()));
-                            fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
+                            fun_args.push_back(InstBuilder::genLoadStackVarAddress("tasknum"));
                             case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("activateOutputTask1", fun_args)));
                         } else {
                             list<ValueInst*> fun_args;
@@ -593,7 +593,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                     list<ValueInst*> fun_args;
                     fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                     fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
-                    fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
+                    fun_args.push_back(InstBuilder::genLoadStackVarAddress("tasknum"));
                     case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("getReadyTask", fun_args)));
                 }
             }
@@ -621,7 +621,8 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
             fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
             fun_args.push_back(InstBuilder::genLoadFunArgsVar("num_thread"));
             fun_args.push_back(InstBuilder::genIntNumInst(LAST_TASK_INDEX));
-            fun_args.push_back(InstBuilder::genLoadVarAddressInst(InstBuilder::genNamedAddress("tasknum", Address::kStack)));
+            fun_args.push_back(InstBuilder::genLoadStackVarAddress("tasknum"));
+            
             case_block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("activateOneOutputTask", fun_args)));
             // Add the "case" block
             switch_block->addCase(loop_num, case_block);

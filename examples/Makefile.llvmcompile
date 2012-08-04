@@ -4,20 +4,41 @@ appl 	:= $(addprefix $(DEST), $(dspsrc:.dsp=$(EXT)))
 
 all :  $(appl)
 
+LLVM_VERSION = $(shell llvm-config --version)
+
+ifeq ($(LLVM_VERSION), 2.9)
+LLVM_VERSION  = LLVM_29
+endif
+
+ifeq ($(LLVM_VERSION), 3.0)
+LLVM_VERSION  = LLVM_30
+LLVM_PREFIX = /opt/local/libexec/llvm-3.0/bin/
+endif
+
+ifeq ($(LLVM_VERSION), 3.1)
+LLVM_VERSION  = LLVM_31
+LLVM_PREFIX = /opt/local/libexec/llvm-3.1/bin/
+endif
+
+CLANG = $(LLVM_PREFIX)/clang++
+OPT = $(LLVM_PREFIX)/opt
+LLC = $(LLVM_PREFIX)/llc
+LINK = $(LLVM_PREFIX)/llvm-link
+
 $(DEST)% : %.dsp
 	cp /usr/local/lib/faust/$(ARCH) $(DEST)
 	#faust -vec -lv 1  -lang llvm  -vs 64 -vls 4 $< -o $@.bc
 	faust -vec -lv 1  -lang llvm  -vs 64 $< -o $@.bc
 	#faust  -lang llvm  $< -o $@.bc
 	#faust -sch  -lang llvm  -vs 64 $< -o $@.bc
-	opt -S -O3 $@.bc -o $@.ll
-	opt -O3 $@.bc -o $@.bc
-	llc -O3 $@.bc -o $@.s
-	llvm-g++ --emit-llvm -S ../architecture/scheduler.cpp -o $@.scheduler.ll
-	opt -O3 $@.scheduler.ll -o $@.scheduler.bc
-	llvm-link $@.scheduler.bc $@.bc -o $@_sch.bc
+	$(OPT) -S -O3 $@.bc -o $@.ll
+	$(OPT) -O3 $@.bc -o $@.bc
+	$(LLC) -O3 $@.bc -o $@.s
+	$(CLANG) -g -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o $@.scheduler.ll
+	$(OPT) -O3 $@.scheduler.ll -o $@.scheduler.bc
+	$(LINK) $@.scheduler.bc $@.bc -o $@_sch.bc
 	#llvm-g++ ../architecture/scheduler.cpp -g -O1 -I/opt/local -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math -ftree-vectorize  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
-	llvm-g++ -O3 -I/opt/local -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math -ftree-vectorize  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
+	$(CLANG) -O3 -I/opt/local -msse -msse2 -msse3 -mmmx -m3dnow -ffast-math  -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
 	#llvm-g++ -g -I/opt/local -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS $(LIB) $(DEST)$(ARCH) $@.s -o $@
 
 clean :

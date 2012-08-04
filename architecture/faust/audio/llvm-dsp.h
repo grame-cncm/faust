@@ -1,4 +1,24 @@
+/************************************************************************
+ ************************************************************************
+    FAUST Architecture File
+	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 3 of
+	the License, or (at your option) any later version.
 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+	along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+ ************************************************************************
+ ************************************************************************/
+ 
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/Constants.h>
@@ -43,7 +63,6 @@
 #include "faust/gui/CUI.h"
 #include "faust/libfaust.h"
 #include "faust/audio/dsp.h"
-#include "faust/misc.h"
 
 using namespace std;
 using namespace llvm;
@@ -53,7 +72,7 @@ extern "C"
 {
 #endif
 
-typedef struct llvm_dsp {};
+struct llvm_dsp {};
 
 typedef llvm_dsp* (* newDspFun) ();
 typedef void (* deleteDspFun) (llvm_dsp* self);
@@ -72,80 +91,8 @@ typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
 }
 #endif
 
-// For scheduler mode
+// For scheduler mode : this function is retrieved in the LLVM module and used in scheduler.cpp
 computeThreadExternalFun gComputeThreadExternal = 0;
-
-void openTabBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openTabBox(label);
-}
-
-void openHorizontalBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openHorizontalBox(label);
-}
-
-void openVerticalBoxGlue(void* cpp_interface, const char* label)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->openVerticalBox(label);
-}
-
-void closeBoxGlue(void* cpp_interface)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->closeBox();
-}
-
-void addButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addButton(label, zone);
-}
-
-void addCheckButtonGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addCheckButton(label, zone);
-}
-
-void addVerticalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalSlider(label, zone, init, min, max, step);
-}
-
-void addHorizontalSliderGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalSlider(label, zone, init, min, max, step);
-}
-
-void addNumEntryGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addNumEntry(label, zone, init, min, max, step);
-}
-
-void addHorizontalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addHorizontalBargraph(label, zone, min, max);
-}
-
-void addVerticalBargraphGlue(void* cpp_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->addVerticalBargraph(label, zone, min, max);
-}
-
-void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const char* value)
-{
-    UI* interface = static_cast<UI*>(cpp_interface);
-    interface->declare(zone, key, value);
-}
 
 class llvmdsp : public dsp {
 
@@ -173,7 +120,6 @@ class llvmdsp : public dsp {
             void* res;
             if (fun_ptr) {
                 res = fJIT->getPointerToFunction(fun_ptr);
-                //fJIT->freeMachineCodeForFunction(fun_ptr);
                 return res;
             } else {
                 return 0;

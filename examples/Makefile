@@ -96,16 +96,7 @@ jackqt :
 netjackqt :
 	install -d netjackqtdir
 	$(MAKE) DEST='netjackqtdir/' ARCH='netjack-qt.cpp' LIB='-ljacknet $(OSCLIB) $(HTTPDLIB)' DEFS="DEFINES +=$(QTDEFS) $(HTTPDDEFS)" CXXFLAGS=$(MYGCCFLAGS) -f Makefile.qtcompile
-
-
-svg:
-	$(MAKE) -f Makefile.svgcompile
-
-
-puredata :
-	install -d puredatadir
-	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
-
+  
 
 ladspa :
 	install -d ladspadir
@@ -168,18 +159,10 @@ matlabplot :
 	install -d matlabplotdir
 	$(MAKE) DEST='matlabplotdir/' ARCH='matlabplot.cpp'  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
-
-bench :
-	install -d benchdir
-	$(MAKE) DEST='benchdir/' ARCH='bench.cpp'  CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
-
+ 
 gvecbench :
 	install -d gvecbenchdir
 	$(MAKE) DEST='gvecbenchdir/' ARCH='bench.cpp'  VEC='-vec -vs 256' CXX='g++' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
-
-ibench :
-	install -d ibenchdir
-	$(MAKE) DEST='ibenchdir/' ARCH='bench.cpp' CXX='icc' CXXFLAGS='-O3 -xHost -ftz -fno-alias -fp-model fast=2' -f Makefile.compile
 
 
 supercollider sc:
@@ -233,10 +216,6 @@ jsaudio :
 puredata :
 	install -d puredatadir
 	$(MAKE) DEST='puredatadir/' ARCH='puredata.cpp' LIB='-I$(LIB)/faust/' CXXFLAGS=$(MYGCCFLAGS) -f Makefile.pdcompile
-
-alsagtk :
-	install -d alsagtkdir
-	$(MAKE) DEST='alsagtkdir/' ARCH='alsa-gtk.cpp' LIB='-I$(FAUSTINC) -lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0` $(OSCLIB)'  CXXFLAGS=$(OSCCTRL) -f Makefile.compile
 
 ialsagtk :
 	install -d ialsagtkdir
