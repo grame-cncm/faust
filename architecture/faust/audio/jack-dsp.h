@@ -6,7 +6,6 @@
 #include <jack/jack.h>
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp.h"
-#include "faust/misc.h"
 
 static int		_srate(jack_nframes_t nframes, void *);
 static void		_jack_shutdown(void *);
