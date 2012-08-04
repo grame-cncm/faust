@@ -555,7 +555,7 @@ class TaskQueue
         
         INLINE ~TaskQueue()
         {
-            delete [] fTaskList;
+            delete[] fTaskList;
         }
          
         INLINE void InitOne()
@@ -708,11 +708,12 @@ class TaskGraph
         
         INLINE ~TaskGraph()
         {
-            delete [] fTaskList;
+            delete[] fTaskList;
         }
 
         INLINE void InitTask(int task, int val)
         {
+            //assert(task < fTaskQueueSize);
             fTaskList[task] = val;
         }
         
@@ -725,6 +726,8 @@ class TaskGraph
           
         INLINE void ActivateOutputTask(TaskQueue& queue, int task, int& tasknum)
         {
+            //assert(task < fTaskQueueSize);
+            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (tasknum == WORK_STEALING_INDEX) {
                     tasknum = task;
@@ -736,6 +739,8 @@ class TaskGraph
         
         INLINE void ActivateOutputTask(TaskQueue* queue, int task, int* tasknum)
         {
+            //assert(task < fTaskQueueSize);
+            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 if (*tasknum == WORK_STEALING_INDEX) {
                     *tasknum = task;
@@ -746,7 +751,9 @@ class TaskGraph
         }
          
         INLINE void ActivateOutputTask(TaskQueue& queue, int task)
-        {
+        {   
+            //assert(task < fTaskQueueSize);
+            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 queue.PushHead(task);
             }
@@ -754,13 +761,17 @@ class TaskGraph
         
         INLINE void ActivateOutputTask(TaskQueue* queue, int task)
         {
+            //assert(task < fTaskQueueSize);
+            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 queue->PushHead(task);
             }
         }
         
         INLINE void ActivateOneOutputTask(TaskQueue& queue, int task, int& tasknum)
-        {
+        {   
+            //assert(task < fTaskQueueSize);
+            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 tasknum = task;
             } else {
@@ -770,6 +781,8 @@ class TaskGraph
         
         INLINE void ActivateOneOutputTask(TaskQueue* queue, int task, int* tasknum)
         {
+            //assert(task < fTaskQueueSize);
+            
             if (DEC_ATOMIC(&fTaskList[task]) == 0) {
                 *tasknum = task;
             } else {
@@ -961,7 +974,7 @@ class DSPThreadPool {
             }
             
             fThreadCount = 0;
-            delete [] fThreadPool;
+            delete[] fThreadPool;
          }
 
         void StartAll(int num_thread, bool realtime, void* dsp)
@@ -1028,7 +1041,7 @@ class WorkStealingScheduler {
             for (int i = 0; i < fDynamicNumThreads; i++) {
                 delete(fTaskQueueList[i]);
             }
-            delete [] fTaskQueueList;
+            delete[] fTaskQueueList;
         }
         
         void StartAll(void* dsp)

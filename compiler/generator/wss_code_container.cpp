@@ -395,7 +395,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux2(const string& counter)
     loop_code->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("computeThread", fun_args2)));
 }
 
-void WSSCodeContainer::generateDAGLoopWSSAux3()
+void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count)
 {
     // Needed in the struct
     pushDeclare(InstBuilder::genDecVar("fIndex", (Address::AccessType)(Address::kStruct|Address::kVolatile), InstBuilder::genBasicTyped(Typed::kInt)));
@@ -428,7 +428,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux3()
 
     // Specific init instructions
     list<ValueInst*> fun_args;
-    fun_args.push_back(InstBuilder::genIntNumInst(4096));  // TODO: use real task number
+    //fun_args.push_back(InstBuilder::genIntNumInst(loop_count));
+    fun_args.push_back(InstBuilder::genIntNumInst(4096));
     pushInitMethod(InstBuilder::genStoreStructVar("fScheduler",InstBuilder::genFunCallInst("createScheduler", fun_args)));
 
     list<ValueInst*> fun_args2;
@@ -644,11 +645,11 @@ void WSSCodeContainer::processFIR(void)
     // Transform some stack variables in struct variables
     MoveStack2Struct();
 
-    generateDAGLoopWSSAux3();
-
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);
-    computeForwardDAG(dag);
+    int loop_num = computeForwardDAG(dag);
+    
+    generateDAGLoopWSSAux3(loop_num);
 
     // Prepare global loop
     fThreadLoopBlock = generateDAGLoopWSS(dag);
