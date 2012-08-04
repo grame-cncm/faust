@@ -137,7 +137,7 @@ class jackaudio : public audio {
 		jack_nframes_t nframes;
 		while (1) {
 			nframes = jack_cycle_wait(fClient);
-			process (nframes);
+			process(nframes);
 			jack_cycle_signal(fClient, 0);
 		}
 	}

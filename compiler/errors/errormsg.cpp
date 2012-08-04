@@ -43,7 +43,7 @@ void yyerror(const char* msg)
 void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << ":" << linenum << ": ERROR: " << msg << endl;
+    error << filename << ":" << linenum << ": ERROR: " << msg << " : " << boxpp(exp) << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
@@ -51,7 +51,7 @@ void evalerror(const char* filename, int linenum, const char* msg, Tree exp)
 void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp)
 {
     stringstream error;
-    error << filename << ':' << linenum << ": ERROR: " << msg << " : " << boxpp(exp) << endl;
+    error << filename << ':' << linenum << ": ERROR: " << msg << boxpp(exp) << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }
