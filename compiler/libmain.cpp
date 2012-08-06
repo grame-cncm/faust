@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
 
 #ifndef WIN32
 #include <sys/time.h>
@@ -106,7 +107,7 @@ static bool         gPrintDocSwitch = false;
 static int          gBalancedSwitch = 0;
 static string       gArchFile;
 
-static int          gTimeout        = 120;            // time out to abort compiler (in seconds)
+static int          gTimeout        = ULONG_MAX;            // time out to abort compiler (in seconds)
 static bool         gPrintFileListSwitch = false;
 static string       gOutputLang = "";
 static bool         gLLVMOut = true;
@@ -787,13 +788,13 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 }
 
 #ifdef __cplusplus
-extern "C" int compile_faust_internal(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input);
+extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* input_name, const char* input);
 
-extern "C" int compile_faust(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input, char* error_msg);
-extern "C" Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input, char* error_msg);
+extern "C" int compile_faust(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg);
+extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg);
 #endif
 
-int compile_faust_internal(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input = NULL)
+int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* input_name, const char* input = NULL)
 {
     /****************************************************************
      0 - set library_path
@@ -813,11 +814,9 @@ int compile_faust_internal(int argc, char* argv[], bool time_out, const char* li
     if (gVersionSwitch) 	{ printversion(); exit(0); }
 
     initFaustDirectories();
-    if (time_out) {
-    #ifndef WIN32
-        alarm(gTimeout);
-    #endif
-    }
+#ifndef WIN32
+    alarm(gTimeout);
+#endif
 
     /****************************************************************
      2 - parse source files
@@ -865,7 +864,7 @@ int compile_faust_internal(int argc, char* argv[], bool time_out, const char* li
     return 0;
 }
 
-Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input, char* error_msg)
+Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg)
 {
     Module* module = 0;
     gLLVMOut = false;
@@ -873,7 +872,7 @@ Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* li
     
     try {
         global::allocate();
-        compile_faust_internal(argc, argv, time_out, library_path, input_name, input);
+        compile_faust_internal(argc, argv, library_path, input_name, input);
         module = gGlobal->gModule;
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
@@ -884,14 +883,14 @@ Module* compile_faust_llvm(int argc, char* argv[], bool time_out, const char* li
     return module;
 }
 
-int compile_faust(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input, char* error_msg)
+int compile_faust(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg)
 {
     int res = 0;
     gGlobal = NULL;
     
     try {
         global::allocate();        
-        res = compile_faust_internal(argc, argv, time_out, library_path, input_name, input);
+        res = compile_faust_internal(argc, argv, library_path, input_name, input);
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strcpy(error_msg, e.Message().c_str());

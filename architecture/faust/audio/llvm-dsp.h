@@ -132,7 +132,7 @@ class llvmdsp : public dsp {
                 argv1[i+3] = argv[i];
             }
             
-            return compile_faust_llvm(argc1, (char**)argv1, false, library_path, input_name, input, error_msg);
+            return compile_faust_llvm(argc1, (char**)argv1, library_path, input_name, input, error_msg);
         }
 
   public:

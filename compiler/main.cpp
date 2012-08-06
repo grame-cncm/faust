@@ -18,11 +18,12 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
+ 
 #include "global.hh"
 #include "exception.hh"
 
 #ifdef __cplusplus
-extern "C" int compile_faust_internal(int argc, char* argv[], bool time_out, const char* library_path, const char* input_name, const char* input);
+extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* input_name, const char* input);
 #endif
 
 int main(int argc, char* argv[])
@@ -32,7 +33,18 @@ int main(int argc, char* argv[])
    
     try {
         global::allocate();
-        res = compile_faust_internal(argc, argv, true, "", 0, 0);
+        
+        // Add time-out argument
+        int argc1 = argc + 2;
+        char* argv1[argc1];
+        int i;
+        for (i = 0; i < argc; i++) {
+            argv1[i] = argv[i];
+        }
+        argv1[i++] = "-t";
+        argv1[i++] = "120";
+
+        res = compile_faust_internal(argc1, argv1, "", 0, 0);
     } catch (faustexception& e) {
         e.PrintMessage();
     }
