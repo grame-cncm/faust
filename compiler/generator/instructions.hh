@@ -1744,7 +1744,7 @@ struct InstBuilder
         { return new FunCallInst(name, args, false); }
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
         { return new FunCallInst(name, args, method, size); }
-     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
+    static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
         { return new DropInst(new FunCallInst(name, args, false)); }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
         { return new DropInst(new FunCallInst(name, args, method, size)); }

@@ -39,11 +39,11 @@ struct LoadVarInst * DeclareVarInst::load ()
     return InstBuilder::genLoadVarInst(fAddress);
 }
 
-DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* cod)
+DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code)
 {
     list<NamedTyped*> args;
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid));
-    return InstBuilder::genDeclareFunInst(name, fun_type);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
 DeclareFunInst* InstBuilder::genFunction0(const string& name, Typed::VarType res, BlockInst* code)
