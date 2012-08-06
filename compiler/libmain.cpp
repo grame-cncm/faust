@@ -788,13 +788,13 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 }
 
 #ifdef __cplusplus
-extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* input_name, const char* input);
+extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* name, const char* input);
 
-extern "C" int compile_faust(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg);
-extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg);
+extern "C" int compile_faust(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
+extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
 #endif
 
-int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* input_name, const char* input = NULL)
+int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* name, const char* input = NULL)
 {
     /****************************************************************
      0 - set library_path
@@ -823,7 +823,7 @@ int compile_faust_internal(int argc, char* argv[], const char* library_path, con
     *****************************************************************/
     if (input) {
         gGlobal->gInputString = input;
-        gGlobal->gInputFiles.push_back(input_name);
+        gGlobal->gInputFiles.push_back(name);
     }
     parseSourceFiles();
 
@@ -864,7 +864,7 @@ int compile_faust_internal(int argc, char* argv[], const char* library_path, con
     return 0;
 }
 
-Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg)
+Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg)
 {
     Module* module = 0;
     gLLVMOut = false;
@@ -872,7 +872,7 @@ Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, con
     
     try {
         global::allocate();
-        compile_faust_internal(argc, argv, library_path, input_name, input);
+        compile_faust_internal(argc, argv, library_path, name, input);
         module = gGlobal->gModule;
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
@@ -883,14 +883,14 @@ Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, con
     return module;
 }
 
-int compile_faust(int argc, char* argv[], const char* library_path, const char* input_name, const char* input, char* error_msg)
+int compile_faust(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg)
 {
     int res = 0;
     gGlobal = NULL;
     
     try {
         global::allocate();        
-        res = compile_faust_internal(argc, argv, library_path, input_name, input);
+        res = compile_faust_internal(argc, argv, library_path, name, input);
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strcpy(error_msg, e.Message().c_str());
