@@ -39,57 +39,57 @@ struct LoadVarInst * DeclareVarInst::load ()
     return InstBuilder::genLoadVarInst(fAddress);
 }
 
-DeclareFunInst* InstBuilder::genVoidFunction(const string& name)
+DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* cod)
 {
     list<NamedTyped*> args;
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid));
     return InstBuilder::genDeclareFunInst(name, fun_type);
 }
 
-DeclareFunInst* InstBuilder::genFunction0(const string& name, Typed::VarType res)
+DeclareFunInst* InstBuilder::genFunction0(const string& name, Typed::VarType res, BlockInst* code)
 {
     list<NamedTyped*> args;
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty)
+DeclareFunInst* InstBuilder::genFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty, BlockInst* code)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
 DeclareFunInst* InstBuilder::genFunction2(const string& name, Typed::VarType res,
                                 const string& arg1, Typed::VarType arg1_ty,
-                                const string& arg2, Typed::VarType arg2_ty)
+                                const string& arg2, Typed::VarType arg2_ty, BlockInst* code)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
 DeclareFunInst* InstBuilder::genFunction3(const string& name, Typed::VarType res,
                                 const string& arg1, Typed::VarType arg1_ty,
                                 const string& arg2, Typed::VarType arg2_ty,
-                                const string& arg3, Typed::VarType arg3_ty)
+                                const string& arg3, Typed::VarType arg3_ty, BlockInst* code)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
 DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res,
                                 const string& arg1, Typed::VarType arg1_ty,
                                 const string& arg2, Typed::VarType arg2_ty,
                                 const string& arg3, Typed::VarType arg3_ty,
-                                const string& arg4, Typed::VarType arg4_ty)
+                                const string& arg4, Typed::VarType arg4_ty, BlockInst* code)
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
@@ -97,7 +97,7 @@ DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res
     args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
     args.push_back(InstBuilder::genNamedTyped(arg4, arg4_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
-    return InstBuilder::genDeclareFunInst(name, fun_type);
+    return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
 //--------------------------

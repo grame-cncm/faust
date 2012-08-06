@@ -1744,6 +1744,10 @@ struct InstBuilder
         { return new FunCallInst(name, args, false); }
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
         { return new FunCallInst(name, args, method, size); }
+     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
+        { return new DropInst(new FunCallInst(name, args, false)); }
+    static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
+        { return new DropInst(new FunCallInst(name, args, method, size)); }
 
     // Loop
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code)
@@ -2024,22 +2028,22 @@ struct InstBuilder
         return genBinopInst(kGT, a1, a2);
     }
 
-    static DeclareFunInst* genVoidFunction(const string& name);
-    static DeclareFunInst* genFunction0(const string& name, Typed::VarType res);
+    static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());
+    static DeclareFunInst* genFunction0(const string& name, Typed::VarType res, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction1(const string& name, Typed::VarType res,
-                    const string& arg1, Typed::VarType arg1_ty);
+                    const string& arg1, Typed::VarType arg1_ty, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction2(const string& name, Typed::VarType res,
                     const string& arg1, Typed::VarType arg1_ty,
-                    const string& arg2, Typed::VarType arg2_ty);
+                    const string& arg2, Typed::VarType arg2_ty, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction3(const string& name, Typed::VarType res,
                     const string& arg1, Typed::VarType arg1_ty,
                     const string& arg2, Typed::VarType arg2_ty,
-                    const string& arg3, Typed::VarType arg3_ty);
+                    const string& arg3, Typed::VarType arg3_ty, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction4(const string& name, Typed::VarType res,
                     const string& arg1, Typed::VarType arg1_ty,
                     const string& arg2, Typed::VarType arg2_ty,
                     const string& arg3, Typed::VarType arg3_ty,
-                    const string& arg4, Typed::VarType arg4_ty);
+                    const string& arg4, Typed::VarType arg4_ty, BlockInst* code = new BlockInst());
 
     // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation unicity.
     // HACK : 09/12/11

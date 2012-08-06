@@ -743,7 +743,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         // Delete object
         list<ValueInst*> args3;
         args3.push_back(generator);
-        pushPostInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("delete" + kvnames.first, args3)));
+        pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
     }
 
 	if (!isSigInt(tsize, &size)) {
@@ -776,14 +776,14 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     list<ValueInst*> args1;
     args1.push_back(generator);
     args1.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
-    pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit" + tablename, args1, true)));
+    pushInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     // Fill the table
     list<ValueInst*> args2;
     args2.push_back(generator);
     args2.push_back(InstBuilder::genIntNumInst(size));
     args2.push_back(InstBuilder::genLoadStructVar(vname));
-    pushInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("fill" + tablename, args2, true)));
+    pushInitMethod(InstBuilder::genVoidFunCallInst("fill" + tablename, args2, true));
 
     // Return table access
     return InstBuilder::genLoadStructVar(vname);
@@ -815,7 +815,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             // Delete object
             list<ValueInst*> args3;
             args3.push_back(cexp);
-            pushPostInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("delete" + kvnames.first, args3)));
+            pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
         }
     }
 
@@ -850,14 +850,14 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     list<ValueInst*> args1;
     args1.push_back(cexp);
     args1.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
-    pushStaticInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit" + tablename, args1, true)));
+    pushStaticInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     // Fill the table
     list<ValueInst*> args2;
     args2.push_back(cexp);
     args2.push_back(InstBuilder::genIntNumInst(size));
     args2.push_back(InstBuilder::genLoadStaticStructVar(vname));
-    pushStaticInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("fill" + tablename, args2, true)));
+    pushStaticInitMethod(InstBuilder::genVoidFunCallInst("fill" + tablename, args2, true));
 
     // Return table access
     return InstBuilder::genLoadStaticStructVar(vname);
@@ -917,7 +917,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     // Delete object
     list<ValueInst*> args3;
     args3.push_back(InstBuilder::genLoadStackVar(signame));
-    pushPostInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("delete" + cname, args3)));
+    pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
 
     setTableNameProperty(sig, cname);
     fInstanceInitProperty.set(content, pair<string, string>(cname, signame));
@@ -941,7 +941,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     // Delete object
     list<ValueInst*> args3;
     args3.push_back(InstBuilder::genLoadStackVar(signame));
-    pushPostStaticInitMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("delete" + cname, args3)));
+    pushPostStaticInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
 
     setTableNameProperty(sig, cname);
     fStaticInitProperty.set(content, pair<string,string>(cname, signame));
