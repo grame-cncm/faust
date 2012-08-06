@@ -21,37 +21,24 @@
  
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>
-#include <llvm/Constants.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/Instructions.h>
 #include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/ExecutionEngine/Interpreter.h>
-#include <llvm/ExecutionEngine/GenericValue.h>
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-
-#include <llvm/Module.h>
 #include <llvm/PassManager.h>
-#include <llvm/Analysis/Passes.h>
-#include <llvm/Analysis/LoopPass.h>
 #include <llvm/Analysis/Verifier.h>
-#include <llvm/Support/CommandLine.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/PassNameParser.h>
-#include <llvm/Support/PluginLoader.h>
 #include <llvm/Support/IRReader.h>
-#include <llvm/Support/system_error.h>
 #include <llvm/Linker.h>
+#include <llvm/Support/Host.h>
+
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
 #endif
 #if defined(LLVM_30) || defined(LLVM_31)
 #include <llvm/Support/TargetSelect.h>
 #endif
-#include <llvm/Support/Host.h>
 
 #include <string>
 
@@ -67,11 +54,6 @@
 using namespace std;
 using namespace llvm;
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 struct llvm_dsp {};
 
 typedef llvm_dsp* (* newDspFun) ();
@@ -84,14 +66,8 @@ typedef void (* classInitFun) (int freq);
 typedef void (* instanceInitFun) (llvm_dsp* self, int freq);
 typedef void (* computeFun) (llvm_dsp* self, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
-// For scheduler mode
-typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
-
-#ifdef __cplusplus
-}
-#endif
-
 // For scheduler mode : this function is retrieved in the LLVM module and used in scheduler.cpp
+typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
 computeThreadExternalFun gComputeThreadExternal = 0;
 
 class llvmdsp : public dsp {
