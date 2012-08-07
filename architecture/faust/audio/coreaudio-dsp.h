@@ -1,5 +1,4 @@
 /************************************************************************
-TCoreAudioRendererPtr
 	IMPORTANT NOTE : this file contains two clearly delimited sections :
 	the ARCHITECTURE section (in two parts) and the USER section. Each section
 	is governed by its own copyright and license. Please check individually

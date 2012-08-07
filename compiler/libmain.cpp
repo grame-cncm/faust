@@ -799,7 +799,7 @@ int compile_faust_internal(int argc, char* argv[], const char* library_path, con
     /****************************************************************
      0 - set library_path
     *****************************************************************/
-    if (strcmp(library_path, "") != 0) {
+    if (library_path && strcmp(library_path, "") != 0) {
         char full_library_path[512];
         sprintf(full_library_path, "%s=%s", FAUST_LIB_PATH, library_path);
         putenv(full_library_path);
