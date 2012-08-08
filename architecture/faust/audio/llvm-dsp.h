@@ -137,12 +137,18 @@ class llvmdsp : public dsp {
 
   public:
   
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& input_name, const std::string& input, const std::string& target, char* error_msg, int opt_level = 3)
+        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level = 3)
         {
-            fModule = CompileModule(argc, argv, library_path.c_str(), input_name.c_str(), input.c_str(), error_msg);
-            Init(target, opt_level);
+            fModule = CompileModule(argc, argv, library_path.c_str(), name.c_str(), input.c_str(), error_msg);
+            Init(opt_level, target);
         }
-  
+        
+        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level = 3)
+        {
+            fModule = CompileModule(argc, argv, library_path.c_str(), name.c_str(), input.c_str(), error_msg);
+            Init(opt_level, "");
+        }
+        
         llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level = 3)
         {
             if (strstr(argv[1], ".bc")) {
@@ -151,10 +157,21 @@ class llvmdsp : public dsp {
                 fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
             }
             
-            Init(target, opt_level);
+            Init(opt_level, target);
+        }
+         
+        llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3)
+        {
+            if (strstr(argv[1], ".bc")) {
+                fModule = LoadModule(argv[1]);
+            } else {
+                fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
+            }
+            
+            Init(opt_level, "");
         }
 
-        void Init(const std::string& target, int opt_level)
+        void Init(int opt_level, const std::string& target)
         {
             if (!fModule) throw new std::bad_alloc;
             
