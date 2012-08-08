@@ -24,7 +24,6 @@
 	22/01/05 : corrected bug on bool signals cached in float variables
 *****************************************************************************/
 
-
 #include <stdio.h>
 #include <iostream>
 #include <sstream>

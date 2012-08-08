@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 			printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
 			exit(1);
 		} else {
-			DSP = new llvmdsp(argc, argv, "", error_msg);
+			DSP = new llvmdsp(argc, argv, "", "", error_msg);
         }
 	} catch (...) {
 		cerr << error_msg;

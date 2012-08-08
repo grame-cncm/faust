@@ -76,19 +76,19 @@ int main(int argc, char *argv[])
                 char* argv1[argc1];
                 argv1[0] = "-svg";
                 //DSP = new llvmdsp(argc1, argv1, "/Users/letz", "in1", "import(\"test.lib\"); process = TOTO;", error_msg);
-                DSP = new llvmdsp(argc1, argv1, NULL, "in1", "process = +,+;", error_msg);
+                DSP = new llvmdsp(argc1, argv1, "", "in1", "process = +,+;", "", error_msg);
                 //delete(DSP);
                 //DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", "/Users/letz", error_msg);
                 //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
             }
             catch (...) {
                 printf("Mauvais code source : %s", error_msg);
-                DSP = new llvmdsp(0, NULL, "/Users/letz", "in1", "process = +,+;", error_msg);
+                DSP = new llvmdsp(0, NULL, "/Users/letz", "in1", "process = +,+;", "", error_msg);
             }
             
             
-            //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;");
-            //DSP = new llvmdsp(argc, argv, "", error_msg, 2);
+            //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", "");
+            //DSP = new llvmdsp(argc, argv, "", error_msg, "" , 2);
             
             /*
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
