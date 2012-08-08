@@ -137,7 +137,7 @@ class llvmdsp : public dsp {
 
   public:
   
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& input_name, const std::string& input, const std::string& target, char* error_msg,  int opt_level = 3)
+        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& input_name, const std::string& input, const std::string& target, char* error_msg, int opt_level = 3)
         {
             fModule = CompileModule(argc, argv, library_path.c_str(), input_name.c_str(), input.c_str(), error_msg);
             Init(target, opt_level);

@@ -367,8 +367,8 @@ parallelize/colorize.o: parallelize/colorize.h tlib/tlib.hh tlib/symbol.hh garba
 parallelize/colorize.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh global.hh
 parallelize/colorize.o: parser/sourcereader.hh boxes/boxes.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
 parallelize/colorize.o: signals/interval.hh generator/instructions.hh generator/Text.hh
-parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh global.hh parser/sourcereader.hh boxes/boxes.hh
-parser/enrobage.o: tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+parser/enrobage.o: parser/enrobage.hh tlib/compatibility.hh garbageable.hh global.hh parser/sourcereader.hh
+parser/enrobage.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 parser/enrobage.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh signals/sigtype.hh
 parser/enrobage.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
 parser/faustparser.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
