@@ -12,6 +12,7 @@ help:
 	@echo Call 'make install DESTDIR=/your/install/dir' to install to another location.
 
 install:
+	mkdir -p $(dest)
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2caqt $(dest)
