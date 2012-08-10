@@ -19,7 +19,12 @@ class PowPrim : public xtended
 	{
 		assert (args.size() == arity());
         //return castInterval(floatCast(args[0]|args[1]), interval()); // temporary !!!
-        return castInterval(args[0]|args[1], interval()); // temporary !!!
+        //return castInterval(args[0]|args[1], interval()); // temporary !!!
+        
+        interval i = args[0]->getInterval();
+		interval j = args[1]->getInterval();
+		return castInterval(args[0]|args[1], pow(i,j));
+
     }
 	
 	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}	

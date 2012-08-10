@@ -209,6 +209,19 @@ inline interval max(const interval& x, const interval& y)
 {
 	return interval(max(x.lo,y.lo), max(x.hi,y.hi));
 }
+
+inline interval pow(const interval& x, const interval& y)
+{
+    if (x.lo > 0.0) {
+        double a = pow(x.lo,y.lo);
+        double b = pow(x.lo,y.hi);
+        double c = pow(x.hi,y.lo);
+        double d = pow(x.hi,y.hi);
+        return interval(min4(a,b,c,d), max4(a,b,c,d));
+    } else {
+        return interval();
+    }
+}
 		
 inline interval abs(const interval& x)
 {
