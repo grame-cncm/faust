@@ -280,7 +280,7 @@ function Meta(div)  {
 }
 
 
-function FMI {
+function FMI() {
 
     this.list = function()  // ===>  "/karplus/volume",   "/karplus/pitch"
     {

@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
             compile_faust(argc1, (char**)argv1, false, "", "in2", "process = _,_;", error_msg);
             */
             
-            
+            /*
             try {
                 
                 int argc1 = 1;
@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
                 printf("Mauvais code source : %s", error_msg);
                 DSP = new llvmdsp(0, NULL, "/Users/letz", "in1", "process = +,+;", error_msg);
             }
-            
+            */
             
             //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;");
-            //DSP = new llvmdsp(argc, argv, "", error_msg, , 2);
+            DSP = new llvmdsp(argc, argv, "", error_msg, 3);
             
             /*
             printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
