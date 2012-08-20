@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.54"
+#define FAUSTVERSION "0.9.55"
 
 #include <stdio.h>
 #include <string.h>
