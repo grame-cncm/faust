@@ -1,4 +1,4 @@
-version := 2.0.a3
+version := 2.0.a4
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
