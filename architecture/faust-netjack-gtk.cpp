@@ -39,8 +39,6 @@
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
-classInitFun llvmdsp::fClassInit;
-
 list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])

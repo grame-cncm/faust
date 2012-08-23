@@ -34,15 +34,11 @@
 #include "faust/gui/OSCUI.h"
 #endif
 
-
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
 llvmdsp* DSP;
-
-classInitFun llvmdsp::fClassInit;
-
 list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
