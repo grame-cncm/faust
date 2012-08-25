@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#include "llvm-dsp-aux.h"
+#include "llvm_dsp_aux.hh"
 #include "../../architecture/faust/libfaust.h"
 
 // For scheduler mode : this function is retrieved in the LLVM module and used in scheduler.cpp
