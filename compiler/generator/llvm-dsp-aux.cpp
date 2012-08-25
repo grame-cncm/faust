@@ -27,7 +27,6 @@ typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
 computeThreadExternalFun gComputeThreadExternal = 0;
 
 int llvmdspaux::fCount = 0;
-classInitFun llvmdspaux::fClassInit;
         
 void* llvmdspaux::LoadOptimize(const std::string& function)
 {
@@ -336,7 +335,7 @@ int llvmdsp::getNumOutputs()
 
 void llvmdsp::classInit(int samplingFreq)
 {
-    llvmdspaux::classInit(samplingFreq);
+    fDSP->classInit(samplingFreq);
 }
 void llvmdsp::instanceInit(int samplingFreq)
 {

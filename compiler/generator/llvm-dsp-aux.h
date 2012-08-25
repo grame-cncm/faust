@@ -78,7 +78,7 @@ class llvmdspaux : public dsp {
         getNumOutputsFun fGetNumOutputs;
         buildUserInterfaceFun fBuildUserInterface;
         initFun fInit;
-        static classInitFun fClassInit;
+        classInitFun fClassInit;
         instanceInitFun fInstanceInit;
         computeFun fCompute;
         
@@ -101,7 +101,7 @@ class llvmdspaux : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
-        static void classInit(int samplingFreq);
+        void classInit(int samplingFreq);
         virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
       
@@ -129,7 +129,7 @@ class llvmdsp : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
-        static void classInit(int samplingFreq);
+        void classInit(int samplingFreq);
         virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
       
