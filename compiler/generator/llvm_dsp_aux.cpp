@@ -75,47 +75,65 @@ Module* llvmdspaux::CompileModule(int argc, char *argv[], const char* library_pa
 
 llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level)
 {
+    fOptLevel = opt_level;
+    fTarget = target;
     fModule = CompileModule(argc, argv, library_path.c_str(), name.c_str(), input.c_str(), error_msg);
-    Init(opt_level, target);
 }
 
 llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level)
 {
+    fOptLevel = opt_level;
+    fTarget = "";
     fModule = CompileModule(argc, argv, library_path.c_str(), name.c_str(), input.c_str(), error_msg);
-    Init(opt_level, "");
 }
 
 llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level)
 {
+    fOptLevel = opt_level;
+    fTarget = target;
+    
     if (strstr(argv[1], ".bc")) {
         fModule = LoadModule(argv[1]);
     } else {
         fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
     }
-    
-    Init(opt_level, target);
 }
  
 llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level)
 {
+    fOptLevel = opt_level;
+    fTarget = "";
+    
     if (strstr(argv[1], ".bc")) {
         fModule = LoadModule(argv[1]);
     } else {
         fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
     }
-    
-    Init(opt_level, "");
-}
+ }
 
-void llvmdspaux::Init(int opt_level, const std::string& target)
+bool llvmdspaux::init()
 {
-    if (!fModule) throw new std::bad_alloc;
+    fJIT = 0;
+    fDsp = 0;
+    fNew = 0;
+    fDelete = 0;
+    fGetNumInputs = 0;
+    fGetNumOutputs = 0;
+    fBuildUserInterface = 0;
+    fInit = 0;
+    fClassInit = 0;
+    fInstanceInit = 0;
+    fCompute = 0;
+    
+    if (!fModule) {
+        return false;
+    }
     
     if (fCount++ == 0) {
         InitializeNativeTarget();
     }
-    if (target != "") {
-         fModule->setTargetTriple(target);
+    if (fTarget != "") {
+         fModule->setTargetTriple(fTarget);
     } else {
     #if defined(LLVM_31)
         fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
@@ -158,7 +176,7 @@ void llvmdspaux::Init(int opt_level, const std::string& target)
     }
     
     // Taken from LuaAV
-    switch (opt_level) {
+    switch (fOptLevel) {
     
         case 1:
             pm.add(llvm::createPromoteMemoryToRegisterPass());
@@ -241,14 +259,20 @@ void llvmdspaux::Init(int opt_level, const std::string& target)
     fCompute = (computeFun)LoadOptimize("compute_mydsp");
     gComputeThreadExternal = (computeThreadExternalFun)LoadOptimize("computeThreadExternal");
     fDsp = fNew();
+    
+    return true;
 }
 
 llvmdspaux::~llvmdspaux()
 {
-    fJIT->runStaticConstructorsDestructors(true);
-    fDelete(fDsp);
-    // fModule is kept and deleted by fJIT
-    delete fJIT;
+    if (fDelete && fDsp) {
+        fDelete(fDsp);
+    }
+    if (fJIT) {
+        fJIT->runStaticConstructorsDestructors(true);
+        // fModule is kept and deleted by fJIT
+        delete fJIT;
+    }
 }
 
 int llvmdspaux::getNumInputs()
@@ -322,6 +346,11 @@ llvmdsp::llvmdsp(int argc, char *argv[], const std::string& library_path, char* 
 llvmdsp::~llvmdsp()
 {
     delete fDSP;
+}
+
+bool llvmdsp::init()
+{
+    return fDSP->init();
 }
 
 int llvmdsp::getNumInputs()

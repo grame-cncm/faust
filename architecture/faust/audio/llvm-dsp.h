@@ -42,6 +42,8 @@ class llvmdsp : public dsp {
         llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3);
         
         virtual ~llvmdsp();
+        
+        bool init();
      
         virtual int getNumInputs();
         virtual int getNumOutputs();

@@ -70,6 +70,8 @@ class llvmdspaux : public dsp {
 
         ExecutionEngine* fJIT;
         Module* fModule;
+        int fOptLevel;
+        string fTarget;
     
         llvm_dsp* fDsp;
         newDspFun fNew;
@@ -87,7 +89,6 @@ class llvmdspaux : public dsp {
         void* LoadOptimize(const std::string& function);
         Module* LoadModule(const std::string filename);
         Module* CompileModule(int argc, char *argv[], const char* library_path, const char* input_name, const char* input, char* error_msg);
-        void Init(int opt_level, const std::string& target);
        
   public:
   
@@ -97,6 +98,8 @@ class llvmdspaux : public dsp {
         llvmdspaux(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3);
         
         virtual ~llvmdspaux();
+        
+        bool init();
     
         virtual int getNumInputs();
         virtual int getNumOutputs();
@@ -125,6 +128,8 @@ class llvmdsp : public dsp {
         llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3);
         
         virtual ~llvmdsp();
+        
+        bool init();
      
         virtual int getNumInputs();
         virtual int getNumOutputs();
