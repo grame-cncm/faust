@@ -51,7 +51,7 @@
 list<Garbageable*> Garbageable::gObjectTable;
 bool Garbageable::gCleanup = false;
   
-global::global():TABBER(1)
+global::global():TABBER(1),gLoopDetector(1024, 512)
 {
     CTree::init();
     Symbol::init();

@@ -38,7 +38,6 @@
 #include "patternmatcher.hh"
 #include "signals.hh"
 #include "xtended.hh"
-#include "loopDetector.hh"
 #include "property.hh"
 #include "names.hh"
 #include "compatibility.hh"
@@ -268,7 +267,7 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 	Tree 	result;
 	
     if (!getEvalProperty(exp, localValEnv, result)) {
-        LD.detect(cons(exp,localValEnv));
+        gGlobal->gLoopDetector.detect(cons(exp, localValEnv));
         //cerr << "ENTER eval("<< *exp << ") with env " << *localValEnv << endl;
 		result = realeval(exp, visited, localValEnv);
 		setEvalProperty(exp, localValEnv, result);

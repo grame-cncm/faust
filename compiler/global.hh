@@ -37,6 +37,7 @@
 #include "sourcereader.hh"
 #include "property.hh"
 #include "sigtype.hh"
+#include "loopDetector.hh"
 
 class 	CTree;
 typedef CTree* Tree;
@@ -337,6 +338,8 @@ struct global {
     Sym 	SYMREC;
     Sym 	SYMRECREF;
     Sym 	SYMLIFTN;
+    
+    loopDetector gLoopDetector;
  
     global();
     ~global();
