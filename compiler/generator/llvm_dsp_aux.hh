@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef LLVM_DSP_AUX_H
+#define LLVM_DSP_AUX_H
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -52,28 +55,32 @@
 using namespace std;
 using namespace llvm;
 
-struct llvm_dsp {};
+struct llvm_dsp_imp {};
 
-typedef llvm_dsp* (* newDspFun) ();
-typedef void (* deleteDspFun) (llvm_dsp* self);
-typedef int (* getNumInputsFun) (llvm_dsp* self);
-typedef int (* getNumOutputsFun) (llvm_dsp* self);
-typedef void (* buildUserInterfaceFun) (llvm_dsp* self, UIGlue* ui);
-typedef void (* initFun) (llvm_dsp* self, int freq);
+typedef llvm_dsp_imp* (* newDspFun) ();
+typedef void (* deleteDspFun) (llvm_dsp_imp* self);
+typedef int (* getNumInputsFun) (llvm_dsp_imp* self);
+typedef int (* getNumOutputsFun) (llvm_dsp_imp* self);
+typedef void (* buildUserInterfaceFun) (llvm_dsp_imp* self, UIGlue* ui);
+typedef void (* initFun) (llvm_dsp_imp* self, int freq);
 typedef void (* classInitFun) (int freq);
-typedef void (* instanceInitFun) (llvm_dsp* self, int freq);
-typedef void (* computeFun) (llvm_dsp* self, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+typedef void (* instanceInitFun) (llvm_dsp_imp* self, int freq);
+typedef void (* computeFun) (llvm_dsp_imp* self, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
-class llvmdspaux : public dsp {
+class llvm_dsp;
+class llvm_dsp_aux;
 
-  private:
+class llvm_dsp_factory {
+
+    friend class llvm_dsp_aux;
+
+    private:
 
         ExecutionEngine* fJIT;
         Module* fModule;
         int fOptLevel;
         string fTarget;
     
-        llvm_dsp* fDsp;
         newDspFun fNew;
         deleteDspFun fDelete;
         getNumInputsFun fGetNumInputs;
@@ -84,52 +91,54 @@ class llvmdspaux : public dsp {
         instanceInitFun fInstanceInit;
         computeFun fCompute;
         
-        static int fCount;
+        bool fScheduler;
         
         void* LoadOptimize(const std::string& function);
         Module* LoadModule(const std::string filename);
-        Module* CompileModule(int argc, char *argv[], const char* library_path, const char* input_name, const char* input, char* error_msg);
-       
+        Module* CompileModule(int argc, char *argv[], 
+            const char* library_path, const char* input_name, 
+            const char* input, char* error_msg);
+        void Init();
+                 
   public:
   
-        llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level = 3);
-        llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level = 3);
-        llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level = 3);
-        llvmdspaux(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3);
-        
-        virtual ~llvmdspaux();
-        
-        bool init();
-    
-        virtual int getNumInputs();
-        virtual int getNumOutputs();
-    
-        void classInit(int samplingFreq);
-        virtual void instanceInit(int samplingFreq);
-        virtual void init(int samplingFreq);
+         llvm_dsp_factory(int argc, char *argv[], 
+            const std::string& library_path, const std::string& name, 
+            const std::string& input, const std::string& target, 
+            char* error_msg, int opt_level = 3);
+            
+        llvm_dsp_factory(int argc, char *argv[], 
+            const std::string& library_path, const std::string& name, 
+            const std::string& input, char* error_msg, 
+            int opt_level = 3);
+            
+        llvm_dsp_factory(int argc, char *argv[], 
+            const std::string& library_path, const std::string& target, 
+            char* error_msg, int opt_level = 3);
+            
+        llvm_dsp_factory(int argc, char *argv[], 
+            const std::string& library_path, char* error_msg, 
+            int opt_level = 3);
       
-        virtual void buildUserInterface(UI* interface);
-        
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-     
+        virtual ~llvm_dsp_factory();
+      
+        llvm_dsp_aux* createDSPInstance();
+    
 };
 
-class llvmdsp : public dsp {
+class llvm_dsp_aux : public dsp {
 
+    friend class llvm_dsp_factory;
+   
     private:
-    
-        llvmdspaux* fDSP;
-        
+
+        llvm_dsp_factory* fFactory;
+        llvm_dsp_imp* fDSP;
+                 
     public:
-  
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level = 3);
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level = 3);
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level = 3);
-        llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3);
         
-        virtual ~llvmdsp();
-        
-        bool init();
+        llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp);
+        virtual ~llvm_dsp_aux();
      
         virtual int getNumInputs();
         virtual int getNumOutputs();
@@ -143,3 +152,48 @@ class llvmdsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
 };
+
+// Public interface
+
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, const std::string& name, 
+                        const std::string& input, const std::string& target, 
+                        char* error_msg, int opt_level = 3);
+            
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, const std::string& name, 
+                        const std::string& input, char* error_msg, 
+                        int opt_level = 3);
+    
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, const std::string& target, 
+                        char* error_msg, int opt_level = 3);
+    
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, char* error_msg, 
+                        int opt_level = 3);
+                        
+void deleteDSPFactory(llvm_dsp_factory* factory);
+
+llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
+
+void deleteDSPInstance(llvm_dsp* dsp);
+
+class llvm_dsp : public dsp {
+                
+    public:
+     
+        virtual int getNumInputs();
+        virtual int getNumOutputs();
+    
+        void classInit(int samplingFreq);
+        virtual void instanceInit(int samplingFreq);
+        virtual void init(int samplingFreq);
+      
+        virtual void buildUserInterface(UI* interface);
+        
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+     
+};
+
+#endif

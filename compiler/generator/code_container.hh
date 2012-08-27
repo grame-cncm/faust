@@ -68,6 +68,10 @@ class CodeContainer : public virtual Garbageable {
         BlockInst* fInitInstructions;
         BlockInst* fPostInitInstructions;
 
+
+        // To be used in allocate method (or constructor)
+        BlockInst* fAllocateInstructions;
+        
         // To be used in delete method
         BlockInst* fDestroyInstructions;
 
@@ -278,6 +282,13 @@ class CodeContainer : public virtual Garbageable {
                 fComputeBlockInstructions->accept(visitor);
             }
         }
+        
+        void generateAllocate(InstVisitor* visitor)
+        {
+            if (fAllocateInstructions->fCode.size() > 0) {
+                fAllocateInstructions->accept(visitor);
+            }
+        }
 
         void generateDestroy(InstVisitor* visitor)
         {
@@ -289,6 +300,7 @@ class CodeContainer : public virtual Garbageable {
         StatementInst* pushInitMethod(StatementInst* inst) { fInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushPostInitMethod(StatementInst* inst) { fPostInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushFrontInitMethod(StatementInst* inst) { fInitInstructions->pushFrontInst(inst); return inst; }
+        StatementInst* pushAllocateMethod(StatementInst* inst) { fAllocateInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushDestroyMethod(StatementInst* inst) { fDestroyInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushStaticInitMethod(StatementInst* inst) { fStaticInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushPostStaticInitMethod(StatementInst* inst) { fPostStaticInitInstructions->pushBackInst(inst); return inst; }

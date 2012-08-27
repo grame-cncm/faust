@@ -53,14 +53,14 @@ class StringTypeManager {
         // Default values for C and C++.
         StringTypeManager()
         {
-          ptr_postfix = "*";
-          fillTypeDirectTable(FLOATMACRO,FLOATMACROPTR);
+            ptr_postfix = "*";
+            fillTypeDirectTable(FLOATMACRO,FLOATMACROPTR);
         }
 
         StringTypeManager(string kFloatMacroName,string ptr_postfix)
         {
-          this->ptr_postfix = ptr_postfix;
-          fillTypeDirectTable(kFloatMacroName, kFloatMacroName+ptr_postfix);
+            this->ptr_postfix = ptr_postfix;
+            fillTypeDirectTable(kFloatMacroName, kFloatMacroName+ptr_postfix);
         }
 
         void fillTypeDirectTable(string kFloatMacroName, string kFloatMacroNamePtr)

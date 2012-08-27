@@ -38,7 +38,7 @@
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
-llvmdsp* DSP;
+llvm_dsp* DSP;
 list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
@@ -46,65 +46,93 @@ int main(int argc, char *argv[])
 	char	appname[256];
     char	filename[256];
 	char  	rcfilename[256];
-    char    error_msg[256];
 	char* 	home = getenv("HOME");
+    
+    llvm_dsp_factory* factory3;
 
-    try {
-		if (argc < 2) {
-			printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
-			exit(1);
-		} else {
+    if (argc < 2) {
+        printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
+        exit(1);
+    } else {
+    
+        /*
+        int argc1 = 2;
+        const char* argv1[argc1];
+        argv1[0] = "faust";
+        argv1[1] = "-svg";
+
+        compile_faust(argc1, (char**)argv1, false, "", "in1", "process = +,+;", error_msg);
+        compile_faust(argc1, (char**)argv1, false, "", "in2", "process = _,_;", error_msg);
+        */
         
-            /*
-            int argc1 = 2;
-            const char* argv1[argc1];
-            argv1[0] = "faust";
-            argv1[1] = "-svg";
-
-            compile_faust(argc1, (char**)argv1, false, "", "in1", "process = +,+;", error_msg);
-            compile_faust(argc1, (char**)argv1, false, "", "in2", "process = _,_;", error_msg);
-            */
+        /*
+        try {
             
-            /*
-            try {
-                
-                int argc1 = 1;
-                char* argv1[argc1];
-                argv1[0] = "-svg";
-                //DSP = new llvmdsp(argc1, argv1, "/Users/letz", "in1", "import(\"test.lib\"); process = TOTO;", error_msg);
-                DSP = new llvmdsp(argc1, argv1, "", "in1", "process = +,+;", error_msg);
-                //delete(DSP);
-                //DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", "/Users/letz", error_msg);
-                //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
-            }
-            catch (...) {
-                printf("Mauvais code source : %s", error_msg);
-                DSP = new llvmdsp(0, NULL, "/Users/letz", "in1", "process = +,+;", error_msg);
-            }
-            */
-            
-            //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;");
-            DSP = new llvmdsp(argc, argv, "", error_msg, 3);
-            
-            /*
-            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-            DSP = new llvmdsp(1, NULL, "process = +,+;");
-            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-            delete DSP;
-            DSP = new llvmdsp(1, NULL, "process = +;");
-            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-            delete DSP;
-            DSP = new llvmdsp(1, NULL, "process = +,+,+,+;");
-            printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-            */
-            
+            int argc1 = 1;
+            char* argv1[argc1];
+            argv1[0] = "-svg";
+            //DSP = new llvmdsp(argc1, argv1, "/Users/letz", "in1", "import(\"test.lib\"); process = TOTO;", error_msg);
+            DSP = new llvmdsp(argc1, argv1, "", "in1", "process = +,+;", error_msg);
+            //delete(DSP);
+            //DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", "/Users/letz", error_msg);
+            //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
         }
-	} catch (...) {
-        cerr << error_msg;
-		cerr << "Cannot load .dsp or .bc file" << endl;
-		exit(1);
-	}
-
+        catch (...) {
+            printf("Mauvais code source : %s", error_msg);
+            DSP = new llvmdsp(0, NULL, "/Users/letz", "in1", "process = +,+;", error_msg);
+        }
+        */
+        
+        int argc1 = 1;
+        char* argv1[argc1];
+        argv1[0] = "-svg";
+        char error_msg1[256];
+        
+        llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "in1", "process = +,+;", error_msg1);
+        llvm_dsp* imp1 = createDSPInstance(factory1);
+        deleteDSPInstance(imp1);
+        imp1 = createDSPInstance(factory1);
+        deleteDSPInstance(imp1);
+        printf("createInstance %x %s\n", imp1, error_msg1);
+        DSP = createDSPInstance(factory1);
+        deleteDSPInstance(DSP);
+        deleteDSPFactory(factory1);
+        
+        char error_msg2[256];
+        llvm_dsp_factory* factory2 = createDSPFactory(argc1, argv1, "/Users/letz", "in2", "process = +,+;", error_msg2);
+        llvm_dsp* imp2 = createDSPInstance(factory2);
+        deleteDSPInstance(imp2);
+        llvm_dsp* imp21 = createDSPInstance(factory2);
+        deleteDSPInstance(imp21);
+        printf("createInstance %x %s\n", imp2, error_msg2);
+        DSP = createDSPInstance(factory2);
+        deleteDSPInstance(DSP);
+        deleteDSPFactory(factory2);
+        
+        char error_msg3[256];
+        factory3 = createDSPFactory(argc, argv, "", error_msg3, 3);
+        llvm_dsp* imp3 = createDSPInstance(factory3);
+        printf("createInstance %x %s\n", imp3, error_msg3);
+        DSP = createDSPInstance(factory3);
+        deleteDSPInstance(DSP);
+        DSP = createDSPInstance(factory3);
+        //deleteDSPInstance(DSP);
+        DSP = createDSPInstance(factory3);
+        
+        /*
+        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+        DSP = new llvmdsp(1, NULL, "process = +,+;");
+        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+        delete DSP;
+        DSP = new llvmdsp(1, NULL, "process = +;");
+        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+        delete DSP;
+        DSP = new llvmdsp(1, NULL, "process = +,+,+,+;");
+        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
+        */
+        
+    }
+	
 	snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
 	snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
@@ -145,7 +173,8 @@ int main(int argc, char *argv[])
     finterface->saveState(rcfilename);
     delete(interface);
     delete(finterface);
-    delete(DSP);
+    deleteDSPInstance(DSP);
+    deleteDSPFactory(factory3);
   	return 0;
 }
 

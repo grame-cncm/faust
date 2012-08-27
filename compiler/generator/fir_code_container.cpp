@@ -108,6 +108,13 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* 
         fDestroyInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
+    
+    if (fAllocateInstructions->fCode.size() > 0) {
+        *dst << "======= Allocate ==========" << std::endl;
+        *dst << std::endl;
+        fAllocateInstructions->accept(&firvisitor);
+        *dst << std::endl;
+    }
 }
 
 void FirCodeContainer::dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst)

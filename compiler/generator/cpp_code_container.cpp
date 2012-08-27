@@ -272,23 +272,34 @@ void CPPCodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
         generateDeclarations(&fCodeProducer);
+        
+        tab(n+1, *fOut); *fOut << "void allocate() {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateAllocate(&fCodeProducer);
+        tab(n+1, *fOut);  *fOut << "}";
+        tab(n+1, *fOut);
+
+        tab(n+1, *fOut); *fOut << "void destroy() {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateDestroy(&fCodeProducer);
+        tab(n+1, *fOut);  *fOut << "}";
+        tab(n+1, *fOut);
 
     tab(n, *fOut); *fOut << "  public:";
 
         // Print metadata declaration
         tab(n+1, *fOut);
         produceMetadata(n+1);
+        
+        tab(n+1, *fOut); *fOut << fKlassName << "() {";
+            tab(n+2, *fOut); *fOut << "allocate();";
+        tab(n+1, *fOut); *fOut << "}" << endl;
 
         tab(n+1, *fOut); *fOut << "virtual ~" << fKlassName << "() {";
             tab(n+2, *fOut); *fOut << "destroy();";
         tab(n+1, *fOut); *fOut << "}" << endl;
-
-        tab(n+1, *fOut); *fOut << "void destroy() {";
-            tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
-            generateDestroy(&fCodeProducer);
-
-        tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
         produceInfoFunctions(n+1, fKlassName, true);  // Inits

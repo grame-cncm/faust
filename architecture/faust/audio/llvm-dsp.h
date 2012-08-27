@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef LLVM_DSP_H
+#define LLVM_DSP_H
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -26,36 +29,53 @@
 #include <string>
 #include "faust/audio/dsp.h"
 
-class llvmdspaux;
+struct llvm_dsp_imp {};
 
-class llvmdsp : public dsp {
+struct llvm_dsp_factory {};
 
-    private:
+// Factory
+
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, const std::string& name, 
+                        const std::string& input, const std::string& target, 
+                        char* error_msg, int opt_level = 3);
+            
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, const std::string& name, 
+                        const std::string& input, char* error_msg, 
+                        int opt_level = 3);
     
-        llvmdspaux* fDSP;
-        
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, const std::string& target, 
+                        char* error_msg, int opt_level = 3);
+    
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+                        const std::string& library_path, char* error_msg, 
+                        int opt_level = 3);
+                        
+void deleteDSPFactory(llvm_dsp_factory* factory);
+
+// Instance class
+
+class llvm_dsp : public dsp {
+               
     public:
-  
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level = 3);
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level = 3);
-        llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level = 3);
-        llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level = 3);
-        
-        virtual ~llvmdsp();
-        
-        bool init();
-     
+      
         virtual int getNumInputs();
         virtual int getNumOutputs();
-    
-        static void classInit(int samplingFreq);
+
+        void classInit(int samplingFreq);
         virtual void instanceInit(int samplingFreq);
         virtual void init(int samplingFreq);
-      
+
         virtual void buildUserInterface(UI* interface);
-        
+
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
 };
 
+llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
+void deleteDSPInstance(llvm_dsp* dsp);
+
+#endif

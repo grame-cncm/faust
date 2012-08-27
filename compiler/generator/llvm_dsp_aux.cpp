@@ -26,9 +26,9 @@
 typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
 computeThreadExternalFun gComputeThreadExternal = 0;
 
-int llvmdspaux::fCount = 0;
+static int gLLVMInit = 0;
         
-void* llvmdspaux::LoadOptimize(const std::string& function)
+void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 {
     llvm::Function* fun_ptr = fModule->getFunction(function);
     void* res;
@@ -40,7 +40,7 @@ void* llvmdspaux::LoadOptimize(const std::string& function)
     }
 }
 
-Module* llvmdspaux::LoadModule(const std::string filename)
+Module* llvm_dsp_factory::LoadModule(const std::string filename)
 {
     printf("Load module : %s \n", filename.c_str());
     LLVMContext &context = getGlobalContext();
@@ -57,7 +57,7 @@ Module* llvmdspaux::LoadModule(const std::string filename)
     return res;
 }
 
-Module* llvmdspaux::CompileModule(int argc, char *argv[], const char* library_path, const char* input_name, const char* input, char* error_msg)
+Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* library_path, const char* input_name, const char* input, char* error_msg)
 {
     printf("Compile module...\n");
     
@@ -68,29 +68,35 @@ Module* llvmdspaux::CompileModule(int argc, char *argv[], const char* library_pa
     argv1[2] = "llvm";
     for (int i = 0; i < argc; i++) {
         argv1[i+3] = argv[i];
+        if (strcmp(argv[i], "-sch") == 0) {
+            fScheduler = true;
+        }
     }
     
     return compile_faust_llvm(argc1, (char**)argv1, library_path, input_name, input, error_msg);
 }
 
-llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level)
+llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level)
 {
     fOptLevel = opt_level;
     fTarget = target;
+    Init();
     fModule = CompileModule(argc, argv, library_path.c_str(), name.c_str(), input.c_str(), error_msg);
 }
 
-llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level)
+llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level)
 {
     fOptLevel = opt_level;
     fTarget = "";
+    Init();
     fModule = CompileModule(argc, argv, library_path.c_str(), name.c_str(), input.c_str(), error_msg);
 }
 
-llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level)
+llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level)
 {
     fOptLevel = opt_level;
     fTarget = target;
+    Init();
     
     if (strstr(argv[1], ".bc")) {
         fModule = LoadModule(argv[1]);
@@ -99,22 +105,22 @@ llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, 
     }
 }
  
-llvmdspaux::llvmdspaux(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level)
+llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level)
 {
     fOptLevel = opt_level;
     fTarget = "";
+    Init();
     
     if (strstr(argv[1], ".bc")) {
         fModule = LoadModule(argv[1]);
     } else {
         fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
     }
- }
+}
 
-bool llvmdspaux::init()
+void llvm_dsp_factory::Init()
 {
     fJIT = 0;
-    fDsp = 0;
     fNew = 0;
     fDelete = 0;
     fGetNumInputs = 0;
@@ -124,182 +130,207 @@ bool llvmdspaux::init()
     fClassInit = 0;
     fInstanceInit = 0;
     fCompute = 0;
-    
-    if (!fModule) {
-        return false;
-    }
-    
-    if (fCount++ == 0) {
-        InitializeNativeTarget();
-    }
-    if (fTarget != "") {
-         fModule->setTargetTriple(fTarget);
-    } else {
-    #if defined(LLVM_31)
-        fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
-    #else
-        fModule->setTargetTriple(llvm::sys::getHostTriple());
-    #endif
-    }
-
-    std::string err;
-    EngineBuilder builder(fModule);
-    
-    builder.setOptLevel(CodeGenOpt::Aggressive);
-    builder.setEngineKind(EngineKind::JIT);
-    builder.setUseMCJIT(true);
-    fJIT = builder.create();
-    assert(fJIT);
-    
-    // Run static constructors.
-    fJIT->runStaticConstructorsDestructors(false);
-    
-    fJIT->DisableLazyCompilation(true);
-    fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
-    //fModule->dump();
-
-    // Set up the optimizer pipeline. Start with registering info about how the
-    // target lays out data structures.
-    PassManager pm;
-    pm.add(new TargetData(*fJIT->getTargetData()));
-    
-    // Link with "scheduler" code
-    Module* scheduler = LoadModule("scheduler.ll");
-    if (scheduler) {
-        //scheduler->dump();
-        if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &err)) {
-            printf("Cannot link scheduler module...\n");
-        }
-        delete scheduler;
-    } else {
-        printf("File scheduler.ll not found...\n");
-    }
-    
-    // Taken from LuaAV
-    switch (fOptLevel) {
-    
-        case 1:
-            pm.add(llvm::createPromoteMemoryToRegisterPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
-            break;
-            
-        case 2:
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createJumpThreadingPass());
-            pm.add(llvm::createPromoteMemoryToRegisterPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createScalarReplAggregatesPass());
-            pm.add(llvm::createLICMPass());
-            pm.add(llvm::createGVNPass());
-            pm.add(llvm::createSCCPPass());
-            pm.add(llvm::createAggressiveDCEPass());
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
-            break;
-            
-        case 3:
-            pm.add(llvm::createScalarReplAggregatesPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createCFGSimplificationPass());        // Clean up disgusting code
-            pm.add(llvm::createPromoteMemoryToRegisterPass());  // Kill useless allocas
-            pm.add(llvm::createGlobalOptimizerPass());          // OptLevel out global vars
-            pm.add(llvm::createGlobalDCEPass());                // Remove unused fns and globs
-            pm.add(llvm::createIPConstantPropagationPass());    // IP Constant Propagation
-            pm.add(llvm::createDeadArgEliminationPass());       // Dead argument elimination
-            pm.add(llvm::createInstructionCombiningPass());     // Clean up after IPCP & DAE
-            pm.add(llvm::createCFGSimplificationPass());        // Clean up after IPCP & DAE
-            pm.add(llvm::createPruneEHPass());                  // Remove dead EH info
-            pm.add(llvm::createFunctionAttrsPass());            // Deduce function attrs
-            pm.add(llvm::createFunctionInliningPass());         // Inline small functions
-            pm.add(llvm::createArgumentPromotionPass());        // Scalarize uninlined fn args
-            pm.add(llvm::createSimplifyLibCallsPass());         // Library Call Optimizations
-            pm.add(llvm::createInstructionCombiningPass());     // Cleanup for scalarrepl.
-            pm.add(llvm::createJumpThreadingPass());            // Thread jumps.
-            pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
-            pm.add(llvm::createScalarReplAggregatesPass());     // Break up aggregate allocas
-            pm.add(llvm::createInstructionCombiningPass());     // Combine silly seq's
-            pm.add(llvm::createTailCallEliminationPass());      // Eliminate tail calls
-            pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
-            pm.add(llvm::createReassociatePass());              // Reassociate expressions
-            pm.add(llvm::createLoopRotatePass());               // Rotate Loop
-            pm.add(llvm::createLICMPass());                     // Hoist loop invariants
-            pm.add(llvm::createLoopUnswitchPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createIndVarSimplifyPass());           // Canonicalize indvars
-            pm.add(llvm::createLoopDeletionPass());             // Delete dead loops
-            pm.add(llvm::createLoopUnrollPass());               // Unroll small loops
-            pm.add(llvm::createInstructionCombiningPass());     // Clean up after the unroller
-            pm.add(llvm::createGVNPass());                      // Remove redundancies
-            pm.add(llvm::createMemCpyOptPass());                // Remove memcpy / form memset
-            pm.add(llvm::createSCCPPass());                     // Constant prop with SCCP
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createDeadStoreEliminationPass());     // Delete dead stores
-            pm.add(llvm::createAggressiveDCEPass());            // Delete dead instructions
-            pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
-            pm.add(llvm::createStripDeadPrototypesPass());      // Get rid of dead prototypes
-            pm.add(llvm::createConstantMergePass());            // Merge dup global constants
-            pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
-            break;
-    }
-
-    pm.run(*fModule);
-    //fModule->dump();
-
-    fNew = (newDspFun)LoadOptimize("new_mydsp");
-    fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
-    fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
-    fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
-    fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
-    fInit = (initFun)LoadOptimize("init_mydsp");
-    fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
-    fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
-    fCompute = (computeFun)LoadOptimize("compute_mydsp");
-    gComputeThreadExternal = (computeThreadExternalFun)LoadOptimize("computeThreadExternal");
-    fDsp = fNew();
-    
-    return true;
+    fScheduler = false;
 }
 
-llvmdspaux::~llvmdspaux()
+llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 {
-    if (fDelete && fDsp) {
-        fDelete(fDsp);
+    if (!fModule) {
+        printf("No module...\n");
+        return 0;
     }
+    
+    if (!fJIT) {
+    
+        if (gLLVMInit++ == 0) {
+            InitializeNativeTarget();
+        }
+        if (fTarget != "") {
+             fModule->setTargetTriple(fTarget);
+        } else {
+        #if defined(LLVM_31)
+            fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
+        #else
+            fModule->setTargetTriple(llvm::sys::getHostTriple());
+        #endif
+        }
+
+        std::string err;
+        EngineBuilder builder(fModule);
+        
+        builder.setOptLevel(CodeGenOpt::Aggressive);
+        builder.setEngineKind(EngineKind::JIT);
+        builder.setUseMCJIT(true);
+        fJIT = builder.create();
+        assert(fJIT);
+        
+        // Run static constructors.
+        fJIT->runStaticConstructorsDestructors(false);
+        
+        fJIT->DisableLazyCompilation(true);
+        fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
+        //fModule->dump();
+
+        // Set up the optimizer pipeline. Start with registering info about how the
+        // target lays out data structures.
+        PassManager pm;
+        pm.add(new TargetData(*fJIT->getTargetData()));
+        
+        // Link with "scheduler" code
+        if (fScheduler) {
+            Module* scheduler = LoadModule("scheduler.ll");
+            if (scheduler) {
+                //scheduler->dump();
+                if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &err)) {
+                    printf("Cannot link scheduler module...\n");
+                }
+                delete scheduler;
+            } else {
+                printf("File scheduler.ll not found...\n");
+            }
+        }
+        
+        // Taken from LuaAV
+        switch (fOptLevel) {
+        
+            case 1:
+                pm.add(llvm::createPromoteMemoryToRegisterPass());
+                pm.add(llvm::createInstructionCombiningPass());
+                pm.add(llvm::createCFGSimplificationPass());
+                pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
+                break;
+                
+            case 2:
+                pm.add(llvm::createCFGSimplificationPass());
+                pm.add(llvm::createJumpThreadingPass());
+                pm.add(llvm::createPromoteMemoryToRegisterPass());
+                pm.add(llvm::createInstructionCombiningPass());
+                pm.add(llvm::createCFGSimplificationPass());
+                pm.add(llvm::createScalarReplAggregatesPass());
+                pm.add(llvm::createLICMPass());
+                pm.add(llvm::createGVNPass());
+                pm.add(llvm::createSCCPPass());
+                pm.add(llvm::createAggressiveDCEPass());
+                pm.add(llvm::createCFGSimplificationPass());
+                pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
+                break;
+                
+            case 3:
+                pm.add(llvm::createScalarReplAggregatesPass());
+                pm.add(llvm::createInstructionCombiningPass());
+                pm.add(llvm::createCFGSimplificationPass());        // Clean up disgusting code
+                pm.add(llvm::createPromoteMemoryToRegisterPass());  // Kill useless allocas
+                pm.add(llvm::createGlobalOptimizerPass());          // OptLevel out global vars
+                pm.add(llvm::createGlobalDCEPass());                // Remove unused fns and globs
+                pm.add(llvm::createIPConstantPropagationPass());    // IP Constant Propagation
+                pm.add(llvm::createDeadArgEliminationPass());       // Dead argument elimination
+                pm.add(llvm::createInstructionCombiningPass());     // Clean up after IPCP & DAE
+                pm.add(llvm::createCFGSimplificationPass());        // Clean up after IPCP & DAE
+                pm.add(llvm::createPruneEHPass());                  // Remove dead EH info
+                pm.add(llvm::createFunctionAttrsPass());            // Deduce function attrs
+                pm.add(llvm::createFunctionInliningPass());         // Inline small functions
+                pm.add(llvm::createArgumentPromotionPass());        // Scalarize uninlined fn args
+                pm.add(llvm::createSimplifyLibCallsPass());         // Library Call Optimizations
+                pm.add(llvm::createInstructionCombiningPass());     // Cleanup for scalarrepl.
+                pm.add(llvm::createJumpThreadingPass());            // Thread jumps.
+                pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
+                pm.add(llvm::createScalarReplAggregatesPass());     // Break up aggregate allocas
+                pm.add(llvm::createInstructionCombiningPass());     // Combine silly seq's
+                pm.add(llvm::createTailCallEliminationPass());      // Eliminate tail calls
+                pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
+                pm.add(llvm::createReassociatePass());              // Reassociate expressions
+                pm.add(llvm::createLoopRotatePass());               // Rotate Loop
+                pm.add(llvm::createLICMPass());                     // Hoist loop invariants
+                pm.add(llvm::createLoopUnswitchPass());
+                pm.add(llvm::createInstructionCombiningPass());
+                pm.add(llvm::createIndVarSimplifyPass());           // Canonicalize indvars
+                pm.add(llvm::createLoopDeletionPass());             // Delete dead loops
+                pm.add(llvm::createLoopUnrollPass());               // Unroll small loops
+                pm.add(llvm::createInstructionCombiningPass());     // Clean up after the unroller
+                pm.add(llvm::createGVNPass());                      // Remove redundancies
+                pm.add(llvm::createMemCpyOptPass());                // Remove memcpy / form memset
+                pm.add(llvm::createSCCPPass());                     // Constant prop with SCCP
+                pm.add(llvm::createInstructionCombiningPass());
+                pm.add(llvm::createDeadStoreEliminationPass());     // Delete dead stores
+                pm.add(llvm::createAggressiveDCEPass());            // Delete dead instructions
+                pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
+                pm.add(llvm::createStripDeadPrototypesPass());      // Get rid of dead prototypes
+                pm.add(llvm::createConstantMergePass());            // Merge dup global constants
+                pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
+                break;
+        }
+
+        pm.run(*fModule);
+        //fModule->dump();
+
+        fNew = (newDspFun)LoadOptimize("new_mydsp");
+        fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
+        fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
+        fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");
+        fBuildUserInterface = (buildUserInterfaceFun)LoadOptimize("buildUserInterface_mydsp");
+        fInit = (initFun)LoadOptimize("init_mydsp");
+        fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
+        fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
+        fCompute = (computeFun)LoadOptimize("compute_mydsp");
+        gComputeThreadExternal = (computeThreadExternalFun)LoadOptimize("computeThreadExternal");
+    }
+    
+    // Create instance 
+    llvm_dsp_imp* dsp_imp = fNew();
+    if (dsp_imp) {
+        return new llvm_dsp_aux(this, dsp_imp);
+    } else {
+        return 0;
+    }
+}
+
+llvm_dsp_factory::~llvm_dsp_factory()
+{
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fModule is kept and deleted by fJIT
         delete fJIT;
     }
 }
+        
+// Instance 
 
-int llvmdspaux::getNumInputs()
-{
-    return fGetNumInputs(fDsp);
-}
-int llvmdspaux::getNumOutputs()
-{
-    return fGetNumOutputs(fDsp);
-}
-
-void llvmdspaux::classInit(int samplingFreq)
-{
-    fClassInit(samplingFreq);
-}
-
-void llvmdspaux::instanceInit(int samplingFreq)
-{
-    fInstanceInit(fDsp, samplingFreq);
+llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
+    :fFactory(factory), fDSP(dsp)
+{}
+        
+llvm_dsp_aux::~llvm_dsp_aux()
+{   
+    if (fDSP) {
+        fFactory->fDelete(fDSP);
+    }
 }
 
-void llvmdspaux::init(int samplingFreq)
+int llvm_dsp_aux::getNumInputs()
 {
-    fInit(fDsp, samplingFreq);
+    return fFactory->fGetNumInputs(fDSP);
+}
+int llvm_dsp_aux::getNumOutputs()
+{
+    return fFactory->fGetNumOutputs(fDSP);
 }
 
-void llvmdspaux::buildUserInterface(UI* interface)
+void llvm_dsp_aux::classInit(int samplingFreq)
+{
+    fFactory->fClassInit(samplingFreq);
+}
+
+void llvm_dsp_aux::instanceInit(int samplingFreq)
+{
+    fFactory->fInstanceInit(fDSP, samplingFreq);
+}
+
+void llvm_dsp_aux::init(int samplingFreq)
+{
+    fFactory->fInit(fDSP, samplingFreq);
+}
+
+void llvm_dsp_aux::buildUserInterface(UI* interface)
 {
     UIGlue glue;
     glue.uiInterface = interface;
@@ -315,72 +346,109 @@ void llvmdspaux::buildUserInterface(UI* interface)
     glue.addHorizontalBargraph = addHorizontalBargraphGlue;
     glue.addVerticalBargraph = addVerticalBargraphGlue;
     glue.declare = declareGlue;
-    fBuildUserInterface(fDsp, &glue);
+    fFactory->fBuildUserInterface(fDSP, &glue);
 }
 
-void llvmdspaux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     AVOIDDENORMALS;
-    fCompute(fDsp, count, input, output);
+    fFactory->fCompute(fDSP, count, input, output);
 }
 
-// Public interface 
+// Public API
 
-llvmdsp::llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level)
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+    const std::string& library_path, const std::string& name, 
+    const std::string& input, const std::string& target, 
+    char* error_msg, int opt_level)
 {
-    fDSP = new llvmdspaux(argc, argv, library_path, name, input, target, error_msg, opt_level);
+    return new llvm_dsp_factory(argc, argv, library_path, name, input, target, error_msg, opt_level);
 }
-llvmdsp::llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level)
+    
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+    const std::string& library_path, const std::string& name, 
+    const std::string& input, char* error_msg, 
+    int opt_level)
 {
-    fDSP = new llvmdspaux(argc, argv, library_path, name, input, error_msg, opt_level);
+    return new llvm_dsp_factory(argc, argv, library_path, name, input, error_msg, opt_level);
 }
-llvmdsp::llvmdsp(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level)
+    
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+    const std::string& library_path, const std::string& target, 
+    char* error_msg, int opt_level)
 {
-    fDSP = new llvmdspaux(argc, argv, library_path, target, error_msg, opt_level);
+    return new llvm_dsp_factory(argc, argv, library_path, target, error_msg, opt_level);
 }
+    
+llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+    const std::string& library_path, char* error_msg, 
+    int opt_level)
+{
+    return new llvm_dsp_factory(argc, argv, library_path, error_msg, opt_level);
+}
+
+llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
+{
+    return reinterpret_cast<llvm_dsp*>(factory->createDSPInstance());
+}
+
+void deleteDSPFactory(llvm_dsp_factory* factory) { delete factory; }
+
+void deleteDSPInstance(llvm_dsp* dsp) 
+{
+    delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+}
+
+int llvm_dsp::getNumInputs()
+{
+    return reinterpret_cast<llvm_dsp_aux*>(this)->getNumInputs();
+}
+
+int llvm_dsp::getNumOutputs()
+{
+    return reinterpret_cast<llvm_dsp_aux*>(this)->getNumOutputs();
+}
+
+void llvm_dsp::classInit(int samplingFreq)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->classInit(samplingFreq);
+}
+
+void llvm_dsp::instanceInit(int samplingFreq)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingFreq);
+}
+
+void llvm_dsp::init(int samplingFreq)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingFreq);
+}
+
+void llvm_dsp::buildUserInterface(UI* interface)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->buildUserInterface(interface);
+}
+
+void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+{
+     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
+}
+
+/*
 llvmdsp::llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level)
 {
-    fDSP = new llvmdspaux(argc, argv, library_path, error_msg, opt_level);
+    map <string, llvm_dsp_factory*>::iterator it = gFactoryTable.find(input);
+    llvm_dsp_factory* factory;
+    
+    if (it != gFactoryTable.end()) {
+        factory = (*it)->second;
+        printf("Use previous factory\n");
+    } else {
+        factory = new llvm_dsp_factory(argc, argv, library_path, error_msg, opt_level);
+        printf("Create factory\n");
+        gFactoryTable[input] = factory;
+    }
+    
+    fDSP = new llvm_dsp_aux(factory);
 }
-
-llvmdsp::~llvmdsp()
-{
-    delete fDSP;
-}
-
-bool llvmdsp::init()
-{
-    return fDSP->init();
-}
-
-int llvmdsp::getNumInputs()
-{
-    return fDSP->getNumInputs();
-}
-int llvmdsp::getNumOutputs()
-{
-    return fDSP->getNumOutputs();
-}
-
-void llvmdsp::classInit(int samplingFreq)
-{
-    fDSP->classInit(samplingFreq);
-}
-void llvmdsp::instanceInit(int samplingFreq)
-{
-    fDSP->instanceInit(samplingFreq);
-}
-void llvmdsp::init(int samplingFreq)
-{
-    fDSP->init(samplingFreq);
-}
-
-void llvmdsp::buildUserInterface(UI* interface)
-{
-    fDSP->buildUserInterface(interface);
-}
-
-void llvmdsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
-{
-    fDSP->compute(count, input, output);
-}
+*/

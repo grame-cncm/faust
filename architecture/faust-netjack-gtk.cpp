@@ -48,24 +48,25 @@ int main(int argc, char *argv[])
 	char  	rcfilename[256];
     char    error_msg[256];
 	char* 	home = getenv("HOME");
-    llvmdsp* DSP = NULL;
+    llvm_dsp* DSP = NULL;
     
     int	celt = lopt(argv, "--celt", -1);
     const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
+    llvm_dsp_factory* factory;
 
-    try {
-		if (argc < 2) {
-			printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
-			exit(1);
-		} else {
-			DSP = new llvmdsp(argc, argv, "", error_msg);
+    if (argc < 2) {
+        printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
+        exit(1);
+    } else {
+        factory = createDSPFactory(argc, argv, "", error_msg);
+        DSP = createDSPInstance(factory);
+        if (!DSP) {
+            cerr << error_msg;
+            cerr << "Cannot load .dsp or .bc file" << endl;
+            exit(1);
         }
-	} catch (...) {
-		cerr << error_msg;
-		cerr << "Cannot load .dsp or .bc file" << endl;
-		exit(1);
-	}
+    }
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));

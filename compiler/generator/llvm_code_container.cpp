@@ -359,6 +359,32 @@ void LLVMCodeContainer::generateDestroyEnd()
     fBuilder->ClearInsertionPoint();
 }
 
+void LLVMCodeContainer::generateAllocateBegin()
+{
+    Function* llvm_allocate = fModule->getFunction("allocate" + fKlassName);
+    assert(llvm_allocate);
+
+    // Add a first block
+    fBuilder->SetInsertPoint(BasicBlock::Create(getGlobalContext(), "entry", llvm_allocate));
+}
+
+void LLVMCodeContainer::generateAllocateEnd()
+{
+    Function* llvm_allocate = fModule->getFunction("allocate" + fKlassName);
+    assert(llvm_allocate);
+    BasicBlock* return_block = BasicBlock::Create(getGlobalContext(), "return", llvm_allocate);
+    ReturnInst::Create(getGlobalContext(), return_block);
+
+    // If previous block branch from previous to current
+    if (fBuilder->GetInsertBlock()) {
+        fBuilder->CreateBr(return_block);
+    }
+
+    //llvm_allocate->dump();
+    verifyFunction(*llvm_allocate);
+    fBuilder->ClearInsertionPoint();
+}
+
 void LLVMCodeContainer::generateInitFun()
 {
     VECTOR_OF_TYPES llvm_init_args;
@@ -569,6 +595,10 @@ Module* LLVMCodeContainer::produceModule(const string& filename)
     generateInstanceInitBegin();
     generateInit(fCodeProducer);
     generateInstanceInitEnd();
+    
+    generateAllocateBegin();
+    generateAllocate(fCodeProducer);
+    generateAllocateEnd();
 
     generateDestroyBegin();
     generateDestroy(fCodeProducer);

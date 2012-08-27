@@ -79,6 +79,9 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         void generateInstanceInitBegin(bool internal = false);
         void generateInstanceInitEnd();
+        
+        void generateAllocateBegin();
+        void generateAllocateEnd();
 
         void generateDestroyBegin();
         void generateDestroyEnd();

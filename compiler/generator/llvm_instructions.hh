@@ -287,6 +287,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             verifyFunction(*func_llvm_free_dsp);
             fBuilder->ClearInsertionPoint();
         }
+        
+        
 
         void generateMemory(llvm::PointerType* dsp_type_ptr, bool internal)
         {
@@ -303,6 +305,22 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             } else {
                 func_malloc = fModule->getFunction("malloc");
             }
+            
+            VECTOR_OF_TYPES allocate_args;
+            allocate_args.push_back(dsp_type_ptr);
+            FunctionType* allocate_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(allocate_args), false);
+
+            Function* func_allocate = NULL;
+            if (!fModule->getFunction("allocate" + fPrefix)) {
+                func_allocate = Function::Create(allocate_type, Function::ExternalLinkage, "allocate" + fPrefix, fModule);
+                func_allocate->setCallingConv(CallingConv::C);
+                func_allocate->setAlignment(2);
+                Function::arg_iterator llvm_allocate_args_it = func_allocate->arg_begin();
+                Value* dsp = llvm_allocate_args_it++;
+                dsp->setName("dsp");
+            } else {
+                func_allocate = fModule->getFunction("allocate" + fPrefix);
+            }
 
             // llvm_create_dsp
             VECTOR_OF_TYPES llvm_create_dsp_args;
@@ -315,10 +333,13 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             // Dynamically computed object size (see http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt)
             Value* ptr_size = GetElementPtrInst::Create(ConstantPointerNull::get(dsp_type_ptr), genInt64(1), "ptr_size", entry_func_llvm_create_dsp);
-            CastInst* size = new PtrToIntInst(ptr_size, fBuilder->getInt64Ty(), "size", entry_func_llvm_create_dsp);
-            CallInst* call_inst1 = CallInst::Create(func_malloc, size, "", entry_func_llvm_create_dsp);
+            CastInst* size_inst = new PtrToIntInst(ptr_size, fBuilder->getInt64Ty(), "size", entry_func_llvm_create_dsp);
+            CallInst* call_inst1 = CallInst::Create(func_malloc, size_inst, "", entry_func_llvm_create_dsp);
             call_inst1->setCallingConv(CallingConv::C);
             CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
+            CallInst* call_inst3 = CallInst::Create(func_allocate, call_inst2, "", entry_func_llvm_create_dsp);
+            call_inst3->setCallingConv(CallingConv::C);
+           
             ReturnInst::Create(getGlobalContext(), call_inst2, entry_func_llvm_create_dsp);
             verifyFunction(*func_llvm_create_dsp);
             fBuilder->ClearInsertionPoint();
@@ -1559,7 +1580,17 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 //cerr << "genVectorStore scalar" << endl;
                 //store_ptr->dump();
                 //store->dump();
-                fBuilder->CreateStore(store, store_ptr, vola);
+               
+                // HACK : special case if we store a 0 (null pointer) in a void* (used in "allocate" function in scheduler mode...)
+                if ((store_ptr->getType() == PointerType::get(PointerType::get(fBuilder->getInt8Ty(), 0), 0))
+                    && (store_ptr->getType() != PointerType::get(store->getType(), 0))
+                    && (store->getType() == llvm::Type::getInt32Ty(getGlobalContext()))) {
+                        // Cast Int value to "null"
+                        Value* casted_store = ConstantPointerNull::get(PointerType::get(fBuilder->getInt8Ty(), 0));
+                        fBuilder->CreateStore(casted_store, store_ptr, vola);
+                } else {
+                    fBuilder->CreateStore(store, store_ptr, vola);
+                }
             }
         }
 

@@ -56,6 +56,8 @@ global::global():TABBER(1),gLoopDetector(1024, 512)
     CTree::init();
     Symbol::init();
     
+    strcpy(gErrorMsg, "");
+    
     EVALPROPERTY = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
     
