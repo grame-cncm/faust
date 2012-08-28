@@ -303,17 +303,20 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             VECTOR_OF_TYPES allocate_args;
             allocate_args.push_back(dsp_type_ptr);
             FunctionType* allocate_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(allocate_args), false);
-
+            
             Function* func_allocate = NULL;
-            if (!fModule->getFunction("allocate" + fPrefix)) {
-                func_allocate = Function::Create(allocate_type, Function::ExternalLinkage, "allocate" + fPrefix, fModule);
-                func_allocate->setCallingConv(CallingConv::C);
-                func_allocate->setAlignment(2);
-                Function::arg_iterator llvm_allocate_args_it = func_allocate->arg_begin();
-                Value* dsp = llvm_allocate_args_it++;
-                dsp->setName("dsp");
-            } else {
-                func_allocate = fModule->getFunction("allocate" + fPrefix);
+            // Only for global object
+            if (!internal) {
+                if (!fModule->getFunction("allocate" + fPrefix)) {
+                    func_allocate = Function::Create(allocate_type, Function::ExternalLinkage, "allocate" + fPrefix, fModule);
+                    func_allocate->setCallingConv(CallingConv::C);
+                    func_allocate->setAlignment(2);
+                    Function::arg_iterator llvm_allocate_args_it = func_allocate->arg_begin();
+                    Value* dsp = llvm_allocate_args_it++;
+                    dsp->setName("dsp");
+                } else {
+                    func_allocate = fModule->getFunction("allocate" + fPrefix);
+                }
             }
 
             // llvm_create_dsp
@@ -331,9 +334,11 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             CallInst* call_inst1 = CallInst::Create(func_malloc, size_inst, "", entry_func_llvm_create_dsp);
             call_inst1->setCallingConv(CallingConv::C);
             CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
-            CallInst* call_inst3 = CallInst::Create(func_allocate, call_inst2, "", entry_func_llvm_create_dsp);
-            call_inst3->setCallingConv(CallingConv::C);
-           
+            // Only for global object
+            if (!internal) {
+                CallInst* call_inst3 = CallInst::Create(func_allocate, call_inst2, "", entry_func_llvm_create_dsp);
+                call_inst3->setCallingConv(CallingConv::C);
+            }
             ReturnInst::Create(getGlobalContext(), call_inst2, entry_func_llvm_create_dsp);
             verifyFunction(*func_llvm_create_dsp);
             fBuilder->ClearInsertionPoint();
