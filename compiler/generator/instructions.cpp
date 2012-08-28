@@ -206,9 +206,7 @@ static Typed* sharedTypeToFirType(Tree t)
         return NULL;
     }
 }
-*/
 
-/*
 DeclareTypeInst* InstBuilder::genType(AudioType* type)
 {
     Tree shared_type = signalTypeToSharedType(type);

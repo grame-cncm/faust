@@ -43,7 +43,6 @@ using namespace std;
 
 #include "instructions.hh"
 
-
 class InstComplexityVisitor : public InstVisitor {
 
     private:

@@ -40,7 +40,6 @@ using namespace std;
 #include "binop.hh"
 #include "exception.hh"
 
-
 #include <llvm/DerivedTypes.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/JIT.h>
@@ -59,9 +58,6 @@ using namespace std;
 #include "global.hh"
 
 using namespace llvm;
-
-//extern bool gVectorSwitch;
-//extern int gGlobal->gVecSize;
 
 typedef llvm::Value* LlvmValue;
 
@@ -287,9 +283,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             verifyFunction(*func_llvm_free_dsp);
             fBuilder->ClearInsertionPoint();
         }
-        
-        
-
+ 
         void generateMemory(llvm::PointerType* dsp_type_ptr, bool internal)
         {
             // malloc

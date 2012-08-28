@@ -135,10 +135,7 @@ void llvm_dsp_factory::Init()
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 {
-    if (!fModule) {
-        printf("No module...\n");
-        return 0;
-    }
+    assert(fModule);
     
     if (!fJIT) {
     
@@ -276,12 +273,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     }
     
     // Create instance 
-    llvm_dsp_imp* dsp_imp = fNew();
-    if (dsp_imp) {
-        return new llvm_dsp_aux(this, dsp_imp);
-    } else {
-        return 0;
-    }
+    return new llvm_dsp_aux(this, fNew());
 }
 
 llvm_dsp_factory::~llvm_dsp_factory()
@@ -297,7 +289,10 @@ llvm_dsp_factory::~llvm_dsp_factory()
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
     :fFactory(factory), fDSP(dsp)
-{}
+{
+    assert(fFactory);
+    assert(fDSP);
+}
         
 llvm_dsp_aux::~llvm_dsp_aux()
 {   
@@ -362,7 +357,12 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
     const std::string& input, const std::string& target, 
     char* error_msg, int opt_level)
 {
-    return new llvm_dsp_factory(argc, argv, library_path, name, input, target, error_msg, opt_level);
+    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, name, input, target, error_msg, opt_level);
+    if (factory->getModule()) {
+        return factory;
+    } else {
+        return 0;
+    }
 }
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
@@ -370,21 +370,36 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
     const std::string& input, char* error_msg, 
     int opt_level)
 {
-    return new llvm_dsp_factory(argc, argv, library_path, name, input, error_msg, opt_level);
+    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, name, input, error_msg, opt_level);
+    if (factory->getModule()) {
+        return factory;
+    } else {
+        return 0;
+    }
 }
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
     const std::string& library_path, const std::string& target, 
     char* error_msg, int opt_level)
 {
-    return new llvm_dsp_factory(argc, argv, library_path, target, error_msg, opt_level);
+    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, target, error_msg, opt_level);
+    if (factory->getModule()) {
+        return factory;
+    } else {
+        return 0;
+    }
 }
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
     const std::string& library_path, char* error_msg, 
     int opt_level)
 {
-    return new llvm_dsp_factory(argc, argv, library_path, error_msg, opt_level);
+    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, error_msg, opt_level);
+    if (factory->getModule()) {
+        return factory;
+    } else {
+        return 0;
+    }
 }
 
 llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
@@ -433,22 +448,3 @@ void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
      reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
-
-/*
-llvmdsp::llvmdsp(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level)
-{
-    map <string, llvm_dsp_factory*>::iterator it = gFactoryTable.find(input);
-    llvm_dsp_factory* factory;
-    
-    if (it != gFactoryTable.end()) {
-        factory = (*it)->second;
-        printf("Use previous factory\n");
-    } else {
-        factory = new llvm_dsp_factory(argc, argv, library_path, error_msg, opt_level);
-        printf("Create factory\n");
-        gFactoryTable[input] = factory;
-    }
-    
-    fDSP = new llvm_dsp_aux(factory);
-}
-*/

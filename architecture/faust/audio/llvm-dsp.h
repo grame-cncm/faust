@@ -29,8 +29,6 @@
 #include <string>
 #include "faust/audio/dsp.h"
 
-struct llvm_dsp_imp {};
-
 struct llvm_dsp_factory {};
 
 // Factory

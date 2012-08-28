@@ -67,7 +67,6 @@ typedef void (* classInitFun) (int freq);
 typedef void (* instanceInitFun) (llvm_dsp_imp* self, int freq);
 typedef void (* computeFun) (llvm_dsp_imp* self, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
-class llvm_dsp;
 class llvm_dsp_aux;
 
 class llvm_dsp_factory {
@@ -123,6 +122,8 @@ class llvm_dsp_factory {
         virtual ~llvm_dsp_factory();
       
         llvm_dsp_aux* createDSPInstance();
+        
+        Module* getModule() { return fModule; }
     
 };
 
@@ -175,10 +176,6 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
                         
 void deleteDSPFactory(llvm_dsp_factory* factory);
 
-llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
-
-void deleteDSPInstance(llvm_dsp* dsp);
-
 class llvm_dsp : public dsp {
                 
     public:
@@ -195,5 +192,9 @@ class llvm_dsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
 };
+
+llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
+
+void deleteDSPInstance(llvm_dsp* dsp);
 
 #endif

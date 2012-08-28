@@ -165,31 +165,36 @@ void CCodeContainer::produceClass()
     // Memory methods
    
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static void " << "allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
-                    if (fAllocateInstructions->fCode.size() > 0) {
+    if (fAllocateInstructions->fCode.size() > 0) {
+        tab(n, *fOut); *fOut << "static void " << "allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
                         tab(n+1, *fOut);
                         fAllocateInstructions->accept(&fCodeProducer);
-                    }
-    tab(n, *fOut);  *fOut << "}";
+        tab(n, *fOut);  *fOut << "}";
+    }
     
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static void " << "destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
-                    if (fDestroyInstructions->fCode.size() > 0) {
+    
+    if (fDestroyInstructions->fCode.size() > 0) {
+        tab(n, *fOut); *fOut << "static void " << "destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
                         tab(n+1, *fOut);
                         fDestroyInstructions->accept(&fCodeProducer);
-                    }
-    tab(n, *fOut);  *fOut << "}";
+        tab(n, *fOut);  *fOut << "}";
+    }
     
     tab(n, *fOut);
     tab(n, *fOut); *fOut << fKlassName << "* " << "new" << fKlassName << "() { ";
-                        tab(n+1, *fOut); *fOut << fKlassName << "* dsp =" << "(" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "))";
-                        tab(n+1, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
+                        tab(n+1, *fOut); *fOut << fKlassName << "* dsp = " << "(" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "));";
+                        if (fAllocateInstructions->fCode.size() > 0) {
+                            tab(n+1, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
+                        }
                         tab(n+1, *fOut); *fOut << "return dsp;";
     tab(n, *fOut);  *fOut << "}";
 
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void " << "delete" << fKlassName << "(" << fKlassName << "* dsp) { ";
-        tab(n+1, *fOut); *fOut << "destroy" << fKlassName << "(dsp);";
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n+1, *fOut); *fOut << "destroy" << fKlassName << "(dsp);";
+        }
         tab(n+1, *fOut); *fOut << "free(dsp);";
     tab(n, *fOut);  *fOut << "}";
 

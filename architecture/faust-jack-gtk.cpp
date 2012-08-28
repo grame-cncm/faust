@@ -88,36 +88,48 @@ int main(int argc, char *argv[])
         argv1[0] = "-svg";
         char error_msg1[256];
         
-        llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "in1", "process = +,+;", error_msg1);
-        llvm_dsp* imp1 = createDSPInstance(factory1);
-        deleteDSPInstance(imp1);
-        imp1 = createDSPInstance(factory1);
-        deleteDSPInstance(imp1);
-        printf("createInstance %x %s\n", imp1, error_msg1);
-        DSP = createDSPInstance(factory1);
-        deleteDSPInstance(DSP);
-        deleteDSPFactory(factory1);
+        llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "in1", "process = +,+", error_msg1);
+        if (factory1) {
+            llvm_dsp* imp1 = createDSPInstance(factory1);
+            deleteDSPInstance(imp1);
+            imp1 = createDSPInstance(factory1);
+            deleteDSPInstance(imp1);
+            printf("createInstance %x %s\n", imp1, error_msg1);
+            DSP = createDSPInstance(factory1);
+            deleteDSPInstance(DSP);
+            deleteDSPFactory(factory1);
+        } else {
+            printf("Cannot create factory : %s", error_msg1);
+        }
         
         char error_msg2[256];
         llvm_dsp_factory* factory2 = createDSPFactory(argc1, argv1, "/Users/letz", "in2", "process = +,+;", error_msg2);
-        llvm_dsp* imp2 = createDSPInstance(factory2);
-        deleteDSPInstance(imp2);
-        llvm_dsp* imp21 = createDSPInstance(factory2);
-        deleteDSPInstance(imp21);
-        printf("createInstance %x %s\n", imp2, error_msg2);
-        DSP = createDSPInstance(factory2);
-        deleteDSPInstance(DSP);
-        deleteDSPFactory(factory2);
+        if (factory2) {
+            llvm_dsp* imp2 = createDSPInstance(factory2);
+            deleteDSPInstance(imp2);
+            llvm_dsp* imp21 = createDSPInstance(factory2);
+            deleteDSPInstance(imp21);
+            printf("createInstance %x %s\n", imp2, error_msg2);
+            DSP = createDSPInstance(factory2);
+            deleteDSPInstance(DSP);
+            deleteDSPFactory(factory2);
+        } else {
+            printf("Cannot create factory : %s", error_msg2);
+        }
         
         char error_msg3[256];
         factory3 = createDSPFactory(argc, argv, "", error_msg3, 3);
-        llvm_dsp* imp3 = createDSPInstance(factory3);
-        printf("createInstance %x %s\n", imp3, error_msg3);
-        DSP = createDSPInstance(factory3);
-        deleteDSPInstance(DSP);
-        DSP = createDSPInstance(factory3);
-        //deleteDSPInstance(DSP);
-        DSP = createDSPInstance(factory3);
+        if (factory3) {
+            llvm_dsp* imp3 = createDSPInstance(factory3);
+            printf("createInstance %x %s\n", imp3, error_msg3);
+            DSP = createDSPInstance(factory3);
+            deleteDSPInstance(DSP);
+            DSP = createDSPInstance(factory3);
+            //deleteDSPInstance(DSP);
+            DSP = createDSPInstance(factory3);
+         } else {
+            printf("Cannot create factory : %s", error_msg3);
+        }
         
         /*
         printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
