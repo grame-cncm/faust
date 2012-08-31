@@ -42,7 +42,7 @@ class UI
 
 	// -- metadata declarations
 
-    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) {}
 };
 
 #endif

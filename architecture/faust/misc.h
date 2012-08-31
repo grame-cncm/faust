@@ -28,7 +28,7 @@
 
 struct XXXX_Meta : std::map<const char*, const char*>
 {
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
+    void declare(const char* key, const char* value) { (*this)[key]=value; }
 };
 
 struct Meta

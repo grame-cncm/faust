@@ -53,8 +53,8 @@ class jsonroot : public smartable
 		virtual ~jsonroot() {}
 		
 		void	print(std::ostream& out) const;
-		void	add (const Sjsonnode& node)		{ fUi.push_back(node); }
-		void	setPort (int port)				{ fPort = port; }
+		void	add(const Sjsonnode& node)		{ fUi.push_back(node); }
+		void	setPort(int port)				{ fPort = port; }
 };
 
 } // end namespoace

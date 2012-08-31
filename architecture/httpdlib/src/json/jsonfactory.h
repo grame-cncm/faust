@@ -49,22 +49,22 @@ class jsonfactory
 	std::stack<Sjsonnode>	fNodes;		///< maintains the current hierarchy level
 	jsonroot				fRoot;		///< keep track of the root node
 
-	void addnode (Sjsonnode node, const char * label);
+	void addnode(Sjsonnode node, const char * label);
 
 	public:
 				 jsonfactory(const char *name, const char* address, int port) : fRoot(name, address, port) {}
 		virtual ~jsonfactory() {}
 
 		template <typename C> void addnode (const char* type, const char* label, C init, C min, C max, C step) {
-				addnode (jsoncontrol<C>::create (label, type, init, min, max, step), label);
-			}
+            addnode (jsoncontrol<C>::create (label, type, init, min, max, step), label);
+        }
 
 		template <typename C> void addnode (const char* type, const char* label) {
-				addnode (jsoncontrol<C>::create (label, type), label);
-			}
+            addnode (jsoncontrol<C>::create (label, type), label);
+        }
 
-		void opengroup (const char* type, const char* label);
-		void closegroup ();
+		void opengroup(const char* type, const char* label);
+		void closegroup();
 
 		jsonroot&	root()			{ return fRoot; }
 };

@@ -86,10 +86,7 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& li
 
 llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, char* error_msg, int opt_level)
 {
-    fOptLevel = opt_level;
-    fTarget = "";
-    Init();
-    fModule = CompileModule(argc, argv, library_path.c_str(), name.c_str(), input.c_str(), error_msg);
+    llvm_dsp_factory(argc, argv, library_path, name, input, "", error_msg, opt_level);
 }
 
 llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, const std::string& target, char* error_msg, int opt_level)
@@ -97,25 +94,20 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& li
     fOptLevel = opt_level;
     fTarget = target;
     Init();
-    
-    if (strstr(argv[1], ".bc")) {
-        fModule = LoadModule(argv[1]);
-    } else {
-        fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
-    }
+    fModule = CompileModule(argc, argv, library_path.c_str(), NULL, NULL, error_msg);
 }
  
 llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, char* error_msg, int opt_level)
 {
+    llvm_dsp_factory(argc, argv, library_path, "", error_msg, opt_level);
+}
+
+llvm_dsp_factory::llvm_dsp_factory(const std::string& module_path, int opt_level)
+{
     fOptLevel = opt_level;
     fTarget = "";
     Init();
-    
-    if (strstr(argv[1], ".bc")) {
-        fModule = LoadModule(argv[1]);
-    } else {
-        fModule = CompileModule(argc - 1, &argv[1], library_path.c_str(), NULL, NULL, error_msg);
-    }
+    fModule = LoadModule(module_path);
 }
 
 void llvm_dsp_factory::Init()
@@ -350,6 +342,16 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
     fFactory->fCompute(fDSP, count, input, output);
 }
 
+static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory)
+{
+    if (factory->getModule()) {
+        return factory;
+    } else {
+        delete factory;
+        return 0;
+    }
+}
+
 // Public API
 
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
@@ -357,12 +359,7 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
     const std::string& input, const std::string& target, 
     char* error_msg, int opt_level)
 {
-    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, name, input, target, error_msg, opt_level);
-    if (factory->getModule()) {
-        return factory;
-    } else {
-        return 0;
-    }
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, name, input, target, error_msg, opt_level));
 }
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
@@ -370,36 +367,26 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
     const std::string& input, char* error_msg, 
     int opt_level)
 {
-    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, name, input, error_msg, opt_level);
-    if (factory->getModule()) {
-        return factory;
-    } else {
-        return 0;
-    }
-}
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, name, input, error_msg, opt_level));
+ }
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
     const std::string& library_path, const std::string& target, 
     char* error_msg, int opt_level)
 {
-    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, target, error_msg, opt_level);
-    if (factory->getModule()) {
-        return factory;
-    } else {
-        return 0;
-    }
-}
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, target, error_msg, opt_level));
+ }
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
     const std::string& library_path, char* error_msg, 
     int opt_level)
 {
-    llvm_dsp_factory* factory = new llvm_dsp_factory(argc, argv, library_path, error_msg, opt_level);
-    if (factory->getModule()) {
-        return factory;
-    } else {
-        return 0;
-    }
+    return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, error_msg, opt_level));
+}
+
+llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level)
+{
+    return CheckDSPFactory(new llvm_dsp_factory(module_path, opt_level));
 }
 
 llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)

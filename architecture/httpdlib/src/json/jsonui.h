@@ -37,26 +37,22 @@ template <typename C> class jsonui
 		virtual ~jsonui()		{ delete fFactory; }
 
 		// -- widget's layouts
-		virtual void openFrameBox(const char* label)			{ fFactory->opengroup( "framebox", label); }
-		virtual void openTabBox(const char* label)				{ fFactory->opengroup( "tabbox", label); }
-		virtual void openHorizontalBox(const char* label)		{ fFactory->opengroup( "horizontalbox", label); }
-		virtual void openVerticalBox(const char* label)			{ fFactory->opengroup( "verticalbox", label); }
+		virtual void openTabBox(const char* label)				{ fFactory->opengroup("tabbox", label); }
+		virtual void openHorizontalBox(const char* label)		{ fFactory->opengroup("horizontalbox", label); }
+		virtual void openVerticalBox(const char* label)			{ fFactory->opengroup("verticalbox", label); }
 		virtual void closeBox()									{ fFactory->closegroup(); }
 
 		// -- active widgets
-		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label); }
-		virtual void addToggleButton(const char* label, C* zone)	{ fFactory->addnode<C>( "togglebutton", label); }
-		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbutton", label); }
+		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>("button", label); }
+		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>("checkbutton", label); }
 		virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
-					{ fFactory->addnode<C>( "verticalslider", label, init, min, max, step); }
+					{ fFactory->addnode<C>("verticalslider", label, init, min, max, step); }
 		virtual void addHorizontalSlider(const char* label, C* zone, C init, C min, C max, C step)
-					{ fFactory->addnode<C>( "horizontalslider", label, init, min, max, step); }
+					{ fFactory->addnode<C>("horizontalslider", label, init, min, max, step); }
 		virtual void addNumEntry(const char* label, C* zone, C init, C min, C max, C step)
-					{ fFactory->addnode<C>( "numentry", label, init, min, max, step); }
+					{ fFactory->addnode<C>("numentry", label, init, min, max, step); }
 
 		// -- passive widgets
-		virtual void addNumDisplay(const char* label, C* zone, int precision)						{}
-		virtual void addTextDisplay(const char* label, C* zone, const char* names[], C min, C max)	{}
 		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)				{}
 		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)			{}
 

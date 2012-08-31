@@ -93,15 +93,20 @@ class llvm_dsp_factory {
         bool fScheduler;
         
         void* LoadOptimize(const std::string& function);
+        
         Module* LoadModule(const std::string filename);
+        
         Module* CompileModule(int argc, char *argv[], 
             const char* library_path, const char* input_name, 
             const char* input, char* error_msg);
+            
         void Init();
-                 
+                  
   public:
   
-         llvm_dsp_factory(int argc, char *argv[], 
+        llvm_dsp_factory(const std::string& module_path, int opt_level = 3);
+  
+        llvm_dsp_factory(int argc, char *argv[], 
             const std::string& library_path, const std::string& name, 
             const std::string& input, const std::string& target, 
             char* error_msg, int opt_level = 3);
@@ -173,6 +178,8 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
                         const std::string& library_path, char* error_msg, 
                         int opt_level = 3);
+                        
+llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level = 3);
                         
 void deleteDSPFactory(llvm_dsp_factory* factory);
 

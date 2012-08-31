@@ -331,13 +331,13 @@ struct global {
     
     Sym PROCESS;
     
-    Sym 	DEBRUIJN;
-    Sym 	DEBRUIJNREF;
-    Sym 	SUBSTITUTE;
+    Sym DEBRUIJN;
+    Sym DEBRUIJNREF;
+    Sym SUBSTITUTE;
 
-    Sym 	SYMREC;
-    Sym 	SYMRECREF;
-    Sym 	SYMLIFTN;
+    Sym SYMREC;
+    Sym SYMRECREF;
+    Sym SYMLIFTN;
     
     loopDetector gLoopDetector;
  
