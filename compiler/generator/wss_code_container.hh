@@ -53,6 +53,7 @@ private:
     void processFIR(void);
 
 public:
+
     WSSCodeContainer(int numInputs, int numOutputs, string const & objName)
         : fObjName(objName),
         fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
@@ -62,6 +63,7 @@ public:
     }
 
 protected:
+
     StatementInst* fThreadLoopBlock;
 };
 

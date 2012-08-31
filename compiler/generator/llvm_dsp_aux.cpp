@@ -368,7 +368,7 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
     int opt_level)
 {
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, name, input, error_msg, opt_level));
- }
+}
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
     const std::string& library_path, const std::string& target, 

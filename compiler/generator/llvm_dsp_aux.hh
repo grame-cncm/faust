@@ -48,9 +48,9 @@
 #endif
 
 #include <string>
-#include "../../architecture/faust//gui/UI.h"
-#include "../../architecture/faust//gui/CUI.h"
-#include "../../architecture/faust//audio/dsp.h"
+#include "../../architecture/faust/gui/UI.h"
+#include "../../architecture/faust/gui/CUI.h"
+#include "../../architecture/faust/audio/dsp.h"
 
 using namespace std;
 using namespace llvm;

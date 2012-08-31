@@ -33,11 +33,14 @@
 
 class VectorCodeContainer : public virtual CodeContainer {
 
+private:
+
     void processFIR(void);
     StatementInst* generateDAGLoopVariant0(const string& counter);
     StatementInst* generateDAGLoopVariant1(const string& counter);
 
 protected:
+
     StatementInst* fDAGBlock;
 
 public:

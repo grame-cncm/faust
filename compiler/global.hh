@@ -46,7 +46,6 @@ class Symbol;
 typedef Symbol* Sym;
 
 class xtended;
-
 class AudioType;
 
 struct global {

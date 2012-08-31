@@ -78,17 +78,13 @@ void JAVACodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "final class " << fKlassName << " {";
 
         tab(n+1, *fOut);
-
         tab(n+1, *fOut);
 
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
 
-        tab(n, *fOut);
-
          // Memory methods
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fKlassName << "[] " << "new" <<  fKlassName << "() { "
                             << "return (" << fKlassName << "[]) new "<< fKlassName << "()"
                             << "; }";

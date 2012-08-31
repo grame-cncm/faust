@@ -197,6 +197,7 @@ void CPPCodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "  public:";
 
         tab(n+1, *fOut);
+        tab(n+1, *fOut);
         produceInfoFunctions(n+1, fKlassName, false);
 
         // Inits
