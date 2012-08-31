@@ -23,7 +23,7 @@
 #define LLVM_DSP_AUX_H
 
 #ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
+#define FAUSTFLOAT double
 #endif
 
 #include <llvm/Module.h>
@@ -123,12 +123,16 @@ class llvm_dsp_factory {
         llvm_dsp_factory(int argc, char *argv[], 
             const std::string& library_path, char* error_msg, 
             int opt_level = 3);
+            
+        llvm_dsp_factory(Module* module, const std::string& target, int opt_level = 0);
       
         virtual ~llvm_dsp_factory();
       
         llvm_dsp_aux* createDSPInstance();
         
         Module* getModule() { return fModule; }
+        
+        std::string writeDSPFactoryToBitcode();
     
 };
 
@@ -182,6 +186,10 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
 llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level = 3);
                         
 void deleteDSPFactory(llvm_dsp_factory* factory);
+
+llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
+
+std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 class llvm_dsp : public dsp {
                 

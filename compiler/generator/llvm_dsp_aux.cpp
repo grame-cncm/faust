@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <stdio.h>
 #include "llvm_dsp_aux.hh"
 #include "../../architecture/faust/libfaust.h"
 
@@ -74,6 +75,23 @@ Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* libr
     }
     
     return compile_faust_llvm(argc1, (char**)argv1, library_path, input_name, input, error_msg);
+}
+
+std::string llvm_dsp_factory::writeDSPFactoryToBitcode()
+{
+    std::string res;
+    raw_string_ostream OS(res);
+    WriteBitcodeToFile(fModule, OS);
+    OS.flush();
+    return res;
+}
+
+llvm_dsp_factory::llvm_dsp_factory(Module* module, const std::string& target, int opt_level)
+{
+    fOptLevel = opt_level;
+    fTarget = target;
+    Init();
+    fModule = module;
 }
 
 llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], const std::string& library_path, const std::string& name, const std::string& input, const std::string& target, char* error_msg, int opt_level)
@@ -388,6 +406,27 @@ llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level
 {
     return CheckDSPFactory(new llvm_dsp_factory(module_path, opt_level));
 }
+
+std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
+{
+    return factory->writeDSPFactoryToBitcode();
+}
+
+llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level)
+{
+    string error_msg;
+    MemoryBuffer* buffer = MemoryBuffer::getMemBufferCopy(StringRef(bit_code));
+    Module* module = ParseBitcodeFile(buffer, getGlobalContext(), &error_msg);
+    delete buffer;
+    
+    if (module) {
+        return new llvm_dsp_factory(module, target, opt_level);
+    } else {
+        return 0;
+    }
+}
+
+// Instance
 
 llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
 {

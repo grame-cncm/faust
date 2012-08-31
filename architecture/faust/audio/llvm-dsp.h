@@ -51,9 +51,11 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
                         const std::string& library_path, char* error_msg, 
                         int opt_level = 3);
                         
-llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level = 3);
-                        
 void deleteDSPFactory(llvm_dsp_factory* factory);
+                        
+llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
+ 
+std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 // Instance class
 
