@@ -175,7 +175,7 @@ void llvm_dsp_factory::Init()
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 {
     assert(fModule);
-    
+     
     if (!fJIT) {
     
         if (gLLVMInit++ == 0) {
@@ -194,10 +194,18 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 
         std::string err;
         EngineBuilder builder(fModule);
-        
         builder.setOptLevel(CodeGenOpt::Aggressive);
         builder.setEngineKind(EngineKind::JIT);
         builder.setUseMCJIT(true);
+        builder.setMCPU(llvm::sys::getHostCPUName());
+        /*
+        SmallVector<std::string, 4> attrs;
+        attrs.push_back("sse");
+        attrs.push_back("sse2");
+        attrs.push_back("sse3");
+        attrs.push_back("enable-unsafe-fp-math");
+        builder.setMAttrs(attrs);
+        */
         fJIT = builder.create();
         assert(fJIT);
         
@@ -487,7 +495,6 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToIR();
 }
-
 
 // Instance
 

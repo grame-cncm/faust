@@ -192,9 +192,11 @@ llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level
 void deleteDSPFactory(llvm_dsp_factory* factory);
 
 llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
-llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
 
 std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
+
+llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
+
 std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 
 class llvm_dsp : public dsp {
