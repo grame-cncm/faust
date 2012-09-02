@@ -74,6 +74,7 @@ Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* libr
         }
     }
     
+    fLibraryPath = string(library_path);
     return compile_faust_llvm(argc1, (char**)argv1, library_path, draw_path, input_name, input, error_msg);
 }
 
@@ -204,7 +205,7 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
         
         // Link with "scheduler" code
         if (fScheduler) {
-            Module* scheduler = LoadModule("scheduler.ll");
+            Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll");
             if (scheduler) {
                 //scheduler->dump();
                 if (Linker::LinkModules(fModule, scheduler, Linker::DestroySource, &err)) {

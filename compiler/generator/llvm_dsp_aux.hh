@@ -91,6 +91,7 @@ class llvm_dsp_factory {
         instanceInitFun fInstanceInit;
         computeFun fCompute;
         
+        string fLibraryPath;
         bool fScheduler;
         
         void* LoadOptimize(const std::string& function);

@@ -819,11 +819,15 @@ int compile_faust_internal(int argc, char* argv[], const char* library_path, con
     /****************************************************************
      1 - process command line
     *****************************************************************/
+    process_cmdline(argc, argv);
+    
+    /*
     if (!process_cmdline(argc, argv)) {
         stringstream error;
         error << "faust: invalid options" << endl;
         throw faustexception(error.str());
     }
+    */
 
     if (gHelpSwitch) 		{ printhelp(); exit(0); }
     if (gVersionSwitch) 	{ printversion(); exit(0); }
