@@ -40,6 +40,7 @@
 #include <llvm/Linker.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
+#include <llvm/Assembly/PrintModulePass.h>
 
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
@@ -135,6 +136,7 @@ class llvm_dsp_factory {
         Module* getModule() { return fModule; }
         
         std::string writeDSPFactoryToBitcode();
+        std::string writeDSPFactoryToIR();
     
 };
 
@@ -190,8 +192,10 @@ llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level
 void deleteDSPFactory(llvm_dsp_factory* factory);
 
 llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
 
 std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
+std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 
 class llvm_dsp : public dsp {
                 

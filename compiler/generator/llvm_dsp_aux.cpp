@@ -44,9 +44,8 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 Module* llvm_dsp_factory::LoadModule(const std::string filename)
 {
     printf("Load module : %s \n", filename.c_str());
-    LLVMContext &context = getGlobalContext();
     SMDiagnostic err;
-    Module* res = ParseIRFile(filename, err, context);
+    Module* res = ParseIRFile(filename, err, getGlobalContext());
     if (!res) {
     #if defined(LLVM_31) 
         err.print("LoadModule", errs());
@@ -80,9 +79,20 @@ Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* libr
 
 std::string llvm_dsp_factory::writeDSPFactoryToBitcode()
 {
-    std::string res = "";
+    std::string res;
     raw_string_ostream OS(res);
     WriteBitcodeToFile(fModule, OS);
+    OS.flush();
+    return res;
+}
+
+std::string llvm_dsp_factory::writeDSPFactoryToIR()
+{
+    std::string res;
+    raw_string_ostream OS(res);
+    PassManager PM;
+    PM.add(createPrintModulePass(&OS));
+    PM.run(*fModule);
     OS.flush();
     return res;
 }
@@ -452,6 +462,32 @@ llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const s
         return 0;
     }
 }
+
+llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level)
+{
+    SMDiagnostic err;
+    MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(ir_code));
+    Module* module = ParseIR(buffer, err, getGlobalContext());
+    delete buffer;
+    
+    if (module) {
+        return new llvm_dsp_factory(module, target, opt_level);
+    } else {
+    #if defined(LLVM_31) 
+        err.print("readDSPFactoryFromIR failed :", errs());
+    #endif
+    #if defined(LLVM_30) 
+        err.Print("readDSPFactoryFromIR failed :", errs());
+    #endif
+        return 0;
+    }
+}
+
+std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
+{
+    return factory->writeDSPFactoryToIR();
+}
+
 
 // Instance
 
