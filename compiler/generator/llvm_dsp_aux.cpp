@@ -79,7 +79,7 @@ Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* libr
 
 std::string llvm_dsp_factory::writeDSPFactoryToBitcode()
 {
-    std::string res;
+    std::string res = "";
     raw_string_ostream OS(res);
     WriteBitcodeToFile(fModule, OS);
     OS.flush();
