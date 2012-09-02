@@ -160,7 +160,7 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
 {
 	gDevSuffix 		= dev;
 	sFoldingFlag 	= boxComplexity(bd) > gGlobal->gFoldThreshold;
-
+   
 	mkchdir(projname); 			// create a directory to store files
 
 	scheduleDrawing(bd);		// schedule the initial drawing

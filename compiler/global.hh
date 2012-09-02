@@ -339,6 +339,8 @@ struct global {
     Sym SYMLIFTN;
     
     loopDetector gLoopDetector;
+    
+    string gDrawPath;
  
     global();
     ~global();

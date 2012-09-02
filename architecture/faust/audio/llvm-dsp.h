@@ -34,21 +34,21 @@ struct llvm_dsp_factory {};
 // Factory
 
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& name, 
+                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);
             
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& name, 
+                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, char* error_msg, 
                         int opt_level = 3);
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& target, 
+                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
                         char* error_msg, int opt_level = 3);
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, char* error_msg, 
+                        const std::string& library_path, const std::string& draw_path, char* error_msg, 
                         int opt_level = 3);
                         
 void deleteDSPFactory(llvm_dsp_factory* factory);

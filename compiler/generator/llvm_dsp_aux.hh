@@ -39,6 +39,7 @@
 #include <llvm/Support/IRReader.h>
 #include <llvm/Linker.h>
 #include <llvm/Support/Host.h>
+#include <llvm/Support/ManagedStatic.h>
 
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>
@@ -97,8 +98,8 @@ class llvm_dsp_factory {
         Module* LoadModule(const std::string filename);
         
         Module* CompileModule(int argc, char *argv[], 
-            const char* library_path, const char* input_name, 
-            const char* input, char* error_msg);
+            const char* library_path, const char* draw_path,
+            const char* input_name, const char* input, char* error_msg);
             
         void Init();
                   
@@ -107,21 +108,21 @@ class llvm_dsp_factory {
         llvm_dsp_factory(const std::string& module_path, int opt_level = 3);
   
         llvm_dsp_factory(int argc, char *argv[], 
-            const std::string& library_path, const std::string& name, 
+            const std::string& library_path, const std::string& draw_path, const std::string& name, 
             const std::string& input, const std::string& target, 
             char* error_msg, int opt_level = 3);
             
         llvm_dsp_factory(int argc, char *argv[], 
-            const std::string& library_path, const std::string& name, 
+            const std::string& library_path, const std::string& draw_path, const std::string& name, 
             const std::string& input, char* error_msg, 
             int opt_level = 3);
             
         llvm_dsp_factory(int argc, char *argv[], 
-            const std::string& library_path, const std::string& target, 
+            const std::string& library_path, const std::string& draw_path, const std::string& target, 
             char* error_msg, int opt_level = 3);
             
         llvm_dsp_factory(int argc, char *argv[], 
-            const std::string& library_path, char* error_msg, 
+            const std::string& library_path, const std::string& draw_path, char* error_msg, 
             int opt_level = 3);
             
         llvm_dsp_factory(Module* module, const std::string& target, int opt_level = 0);
@@ -166,21 +167,21 @@ class llvm_dsp_aux : public dsp {
 // Public interface
 
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& name, 
+                        const std::string& library_path, const std::string& draw_path,  const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);
             
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& name, 
+                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
                         const std::string& input, char* error_msg, 
                         int opt_level = 3);
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& target, 
+                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
                         char* error_msg, int opt_level = 3);
     
 llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, char* error_msg, 
+                        const std::string& library_path, const std::string& draw_path, char* error_msg, 
                         int opt_level = 3);
                         
 llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level = 3);

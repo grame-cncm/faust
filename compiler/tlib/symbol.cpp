@@ -140,7 +140,9 @@ bool Symbol::equiv (unsigned int hash, const char *str) const
 unsigned int Symbol::calcHashKey (const char* str)
 {
     unsigned int h = 0;
-
+ 
+    printf("Symbol::calcHashKey %s\n", str);
+     
     while (*str) h = (h << 1) ^ (h >> 20) ^ (*str++);
     return h;
 }

@@ -181,7 +181,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("ScalarCompiler::prepare");
 
     if (gGlobal->gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gGlobal->gMasterDocument).c_str());
+        ofstream dotfile(subst("$0-sig.dot", gGlobal->gDrawPath + gGlobal->gMasterDocument).c_str());
         sigToGraph(L3, dotfile);
     }
   	return L3;

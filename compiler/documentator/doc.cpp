@@ -116,7 +116,7 @@ static void	calcEqnsNicknames( const vector<string>& eqNames, vector<string>& eq
 static void	mapPrepareEqSig( const vector<Tree>& evalEqBoxes, vector<int>& eqInputs, vector<int>& eqOutputs, vector<Tree>& eqSigs );	///< step 4&5. Propagate and prepare signals.
 static void	mapSetSigNickname( const vector<string>& eqNicknames, const vector<int>& eqInputs, const vector<Tree>& eqSigs );	///< step 6. Set signals nicknames.
 static void	collectEqSigs( const vector<Tree>& eqSigs, Tree& superEqList );								///< step 7. Collect all signals in a superlist.
-static void	annotateSuperList( DocCompiler* DC, Tree superEqList );								///< step 8. Annotate superlist.
+static void	annotateSuperList( DocCompiler* DC, Tree superEqList );                                     ///< step 8. Annotate superlist.
 //static void	calcAndSetLtqNames( Tree superEqList );		///< step 9. 
 static void	mapCompileDocEqnSigs( const vector<Tree>& eqSigs, const vector<int>& eqInputs, const vector<int>& eqOutputs, DocCompiler* DC, vector<Lateq*>& docCompiledEqnsVector );	///< step 10. Compile equations.
 
@@ -134,7 +134,7 @@ static int		cholddir ();
 static int		mkchdir(const char* dirname);
 static int		makedir(const char* dirname);
 static void		getCurrentDir();
-static istream* openArchFile (const string& filename);
+static istream* openArchFile(const string& filename);
 static char*	legalFileName(const Tree t, int n, char* dst);
 static string	rmExternalDoubleQuotes(const string& s);
 static void		copyFaustSources(const char* projname, const vector<string>& pathnames);
@@ -143,8 +143,6 @@ static void		printdocCodeSlices(const string& code, ostream& docout);
 static bool		doesFileBeginWithCode(const string& faustfile);
 
 //static void		declareAutoDoc();
-
-
 
 /*****************************************************************************
 					Types of Documentation Elements
@@ -180,12 +178,9 @@ bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCMTD, x); 	}
 
 //string getDocTxt(Tree t) 			{ return hd(t)->branch(0); }
 
-
-
 /*****************************************************************************
 				Main Printing Function for the Documentation
  *****************************************************************************/
-
 
 /**
  * @brief The entry point to generate faust doc files.
@@ -245,8 +240,6 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
     delete(latexheader);
 }
 
-
-
 /*****************************************************************************
 			LaTeX basic printing functions of the Documentation
  *****************************************************************************/
@@ -275,7 +268,6 @@ static void printlatexheader(istream& latexheader, const string& faustversion, o
 	docout << endl << "\\begin{document}" << endl;
 }
 
-
 /**
  * @Brief Print a metadata set.
  * 
@@ -299,7 +291,6 @@ static void printDocMetadata(const Tree expr, ostream& docout)
 	}
 }
 
-
 /** 
  * Print listings of each Faust code ".dsp" files,
  * calling the 'printfaustlisting' function.
@@ -317,7 +308,6 @@ static void printfaustlistings(ostream& docout)
 		printfaustlisting(gGlobal->gMasterDocument, docout);
 	}
 }
-
 
 /** 
  * Print a listing of the Faust code, in a LaTeX "listing" environment.
@@ -359,7 +349,6 @@ static void printfaustlisting(string& faustfile, ostream& docout)
 	docout << "\\end{lstlisting}" << endl << endl;
 }
 
-
 /** 
  * Print the static LaTeX footer. 
  *
@@ -369,7 +358,6 @@ static void printlatexfooter(ostream& docout)
 {
 	docout << endl << "\\end{document}" << endl << endl;
 }
-
 
 /** 
  * Print a "doc stamp" in the LaTeX document :
@@ -389,8 +377,6 @@ static void printfaustdocstamp(const string& faustversion, ostream& docout)
 	docout << "%% " << datebuf << endl;
 	docout << "%% http://faust.grame.fr" << endl << endl;
 }
-
-
 
 /*****************************************************************************
 			Main loop : launches prepare, evaluate, and print functions
@@ -475,8 +461,6 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 	}
 }
 
-
-
 /*****************************************************************************
 			Primary sub-functions for <equation> handling
  *****************************************************************************/
@@ -513,7 +497,6 @@ static void prepareDocEqns(const vector<Tree>& docBoxes, vector<Lateq*>& docComp
 	}
 }
 
-
 /**
  * #0. Collect every <equation> found in all <mdoc> faust comments.
  *
@@ -538,7 +521,6 @@ static void collectDocEqns(const vector<Tree>& docBoxes, vector<Tree>& eqBoxes)
 	//cerr << "Documentator : collectDocEqns : " << nbdoceqn << " <equation> tags found." << endl;
 }
 
-
 /**
  * #1. Evaluate every doc <equation> (evaluation replaces abstractions by symbolic boxes).
  *
@@ -556,7 +538,6 @@ static void mapEvalDocEqn(const vector<Tree>& eqBoxes, const Tree& env, vector<T
 	}
 	//cerr << "Documentator : end of mapEvalDocEqn\n---" << endl;
 }
-
 
 /**
  * #2. Get name if exists, else create one, and store it.
@@ -583,7 +564,6 @@ static void mapGetEqName(const vector<Tree>& evalEqBoxes, vector<string>& eqName
 	}
 	//cerr << "Documentator : end of mapGetEqName\n---" << endl;
 }
-
 
 /**
  * #3. Calculate a nickname for each equation and store it.
@@ -625,7 +605,6 @@ static void calcEqnsNicknames(const vector<string>& eqNames, vector<string>& eqN
 	//cerr << "Documentator : end of calcEqnsNicknames\n---" << endl;
 }
 
-
 /**
  * #4&5. Propagate and prepare every doc <equation>.
  *
@@ -660,7 +639,6 @@ static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInpu
 	//cerr << "Documentator : end of mapPrepareEqSig\n---" << endl;
 }
 
-
 /**
  * #6. Set signals nicknames.
  *
@@ -679,7 +657,6 @@ static void mapSetSigNickname(const vector<string>& eqNicknames, const vector<in
 //	}
 	//cerr << "Documentator : end of mapSetSigNickname\n---" << endl;
 }
-
 
 /**
  * #7. Collect each prepared list of signals to construct a super list.
@@ -701,7 +678,6 @@ static void collectEqSigs(const vector<Tree>& eqSigs, Tree& superEqList)
 	//cerr << endl << "Documentator : end of collectEqSigs\n---" << endl;
 }
 
-
 /**
  * #8. Annotate superEqList (to find candidate signals to be named later).
  *
@@ -713,7 +689,6 @@ static void	annotateSuperList(DocCompiler* DC, Tree superEqList)
 	DC->annotate(superEqList);
 }
 
-
 ///**
 // * #9. Calculated and set lateq (LaTeX equation) names.
 // * Note : Transfered into mapCompileDocEqnSigs (DocCompiler::compileMultiSignal).
@@ -722,7 +697,6 @@ static void	annotateSuperList(DocCompiler* DC, Tree superEqList)
 //{
 //	
 //}
-
 
 /**
  * #10. Name and compile prepared doc <equation> signals.
@@ -744,13 +718,9 @@ static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& 
 	//cerr << "Documentator : end of mapCompileDocEqnSigs\n---" << endl;
 }
 
-
-
 /*****************************************************************************
 				Secondary sub-functions for <equation> handling
  *****************************************************************************/
-
-
 /**
  * Calculate an appropriate nickname for equations,
  * from previous names.
@@ -762,15 +732,15 @@ static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& 
 static string calcDocEqnInitial(const string s)
 {
 	string nn;
-	if(s == "process")
+	if(s == "process") {
 		nn = "Y";
-	else if (s.substr(0,6) == "doceqn")
+	} else if (s.substr(0,6) == "doceqn") {
 		nn = "Z";
-	else
+	} else {
 		nn += toupper(s[0]);
+    }
 	return nn;
 }
-
 
 /**
  * Just get the number of inputs and the number of outputs of a box.
@@ -837,7 +807,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
 	string thisdgmdir = subst("$0/svg-$1", svgTopDir, dgmid);
 	//cerr << "Documentator : printDocDgm : drawSchema in '" << gCurrentDir << "/" << thisdgmdir << "'" << endl;
 	
-	drawSchema( docdgm, thisdgmdir.c_str(), "svg" );
+	drawSchema(docdgm, thisdgmdir.c_str(), "svg");
 	
 	/** 3. Print LaTeX figure code. */
 	char temp[1024];
@@ -855,13 +825,9 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
 	gGlobal->gDocNoticeFlagMap["svgdir"] = true;
 }
 
-
-
 /*****************************************************************************
 							Other sub-functions
  *****************************************************************************/
-
-
 /**
  * Slice faust code between "mdoc" sections.
  *
@@ -905,7 +871,6 @@ vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlice
 	return codeSlices;
 }
 			
-
 /**
  * Print faust code inside a listing environment.
  * 
@@ -920,7 +885,6 @@ static void printdocCodeSlices(const string& code, ostream& docout)
 		docout << "\\end{lstlisting}" << endl << endl;
 	}
 }
-
 
 /**
  * Test whether a file does begin with some faust code or not.
@@ -948,11 +912,7 @@ static bool doesFileBeginWithCode(const string& faustfile)
 	}
 }	
 
-
-
 //------------------------ dealing with files -------------------------
-
-
 /**
  * Create a new directory in the current one.
  */
@@ -971,7 +931,6 @@ static int makedir(const char* dirname)
     error << "ERROR in makedir " << strerror(errno) << endl;
     throw faustexception(error.str());
 }
-
 
 /**
  * Create a new directory in the current one, 
@@ -998,7 +957,6 @@ static int mkchdir(const char* dirname)
     throw faustexception(error.str());
 }
 
-
 /**
  * Switch back to the previously stored current directory
  */
@@ -1013,7 +971,6 @@ static int cholddir ()
 	}
 }
 
-
 /**
  * Get current directory and store it in gCurrentDir.
  */
@@ -1022,7 +979,6 @@ static void getCurrentDir ()
 	char buffer[FAUST_PATH_MAX];
     gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
 }
-
 
 /**
  * Open architecture file.
@@ -1042,7 +998,6 @@ static istream* openArchFile (const string& filename)
 	cholddir();			// Return to current directory.
 	return file;
 }
-
 
 /**
  * Transform the definition name property of tree <t> into a
@@ -1095,7 +1050,6 @@ static string rmExternalDoubleQuotes(const string& s)
     }
 }
 
-
 /** 
  * Copy all Faust source files into an 'src' subdirectory.
  *
@@ -1122,10 +1076,7 @@ static void copyFaustSources(const char* projname, const vector<string>& pathnam
 	}
 }
 
-
 //------------------------ date managment -------------------------
-
-
 static void initCompilationDate()
 {
 	time_t now;

@@ -35,6 +35,7 @@ extern "C"
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
  * @param library_path - Faust library path : if null, the default localization mechanism will be used
+ * @param draw_path - the place where to put ouput files like SVG, ps, dot...
  * @param name - the name of the Faust program
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
@@ -42,7 +43,7 @@ extern "C"
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
  */
  
-int compile_faust(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
+int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 /**
  * Compile a Faust program and produces an LLVM module.
@@ -50,6 +51,7 @@ int compile_faust(int argc, char* argv[], const char* library_path, const char* 
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
  * @param library_path - Faust library path : if null, the default localization mechanism will be used
+ * @param draw_path - the place where to put ouput files like SVG, ps, dot...
  * @param name - the name of the Faust program
  * @param input - the Faust program as a C string
  * @param error_msg - the error string to be filled, has to be 256 characters long
@@ -57,7 +59,7 @@ int compile_faust(int argc, char* argv[], const char* library_path, const char* 
  * @return a valid LLVM module on success, 0 otherwise, with an error message in error_msg.
  */
 
-llvm::Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
+llvm::Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 #ifdef __cplusplus
 }

@@ -127,9 +127,15 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 
 static bool process_cmdline(int argc, char* argv[])
 {
-	int	i=1; int err=0;
+	int	i = 1; int err = 0;
+    
+    /*
+    for (int i = 0; i < argc; i++) {
+        printf("process_cmdline i = %d cmd = %s\n", i, argv[i]);
+    }
+    */
 
-	while (i<argc) {
+	while (i < argc) {
 
 		if (isCmd(argv[i], "-h", "--help")) {
 			gHelpSwitch = true;
@@ -513,7 +519,6 @@ static void parseSourceFiles()
     endTiming("parser");
 }
 
-
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
@@ -528,9 +533,11 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     if (gGlobal->gDetailsSwitch) { cerr << "process = " << boxpp(process) << ";\n"; }
 
     if (gDrawPSSwitch || gDrawSVGSwitch) {
-        string projname = gGlobal->gMasterDocument;
-        if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp") {
-            projname = gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length()-4);
+        string projname;
+        if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
+            projname = gGlobal->gDrawPath + gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4);
+        } else {
+            projname = gGlobal->gDrawPath + gGlobal->gMasterDocument;
         }
         if (gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
         if (gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
@@ -733,7 +740,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             container->produceClass();
         }
-
     }
     
     endTiming("compilation");
@@ -750,7 +756,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     if (gPrintXMLSwitch) {
         Description*    D = comp->getDescription(); assert(D);
         
-        ofstream        xout(subst("$0.xml", gGlobal->gMasterDocument).c_str());
+        ofstream        xout(subst("$0.xml", (gGlobal->gDrawPath + gGlobal->gMasterDocument)).c_str());
       
         if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
         if (gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
@@ -771,10 +777,13 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
     if (gPrintDocSwitch) {
         if (gGlobal->gLatexDocSwitch) {
-            string projname = gGlobal->gMasterDocument;
+            string projname;
             if (gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp") {
-                projname = gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4); }
-            printDoc( subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION );
+                projname = gGlobal->gDrawPath + gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4); 
+            } else {
+                projname = gGlobal->gDrawPath + gGlobal->gMasterDocument;
+            }
+            printDoc(subst("$0-mdoc", projname).c_str(), "tex", FAUSTVERSION);
         }
     }
 
@@ -783,28 +792,29 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     *****************************************************************/
 
     if (gGraphSwitch) {
-        ofstream dotfile(subst("$0.dot", gGlobal->gMasterDocument).c_str());
+        ofstream dotfile(subst("$0.dot", (gGlobal->gDrawPath + gGlobal->gMasterDocument)).c_str());
         container->printGraphDotFormat(dotfile);
     }
 }
 
 #ifdef __cplusplus
-extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* name, const char* input);
-
-extern "C" int compile_faust(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
-extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg);
+extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input);
+extern "C" int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 #endif
 
-int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* name, const char* input = NULL)
+int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
 {
     /****************************************************************
-     0 - set library_path
+     0 - set library_path and draw_path
     *****************************************************************/
     if (library_path && strcmp(library_path, "") != 0) {
         char full_library_path[512];
         sprintf(full_library_path, "%s=%s", FAUST_LIB_PATH, library_path);
         putenv(full_library_path);
     }
+    
+    gGlobal->gDrawPath = string(draw_path);
             
     /****************************************************************
      1 - process command line
@@ -865,7 +875,7 @@ int compile_faust_internal(int argc, char* argv[], const char* library_path, con
     return 0;
 }
 
-Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg)
+Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     Module* module = 0;
     gLLVMOut = false;
@@ -873,7 +883,7 @@ Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, con
     
     try {
         global::allocate();
-        compile_faust_internal(argc, argv, library_path, name, input);
+        compile_faust_internal(argc, argv, library_path, draw_path, name, input);
         module = gGlobal->gModule;
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
@@ -884,14 +894,14 @@ Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, con
     return module;
 }
 
-int compile_faust(int argc, char* argv[], const char* library_path, const char* name, const char* input, char* error_msg)
+int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     int res = 0;
     gGlobal = NULL;
     
     try {
         global::allocate();        
-        res = compile_faust_internal(argc, argv, library_path, name, input);
+        res = compile_faust_internal(argc, argv, library_path, draw_path, name, input);
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
         strcpy(error_msg, e.Message().c_str());
