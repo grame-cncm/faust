@@ -171,10 +171,11 @@ class llvm_dsp_factory {
       
         llvm_dsp_aux* createDSPInstance();
         
-        Module* getModule() { return fModule; }
         
         std::string writeDSPFactoryToBitcode();
         std::string writeDSPFactoryToIR();
+        
+        bool initJIT();
     
 };
 
