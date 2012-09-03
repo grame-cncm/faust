@@ -475,8 +475,7 @@ llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::st
 {
     SMDiagnostic err;
     MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(ir_code));
-    Module* module = ParseIR(buffer, err, getGlobalContext());
-    delete buffer;
+    Module* module = ParseIR(buffer, err, getGlobalContext()); // ParseIR takes ownership of the given buffer, so don't delete it
     
     if (module) {
         return new llvm_dsp_factory(module, target, opt_level);
