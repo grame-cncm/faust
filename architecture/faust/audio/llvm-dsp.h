@@ -75,6 +75,7 @@ class llvm_dsp : public dsp {
         virtual void init(int samplingFreq);
 
         virtual void buildUserInterface(UI* interface);
+        virtual std::string buildJson();
 
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      

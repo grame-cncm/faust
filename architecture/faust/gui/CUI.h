@@ -155,6 +155,23 @@ void declareGlue(void* cpp_interface, FAUSTFLOAT* zone, const char* key, const c
     interface->declare(zone, key, value);
 }
 
+void buildUIGlue(UIGlue* glue, UI* interface)
+{
+    glue->uiInterface = interface;
+    glue->openTabBox = openTabBoxGlue;
+    glue->openHorizontalBox = openHorizontalBoxGlue;
+    glue->openVerticalBox = openVerticalBoxGlue;
+    glue->closeBox = closeBoxGlue;
+    glue->addButton = addButtonGlue;
+    glue->addCheckButton = addCheckButtonGlue;
+    glue->addVerticalSlider = addVerticalSliderGlue;
+    glue->addHorizontalSlider = addHorizontalSliderGlue;
+    glue->addNumEntry = addNumEntryGlue;
+    glue->addHorizontalBargraph = addHorizontalBargraphGlue;
+    glue->addVerticalBargraph = addVerticalBargraphGlue;
+    glue->declare = declareGlue;
+}
+
 #ifdef __cplusplus
 }
 #endif

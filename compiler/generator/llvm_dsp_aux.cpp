@@ -23,6 +23,8 @@
 #include "llvm_dsp_aux.hh"
 #include "../../architecture/faust/libfaust.h"
 
+#include <stdio.h>
+
 // For scheduler mode : this function is retrieved in the LLVM module and used in scheduler.cpp
 typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
 computeThreadExternalFun gComputeThreadExternal = 0;
@@ -338,70 +340,119 @@ llvm_dsp_factory::~llvm_dsp_factory()
         //llvm_shutdown();
     }
 }
+
+std::string llvm_dsp_factory::BuildJSON(llvm_dsp_imp* dsp)
+{
+    UIGlue glue;
+    JSONUI json;
+    buildUIGlue(&glue, &json);
+    fBuildUserInterface(dsp, &glue);
+}
+
+// -- widget's layouts
+
+void JSONUI::openTabBox(const char* label)
+{
+}
+void JSONUI::openHorizontalBox(const char* label)
+{
+}
+void JSONUI::openVerticalBox(const char* label)
+{
+}
+void JSONUI::closeBox()
+{
+}
+
+// -- active widgets
+
+void JSONUI::addButton(const char* label, FAUSTFLOAT* zone)
+{
+}
+void JSONUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
+{
+}
+void JSONUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+{
+}
+void JSONUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+{
+}
+void JSONUI::addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+{
+}
+
+// -- passive widgets
+
+void JSONUI::addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+{
+}
+void JSONUI::addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+{
+}
+
+// -- metadata declarations
+
+void JSONUI::declare(FAUSTFLOAT* zone, const char* key, const char* val) 
+{
+}
         
 // Instance 
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
-    :fFactory(factory), fDSP(dsp)
+    :fDSPFactory(factory), fDSP(dsp)
 {
-    assert(fFactory);
+    assert(fDSPFactory);
     assert(fDSP);
 }
         
 llvm_dsp_aux::~llvm_dsp_aux()
 {   
     if (fDSP) {
-        fFactory->fDelete(fDSP);
+        fDSPFactory->fDelete(fDSP);
     }
 }
 
 int llvm_dsp_aux::getNumInputs()
 {
-    return fFactory->fGetNumInputs(fDSP);
+    return fDSPFactory->fGetNumInputs(fDSP);
 }
 int llvm_dsp_aux::getNumOutputs()
 {
-    return fFactory->fGetNumOutputs(fDSP);
+    return fDSPFactory->fGetNumOutputs(fDSP);
 }
 
 void llvm_dsp_aux::classInit(int samplingFreq)
 {
-    fFactory->fClassInit(samplingFreq);
+    fDSPFactory->fClassInit(samplingFreq);
 }
 
 void llvm_dsp_aux::instanceInit(int samplingFreq)
 {
-    fFactory->fInstanceInit(fDSP, samplingFreq);
+    fDSPFactory->fInstanceInit(fDSP, samplingFreq);
 }
 
 void llvm_dsp_aux::init(int samplingFreq)
 {
-    fFactory->fInit(fDSP, samplingFreq);
+    fDSPFactory->fInit(fDSP, samplingFreq);
 }
 
 void llvm_dsp_aux::buildUserInterface(UI* interface)
 {
     UIGlue glue;
-    glue.uiInterface = interface;
-    glue.openTabBox = openTabBoxGlue;
-    glue.openHorizontalBox = openHorizontalBoxGlue;
-    glue.openVerticalBox = openVerticalBoxGlue;
-    glue.closeBox = closeBoxGlue;
-    glue.addButton = addButtonGlue;
-    glue.addCheckButton = addCheckButtonGlue;
-    glue.addVerticalSlider = addVerticalSliderGlue;
-    glue.addHorizontalSlider = addHorizontalSliderGlue;
-    glue.addNumEntry = addNumEntryGlue;
-    glue.addHorizontalBargraph = addHorizontalBargraphGlue;
-    glue.addVerticalBargraph = addVerticalBargraphGlue;
-    glue.declare = declareGlue;
-    fFactory->fBuildUserInterface(fDSP, &glue);
+    buildUIGlue(&glue, interface);
+    fDSPFactory->fBuildUserInterface(fDSP, &glue);
+}
+
+std::string llvm_dsp_aux::buildJSON()
+{
+    return  fDSPFactory->BuildJSON(fDSP);
 }
 
 void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     AVOIDDENORMALS;
-    fFactory->fCompute(fDSP, count, input, output);
+    fDSPFactory->fCompute(fDSP, count, input, output);
 }
 
 static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory)
@@ -542,4 +593,9 @@ void llvm_dsp::buildUserInterface(UI* interface)
 void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
      reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
+}
+
+std::string llvm_dsp::buildJSON()   
+{ 
+     reinterpret_cast<llvm_dsp_aux*>(this)->buildJSON();
 }

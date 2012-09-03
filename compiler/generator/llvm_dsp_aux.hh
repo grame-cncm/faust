@@ -71,6 +71,41 @@ typedef void (* computeFun) (llvm_dsp_imp* self, int len, FAUSTFLOAT** inputs, F
 
 class llvm_dsp_aux;
 
+class JSONUI : public UI {
+
+    private:
+ 
+    public:
+    
+        JSONUI()
+        {}
+
+        // -- widget's layouts
+
+        virtual void openTabBox(const char* label);
+        virtual void openHorizontalBox(const char* label);
+        virtual void openVerticalBox(const char* label);
+        virtual void closeBox();
+
+        // -- active widgets
+
+        virtual void addButton(const char* label, FAUSTFLOAT* zone);
+        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone);
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+
+        // -- passive widgets
+
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
+        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
+
+        // -- metadata declarations
+
+        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val);
+
+}; 
+
 class llvm_dsp_factory {
 
     friend class llvm_dsp_aux;
@@ -93,6 +128,7 @@ class llvm_dsp_factory {
         computeFun fCompute;
         
         string fLibraryPath;
+        
         bool fScheduler;
         
         void* LoadOptimize(const std::string& function);
@@ -104,6 +140,8 @@ class llvm_dsp_factory {
             const char* input_name, const char* input, char* error_msg);
             
         void Init();
+        
+        std::string BuildJSON(llvm_dsp_imp* dsp);
                   
   public:
   
@@ -146,7 +184,7 @@ class llvm_dsp_aux : public dsp {
    
     private:
 
-        llvm_dsp_factory* fFactory;
+        llvm_dsp_factory* fDSPFactory;
         llvm_dsp_imp* fDSP;
                  
     public:
@@ -162,6 +200,7 @@ class llvm_dsp_aux : public dsp {
         virtual void init(int samplingFreq);
       
         virtual void buildUserInterface(UI* interface);
+        virtual std::string buildJSON();
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
@@ -211,6 +250,7 @@ class llvm_dsp : public dsp {
         virtual void init(int samplingFreq);
       
         virtual void buildUserInterface(UI* interface);
+        virtual std::string buildJSON();
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
