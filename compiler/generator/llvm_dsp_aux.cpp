@@ -25,13 +25,6 @@
 
 #include <stdio.h>
 
-static void tab(int n, ostream& fout)
-{
-    fout << '\n';
-    while (n--) fout << '\t';
-}
-
-
 // For scheduler mode : this function is retrieved in the LLVM module and used in scheduler.cpp
 typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
 computeThreadExternalFun gComputeThreadExternal = 0;
@@ -342,28 +335,34 @@ std::string llvm_dsp_factory::BuildJSON(llvm_dsp_imp* dsp)
 
 // -- widget's layouts
 
-void JSONUI::openTabBox(const char* label)
+static void tab(int n, ostream& fout)
+{
+    fout << '\n';
+    while (n--) fout << '\t';
+}
+
+void JSONUI::openGroup(const char* group, const char* label)
 {
     fTab++;
-    tab(fTab, *fOut); *fOut << "\"tablegroup\":" << "\"" << label << "\"" << "[";
+    tab(fTab, *fOut); *fOut << "\"" << group << "\":" << "\"" << label << "\"" << "[";
     fNewGroup = true;
     fTab++; 
-    
 }
+
+void JSONUI::openTabBox(const char* label)
+{
+    openGroup("tablegroup", label);
+}
+
 void JSONUI::openHorizontalBox(const char* label)
 {
-    fTab++;
-    tab(fTab, *fOut); *fOut << "\"horizontalgroup\":" << "\"" << label << "\"" << "[";
-    fNewGroup = true;
-    fTab++;
+    openGroup("horizontalgroup", label);
 }
 void JSONUI::openVerticalBox(const char* label)
 {
-    fTab++;
-    tab(fTab, *fOut); *fOut << "\"verticalgroup\":" << "\"" << label << "\"" << "[";
-    fNewGroup = true;
-    fTab++;
+    openGroup("verticalgroup", label);
 }
+
 void JSONUI::closeBox()
 {
     fTab--;

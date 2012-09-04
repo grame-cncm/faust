@@ -23,7 +23,7 @@
 #define LLVM_DSP_AUX_H
 
 #ifndef FAUSTFLOAT
-#define FAUSTFLOAT double
+#define FAUSTFLOAT float
 #endif
 
 #include <iostream>
@@ -83,6 +83,7 @@ class JSONUI : public UI {
         int fTab;
         bool fNewGroup;
         
+        void openGroup(const char* group, const char* label);
         void addGenericButton(const char* button, const char* label, FAUSTFLOAT* zone);
         void addGenericSlider(const char* slider, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
         void addGenericBargraph(const char* bargraph, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);

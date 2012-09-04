@@ -778,7 +778,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     if (gPrintDocSwitch) {
         if (gGlobal->gLatexDocSwitch) {
             string projname;
-            if (gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length()-4) == ".dsp") {
+            if (gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
                 projname = gGlobal->gDrawPath + gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4); 
             } else {
                 projname = gGlobal->gDrawPath + gGlobal->gMasterDocument;
