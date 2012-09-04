@@ -45,6 +45,7 @@
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Assembly/PrintModulePass.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 
 #ifdef LLVM_29
 #include <llvm/Target/TargetSelect.h>

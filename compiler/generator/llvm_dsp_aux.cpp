@@ -149,6 +149,27 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     return new llvm_dsp_aux(this, fNew());
 }
 
+// Taken from LLVM Opt.cpp
+static void AddOptimizationPasses(PassManagerBase &mpm,FunctionPassManager &fpm,
+                                  unsigned opt_level) 
+{
+    PassManagerBuilder Builder;
+    Builder.OptLevel = opt_level;
+
+    if (opt_level > 1) {
+        unsigned threshold = 225;
+        if (opt_level > 2)
+          threshold = 275;
+        Builder.Inliner = createFunctionInliningPass(threshold);
+    } else {
+        Builder.Inliner = createAlwaysInlinerPass();
+    }
+      
+    Builder.DisableUnrollLoops = (opt_level == 0);
+    Builder.populateFunctionPassManager(fpm);
+    Builder.populateModulePassManager(mpm);
+}
+
 bool llvm_dsp_factory::initJIT()
 {
     // First check is Faust compilation succeeded... (valid LLVM module)
@@ -199,6 +220,9 @@ bool llvm_dsp_factory::initJIT()
     PassManager pm;
     pm.add(new TargetData(*fJIT->getTargetData()));
     
+    FunctionPassManager fpm(fModule);
+    fpm.add(new TargetData(*fJIT->getTargetData()));
+    
     // Link with "scheduler" code
     if (fScheduler) {
         Module* scheduler = LoadModule(fLibraryPath + "scheduler.ll");
@@ -213,81 +237,13 @@ bool llvm_dsp_factory::initJIT()
         }
     }
     
-    // Taken from LuaAV
-    switch (fOptLevel) {
-    
-        case 1:
-            pm.add(llvm::createPromoteMemoryToRegisterPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
-            break;
-            
-        case 2:
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createJumpThreadingPass());
-            pm.add(llvm::createPromoteMemoryToRegisterPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createScalarReplAggregatesPass());
-            pm.add(llvm::createLICMPass());
-            pm.add(llvm::createGVNPass());
-            pm.add(llvm::createSCCPPass());
-            pm.add(llvm::createAggressiveDCEPass());
-            pm.add(llvm::createCFGSimplificationPass());
-            pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
-            break;
-            
-        case 3:
-            pm.add(llvm::createScalarReplAggregatesPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createCFGSimplificationPass());        // Clean up disgusting code
-            pm.add(llvm::createPromoteMemoryToRegisterPass());  // Kill useless allocas
-            pm.add(llvm::createGlobalOptimizerPass());          // OptLevel out global vars
-            pm.add(llvm::createGlobalDCEPass());                // Remove unused fns and globs
-            pm.add(llvm::createIPConstantPropagationPass());    // IP Constant Propagation
-            pm.add(llvm::createDeadArgEliminationPass());       // Dead argument elimination
-            pm.add(llvm::createInstructionCombiningPass());     // Clean up after IPCP & DAE
-            pm.add(llvm::createCFGSimplificationPass());        // Clean up after IPCP & DAE
-            pm.add(llvm::createPruneEHPass());                  // Remove dead EH info
-            pm.add(llvm::createFunctionAttrsPass());            // Deduce function attrs
-            pm.add(llvm::createFunctionInliningPass());         // Inline small functions
-            pm.add(llvm::createArgumentPromotionPass());        // Scalarize uninlined fn args
-            pm.add(llvm::createSimplifyLibCallsPass());         // Library Call Optimizations
-            pm.add(llvm::createInstructionCombiningPass());     // Cleanup for scalarrepl.
-            pm.add(llvm::createJumpThreadingPass());            // Thread jumps.
-            pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
-            pm.add(llvm::createScalarReplAggregatesPass());     // Break up aggregate allocas
-            pm.add(llvm::createInstructionCombiningPass());     // Combine silly seq's
-            pm.add(llvm::createTailCallEliminationPass());      // Eliminate tail calls
-            pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
-            pm.add(llvm::createReassociatePass());              // Reassociate expressions
-            pm.add(llvm::createLoopRotatePass());               // Rotate Loop
-            pm.add(llvm::createLICMPass());                     // Hoist loop invariants
-            pm.add(llvm::createLoopUnswitchPass());
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createIndVarSimplifyPass());           // Canonicalize indvars
-            pm.add(llvm::createLoopDeletionPass());             // Delete dead loops
-            pm.add(llvm::createLoopUnrollPass());               // Unroll small loops
-            pm.add(llvm::createInstructionCombiningPass());     // Clean up after the unroller
-            pm.add(llvm::createGVNPass());                      // Remove redundancies
-            pm.add(llvm::createMemCpyOptPass());                // Remove memcpy / form memset
-            pm.add(llvm::createSCCPPass());                     // Constant prop with SCCP
-            pm.add(llvm::createInstructionCombiningPass());
-            pm.add(llvm::createDeadStoreEliminationPass());     // Delete dead stores
-            pm.add(llvm::createAggressiveDCEPass());            // Delete dead instructions
-            pm.add(llvm::createCFGSimplificationPass());        // Merge & remove BBs
-            pm.add(llvm::createStripDeadPrototypesPass());      // Get rid of dead prototypes
-            pm.add(llvm::createConstantMergePass());            // Merge dup global constants
-            pm.add(llvm::createVerifierPass(llvm::PrintMessageAction));
-            break;
-    }
-
+    AddOptimizationPasses(pm, fpm, fOptLevel);
     pm.run(*fModule);
+    
     //fModule->dump();
     
     try {
-       fNew = (newDspFun)LoadOptimize("new_mydsp");
+        fNew = (newDspFun)LoadOptimize("new_mydsp");
         fDelete = (deleteDspFun)LoadOptimize("delete_mydsp");
         fGetNumInputs = (getNumInputsFun)LoadOptimize("getNumInputs_mydsp");
         fGetNumOutputs = (getNumOutputsFun)LoadOptimize("getNumOutputs_mydsp");

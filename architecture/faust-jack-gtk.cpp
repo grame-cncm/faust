@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         */
         
         char error_msg3[256];
-        factory3 = createDSPFactory(argc - 1, &argv[1], "", "", "", "", "", error_msg1);
+        factory3 = createDSPFactory(argc - 1, &argv[1], "", "", "", "", "", error_msg1, 3);
         printf("createDSPFactory %x\n", factory3);
         if (factory3) {
             printf("createDSPFactory %x\n", factory3);
