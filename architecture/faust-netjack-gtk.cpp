@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
         exit(1);
     } else {
-        factory = createDSPFactory(argc, argv, "", error_msg);
+        factory = createDSPFactory(argc, argv, "", "", "", "", "", error_msg);
         DSP = createDSPInstance(factory);
         if (!DSP) {
             cerr << error_msg;

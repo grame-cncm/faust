@@ -26,6 +26,10 @@
 #define FAUSTFLOAT double
 #endif
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/ExecutionEngine/JIT.h>
@@ -74,12 +78,27 @@ class llvm_dsp_aux;
 class JSONUI : public UI {
 
     private:
+       
+        std::ostream* fOut;
+        int fTab;
+        bool fNewGroup;
+        
+        void addGenericButton(const char* button, const char* label, FAUSTFLOAT* zone);
+        void addGenericSlider(const char* slider, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+        void addGenericBargraph(const char* bargraph, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
  
     public:
     
-        JSONUI()
-        {}
-
+        JSONUI(std::ostream* out):fOut(out),fTab(0),fNewGroup(false)
+        {
+            *fOut << "{";
+        }
+        
+        void finish()
+        {
+             *fOut << "}" << endl;
+        }
+  
         // -- widget's layouts
 
         virtual void openTabBox(const char* label);

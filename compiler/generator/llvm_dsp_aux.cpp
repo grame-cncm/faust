@@ -25,6 +25,13 @@
 
 #include <stdio.h>
 
+static void tab(int n, ostream& fout)
+{
+    fout << '\n';
+    while (n--) fout << '\t';
+}
+
+
 // For scheduler mode : this function is retrieved in the LLVM module and used in scheduler.cpp
 typedef void (* computeThreadExternalFun) (llvm_dsp* dsp, int cur_thread);
 computeThreadExternalFun gComputeThreadExternal = 0;
@@ -324,62 +331,120 @@ llvm_dsp_factory::~llvm_dsp_factory()
 
 std::string llvm_dsp_factory::BuildJSON(llvm_dsp_imp* dsp)
 {
-    // TODO
+    stringstream dst;
     UIGlue glue;
-    JSONUI json;
+    JSONUI json(&dst);
     buildUIGlue(&glue, &json);
     fBuildUserInterface(dsp, &glue);
-    
-    return "";
+    json.finish();
+    return dst.str();
 }
 
 // -- widget's layouts
 
 void JSONUI::openTabBox(const char* label)
 {
+    fTab++;
+    tab(fTab, *fOut); *fOut << "\"tablegroup\":" << "\"" << label << "\"" << "[";
+    fNewGroup = true;
+    fTab++; 
+    
 }
 void JSONUI::openHorizontalBox(const char* label)
 {
+    fTab++;
+    tab(fTab, *fOut); *fOut << "\"horizontalgroup\":" << "\"" << label << "\"" << "[";
+    fNewGroup = true;
+    fTab++;
 }
 void JSONUI::openVerticalBox(const char* label)
 {
+    fTab++;
+    tab(fTab, *fOut); *fOut << "\"verticalgroup\":" << "\"" << label << "\"" << "[";
+    fNewGroup = true;
+    fTab++;
 }
 void JSONUI::closeBox()
 {
+    fTab--;
+    tab(fTab, *fOut); *fOut << "]" << endl;
+    fTab--;
 }
 
 // -- active widgets
 
+void JSONUI::addGenericButton(const char* button, const char* label, FAUSTFLOAT* zone)
+{
+    tab(fTab, *fOut); 
+    string beg = (fNewGroup) ? "{ " : ",{ ";
+    fNewGroup = false;
+    *fOut << beg << "\"type\":" << "\"" << button << "\",";
+    tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\"";
+    tab(fTab, *fOut); *fOut << "}";
+}
+
 void JSONUI::addButton(const char* label, FAUSTFLOAT* zone)
 {
+    addGenericButton("button", label, zone);
 }
 void JSONUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
 {
+    addGenericButton("checkbutton", label, zone);
 }
+void JSONUI::addGenericSlider(const char* slider, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+{
+    tab(fTab, *fOut);
+    string beg = (fNewGroup) ? "{ " : ",{ ";
+    fNewGroup = false;
+    *fOut << beg << "\"type\":" << "\"" << slider << "\",";
+    tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\",";
+    tab(fTab, *fOut); *fOut << "\"init\":" << init << ",";
+    tab(fTab, *fOut); *fOut << "\"min\":" << min << ",";
+    tab(fTab, *fOut); *fOut << "\"max\":" << max << ",";
+    tab(fTab, *fOut); *fOut << "\"step\":" << step;
+    tab(fTab, *fOut); *fOut << "}";
+}
+ 
 void JSONUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
+    addGenericSlider("vecticalslider", label, zone, init, min, max, step);
 }
 void JSONUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
+    addGenericSlider("horizontalslider", label, zone, init, min, max, step);
 }
 void JSONUI::addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
 {
+    addGenericSlider("numentry", label, zone, init, min, max, step);
 }
 
 // -- passive widgets
 
+void JSONUI::addGenericBargraph(const char* bargraph, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+{
+    tab(fTab, *fOut); 
+    string beg = (fNewGroup) ? "{ " : ",{ ";
+    fNewGroup = false;
+    *fOut << beg << "\"type\":" << "\"" << bargraph << "\",";
+    tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\",";
+    tab(fTab, *fOut); *fOut << "\"min\":" << min << ",";
+    tab(fTab, *fOut); *fOut << "\"max\":" << max << ",";
+    tab(fTab, *fOut); *fOut << "}";
+}
+
 void JSONUI::addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 {
+    addGenericBargraph("horizontalbargraph", label, zone, min, max);
 }
 void JSONUI::addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 {
+    addGenericBargraph("verticalbargraph", label, zone, min, max);
 }
 
 // -- metadata declarations
 
 void JSONUI::declare(FAUSTFLOAT* zone, const char* key, const char* val) 
-{
-}
+{}
         
 // Instance 
 
@@ -559,5 +624,5 @@ void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 
 std::string llvm_dsp::buildJSON()   
 { 
-     reinterpret_cast<llvm_dsp_aux*>(this)->buildJSON();
+     return reinterpret_cast<llvm_dsp_aux*>(this)->buildJSON();
 }

@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
         argv1[0] = "-svg";
         char error_msg1[256];
         
-        llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "in1", "process = +,+", error_msg1);
+        /*
+        llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "", "in1", "process = +,+", "", error_msg1);
         if (factory1) {
             llvm_dsp* imp1 = createDSPInstance(factory1);
             deleteDSPInstance(imp1);
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
         }
         
         char error_msg2[256];
-        llvm_dsp_factory* factory2 = createDSPFactory(argc1, argv1, "/Users/letz", "in2", "process = +,+;", error_msg2);
+        llvm_dsp_factory* factory2 = createDSPFactory(argc1, argv1, "/Users/letz", "", "in1", "process = +,+", "", error_msg1);
         if (factory2) {
             llvm_dsp* imp2 = createDSPInstance(factory2);
             deleteDSPInstance(imp2);
@@ -116,10 +117,13 @@ int main(int argc, char *argv[])
         } else {
             printf("Cannot create factory : %s", error_msg2);
         }
+        */
         
         char error_msg3[256];
-        factory3 = createDSPFactory(argc, argv, "", error_msg3, 3);
+        factory3 = createDSPFactory(argc - 1, &argv[1], "", "", "", "", "", error_msg1);
+        printf("createDSPFactory %x\n", factory3);
         if (factory3) {
+            printf("createDSPFactory %x\n", factory3);
             llvm_dsp* imp3 = createDSPInstance(factory3);
             printf("createInstance %x %s\n", imp3, error_msg3);
             DSP = createDSPInstance(factory3);
@@ -129,6 +133,7 @@ int main(int argc, char *argv[])
             DSP = createDSPInstance(factory3);
          } else {
             printf("Cannot create factory : %s", error_msg3);
+            return 1;
         }
         
         /*
@@ -151,6 +156,9 @@ int main(int argc, char *argv[])
 
 	GUI* interface 	= new GTKUI(filename, &argc, &argv);
 	FUI* finterface	= new FUI();
+    
+    string json = DSP->buildJSON();
+    cout << json << endl;
 
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
