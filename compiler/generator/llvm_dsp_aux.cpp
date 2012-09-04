@@ -397,10 +397,10 @@ void JSONUI::addGenericSlider(const char* slider, const char* label, FAUSTFLOAT*
     fNewGroup = false;
     *fOut << beg << "\"type\":" << "\"" << slider << "\",";
     tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\",";
-    tab(fTab, *fOut); *fOut << "\"init\":" << init << ",";
-    tab(fTab, *fOut); *fOut << "\"min\":" << min << ",";
-    tab(fTab, *fOut); *fOut << "\"max\":" << max << ",";
-    tab(fTab, *fOut); *fOut << "\"step\":" << step;
+    tab(fTab, *fOut); *fOut << "\"init\":" << float(init) << ",";
+    tab(fTab, *fOut); *fOut << "\"min\":" << float(min) << ",";
+    tab(fTab, *fOut); *fOut << "\"max\":" << float(max) << ",";
+    tab(fTab, *fOut); *fOut << "\"step\":" << float(step);
     tab(fTab, *fOut); *fOut << "}";
 }
  
@@ -426,8 +426,8 @@ void JSONUI::addGenericBargraph(const char* bargraph, const char* label, FAUSTFL
     fNewGroup = false;
     *fOut << beg << "\"type\":" << "\"" << bargraph << "\",";
     tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\",";
-    tab(fTab, *fOut); *fOut << "\"min\":" << min << ",";
-    tab(fTab, *fOut); *fOut << "\"max\":" << max << ",";
+    tab(fTab, *fOut); *fOut << "\"min\":" << float(min) << ",";
+    tab(fTab, *fOut); *fOut << "\"max\":" << float(max) << ",";
     tab(fTab, *fOut); *fOut << "}";
 }
 
