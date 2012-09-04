@@ -151,20 +151,7 @@ class llvm_dsp_factory {
             const std::string& library_path, const std::string& draw_path, const std::string& name, 
             const std::string& input, const std::string& target, 
             char* error_msg, int opt_level = 3);
-            
-        llvm_dsp_factory(int argc, char *argv[], 
-            const std::string& library_path, const std::string& draw_path, const std::string& name, 
-            const std::string& input, char* error_msg, 
-            int opt_level = 3);
-            
-        llvm_dsp_factory(int argc, char *argv[], 
-            const std::string& library_path, const std::string& draw_path, const std::string& target, 
-            char* error_msg, int opt_level = 3);
-            
-        llvm_dsp_factory(int argc, char *argv[], 
-            const std::string& library_path, const std::string& draw_path, char* error_msg, 
-            int opt_level = 3);
-            
+              
         llvm_dsp_factory(Module* module, const std::string& target, int opt_level = 0);
       
         virtual ~llvm_dsp_factory();
@@ -213,20 +200,7 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
                         const std::string& library_path, const std::string& draw_path,  const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);
-            
-llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, const std::string& name, 
-                        const std::string& input, char* error_msg, 
-                        int opt_level = 3);
-    
-llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, const std::string& target, 
-                        char* error_msg, int opt_level = 3);
-    
-llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
-                        const std::string& library_path, const std::string& draw_path, char* error_msg, 
-                        int opt_level = 3);
-                        
+                                    
 llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level = 3);
                         
 void deleteDSPFactory(llvm_dsp_factory* factory);
