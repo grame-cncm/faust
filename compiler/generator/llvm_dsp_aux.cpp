@@ -41,7 +41,7 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
     }
 }
 
-Module* llvm_dsp_factory::LoadModule(const std::string filename)
+static Module* LoadModule(const std::string filename)
 {
     printf("Load module : %s \n", filename.c_str());
     SMDiagnostic err;
@@ -77,24 +77,43 @@ Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* libr
     return compile_faust_llvm(argc1, (char**)argv1, library_path, draw_path, input_name, input, error_msg);
 }
 
+// Bitcode
 std::string llvm_dsp_factory::writeDSPFactoryToBitcode()
 {
     std::string res;
-    raw_string_ostream OS(res);
-    WriteBitcodeToFile(fModule, OS);
-    OS.flush();
+    raw_string_ostream out(res);
+    WriteBitcodeToFile(fModule, out);
+    out.flush();
     return res;
 }
 
-std::string llvm_dsp_factory::writeDSPFactoryToIR()
+void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const std::string& bit_code_path)
+{
+    std::string err;
+    raw_fd_ostream out(bit_code_path.c_str(), err, raw_fd_ostream::F_Binary);
+    WriteBitcodeToFile(fModule, out);
+}
+
+// IR
+string llvm_dsp_factory::writeDSPFactoryToIR()
 {
     std::string res;
-    raw_string_ostream OS(res);
+    raw_string_ostream out(res);
     PassManager PM;
-    PM.add(createPrintModulePass(&OS));
+    PM.add(createPrintModulePass(&out));
     PM.run(*fModule);
-    OS.flush();
+    out.flush();
     return res;
+}
+
+void llvm_dsp_factory::writeDSPFactoryToIRFile(const std::string& ir_code_path)
+{
+    std::string err;
+    raw_fd_ostream out(ir_code_path.c_str(), err, raw_fd_ostream::F_Binary);
+    PassManager PM;
+    PM.add(createPrintModulePass(&out));
+    PM.run(*fModule);
+    out.flush();
 }
 
 llvm_dsp_factory::llvm_dsp_factory(Module* module, const std::string& target, int opt_level)
@@ -119,14 +138,6 @@ llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[],
     fModule = CompileModule(argc, argv, library_path.c_str(), draw_path.c_str(), name.c_str(), input.c_str(), error_msg);
 }
 
-llvm_dsp_factory::llvm_dsp_factory(const std::string& module_path, int opt_level)
-{
-    fOptLevel = opt_level;
-    fTarget = "";
-    Init();
-    fModule = LoadModule(module_path);
-}
-
 void llvm_dsp_factory::Init()
 {
     fJIT = 0;
@@ -147,27 +158,6 @@ llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
     assert(fModule);
     assert(fJIT);
     return new llvm_dsp_aux(this, fNew());
-}
-
-// Taken from LLVM Opt.cpp
-static void AddOptimizationPasses(PassManagerBase &mpm,FunctionPassManager &fpm,
-                                  unsigned opt_level) 
-{
-    PassManagerBuilder Builder;
-    Builder.OptLevel = opt_level;
-
-    if (opt_level > 1) {
-        unsigned threshold = 225;
-        if (opt_level > 2)
-          threshold = 275;
-        Builder.Inliner = createFunctionInliningPass(threshold);
-    } else {
-        Builder.Inliner = createAlwaysInlinerPass();
-    }
-      
-    Builder.DisableUnrollLoops = (opt_level == 0);
-    Builder.populateFunctionPassManager(fpm);
-    Builder.populateModulePassManager(mpm);
 }
 
 bool llvm_dsp_factory::initJIT()
@@ -237,7 +227,23 @@ bool llvm_dsp_factory::initJIT()
         }
     }
     
-    AddOptimizationPasses(pm, fpm, fOptLevel);
+    // Taken from LLVM Opt.cpp
+    PassManagerBuilder Builder;
+    Builder.OptLevel = fOptLevel;
+
+    if (fOptLevel > 1) {
+        unsigned threshold = 225;
+        if (fOptLevel > 2)
+            threshold = 275;
+        Builder.Inliner = createFunctionInliningPass(threshold);
+    } else {
+        Builder.Inliner = createAlwaysInlinerPass();
+    }
+      
+    Builder.DisableUnrollLoops = (fOptLevel == 0);
+    Builder.populateFunctionPassManager(fpm);
+    Builder.populateModulePassManager(pm);
+    
     pm.run(*fModule);
     
     //fModule->dump();
@@ -479,16 +485,7 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
     return CheckDSPFactory(new llvm_dsp_factory(argc, argv, library_path, draw_path, name, input, target, error_msg, opt_level));
 }
     
-llvm_dsp_factory* createDSPFactory(const std::string& module_path, int opt_level)
-{
-    return CheckDSPFactory(new llvm_dsp_factory(module_path, opt_level));
-}
-
-std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
-{
-    return factory->writeDSPFactoryToBitcode();
-}
-
+// Bitcode <==> string
 llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level)
 {
     string error_msg;
@@ -504,6 +501,37 @@ llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const s
     }
 }
 
+std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
+{
+    return factory->writeDSPFactoryToBitcode();
+}
+
+// Bitcode <==> file
+llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level)
+{
+    OwningPtr<MemoryBuffer> buffer;
+    if (error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
+        printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
+        return 0;
+    }
+  
+    std::string error_msg;
+    Module* module = ParseBitcodeFile(buffer.get(), getGlobalContext(), &error_msg);
+    
+    if (module) {
+        return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
+    } else {
+        printf("readDSPFactoryFromBitcodeFile failed : %s\n", error_msg.c_str());
+        return 0;
+    }
+}
+
+void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path)
+{
+    factory->writeDSPFactoryToBitcodeFile(bit_code_path);
+}
+
+// IR <==> string
 llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level)
 {
     SMDiagnostic err;
@@ -526,6 +554,30 @@ llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::st
 std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToIR();
+}
+
+// IR <==> file
+llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level)
+{
+    SMDiagnostic err;
+    Module* module = ParseIRFile(ir_code_path, err, getGlobalContext());
+    
+    if (module) {
+        return CheckDSPFactory(new llvm_dsp_factory(module, target, opt_level));
+    } else {
+    #if defined(LLVM_31) 
+        err.print("readDSPFactoryFromIR failed :", errs());
+    #endif
+    #if defined(LLVM_30) 
+        err.Print("readDSPFactoryFromIR failed :", errs());
+    #endif
+        return 0;
+    }
+}
+
+void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path)
+{
+    factory->writeDSPFactoryToIRFile(ir_code_path);
 }
 
 // Instance
