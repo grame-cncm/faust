@@ -22,13 +22,6 @@
 #ifndef _C_CODE_CONTAINER_H
 #define _C_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "code_container.hh"
 #include "c_instructions.hh"
 

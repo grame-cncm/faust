@@ -22,13 +22,6 @@
 #ifndef _INSTRUCTIONS_COMPLEXITY_H
 #define _INSTRUCTIONS_COMPLEXITY_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 using namespace std;
 
 #include <string>

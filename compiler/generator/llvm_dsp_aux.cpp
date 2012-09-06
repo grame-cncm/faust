@@ -477,7 +477,7 @@ static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory)
 
 // Public API
 
-llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+llvm_dsp_factory* EXPORT createDSPFactory(int argc, char *argv[], 
     const std::string& library_path, const std::string& draw_path, const std::string& name, 
     const std::string& input, const std::string& target, 
     char* error_msg, int opt_level)
@@ -486,7 +486,7 @@ llvm_dsp_factory* createDSPFactory(int argc, char *argv[],
 }
     
 // Bitcode <==> string
-llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level)
+llvm_dsp_factory* EXPORT readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level)
 {
     string error_msg;
     MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(bit_code));
@@ -501,13 +501,13 @@ llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const s
     }
 }
 
-std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
+std::string EXPORT writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToBitcode();
 }
 
 // Bitcode <==> file
-llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level)
+llvm_dsp_factory* EXPORT readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level)
 {
     OwningPtr<MemoryBuffer> buffer;
     if (error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
@@ -526,13 +526,13 @@ llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path
     }
 }
 
-void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path)
+void EXPORT writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path)
 {
     factory->writeDSPFactoryToBitcodeFile(bit_code_path);
 }
 
 // IR <==> string
-llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level)
+llvm_dsp_factory* EXPORT readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level)
 {
     SMDiagnostic err;
     MemoryBuffer* buffer = MemoryBuffer::getMemBuffer(StringRef(ir_code));
@@ -551,13 +551,13 @@ llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::st
     }
 }
 
-std::string writeDSPFactoryToIR(llvm_dsp_factory* factory)
+std::string EXPORT writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     return factory->writeDSPFactoryToIR();
 }
 
 // IR <==> file
-llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level)
+llvm_dsp_factory* EXPORT readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level)
 {
     SMDiagnostic err;
     Module* module = ParseIRFile(ir_code_path, err, getGlobalContext());
@@ -575,61 +575,61 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
     }
 }
 
-void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path)
+void EXPORT writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path)
 {
     factory->writeDSPFactoryToIRFile(ir_code_path);
 }
 
 // Instance
 
-llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
+llvm_dsp* EXPORT createDSPInstance(llvm_dsp_factory* factory)
 {
     return reinterpret_cast<llvm_dsp*>(factory->createDSPInstance());
 }
 
-void deleteDSPFactory(llvm_dsp_factory* factory) { delete factory; }
+void EXPORT deleteDSPFactory(llvm_dsp_factory* factory) { delete factory; }
 
-void deleteDSPInstance(llvm_dsp* dsp) 
+void EXPORT deleteDSPInstance(llvm_dsp* dsp) 
 {
     delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
 }
 
-int llvm_dsp::getNumInputs()
+int EXPORT llvm_dsp::getNumInputs()
 {
     return reinterpret_cast<llvm_dsp_aux*>(this)->getNumInputs();
 }
 
-int llvm_dsp::getNumOutputs()
+int EXPORT llvm_dsp::getNumOutputs()
 {
     return reinterpret_cast<llvm_dsp_aux*>(this)->getNumOutputs();
 }
 
-void llvm_dsp::classInit(int samplingFreq)
+void EXPORT llvm_dsp::classInit(int samplingFreq)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->classInit(samplingFreq);
 }
 
-void llvm_dsp::instanceInit(int samplingFreq)
+void EXPORT llvm_dsp::instanceInit(int samplingFreq)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingFreq);
 }
 
-void llvm_dsp::init(int samplingFreq)
+void EXPORT llvm_dsp::init(int samplingFreq)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingFreq);
 }
 
-void llvm_dsp::buildUserInterface(UI* interface)
+void EXPORT llvm_dsp::buildUserInterface(UI* interface)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->buildUserInterface(interface);
 }
 
-void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+void EXPORT llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
      reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
-std::string llvm_dsp::buildJSON()   
+std::string EXPORT llvm_dsp::buildJSON()   
 { 
      return reinterpret_cast<llvm_dsp_aux*>(this)->buildJSON();
 }

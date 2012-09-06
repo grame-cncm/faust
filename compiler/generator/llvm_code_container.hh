@@ -22,13 +22,6 @@
 #ifndef _LLVM_CODE_CONTAINER_H
 #define _LLVM_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "code_container.hh"
 #include "llvm_instructions.hh"
 

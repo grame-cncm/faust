@@ -19,26 +19,15 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FAUSTFLOATS_
-#define _FAUSTFLOATS_
+#ifndef __EXPORT__
+#define __EXPORT__
 
-#include <iostream>
-#include "instructions.hh"
+#ifdef WIN32
+	#define	EXPORT __declspec(dllexport)
+#else
+	#define	EXPORT __attribute__ ((visibility("default")))
+#endif
 
-#define FLOATMACRO "FAUSTFLOAT"
-#define FLOATMACROPTR "FAUSTFLOAT*"
-#define FLOATCASTER "(" FLOATMACRO ")"
-
-const char* isuffix();
-const char* inumix();
-
-const char* ifloat();
-const Typed::VarType itfloat();
-const char* icast();
-
-const char* xfloat();
-const char* xcast();
-
-void printfloatdef(std::ostream& fout, bool quad);
+int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input);
 
 #endif

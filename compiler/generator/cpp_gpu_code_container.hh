@@ -22,13 +22,6 @@
 #ifndef _CPP_GPU_CODE_CONTAINER_H
 #define _CPP_GPU_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "cpp_code_container.hh"
 #include "global.hh"
 

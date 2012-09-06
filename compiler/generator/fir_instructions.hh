@@ -22,13 +22,6 @@
 #ifndef _FIR_INSTRUCTIONS_H
 #define _FIR_INSTRUCTIONS_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 using namespace std;
 
 #include <string>

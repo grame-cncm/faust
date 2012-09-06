@@ -22,13 +22,6 @@
 #ifndef _OPENCL_INSTRUCTIONS_H
 #define _OPENCL_INSTRUCTIONS_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 using namespace std;
 
 #include <string>

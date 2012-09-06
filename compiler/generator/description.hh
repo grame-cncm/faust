@@ -92,6 +92,7 @@ class Description : public virtual Garbageable
 	
 		
   private:
+  
 	void 			addGroup(int level, Tree t);
 	int 			addWidget(Tree label, Tree varname, Tree sig);
 	

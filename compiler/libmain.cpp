@@ -82,6 +82,7 @@
 #include "timing.hh"
 #include "ppsig.hh"
 #include "garbageable.hh"
+#include "export.hh"
 
 using namespace std;
 
@@ -108,7 +109,7 @@ static bool         gPrintDocSwitch = false;
 static int          gBalancedSwitch = 0;
 static string       gArchFile;
 
-static int          gTimeout        = ULONG_MAX;            // time out to abort compiler (in seconds)
+static int          gTimeout = INT_MAX;            // time out to abort compiler (in seconds)
 static bool         gPrintFileListSwitch = false;
 static string       gOutputLang = "";
 static bool         gLLVMOut = true;
@@ -798,9 +799,15 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 }
 
 #ifdef __cplusplus
-extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input);
-extern "C" int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-extern "C" Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+extern "C"
+{
+#endif
+
+int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+
+#ifdef __cplusplus
+}
 #endif
 
 int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
@@ -883,7 +890,7 @@ int compile_faust_internal(int argc, char* argv[], const char* library_path, con
     return 0;
 }
 
-Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+Module* EXPORT compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     Module* module = 0;
     gLLVMOut = false;
@@ -902,7 +909,7 @@ Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, con
     return module;
 }
 
-int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+int EXPORT compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     int res = 0;
     gGlobal = NULL;

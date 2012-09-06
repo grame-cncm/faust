@@ -22,13 +22,6 @@
 #ifndef _FUNCTION_BUILDER_H
 #define _FUNCTION_BUILDER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 using namespace std;
 
 #include <string>

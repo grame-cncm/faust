@@ -22,13 +22,6 @@
 #ifndef _JAVASCRIPT_CODE_CONTAINER_H
 #define _JAVASCRIPT_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "code_container.hh"
 #include "js_instructions.hh"
 #include "vec_code_container.hh"

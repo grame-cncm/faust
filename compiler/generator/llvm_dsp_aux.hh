@@ -59,6 +59,8 @@
 #include "../../architecture/faust/gui/CUI.h"
 #include "../../architecture/faust/audio/dsp.h"
 
+#include "export.hh"
+
 using namespace std;
 using namespace llvm;
 
@@ -221,34 +223,39 @@ class llvm_dsp_aux : public dsp {
 
 // Public interface
 
-llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+llvm_dsp_factory* EXPORT createDSPFactory(int argc, char *argv[], 
                         const std::string& library_path, const std::string& draw_path,  const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);
                         
-void deleteDSPFactory(llvm_dsp_factory* factory);
+void EXPORT deleteDSPFactory(llvm_dsp_factory* factory);
 
 // Bitcode <==> string
-llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* EXPORT readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 0);
 
-std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
+std::string EXPORT writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 // Bitcode <==> file
-llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* EXPORT readDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = 0);
 
-void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
+void EXPORT writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
 
 // IR <==> string
-llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* EXPORT readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 0);
 
-std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
+std::string EXPORT writeDSPFactoryToIR(llvm_dsp_factory* factory);
 
 // IR <==> file
-llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 0);
+llvm_dsp_factory* EXPORT readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 0);
 
-void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
+void EXPORT writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
-class llvm_dsp : public dsp {
+class EXPORT llvm_dsp : public dsp {
                 
     public:
      
@@ -266,8 +273,12 @@ class llvm_dsp : public dsp {
      
 };
 
-llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
+llvm_dsp* EXPORT createDSPInstance(llvm_dsp_factory* factory);
 
-void deleteDSPInstance(llvm_dsp* dsp);
+void EXPORT deleteDSPInstance(llvm_dsp* dsp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -22,13 +22,6 @@
 #ifndef _CPP_INSTRUCTIONS_H
 #define _CPP_INSTRUCTIONS_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 using namespace std;
 
 #include <string>

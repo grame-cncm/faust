@@ -22,13 +22,6 @@
 #ifndef _OMP_CODE_CONTAINER_H
 #define _OMP_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "code_container.hh"
 
 class OpenMPCodeContainer : public virtual CodeContainer {

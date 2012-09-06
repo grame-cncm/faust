@@ -22,14 +22,6 @@
 #ifndef _JAVA_INSTRUCTIONS_H
 #define _JAVA_INSTRUCTIONS_H
 
-/**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
-
-		Historique :
-		-----------
-
-***********************************************************************/
 using namespace std;
 
 #include <string>
@@ -74,7 +66,8 @@ class JAVAInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        string createVarAccess(string varname){
+        string createVarAccess(string varname)
+        {
             return "new FaustVarAccess() {\n"
                 "\t\t\t\tpublic String getId()       { return \"" + varname + "\"; }\n"
                 "\t\t\t\tpublic void   set(float val){ " + varname + " = val; }\n"

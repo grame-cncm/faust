@@ -36,7 +36,7 @@ endif
 
 CXXFLAGS ?= -g -Wall -Wuninitialized 
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized  
-CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+CXXFLAGS += -fvisibility=hidden -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
@@ -308,7 +308,7 @@ generator/llvm_code_container.o: generator/llvm_instructions.hh errors/exception
 generator/llvm_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh generator/vec_code_container.hh
 generator/llvm_code_container.o: generator/omp_code_container.hh generator/wss_code_container.hh
 generator/llvm_dsp_aux.o: generator/llvm_dsp_aux.hh ../architecture/faust/gui/UI.h ../architecture/faust/gui/CUI.h
-generator/llvm_dsp_aux.o: ../architecture/faust/audio/dsp.h ../architecture/faust/libfaust.h
+generator/llvm_dsp_aux.o: ../architecture/faust/audio/dsp.h export.hh ../architecture/faust/libfaust.h
 generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 generator/occurences.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/occurences.o: generator/occurences.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh

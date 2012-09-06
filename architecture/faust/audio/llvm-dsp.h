@@ -29,6 +29,11 @@
 #include <string>
 #include "faust/audio/dsp.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct llvm_dsp_factory {};
 
 // Factory
@@ -71,5 +76,9 @@ class llvm_dsp : public dsp {
 llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 void deleteDSPInstance(llvm_dsp* dsp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

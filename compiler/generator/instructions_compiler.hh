@@ -22,13 +22,6 @@
 #ifndef _INSTRUCTION_COMPILER_H
 #define _INSTRUCTION_COMPILER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include <string>
 #include <list>
 #include <set>

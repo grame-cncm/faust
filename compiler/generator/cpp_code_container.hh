@@ -22,13 +22,6 @@
 #ifndef _CPP_CODE_CONTAINER_H
 #define _CPP_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "code_container.hh"
 #include "cpp_instructions.hh"
 #include "opencl_instructions.hh"

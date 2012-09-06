@@ -22,13 +22,6 @@
 #ifndef _FIR_CODE_CONTAINER_H
 #define _FIR_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "code_container.hh"
 #include "fir_instructions.hh"
 

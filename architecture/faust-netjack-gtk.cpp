@@ -41,6 +41,13 @@
 
 list<GUI*> GUI::fGuiList;
 
+static bool isopt(char *argv[], const char *name)
+{
+	int	i;
+	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+	return false;
+}
+
 int main(int argc, char *argv[])
 {
 	char	appname[256];
@@ -49,17 +56,23 @@ int main(int argc, char *argv[])
     char    error_msg[256];
 	char* 	home = getenv("HOME");
     llvm_dsp* DSP = NULL;
+    llvm_dsp_factory* factory;
+    
+    int inc_arg = 0;
     
     int	celt = lopt(argv, "--celt", -1);
     const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
-    llvm_dsp_factory* factory;
-
+    
+    if (isopt(argv, "--celt")) inc_arg += 2;
+    if (isopt(argv, "--a")) inc_arg += 2;
+    if (isopt(argv, "--p")) inc_arg += 2;
+    
     if (argc < 2) {
         printf("Usage: faust-netjack-gtk args [file.dsp | file.bc]\n");
         exit(1);
     } else {
-        factory = createDSPFactory(argc, argv, "", "", "", "", "", error_msg);
+        factory = createDSPFactory(argc - 1 - inc_arg, &argv[inc_arg + 1], "", "", "", "", "", error_msg);
         DSP = createDSPInstance(factory);
         if (!DSP) {
             cerr << error_msg;

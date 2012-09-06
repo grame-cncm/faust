@@ -22,13 +22,6 @@
 #ifndef _JAVA_CODE_CONTAINER_H
 #define _JAVA_CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include "code_container.hh"
 #include "java_instructions.hh"
 

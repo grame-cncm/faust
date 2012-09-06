@@ -20,11 +20,8 @@
  ************************************************************************/
 
 #include "global.hh"
+#include "export.hh"
 #include "exception.hh"
-
-#ifdef __cplusplus
-extern "C" int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input);
-#endif
 
 int main(int argc, char* argv[])
 {

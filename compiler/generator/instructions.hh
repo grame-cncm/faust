@@ -22,15 +22,6 @@
 #ifndef _INSTRUCTIONS_H
 #define _INSTRUCTIONS_H
 
-/**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
-
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 using namespace std;
 
 #include <string>

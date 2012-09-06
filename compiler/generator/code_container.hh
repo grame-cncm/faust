@@ -22,13 +22,6 @@
 #ifndef _CODE_CONTAINER_H
 #define _CODE_CONTAINER_H
 
-/**********************************************************************
-
-		Historique :
-		-----------
-
-***********************************************************************/
-
 #include <string>
 #include <list>
 #include <set>
