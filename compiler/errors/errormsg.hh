@@ -26,7 +26,6 @@
 
 extern int 			yylineno;
 extern const char * yyfilename;
-extern int 			gErrorCount;
 
 // associate and retrieve file and line properties to a symbol
 void 		setDefProp(Tree sym, const char* filename, int lineno);

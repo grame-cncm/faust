@@ -30,7 +30,7 @@
 #include <iostream>
 using namespace std;
 
-const char* yyfilename = "????";
+const char* yyfilename;
 
 void yyerror(const char* msg)
 {

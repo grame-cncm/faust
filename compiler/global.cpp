@@ -48,6 +48,8 @@
 #include "binop.hh"
 #include "instructions.hh"
 
+extern const char * yyfilename;
+
 list<Garbageable*> Garbageable::gObjectTable;
 bool Garbageable::gCleanup = false;
   
@@ -304,6 +306,9 @@ void global::init()
     DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY = tree("BCOMPLEXITY");
+    
+    // yyfilename is defined in errormsp.cpp but must be redefined at each compilation.
+    yyfilename = "????";
 }
     
 global::~global()
