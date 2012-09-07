@@ -307,7 +307,7 @@ void global::init()
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY = tree("BCOMPLEXITY");
     
-    // yyfilename is defined in errormsp.cpp but must be redefined at each compilation.
+    // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
     yyfilename = "????";
 }
     
@@ -334,18 +334,13 @@ void global::destroy()
 }
 
 Garbageable::Garbageable()
-{
-    //printf("Garbageable allocator\n");
-}
+{}
 
 Garbageable::~Garbageable()
-{
-    //printf("Garbageable deallocator\n");
-}
+{}
 
 void Garbageable::cleanup()
 {
-    //printf("Garbageable cleanup = %d \n", gObjectTable.size());
     std::list<Garbageable*>::iterator it;
     /*
     Here removing the deleted pointer from the list is pointless and takes time,
@@ -360,7 +355,6 @@ void Garbageable::cleanup()
 
 void* Garbageable::operator new(size_t size)
 {
-    //printf("Garbageable new\n");
     void* res = calloc(1, size);
     gObjectTable.push_front(static_cast<Garbageable*>(res));
     return res;
@@ -368,7 +362,6 @@ void* Garbageable::operator new(size_t size)
 
 void Garbageable::operator delete(void* ptr)
 {
-    //printf("Garbageable delete %x\n", ptr);
     /*
     We may have cases when a pointer will be deleted during a compilation, 
     thus the pointer has to be removed from the list.
@@ -381,7 +374,6 @@ void Garbageable::operator delete(void* ptr)
 
 void* Garbageable::operator new[](size_t size)
 {
-    //printf("Garbageable new[]\n");
     void* res = calloc(1, size);
     gObjectTable.push_front(static_cast<Garbageable*>(res));
     return res;
@@ -389,7 +381,6 @@ void* Garbageable::operator new[](size_t size)
 
 void Garbageable::operator delete[](void* ptr)
 {
-    //printf("Garbageable delete[] %x\n", ptr);
     if (!gCleanup) {
         gObjectTable.remove(static_cast<Garbageable*>(ptr));
     }

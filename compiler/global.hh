@@ -302,7 +302,6 @@ struct global {
     property<AudioType*>* gMemoizedTypes;
     
     // Essential predefined types
-    
     Type TINT;
     Type TREAL;
 
@@ -314,14 +313,13 @@ struct global {
     Type TINIT;
     Type TEXEC;
 
-    // more predefined types
-
+    // More predefined types
     Type TINPUT;
     Type TGUI;
     Type TGUI01;
     Type INT_TGUI;
     
-    // trying to accelerate type convergence
+    // Trying to accelerate type convergence
     Type TREC; // kVect ou kScal ?
     
     Sym CONS;
