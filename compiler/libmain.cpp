@@ -399,7 +399,7 @@ static void printhelp()
     cout << "-o <file> \tC++ output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
-    cout << "-vls <n>  \t--vec-loop-size  size of the vector DSP loop \n";
+    cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";

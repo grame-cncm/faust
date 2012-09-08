@@ -35,9 +35,9 @@ extern "C"
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
  * @param library_path - Faust library path : if null, the default localization mechanism will be used
- * @param draw_path - the place where to put ouput files like SVG, ps, dot...
+ * @param draw_path - the place where to put output files like SVG, ps, dot...
  * @param name - the name of the Faust program
- * @param input - the Faust program as a C string
+ * @param input - the Faust program as a string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.

@@ -123,7 +123,6 @@ int main(int argc, char *argv[])
         factory3 = createDSPFactory(argc - 1, &argv[1], "", "", "", "", "", error_msg1, 3);
         printf("createDSPFactory %x\n", factory3);
         if (factory3) {
-            printf("createDSPFactory %x\n", factory3);
             llvm_dsp* imp3 = createDSPInstance(factory3);
             printf("createInstance %x %s\n", imp3, error_msg3);
             DSP = createDSPInstance(factory3);
