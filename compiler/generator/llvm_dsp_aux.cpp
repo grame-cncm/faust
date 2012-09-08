@@ -233,11 +233,16 @@ bool llvm_dsp_factory::initJIT()
 
     if (fOptLevel > 1) {
         unsigned threshold = 225;
-        if (fOptLevel > 2)
+        if (fOptLevel > 2) {
             threshold = 275;
+        }
         Builder.Inliner = createFunctionInliningPass(threshold);
     } else {
         Builder.Inliner = createAlwaysInlinerPass();
+    }
+    
+    if (fOptLevel > 3) {
+        Builder.Vectorize = true;
     }
       
     Builder.DisableUnrollLoops = (fOptLevel == 0);
@@ -246,7 +251,7 @@ bool llvm_dsp_factory::initJIT()
     
     pm.run(*fModule);
     
-    fModule->dump();
+    //fModule->dump();
     
     try {
         fNew = (newDspFun)LoadOptimize("new_mydsp");

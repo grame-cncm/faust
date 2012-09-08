@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
         */
         
         int argc1 = 1;
-        char* argv1[argc1];
+        const char* argv1[argc1];
         argv1[0] = "-svg";
         char error_msg1[256];
         
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         */
         
         char error_msg3[256];
-        factory3 = createDSPFactory(argc - 1, &argv[1], "", "", "", "", "", error_msg1, 3);
+        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg1, 4);
         printf("createDSPFactory %x\n", factory3);
         if (factory3) {
             llvm_dsp* imp3 = createDSPInstance(factory3);
