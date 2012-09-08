@@ -57,7 +57,7 @@ static Module* LoadModule(const std::string filename)
     return res;
 }
 
-Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
+Module* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
 {
     printf("Compile module...\n");
     
@@ -74,7 +74,7 @@ Module* llvm_dsp_factory::CompileModule(int argc, char *argv[], const char* libr
     }
     
     fLibraryPath = string(library_path);
-    return compile_faust_llvm(argc1, (char**)argv1, library_path, draw_path, input_name, input, error_msg);
+    return compile_faust_llvm(argc1, argv1, library_path, draw_path, input_name, input, error_msg);
 }
 
 // Bitcode
@@ -124,7 +124,7 @@ llvm_dsp_factory::llvm_dsp_factory(Module* module, const std::string& target, in
     fModule = module;
 }
 
-llvm_dsp_factory::llvm_dsp_factory(int argc, char *argv[], 
+llvm_dsp_factory::llvm_dsp_factory(int argc, const char *argv[], 
     const std::string& library_path,
     const std::string& draw_path, 
     const std::string& name,
@@ -246,7 +246,7 @@ bool llvm_dsp_factory::initJIT()
     
     pm.run(*fModule);
     
-    //fModule->dump();
+    fModule->dump();
     
     try {
         fNew = (newDspFun)LoadOptimize("new_mydsp");
@@ -477,7 +477,7 @@ static llvm_dsp_factory* CheckDSPFactory(llvm_dsp_factory* factory)
 
 // Public API
 
-EXPORT llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
     const std::string& library_path, const std::string& draw_path, const std::string& name, 
     const std::string& input, const std::string& target, 
     char* error_msg, int opt_level)

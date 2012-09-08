@@ -126,7 +126,7 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 	return 	(strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }
 
-static bool process_cmdline(int argc, char* argv[])
+static bool process_cmdline(int argc, const char* argv[])
 {
 	int	i = 1; int err = 0;
     
@@ -803,14 +803,14 @@ extern "C"
 {
 #endif
 
-int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+EXPORT Module* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 #ifdef __cplusplus
 }
 #endif
 
-int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
+int compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input = NULL)
 {
     /****************************************************************
      0 - set library_path and draw_path
@@ -890,7 +890,7 @@ int compile_faust_internal(int argc, char* argv[], const char* library_path, con
     return 0;
 }
 
-Module* EXPORT compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT Module* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     Module* module = 0;
     gLLVMOut = false;
@@ -909,7 +909,7 @@ Module* EXPORT compile_faust_llvm(int argc, char* argv[], const char* library_pa
     return module;
 }
 
-int EXPORT compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
+EXPORT int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg)
 {
     int res = 0;
     gGlobal = NULL;

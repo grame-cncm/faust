@@ -28,6 +28,6 @@
 	#define	EXPORT __attribute__ ((visibility("default")))
 #endif
 
-int compile_faust_internal(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input);
+int compile_faust_internal(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input);
 
 #endif

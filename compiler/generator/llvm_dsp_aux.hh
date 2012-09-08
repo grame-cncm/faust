@@ -156,7 +156,7 @@ class llvm_dsp_factory {
         
         void* LoadOptimize(const std::string& function);
         
-        Module* CompileModule(int argc, char *argv[], 
+        Module* CompileModule(int argc, const char *argv[], 
             const char* library_path, const char* draw_path,
             const char* input_name, const char* input, char* error_msg);
             
@@ -168,7 +168,7 @@ class llvm_dsp_factory {
   
         llvm_dsp_factory(const std::string& module_path, int opt_level = 3);
   
-        llvm_dsp_factory(int argc, char *argv[], 
+        llvm_dsp_factory(int argc, const char *argv[], 
             const std::string& library_path, const std::string& draw_path, const std::string& name, 
             const std::string& input, const std::string& target, 
             char* error_msg, int opt_level = 3);
@@ -228,7 +228,7 @@ extern "C"
 {
 #endif
 
-EXPORT llvm_dsp_factory* createDSPFactory(int argc, char *argv[], 
+EXPORT llvm_dsp_factory* createDSPFactory(int argc, const char *argv[], 
                         const std::string& library_path, const std::string& draw_path,  const std::string& name, 
                         const std::string& input, const std::string& target, 
                         char* error_msg, int opt_level = 3);

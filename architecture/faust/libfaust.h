@@ -43,7 +43,7 @@ extern "C"
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
  */
  
-int compile_faust(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 /**
  * Compile a Faust program and produces an LLVM module.
@@ -59,7 +59,7 @@ int compile_faust(int argc, char* argv[], const char* library_path, const char* 
  * @return a valid LLVM module on success, 0 otherwise, with an error message in error_msg.
  */
 
-llvm::Module* compile_faust_llvm(int argc, char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
+llvm::Module* compile_faust_llvm(int argc,  const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
 
 #ifdef __cplusplus
 }
