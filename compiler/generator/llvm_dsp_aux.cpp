@@ -241,6 +241,7 @@ bool llvm_dsp_factory::initJIT()
         Builder.Inliner = createAlwaysInlinerPass();
     }
     
+    // We use '4' to activate de auto-vectorizer
     if (fOptLevel > 3) {
         Builder.Vectorize = true;
     }

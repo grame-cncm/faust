@@ -120,18 +120,18 @@ int main(int argc, char *argv[])
         */
         
         char error_msg3[256];
-        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg1, 4);
-        printf("createDSPFactory %x\n", factory3);
+        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
+        //printf("createDSPFactory %x\n", factory3);
         if (factory3) {
             llvm_dsp* imp3 = createDSPInstance(factory3);
-            printf("createInstance %x %s\n", imp3, error_msg3);
+            //printf("createInstance %x %s\n", imp3, error_msg3);
             DSP = createDSPInstance(factory3);
             deleteDSPInstance(DSP);
             DSP = createDSPInstance(factory3);
             //deleteDSPInstance(DSP);
             DSP = createDSPInstance(factory3);
          } else {
-            printf("Cannot create factory : %s", error_msg3);
+            printf("Cannot create factory : %s\n", error_msg3);
             return 1;
         }
         
