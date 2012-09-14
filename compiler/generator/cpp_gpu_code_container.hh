@@ -130,7 +130,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         };
 
         // Control fields are preceded with "control->"
-        // Non-confrol fields are preceded with "dsp->"
+        // Non-control fields are preceded with "dsp->"
         struct KernelInstVisitor : public CPPInstVisitor {
 
             map < string, string> fFunctionTable;

@@ -196,7 +196,9 @@ bool llvm_dsp_factory::initJIT()
     builder.setMAttrs(attrs);
     */
     fJIT = builder.create();
-    assert(fJIT);
+    if (!fJIT) {
+        return false;
+    }
     
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
