@@ -12,7 +12,6 @@ declare reference   "https://ccrma.stanford.edu/~jos/pasp/Freeverb.html";
 //
 //======================================================
 
-
 // Constant Parameters
 //--------------------
 
@@ -33,7 +32,7 @@ stereospread= 23;
 allpassfeed = 0.5; //feedback of the delays used in allpass filters
 
 
-// Filter Parametres
+// Filter Parameters
 //------------------
 
 combtuningL1    = 1116;

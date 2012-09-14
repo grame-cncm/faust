@@ -105,15 +105,18 @@ using namespace std;
 
 class mspUI;
 
+#define EXTERNAL_VERSION "0.5"
+
 /*--------------------------------------------------------------------------*/
 typedef struct faust
-{
-	t_pxobject m_ob;
-	t_atom *m_seen, *m_want;
-	short m_where;
-	void** args;
-	mspUI* dspUI;
-	mydsp* dsp;
+    {
+    t_pxobject m_ob;
+    t_atom *m_seen, *m_want;
+    short m_where;
+    bool m_mute;
+    void** args;
+    mspUI* dspUI;
+    mydsp* dsp;
 } t_faust;
 
 void *faust_class;
@@ -267,7 +270,7 @@ class mspUI : public UI
 };
 
 //--------------------------------------------------------------------------
-void faust_method(t_faust *obj, t_symbol *s, short ac, t_atom *at)
+void faust_method(t_faust* obj, t_symbol* s, short ac, t_atom* at)
 {
 	if (ac < 0) return;
     if (at[0].a_type != A_FLOAT) return;
@@ -279,32 +282,34 @@ void faust_method(t_faust *obj, t_symbol *s, short ac, t_atom *at)
 }
 
 /*--------------------------------------------------------------------------*/
-void *faust_new(t_symbol *s, short ac, t_atom *av)
+void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
-	t_faust *x = (t_faust *)newobject(faust_class);
+    t_faust* x = (t_faust*)newobject(faust_class);
 
-	x->dsp = new mydsp();
-	x->dspUI = new mspUI();
+    x->m_mute = false;
 
-	x->dsp->init(long(sys_getsr()));
-	x->dsp->buildUserInterface(x->dspUI);
+    x->dsp = new mydsp();
+    x->dspUI = new mspUI();
 
-	x->args = (void**)calloc((x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, sizeof(void*));
+    x->dsp->init(long(sys_getsr()));
+    x->dsp->buildUserInterface(x->dspUI);
 
-	/* Multi in */
-	dsp_setup((t_pxobject *)x, x->dsp->getNumInputs());
+    x->args = (void**)calloc((x->dsp->getNumInputs()+x->dsp->getNumOutputs())+2, sizeof(void*));
 
-	/* Multi out */
-	for (int i = 0; i< x->dsp->getNumOutputs(); i++) {
-		outlet_new((t_pxobject *)x, (char*)"signal");
+    /* Multi in */
+    dsp_setup((t_pxobject*)x, x->dsp->getNumInputs());
+
+    /* Multi out */
+    for (int i = 0; i< x->dsp->getNumOutputs(); i++) {
+        outlet_new((t_pxobject*)x, (char*)"signal");
     }
 
-	((t_pxobject *)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
-	return x;
+    ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
+    return x;
 }
 
 /*--------------------------------------------------------------------------*/
-void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
+void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
 {
     if (msg == ASSIST_INLET) {
         if (a == 0) {
@@ -328,23 +333,38 @@ void faust_assist(t_faust *x, void *b, long msg, long a, char *dst)
 }
 
 /*--------------------------------------------------------------------------*/
-void faust_free(t_faust *x)
+void faust_mute(t_faust* obj, t_symbol* s, short ac, t_atom* at)
 {
-	dsp_free((t_pxobject *)x);
+    if (atom_gettype(at) == A_LONG) {
+        obj->m_mute = atom_getlong(at);
+    }
+}
+
+/*--------------------------------------------------------------------------*/
+void faust_free(t_faust* x)
+{
+	dsp_free((t_pxobject*)x);
 	if (x->dsp) delete x->dsp;
 	if (x->dspUI) delete x->dspUI;
 	if (x->args) free(x->args);
 }
 
 /*--------------------------------------------------------------------------*/
-void faust_perform64(t_faust *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
+void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
     AVOIDDENORMALS;
-    x->dsp->compute(sampleframes, ins, outs);
+    if (x->m_mute) {
+        // Write null buffers to outs
+        for (int i = 0; i < numouts; i++) {
+             memset(outs[i], 0, sizeof(double) * sampleframes);
+        }
+    } else {
+        x->dsp->compute(sampleframes, ins, outs);
+    }
 }
 
 /*--------------------------------------------------------------------------*/
-void faust_dsp64(t_faust *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
+void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
 {
     object_method(dsp64, gensym("dsp_add64"), x, faust_perform64, 0, NULL);
 }
@@ -352,27 +372,29 @@ void faust_dsp64(t_faust *x, t_object *dsp64, short *count, double samplerate, l
 /*--------------------------------------------------------------------------*/
 int main()
 {
-	setup((t_messlist **)&faust_class, (method)faust_new, (method)faust_free,
+	setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
-	dsp *thedsp = new mydsp();
-	mspUI *dspUI = new mspUI();
+	dsp* thedsp = new mydsp();
+	mspUI* dspUI = new mspUI();
 	thedsp->buildUserInterface(dspUI);
 
 	// Add the same method for every parameters and use the symbol as a selector
 	// inside this method
 	for (mspUI::iterator it = dspUI->begin(); it != dspUI->end(); ++it) {
-		char *name = const_cast<char *>(it->second->GetName().c_str());
+		char* name = const_cast<char*>(it->second->GetName().c_str());
 		addmess((method)faust_method, name, A_GIMME, 0);
 	}
 
     addmess((method)faust_dsp64, (char*)"dsp64", A_CANT, 0);
 	addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
+    addmess((method)faust_mute, (char*)"mute", A_GIMME, 0);
 	dsp_initclass();
 
     delete(dspUI);
     delete(thedsp);
-	post((char*)"Faust DSP object");
+	post((char*)"Faust DSP object 64 bits v%s", EXTERNAL_VERSION);
+    post((char*)"Copyright (c) 2012 Grame");
 	return 0;
 }
 
