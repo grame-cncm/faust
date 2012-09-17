@@ -166,7 +166,7 @@ struct LLVMTypeHelper {
     virtual LlvmValue genDouble(double number, int size = 1)
     {
         if (size > 1) {
-            return ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(getGlobalContext()), size), number);
+            return ConstantFP::get(VectorType::get(llvm::Type::getDoubleTy(getGlobalContext()), size), number);
         } else {
             return ConstantFP::get(getGlobalContext(), APFloat(number));
         }
