@@ -34,8 +34,8 @@ ARCHFLAGS 	:=
 LIBFLAGS	:= --mode=link --tag=CXX
 endif
 
-CXXFLAGS ?= -g -Wall -Wuninitialized 
-##CXXFLAGS ?= -O3 -Wall -Wuninitialized  
+##CXXFLAGS ?= -g -Wall -Wuninitialized 
+CXXFLAGS ?= -O3 -Wall -Wuninitialized  
 CXXFLAGS += -fvisibility=hidden -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 CXXFLAGS += -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)

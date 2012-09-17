@@ -110,10 +110,10 @@ This file contains several extensions to the tree library :
 #include <cstdlib>
 
 inline Tree 	cons (Tree a, Tree b)		{ return tree (gGlobal->CONS, a, b); }
-inline Tree 	list0 () 					{ return gGlobal->nil; }
+Tree list0 () 					{ return gGlobal->nil; }
 
-inline bool 	isNil (Tree l)			{ return (l->node() == Node(gGlobal->NIL)) && (l->arity() == 0); }
-inline bool 	isList (Tree l)			{ return (l->node() == Node(gGlobal->CONS)) && (l->arity() == 2); }
+bool isNil (Tree l)			{ return (l->node() == Node(gGlobal->NIL)) && (l->arity() == 0); }
+inline bool isList (Tree l)			{ return (l->node() == Node(gGlobal->CONS)) && (l->arity() == 2); }
 
 //------------------------------------------------------------------------------
 // Printing of trees with special case for lists
