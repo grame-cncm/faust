@@ -1,13 +1,9 @@
 /************************************************************************
-
 	IMPORTANT NOTE : this file contains two clearly delimited sections :
 	the ARCHITECTURE section (in two parts) and the USER section. Each section
 	is governed by its own copyright and license. Please check individually
 	each section for license and copyright information.
 *************************************************************************/
-
-#ifndef __coreaudio_dsp__
-#define __coreaudio_dsp__
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -37,6 +33,9 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef __coreaudio_dsp__
+#define __coreaudio_dsp__
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -63,21 +62,8 @@ using namespace std;
 *******************************************************************************
 *******************************************************************************/
 
-//----------------------------------------------------------------------------
-// 	number of physical input and output channels of the CA device
-//----------------------------------------------------------------------------
-
-int	gDevNumInChans;
-int	gDevNumOutChans;
-
-//----------------------------------------------------------------------------
-// tables of noninterleaved input and output channels for FAUST
-//----------------------------------------------------------------------------
-
-float* 	gInChannel[256];
-float* 	gOutChannel[256];
-
 #define OPEN_ERR -1
+#define CLOSE_ERR -1
 #define NO_ERR 0
 
 #define WAIT_COUNTER 60
@@ -88,16 +74,23 @@ typedef	UInt8	CAAudioHardwareDeviceSectionID;
 #define	kAudioDeviceSectionGlobal	((CAAudioHardwareDeviceSectionID)0x00)
 #define	kAudioDeviceSectionWildcard	((CAAudioHardwareDeviceSectionID)0xFF)
 
-dsp * gDsp;
-
 class TCoreAudioRenderer
 {
     private:
+    
+        int	fDevNumInChans;
+        int	fDevNumOutChans;
+        
+        float** fInChannel;
+        float** fOutChannel;
+        
+        dsp* fDSP;
+   
 		AudioBufferList* fInputData;
 		AudioDeviceID fDeviceID;
 		AudioUnit fAUHAL;
         AudioObjectID fPluginID;    // Used for aggregate device
-         bool fState;
+        bool fState;
 
 		OSStatus GetDefaultDevice(int inChan, int outChan, int samplerate, AudioDeviceID* id);
 
@@ -116,22 +109,26 @@ class TCoreAudioRenderer
                                UInt32 inNumberFrames,
                                AudioBufferList *ioData);
 
-
         static OSStatus SRNotificationCallback(AudioDeviceID inDevice,
                                             UInt32 inChannel,
                                             Boolean	isInput,
                                             AudioDevicePropertyID inPropertyID,
                                             void* inClientData);
-
+    
+        void compute(int inNumberFrames)
+        {
+            fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+        }
+      
     public:
 
         TCoreAudioRenderer()
-            :fInputData(0),fDeviceID(0),fAUHAL(0),fPluginID(0),fState(false)
+            :fInputData(0),fDeviceID(0),fAUHAL(0),fPluginID(0),fState(false),fDevNumInChans(0),fDevNumOutChans(0),fDSP(0)
         {}
         virtual ~TCoreAudioRenderer()
         {}
 
-        long OpenDefault(long inChan, long outChan, long bufferSize, long sampleRate);
+        long OpenDefault(dsp* dsp, long inChan, long outChan, long bufferSize, long sampleRate);
         long Close();
 
         long Start();
@@ -227,13 +224,13 @@ OSStatus TCoreAudioRenderer::Render(void *inRefCon,
 {
     TCoreAudioRendererPtr renderer = (TCoreAudioRendererPtr)inRefCon;
     AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fInputData);
-    for (int i = 0; i < gDevNumInChans; i++) {
-        gInChannel[i] = (float*)renderer->fInputData->mBuffers[i].mData;
+    for (int i = 0; i < renderer->fDevNumInChans; i++) {
+        renderer->fInChannel[i] = (float*)renderer->fInputData->mBuffers[i].mData;
     }
-    for (int i = 0; i < gDevNumOutChans; i++) {
-        gOutChannel[i] = (float*)ioData->mBuffers[i].mData;
+    for (int i = 0; i < renderer->fDevNumOutChans; i++) {
+        renderer->fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
     }
-    gDsp->compute((int)inNumberFrames, gInChannel, gOutChannel);
+    renderer->compute((int)inNumberFrames);
 	return 0;
 }
 
@@ -794,7 +791,7 @@ OSStatus TCoreAudioRenderer::DestroyAggregateDevice()
 }
 
 
-long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize, long samplerate)
+long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long bufferSize, long samplerate)
 {
 	OSStatus err = noErr;
     ComponentResult err1;
@@ -803,6 +800,13 @@ long TCoreAudioRenderer::OpenDefault(long inChan, long outChan, long bufferSize,
 	Boolean isWritable;
 	AudioStreamBasicDescription srcFormat, dstFormat, sampleRate;
     long in_nChannels, out_nChannels;
+    
+    fDSP = dsp;
+    fDevNumInChans = inChan;
+    fDevNumOutChans = outChan;
+    
+    fInChannel = new float*[fDevNumInChans];
+    fOutChannel = new float*[fDevNumOutChans];
 
     printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld samplerate = %ld\n", inChan, outChan, bufferSize, samplerate);
 
@@ -1071,18 +1075,29 @@ error:
 
 long TCoreAudioRenderer::Close()
 {
-    for (int i = 0; i < gDevNumInChans; i++) {
+    if (!fAUHAL) {
+        return CLOSE_ERR;
+    }
+    
+    for (int i = 0; i < fDevNumInChans; i++) {
         free(fInputData->mBuffers[i].mData);
     }
 	free(fInputData);
 	AudioUnitUninitialize(fAUHAL);
     CloseComponent(fAUHAL);
     DestroyAggregateDevice();
+    
+    delete[] fInChannel;
+    delete[] fOutChannel;
     return NO_ERR;
 }
 
 long TCoreAudioRenderer::Start()
 {
+    if (!fAUHAL) {
+        return OPEN_ERR;
+    }
+    
 	OSStatus err = AudioOutputUnitStart(fAUHAL);
 
     if (err != noErr) {
@@ -1095,6 +1110,10 @@ long TCoreAudioRenderer::Start()
 
 long TCoreAudioRenderer::Stop()
 {
+    if (!fAUHAL) {
+        return OPEN_ERR;
+    }
+    
     OSStatus err = AudioOutputUnitStop(fAUHAL);
 
     if (err != noErr) {
@@ -1124,11 +1143,8 @@ class coreaudio : public audio {
 	virtual ~coreaudio() {}
 
 	virtual bool init(const char* /*name*/, dsp* DSP) {
-		gDsp = DSP;
-		DSP->init (fSampleRate);
-		gDevNumInChans = DSP->getNumInputs();
-		gDevNumOutChans = DSP->getNumOutputs();
-		if (audio_device.OpenDefault(gDevNumInChans, gDevNumOutChans, fFramesPerBuf, fSampleRate) < 0) {
+		DSP->init(fSampleRate);
+		if (audio_device.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fFramesPerBuf, fSampleRate) < 0) {
 			printf("Cannot open CoreAudio device\n");
 			return false;
 		}
