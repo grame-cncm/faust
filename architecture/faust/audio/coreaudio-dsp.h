@@ -63,6 +63,7 @@ using namespace std;
 *******************************************************************************/
 
 #define OPEN_ERR -1
+#define CLOSE_ERR -1
 #define NO_ERR 0
 
 #define WAIT_COUNTER 60
@@ -1074,6 +1075,10 @@ error:
 
 long TCoreAudioRenderer::Close()
 {
+    if (!fAUHAL) {
+        return CLOSE_ERR;
+    }
+    
     for (int i = 0; i < fDevNumInChans; i++) {
         free(fInputData->mBuffers[i].mData);
     }
@@ -1089,6 +1094,10 @@ long TCoreAudioRenderer::Close()
 
 long TCoreAudioRenderer::Start()
 {
+    if (!fAUHAL) {
+        return OPEN_ERR;
+    }
+    
 	OSStatus err = AudioOutputUnitStart(fAUHAL);
 
     if (err != noErr) {
@@ -1101,6 +1110,10 @@ long TCoreAudioRenderer::Start()
 
 long TCoreAudioRenderer::Stop()
 {
+    if (!fAUHAL) {
+        return OPEN_ERR;
+    }
+    
     OSStatus err = AudioOutputUnitStop(fAUHAL);
 
     if (err != noErr) {
