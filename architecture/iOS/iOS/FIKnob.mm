@@ -306,10 +306,11 @@
 	CGContextSaveGState(context);
 	CGContextSetLineWidth(context, self.valueArcWidth);
     
+    self.backgroundColor = [UIColor blackColor];
 	if (self.backgroundColorAlpha > 0.02)
 	{
 		// outline semi circle
-		UIColor *backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:1.];
+		UIColor *backgroundColor = [UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1.];
 		[backgroundColor set];
         
 		CGContextAddArc(context,
@@ -321,6 +322,33 @@
 						0);
 		CGContextStrokePath(context);
 	}
+    
+    // Gradient
+    context = UIGraphicsGetCurrentContext();
+    
+    UIColor *lightGradientColor = [UIColor colorWithRed:0.7 green:0.7 blue:0.7 alpha:1.];
+    UIColor *darkGradientColor = [UIColor colorWithRed:0. green:0. blue:0. alpha:1.];
+    
+    CGFloat locations[2] = {0.0, 1.0};
+    CFArrayRef colors = (CFArrayRef) [NSArray arrayWithObjects:(id)lightGradientColor.CGColor,
+                                      (id)darkGradientColor.CGColor, 
+                                      nil];
+    
+    CGColorSpaceRef colorSpc = CGColorSpaceCreateDeviceRGB();
+    CGGradientRef gradient = CGGradientCreateWithColors(colorSpc, colors, locations);
+    
+    CGContextSetBlendMode(context, kCGBlendModeMultiply);
+    
+    CGContextDrawLinearGradient(context,
+                                gradient, 
+                                CGPointMake(0.0, 0.0), 
+                                CGPointMake(rect.size.width, rect.size.height), 
+                                kCGGradientDrawsAfterEndLocation); //Adjust second point according to your view height
+    
+    CGColorSpaceRelease(colorSpc);
+    CGGradientRelease(gradient);
+    CGContextSetBlendMode(context, kCGBlendModeNormal);
+    // End gradient
     
 	// draw the value semi circle
 	[self.color set];
@@ -359,11 +387,15 @@
 
         if ([self.suffixe compare:@""] == NSOrderedSame)
         {
-            valueString = [NSString stringWithFormat:@"%2.1f", self.value];
+            if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f", self.value];
+            else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f", self.value];
+            else valueString = [NSString stringWithFormat:@"%2.1f", self.value];
         }
         else
         {
-            valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
+            if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f\r%@", self.value, self.suffixe];
+            else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f\r%@", self.value, self.suffixe];
+            else valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
             multiplier = 2.f;
         }   
 		CGSize valueStringSize = [valueString sizeWithFont:self.labelFont
@@ -378,13 +410,22 @@
                       alignment:UITextAlignmentCenter];		
 	}
     
+    // Draw assignation
+    if (self.assignated)
+    {
+        CGContextSetLineWidth(context, 3.);
+        [self.color set];
+        [self context:context addRoundedRect:boundsRect cornerRadius:3.f];
+        CGContextStrokePath(context);
+    }
+    
     // Draw selection
     if (self.selected)
     {
-        [[UIColor colorWithRed:0. green:0.1 blue:0.9 alpha:0.4] set];
-        CGContextSetBlendMode(context, kCGBlendModeColorDodge);
-        [self context:context addRoundedRect:boundsRect cornerRadius:0];
-        CGContextFillPath(context);
+        CGContextSetLineWidth(context, 15.);
+        [self.color set];
+        [self context:context addRoundedRect:boundsRect cornerRadius:3.f];
+        CGContextStrokePath(context);
     }
     
 	CGContextRestoreGState(context);

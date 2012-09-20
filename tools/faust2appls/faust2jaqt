@@ -12,6 +12,11 @@ ARCHLIB="-ljack"
 PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
+# Search for qmake or qmake-qt4
+
+QMAKE=$(which qmake-qt4 || echo qmake) 
+
+#-------------------------------------------------------------------------------
 # Search where Faust is installed. Store '.../lib/faust/' in $FLIB
 # and '.../include/(faust)' in $FINC 
 
@@ -109,8 +114,8 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-       	qmake -project "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
-	    qmake $SPEC
+	    $QMAKE -project "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FINC" "QMAKE_CXXFLAGS=$CXXFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FINC/faust/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS"
+	    $QMAKE $SPEC
         make
     ) > /dev/null
 

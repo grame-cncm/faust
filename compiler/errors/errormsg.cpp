@@ -31,7 +31,7 @@ const char* yyfilename = "????";
 int 		gErrorCount = 0;
 Tree 		DEFLINEPROP = tree(symbol("DefLineProp"));
 
-void yyerror(char* msg) 
+void yyerror(const char* msg) 
 { 
 	fprintf(stderr, "%s:%d:%s\n", yyfilename, yylineno, msg); 
 	gErrorCount++;

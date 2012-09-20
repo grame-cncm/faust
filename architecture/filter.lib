@@ -98,6 +98,14 @@ with {
   b2 = b0;
 };
 
+//---------------------------- latch(c) --------------------------------
+// Latch input on positive-going transition of "clock" ("sample-and-hold")
+//
+// USAGE:
+//   _ : latch(clocksig) : _
+
+latch(c,x) = x * s : + ~ *(1-s) with { s = ((c'<=0)&(c>0)); };
+
 //========================= Comb Filters ===============================
 
 //----------------------- ff_comb, ff_fcomb ----------------------------
@@ -1003,40 +1011,57 @@ with { // octave script output:
 //================= Parametric Equalizers (Shelf, Peaking)  ==================
 // REFERENCES
 // - http://en.wikipedia.org/wiki/Equalization
-// - Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
+// - filterbank (below, here in filter.lib)
 // - http://www.harmony-central.com/Computer/Programming/Audio-EQ-Cookbook.txt
 //   http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+//   Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
 // - https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html
 // - https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html
 // - maxmsp.lib in the Faust distribution
 // - bandfilter.dsp in the faust2pd distribution 
 
-//----------------------------- low_shelf ------------------------------------
+//------------------------------ low_shelf -------------------------------------
 // First-order "low shelf" filter (gain boost|cut between dc and some frequency)
-// USAGE: lowshelf(L0,fx), where
-//  L0 = desired boost (dB) between dc and fx
-//  fx = desired transition frequency (Hz) from boost to unity gain
-// The gain at SR/2 is constrained to be 1.
 //
-low_shelf = low_shelf3; // default
-low_shelf1(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(1,fx,x);
-low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x);
-low_shelf3(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(3,fx,x);
-low_shelf5(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(5,fx,x);
+// USAGE: 
+//   _ : lowshelf(N,L0,fx) : _
+// where
+//   N = filter order 1, 3, 5, ... (odd only).
+//  L0 = desired level (dB) between dc and fx (boost L0>0 or cut L0<0)
+//  fx = desired transition frequency (Hz) from boost|cut to unity gain
+//
+// The gain at SR/2 is constrained to be 1.
+// The generalization to arbitrary odd orders is based on the well known
+// fact that odd-order Butterworth band-splits are allpass-complementary
+// (see filterbank documentation below for references).
+//
+lowshelf(N,L0,fx) = filterbank(N,(fx)) : _, *(db2linear(L0)) :> _;
+// Special cases providing backward compatibility and optimization:
+low_shelf  = lowshelf(3); // default = 3rd order Butterworth
+low_shelf1(L0,fx,x) = x + (db2linear(L0)-1)*lowpass(1,fx,x); // optimized
+low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // optimized
+low_shelf3 = lowshelf(3); // backward compatibility for one release
+low_shelf5 = lowshelf(5); // backward compatibility for one release
 
-//----------------------------- high_shelf -----------------------------------
+//------------------------------ high_shelf ------------------------------------
 // First-order "high shelf" filter (gain boost|cut above some frequency)
 //
-// USAGE: high_shelf(Lpi,fx), where
-//  Lpi = desired boost or cut (dB) between fx and SR/2
-//  fx = desired transition frequency in Hz
-// The gain at dc is constrained to be 1
+// USAGE: 
+//   _ : highshelf(N,Lpi,fx) : _
+// where
+//    N = filter order 1, 3, 5, ... (odd only).
+//  Lpi = desired level (dB) between fx and SR/2 (boost Lpi>0 or cut Lpi<0)
+//   fx = desired transition frequency in Hz
 //
-high_shelf=high_shelf3; //default
-high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x);
-high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x);
-high_shelf3(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(3,fx,x);
-high_shelf5(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(5,fx,x);
+// The gain at dc is constrained to be 1.
+//
+highshelf(N,Lpi,fx) = filterbank(N,(fx)) : *(db2linear(Lpi)), _ :> _;
+// Special cases providing backward compatibility and optimization:
+high_shelf = highshelf(3); // default = 3rd order Butterworth
+high_shelf1(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(1,fx,x); // optimized
+high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); //optimized
+high_shelf3 = highshelf(3); // backward compatibility for one release
+high_shelf5 = highshelf(5); // backward compatibility for one release
 
 //-------------------------------- peak_eq -----------------------------------
 // Second order "peaking equalizer" section 
@@ -1044,7 +1069,7 @@ high_shelf5(Lpi,fx,x) = x + (db2linear(Lpi)-1)*highpass(5,fx,x);
 //   Also called a "parametric equalizer" section
 // USAGE: _ : peak_eq(Lfx,fx,B) : _;
 // where
-//    Lfx = level (dB) at fx
+//    Lfx = level (dB) at fx (boost Lfx>0 or cut Lfx<0)
 //     fx = peak frequency (Hz)
 //      B = bandwidth (B) of peak in Hz
 //

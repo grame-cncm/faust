@@ -136,12 +136,13 @@ CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box);
 CGPoint absolutePosition(uiCocoaItem* widget);
 
 
-
+// All Cocoa widget classes inheritate from uiCocoaItem, which inheritate from Faust uiItem
 class uiCocoaItem : public uiItem
 {
     
 protected:
     
+    NSString*               fName;
     BOOL                    fHidden;
     uiCocoaItem*            fParent;
     float                   fx;
@@ -153,28 +154,37 @@ protected:
     float                   fAbstractW;
     float                   fAbstractH;
     BOOL                    fSelected;
+    int                     fAssignationType;
+    float                   fAssignationRefPointX;
+    float                   fAssignationRefPointY;
+    BOOL                    fAssignationInverse;
+    float                   fAssignationSensibility;
+    float                   fR;
+    float                   fG;
+    float                   fB;
     
 public:
     
     FIMainViewController*   mainViewController;
-    int                     assignationType;
-    float                   assignationRefPointX;
-    float                   assignationRefPointY;
-    BOOL                    assignationInverse;
-    float                   assignationSensibility;
 
-    void resetAssignations()
+    // Default widget parameter
+    void resetParameters()
     {
-        assignationType = kAssignationNone;
-        assignationRefPointX = 0.;
-        assignationRefPointY = 0.5;
-        assignationInverse = false;
-        assignationSensibility = 1.;
+        fAssignationType = kAssignationNone;
+        fAssignationRefPointX = 0.;
+        fAssignationRefPointY = 0.;
+        fAssignationInverse = false;
+        fAssignationSensibility = 1.;
+        fR = 0.f;
+        fG = 0.f;
+        fB = 1.f;
     }
     
-    uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller)
+    // Constructor / Destuctor
+    uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller, const char* name)
     : uiItem(ui, zone), mainViewController(controller)
     {
+        fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
         fHidden = false;
         fParent = NULL;
         fx = 0.f;
@@ -185,16 +195,22 @@ public:
         fAbstractY = 0.f;
         fAbstractW = 0.f;
         fAbstractH = 0.f;
-        resetAssignations();
+        resetParameters();
         fSelected = false;
     }
     
     ~uiCocoaItem()
     {
+        [fName release];
     }
         
+    // Getters, setters
+    NSString* getName()                                             {return fName;}
+    
     virtual void setHidden(BOOL hidden) = 0;
     BOOL isHidden()                                                 {return fHidden;}
+    virtual BOOL isHExpandable() = 0;
+    virtual BOOL isVExpandable() = 0;
     
     float getX()                                                    {return fx;}
     float getY()                                                    {return fy;}
@@ -214,6 +230,27 @@ public:
     
     BOOL isSelected()                                               {return fSelected;}
     virtual void setSelected(BOOL selected)                         {fSelected = selected;}
+    
+    int getAssignationType()                                        {return fAssignationType;}
+    virtual void setAssignationType(int assignationType)            {fAssignationType = assignationType;}
+    
+    float getAssignationRefPointX()                                 {return fAssignationRefPointX;}
+    void setAssignationRefPointX(float assignationRefPointX)        {fAssignationRefPointX = assignationRefPointX;}
+    
+    float getAssignationRefPointY()                                 {return fAssignationRefPointY;}
+    void setAssignationRefPointY(float assignationRefPointY)        {fAssignationRefPointY = assignationRefPointY;}
+    
+    BOOL getAssignationInverse()                                    {return fAssignationInverse;}
+    void setAssignationInverse(BOOL assignationInverse)             {fAssignationInverse = assignationInverse;}
+    
+    float getAssignationSensibility()                               {return fAssignationSensibility;}
+    void setAssignationSensibility(float assignationSensibility)    {fAssignationSensibility = assignationSensibility;}
+
+    
+    float getR()                                                    {return fR;}
+    float getG()                                                    {return fG;}
+    float getB()                                                    {return fB;}
+    virtual void setColor(float r, float g, float b)                {fR = r; fG = g; fB = b;}
 };
 
 
@@ -221,7 +258,7 @@ public:
 
 class uiBox : public uiCocoaItem
 {
-    
+
 public:
     
     FIBox*                  fBox;
@@ -234,7 +271,7 @@ public:
     UILabel*                fLabel;
     
     uiBox(GUI* ui, FIMainViewController* controller, const char* name, int boxType)
-    : uiCocoaItem(ui, NULL, controller)
+    : uiCocoaItem(ui, NULL, controller, name)
     {
         float tabOffset = 0;
         fBoxType = boxType;
@@ -257,7 +294,7 @@ public:
 
         fClosed = FALSE;
         fBox = [[[FIBox alloc] init] autorelease];
-        fBox.color = [UIColor blueColor];
+        fBox.color = [UIColor darkGrayColor];
         fBox.autoresizingMask = UIViewAutoresizingNone;
         
         [controller.dspView addSubview:fBox];
@@ -281,6 +318,16 @@ public:
     {
         if (fLabel) [fLabel release];
         [fBox release];
+    }
+    
+    BOOL isHExpandable()
+    {
+        return TRUE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        return FALSE;
     }
     
     int getNumberOfDirectChildren()
@@ -350,6 +397,7 @@ public:
         }
     }
     
+    // Returns minimum size used by widgets within the box
     CGSize getContentSize()
     {
         list<uiCocoaItem*>::iterator    i;
@@ -431,8 +479,8 @@ public :
     UILabel*            fLabel;
     
     uiKnob(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
-    : uiCocoaItem(ui, zone, controller)
-    {        
+    : uiCocoaItem(ui, zone, controller, name)
+    {
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
         fLabel.textAlignment = UITextAlignmentCenter;
@@ -445,7 +493,7 @@ public :
         fKnob.autoresizingMask = UIViewAutoresizingNone;
         fKnob.labelFont = [UIFont boldSystemFontOfSize:14.0];
         fKnob.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
-        fKnob.color = [UIColor blueColor];
+        fKnob.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         fKnob.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fKnob.min = min;
         fKnob.max = max;
@@ -466,6 +514,16 @@ public :
         [fKnob release];
     }
     
+    BOOL isHExpandable()
+    {
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        return FALSE;
+    }
+
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -497,6 +555,28 @@ public :
         [fKnob setNeedsDisplay];
     }
     
+    void setColor(float r, float g, float b)
+    {
+        uiCocoaItem::setColor(r, g, b);
+        
+        fKnob.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
+        [fKnob setNeedsDisplay];
+    }
+    
+    void setAssignationType(int assignationType)
+    {
+        uiCocoaItem::setAssignationType(assignationType);
+        if (assignationType != kAssignationNone)
+        {
+            fKnob.assignated = true;
+        }
+        else
+        {
+            fKnob.assignated = false;
+        }
+        [fKnob setNeedsDisplay];
+    }
+    
     void reflectZone()
     {
         float v = *fZone;
@@ -517,7 +597,7 @@ public :
     BOOL                    fHorizontal;
     
     uiSlider(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, name)
     {        
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
@@ -534,7 +614,7 @@ public :
         fSlider.autoresizingMask = UIViewAutoresizingNone;
         fSlider.labelFont = [UIFont boldSystemFontOfSize:14.0];
         fSlider.labelColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:1.0];
-        fSlider.color = [UIColor blueColor];
+        fSlider.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         fSlider.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0];
         fSlider.min = min;
         fSlider.max = max;
@@ -553,6 +633,24 @@ public :
     {
         [fLabel release];
         [fSlider release];
+    }
+    
+    BOOL isHExpandable()
+    {
+        if (fHorizontal)
+        {
+            return TRUE;
+        }
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        if (fHorizontal)
+        {
+            return FALSE;
+        }
+        return TRUE;
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -594,6 +692,28 @@ public :
         fSlider.hidden = hidden;
     }
     
+    void setColor(float r, float g, float b)
+    {
+        uiCocoaItem::setColor(r, g, b);
+        
+        fSlider.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
+        [fSlider setNeedsDisplay];
+    }
+    
+    void setAssignationType(int assignationType)
+    {
+        uiCocoaItem::setAssignationType(assignationType);
+        if (assignationType != kAssignationNone)
+        {
+            fSlider.assignated = true;
+        }
+        else
+        {
+            fSlider.assignated = false;
+        }
+        [fSlider setNeedsDisplay];
+    }
+    
     void setSelected(BOOL selected)
     {
         uiCocoaItem::setSelected(selected);
@@ -620,7 +740,7 @@ public:
     FIButton*           fButton;
     
     uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, name)
     {
         fButton = [[[FIButton alloc] initWithDelegate:controller] autorelease];
         fButton.autoresizingMask =  UIViewAutoresizingNone;
@@ -629,6 +749,7 @@ public:
         fButton.labelColor = [UIColor whiteColor];
         fButton.backgroundColorAlpha = 0.4;
         fButton.type = type;
+        fButton.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         [controller.dspView addSubview:fButton];
         
         UILongPressGestureRecognizer *longPressGesture = [[[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)] autorelease];
@@ -641,6 +762,16 @@ public:
         [fButton release];
     }
 
+    BOOL isHExpandable()
+    {
+        return TRUE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        return FALSE;
+    }
+    
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
@@ -666,6 +797,28 @@ public:
         [fButton setNeedsDisplay];
     }
     
+    void setColor(float r, float g, float b)
+    {
+        uiCocoaItem::setColor(r, g, b);
+        
+        fButton.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
+        [fButton setNeedsDisplay];
+    }
+    
+    void setAssignationType(int assignationType)
+    {
+        uiCocoaItem::setAssignationType(assignationType);
+        if (assignationType != kAssignationNone)
+        {
+            fButton.assignated = true;
+        }
+        else
+        {
+            fButton.assignated = false;
+        }
+        [fButton setNeedsDisplay];
+    }
+    
     void reflectZone()
     {
         float v = *fZone;
@@ -686,7 +839,7 @@ public:
     UILabel*            fLabel;
     
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, label)
     {
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
@@ -698,7 +851,7 @@ public:
 
         fTextField = [[[FITextField alloc] initWithDelegate:controller] autorelease];
         fTextField.autoresizingMask = UIViewAutoresizingNone;
-		fTextField.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:1.];
+		fTextField.backgroundColor = [UIColor lightGrayColor];
         fTextField.textColor = [UIColor whiteColor];
         fTextField.labelColor = [UIColor whiteColor];
         fTextField.backgroundColorAlpha = 0.4;
@@ -706,12 +859,22 @@ public:
         fTextField.max = max;
         fTextField.value = init;
         fTextField.step = step;
-        [controller.dspView addSubview:fTextField];        
+        [controller.dspView addSubview:fTextField];
     }
     
     ~uiNumEntry()
     {
         [fTextField release];
+    }
+    
+    BOOL isHExpandable()
+    {
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        return FALSE;
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -759,7 +922,7 @@ public:
     BOOL                    fHorizontal;
     
     uiBargraph(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float min, float max, BOOL horizontal)
-    : uiCocoaItem(ui, zone, controller)
+    : uiCocoaItem(ui, zone, controller, name)
     {        
         fLabel = [[[UILabel alloc] init] autorelease];
         fLabel.font = [UIFont boldSystemFontOfSize:12];
@@ -767,7 +930,7 @@ public:
         else fLabel.textAlignment = UITextAlignmentCenter;
         fLabel.text = [NSString stringWithCString:name encoding:NSASCIIStringEncoding];
         fLabel.textColor = [UIColor whiteColor];
-        fLabel.backgroundColor = [UIColor clearColor];
+        fLabel.backgroundColor = [UIColor blackColor];
         [controller.dspView addSubview:fLabel];
         
         fBargraph = [[[FIBargraph alloc] initWithFrame:CGRectMake(0.f, 0.f, 0.f, 0.f)] autorelease];
@@ -785,6 +948,24 @@ public:
     {
         [fLabel release];
         [fBargraph release];
+    }
+    
+    BOOL isHExpandable()
+    {
+        if (fHorizontal)
+        {
+            return TRUE;
+        }
+        return FALSE;
+    }
+    
+    BOOL isVExpandable()
+    {
+        if (fHorizontal)
+        {
+            return FALSE;
+        }
+        return TRUE;
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -907,18 +1088,21 @@ private:
             // If the box is a tab content box : no label
             if (parent->fBoxType == kTabLayout)
             {
-                if (dynamic_cast<uiBox*>(widget)->fLabel)
+                if (dynamic_cast<uiBox*>(widget))
                 {
-                    [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
-                    dynamic_cast<uiBox*>(widget)->fLabel = nil;
-                    dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
+                    if (dynamic_cast<uiBox*>(widget)->fLabel)
+                    {
+                        [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
+                        dynamic_cast<uiBox*>(widget)->fLabel = nil;
+                        dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
+                    }
                 }
             }
             
             // Check the current layout mode (eg : the layout mode of widget's parent)
             switch (fCurrentLayoutType)
             {
-                // Tab layout mode : widget is the box containg the content of a tab
+                // Tab layout mode : widget is the box containing the content of a tab
                 case kTabLayout:
                     x = 0.f;
                     y = kStdTabHeight;
@@ -1024,21 +1208,11 @@ private:
         if (parent)
         {
             contentSize = parent->getContentSize();
-            
-            if (parent->fBoxType == kTabLayout)
-            {
-                parent->setFrame(   parent->getX(),
-                                    parent->getY(),
-                                    contentSize.width,
-                                    contentSize.height);
-            }
-            else
-            {
-                parent->setFrame(   parent->getX(),
-                                    parent->getY(),
-                                    contentSize.width + kSpaceSize,
-                                    contentSize.height + kSpaceSize);
-            }
+
+            parent->setFrame(parent->getX(),
+                             parent->getY(),
+                             contentSize.width + kSpaceSize,
+                             contentSize.height + kSpaceSize);
             
             parent->fLastX = widget->getX() + widget->getW();
             parent->fLastY = widget->getY() + widget->getH();
@@ -1057,8 +1231,9 @@ private:
             {
                 if (dynamic_cast<uiBox*>(*i))
                 {
-                    if (    dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                            && dynamic_cast<uiBox*>(*i) != widget)
+                    if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
+                        && dynamic_cast<uiBox*>(*i) != widget
+                        && !dynamic_cast<uiBox*>(*i)->fClosed)
                     {   
                         // Add FIButton in the fTabView
                         [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
@@ -1069,8 +1244,8 @@ private:
                 }
             }   
             i = fWidgetList.begin();
-            if (    dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                    && dynamic_cast<uiBox*>(*i) != widget)
+            if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
+                && dynamic_cast<uiBox*>(*i) != widget)
             {
                 [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                 
@@ -1151,6 +1326,7 @@ public:
         [fWindow release];
     }
     
+    // Abstract layout : layout computed regardless screen dimensions
     void saveAbstractLayout()
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
@@ -1171,6 +1347,7 @@ public:
         }
     }
     
+    // Function used to place widgets within a box when the horizontal box is too large or vertical box is too high
     void expandBoxesContent()
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
@@ -1178,40 +1355,167 @@ public:
         uiBox*                          box = NULL;
         CGSize                          contentSize;
         float                           labelHeight = 0.f;
-        
+        float                           extensibleElementsTotalSize = 0.f;
+        float                           fixedElementsTotalSize = 0.f;
+        float                           rx = 1.f;
+        float                           cpt = 0.f;
+        float                           newVal = 0.f;
+
+        // Loop on every boxes of the layout
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
             if ((box = dynamic_cast<uiBox*>(*i)))
             {
+                // Compute content size, ie minimum size used by widgets within the box
                 contentSize = box->getContentSize();
+                
+                // Expand objects if content height is < than box height (vertical box)
                 if (box->fBoxType == kVerticalLayout
                     && contentSize.height + kSpaceSize < box->getH())
                 {
+                    // Init values
+                    extensibleElementsTotalSize = 0.f;
+                    fixedElementsTotalSize = 0.f;
+                    rx = 1.f;
+                    cpt = 0.f;
+                    newVal = 0.f;
+                    
+                    // Compute extensible and fixed heights
                     for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                     {
                         if ((*j)->getParent() == box)
                         {
-                            if (box->fLabel) labelHeight = kStdBoxLabelHeight;
-                            
-                            (*j)->setFrame((*j)->getX(),
-                                           ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
-                                           (*j)->getW(),
-                                           (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
+                            if ((*j)->isVExpandable())
+                            {
+                                extensibleElementsTotalSize += (*j)->getH();
+                            }
+                            else
+                            {
+                                fixedElementsTotalSize += (*j)->getH();
+                            }
+                        }
+                    }
+                    
+                    // If there is at least 1 extensible element, elements will take the whole box height
+                    if (extensibleElementsTotalSize > 0.)
+                    {
+                        // Compute extension ratio
+                        rx = (box->getH() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize - labelHeight) / extensibleElementsTotalSize;
+                        
+                        // Replace elements
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {                                
+                                if ((*j)->isVExpandable())
+                                {
+                                    newVal = (*j)->getH() * rx;
+                                }
+                                else
+                                {
+                                    newVal = (*j)->getH();
+                                }
+                                
+                                (*j)->setFrame((*j)->getX(),
+                                               cpt + kSpaceSize + labelHeight,
+                                               (*j)->getW(),
+                                               newVal);
+                                
+                                cpt += newVal + kSpaceSize + labelHeight;
+                            }
+                        }
+                    }
+                    
+                    // There is no extensible element
+                    else
+                    {
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {
+                                if (box->fLabel) labelHeight = kStdBoxLabelHeight;
+                                else labelHeight = 0.f;
+                                
+                                // Place objects on all the height of the box
+                                (*j)->setFrame((*j)->getX(),
+                                               ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
+                                               (*j)->getW(),
+                                               (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
+                            }
                         }
                     }
                 }
                 
+                // Expand objects if content width is < than box width (horizontal box)
                 else if (box->fBoxType == kHorizontalLayout
                          && contentSize.width + kSpaceSize < box->getW())
                 {
+                    // Init values
+                    extensibleElementsTotalSize = 0.f;
+                    fixedElementsTotalSize = 0.f;
+                    rx = 1.f;
+                    cpt = 0.f;
+                    newVal = 0.f;
+                    
+                    // Compute extensible and fixed widths
                     for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
                     {
                         if ((*j)->getParent() == box)
                         {
-                            (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
-                                           (*j)->getY(),
-                                           (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
-                                           (*j)->getH());
+                            if ((*j)->isHExpandable())
+                            {
+                                extensibleElementsTotalSize += (*j)->getW();
+                            }
+                            else
+                            {
+                                fixedElementsTotalSize += (*j)->getW();
+                            }
+                        }
+                    }
+                    
+                    // There is at least 1 extensible element, elements will take the whole box width
+                    if (extensibleElementsTotalSize > 0.)
+                    {
+                        // Compute extension ratio
+                        rx = (box->getW() - fixedElementsTotalSize - (box->getNumberOfDirectChildren() + 1) * kSpaceSize) / extensibleElementsTotalSize;
+                        
+                        // Replace elements
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {                                
+                                if ((*j)->isHExpandable())
+                                {
+                                    newVal = (*j)->getW() * rx;
+                                }
+                                else
+                                {
+                                    newVal = (*j)->getW();
+                                }
+                                
+                                (*j)->setFrame(cpt + kSpaceSize,
+                                               (*j)->getY(),
+                                               newVal,
+                                               (*j)->getH());
+                                
+                                cpt += newVal + kSpaceSize;
+                            }
+                        }
+                    }
+                    
+                    // There is no extensible element
+                    else
+                    {
+                        for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+                        {
+                            if ((*j)->getParent() == box)
+                            {
+                                // Place objects on all the width of the box
+                                (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
+                                               (*j)->getY(),
+                                               (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
+                                               (*j)->getH());
+                            }
                         }
                     }
                 }
@@ -1219,9 +1523,16 @@ public:
         }
     }
     
+    // This function takes abstract layout and adapt it to current screen dimensions
     void adaptLayoutToWindow(float width, float height)
     {
         list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator    j = fWidgetList.begin();
+        BOOL                            hExpandable = NO;
+        BOOL                            vExpandable = NO;
+        float                           newWidth = 0.f;
+        float                           newHeight = 0.f;
+        int                             cpt = 0;
         
         if (dynamic_cast<uiBox*>(*i))
         {
@@ -1234,11 +1545,67 @@ public:
             // Load abstract layout
             loadAbstractLayout();
             
+            // Algo : window is h exp if (a) there is at least 1 h exp element in the patch
+            // or (b) there is more than 1 column
+            // AND window is v exp if (a) there is at least 1 v exp element in the patch
+            // or (b) there is more than 1 line
+            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+            {
+                if (!dynamic_cast<uiBox*>(*j))
+                {
+                    if ((*j)->isHExpandable()) hExpandable = TRUE;
+                    if ((*j)->isVExpandable()) vExpandable = TRUE;
+                }
+            }
+            
+            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+            {
+                if (dynamic_cast<uiBox*>(*j))
+                {
+                    if (!hExpandable
+                        && dynamic_cast<uiBox*>(*j)->fBoxType == kHorizontalLayout
+                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                    {
+                        hExpandable = TRUE;
+                    }
+                    
+                    if (!vExpandable
+                        && dynamic_cast<uiBox*>(*j)->fBoxType == kVerticalLayout
+                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                    {
+                        vExpandable = TRUE;
+                    }
+                }
+            }
+            
+            if (hExpandable) newWidth = max((*i)->getAbstractW(), width);
+            else newWidth = (*i)->getAbstractW();
+            
+            if (vExpandable) newHeight = max((*i)->getAbstractH(), height);
+            else newHeight = (*i)->getAbstractH();
+            
             // Adapt abstract layout to device and orientation
-            (*i)->setFrame( (*i)->getX(),
-                            (*i)->getY(),
-                            max((*i)->getAbstractW(), width),
-                            max((*i)->getAbstractH(), height));            
+            (*i)->setFrame((*i)->getX(),
+                           (*i)->getY(),
+                           newWidth,
+                           newHeight);
+            
+            // Finally, if there's only 1 widget in the whole patch, center it
+            for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
+            {
+                if (!dynamic_cast<uiBox*>(*j))
+                {
+                    cpt++;
+                }
+            }
+            
+            if (cpt == 1)
+            {
+                (*i)->setFrame((*i)->getX(),
+                               (*i)->getY(),
+                               width,
+                               height);
+            }
         }
         
         expandBoxesContent();
@@ -1250,6 +1617,7 @@ public:
         return CGRectMake(pt.x, pt.y, widget->getW(), widget->getH());
     }
     
+    // Returns the box containing the point
     uiBox* getBoxForPoint(CGPoint pt)
     {
         list<uiCocoaItem*>::iterator i = fWidgetList.begin();

@@ -1222,7 +1222,8 @@ class QTGUI : public QObject, public GUI
 
 	bool isTabContext()
 	{
-		return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
+		//return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
+		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
 	}
 
 	void insert(const char* label, QWidget* widget)
@@ -1289,6 +1290,7 @@ class QTGUI : public QObject, public GUI
   		layout->setMargin(5);
 		QWidget* box;
 
+        
         if (isTabContext()) {
 			box = new QWidget();
             // set background color
@@ -1375,8 +1377,8 @@ class QTGUI : public QObject, public GUI
                                                                     "stop: 0 #A0A0A0, stop: 1 #202020);"
                                     "border: 2px solid gray;"
                                     "border-radius: 5px;"
-                                    "margin-top: 1ex;"
-                                    "font-size:7pt;"
+                                    "margin-top: 3ex;"
+                                    "font-size:10pt;"
                                     "font-weight:bold;"
                                   //"color: dark grey;"
                                     "color: white;"
@@ -1510,7 +1512,7 @@ class QTGUI : public QObject, public GUI
 	{
 		QWidget* group = fGroupStack.top();
 		fGroupStack.pop();
-		if (fGroupStack.empty()) { group->show(); }
+		if (fGroupStack.empty()) { group->show(); group->adjustSize();}
 	}
 
 	// ------------------------- active widgets -----------------------------------
@@ -1568,6 +1570,7 @@ class QTGUI : public QObject, public GUI
                   "QDoubleSpinBox {"
                                     "border: 2px solid orange;"
                                     "border-radius: 5px;"
+                                    "font-size: 8pt;"
                                  "}"
         );
 #endif

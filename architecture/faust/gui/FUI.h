@@ -84,7 +84,7 @@ class FUI : public UI
 		for (unsigned int i=0; i<fNameList.size(); i++) {
 			string	n = fNameList[i];
 			FAUSTFLOAT*	z = fName2Zone[n];
-			f << *z << ' ' << n << endl;
+			f << *z << ' ' << n.c_str() << endl;
 		}
 
 		f << endl;
@@ -103,7 +103,7 @@ class FUI : public UI
 			if (fName2Zone.count(n)>0) {
 				*(fName2Zone[n]) = v;
 			} else {
-				cerr << "recallState : parameter not found : " << n << " with value : " << v << endl;
+				cerr << "recallState : parameter not found : " << n.c_str() << " with value : " << v << endl;
 			}
 		}
 		f.close();

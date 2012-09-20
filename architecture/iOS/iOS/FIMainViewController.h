@@ -57,10 +57,22 @@ class uiBox;
     IBOutlet UILabel*                   _gyroSensibilityTitleLabel;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
-    FISensorFilter*                     _accelerometerFilter;
+    FISensorFilter*                     _sensorFilter;
     CLLocationManager*                  _locationManager;
     CMMotionManager*                    _motionManager;
     NSTimer*                            _motionTimer;
+    BOOL                                _blockShake;                    // To avoid several shakes in one movement
+    
+    IBOutlet UILabel*                   _colorLabel;
+    IBOutlet UILabel*                   _rLabel;
+    IBOutlet UILabel*                   _gLabel;
+    IBOutlet UILabel*                   _bLabel;
+    IBOutlet UILabel*                   _colorRLabel;
+    IBOutlet UILabel*                   _colorGLabel;
+    IBOutlet UILabel*                   _colorBLabel;
+    IBOutlet UISlider*                  _colorRSlider;
+    IBOutlet UISlider*                  _colorGSlider;
+    IBOutlet UISlider*                  _colorBSlider;
 }
 
 @property (strong, nonatomic) UIPopoverController* flipsidePopoverController;
@@ -78,6 +90,7 @@ class uiBox;
 - (void)refreshObjects:(NSTimer*)timer;
 - (void)zoomToLockedBox;
 - (void)doubleTap;
+- (void)buttonSetToZero:(id)sender;
 
 // Audio
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
@@ -88,9 +101,11 @@ class uiBox;
 - (IBAction)dismissWidgetPreferencesView:(id)sender;
 - (IBAction)widgetPreferencesChanged:(id)sender;
 - (IBAction)resetWidgetPreferences:(id)sender;
-- (void)loadMotionPreferences;
+- (void)loadWidgetsPreferences;
 - (void)startMotion;
 - (void)stopMotion;
 - (void)updateMotion;
+- (void)endBlockShake;
+- (NSString*)urlForWidget:(uiCocoaItem*)widget;
 
 @end

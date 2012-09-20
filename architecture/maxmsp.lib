@@ -222,5 +222,3 @@ line (value, time) = state ~ ( _ , _ ) : ! , _
 			samples = time * SR / 1000.0 ;
 		} ;
 	} ;
-
-

@@ -1,0 +1,162 @@
+#! /bin/bash
+
+#set -x
+
+# defaults (these can be changed with the options listed below)
+URI_PREFIX=http://faust-lv2.googlecode.com
+FAUST_META=1
+FAUST_MIDICC=1
+
+PROCARCH="-fPIC"
+CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+
+# We recognize the following special options here:
+# -nometa: ignore metadata (author information etc.) from the Faust source
+# -nomidicc: plugin doesn't process MIDI control data
+# -uri-prefix URI: URI prefix of plugin (arg must be a valid URI)
+
+for ((i=1;i<$#+1;i++)); do
+    p=${!i}
+    if [ $p = "-omp" ]; then
+    	: ignore
+    elif [ $p = "-icc" ]; then
+	CXX=icpc
+    	CXXFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+    elif [ $p = "-osc" ]; then
+    	: ignore
+    elif [ $p = "-httpd" ]; then
+    	: ignore
+    elif [ $p = "-nometa" ]; then
+    	FAUST_META=0
+    elif [ $p = "-nomidicc" ]; then
+    	FAUST_MIDICC=0
+    elif [ $p = "-dyn-manifest" ]; then
+    	dyn_manifest=yes
+    elif [ $p = "-uri-prefix" ]; then
+	(( i++ ))
+    	URI_PREFIX=${!i}
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64 -fPIC"
+    elif [ ${p:0:1} = "-" ]; then
+	OPTIONS="$OPTIONS $p"
+    elif [[ -e "$p" ]]; then
+	FILES="$FILES $p"
+    else
+	OPTIONS="$OPTIONS $p"
+    fi
+done
+
+FILES=( $FILES )
+if [ ${#FILES[@]} = 0 ]; then
+    echo "$0: no filename specified" >&2
+    exit 1
+elif [ ${#FILES[@]} -gt 1 ]; then
+    echo "$0: multiple filenames specified" >&2
+    exit 1
+fi
+
+arch=lv2.cpp
+dspname=${FILES[0]}
+SRCDIR=$(dirname "$dspname")
+
+clsname=`basename "$dspname" .dsp`
+cppname="$clsname.cpp"
+soname="$clsname.so"
+lv2name="$clsname.lv2"
+tmpdir=`mktemp -d`
+
+CXX=g++
+CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC"
+
+# Create the temp directory and the bundle directory inside it.
+mkdir -p $tmpdir/$lv2name
+# Compile the Faust module.
+faust -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
+$CXX -shared $CXXFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
+# Generate the manifest.
+if [ -n "$dyn_manifest" ]; then
+# Use a dynamic manifest.
+sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
+
+########## @uri@ ##########
+
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix dman: <http://lv2plug.in/ns/ext/dynmanifest#> .
+
+<@uri@/manifest>
+    lv2:binary <@name@@dllext@> ;
+    a dman:DynManifest .
+
+# Here's how you can declare the category of the plugin. (For lv2synth.cpp
+# instances, the lv2:InstrumentPlugin type will be added automatically.) See
+# http://lv2plug.in/ns/lv2core/ for a list of known plugin classes.
+
+# <@uri@> a lv2:FilterPlugin .
+
+# You might also want to set the license and author information below.
+# NOTE: This isn't normally necessary if you declared the corresponding
+# information as metadata in the Faust source of the plugin. The standard
+# author, license and description fields in the Faust source are automagically
+# included in the generated LV2 manifest.
+
+# <@uri@>
+#     doap:license <http://opensource.org/licenses/isc> ;
+#     doap:maintainer [
+#         foaf:name "Your Name Here" ;
+#         foaf:homepage <http://somewhere.org/> ;
+#         foaf:mbox <mailto:your@mail.here> ;
+#     ] .
+EOF
+else
+# Use a static manifest.
+sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
+
+########## @uri@ ##########
+
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<@uri@>
+    a lv2:Plugin ;
+    lv2:binary <@name@@dllext@> ;
+    rdfs:seeAlso <@name@.ttl> .
+
+# Here's how you can declare the category of the plugin. (For lv2synth.cpp
+# instances, the lv2:InstrumentPlugin type will be added automatically.) See
+# http://lv2plug.in/ns/lv2core/ for a list of known plugin classes.
+
+# <@uri@> a lv2:FilterPlugin .
+
+# You might also want to set the license and author information below.
+# NOTE: This isn't normally necessary if you declared the corresponding
+# information as metadata in the Faust source of the plugin. The standard
+# author, license and description fields in the Faust source are automagically
+# included in the generated LV2 manifest.
+
+# <@uri@>
+#     doap:license <http://opensource.org/licenses/isc> ;
+#     doap:maintainer [
+#         foaf:name "Your Name Here" ;
+#         foaf:homepage <http://somewhere.org/> ;
+#         foaf:mbox <mailto:your@mail.here> ;
+#     ] .
+EOF
+# This compiles the plugin to an executable which is run to generate the
+# plugin-specific part of the manifest.
+$CXX $CXXFLAGS $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname"
+"$tmpdir/$clsname" > "$tmpdir/$lv2name/$clsname.ttl"
+rm -f "$tmpdir/$clsname"
+fi
+# copy down the bundle
+rm -rf "$SRCDIR/$lv2name"
+cp -r "$tmpdir/$lv2name" "$SRCDIR"
+# Clean up.
+rm -rf $tmpdir
+# Print the name of the generated bundle zip file.
+echo "$SRCDIR/$lv2name;"
