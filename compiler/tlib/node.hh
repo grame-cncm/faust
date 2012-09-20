@@ -92,10 +92,9 @@ class Node : public virtual Garbageable
     Node (const Node& n)        : fType(n.fType)        { fData = n.fData; }
 
 	// predicats
-    
 	bool operator == (const Node& n) const { return fType == n.fType && fData.v == n.fData.v; }
 	bool operator != (const Node& n) const { return fType != n.fType || fData.v != n.fData.v; }
- 
+
 	// accessors
 	int		type() 		const 	{ return fType; }
 
