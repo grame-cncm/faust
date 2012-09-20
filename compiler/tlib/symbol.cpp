@@ -36,6 +36,8 @@ using namespace std;
  
 Symbol*	Symbol::gSymbolTable[kHashTableSize];
 
+map<const char*, unsigned int> Symbol::gPrefixCounters;
+
 
 /**
  * Search the hash table for the symbol of name \p str or returns a new one.
@@ -45,15 +47,7 @@ Symbol*	Symbol::gSymbolTable[kHashTableSize];
   
 Symbol* Symbol::get(const string& str)
 {
-	char 	buf[1024];
-	int		i;
-	int		n = str.length();
-	
-	if (n>1023) n = 1023;
-	for (i = 0; i < n; i++) { buf[i] = str[i]; }
-	buf[i] = 0;
-	
-	return Symbol::get(buf);
+    return Symbol::get(str.c_str());
 }
 
 
@@ -69,7 +63,7 @@ Symbol* Symbol::get(const char* str)
     unsigned int 	hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
-
+  
     while ( item && !item->equiv(hsh,str) ) item = item->fNext;
 	Symbol* r = item ? item : gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]);
 	return r;
@@ -102,9 +96,7 @@ bool Symbol::isnew(const char* str)
 Symbol* Symbol::prefix (const char* str)
 {
 	char 	name[256];
-    
-    static map<const char*, unsigned int> gPrefixCounters;
-	
+  	
 	for (int n = 0; n<10000; n++) {
 		snprintf(name, 256, "%s%d", str, gPrefixCounters[str]++);
 		if (isnew(name)) return get(name);
@@ -140,13 +132,10 @@ bool Symbol::equiv (unsigned int hash, const char *str) const
 unsigned int Symbol::calcHashKey (const char* str)
 {
     unsigned int h = 0;
- 
-    //printf("Symbol::calcHashKey %s\n", str);
-     
+    
     while (*str) h = (h << 1) ^ (h >> 20) ^ (*str++);
     return h;
 }
-
 
 
 /**
@@ -159,10 +148,7 @@ unsigned int Symbol::calcHashKey (const char* str)
 
 Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 {
-	int len = strlen(str);
-	
-    fName = new char [len+1];
-    memcpy(fName, str, len+1);
+    fName = strdup(str);
     fHash = hsh;
     fNext = nxt;
 	fData = 0;
@@ -170,7 +156,7 @@ Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 
 Symbol::~Symbol ()
 {
-	delete [] fName;
+    free(fName);
 }
 
 ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a stream
@@ -180,5 +166,6 @@ ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a strea
 
 void Symbol::init ()
 {
+    gPrefixCounters.clear();
     memset(gSymbolTable, 0, sizeof(Symbol*) * kHashTableSize);
 }

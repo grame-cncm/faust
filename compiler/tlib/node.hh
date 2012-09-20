@@ -76,6 +76,7 @@ class Node : public virtual Garbageable
 		double 	f;
 		Sym 	s;
 		void* 	p;
+        int64_t v;
 	} fData;
 
  public:
@@ -91,9 +92,10 @@ class Node : public virtual Garbageable
     Node (const Node& n)        : fType(n.fType)        { fData = n.fData; }
 
 	// predicats
-	bool operator == (const Node& n) const { return fType == n.fType && fData.f == n.fData.f; }
-	bool operator != (const Node& n) const { return fType != n.fType || fData.f != n.fData.f; }
-
+    
+	bool operator == (const Node& n) const { return fType == n.fType && fData.v == n.fData.v; }
+	bool operator != (const Node& n) const { return fType != n.fType || fData.v != n.fData.v; }
+ 
 	// accessors
 	int		type() 		const 	{ return fType; }
 

@@ -109,11 +109,12 @@ bool isRef(Tree t, Tree& v)
 // Les references symboliques compte pour zero ce qui veut dire qu'un arbre d'aperture
 // 0 ne compte aucun reference de bruijn libres.
 
-int CTree::calcTreeAperture( const Node& n, const tvec& br  )
+int CTree::calcTreeAperture( const Node& n, const tvec& br )
 {
  	int x;
 	if (n == gGlobal->DEBRUIJNREF) {
-
+    
+        assert(br[0]);
 		if (isInt(br[0]->node(), &x)) {
 			return x;
 		} else {
@@ -121,7 +122,8 @@ int CTree::calcTreeAperture( const Node& n, const tvec& br  )
 		}
 
 	} else if (n == gGlobal->DEBRUIJN) {
-
+ 
+        assert(br[0]);
 		return br[0]->fAperture - 1;
 
 	} else {
