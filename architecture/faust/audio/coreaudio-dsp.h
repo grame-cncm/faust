@@ -836,8 +836,14 @@ long TCoreAudioRenderer::OpenDefault(dsp* dsp, long inChan, long outChan, long b
     err = AudioDeviceSetProperty(fDeviceID, NULL, 0, false, kAudioDevicePropertyBufferFrameSize, outSize, &bufferSize);
     if (err != noErr) {
         printf("Cannot set buffer size %ld\n", bufferSize);
-        printError(err);
-        return OPEN_ERR;
+        err = AudioDeviceGetProperty(fDeviceID, 0, false, kAudioDevicePropertyBufferFrameSize, &outSize, &bufferSize);
+        if (err != noErr) {
+            printf("Cannot get buffer size %ld\n", bufferSize);
+            printError(err);
+            return OPEN_ERR;
+        } else {
+            printf("Use fixed buffer size %ld\n", bufferSize);
+        }
     }
 
     // Setting sample rate
