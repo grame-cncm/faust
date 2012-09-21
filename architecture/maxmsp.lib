@@ -23,11 +23,10 @@
 declare name "MaxMSP compatibility Library";
 declare author "GRAME";
 declare copyright "GRAME";
-declare version "1.0";
+declare version "1.1";
 declare license "LGPL"; 
 
 import("music.lib");
-
 
 atodb = db2lin;
 
@@ -35,7 +34,7 @@ atodb = db2lin;
 // 
 // Implementation of MaxMSP filtercoeff 
 // 
-//		from : Cookbook formulae for audio EQ biquad filter coefficients
+//	from : Cookbook formulae for audio EQ biquad filter coefficients
 //        by : Robert Bristow-Johnson  <rbj@audioimagination.com>
 //       URL : http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
 // 
@@ -141,7 +140,7 @@ filtercoeff(f0, dBgain, Q) = environment
 	// --------------------- implementation ------------------------------
 	
 	// convert rbj coeffs to biquad coeffs
-	rbjcoef(a0,a1,a2,b0,b1,b2) = (b0/a0, b1/a0, b2/a0,-a1/a0,-a2/a0);
+	rbjcoef(a0,a1,a2,b0,b1,b2) = (b0/a0, b1/a0, b2/a0, a1/a0, a2/a0);
 	
 	// common values
 //	alpha 	= sin(w0)/(2*Q);
@@ -149,29 +148,27 @@ filtercoeff(f0, dBgain, Q) = environment
 	alpha 	= sin(w0)/(2*max(0.001,Q));
 	w0 		= 2*PI*max(0,f0)/Fs;
 	Fs 		= SR;
-	A  		= 10^(dBgain/40);     			// (for peaking and shelving EQ filters only)
+	A  		= 10^(dBgain/40);     		// (for peaking and shelving EQ filters only)
 	G  		= sqrt(max(0.00001, dBgain));   // When gain is a linear values (i.e. not in dB)
 };
 
 
 //-------------------------------------------------------------------------
 // Implementation of MaxMSP biquad~
-// y[n] = a0 * x[n] + a1 * x[n-1] + a2 * x[n-2] + b1 * y[n-1] + b2 * y[n-2] 
+// y[n] = a0 * x[n] + a1 * x[n-1] + a2 * x[n-2] - b1 * y[n-1] - b2 * y[n-2] 
 //-------------------------------------------------------------------------
 
-biquad(x,a0,a1,a2,b1,b2) = x : conv3(a0, a1, a2) : + ~ conv2(b1, b2)
+biquad(a0,a1,a2,b1,b2)  =  + ~ ((-1)*conv2(b1, b2)) : conv3(a0, a1, a2) 
 	with {
 		conv2(c0,c1,x) = c0*x+c1*x';
 		conv3(c0,c1,c2,x) = c0*x+c1*x'+c2*x'';
 	};
-
 
 //-------------------------------------------------------------------------
 // 
 // Filters using filtercoeff and biquad
 //
 //-------------------------------------------------------------------------
-
 
 // Low Pass Filter
 LPF(x, f0, gain, Q) 		= x , filtercoeff(f0,gain,Q).LPF : biquad;
@@ -201,8 +198,6 @@ lowShelf(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).lowShelf : biquad;
 highShelf(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).highShelf : biquad;
 
 
-
-
 //-------------------------------------------------------------------------
 // Implementation of Max/MSP line~. Generate signal ramp or envelope 
 // 
@@ -214,11 +209,11 @@ highShelf(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).highShelf : biquad;
 // output value changes. The interpolation time is sampled only then.
 //-------------------------------------------------------------------------
 
-line (value, time) = state ~ ( _ , _ ) : ! , _ 
+line (value, time) = state~(_,_):!,_ 
 	with {
-		state (t , c) = nt , if( nt <= 0 , value , c + (value - c) / nt)
+		state (t, c) = nt, if (nt <= 0, value, c+(value - c) / nt)
 		with {
-			nt = if( value != value' , samples, t - 1) ;
-			samples = time * SR / 1000.0 ;
-		} ;
-	} ;
+			nt = if( value != value', samples, t-1);
+			samples = time*SR/1000.0;
+		};
+	};
