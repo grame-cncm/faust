@@ -902,7 +902,7 @@ EXPORT Module* compile_faust_llvm(int argc, const char* argv[], const char* libr
         module = gGlobal->gModule;
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
-        strcpy(error_msg, e.Message().c_str());
+        strncpy(error_msg, e.Message().c_str(), 256);
     }
     
     global::destroy();
@@ -919,7 +919,7 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* library_path,
         res = compile_faust_internal(argc, argv, library_path, draw_path, name, input);
         strcpy(error_msg, gGlobal->gErrorMsg);
     } catch (faustexception& e) {
-        strcpy(error_msg, e.Message().c_str());
+        strncpy(error_msg, e.Message().c_str(), 256);
     }
     
     global::destroy();
