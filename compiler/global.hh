@@ -339,7 +339,13 @@ struct global {
     loopDetector gLoopDetector;
     
     string gDrawPath;
- 
+    
+    int gMachineFloatSize;
+    int gMachineIntSize;
+    int gMachineDoubleSize;
+    int gMachineBoolSize;
+    int gMachinePtrSize;
+  
     global();
     ~global();
     

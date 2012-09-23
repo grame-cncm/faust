@@ -82,6 +82,28 @@ using namespace std;
 
 */
 
+struct StackVariableSizeCounter : public DispatchVisitor {
+
+    int fSizeBytes;
+    
+    StackVariableSizeCounter()
+    {
+        fSizeBytes = 0;
+    }
+  
+    virtual void visit(DeclareVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+
+        if (inst->fAddress->getAccess() == Address::kStack) {
+            fSizeBytes += inst->fType->getSize();
+        } else {
+            printf("Error : variable should be a stack variable !!\n");
+        }
+    }
+    
+};
+
 struct Loop2FunctionBuider : public DispatchVisitor {
 
         // Variable management
@@ -415,7 +437,7 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
 
 /*
  Sequence of "compatible" loops (that is : number of outputs of first is same as number of inputs of second)
- Here we assume that loops are "connected" buy "outputX  ==> inputX" like naming connection
+ Here we assume that loops are "connected" by "outputX  ==> inputX" like naming connection
 
  1) links between outputs and inputs arrays are detected and inserted in the global fLinkTable (name, ValueInst)
 

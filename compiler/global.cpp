@@ -250,6 +250,13 @@ global::global():TABBER(1),gLoopDetector(1024, 512)
     SYMREC 		= symbol ("SYMREC");
     SYMRECREF 	= symbol ("SYMRECREF");
     SYMLIFTN 	= symbol ("LIFTN");
+    
+    // Use real values 
+    gMachineFloatSize = sizeof(float);
+    gMachineIntSize = sizeof(int);
+    gMachineDoubleSize = sizeof(double);
+    gMachineBoolSize = sizeof(bool);
+    gMachinePtrSize = sizeof(void*);
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built
@@ -309,17 +316,15 @@ void global::init()
     
     // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
     yyfilename = "????";
+    
+    Typed::init();
 }
     
 global::~global()
 {
     Garbageable::cleanup();
-    
-    CTree::init();
-    Symbol::init();
-    
-    BasicTyped::gTypeTable.clear();
-    DeclareVarInst::gVarTable.clear();
+    BasicTyped::cleanup();
+    DeclareVarInst::cleanup();
 }
 
 void global::allocate()

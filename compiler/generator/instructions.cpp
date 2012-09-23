@@ -21,6 +21,47 @@
 
 #include "instructions.hh"
 #include "sigtype.hh"
+#include "global.hh"
+#include "floats.hh"
+
+map<Typed::VarType, int> Typed::gTypeSizeMap;
+
+void BasicTyped::cleanup() { gTypeTable.clear(); }
+void DeclareVarInst::cleanup() { gVarTable.clear(); }
+
+void Typed::init()
+{
+    gTypeSizeMap.clear();
+    
+    gTypeSizeMap[Typed::kFloat] = gGlobal->gMachineFloatSize;
+    gTypeSizeMap[Typed::kFloat_ptr] = gGlobal->gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloat_vec] = gGlobal->gMachineFloatSize * gGlobal->gVecSize;
+    gTypeSizeMap[Typed::kFloat_vec_ptr] = gGlobal->gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kInt] = gGlobal->gMachineIntSize;
+    gTypeSizeMap[Typed::kInt_ptr] = gGlobal->gMachinePtrSize;
+    gTypeSizeMap[Typed::kInt_vec] = gGlobal->gMachineIntSize * gGlobal->gVecSize;
+    gTypeSizeMap[Typed::kInt_vec_ptr] = gGlobal->gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kDouble] = gGlobal->gMachineDoubleSize;
+    gTypeSizeMap[Typed::kDouble_ptr] = gGlobal->gMachinePtrSize;
+    gTypeSizeMap[Typed::kDouble_vec] = gGlobal->gMachineDoubleSize * gGlobal->gVecSize;
+    gTypeSizeMap[Typed::kDouble_vec_ptr] = gGlobal->gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kBool] = gGlobal->gMachineBoolSize;
+    gTypeSizeMap[Typed::kBool_ptr] = gGlobal->gMachinePtrSize;
+    gTypeSizeMap[Typed::kBool_vec] = gGlobal->gMachineBoolSize * gGlobal->gVecSize;
+    gTypeSizeMap[Typed::kBool_vec_ptr] = gGlobal->gMachinePtrSize;
+
+    // Takes the type of internal real
+    gTypeSizeMap[Typed::kFloatMacro] = gTypeSizeMap[itfloat()];
+    gTypeSizeMap[Typed::kFloatMacro_ptr] = gGlobal->gMachinePtrSize;
+
+    gTypeSizeMap[Typed::kVoid_ptr] = gGlobal->gMachinePtrSize;
+    gTypeSizeMap[Typed::kVoid_ptr_ptr] = gGlobal->gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kObj_ptr] = gGlobal->gMachinePtrSize;
+}
 
 bool BlockInst::hasReturn()
 {

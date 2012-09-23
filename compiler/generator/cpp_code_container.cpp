@@ -404,10 +404,16 @@ void CPPVectorCodeContainer::generateCompute(int n)
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
     tab(n+2, *fOut);
     fCodeProducer.Tab(n+2);
+    
+    /*
+    StackVariableSizeCounter counter;
+    generateComputeBlock(&counter);
+    printf("Stack size = %d\n", counter.fSizeBytes);
+    */
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
-
+ 
     // Generates it
     fDAGBlock->accept(&fCodeProducer);
 

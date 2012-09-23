@@ -308,6 +308,10 @@ struct Typed : public Printable
                 kQuad, kQuad_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
                 kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr};
+                
+    static map<Typed::VarType, int> gTypeSizeMap;
+    
+    static void init();
 
     Typed()
     {}
@@ -425,6 +429,8 @@ struct Typed : public Printable
                 return kVoid;
         }
     }
+    
+    virtual int getSize() = 0;
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;
 };
@@ -434,12 +440,16 @@ struct BasicTyped : public Typed {
     VarType fType;
 
     static map<VarType, BasicTyped*> gTypeTable;
+    
+    static void cleanup();
 
     BasicTyped(VarType type)
         :fType(type)
     {}
 
     VarType getType() { return fType; }
+    
+    int getSize() { return gTypeSizeMap[fType]; }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -458,6 +468,8 @@ struct NamedTyped : public Typed {
     {}
 
     VarType getType() { return fType->getType(); }
+    
+    int getSize() { return fType->getSize(); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -480,6 +492,8 @@ struct FunTyped : public Typed {
     {}
 
     VarType getType() { assert(false); return fResult->getType(); }
+    
+    int getSize() { return gTypeSizeMap[Typed::kVoid_ptr]; }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -498,6 +512,16 @@ struct ArrayTyped : public Typed {
     {}
 
     VarType getType() { return getPtrFromType(fType->getType()); }
+    
+    int getSize() 
+    { 
+        if (fSize == 0) {
+            // Array of zero size are treated as pointer in the corresponding type
+            return gTypeSizeMap[getType()];
+        } else {
+            return fType->getSize() * fSize; 
+        }
+    }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -517,10 +541,11 @@ struct StructTyped : public Typed {
     //VarType getType() { return getPtrFromType(fType->getType()); }
 
     VarType getType() { return kObj_ptr; }
+    
+    int getSize() { return fType->getSize(); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
-
 
 struct VectorTyped : public Typed {
 
@@ -535,6 +560,8 @@ struct VectorTyped : public Typed {
     {}
 
     VarType getType() { return getVecFromType(fType->getType()); }
+    
+    int getSize() { return fType->getSize() * fSize; }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -759,6 +786,8 @@ struct DeclareVarInst : public StatementInst
     ValueInst* fValue;
     
     static map<string, Typed*> gVarTable;
+    
+    static void cleanup();
 
     DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
         :fAddress(address), fType(typed), fValue(value)

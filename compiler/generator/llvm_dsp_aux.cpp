@@ -43,7 +43,7 @@ void* llvm_dsp_factory::LoadOptimize(const std::string& function)
 
 static Module* LoadModule(const std::string filename)
 {
-    printf("Load module : %s \n", filename.c_str());
+    //printf("Load module : %s \n", filename.c_str());
     SMDiagnostic err;
     Module* res = ParseIRFile(filename, err, getGlobalContext());
     if (!res) {
@@ -59,7 +59,7 @@ static Module* LoadModule(const std::string filename)
 
 Module* llvm_dsp_factory::CompileModule(int argc, const char *argv[], const char* library_path,  const char* draw_path, const char* input_name, const char* input, char* error_msg)
 {
-    printf("Compile module...\n");
+    //printf("Compile module...\n");
     
     int argc1 = argc + 3;
     const char* argv1[argc1];
