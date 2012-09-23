@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 /*****************************************************************************
 ******************************************************************************
 
@@ -30,7 +28,6 @@
 
 ******************************************************************************
 *****************************************************************************/
-
 
 /**\file boxes.cpp
  * \author Yann Orlarey
@@ -67,7 +64,6 @@ bool isBoxIdent(Tree t0, const char** str)
 	}
 }
 
-
 /*****************************************************************************
 							    	Numbers
 *****************************************************************************/
@@ -81,7 +77,6 @@ bool isBoxReal(Tree t)				{ return isDouble(t->node()); }
 bool isBoxInt(Tree t, int* i)		{ return isInt(t->node(), i);	}
 bool isBoxReal(Tree t, double* r)	{ return isDouble(t->node(), r); }
 
-
 /*****************************************************************************
 							   	Wire and Cut
 *****************************************************************************/
@@ -91,7 +86,6 @@ bool isBoxCut(Tree t)				{ return isTree(t, gGlobal->BOXCUT); }
 
 Tree boxWire()						{ return tree(gGlobal->BOXWIRE); }
 bool isBoxWire(Tree t)				{ return isTree(t, gGlobal->BOXWIRE); }
-
 
 /*****************************************************************************
 						Symbolic Boxes with symbolic slots
@@ -104,7 +98,6 @@ bool isBoxSlot(Tree t, int* id)		{ Tree w; return isTree(t, gGlobal->BOXSLOT,w) 
 Tree boxSymbolic(Tree slot, Tree body)				{ return tree(gGlobal->BOXSYMBOLIC,slot, body); }
 bool isBoxSymbolic(Tree t)							{ Tree slot, body; return isTree(t, gGlobal->BOXSYMBOLIC, slot, body); }
 bool isBoxSymbolic(Tree t, Tree& slot, Tree& body)	{ return isTree(t, gGlobal->BOXSYMBOLIC, slot, body); }
-
 
 /*****************************************************************************
 							  Composition of Boxes
@@ -125,7 +118,6 @@ bool isBoxSplit(Tree t, Tree& x, Tree& y)	{ return isTree(t, gGlobal->BOXSPLIT, 
 Tree boxMerge(Tree x, Tree y) 				{ return tree(gGlobal->BOXMERGE, x, y); }
 bool isBoxMerge(Tree t, Tree& x, Tree& y)	{ return isTree(t, gGlobal->BOXMERGE, x, y); }
 
-
 /*****************************************************************************
 						Algorithmic Composition of Boxes
 *****************************************************************************/
@@ -139,8 +131,6 @@ bool isBoxIPar(Tree t, Tree& x, Tree& y, Tree& z)		{ return isTree(t, gGlobal->B
 bool isBoxISeq(Tree t, Tree& x, Tree& y, Tree& z)		{ return isTree(t, gGlobal->BOXISEQ,  x, y, z);   }
 bool isBoxISum(Tree t, Tree& x, Tree& y, Tree& z)		{ return isTree(t, gGlobal->BOXISUM,  x, y, z);   }
 bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z)		{ return isTree(t, gGlobal->BOXIPROD, x, y, z);   }
-
-
 
 /*****************************************************************************
 							  Lambda-Calculus of Boxes
@@ -204,10 +194,8 @@ bool isBoxError(Tree t)
 	return isTree(t, gGlobal->BOXERROR);
 }
 
-
 Tree boxAccess (Tree exp, Tree id)				{ return tree(gGlobal->BOXACCESS, exp, id); }
 bool isBoxAccess(Tree t, Tree& exp, Tree& id)	{ return isTree(t, gGlobal->BOXACCESS, exp, id); }
-
 
 /*****************************************************************************
 						Boxes with local definitions
@@ -216,14 +204,12 @@ bool isBoxAccess(Tree t, Tree& exp, Tree& id)	{ return isTree(t, gGlobal->BOXACC
 Tree boxWithLocalDef (Tree body, Tree ldef)					{ return tree(gGlobal->BOXWITHLOCALDEF, body, ldef); }
 bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, gGlobal->BOXWITHLOCALDEF, body, ldef); }
 
-
 /*****************************************************************************
                         Boxes modif local definitions
 *****************************************************************************/
 
 Tree boxModifLocalDef (Tree body, Tree ldef)                { return tree(gGlobal->BOXMODIFLOCALDEF, body, ldef); }
 bool isBoxModifLocalDef (Tree t, Tree& body, Tree& ldef)	{ return isTree(t, gGlobal->BOXMODIFLOCALDEF, body, ldef); }
-
 
 /*****************************************************************************
 							 Modules
@@ -240,7 +226,6 @@ bool isBoxLibrary (Tree s, Tree& filename)                  { return isTree(s, g
 
 Tree importFile(Tree filename)								{ return tree(gGlobal->IMPORTFILE, filename); }
 bool isImportFile(Tree s, Tree& filename)					{ return isTree(s, gGlobal->IMPORTFILE, filename); }
-
 
 /*****************************************************************************
 							External Primitive Boxes (n -> 1)
@@ -286,7 +271,6 @@ Tree boxFVar      (Tree type, Tree name, Tree file)                 { return tre
 bool isBoxFVar    (Tree s)                                          { Tree t,n,f; return isTree(s, gGlobal->BOXFVAR, t, n, f); }
 bool isBoxFVar    (Tree s, Tree& type, Tree& name, Tree& file)      { return isTree(s, gGlobal->BOXFVAR,type, name, file);     }
 
-
 /*****************************************************************************
 							 User Interface Elements
 *****************************************************************************/
@@ -316,7 +300,6 @@ bool isBoxHSlider (Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& ste
 		return false;
 	}
 }
-
 
 Tree boxVSlider   (Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 											{ return tree(gGlobal->BOXVSLIDER, lbl, list4(cur,min,max,step));		}
@@ -373,7 +356,6 @@ bool isBoxHBargraph (Tree s, Tree& lbl, Tree& min, Tree& max)	{ return isTree(s,
 Tree boxVBargraph(Tree lbl, Tree min, Tree max)					{ return tree(gGlobal->BOXVBARGRAPH, lbl, min, max);		}
 bool isBoxVBargraph (Tree s)									{ Tree lbl, min, max; return isTree(s, gGlobal->BOXVBARGRAPH, lbl, min, max);	}
 bool isBoxVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max)	{ return isTree(s, gGlobal->BOXVBARGRAPH, lbl, min, max); }
-
 
 /*****************************************************************************
 							 pattern lmatching case
@@ -503,7 +485,6 @@ static Tree preparePattern(Tree box)
             throw faustexception(error.str());
         }
 
-
    return box;
 }
 
@@ -525,7 +506,6 @@ bool isBoxCase (Tree s, Tree& rules)		{ return isTree(s, gGlobal->BOXCASE, rules
 
 Tree boxPatternVar	(Tree id)				{ return tree(gGlobal->BOXPATVAR, id); 					}
 bool isBoxPatternVar(Tree s, Tree& id)		{ return isTree(s, gGlobal->BOXPATVAR, id);				}
-
 
 Tree boxPatternMatcher		(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)	
 { 

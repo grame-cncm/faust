@@ -31,7 +31,6 @@
  *
  **/
 
-
 #include "boxes.hh"
 #include "sourcereader.hh"
 #include "environment.hh"
@@ -46,7 +45,6 @@
  
 Tree evalprocess (Tree eqlist);
 Tree evaldocexpr (Tree docexpr, Tree eqlist);
-
 
 /**
  * Push a new layer and add a single definition.

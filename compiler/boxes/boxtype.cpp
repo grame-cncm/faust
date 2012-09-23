@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 /*****************************************************************************
 ******************************************************************************
 	
@@ -29,7 +27,6 @@
 ******************************************************************************
 *****************************************************************************/
 
-
 /**\file boxtype.cpp
  * \author Yann Orlarey
  * \version 1.0
@@ -37,7 +34,6 @@
  * \brief A simple type system for block diagram expressions.
  *  The type of a block diagram is defined by a number of inputs and outputs.
  */
-
 
 #include <stdio.h>
 #include <string.h>
@@ -49,7 +45,6 @@
 #include "global.hh"
 
 static bool infereBoxType (Tree box, int* inum, int* onum);
-
 
 /**
  * Return the type (number of inputs and outputs) of a box or false if undefined
@@ -83,8 +78,6 @@ bool getBoxType (Tree box, int* inum, int* onum)
 		}
 	}
 }
-
-
 
 /**
  * Infere the type (number of inputs and outputs) of a box.

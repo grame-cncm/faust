@@ -27,8 +27,7 @@
  * A strict lambda-calculus evaluator for block diagram expressions.
  *
  **/
-
-
+ 
 #include "eval.hh"
 #include <stdio.h>
 #include "errormsg.hh"
@@ -84,7 +83,6 @@ static Tree     boxSimplification(Tree box);
 // Public Interface
 //----------------------
 
-
 /**
  * Eval "process" from a list of definitions.
  *
@@ -103,15 +101,12 @@ Tree evalprocess (Tree eqlist)
     return b;
 }
 
-
 /* Eval a documentation expression. */
 
 Tree evaldocexpr (Tree docexpr, Tree eqlist)
 {
 	return a2sb(eval(docexpr, gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 }
-
-
 
 // Private Implementation
 //------------------------
@@ -223,8 +218,6 @@ bool getArgName(Tree t, Tree& id)
 	return autoName(t, id) ;
 }
 
-
-
 /**
  * Eval a block diagram expression.
  *
@@ -247,7 +240,6 @@ void setEvalProperty(Tree box, Tree env, Tree value)
     setProperty(box, tree(gGlobal->EVALPROPERTY,env), value);
 }
 
-
 /**
  * retrieve the value of box in the environment env
  * @param box the expression we want to retrieve the value
@@ -259,7 +251,6 @@ bool getEvalProperty(Tree box, Tree env, Tree& value)
 {
 	return getProperty(box, tree(gGlobal->EVALPROPERTY,env), value);
 }
-
 
 static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 {
@@ -383,7 +374,6 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
         return res;
-
 
 	// user interface elements
 	//------------------------
@@ -591,7 +581,6 @@ Tree simplifyPattern (Tree value)
 	return num;
 }
 
-
 static bool isBoxNumeric (Tree in, Tree& out)
 {
     int 	numInputs, numOutputs;
@@ -636,8 +625,6 @@ static Tree patternSimplification (Tree pattern)
 	}
 }
 
-
-
 /**
  * Eval a block diagram to a double.
  *
@@ -665,7 +652,6 @@ static double eval2double (Tree exp, Tree visited, Tree localValEnv)
 		return tree2float(val);
 	}
 }
-
 
 /**
  * Eval a block diagram to an int.
@@ -774,8 +760,6 @@ static const char * evalLabel (const char* label, Tree visited, Tree localValEnv
 	return (parametric) ? res : label;
 }
 
-
-
 /**
  * Iterate a parallel construction
  *
@@ -801,8 +785,6 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localVal
     return res;
 }
 
-
-
 /**
  * Iterate a sequential construction
  *
@@ -826,8 +808,6 @@ static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localVal
 
 	return res;
 }
-
-
 
 /**
  * Iterate an addition construction
@@ -854,8 +834,6 @@ static Tree iterateSum (Tree id, int num, Tree body, Tree visited, Tree localVal
 
 	return res;
 }
-
-
 
 /**
  * Iterate a product construction
@@ -934,7 +912,6 @@ static Tree nwires(int n)
 	while (n--) { l = cons(boxWire(), l); }
 	return l;
 }
-
 
 /**
  * Apply a function to a list of arguments. 
@@ -1073,8 +1050,6 @@ static Tree applyList (Tree fun, Tree larg)
 	}
 }
 
-
-
 /**
  * Eval a list of expression in reverse order
  *
@@ -1100,8 +1075,6 @@ static Tree revEvalList (Tree lexp, Tree visited, Tree localValEnv)
 	return result;
 }
 
-
-
 /**
  * Transform a list of expressions in a parallel construction
  *
@@ -1119,9 +1092,6 @@ static Tree larg2par (Tree larg)
 	}
 	return boxPar(hd(larg), larg2par(tl(larg)));
 }
-
-
-
 
 /**
  * Search the environment for the definition of a symbol
@@ -1163,7 +1133,6 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 	// return the evaluated definition
 	return eval(def, addElement(p,visited), gGlobal->nil);
 }
-
 
 /**
  * Creates a list of n elements.
@@ -1212,7 +1181,6 @@ static Tree	evalCase(Tree rules, Tree env)
 	return pm;
 }		
 
-
 /**
  * Evaluates each rule of the list
  */
@@ -1223,7 +1191,6 @@ static Tree	evalRuleList(Tree rules, Tree env)
 	else return cons(evalRule(hd(rules), env), evalRuleList(tl(rules), env));
 }
 
-
 /**
  * Evaluates the list of patterns and closure the rhs
  */
@@ -1232,7 +1199,6 @@ static Tree	evalRule(Tree rule, Tree env)
     //cerr << "evalRule "<< *rule << " in " << *env << endl;
 	return cons(evalPatternList(left(rule), env), right(rule));
 }
-
 
 /**
  * Evaluates each pattern of the list
@@ -1246,7 +1212,6 @@ static Tree	evalPatternList(Tree patterns, Tree env)
 						evalPatternList(tl(patterns), env)  );
 	}
 }
-
 
 /**
  * Evaluates a pattern and simplify it to numerical value 
@@ -1267,7 +1232,6 @@ static void list2vec(Tree l, vector<Tree>& v)
 	}
 }
 
-
 static Tree vec2list(const vector<Tree>& v)
 {
 	Tree l = gGlobal->nil;
@@ -1275,9 +1239,6 @@ static Tree vec2list(const vector<Tree>& v)
 	while (n--) { l = cons(v[n],l); }
 	return l;
 }
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // further simplification : replace bloc-diagrams that denote constant number by this number

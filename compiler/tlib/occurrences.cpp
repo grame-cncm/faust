@@ -23,7 +23,6 @@
  * Count the number of occurences of each subtree of a root tree.
  */
 
-
 // construction des representations graphiques
 
 #include "occurrences.hh"

@@ -37,8 +37,6 @@
 // different
 //-----------------------------------------------------------------------------
 
-
-
 /**
  * Push a new (unique) empty layer (where multiple definitions can be stored)
  * on top of an existing environment.
@@ -49,8 +47,6 @@ static Tree pushNewLayer(Tree lenv)
 {
     return tree(unique("ENV_LAYER"), lenv);
 }
-
-
 
 /**
  * Push a new environment barrier on top of an existing environment so
@@ -78,7 +74,6 @@ bool isEnvBarrier(Tree lenv)
     return isNil(lenv) || (lenv->node() == Node(gGlobal->BARRIER));
 }
 
-
 /**
  * Add a definition (as a property) to the current top level layer. Check
  * and warn for multiple definitions.
@@ -103,7 +98,6 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
     setProperty(lenv, id, def);
 }
 
-
 /**
  * Push a new layer and add a single definition.
  * @param id the symbol id to be defined
@@ -117,7 +111,6 @@ Tree pushValueDef(Tree id, Tree def, Tree lenv)
     addLayerDef(id, def, lenv2);
     return lenv2;
 }
-
 
 /**
  * Push a new layer with multiple definitions creating the appropriate closures
@@ -141,7 +134,6 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
     }
     return lenv2;
 }
-
 
 /**
  * Search the environment (until first barrier) for

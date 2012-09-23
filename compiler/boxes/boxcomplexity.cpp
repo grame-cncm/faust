@@ -22,7 +22,6 @@
  * @file boxcomplexity.cpp
  * Implement complexity computation for box diagrams.
  */
-
  
 // construction des representations graphiques
 

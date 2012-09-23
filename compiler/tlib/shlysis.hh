@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #ifndef __SHLYSIS__
 #define __SHLYSIS__
 /*****************************************************************************
@@ -54,14 +52,12 @@ unique to each sharing analysis must be generated.
 
 #include 	"list.hh"
 
-
 typedef bool (*barrier)(const Tree& t);
 
 //------------------------------------------------------------------------------
 // shprkey : Create a specific property key for the sharing count of subtrees of t
 
 Tree shprkey(Tree t);
-
 
 //------------------------------------------------------------------------------
 // shcount : returns the sharing count of t within the tree T of key k
@@ -74,7 +70,7 @@ int shcount(Tree key, Tree t);
 // shlysis : create a specific property key for the sharing count of subtrees of t
 
 Tree shlysis(Tree t);
-
 Tree shlysis(Tree t, barrier foo);
+
 #endif
 #endif

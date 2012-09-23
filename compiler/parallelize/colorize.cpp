@@ -1,8 +1,28 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+ 
 /**
  * @file colorize.cpp
  * Uses colors to analyze dependencies among sub expressions
  */
-
 
 #include "colorize.h"
 #include "signals.hh"
@@ -16,8 +36,6 @@ static int allocateColor(Tree exp);							///< allocate a new unique color for e
 static void colorize(Tree exp, int color);					///< add color information to exp and all its subtrees
 static void uncolorize(Tree exp);							///< remove color information
 static void listMultiColoredExp(Tree exp, set<Tree>& lst);	///< list multicolored subexpressions of exp
-
-
 
 /**
  * Analyze a set of expressions to discover its dependencies that is subexpressions
@@ -126,7 +144,6 @@ void setColorProperty(Tree sig, set<int>* colorset)
 	setProperty(sig, gGlobal->COLORPROPERTY, tree((void*)colorset));
 }
 
-
 /**
  * retrieve the color-set property of sig
  * @param sig the signal we want to know the color-set property
@@ -140,9 +157,6 @@ set<int>* getColorProperty(Tree sig)
 		return (set<int>*)tree2ptr(tt);
 	}
 }
-
-
-
 
 /**
  * Add a color to the colorset of exp. Create an empty
@@ -160,7 +174,6 @@ void addColor(Tree exp, int color)
 	cset->insert(color);
 }
 
-
 /**
  * Test if exp as color in its colorset
  * @param sig the signal we want to test
@@ -177,7 +190,6 @@ bool hasColor(Tree exp, int color)
 	}
 }
 
-
 /**
  * Count the number of colors of exp
  * @param exp the expression we want to count the colors
@@ -192,7 +204,6 @@ static int colorsCount(Tree exp)
 		return cset->size();
 	}
 }
-
 
 /**
  * Count the number of colors of exp

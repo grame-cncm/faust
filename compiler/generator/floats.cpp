@@ -41,10 +41,10 @@
 //          2: double precision float
 //          3: long double precision float
 
-const char* mathsuffix[] = {"", "f", "", "l"};                                  // suffix for math functions
-const char* numsuffix[]  = {"", "f", "", ""};                                   // suffix for numeric constants
-const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};      // float types
-const char* castname[]   = {FLOATCASTER, "(float)", "(double)", "(quad)"}; // float castings
+const char* mathsuffix[] = {"", "f", "", "l"};                              // suffix for math functions
+const char* numsuffix[]  = {"", "f", "", ""};                               // suffix for numeric constants
+const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};         // float types
+const char* castname[]   = {FLOATCASTER, "(float)", "(double)", "(quad)"};  // float castings
 
 const char* isuffix() { return mathsuffix[gGlobal->gFloatSize]; } ///< suffix for math functions
 const char* inumix()  { return numsuffix [gGlobal->gFloatSize]; } ///< suffix for numeric constants
@@ -70,7 +70,6 @@ const Typed::VarType itfloat()
 }
 
 const char* icast()  { return castname[gGlobal->gFloatSize]; }
-
 const char* xfloat() { return floatname[0]; }
 const char* xcast()  { return castname[0]; }
 

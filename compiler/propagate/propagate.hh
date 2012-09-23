@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #ifndef _PROPAGATE_
 #define _PROPAGATE_
 
@@ -46,11 +44,9 @@ Tree boxPropagateSig (Tree path, Tree box, const siglist& lsig);
 //bool getSigListNickName (Tree t, Tree& id);
 //void setSigListNickName (const siglist&  lsig, const string& nickname);
 
-
 //siglist makeSigProjList (Tree t, int n);
 //siglist lrepeat(int n, const siglist& l);
 //siglist lmerge(int nbelems, int nblignes, Tree src);
-
 
 /*
 	exemple :

@@ -26,7 +26,6 @@
 // edit timing.cpp de unactivate the code
 
 void startTiming (const char* msg);
-
 void endTiming (const char* msg);
 
 #endif

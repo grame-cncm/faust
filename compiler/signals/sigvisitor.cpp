@@ -1,8 +1,28 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
 #include "sigvisitor.hh"
 #include <iostream>
 #include <assert.h>
 #include "xtended.hh"
-
 
 using namespace std;
 
@@ -12,7 +32,6 @@ using namespace std;
  * @param env the type environment
  * @return the type of sig according to environment env
  */
-
  
 void sigvisitor::visit(Tree sig)
 {
@@ -50,8 +69,7 @@ void sigvisitor::visit(Tree sig)
     else if (isSigFConst(sig,type,name,file))   visitFConst(sig,type,name,file);
 
     else if (isSigFVar(sig,type,name,file))     visitFVar(sig,type,name,file);
-	
-		
+			
 	//---------------
 	
 	else if (isSigButton(sig, l)) 							visitButton(sig, l);
@@ -69,8 +87,7 @@ void sigvisitor::visit(Tree sig)
 	else if (isSigVBargraph(sig, l, min, max, s1)) 			visitVBargraph(sig, l, min, max, s1);
 		
 	else if (isSigAttach(sig, s1, s2)) 						visitAttach(sig, s1, s2);
-	
-				
+					
 	//------------------------
 	
 	else if (isRec(sig, var, body))				visitRec(sig, var, body);
@@ -78,8 +95,7 @@ void sigvisitor::visit(Tree sig)
 	else if (isRef(sig, var))					visitRef(sig, var); 
 
 	else if (isProj(sig, &i, s1))				visitProj(sig, i, s1);
-		
-	
+			
 	//----------------------------                                               
 				
 	else if (isSigTable(sig, id, s1, s2)) 		visitTable(sig, id, s1, s2);
@@ -96,7 +112,6 @@ void sigvisitor::visit(Tree sig)
     else if (isSigDocWriteTbl(sig,s1,s2,s3,s4)) visitDocWriteTbl(sig,s1,s2,s3,s4);
 
     else if (isSigDocAccessTbl(sig,s1,s2)) 		visitDocAccessTbl(sig,s1,s2);
-
 	
 	//----------------------------                                               
 				
@@ -104,16 +119,14 @@ void sigvisitor::visit(Tree sig)
 		
 	else if (isSigSelect3(sig,sel,s1,s2,s3)) 	visitSelect3(sig,sel,s1,s2,s3); 		
 	
-	else if (isList(sig)) 						visitList(sig);
-		
+	else if (isList(sig)) 						visitList(sig);	
 	
 	//----------------------------                                               
 				
 	else if (isSigTuple(sig,&i,ls)) 			visitTuple(sig,i,ls); 
 		
 	else if (isSigTupleAccess(sig,s1,s2)) 		visitTupleAccess(sig,s1,s2); 		
-		
-	
+			
 	//----------------------------                                               
 				
 	else 										visitError(sig);

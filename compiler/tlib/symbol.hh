@@ -36,7 +36,6 @@
  *
  */ 
  
-
 #ifndef     __SYMBOL__
 #define     __SYMBOL__
 

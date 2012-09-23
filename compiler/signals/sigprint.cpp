@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #include <stdio.h>
 
 #include "signals.hh"
@@ -127,7 +125,6 @@ void printSignal(Tree sig, FILE* out, int prec)
 
     else if (isSigDocAccessTbl(sig,x,y)) 	{ fputs("sigDocAccessTbl(", out);   printSignal(x,out,0); fputc(',', out);
                                                                                 printSignal(y,out,0); fputc(')', out);   }
-
 
 	else if ( isSigGen(sig, x) ) 			{ printSignal(x,out,prec); 				}
  

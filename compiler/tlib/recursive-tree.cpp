@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +68,6 @@ bool isRef(Tree t, int& level)
 	}
 }
 
-
 //-----------------------------------------------------------------------------------------
 // Recursive tree in symbolic notation (using a recursive definition property)
 //-----------------------------------------------------------------------------------------
@@ -92,7 +89,6 @@ bool isRec(Tree t, Tree& var, Tree& body)
         return false;
     }
 }
-
 
 Tree ref(Tree id)
 {
@@ -157,7 +153,6 @@ static Tree liftn(Tree t, int threshold)
 	return r;
 }
 #endif
-
 
 static Tree liftn(Tree t, int threshold)
 {
@@ -353,7 +348,6 @@ static int recomputeAperture(Tree t, Env* env)
 		return ma;
 	}
 }
-
 
 static int orderof (Tree t, Env* p)
 {

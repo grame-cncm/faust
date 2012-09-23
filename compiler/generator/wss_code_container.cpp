@@ -29,7 +29,7 @@ using namespace std;
 #define START_TASK_INDEX LAST_TASK_INDEX + 1
 #define START_TASK_MAX 2
 
-void WSSCodeContainer::MoveStack2Struct()
+void WSSCodeContainer::moveStack2Struct()
 {
     // Analysis to promote stack variables to struct variables
     struct Stack2StructAnalyser1 : public DispatchVisitor {
@@ -277,7 +277,6 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count)
 
     // Specific init instructions
     list<ValueInst*> fun_args;
-    //fun_args.push_back(InstBuilder::genIntNumInst(loop_count));
     fun_args.push_back(InstBuilder::genIntNumInst(4096));
     pushAllocateMethod(InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genIntNumInst(0)));
     pushInitMethod(InstBuilder::genStoreStructVar("fScheduler",InstBuilder::genFunCallInst("createScheduler", fun_args)));
@@ -494,7 +493,7 @@ void WSSCodeContainer::processFIR(void)
     CodeContainer::processFIR();
 
     // Transform some stack variables in struct variables
-    MoveStack2Struct();
+    moveStack2Struct();
 
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);

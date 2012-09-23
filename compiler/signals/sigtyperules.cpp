@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include <stdio.h>
 #include <assert.h>
 #include <iostream>
@@ -61,12 +59,9 @@ static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
 static interval arithmetic (int opcode, const interval& x, const interval& y);
 
-
-
 // Uncomment to activate type inferrence tracing
 //#define TRACE(x) x
-#define TRACE(x) ;
-
+#define TRACE(x);
 
 /**
  * The empty type environment (also property key for closed term type)
@@ -130,7 +125,6 @@ void typeAnnotation(Tree sig)
     T(sig, gGlobal->NULLTYPEENV);
 }
 
-
 void annotationStatistics()
 {
     cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME " << clock()/CLOCKS_PER_SEC << 's' << endl;
@@ -151,8 +145,6 @@ void annotationStatistics()
     return ty;
 }
 
-
-
 /***********************************************
  * Set and get the type property of a signal
  * (we suppose the signal have been previously
@@ -170,7 +162,6 @@ static void setSigType(Tree sig, Type t)
 	sig->setType(t);
 }
 
-
 /**
  * Retrieve the type annotation of sig
  * @param sig the signal we want to know the type
@@ -184,10 +175,6 @@ static Type getSigType(Tree sig)
         TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " IS TYPE " << *ty << endl;)
     return ty;
 }
-
-
-
-
 
 /**************************************************************************
 
@@ -225,7 +212,6 @@ static Type T(Tree term, Tree ignoreenv)
         return ty;
     }
 }
-
 
 /**
  * Infere the type of a term according to its surrounding type environment
@@ -380,8 +366,6 @@ static Type infereSigType(Tree sig, Tree env)
 	return 0;
 }
 
-
-
 /**
  *	Infere the type of a projection (selection) of a tuplet element
  */
@@ -405,8 +389,6 @@ static Type infereProjType(Type t, int i, int vec)
 
     return temp;
 }
-
-
 
 /**
  *	Infere the type of the result of writing into a table
@@ -435,8 +417,6 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 
 }
 
-
-
 /**
  *	Infere the type of the result of reading a table
  */
@@ -464,7 +444,6 @@ static Type infereReadTableType(Type tbl, Type ri)
 	return temp;
 
 }
-
 
 static Type infereDocConstantTblType(Type size, Type init)
 {
@@ -497,7 +476,6 @@ static Type infereDocAccessTblType(Type tbl, Type ridx)
     return temp;
 }
 
-
 /**
  * Compute an initial type solution for a recursive block
  * E1,E2,...En -> TREC,TREC,...TREC
@@ -511,7 +489,6 @@ static Type initialRecType(Tree t)
     return new TupletType(v);
 }
 
-
 /**
  * Infere the type of e recursive block by trying solutions of
  * increasing generality
@@ -521,7 +498,6 @@ static Type infereRecType (Tree sig, Tree body, Tree env)
     assert(false); // we should not come here
     return 0;
 }
-
 
 /**
  *	Infere the type of a foreign function call
@@ -552,7 +528,6 @@ static Type infereFFType (Tree ff, Tree ls, Tree env)
 	}
 }
 
-
 /**
  *  Infere the type of a foreign constant
  */
@@ -564,7 +539,6 @@ static Type infereFConstType (Tree type)
     return makeSimpleType(tree2int(type),kKonst,kInit,kVect,kNum, interval());
 }
 
-
 /**
  *  Infere the type of a foreign variable
  */
@@ -574,7 +548,6 @@ static Type infereFVarType (Tree type)
     // l'execution. Elle est varie par blocs comme les éléments d'interface utilisateur.
     return makeSimpleType(tree2int(type),kBlock,kExec,kVect,kNum, interval());
 }
-
 
 /**
  *	Infere the type of an extended (primitive) block
@@ -589,10 +562,6 @@ static Type infereXType(Tree sig, Tree env)
 	for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));
 	return p->infereSigType(vt);
 }
-
-
-
-
 
 /**
  * Compute the resulting interval of an arithmetic operation

@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include <stdio.h>
 
 #include <set>
@@ -42,7 +40,6 @@ static void     recdraw(Tree sig, set<Tree>& drawn, ofstream& fout );
 static string   nodeattr(Type t);
 static string   edgeattr(Type t);
 static string   sigLabel(Tree sig);
-
 
 /**
  * Draw a list of signals as a directed graph using graphviz's dot language
@@ -66,9 +63,7 @@ void sigToGraph (Tree L, ofstream& fout)
     fout << "}" << endl;
 }
 
-
 /******************************* IMPLEMENTATION ***********************************/
-
 
 /**
  * Draw recursively a signal
@@ -122,7 +117,6 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
     //cerr << --gGlobal->TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
 
-
 /**
  * Convert a signal type into edge attributes
  */
@@ -144,7 +138,6 @@ static string edgeattr(Type t)
     return s;
 }
 
-
 /**
  * Convert a signal type into node attributes
  */
@@ -164,7 +157,6 @@ static string nodeattr(Type t)
     return s;
 }
 
-
 /**
  * translate signal binary operations into strings
  */
@@ -174,7 +166,6 @@ static const char* binopname[]= {
         ">", "<", ">=", "<=", "==", "!=",
         "&", "|", "^"
 };
-
 
 /**
  * return the label of a signal as a string
@@ -207,8 +198,6 @@ static string sigLabel(Tree sig)
     else if ( isSigTable(sig, id, x, y) ) 			{ fout << "table:" << id;	}
     else if ( isSigWRTbl(sig, id, x, y, z) )		{ fout << "write:" << id;	}
     else if ( isSigRDTbl(sig, x, y) ) 				{ fout << "read";	}
-
-
 
     else if ( isSigSelect2(sig, sel, x, y) ) 		{ fout << "select2"; }
     else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ fout << "select3"; }
