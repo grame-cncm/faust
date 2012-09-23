@@ -31,8 +31,8 @@ private:
     string fObjName;
     BlockInst* fComputeThreadBlockInstructions;
 
-    void MoveStackArray2Struct();
-    void MoveStackSlow2Struct();
+    //void MoveStackArray2Struct();
+    //void MoveStackSlow2Struct();
     void MoveStack2Struct();
 
     void generateLocalInputs(BlockInst* loop_code);

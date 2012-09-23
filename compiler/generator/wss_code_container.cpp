@@ -29,163 +29,10 @@ using namespace std;
 #define START_TASK_INDEX LAST_TASK_INDEX + 1
 #define START_TASK_MAX 2
 
-void WSSCodeContainer::MoveStackSlow2Struct()
-{
-    // Analysis to promote stack "slow" variables to struct variables
-    struct StackSlow2StructAnalyser1 : public DispatchVisitor {
-
-        CodeContainer* fContainer;
-        string fName;
-
-        void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            BasicCloneVisitor cloner;
-
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-                inst->fAddress->setAccess(Address::kLink);
-                // Replace the Declare instruction by a version *without* the associated value
-                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fType->clone(&cloner), NULL));
-            }
-        }
-
-        StackSlow2StructAnalyser1(CodeContainer* container, const string& name)
-            :fContainer(container), fName(name)
-        {}
-    };
-
-    // Analysis to promote Load stack "slow" variables to struct variables
-    struct StackSlow2StructAnalyser2 : public DispatchVisitor {
-
-        string fName;
-
-        /*
-        void visit(LoadVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
-                inst->fAddress->setAccess(Address::kStruct);
-            }
-        }
-        */
-
-        void visit(NamedAddress* address)
-        {
-            if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
-                address->fAccess = Address::kStruct;
-            }
-        }
-
-        StackSlow2StructAnalyser2(const string& name):fName(name)
-        {}
-    };
-
-    struct Declare2StoreCloneVisitor : public BasicCloneVisitor {
-
-        // Rewrite Declare as Store with a struct access
-        StatementInst* visit(DeclareVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() == Address::kLink) {
-                // Define a special cloner that force access to kStruct
-                struct StructVarCloneVisitor : public BasicCloneVisitor {
-                    virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, Address::kStruct); }
-                };
-                // Rewrite the Declare instruction by a Store
-                StructVarCloneVisitor cloner1;
-                //return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct), inst->fValue->clone(this));
-                return InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fValue->clone(&cloner1));
-                /*
-                return InstBuilder::genDeclareVarInst(inst->fName,
-                                                    inst->fType->clone(this),
-                                                    Address::kStack,
-                                                    InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(inst->fName, Address::kStruct)));
-                */
-            } else {
-                return BasicCloneVisitor::visit(inst);
-            }
-        }
-    };
-
-    // Transform stack "slow" variables in struct variables
-    StackSlow2StructAnalyser1 analyser1(this, "Slow");
-    fComputeBlockInstructions->accept(&analyser1);
-
-    // Transform stack "slow" variables Load access in struct variables
-    StackSlow2StructAnalyser2 analyser2("Slow");
-    transformDAG(&analyser2);
-
-    /*
-    // Transform stack "slow" variables in struct variables
-    StackSlow2StructAnalyser1 analyser3(this, "_tmp");
-    fComputeBlockInstructions->accept(&analyser3);
-
-    // Transform stack "slow" variables Load access in struct variables
-    StackSlow2StructAnalyser2 analyser4("_tmp");
-    transformDAG(&analyser4);
-    */
-
-    // Rewrite marked variables from fComputeBlockInstructions
-    Declare2StoreCloneVisitor cloner;
-    fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&cloner));
-}
-
-void WSSCodeContainer::MoveStackArray2Struct()
-{
-    // Analysis to promote stack variables to struct variables
-    struct StackArray2StructAnalyser : public DispatchVisitor {
-
-        WSSCodeContainer* fContainer;
-
-        void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            ArrayTyped* array_typed;
-            BasicCloneVisitor cloner;
-            if (inst->fAddress->getAccess() == Address::kStack && (array_typed = dynamic_cast<ArrayTyped*>(inst->fType))) {
-                if (array_typed->fSize > 0) {
-                    fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fType->clone(&cloner), NULL));
-                } else {
-                    // Define a special cloner that force access to kStruct
-                    struct StructVarCloneVisitor : public BasicCloneVisitor {
-                        virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, Address::kStruct); }
-                    };
-                    StructVarCloneVisitor cloner1;
-                    // For local thread access (in computeThread)
-                    fContainer->fComputeThreadBlockInstructions->pushBackInst(inst->clone(&cloner1));
-                }
-                inst->fAddress->setAccess(Address::kLink);
-            }
-        }
-
-        StackArray2StructAnalyser(WSSCodeContainer* container):fContainer(container)
-        {}
-    };
-
-    struct RemoverCloneVisitor : public BasicCloneVisitor {
-
-        // Rewrite Declare as a no-op (DropInst)
-        StatementInst* visit(DeclareVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() == Address::kLink) {
-                return new DropInst();
-            } else {
-                return BasicCloneVisitor::visit(inst);
-            }
-        }
-    };
-
-    // Transform stack array variables in struct variables
-    StackArray2StructAnalyser analyser(this);
-    fComputeBlockInstructions->accept(&analyser);
-
-    // Remove marked variables from fComputeBlockInstructions
-    RemoverCloneVisitor remover;
-    fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
-}
-
 void WSSCodeContainer::MoveStack2Struct()
 {
     // Analysis to promote stack variables to struct variables
-    struct Stack2StructAnalyser : public DispatchVisitor {
+    struct Stack2StructAnalyser1 : public DispatchVisitor {
 
         WSSCodeContainer* fContainer;
         string fName;
@@ -194,14 +41,19 @@ void WSSCodeContainer::MoveStack2Struct()
         {
             DispatchVisitor::visit(inst);
             BasicCloneVisitor cloner;
-            if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+            string name = inst->fAddress->getName();
+            
+            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
 
                 // Variable moved to the Struct
-                fContainer->pushDeclare(InstBuilder::genDeclareVarInst(new NamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fType->clone(&cloner), NULL));
+                fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
 
                 // For local thread access (in computeThread), rewrite the Declare instruction by a Store
-                if (inst->fValue)
-                    fContainer->fComputeThreadBlockInstructions->pushBackInst(InstBuilder::genStoreVarInst(InstBuilder::genNamedAddress(inst->fAddress->getName(), Address::kStruct), inst->fValue->clone(&cloner)));
+                if (inst->fValue) {
+                    fContainer->fComputeThreadBlockInstructions->pushBackInst(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                }
+                
+                // Mark inst to be removed
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -213,7 +65,7 @@ void WSSCodeContainer::MoveStack2Struct()
             }
         }
 
-        Stack2StructAnalyser(WSSCodeContainer* container, const string& name)
+        Stack2StructAnalyser1(WSSCodeContainer* container, const string& name)
             :fContainer(container), fName(name)
         {}
     };
@@ -243,9 +95,13 @@ void WSSCodeContainer::MoveStack2Struct()
             DispatchVisitor::visit(inst);
             BasicCloneVisitor cloner;
             if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
+            
                 // For local thread access (in computeThread)
-                if (inst->fValue)
+                if (inst->fValue) {
                     fContainer->fComputeThreadBlockInstructions->pushBackInst(inst->clone(&cloner));
+                }
+                
+                // Mark inst to be removed
                 inst->fAddress->setAccess(Address::kLink);
             }
         }
@@ -273,7 +129,7 @@ void WSSCodeContainer::MoveStack2Struct()
         static void Move(WSSCodeContainer* container, const string& name)
         {
             // Transform stack variables in struct variables
-            Stack2StructAnalyser analyser1(container, name);
+            Stack2StructAnalyser1 analyser1(container, name);
             container->fComputeBlockInstructions->accept(&analyser1);
 
             Stack2StructAnalyser2 analyser2(name);
