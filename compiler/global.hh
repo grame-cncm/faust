@@ -345,6 +345,8 @@ struct global {
     int gMachineDoubleSize;
     int gMachineBoolSize;
     int gMachinePtrSize;
+    
+    int gMachineMaxStackSize;
   
     global();
     ~global();
@@ -358,5 +360,7 @@ struct global {
 extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
+
+#define MAX_STACK_SIZE 50000
 
 #endif

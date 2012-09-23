@@ -122,7 +122,16 @@ void VectorCodeContainer::processFIR(void)
 {
     // Default processing
     CodeContainer::processFIR();
-
+    
+    // If stack variables take to much room, move them in struct
+    StackVariableSizeCounter counter;
+    handleComputeBlock(&counter);
+    if (counter.fSizeBytes > gGlobal->gMachineMaxStackSize) {
+        printf("Move stack variables in struct size = %d\n", counter.fSizeBytes);
+        // Transform some stack variables in struct variables
+        // moveStack2Struct();
+    }
+ 
     // Sort arrays to be at the begining
     fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
 

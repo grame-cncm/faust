@@ -271,6 +271,11 @@ class CodeContainer : public virtual Garbageable {
 
         void generateComputeBlock(InstVisitor* visitor)
         {
+            handleComputeBlock(visitor);
+        }
+        
+        void handleComputeBlock(InstVisitor* visitor)
+        {
             if (fComputeBlockInstructions->fCode.size() > 0) {
                 fComputeBlockInstructions->accept(visitor);
             }

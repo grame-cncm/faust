@@ -257,6 +257,8 @@ global::global():TABBER(1),gLoopDetector(1024, 512)
     gMachineDoubleSize = sizeof(double);
     gMachineBoolSize = sizeof(bool);
     gMachinePtrSize = sizeof(void*);
+    
+    gMachineMaxStackSize = MAX_STACK_SIZE;
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built
