@@ -226,9 +226,13 @@ class CodeContainer : public virtual Garbageable {
 
         void generateDeclarations(InstVisitor* visitor)
         {
+            fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
+            handleDeclarations(visitor);
+        }
+        
+        void handleDeclarations(InstVisitor* visitor)
+        {
            if (fDeclarationInstructions->fCode.size() > 0) {
-                // Sort arrays to be at the begining
-                fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
                 fDeclarationInstructions->accept(visitor);
             }
         }

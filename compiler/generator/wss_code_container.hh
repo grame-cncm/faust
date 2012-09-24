@@ -29,8 +29,7 @@ class WSSCodeContainer : public virtual CodeContainer {
     private:
 
         string fObjName;
-        BlockInst* fComputeThreadBlockInstructions;
-
+   
         void moveCompute2ComputeThread();
 
         void generateLocalInputs(BlockInst* loop_code);
@@ -56,6 +55,7 @@ class WSSCodeContainer : public virtual CodeContainer {
     protected:
 
         StatementInst* fThreadLoopBlock;
+        BlockInst* fComputeThreadBlockInstructions;
 };
 
 #endif

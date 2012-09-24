@@ -28,21 +28,21 @@ map <string, int> FIRInstVisitor::gGlobalTable;
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new FirScalarCodeContainer(0, 1, sub_container_type);
+    return new FirScalarCodeContainer(0, 1, sub_container_type, false);
 }
 
-CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs)
+CodeContainer* FirCodeContainer::createContainer(int numInputs, int numOutputs, bool top_level)
 {
     CodeContainer* container;
 
     if (gGlobal->gOpenMPSwitch) {
-        container = new FirOpenMPCodeContainer(numInputs, numOutputs);
+        container = new FirOpenMPCodeContainer(numInputs, numOutputs, top_level);
     } else if (gGlobal->gSchedulerSwitch) {
-        container = new FirWorkStealingCodeContainer(numInputs, numOutputs);
+        container = new FirWorkStealingCodeContainer(numInputs, numOutputs, top_level);
     } else if (gGlobal->gVectorSwitch) {
-        container = new FirVectorCodeContainer(numInputs, numOutputs);
+        container = new FirVectorCodeContainer(numInputs, numOutputs, top_level);
     } else {
-        container = new FirScalarCodeContainer(numInputs, numOutputs, kInt);
+        container = new FirScalarCodeContainer(numInputs, numOutputs, kInt, top_level);
     }
 
     return container;
@@ -58,7 +58,7 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* 
         *dst << "======= Sub classes end ==========" << std::endl << std::endl;
     }
 
-    /// User Interface
+    // User Interface
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         *dst << "======= User Interface ==========" << std::endl;
         *dst << std::endl;
@@ -66,7 +66,6 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* 
         *dst << std::endl;
     }
 
-    // General
     if (fExtGlobalDeclarationInstructions->fCode.size() > 0) {
         *dst << "======= Global external declarations ==========" << std::endl;
         *dst << std::endl;
@@ -129,13 +128,38 @@ void FirCodeContainer::dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* ds
 
 void FirCodeContainer::dump(ostream* dst)
 {
-    prepareDump();
-
     FIRInstVisitor firvisitor(dst);
     dumpGlobalsAndInit(firvisitor, dst);
     dumpThread(firvisitor, dst);
     dumpComputeBlock(firvisitor, dst);
     dumpCompute(firvisitor, dst);
+    dumpMemory(dst);
+}
+
+void FirCodeContainer::dumpMemory(ostream* dst)
+{
+    // Compute memory footprint
+    if (fTopLevel) {
+    
+        int total_heap_size = 0;
+        list<CodeContainer*>::const_iterator it;
+        
+        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+            StackVariableSizeCounter heap_counter;
+            (*it)->handleDeclarations(&heap_counter);
+            total_heap_size += heap_counter.fSizeBytes;
+        }
+        
+        StackVariableSizeCounter heap_counter;
+        handleDeclarations(&heap_counter);
+        
+        StackVariableSizeCounter stack_counter;
+        handleComputeBlock(&stack_counter);
+        
+        *dst << "======= Object memory footprint ==========" << std::endl << std::endl;
+        *dst << "Heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << std::endl;
+        *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes" << "\n\n";
+    }
 }
 
 void FirScalarCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostream* dst)
@@ -188,6 +212,36 @@ void FirWorkStealingCodeContainer::dumpCompute(FIRInstVisitor & firvisitor, ostr
         *dst << std::endl;
         fComputeFunctions->accept(&firvisitor);
         *dst << std::endl;
+    }
+}
+
+void FirWorkStealingCodeContainer::dumpMemory(ostream* dst)
+{
+    // Compute memory footprint
+    if (fTopLevel) {
+    
+        int total_heap_size = 0;
+        list<CodeContainer*>::const_iterator it;
+        
+        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+            StackVariableSizeCounter heap_counter;
+            (*it)->handleDeclarations(&heap_counter);
+            total_heap_size += heap_counter.fSizeBytes;
+        }
+        
+        StackVariableSizeCounter heap_counter;
+        handleDeclarations(&heap_counter);
+        
+        StackVariableSizeCounter stack_counter_compute;
+        handleComputeBlock(&stack_counter_compute);
+        
+        StackVariableSizeCounter stack_counter_compute_thread;
+        fComputeThreadBlockInstructions->accept(&stack_counter_compute_thread);
+        
+        *dst << "======= Object memory footprint ==========" << std::endl << std::endl;
+        *dst << "Heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << std::endl;
+        *dst << "Stack size in compute = " << stack_counter_compute.fSizeBytes << " bytes"<< std::endl;
+        *dst << "Stack size in computeThread = " << stack_counter_compute_thread.fSizeBytes << " bytes" << "\n\n";
     }
 }
 

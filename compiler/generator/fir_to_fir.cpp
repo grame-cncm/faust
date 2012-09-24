@@ -30,7 +30,7 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         return (array_typed) ? (array_typed->fSize > 0) : false;
     } else if (dynamic_cast<DeclareVarInst*>(b)) {
-        DeclareVarInst* inst = dynamic_cast<DeclareVarInst*>(a);
+        DeclareVarInst* inst = dynamic_cast<DeclareVarInst*>(b);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         return (array_typed) ? (array_typed->fSize > 0) : false;
     } else {

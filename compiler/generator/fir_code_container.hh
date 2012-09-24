@@ -36,34 +36,37 @@ class FirCodeContainer : public virtual CodeContainer {
     
         void dump(ostream* dst);
 
-        static CodeContainer* createContainer(int numInputs, int numOutputs);
+        static CodeContainer* createContainer(int numInputs, int numOutputs, bool top_level = false);
 
     protected:
     
-        FirCodeContainer(int numInputs, int numOutputs)
+        FirCodeContainer(int numInputs, int numOutputs, bool top_level)
         {
+            fTopLevel = top_level;
             initializeCodeContainer(numInputs, numOutputs);
         }
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
         void produceInternal() {}
-
+        
+        bool fTopLevel;
+       
     private:
     
         void dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst);
 
-        virtual void prepareDump(void) {};
         virtual void dumpThread(FIRInstVisitor & firvisitor, ostream* dst) {};
         virtual void dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst);
         virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst) = 0;
+        virtual void dumpMemory(ostream* dst);
 };
 
 class FirScalarCodeContainer : public FirCodeContainer {
 
     public:
     
-        FirScalarCodeContainer(int numInputs, int numOutputs, int sub_container_type)
-            :FirCodeContainer(numInputs, numOutputs)
+        FirScalarCodeContainer(int numInputs, int numOutputs, int sub_container_type, bool top_level)
+            :FirCodeContainer(numInputs, numOutputs, top_level)
         {
             fSubContainerType = sub_container_type;
         }
@@ -77,8 +80,8 @@ class FirVectorCodeContainer : public VectorCodeContainer, public FirCodeContain
 
     public:
     
-        FirVectorCodeContainer(int numInputs, int numOutputs)
-            :VectorCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
+        FirVectorCodeContainer(int numInputs, int numOutputs, bool top_level)
+            :VectorCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs, top_level)
         {}
 
     private:
@@ -90,8 +93,8 @@ class FirOpenMPCodeContainer : public OpenMPCodeContainer, public FirCodeContain
 
     public:
 
-        FirOpenMPCodeContainer(int numInputs, int numOutputs)
-            :OpenMPCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
+        FirOpenMPCodeContainer(int numInputs, int numOutputs, bool top_level)
+            :OpenMPCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs, top_level)
         {}
 
     private:
@@ -103,14 +106,15 @@ class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeCont
 
     public:
 
-        FirWorkStealingCodeContainer(int numInputs, int numOutputs)
-            :WSSCodeContainer(numInputs, numOutputs, "this"), FirCodeContainer(numInputs, numOutputs)
+        FirWorkStealingCodeContainer(int numInputs, int numOutputs, bool top_level)
+            :WSSCodeContainer(numInputs, numOutputs, "this"), FirCodeContainer(numInputs, numOutputs, top_level)
         {}
 
     private:
     
         virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
         virtual void dumpThread(FIRInstVisitor& firvisitor, ostream* dst);
+        virtual void dumpMemory(ostream* dst);
 };
 
 #endif

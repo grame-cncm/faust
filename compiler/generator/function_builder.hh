@@ -94,12 +94,15 @@ struct StackVariableSizeCounter : public DispatchVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         DispatchVisitor::visit(inst);
-
+        fSizeBytes += inst->fType->getSize();
+      
+        /*
         if (inst->fAddress->getAccess() == Address::kStack) {
             fSizeBytes += inst->fType->getSize();
         } else {
             printf("Error : variable should be a stack variable !!\n");
         }
+        */
     }
     
 };
@@ -227,7 +230,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                 virtual Address* visit(NamedAddress* address)
                 {
                     if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) != fAddedVarTable.end()) {
-                        return new NamedAddress(address->fName, Address::kFunArgs);
+                        return InstBuilder::genNamedAddress(address->fName, Address::kFunArgs);
                     } else {
                         return BasicCloneVisitor::visit(address);
                     }

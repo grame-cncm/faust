@@ -626,7 +626,7 @@ struct NamedAddress : public Address {
     NamedAddress(const string& name, AccessType access)
         :fName(name), fAccess(access)
     {}
-
+ 
     void setAccess(Address::AccessType type) { fAccess = type; }
     Address::AccessType getAccess() { return fAccess; }
 
