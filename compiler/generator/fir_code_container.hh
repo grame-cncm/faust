@@ -24,7 +24,6 @@
 
 #include "code_container.hh"
 #include "fir_instructions.hh"
-
 #include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
@@ -32,72 +31,86 @@
 using namespace std;
 
 class FirCodeContainer : public virtual CodeContainer {
-public:
-    void dump(ostream* dst);
 
-     static CodeContainer* createContainer(int numInputs, int numOutputs);
+    public:
+    
+        void dump(ostream* dst);
 
-protected:
-    FirCodeContainer(int numInputs, int numOutputs)
-    {
-        initializeCodeContainer(numInputs, numOutputs);
-    }
+        static CodeContainer* createContainer(int numInputs, int numOutputs);
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-    void produceInternal() {}
+    protected:
+    
+        FirCodeContainer(int numInputs, int numOutputs)
+        {
+            initializeCodeContainer(numInputs, numOutputs);
+        }
 
-private:
-    void dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+        void produceInternal() {}
 
-    virtual void prepareDump(void) {};
-    virtual void dumpThread(FIRInstVisitor & firvisitor, ostream* dst) {};
-    virtual void dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst);
-    virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst) = 0;
+    private:
+    
+        void dumpGlobalsAndInit(FIRInstVisitor & firvisitor, ostream* dst);
+
+        virtual void prepareDump(void) {};
+        virtual void dumpThread(FIRInstVisitor & firvisitor, ostream* dst) {};
+        virtual void dumpComputeBlock(FIRInstVisitor & firvisitor, ostream* dst);
+        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst) = 0;
 };
 
 class FirScalarCodeContainer : public FirCodeContainer {
-public:
-    FirScalarCodeContainer(int numInputs, int numOutputs, int sub_container_type)
-        :FirCodeContainer(numInputs, numOutputs)
-    {
-        fSubContainerType = sub_container_type;
-    }
 
-private:
-    virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
+    public:
+    
+        FirScalarCodeContainer(int numInputs, int numOutputs, int sub_container_type)
+            :FirCodeContainer(numInputs, numOutputs)
+        {
+            fSubContainerType = sub_container_type;
+        }
+
+    private:
+    
+        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 };
 
 class FirVectorCodeContainer : public VectorCodeContainer, public FirCodeContainer {
-public:
-    FirVectorCodeContainer(int numInputs, int numOutputs)
-        :VectorCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
-    {}
 
-private:
-    virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
+    public:
+    
+        FirVectorCodeContainer(int numInputs, int numOutputs)
+            :VectorCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
+        {}
+
+    private:
+    
+        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 };
 
 class FirOpenMPCodeContainer : public OpenMPCodeContainer, public FirCodeContainer {
-public:
 
-    FirOpenMPCodeContainer(int numInputs, int numOutputs)
-        :OpenMPCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
-    {}
+    public:
 
-private:
-    virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
+        FirOpenMPCodeContainer(int numInputs, int numOutputs)
+            :OpenMPCodeContainer(numInputs, numOutputs), FirCodeContainer(numInputs, numOutputs)
+        {}
+
+    private:
+    
+        virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
 };
 
 class FirWorkStealingCodeContainer : public WSSCodeContainer, public FirCodeContainer {
-public:
 
-    FirWorkStealingCodeContainer(int numInputs, int numOutputs)
-        :WSSCodeContainer(numInputs, numOutputs, "this"), FirCodeContainer(numInputs, numOutputs)
-    {}
+    public:
 
-private:
-    virtual void dumpCompute(FIRInstVisitor & firvisitor, ostream* dst);
-    virtual void dumpThread(FIRInstVisitor & firvisitor, ostream* dst);
+        FirWorkStealingCodeContainer(int numInputs, int numOutputs)
+            :WSSCodeContainer(numInputs, numOutputs, "this"), FirCodeContainer(numInputs, numOutputs)
+        {}
+
+    private:
+    
+        virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
+        virtual void dumpThread(FIRInstVisitor& firvisitor, ostream* dst);
 };
 
 #endif

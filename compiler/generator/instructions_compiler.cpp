@@ -346,6 +346,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
 
+    // Apply FIR to FIR transformations
     fContainer->processFIR();
 }
 

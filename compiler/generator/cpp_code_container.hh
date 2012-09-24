@@ -25,7 +25,6 @@
 #include "code_container.hh"
 #include "cpp_instructions.hh"
 #include "opencl_instructions.hh"
-
 #include "omp_code_container.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
@@ -108,8 +107,6 @@ class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContain
 class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeContainer {
 
     protected:
-
-        void MoveStackSlow2Struct();
 
     public:
 

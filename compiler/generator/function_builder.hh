@@ -137,7 +137,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                             fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), DeclareVarInst::gVarTable[address->getName()]->clone(&cloner)));
 
                             // It becomes a value in the fun-call argument list
-                            fArgsValueList.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(address->getName(), Address::kStack)));
+                            fArgsValueList.push_back(InstBuilder::genLoadStackVar(address->getName()));
 
                             // Variable added in parameter list
                             fAddedVarTable.push_back(address->getName());
@@ -166,7 +166,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                         fArgsTypeList.push_back(InstBuilder::genNamedTyped(address->getName(), DeclareVarInst::gVarTable[address->getName()]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list : keep it's kFunArgs status
-                        fArgsValueList.push_back(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(address->getName(), Address::kFunArgs)));
+                        fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(address->getName()));
 
                         // Variable added in parameter list
                         fAddedVarTable.push_back(address->getName());
@@ -245,7 +245,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
             // Add "dsp" arg in function prototype and in parameter list
             if (add_object) {
                 fArgsTypeList.push_front(InstBuilder::genNamedTyped("dsp", InstBuilder::genBasicTyped(Typed::kObj_ptr)));
-                fArgsValueList.push_front(InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("dsp", Address::kFunArgs)));
+                fArgsValueList.push_front(InstBuilder::genLoadFunArgsVar("dsp"));
             }
 
             // Create function type

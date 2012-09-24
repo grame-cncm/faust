@@ -26,6 +26,8 @@
 
 class OpenMPCodeContainer : public virtual CodeContainer {
 
+    private:
+
         StatementInst* generateDAGLoopOMP(const string& counter);
         void processFIR();
 

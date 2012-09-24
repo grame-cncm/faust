@@ -19,6 +19,41 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef _FIR_TO_FIR_H
+#define _FIR_TO_FIR_H
+
 #include "instructions.hh"
 
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
+
+// Change stack access for struct access
+struct Stack2StructAnalyser : public DispatchVisitor {
+
+    string fName;
+
+    void visit(NamedAddress* address)
+    {
+        if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
+            address->fAccess = Address::kStruct;
+        }
+    }
+
+    Stack2StructAnalyser(const string& name):fName(name)
+    {}
+};
+
+// Remove all variable declaratiion marked as "Address::kLink"
+struct RemoverCloneVisitor : public BasicCloneVisitor {
+
+    // Rewrite Declare as a no-op (DropInst)
+    StatementInst* visit(DeclareVarInst* inst)
+    {
+        if (inst->fAddress->getAccess() == Address::kLink) {
+            return new DropInst();
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+};
+
+#endif

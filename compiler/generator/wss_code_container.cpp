@@ -21,6 +21,7 @@
 
 #include "wss_code_container.hh"
 #include "global.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -29,7 +30,7 @@ using namespace std;
 #define START_TASK_INDEX LAST_TASK_INDEX + 1
 #define START_TASK_MAX 2
 
-void WSSCodeContainer::moveStack2Struct()
+void WSSCodeContainer::moveCompute2ComputeThread()
 {
     // Analysis to promote stack variables to struct variables
     struct Stack2StructAnalyser1 : public DispatchVisitor {
@@ -70,22 +71,8 @@ void WSSCodeContainer::moveStack2Struct()
         {}
     };
 
+    // Move stack variable from "compute" to "computeThread"
     struct Stack2StructAnalyser2 : public DispatchVisitor {
-
-        string fName;
-
-        void visit(NamedAddress* address)
-        {
-            if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
-                address->fAccess = Address::kStruct;
-            }
-        }
-
-        Stack2StructAnalyser2(const string& name):fName(name)
-        {}
-    };
-
-    struct Stack2StructAnalyser3 : public DispatchVisitor {
 
         WSSCodeContainer* fContainer;
         string fName;
@@ -94,6 +81,7 @@ void WSSCodeContainer::moveStack2Struct()
         {
             DispatchVisitor::visit(inst);
             BasicCloneVisitor cloner;
+            
             if (inst->fAddress->getAccess() == Address::kStack && inst->fAddress->getName().find(fName) != string::npos) {
             
                 // For local thread access (in computeThread)
@@ -106,22 +94,9 @@ void WSSCodeContainer::moveStack2Struct()
             }
         }
 
-        Stack2StructAnalyser3(WSSCodeContainer* container, const string& name)
+        Stack2StructAnalyser2(WSSCodeContainer* container, const string& name)
             :fContainer(container), fName(name)
         {}
-    };
-
-    struct RemoverCloneVisitor : public BasicCloneVisitor {
-
-        // Rewrite Declare as a no-op (DropInst)
-        StatementInst* visit(DeclareVarInst* inst)
-        {
-            if (inst->fAddress->getAccess() == Address::kLink) {
-                return new DropInst();
-            } else {
-                return BasicCloneVisitor::visit(inst);
-            }
-        }
     };
 
     struct VariableMover {
@@ -132,8 +107,9 @@ void WSSCodeContainer::moveStack2Struct()
             Stack2StructAnalyser1 analyser1(container, name);
             container->fComputeBlockInstructions->accept(&analyser1);
 
-            Stack2StructAnalyser2 analyser2(name);
-            container->transformDAG(&analyser2);
+            // Variable access stack ==> struct
+            Stack2StructAnalyser analyser(name);
+            container->transformDAG(&analyser);
         }
     };
 
@@ -144,11 +120,11 @@ void WSSCodeContainer::moveStack2Struct()
     VariableMover::Move(this, "Yec");
 
     // To move variable in "computeThread"
-    Stack2StructAnalyser3 analyser8(this, "Slow");
+    Stack2StructAnalyser2 analyser8(this, "Slow");
     fComputeBlockInstructions->accept(&analyser8);
 
     // To move variable in "computeThread"
-    Stack2StructAnalyser3 analyser9(this, "Vec");
+    Stack2StructAnalyser2 analyser9(this, "Vec");
     fComputeBlockInstructions->accept(&analyser9);
 
     // Remove marked variables from fComputeBlockInstructions
@@ -489,11 +465,11 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
 
 void WSSCodeContainer::processFIR(void)
 {
-    // Default processing
+    // Default FIR to FIR transformations
     CodeContainer::processFIR();
 
-    // Transform some stack variables in struct variables
-    moveStack2Struct();
+    // Transform some stack variables in struct variables, move some variables from "compute" to "computeThread"
+    moveCompute2ComputeThread();
 
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);

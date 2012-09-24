@@ -26,36 +26,36 @@
 
 class WSSCodeContainer : public virtual CodeContainer {
 
-private:
+    private:
 
-    string fObjName;
-    BlockInst* fComputeThreadBlockInstructions;
+        string fObjName;
+        BlockInst* fComputeThreadBlockInstructions;
 
-    void moveStack2Struct();
+        void moveCompute2ComputeThread();
 
-    void generateLocalInputs(BlockInst* loop_code);
-    void generateLocalOutputs(BlockInst* loop_code);
+        void generateLocalInputs(BlockInst* loop_code);
+        void generateLocalOutputs(BlockInst* loop_code);
 
-    StatementInst* generateDAGLoopWSS(lclgraph dag);
-    void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
-    void generateDAGLoopWSSAux2(const string& counter);
-    void generateDAGLoopWSSAux3(int loop_count);
+        StatementInst* generateDAGLoopWSS(lclgraph dag);
+        void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, bool master_thread);
+        void generateDAGLoopWSSAux2(const string& counter);
+        void generateDAGLoopWSSAux3(int loop_count);
 
-    void processFIR(void);
+        void processFIR(void);
 
-public:
+    public:
 
-    WSSCodeContainer(int numInputs, int numOutputs, string const & objName)
-        : fObjName(objName),
-        fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
-    {
-        initializeCodeContainer(numInputs, numOutputs);
-        fFullCount = "fullcount";
-    }
+        WSSCodeContainer(int numInputs, int numOutputs, string const& objName)
+            : fObjName(objName),
+            fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
+        {
+            initializeCodeContainer(numInputs, numOutputs);
+            fFullCount = "fullcount";
+        }
 
-protected:
+    protected:
 
-    StatementInst* fThreadLoopBlock;
+        StatementInst* fThreadLoopBlock;
 };
 
 #endif

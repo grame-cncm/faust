@@ -26,23 +26,26 @@
 
 class VectorCodeContainer : public virtual CodeContainer {
 
-private:
+    private:
 
-    void processFIR(void);
-    StatementInst* generateDAGLoopVariant0(const string& counter);
-    StatementInst* generateDAGLoopVariant1(const string& counter);
+        void moveStack2Struct();
+        
+        StatementInst* generateDAGLoopVariant0(const string& counter);
+        StatementInst* generateDAGLoopVariant1(const string& counter);
+        
+        void processFIR(void);
 
-protected:
+    protected:
 
-    StatementInst* fDAGBlock;
+        StatementInst* fDAGBlock;
 
-public:
+    public:
 
-    VectorCodeContainer(int numInputs, int numOutputs)
-    {
-        initializeCodeContainer(numInputs, numOutputs);
-        fFullCount = "fullcount";
-    }
+        VectorCodeContainer(int numInputs, int numOutputs)
+        {
+            initializeCodeContainer(numInputs, numOutputs);
+            fFullCount = "fullcount";
+        }
 
 };
 

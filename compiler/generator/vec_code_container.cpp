@@ -24,6 +24,67 @@
 
 using namespace std;
 
+void VectorCodeContainer::moveStack2Struct()
+{
+
+    // Analysis to promote stack variables to struct variables
+    struct Stack2StructAnalyser1 : public DispatchVisitor {
+
+        VectorCodeContainer* fContainer;
+        string fName;
+
+        void visit(DeclareVarInst* inst)
+        {
+            DispatchVisitor::visit(inst);
+            BasicCloneVisitor cloner;
+            string name = inst->fAddress->getName();
+            
+            if (inst->fAddress->getAccess() == Address::kStack && name.find(fName) != string::npos) {
+
+                // Variable moved to the Struct
+                fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
+   
+                // Mark inst to be removed
+                inst->fAddress->setAccess(Address::kLink);
+            }
+        }
+
+        void visit(NamedAddress* address)
+        {
+            if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
+                address->fAccess = Address::kStruct;
+            }
+        }
+
+        Stack2StructAnalyser1(VectorCodeContainer* container, const string& name)
+            :fContainer(container), fName(name)
+        {}
+    };
+
+    struct VariableMover {
+
+        static void Move(VectorCodeContainer* container, const string& name)
+        {
+            // Transform stack variables in struct variables
+            Stack2StructAnalyser1 analyser1(container, name);
+            container->fComputeBlockInstructions->accept(&analyser1);
+
+            // Variable access stack ==> struct
+            Stack2StructAnalyser analyser(name);
+            container->transformDAG(&analyser);
+        }
+    };
+    
+    // Transform stack variables in struct variables
+    VariableMover::Move(this, "tmp");
+    VariableMover::Move(this, "Zec");
+    VariableMover::Move(this, "Yec");
+    
+    // Remove marked variables from fComputeBlockInstructions
+    RemoverCloneVisitor remover;
+    fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
+}
+
 StatementInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 {
     string index = "index";
@@ -120,21 +181,22 @@ StatementInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counte
 
 void VectorCodeContainer::processFIR(void)
 {
-    // Default processing
+    // Default FIR to FIR transformations
     CodeContainer::processFIR();
     
     // If stack variables take to much room, move them in struct
     StackVariableSizeCounter counter;
     handleComputeBlock(&counter);
+    
     if (counter.fSizeBytes > gGlobal->gMachineMaxStackSize) {
-        printf("Move stack variables in struct size = %d\n", counter.fSizeBytes);
+        // printf("Move stack variables in struct size = %d\n", counter.fSizeBytes);
         // Transform some stack variables in struct variables
-        // moveStack2Struct();
+        moveStack2Struct();
+    } else {
+        // Sort arrays to be at the begining
+        fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
     }
- 
-    // Sort arrays to be at the begining
-    fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
-
+   
     if (gGlobal->gVectorLoopVariant == 0) {
         fDAGBlock = generateDAGLoopVariant0(fFullCount);
     } else if (gGlobal->gVectorLoopVariant == 1) {

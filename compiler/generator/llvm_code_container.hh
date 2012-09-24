@@ -24,7 +24,6 @@
 
 #include "code_container.hh"
 #include "llvm_instructions.hh"
-
 #include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"

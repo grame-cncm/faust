@@ -137,7 +137,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 
 void OpenMPCodeContainer::processFIR()
 {
-    // Default processing
+    // Default FIR to FIR transformations
     CodeContainer::processFIR();
 
     // Sort arrays to be at the begining
