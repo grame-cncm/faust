@@ -52,6 +52,7 @@ class htmlfactory
 
 		void addnode (const char* type, const char* label);
 		void addnode (const char* type, const char* label, float init, float min, float max, float step);
+		void addnode (const char* type, const char* label, float min, float max);
 		void opengroup (const char* type, const char* label);
 		void closegroup ();
 

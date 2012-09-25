@@ -74,6 +74,11 @@ void htmlfactory::addnode (const char* type, const char* label, float init, floa
 		  << "</tr>\n";
 }
 
+void htmlfactory::addnode (const char* type, const char* label, float min, float max)
+{
+	// don't know what to do with bargraph 
+}
+
 /**
  * Open a group in the current group and place it on the top of the stack. 
  * Takes into account that due to alias, a group can been previously created.  
