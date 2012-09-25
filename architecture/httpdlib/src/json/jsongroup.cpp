@@ -31,19 +31,19 @@ namespace httpdfaust
 //--------------------------------------------------------------------------
 void jsongroup::print(std::ostream& out, jsonendl& eol) const
 {
-//	out << eol << "{"; eol++;
-//	out << eol << "\"type\": \"" << fType << "\",";
-//	out << eol << "\"label\": \"" << fName << "\",";
+	out << eol << "{"; eol++;
+	out << eol << "\"type\": \"" << fType << "\",";
+	out << eol << "\"label\": \"" << fName << "\",";
 //	out << eol << "\"address\": \"" << getAddress() << "\"";
-//	out << eol << "\"elements\": ["; eol++;
+	out << eol << "\"items\": ["; eol++;
 	const char* sep = "";
 	for (unsigned int i=0; i< fContent.size(); i++) {
 		out << sep;
 		sep = ",";
 		fContent[i]->print(out, eol);
 	}
-//	out << --eol << "]";
-//	out << --eol << "}";
+	out << --eol << "]";
+	out << --eol << "}";
 }
 
 } // end namespoace

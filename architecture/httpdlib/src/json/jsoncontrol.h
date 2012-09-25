@@ -26,6 +26,8 @@
 #define __jsoncontrol__
 
 #include <ostream>
+#include <string>
+#include <map>
 #include "jsonnode.h"
 
 
@@ -41,35 +43,62 @@ template <typename C> class jsoncontrol : public jsonnode
 	std::string fName;
 	std::string fType;
 	C fInit, fMin, fMax, fStep;
-	bool  fButton;
-	
-	protected:
-				 jsoncontrol(const char *name, const char* type) 
-					: fName(name), fType(type), fInit(0), fMin(0), fMax(0), fStep(0), fButton(true) {}
-				 jsoncontrol(const char *name, const char* type, C init, C min, C max, C step) 
-					: fName(name), fType(type), fInit(init), fMin(min), fMax(max), fStep(step), fButton(false) {}
-		virtual ~jsoncontrol() {}
+	std::map<std::string, std::string> fMeta;
 		
 	public:
-	static Sjsonnode create (const char *name, const char* type, C init, C min, C max, C step) 
-			{ return new jsoncontrol (name, type, init, min, max, step); }
-	static Sjsonnode create (const char *name, const char* type) 
-			{ return new jsoncontrol (name, type); }
+				typedef std::map<std::string, std::string>	TMetas;
+
+	static Sjsonnode create (const char *name, const char* type, C min, C max, const TMetas& m)
+			{ return new jsoncontrol (name, type, min, max, m); }
+	static Sjsonnode create (const char *name, const char* type, C init, C min, C max, C step, const TMetas& m)
+			{ return new jsoncontrol (name, type, init, min, max, step, m); }
+	static Sjsonnode create (const char *name, const char* type, const TMetas& m) 
+			{ return new jsoncontrol (name, type, m); }
 
 		virtual void	print(std::ostream& out, jsonendl& eol) const
 		{
+			bool button = (fType == "button");
+			bool bargraph = (fType == "vbargraph") || (fType == "hbargraph");
+
 			out << eol << "{"; eol++;
 			out << eol << "\"type\": \"" << fType << "\",";
 			out << eol << "\"label\": \"" << fName << "\",";
 			out << eol << "\"address\": \"" << getAddress() << "\"";
-			if (!fButton) {
-				out << "," << eol << "\"init\": \"" << fInit << "\",";
-				out << eol << "\"min\": \"" << fMin << "\",";
-				out << eol << "\"max\": \"" << fMax << "\",";
-				out << eol << "\"step\": \"" << fStep << "\"";
+			if (fMeta.size()) {
+				out << eol << "\"meta\": \"" << "[ "; eol++;
+		//		for (TMetas::const_iterator i=fMeta.begin(); i!=fMeta.end();) {
+				TMetas::const_iterator i=fMeta.begin();
+				while (true) {
+					out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
+					if (++i == fMeta.end()) break;
+					out << ",";			
+				}
+				out << --eol << "]";
 			}
+
+			if (button) { out << --eol << "}"; return; }		// done for buttons
+
+			if (!bargraph)
+				out << "," << eol << "\"init\": \"" << fInit << "\",";
+			out << eol << "\"min\": \"" << fMin << "\",";
+			out << eol << "\"max\": \"" << fMax << "\",";
+			if (!bargraph)
+				out << eol << "\"step\": \"" << fStep << "\"";
 			out << --eol << "}";
 		}
+	
+	protected:
+
+				 jsoncontrol(const char *name, const char* type, const TMetas& m)
+					: fName(name), fType(type), fInit(0), fMin(0), fMax(0), fStep(0), fMeta(m) {}
+
+				 jsoncontrol(const char *name, const char* type, C min, C max, const TMetas& m)
+					: fName(name), fType(type), fMin(min), fMax(max), fMeta(m) {}
+
+				 jsoncontrol(const char *name, const char* type, C init, C min, C max, C step, const TMetas& m)
+					: fName(name), fType(type), fInit(init), fMin(min), fMax(max), fStep(step), fMeta(m) {}
+
+		virtual ~jsoncontrol() {}
 };
 
 } // end namespoace

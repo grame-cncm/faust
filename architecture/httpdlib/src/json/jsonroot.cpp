@@ -50,6 +50,20 @@ void jsonroot::print(std::ostream& out) const
 	out << "\"name\": \"" << fName << "\"," << eol;
 	out << "\"address\": \"" << fAddress << "\"," << eol;
 	out << "\"port\": \"" << fPort << "\"," << eol;
+//	out << "\"intputs\": \"" << fInputs << "\"," << eol;
+//	out << "\"outputs\": \"" << fOutputs << "\"," << eol;
+
+	if (fMeta.size()) {
+		out << eol << "\"meta\": \"" << "[ "; eol++;
+		map<string, string>::const_iterator i=fMeta.begin();
+		while (true) {
+			out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
+			if (++i == fMeta.end()) break;
+			out << ",";			
+		}
+		out << --eol << "],";
+	}
+
 	out << "\"ui\": ["; eol++;
 	const char* sep = "";
 	for (unsigned int i=0; i< fUi.size(); i++) {

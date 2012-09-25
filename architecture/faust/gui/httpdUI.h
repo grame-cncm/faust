@@ -52,26 +52,30 @@ class httpdUI : public GUI
 	virtual ~httpdUI() { delete fCtrl; }
 		
     // -- widget's layouts
-	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( "tabbox", tr(label)); }
-	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( "horizontalbox", tr(label)); }
-	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( "verticalbox", tr(label)); }
+	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( "tgroup", tr(label)); }
+	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( "hgroup", tr(label)); }
+	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( "vgroup", tr(label)); }
 	virtual void closeBox() 							{ fCtrl->closegroup(); }
 	
 	// -- active widgets
 	virtual void addButton(const char* label, FAUSTFLOAT* zone)			{ fCtrl->addnode( "button", tr(label), zone); }
-	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)	{ fCtrl->addnode( "checkbutton", tr(label), zone); }
-	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)		
-									{ fCtrl->addnode( "verticalslider", tr(label), zone, init, min, max, step); }
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)	{ fCtrl->addnode( "checkbox", tr(label), zone); }
+	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+									{ fCtrl->addnode( "vslider", tr(label), zone, init, min, max, step); }
 	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 	
-									{ fCtrl->addnode( "horizontalslider", tr(label), zone, init, min, max, step); }
+									{ fCtrl->addnode( "hslider", tr(label), zone, init, min, max, step); }
 	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 			
-									{ fCtrl->addnode( "numentry", tr(label), zone, init, min, max, step); }
+									{ fCtrl->addnode( "nentry", tr(label), zone, init, min, max, step); }
 	
 	// -- passive widgets	
-	virtual void addHorizontalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
-	virtual void addVerticalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
+	virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+									{ fCtrl->addnode( "hbargraph", tr(label), zone, min, max); }
+	virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+									{ fCtrl->addnode( "vbargraph", tr(label), zone, min, max); }
 	
-	void run()											{ fCtrl->run(); }
+    virtual void declare (FAUSTFLOAT* , const char* key, const char* val ) { fCtrl->declare(key, val); }
+
+	void run()						{ fCtrl->run(); }
 };
 
 					

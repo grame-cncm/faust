@@ -5,12 +5,16 @@ GRAME - Centre national de creation musicale
 http://www.grame.fr
 research@grame.fr
 ====================================================
-Copyright GRAME (c) 2011
+Copyright GRAME (c) 2011-2012
+
+----------------------------------------------------
+Version 0.70
+- new JSON format  
 
 ----------------------------------------------------
 Version 0.61
 - FAUSTFLOAT support  
 
 ----------------------------------------------------
-Version 0.50                           [Feb ?? 2012]
+Version 0.50                              [Feb 2012]
 - first release 
