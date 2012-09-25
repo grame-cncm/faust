@@ -26,14 +26,17 @@
 
 #include "jsonfactory.h"
 
-namespace httpdfaust { class jsonfactory; }
+namespace httpdfaust
+{
+
+class jsonfactory;
 
 template <typename C> class jsonui
 {
-	httpdfaust::jsonfactory* fFactory;
+	jsonfactory* fFactory;
 
 	public:
-				 jsonui(const char *name, const char* address, int port) : fFactory(0) { fFactory = new httpdfaust::jsonfactory(name, address, port); }
+				 jsonui(const char *name, const char* address, int port) : fFactory(0) { fFactory = new jsonfactory(name, address, port); }
 		virtual ~jsonui()		{ delete fFactory; }
 
 		// -- widget's layouts
@@ -63,5 +66,7 @@ template <typename C> class jsonui
 		// -- metadata declarations
 		virtual void declare(C* , const char* , const char* ) {}
 };
+
+} //end namespace
 
 #endif
