@@ -37,14 +37,14 @@ Space or tabulation are replaced with '_' (underscore)
 
 using namespace std;
 
-class httpdUI : public GUI 
+class httpdUI : public UI 
 {
 	httpdfaust::HTTPDControler*	fCtrl;	
 	const char* tr(const char* label) const;
 
  public:
 		
-	httpdUI(const char* applicationname, int argc, char *argv[]) : GUI() 
+	httpdUI(const char* applicationname, int argc, char *argv[]) 
     { 
 		fCtrl = new httpdfaust::HTTPDControler(argc, argv, applicationname); 
 	}
