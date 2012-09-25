@@ -65,7 +65,11 @@ template <typename C> class FaustNode : public MessageDriven
 
 
 	protected:
-		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix) 
+		FaustNode(const char *name, C* zone, C min, C max, const char* prefix) 
+			: MessageDriven (name, prefix), fZone(zone), fMapping(min, max, min, max) 
+			{ *zone = min; }
+
+		FaustNode(const char *name, C* zone, C init, C min, C max, const char* prefix)
 			: MessageDriven (name, prefix), fZone(zone), fMapping(min, max, min, max) 
 			{ *zone = init; }
 			
@@ -76,6 +80,8 @@ template <typename C> class FaustNode : public MessageDriven
 
 	public:
 		typedef SMARTP<FaustNode<C> > SFaustNode;
+		static SFaustNode create (const char* name, C* zone, C min, C max, const char* prefix)
+							{ return new FaustNode(name, zone, min, max, prefix); }
 		static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix)	
 							{ return new FaustNode(name, zone, init, min, max, prefix); }
 		static SFaustNode create (const char* name, C* zone, C imin, C imax, C init, C min, C max, const char* prefix)	

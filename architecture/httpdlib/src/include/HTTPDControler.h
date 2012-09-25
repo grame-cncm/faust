@@ -27,6 +27,7 @@
 #define __HTTPDControler__
 
 #include <string>
+#include <map>
 
 namespace httpdfaust
 {
@@ -52,6 +53,7 @@ class HTTPDControler
 	htmlfactory*	fHtml;
 	HTTPDSetup*		fHttpd;		// the network manager
 	std::string		fHTML;		// the corresponding HTML page
+	std::map<std::string, std::string>	fCurrentMeta;	// the current meta declarations 
 
 	public:
 		/*
@@ -68,7 +70,9 @@ class HTTPDControler
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
 		template <typename C> void addnode (const char* type, const char* label, C* zone);
+		template <typename C> void addnode (const char* type, const char* label, C* zone, C min, C max);
 		template <typename C> void addnode (const char* type, const char* label, C* zone, C init, C min, C max, C step);
+							  void declare (const char* key, const char* val ) { fCurrentMeta[key] = val; }
 
 		void opengroup (const char* type, const char* label);
 		void closegroup ();
