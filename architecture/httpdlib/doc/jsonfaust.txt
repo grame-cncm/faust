@@ -1,0 +1,64 @@
+FAUST JSON specs.
+
+<json> = { 	
+			"name"		: "karplus"
+			"address"	: "localhost"
+			"port" 		: 5510,
+//			"inputs" 	: 2,							still pending
+//			"outputs" 	: 2,							still pending
+//			"meta" 		: [{"clef":"valeur"}, ...],		still pending
+			"ui" 		: <ui>
+}
+
+<ui> = <group> | <slider> | <nentry> | <button> | <bargraph>
+
+<group> = { "type" : "(vht)group",
+			"label": "excitation",
+			"items": [<ui>...]
+		  }
+		  
+<slider>= {
+			"type": "(vh)slider",
+			"label": "excitation",
+			"address": "/karplus/excitator/excitation",
+			"meta": [{"clef" : "valeur"}, ...],
+			"init": "128",
+			"min": "2",
+			"max": "512",
+			"step": "1"
+		  }
+		  
+<nentry>= {
+			"type": "nentry",
+			"label": "excitation",
+			"address": "/karplus/excitator/excitation",
+			"meta": [{"clef" : "valeur"}, ...],
+			"init": "128",
+			"min": "2",
+			"max": "512",
+			"step": "1"
+		  }
+		  
+<button>= {
+			"type": "button",
+			"label": "excitation",
+			"address": "/karplus/excitator/excitation"
+			"meta": [{"clef" : "valeur"}, ...],
+		  }
+		  
+<checkbox>= {
+			"type": "checkbox",
+			"label": "excitation",
+			"address": "/karplus/excitator/excitation"
+			"meta": [{"clef" : "valeur"}, ...],
+		  }
+		  
+<bargraph>= {
+			"type" : "(vh)bargraph",
+			"label": "excitation",
+			"address": "/karplus/excitator/excitation",
+			"meta": [{"clef" : "valeur"}, ...],
+			"min" : "2",
+			"max" : "512",
+		  }
+
