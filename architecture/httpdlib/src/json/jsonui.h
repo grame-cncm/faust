@@ -34,28 +34,29 @@ class jsonfactory;
 template <typename C> class jsonui
 {
 	jsonfactory* fFactory;
+	std::map<std::string, std::string>	fMeta;	// the current meta declarations
 
 	public:
 				 jsonui(const char *name, const char* address, int port) : fFactory(0) { fFactory = new jsonfactory(name, address, port); }
-		virtual ~jsonui()		{ delete fFactory; }
+		virtual ~jsonui()				{ delete fFactory; }
 
 		// -- widget's layouts
-		virtual void openFrameBox(const char* label)			{ fFactory->opengroup( "framebox", label); }
-		virtual void openTabBox(const char* label)				{ fFactory->opengroup( "tabbox", label); }
-		virtual void openHorizontalBox(const char* label)		{ fFactory->opengroup( "horizontalbox", label); }
-		virtual void openVerticalBox(const char* label)			{ fFactory->opengroup( "verticalbox", label); }
-		virtual void closeBox()									{ fFactory->closegroup(); }
+		virtual void openFrameBox(const char* label)				{ fFactory->opengroup( "framebox", label); }
+		virtual void openTabBox(const char* label)					{ fFactory->opengroup( "tabbox", label); }
+		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup( "horizontalbox", label); }
+		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup( "verticalbox", label); }
+		virtual void closeBox()										{ fFactory->closegroup(); }
 
 		// -- active widgets
-		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label); }
-		virtual void addToggleButton(const char* label, C* zone)	{ fFactory->addnode<C>( "togglebutton", label); }
-		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbutton", label); }
+		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); }
+		virtual void addToggleButton(const char* label, C* zone)	{ fFactory->addnode<C>( "togglebutton", label, fMeta); }
+		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbutton", label, fMeta); }
 		virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
-					{ fFactory->addnode<C>( "verticalslider", label, init, min, max, step); }
+							{ fFactory->addnode<C>( "verticalslider", label, init, min, max, step, fMeta); }
 		virtual void addHorizontalSlider(const char* label, C* zone, C init, C min, C max, C step)
-					{ fFactory->addnode<C>( "horizontalslider", label, init, min, max, step); }
+							{ fFactory->addnode<C>( "horizontalslider", label, init, min, max, step, fMeta); }
 		virtual void addNumEntry(const char* label, C* zone, C init, C min, C max, C step)
-					{ fFactory->addnode<C>( "numentry", label, init, min, max, step); }
+							{ fFactory->addnode<C>( "numentry", label, init, min, max, step, fMeta); }
 
 		// -- passive widgets
 		virtual void addNumDisplay(const char* label, C* zone, int precision)						{}
@@ -64,7 +65,14 @@ template <typename C> class jsonui
 		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)			{}
 
 		// -- metadata declarations
-		virtual void declare(C* , const char* , const char* ) {}
+		virtual void declare(C* , const char* key, const char* val)		{ fMeta[key] = val; }
+
+		//--------------------------------------------
+		// additionnal methods (not part of UI)
+		//--------------------------------------------
+		void numInput( int n )								{ fFactory->root().setInputs(n); }
+		void numOutput( int n )								{ fFactory->root().setOutputs(n); }
+		void declare(const char* key, const char* val)		{ fFactory->root().declare(key, val);}
 };
 
 } //end namespace
