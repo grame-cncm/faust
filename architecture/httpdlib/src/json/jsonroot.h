@@ -29,6 +29,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <sstream>
 
 #include "smartpointer.h"
 #include "jsonnode.h"
@@ -50,6 +51,7 @@ class jsonroot : public smartable
 	int			fOutputs;
 	std::map<std::string, std::string> fMeta;
 	std::vector<Sjsonnode> fUi;
+	std::stringstream fJSON;
 	
 	public:
 				 jsonroot(const char *name, const char* address, int port)
@@ -57,11 +59,12 @@ class jsonroot : public smartable
 		virtual ~jsonroot() {}
 		
 		void	print(std::ostream& out) const;
-		void	add (const Sjsonnode& node)							{ fUi.push_back(node); }
-		void	setPort (int port)									{ fPort = port; }
-		void	declare (const char* key, const char* val)			{ fMeta[key] = val; }
-		void	setInputs (int inputs)								{ fInputs = inputs;}
-		void	setOutputs (int outputs)							{ fOutputs = outputs; }
+		void	add (const Sjsonnode& node)					{ fUi.push_back(node); }
+		void	setPort (int port)							{ fPort = port; }
+		void	declare (const char* key, const char* val)	{ fMeta[key] = val; }
+		void	setInputs (int inputs)						{ fInputs = inputs;}
+		void	setOutputs (int outputs)					{ fOutputs = outputs; }
+		const char*	json ()									{ print(fJSON); return fJSON.str().c_str(); }
 };
 
 } // end namespoace

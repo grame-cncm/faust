@@ -73,6 +73,12 @@ template <typename C> class jsonui
 		void numInput( int n )								{ fFactory->root().setInputs(n); }
 		void numOutput( int n )								{ fFactory->root().setOutputs(n); }
 		void declare(const char* key, const char* val)		{ fFactory->root().declare(key, val);}
+
+
+		//--------------------------------------------
+		// and eventually how to get the json as a string
+		//--------------------------------------------
+		const char*	json ()									{ return fFactory->root().json(); }
 };
 
 } //end namespace
