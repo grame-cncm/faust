@@ -43,7 +43,6 @@ class jsonfaustui : public UI
 		// UI methods
 		//--------------------------------------------
 		// -- widget's layouts
-		virtual void openFrameBox(const char* label);
 		virtual void openTabBox(const char* label);
 		virtual void openHorizontalBox(const char* label);
 		virtual void openVerticalBox(const char* label);
@@ -51,15 +50,12 @@ class jsonfaustui : public UI
 
 		// -- active widgets
 		void addButton(const char* label, FAUSTFLOAT* zone);
-		void addToggleButton(const char* label, FAUSTFLOAT* zone);
 		void addCheckButton(const char* label, FAUSTFLOAT* zone);
 		void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 		void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 		void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 
 		// -- passive widgets
-		void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision);
-		void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max);
 		void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
 		void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max);
 

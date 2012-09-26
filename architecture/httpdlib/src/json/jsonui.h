@@ -41,7 +41,6 @@ template <typename C> class jsonui
 		virtual ~jsonui()				{ delete fFactory; }
 
 		// -- widget's layouts
-		virtual void openFrameBox(const char* label)				{ fFactory->opengroup( "framebox", label); }
 		virtual void openTabBox(const char* label)					{ fFactory->opengroup( "tabbox", label); }
 		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup( "horizontalbox", label); }
 		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup( "verticalbox", label); }
@@ -49,7 +48,6 @@ template <typename C> class jsonui
 
 		// -- active widgets
 		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); }
-		virtual void addToggleButton(const char* label, C* zone)	{ fFactory->addnode<C>( "togglebutton", label, fMeta); }
 		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbutton", label, fMeta); }
 		virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
 							{ fFactory->addnode<C>( "verticalslider", label, init, min, max, step, fMeta); }
@@ -59,8 +57,6 @@ template <typename C> class jsonui
 							{ fFactory->addnode<C>( "numentry", label, init, min, max, step, fMeta); }
 
 		// -- passive widgets
-		virtual void addNumDisplay(const char* label, C* zone, int precision)						{}
-		virtual void addTextDisplay(const char* label, C* zone, const char* names[], C min, C max)	{}
 		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)				{}
 		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)			{}
 
@@ -73,7 +69,6 @@ template <typename C> class jsonui
 		void numInput( int n )								{ fFactory->root().setInputs(n); }
 		void numOutput( int n )								{ fFactory->root().setOutputs(n); }
 		void declare(const char* key, const char* val)		{ fFactory->root().declare(key, val);}
-
 
 		//--------------------------------------------
 		// and eventually how to get the json as a string
