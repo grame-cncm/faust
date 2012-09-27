@@ -566,6 +566,8 @@ struct VectorTyped : public Typed {
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct SimpleValueInst {};
+
 // ============
 //  Addresses
 // ============
@@ -836,7 +838,7 @@ struct DropInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct LoadVarInst : public ValueInst
+struct LoadVarInst : public ValueInst, public SimpleValueInst
 {
     Address* fAddress;
 
@@ -855,7 +857,7 @@ struct LoadVarInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct LoadVarAddressInst : public ValueInst
+struct LoadVarAddressInst : public ValueInst, public SimpleValueInst
 {
     Address* fAddress;
 
@@ -898,7 +900,7 @@ struct StoreVarInst : public StatementInst
 // Numbers
 // ========
 
-struct FloatNumInst : public ValueInst
+struct FloatNumInst : public ValueInst, public SimpleValueInst
 {
     float fNum;
 
@@ -911,7 +913,7 @@ struct FloatNumInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct DoubleNumInst : public ValueInst
+struct DoubleNumInst : public ValueInst, public SimpleValueInst
 {
     double fNum;
 
@@ -924,7 +926,7 @@ struct DoubleNumInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct IntNumInst : public ValueInst
+struct IntNumInst : public ValueInst, public SimpleValueInst
 {
     int fNum;
 
@@ -937,7 +939,7 @@ struct IntNumInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct BoolNumInst : public ValueInst
+struct BoolNumInst : public ValueInst, public SimpleValueInst
 {
     int fNum;
 
@@ -968,7 +970,7 @@ struct BinopInst : public ValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct CastNumInst : public ValueInst
+struct CastNumInst : public ValueInst, public SimpleValueInst
 {
     Typed* fType;
     ValueInst* fInst;
@@ -2046,6 +2048,11 @@ struct InstBuilder
     static BinopInst* genGreaterThan(ValueInst* a1, ValueInst* a2)
     {
         return genBinopInst(kGT, a1, a2);
+    }
+    
+     static BinopInst* genNotEqual(ValueInst* a1, ValueInst* a2)
+    {
+        return genBinopInst(kNE, a1, a2);
     }
 
     static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());

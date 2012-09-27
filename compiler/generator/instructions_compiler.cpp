@@ -944,13 +944,23 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 
 ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 {
-    int t1 = getCertifiedSigType(s1)->nature();
-    int t2 = getCertifiedSigType(s2)->nature();
-
     ValueInst* cond = CS(sel);
     ValueInst* val1 = CS(s1);
     ValueInst* val2 = CS(s2);
+    
+    int t0 = getCertifiedSigType(sel)->nature();
+    int t1 = getCertifiedSigType(s1)->nature();
+    int t2 = getCertifiedSigType(s2)->nature();
+    
+    if (dynamic_cast<SimpleValueInst*>(val1) && dynamic_cast<SimpleValueInst*>(val2)) {
+        return generateSelect2WithSelect(sig, t0, t1, t2, cond, val1, val2);
+    } else {
+        return generateSelect2WithIf(sig, t0, t1, t2, cond, val1, val2, getCertifiedSigType(s1));
+    }
+}
 
+ValueInst* InstructionsCompiler::generateSelect2WithSelect(Tree sig, int t0, int t1, int t2, ValueInst* cond, ValueInst* val1, ValueInst* val2)
+{
     if (t1 == kReal) {
         if (t2 == kReal) {
             return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, val2, val1));
@@ -962,6 +972,59 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
     } else {
         return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, val2, val1));
     }
+}
+
+
+ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, int t0, int t1, int t2, ValueInst* sel, ValueInst* val1, ValueInst* val2, ::Type type)
+{
+    ValueInst* cond = (t0 == kReal) ? InstBuilder::genNotEqual(sel, InstBuilder::genRealNumInst(itfloat(), 0.0)) : InstBuilder::genNotEqual(sel, InstBuilder::genIntNumInst(0));
+    
+    string vname = getFreshID("sel");
+    DeclareVarInst* var;
+    
+    list<StatementInst*> block1_inst;
+    list<StatementInst*> block2_inst;
+    
+    BlockInst* block1;
+    BlockInst* block2;
+    
+    if (t1 == kReal) {
+        if (t2 == kReal) {
+            block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
+            block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
+        } else {
+            block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
+            block2_inst.push_back(InstBuilder::genStoreStackVar(vname, InstBuilder::genCastNumInst(val2, InstBuilder::genBasicTyped(itfloat()))));
+        }
+        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()));
+    } else if (t2 == kReal) {
+        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, InstBuilder::genCastNumInst(val1, InstBuilder::genBasicTyped(itfloat()))));
+        block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
+        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()));
+    } else {
+        block1_inst.push_back(InstBuilder::genStoreStackVar(vname, val1));
+        block2_inst.push_back(InstBuilder::genStoreStackVar(vname, val2));
+        var = InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(Typed::kInt));
+    }
+    
+    block1 = InstBuilder::genBlockInst(block1_inst);
+    block2 = InstBuilder::genBlockInst(block2_inst);
+    
+     switch (type->variability()) {
+        
+        case kBlock:
+            pushComputeBlockMethod(var);
+            pushComputeBlockMethod(InstBuilder::genIfInst(cond, block2, block1));
+            break;
+        
+        case kSamp:
+        case kKonst:
+            pushComputeDSPMethod(var);
+            pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));
+            break;
+    }
+    
+    return generateCacheCode(sig, InstBuilder::genLoadStackVar(vname));
 }
 
 ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
@@ -1110,15 +1173,15 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 	::Type t = getCertifiedSigType(sig);
 	switch (t->variability()) {
 
-		case kKonst :
+		case kKonst:
             pushInitMethod(InstBuilder::genStoreStructVar(varname, exp));
 			break;
 
-		case kBlock :
+		case kBlock:
             pushComputeBlockMethod(InstBuilder::genStoreStructVar(varname, exp));
 			break;
 
-		case kSamp :
+		case kSamp:
 	        pushComputeDSPMethod(InstBuilder::genStoreStructVar(varname, exp));
 			break;
 	}

@@ -43,6 +43,11 @@ void VectorCodeContainer::moveStack2Struct()
 
                 // Variable moved to the Struct
                 fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
+                
+                 // For local thread access (in compute), rewrite the Declare instruction by a Store
+                if (inst->fValue) {
+                    fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                }
    
                 // Mark inst to be removed
                 inst->fAddress->setAccess(Address::kLink);
