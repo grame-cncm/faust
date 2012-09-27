@@ -266,7 +266,8 @@ generator/floats.o: boxes/boxes.hh tlib/tlib.hh tlib/num.hh tlib/list.hh tlib/sh
 generator/floats.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh evaluate/loopDetector.hh
 generator/instructions.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh
 generator/instructions.o: tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh
-generator/instructions.o: signals/interval.hh
+generator/instructions.o: signals/interval.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/num.hh
+generator/instructions.o: tlib/list.hh tlib/shlysis.hh signals/signals.hh evaluate/loopDetector.hh generator/floats.hh
 generator/instructions_compiler.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/instructions_compiler.o: garbageable.hh tlib/property.hh tlib/tree.hh generator/Text.hh
 generator/instructions_compiler.o: generator/instructions_compiler.hh global.hh parser/sourcereader.hh boxes/boxes.hh
@@ -295,9 +296,8 @@ generator/js_code_container.o: tlib/tree.hh generator/Text.hh signals/sigtype.hh
 generator/js_code_container.o: signals/interval.hh tlib/tlib.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/js_code_container.o: generator/description.hh signals/signals.hh generator/uitree.hh generator/floats.hh
 generator/js_code_container.o: generator/function_builder.hh parallelize/code_loop.hh generator/fir_to_fir.hh
-generator/js_code_container.o: generator/js_instructions.hh generator/type_manager.hh generator/vec_code_container.hh
-generator/js_code_container.o: errors/exception.hh global.hh parser/sourcereader.hh boxes/boxes.hh
-generator/js_code_container.o: evaluate/loopDetector.hh
+generator/js_code_container.o: generator/js_instructions.hh generator/type_manager.hh errors/exception.hh global.hh
+generator/js_code_container.o: parser/sourcereader.hh boxes/boxes.hh evaluate/loopDetector.hh
 generator/llvm_code_container.o: generator/llvm_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/llvm_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh
 generator/llvm_code_container.o: tlib/tree.hh generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -308,7 +308,7 @@ generator/llvm_code_container.o: generator/llvm_instructions.hh errors/exception
 generator/llvm_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh generator/vec_code_container.hh
 generator/llvm_code_container.o: generator/omp_code_container.hh generator/wss_code_container.hh
 generator/llvm_dsp_aux.o: generator/llvm_dsp_aux.hh ../architecture/faust/gui/UI.h ../architecture/faust/gui/CUI.h
-generator/llvm_dsp_aux.o: ../architecture/faust/audio/dsp.h export.hh ../architecture/faust/libfaust.h
+generator/llvm_dsp_aux.o: ../architecture/faust/audio/dsp.h export.hh libfaust.h
 generator/occurences.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 generator/occurences.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh
 generator/occurences.o: generator/occurences.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh

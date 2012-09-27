@@ -50,6 +50,8 @@ httpd/HTTPDSetup.o: httpd/HTTPDSetup.h httpd/HTTPDServer.h msg/MessageProcessor.
 json/jsoncontrol.o: json/jsoncontrol.h json/jsonnode.h lib/smartpointer.h
 json/jsonfactory.o: json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h
 json/jsonfactory.o: json/jsongroup.h
+json/jsonfaustui.o: include/jsonfaustui.h ../../faust/gui/UI.h ../../faust/gui/meta.h json/jsonui.h json/jsonfactory.h
+json/jsonfaustui.o: json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h
 json/jsongroup.o: json/jsongroup.h json/jsonnode.h lib/smartpointer.h
 json/jsonroot.o: json/jsonroot.h lib/smartpointer.h json/jsonnode.h
 json/jsonui.o: json/jsonui.h json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h

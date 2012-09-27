@@ -69,6 +69,8 @@ install :
 	mkdir -p $(prefix)/lib/faust
 	install compiler/faust $(prefix)/bin/
 	install compiler/libfaust.a $(prefix)/lib/faust
+	cp compiler/libfaust.h  $(prefix)/include/faust/
+	cp compiler/generator/llvm-dsp.h  $(prefix)/include/faust/
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/lib/faust/
 	cp architecture/*.cpp $(prefix)/lib/faust/

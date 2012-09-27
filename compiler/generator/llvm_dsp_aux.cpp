@@ -21,7 +21,7 @@
  
 #include <stdio.h>
 #include "llvm_dsp_aux.hh"
-#include "../../architecture/faust/libfaust.h"
+#include "../libfaust.h"
 
 #include <stdio.h>
 
