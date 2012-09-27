@@ -349,8 +349,12 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // Struct Meta
             VECTOR_OF_TYPES fStructTy_struct_Meta_fields;
             PointerType* PointerTy_0 = PointerType::get(IntegerType::get(fModule->getContext(), 8), 0);
+            
+            fStructTy_struct_Meta_fields.push_back(PointerTy_0);
+            
             // Declare fun
             VECTOR_OF_TYPES FuncTy_2_args;
+            FuncTy_2_args.push_back(PointerTy_0);
             FuncTy_2_args.push_back(PointerTy_0);
             FuncTy_2_args.push_back(PointerTy_0);
             FunctionType* FuncTy_2 = FunctionType::get(
@@ -374,6 +378,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             StructTy_struct_UIGlue_fields.push_back(PointerTy_0);
             
+            // Declare fun
             VECTOR_OF_TYPES FuncTy_2_args;
             FuncTy_2_args.push_back(PointerTy_0);
             FuncTy_2_args.push_back(PointerTy_0);

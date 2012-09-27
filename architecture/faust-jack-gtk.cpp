@@ -25,14 +25,24 @@
  ************************************************************************/
 
 #include <libgen.h>
+#include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/audio/llvm-dsp.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/gui/jsonfaustui.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
+
+struct MyMeta : public Meta
+{
+    virtual void declare(const char* key, const char* value)
+    {
+        printf("key = %s value = %s\n", key, value);
+    }
+};
 
 //----------------------------------------------------------------------------
 // 	FAUST generated code
@@ -130,6 +140,13 @@ int main(int argc, char *argv[])
             return 1;
         }
         
+        MyMeta meta;
+        httpdfaust::jsonfaustui json("", "", 0);
+        DSP->buildUserInterface(&json);
+        metadataDSPFactory(factory3, &json);
+        metadataDSPFactory(factory3, &meta);
+        printf("JSON %s\n", json.json());
+        
         /*
         printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
         DSP = new llvmdsp(1, NULL, "process = +,+;");
@@ -151,9 +168,6 @@ int main(int argc, char *argv[])
 	GUI* interface 	= new GTKUI(filename, &argc, &argv);
 	FUI* finterface	= new FUI();
     
-    string json = DSP->buildJSON();
-    cout << json << endl;
-
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
 

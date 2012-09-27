@@ -441,6 +441,18 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
 
     BasicBlock* init_block = BasicBlock::Create(getGlobalContext(), "init", llvm_metaData);
     fBuilder->SetInsertPoint(init_block);
+    
+    Value* idx0[2];
+    idx0[0] = genInt64(0);
+    idx0[1] = genInt32(0);
+    Value* meta_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx0, idx0+2));
+    LoadInst* load_meta_ptr = fBuilder->CreateLoad(meta_ptr);
+
+    Value* idx1[2];
+    idx1[0] = genInt64(0);
+    idx1[1] = genInt32(1);
+    Value* mth_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx1, idx1+2));
+    LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
     for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         GlobalVariable* llvm_label1;
@@ -459,17 +471,12 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
                 }
             }
         }
-
-        Value* idx[2];
-        idx[0] = genInt64(0);
-        idx[1] = genInt32(0);
-        Value* mth_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx, idx+2));
-        LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
-
-        Value* idx2[2];
-        idx2[0] = fBuilder->CreateConstGEP2_32(llvm_label1, 0, 0);
-        idx2[1] = fBuilder->CreateConstGEP2_32(llvm_label2, 0, 0);
-        CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+2));
+    
+        Value* idx2[3];
+        idx2[0] = load_meta_ptr;
+        idx2[1] = fBuilder->CreateConstGEP2_32(llvm_label1, 0, 0);
+        idx2[2] = fBuilder->CreateConstGEP2_32(llvm_label2, 0, 0);
+        CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+3));
         call_inst->setCallingConv(CallingConv::C);
     }
 

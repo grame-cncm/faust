@@ -266,6 +266,7 @@ bool llvm_dsp_factory::initJIT()
         fClassInit = (classInitFun)LoadOptimize("classInit_mydsp");
         fInstanceInit = (instanceInitFun)LoadOptimize("instanceInit_mydsp");
         fCompute = (computeFun)LoadOptimize("compute_mydsp");
+        fMetadata = (metadataFun)LoadOptimize("metadata_mydsp");
         // FIXME : what happens if loaded from bitcode or IR ?
         if (fScheduler) {
             gComputeThreadExternal = (computeThreadExternalFun)LoadOptimize("computeThreadExternal");
@@ -292,129 +293,13 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
 }
 
-std::string llvm_dsp_factory::BuildJSON(llvm_dsp_imp* dsp)
+void llvm_dsp_factory::metadataDSPFactory(Meta* m)
 {
-    stringstream dst;
-    UIGlue glue;
-    JSONUI json(&dst);
-    buildUIGlue(&glue, &json);
-    fBuildUserInterface(dsp, &glue);
-    json.finish();
-    return dst.str();
+    MetaGlue glue;
+    buildMetaGlue(&glue, m);
+    fMetadata(&glue);
 }
-
-// -- widget's layouts
-
-static void tab(int n, ostream& fout)
-{
-    fout << '\n';
-    while (n--) fout << '\t';
-}
-
-void JSONUI::openGroup(const char* group, const char* label)
-{
-    fTab++;
-    tab(fTab, *fOut); *fOut << "\"" << group << "\":" << "\"" << label << "\"" << "[";
-    fNewGroup = true;
-    fTab++; 
-}
-
-void JSONUI::openTabBox(const char* label)
-{
-    openGroup("tablegroup", label);
-}
-
-void JSONUI::openHorizontalBox(const char* label)
-{
-    openGroup("horizontalgroup", label);
-}
-void JSONUI::openVerticalBox(const char* label)
-{
-    openGroup("verticalgroup", label);
-}
-
-void JSONUI::closeBox()
-{
-    fTab--;
-    tab(fTab, *fOut); *fOut << "]" << endl;
-    fTab--;
-}
-
-// -- active widgets
-
-void JSONUI::addGenericButton(const char* button, const char* label, FAUSTFLOAT* zone)
-{
-    tab(fTab, *fOut); 
-    string beg = (fNewGroup) ? "{ " : ",{ ";
-    fNewGroup = false;
-    *fOut << beg << "\"type\":" << "\"" << button << "\",";
-    tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\"";
-    tab(fTab, *fOut); *fOut << "}";
-}
-
-void JSONUI::addButton(const char* label, FAUSTFLOAT* zone)
-{
-    addGenericButton("button", label, zone);
-}
-void JSONUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
-{
-    addGenericButton("checkbutton", label, zone);
-}
-void JSONUI::addGenericSlider(const char* slider, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    tab(fTab, *fOut);
-    string beg = (fNewGroup) ? "{ " : ",{ ";
-    fNewGroup = false;
-    *fOut << beg << "\"type\":" << "\"" << slider << "\",";
-    tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\",";
-    tab(fTab, *fOut); *fOut << "\"init\":" << float(init) << ",";
-    tab(fTab, *fOut); *fOut << "\"min\":" << float(min) << ",";
-    tab(fTab, *fOut); *fOut << "\"max\":" << float(max) << ",";
-    tab(fTab, *fOut); *fOut << "\"step\":" << float(step);
-    tab(fTab, *fOut); *fOut << "}";
-}
- 
-void JSONUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    addGenericSlider("vecticalslider", label, zone, init, min, max, step);
-}
-void JSONUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    addGenericSlider("horizontalslider", label, zone, init, min, max, step);
-}
-void JSONUI::addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-{
-    addGenericSlider("numentry", label, zone, init, min, max, step);
-}
-
-// -- passive widgets
-
-void JSONUI::addGenericBargraph(const char* bargraph, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    tab(fTab, *fOut); 
-    string beg = (fNewGroup) ? "{ " : ",{ ";
-    fNewGroup = false;
-    *fOut << beg << "\"type\":" << "\"" << bargraph << "\",";
-    tab(fTab, *fOut); *fOut << "\"label\":" << "\"" << label << "\",";
-    tab(fTab, *fOut); *fOut << "\"min\":" << float(min) << ",";
-    tab(fTab, *fOut); *fOut << "\"max\":" << float(max) << ",";
-    tab(fTab, *fOut); *fOut << "}";
-}
-
-void JSONUI::addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    addGenericBargraph("horizontalbargraph", label, zone, min, max);
-}
-void JSONUI::addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-{
-    addGenericBargraph("verticalbargraph", label, zone, min, max);
-}
-
-// -- metadata declarations
-
-void JSONUI::declare(FAUSTFLOAT* zone, const char* key, const char* val) 
-{}
-        
+  
 // Instance 
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
@@ -460,11 +345,6 @@ void llvm_dsp_aux::buildUserInterface(UI* interface)
     UIGlue glue;
     buildUIGlue(&glue, interface);
     fDSPFactory->fBuildUserInterface(fDSP, &glue);
-}
-
-std::string llvm_dsp_aux::buildJSON()
-{
-    return  fDSPFactory->BuildJSON(fDSP);
 }
 
 void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
@@ -588,6 +468,11 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string
     factory->writeDSPFactoryToIRFile(ir_code_path);
 }
 
+EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
+{
+    factory->metadataDSPFactory(m);
+}
+
 // Instance
 
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
@@ -635,9 +520,4 @@ EXPORT void llvm_dsp::buildUserInterface(UI* interface)
 EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
-}
-
-EXPORT std::string llvm_dsp::buildJSON()   
-{ 
-    return reinterpret_cast<llvm_dsp_aux*>(this)->buildJSON();
 }

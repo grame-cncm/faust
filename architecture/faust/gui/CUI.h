@@ -26,6 +26,8 @@
 #define FAUSTFLOAT float
 #endif
 
+#include "faust/gui/meta.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,14 +76,6 @@ typedef struct {
     declareFun declare;
 
 } UIGlue;
-
-typedef void (* metaDeclareFun) (const char* key, const char* value);
-
-typedef struct {
-
-    metaDeclareFun declare;
-
-} MetaGlue;
 
 void openTabBoxGlue(void* cpp_interface, const char* label)
 {
@@ -170,6 +164,30 @@ void buildUIGlue(UIGlue* glue, UI* interface)
     glue->addHorizontalBargraph = addHorizontalBargraphGlue;
     glue->addVerticalBargraph = addVerticalBargraphGlue;
     glue->declare = declareGlue;
+}
+
+typedef void (* metaDeclareFun) (void* interface, const char* key, const char* value);
+
+struct Meta;
+
+typedef struct {
+
+    void* mInterface;
+    
+    metaDeclareFun declare;
+
+} MetaGlue;
+
+void declareMetaGlue(void* cpp_interface, const char* key, const char* value)
+{
+    Meta* interface = static_cast<Meta*>(cpp_interface);
+    interface->declare(key, value);
+}
+
+void buildMetaGlue(MetaGlue* glue, Meta* meta)
+{
+    glue->mInterface = meta;
+    glue->declare = declareMetaGlue;
 }
 
 #ifdef __cplusplus

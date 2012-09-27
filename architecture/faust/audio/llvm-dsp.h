@@ -28,6 +28,7 @@
 
 #include <string>
 #include "faust/audio/dsp.h"
+#include "faust/gui/meta.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -141,6 +142,8 @@ llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, cons
 */
 void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
+void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
+
 /**
 * Instance class
 */
@@ -156,8 +159,7 @@ class llvm_dsp : public dsp {
         virtual void init(int samplingFreq);
 
         virtual void buildUserInterface(UI* interface);
-        virtual std::string buildJSON();
-
+ 
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
 };

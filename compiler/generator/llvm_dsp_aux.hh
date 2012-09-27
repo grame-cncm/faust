@@ -75,59 +75,11 @@ typedef void (* initFun) (llvm_dsp_imp* self, int freq);
 typedef void (* classInitFun) (int freq);
 typedef void (* instanceInitFun) (llvm_dsp_imp* self, int freq);
 typedef void (* computeFun) (llvm_dsp_imp* self, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+typedef void (* metadataFun) (MetaGlue* meta);
 
 class llvm_dsp_aux;
 
-class JSONUI : public UI {
-
-    private:
-       
-        std::ostream* fOut;
-        int fTab;
-        bool fNewGroup;
-        
-        void openGroup(const char* group, const char* label);
-        void addGenericButton(const char* button, const char* label, FAUSTFLOAT* zone);
-        void addGenericSlider(const char* slider, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-        void addGenericBargraph(const char* bargraph, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
- 
-    public:
-    
-        JSONUI(std::ostream* out):fOut(out),fTab(0),fNewGroup(false)
-        {
-            *fOut << "{";
-        }
-        
-        void finish()
-        {
-             *fOut << "}" << endl;
-        }
-  
-        // -- widget's layouts
-
-        virtual void openTabBox(const char* label);
-        virtual void openHorizontalBox(const char* label);
-        virtual void openVerticalBox(const char* label);
-        virtual void closeBox();
-
-        // -- active widgets
-
-        virtual void addButton(const char* label, FAUSTFLOAT* zone);
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone);
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-
-        // -- passive widgets
-
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
-
-        // -- metadata declarations
-
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val);
-
-}; 
+struct Meta;
 
 class llvm_dsp_factory {
 
@@ -149,6 +101,7 @@ class llvm_dsp_factory {
         classInitFun fClassInit;
         instanceInitFun fInstanceInit;
         computeFun fCompute;
+        metadataFun fMetadata;
         
         string fLibraryPath;
         
@@ -161,9 +114,7 @@ class llvm_dsp_factory {
             const char* input_name, const char* input, char* error_msg);
             
         void Init();
-        
-        std::string BuildJSON(llvm_dsp_imp* dsp);
-                  
+                   
   public:
   
         llvm_dsp_factory(const std::string& module_path, int opt_level = 3);
@@ -190,6 +141,8 @@ class llvm_dsp_factory {
         void writeDSPFactoryToIRFile(const std::string& ir_code_path);
         
         bool initJIT();
+        
+        void metadataDSPFactory(Meta* m);
     
 };
 
@@ -215,7 +168,6 @@ class llvm_dsp_aux : public dsp {
         virtual void init(int samplingFreq);
       
         virtual void buildUserInterface(UI* interface);
-        virtual std::string buildJSON();
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      
@@ -255,6 +207,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
+EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
+
 class EXPORT llvm_dsp : public dsp {
                 
     public:
@@ -267,7 +221,6 @@ class EXPORT llvm_dsp : public dsp {
         virtual void init(int samplingFreq);
       
         virtual void buildUserInterface(UI* interface);
-        virtual std::string buildJSON();
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
      

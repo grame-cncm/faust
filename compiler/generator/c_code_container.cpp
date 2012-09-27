@@ -205,13 +205,13 @@ void CCodeContainer::produceClass()
 
     for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
-            tab(n+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+            tab(n+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
-                    tab(n+1, *fOut); *fOut << "m->declare(\"" << *(i->first) << "\", " << **j << ");" ;
+                    tab(n+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **j << ");" ;
                 } else {
-                    tab(n+1, *fOut); *fOut << "m->declare(\"" << "contributor" << "\", " << **j << ");";
+                    tab(n+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << "contributor" << "\", " << **j << ");";
                 }
             }
         }

@@ -26,14 +26,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "faust/gui/meta.h"
+
 struct XXXX_Meta : std::map<const char*, const char*>
 {
     void declare(const char* key, const char* value) { (*this)[key]=value; }
-};
-
-struct Meta
-{
-    virtual void declare(const char* key, const char* value) = 0;
 };
 
 struct MY_Meta : Meta, std::map<const char*, const char*>
