@@ -37,7 +37,7 @@ endif
 ##CXXFLAGS ?= -g -Wall -Wuninitialized 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized  
 CXXFLAGS += -fvisibility=hidden -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
-CXXFLAGS += -I`llvm-config --includedir` -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+CXXFLAGS += -I`llvm-config --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
 all : faust libfaust
