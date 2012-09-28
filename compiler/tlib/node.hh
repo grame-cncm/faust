@@ -55,6 +55,7 @@
 
 #include <iostream>
 #include "symbol.hh"
+#include <sys/types.h>
 
 using namespace std;
 
