@@ -203,17 +203,18 @@ Tree SourceReader::parsefile(string fname)
 	string fullpath;
   	yyerr = 0;
     yylineno = 1;
+    FILE* tmp_file; // Keep file to properly close it
  	
 	yyfilename = fname.c_str();
-	yyin = fopensearch(yyfilename, fullpath);
-	if (yyin == NULL) {
+    tmp_file = yyin = fopensearch(yyfilename, fullpath);
+    if (yyin == NULL) {
         stringstream error;
         error << "ERROR : Unable to open file " << yyfilename << endl;
         throw faustexception(error.str());
 	}
     
     Tree res = parse(fullpath);
-    fclose(yyin);
+    fclose(tmp_file);
     return res;
 }
 

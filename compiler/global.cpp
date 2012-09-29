@@ -48,6 +48,8 @@
 #include "binop.hh"
 #include "instructions.hh"
 
+// Parser
+extern FILE* yyin;
 extern const char * yyfilename;
 
 list<Garbageable*> Garbageable::gObjectTable;
@@ -318,6 +320,7 @@ void global::init()
     
     // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
     yyfilename = "????";
+    yyin = 0;
     
     Typed::init();
 }
