@@ -53,6 +53,7 @@
 #include <iostream>
 #include "symbol.hh"
 #include "garbageable.hh"
+#include <sys/types.h>
 
 using namespace std;
 
